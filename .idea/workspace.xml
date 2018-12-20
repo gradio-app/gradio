@@ -1,13 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="fd73cd66-e80f-470e-a2ec-e220d3b6b864" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/css/download (1).png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/css/download (2).png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/css/download.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/gradiome.py" beforeDir="false" afterPath="$PROJECT_DIR$/gradiome.py" afterDir="false" />
-    </list>
+    <list default="true" id="fd73cd66-e80f-470e-a2ec-e220d3b6b864" name="Default Changelist" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -59,8 +53,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/gradiome.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="425">
-              <caret line="94" column="96" selection-start-line="94" selection-start-column="96" selection-end-line="94" selection-end-column="96" />
+            <state relative-caret-position="1309">
+              <caret line="77" column="55" selection-start-line="77" selection-start-column="55" selection-end-line="77" selection-end-column="55" />
               <folding>
                 <element signature="e#0#35#0" expanded="true" />
                 <marker date="1545291382009" expanded="true" signature="4437:5228" ph="..." />
@@ -306,8 +300,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/gradiome.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="425">
-          <caret line="94" column="96" selection-start-line="94" selection-start-column="96" selection-end-line="94" selection-end-column="96" />
+        <state relative-caret-position="1309">
+          <caret line="77" column="55" selection-start-line="77" selection-start-column="55" selection-end-line="77" selection-end-column="55" />
           <folding>
             <element signature="e#0#35#0" expanded="true" />
             <marker date="1545291382009" expanded="true" signature="4437:5228" ph="..." />
