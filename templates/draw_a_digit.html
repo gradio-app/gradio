@@ -1,0 +1,224 @@
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Gradio: Draw a Digit</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+    <link href="../css/starter-template.css" rel="stylesheet">
+      <!-- Custom styles for this template -->
+  </head>
+
+  <body>
+
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+      <a class="navbar-brand" href="#">Draw a Digit</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+          <!--<li class="nav-item active">-->
+            <!--<a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>-->
+          <!--</li>-->
+          <!--<li class="nav-item">-->
+            <!--<a class="nav-link disabled" href="#">Disabled</a>-->
+          <!--</li>-->
+          <!--<li class="nav-item dropdown">-->
+            <!--<a class="nav-link dropdown-toggle" href="http://example.com" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Dropdown</a>-->
+            <!--<div class="dropdown-menu" aria-labelledby="dropdown01">-->
+              <!--<a class="dropdown-item" href="#">Action</a>-->
+              <!--<a class="dropdown-item" href="#">Another action</a>-->
+              <!--<a class="dropdown-item" href="#">Something else here</a>-->
+            <!--</div>-->
+          <!--</li>-->
+        </ul>
+          <ul class="navbar-nav">
+          <!--<li class="nav-item">-->
+            <!--<a class="nav-link" href="#">Help</a>-->
+          <!--</li>-->
+          <li class="nav-item ">
+            <a class="nav-link" href="http://www.siliconprep.com"><em>Gradio</em>, a tool by Silicon School</a>
+          </li>
+          </ul>
+      </div>
+    </nav>
+
+    <main role="main" class="container starter-template">
+
+
+            <div class="row">
+              <div class="col-6">
+                <h5>Use your cursor to draw a digit below</h5>
+                <canvas id="canvas" width="400" height="400"></canvas><br>
+                <div class="btn-group" role="group" aria-label="Basic example">
+                <button type="button" class="btn btn-primary" id="submit-button">Recognize</button>
+                <button type="button" class="btn btn-secondary" id="clear-button">Clear</button>
+                </div>
+              </div>
+              <div class="col-6">
+                <h5>Predicted digit appears here</h5>
+                <canvas id="predict_canvas" width="400" height="400" style="background-color:black"></canvas><br>
+              </div>
+            </div>
+
+
+
+      </div>
+
+    </main><!-- /.container -->
+
+    <footer class="footer">
+      <div class="container">
+        <span class="text-muted">Place sticky footer content here.</span>
+      </div>
+    </footer>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="../js/bootstrap.min.js"></script>
+    <script src="../js/bootstrap-notify.min.js"></script>
+    <script>
+
+        var canvas = document.getElementById('canvas');
+        context = canvas.getContext("2d");
+        context.fillStyle = "black";
+        context.fillRect(0, 0, 400, 400);
+
+        var predict_canvas = document.getElementById("predict_canvas");
+        var ctx = predict_canvas.getContext("2d");
+
+        const sleep = (milliseconds) => {
+          return new Promise(resolve => setTimeout(resolve, milliseconds))
+        }
+
+        function notifyError(error) {
+              $.notify({
+                  // options
+                  message: 'Not able to communicate with model (is python code still running?)'
+              },{
+                  // settings
+                  type: 'danger',
+                  animate: {
+                      enter: 'animated fadeInDown',
+                      exit: 'animated fadeOutUp'
+                  },
+                  placement: {
+                      from: "bottom",
+                      align: "right"
+                  },
+                  delay: 5000
+
+              });
+         }
+
+        try {
+          var ws = new WebSocket("ws://127.0.0.1:5679/")
+          ws.onerror = function(evt) {
+            notifyError(evt)
+          };
+
+          ws.onmessage = function (event) {
+            console.log(event.data);
+            ctx.clearRect(0, 0, context.canvas.width, context.canvas.height); // Clears the canvas
+            ctx.font = "330px Arial";
+            ctx.fillStyle = "white";
+            sleep(300).then(() => {
+              ctx.fillText(event.data, 110, 310);
+            })
+
+          }
+        } catch (e) {
+          notifyError(e)
+        }
+
+
+
+
+        $('#canvas').mousedown(function(e){
+          var mouseX = e.pageX - this.getBoundingClientRect().left + document.documentElement.scrollLeft;
+          var mouseY = e.pageY - this.getBoundingClientRect().top + document.documentElement.scrollTop
+;
+
+          paint = true;
+          addClick(mouseX, mouseY);
+          redraw();
+        });
+        $('#canvas').mousemove(function(e){
+          if(paint){
+            addClick(e.pageX - this.getBoundingClientRect().left + document.documentElement.scrollLeft, e.pageY - this.getBoundingClientRect().top + document.documentElement.scrollTop, true);
+            redraw();
+          }
+        });
+        $('#canvas').mouseup(function(e){
+          paint = false;
+        });
+        $('#canvas').mouseleave(function(e){
+          paint = false;
+        });
+        var clickX = new Array();
+        var clickY = new Array();
+        var clickDrag = new Array();
+        var paint;
+
+        function addClick(x, y, dragging)
+        {
+          clickX.push(x);
+          clickY.push(y);
+          clickDrag.push(dragging);
+        }
+        function redraw(){
+          context.clearRect(0, 0, context.canvas.width, context.canvas.height); // Clears the canvas
+          context.fillStyle = "black";
+          context.fillRect(0, 0, 400, 400);
+
+          context.strokeStyle = "#FFF";
+          context.lineJoin = "round";
+          context.lineWidth = 25;
+
+          for(var i=0; i < clickX.length; i++) {
+            context.beginPath();
+            if(clickDrag[i] && i){
+              context.moveTo(clickX[i-1], clickY[i-1]);
+             }else{
+               context.moveTo(clickX[i]-1, clickY[i]);
+             }
+             context.lineTo(clickX[i], clickY[i]);
+             context.closePath();
+             context.stroke();
+          }
+        }
+
+        $('#clear-button').click(function(e){
+            context.clearRect(0, 0, context.canvas.width, context.canvas.height); // Clears the canvas
+            clickX = new Array();
+            clickY = new Array();
+            clickDrag = new Array();
+            context.fillStyle = "black";
+            context.fillRect(0, 0, 400, 400);
+            ctx.clearRect(0, 0, context.canvas.width, context.canvas.height); // Clears the canvas
+        })
+
+
+        $('#submit-button').click(function(e){
+            var dataURL = canvas.toDataURL("image/png");
+            ws.send(dataURL, function(e){
+              notifyError(e)
+            });
+
+        })
+
+
+
+    </script>
+  </body>
+</html>
