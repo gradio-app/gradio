@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="fd73cd66-e80f-470e-a2ec-e220d3b6b864" name="Default Changelist" comment="" />
+    <list default="true" id="fd73cd66-e80f-470e-a2ec-e220d3b6b864" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/css/starter-template.css" beforeDir="false" afterPath="$PROJECT_DIR$/css/starter-template.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/draw_a_digit.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/draw_a_digit.html" afterDir="false" />
+    </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -34,15 +37,15 @@
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="css" value="1" />
-          <entry key="html" value="1491" />
+          <entry key="css" value="11" />
+          <entry key="html" value="1592" />
           <entry key="py" value="2465" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="CSS" value="1" />
-          <entry key="HTML" value="1491" />
+          <entry key="CSS" value="11" />
+          <entry key="HTML" value="1592" />
           <entry key="Python" value="2465" />
         </counts>
       </usages-collector>
@@ -51,23 +54,13 @@
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/gradiome.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1309">
-              <caret line="77" column="55" selection-start-line="77" selection-start-column="55" selection-end-line="77" selection-end-column="55" />
-              <folding>
-                <element signature="e#0#35#0" expanded="true" />
-                <marker date="1545291382009" expanded="true" signature="4437:5228" ph="..." />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/templates/draw_a_digit.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1479">
-              <caret line="87" selection-start-line="87" selection-end-line="87" />
+            <state relative-caret-position="308">
+              <caret line="79" column="52" selection-start-line="79" selection-start-column="52" selection-end-line="79" selection-end-column="52" />
+              <folding>
+                <element signature="n#style#0;n#div#0;n#footer#0;n#body#0;n#html#0;n#!!top" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -75,8 +68,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/css/starter-template.css">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="289">
-              <caret line="17" selection-start-line="17" selection-end-line="17" />
+            <state relative-caret-position="374">
+              <caret line="22" column="11" selection-start-line="22" selection-start-column="11" selection-end-line="22" selection-end-column="11" />
             </state>
           </provider>
         </entry>
@@ -141,10 +134,10 @@
         <option value="$PROJECT_DIR$/home/routing.py" />
         <option value="$PROJECT_DIR$/gradiome/routing.py" />
         <option value="$PROJECT_DIR$/home/consumers.py" />
-        <option value="$PROJECT_DIR$/css/starter-template.css" />
         <option value="$PROJECT_DIR$/client.html" />
-        <option value="$PROJECT_DIR$/templates/draw_a_digit.html" />
         <option value="$PROJECT_DIR$/gradiome.py" />
+        <option value="$PROJECT_DIR$/css/starter-template.css" />
+        <option value="$PROJECT_DIR$/templates/draw_a_digit.html" />
       </list>
     </option>
   </component>
@@ -274,13 +267,6 @@
     <entry file="file://$PROJECT_DIR$/home/consumers.py" />
     <entry file="file://$PROJECT_DIR$/home/routing.py" />
     <entry file="file://$PROJECT_DIR$/home/views.py" />
-    <entry file="file://$PROJECT_DIR$/css/starter-template.css">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="289">
-          <caret line="17" selection-start-line="17" selection-end-line="17" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/client.html">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="384">
@@ -291,20 +277,26 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/templates/draw_a_digit.html">
+    <entry file="file://$PROJECT_DIR$/gradiome.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1479">
-          <caret line="87" selection-start-line="87" selection-end-line="87" />
+        <state relative-caret-position="68">
+          <caret line="4" column="19" selection-start-line="4" selection-start-column="7" selection-end-line="4" selection-end-column="19" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/gradiome.py">
+    <entry file="file://$PROJECT_DIR$/css/starter-template.css">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1309">
-          <caret line="77" column="55" selection-start-line="77" selection-start-column="55" selection-end-line="77" selection-end-column="55" />
+        <state relative-caret-position="374">
+          <caret line="22" column="11" selection-start-line="22" selection-start-column="11" selection-end-line="22" selection-end-column="11" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/templates/draw_a_digit.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="308">
+          <caret line="79" column="52" selection-start-line="79" selection-start-column="52" selection-end-line="79" selection-end-column="52" />
           <folding>
-            <element signature="e#0#35#0" expanded="true" />
-            <marker date="1545291382009" expanded="true" signature="4437:5228" ph="..." />
+            <element signature="n#style#0;n#div#0;n#footer#0;n#body#0;n#html#0;n#!!top" expanded="true" />
           </folding>
         </state>
       </provider>
