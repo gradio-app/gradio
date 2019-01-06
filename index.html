@@ -20,8 +20,8 @@
 
   <body>
 
-      <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
-      <a class="navbar-brand" href="#">Gradio</a>
+      <nav class="navbar navbar-expand-md navbar-light fixed-top" style="background-color: #e3f2fd">
+      <a class="navbar-brand" href="#" style="font-weight:bold">Gradio</a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -47,8 +47,8 @@
           <!--<li class="nav-item">-->
             <!--<a class="nav-link" href="#">Help</a>-->
           <!--</li>-->
-          <li class="nav-item ">
-            <a class="nav-link" href="http://www.siliconprep.com"><em>A tool by Silicon School</em></a>
+          <li class="nav-item " style="font-weight:500; font-decoration:none">
+            <a class="nav-link" href="http://www.siliconprep.com"><em>Developed by Silicon Prep</em></a>
           </li>
           </ul>
       </div>
@@ -92,16 +92,66 @@
       <section class="jumbotron text-center">
         <div class="container">
           <h1 class="jumbotron-heading">Gradio</h1>
-          <p class="lead text-muted">Put a beautiful interactive demo layer over your trained ML model.</p>
+          <p class="lead text-muted" style="font-weight:400 !important">Put a beautiful interactive demo layer over your trained ML model.</p>
           <p>
-            <a href="#" class="btn btn-primary my-2">See an example</a>
-            <a href="#" class="btn btn-secondary my-2">How to use Gradio</a>
+            <a href="#" class="btn btn-lg btn-pink my-2">Get started</a>
+            <a href="#" class="btn btn-lg btn-primary my-2">See examples</a>
+            <a href="#" class="btn btn-lg btn-secondary my-2">Github</a>
           </p>
         </div>
       </section>
 
       <div class="album py-5 bg-light">
         <div class="container">
+          <h1>Getting started</h1>
+          <p>
+          Gradio (gradient input-output) is a python library that allows you to easily transform your trained model into a webpage that easily allows you to interface with it. This allows you to:
+          <ul>
+            <li>Show off the model to others</li>
+            <li>Identify response to unusual behavior</li>
+            <li>Encourage fairness and reproducibility of your model</li>
+          </ul>
+          Gradio is designed to be very simple to use. For example, in just 2 lines of Python code, you can create a sketchpad that allows you write digits and see whether your MNIST model can correctly identify them.
+          </p>
+
+          <h4> Installation </h4>
+          <p> Gradio is a standard python library, so install it from your terminal like this:
+          <div class="codebox">
+              <code>
+                  pip install gradio
+              </code>
+          </div>
+          </p>
+          <h4> Usage </h4>
+          <p> To use gradio in your code, simply import it, and then launch the appropriate interface
+          <div class="codebox">
+              <code>
+                  import gradio <br>
+                  import tensorflow as tf <br> &nbsp; <br>
+
+                  model = tf.keras.Sequential() <br>
+                  # Define your model, as you ordinarily do <br>
+                  # Train your model, as you ordinarily do <br> &nbsp; <br>
+
+                  gradio.interfaces.Sketchpad(model=model, model_type='keras').launch()
+              </code>
+          </div>
+          </p>
+
+          This will open a new browser window which will allow you to draw into a "sketchpad". Behind the scenes, gradio transforms the user drawing into a numeric array and passes it into your model for your prediction.
+          Then, gradio will fetch the result and show it to the user. Like this:
+          <br>&nbsp;<br>
+          Currently, the following <code>model_type</code> are supported:
+          <ul>
+            <li>Keras models</li>
+            <li>Sklearn models</li>
+            <li>Arbitrary python functions</li>
+          </ul>
+
+          See the gallery of interfaces below to see what kind of interfaces can be supported. Contribute your own interfaces by visiting our GitHub page.
+
+          <hr>
+          <h1>Gallery of Interfaces</h1>
 
           <div class="row">
             <div class="col-md-4">
@@ -152,15 +202,15 @@
 
             <!--<div class="col-md-4">-->
               <!--<div class="card mb-4 shadow-sm">-->
-                <!--<img class="card-img-top" data-src="holder.js/100px225?theme=thumb&bg=55595c&fg=eceeef&text=Thumbnail" alt="Card image cap">-->
+                <!--<img class="card-img-top" src="img/placeholder.png" alt="Card image cap">-->
                 <!--<div class="card-body">-->
-                  <!--<p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>-->
+                  <!--<p class="card-text"><strong>Image Blender</strong>: use an GAN to generate a sequence of images imputed between two images that the user has supplied.</p>-->
                   <!--<div class="d-flex justify-content-between align-items-center">-->
                     <!--<div class="btn-group">-->
                       <!--<button type="button" class="btn btn-sm btn-outline-secondary">View</button>-->
                       <!--<button type="button" class="btn btn-sm btn-outline-secondary">Source</button>-->
                     <!--</div>-->
-                    <!--<small class="text-muted">9 mins</small>-->
+                    <!--<small class="text-muted"></small>-->
                   <!--</div>-->
                 <!--</div>-->
               <!--</div>-->
