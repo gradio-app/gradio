@@ -114,6 +114,8 @@ class DrawADigit(AbstractInterface):
     def predict(self, array):
         if self.model_type=='sklearn':
             return self.model_obj.predict(array)[0]
+        elif self.model_type=='keras':
+            return self.model_obj.predict(array)[0].argmax()
         else:
             raise ValueError('model_type must be sklearn.')
 
