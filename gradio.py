@@ -15,6 +15,8 @@ LOCALHOST_IP = '127.0.0.1'
 SOCKET_PORT = 5679
 
 
+import requests, zipfile, io
+
 def resize_and_crop(img, size, crop_type='top'):
     """
     Resize and crop an image to fit the specified size.
