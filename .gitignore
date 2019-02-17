@@ -5,4 +5,5 @@ staticfiles
 *.sqlite3
 .idea/*
 .ipynb_checkpoints/*
+*.h5
 

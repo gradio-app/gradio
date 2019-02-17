@@ -2,11 +2,26 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="fd73cd66-e80f-470e-a2ec-e220d3b6b864" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.ipynb_checkpoints/Usage-checkpoint.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/.ipynb_checkpoints/Usage-checkpoint.ipynb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.ipynb_checkpoints/Emotion Detector-checkpoint.ipynb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Emotion Detector.ipynb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/js/all-io.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/js/class-output.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/js/emotion-detector.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/js/sketchpad-input.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/js/webcam-input.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/model.h5" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/model2.h5" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/script.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/templates/all_io.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/templates/class_output.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/templates/emotion_detector.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/templates/sketchpad_input.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/templates/tmp_html.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/templates/webcam_input.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Usage.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Usage.ipynb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/gradio.py" beforeDir="false" afterPath="$PROJECT_DIR$/gradio.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/index.html" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -162,8 +177,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/gradio.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="308">
-              <caret line="100" column="33" lean-forward="true" selection-start-line="100" selection-start-column="33" selection-end-line="100" selection-end-column="33" />
+            <state relative-caret-position="427">
+              <caret line="107" column="33" selection-start-line="107" selection-start-column="33" selection-end-line="107" selection-end-column="33" />
               <folding>
                 <element signature="e#0#35#0" expanded="true" />
               </folding>
@@ -333,7 +348,6 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-6" y="-6" width="1513" height="1013" extended-state="6" />
-    <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.14556533" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
@@ -457,8 +471,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/gradio.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="308">
-          <caret line="100" column="33" lean-forward="true" selection-start-line="100" selection-start-column="33" selection-end-line="100" selection-end-column="33" />
+        <state relative-caret-position="427">
+          <caret line="107" column="33" selection-start-line="107" selection-start-column="33" selection-end-line="107" selection-end-column="33" />
           <folding>
             <element signature="e#0#35#0" expanded="true" />
           </folding>
