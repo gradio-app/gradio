@@ -1,0 +1,86 @@
+<bound method Tag.prettify of <!DOCTYPE html>
+<html><head><script src="../js/all-io.js"></script>
+<script crossorigin="anonymous" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+<script src="../js/bootstrap.min.js"></script>
+<script src="../js/bootstrap-notify.min.js"></script>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport"/>
+<meta content="" name="description"/>
+<meta content="" name="author"/>
+<title>Gradio</title>
+<!-- Bootstrap core CSS -->
+<link href="../css/bootstrap.min.css" rel="stylesheet"/>
+<link href="../css/draw-a-digit.css" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"/>
+</head><body>
+<nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+<a class="navbar-brand" href="#">Gradio</a>
+<button aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-target="#navbarsExampleDefault" data-toggle="collapse" type="button">
+<span class="navbar-toggler-icon"></span>
+</button>
+<div class="collapse navbar-collapse" id="navbarsExampleDefault">
+<ul class="navbar-nav mr-auto">
+</ul>
+<ul class="navbar-nav">
+<!--<li class="nav-item">-->
+<!--<a class="nav-link" href="#">Help</a>-->
+<!--</li>-->
+<li class="nav-item ">
+<a class="nav-link" href="http://www.siliconprep.com"><em>Gradio</em>, a tool by Silicon School</a>
+</li>
+</ul>
+</div>
+</nav>
+<main class="container starter-template" role="main">
+<div class="row">
+<!-- INPUT 
+====================================================================================================================================================== -->
+<html><body><div class="col-6">
+<h5>Webcam Input:</h5>
+<canvas height="400" id="canvas" style="background-color:black" width="400">
+<video id="video" playsinline="" style=" -moz-transform: scaleX(-1);
+    -o-transform: scaleX(-1);
+    -webkit-transform: scaleX(-1);
+    transform: scaleX(-1);
+    display: none;
+    ">
+</video>
+</canvas><br/>
+<div aria-label="Basic example" class="btn-group" role="group">
+<button class="btn btn-primary" id="capture-button" type="button">Capture</button>
+<!-- <button type="button" class="btn btn-primary" id="submit-button">Recognize</button> -->
+<button class="btn btn-secondary" id="clear-button" type="button">Clear</button>
+</div>
+</div>
+<script src="../js/webcam-input.js"></script>
+</body></html>
+<!-- OUTPUT 
+====================================================================================================================================================== -->
+<html><body><div class="col-6">
+<h5>Text Output:</h5>
+<canvas height="400" id="predict_canvas" style="background-color:black" width="400"></canvas><br/>
+</div>
+<script src="../js/class-output.js"></script>
+</body></html>
+</div>
+</main><!-- /.container -->
+<footer class="footer">
+<div class="container">
+<span class="text-muted">
+<!-- Add font awesome icons -->
+            Gradio is open-source, help make it better  
+            <a class="fa fa-github" href="https://github.com/abidlabs/gradiome" target="_blank"></a>
+</span>
+<span class="text-muted pull-right">
+<!-- Add font awesome icons -->
+            Found this useful? Kindly spread the word  
+            <a class="fa fa-facebook" href="https://www.facebook.com/sharer/sharer.php?u=www.siliconprep.com" target="_blank"></a>
+<a class="fa fa-twitter" href="https://twitter.com/home?status=Check%20out%20Gradio%20tool%20at%20www.siliconprep.com" target="_blank"></a>
+</span>
+</div>
+</footer>
+<!-- Bootstrap core JavaScript
+    ================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+</body></html>
+>
