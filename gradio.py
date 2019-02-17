@@ -8,11 +8,13 @@ from io import BytesIO
 import numpy as np
 import os
 import webbrowser
+from bs4 import BeautifulSoup
 
 nest_asyncio.apply()
 
 LOCALHOST_IP = '127.0.0.1'
-SOCKET_PORT = 5679
+SOCKET_PORT = 5680
+
 
 
 def resize_and_crop(img, size, crop_type='top'):
@@ -67,33 +69,38 @@ def resize_and_crop(img, size, crop_type='top'):
     return img
 
 
-class AbstractInterface(ABC):
+class AbstractInput(ABC):
     """
-    An abstract class for defining the methods that all gradio interfaces should have.
+    An abstract class for defining the methods that all gradio inputs should have.
     """
 
-    def __init__(self, model_type, model_obj, **model_params):
-        """
-        :param model_type: what kind of trained model, can be 'keras' or 'sklearn'.
-        :param model_obj: the model object, such as a sklearn classifier or keras model.
-        :param model_params: additional model parameters.
-        """
-        self.model_type = model_type
-        self.model_obj = model_obj
-        self.model_params = model_params
+    def __init__(self):
         super().__init__()
 
-    def start(self):
+    
+    @abstractmethod
+    def _get_template_path(self):
         """
-        Standard method shared by interfaces that launches a websocket at a specified IP address.
+        All interfaces should define a method that returns the path to its template.
         """
-        webbrowser.open('file://' + os.path.realpath(self._get_template_path()))
-        start_server = websockets.serve(self.communicate, LOCALHOST_IP, SOCKET_PORT)
-        asyncio.get_event_loop().run_until_complete(start_server)
-        try:
-            asyncio.get_event_loop().run_forever()
-        except RuntimeError:  # Runtime errors are thrown in jupyter notebooks because of async.
-            pass
+        pass
+
+    @abstractmethod
+    def _pre_process(self):
+        """
+        All interfaces should define a method that returns the path to its template.
+        """
+        pass
+
+class AbstractOutput(ABC):
+    """
+    An abstract class for defining the methods that all gradio inputs should have.
+    """
+
+    def __init__(self):
+        """
+        """
+        super().__init__()
 
     @abstractmethod
     def _get_template_path(self):
@@ -103,14 +110,100 @@ class AbstractInterface(ABC):
         pass
 
     @abstractmethod
-    async def communicate(self, websocket, path):
+    def _post_process(self):
         """
-        All interfaces should define a custom method that defines how they communicate with the websocket.
+        All interfaces should define a method that returns the path to its template.
         """
         pass
 
 
-class DrawADigit(AbstractInterface):
+class Sketchpad(AbstractInput):
+
+    def _get_template_path(self):
+        return 'templates/sketchpad_input.html'
+    
+    def _pre_process(self, imgstring):
+        """
+        """
+        content = imgstring.split(';')[1]
+        image_encoded = content.split(',')[1]
+        body = base64.decodebytes(image_encoded.encode('utf-8'))
+        im = Image.open(BytesIO(base64.b64decode(image_encoded))).convert('L')
+        im = resize_and_crop(im, (28, 28))
+        array = np.array(im).flatten().reshape(1, -1)
+        return array 
+
+
+class Webcam(AbstractInput):
+
+    def _get_template_path(self):
+        return 'templates/webcam_input.html'
+    
+    def _pre_process(self, imgstring):
+        """
+        """
+        content = imgstring.split(';')[1]
+        image_encoded = content.split(',')[1]
+        body = base64.decodebytes(image_encoded.encode('utf-8'))
+        im = Image.open(BytesIO(base64.b64decode(image_encoded))).convert('L')
+        im = resize_and_crop(im, (48, 48))
+        array = np.array(im).flatten().reshape(1,48,48,1)
+        return array 
+
+class Class(AbstractOutput):
+
+    def _get_template_path(self):
+        return 'templates/class_output.html'
+    
+    def _post_process(self, prediction):
+        """
+        """
+        emotion_dict = {0: "Angry", 1: "Disgust", 2: "Fear", 3: "Happy", 4: "Sad", 5: "Surprise", 6: "Neutral"}
+        return emotion_dict[prediction] 
+
+registry = {
+    'webcam':Webcam,
+    'sketchpad' :Sketchpad,
+    'class' :Class,
+}
+
+class Interface():
+    """
+    """
+
+    def __init__(self, input, output, model_obj, model_type, **model_params):
+        """
+        :param model_type: what kind of trained model, can be 'keras' or 'sklearn'.
+        :param model_obj: the model object, such as a sklearn classifier or keras model.
+        :param model_params: additional model parameters.
+        """
+        self.input_interface = registry[input]()
+        self.output_interface = registry[output]()
+        self.model_type = model_type
+        self.model_obj = model_obj
+        self.model_params = model_params
+
+    def _build_template(self):
+        input_template_path = self.input_interface._get_template_path()
+        output_template_path = self.output_interface._get_template_path()
+        input_page = open(input_template_path)
+        output_page = open(output_template_path)
+        input_soup = BeautifulSoup(input_page.read())
+        output_soup = BeautifulSoup(output_page.read())
+
+        all_io_url =  'templates/all_io.html'
+        all_io_page = open(all_io_url)
+        all_io_soup = BeautifulSoup(all_io_page.read())
+        input_tag = all_io_soup.find("div", {"id": "input"})
+        output_tag = all_io_soup.find("div", {"id": "output"})
+        
+        input_tag.replace_with(input_soup)
+        output_tag.replace_with(output_soup)
+        
+        f = open("templates/tmp_html.html", "w")
+        f.write(str(all_io_soup.prettify))
+        return 'templates/tmp_html.html'
+
     def predict(self, array):
         if self.model_type=='sklearn':
             return self.model_obj.predict(array)[0]
@@ -119,11 +212,6 @@ class DrawADigit(AbstractInterface):
         else:
             raise ValueError('model_type must be sklearn.')
 
-    def _get_template_path(self):
-        return 'templates/draw_a_digit.html'
-
-    def start(self):
-        super().start()
 
     async def communicate(self, websocket, path):
         """
@@ -132,12 +220,19 @@ class DrawADigit(AbstractInterface):
         :param path: ignored
         """
         while True:
-            imgstring = await websocket.recv()
-            content = imgstring.split(';')[1]
-            image_encoded = content.split(',')[1]
-            body = base64.decodebytes(image_encoded.encode('utf-8'))
-            im = Image.open(BytesIO(base64.b64decode(image_encoded))).convert('L')
-            im = resize_and_crop(im, (28, 28))
-            array = np.array(im).flatten().reshape(1, -1)
-            prediction = self.predict(array)
-            await websocket.send(str(prediction))
+            processed_input = self.input_interface._pre_process(await websocket.recv())
+            prediction = self.predict(processed_input)
+            processed_output = self.output_interface._post_process(prediction)
+            await websocket.send(str(processed_output))
+
+    def launch(self):
+        """
+        Standard method shared by interfaces that launches a websocket at a specified IP address.
+        """
+        webbrowser.open('file://' + os.path.realpath(self._build_template()))
+        start_server = websockets.serve(self.communicate, LOCALHOST_IP, SOCKET_PORT)
+        asyncio.get_event_loop().run_until_complete(start_server)
+        try:
+            asyncio.get_event_loop().run_forever()
+        except RuntimeError:  # Runtime errors are thrown in jupyter notebooks because of async.
+            pass

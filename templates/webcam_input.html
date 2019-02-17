@@ -1,0 +1,19 @@
+<div class="col-6">
+  <h5>Webcam Input:</h5>
+  <canvas id="canvas" width="400" height="400" style="background-color:black">
+    <video id="video"  playsinline style=" -moz-transform: scaleX(-1);
+    -o-transform: scaleX(-1);
+    -webkit-transform: scaleX(-1);
+    transform: scaleX(-1);
+    display: none;
+    "> 
+    </video>
+  </canvas><br>
+  <div class="btn-group" role="group" aria-label="Basic example">
+  <button type="button" class="btn btn-primary" id="capture-button">Capture</button>
+  <!-- <button type="button" class="btn btn-primary" id="submit-button">Recognize</button> -->
+  <button type="button" class="btn btn-secondary" id="clear-button">Clear</button>
+  </div>
+</div>
+
+<script src="../js/webcam-input.js"></script>
