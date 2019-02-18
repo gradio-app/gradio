@@ -11,7 +11,9 @@ class AbstractInput(ABC):
     When this is subclassed, it is automatically added to the registry
     """
 
-    def __init__(self):
+    def __init__(self, preprocessing_fn=None):
+        if preprocessing_fn is not None:
+            self._pre_process = preprocessing_fn
         super().__init__()
 
     @abstractmethod
