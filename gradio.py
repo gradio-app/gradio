@@ -1,120 +1,16 @@
-from abc import ABC, abstractmethod
-import base64
 import asyncio
 import websockets
 import nest_asyncio
-from PIL import Image
-from io import BytesIO
-import numpy as np
-import os
 import webbrowser
 from bs4 import BeautifulSoup
+import inputs
+import outputs
 import networking
-import preprocessing_utils
 
 nest_asyncio.apply()
 
 LOCALHOST_IP = '127.0.0.1'
 SOCKET_PORT = 5680
-
-
-class AbstractInput(ABC):
-    """
-    An abstract class for defining the methods that all gradio inputs should have.
-    """
-
-    def __init__(self):
-        super().__init__()
-
-
-    @abstractmethod
-    def _get_template_path(self):
-        """
-        All interfaces should define a method that returns the path to its template.
-        """
-        pass
-
-    @abstractmethod
-    def _pre_process(self):
-        """
-        All interfaces should define a method that returns the path to its template.
-        """
-        pass
-
-class AbstractOutput(ABC):
-    """
-    An abstract class for defining the methods that all gradio inputs should have.
-    """
-
-    def __init__(self):
-        """
-        """
-        super().__init__()
-
-    @abstractmethod
-    def _get_template_path(self):
-        """
-        All interfaces should define a method that returns the path to its template.
-        """
-        pass
-
-    @abstractmethod
-    def _post_process(self):
-        """
-        All interfaces should define a method that returns the path to its template.
-        """
-        pass
-
-
-class Sketchpad(AbstractInput):
-
-    def _get_template_path(self):
-        return 'templates/sketchpad_input.html'
-    
-    def _pre_process(self, imgstring):
-        """
-        """
-        content = imgstring.split(';')[1]
-        image_encoded = content.split(',')[1]
-        body = base64.decodebytes(image_encoded.encode('utf-8'))
-        im = Image.open(BytesIO(base64.b64decode(image_encoded))).convert('L')
-        im = preprocessing_utils.resize_and_crop(im, (28, 28))
-        array = np.array(im).flatten().reshape(1, 28, 28, 1)
-        return array 
-
-
-class Webcam(AbstractInput):
-
-    def _get_template_path(self):
-        return 'templates/webcam_input.html'
-    
-    def _pre_process(self, imgstring):
-        """
-        """
-        content = imgstring.split(';')[1]
-        image_encoded = content.split(',')[1]
-        body = base64.decodebytes(image_encoded.encode('utf-8'))
-        im = Image.open(BytesIO(base64.b64decode(image_encoded))).convert('L')
-        im = preprocessing_utils.resize_and_crop(im, (48, 48))
-        array = np.array(im).flatten().reshape(1,48,48,1)
-        return array 
-
-
-class Class(AbstractOutput):
-
-    def _get_template_path(self):
-        return 'templates/class_output.html'
-    
-    def _post_process(self, prediction):
-        """
-        """
-        return prediction
-
-registry = {
-    'webcam':Webcam,
-    'sketchpad' :Sketchpad,
-    'class' :Class,
-}
 
 
 class Interface():
@@ -128,8 +24,8 @@ class Interface():
         :param model_obj: the model object, such as a sklearn classifier or keras model.
         :param model_params: additional model parameters.
         """
-        self.input_interface = registry[input]()
-        self.output_interface = registry[output]()
+        self.input_interface = inputs.registry[input]()
+        self.output_interface = outputs.registry[output]()
         self.model_type = model_type
         self.model_obj = model_obj
         self.preprocessing_fn = preprocessing_fn
@@ -203,7 +99,7 @@ class Interface():
 
         webbrowser.get(chrome_path).open(path_to_server + path_to_template)
         start_server = websockets.serve(self.communicate, LOCALHOST_IP, SOCKET_PORT)
-        print("Model available locally at: {}".format(path_to_server))
+        print("Model available locally at: {}".format(path_to_server + path_to_template))
 
         if share_link:
             ngrok_url = networking.setup_ngrok(server_port)
