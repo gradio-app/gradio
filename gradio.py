@@ -165,7 +165,6 @@ class Interface():
         else:
             raise ValueError('model_type must be one of: "sklearn" or "keras" or "func".')
 
-
     async def communicate(self, websocket, path):
         """
         Method that defines how this interface communicates with the websocket.
@@ -173,27 +172,31 @@ class Interface():
         :param path: ignored
         """
         while True:
-            processed_input = self.input_interface._pre_process(await websocket.recv())
-            prediction = self.predict(processed_input)
-            processed_output = self.output_interface._post_process(prediction)
-            await websocket.send(str(processed_output))
+            try:
+                msg = await websocket.recv()
+                processed_input = self.input_interface._pre_process(msg)
+                prediction = self.predict(processed_input)
+                processed_output = self.output_interface._post_process(prediction)
+                await websocket.send(str(processed_output))
+            except websockets.exceptions.ConnectionClosed:
+                pass
 
     def launch(self, share_link=True):
         """
         Standard method shared by interfaces that launches a websocket at a specified IP address.
         """
-        path_to_server = networking.start_simple_server()
+        server_port = networking.start_simple_server()
+        path_to_server = 'http://localhost:{}/'.format(server_port)
         path_to_template = self._build_template()
-        chrome_path = 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe %s'  # TODO(abidlabs): remove
+        chrome_path = 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe %s'  # TODO(abidlabs): try otherwise general
 
-        print(path_to_server + path_to_template)
-        webbrowser.get(chrome_path).open(path_to_server + path_to_template)  # TODO(abidlabs): fix this
-
+        webbrowser.get(chrome_path).open(path_to_server + path_to_template)
         start_server = websockets.serve(self.communicate, LOCALHOST_IP, SOCKET_PORT)
+        print("Model available locally at: {}".format(path_to_server))
 
         if share_link:
-            ngrok_url = networking.setup_ngrok()
-            print("Model accessiable for 8 hours at: {}".format(ngrok_url))
+            ngrok_url = networking.setup_ngrok(server_port)
+            print("Model available publicly for 8 hours at: {}".format(ngrok_url + '/' + path_to_template))
 
         asyncio.get_event_loop().run_until_complete(start_server)
         try:

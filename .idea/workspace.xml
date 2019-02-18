@@ -2,16 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="fd73cd66-e80f-470e-a2ec-e220d3b6b864" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/inputs.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/networking.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/preprocessing_utils.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.ipynb_checkpoints/Emotion Detector-checkpoint.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/.ipynb_checkpoints/Emotion Detector-checkpoint.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Emotion Detector.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Emotion Detector.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Test Notebook.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Test Notebook.ipynb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/gradio.py" beforeDir="false" afterPath="$PROJECT_DIR$/gradio.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model.h5" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/model2.h5" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/tmp_html.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/tmp_html.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/networking.py" beforeDir="false" afterPath="$PROJECT_DIR$/networking.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -92,13 +86,13 @@
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
           <entry key="dummy" value="10" />
-          <entry key="py" value="1346" />
+          <entry key="py" value="1788" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="PLAIN_TEXT" value="10" />
-          <entry key="Python" value="1346" />
+          <entry key="Python" value="1788" />
         </counts>
       </usages-collector>
     </session>
@@ -168,11 +162,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/gradio.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="641">
-              <caret line="194" column="47" selection-start-line="194" selection-start-column="47" selection-end-line="194" selection-end-column="47" />
+            <state relative-caret-position="466">
+              <caret line="192" column="41" selection-start-line="192" selection-start-column="41" selection-end-line="192" selection-end-column="41" />
               <folding>
                 <element signature="e#0#35#0" expanded="true" />
               </folding>
@@ -180,16 +174,17 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/networking.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="650">
-              <caret line="26" column="18" lean-forward="true" selection-start-line="26" selection-start-column="18" selection-end-line="26" selection-end-column="18" />
+            <state relative-caret-position="450">
+              <caret line="18" column="29" selection-start-line="18" selection-start-column="29" selection-end-line="18" selection-end-column="29" />
               <folding>
                 <element signature="e#0#17#0" expanded="true" />
-                <marker date="1550454348542" expanded="true" signature="785:897" ph="..." />
-                <marker date="1550454348542" expanded="true" signature="785:898" ph="..." />
-                <marker date="1550454348542" expanded="true" signature="926:927" ph="..." />
+                <marker date="1550455679994" expanded="true" signature="856:959" ph="..." />
+                <marker date="1550455679994" expanded="true" signature="856:960" ph="..." />
+                <marker date="1550455679994" expanded="true" signature="988:989" ph="..." />
+                <marker date="1550455679994" expanded="true" signature="988:993" ph="..." />
               </folding>
             </state>
           </provider>
@@ -286,8 +281,8 @@
         <option value="$PROJECT_DIR$/server.py" />
         <option value="$PROJECT_DIR$/preprocessing_utils.py" />
         <option value="$PROJECT_DIR$/inputs.py" />
-        <option value="$PROJECT_DIR$/gradio.py" />
         <option value="$PROJECT_DIR$/networking.py" />
+        <option value="$PROJECT_DIR$/gradio.py" />
       </list>
     </option>
   </component>
@@ -507,25 +502,26 @@
     <entry file="file://$PROJECT_DIR$/inputs.py">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/gradio.py">
+    <entry file="file://$PROJECT_DIR$/networking.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="641">
-          <caret line="194" column="47" selection-start-line="194" selection-start-column="47" selection-end-line="194" selection-end-column="47" />
+        <state relative-caret-position="450">
+          <caret line="18" column="29" selection-start-line="18" selection-start-column="29" selection-end-line="18" selection-end-column="29" />
           <folding>
-            <element signature="e#0#35#0" expanded="true" />
+            <element signature="e#0#17#0" expanded="true" />
+            <marker date="1550455679994" expanded="true" signature="856:959" ph="..." />
+            <marker date="1550455679994" expanded="true" signature="856:960" ph="..." />
+            <marker date="1550455679994" expanded="true" signature="988:989" ph="..." />
+            <marker date="1550455679994" expanded="true" signature="988:993" ph="..." />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/networking.py">
+    <entry file="file://$PROJECT_DIR$/gradio.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="650">
-          <caret line="26" column="18" lean-forward="true" selection-start-line="26" selection-start-column="18" selection-end-line="26" selection-end-column="18" />
+        <state relative-caret-position="466">
+          <caret line="192" column="41" selection-start-line="192" selection-start-column="41" selection-end-line="192" selection-end-column="41" />
           <folding>
-            <element signature="e#0#17#0" expanded="true" />
-            <marker date="1550454348542" expanded="true" signature="785:897" ph="..." />
-            <marker date="1550454348542" expanded="true" signature="785:898" ph="..." />
-            <marker date="1550454348542" expanded="true" signature="926:927" ph="..." />
+            <element signature="e#0#35#0" expanded="true" />
           </folding>
         </state>
       </provider>
