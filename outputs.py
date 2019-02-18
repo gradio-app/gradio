@@ -1,0 +1,41 @@
+from abc import ABC, abstractmethod
+
+
+class AbstractOutput(ABC):
+    """
+    An abstract class for defining the methods that all gradio inputs should have.
+    When this is subclassed, it is automatically added to the registry
+    """
+
+    def __init__(self):
+        """
+        """
+        super().__init__()
+
+    @abstractmethod
+    def _get_template_path(self):
+        """
+        All interfaces should define a method that returns the path to its template.
+        """
+        pass
+
+    @abstractmethod
+    def _post_process(self):
+        """
+        All interfaces should define a method that returns the path to its template.
+        """
+        pass
+
+
+class Class(AbstractOutput):
+
+    def _get_template_path(self):
+        return 'templates/class_output.html'
+
+    def _post_process(self, prediction):
+        """
+        """
+        return prediction
+
+
+registry = {cls.__name__.lower(): cls for cls in AbstractOutput.__subclasses__()}
