@@ -7,9 +7,11 @@ class AbstractOutput(ABC):
     When this is subclassed, it is automatically added to the registry
     """
 
-    def __init__(self):
+    def __init__(self, postprocessing_fn=None):
         """
         """
+        if postprocessing_fn is not None:
+            self._post_process = postprocessing_fn
         super().__init__()
 
     @abstractmethod
