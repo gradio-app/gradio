@@ -5,7 +5,7 @@ import io
 import sys
 import os
 
-INITIAL_PORT_VALUE = 6002
+INITIAL_PORT_VALUE = 7860
 LOCALHOST_PREFIX = 'localhost:'
 NGROK_TUNNELS_URL = "http://localhost:4040/api/tunnels"
 NGROK_ZIP_URLS = {
@@ -15,6 +15,7 @@ NGROK_ZIP_URLS = {
 }
 
 def start_simple_server():
+    # TODO(abidlabs): increment port number until free port is found
     subprocess.Popen(['python', '-m', 'http.server', str(INITIAL_PORT_VALUE)])
     return INITIAL_PORT_VALUE
 
