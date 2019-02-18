@@ -18,18 +18,16 @@ class Interface():
     """
     build_template_path = 'templates/tmp_html.html'
 
-    def __init__(self, input, output, model_obj, model_type, preprocessing_fn=None, postprocessing_fn=None):
+    def __init__(self, input, output, model, model_type, preprocessing_fn=None, postprocessing_fn=None):
         """
         :param model_type: what kind of trained model, can be 'keras' or 'sklearn'.
         :param model_obj: the model object, such as a sklearn classifier or keras model.
         :param model_params: additional model parameters.
         """
-        self.input_interface = inputs.registry[input]()
-        self.output_interface = outputs.registry[output]()
+        self.input_interface = inputs.registry[input](preprocessing_fn)
+        self.output_interface = outputs.registry[output](postprocessing_fn)
         self.model_type = model_type
-        self.model_obj = model_obj
-        self.preprocessing_fn = preprocessing_fn
-        self.postprocessing_fn = postprocessing_fn
+        self.model_obj = model
 
     def _build_template(self):
         input_template_path = self.input_interface._get_template_path()
@@ -71,19 +69,9 @@ class Interface():
         while True:
             try:
                 msg = await websocket.recv()
-
-                if self.preprocessing_fn is None:
-                    processed_input = self.input_interface._pre_process(await websocket.recv())
-                else:
-                    processed_input = self.preprocessing_fn(await websocket.recv())
-
+                processed_input = self.input_interface._pre_process(msg)
                 prediction = self.predict(processed_input)
-
-                if self.postprocessing_fn is None:
-                    processed_output = self.output_interface._post_process(prediction)
-                else:
-                    processed_output = self.postprocessing_fn(prediction)
-
+                processed_output = self.output_interface._post_process(prediction)
                 await websocket.send(str(processed_output))
             except websockets.exceptions.ConnectionClosed:
                 pass
