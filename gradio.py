@@ -158,9 +158,9 @@ class Class(AbstractOutput):
     def _post_process(self, prediction):
         """
         """
-        emotion_dict = {0: "Angry", 1: "Disgust", 2: "Fear", 3: "Happy", 4: "Sad", 5: "Surprise", 6: "Neutral"}
-        return emotion_dict[prediction] 
-
+        # emotion_dict = {0: "Angry", 1: "Disgust", 2: "Fear", 3: "Happy", 4: "Sad", 5: "Surprise", 6: "Neutral"}
+        # return emotion_dict[prediction] 
+        return prediction
 registry = {
     'webcam':Webcam,
     'sketchpad' :Sketchpad,
@@ -170,8 +170,7 @@ registry = {
 class Interface():
     """
     """
-
-    def __init__(self, input, output, model_obj, model_type, **model_params):
+    def __init__(self, input, output, model_obj, model_type, preprocessing_fn=None, postprocessing_fn=None):
         """
         :param model_type: what kind of trained model, can be 'keras' or 'sklearn'.
         :param model_obj: the model object, such as a sklearn classifier or keras model.
@@ -181,7 +180,8 @@ class Interface():
         self.output_interface = registry[output]()
         self.model_type = model_type
         self.model_obj = model_obj
-        self.model_params = model_params
+        self.preprocessing_fn = preprocessing_fn
+        self.postprocessing_fn = postprocessing_fn
 
     def _build_template(self):
         input_template_path = self.input_interface._get_template_path()
@@ -220,9 +220,18 @@ class Interface():
         :param path: ignored
         """
         while True:
-            processed_input = self.input_interface._pre_process(await websocket.recv())
+            if self.preprocessing_fn is None: 
+                processed_input = self.input_interface._pre_process(await websocket.recv())
+            else:
+                processed_input = self.preprocessing_fn(await websocket.recv())
+            
             prediction = self.predict(processed_input)
-            processed_output = self.output_interface._post_process(prediction)
+            
+            if self.postprocessing_fn is None: 
+                processed_output = self.output_interface._post_process(prediction)
+            else:
+                processed_output = self.postprocessing_fn(prediction)
+             
             await websocket.send(str(processed_output))
 
     def launch(self):

@@ -3,3 +3,4 @@ venv
 staticfiles
 .env
 *.sqlite3
+*.h5
