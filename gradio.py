@@ -17,6 +17,8 @@ SOCKET_PORT = 5680
 
 
 
+import requests, zipfile, io
+
 def resize_and_crop(img, size, crop_type='top'):
     """
     Resize and crop an image to fit the specified size.
