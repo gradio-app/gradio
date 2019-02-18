@@ -10,7 +10,7 @@ import networking
 nest_asyncio.apply()
 
 LOCALHOST_IP = '127.0.0.1'
-SOCKET_PORT = 5680
+INITIAL_WEBSOCKET_PORT = 9200
 
 
 class Interface():
@@ -42,10 +42,10 @@ class Interface():
         all_io_soup = BeautifulSoup(all_io_page.read(), features="html.parser")
         input_tag = all_io_soup.find("div", {"id": "input"})
         output_tag = all_io_soup.find("div", {"id": "output"})
-        
+
         input_tag.replace_with(input_soup)
         output_tag.replace_with(output_soup)
-        
+
         f = open(self.build_template_path, "w")
         f.write(str(all_io_soup.prettify))
         return self.build_template_path
@@ -83,10 +83,14 @@ class Interface():
         server_port = networking.start_simple_server()
         path_to_server = 'http://localhost:{}/'.format(server_port)
         path_to_template = self._build_template()
-        chrome_path = 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe %s'  # TODO(abidlabs): try otherwise general
 
-        webbrowser.get(chrome_path).open(path_to_server + path_to_template)
-        start_server = websockets.serve(self.communicate, LOCALHOST_IP, SOCKET_PORT)
+        webbrowser.open(path_to_server + path_to_template)
+        try:
+            start_server = websockets.serve(self.communicate, LOCALHOST_IP, INITIAL_WEBSOCKET_PORT)
+        except OSError:
+            print("Error: port 9200 is already taken. Please close the process running on 9200 "
+                  "and try running gradio again.")  # TODO(abidlabs): increment port number until free port is found
+
         print("Model available locally at: {}".format(path_to_server + path_to_template))
 
         if share_link:
