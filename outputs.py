@@ -40,4 +40,15 @@ class Class(AbstractOutput):
         return prediction
 
 
+class Textbox(AbstractOutput):
+
+    def _get_template_path(self):
+        return 'templates/textbox_output.html'
+
+    def _post_process(self, prediction):
+        """
+        """
+        return prediction
+
+
 registry = {cls.__name__.lower(): cls for cls in AbstractOutput.__subclasses__()}
