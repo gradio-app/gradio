@@ -6,6 +6,32 @@ body {
   text-align: center;
 }
 
+#textbox-output {
+    border-radius: 25px;
+    border: 2px solid #D3D3D3;
+    padding: 20px; 
+    width: 400px;
+    height: 400px;    
+}
+#predict_div {
+    width: 400px;
+    height: 400px;    
+}
+#predict_text {
+  width: 80vw;
+  height: 80vh;
+}
+
+
+
+#textbox-input {
+    border-radius: 25px;
+    border: 2px solid #000;
+    padding: 20px; 
+    width: 400px;
+    height: 400px;    
+}
+
 .footer {
   position: absolute;
   bottom: 0;
