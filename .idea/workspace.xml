@@ -2,9 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="fd73cd66-e80f-470e-a2ec-e220d3b6b864" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/Test Notebook.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Test Notebook.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gradio/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/gradio/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gradio/js/all-io.js" beforeDir="false" afterPath="$PROJECT_DIR$/gradio/js/all-io.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -97,7 +95,7 @@
           <entry key="gitignore" value="2" />
           <entry key="html" value="112" />
           <entry key="js" value="272" />
-          <entry key="py" value="4442" />
+          <entry key="py" value="4443" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
@@ -106,26 +104,26 @@
           <entry key="HTML" value="112" />
           <entry key="JavaScript" value="272" />
           <entry key="PLAIN_TEXT" value="21" />
-          <entry key="Python" value="4442" />
+          <entry key="Python" value="4443" />
         </counts>
       </usages-collector>
     </session>
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/setup.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="175">
-              <caret line="7" column="19" selection-start-line="7" selection-start-column="19" selection-end-line="7" selection-end-column="19" />
+              <caret line="7" column="18" selection-start-line="7" selection-start-column="18" selection-end-line="7" selection-end-column="18" />
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/gradio/__init__.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="325">
+            <state relative-caret-position="1750">
               <caret line="70" selection-start-line="70" selection-end-line="70" />
               <folding>
                 <element signature="e#0#14#0" expanded="true" />
@@ -257,8 +255,8 @@
         <option value="$PROJECT_DIR$/js/all-io.js" />
         <option value="$PROJECT_DIR$/gradio.py" />
         <option value="$PROJECT_DIR$/gradio/inputs.py" />
-        <option value="$PROJECT_DIR$/setup.py" />
         <option value="$PROJECT_DIR$/gradio/__init__.py" />
+        <option value="$PROJECT_DIR$/setup.py" />
       </list>
     </option>
   </component>
@@ -590,21 +588,21 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/setup.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="175">
-          <caret line="7" column="19" selection-start-line="7" selection-start-column="19" selection-end-line="7" selection-end-column="19" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/gradio/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="325">
+        <state relative-caret-position="1750">
           <caret line="70" selection-start-line="70" selection-end-line="70" />
           <folding>
             <element signature="e#0#14#0" expanded="true" />
             <marker date="1550570423744" expanded="true" signature="2592:2837" ph="..." />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/setup.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="175">
+          <caret line="7" column="18" selection-start-line="7" selection-start-column="18" selection-end-line="7" selection-end-column="18" />
         </state>
       </provider>
     </entry>
