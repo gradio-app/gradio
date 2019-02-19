@@ -1,4 +1,3 @@
-var predict_div = $("#predict_div").val();
 
 function notifyError(error) {
       $.notify({
@@ -28,12 +27,7 @@ try {
   ws.onmessage = function (event) {
     console.log(event.data);
     sleep(300).then(() => {
-      $("#predict_div").text(event.data);
-      $("#predict_div").css("font-family", "Arial");
-      $("#predict_div").css("color", "White");
-      $("#predict_div").css("font-size", "20vw");
-      $("#predict_div").css("text-align", "center");
-      $("#predict_div").css("vertical-align", "middle");
+   	$("#textbox-output").val(event.data);
     })
 
   }

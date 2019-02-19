@@ -64,5 +64,15 @@ class Webcam(AbstractInput):
         array = np.array(im).flatten().reshape(1, 48, 48, 1)
         return array
 
+class Textbox(AbstractInput):
+
+    def _get_template_path(self):
+        return 'templates/textbox_input.html'
+
+    def _pre_process(self, text):
+        """
+        """
+        return text
+
 
 registry = {cls.__name__.lower(): cls for cls in AbstractInput.__subclasses__()}
