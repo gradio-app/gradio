@@ -7,7 +7,9 @@ import os
 
 INITIAL_PORT_VALUE = 7860
 LOCALHOST_PREFIX = 'localhost:'
-NGROK_TUNNELS_URL = "http://localhost:4040/api/tunnels"
+NGROK_TUNNELS_API_URL = "http://localhost:4040/api/tunnels"  # TODO(this should be captured from output)
+NGROK_TUNNELS_API_URL2 = "http://localhost:4041/api/tunnels"  # TODO(this should be captured from output)
+
 NGROK_ZIP_URLS = {
     "linux": "https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip",
     "darwin": "https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-darwin-amd64.zip",
@@ -32,11 +34,11 @@ def download_ngrok():
     z.extractall()
 
 
-def setup_ngrok(local_port):
+def setup_ngrok(local_port, api_url=NGROK_TUNNELS_API_URL):
     if not(os.path.isfile('ngrok.exe')):
         download_ngrok()
     subprocess.Popen(['ngrok', 'http', str(local_port)])
-    r = requests.get(NGROK_TUNNELS_URL)
+    r = requests.get(api_url)
     for tunnel in r.json()['tunnels']:
         if LOCALHOST_PREFIX + str(local_port) in tunnel['config']['addr']:
             return tunnel['public_url']
