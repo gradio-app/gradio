@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-
+import numpy as np
 
 class AbstractOutput(ABC):
     """
@@ -37,7 +37,16 @@ class Class(AbstractOutput):
     def _post_process(self, prediction):
         """
         """
-        return prediction
+        if isinstance(prediction, np.ndarray):
+            prediction = prediction.squeeze()
+            if prediction.size == 1:
+                return prediction
+            else:
+                return prediction.argmax()
+        elif isinstance(prediction, str):
+            return prediction
+        else:
+            raise ValueError("Unable to post-process model prediction.")
 
 
 class Textbox(AbstractOutput):
