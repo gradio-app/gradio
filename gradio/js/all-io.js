@@ -1,4 +1,4 @@
-var NGROK_URL = "wss://ac0577fa.ngrok.io"
+var NGROK_URL = "ws://0076f141.ngrok.io"
 var SOCKET_PORT = 9200
 
 try {
@@ -6,7 +6,7 @@ try {
   if (origin.includes("ngrok")){
       var ws = new WebSocket(NGROK_URL)
   } else {
-      var ws = new WebSocket("ws://127.0.0.1:9200/")
+      var ws = new WebSocket("ws://127.0.0.1:" + SOCKET_PORT + "/")
   }
   ws.onerror = function(evt) {
     console.log(evt)
