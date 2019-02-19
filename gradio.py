@@ -37,7 +37,7 @@ class Interface():
         input_soup = BeautifulSoup(input_page.read(), features="html.parser")
         output_soup = BeautifulSoup(output_page.read(), features="html.parser")
 
-        all_io_url =  'templates/all_io.html'
+        all_io_url = 'templates/all_io.html'
         all_io_page = open(all_io_url)
         all_io_soup = BeautifulSoup(all_io_page.read(), features="html.parser")
         input_tag = all_io_soup.find("div", {"id": "input"})
@@ -49,6 +49,15 @@ class Interface():
         f = open(self.build_template_path, "w")
         f.write(str(all_io_soup.prettify))
         return self.build_template_path
+
+    def _set_socket_url_in_js(self, socket_url):
+        with open('js/all-io.js') as fin:
+            lines = fin.readlines()
+            lines[0] = 'var NGROK_URL = "{}"\n'.format(socket_url.replace('http', 'ws'))
+
+        with open('js/all-io.js', 'w') as fout:
+            for line in lines:
+                fout.write(line)
 
     def predict(self, array):
         if self.model_type=='sklearn':
@@ -84,7 +93,6 @@ class Interface():
         path_to_server = 'http://localhost:{}/'.format(server_port)
         path_to_template = self._build_template()
 
-        webbrowser.open(path_to_server + path_to_template)
         try:
             start_server = websockets.serve(self.communicate, LOCALHOST_IP, INITIAL_WEBSOCKET_PORT)
         except OSError:
@@ -94,11 +102,18 @@ class Interface():
         print("Model available locally at: {}".format(path_to_server + path_to_template))
 
         if share_link:
-            ngrok_url = networking.setup_ngrok(server_port)
-            print("Model available publicly for 8 hours at: {}".format(ngrok_url + '/' + path_to_template))
-
+            site_ngrok_url = networking.setup_ngrok(server_port)
+            socket_ngrok_url = networking.setup_ngrok(INITIAL_WEBSOCKET_PORT, api_url=networking.NGROK_TUNNELS_API_URL2)
+            print(socket_ngrok_url)
+            self._set_socket_url_in_js(socket_ngrok_url)
+            print("Model available publicly for 8 hours at: {}".format(site_ngrok_url + '/' + path_to_template))
+            print("-- Gradio is in beta stage --")
+            print("Please report all bugs to: a12d@stanford.edu")
+            print("If you'd like to launch another gradio instance, please restart your notebook/python kernel.")
         asyncio.get_event_loop().run_until_complete(start_server)
         try:
             asyncio.get_event_loop().run_forever()
         except RuntimeError:  # Runtime errors are thrown in jupyter notebooks because of async.
             pass
+
+        webbrowser.open(path_to_server + path_to_template)
