@@ -23,6 +23,30 @@ body {
 }
 
 
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+  margin-bottom: 0.5rem;
+  font-family: inherit;
+  font-weight: 500;
+  line-height: 1.2;
+  color: inherit;
+  width: 400px;
+}
+
+.btn-group > .btn:first-child {
+  margin-left: 75;
+}
+
+.btn-group,
+.btn-group-vertical {
+  position: relative;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  vertical-align: middle;
+  width:400px;
+  align-items: center;
+}
+
 .uploader {position:relative; overflow:hidden; width:400px; height:400px; background:#f3f3f3; border:2px dashed #e8e8e8;    font-family: "Arial"; font-size: 40px; color: darkolivegreen;}
 
 #filePhoto{
