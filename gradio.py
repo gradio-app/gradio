@@ -11,6 +11,7 @@ nest_asyncio.apply()
 
 LOCALHOST_IP = '127.0.0.1'
 INITIAL_WEBSOCKET_PORT = 9200
+TRY_NUM_PORTS = 100
 
 
 class Interface():
@@ -59,11 +60,20 @@ class Interface():
             for line in lines:
                 fout.write(line)
 
+    def _set_socket_port_in_js(self, socket_port):
+        with open('js/all-io.js') as fin:
+            lines = fin.readlines()
+            lines[1] = 'var SOCKET_PORT = {}\n'.format(socket_port)
+
+        with open('js/all-io.js', 'w') as fout:
+            for line in lines:
+                fout.write(line)
+
     def predict(self, array):
         if self.model_type=='sklearn':
-            return self.model_obj.predict(array)[0]
+            return self.model_obj.predict(array)
         elif self.model_type=='keras':
-            return self.model_obj.predict(array)[0].argmax()
+            return self.model_obj.predict(array)
         elif self.model_type=='func':
             return self.model_obj(array)
         else:
@@ -89,27 +99,29 @@ class Interface():
         """
         Standard method shared by interfaces that launches a websocket at a specified IP address.
         """
+        networking.kill_processes([4040, 4041])
         server_port = networking.start_simple_server()
         path_to_server = 'http://localhost:{}/'.format(server_port)
         path_to_template = self._build_template()
 
-        try:
-            start_server = websockets.serve(self.communicate, LOCALHOST_IP, INITIAL_WEBSOCKET_PORT)
-        except OSError:
-            print("Error: port 9200 is already taken. Please close the process running on 9200 "
-                  "and try running gradio again.")  # TODO(abidlabs): increment port number until free port is found
+        ports_in_use = networking.get_ports_in_use()
+        for i in range(TRY_NUM_PORTS):
+            if not ((INITIAL_WEBSOCKET_PORT + i) in ports_in_use):
+                break
+        else:
+            raise OSError("All ports from {} to {} are in use. Please close a port.".format(
+                INITIAL_WEBSOCKET_PORT, INITIAL_WEBSOCKET_PORT + TRY_NUM_PORTS))
 
-        print("Model available locally at: {}".format(path_to_server + path_to_template))
+        start_server = websockets.serve(self.communicate, LOCALHOST_IP, INITIAL_WEBSOCKET_PORT + i)
+        self._set_socket_port_in_js(INITIAL_WEBSOCKET_PORT + i)
 
         if share_link:
             site_ngrok_url = networking.setup_ngrok(server_port)
             socket_ngrok_url = networking.setup_ngrok(INITIAL_WEBSOCKET_PORT, api_url=networking.NGROK_TUNNELS_API_URL2)
-            print(socket_ngrok_url)
             self._set_socket_url_in_js(socket_ngrok_url)
+            print("NOTE: Gradio is in beta stage, please report all bugs to: a12d@stanford.edu")
+            print("Model available locally at: {}".format(path_to_server + path_to_template))
             print("Model available publicly for 8 hours at: {}".format(site_ngrok_url + '/' + path_to_template))
-            print("-- Gradio is in beta stage --")
-            print("Please report all bugs to: a12d@stanford.edu")
-            print("If you'd like to launch another gradio instance, please restart your notebook/python kernel.")
         asyncio.get_event_loop().run_until_complete(start_server)
         try:
             asyncio.get_event_loop().run_forever()
