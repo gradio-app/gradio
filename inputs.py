@@ -74,5 +74,21 @@ class Textbox(AbstractInput):
         """
         return text
 
+class ImageUpload(AbstractInput):
+
+    def _get_template_path(self):
+        return 'templates/image_upload_input.html'
+
+    def _pre_process(self, imgstring):
+        """
+        """
+        content = imgstring.split(';')[1]
+        image_encoded = content.split(',')[1]
+        body = base64.decodebytes(image_encoded.encode('utf-8'))
+        im = Image.open(BytesIO(base64.b64decode(image_encoded))).convert('L')
+        im = preprocessing_utils.resize_and_crop(im, (48, 48))
+        array = np.array(im).flatten().reshape(1, 48, 48, 1)
+        return array
+
 
 registry = {cls.__name__.lower(): cls for cls in AbstractInput.__subclasses__()}

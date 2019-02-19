@@ -34,7 +34,7 @@ def resize_and_crop(img, size, crop_type='top'):
             raise ValueError('ERROR: invalid value for crop_type')
         img = img.crop(box)
     elif ratio < img_ratio:
-        img = img.resize((size[1] * img.size[0] / img.size[1], size[1]),
+        img = img.resize((size[1] * img.size[0] // img.size[1], size[1]),
                          Image.ANTIALIAS)
         # Crop in the top, middle or bottom
         if crop_type == 'top':
