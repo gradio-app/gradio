@@ -1,5 +1,5 @@
-var NGROK_URL = "ws://c71cced3.ngrok.io"
-
+var NGROK_URL = "ws://ff05d843.ngrok.io"
+var SOCKET_PORT = 9200
 try {
   var origin = window.location.origin;
   if (origin.includes("ngrok")){
