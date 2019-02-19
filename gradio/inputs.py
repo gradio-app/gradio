@@ -64,6 +64,7 @@ class Webcam(AbstractInput):
         array = np.array(im).flatten().reshape(1, 48, 48, 1)
         return array
 
+
 class Textbox(AbstractInput):
 
     def _get_template_path(self):

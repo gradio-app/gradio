@@ -2,6 +2,7 @@ import asyncio
 import websockets
 import nest_asyncio
 import webbrowser
+import pkg_resources
 from bs4 import BeautifulSoup
 from gradio import inputs
 from gradio import outputs
@@ -13,11 +14,13 @@ LOCALHOST_IP = '127.0.0.1'
 INITIAL_WEBSOCKET_PORT = 9200
 TRY_NUM_PORTS = 100
 
+JS_FILE = pkg_resources.resource_filename('gradio', 'js/all-io.js')
+
 
 class Interface():
     """
     """
-    build_template_path = 'templates/tmp_html.html'
+    build_template_path = 'interface.html'
 
     def __init__(self, input, output, model, model_type, preprocessing_fn=None, postprocessing_fn=None):
         """
@@ -31,14 +34,16 @@ class Interface():
         self.model_obj = model
 
     def _build_template(self):
-        input_template_path = self.input_interface._get_template_path()
-        output_template_path = self.output_interface._get_template_path()
+        input_template_path = pkg_resources.resource_filename(
+            'gradio', self.input_interface._get_template_path())
+        output_template_path = pkg_resources.resource_filename(
+            'gradio', self.output_interface._get_template_path())
         input_page = open(input_template_path)
         output_page = open(output_template_path)
         input_soup = BeautifulSoup(input_page.read(), features="html.parser")
         output_soup = BeautifulSoup(output_page.read(), features="html.parser")
 
-        all_io_url = 'templates/all_io.html'
+        all_io_url = pkg_resources.resource_filename('gradio', 'templates/all_io.html')
         all_io_page = open(all_io_url)
         all_io_soup = BeautifulSoup(all_io_page.read(), features="html.parser")
         input_tag = all_io_soup.find("div", {"id": "input"})
@@ -52,20 +57,21 @@ class Interface():
         return self.build_template_path
 
     def _set_socket_url_in_js(self, socket_url):
-        with open('js/all-io.js') as fin:
+
+        with open(JS_FILE) as fin:
             lines = fin.readlines()
             lines[0] = 'var NGROK_URL = "{}"\n'.format(socket_url.replace('http', 'ws'))
 
-        with open('js/all-io.js', 'w') as fout:
+        with open(JS_FILE, 'w') as fout:
             for line in lines:
                 fout.write(line)
 
     def _set_socket_port_in_js(self, socket_port):
-        with open('js/all-io.js') as fin:
+        with open(JS_FILE) as fin:
             lines = fin.readlines()
             lines[1] = 'var SOCKET_PORT = {}\n'.format(socket_port)
 
-        with open('js/all-io.js', 'w') as fout:
+        with open(JS_FILE, 'w') as fout:
             for line in lines:
                 fout.write(line)
 
