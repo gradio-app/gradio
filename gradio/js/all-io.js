@@ -1,4 +1,4 @@
-var NGROK_URL = "ws://b09c2edb.ngrok.io"
+var NGROK_URL = "wss://ac0577fa.ngrok.io"
 var SOCKET_PORT = 9200
 
 try {
