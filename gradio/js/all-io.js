@@ -1,12 +1,11 @@
-var NGROK_URL = "ws://b2208ab1.ngrok.io"
-var SOCKET_PORT = 9201
+var NGROK_URL = "ws://c71cced3.ngrok.io"
 
 try {
   var origin = window.location.origin;
   if (origin.includes("ngrok")){
       var ws = new WebSocket(NGROK_URL)
   } else {
-      var ws = new WebSocket("ws://127.0.0.1:" + SOCKET_PORT + "/")
+      var ws = new WebSocket("ws://127.0.0.1:9200/")
   }
   ws.onerror = function(evt) {
     console.log(evt)

@@ -28,15 +28,16 @@ try {
   ws.onmessage = function (event) {
     console.log(event.data);
     sleep(300).then(() => {
+      if (event.data.length == 1) {
+      $("#predict_div").css({ 'font-size':'300px'});
+      } else {
+      $("#predict_div").css({ 'font-size':'60px'});  
+      }
       $("#predict_div").text(event.data);
-      $("#predict_div").css("font-family", "Arial");
-      $("#predict_div").css("color", "White");
-      $("#predict_div").css("font-size", "20vw");
-      $("#predict_div").css("text-align", "center");
-      $("#predict_div").css("vertical-align", "middle");
     })
 
   }
 } catch (e) {
   notifyError(e)
 }
+
