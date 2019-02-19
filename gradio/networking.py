@@ -66,11 +66,11 @@ def setup_ngrok(local_port, api_url=NGROK_TUNNELS_API_URL):
 
 def kill_processes(process_ids):
     for proc in process_iter():
-        for conns in proc.connections(kind='inet'):
-            if conns.laddr.port in process_ids:
-                try:
-                    proc.send_signal(SIGTERM)  # or SIGKILL
-                except AccessDenied:
-                    print("Unable to kill process running on port {}, please kill manually.".format(conns.laddr.port))
+        try:
+            for conns in proc.connections(kind='inet'):
+                if conns.laddr.port in process_ids:
+                        proc.send_signal(SIGTERM)  # or SIGKILL
+        except AccessDenied:
+            print("Unable to kill process running on port {}, please kill manually.".format(conns.laddr.port))
 
 
