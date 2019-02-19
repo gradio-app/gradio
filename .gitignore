@@ -5,4 +5,4 @@ staticfiles
 *.sqlite3
 .idea/*
 .ipynb_checkpoints/*
-.models/*
+models/*

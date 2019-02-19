@@ -42,20 +42,21 @@
 <!-- INPUT 
 ====================================================================================================================================================== -->
 <div class="col-6">
-<h5>Sketch Pad Input: (Use your cursor to draw)</h5>
-<canvas height="400" id="canvas" width="400"></canvas><br/>
+<h5>Textbox Input:</h5>
+<textarea id="textbox-input"></textarea>
 <div aria-label="Basic example" class="btn-group" role="group">
-<button class="btn btn-primary" id="submit-button" type="button">Recognize</button>
+<button class="btn btn-primary" id="submit-button" type="button">Submit</button>
 <button class="btn btn-secondary" id="clear-button" type="button">Clear</button>
 </div>
 </div>
-<script src="../js/sketchpad-input.js"></script>
+<script src="../js/textbox-input.js"></script>
 
 <!-- OUTPUT 
 ====================================================================================================================================================== -->
 <div class="col-6">
-<h5>Text Output:</h5>
-<canvas height="400" id="predict_canvas" style="background-color:black" width="400"></canvas><br/>
+<h5>Class Output:</h5>
+<div id="predict_div" style="background-color:grey">
+</div>
 </div>
 <script src="../js/class-output.js"></script>
 
