@@ -71,6 +71,6 @@ def kill_processes(process_ids):
                 if conns.laddr.port in process_ids:
                         proc.send_signal(SIGTERM)  # or SIGKILL
         except AccessDenied:
-            print("Unable to kill process running on port {}, please kill manually.".format(conns.laddr.port))
+            print("Unable to kill processes, please kill manually.")
 
 
