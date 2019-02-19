@@ -2,14 +2,15 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="fd73cd66-e80f-470e-a2ec-e220d3b6b864" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Sentiment Analysis (textbox to class) .ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Sentiment Analysis (textbox to class) .ipynb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Emotional Detector.ipynb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Test Notebook.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Test Notebook.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gradio.py" beforeDir="false" afterPath="$PROJECT_DIR$/gradio.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/js/all-io.js" beforeDir="false" afterPath="$PROJECT_DIR$/js/all-io.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/networking.py" beforeDir="false" afterPath="$PROJECT_DIR$/networking.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/outputs.py" beforeDir="false" afterPath="$PROJECT_DIR$/outputs.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/tmp_html.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/tmp_html.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/css/draw-a-digit.css" beforeDir="false" afterPath="$PROJECT_DIR$/css/draw-a-digit.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/inputs.py" beforeDir="false" afterPath="$PROJECT_DIR$/inputs.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/js/dropzone.js" beforeDir="false" afterPath="$PROJECT_DIR$/js/dropzone.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/js/image-upload-input.js" beforeDir="false" afterPath="$PROJECT_DIR$/js/image-upload-input.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/preprocessing_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/preprocessing_utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/image_upload_input.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/image_upload_input.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/tmp_html.html" beforeDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -79,7 +80,7 @@
         <counts>
           <entry key="css" value="3" />
           <entry key="gitignore" value="1" />
-          <entry key="html" value="3" />
+          <entry key="html" value="4" />
           <entry key="ipynb" value="1" />
           <entry key="js" value="5" />
           <entry key="py" value="11" />
@@ -88,7 +89,7 @@
       <usages-collector id="statistics.file.types.open">
         <counts>
           <entry key="CSS" value="3" />
-          <entry key="HTML" value="3" />
+          <entry key="HTML" value="4" />
           <entry key="IPNB" value="1" />
           <entry key="JavaScript" value="5" />
           <entry key="PLAIN_TEXT" value="1" />
@@ -122,7 +123,7 @@
         <entry file="file://$PROJECT_DIR$/css/draw-a-digit.css">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="1225">
-              <caret line="75" column="15" selection-start-line="75" selection-start-column="15" selection-end-line="75" selection-end-column="15" />
+              <caret line="96" column="15" selection-start-line="96" selection-start-column="15" selection-end-line="96" selection-end-column="15" />
             </state>
           </provider>
         </entry>
@@ -148,8 +149,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/gradio.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="422">
-              <caret line="121" column="23" selection-start-line="121" selection-start-column="23" selection-end-line="121" selection-end-column="23" />
+            <state relative-caret-position="647">
+              <caret line="130" column="13" selection-start-line="130" selection-start-column="13" selection-end-line="130" selection-end-column="13" />
               <folding>
                 <element signature="e#0#14#0" expanded="true" />
                 <marker date="1550563754843" expanded="true" signature="1905:2502" ph="..." />
@@ -387,11 +388,11 @@
     <frame x="-6" y="-6" width="1513" height="1013" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.25360826" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.25360826" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
-      <window_info anchor="bottom" id="Find" order="1" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.32945284" />
       <window_info anchor="bottom" id="Run" order="2" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
@@ -535,7 +536,7 @@
     <entry file="file://$PROJECT_DIR$/css/draw-a-digit.css">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1225">
-          <caret line="75" column="15" selection-start-line="75" selection-start-column="15" selection-end-line="75" selection-end-column="15" />
+          <caret line="96" column="15" selection-start-line="96" selection-start-column="15" selection-end-line="96" selection-end-column="15" />
         </state>
       </provider>
     </entry>
@@ -589,10 +590,17 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/templates/tmp_html.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="100">
+          <caret line="55" selection-start-line="45" selection-end-line="55" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/gradio.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="422">
-          <caret line="121" column="23" selection-start-line="121" selection-start-column="23" selection-end-line="121" selection-end-column="23" />
+        <state relative-caret-position="647">
+          <caret line="130" column="13" selection-start-line="130" selection-start-column="13" selection-end-line="130" selection-end-column="13" />
           <folding>
             <element signature="e#0#14#0" expanded="true" />
             <marker date="1550563754843" expanded="true" signature="1905:2502" ph="..." />
