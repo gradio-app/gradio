@@ -2,12 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="fd73cd66-e80f-470e-a2ec-e220d3b6b864" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/gradio.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/inputs.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/networking.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/outputs.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/preprocessing_utils.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/script.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dist/gradio-0.1.0-py3-none-any.whl" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dist/gradio-0.1.0.tar.gz" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -100,7 +97,7 @@
           <entry key="gitignore" value="2" />
           <entry key="html" value="112" />
           <entry key="js" value="272" />
-          <entry key="py" value="4194" />
+          <entry key="py" value="4196" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
@@ -109,7 +106,7 @@
           <entry key="HTML" value="112" />
           <entry key="JavaScript" value="272" />
           <entry key="PLAIN_TEXT" value="21" />
-          <entry key="Python" value="4194" />
+          <entry key="Python" value="4196" />
         </counts>
       </usages-collector>
     </session>
@@ -119,8 +116,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/setup.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="525">
-              <caret line="21" column="17" selection-start-line="21" selection-start-column="17" selection-end-line="21" selection-end-column="17" />
+            <state relative-caret-position="175">
+              <caret line="7" column="20" selection-start-line="7" selection-start-column="20" selection-end-line="7" selection-end-column="20" />
             </state>
           </provider>
         </entry>
@@ -620,8 +617,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/setup.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="525">
-          <caret line="21" column="17" selection-start-line="21" selection-start-column="17" selection-end-line="21" selection-end-column="17" />
+        <state relative-caret-position="175">
+          <caret line="7" column="20" selection-start-line="7" selection-start-column="20" selection-end-line="7" selection-end-column="20" />
         </state>
       </provider>
     </entry>
