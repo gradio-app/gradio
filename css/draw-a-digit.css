@@ -23,7 +23,28 @@ body {
 }
 
 
+.uploader {position:relative; overflow:hidden; width:300px; height:350px; background:#f3f3f3; border:2px dashed #e8e8e8;}
 
+#filePhoto{
+    position:absolute;
+    width:300px;
+    height:400px;
+    top:-50px;
+    left:0;
+    z-index:2;
+    opacity:0;
+    cursor:pointer;
+}
+
+.uploader img{
+    position:absolute;
+    width:302px;
+    height:352px;
+    top:-1px;
+    left:-1px;
+    z-index:1;
+    border:none;
+}
 #textbox-input {
     border-radius: 25px;
     border: 2px solid #000;
