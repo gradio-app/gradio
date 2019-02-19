@@ -7,6 +7,8 @@ from bs4 import BeautifulSoup
 from gradio import inputs
 from gradio import outputs
 from gradio import networking
+import os
+import shutil
 
 nest_asyncio.apply()
 
@@ -15,6 +17,10 @@ INITIAL_WEBSOCKET_PORT = 9200
 TRY_NUM_PORTS = 100
 
 JS_FILE = pkg_resources.resource_filename('gradio', 'js/all-io.js')
+JS_PATH_LIB = pkg_resources.resource_filename('gradio', 'js/')
+JS_PATH_LOCAL = os.path.realpath('js/')
+CSS_PATH_LIB = pkg_resources.resource_filename('gradio', 'css/')
+CSS_PATH_LOCAL = os.path.realpath('css/')
 
 
 class Interface():
@@ -54,7 +60,19 @@ class Interface():
 
         f = open(self.build_template_path, "w")
         f.write(str(all_io_soup.prettify))
+
+        self._copy_files(JS_PATH_LIB, JS_PATH_LOCAL)
+        self._copy_files(CSS_PATH_LIB, CSS_PATH_LOCAL)
         return self.build_template_path
+
+    def _copy_files(self, src_dir, dest_dir):
+        if not os.path.exists(dest_dir):
+            os.makedirs(dest_dir)
+        src_files = os.listdir(src_dir)
+        for file_name in src_files:
+            full_file_name = os.path.join(src_dir, file_name)
+            if os.path.isfile(full_file_name):
+                shutil.copy(full_file_name, dest_dir)
 
     def _set_socket_url_in_js(self, socket_url):
 
