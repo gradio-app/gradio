@@ -2,15 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="fd73cd66-e80f-470e-a2ec-e220d3b6b864" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/Emotional Detector.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Test Notebook.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Test Notebook.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/css/draw-a-digit.css" beforeDir="false" afterPath="$PROJECT_DIR$/css/draw-a-digit.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/inputs.py" beforeDir="false" afterPath="$PROJECT_DIR$/inputs.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/js/dropzone.js" beforeDir="false" afterPath="$PROJECT_DIR$/js/dropzone.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/js/image-upload-input.js" beforeDir="false" afterPath="$PROJECT_DIR$/js/image-upload-input.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/preprocessing_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/preprocessing_utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/image_upload_input.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/image_upload_input.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/tmp_html.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/gradio.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/inputs.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/networking.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/outputs.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/preprocessing_utils.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/script.py" beforeDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -83,7 +80,7 @@
           <entry key="html" value="4" />
           <entry key="ipynb" value="1" />
           <entry key="js" value="5" />
-          <entry key="py" value="11" />
+          <entry key="py" value="18" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
@@ -93,17 +90,17 @@
           <entry key="IPNB" value="1" />
           <entry key="JavaScript" value="5" />
           <entry key="PLAIN_TEXT" value="1" />
-          <entry key="Python" value="11" />
+          <entry key="Python" value="18" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
           <entry key="css" value="11" />
-          <entry key="dummy" value="10" />
+          <entry key="dummy" value="19" />
           <entry key="gitignore" value="2" />
           <entry key="html" value="112" />
           <entry key="js" value="272" />
-          <entry key="py" value="4059" />
+          <entry key="py" value="4194" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
@@ -111,52 +108,64 @@
           <entry key="CSS" value="11" />
           <entry key="HTML" value="112" />
           <entry key="JavaScript" value="272" />
-          <entry key="PLAIN_TEXT" value="12" />
-          <entry key="Python" value="4059" />
+          <entry key="PLAIN_TEXT" value="21" />
+          <entry key="Python" value="4194" />
         </counts>
       </usages-collector>
     </session>
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/css/draw-a-digit.css">
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/setup.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1225">
-              <caret line="96" column="15" selection-start-line="96" selection-start-column="15" selection-end-line="96" selection-end-column="15" />
+            <state relative-caret-position="525">
+              <caret line="21" column="17" selection-start-line="21" selection-start-column="17" selection-end-line="21" selection-end-column="17" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/.gitignore">
+        <entry file="file://$PROJECT_DIR$/gradio/__init__.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="175">
-              <caret line="7" selection-start-line="7" selection-end-line="7" />
+              <caret line="7" column="19" selection-start-line="7" selection-start-column="19" selection-end-line="7" selection-end-column="19" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/preprocessing_utils.py">
+        <entry file="file://$PROJECT_DIR$/gradio/inputs.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="336">
-              <caret line="16" column="31" selection-start-line="16" selection-start-column="31" selection-end-line="16" selection-end-column="31" />
+            <state relative-caret-position="125">
+              <caret line="5" column="19" selection-start-line="5" selection-start-column="19" selection-end-line="5" selection-end-column="19" />
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/gradio.py">
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/gradio/networking.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="647">
-              <caret line="130" column="13" selection-start-line="130" selection-start-column="13" selection-end-line="130" selection-end-column="13" />
+            <state relative-caret-position="150">
+              <caret line="6" column="11" selection-start-line="6" selection-start-column="5" selection-end-line="6" selection-end-column="11" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/gradio/outputs.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state>
               <folding>
-                <element signature="e#0#14#0" expanded="true" />
-                <marker date="1550563754843" expanded="true" signature="1905:2502" ph="..." />
+                <element signature="e#0#35#0" expanded="true" />
               </folding>
             </state>
           </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/gradio/preprocessing_utils.py">
+          <provider selected="true" editor-type-id="text-editor" />
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
@@ -164,41 +173,6 @@
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="100">
               <caret line="4" column="34" selection-start-line="4" selection-start-column="34" selection-end-line="4" selection-end-column="34" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/networking.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="486">
-              <caret line="39" selection-start-line="32" selection-end-line="39" />
-              <folding>
-                <element signature="e#0#17#0" expanded="true" />
-                <marker date="1550562739002" expanded="true" signature="754:937" ph="..." />
-                <marker date="1550562739002" expanded="true" signature="2659:2661" ph="..." />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/inputs.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="50">
-              <caret line="2" column="21" selection-start-line="2" selection-start-column="21" selection-end-line="2" selection-end-column="21" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/outputs.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1350">
-              <caret line="60" selection-start-line="60" selection-end-line="60" />
-              <folding>
-                <element signature="e#0#35#0" expanded="true" />
-              </folding>
             </state>
           </provider>
         </entry>
@@ -223,9 +197,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>clear</find>
-      <find>ctx</find>
-      <find>clear-b</find>
       <find>css/</find>
       <find>communica</find>
       <find>communicate</find>
@@ -253,6 +224,9 @@
       <find>6002</find>
       <find>INITIAL_WEBSOCKET_PORT</find>
       <find>print(</find>
+      <find>inputs.</find>
+      <find>subprocess</find>
+      <find>psutil</find>
     </findStrings>
     <replaceStrings>
       <replace>400</replace>
@@ -296,6 +270,9 @@
         <option value="$PROJECT_DIR$/networking.py" />
         <option value="$PROJECT_DIR$/js/all-io.js" />
         <option value="$PROJECT_DIR$/gradio.py" />
+        <option value="$PROJECT_DIR$/gradio/__init__.py" />
+        <option value="$PROJECT_DIR$/gradio/inputs.py" />
+        <option value="$PROJECT_DIR$/setup.py" />
       </list>
     </option>
   </component>
@@ -335,7 +312,7 @@
             <path>
               <item name="gradio" type="b2602c69:ProjectViewProjectNode" />
               <item name="gradio" type="462c0819:PsiDirectoryNode" />
-              <item name="js" type="462c0819:PsiDirectoryNode" />
+              <item name="gradio" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="gradio" type="b2602c69:ProjectViewProjectNode" />
@@ -388,7 +365,7 @@
     <frame x="-6" y="-6" width="1513" height="1013" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.25360826" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.25360826" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -519,24 +496,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/.gitignore">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="175">
-          <caret line="7" selection-start-line="7" selection-end-line="7" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/js/webcam-input.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="300">
           <caret line="12" column="32" lean-forward="true" selection-start-line="12" selection-start-column="32" selection-end-line="12" selection-end-column="32" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/css/draw-a-digit.css">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1225">
-          <caret line="96" column="15" selection-start-line="96" selection-start-column="15" selection-end-line="96" selection-end-column="15" />
         </state>
       </provider>
     </entry>
@@ -577,8 +540,6 @@
           <caret line="39" selection-start-line="32" selection-end-line="39" />
           <folding>
             <element signature="e#0#17#0" expanded="true" />
-            <marker date="1550562739002" expanded="true" signature="754:937" ph="..." />
-            <marker date="1550562739002" expanded="true" signature="2659:2661" ph="..." />
           </folding>
         </state>
       </provider>
@@ -600,11 +561,67 @@
     <entry file="file://$PROJECT_DIR$/gradio.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="647">
-          <caret line="130" column="13" selection-start-line="130" selection-start-column="13" selection-end-line="130" selection-end-column="13" />
+          <caret line="130" column="21" selection-start-line="130" selection-start-column="21" selection-end-line="130" selection-end-column="21" />
           <folding>
             <element signature="e#0#14#0" expanded="true" />
-            <marker date="1550563754843" expanded="true" signature="1905:2502" ph="..." />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/gradio/script.py">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/gradio/inputs.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="125">
+          <caret line="5" column="19" selection-start-line="5" selection-start-column="19" selection-end-line="5" selection-end-column="19" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.gitignore">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="175">
+          <caret line="7" selection-start-line="7" selection-end-line="7" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/css/draw-a-digit.css">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1225">
+          <caret line="96" column="15" selection-start-line="96" selection-start-column="15" selection-end-line="96" selection-end-column="15" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/gradio/networking.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="150">
+          <caret line="6" column="11" selection-start-line="6" selection-start-column="5" selection-end-line="6" selection-end-column="11" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/gradio/outputs.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <folding>
+            <element signature="e#0#35#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/gradio/preprocessing_utils.py">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/gradio/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="175">
+          <caret line="7" column="19" selection-start-line="7" selection-start-column="19" selection-end-line="7" selection-end-column="19" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/setup.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="525">
+          <caret line="21" column="17" selection-start-line="21" selection-start-column="17" selection-end-line="21" selection-end-column="17" />
         </state>
       </provider>
     </entry>
