@@ -2,61 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="fd73cd66-e80f-470e-a2ec-e220d3b6b864" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/css/bootstrap-grid.css" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/css/bootstrap-grid.css.map" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/css/bootstrap-grid.min.css" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/css/bootstrap-grid.min.css.map" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/css/bootstrap-reboot.css" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/css/bootstrap-reboot.css.map" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/css/bootstrap-reboot.min.css" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/css/bootstrap-reboot.min.css.map" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/css/bootstrap.css" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/css/bootstrap.css.map" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/css/bootstrap.min.css" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/css/bootstrap.min.css.map" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/css/draw-a-digit.css" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/css/dropzone.css" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/css/index.css" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/gradio-0.1.1-py3-none-any.whl" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/gradio-0.1.1.tar.gz" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Test Notebook.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Test Notebook.ipynb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/gradio/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/gradio/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gradio/inputs.py" beforeDir="false" afterPath="$PROJECT_DIR$/gradio/inputs.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/img/draw-a-digit.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/img/evaluator.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/img/placeholder.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/img/placeholder.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/js/all-io.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/js/audio-input.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/js/bootstrap-notify.min.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/js/bootstrap.bundle.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/js/bootstrap.bundle.js.map" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/js/bootstrap.bundle.min.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/js/bootstrap.bundle.min.js.map" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/js/bootstrap.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/js/bootstrap.js.map" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/js/bootstrap.min.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/js/bootstrap.min.js.map" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/js/class-output.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/js/draw-a-digit.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/js/dropzone.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/js/emotion-detector.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/js/image-upload-input.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/js/jquery-3.3.1.min.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/js/sketchpad-input.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/js/textbox-input.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/js/textbox-output.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/js/webcam-input.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/all_io.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/audio_input.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/class_output.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/draw_a_digit.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/emotion_detector.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/image_upload_input.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/sketchpad_input.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/textbox_input.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/textbox_output.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/webcam_input.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/gradio/js/all-io.js" beforeDir="false" afterPath="$PROJECT_DIR$/gradio/js/all-io.js" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -149,7 +97,7 @@
           <entry key="gitignore" value="2" />
           <entry key="html" value="112" />
           <entry key="js" value="272" />
-          <entry key="py" value="4258" />
+          <entry key="py" value="4442" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
@@ -158,29 +106,30 @@
           <entry key="HTML" value="112" />
           <entry key="JavaScript" value="272" />
           <entry key="PLAIN_TEXT" value="21" />
-          <entry key="Python" value="4258" />
+          <entry key="Python" value="4442" />
         </counts>
       </usages-collector>
     </session>
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/setup.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="175">
-              <caret line="7" column="18" selection-start-line="7" selection-start-column="18" selection-end-line="7" selection-end-column="18" />
+              <caret line="7" column="19" selection-start-line="7" selection-start-column="19" selection-end-line="7" selection-end-column="19" />
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/gradio/__init__.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="750">
-              <caret line="30" column="19" lean-forward="true" selection-start-line="30" selection-start-column="19" selection-end-line="30" selection-end-column="19" />
+            <state relative-caret-position="325">
+              <caret line="70" selection-start-line="70" selection-end-line="70" />
               <folding>
                 <element signature="e#0#14#0" expanded="true" />
+                <marker date="1550570423744" expanded="true" signature="2592:2837" ph="..." />
               </folding>
             </state>
           </provider>
@@ -190,7 +139,7 @@
         <entry file="file://$PROJECT_DIR$/gradio/inputs.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="1366">
-              <caret line="66" lean-forward="true" selection-start-line="66" selection-end-line="66" />
+              <caret line="66" selection-start-line="66" selection-end-line="66" />
               <folding>
                 <element signature="e#0#35#0" expanded="true" />
               </folding>
@@ -308,8 +257,8 @@
         <option value="$PROJECT_DIR$/js/all-io.js" />
         <option value="$PROJECT_DIR$/gradio.py" />
         <option value="$PROJECT_DIR$/gradio/inputs.py" />
-        <option value="$PROJECT_DIR$/gradio/__init__.py" />
         <option value="$PROJECT_DIR$/setup.py" />
+        <option value="$PROJECT_DIR$/gradio/__init__.py" />
       </list>
     </option>
   </component>
@@ -618,7 +567,7 @@
     <entry file="file://$PROJECT_DIR$/gradio/inputs.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1366">
-          <caret line="66" lean-forward="true" selection-start-line="66" selection-end-line="66" />
+          <caret line="66" selection-start-line="66" selection-end-line="66" />
           <folding>
             <element signature="e#0#35#0" expanded="true" />
           </folding>
@@ -641,20 +590,21 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/gradio/__init__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="750">
-          <caret line="30" column="19" lean-forward="true" selection-start-line="30" selection-start-column="19" selection-end-line="30" selection-end-column="19" />
-          <folding>
-            <element signature="e#0#14#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/setup.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="175">
-          <caret line="7" column="18" selection-start-line="7" selection-start-column="18" selection-end-line="7" selection-end-column="18" />
+          <caret line="7" column="19" selection-start-line="7" selection-start-column="19" selection-end-line="7" selection-end-column="19" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/gradio/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="325">
+          <caret line="70" selection-start-line="70" selection-end-line="70" />
+          <folding>
+            <element signature="e#0#14#0" expanded="true" />
+            <marker date="1550570423744" expanded="true" signature="2592:2837" ph="..." />
+          </folding>
         </state>
       </provider>
     </entry>
