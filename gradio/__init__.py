@@ -3,9 +3,9 @@ import websockets
 import nest_asyncio
 import webbrowser
 from bs4 import BeautifulSoup
-import inputs
-import outputs
-import networking
+from gradio import inputs
+from gradio import outputs
+from gradio import networking
 
 nest_asyncio.apply()
 
