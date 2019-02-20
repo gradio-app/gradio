@@ -43,6 +43,11 @@ Changing the `input` and `output` parameters in the `Interface` face object allo
 
 Here are a few screenshots that show examples of gradio interfaces
 
-#### Input: Sketchpad, Output: Class for MNIST Digit Recognition
+#### MNIST Digit Recognition (Input: Sketchpad, Output: Class)
+
+#### Facial Emotion Detector (Input: Webcam, Output: Class)
+
+#### Sentiment Analysis (Input: Textbox, Output: Class)
+
 
 
