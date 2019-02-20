@@ -45,9 +45,15 @@ Here are a few screenshots that show examples of gradio interfaces
 
 #### MNIST Digit Recognition (Input: Sketchpad, Output: Class)
 
+![alt text](https://raw.githubusercontent.com/abidlabs/gradio/master/screenshots/mnist4.png)
+
 #### Facial Emotion Detector (Input: Webcam, Output: Class)
 
+![alt text](https://raw.githubusercontent.com/abidlabs/gradio/master/screenshots/webcam_happy.png)
+
 #### Sentiment Analysis (Input: Textbox, Output: Class)
+
+![alt text](https://raw.githubusercontent.com/abidlabs/gradio/master/screenshots/sentiment_positive.png)
 
 
 
