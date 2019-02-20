@@ -12,10 +12,10 @@ pip install gradio
 
 ## Usage
 
-Gradio is super simple to use. The general way it works is something liek this:
+Gradio is very easy to use with your existing code. The general way it's used is something like this:
 
 
-```
+```python
 import tensorflow as tf
 import gradio
 
@@ -45,13 +45,28 @@ Here are a few screenshots that show examples of gradio interfaces
 
 #### MNIST Digit Recognition (Input: Sketchpad, Output: Class)
 
+```python
+iface = gradio.Interface(input='sketchpad', output='class', model=model, model_type='keras')
+iface.launch()
+```
+
 ![alt text](https://raw.githubusercontent.com/abidlabs/gradio/master/screenshots/mnist4.png)
 
 #### Facial Emotion Detector (Input: Webcam, Output: Class)
 
+```python
+iface = gradio.Interface(input='webcam', output='class', model=model, model_type='keras')
+iface.launch()
+```
+
 ![alt text](https://raw.githubusercontent.com/abidlabs/gradio/master/screenshots/webcam_happy.png)
 
 #### Sentiment Analysis (Input: Textbox, Output: Class)
+
+```python
+iface = gradio.Interface(input='textbox', output='class', model=model, model_type='keras')
+iface.launch()
+```
 
 ![alt text](https://raw.githubusercontent.com/abidlabs/gradio/master/screenshots/sentiment_positive.png)
 
