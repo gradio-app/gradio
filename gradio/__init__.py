@@ -18,12 +18,12 @@ INITIAL_WEBSOCKET_PORT = 9200
 TRY_NUM_PORTS = 100
 
 BASE_TEMPLATE = pkg_resources.resource_filename('gradio', 'templates/all_io.html')
-JS_FILE = pkg_resources.resource_filename('gradio', 'js/all-io.js')
 JS_PATH_LIB = pkg_resources.resource_filename('gradio', 'js/')
 CSS_PATH_LIB = pkg_resources.resource_filename('gradio', 'css/')
 JS_PATH_TEMP = 'js/'
 CSS_PATH_TEMP = 'css/'
 TEMPLATE_TEMP = 'interface.html'
+BASE_JS_FILE = 'js/all-io.js'
 
 
 class Interface():
@@ -75,22 +75,21 @@ class Interface():
             if os.path.isfile(full_file_name):
                 shutil.copy(full_file_name, dest_dir)
 
-    def _set_socket_url_in_js(self, socket_url):
-
-        with open(JS_FILE) as fin:
+    def _set_socket_url_in_js(self, temp_dir, socket_url):
+        with open(os.path.join(temp_dir, BASE_JS_FILE)) as fin:
             lines = fin.readlines()
             lines[0] = 'var NGROK_URL = "{}"\n'.format(socket_url.replace('http', 'ws'))
 
-        with open(JS_FILE, 'w') as fout:
+        with open(os.path.join(temp_dir, BASE_JS_FILE), 'w') as fout:
             for line in lines:
                 fout.write(line)
 
-    def _set_socket_port_in_js(self, socket_port):
-        with open(JS_FILE) as fin:
+    def _set_socket_port_in_js(self, temp_dir, socket_port):
+        with open(os.path.join(temp_dir, BASE_JS_FILE)) as fin:
             lines = fin.readlines()
             lines[1] = 'var SOCKET_PORT = {}\n'.format(socket_port)
 
-        with open(JS_FILE, 'w') as fout:
+        with open(os.path.join(temp_dir, BASE_JS_FILE), 'w') as fout:
             for line in lines:
                 fout.write(line)
 
@@ -127,7 +126,6 @@ class Interface():
         networking.kill_processes([4040, 4041])
         output_directory = tempfile.mkdtemp()
 
-        print(output_directory)
         server_port = networking.start_simple_server(output_directory)
         path_to_server = 'http://localhost:{}/'.format(server_port)
         self._build_template(output_directory)
@@ -141,12 +139,12 @@ class Interface():
                 INITIAL_WEBSOCKET_PORT, INITIAL_WEBSOCKET_PORT + TRY_NUM_PORTS))
 
         start_server = websockets.serve(self.communicate, LOCALHOST_IP, INITIAL_WEBSOCKET_PORT + i)
-        self._set_socket_port_in_js(INITIAL_WEBSOCKET_PORT + i)
+        self._set_socket_port_in_js(output_directory, INITIAL_WEBSOCKET_PORT + i)
 
         if share_link:
             site_ngrok_url = networking.setup_ngrok(server_port)
             socket_ngrok_url = networking.setup_ngrok(INITIAL_WEBSOCKET_PORT, api_url=networking.NGROK_TUNNELS_API_URL2)
-            self._set_socket_url_in_js(socket_ngrok_url)
+            self._set_socket_url_in_js(output_directory, socket_ngrok_url)
             print("NOTE: Gradio is in beta stage, please report all bugs to: a12d@stanford.edu")
             print("Model available locally at: {}".format(path_to_server + TEMPLATE_TEMP))
             print("Model available publicly for 8 hours at: {}".format(site_ngrok_url + '/' + TEMPLATE_TEMP))
