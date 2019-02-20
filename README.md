@@ -41,5 +41,8 @@ Changing the `input` and `output` parameters in the `Interface` face object allo
 
 ## Screenshots
 
+Here are a few screenshots that show examples of gradio interfaces
 
-Here
+#### Input: Sketchpad, Output: Class for MNIST Digit Recognition
+
+
