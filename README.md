@@ -22,8 +22,7 @@ import gradio
 mdl = tf.keras.models.Sequential()
 # ... define and train the model as you would normally
 
-iface = gradio.Interface(input=“sketchpad”,
-	output=“class”, model_type=“keras”, model=mdl)
+iface = gradio.Interface(input=“sketchpad”, output=“class”, model_type=“keras”, model=mdl)
 iface.launch()
 ```
 
