@@ -9,6 +9,7 @@ from gradio import outputs
 from gradio import networking
 import os
 import shutil
+import tempfile
 
 nest_asyncio.apply()
 
@@ -16,17 +17,18 @@ LOCALHOST_IP = '127.0.0.1'
 INITIAL_WEBSOCKET_PORT = 9200
 TRY_NUM_PORTS = 100
 
+BASE_TEMPLATE = pkg_resources.resource_filename('gradio', 'templates/all_io.html')
 JS_FILE = pkg_resources.resource_filename('gradio', 'js/all-io.js')
 JS_PATH_LIB = pkg_resources.resource_filename('gradio', 'js/')
-JS_PATH_LOCAL = os.path.realpath('js/')
 CSS_PATH_LIB = pkg_resources.resource_filename('gradio', 'css/')
-CSS_PATH_LOCAL = os.path.realpath('css/')
+JS_PATH_TEMP = 'js/'
+CSS_PATH_TEMP = 'css/'
+TEMPLATE_TEMP = 'interface.html'
 
 
 class Interface():
     """
     """
-    build_template_path = 'interface.html'
 
     def __init__(self, input, output, model, model_type, preprocessing_fn=None, postprocessing_fn=None):
         """
@@ -39,7 +41,7 @@ class Interface():
         self.model_type = model_type
         self.model_obj = model
 
-    def _build_template(self):
+    def _build_template(self, temp_dir):
         input_template_path = pkg_resources.resource_filename(
             'gradio', self.input_interface._get_template_path())
         output_template_path = pkg_resources.resource_filename(
@@ -49,8 +51,7 @@ class Interface():
         input_soup = BeautifulSoup(input_page.read(), features="html.parser")
         output_soup = BeautifulSoup(output_page.read(), features="html.parser")
 
-        all_io_url = pkg_resources.resource_filename('gradio', 'templates/all_io.html')
-        all_io_page = open(all_io_url)
+        all_io_page = open(BASE_TEMPLATE)
         all_io_soup = BeautifulSoup(all_io_page.read(), features="html.parser")
         input_tag = all_io_soup.find("div", {"id": "input"})
         output_tag = all_io_soup.find("div", {"id": "output"})
@@ -58,12 +59,12 @@ class Interface():
         input_tag.replace_with(input_soup)
         output_tag.replace_with(output_soup)
 
-        f = open(self.build_template_path, "w")
+        f = open(os.path.join(temp_dir, TEMPLATE_TEMP), "w")
         f.write(str(all_io_soup.prettify))
 
-        self._copy_files(JS_PATH_LIB, JS_PATH_LOCAL)
-        self._copy_files(CSS_PATH_LIB, CSS_PATH_LOCAL)
-        return self.build_template_path
+        self._copy_files(JS_PATH_LIB, os.path.join(temp_dir, JS_PATH_TEMP))
+        self._copy_files(CSS_PATH_LIB, os.path.join(temp_dir, CSS_PATH_TEMP))
+        return
 
     def _copy_files(self, src_dir, dest_dir):
         if not os.path.exists(dest_dir):
@@ -124,9 +125,12 @@ class Interface():
         Standard method shared by interfaces that launches a websocket at a specified IP address.
         """
         networking.kill_processes([4040, 4041])
-        server_port = networking.start_simple_server()
+        output_directory = tempfile.mkdtemp()
+
+        print(output_directory)
+        server_port = networking.start_simple_server(output_directory)
         path_to_server = 'http://localhost:{}/'.format(server_port)
-        path_to_template = self._build_template()
+        self._build_template(output_directory)
 
         ports_in_use = networking.get_ports_in_use()
         for i in range(TRY_NUM_PORTS):
@@ -144,12 +148,12 @@ class Interface():
             socket_ngrok_url = networking.setup_ngrok(INITIAL_WEBSOCKET_PORT, api_url=networking.NGROK_TUNNELS_API_URL2)
             self._set_socket_url_in_js(socket_ngrok_url)
             print("NOTE: Gradio is in beta stage, please report all bugs to: a12d@stanford.edu")
-            print("Model available locally at: {}".format(path_to_server + path_to_template))
-            print("Model available publicly for 8 hours at: {}".format(site_ngrok_url + '/' + path_to_template))
+            print("Model available locally at: {}".format(path_to_server + TEMPLATE_TEMP))
+            print("Model available publicly for 8 hours at: {}".format(site_ngrok_url + '/' + TEMPLATE_TEMP))
         asyncio.get_event_loop().run_until_complete(start_server)
         try:
             asyncio.get_event_loop().run_forever()
         except RuntimeError:  # Runtime errors are thrown in jupyter notebooks because of async.
             pass
 
-        webbrowser.open(path_to_server + path_to_template)
+        webbrowser.open(path_to_server + TEMPLATE_TEMP)

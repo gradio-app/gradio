@@ -7,3 +7,4 @@ staticfiles
 .ipynb_checkpoints/*
 models/*
 .models/*
+gradio_files/*

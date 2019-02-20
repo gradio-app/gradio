@@ -28,7 +28,7 @@ def get_ports_in_use():
     return ports_in_use
 
 
-def start_simple_server():
+def start_simple_server(directory_to_serve=None):
     # TODO(abidlabs): increment port number until free port is found
     ports_in_use = get_ports_in_use()
     for i in range(TRY_NUM_PORTS):
@@ -37,7 +37,11 @@ def start_simple_server():
     else:
         raise OSError("All ports from {} to {} are in use. Please close a port.".format(
             INITIAL_PORT_VALUE, INITIAL_PORT_VALUE + TRY_NUM_PORTS))
-    subprocess.Popen(['python', '-m', 'http.server', str(INITIAL_PORT_VALUE + i)])
+    if directory_to_serve is None:
+        subprocess.Popen(['python', '-m', 'http.server', str(INITIAL_PORT_VALUE + i)])
+    else:
+        cmd = ' '.join(['python', '-m', 'http.server', '-d', directory_to_serve, str(INITIAL_PORT_VALUE + i)])
+        subprocess.Popen(cmd, shell=True)  # Doesn't seem to work if list is passed for some reason.
     return INITIAL_PORT_VALUE + i
 
 
