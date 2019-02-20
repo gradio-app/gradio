@@ -1,0 +1,147 @@
+body {
+  padding-top: 5rem;
+}
+.starter-template {
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+
+#textbox-output {
+    border-radius: 25px;
+    border: 2px solid #D3D3D3;
+    padding: 20px; 
+    width: 400px;
+    height: 400px;    
+}
+#predict_div {
+    width: 400px;
+    height: 400px;    
+}
+#predict_text {
+  width: 80vw;
+  height: 80vh;
+}
+
+
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+  margin-bottom: 0.5rem;
+  font-family: inherit;
+  font-weight: 500;
+  line-height: 1.2;
+  color: inherit;
+  width: 400px;
+}
+
+.btn-group > .btn:first-child {
+  margin-left: 75;
+}
+
+.btn-group,
+.btn-group-vertical {
+  position: relative;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  vertical-align: middle;
+  width:400px;
+  align-items: center;
+}
+
+.uploader {position:relative; overflow:hidden; width:400px; height:400px; background:#f3f3f3; border:2px dashed #e8e8e8;    font-family: "Arial"; font-size: 40px; color: darkolivegreen;}
+
+#filePhoto{
+    position:absolute;
+    width:400px;
+    height:400px;
+    top:-50px;
+    left:0;
+    z-index:2;
+    opacity:0;
+    cursor:pointer;
+
+}
+
+.uploader img{
+    position:absolute;
+    width:400px;
+    height:400px;
+    top:-1px;
+    left:-1px;
+    z-index:1;
+    border:none;
+    object-fit: cover;
+
+}
+
+
+#predict_div {
+  text-align: center;
+  vertical-align: middle;
+  font-family: 'Arial';
+  color: white;
+  font-size: 60px;
+  word-wrap: break-word;
+}
+#textbox-input {
+    border-radius: 25px;
+    border: 2px solid #000;
+    padding: 20px; 
+    width: 400px;
+    height: 400px;    
+}
+
+.footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  /* Set the fixed height of the footer here */
+  height: 60px;
+  line-height: 60px; /* Vertically center the text there */
+  background-color: #f5f5f5;
+}
+
+/* Style all font awesome icons */
+.fa {
+  padding: 12px;
+  font-size: 30px;
+  width: 40px;
+  text-align: center;
+  text-decoration: none;
+}
+
+/* Add a hover effect if you want */
+.fa:hover {
+  opacity: 0.7;
+}
+
+/* Set a specific color for each brand */
+
+/* Facebook */
+.fa-facebook {
+  background: #3B5998;
+  color: white;
+}
+
+/* Twitter */
+.fa-twitter {
+  background: #55ACEE;
+  color: white;
+}
+
+/* Twitter */
+.fa-github {
+  background: black;
+  color: white;
+}
+
+div#overlay {
+  opacity:    0.5;
+  background: #000;
+  width:      100%;
+  height:     100%;
+  z-index:    10;
+  top:        0;
+  left:       0;
+  position:   fixed;
+}
+

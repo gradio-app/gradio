@@ -2,13 +2,17 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="fd73cd66-e80f-470e-a2ec-e220d3b6b864" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/Emotional Detector (Upload).ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Emotional Detector (Upload).ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MNIST Handwritten Digits.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/MNIST Handwritten Digits.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Sentiment Analysis (textbox to class) .ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Sentiment Analysis (textbox to class) .ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gradio/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/gradio/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gradio/js/all-io.js" beforeDir="false" afterPath="$PROJECT_DIR$/gradio/js/all-io.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gradio/preprocessing_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/gradio/preprocessing_utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gradio/templates/sketchpad_input.html" beforeDir="false" afterPath="$PROJECT_DIR$/gradio/templates/sketchpad_input.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/gradio/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib/gradio/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/gradio/js/all-io.js" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib/gradio/js/all-io.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/gradio/networking.py" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib/gradio/networking.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/gradio/preprocessing_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib/gradio/preprocessing_utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/lib/gradio/templates/sketchpad_input.html" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib/gradio/templates/sketchpad_input.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dist/gradio-0.1.6-py3-none-any.whl" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dist/gradio-0.1.6.tar.gz" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/MNIST Handwritten Digits (Sketchpad).ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/examples/MNIST Handwritten Digits (Sketchpad).ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gradio.egg-info/PKG-INFO" beforeDir="false" afterPath="$PROJECT_DIR$/gradio.egg-info/PKG-INFO" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -102,7 +106,7 @@
           <entry key="gitignore" value="2" />
           <entry key="html" value="112" />
           <entry key="js" value="281" />
-          <entry key="py" value="4984" />
+          <entry key="py" value="4985" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
@@ -111,18 +115,18 @@
           <entry key="HTML" value="112" />
           <entry key="JavaScript" value="281" />
           <entry key="PLAIN_TEXT" value="21" />
-          <entry key="Python" value="4984" />
+          <entry key="Python" value="4985" />
         </counts>
       </usages-collector>
     </session>
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/setup.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="175">
-              <caret line="7" column="20" selection-start-line="7" selection-start-column="20" selection-end-line="7" selection-end-column="20" />
+              <caret line="7" column="18" selection-start-line="7" selection-start-column="18" selection-end-line="7" selection-end-column="18" />
             </state>
           </provider>
         </entry>
@@ -187,16 +191,16 @@
         <entry file="file://$PROJECT_DIR$/gradio/preprocessing_utils.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="-25">
-              <caret line="17" column="7" lean-forward="true" selection-start-line="17" selection-start-column="7" selection-end-line="17" selection-end-column="7" />
+              <caret line="17" column="7" selection-start-line="17" selection-start-column="7" selection-end-line="17" selection-end-column="7" />
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/gradio/templates/sketchpad_input.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="25">
-              <caret line="1" column="23" selection-start-line="1" selection-start-column="23" selection-end-line="1" selection-end-column="23" />
+            <state relative-caret-position="225">
+              <caret line="9" column="48" lean-forward="true" selection-start-line="9" selection-start-column="48" selection-end-line="9" selection-end-column="48" />
             </state>
           </provider>
         </entry>
@@ -210,7 +214,7 @@
         <entry file="file://$PROJECT_DIR$/gradio/templates/class_output.html">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="75">
-              <caret line="3" column="4" lean-forward="true" selection-start-line="3" selection-start-column="4" selection-end-line="3" selection-end-column="4" />
+              <caret line="3" column="4" selection-start-line="3" selection-start-column="4" selection-end-line="3" selection-end-column="4" />
               <folding>
                 <element signature="n#style#0;n#div#0;n#div#0;n#!!top" expanded="true" />
               </folding>
@@ -306,11 +310,11 @@
         <option value="$PROJECT_DIR$/gradio/inputs.py" />
         <option value="$PROJECT_DIR$/../testing/test_gradio.py" />
         <option value="$PROJECT_DIR$/gradio/js/all-io.js" />
-        <option value="$PROJECT_DIR$/setup.py" />
         <option value="$PROJECT_DIR$/gradio/networking.py" />
         <option value="$PROJECT_DIR$/gradio/__init__.py" />
         <option value="$PROJECT_DIR$/gradio/preprocessing_utils.py" />
         <option value="$PROJECT_DIR$/gradio/templates/sketchpad_input.html" />
+        <option value="$PROJECT_DIR$/setup.py" />
       </list>
     </option>
   </component>
@@ -321,10 +325,10 @@
     <sorting>DEFINITION_ORDER</sorting>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="1" />
-    <option name="y" value="5" />
-    <option name="width" value="1505" />
-    <option name="height" value="1002" />
+    <option name="x" value="2" />
+    <option name="y" value="10" />
+    <option name="width" value="3010" />
+    <option name="height" value="2004" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <ConfirmationsSetting value="2" id="Add" />
@@ -402,10 +406,10 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="2576" height="1096" extended-state="6" />
+    <frame x="-6" y="-6" width="1513" height="1013" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.14904611" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.25773194" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -547,13 +551,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/setup.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="175">
-          <caret line="7" column="20" selection-start-line="7" selection-start-column="20" selection-end-line="7" selection-end-column="20" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/gradio/js/all-io.js">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="675">
@@ -613,7 +610,7 @@
     <entry file="file://$PROJECT_DIR$/gradio/preprocessing_utils.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-25">
-          <caret line="17" column="7" lean-forward="true" selection-start-line="17" selection-start-column="7" selection-end-line="17" selection-end-column="7" />
+          <caret line="17" column="7" selection-start-line="17" selection-start-column="7" selection-end-line="17" selection-end-column="7" />
         </state>
       </provider>
     </entry>
@@ -623,7 +620,7 @@
     <entry file="file://$PROJECT_DIR$/gradio/templates/class_output.html">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="75">
-          <caret line="3" column="4" lean-forward="true" selection-start-line="3" selection-start-column="4" selection-end-line="3" selection-end-column="4" />
+          <caret line="3" column="4" selection-start-line="3" selection-start-column="4" selection-end-line="3" selection-end-column="4" />
           <folding>
             <element signature="n#style#0;n#div#0;n#div#0;n#!!top" expanded="true" />
           </folding>
@@ -635,8 +632,15 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/gradio/templates/sketchpad_input.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="25">
-          <caret line="1" column="23" selection-start-line="1" selection-start-column="23" selection-end-line="1" selection-end-column="23" />
+        <state relative-caret-position="225">
+          <caret line="9" column="48" lean-forward="true" selection-start-line="9" selection-start-column="48" selection-end-line="9" selection-end-column="48" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/setup.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="175">
+          <caret line="7" column="18" selection-start-line="7" selection-start-column="18" selection-end-line="7" selection-end-column="18" />
         </state>
       </provider>
     </entry>
