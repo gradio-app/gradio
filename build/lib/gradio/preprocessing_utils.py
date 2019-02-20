@@ -17,17 +17,17 @@ def resize_and_crop(img, size, crop_type='top'):
         ValueError: if an invalid `crop_type` is provided.
     """
     # Get current and desired ratio for the images
-    img_ratio = img.size[0] / float(img.size[1])
-    ratio = size[0] / float(size[1])
-    # The image is scaled/cropped vertically or horizontally depending on the ratio
+    img_ratio = img.size[0] // float(img.size[1])
+    ratio = size[0] // float(size[1])
+    # The image is scaled//cropped vertically or horizontally depending on the ratio
     if ratio > img_ratio:
-        img = img.resize((size[0], size[0] * img.size[1] / img.size[0]),
+        img = img.resize((size[0], size[0] * img.size[1] // img.size[0]),
                          Image.ANTIALIAS)
         # Crop in the top, middle or bottom
         if crop_type == 'top':
             box = (0, 0, img.size[0], size[1])
         elif crop_type == 'middle':
-            box = (0, (img.size[1] - size[1]) / 2, img.size[0], (img.size[1] + size[1]) / 2)
+            box = (0, (img.size[1] - size[1]) // 2, img.size[0], (img.size[1] + size[1]) // 2)
         elif crop_type == 'bottom':
             box = (0, img.size[1] - size[1], img.size[0], img.size[1])
         else:
@@ -40,7 +40,7 @@ def resize_and_crop(img, size, crop_type='top'):
         if crop_type == 'top':
             box = (0, 0, size[0], img.size[1])
         elif crop_type == 'middle':
-            box = ((img.size[0] - size[0]) / 2, 0, (img.size[0] + size[0]) / 2, img.size[1])
+            box = ((img.size[0] - size[0]) // 2, 0, (img.size[0] + size[0]) // 2, img.size[1])
         elif crop_type == 'bottom':
             box = (img.size[0] - size[0], 0, img.size[0], img.size[1])
         else:
