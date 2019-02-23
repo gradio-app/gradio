@@ -10,7 +10,8 @@ body {
     border-radius: 25px;
     border: 2px solid #D3D3D3;
     padding: 20px; 
-    width: 400px;
+    width: 100%;
+    max-width: 400px;
     height: 400px;    
 }
 #predict_div {
@@ -51,7 +52,8 @@ h1, h2, h3, h4, h5, h6,
 
 #filePhoto{
     position:absolute;
-    width:400px;
+    width: 100%;
+    max-width: 400px;
     height:400px;
     top:-50px;
     left:0;
@@ -63,7 +65,8 @@ h1, h2, h3, h4, h5, h6,
 
 .uploader img{
     position:absolute;
-    width:400px;
+    width: 100%;
+    max-width: 400px;
     height:400px;
     top:-1px;
     left:-1px;
@@ -86,7 +89,8 @@ h1, h2, h3, h4, h5, h6,
     border-radius: 25px;
     border: 2px solid #000;
     padding: 20px; 
-    width: 400px;
+    width: 100%;
+    max-width: 400px;    
     height: 400px;    
 }
 

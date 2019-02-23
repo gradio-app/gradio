@@ -2,17 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="fd73cd66-e80f-470e-a2ec-e220d3b6b864" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/examples/.ipynb_checkpoints/Simple Sentence Capitalization (Textbox Input and Output)-checkpoint.ipynb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/examples/Simple Sentence Capitalization (Textbox Input and Output).ipynb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/lib/gradio/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib/gradio/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/lib/gradio/js/all-io.js" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib/gradio/js/all-io.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/lib/gradio/networking.py" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib/gradio/networking.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/lib/gradio/preprocessing_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib/gradio/preprocessing_utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/lib/gradio/templates/sketchpad_input.html" beforeDir="false" afterPath="$PROJECT_DIR$/build/lib/gradio/templates/sketchpad_input.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/gradio-0.1.6-py3-none-any.whl" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/gradio-0.1.6.tar.gz" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/MNIST Handwritten Digits (Sketchpad).ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/examples/MNIST Handwritten Digits (Sketchpad).ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gradio.egg-info/PKG-INFO" beforeDir="false" afterPath="$PROJECT_DIR$/gradio.egg-info/PKG-INFO" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -72,7 +64,7 @@
     <session id="1317707946">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="4" />
+          <entry key="project.closed" value="5" />
           <entry key="project.open.time.1" value="2" />
           <entry key="project.open.time.6" value="2" />
           <entry key="project.open.time.8" value="2" />
@@ -125,8 +117,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/setup.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="175">
-              <caret line="7" column="18" selection-start-line="7" selection-start-column="18" selection-end-line="7" selection-end-column="18" />
+            <state relative-caret-position="325">
+              <caret line="13" column="24" selection-start-line="13" selection-start-column="24" selection-end-line="13" selection-end-column="24" />
             </state>
           </provider>
         </entry>
@@ -200,7 +192,7 @@
         <entry file="file://$PROJECT_DIR$/gradio/templates/sketchpad_input.html">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="225">
-              <caret line="9" column="48" lean-forward="true" selection-start-line="9" selection-start-column="48" selection-end-line="9" selection-end-column="48" />
+              <caret line="9" column="48" selection-start-line="9" selection-start-column="48" selection-end-line="9" selection-end-column="48" />
             </state>
           </provider>
         </entry>
@@ -325,10 +317,10 @@
     <sorting>DEFINITION_ORDER</sorting>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="2" />
-    <option name="y" value="10" />
-    <option name="width" value="3010" />
-    <option name="height" value="2004" />
+    <option name="x" value="-24" />
+    <option name="y" value="-24" />
+    <option name="width" value="6052" />
+    <option name="height" value="4052" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <ConfirmationsSetting value="2" id="Add" />
@@ -372,7 +364,7 @@
   <component name="PropertiesComponent">
     <property name="SearchEverywhereHistoryKey" value="&#9;FILE&#9;file://C:/Users/islam/Repos/gradiome/css/starter-template.css" />
     <property name="WebServerToolWindowFactoryState" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$USER_HOME$/PycharmProjects/histology" />
     <property name="settings.editor.selected.configurable" value="preferences.keymap" />
   </component>
   <component name="RecentsManager">
@@ -633,14 +625,14 @@
     <entry file="file://$PROJECT_DIR$/gradio/templates/sketchpad_input.html">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="225">
-          <caret line="9" column="48" lean-forward="true" selection-start-line="9" selection-start-column="48" selection-end-line="9" selection-end-column="48" />
+          <caret line="9" column="48" selection-start-line="9" selection-start-column="48" selection-end-line="9" selection-end-column="48" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/setup.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="175">
-          <caret line="7" column="18" selection-start-line="7" selection-start-column="18" selection-end-line="7" selection-end-column="18" />
+        <state relative-caret-position="325">
+          <caret line="13" column="24" selection-start-line="13" selection-start-column="24" selection-end-line="13" selection-end-column="24" />
         </state>
       </provider>
     </entry>
