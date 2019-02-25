@@ -8,3 +8,4 @@ staticfiles
 models/*
 .models/*
 gradio_files/*
+ngrok*
