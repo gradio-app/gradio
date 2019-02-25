@@ -11,6 +11,7 @@ import signal
 import http.server
 import socketserver
 import threading
+from http.server import HTTPServer as BaseHTTPServer, SimpleHTTPRequestHandler
 
 INITIAL_PORT_VALUE = 7860
 TRY_NUM_PORTS = 100
@@ -47,34 +48,51 @@ def get_ports_in_use(start, stop):
 
 
 def serve_files_in_background(port, directory_to_serve=None):
-    class Handler(http.server.SimpleHTTPRequestHandler):
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, directory=directory_to_serve, **kwargs)
+    # class Handler(http.server.SimpleHTTPRequestHandler):
+    #     def __init__(self, *args, **kwargs):
+    #         super().__init__(*args, directory=directory_to_serve, **kwargs)
+    #
+    # server = socketserver.ThreadingTCPServer(('localhost', port), Handler)
+    # # Ensures that Ctrl-C cleanly kills all spawned threads
+    # server.daemon_threads = True
+    # # Quicker rebinding
+    # server.allow_reuse_address = True
+    #
+    # # A custom signal handle to allow us to Ctrl-C out of the process
+    # def signal_handler(signal, frame):
+    #     print('Exiting http server (Ctrl+C pressed)')
+    #     try:
+    #         if (server):
+    #             server.server_close()
+    #     finally:
+    #         sys.exit(0)
+    #
+    # # Install the keyboard interrupt handler
+    # signal.signal(signal.SIGINT, signal_handler)
+    class HTTPHandler(SimpleHTTPRequestHandler):
+        """This handler uses server.base_path instead of always using os.getcwd()"""
 
-    server = socketserver.ThreadingTCPServer(('localhost', port), Handler)
-    # Ensures that Ctrl-C cleanly kills all spawned threads
-    server.daemon_threads = True
-    # Quicker rebinding
-    server.allow_reuse_address = True
+        def translate_path(self, path):
+            path = SimpleHTTPRequestHandler.translate_path(self, path)
+            relpath = os.path.relpath(path, os.getcwd())
+            fullpath = os.path.join(self.server.base_path, relpath)
+            return fullpath
 
-    # A custom signal handle to allow us to Ctrl-C out of the process
-    def signal_handler(signal, frame):
-        print('Exiting http server (Ctrl+C pressed)')
-        try:
-            if (server):
-                server.server_close()
-        finally:
-            sys.exit(0)
+    class HTTPServer(BaseHTTPServer):
+        """The main server, you pass in base_path which is the path you want to serve requests from"""
 
-    # Install the keyboard interrupt handler
-    signal.signal(signal.SIGINT, signal_handler)
+        def __init__(self, base_path, server_address, RequestHandlerClass=HTTPHandler):
+            self.base_path = base_path
+            BaseHTTPServer.__init__(self, server_address, RequestHandlerClass)
+
+    httpd = HTTPServer(directory_to_serve, (LOCALHOST_NAME, port))
 
     # Now loop forever
     def serve_forever():
         try:
             while True:
                 sys.stdout.flush()
-                server.serve_forever()
+                httpd.serve_forever()
         except KeyboardInterrupt:
             pass
 
