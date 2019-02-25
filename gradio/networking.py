@@ -10,6 +10,8 @@ from signal import SIGTERM  # or SIGKILL
 import threading
 from http.server import HTTPServer as BaseHTTPServer, SimpleHTTPRequestHandler
 import stat
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 
 INITIAL_PORT_VALUE = 7860
 TRY_NUM_PORTS = 100
@@ -119,25 +121,31 @@ def start_simple_server(directory_to_serve=None):
 def download_ngrok():
     try:
         zip_file_url = NGROK_ZIP_URLS[sys.platform]
-        print(zip_file_url)
     except KeyError:
-        print("Sorry, we don't currently support your operating system, please leave us a note on GitHub, and we'll look into it!")
+        print("Sorry, we don't currently support your operating system, please leave us a note on GitHub, and "
+              "we'll look into it!")
         return
     r = requests.get(zip_file_url)
     z = zipfile.ZipFile(io.BytesIO(r.content))
     z.extractall()
-    if (sys.platform=='darwin' or sys.platform=='linux'):
+    if sys.platform == 'darwin' or sys.platform == 'linux':
         st = os.stat('ngrok')
         os.chmod('ngrok', st.st_mode | stat.S_IEXEC)
+
 
 def setup_ngrok(local_port, api_url=NGROK_TUNNELS_API_URL):
     if not(os.path.isfile('ngrok.exe')):
         download_ngrok()
-    if sys.platform=='win32':
+    if sys.platform == 'win32':
         subprocess.Popen(['ngrok', 'http', str(local_port)])
     else:
         subprocess.Popen(['./ngrok', 'http', str(local_port)])
-    r = requests.get(api_url)
+    session = requests.Session()
+    retry = Retry(connect=3, backoff_factor=0.5)
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
+    r = session.get(api_url)
     for tunnel in r.json()['tunnels']:
         if LOCALHOST_PREFIX + str(local_port) in tunnel['config']['addr']:
             return tunnel['public_url']
