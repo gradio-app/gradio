@@ -121,6 +121,7 @@ def start_simple_server(directory_to_serve=None):
 def download_ngrok():
     try:
         zip_file_url = NGROK_ZIP_URLS[sys.platform]
+        print(zip_file_url)
     except KeyError:
         print("Sorry, we don't currently support your operating system, please leave us a note on GitHub, and we'll look into it!")
         return
@@ -148,6 +149,6 @@ def kill_processes(process_ids):
                 if conns.laddr.port in process_ids:
                         proc.send_signal(SIGTERM)  # or SIGKILL
         except AccessDenied:
-            print("Unable to kill processes, please kill manually.")
+            pass
 
 
