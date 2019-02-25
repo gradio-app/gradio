@@ -7,11 +7,9 @@ import os
 import socket
 from psutil import process_iter, AccessDenied
 from signal import SIGTERM  # or SIGKILL
-import signal
-import http.server
-import socketserver
 import threading
 from http.server import HTTPServer as BaseHTTPServer, SimpleHTTPRequestHandler
+import stat
 
 INITIAL_PORT_VALUE = 7860
 TRY_NUM_PORTS = 100
@@ -125,16 +123,20 @@ def download_ngrok():
     except KeyError:
         print("Sorry, we don't currently support your operating system, please leave us a note on GitHub, and we'll look into it!")
         return
-
     r = requests.get(zip_file_url)
     z = zipfile.ZipFile(io.BytesIO(r.content))
     z.extractall()
-
+    if (sys.platform=='darwin' or sys.platform=='linux'):
+        st = os.stat('ngrok')
+        os.chmod('ngrok', st.st_mode | stat.S_IEXEC)
 
 def setup_ngrok(local_port, api_url=NGROK_TUNNELS_API_URL):
     if not(os.path.isfile('ngrok.exe')):
         download_ngrok()
-    subprocess.Popen(['ngrok', 'http', str(local_port)])
+    if sys.platform=='win32':
+        subprocess.Popen(['ngrok', 'http', str(local_port)])
+    else:
+        subprocess.Popen(['./ngrok', 'http', str(local_port)])
     r = requests.get(api_url)
     for tunnel in r.json()['tunnels']:
         if LOCALHOST_PREFIX + str(local_port) in tunnel['config']['addr']:
