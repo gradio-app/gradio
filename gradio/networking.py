@@ -22,9 +22,12 @@ NGROK_ZIP_URLS = {
 
 def get_ports_in_use():
     ports_in_use = []
-    for proc in process_iter():
-        for conns in proc.connections(kind='inet'):
-            ports_in_use.append(conns.laddr.port)
+    try:
+        for proc in process_iter():
+            for conns in proc.connections(kind='inet'):
+                ports_in_use.append(conns.laddr.port)
+    except AccessDenied:
+        pass  # TODO(abidlabs): somehow find a way to handle this issue?
     return ports_in_use
 
 
