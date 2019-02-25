@@ -3,6 +3,7 @@ README.md
 setup.py
 gradio/__init__.py
 gradio/inputs.py
+gradio/interface.py
 gradio/networking.py
 gradio/outputs.py
 gradio/preprocessing_utils.py
