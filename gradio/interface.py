@@ -167,7 +167,7 @@ class Interface():
         path_to_server = 'http://localhost:{}/'.format(server_port)
         self._build_template(output_directory)
 
-        ports_in_use = networking.get_ports_in_use()
+        ports_in_use = networking.get_ports_in_use(INITIAL_WEBSOCKET_PORT, INITIAL_WEBSOCKET_PORT + TRY_NUM_PORTS)
         for i in range(TRY_NUM_PORTS):
             if not ((INITIAL_WEBSOCKET_PORT + i) in ports_in_use):
                 break
@@ -191,6 +191,7 @@ class Interface():
         else:
             if verbose:
                 print("To create a public link, set `share_link=True` in the argument to `launch()`")
+
         asyncio.get_event_loop().run_until_complete(start_server)
         try:
             asyncio.get_event_loop().run_forever()
