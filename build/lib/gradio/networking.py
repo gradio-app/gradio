@@ -134,7 +134,7 @@ def download_ngrok():
 
 
 def setup_ngrok(local_port, api_url=NGROK_TUNNELS_API_URL):
-    if not(os.path.isfile('ngrok.exe')):
+    if not(os.path.isfile('ngrok.exe') or os.path.isfile('ngrok')):
         download_ngrok()
     if sys.platform == 'win32':
         subprocess.Popen(['ngrok', 'http', str(local_port)])
