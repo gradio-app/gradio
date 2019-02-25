@@ -178,7 +178,7 @@ class Interface():
         start_server = websockets.serve(self.communicate, LOCALHOST_IP, INITIAL_WEBSOCKET_PORT + i)
         self._set_socket_port_in_js(output_directory, INITIAL_WEBSOCKET_PORT + i)
         if verbose:
-            print("NOTE: Gradio is in beta stage, please report all bugs to: a12d@stanford.edu")
+            print("NOTE: Gradio is in beta2 stage, please report all bugs to: a12d@stanford.edu")
             print("Model available locally at: {}".format(path_to_server + TEMPLATE_TEMP))
 
         if share_link:
