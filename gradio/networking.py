@@ -47,10 +47,11 @@ def get_ports_in_use(start, stop):
 
 
 def serve_files_in_background(port, directory_to_serve=None):
-    def handler(*args):
-        return http.server.SimpleHTTPRequestHandler(*args, directory=directory_to_serve)
+    class Handler(http.server.SimpleHTTPRequestHandler):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, directory=directory_to_serve, **kwargs)
 
-    server = socketserver.ThreadingTCPServer(('localhost', port), handler)
+    server = socketserver.ThreadingTCPServer(('localhost', port), Handler)
     # Ensures that Ctrl-C cleanly kills all spawned threads
     server.daemon_threads = True
     # Quicker rebinding
