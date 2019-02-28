@@ -77,6 +77,7 @@ def copy_files(src_dir, dest_dir):
         if os.path.isfile(full_file_name):
             shutil.copy(full_file_name, dest_dir)
 
+
 def set_socket_url_in_js(temp_dir, socket_url):
     with open(os.path.join(temp_dir, BASE_JS_FILE)) as fin:
         lines = fin.readlines()
@@ -85,6 +86,7 @@ def set_socket_url_in_js(temp_dir, socket_url):
     with open(os.path.join(temp_dir, BASE_JS_FILE), 'w') as fout:
         for line in lines:
             fout.write(line)
+
 
 def set_socket_port_in_js(temp_dir, socket_port):
     with open(os.path.join(temp_dir, BASE_JS_FILE)) as fin:
