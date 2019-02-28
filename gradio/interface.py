@@ -50,6 +50,7 @@ class Interface:
         elif not(model_type.lower() in self.VALID_MODEL_TYPES):
             ValueError('model_type must be one of: {}'.format(self.VALID_MODEL_TYPES))
         self.model_type = model_type
+        self.verbose = verbose
 
     @staticmethod
     def _infer_model_type(model):
