@@ -10,48 +10,48 @@ PACKAGE_NAME = 'gradio'
 class TestSketchpad(unittest.TestCase):
     def test_path_exists(self):
         inp = inputs.Sketchpad()
-        path = inp._get_template_path()
+        path = inp.get_template_path()
         self.assertTrue(os.path.exists(os.path.join(PACKAGE_NAME, path)))
 
     def test_preprocessing(self):
         inp = inputs.Sketchpad()
-        array = inp._preprocess(BASE64_IMG)
+        array = inp.preprocess(BASE64_IMG)
         self.assertEqual(array.shape, (1, 28, 28, 1))
 
 
 class TestWebcam(unittest.TestCase):
     def test_path_exists(self):
         inp = inputs.Webcam()
-        path = inp._get_template_path()
+        path = inp.get_template_path()
         self.assertTrue(os.path.exists(os.path.join(PACKAGE_NAME, path)))
 
     def test_preprocessing(self):
         inp = inputs.Webcam()
-        array = inp._preprocess(BASE64_IMG)
+        array = inp.preprocess(BASE64_IMG)
         self.assertEqual(array.shape, (1, 48, 48, 1))
 
 
 class TestTextbox(unittest.TestCase):
     def test_path_exists(self):
         inp = inputs.Textbox()
-        path = inp._get_template_path()
+        path = inp.get_template_path()
         self.assertTrue(os.path.exists(os.path.join(PACKAGE_NAME, path)))
 
     def test_preprocessing(self):
         inp = inputs.Textbox()
-        string = inp._preprocess(RAND_STRING)
+        string = inp.preprocess(RAND_STRING)
         self.assertEqual(string, RAND_STRING)
 
 
 class TestImageUpload(unittest.TestCase):
     def test_path_exists(self):
         inp = inputs.ImageUpload()
-        path = inp._get_template_path()
+        path = inp.get_template_path()
         self.assertTrue(os.path.exists(os.path.join(PACKAGE_NAME, path)))
 
     def test_preprocessing(self):
         inp = inputs.ImageUpload()
-        array = inp._preprocess(BASE64_IMG)
+        array = inp.preprocess(BASE64_IMG)
         self.assertEqual(array.shape, (1, 48, 48, 1))
 
 

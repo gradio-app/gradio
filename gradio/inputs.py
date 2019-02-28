@@ -22,18 +22,18 @@ class AbstractInput(ABC):
         if preprocessing_fn is not None:
             if not callable(preprocessing_fn):
                 raise ValueError('`preprocessing_fn` must be a callable function')
-            self._preprocess = preprocessing_fn
+            self.preprocess = preprocessing_fn
         super().__init__()
 
     @abstractmethod
-    def _get_template_path(self):
+    def get_template_path(self):
         """
         All interfaces should define a method that returns the path to its template.
         """
         pass
 
     @abstractmethod
-    def _preprocess(self, inp):
+    def preprocess(self, inp):
         """
         All interfaces should define a default preprocessing method
         """
@@ -42,10 +42,10 @@ class AbstractInput(ABC):
 
 class Sketchpad(AbstractInput):
 
-    def _get_template_path(self):
+    def get_template_path(self):
         return 'templates/sketchpad_input.html'
 
-    def _preprocess(self, inp):
+    def preprocess(self, inp):
         """
         Default preprocessing method for the SketchPad is to convert the sketch to black and white and resize 28x28
         """
@@ -59,10 +59,10 @@ class Sketchpad(AbstractInput):
 
 class Webcam(AbstractInput):
 
-    def _get_template_path(self):
+    def get_template_path(self):
         return 'templates/webcam_input.html'
 
-    def _preprocess(self, inp):
+    def preprocess(self, inp):
         """
         Default preprocessing method for is to convert the picture to black and white and resize to be 48x48
         """
@@ -76,10 +76,10 @@ class Webcam(AbstractInput):
 
 class Textbox(AbstractInput):
 
-    def _get_template_path(self):
+    def get_template_path(self):
         return 'templates/textbox_input.html'
 
-    def _preprocess(self, inp):
+    def preprocess(self, inp):
         """
         By default, no pre-processing is applied to text.
         """
@@ -88,10 +88,10 @@ class Textbox(AbstractInput):
 
 class ImageUpload(AbstractInput):
 
-    def _get_template_path(self):
+    def get_template_path(self):
         return 'templates/image_upload_input.html'
 
-    def _preprocess(self, inp):
+    def preprocess(self, inp):
         """
         Default preprocessing method for is to convert the picture to black and white and resize to be 48x48
         """
