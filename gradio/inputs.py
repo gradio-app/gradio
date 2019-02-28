@@ -1,9 +1,15 @@
+"""
+This module defines various classes that can serve as the `input` to an interface. Each class must inherit from
+`AbstractInput`, and each class must define a path to its template. All of the subclasses of `AbstractInput` are
+automatically added to a registry, which allows them to be easily referenced in other parts of the code.
+"""
+
 from abc import ABC, abstractmethod
 import base64
-from PIL import Image
+from gradio import preprocessing_utils
 from io import BytesIO
 import numpy as np
-from gradio import preprocessing_utils
+from PIL import Image
 
 
 class AbstractInput(ABC):

@@ -1,3 +1,7 @@
+'''
+Defines helper methods useful for setting up ports, launching servers, and handling `ngrok`
+'''
+
 import subprocess
 import requests
 import zipfile
