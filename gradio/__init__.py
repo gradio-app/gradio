@@ -1,1 +1,1 @@
-from gradio.interface import Interface  # This makes Interface importable as gradio.Interface.
+from gradio.interface import Interface  # This makes it possible to import `Interface` as `gradio.Interface`.

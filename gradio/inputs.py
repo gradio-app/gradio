@@ -5,6 +5,7 @@ from io import BytesIO
 import numpy as np
 from gradio import preprocessing_utils
 
+
 class AbstractInput(ABC):
     """
     An abstract class for defining the methods that all gradio inputs should have.
@@ -13,6 +14,8 @@ class AbstractInput(ABC):
 
     def __init__(self, preprocessing_fn=None):
         if preprocessing_fn is not None:
+            if not callable(preprocessing_fn):
+                raise ValueError('`preprocessing_fn` must be a callable function')
             self._pre_process = preprocessing_fn
         super().__init__()
 
@@ -24,7 +27,7 @@ class AbstractInput(ABC):
         pass
 
     @abstractmethod
-    def _pre_process(self):
+    def _pre_process(self, inp):
         """
         All interfaces should define a method that returns the path to its template.
         """
@@ -36,12 +39,12 @@ class Sketchpad(AbstractInput):
     def _get_template_path(self):
         return 'templates/sketchpad_input.html'
 
-    def _pre_process(self, imgstring):
+    def _pre_process(self, inp):
         """
+        Default preprocessing method for the SketchPad is to convert the sketch to black and white and resize 28x28
         """
-        content = imgstring.split(';')[1]
+        content = inp.split(';')[1]
         image_encoded = content.split(',')[1]
-        body = base64.decodebytes(image_encoded.encode('utf-8'))
         im = Image.open(BytesIO(base64.b64decode(image_encoded))).convert('L')
         im = preprocessing_utils.resize_and_crop(im, (28, 28))
         array = np.array(im).flatten().reshape(1, 28, 28, 1)
@@ -53,12 +56,12 @@ class Webcam(AbstractInput):
     def _get_template_path(self):
         return 'templates/webcam_input.html'
 
-    def _pre_process(self, imgstring):
+    def _pre_process(self, inp):
         """
+        Default preprocessing method for is to convert the picture to black and white and resize to be 48x48
         """
-        content = imgstring.split(';')[1]
+        content = inp.split(';')[1]
         image_encoded = content.split(',')[1]
-        body = base64.decodebytes(image_encoded.encode('utf-8'))
         im = Image.open(BytesIO(base64.b64decode(image_encoded))).convert('L')
         im = preprocessing_utils.resize_and_crop(im, (48, 48))
         array = np.array(im).flatten().reshape(1, 48, 48, 1)
@@ -70,26 +73,29 @@ class Textbox(AbstractInput):
     def _get_template_path(self):
         return 'templates/textbox_input.html'
 
-    def _pre_process(self, text):
+    def _pre_process(self, inp):
         """
+        By default, no pre-processing is applied to text.
         """
-        return text
+        return inp
+
 
 class ImageUpload(AbstractInput):
 
     def _get_template_path(self):
         return 'templates/image_upload_input.html'
 
-    def _pre_process(self, imgstring):
+    def _pre_process(self, inp):
         """
+        Default preprocessing method for is to convert the picture to black and white and resize to be 48x48
         """
-        content = imgstring.split(';')[1]
+        content = inp.split(';')[1]
         image_encoded = content.split(',')[1]
-        body = base64.decodebytes(image_encoded.encode('utf-8'))
         im = Image.open(BytesIO(base64.b64decode(image_encoded))).convert('L')
         im = preprocessing_utils.resize_and_crop(im, (48, 48))
         array = np.array(im).flatten().reshape(1, 48, 48, 1)
         return array
 
 
+# Automatically adds all subclasses of AbstractInput into a dictionary (keyed by class name) for easy referencing.
 registry = {cls.__name__.lower(): cls for cls in AbstractInput.__subclasses__()}
