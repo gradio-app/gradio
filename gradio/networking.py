@@ -9,7 +9,7 @@ import io
 import sys
 import os
 import socket
-from psutil import process_iter, AccessDenied
+from psutil import process_iter, AccessDenied, NoSuchProcess
 from signal import SIGTERM  # or SIGKILL
 import threading
 from http.server import HTTPServer as BaseHTTPServer, SimpleHTTPRequestHandler
@@ -78,6 +78,7 @@ def copy_files(src_dir, dest_dir):
             shutil.copy(full_file_name, dest_dir)
 
 
+#TODO(abidlabs): Handle the http vs. https issue that sometimes happens (a ws cannot be loaded from an https page)
 def set_socket_url_in_js(temp_dir, socket_url):
     with open(os.path.join(temp_dir, BASE_JS_FILE)) as fin:
         lines = fin.readlines()
@@ -184,6 +185,7 @@ def create_ngrok_tunnel(local_port, api_url):
 
 
 def setup_ngrok(server_port, websocket_port, output_directory):
+    kill_processes([4040, 4041])  #TODO(abidlabs): better way to do this
     site_ngrok_url = create_ngrok_tunnel(server_port, NGROK_TUNNELS_API_URL)
     socket_ngrok_url = create_ngrok_tunnel(websocket_port, NGROK_TUNNELS_API_URL2)
     set_socket_url_in_js(output_directory, socket_ngrok_url)
@@ -196,7 +198,7 @@ def kill_processes(process_ids):
             for conns in proc.connections(kind='inet'):
                 if conns.laddr.port in process_ids:
                         proc.send_signal(SIGTERM)  # or SIGKILL
-        except AccessDenied:
+        except (AccessDenied, NoSuchProcess):
             pass
 
 
