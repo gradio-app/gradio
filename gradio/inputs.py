@@ -16,7 +16,7 @@ class AbstractInput(ABC):
         if preprocessing_fn is not None:
             if not callable(preprocessing_fn):
                 raise ValueError('`preprocessing_fn` must be a callable function')
-            self._pre_process = preprocessing_fn
+            self._preprocess = preprocessing_fn
         super().__init__()
 
     @abstractmethod
@@ -27,9 +27,9 @@ class AbstractInput(ABC):
         pass
 
     @abstractmethod
-    def _pre_process(self, inp):
+    def _preprocess(self, inp):
         """
-        All interfaces should define a method that returns the path to its template.
+        All interfaces should define a default preprocessing method
         """
         pass
 
@@ -39,7 +39,7 @@ class Sketchpad(AbstractInput):
     def _get_template_path(self):
         return 'templates/sketchpad_input.html'
 
-    def _pre_process(self, inp):
+    def _preprocess(self, inp):
         """
         Default preprocessing method for the SketchPad is to convert the sketch to black and white and resize 28x28
         """
@@ -56,7 +56,7 @@ class Webcam(AbstractInput):
     def _get_template_path(self):
         return 'templates/webcam_input.html'
 
-    def _pre_process(self, inp):
+    def _preprocess(self, inp):
         """
         Default preprocessing method for is to convert the picture to black and white and resize to be 48x48
         """
@@ -73,7 +73,7 @@ class Textbox(AbstractInput):
     def _get_template_path(self):
         return 'templates/textbox_input.html'
 
-    def _pre_process(self, inp):
+    def _preprocess(self, inp):
         """
         By default, no pre-processing is applied to text.
         """
@@ -85,7 +85,7 @@ class ImageUpload(AbstractInput):
     def _get_template_path(self):
         return 'templates/image_upload_input.html'
 
-    def _pre_process(self, inp):
+    def _preprocess(self, inp):
         """
         Default preprocessing method for is to convert the picture to black and white and resize to be 48x48
         """
