@@ -15,7 +15,7 @@ class TestSketchpad(unittest.TestCase):
 
     def test_preprocessing(self):
         inp = inputs.Sketchpad()
-        array = inp._pre_process(BASE64_IMG)
+        array = inp._preprocess(BASE64_IMG)
         self.assertEqual(array.shape, (1, 28, 28, 1))
 
 
@@ -27,7 +27,7 @@ class TestWebcam(unittest.TestCase):
 
     def test_preprocessing(self):
         inp = inputs.Webcam()
-        array = inp._pre_process(BASE64_IMG)
+        array = inp._preprocess(BASE64_IMG)
         self.assertEqual(array.shape, (1, 48, 48, 1))
 
 
@@ -39,7 +39,7 @@ class TestTextbox(unittest.TestCase):
 
     def test_preprocessing(self):
         inp = inputs.Textbox()
-        string = inp._pre_process(RAND_STRING)
+        string = inp._preprocess(RAND_STRING)
         self.assertEqual(string, RAND_STRING)
 
 
@@ -51,7 +51,7 @@ class TestImageUpload(unittest.TestCase):
 
     def test_preprocessing(self):
         inp = inputs.ImageUpload()
-        array = inp._pre_process(BASE64_IMG)
+        array = inp._preprocess(BASE64_IMG)
         self.assertEqual(array.shape, (1, 48, 48, 1))
 
 
