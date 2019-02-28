@@ -1,3 +1,9 @@
+"""
+This module defines various classes that can serve as the `output` to an interface. Each class must inherit from
+`AbstractOutput`, and each class must define a path to its template. All of the subclasses of `AbstractOutput` are
+automatically added to a registry, which allows them to be easily referenced in other parts of the code.
+"""
+
 from abc import ABC, abstractmethod
 import numpy as np
 

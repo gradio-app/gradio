@@ -1,3 +1,8 @@
+'''
+This is the core file in the `gradio` package, and defines the Interface class, including methods for constructing the
+interface using the input and output types.
+'''
+
 import asyncio
 import websockets
 import nest_asyncio
@@ -27,7 +32,7 @@ TEMPLATE_TEMP = 'interface.html'
 BASE_JS_FILE = 'js/all-io.js'
 
 
-class Interface():
+class Interface:
     """
     """
 
