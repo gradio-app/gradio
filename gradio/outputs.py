@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 import numpy as np
 
+
 class AbstractOutput(ABC):
     """
     An abstract class for defining the methods that all gradio inputs should have.
@@ -29,10 +30,10 @@ class AbstractOutput(ABC):
         pass
 
 
-class Class(AbstractOutput):
+class Label(AbstractOutput):
 
     def _get_template_path(self):
-        return 'templates/class_output.html'
+        return 'templates/label_output.html'
 
     def _post_process(self, prediction):
         """
