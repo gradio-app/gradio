@@ -17,7 +17,7 @@ LOCALHOST_IP = '127.0.0.1'
 INITIAL_WEBSOCKET_PORT = 9200
 TRY_NUM_PORTS = 100
 
-BASE_TEMPLATE = pkg_resources.resource_filename('gradio', 'templates/all_io.html')
+BASE_TEMPLATE = pkg_resources.resource_filename('gradio', 'templates/base_template.html')
 JS_PATH_LIB = pkg_resources.resource_filename('gradio', 'js/')
 CSS_PATH_LIB = pkg_resources.resource_filename('gradio', 'css/')
 JS_PATH_TEMP = 'js/'
