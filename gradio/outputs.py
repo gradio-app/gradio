@@ -18,18 +18,18 @@ class AbstractOutput(ABC):
         """
         """
         if postprocessing_fn is not None:
-            self._postprocess = postprocessing_fn
+            self.postprocess = postprocessing_fn
         super().__init__()
 
     @abstractmethod
-    def _get_template_path(self):
+    def get_template_path(self):
         """
         All interfaces should define a method that returns the path to its template.
         """
         pass
 
     @abstractmethod
-    def _postprocess(self, prediction):
+    def postprocess(self, prediction):
         """
         All interfaces should define a default postprocessing method
         """
@@ -38,10 +38,10 @@ class AbstractOutput(ABC):
 
 class Label(AbstractOutput):
 
-    def _get_template_path(self):
+    def get_template_path(self):
         return 'templates/label_output.html'
 
-    def _postprocess(self, prediction):
+    def postprocess(self, prediction):
         """
         """
         if isinstance(prediction, np.ndarray):
@@ -58,10 +58,10 @@ class Label(AbstractOutput):
 
 class Textbox(AbstractOutput):
 
-    def _get_template_path(self):
+    def get_template_path(self):
         return 'templates/textbox_output.html'
 
-    def _postprocess(self, prediction):
+    def postprocess(self, prediction):
         """
         """
         return prediction
