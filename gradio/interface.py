@@ -142,6 +142,7 @@ class Interface:
         else:
             if self.verbose:
                 print("To create a public link, set `share=True` in the argument to `launch()`")
+            site_ngrok_url = None
 
         # Keep the server running in the background.
         asyncio.get_event_loop().run_until_complete(start_server)
@@ -151,3 +152,4 @@ class Interface:
             pass
 
         webbrowser.open(path_to_server + networking.TEMPLATE_TEMP)  # Open a browser tab with the interface.
+        return path_to_server + networking.TEMPLATE_TEMP, site_ngrok_url
