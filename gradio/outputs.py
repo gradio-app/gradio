@@ -16,6 +16,7 @@ class AbstractOutput(ABC):
 
     def __init__(self, postprocessing_fn=None):
         """
+        :param postprocessing_fn: an optional postprocessing function that overrides the default
         """
         if postprocessing_fn is not None:
             self.postprocess = postprocessing_fn

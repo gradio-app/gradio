@@ -19,6 +19,9 @@ class AbstractInput(ABC):
     """
 
     def __init__(self, preprocessing_fn=None):
+        """
+        :param preprocessing_fn: an optional preprocessing function that overrides the default
+        """
         if preprocessing_fn is not None:
             if not callable(preprocessing_fn):
                 raise ValueError('`preprocessing_fn` must be a callable function')
