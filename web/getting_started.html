@@ -1,0 +1,148 @@
+<html>
+  <head>
+    <title>GradIO</title>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+    <link href="style/style.css" rel="stylesheet">
+    <link href="style/getting_started.css" rel="stylesheet">
+    <link href="style/gradio.css" rel="stylesheet">
+  </head>
+  <body>
+    <nav>
+      <img src="img/logo_inline.png" />
+      <a href="home.html">GradIO</a>
+      <a class="selected" href="getting_started.html">Getting Started</a>
+      <a href="sharing.html">Sharing</a>
+    </nav>
+    <div class="content">
+      <h1>Getting Started</h1>
+      <p>GradIO is a python library that allows you to place input and output
+      interfaces over trained models to make it easy for you to "play around"
+      with your model. GradIO runs entirely locally using your browser.</p>
+      <p>To get a sense of GradIO, take a look at the examples on the home
+      page. Setting up GradIO is as easy as <code>pip install gradio</code> or
+      <code>pip3 install gradio</code> for Python3.</p>
+      <p>Running a GradIO interface requires calling  <code><span
+      class="func">Interface(</span><span class="var">input</span> : str,
+      <span class="var">output</span> : str, <span class="var">model_type</span>
+          : str, <span class="var">model</span> : Any<span
+          class="func">)</span></code> function, which takes as input
+          arguments:<br>
+      <code><span class="var">input</span></code> – the string representing
+      the input interface to be used.<br>
+      <code><span class="var">output</span></code> – the string representing
+      the output interface to be used.<br>
+      <code><span class="var">model_type</span></code> – the string
+      representing type of model being passed in. Supported types include
+      keras.<br>
+      <code><span class="var">model</span></code> – the actual model to use
+      for processing.</p>
+      <p>For example:</p>
+      <div class="codeblock"><code>
+        import <span class="var">gradio</span>, tensorflow as <span
+            class="var">tf</span><br>
+        <span class="var">mdl</span> = tf.keras.models.<span
+            class="func">Sequential()</span><br>
+        <span class="comm"># ...
+            define and train the model as you would normally</span><br>
+        <span class="var">io</span> = gradio.<span
+            class="func">Interface(</span><span
+            class="var">input</span>=“sketchpad”, <span
+            class="var">output</span>=“label”, <span
+            class="var">model_type</span>=“keras”, <span
+            class="var">model</span>=mdl<span class="func">)</span><br>
+        io.<span class="func">launch()</span>
+      </code></div>
+      <h1>Supported Interfaces</h1>
+      <p id="interfaces_text">This is the list of currently supported interfaces
+      in GradIO. All input interfaces can be paired with any output interface.
+      </p>
+      <div class="interfaces_set">
+        <div class="inputs_set">
+          <h2><code><span class="var">input</span>=“text”</code></h2>
+          <p>Use this interface to enter text as your input.</p>
+          <div class="gradio input text">
+            <div class="role">Input</div>
+            <textarea class="input_text"
+            placeholder="Enter text here..."></textarea>
+          </div>
+          <h2><code><span class="var">input</span>=“image_file”</code></h2>
+          <p>Use this interface to upload images to your model.</p>
+          <div class="gradio input image_file">
+            <div class="role">Input</div>
+            <div class="input_image">
+              Drop Image Here<br>- or -<br>Click to Upload
+            </div>
+          </div>
+          <h2><code><span class="var">input</span>=“snapshot”</code></h2>
+          <p>Use this interface to take snapshots from the user's webcam.</p>
+          <div class="gradio input snapshot">
+            <div class="role">Input</div>
+            <div class="input_snapshot">
+              <img class="webcam" src="img/webcam.png" />
+              <div class="input_directions">
+                Click to Upload a Snapshot from the Webcam.
+              </div>
+            </div>
+          </div>
+          <h2><code><span class="var">input</span>=“sketchpad”</code></h2>
+          <p>Use this interface to take simple monochrome cketches as input.</p>
+          <div class="input sketchpad">
+            <div class="role">Input</div>
+          </div>
+          <h2><code><span class="var">input</span>=“microphone”</code></h2>
+          <p>Use this interface to audio input from the microphone.</p>
+          <div class="gradio input mic">
+            <div class="role">Input</div>
+            <div class="input_mic">
+              <img class="mic" src="img/mic.png" />
+              <div class="input_directions">
+                Click to Upload Audio from the Microphone.
+              </div>
+            </div>
+          </div>
+          <h2><code><span class="var">input</span>=“audio_file”</code></h2>
+          <p>Use this interface to upload audio to your model.</p>
+          <div class="gradio input audio_file">
+            <div class="role">Input</div>
+            <div class="input_audio">
+              Drop Audio File Here<br>- or -<br>Click to Upload
+            </div>
+          </div>
+        </div><!--
+     --><div class="outputs_set">
+          <h2><code><span class="var">output</span>=“classifier”</code></h2>
+          <p>Use this interface for classification. Responds with confidence
+          intervals. </p>
+          <div class="gradio output classifier">
+            <div class="role">Output</div>
+            <div class="output_class">happy</div>
+            <div class="confidence_intervals">
+              <div class="confidence"><div class="label">happy</div><div class="level" style="width: 219px">73%</div></div>
+              <div class="confidence"><div class="label">shocked</div><div class="level" style="width: 60px">20%</div></div>
+              <div class="confidence"><div class="label">sad</div><div class="level" style="width: 15px">&nbsp;</div></div>
+              <div class="confidence"><div class="label">angry</div><div class="level" style="width: 6px">&nbsp;</div></div>
+            </div>
+          </div>
+          <h2><code><span class="var">output</span>=“text”</code></h2>
+          <p>Use this interface to display the text of your output.</p>
+          <div class="gradio output text">
+            <div class="role">Output</div>
+            <textarea readonly class="output_text">Lorem ipsum consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+            </textarea>
+          </div>
+          <h2><code><span class="var">output</span>=“image”</code></h2>
+          <p>Use this interface to display the text of your output.</p>
+          <div class="gradio output image">
+            <div class="role">Output</div>
+            <div class="output_image">
+              <img src="img/altered_logo.png" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <footer>
+      <img src="img/logo_inline.png" />
+    </footer>
+  <body>
+</html>
