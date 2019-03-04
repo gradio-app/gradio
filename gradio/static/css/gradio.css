@@ -81,8 +81,10 @@
   font-weight: bold;
   font-size: 36px;
 }
-.input_image, .input_audio {
+.drop_mode {
   border: dashed 8px #DDD;
+}
+.input_image, .input_audio {
   line-height: 1.5em;
 }
 .input_snapshot, .input_mic {

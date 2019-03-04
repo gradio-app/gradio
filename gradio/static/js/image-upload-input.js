@@ -12,6 +12,7 @@ function loadPreviewFromFiles(files) {
   ReaderObj.readAsDataURL(files[0])
   ReaderObj.onloadend = function() {
     $(".input_caption").hide()
+    $(".input_image").removeClass("drop_mode")
     $(".input_image img").attr("src", this.result)
   }
 }
@@ -33,8 +34,6 @@ $(".hidden_upload").on("change", function() {
   }
 })
 
-
-
 $('body').on('click', '.submit', function(e) {
   var src = $('.input_image img').attr('src');
   ws.send(src, function(e) {
@@ -45,4 +44,5 @@ $('body').on('click', '.submit', function(e) {
 $('body').on('click', '.clear', function(e) {
   $(".input_caption").show()
   $(".input_image img").removeAttr("src");
+  $(".input_image").addClass("drop_mode")
 })
