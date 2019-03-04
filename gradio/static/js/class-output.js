@@ -37,3 +37,7 @@ try {
   notifyError(e)
 }
 
+$('body').on('click', '.clear', function(e) {
+  $(".output_class").text("")
+})
+
