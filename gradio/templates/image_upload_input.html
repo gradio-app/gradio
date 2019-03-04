@@ -1,31 +1,9 @@
-<!-- <link rel="stylesheet" href="../css/dropzone.css">
-<div class="col-6">
-	<h5>Image Upload Input:</h5>
-	
-<input type="file" onchange="previewFile()"><br>
-<img src="" height="200" alt="Image preview...">
-
-  <div class="btn-group" role="group" aria-label="Basic example">
-  <button type="button" class="btn btn-primary" id="submit-button">Submit</button>
-  <button type="button" class="btn btn-secondary" id="clear-button">Clear</button>
+<div class="gradio input image_file">
+  <div class="role">Input</div>
+  <div class="input_image">
+    <div class="input_caption">Drop Image Here<br>- or -<br>Click to Upload</div>
+    <img />
   </div>
+  <input class="hidden_upload" type="file" accept="image/x-png,image/gif,image/jpeg" />
 </div>
-<script src="../js/image-upload-input.js"></script>
-
- -->
-<div class="col-md-6">
-<div>	<h5>Image Upload Input:</h5> </div>
-
- <div class="uploader" style="text-align: center; vertical-align: middle" onclick="$('#filePhoto').click()">
-    <br>Click here <br> or <br> drag and drop <br>an image
-    <img/>
-    <input type="file" name="userprofile_picture"  id="filePhoto" />
-</div>   
-  <div class="btn-group" role="group" aria-label="Basic example">
-  <button type="button" class="btn btn-primary" id="submit-button">Submit</button>
-  <button type="button" class="btn btn-secondary" id="clear-button">Clear</button>
-  </div>
-
-
-</div>
-<script src="../js/image-upload-input.js"></script>
+<script src="../static/js/image-upload-input.js"></script>
