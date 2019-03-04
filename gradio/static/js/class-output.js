@@ -1,5 +1,3 @@
-var predict_div = $("#predict_div").val();
-
 function notifyError(error) {
       $.notify({
           // options
@@ -29,11 +27,9 @@ try {
     console.log(event.data);
     sleep(300).then(() => {
       if (event.data.length == 1) {
-      $("#predict_div").css({ 'font-size':'300px'});
-      } else {
-      $("#predict_div").css({ 'font-size':'60px'});  
+        $(".output_class").css({ 'font-size':'300px'});
       }
-      $("#predict_div").text(event.data);
+      $(".output_class").text(event.data);
     })
 
   }

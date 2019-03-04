@@ -28,12 +28,10 @@ NGROK_TUNNELS_API_URL2 = "http://localhost:4041/api/tunnels"  # TODO(this should
 
 
 BASE_TEMPLATE = pkg_resources.resource_filename('gradio', 'templates/base_template.html')
-JS_PATH_LIB = pkg_resources.resource_filename('gradio', 'js/')
-CSS_PATH_LIB = pkg_resources.resource_filename('gradio', 'css/')
-JS_PATH_TEMP = 'js/'
-CSS_PATH_TEMP = 'css/'
+STATIC_PATH_LIB = pkg_resources.resource_filename('gradio', 'static/')
+STATIC_PATH_TEMP = 'static/'
 TEMPLATE_TEMP = 'interface.html'
-BASE_JS_FILE = 'js/all-io.js'
+BASE_JS_FILE = 'static/js/all-io.js'
 
 
 NGROK_ZIP_URLS = {
@@ -66,10 +64,9 @@ def build_template(temp_dir, input_interface, output_interface):
     output_tag.replace_with(output_soup)
 
     f = open(os.path.join(temp_dir, TEMPLATE_TEMP), "w")
-    f.write(str(all_io_soup.prettify))
+    f.write(str(all_io_soup))
 
-    copy_files(JS_PATH_LIB, os.path.join(temp_dir, JS_PATH_TEMP))
-    copy_files(CSS_PATH_LIB, os.path.join(temp_dir, CSS_PATH_TEMP))
+    copy_files(STATIC_PATH_LIB, os.path.join(temp_dir, STATIC_PATH_TEMP))
 
 
 def copy_files(src_dir, dest_dir):
@@ -78,13 +75,12 @@ def copy_files(src_dir, dest_dir):
     :param src_dir: string path to source directory
     :param dest_dir: string path to destination directory
     """
-    if not os.path.exists(dest_dir):
-        os.makedirs(dest_dir)
-    src_files = os.listdir(src_dir)
-    for file_name in src_files:
-        full_file_name = os.path.join(src_dir, file_name)
-        if os.path.isfile(full_file_name):
-            shutil.copy(full_file_name, dest_dir)
+    try:
+        shutil.copytree(src_dir, dest_dir)
+    except OSError as exc: # python >2.5
+        if exc.errno == errno.ENOTDIR:
+            shutil.copy(src_dir, dest_dir)
+        else: raise
 
 
 #TODO(abidlabs): Handle the http vs. https issue that sometimes happens (a ws cannot be loaded from an https page)
