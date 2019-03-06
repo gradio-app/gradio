@@ -10,6 +10,16 @@ class TestInterface(unittest.TestCase):
         self.assertIsInstance(io.input_interface, gradio.inputs.Sketchpad)
         self.assertIsInstance(io.output_interface, gradio.outputs.Textbox)
 
+    def test_input_interface_is_instance(self):
+        inp = gradio.inputs.ImageUpload()
+        io = Interface(inputs=inp, outputs='textBOX', model=lambda x: x, model_type='function')
+        self.assertEqual(io.input_interface, inp)
+
+    def test_output_interface_is_instance(self):
+        out = gradio.outputs.Label(show_confidences=False)
+        io = Interface(inputs='SketCHPad', outputs=out, model=lambda x: x, model_type='function')
+        self.assertEqual(io.input_interface, inp)
+
 
 if __name__ == '__main__':
     unittest.main()
