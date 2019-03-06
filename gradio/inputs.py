@@ -44,6 +44,10 @@ class AbstractInput(ABC):
 
 
 class Sketchpad(AbstractInput):
+    def __init__(self, preprocessing_fn=None, image_width=28, image_height=28):
+        self.image_width = image_width
+        self.image_height = image_height
+        super().__init__(preprocessing_fn=preprocessing_fn)
 
     def get_template_path(self):
         return 'templates/sketchpad_input.html'
@@ -55,12 +59,17 @@ class Sketchpad(AbstractInput):
         content = inp.split(';')[1]
         image_encoded = content.split(',')[1]
         im = Image.open(BytesIO(base64.b64decode(image_encoded))).convert('L')
-        im = preprocessing_utils.resize_and_crop(im, (28, 28))
-        array = np.array(im).flatten().reshape(1, 28, 28, 1)
+        im = preprocessing_utils.resize_and_crop(im, (self.image_width, self.image_height))
+        array = np.array(im).flatten().reshape(1, self.image_width, self.image_height, 1)
         return array
 
 
 class Webcam(AbstractInput):
+    def __init__(self, preprocessing_fn=None, image_width=224, image_height=224, num_channels=3):
+        self.image_width = image_width
+        self.image_height = image_height
+        self.num_channels = num_channels
+        super().__init__(preprocessing_fn=preprocessing_fn)
 
     def get_template_path(self):
         return 'templates/webcam_input.html'
@@ -71,9 +80,9 @@ class Webcam(AbstractInput):
         """
         content = inp.split(';')[1]
         image_encoded = content.split(',')[1]
-        im = Image.open(BytesIO(base64.b64decode(image_encoded))).convert('L')
-        im = preprocessing_utils.resize_and_crop(im, (48, 48))
-        array = np.array(im).flatten().reshape(1, 48, 48, 1)
+        im = Image.open(BytesIO(base64.b64decode(image_encoded))).convert('RGB')
+        im = preprocessing_utils.resize_and_crop(im, (self.image_width, self.image_height))
+        array = np.array(im).flatten().reshape(1, self.image_width, self.image_height, self.num_channels)
         return array
 
 
@@ -90,6 +99,12 @@ class Textbox(AbstractInput):
 
 
 class ImageUpload(AbstractInput):
+    def __init__(self, preprocessing_fn=None, image_width=224, image_height=224, num_channels=3):
+        self.image_width = image_width
+        self.image_height = image_height
+        self.num_channels = num_channels
+        super().__init__(preprocessing_fn=preprocessing_fn)
+
     def get_template_path(self):
         return 'templates/image_upload_input.html'
 
@@ -99,9 +114,9 @@ class ImageUpload(AbstractInput):
         """
         content = inp.split(';')[1]
         image_encoded = content.split(',')[1]
-        im = Image.open(BytesIO(base64.b64decode(image_encoded))).convert('L')
-        im = preprocessing_utils.resize_and_crop(im, (48, 48))
-        array = np.array(im).flatten().reshape(1, 48, 48, 1)
+        im = Image.open(BytesIO(base64.b64decode(image_encoded))).convert('RGB')
+        im = preprocessing_utils.resize_and_crop(im, (self.image_width, self.image_height))
+        array = np.array(im).flatten().reshape(1, self.image_width, self.image_height, self.num_channels)
         return array
 
 
