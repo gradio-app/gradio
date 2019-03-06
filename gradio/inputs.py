@@ -99,10 +99,11 @@ class Textbox(AbstractInput):
 
 
 class ImageUpload(AbstractInput):
-    def __init__(self, preprocessing_fn=None, image_width=224, image_height=224, num_channels=3):
+    def __init__(self, preprocessing_fn=None, image_width=224, image_height=224, num_channels=3, image_mode='RGB'):
         self.image_width = image_width
         self.image_height = image_height
         self.num_channels = num_channels
+        self.image_mode = image_mode
         super().__init__(preprocessing_fn=preprocessing_fn)
 
     def get_template_path(self):
@@ -114,7 +115,7 @@ class ImageUpload(AbstractInput):
         """
         content = inp.split(';')[1]
         image_encoded = content.split(',')[1]
-        im = Image.open(BytesIO(base64.b64decode(image_encoded))).convert('RGB')
+        im = Image.open(BytesIO(base64.b64decode(image_encoded))).convert(self.image_mode)
         im = preprocessing_utils.resize_and_crop(im, (self.image_width, self.image_height))
         array = np.array(im).flatten().reshape(1, self.image_width, self.image_height, self.num_channels)
         return array
