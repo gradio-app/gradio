@@ -11,6 +11,7 @@ import gradio.inputs
 import gradio.outputs
 from gradio import networking
 import tempfile
+from IPython.display import IFrame
 
 nest_asyncio.apply()
 
@@ -113,7 +114,7 @@ class Interface:
         else:
             ValueError('model_type must be one of: {}'.format(self.VALID_MODEL_TYPES))
 
-    def launch(self, share=False):
+    def launch(self, share=False, new_tab=False):
         """
         Standard method shared by interfaces that creates the interface and sets up a websocket to communicate with it.
         :param share: boolean. If True, then a share link is generated using ngrok is displayed to the user.
@@ -151,5 +152,9 @@ class Interface:
         except RuntimeError:  # Runtime errors are thrown in jupyter notebooks because of async.
             pass
 
-        webbrowser.open(path_to_server + networking.TEMPLATE_TEMP)  # Open a browser tab with the interface.
+        if new_tab:
+            webbrowser.open(path_to_server + networking.TEMPLATE_TEMP)  # Open a browser tab with the interface.
+        else:   
+            print("Interface displayed inline, to launch the interface in a new tab, set `new_tab=True` in the argument to `launch()`")            
+            display(IFrame(path_to_server + networking.TEMPLATE_TEMP, width=1000, height=500))
         return path_to_server + networking.TEMPLATE_TEMP, site_ngrok_url
