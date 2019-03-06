@@ -33,13 +33,20 @@
   margin-left: 1px;
 }
 .submit, .clear {
-  background-color: #F6F6F6 !important;
   padding: 8px !important;
   box-sizing: border-box;
   width: calc(50% - 8px);
   text-transform: uppercase;
   font-weight: bold;
 }
+.clear {
+  background-color: #F6F6F6 !important;
+}
+.submit {
+  background-color: #EEA45D  !important;
+  color: white !important;
+}
+
 .submit {
   margin-right: 8px;
 }
