@@ -1,4 +1,4 @@
-var cropper;
+// var cropper;
 
 $('body').on('click', ".input_image.drop_mode", function (e) {
   $(this).parent().find(".hidden_upload").click();
@@ -17,10 +17,10 @@ function loadPreviewFromFiles(files) {
     $(".input_image").removeClass("drop_mode")
     var image = $(".input_image img")
     image.attr("src", this.result)
-    image.cropper({aspectRatio : 1.0});
-    if (!cropper) {
-      cropper = image.data('cropper');
-    }
+    // image.cropper({aspectRatio : 1.0});
+    // if (!cropper) {
+    //   cropper = image.data('cropper');
+    // }
   }
 }
 
@@ -50,10 +50,10 @@ $('body').on('click', '.submit', function(e) {
 })
 
 $('body').on('click', '.clear', function(e) {
-  if (cropper) {
-    cropper.destroy();
-    cropper = null
-  }
+  // if (cropper) {
+  //   cropper.destroy();
+  //   cropper = null
+  // }
   $(".input_caption").show()
   $(".input_image img").removeAttr("src");
   $(".input_image").addClass("drop_mode")
