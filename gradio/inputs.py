@@ -117,7 +117,10 @@ class ImageUpload(AbstractInput):
         image_encoded = content.split(',')[1]
         im = Image.open(BytesIO(base64.b64decode(image_encoded))).convert(self.image_mode)
         im = preprocessing_utils.resize_and_crop(im, (self.image_width, self.image_height))
-        array = np.array(im).flatten().reshape(1, self.image_width, self.image_height, self.num_channels)
+        if self.num_channels is None:
+            array = np.array(im).flatten().reshape(1, self.image_width, self.image_height)
+        else:
+            array = np.array(im).flatten().reshape(1, self.image_width, self.image_height, self.num_channels)
         return array
 
 
