@@ -1,3 +1,4 @@
-include gradio/css/*
-include gradio/js/*
-include gradio/templates/*
+include gradio/static/*
+include gradio/static/css/*
+include gradio/static/js/*
+include gradio/static/img/*
