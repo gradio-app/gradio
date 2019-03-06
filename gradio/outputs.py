@@ -6,7 +6,7 @@ automatically added to a registry, which allows them to be easily referenced in 
 
 from abc import ABC, abstractmethod
 import numpy as np
-
+import json
 
 class AbstractOutput(ABC):
     """
@@ -38,6 +38,14 @@ class AbstractOutput(ABC):
 
 
 class Label(AbstractOutput):
+    LABEL_KEY = 'label'
+    CONFIDENCES_KEY = 'confidences'
+    CONFIDENCE_KEY = 'confidence'
+
+    def __init__(self, postprocessing_fn=None, num_top_classes=3, show_confidences=True):
+        self.num_top_classes = num_top_classes
+        self.show_confidences = show_confidences
+        super().__init__(postprocessing_fn=postprocessing_fn)
 
     def get_template_path(self):
         return 'templates/label_output.html'
@@ -45,16 +53,28 @@ class Label(AbstractOutput):
     def postprocess(self, prediction):
         """
         """
+        response = dict()
+        # TODO(abidlabs): check if list, if so convert to numpy array
         if isinstance(prediction, np.ndarray):
             prediction = prediction.squeeze()
-            if prediction.size == 1:
-                return prediction
-            else:
-                return prediction.argmax()
+            if prediction.size == 1:  # if it's single value
+                response[Label.LABEL_KEY] = np.asscalar(prediction)
+            elif len(prediction.shape) == 1:  # if a 1D
+                response[Label.LABEL_KEY] = int(prediction.argmax())
+                if self.show_confidences:
+                    response[Label.CONFIDENCES_KEY] = []
+                    for i in range(self.num_top_classes):
+                        response[Label.CONFIDENCES_KEY].append({
+                            Label.LABEL_KEY: int(prediction.argmax()),
+                            Label.CONFIDENCE_KEY: float(prediction.max()),
+                        })
+                        prediction[prediction.argmax()] = 0
         elif isinstance(prediction, str):
-            return prediction
+            response[Label.LABEL_KEY] = prediction
         else:
             raise ValueError("Unable to post-process model prediction.")
+        print(response)
+        return json.dumps(response)
 
 
 class Textbox(AbstractOutput):

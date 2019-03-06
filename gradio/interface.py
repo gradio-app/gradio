@@ -32,16 +32,26 @@ class Interface:
     def __init__(self, inputs, outputs, model, model_type=None, preprocessing_fns=None, postprocessing_fns=None,
                  verbose=True):
         """
-        :param inputs: a string representing the input interface.
-        :param outputs: a string representing the output interface.
+        :param inputs: a string or `AbstractInput` representing the input interface.
+        :param outputs: a string or `AbstractOutput` representing the output interface.
         :param model_obj: the model object, such as a sklearn classifier or keras model.
         :param model_type: what kind of trained model, can be 'keras' or 'sklearn' or 'function'. Inferred if not
             provided.
         :param preprocessing_fns: an optional function that overrides the preprocessing function of the input interface.
         :param postprocessing_fns: an optional function that overrides the postprocessing fn of the output interface.
         """
-        self.input_interface = gradio.inputs.registry[inputs.lower()](preprocessing_fns)
-        self.output_interface = gradio.outputs.registry[outputs.lower()](postprocessing_fns)
+        if isinstance(inputs, str):
+            self.input_interface = gradio.inputs.registry[inputs.lower()](preprocessing_fns)
+        elif isinstance(inputs, gradio.inputs.AbstractInput):
+            self.input_interface = inputs
+        else:
+            raise ValueError('Input interface must be of type `str` or `AbstractInput`')
+        if isinstance(outputs, str):
+            self.output_interface = gradio.outputs.registry[outputs.lower()](postprocessing_fns)
+        elif isinstance(outputs, gradio.outputs.AbstractOutput):
+            self.output_interface = outputs
+        else:
+            raise ValueError('Output interface must be of type `str` or `AbstractOutput`')
         self.model_obj = model
         if model_type is None:
             model_type = self._infer_model_type(model)

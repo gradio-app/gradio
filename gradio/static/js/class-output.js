@@ -24,12 +24,19 @@ try {
   };
 
   ws.onmessage = function (event) {
-    console.log(event.data);
     sleep(300).then(() => {
-      if (event.data.length == 1) {
-        $(".output_class").css({ 'font-size':'300px'});
+//      $(".output_class").text(event.data);
+      var data = JSON.parse(event.data)
+      $(".output_class").text(data["label"])
+      $(".confidence_intervals").empty()
+      if ("confidences" in data) {
+        data["confidences"].forEach(function (c) {
+          var confidence = c["confidence"]
+          $(".confidence_intervals").append(`<div class="confidence"><div class=
+              "label">${c["label"]}</div><div class="level" style="flex-grow:
+                ${confidence}">${Math.round(confidence * 100)}%</div></div>`)
+        })
       }
-      $(".output_class").text(event.data);
     })
 
   }
@@ -39,5 +46,5 @@ try {
 
 $('body').on('click', '.clear', function(e) {
   $(".output_class").text("")
+  $(".confidence_intervals").empty()
 })
-

@@ -36,6 +36,7 @@ $(".hidden_upload").on("change", function() {
 
 $('body').on('click', '.submit', function(e) {
   var src = $('.input_image img').attr('src');
+  src = resizeImage(src)
   ws.send(src, function(e) {
     notifyError(e)
   })
