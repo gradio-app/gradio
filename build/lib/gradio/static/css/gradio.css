@@ -32,14 +32,12 @@
 .input.text .role, .output.text .role {
   margin-left: 1px;
 }
-.submit, .clear, .flag, .message, .send-message {
-  background-color: #F6F6F6 !important;
+.submit, .clear {
   padding: 8px !important;
   box-sizing: border-box;
   width: calc(50% - 8px);
   text-transform: uppercase;
   font-weight: bold;
-  border: 0 none;
 }
 .clear {
   background-color: #F6F6F6 !important;
@@ -55,15 +53,10 @@
 .clear {
   margin-left: 8px;
 }
-
-/*.flag:focus {
-  background-color: pink !important; 
-}
-*/
 .input_text, .output_text {
   background: transparent;
-  resize: none
-    border: 0 none;
+  resize: none;
+  border: 0 none;
   width: 100%;
   font-size: 18px;
   outline: none;

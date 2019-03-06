@@ -61,22 +61,3 @@ $('body').on('click', '.clear', function(e) {
   $(".output_class").text("")
   $(".confidence_intervals").empty()
 })
-
-  
-  
-function changeToFlagged() {
-  var f = document.getElementsByClassName("flag");
-  f[0].style.cssText = 'background-color:pink !important'  ;
-  f[0].value="flagged";
-}
-
-function sendMessage() {
-  var m = document.getElementsByClassName("message");
-  m[0].style.cssText = 'background:lightgrey !important' ;
-  // m[0].style.cssText = 'display:none' ;
-  var s = document.getElementsByClassName("send-message");
-  s[0].style.cssText = 'background-color:lightgreen !important'  ;
-  s[0].value="Sent!"
-
-  // c[0].value="flagged";
-}

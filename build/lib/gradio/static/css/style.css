@@ -1,0 +1,37 @@
+body {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 12px;
+  margin: 0;
+}
+button, input[type="submit"], input[type="reset"] {
+	background: none;
+	color: inherit;
+	border: none;
+	padding: 0;
+	font: inherit;
+	cursor: pointer;
+	outline: inherit;
+}
+body > div, body > nav {
+  margin-left: 60px;
+  margin-right: 60px;
+}
+nav {
+  text-align: center;
+  padding: 16px 0 8px;
+}
+nav img {
+  margin-right: auto;
+  height: 32px;
+}
+#panels {
+  display: flex;
+  flex-flow: row;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.panel {
+  min-width: 300px;
+  margin: 40px 0 0;
+  flex-grow: 1; 
+}
