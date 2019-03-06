@@ -1,3 +1,7 @@
+'''
+Defines helper methods useful for setting up ports, launching servers, and handling `ngrok`
+'''
+
 import subprocess
 import requests
 import zipfile
@@ -5,20 +9,30 @@ import io
 import sys
 import os
 import socket
-from psutil import process_iter, AccessDenied
+from psutil import process_iter, AccessDenied, NoSuchProcess
 from signal import SIGTERM  # or SIGKILL
 import threading
 from http.server import HTTPServer as BaseHTTPServer, SimpleHTTPRequestHandler
 import stat
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
+import pkg_resources
+from bs4 import BeautifulSoup
+from distutils import dir_util
 
-INITIAL_PORT_VALUE = 7860
-TRY_NUM_PORTS = 100
+INITIAL_PORT_VALUE = 7860  # The http server will try to open on port 7860. If not available, 7861, 7862, etc.
+TRY_NUM_PORTS = 100  # Number of ports to try before giving up and throwing an exception.
 LOCALHOST_NAME = 'localhost'
-LOCALHOST_PREFIX = 'localhost:'
 NGROK_TUNNELS_API_URL = "http://localhost:4040/api/tunnels"  # TODO(this should be captured from output)
 NGROK_TUNNELS_API_URL2 = "http://localhost:4041/api/tunnels"  # TODO(this should be captured from output)
+
+
+BASE_TEMPLATE = pkg_resources.resource_filename('gradio', 'templates/base_template.html')
+STATIC_PATH_LIB = pkg_resources.resource_filename('gradio', 'static/')
+STATIC_PATH_TEMP = 'static/'
+TEMPLATE_TEMP = 'interface.html'
+BASE_JS_FILE = 'static/js/all-io.js'
+
 
 NGROK_ZIP_URLS = {
     "linux": "https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip",
@@ -27,48 +41,83 @@ NGROK_ZIP_URLS = {
 }
 
 
-def get_ports_in_use(start, stop):
-    ports_in_use = []
-    for port in range(start, stop):
+def build_template(temp_dir, input_interface, output_interface):
+    """
+    Builds a complete HTML template with supporting JS and CSS files in a given directory.
+    :param temp_dir: string with path to temp directory in which the template should be built
+    :param input_interface: an AbstractInput object which includes is used to get the input template
+    :param output_interface: an AbstractInput object which includes is used to get the input template
+    """
+    input_template_path = pkg_resources.resource_filename('gradio', input_interface.get_template_path())
+    output_template_path = pkg_resources.resource_filename('gradio', output_interface.get_template_path())
+    input_page = open(input_template_path)
+    output_page = open(output_template_path)
+    input_soup = BeautifulSoup(input_page.read(), features="html.parser")
+    output_soup = BeautifulSoup(output_page.read(), features="html.parser")
+
+    all_io_page = open(BASE_TEMPLATE)
+    all_io_soup = BeautifulSoup(all_io_page.read(), features="html.parser")
+    input_tag = all_io_soup.find("div", {"id": "input"})
+    output_tag = all_io_soup.find("div", {"id": "output"})
+
+    input_tag.replace_with(input_soup)
+    output_tag.replace_with(output_soup)
+
+    f = open(os.path.join(temp_dir, TEMPLATE_TEMP), "w")
+    f.write(str(all_io_soup))
+
+    copy_files(STATIC_PATH_LIB, os.path.join(temp_dir, STATIC_PATH_TEMP))
+
+
+def copy_files(src_dir, dest_dir):
+    """
+    Copies all the files from one directory to another
+    :param src_dir: string path to source directory
+    :param dest_dir: string path to destination directory
+    """
+    dir_util.copy_tree(src_dir, dest_dir)
+
+
+#TODO(abidlabs): Handle the http vs. https issue that sometimes happens (a ws cannot be loaded from an https page)
+def set_socket_url_in_js(temp_dir, socket_url):
+    with open(os.path.join(temp_dir, BASE_JS_FILE)) as fin:
+        lines = fin.readlines()
+        lines[0] = 'var NGROK_URL = "{}"\n'.format(socket_url.replace('http', 'ws'))
+
+    with open(os.path.join(temp_dir, BASE_JS_FILE), 'w') as fout:
+        for line in lines:
+            fout.write(line)
+
+
+def set_socket_port_in_js(temp_dir, socket_port):
+    with open(os.path.join(temp_dir, BASE_JS_FILE)) as fin:
+        lines = fin.readlines()
+        lines[1] = 'var SOCKET_PORT = {}\n'.format(socket_port)
+
+    with open(os.path.join(temp_dir, BASE_JS_FILE), 'w') as fout:
+        for line in lines:
+            fout.write(line)
+
+
+def get_first_available_port(initial, final):
+    """
+    Gets the first open port in a specified range of port numbers
+    :param initial: the initial value in the range of port numbers
+    :param final: final (exclusive) value in the range of port numbers, should be greater than `initial`
+    :return:
+    """
+    for port in range(initial, final):
         try:
             s = socket.socket()  # create a socket object
             s.bind((LOCALHOST_NAME, port))  # Bind to the port
             s.close()
+            return port
         except OSError:
-            ports_in_use.append(port)
-    return ports_in_use
-    # ports_in_use = []
-    # try:
-    #     for proc in process_iter():
-    #         for conns in proc.connections(kind='inet'):
-    #             ports_in_use.append(conns.laddr.port)
-    # except AccessDenied:
-    #     pass  # TODO(abidlabs): somehow find a way to handle this issue?
-    # return ports_in_use
+            pass
+    raise OSError("All ports from {} to {} are in use. Please close a port.".format(initial, final))
 
 
 def serve_files_in_background(port, directory_to_serve=None):
-    # class Handler(http.server.SimpleHTTPRequestHandler):
-    #     def __init__(self, *args, **kwargs):
-    #         super().__init__(*args, directory=directory_to_serve, **kwargs)
-    #
-    # server = socketserver.ThreadingTCPServer(('localhost', port), Handler)
-    # # Ensures that Ctrl-C cleanly kills all spawned threads
-    # server.daemon_threads = True
-    # # Quicker rebinding
-    # server.allow_reuse_address = True
-    #
-    # # A custom signal handle to allow us to Ctrl-C out of the process
-    # def signal_handler(signal, frame):
-    #     print('Exiting http server (Ctrl+C pressed)')
-    #     try:
-    #         if (server):
-    #             server.server_close()
-    #     finally:
-    #         sys.exit(0)
-    #
-    # # Install the keyboard interrupt handler
-    # signal.signal(signal.SIGINT, signal_handler)
     class HTTPHandler(SimpleHTTPRequestHandler):
         """This handler uses server.base_path instead of always using os.getcwd()"""
 
@@ -101,21 +150,9 @@ def serve_files_in_background(port, directory_to_serve=None):
 
 
 def start_simple_server(directory_to_serve=None):
-    # TODO(abidlabs): increment port number until free port is found
-    ports_in_use = get_ports_in_use(start=INITIAL_PORT_VALUE, stop=INITIAL_PORT_VALUE + TRY_NUM_PORTS)
-    for i in range(TRY_NUM_PORTS):
-        if not((INITIAL_PORT_VALUE + i) in ports_in_use):
-            break
-    else:
-        raise OSError("All ports from {} to {} are in use. Please close a port.".format(
-            INITIAL_PORT_VALUE, INITIAL_PORT_VALUE + TRY_NUM_PORTS))
-    serve_files_in_background(INITIAL_PORT_VALUE + i, directory_to_serve)
-    # if directory_to_serve is None:
-    #     subprocess.Popen(['python', '-m', 'http.server', str(INITIAL_PORT_VALUE + i)])
-    # else:
-    #     cmd = ' '.join(['python', '-m', 'http.server', '-d', directory_to_serve, str(INITIAL_PORT_VALUE + i)])
-    #     subprocess.Popen(cmd, shell=True)  # Doesn't seem to work if list is passed for some reason.
-    return INITIAL_PORT_VALUE + i
+    port = get_first_available_port(INITIAL_PORT_VALUE, INITIAL_PORT_VALUE + TRY_NUM_PORTS)
+    serve_files_in_background(port, directory_to_serve)
+    return port
 
 
 def download_ngrok():
@@ -133,7 +170,7 @@ def download_ngrok():
         os.chmod('ngrok', st.st_mode | stat.S_IEXEC)
 
 
-def setup_ngrok(local_port, api_url=NGROK_TUNNELS_API_URL):
+def create_ngrok_tunnel(local_port, api_url):
     if not(os.path.isfile('ngrok.exe') or os.path.isfile('ngrok')):
         download_ngrok()
     if sys.platform == 'win32':
@@ -147,18 +184,26 @@ def setup_ngrok(local_port, api_url=NGROK_TUNNELS_API_URL):
     session.mount('https://', adapter)
     r = session.get(api_url)
     for tunnel in r.json()['tunnels']:
-        if LOCALHOST_PREFIX + str(local_port) in tunnel['config']['addr']:
+        if '{}:'.format(LOCALHOST_NAME) + str(local_port) in tunnel['config']['addr']:
             return tunnel['public_url']
     raise RuntimeError("Not able to retrieve ngrok public URL")
 
 
-def kill_processes(process_ids):
+def setup_ngrok(server_port, websocket_port, output_directory):
+    kill_processes([4040, 4041])  #TODO(abidlabs): better way to do this
+    site_ngrok_url = create_ngrok_tunnel(server_port, NGROK_TUNNELS_API_URL)
+    socket_ngrok_url = create_ngrok_tunnel(websocket_port, NGROK_TUNNELS_API_URL2)
+    set_socket_url_in_js(output_directory, socket_ngrok_url)
+    return site_ngrok_url
+
+
+def kill_processes(process_ids):  #TODO(abidlabs): remove this, we shouldn't need to kill
     for proc in process_iter():
         try:
             for conns in proc.connections(kind='inet'):
                 if conns.laddr.port in process_ids:
                         proc.send_signal(SIGTERM)  # or SIGKILL
-        except AccessDenied:
+        except (AccessDenied, NoSuchProcess):
             pass
 
 
