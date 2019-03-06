@@ -92,6 +92,7 @@ class Interface:
         while True:
             try:
                 msg = await websocket.recv()
+                print('>>>>>>>>>msg', msg)
                 processed_input = self.input_interface.preprocess(msg)
                 prediction = self.predict(processed_input)
                 processed_output = self.output_interface.postprocess(prediction)

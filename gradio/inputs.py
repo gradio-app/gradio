@@ -69,6 +69,7 @@ class Webcam(AbstractInput):
         """
         Default preprocessing method for is to convert the picture to black and white and resize to be 48x48
         """
+        print('>>>>>>>>>in preprocess')
         content = inp.split(';')[1]
         image_encoded = content.split(',')[1]
         im = Image.open(BytesIO(base64.b64decode(image_encoded))).convert('L')
@@ -90,7 +91,6 @@ class Textbox(AbstractInput):
 
 
 class ImageUpload(AbstractInput):
-
     def get_template_path(self):
         return 'templates/image_upload_input.html'
 
