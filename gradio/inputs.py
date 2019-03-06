@@ -99,7 +99,7 @@ class Textbox(AbstractInput):
 
 
 class ImageUpload(AbstractInput):
-    def __init__(self, preprocessing_fn=None, image_width=224, image_height=224, num_channels=3, image_mode='RGB'):
+    def __init__(self, preprocessing_fn=None, image_width=229, image_height=229, num_channels=3, image_mode='RGB'):
         self.image_width = image_width
         self.image_height = image_height
         self.num_channels = num_channels
