@@ -6,7 +6,7 @@ automatically added to a registry, which allows them to be easily referenced in 
 
 from abc import ABC, abstractmethod
 import numpy as np
-
+import json
 
 class AbstractOutput(ABC):
     """
@@ -60,20 +60,21 @@ class Label(AbstractOutput):
             if prediction.size == 1:  # if it's single value
                 response[Label.LABEL_KEY] = np.asscalar(prediction)
             elif len(prediction.shape) == 1:  # if a 1D
-                response[Label.LABEL_KEY] = prediction.argmax()
+                response[Label.LABEL_KEY] = int(prediction.argmax())
                 if self.show_confidences:
                     response[Label.CONFIDENCES_KEY] = []
                     for i in range(self.num_top_classes):
                         response[Label.CONFIDENCES_KEY].append({
-                            Label.LABEL_KEY: prediction.argmax(),
-                            Label.CONFIDENCE_KEY: prediction.max(),
+                            Label.LABEL_KEY: int(prediction.argmax()),
+                            Label.CONFIDENCE_KEY: float(prediction.max()),
                         })
                         prediction[prediction.argmax()] = 0
         elif isinstance(prediction, str):
             response[Label.LABEL_KEY] = prediction
         else:
             raise ValueError("Unable to post-process model prediction.")
-        return response
+        print(response)
+        return json.dumps(response)
 
 
 class Textbox(AbstractOutput):
