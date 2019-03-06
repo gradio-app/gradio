@@ -18,7 +18,7 @@ class TestInterface(unittest.TestCase):
     def test_output_interface_is_instance(self):
         out = gradio.outputs.Label(show_confidences=False)
         io = Interface(inputs='SketCHPad', outputs=out, model=lambda x: x, model_type='function')
-        self.assertEqual(io.input_interface, inp)
+        self.assertEqual(io.output_interface, out)
 
 
 if __name__ == '__main__':
