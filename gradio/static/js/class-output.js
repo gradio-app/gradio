@@ -26,7 +26,7 @@ try {
   ws.onmessage = function (event) {
     sleep(300).then(() => {
 //      $(".output_class").text(event.data);
-      var data = event.data
+      var data = JSON.parse(event.data)
       $(".output_class").text(data["label"])
       $(".confidence_intervals").empty()
       if ("confidences" in data) {
