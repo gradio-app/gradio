@@ -38,6 +38,14 @@ class AbstractOutput(ABC):
 
 
 class Label(AbstractOutput):
+    LABEL_KEY = 'label'
+    CONFIDENCES_KEY = 'confidences'
+    CONFIDENCE_KEY = 'confidence'
+
+    def __init__(self, postprocessing_fn=None, num_top_classes=3, show_confidences=True):
+        self.num_top_classes = num_top_classes
+        self.show_confidences = show_confidences
+        super().__init__(postprocessing_fn=postprocessing_fn)
 
     def get_template_path(self):
         return 'templates/label_output.html'
@@ -45,16 +53,27 @@ class Label(AbstractOutput):
     def postprocess(self, prediction):
         """
         """
+        response = dict()
+        # TODO(abidlabs): check if list, if so convert to numpy array
         if isinstance(prediction, np.ndarray):
             prediction = prediction.squeeze()
-            if prediction.size == 1:
-                return prediction
-            else:
-                return prediction.argmax()
+            if prediction.size == 1:  # if it's single value
+                response[Label.LABEL_KEY] = np.asscalar(prediction)
+            elif len(prediction.shape) == 1:  # if a 1D
+                response[Label.LABEL_KEY] = prediction.argmax()
+                if self.show_confidences:
+                    response[Label.CONFIDENCES_KEY] = []
+                    for i in range(self.num_top_classes):
+                        response[Label.CONFIDENCES_KEY].append({
+                            Label.LABEL_KEY: prediction.argmax(),
+                            Label.CONFIDENCE_KEY: prediction.max(),
+                        })
+                        prediction[prediction.argmax()] = 0
         elif isinstance(prediction, str):
-            return prediction
+            response[Label.LABEL_KEY] = prediction
         else:
             raise ValueError("Unable to post-process model prediction.")
+        return response
 
 
 class Textbox(AbstractOutput):
