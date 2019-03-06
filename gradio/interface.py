@@ -108,8 +108,8 @@ class Interface:
                 await websocket.send(str(processed_output))
             except websockets.exceptions.ConnectionClosed:
                 pass
-            except Exception as e:
-                print(e)
+            # except Exception as e:
+            #     print(e)
 
     def predict(self, preprocessed_input):
         """
