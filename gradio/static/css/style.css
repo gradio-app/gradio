@@ -3,7 +3,7 @@ body {
   font-size: 12px;
   margin: 0;
 }
-button, input[type="submit"], input[type="reset"] {
+button, input[type="submit"], input[type="reset"], input[type="text"], select[type="submit"] {
 	background: none;
 	color: inherit;
 	border: none;
@@ -12,6 +12,12 @@ button, input[type="submit"], input[type="reset"] {
 	cursor: pointer;
 	outline: inherit;
 }
+
+input[type="text"] {
+  cursor: text;
+  text-transform: none;
+}
+
 body > div, body > nav {
   margin-left: 60px;
   margin-right: 60px;
