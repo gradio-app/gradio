@@ -73,7 +73,6 @@ class Label(AbstractOutput):
             response[Label.LABEL_KEY] = prediction
         else:
             raise ValueError("Unable to post-process model prediction.")
-        print(response)
         return json.dumps(response)
 
 
