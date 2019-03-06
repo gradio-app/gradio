@@ -103,6 +103,7 @@
 }
 .confidence {
   padding: 3px;
+  display: flex;
 }
 .level, .label  {
   display: inline-block;
@@ -112,12 +113,13 @@
   text-align: right;
 }
 .confidence_intervals .level {
-  font-size: 12px;
+  font-size: 14px;
   margin-left: 8px;
   margin-right: 8px;
   background-color: #AAA;
   padding: 2px 4px;
   text-align: right;
+  font-family: monospace;
   color: white;
   font-weight: bold;
 }
