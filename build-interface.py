@@ -1,5 +1,6 @@
 from argparse import ArgumentParser
 import gradio
+import numpy as np
 
 parser = ArgumentParser(description='Arguments for Building Interface')
 parser.add_argument('-i', '--inputs', type=str, help="name of input interface")
@@ -12,7 +13,7 @@ args = parser.parse_args()
 
 
 def launch_interface(args):
-    io = gradio.Interface(inputs=args.inputs, outputs=args.outputs, model=lambda x:x, model_type='function')
+    io = gradio.Interface(inputs=args.inputs, outputs=args.outputs, model=lambda x:np.array(1), model_type='function')
     io.launch(share=args.share)
     # input_interface = gradio.inputs.registry[args.inputs.lower()]()
     # output_interface = gradio.outputs.registry[args.outputs.lower()]()

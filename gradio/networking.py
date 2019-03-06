@@ -18,7 +18,7 @@ from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 import pkg_resources
 from bs4 import BeautifulSoup
-import shutil
+from distutils import dir_util
 
 INITIAL_PORT_VALUE = 7860  # The http server will try to open on port 7860. If not available, 7861, 7862, etc.
 TRY_NUM_PORTS = 100  # Number of ports to try before giving up and throwing an exception.
@@ -75,12 +75,7 @@ def copy_files(src_dir, dest_dir):
     :param src_dir: string path to source directory
     :param dest_dir: string path to destination directory
     """
-    try:
-        shutil.copytree(src_dir, dest_dir)
-    except OSError as exc: # python >2.5
-        if exc.errno == errno.ENOTDIR:
-            shutil.copy(src_dir, dest_dir)
-        else: raise
+    dir_util.copy_tree(src_dir, dest_dir)
 
 
 #TODO(abidlabs): Handle the http vs. https issue that sometimes happens (a ws cannot be loaded from an https page)
