@@ -11,7 +11,6 @@ import gradio.inputs
 import gradio.outputs
 from gradio import networking
 import tempfile
-from IPython.display import IFrame
 
 nest_asyncio.apply()
 
@@ -109,6 +108,8 @@ class Interface:
                 await websocket.send(str(processed_output))
             except websockets.exceptions.ConnectionClosed:
                 pass
+            # except Exception as e:
+            #     print(e)
 
     def predict(self, preprocessed_input):
         """
@@ -124,7 +125,7 @@ class Interface:
         else:
             ValueError('model_type must be one of: {}'.format(self.VALID_MODEL_TYPES))
 
-    def launch(self, share=False, new_tab=False):
+    def launch(self, inline=None, browser=None, share=False):
         """
         Standard method shared by interfaces that creates the interface and sets up a websocket to communicate with it.
         :param share: boolean. If True, then a share link is generated using ngrok is displayed to the user.
@@ -143,7 +144,7 @@ class Interface:
         networking.set_socket_port_in_js(output_directory, websocket_port)  # sets the websocket port in the JS file.
         if self.verbose:
             print("NOTE: Gradio is in beta stage, please report all bugs to: a12d@stanford.edu")
-            print("Model available locally at: {}".format(path_to_server + networking.TEMPLATE_TEMP))
+            print("Model is running locally at: {}".format(path_to_server + networking.TEMPLATE_TEMP))
 
         if share:
             site_ngrok_url = networking.setup_ngrok(server_port, websocket_port, output_directory)
@@ -162,9 +163,23 @@ class Interface:
         except RuntimeError:  # Runtime errors are thrown in jupyter notebooks because of async.
             pass
 
-        if new_tab:
+        if inline is None:
+            try:  # Check if running interactively using ipython.
+                _ = get_ipython()
+                inline = True
+                if browser is None:
+                    browser = False
+            except NameError:
+                inline = False
+                if browser is None:
+                    browser = True
+        else:
+            if browser is None:
+                browser = False
+        if browser:
             webbrowser.open(path_to_server + networking.TEMPLATE_TEMP)  # Open a browser tab with the interface.
-        else:   
-            print("Interface displayed inline, to launch the interface in a new tab, set `new_tab=True` in the argument to `launch()`")            
+        if inline:
+            from IPython.display import IFrame
             display(IFrame(path_to_server + networking.TEMPLATE_TEMP, width=1000, height=500))
+
         return path_to_server + networking.TEMPLATE_TEMP, site_ngrok_url
