@@ -1,8 +1,10 @@
-$(".input_image").click(function (e) {
+var cropper;
+
+$('body').on('click', ".input_image.drop_mode", function (e) {
   $(this).parent().find(".hidden_upload").click();
 })
 
-$(".input_image").on('drag dragstart dragend dragover dragenter dragleave drop', function(e) {
+$('body').on('drag dragstart dragend dragover dragenter dragleave drop', ".input_image.drop_mode", function(e) {
   e.preventDefault();
   e.stopPropagation();
 })
@@ -13,7 +15,12 @@ function loadPreviewFromFiles(files) {
   ReaderObj.onloadend = function() {
     $(".input_caption").hide()
     $(".input_image").removeClass("drop_mode")
-    $(".input_image img").attr("src", this.result)
+    var image = $(".input_image img")
+    image.attr("src", this.result)
+    image.cropper({aspectRatio : 1.0});
+    if (!cropper) {
+      cropper = image.data('cropper');
+    }
   }
 }
 
@@ -43,6 +50,10 @@ $('body').on('click', '.submit', function(e) {
 })
 
 $('body').on('click', '.clear', function(e) {
+  if (cropper) {
+    cropper.destroy();
+    cropper = null
+  }
   $(".input_caption").show()
   $(".input_image img").removeAttr("src");
   $(".input_image").addClass("drop_mode")
