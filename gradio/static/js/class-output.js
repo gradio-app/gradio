@@ -27,19 +27,19 @@ try {
     sleep(300).then(() => {
 //      $(".output_class").text(event.data);
       var data = JSON.parse(event.data)
-      data = {
-        label: "happy",
-        confidences : [
-         {
-          label : "happy",
-          confidence: 0.7
-         }, 
-         {
-          label : "sad",
-          confidence: 0.3
-         }, 
-        ]
-        }
+      // data = {
+      //   label: "happy",
+      //   confidences : [
+      //    {
+      //     label : "happy",
+      //     confidence: 0.7
+      //    },
+      //    {
+      //     label : "sad",
+      //     confidence: 0.3
+      //    },
+      //   ]
+      //   }
       $(".output_class").text(data["label"])
       $(".confidence_intervals").empty()
       if ("confidences" in data) {

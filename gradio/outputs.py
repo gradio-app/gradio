@@ -69,7 +69,6 @@ class Label(AbstractOutput):
         """
         """
         response = dict()
-        print('dddddddddddddddddddd', self.get_label_name(499))
         # TODO(abidlabs): check if list, if so convert to numpy array
         if isinstance(prediction, np.ndarray):
             prediction = prediction.squeeze()
