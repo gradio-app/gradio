@@ -41,6 +41,14 @@
   font-weight: bold;
   border: 0 none;
 }
+.clear {
+  background-color: #F6F6F6 !important;
+}
+.submit {
+  background-color: #EEA45D  !important;
+  color: white !important;
+}
+
 .submit {
   margin-right: 8px;
 }
@@ -116,7 +124,6 @@
 }
 .label {
   width: 60px;
-  text-align: right;
 }
 .confidence_intervals .level {
   font-size: 14px;

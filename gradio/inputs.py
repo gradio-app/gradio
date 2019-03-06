@@ -11,7 +11,6 @@ from io import BytesIO
 import numpy as np
 from PIL import Image
 
-
 class AbstractInput(ABC):
     """
     An abstract class for defining the methods that all gradio inputs should have.
@@ -99,11 +98,14 @@ class Textbox(AbstractInput):
 
 
 class ImageUpload(AbstractInput):
-    def __init__(self, preprocessing_fn=None, image_width=229, image_height=229, num_channels=3, image_mode='RGB'):
+    def __init__(self, preprocessing_fn=None, image_width=224, image_height=224, num_channels=3, image_mode='RGB',
+                 scale = 1/127.5, shift = -1):
         self.image_width = image_width
         self.image_height = image_height
         self.num_channels = num_channels
         self.image_mode = image_mode
+        self.scale = scale
+        self.shift = shift
         super().__init__(preprocessing_fn=preprocessing_fn)
 
     def get_template_path(self):
@@ -117,10 +119,12 @@ class ImageUpload(AbstractInput):
         image_encoded = content.split(',')[1]
         im = Image.open(BytesIO(base64.b64decode(image_encoded))).convert(self.image_mode)
         im = preprocessing_utils.resize_and_crop(im, (self.image_width, self.image_height))
+        im = np.array(im).flatten()
+        im = im * self.scale + self.shift
         if self.num_channels is None:
-            array = np.array(im).flatten().reshape(1, self.image_width, self.image_height)
+            array = im.reshape(1, self.image_width, self.image_height)
         else:
-            array = np.array(im).flatten().reshape(1, self.image_width, self.image_height, self.num_channels)
+            array = im.reshape(1, self.image_width, self.image_height, self.num_channels)
         return array
 
 
