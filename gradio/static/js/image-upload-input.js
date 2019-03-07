@@ -1,4 +1,4 @@
-// var cropper;
+var cropper;
 
 $('body').on('click', ".input_image.drop_mode", function (e) {
   $(this).parent().find(".hidden_upload").click();
@@ -17,10 +17,13 @@ function loadPreviewFromFiles(files) {
     $(".input_image").removeClass("drop_mode")
     var image = $(".input_image img")
     image.attr("src", this.result)
-    // image.cropper({aspectRatio : 1.0});
-    // if (!cropper) {
-    //   cropper = image.data('cropper');
-    // }
+    image.cropper({
+      aspectRatio : 1.0,
+      background: false
+    });
+    if (!cropper) {
+      cropper = image.data('cropper');
+    }
   }
 }
 
@@ -42,18 +45,24 @@ $(".hidden_upload").on("change", function() {
 })
 
 $('body').on('click', '.submit', function(e) {
-  var src = $('.input_image img').attr('src');
-  src = resizeImage(src)
+  src = cropper.getCroppedCanvas({
+    maxWidth: 360,
+    maxHeight: 360,
+    fillColor: "white"
+  }).toDataURL();
   ws.send(src, function(e) {
     notifyError(e)
   })
 })
 
 $('body').on('click', '.clear', function(e) {
-  // if (cropper) {
-  //   cropper.destroy();
-  //   cropper = null
-  // }
+  if (cropper) {
+    cropper.destroy();
+    cropper = null
+    $(".input_image img").remove()
+    $(".input_image").append("<img>")
+  }
+  $(".hidden_upload").prop("value", "")
   $(".input_caption").show()
   $(".input_image img").removeAttr("src");
   $(".input_image").addClass("drop_mode")
