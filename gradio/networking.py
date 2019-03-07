@@ -101,6 +101,7 @@ def render_template_with_tags(template_path, context):
 
 #TODO(abidlabs): Handle the http vs. https issue that sometimes happens (a ws cannot be loaded from an https page)
 def set_ngrok_url_in_js(temp_dir, ngrok_socket_url):
+    ngrok_socket_url = ngrok_socket_url.replace('http', 'ws')
     js_file = os.path.join(temp_dir, BASE_JS_FILE)
     render_template_with_tags(js_file, {'ngrok_socket_url': ngrok_socket_url})
     config_file = os.path.join(temp_dir, CONFIG_FILE)
