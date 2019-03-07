@@ -1,0 +1,4 @@
+{
+  "input_interface_type": "{{input_interface_type}}",
+  "output_interface_type": "{{output_interface_type}}"
+}
