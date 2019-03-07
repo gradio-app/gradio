@@ -103,6 +103,8 @@ def render_template_with_tags(template_path, context):
 def set_ngrok_url_in_js(temp_dir, ngrok_socket_url):
     js_file = os.path.join(temp_dir, BASE_JS_FILE)
     render_template_with_tags(js_file, {'ngrok_socket_url': ngrok_socket_url})
+    config_file = os.path.join(temp_dir, CONFIG_FILE)
+    render_template_with_tags(config_file, {'ngrok_socket_url': ngrok_socket_url})
 
 
 def set_socket_port_in_js(temp_dir, socket_port):
