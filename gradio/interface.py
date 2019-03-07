@@ -149,6 +149,10 @@ class Interface:
             INITIAL_WEBSOCKET_PORT, INITIAL_WEBSOCKET_PORT + TRY_NUM_PORTS)
         start_server = websockets.serve(self.communicate, LOCALHOST_IP, websocket_port)
         networking.set_socket_port_in_js(output_directory, websocket_port)  # sets the websocket port in the JS file.
+        networking.set_interface_types_in_config_file(output_directory,
+                                                      self.input_interface.__class__.__name__.lower(),
+                                                      self.output_interface.__class__.__name__.lower())
+
         if self.verbose:
             print("NOTE: Gradio is in beta stage, please report all bugs to: a12d@stanford.edu")
             print("Model is running locally at: {}".format(path_to_server + networking.TEMPLATE_TEMP))
