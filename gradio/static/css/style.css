@@ -11,6 +11,8 @@ button, input[type="submit"], input[type="reset"], input[type="text"], select[ty
 	font: inherit;
 	cursor: pointer;
 	outline: inherit;
+  -webkit-appearance: none;
+  border-radius: 0;  
 }
 
 input[type="text"] {
@@ -39,5 +41,5 @@ nav img {
 .panel {
   min-width: 300px;
   margin: 40px 0 0;
-  flex-grow: 1; 
+  flex-grow: 1;
 }
