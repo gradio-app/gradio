@@ -62,8 +62,8 @@ $('body').on('click', '.clear', function(e) {
   $(".confidence_intervals").empty()
 })
 
-  
-  
+
+
 function changeToFlagged() {
   var f = document.getElementsByClassName("flag");
   f[0].style.cssText = 'background-color:pink !important'  ;
