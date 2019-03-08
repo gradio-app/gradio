@@ -1,5 +1,5 @@
-var NGROK_URL = "ws://0f9bffb5.ngrok.io"
-var SOCKET_PORT = 9200
+var NGROK_URL = "{{ngrok_socket_url}}"
+var SOCKET_PORT = "{{socket_port}}"
 
 try {
   var origin = window.location.origin;
