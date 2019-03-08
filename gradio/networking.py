@@ -14,6 +14,7 @@ from signal import SIGTERM  # or SIGKILL
 import threading
 from http.server import HTTPServer as BaseHTTPServer, SimpleHTTPRequestHandler
 import stat
+import time
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 import pkg_resources
@@ -32,6 +33,7 @@ STATIC_PATH_LIB = pkg_resources.resource_filename('gradio', 'static/')
 STATIC_PATH_TEMP = 'static/'
 TEMPLATE_TEMP = 'interface.html'
 BASE_JS_FILE = 'static/js/all-io.js'
+CONFIG_FILE = 'static/config.json'
 
 
 NGROK_ZIP_URLS = {
@@ -78,25 +80,43 @@ def copy_files(src_dir, dest_dir):
     dir_util.copy_tree(src_dir, dest_dir)
 
 
-#TODO(abidlabs): Handle the http vs. https issue that sometimes happens (a ws cannot be loaded from an https page)
-def set_socket_url_in_js(temp_dir, socket_url):
-    with open(os.path.join(temp_dir, BASE_JS_FILE)) as fin:
-        lines = fin.readlines()
-        lines[0] = 'var NGROK_URL = "{}"\n'.format(socket_url.replace('http', 'ws'))
-
-    with open(os.path.join(temp_dir, BASE_JS_FILE), 'w') as fout:
-        for line in lines:
+def render_template_with_tags(template_path, context):
+    """
+    Combines the given template with a given context dictionary by replacing all of the occurrences of tags (enclosed
+    in double curly braces) with corresponding values.
+    :param template_path: a string with the path to the template file
+    :param context: a dictionary whose string keys are the tags to replace and whose string values are the replacements.
+    """
+    with open(template_path) as fin:
+        old_lines = fin.readlines()
+    new_lines = []
+    for line in old_lines:
+        for key, value in context.items():
+            line = line.replace(r'{{' + key + r'}}', value)
+        new_lines.append(line)
+    with open(template_path, 'w') as fout:
+        for line in new_lines:
             fout.write(line)
+
+
+#TODO(abidlabs): Handle the http vs. https issue that sometimes happens (a ws cannot be loaded from an https page)
+def set_ngrok_url_in_js(temp_dir, ngrok_socket_url):
+    ngrok_socket_url = ngrok_socket_url.replace('http', 'ws')
+    js_file = os.path.join(temp_dir, BASE_JS_FILE)
+    render_template_with_tags(js_file, {'ngrok_socket_url': ngrok_socket_url})
+    config_file = os.path.join(temp_dir, CONFIG_FILE)
+    render_template_with_tags(config_file, {'ngrok_socket_url': ngrok_socket_url})
 
 
 def set_socket_port_in_js(temp_dir, socket_port):
-    with open(os.path.join(temp_dir, BASE_JS_FILE)) as fin:
-        lines = fin.readlines()
-        lines[1] = 'var SOCKET_PORT = {}\n'.format(socket_port)
+    js_file = os.path.join(temp_dir, BASE_JS_FILE)
+    render_template_with_tags(js_file, {'socket_port': str(socket_port)})
 
-    with open(os.path.join(temp_dir, BASE_JS_FILE), 'w') as fout:
-        for line in lines:
-            fout.write(line)
+
+def set_interface_types_in_config_file(temp_dir, input_interface, output_interface):
+    config_file = os.path.join(temp_dir, CONFIG_FILE)
+    render_template_with_tags(config_file, {'input_interface_type': input_interface,
+                                            'output_interface_type': output_interface})
 
 
 def get_first_available_port(initial, final):
@@ -143,7 +163,7 @@ def serve_files_in_background(port, directory_to_serve=None):
                 sys.stdout.flush()
                 httpd.serve_forever()
         except KeyboardInterrupt:
-            pass
+            httpd.server_close()
 
     thread = threading.Thread(target=serve_forever)
     thread.start()
@@ -193,7 +213,7 @@ def setup_ngrok(server_port, websocket_port, output_directory):
     kill_processes([4040, 4041])  #TODO(abidlabs): better way to do this
     site_ngrok_url = create_ngrok_tunnel(server_port, NGROK_TUNNELS_API_URL)
     socket_ngrok_url = create_ngrok_tunnel(websocket_port, NGROK_TUNNELS_API_URL2)
-    set_socket_url_in_js(output_directory, socket_ngrok_url)
+    set_ngrok_url_in_js(output_directory, socket_ngrok_url)
     return site_ngrok_url
 
 
