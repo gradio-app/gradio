@@ -26,7 +26,8 @@ class Interface:
     """
 
     # Dictionary in which each key is a valid `model_type` argument to constructor, and the value being the description.
-    VALID_MODEL_TYPES = {'sklearn': 'sklearn model', 'keras': 'keras model', 'function': 'python function'}
+    VALID_MODEL_TYPES = {'sklearn': 'sklearn model', 'keras': 'Keras model', 'function': 'python function',
+                         'pytorch': 'PyTorch model'}
 
     def __init__(self, inputs, outputs, model, model_type=None, preprocessing_fns=None, postprocessing_fns=None,
                  verbose=True):
@@ -122,6 +123,12 @@ class Interface:
             return self.model_obj.predict(preprocessed_input)
         elif self.model_type=='function':
             return self.model_obj(preprocessed_input)
+        elif self.model_type=='pytorch':
+            import torch
+            value = torch.from_numpy(preprocessed_input)
+            value = torch.autograd.Variable(value)
+            prediction = self.model_obj(value)
+            return prediction.data.numpy()
         else:
             ValueError('model_type must be one of: {}'.format(self.VALID_MODEL_TYPES))
 
@@ -142,6 +149,10 @@ class Interface:
             INITIAL_WEBSOCKET_PORT, INITIAL_WEBSOCKET_PORT + TRY_NUM_PORTS)
         start_server = websockets.serve(self.communicate, LOCALHOST_IP, websocket_port)
         networking.set_socket_port_in_js(output_directory, websocket_port)  # sets the websocket port in the JS file.
+        networking.set_interface_types_in_config_file(output_directory,
+                                                      self.input_interface.__class__.__name__.lower(),
+                                                      self.output_interface.__class__.__name__.lower())
+
         if self.verbose:
             print("NOTE: Gradio is in beta stage, please report all bugs to: a12d@stanford.edu")
             print("Model is running locally at: {}".format(path_to_server + networking.TEMPLATE_TEMP))
