@@ -9,7 +9,7 @@ import base64
 from gradio import preprocessing_utils
 from io import BytesIO
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageOps
 
 class AbstractInput(ABC):
     """
@@ -43,9 +43,11 @@ class AbstractInput(ABC):
 
 
 class Sketchpad(AbstractInput):
-    def __init__(self, preprocessing_fn=None, image_width=28, image_height=28):
+    def __init__(self, preprocessing_fn=None, image_width=28, image_height=28,
+                 invert_colors=True):
         self.image_width = image_width
         self.image_height = image_height
+        self.invert_colors = invert_colors
         super().__init__(preprocessing_fn=preprocessing_fn)
 
     def get_template_path(self):
@@ -58,6 +60,8 @@ class Sketchpad(AbstractInput):
         content = inp.split(';')[1]
         image_encoded = content.split(',')[1]
         im = Image.open(BytesIO(base64.b64decode(image_encoded))).convert('L')
+        if self.invert_colors:
+            im = ImageOps.invert(im)
         im = preprocessing_utils.resize_and_crop(im, (self.image_width, self.image_height))
         array = np.array(im).flatten().reshape(1, self.image_width, self.image_height, 1)
         return array
