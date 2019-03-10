@@ -1,3 +1,6 @@
+$('body').on('click', '.clear', function(e) {
+  $(".output_text").val("");
+})
 ws.onmessage = function (event) {
- 	$("#textbox-output").val(event.data);
+ 	$(".output_text").val(event.data);
 }
