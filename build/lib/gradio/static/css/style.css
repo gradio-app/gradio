@@ -3,7 +3,7 @@ body {
   font-size: 12px;
   margin: 0;
 }
-button, input[type="submit"], input[type="reset"] {
+button, input[type="submit"], input[type="reset"], input[type="text"], input[type="button"], select[type="submit"] {
 	background: none;
 	color: inherit;
 	border: none;
@@ -11,7 +11,15 @@ button, input[type="submit"], input[type="reset"] {
 	font: inherit;
 	cursor: pointer;
 	outline: inherit;
+  -webkit-appearance: none;
+  border-radius: 0;
 }
+
+input[type="text"] {
+  cursor: text;
+  text-transform: none;
+}
+
 body > div, body > nav {
   margin-left: 60px;
   margin-right: 60px;
@@ -33,5 +41,5 @@ nav img {
 .panel {
   min-width: 300px;
   margin: 40px 0 0;
-  flex-grow: 1; 
+  flex-grow: 1;
 }
