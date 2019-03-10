@@ -153,12 +153,13 @@ class Interface:
         networking.set_interface_types_in_config_file(output_directory,
                                                       self.input_interface.__class__.__name__.lower(),
                                                       self.output_interface.__class__.__name__.lower())
+        is_colab = False
         try:  # Check if running interactively using ipython.
             from_ipynb = get_ipython()
             if 'google.colab' in str(from_ipynb):
                 is_colab = True
         except NameError:
-            is_colab = False
+            pass
 
         if self.verbose:
             print("NOTE: Gradio is in beta stage, please report all bugs to: a12d@stanford.edu")
