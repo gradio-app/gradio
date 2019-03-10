@@ -101,5 +101,15 @@ class Textbox(AbstractOutput):
         """
         return prediction
 
+class Image(AbstractOutput):
+
+    def get_template_path(self):
+        return 'templates/output/image.html'
+
+    def postprocess(self, prediction):
+        """
+        """
+        return prediction
+
 
 registry = {cls.__name__.lower(): cls for cls in AbstractOutput.__subclasses__()}
