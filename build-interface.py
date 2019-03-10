@@ -7,11 +7,17 @@ import time
 parser = ArgumentParser(description='Arguments for Building Interface')
 parser.add_argument('-i', '--inputs', type=str, help="name of input interface")
 parser.add_argument('-o', '--outputs', type=str, help="name of output interface")
+parser.add_argument('-d', '--delay', type=int, help="delay in processing", default=0)
 share_parser = parser.add_mutually_exclusive_group(required=False)
 share_parser.add_argument('--share', dest='share', action='store_true')
 share_parser.add_argument('--no-share', dest='share', action='store_false')
 parser.set_defaults(share=False)
 args = parser.parse_args()
+
+
+def mdl(input):
+  time.sleep(args.delay)
+  return np.array(1)
 
 
 def launch_interface(args):
