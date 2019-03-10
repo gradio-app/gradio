@@ -166,10 +166,15 @@ class Interface:
                 print("Model is running locally at: {}".format(path_to_server + networking.TEMPLATE_TEMP))
 
         if share:
-            site_ngrok_url = networking.setup_ngrok(server_port, websocket_port, output_directory)
-            if self.verbose:
-                print("Model available publicly for 8 hours at: {}".format(
-                    site_ngrok_url + '/' + networking.TEMPLATE_TEMP))
+            try:
+                site_ngrok_url = networking.setup_ngrok(server_port, websocket_port, output_directory)
+                if self.verbose:
+                    print("Model available publicly for 8 hours at: {}".format(
+                        site_ngrok_url + '/' + networking.TEMPLATE_TEMP))
+            except RuntimeError:
+                site_ngrok_url = None
+                if self.verbose:
+                    print("Unable to create public link for interface, please check internet connection.")
         else:
             if self.verbose:
                 print("To create a public link, set `share=True` in the argument to `launch()`")

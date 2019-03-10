@@ -25,6 +25,11 @@ gradio/static/img/webcam.png
 gradio/static/js/all-io.js
 gradio/static/js/utils.js
 gradio/templates/base_template.html
+gradio/templates/input/image_upload.html
+gradio/templates/input/sketchpad.html
+gradio/templates/input/textbox.html
+gradio/templates/output/label.html
+gradio/templates/output/textbox.html
 test/test_inputs.py
 test/test_interface.py
 test/test_networking.py
