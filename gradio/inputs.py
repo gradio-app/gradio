@@ -51,7 +51,7 @@ class Sketchpad(AbstractInput):
         super().__init__(preprocessing_fn=preprocessing_fn)
 
     def get_template_path(self):
-        return 'templates/sketchpad_input.html'
+        return 'templates/input/sketchpad.html'
 
     def preprocess(self, inp):
         """
@@ -75,7 +75,7 @@ class Webcam(AbstractInput):
         super().__init__(preprocessing_fn=preprocessing_fn)
 
     def get_template_path(self):
-        return 'templates/webcam_input.html'
+        return 'templates/input/webcam.html'
 
     def preprocess(self, inp):
         """
@@ -92,7 +92,7 @@ class Webcam(AbstractInput):
 class Textbox(AbstractInput):
 
     def get_template_path(self):
-        return 'templates/textbox_input.html'
+        return 'templates/input/textbox.html'
 
     def preprocess(self, inp):
         """
@@ -113,7 +113,7 @@ class ImageUpload(AbstractInput):
         super().__init__(preprocessing_fn=preprocessing_fn)
 
     def get_template_path(self):
-        return 'templates/image_upload_input.html'
+        return 'templates/input/image_upload.html'
 
     def preprocess(self, inp):
         """

@@ -13,6 +13,7 @@ $(".brush").click(function (e) {
   $(this).addClass("selected")
   sketchpad.penSize = $(this).attr("size")
 })
+
 $('body').on('click', '.clear', function(e) {
     context.clearRect(0, 0, context.canvas.width, context.canvas.height);
 })
@@ -22,5 +23,4 @@ $('body').on('click', '.submit', function(e) {
     ws.send(dataURL, function(e){
       notifyError(e)
     });
-
 })
