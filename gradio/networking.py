@@ -147,6 +147,9 @@ def serve_files_in_background(port, directory_to_serve=None):
             fullpath = os.path.join(self.server.base_path, relpath)
             return fullpath
 
+        def log_message(self, format, *args):
+            return
+
     class HTTPServer(BaseHTTPServer):
         """The main server, you pass in base_path which is the path you want to serve requests from"""
 
@@ -154,25 +157,28 @@ def serve_files_in_background(port, directory_to_serve=None):
             self.base_path = base_path
             BaseHTTPServer.__init__(self, server_address, RequestHandlerClass)
 
+
     httpd = HTTPServer(directory_to_serve, (LOCALHOST_NAME, port))
 
     # Now loop forever
     def serve_forever():
         try:
             while True:
-                sys.stdout.flush()
+                # sys.stdout.flush()
                 httpd.serve_forever()
         except KeyboardInterrupt:
             httpd.server_close()
 
-    thread = threading.Thread(target=serve_forever)
+    thread = threading.Thread(target=serve_forever, daemon=True)
     thread.start()
+
+    return httpd
 
 
 def start_simple_server(directory_to_serve=None):
     port = get_first_available_port(INITIAL_PORT_VALUE, INITIAL_PORT_VALUE + TRY_NUM_PORTS)
-    serve_files_in_background(port, directory_to_serve)
-    return port
+    httpd = serve_files_in_background(port, directory_to_serve)
+    return port, httpd
 
 
 def download_ngrok():
