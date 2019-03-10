@@ -3,7 +3,7 @@ body {
   font-size: 12px;
   margin: 0;
 }
-button, input[type="submit"], input[type="reset"], input[type="text"], select[type="submit"] {
+button, input[type="submit"], input[type="reset"], input[type="text"], input[type="button"], select[type="submit"] {
 	background: none;
 	color: inherit;
 	border: none;
@@ -12,7 +12,7 @@ button, input[type="submit"], input[type="reset"], input[type="text"], select[ty
 	cursor: pointer;
 	outline: inherit;
   -webkit-appearance: none;
-  border-radius: 0;  
+  border-radius: 0;
 }
 
 input[type="text"] {
