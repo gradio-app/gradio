@@ -152,10 +152,17 @@ class Interface:
         networking.set_interface_types_in_config_file(output_directory,
                                                       self.input_interface.__class__.__name__.lower(),
                                                       self.output_interface.__class__.__name__.lower())
+        try:  # Check if running interactively using ipython.
+            from_ipynb = get_ipython()
+            if 'google.colab' in str(from_ipynb):
+                is_colab = True
+        except NameError:
+            is_colab = False
 
         if self.verbose:
             print("NOTE: Gradio is in beta stage, please report all bugs to: a12d@stanford.edu")
-            print("Model is running locally at: {}".format(path_to_server + networking.TEMPLATE_TEMP))
+            if not is_colab:
+                print("Model is running locally at: {}".format(path_to_server + networking.TEMPLATE_TEMP))
 
         if share:
             site_ngrok_url = networking.setup_ngrok(server_port, websocket_port, output_directory)
@@ -166,12 +173,8 @@ class Interface:
             if self.verbose:
                 print("To create a public link, set `share=True` in the argument to `launch()`")
             site_ngrok_url = None
-            try:  # Check if running interactively using ipython.
-                from_ipynb = get_ipython()
-                if 'google.colab' in str(from_ipynb):
-                    site_ngrok_url = networking.setup_ngrok(server_port, websocket_port, output_directory)
-            except NameError:
-                pass
+            if is_colab:
+                site_ngrok_url = networking.setup_ngrok(server_port, websocket_port, output_directory)
         # Keep the server running in the background.
         asyncio.get_event_loop().run_until_complete(start_server)
         try:
@@ -192,13 +195,12 @@ class Interface:
         else:
             if browser is None:
                 browser = False
-        if browser:
+        if browser and not is_colab:
             webbrowser.open(path_to_server + networking.TEMPLATE_TEMP)  # Open a browser tab with the interface.
         if inline:
             from IPython.display import IFrame
-            if 'google.colab' in str(from_ipynb):
-                print("Cannot display Interface inline on google colab, public link created and displayed below.")
-                print("Model available publicly for 8 hours at: {}".format(
+            if is_colab:
+                print("Cannot display Interface inline on google colab, public link created at: {} and displayed below.".format(
                     site_ngrok_url + '/' + networking.TEMPLATE_TEMP))
                 display(IFrame(site_ngrok_url + '/' + networking.TEMPLATE_TEMP, width=1000, height=500))
             else:
