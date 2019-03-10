@@ -11,6 +11,7 @@ import gradio.inputs
 import gradio.outputs
 from gradio import networking
 import tempfile
+import threading
 
 nest_asyncio.apply()
 
@@ -140,7 +141,7 @@ class Interface:
         output_directory = tempfile.mkdtemp()
 
         # Set up a port to serve the directory containing the static files with interface.
-        server_port = networking.start_simple_server(output_directory)
+        server_port, httpd = networking.start_simple_server(output_directory)
         path_to_server = 'http://localhost:{}/'.format(server_port)
         networking.build_template(output_directory, self.input_interface, self.output_interface)
 
@@ -178,9 +179,10 @@ class Interface:
         # Keep the server running in the background.
         asyncio.get_event_loop().run_until_complete(start_server)
         try:
-            asyncio.get_event_loop().run_forever()
-        except RuntimeError:  # Runtime errors are thrown in jupyter notebooks because of async.
-            pass
+            _ = get_ipython()
+        except NameError:  # Runtime errors are thrown in jupyter notebooks because of async.
+            t = threading.Thread(target=asyncio.get_event_loop().run_forever, daemon=True)
+            t.start()
 
         if inline is None:
             try:  # Check if running interactively using ipython.
@@ -206,4 +208,4 @@ class Interface:
             else:
                 display(IFrame(path_to_server + networking.TEMPLATE_TEMP, width=1000, height=500))
 
-        return path_to_server + networking.TEMPLATE_TEMP, site_ngrok_url
+        return httpd, path_to_server + networking.TEMPLATE_TEMP, site_ngrok_url
