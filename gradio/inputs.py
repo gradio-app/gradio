@@ -59,7 +59,7 @@ class Sketchpad(AbstractInput):
         image_encoded = content.split(',')[1]
         im = Image.open(BytesIO(base64.b64decode(image_encoded))).convert('L')
         im = preprocessing_utils.resize_and_crop(im, (self.image_width, self.image_height))
-        array = np.array(im).flatten().reshape(1, self.image_width, self.image_height, 1)
+        array = np.array(im).flatten().reshape(1, self.image_width, self.image_height)
         return array
 
 
