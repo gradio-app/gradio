@@ -1,6 +1,25 @@
 var NGROK_URL = "{{ngrok_socket_url}}"
 var SOCKET_PORT = "{{socket_port}}"
 
+function notifyError(error) {
+  $.notify({
+    // options
+    message: 'Not able to communicate with model (is python code still running?)'
+  },{
+    // settings
+    type: 'danger',
+    animate: {
+        enter: 'animated fadeInDown',
+        exit: 'animated fadeOutUp'
+    },
+    placement: {
+        from: "bottom",
+        align: "right"
+    },
+    delay: 5000
+  });
+ }
+
 try {
   var origin = window.location.origin;
   if (origin.includes("ngrok")){
@@ -9,7 +28,7 @@ try {
       var ws = new WebSocket("ws://127.0.0.1:" + SOCKET_PORT + "/")
   }
   ws.onerror = function(evt) {
-    console.log(evt)
+    notifyError(evt)
   };
   ws.onclose = function(event) {
     console.log("WebSocket is closed now.");

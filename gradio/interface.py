@@ -167,7 +167,12 @@ class Interface:
             if self.verbose:
                 print("To create a public link, set `share=True` in the argument to `launch()`")
             site_ngrok_url = None
-
+            try:  # Check if running interactively using ipython.
+                from_ipynb = get_ipython()
+                if 'google.colab' in str(from_ipynb):
+                    site_ngrok_url = networking.setup_ngrok(server_port, websocket_port, output_directory)
+            except NameError:
+                pass
         # Keep the server running in the background.
         asyncio.get_event_loop().run_until_complete(start_server)
         try:
@@ -178,7 +183,7 @@ class Interface:
 
         if inline is None:
             try:  # Check if running interactively using ipython.
-                _ = get_ipython()
+                from_ipynb = get_ipython()
                 inline = True
                 if browser is None:
                     browser = False
@@ -193,6 +198,12 @@ class Interface:
             webbrowser.open(path_to_server + networking.TEMPLATE_TEMP)  # Open a browser tab with the interface.
         if inline:
             from IPython.display import IFrame
-            display(IFrame(path_to_server + networking.TEMPLATE_TEMP, width=1000, height=500))
+            if 'google.colab' in str(from_ipynb):
+                print("Cannot display Interface inline on google colab, public link created and displayed below.")
+                print("Model available publicly for 8 hours at: {}".format(
+                    site_ngrok_url + '/' + networking.TEMPLATE_TEMP))
+                display(IFrame(site_ngrok_url + '/' + networking.TEMPLATE_TEMP, width=1000, height=500))
+            else:
+                display(IFrame(path_to_server + networking.TEMPLATE_TEMP, width=1000, height=500))
 
         return httpd, path_to_server + networking.TEMPLATE_TEMP, site_ngrok_url
