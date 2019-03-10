@@ -32,12 +32,14 @@
 .input.text .role, .output.text .role {
   margin-left: 1px;
 }
-.submit, .clear {
+.submit, .clear, .flag, .message, .send-message {
+  background-color: #F6F6F6 !important;
   padding: 8px !important;
   box-sizing: border-box;
   width: calc(50% - 8px);
   text-transform: uppercase;
   font-weight: bold;
+  border: 0 none;
 }
 .clear {
   background-color: #F6F6F6 !important;
@@ -53,10 +55,15 @@
 .clear {
   margin-left: 8px;
 }
+
+/*.flag:focus {
+  background-color: pink !important;
+}
+*/
 .input_text, .output_text {
   background: transparent;
-  resize: none;
-  border: 0 none;
+  resize: none
+    border: 0 none;
   width: 100%;
   font-size: 18px;
   outline: none;
@@ -131,4 +138,50 @@
 }
 .confidence_intervals > * {
   vertical-align: bottom;
+}
+.flag.flagged {
+  background-color: pink !important;
+}
+
+.sketchpad canvas {
+  background-color: white;
+}
+.sketch_tools {
+  flex: 0 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+.brush {
+  border-radius: 50%;
+  background-color: #AAA;
+  margin: 0px 20px;
+  cursor: pointer;
+}
+.brush.selected, .brush:hover {
+  background-color: black;
+}
+#brush_1 {
+  height: 8px;
+  width: 8px;
+}
+#brush_2 {
+  height: 16px;
+  width: 16px;
+}
+#brush_3 {
+  height: 24px;
+  width: 24px;
+}
+.canvas_holder {
+  flex: 1 1 auto;
+  text-align: center;
+}
+canvas {
+  border: solid 1px black;
+}
+
+textarea {
+  resize: none;
 }
