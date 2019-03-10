@@ -18,6 +18,7 @@ $('body').on('click', '.clear', function(e) {
     context.clearRect(0, 0, context.canvas.width, context.canvas.height);
 })
 $('body').on('click', '.submit', function(e) {
+    loadStart();
     var dataURL = canvas.toDataURL("image/png");
     ws.send(dataURL, function(e){
       notifyError(e)

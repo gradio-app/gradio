@@ -136,6 +136,16 @@ class ImageUpload(AbstractInput):
             array = im.reshape(1, self.image_width, self.image_height, self.num_channels)
         return array
 
+class CSV(AbstractInput):
+
+    def get_template_path(self):
+        return 'templates/input/csv.html'
+
+    def preprocess(self, inp):
+        """
+        By default, no pre-processing is applied to text.
+        """
+        return inp
 
 # Automatically adds all subclasses of AbstractInput into a dictionary (keyed by class name) for easy referencing.
 registry = {cls.__name__.lower(): cls for cls in AbstractInput.__subclasses__()}
