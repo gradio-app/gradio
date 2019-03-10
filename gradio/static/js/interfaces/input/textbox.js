@@ -1,13 +1,9 @@
-var text = $("#textbox-input").val();
-
-$('#clear-button').click(function(e){
-    $("textbox-input").text("");
+$('body').on('click', '.clear', function(e) {
+  $(".input_text").val("");
 })
-
-$('#submit-button').click(function(e){
-    var text = $("#textbox-input").val();
-    ws.send(text, function(e){
-      notifyError(e)
-    });
-
+$('body').on('click', '.submit', function(e) {
+  text = $(".input_text").text();
+  ws.send(text, function(e){
+    notifyError(e)
+  });
 })

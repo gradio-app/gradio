@@ -19,7 +19,6 @@ $('body').on('click', '.clear', function(e) {
 })
 $('body').on('click', '.submit', function(e) {
     var dataURL = canvas.toDataURL("image/png");
-    console.log(dataURL)
     ws.send(dataURL, function(e){
       notifyError(e)
     });
