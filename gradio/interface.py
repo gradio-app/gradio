@@ -12,6 +12,7 @@ import gradio.outputs
 from gradio import networking
 import tempfile
 import threading
+import traceback
 
 nest_asyncio.apply()
 
@@ -63,6 +64,8 @@ class Interface:
             ValueError('model_type must be one of: {}'.format(self.VALID_MODEL_TYPES))
         self.model_type = model_type
         self.verbose = verbose
+        self.launch_flag = False
+        self.validate_flag = False
 
     @staticmethod
     def _infer_model_type(model):
@@ -133,11 +136,44 @@ class Interface:
         else:
             ValueError('model_type must be one of: {}'.format(self.VALID_MODEL_TYPES))
 
-    def launch(self, inline=None, browser=None, share=False):
+    def validate(self):
+        if self.validate_flag:
+            return
+        validation_inputs = self.input_interface.get_validation_inputs()
+        for m, msg in enumerate(validation_inputs):
+            if self.verbose:
+                print(f"Validating samples: {m+1} out of {len(validation_inputs)}", end='\r')
+            try:
+                processed_input = self.input_interface.preprocess(msg)
+                prediction = self.predict(processed_input)
+            except Exception as e:
+                if self.verbose:
+                    print("\n----------")
+                    print("Validation failed, likely due to invalid pre-processing. See below:\n")
+                    print(traceback.format_exc())
+                break
+            try:
+                _ = self.output_interface.postprocess(prediction)
+            except Exception as e:
+                if self.verbose:
+                    print("\n----------")
+                    print("Validation failed, likely due to invalid post-processing. See below:\n")
+                    print(traceback.format_exc())
+                break
+        else:  # This means if a break was not explicitly called
+            self.validate_flag = True
+            return
+        raise RuntimeError("Validation did not pass")
+
+    def launch(self, inline=None, browser=None, share=False, validate=True):
         """
         Standard method shared by interfaces that creates the interface and sets up a websocket to communicate with it.
         :param share: boolean. If True, then a share link is generated using ngrok is displayed to the user.
         """
+        # if validate and not(self.validate_flag):
+        #     self.validate()
+
+        self.launch_flag = True
         output_directory = tempfile.mkdtemp()
 
         # Set up a port to serve the directory containing the static files with interface.
