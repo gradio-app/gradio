@@ -44,17 +44,6 @@ $(".hidden_upload").on("change", function() {
   }
 })
 
-$('body').on('click', '.submit', function(e) {
-  src = cropper.getCroppedCanvas({
-    maxWidth: 360,
-    maxHeight: 360,
-    fillColor: "white"
-  }).toDataURL();
-  ws.send(src, function(e) {
-    notifyError(e)
-  })
-})
-
 $('body').on('click', '.clear', function(e) {
   if (cropper) {
     cropper.destroy();
@@ -66,4 +55,15 @@ $('body').on('click', '.clear', function(e) {
   $(".input_caption").show()
   $(".input_image img").removeAttr("src");
   $(".input_image").addClass("drop_mode")
+})
+$('body').on('click', '.submit', function(e) {
+  loadStart();
+  src = cropper.getCroppedCanvas({
+    maxWidth: 360,
+    maxHeight: 360,
+    fillColor: "white"
+  }).toDataURL();
+  ws.send(src, function(e) {
+    notifyError(e)
+  })
 })
