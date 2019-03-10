@@ -181,3 +181,7 @@
 canvas {
   border: solid 1px black;
 }
+
+textarea {
+  resize: none;
+}
