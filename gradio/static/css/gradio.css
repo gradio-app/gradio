@@ -139,6 +139,9 @@
 .confidence_intervals > * {
   vertical-align: bottom;
 }
+.flag.flagged {
+  background-color: pink !important;
+}
 
 .sketchpad canvas {
   background-color: white;
@@ -177,4 +180,8 @@
 }
 canvas {
   border: solid 1px black;
+}
+
+textarea {
+  resize: none;
 }
