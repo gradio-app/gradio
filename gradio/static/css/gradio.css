@@ -21,6 +21,16 @@
   display: flex;
   flex-flow: column;
 }
+.loading {
+  margin-left: auto;
+}
+.loading img {
+  display: none;
+  height: 22px;
+}
+.panel_head {
+  display: flex
+}
 .role {
   text-transform: uppercase;
   font-family: Arial;
@@ -182,6 +192,14 @@ canvas {
   border: solid 1px black;
 }
 
-textarea {
+.text textarea {
   resize: none;
+  background-color: white;
+  border: none;
+  box-sizing: border-box;
+  padding: 4px;
+}
+
+.output_image img {
+  display: none
 }

@@ -45,3 +45,24 @@ try {
 const sleep = (milliseconds) => {
   return new Promise(resolve => setTimeout(resolve, milliseconds))
 }
+
+$('body').on('click', '.flag', function(e) {
+  if ($(".flag").hasClass("flagged")) {
+    $(".flag").removeClass("flagged").attr("value", "flag");
+  } else {
+    $(".flag").addClass("flagged").attr("value", "flagged");
+  }
+})
+
+var start_time;
+function loadStart() {
+  $(".loading img").show();
+  $(".loading_time").text("");
+  start_time = new Date().getTime()
+}
+
+function loadEnd() {
+  $(".loading img").hide();
+  end_time = new Date().getTime()
+  $(".loading_time").text(((end_time - start_time) / 1000).toFixed(2) + "s");
+}
