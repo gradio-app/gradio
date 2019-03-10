@@ -16,7 +16,7 @@ class TestSketchpad(unittest.TestCase):
     def test_preprocessing(self):
         inp = inputs.Sketchpad()
         array = inp.preprocess(BASE64_IMG)
-        self.assertEqual(array.shape, (1, 28, 28, 1))
+        self.assertEqual(array.shape, (1, 28, 28))
 
 
 class TestWebcam(unittest.TestCase):
