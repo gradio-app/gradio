@@ -1,19 +1,24 @@
 from argparse import ArgumentParser
 import gradio
 import numpy as np
+from time import sleep
 
 parser = ArgumentParser(description='Arguments for Building Interface')
 parser.add_argument('-i', '--inputs', type=str, help="name of input interface")
 parser.add_argument('-o', '--outputs', type=str, help="name of output interface")
+parser.add_argument('-d', '--delay', type=int, help="delay in processing", default=0)
 share_parser = parser.add_mutually_exclusive_group(required=False)
 share_parser.add_argument('--share', dest='share', action='store_true')
 share_parser.add_argument('--no-share', dest='share', action='store_false')
 parser.set_defaults(share=False)
 args = parser.parse_args()
 
+def mdl(input):
+  sleep(args.delay)
+  return np.array(1)
 
 def launch_interface(args):
-    io = gradio.Interface(inputs=args.inputs, outputs=args.outputs, model=lambda x:np.array(1), model_type='function')
+    io = gradio.Interface(inputs=args.inputs, outputs=args.outputs, model=mdl, model_type='function')
     io.launch(share=args.share)
     # input_interface = gradio.inputs.registry[args.inputs.lower()]()
     # output_interface = gradio.outputs.registry[args.outputs.lower()]()

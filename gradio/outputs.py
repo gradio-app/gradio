@@ -63,7 +63,7 @@ class Label(AbstractOutput):
         return name
 
     def get_template_path(self):
-        return 'templates/label_output.html'
+        return 'templates/output/label.html'
 
     def postprocess(self, prediction):
         """
@@ -94,7 +94,7 @@ class Label(AbstractOutput):
 class Textbox(AbstractOutput):
 
     def get_template_path(self):
-        return 'templates/textbox_output.html'
+        return 'templates/output/textbox.html'
 
     def postprocess(self, prediction):
         """
