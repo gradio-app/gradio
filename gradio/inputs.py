@@ -6,10 +6,11 @@ automatically added to a registry, which allows them to be easily referenced in 
 
 from abc import ABC, abstractmethod
 import base64
-from gradio import preprocessing_utils
+from gradio import preprocessing_utils, validation_data
 from io import BytesIO
 import numpy as np
 from PIL import Image, ImageOps
+
 
 class AbstractInput(ABC):
     """
@@ -111,6 +112,10 @@ class ImageUpload(AbstractInput):
         self.scale = scale
         self.shift = shift
         super().__init__(preprocessing_fn=preprocessing_fn)
+
+    @staticmethod
+    def get_validation_inputs():
+        return validation_data.BASE64_COLOR_IMAGES
 
     def get_template_path(self):
         return 'templates/input/image_upload.html'
