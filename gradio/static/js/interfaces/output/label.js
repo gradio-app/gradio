@@ -1,4 +1,5 @@
 ws.onmessage = function (event) {
+  loadEnd();
   var data = JSON.parse(event.data)
   // data = {
   //   label: "happy",
@@ -28,12 +29,4 @@ ws.onmessage = function (event) {
 $('body').on('click', '.clear', function(e) {
   $(".output_class").text("")
   $(".confidence_intervals").empty()
-})
-
-$('body').on('click', '.flag', function(e) {
-  if ($(".flag").hasClass("flagged")) {
-    $(".flag").removeClass("flagged").attr("value", "flag");
-  } else {
-    $(".flag").addClass("flagged").attr("value", "flagged");
-  }
 })
