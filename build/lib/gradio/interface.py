@@ -11,6 +11,7 @@ import gradio.inputs
 import gradio.outputs
 from gradio import networking
 import tempfile
+import threading
 
 nest_asyncio.apply()
 
@@ -26,7 +27,8 @@ class Interface:
     """
 
     # Dictionary in which each key is a valid `model_type` argument to constructor, and the value being the description.
-    VALID_MODEL_TYPES = {'sklearn': 'sklearn model', 'keras': 'keras model', 'function': 'python function'}
+    VALID_MODEL_TYPES = {'sklearn': 'sklearn model', 'keras': 'Keras model', 'function': 'python function',
+                         'pytorch': 'PyTorch model'}
 
     def __init__(self, inputs, outputs, model, model_type=None, preprocessing_fns=None, postprocessing_fns=None,
                  verbose=True):
@@ -122,6 +124,12 @@ class Interface:
             return self.model_obj.predict(preprocessed_input)
         elif self.model_type=='function':
             return self.model_obj(preprocessed_input)
+        elif self.model_type=='pytorch':
+            import torch
+            value = torch.from_numpy(preprocessed_input)
+            value = torch.autograd.Variable(value)
+            prediction = self.model_obj(value)
+            return prediction.data.numpy()
         else:
             ValueError('model_type must be one of: {}'.format(self.VALID_MODEL_TYPES))
 
@@ -133,7 +141,7 @@ class Interface:
         output_directory = tempfile.mkdtemp()
 
         # Set up a port to serve the directory containing the static files with interface.
-        server_port = networking.start_simple_server(output_directory)
+        server_port, httpd = networking.start_simple_server(output_directory)
         path_to_server = 'http://localhost:{}/'.format(server_port)
         networking.build_template(output_directory, self.input_interface, self.output_interface)
 
@@ -142,9 +150,20 @@ class Interface:
             INITIAL_WEBSOCKET_PORT, INITIAL_WEBSOCKET_PORT + TRY_NUM_PORTS)
         start_server = websockets.serve(self.communicate, LOCALHOST_IP, websocket_port)
         networking.set_socket_port_in_js(output_directory, websocket_port)  # sets the websocket port in the JS file.
+        networking.set_interface_types_in_config_file(output_directory,
+                                                      self.input_interface.__class__.__name__.lower(),
+                                                      self.output_interface.__class__.__name__.lower())
+        try:  # Check if running interactively using ipython.
+            from_ipynb = get_ipython()
+            if 'google.colab' in str(from_ipynb):
+                is_colab = True
+        except NameError:
+            is_colab = False
+
         if self.verbose:
             print("NOTE: Gradio is in beta stage, please report all bugs to: a12d@stanford.edu")
-            print("Model is running locally at: {}".format(path_to_server + networking.TEMPLATE_TEMP))
+            if not is_colab:
+                print("Model is running locally at: {}".format(path_to_server + networking.TEMPLATE_TEMP))
 
         if share:
             site_ngrok_url = networking.setup_ngrok(server_port, websocket_port, output_directory)
@@ -155,17 +174,19 @@ class Interface:
             if self.verbose:
                 print("To create a public link, set `share=True` in the argument to `launch()`")
             site_ngrok_url = None
-
+            if is_colab:
+                site_ngrok_url = networking.setup_ngrok(server_port, websocket_port, output_directory)
         # Keep the server running in the background.
         asyncio.get_event_loop().run_until_complete(start_server)
         try:
-            asyncio.get_event_loop().run_forever()
-        except RuntimeError:  # Runtime errors are thrown in jupyter notebooks because of async.
-            pass
+            _ = get_ipython()
+        except NameError:  # Runtime errors are thrown in jupyter notebooks because of async.
+            t = threading.Thread(target=asyncio.get_event_loop().run_forever, daemon=True)
+            t.start()
 
         if inline is None:
             try:  # Check if running interactively using ipython.
-                _ = get_ipython()
+                from_ipynb = get_ipython()
                 inline = True
                 if browser is None:
                     browser = False
@@ -176,10 +197,15 @@ class Interface:
         else:
             if browser is None:
                 browser = False
-        if browser:
+        if browser and not is_colab:
             webbrowser.open(path_to_server + networking.TEMPLATE_TEMP)  # Open a browser tab with the interface.
         if inline:
             from IPython.display import IFrame
-            display(IFrame(path_to_server + networking.TEMPLATE_TEMP, width=1000, height=500))
+            if is_colab:
+                print("Cannot display Interface inline on google colab, public link created at: {} and displayed below.".format(
+                    site_ngrok_url + '/' + networking.TEMPLATE_TEMP))
+                display(IFrame(site_ngrok_url + '/' + networking.TEMPLATE_TEMP, width=1000, height=500))
+            else:
+                display(IFrame(path_to_server + networking.TEMPLATE_TEMP, width=1000, height=500))
 
-        return path_to_server + networking.TEMPLATE_TEMP, site_ngrok_url
+        return httpd, path_to_server + networking.TEMPLATE_TEMP, site_ngrok_url
