@@ -6,10 +6,11 @@ automatically added to a registry, which allows them to be easily referenced in 
 
 from abc import ABC, abstractmethod
 import base64
-from gradio import preprocessing_utils
+from gradio import preprocessing_utils, validation_data
 from io import BytesIO
 import numpy as np
 from PIL import Image, ImageOps
+
 
 class AbstractInput(ABC):
     """
@@ -26,6 +27,9 @@ class AbstractInput(ABC):
                 raise ValueError('`preprocessing_fn` must be a callable function')
             self.preprocess = preprocessing_fn
         super().__init__()
+
+    def get_validation_inputs(self):
+        return []
 
     @abstractmethod
     def get_template_path(self):
@@ -74,6 +78,9 @@ class Webcam(AbstractInput):
         self.num_channels = num_channels
         super().__init__(preprocessing_fn=preprocessing_fn)
 
+    def get_validation_inputs(self):
+        return validation_data.BASE64_COLOR_IMAGES
+
     def get_template_path(self):
         return 'templates/input/webcam.html'
 
@@ -90,6 +97,8 @@ class Webcam(AbstractInput):
 
 
 class Textbox(AbstractInput):
+    def get_validation_inputs(self):
+        return validation_data.ENGLISH_TEXTS
 
     def get_template_path(self):
         return 'templates/input/textbox.html'
@@ -111,6 +120,9 @@ class ImageUpload(AbstractInput):
         self.scale = scale
         self.shift = shift
         super().__init__(preprocessing_fn=preprocessing_fn)
+
+    def get_validation_inputs(self):
+        return validation_data.BASE64_COLOR_IMAGES
 
     def get_template_path(self):
         return 'templates/input/image_upload.html'
