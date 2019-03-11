@@ -138,18 +138,26 @@ class Interface:
 
     def validate(self):
         if self.validate_flag:
+            if self.verbose:
+                print("Interface already validated")
             return
         validation_inputs = self.input_interface.get_validation_inputs()
+        n = len(validation_inputs)
+        if n == 0:
+            self.validate_flag = True
+            if self.verbose:
+                print("No validation samples for this interface... skipping validation.")
+            return
         for m, msg in enumerate(validation_inputs):
             if self.verbose:
-                print(f"Validating samples: {m+1} out of {len(validation_inputs)}", end='\r')
+                print(f"Validating samples: {m+1}/{n}  [" + "="*(m+1) + "."*(n-m-1) + "]", end='\r')
             try:
                 processed_input = self.input_interface.preprocess(msg)
                 prediction = self.predict(processed_input)
             except Exception as e:
                 if self.verbose:
                     print("\n----------")
-                    print("Validation failed, likely due to invalid pre-processing. See below:\n")
+                    print("Validation failed, likely due to incompatible pre-processing and model input. See below:\n")
                     print(traceback.format_exc())
                 break
             try:
@@ -157,11 +165,14 @@ class Interface:
             except Exception as e:
                 if self.verbose:
                     print("\n----------")
-                    print("Validation failed, likely due to invalid post-processing. See below:\n")
+                    print("Validation failed, likely due to incompatible model output and post-processing."
+                          "See below:\n")
                     print(traceback.format_exc())
                 break
         else:  # This means if a break was not explicitly called
             self.validate_flag = True
+            if self.verbose:
+                print("\n\nValidation passed successfully!")
             return
         raise RuntimeError("Validation did not pass")
 
@@ -170,8 +181,8 @@ class Interface:
         Standard method shared by interfaces that creates the interface and sets up a websocket to communicate with it.
         :param share: boolean. If True, then a share link is generated using ngrok is displayed to the user.
         """
-        # if validate and not(self.validate_flag):
-        #     self.validate()
+        if validate and not self.validate_flag:
+            self.validate()
 
         self.launch_flag = True
         output_directory = tempfile.mkdtemp()

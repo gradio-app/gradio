@@ -28,6 +28,9 @@ class AbstractInput(ABC):
             self.preprocess = preprocessing_fn
         super().__init__()
 
+    def get_validation_inputs(self):
+        return []
+
     @abstractmethod
     def get_template_path(self):
         """
@@ -75,6 +78,9 @@ class Webcam(AbstractInput):
         self.num_channels = num_channels
         super().__init__(preprocessing_fn=preprocessing_fn)
 
+    def get_validation_inputs(self):
+        return validation_data.BASE64_COLOR_IMAGES
+
     def get_template_path(self):
         return 'templates/input/webcam.html'
 
@@ -91,6 +97,8 @@ class Webcam(AbstractInput):
 
 
 class Textbox(AbstractInput):
+    def get_validation_inputs(self):
+        return validation_data.ENGLISH_TEXTS
 
     def get_template_path(self):
         return 'templates/input/textbox.html'
@@ -113,8 +121,7 @@ class ImageUpload(AbstractInput):
         self.shift = shift
         super().__init__(preprocessing_fn=preprocessing_fn)
 
-    @staticmethod
-    def get_validation_inputs():
+    def get_validation_inputs(self):
         return validation_data.BASE64_COLOR_IMAGES
 
     def get_template_path(self):
