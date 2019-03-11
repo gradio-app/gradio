@@ -9,3 +9,4 @@ models/*
 .models/*
 gradio_files/*
 ngrok*
+examples/ngrok*
