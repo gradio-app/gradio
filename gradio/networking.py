@@ -157,7 +157,6 @@ def serve_files_in_background(port, directory_to_serve=None):
             self.base_path = base_path
             BaseHTTPServer.__init__(self, server_address, RequestHandlerClass)
 
-
     httpd = HTTPServer(directory_to_serve, (LOCALHOST_NAME, port))
 
     # Now loop forever
@@ -166,7 +165,7 @@ def serve_files_in_background(port, directory_to_serve=None):
             while True:
                 # sys.stdout.flush()
                 httpd.serve_forever()
-        except KeyboardInterrupt:
+        except (KeyboardInterrupt, OSError):
             httpd.server_close()
 
     thread = threading.Thread(target=serve_forever, daemon=True)
@@ -179,6 +178,11 @@ def start_simple_server(directory_to_serve=None):
     port = get_first_available_port(INITIAL_PORT_VALUE, INITIAL_PORT_VALUE + TRY_NUM_PORTS)
     httpd = serve_files_in_background(port, directory_to_serve)
     return port, httpd
+
+
+def close_server(server):
+    server.shutdown()
+    server.server_close()
 
 
 def download_ngrok():
