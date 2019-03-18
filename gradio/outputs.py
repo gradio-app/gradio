@@ -9,6 +9,11 @@ import numpy as np
 import json
 from gradio import imagenet_class_labels
 
+# Where to find the static resources associated with each template.
+BASE_OUTPUT_INTERFACE_TEMPLATE_PATH = 'templates/output/{}.html'
+BASE_OUTPUT_INTERFACE_JS_PATH = 'static/js/interfaces/output/{}.js'
+
+
 class AbstractOutput(ABC):
     """
     An abstract class for defining the methods that all gradio inputs should have.
@@ -23,10 +28,22 @@ class AbstractOutput(ABC):
             self.postprocess = postprocessing_fn
         super().__init__()
 
-    @abstractmethod
-    def get_template_path(self):
+    def get_js_context(self):
         """
-        All interfaces should define a method that returns the path to its template.
+        :return: a dictionary with context variables for the javascript file associated with the context
+        """
+        return {}
+
+    def get_template_context(self):
+        """
+        :return: a dictionary with context variables for the javascript file associated with the context
+        """
+        return {}
+
+    @abstractmethod
+    def get_name(self):
+        """
+        All outputs should define a method that returns a name used for identifying the related static resources.
         """
         pass
 
@@ -51,19 +68,19 @@ class Label(AbstractOutput):
         self.max_label_length = max_label_length
         super().__init__(postprocessing_fn=postprocessing_fn)
 
+    def get_name(self):
+        return 'label'
+
     def get_label_name(self, label):
         if self.label_names is None:
             name = label
-        elif self.label_names == 'imagenet1000':
+        elif self.label_names == 'imagenet1000':  # TODO:(abidlabs) better way to handle this
             name = imagenet_class_labels.NAMES1000[label]
         else:  # if list or dictionary
             name = self.label_names[label]
         if self.max_label_length is not None:
             name = name[:self.max_label_length]
         return name
-
-    def get_template_path(self):
-        return 'templates/output/label.html'
 
     def postprocess(self, prediction):
         """
@@ -93,18 +110,19 @@ class Label(AbstractOutput):
 
 class Textbox(AbstractOutput):
 
-    def get_template_path(self):
-        return 'templates/output/textbox.html'
+    def get_name(self):
+        return 'textbox'
 
     def postprocess(self, prediction):
         """
         """
         return prediction
 
+
 class Image(AbstractOutput):
 
-    def get_template_path(self):
-        return 'templates/output/image.html'
+    def get_name(self):
+        return 'image'
 
     def postprocess(self, prediction):
         """

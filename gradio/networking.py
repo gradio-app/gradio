@@ -52,13 +52,15 @@ def build_template(temp_dir, input_interface, output_interface):
     """
     input_template_path = pkg_resources.resource_filename(
         'gradio', inputs.BASE_INPUT_INTERFACE_TEMPLATE_PATH.format(input_interface.get_name()))
-    output_template_path = pkg_resources.resource_filename('gradio', output_interface.get_template_path())
+    output_template_path = pkg_resources.resource_filename(
+        'gradio', outputs.BASE_OUTPUT_INTERFACE_TEMPLATE_PATH.format(output_interface.get_name()))
     input_page = open(input_template_path)
     output_page = open(output_template_path)
-    input_soup = BeautifulSoup(render_string_or_list_with_tags(input_page.read(),
-                                                               input_interface.get_template_context()),
-                               features="html.parser")
-    output_soup = BeautifulSoup(output_page.read(), features="html.parser")
+    input_soup = BeautifulSoup(render_string_or_list_with_tags(
+        input_page.read(), input_interface.get_template_context()), features="html.parser")
+    output_soup = BeautifulSoup(
+        render_string_or_list_with_tags(
+            output_page.read(), output_interface.get_template_context()), features="html.parser")
 
     all_io_page = open(BASE_TEMPLATE)
     all_io_soup = BeautifulSoup(all_io_page.read(), features="html.parser")
@@ -72,9 +74,12 @@ def build_template(temp_dir, input_interface, output_interface):
     f.write(str(all_io_soup))
 
     copy_files(STATIC_PATH_LIB, os.path.join(temp_dir, STATIC_PATH_TEMP))
-    render_template_with_tags(os.path.join(temp_dir,
-                                           inputs.BASE_INPUT_INTERFACE_JS_PATH.format(input_interface.get_name())),
-                              input_interface.get_js_context())
+    render_template_with_tags(os.path.join(
+        temp_dir, inputs.BASE_INPUT_INTERFACE_JS_PATH.format(input_interface.get_name())),
+        input_interface.get_js_context())
+    render_template_with_tags(os.path.join(
+        temp_dir, outputs.BASE_OUTPUT_INTERFACE_JS_PATH.format(output_interface.get_name())),
+        output_interface.get_js_context())
 
 
 def copy_files(src_dir, dest_dir):
