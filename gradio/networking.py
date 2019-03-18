@@ -19,6 +19,7 @@ from requests.packages.urllib3.util.retry import Retry
 import pkg_resources
 from bs4 import BeautifulSoup
 from distutils import dir_util
+from gradio import inputs, outputs
 
 INITIAL_PORT_VALUE = 7860  # The http server will try to open on port 7860. If not available, 7861, 7862, etc.
 TRY_NUM_PORTS = 100  # Number of ports to try before giving up and throwing an exception.
@@ -49,11 +50,14 @@ def build_template(temp_dir, input_interface, output_interface):
     :param input_interface: an AbstractInput object which includes is used to get the input template
     :param output_interface: an AbstractInput object which includes is used to get the input template
     """
-    input_template_path = pkg_resources.resource_filename('gradio', input_interface.get_template_path())
+    input_template_path = pkg_resources.resource_filename(
+        'gradio', inputs.BASE_INPUT_INTERFACE_TEMPLATE_PATH.format(input_interface.get_name()))
     output_template_path = pkg_resources.resource_filename('gradio', output_interface.get_template_path())
     input_page = open(input_template_path)
     output_page = open(output_template_path)
-    input_soup = BeautifulSoup(input_page.read(), features="html.parser")
+    input_soup = BeautifulSoup(render_string_or_list_with_tags(input_page.read(),
+                                                               input_interface.get_template_context()),
+                               features="html.parser")
     output_soup = BeautifulSoup(output_page.read(), features="html.parser")
 
     all_io_page = open(BASE_TEMPLATE)
@@ -68,6 +72,9 @@ def build_template(temp_dir, input_interface, output_interface):
     f.write(str(all_io_soup))
 
     copy_files(STATIC_PATH_LIB, os.path.join(temp_dir, STATIC_PATH_TEMP))
+    render_template_with_tags(os.path.join(temp_dir,
+                                           inputs.BASE_INPUT_INTERFACE_JS_PATH.format(input_interface.get_name())),
+                              input_interface.get_js_context())
 
 
 def copy_files(src_dir, dest_dir):
@@ -88,14 +95,26 @@ def render_template_with_tags(template_path, context):
     """
     with open(template_path) as fin:
         old_lines = fin.readlines()
-    new_lines = []
-    for line in old_lines:
-        for key, value in context.items():
-            line = line.replace(r'{{' + key + r'}}', value)
-        new_lines.append(line)
+    new_lines = render_string_or_list_with_tags(old_lines, context)
     with open(template_path, 'w') as fout:
         for line in new_lines:
             fout.write(line)
+
+
+def render_string_or_list_with_tags(old_lines, context):
+    # Handle string case
+    if isinstance(old_lines, str):
+        for key, value in context.items():
+            old_lines = old_lines.replace(r'{{' + key + r'}}', str(value))
+        return old_lines
+
+    # Handle list case
+    new_lines = []
+    for line in old_lines:
+        for key, value in context.items():
+            line = line.replace(r'{{' + key + r'}}', str(value))
+        new_lines.append(line)
+    return new_lines
 
 
 #TODO(abidlabs): Handle the http vs. https issue that sometimes happens (a ws cannot be loaded from an https page)
