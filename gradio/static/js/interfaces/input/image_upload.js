@@ -1,4 +1,5 @@
 var cropper;
+var aspectRatio = "{{aspect_ratio}}"
 
 $('body').on('click', ".input_image.drop_mode", function (e) {
   $(this).parent().find(".hidden_upload").click();
@@ -18,7 +19,7 @@ function loadPreviewFromFiles(files) {
     var image = $(".input_image img")
     image.attr("src", this.result)
     image.cropper({
-      aspectRatio : 1.0,
+      aspectRatio : aspectRatio,
       background: false
     });
     if (!cropper) {
