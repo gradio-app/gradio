@@ -67,6 +67,7 @@ class Interface:
         self.verbose = verbose
         self.status = self.STATUS_TYPES['OFF']
         self.validate_flag = False
+        self.simple_server = None
 
     @staticmethod
     def _infer_model_type(model):
@@ -188,8 +189,17 @@ class Interface:
         if validate and not self.validate_flag:
             self.validate()
 
-        output_directory = tempfile.mkdtemp()
+        # If an existing interface is running with this instance, close it.
+        if self.status == self.STATUS_TYPES['RUNNING']:
+            if self.verbose:
+                print("Closing existing server...")
+            if self.simple_server is not None:
+                try:
+                    networking.close_server(self.simple_server)
+                except OSError:
+                    pass
 
+        output_directory = tempfile.mkdtemp()
         # Set up a port to serve the directory containing the static files with interface.
         server_port, httpd = networking.start_simple_server(output_directory)
         path_to_local_server = 'http://localhost:{}/'.format(server_port)
@@ -205,6 +215,7 @@ class Interface:
                                                       self.input_interface.__class__.__name__.lower(),
                                                       self.output_interface.__class__.__name__.lower())
         self.status = self.STATUS_TYPES['RUNNING']
+        self.simple_server = httpd
 
         is_colab = False
         try:  # Check if running interactively using ipython.
