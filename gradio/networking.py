@@ -14,7 +14,6 @@ from signal import SIGTERM  # or SIGKILL
 import threading
 from http.server import HTTPServer as BaseHTTPServer, SimpleHTTPRequestHandler
 import stat
-import time
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 import pkg_resources
