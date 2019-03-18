@@ -30,13 +30,14 @@ class Interface:
     # Dictionary in which each key is a valid `model_type` argument to constructor, and the value being the description.
     VALID_MODEL_TYPES = {'sklearn': 'sklearn model', 'keras': 'Keras model', 'function': 'python function',
                          'pytorch': 'PyTorch model'}
+    STATUS_TYPES = {'OFF': 'off', 'RUNNING': 'running'}
 
     def __init__(self, inputs, outputs, model, model_type=None, preprocessing_fns=None, postprocessing_fns=None,
                  verbose=True):
         """
         :param inputs: a string or `AbstractInput` representing the input interface.
         :param outputs: a string or `AbstractOutput` representing the output interface.
-        :param model_obj: the model object, such as a sklearn classifier or keras model.
+        :param model: the model object, such as a sklearn classifier or keras model.
         :param model_type: what kind of trained model, can be 'keras' or 'sklearn' or 'function'. Inferred if not
             provided.
         :param preprocessing_fns: an optional function that overrides the preprocessing function of the input interface.
@@ -64,7 +65,7 @@ class Interface:
             ValueError('model_type must be one of: {}'.format(self.VALID_MODEL_TYPES))
         self.model_type = model_type
         self.verbose = verbose
-        self.launch_flag = False
+        self.status = self.STATUS_TYPES['OFF']
         self.validate_flag = False
 
     @staticmethod
@@ -176,20 +177,23 @@ class Interface:
             return
         raise RuntimeError("Validation did not pass")
 
-    def launch(self, inline=None, browser=None, share=False, validate=True):
+    def launch(self, inline=None, inbrowser=None, share=False, validate=True):
         """
         Standard method shared by interfaces that creates the interface and sets up a websocket to communicate with it.
+        :param inline: boolean. If True, then a gradio interface is created inline (e.g. in jupyter or colab notebook)
+        :param inbrowser: boolean. If True, then a new browser window opens with the gradio interface.
         :param share: boolean. If True, then a share link is generated using ngrok is displayed to the user.
+        :param validate: boolean. If True, then the validation is run if the interface has not already been validated.
         """
         if validate and not self.validate_flag:
             self.validate()
 
-        self.launch_flag = True
         output_directory = tempfile.mkdtemp()
 
         # Set up a port to serve the directory containing the static files with interface.
         server_port, httpd = networking.start_simple_server(output_directory)
-        path_to_server = 'http://localhost:{}/'.format(server_port)
+        path_to_local_server = 'http://localhost:{}/'.format(server_port)
+        path_to_local_interface_page = path_to_local_server + networking.TEMPLATE_TEMP
         networking.build_template(output_directory, self.input_interface, self.output_interface)
 
         # Set up a port to serve a websocket that sets up the communication between the front-end and model.
@@ -200,6 +204,8 @@ class Interface:
         networking.set_interface_types_in_config_file(output_directory,
                                                       self.input_interface.__class__.__name__.lower(),
                                                       self.output_interface.__class__.__name__.lower())
+        self.status = self.STATUS_TYPES['RUNNING']
+
         is_colab = False
         try:  # Check if running interactively using ipython.
             from_ipynb = get_ipython()
@@ -211,24 +217,27 @@ class Interface:
         if self.verbose:
             print("NOTE: Gradio is in beta stage, please report all bugs to: a12d@stanford.edu")
             if not is_colab:
-                print("Model is running locally at: {}".format(path_to_server + networking.TEMPLATE_TEMP))
+                print(f"Model is running locally at: {path_to_local_interface_page}")
 
         if share:
             try:
-                site_ngrok_url = networking.setup_ngrok(server_port, websocket_port, output_directory)
+                path_to_ngrok_server = networking.setup_ngrok(server_port, websocket_port, output_directory)
+                path_to_ngrok_interface_page = path_to_ngrok_server + '/' + networking.TEMPLATE_TEMP
                 if self.verbose:
-                    print("Model available publicly for 8 hours at: {}".format(
-                        site_ngrok_url + '/' + networking.TEMPLATE_TEMP))
+                    print(f"Model available publicly for 8 hours at: {path_to_ngrok_interface_page}")
             except RuntimeError:
-                site_ngrok_url = None
+                path_to_ngrok_server = None
                 if self.verbose:
                     print("Unable to create public link for interface, please check internet connection.")
         else:
             if self.verbose:
                 print("To create a public link, set `share=True` in the argument to `launch()`")
-            site_ngrok_url = None
-            if is_colab:
-                site_ngrok_url = networking.setup_ngrok(server_port, websocket_port, output_directory)
+            path_to_ngrok_server = None
+            if is_colab:  # for a colab notebook, create a public link even if share is False.
+                path_to_ngrok_server = networking.setup_ngrok(server_port, websocket_port, output_directory)
+                path_to_ngrok_interface_page = path_to_ngrok_server + '/' + networking.TEMPLATE_TEMP
+                print(f"Cannot display local interface on google colab, public link created at:"
+                      f"{path_to_ngrok_interface_page} and displayed below.")
         # Keep the server running in the background.
         asyncio.get_event_loop().run_until_complete(start_server)
         try:
@@ -239,26 +248,24 @@ class Interface:
 
         if inline is None:
             try:  # Check if running interactively using ipython.
-                from_ipynb = get_ipython()
+                get_ipython()
                 inline = True
-                if browser is None:
-                    browser = False
+                if inbrowser is None:
+                    inbrowser = False
             except NameError:
                 inline = False
-                if browser is None:
-                    browser = True
+                if inbrowser is None:
+                    inbrowser = True
         else:
-            if browser is None:
-                browser = False
-        if browser and not is_colab:
-            webbrowser.open(path_to_server + networking.TEMPLATE_TEMP)  # Open a browser tab with the interface.
+            if inbrowser is None:
+                inbrowser = False
+        if inbrowser and not is_colab:
+            webbrowser.open(path_to_local_interface_page)  # Open a browser tab with the interface.
         if inline:
             from IPython.display import IFrame
-            if is_colab:
-                print("Cannot display Interface inline on google colab, public link created at: {} and displayed below.".format(
-                    site_ngrok_url + '/' + networking.TEMPLATE_TEMP))
-                display(IFrame(site_ngrok_url + '/' + networking.TEMPLATE_TEMP, width=1000, height=500))
+            if is_colab:  # Embed the remote interface page if on google colab; otherwise, embed the local page.
+                display(IFrame(path_to_ngrok_interface_page, width=1000, height=500))
             else:
-                display(IFrame(path_to_server + networking.TEMPLATE_TEMP, width=1000, height=500))
+                display(IFrame(path_to_local_interface_page, width=1000, height=500))
 
-        return httpd, path_to_server + networking.TEMPLATE_TEMP, site_ngrok_url
+        return httpd, path_to_local_server, path_to_ngrok_server
