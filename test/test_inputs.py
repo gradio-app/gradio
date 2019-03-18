@@ -10,8 +10,8 @@ PACKAGE_NAME = 'gradio'
 class TestSketchpad(unittest.TestCase):
     def test_path_exists(self):
         inp = inputs.Sketchpad()
-        path = inp.get_template_path()
-        # self.assertTrue(os.path.exists(os.path.join(PACKAGE_NAME, path)))
+        path = inputs.BASE_INPUT_INTERFACE_TEMPLATE_PATH.format(inp.get_name())
+        self.assertTrue(os.path.exists(os.path.join(PACKAGE_NAME, path)))
 
     def test_preprocessing(self):
         inp = inputs.Sketchpad()
@@ -22,8 +22,8 @@ class TestSketchpad(unittest.TestCase):
 class TestWebcam(unittest.TestCase):
     def test_path_exists(self):
         inp = inputs.Webcam()
-        path = inp.get_template_path()
-        # self.assertTrue(os.path.exists(os.path.join(PACKAGE_NAME, path)))
+        path = inputs.BASE_INPUT_INTERFACE_TEMPLATE_PATH.format(inp.get_name())
+        self.assertFalse(os.path.exists(os.path.join(PACKAGE_NAME, path)))  # Note implemented yet.
 
     def test_preprocessing(self):
         inp = inputs.Webcam()
@@ -34,8 +34,8 @@ class TestWebcam(unittest.TestCase):
 class TestTextbox(unittest.TestCase):
     def test_path_exists(self):
         inp = inputs.Textbox()
-        path = inp.get_template_path()
-        # self.assertTrue(os.path.exists(os.path.join(PACKAGE_NAME, path)))
+        path = inputs.BASE_INPUT_INTERFACE_TEMPLATE_PATH.format(inp.get_name())
+        self.assertTrue(os.path.exists(os.path.join(PACKAGE_NAME, path)))
 
     def test_preprocessing(self):
         inp = inputs.Textbox()
@@ -46,7 +46,7 @@ class TestTextbox(unittest.TestCase):
 class TestImageUpload(unittest.TestCase):
     def test_path_exists(self):
         inp = inputs.ImageUpload()
-        path = inp.get_template_path()
+        path = inputs.BASE_INPUT_INTERFACE_TEMPLATE_PATH.format(inp.get_name())
         self.assertTrue(os.path.exists(os.path.join(PACKAGE_NAME, path)))
 
     def test_preprocessing(self):

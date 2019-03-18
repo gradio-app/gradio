@@ -11,6 +11,10 @@ from io import BytesIO
 import numpy as np
 from PIL import Image, ImageOps
 
+# Where to find the static resources associated with each template.
+BASE_INPUT_INTERFACE_TEMPLATE_PATH = 'templates/input/{}.html'
+BASE_INPUT_INTERFACE_JS_PATH = 'static/js/interfaces/input/{}.js'
+
 
 class AbstractInput(ABC):
     """
@@ -29,12 +33,28 @@ class AbstractInput(ABC):
         super().__init__()
 
     def get_validation_inputs(self):
+        """
+        An interface can optionally implement a method that returns a list of examples inputs that it should be able to
+        accept and preprocess for validation purposes.
+        """
         return []
 
-    @abstractmethod
-    def get_template_path(self):
+    def get_js_context(self):
         """
-        All interfaces should define a method that returns the path to its template.
+        :return: a dictionary with context variables for the javascript file associated with the context
+        """
+        return {}
+
+    def get_template_context(self):
+        """
+        :return: a dictionary with context variables for the javascript file associated with the context
+        """
+        return {}
+
+    @abstractmethod
+    def get_name(self):
+        """
+        All interfaces should define a method that returns a name used for identifying the related static resources.
         """
         pass
 
@@ -54,8 +74,8 @@ class Sketchpad(AbstractInput):
         self.invert_colors = invert_colors
         super().__init__(preprocessing_fn=preprocessing_fn)
 
-    def get_template_path(self):
-        return 'templates/input/sketchpad.html'
+    def get_name(self):
+        return 'sketchpad'
 
     def preprocess(self, inp):
         """
@@ -81,8 +101,8 @@ class Webcam(AbstractInput):
     def get_validation_inputs(self):
         return validation_data.BASE64_COLOR_IMAGES
 
-    def get_template_path(self):
-        return 'templates/input/webcam.html'
+    def get_name(self):
+        return 'webcam'
 
     def preprocess(self, inp):
         """
@@ -100,8 +120,8 @@ class Textbox(AbstractInput):
     def get_validation_inputs(self):
         return validation_data.ENGLISH_TEXTS
 
-    def get_template_path(self):
-        return 'templates/input/textbox.html'
+    def get_name(self):
+        return 'textbox'
 
     def preprocess(self, inp):
         """
@@ -112,20 +132,24 @@ class Textbox(AbstractInput):
 
 class ImageUpload(AbstractInput):
     def __init__(self, preprocessing_fn=None, image_width=224, image_height=224, num_channels=3, image_mode='RGB',
-                 scale = 1/127.5, shift = -1):
+                 scale=1/127.5, shift=-1, aspect_ratio="false"):
         self.image_width = image_width
         self.image_height = image_height
         self.num_channels = num_channels
         self.image_mode = image_mode
         self.scale = scale
         self.shift = shift
+        self.aspect_ratio = aspect_ratio
         super().__init__(preprocessing_fn=preprocessing_fn)
 
     def get_validation_inputs(self):
         return validation_data.BASE64_COLOR_IMAGES
 
-    def get_template_path(self):
-        return 'templates/input/image_upload.html'
+    def get_name(self):
+        return 'image_upload'
+
+    def get_js_context(self):
+        return {'aspect_ratio': self.aspect_ratio}
 
     def preprocess(self, inp):
         """
@@ -146,12 +170,13 @@ class ImageUpload(AbstractInput):
 
 class CSV(AbstractInput):
 
-    def get_template_path(self):
-        return 'templates/input/csv.html'
+    def get_name(self):
+        # return 'templates/input/csv.html'
+        return 'csv'
 
     def preprocess(self, inp):
         """
-        By default, no pre-processing is applied to text.
+        By default, no pre-processing is applied to a CSV file (TODO:aliabid94 fix this)
         """
         return inp
 
