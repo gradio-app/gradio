@@ -1,0 +1,232 @@
+.panel {
+  display: inline-block;
+  max-width: 45%;
+  min-width: 300px;
+  box-sizing: border-box;
+  vertical-align: top;
+}
+.panel {
+  margin: 0 14px 14px;
+}
+.instructions {
+  margin-bottom: 10px;
+}
+.input, .output {
+  width: 100%;
+  height: 360px;
+  background-color: #F6F6F6;
+  margin-bottom: 16px;
+  box-sizing: border-box;
+  padding: 6px;
+  display: flex;
+  flex-flow: column;
+}
+.loading {
+  margin-left: auto;
+}
+.loading img {
+  display: none;
+  height: 22px;
+}
+.panel_head {
+  display: flex
+}
+.role {
+  text-transform: uppercase;
+  font-family: Arial;
+  color: #BBB;
+  margin-bottom: 6px;
+  font-size: 14px;
+  font-weight: bold;
+}
+.input.text .role, .output.text .role {
+  margin-left: 1px;
+}
+.submit, .clear, .flag, .message, .send-message {
+  background-color: #F6F6F6 !important;
+  padding: 8px !important;
+  box-sizing: border-box;
+  width: calc(50% - 8px);
+  text-transform: uppercase;
+  font-weight: bold;
+  border: 0 none;
+}
+.clear {
+  background-color: #F6F6F6 !important;
+}
+.submit {
+  background-color: #EEA45D  !important;
+  color: white !important;
+}
+
+.submit {
+  margin-right: 8px;
+}
+.clear {
+  margin-left: 8px;
+}
+
+/*.flag:focus {
+  background-color: pink !important;
+}
+*/
+.input_text, .output_text {
+  background: transparent;
+  resize: none
+    border: 0 none;
+  width: 100%;
+  font-size: 18px;
+  outline: none;
+  height: 100%;
+  padding: 0;
+}
+.input_image, .input_audio, .input_snapshot, .input_mic, .input_csv, .output_class,
+.output_image, .output_csv {
+  flex: 1 1 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+.input_image, .input_audio, .input_snapshot, .input_mic, .input_csv {
+  font-weight: bold;
+  font-size: 24px;
+  color: #BBB;
+  cursor: pointer;
+}
+.input_image img {
+  max-height: 100%;
+  max-width: 100%;
+}
+.hidden_upload {
+  display: none;
+}
+.output_class {
+  font-weight: bold;
+  font-size: 36px;
+}
+.drop_mode {
+  border: dashed 8px #DDD;
+}
+.input_image, .input_audio {
+  line-height: 1.5em;
+}
+.input_snapshot, .input_mic {
+  flex-direction: column;
+}
+.input_snapshot .webcam, .input_mic .mic  {
+  height: 80px;
+}
+.output_image img {
+  width: 100%; /* or any custom size */
+  height: 100%;
+  object-fit: contain;
+}
+.confidence_intervals {
+  font-size: 16px;
+}
+.confidence {
+  padding: 3px;
+  display: flex;
+}
+.level, .label  {
+  display: inline-block;
+}
+.label {
+  width: 60px;
+}
+.confidence_intervals .level {
+  font-size: 14px;
+  margin-left: 8px;
+  margin-right: 8px;
+  background-color: #AAA;
+  padding: 2px 4px;
+  text-align: right;
+  font-family: monospace;
+  color: white;
+  font-weight: bold;
+}
+.confidence_intervals > * {
+  vertical-align: bottom;
+}
+.flag.flagged {
+  background-color: pink !important;
+}
+
+.sketchpad canvas {
+  background-color: white;
+}
+.sketch_tools {
+  flex: 0 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+.brush {
+  border-radius: 50%;
+  background-color: #AAA;
+  margin: 0px 20px;
+  cursor: pointer;
+}
+.brush.selected, .brush:hover {
+  background-color: black;
+}
+#brush_1 {
+  height: 8px;
+  width: 8px;
+}
+#brush_2 {
+  height: 16px;
+  width: 16px;
+}
+#brush_3 {
+  height: 24px;
+  width: 24px;
+}
+.canvas_holder {
+  flex: 1 1 auto;
+  text-align: center;
+}
+canvas {
+  border: solid 1px black;
+}
+
+.text textarea {
+  resize: none;
+  background-color: white;
+  border: none;
+  box-sizing: border-box;
+  padding: 4px;
+}
+
+.output_image img {
+  display: none
+}
+
+.table_holder {
+  max-width: 100%;
+  max-height: 100%;
+  overflow: scroll;
+  display: none;
+}
+.csv_preview {
+  background-color: white;
+  max-width: 100%;
+  max-height: 100%;
+  font-size: 12px;
+  font-family: monospace;
+}
+.csv_preview tr {
+  border-bottom: solid 1px black;
+}
+.csv_preview tr.header td {
+  background-color: #EEA45D;
+  font-weight: bold;
+}
+.csv_preview td {
+  padding: 2px 4px;
+}
+.csv_preview td:nth-child(even) {
+  background-color: #EEEEEE;
+}
