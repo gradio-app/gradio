@@ -20,6 +20,7 @@ gradio/static/css/font-awesome.min.css
 gradio/static/css/gradio.css
 gradio/static/css/loading.css
 gradio/static/css/style.css
+gradio/static/css/vendor/cropper.css
 gradio/static/img/logo.png
 gradio/static/img/logo_inline.png
 gradio/static/img/logo_mini.png
@@ -29,6 +30,16 @@ gradio/static/img/webcam.png
 gradio/static/js/all-io.js
 gradio/static/js/jquery-3.2.1.slim.min.js
 gradio/static/js/utils.js
+gradio/static/js/interfaces/input/csv.js
+gradio/static/js/interfaces/input/image_upload.js
+gradio/static/js/interfaces/input/sketchpad.js
+gradio/static/js/interfaces/input/textbox.js
+gradio/static/js/interfaces/output/image.js
+gradio/static/js/interfaces/output/label.js
+gradio/static/js/interfaces/output/textbox.js
+gradio/static/js/vendor/cropper.js
+gradio/static/js/vendor/papaparse.min.js
+gradio/static/js/vendor/sketchpad.js
 gradio/templates/base_template.html
 gradio/templates/input/csv.html
 gradio/templates/input/image_upload.html
