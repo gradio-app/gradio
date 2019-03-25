@@ -1,0 +1,7 @@
+include gradio/static/*
+include gradio/static/css/*
+include gradio/static/js/*
+include gradio/static/img/*
+include gradio/templates/*
+include gradio/templates/input/*
+include gradio/templates/output/*
