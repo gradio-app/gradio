@@ -52,6 +52,7 @@ code {
 #summaries {
   display: flex;
   justify-content: space-between;
+  margin-top: 30px;
   margin-bottom: 16px;
 }
 .summary_box {
@@ -59,7 +60,7 @@ code {
   padding: 0 16px;
   background-repeat: no-repeat;
   background-size: 200px;
-  background-position: center; 
+  background-position: center;
 }
 .summary_box h2 {
   color: #ed9013;
