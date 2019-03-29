@@ -4,7 +4,8 @@
     <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
     <link href="style/style.css" rel="stylesheet">
     <link href="style/home.css" rel="stylesheet">
-    <link href="style/gradio.css" rel="stylesheet">
+    <link href="gradio/gradio.css" rel="stylesheet">
+    <link href="gradio/vendor/cropper.css" rel="stylesheet">
   </head>
   <body>
     <nav>
@@ -30,7 +31,7 @@
         under the Apache license.</p>
       </div><!--
    --><div id="demos">
-        <div id="demo-nav">
+        <!-- <div id="demo-nav">
           <button demo="1" class="selected demo-link">
             <span class="demo-count">Demo 1</span><br>Handwriting Digit
           </button>
@@ -46,46 +47,57 @@
           <button demo="5" class="demo-link">
             <span class="demo-count">Demo 5</span><br>Hotdog or Not Hotdog
           </button>
-        </div>
+        </div> -->
         <div id="demo-code">
-          <div id="demo-code-label">handwriting_digit_demo.py</div>
+          <div id="demo-code-label">image_detector.py</div>
           <div class="codeblock"><code>
             import <span class="var">gradio</span>, tensorflow as <span
                 class="var">tf</span><br>
-            <span class="var">handwriting_mdl</span> = tf.keras.models.<span
+            <span class="var">image_mdl</span> = tf.keras.models.<span
                 class="func">Sequential()</span><br>
             <span class="comm"># ... define and train the model as you would
                 normally</span><br>
             <span class="var">io</span> = gradio.<span
                 class="func">Interface(</span><span
-                class="var">input</span>=“sketchpad”, <span
+                class="var">input</span>=“imageupload", <span
                 class="var">output</span>=“label”, <span
                 class="var">model_type</span>=“keras”,<span
-                class="var">model</span>=handwriting_mdl<span
+                class="var">model</span>=image_mdl<span
                 class="func">)</span><br>
             io.<span class="func">launch()</span>
           </code></div>
         </div>
+        <div class="instructions">
+          The code above produces produces an interface like this, in which you can upload an image and receive labelling as output. Click
+          submit to get the prediction!
+        </div>
         <div id="gradio">
-          <div class="instructions">
-            The code above produces produces an interface like this, in which you can draw a digit from 0 to 9 in the input box. Click
-            submit to get the prediction!
-          </div>
           <div class="panel">
-            <div class="input sketchpad">
+            <div class="gradio input image_file">
               <div class="role">Input</div>
+              <div class="input_image drop_mode">
+                <div class="input_caption">Drop Image Here<br>- or -<br>Click to Upload</div>
+                <img />
+              </div>
+              <input class="hidden_upload" type="file" accept="image/x-png,image/gif,image/jpeg" />
             </div>
             <input class="submit" type="submit" value="Submit"/><!--
          --><input class="clear" type="reset" value="Clear">
           </div><!--
        --><div class="panel">
-            <div class="output classifier">
-              <div class="role">Output</div>
-            </div>
-          </div>
+           <div class="gradio output classifier">
+             <div class="panel_head">
+               <div class="role">Output</div>
+             </div>
+             <div class="output_class"></div>
+             <div class="confidence_intervals">
+             </div>
+           </div>
+         </div>
         </div>
       </div><!--
  --></div>
+    <img id="invisible_img" style="display: none" />
     <div id="summaries">
       <div id="setup" class="summary_box">
         <h2>Fast, easy setup</h2>
@@ -115,5 +127,11 @@
     <footer>
       <img src="img/logo_inline.png" />
     </footer>
+    <script src="gradio/vendor/jquery.min.js"></script>
+    <script src="gradio/image_upload.js"></script>
+    <script src="gradio/label.js"></script>
+    <script src="gradio/vendor/cropper.js"></script>
+    <script src="https://unpkg.com/ml5@0.1.3/dist/ml5.min.js"></script>
+    <script src="js/models.js"></script>
   <body>
 </html>
