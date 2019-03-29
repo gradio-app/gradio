@@ -14,6 +14,12 @@
       <a href="sharing.html">Sharing</a>
     </nav>
     <div class="content">
+      <h1>Installation</h1>
+      <p>Gradio requires <a href="https://www.python.org/downloads/">Python 3</a>. You can download the latest version of <code>gradio</code> using pip, like this:</p>
+
+      <div class="codeblock"><code>
+      </code></div>
+      <p>Or you may want to do </p>
       <h1>Getting Started</h1>
       <p>GradIO is a python library that allows you to place input and output
       interfaces over trained models to make it easy for you to "play around"
@@ -22,14 +28,14 @@
       page. Setting up GradIO is as easy as <code>pip install gradio</code> or
       <code>pip3 install gradio</code> for Python3.</p>
       <p>Running a GradIO interface requires calling  <code><span
-      class="func">Interface(</span><span class="var">input</span> : str,
-      <span class="var">output</span> : str, <span class="var">model_type</span>
+      class="func">Interface(</span><span class="var">inputs</span> : str,
+      <span class="var">outputs</span> : str, <span class="var">model_type</span>
           : str, <span class="var">model</span> : Any<span
           class="func">)</span></code> function, which takes as input
           arguments:<br>
-      <code><span class="var">input</span></code> – the string representing
-      the input interface to be used.<br>
-      <code><span class="var">output</span></code> – the string representing
+      <code><span class="var">inputs</span></code> – the string representing
+      the input interface to be used, or a subclass of <code>gradio.AbstractInput</code> (see below).<br>
+      <code><span class="var">outputs</span></code> – the string representing
       the output interface to be used.<br>
       <code><span class="var">model_type</span></code> – the string
       representing type of model being passed in. Supported types include
@@ -46,26 +52,27 @@
             define and train the model as you would normally</span><br>
         <span class="var">io</span> = gradio.<span
             class="func">Interface(</span><span
-            class="var">input</span>=“sketchpad”, <span
-            class="var">output</span>=“label”, <span
+            class="var">inputs</span>=“sketchpad”, <span
+            class="var">outputs</span>=“label”, <span
             class="var">model_type</span>=“keras”, <span
             class="var">model</span>=mdl<span class="func">)</span><br>
         io.<span class="func">launch()</span>
       </code></div>
+
       <h1>Supported Interfaces</h1>
       <p id="interfaces_text">This is the list of currently supported interfaces
       in GradIO. All input interfaces can be paired with any output interface.
       </p>
       <div class="interfaces_set">
         <div class="inputs_set">
-          <h2><code><span class="var">input</span>=“text”</code></h2>
+          <h2><code><span class="var">inputs</span>=“text”</code></h2>
           <p>Use this interface to enter text as your input.</p>
           <div class="gradio input text">
             <div class="role">Input</div>
             <textarea class="input_text"
             placeholder="Enter text here..."></textarea>
           </div>
-          <h2><code><span class="var">input</span>=“image_file”</code></h2>
+          <h2><code><span class="var">inputs</span>=“image_file”</code></h2>
           <p>Use this interface to upload images to your model.</p>
           <div class="gradio input image_file">
             <div class="role">Input</div>
@@ -73,7 +80,7 @@
               Drop Image Here<br>- or -<br>Click to Upload
             </div>
           </div>
-          <h2><code><span class="var">input</span>=“snapshot”</code></h2>
+          <h2><code><span class="var">inputs</span>=“snapshot”</code></h2>
           <p>Use this interface to take snapshots from the user's webcam.</p>
           <div class="gradio input snapshot">
             <div class="role">Input</div>
@@ -84,12 +91,12 @@
               </div>
             </div>
           </div>
-          <h2><code><span class="var">input</span>=“sketchpad”</code></h2>
+          <h2><code><span class="var">inputs</span>=“sketchpad”</code></h2>
           <p>Use this interface to take simple monochrome cketches as input.</p>
           <div class="input sketchpad">
             <div class="role">Input</div>
           </div>
-          <h2><code><span class="var">input</span>=“microphone”</code></h2>
+          <h2><code><span class="var">inputs</span>=“microphone”</code></h2>
           <p>Use this interface to audio input from the microphone.</p>
           <div class="gradio input mic">
             <div class="role">Input</div>
@@ -100,7 +107,7 @@
               </div>
             </div>
           </div>
-          <h2><code><span class="var">input</span>=“audio_file”</code></h2>
+          <h2><code><span class="var">inputs</span>=“audio_file”</code></h2>
           <p>Use this interface to upload audio to your model.</p>
           <div class="gradio input audio_file">
             <div class="role">Input</div>
@@ -110,7 +117,7 @@
           </div>
         </div><!--
      --><div class="outputs_set">
-          <h2><code><span class="var">output</span>=“classifier”</code></h2>
+          <h2><code><span class="var">outputs</span>=“classifier”</code></h2>
           <p>Use this interface for classification. Responds with confidence
           intervals. </p>
           <div class="gradio output classifier">
@@ -123,14 +130,14 @@
               <div class="confidence"><div class="label">angry</div><div class="level" style="width: 6px">&nbsp;</div></div>
             </div>
           </div>
-          <h2><code><span class="var">output</span>=“text”</code></h2>
+          <h2><code><span class="var">outputs</span>=“text”</code></h2>
           <p>Use this interface to display the text of your output.</p>
           <div class="gradio output text">
             <div class="role">Output</div>
             <textarea readonly class="output_text">Lorem ipsum consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
             </textarea>
           </div>
-          <h2><code><span class="var">output</span>=“image”</code></h2>
+          <h2><code><span class="var">outputs</span>=“image”</code></h2>
           <p>Use this interface to display the text of your output.</p>
           <div class="gradio output image">
             <div class="role">Output</div>
