@@ -3,46 +3,90 @@
     <title>GradIO</title>
     <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
     <link href="style/style.css" rel="stylesheet">
+    <link href="style/home.css" rel="stylesheet">
     <link href="style/getting_started.css" rel="stylesheet">
-    <link href="style/gradio.css" rel="stylesheet">
+    <link href="gradio/gradio.css" rel="stylesheet">
+    <link href="gradio/vendor/cropper.css" rel="stylesheet">
   </head>
   <body>
     <nav>
       <img src="img/logo_inline.png" />
-      <a href="home.html">GradIO</a>
+      <a href="index.html">GradIO</a>
       <a class="selected" href="getting_started.html">Getting Started</a>
       <a href="sharing.html">Sharing</a>
     </nav>
     <div class="content">
       <h1>Installation</h1>
-      <p>Gradio requires <a href="https://www.python.org/downloads/">Python 3</a>. You can download the latest version of <code>gradio</code> using pip, like this:</p>
-
+      <p>Gradio requires <a href="https://www.python.org/downloads/">Python 3</a>. Once you have Python, you can download the latest version of <code>gradio</code> using pip, like this:</p>
       <div class="codeblock"><code>
+        pip install gradio
       </code></div>
-      <p>Or you may want to do </p>
-      <h1>Getting Started</h1>
-      <p>GradIO is a python library that allows you to place input and output
-      interfaces over trained models to make it easy for you to "play around"
-      with your model. GradIO runs entirely locally using your browser.</p>
-      <p>To get a sense of GradIO, take a look at the examples on the home
-      page. Setting up GradIO is as easy as <code>pip install gradio</code> or
-      <code>pip3 install gradio</code> for Python3.</p>
-      <p>Running a GradIO interface requires calling  <code><span
+      <p>Or you may want to do <code>pip3 install gradio</code> if you have multiple installations of Python.</p>
+      <h1>Minimum Working Example</h1>
+      <p>Creating an interface using gradio involves just adding a few lines to your existing code. For example, if you
+        have trained a Tensorflow Keras model, you can create an interface like this:</p>
+
+          <div class="codeblock"><code>
+            import <span class="var">gradio</span>, tensorflow as <span
+                class="var">tf</span><br>
+            <span class="var">image_mdl</span> = tf.keras.models.<span
+                class="func">Sequential()</span><br>
+            <span class="comm"># ... define and train the model as you would
+                normally</span><br>
+            <span class="var">io</span> = gradio.<span
+                class="func">Interface(</span><span
+                class="var">inputs</span>=“imageupload", <span
+                class="var">outputs</span>=“label”, <span
+                class="var">model_type</span>=“keras”,<span
+                class="var">model</span>=image_mdl<span
+                class="func">)</span><br>
+            io.<span class="func">launch()</span>
+          </code></div>
+
+        <p>Running the code above will open a new browser window with the following interface running:</p>
+        <div id="gradio">
+          <div class="panel">
+            <div class="gradio input image_file">
+              <div class="role">Input</div>
+              <div class="input_image drop_mode">
+                <div class="input_caption">Drop Image Here<br>- or -<br>Click to Upload</div>
+                <img />
+              </div>
+              <input class="hidden_upload" type="file" accept="image/x-png,image/gif,image/jpeg" />
+            </div>
+            <input class="submit" type="submit" value="Submit"/><!--
+         --><input class="clear" type="reset" value="Clear">
+          </div><!--
+       --><div class="panel">
+           <div class="gradio output classifier">
+             <div class="panel_head">
+               <div class="role">Output</div>
+             </div>
+             <div class="output_class"></div>
+             <div class="confidence_intervals">
+             </div>
+           </div>
+         </div>
+        </div>
+
+        <p>&nbsp;</p>
+      <h1>Basic Parameters</h1>
+      <p>Running a GradIO interface requires creating an <code><span
       class="func">Interface(</span><span class="var">inputs</span> : str,
       <span class="var">outputs</span> : str, <span class="var">model_type</span>
           : str, <span class="var">model</span> : Any<span
-          class="func">)</span></code> function, which takes as input
+          class="func">)</span></code> object, which takes as input
           arguments:<br>
       <code><span class="var">inputs</span></code> – the string representing
-      the input interface to be used, or a subclass of <code>gradio.AbstractInput</code> (see below).<br>
+          the input interface to be used, or a subclass of <code>gradio.AbstractInput</code> for additional customization (see <a href="#custom-interfaces">below</a>).<br>
       <code><span class="var">outputs</span></code> – the string representing
-      the output interface to be used.<br>
+      the output interface to be used, , or a subclass of <code>gradio.AbstractOutput</code> for additional customization (see <a href="#custom-interfaces">below</a>).<br>
       <code><span class="var">model_type</span></code> – the string
       representing type of model being passed in. Supported types include
       keras.<br>
       <code><span class="var">model</span></code> – the actual model to use
       for processing.</p>
-      <p>For example:</p>
+      <p>Instead of providing the string names for <code><span class="var">inputs</span></code> and <code><span class="var">outputs</span></code>, objects that represent input and output interfaces can be provided. For example, the above code is identical to:</p>
       <div class="codeblock"><code>
         import <span class="var">gradio</span>, tensorflow as <span
             class="var">tf</span><br>
@@ -50,16 +94,22 @@
             class="func">Sequential()</span><br>
         <span class="comm"># ...
             define and train the model as you would normally</span><br>
+        <span class="var">inp</span> = gradio.inputs.<span
+              class="func">ImageUpload()</span><br>
+        <span class="var">out</span> = gradio.outputs.<span
+              class="func">Label()</span><br>
         <span class="var">io</span> = gradio.<span
             class="func">Interface(</span><span
-            class="var">inputs</span>=“sketchpad”, <span
-            class="var">outputs</span>=“label”, <span
+            class="var">inputs</span>=inp, <span
+            class="var">outputs</span>=out, <span
             class="var">model_type</span>=“keras”, <span
             class="var">model</span>=mdl<span class="func">)</span><br>
         io.<span class="func">launch()</span>
       </code></div>
+        <p>This allows for customization of the interfaces, by passing in arguments to the input and output constructors. The parameters that each interface accepts is described below.</p>
 
       <h1>Supported Interfaces</h1>
+        <h2>Input Interfaces</h2>
       <p id="interfaces_text">This is the list of currently supported interfaces
       in GradIO. All input interfaces can be paired with any output interface.
       </p>
@@ -147,9 +197,32 @@
           </div>
         </div>
       </div>
+        <h2>Output Interfaces</h2>
+        <h1 id="custom-interfaces">Customizing Interfaces</h1>
+
+        <h1>Model Types</h1>
+        <h1>Launch Options</h1>
+
+      <p>Running <br>
+      <code><span class="var">inbrowser</span></code> – the string representing
+          the input interface to be used, or a subclass of <code>gradio.AbstractInput</code> for additional customization (see <a href="#custom-interfaces">below</a>).<br>
+      <code><span class="var">inline</span></code> – the string representing
+      the output interface to be used, , or a subclass of <code>gradio.AbstractOutput</code> for additional customization (see <a href="#custom-interfaces">below</a>).<br>
+      <code><span class="var">validate</span></code> – the string
+      representing type of model being passed in. Supported types include
+      keras.<br>
+      <code><span class="var">share</span></code> – the actual model to use
+      for processing.</p>
+
     </div>
     <footer>
       <img src="img/logo_inline.png" />
     </footer>
+    <script src="gradio/vendor/jquery.min.js"></script>
+    <script src="gradio/image_upload.js"></script>
+    <script src="gradio/label.js"></script>
+    <script src="gradio/vendor/cropper.js"></script>
+    <script src="https://unpkg.com/ml5@0.1.3/dist/ml5.min.js"></script>
+    <script src="js/models.js"></script>
   <body>
 </html>
