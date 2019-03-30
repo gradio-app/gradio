@@ -131,7 +131,9 @@ class Interface:
             return self.model_obj(preprocessed_input)
         elif self.model_type=='pytorch':
             import torch
+            print(preprocessed_input.dtype)
             value = torch.from_numpy(preprocessed_input)
+            print(value.dtype)
             value = torch.autograd.Variable(value)
             prediction = self.model_obj(value)
             return prediction.data.numpy()
