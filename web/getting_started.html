@@ -210,7 +210,7 @@ io.launch()</code></pre>
         <pre><code class="python">import gradio, tensorflow as tf
 image_mdl = tf.keras.applications.inception_v3.InceptionV3()
 inp = gradio.inputs.ImageUpload(shape=(299, 299, 3))
-out = gradio.outputs.Label(num_top_classes=5, show_confidences=False)
+out = gradio.outputs.Label(num_top_classes=5)
 io = gradio.Interface(inputs=inp, outputs=out, model_type="keras", model=mdl)
 io.launch()</code></pre>
 
@@ -242,17 +242,67 @@ io.launch()</code></pre>
         <h3><code><span class="var">model_type</span>="sklearn"</code></h3>
         <p>This allows you to pass in scikit-learn models, and get predictions from the model. Here's a complete example of training a <code>sklearn</code> model and creating a <code>gradio</code> interface around it.
         </p>
+
+        <pre><code class="python">from sklearn import datasets, svm
+import gradio
+
+digits = datasets.load_digits()
+n_samples = len(digits.images)
+data = digits.images.reshape((n_samples, -1))  # flatten the images
+
+# Create a classifier: a support vector classifier
+classifier = svm.SVC(gamma=0.001)
+classifier.fit(data, digits.target)
+
+# The sklearn digits dataset is different from MNIST: it is 8x8 and consists of black digits on a white background.
+inp = gradio.inputs.Sketchpad(shape=(8, 8), flatten=True, scale=16/255, invert_colors=False)
+io = gradio.Interface(inputs=inp, outputs="label", model_type="sklearn", model=classifier)
+io.launch()</code></pre>
+
         <h3><code><span class="var">model_type</span>="keras"</code></h3>
-        <p>This allows you to pass in scikit-learn models, and get predictions from the model. Here's a complete example of training a <code>sklearn</code> model and creating a <code>gradio</code> interface around it.
-        </p>
-        <h3><code><span class="var">model_type</span>="pytorch"</code></h3>
-        <p>This allows you to pass in scikit-learn models, and get predictions from the model. Here's a complete example of training a <code>sklearn</code> model and creating a <code>gradio</code> interface around it.
-        </p>
-        <h3><code><span class="var">model_type</span>="pyfunc"</code></h3>
-        <p>This allows you to pass in scikit-learn models, and get predictions from the model. Here's a complete example of training a <code>sklearn</code> model and creating a <code>gradio</code> interface around it.
+        <p>This allows you to pass in keras models, and get predictions from the model. Here's a complete example of training a <code>sklearn</code> model and creating a <code>gradio</code> interface around it.
         </p>
 
+        <pre><code class="python">import gradio, tensorflow as tf
+
+(x_train, y_train),(x_test, y_test) = tf.keras.datasets.mnist.load_data()
+x_train, x_test = x_train / 255.0, x_test / 255.0
+
+model = tf.keras.models.Sequential([
+  tf.keras.layers.Flatten(),
+  tf.keras.layers.Dense(512, activation=tf.nn.relu),
+  tf.keras.layers.Dropout(0.2),
+  tf.keras.layers.Dense(10, activation=tf.nn.softmax)
+])
+
+model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+model.fit(x_train, y_train, epochs=5)
+loss, accuracy = model.evaluate(x_test, y_test)
+
+io = gradio.Interface(inputs="sketchpad", outputs="label", model=model, model_type='keras')
+io.launch(inline=True, share=True)</code></pre>
+
+        <p><a href="https://colab.research.google.com/drive/1DQSuxGARUZ-v4ZOAuw-Hf-8zqegpmes-">Run this code in a colab notebook</a> to see the interface -- embedded in the notebook.</p>
+        <h3><code><span class="var">model_type</span>="pytorch"</code></h3>
+        <p>This allows you to pass in pytorch models, and get predictions from the model.
+        </p>
+        <h3><code><span class="var">model_type</span>="pyfunc"</code></h3>
+        <p>This allows you to pass in an arbitrary python function, and get the outputs from the function. Here's a very simple example of a "model" with a <code>gradio</code> interface around it.
+        </p>
+
+        <pre><code class="python">import gradio
+
+# A very simplistic function that capitalizes each letter in the given string
+def big(x):
+    return x.upper()
+
+io = gradio.Interface(inputs="textbox", outputs="textbox", model=big, model_type='pyfunc')
+io.launch(inline=True, share=True)</code></pre>
+
+        <p>A more realistic examples of the <code>pyfunc</code> use case may be the following, where we pass in a
+        TensorFlow session and accompanying model as a .</p>
         <h1>Launch Options</h1>
+
       <p>When launching the interface, you have the option to pass in several boolean parameters that determine how the interface is displayed. Here
           is an example showing all of the possible parameters:</p>
 
@@ -260,13 +310,9 @@ io.launch()</code></pre>
 </code></pre>
 
 
-      <p><code><span class="var">inbrowser</span></code> – the string representing
-          the input interface to be used, or a subclass of <code>gradio.AbstractInput</code> for additional customization (see <a href="#custom-interfaces">below</a>).<br>
-      <code><span class="var">inline</span></code> – the string representing
-      the output interface to be used, , or a subclass of <code>gradio.AbstractOutput</code> for additional customization (see <a href="#custom-interfaces">below</a>).<br>
-      <code><span class="var">validate</span></code> – the string
-      representing type of model being passed in. Supported types include
-      keras.<br>
+      <p><code><span class="var">inbrowser</span></code> – whether the model should launch in a new browser window.<br>
+      <code><span class="var">inline</span></code> – whether the model should launch embedded in an interactive python environment (like jupyter notebooks or colab notebooks).<br>
+      <code><span class="var">validate</span></code> – whether gradio should try to validate the interface-model compatibility before launch.<br>
       <code><span class="var">share</span></code> – the actual model to use
       for processing.</p>
 
