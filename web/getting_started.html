@@ -7,6 +7,10 @@
     <link href="style/getting_started.css" rel="stylesheet">
     <link href="gradio/gradio.css" rel="stylesheet">
     <link href="gradio/vendor/cropper.css" rel="stylesheet">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
   </head>
   <body>
     <nav>
@@ -18,30 +22,17 @@
     <div class="content">
       <h1>Installation</h1>
       <p>Gradio requires <a href="https://www.python.org/downloads/">Python 3</a>. Once you have Python, you can download the latest version of <code>gradio</code> using pip, like this:</p>
-      <div class="codeblock"><code>
-        pip install gradio
-      </code></div>
-      <p>Or you may want to do <code>pip3 install gradio</code> if you have multiple installations of Python.</p>
-      <h1>Minimum Working Example</h1>
-      <p>Creating an interface using gradio involves just adding a few lines to your existing code. For example, if you
-        have trained a Tensorflow Keras model, you can create an interface like this:</p>
+      <pre><code class="bash">pip install gradio</code></pre>
 
-          <div class="codeblock"><code>
-            import <span class="var">gradio</span>, tensorflow as <span
-                class="var">tf</span><br>
-            <span class="var">image_mdl</span> = tf.keras.models.<span
-                class="func">Sequential()</span><br>
-            <span class="comm"># ... define and train the model as you would
-                normally</span><br>
-            <span class="var">io</span> = gradio.<span
-                class="func">Interface(</span><span
-                class="var">inputs</span>=“imageupload", <span
-                class="var">outputs</span>=“label”, <span
-                class="var">model_type</span>=“keras”,<span
-                class="var">model</span>=image_mdl<span
-                class="func">)</span><br>
-            io.<span class="func">launch()</span>
-          </code></div>
+      <p>Or you may need to do <code>pip3 install gradio</code> if you have multiple installations of Python.</p>
+      <h1>Basic Usage</h1>
+      <p>Creating an interface using gradio involves just adding a few lines to your existing code. For example, here's an
+          how to create a <code>gradio</code> interface using a pretrained <code>keras</code> model:</p>
+
+        <pre><code class="python">import gradio, tensorflow as tf
+image_mdl = tf.keras.applications.inception_v3.InceptionV3()
+io = gradio.Interface(inputs="imageupload", outputs="label", model_type="keras", model=image_mdl)
+io.launch()</code></pre>
 
         <p>Running the code above will open a new browser window with the following interface running:</p>
         <div id="gradio">
@@ -69,7 +60,7 @@
          </div>
         </div>
 
-        <p>&nbsp;</p>
+        <p>&nbsp;</p><p>&nbsp;</p>
       <h1>Basic Parameters</h1>
       <p>Running a GradIO interface requires creating an <code><span
       class="func">Interface(</span><span class="var">inputs</span> : str,
@@ -86,44 +77,41 @@
       keras.<br>
       <code><span class="var">model</span></code> – the actual model to use
       for processing.</p>
-      <p>Instead of providing the string names for <code><span class="var">inputs</span></code> and <code><span class="var">outputs</span></code>, objects that represent input and output interfaces can be provided. For example, the above code is identical to:</p>
-      <div class="codeblock"><code>
-        import <span class="var">gradio</span>, tensorflow as <span
-            class="var">tf</span><br>
-        <span class="var">mdl</span> = tf.keras.models.<span
-            class="func">Sequential()</span><br>
-        <span class="comm"># ...
-            define and train the model as you would normally</span><br>
-        <span class="var">inp</span> = gradio.inputs.<span
-              class="func">ImageUpload()</span><br>
-        <span class="var">out</span> = gradio.outputs.<span
-              class="func">Label()</span><br>
-        <span class="var">io</span> = gradio.<span
-            class="func">Interface(</span><span
-            class="var">inputs</span>=inp, <span
-            class="var">outputs</span>=out, <span
-            class="var">model_type</span>=“keras”, <span
-            class="var">model</span>=mdl<span class="func">)</span><br>
-        io.<span class="func">launch()</span>
-      </code></div>
-        <p>This allows for customization of the interfaces, by passing in arguments to the input and output constructors. The parameters that each interface accepts is described below.</p>
+      <p>Instead of providing the string names for <code><span class="var">inputs</span></code> and <code><span class="var">outputs</span></code>, objects that represent input and output interfaces can be provided. For example, the code
+          in the Basic Usage section executes identically as:</p>
+
+      <pre><code class="python">import gradio, tensorflow as tf
+image_mdl = tf.keras.applications.inception_v3.InceptionV3()
+inp = gradio.inputs.ImageUpload()
+out = gradio.outputs.Label()
+io = gradio.Interface(inputs=inp, outputs=out, model_type="keras", model=mdl)
+io.launch()</code></pre>
+
+        <p>This allows for customization of the interfaces, by passing in arguments to the input and output constructors. The parameters that each interface constructor accepts is described below.</p>
 
       <h1>Supported Interfaces</h1>
-        <h2>Input Interfaces</h2>
       <p id="interfaces_text">This is the list of currently supported interfaces
       in GradIO. All input interfaces can be paired with any output interface.
       </p>
       <div class="interfaces_set">
         <div class="inputs_set">
+        <h2>Input Interfaces</h2>
           <h2><code><span class="var">inputs</span>=“text”</code></h2>
-          <p>Use this interface to enter text as your input.</p>
+          <p>Use this interface to enter text as your input. Parameters: <em>None</em>
+          </p>
           <div class="gradio input text">
             <div class="role">Input</div>
             <textarea class="input_text"
             placeholder="Enter text here..."></textarea>
           </div>
-          <h2><code><span class="var">inputs</span>=“image_file”</code></h2>
-          <p>Use this interface to upload images to your model.</p>
+          <h2><code><span class="var">inputs</span>=“imageupload”</code></h2>
+          <p>Use this interface to upload images to your model. Parameters: <br>
+              <code><span class="var">shape</span></code> – a tuple with the shape which the uploaded image should be resized to before passing into the model. Default: <code>(224, 224, 3)</code><br>
+              <code><span class="var">image_mode</span></code> – PIL Image mode that is used to convert the image to a numpy array. Typically either 'RGB' (3 channel RGB) or 'L' (1 channel grayscale). Default: <code>'RGB'</code><br>
+              <code><span class="var">scale</span></code> – A float used to rescale each pixel value in the image. Default: <code>1/127.5</code><br>
+              <code><span class="var">shift</span></code> – A float used to shift each pixel value in the image after scaling. Default: <code>-1</code><br>
+              <code><span class="var">cropper_aspect_ratio</span></code> – Either None or a float that is the aspect ratio of the cropper. Default: <code>None</code><br>
+            </p>
           <div class="gradio input image_file">
             <div class="role">Input</div>
             <div class="input_image">
@@ -131,7 +119,13 @@
             </div>
           </div>
           <h2><code><span class="var">inputs</span>=“snapshot”</code></h2>
-          <p>Use this interface to take snapshots from the user's webcam.</p>
+          <p>Use this interface to take snapshots from the user's webcam. Parameters: <br>
+              <code><span class="var">shape</span></code> – a tuple with the shape which the uploaded image should be resized to before passing into the model. Default: <code>(224, 224, 3)</code><br>
+              <code><span class="var">image_mode</span></code> – PIL Image mode that is used to convert the image to a numpy array. Typically either 'RGB' (3 channel RGB) or 'L' (1 channel grayscale). Default: <code>'RGB'</code><br>
+              <code><span class="var">scale</span></code> – A float used to rescale each pixel value in the image. Default: <code>1/127.5</code><br>
+              <code><span class="var">shift</span></code> – A float used to shift each pixel value in the image after scaling. Default: <code>-1</code><br>
+              <code><span class="var">cropper_aspect_ratio</span></code> – Either None or a float that is the aspect ratio of the cropper. Default: <code>None</code><br>
+          </p>
           <div class="gradio input snapshot">
             <div class="role">Input</div>
             <div class="input_snapshot">
@@ -142,7 +136,10 @@
             </div>
           </div>
           <h2><code><span class="var">inputs</span>=“sketchpad”</code></h2>
-          <p>Use this interface to take simple monochrome cketches as input.</p>
+          <p>Use this interface to take simple monochrome cketches as input. Parameters: <br>
+              <code><span class="var">shape</span></code> – a tuple with the shape which the uploaded image should be resized to before passing into the model. Default: <code>(224, 224, 3)</code><br>
+              <code><span class="var">invert_colors</span></code> – a boolean that designates whether the colors should be inverted before passing into the model. Default: <code>True</code><br>
+          </p>
           <div class="input sketchpad">
             <div class="role">Input</div>
           </div>
@@ -167,6 +164,7 @@
           </div>
         </div><!--
      --><div class="outputs_set">
+        <h2>Output Interfaces</h2>
           <h2><code><span class="var">outputs</span>=“classifier”</code></h2>
           <p>Use this interface for classification. Responds with confidence
           intervals. </p>
@@ -197,14 +195,72 @@
           </div>
         </div>
       </div>
-        <h2>Output Interfaces</h2>
         <h1 id="custom-interfaces">Customizing Interfaces</h1>
+        <p>In practice, it is fairly typical to customize the input and output interfaces so they preprocess the inputs
+        in way your model accepts, or postprocesses the result of your model in the appropriate way so that the output interface
+            can display the result. For example, you may need to adapt the preprocessing of the image upload interface so that
+            the image is resized to the correct dimensions before being fed into your model. This can be done in one of two ways: (1) instantiating <code>gradio.Input</code> /
+            <code>gradio.Output</code> objects with custom parameters, or (2) supplying custom preprocessing/postprocessing functions.</p>
+        <h2>Input/Output Objects with Custom Parameters</h2>
+        <p>For small, common changes to the input and output interfaces, you can often simply change the parameters in
+        the constructor of the input and output objects to affect the preprocessing/postprocessing. Here is an example that
+            resizing the image to a different size before feeding it into the model, and tweaks the output interface to
+            hide the confidence bars and show the top 5 classes rather than the default 3:</p>
+
+        <pre><code class="python">import gradio, tensorflow as tf
+image_mdl = tf.keras.applications.inception_v3.InceptionV3()
+inp = gradio.inputs.ImageUpload(shape=(299, 299, 3))
+out = gradio.outputs.Label(num_top_classes=5, show_confidences=False)
+io = gradio.Interface(inputs=inp, outputs=out, model_type="keras", model=mdl)
+io.launch()</code></pre>
+
+        <h2>Custom Preprocessing/Postprocessing Functions</h2>
+        <p>Alternatively, you can completely override the default preprocessing/postprocessing functions by supplying
+            your own. For example, here we modify the preprocessing function of the ImageUpload interface to add some
+            noise to the image before feeding it into the model.</p>
+
+        <pre><code class="python">import gradio, base64, numpy as np, tensorflow as tf
+from io import BytesIO
+from PIL import Image
+image_mdl = tf.keras.applications.inception_v3.InceptionV3()
+
+def pre(inp):
+    im = gradio.preprocessing_utils.encoding_to_image(inp)
+    im = gradio.preprocessing_utils.resize_and_crop(im, (299, 299))
+    im = np.array(im).flatten()
+    im = im * 1/127.5 - 1
+    im = im + np.random.normal(0, 0.1, im.shape)  # Adding the noise
+    array = im.reshape(1, 299, 299, 3)
+    return array
+
+inp = gradio.inputs.ImageUpload(preprocessing_fn=pre)
+io = gradio.Interface(inputs=inp, outputs="label", model_type="keras", model=mdl)
+io.launch()</code></pre>
 
         <h1>Model Types</h1>
-        <h1>Launch Options</h1>
+        We currently support the following kinds of models:
+        <h3><code><span class="var">model_type</span>="sklearn"</code></h3>
+        <p>This allows you to pass in scikit-learn models, and get predictions from the model. Here's a complete example of training a <code>sklearn</code> model and creating a <code>gradio</code> interface around it.
+        </p>
+        <h3><code><span class="var">model_type</span>="keras"</code></h3>
+        <p>This allows you to pass in scikit-learn models, and get predictions from the model. Here's a complete example of training a <code>sklearn</code> model and creating a <code>gradio</code> interface around it.
+        </p>
+        <h3><code><span class="var">model_type</span>="pytorch"</code></h3>
+        <p>This allows you to pass in scikit-learn models, and get predictions from the model. Here's a complete example of training a <code>sklearn</code> model and creating a <code>gradio</code> interface around it.
+        </p>
+        <h3><code><span class="var">model_type</span>="pyfunc"</code></h3>
+        <p>This allows you to pass in scikit-learn models, and get predictions from the model. Here's a complete example of training a <code>sklearn</code> model and creating a <code>gradio</code> interface around it.
+        </p>
 
-      <p>Running <br>
-      <code><span class="var">inbrowser</span></code> – the string representing
+        <h1>Launch Options</h1>
+      <p>When launching the interface, you have the option to pass in several boolean parameters that determine how the interface is displayed. Here
+          is an example showing all of the possible parameters:</p>
+
+<pre><code class="python">io.launch(inbrowser=True, inline=False, validate=False, share=True)
+</code></pre>
+
+
+      <p><code><span class="var">inbrowser</span></code> – the string representing
           the input interface to be used, or a subclass of <code>gradio.AbstractInput</code> for additional customization (see <a href="#custom-interfaces">below</a>).<br>
       <code><span class="var">inline</span></code> – the string representing
       the output interface to be used, , or a subclass of <code>gradio.AbstractOutput</code> for additional customization (see <a href="#custom-interfaces">below</a>).<br>
