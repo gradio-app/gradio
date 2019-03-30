@@ -13,10 +13,12 @@ from gradio import networking
 import tempfile
 import threading
 import traceback
+import urllib
 
 nest_asyncio.apply()
 
 LOCALHOST_IP = '127.0.0.1'
+SHARE_LINK_FORMAT = 'https://share.gradio.app/{}'
 INITIAL_WEBSOCKET_PORT = 9200
 TRY_NUM_PORTS = 100
 
@@ -235,22 +237,28 @@ class Interface:
         if share:
             try:
                 path_to_ngrok_server = networking.setup_ngrok(server_port, websocket_port, output_directory)
-                path_to_ngrok_interface_page = path_to_ngrok_server + '/' + networking.TEMPLATE_TEMP
-                if self.verbose:
-                    print(f"Model available publicly for 8 hours at: {path_to_ngrok_interface_page}")
             except RuntimeError:
                 path_to_ngrok_server = None
                 if self.verbose:
                     print("Unable to create public link for interface, please check internet connection.")
         else:
-            if self.verbose:
-                print("To create a public link, set `share=True` in the argument to `launch()`")
-            path_to_ngrok_server = None
-            if is_colab:  # for a colab notebook, create a public link even if share is False.
+            if is_colab:  # For a colab notebook, create a public link even if share is False.
                 path_to_ngrok_server = networking.setup_ngrok(server_port, websocket_port, output_directory)
-                path_to_ngrok_interface_page = path_to_ngrok_server + '/' + networking.TEMPLATE_TEMP
-                print(f"Cannot display local interface on google colab, public link created at:"
-                      f"{path_to_ngrok_interface_page} and displayed below.")
+                if self.verbose:
+                    print(f"Cannot display local interface on google colab, public link created.")
+            else:  # If it's not a colab notebook and share=False, print a message telling them about the share option.
+                if self.verbose:
+                    print("To create a public link, set `share=True` in the argument to `launch()`")
+                path_to_ngrok_server = None
+
+        if path_to_ngrok_server is not None:
+            # path_to_ngrok_interface_page = path_to_ngrok_server + '/' + networking.TEMPLATE_TEMP
+            url = urllib.parse.urlparse(path_to_ngrok_server)
+            subdomain = url.hostname.split('.')[0]
+            path_to_ngrok_interface_page = SHARE_LINK_FORMAT.format(subdomain)
+            if self.verbose:
+                print(f"Model available publicly for 8 hours at: {path_to_ngrok_interface_page}")
+
         # Keep the server running in the background.
         asyncio.get_event_loop().run_until_complete(start_server)
         try:
@@ -272,6 +280,7 @@ class Interface:
         else:
             if inbrowser is None:
                 inbrowser = False
+
         if inbrowser and not is_colab:
             webbrowser.open(path_to_local_interface_page)  # Open a browser tab with the interface.
         if inline:
