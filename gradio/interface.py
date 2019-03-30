@@ -28,7 +28,7 @@ class Interface:
     """
 
     # Dictionary in which each key is a valid `model_type` argument to constructor, and the value being the description.
-    VALID_MODEL_TYPES = {'sklearn': 'sklearn model', 'keras': 'Keras model', 'function': 'python function',
+    VALID_MODEL_TYPES = {'sklearn': 'sklearn model', 'keras': 'Keras model', 'pyfunc': 'python function',
                          'pytorch': 'PyTorch model'}
     STATUS_TYPES = {'OFF': 'off', 'RUNNING': 'running'}
 
@@ -94,7 +94,7 @@ class Interface:
             pass
 
         if callable(model):
-            return 'function'
+            return 'pyfunc'
 
         raise ValueError("model_type could not be inferred, please specify parameter `model_type`")
 
@@ -127,7 +127,7 @@ class Interface:
             return self.model_obj.predict(preprocessed_input)
         elif self.model_type=='keras':
             return self.model_obj.predict(preprocessed_input)
-        elif self.model_type=='function':
+        elif self.model_type=='pyfunc':
             return self.model_obj(preprocessed_input)
         elif self.model_type=='pytorch':
             import torch
