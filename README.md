@@ -2,7 +2,7 @@
 
 `Gradio` is a python library that allows you to place input and output interfaces over trained models to make it easy for you to "play around" with your model. Gradio runs entirely locally using your browser.
 
-To get a sense of `gradio`, take a look at the  python notebooks in the `examples` folder, or read on below!
+To get a sense of `gradio`, take a look at the  python notebooks in the `examples` folder, or read on below! And be sure to visit the gradio website: www.gradio.app.
 
 ## Installation
 ```
