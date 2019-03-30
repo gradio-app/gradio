@@ -260,7 +260,7 @@ io = gradio.Interface(inputs=inp, outputs="label", model_type="sklearn", model=c
 io.launch()</code></pre>
 
         <h3><code><span class="var">model_type</span>="keras"</code></h3>
-        <p>This allows you to pass in keras models, and get predictions from the model. Here's a complete example of training a <code>sklearn</code> model and creating a <code>gradio</code> interface around it.
+        <p>This allows you to pass in keras models, and get predictions from the model. Here's a complete example of training a <code>keras</code> model and creating a <code>gradio</code> interface around it.
         </p>
 
         <pre><code class="python">import gradio, tensorflow as tf
@@ -284,8 +284,73 @@ io.launch(inline=True, share=True)</code></pre>
 
         <p><a href="https://colab.research.google.com/drive/1DQSuxGARUZ-v4ZOAuw-Hf-8zqegpmes-">Run this code in a colab notebook</a> to see the interface -- embedded in the notebook.</p>
         <h3><code><span class="var">model_type</span>="pytorch"</code></h3>
-        <p>This allows you to pass in pytorch models, and get predictions from the model.
+        <p>This allows you to pass in pytorch models, and get predictions from the model. Here's a complete example of training a <code>pytorch</code> model and creating a <code>gradio</code> interface around it.
         </p>
+        <pre><code class="python">import torch
+import torch.nn as nn
+import torchvision
+import torchvision.transforms as transforms
+import gradio
+
+# Device configuration
+device = torch.device('cpu')
+
+# Hyper-parameters
+input_size = 784
+hidden_size = 500
+num_classes = 10
+num_epochs = 2
+batch_size = 100
+learning_rate = 0.001
+
+# MNIST dataset
+train_dataset = torchvision.datasets.MNIST(root='../../data', train=True, transform=transforms.ToTensor(), download=True)
+test_dataset = torchvision.datasets.MNIST(root='../../data',train=False, transform=transforms.ToTensor())
+train_loader = torch.utils.data.DataLoader(dataset=train_dataset, batch_size=batch_size,shuffle=True)
+test_loader = torch.utils.data.DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=False)
+
+# Fully connected neural network with one hidden layer
+class NeuralNet(nn.Module):
+    def __init__(self, input_size, hidden_size, num_classes):
+        super(NeuralNet, self).__init__()
+        self.fc1 = nn.Linear(input_size, hidden_size)
+        self.relu = nn.ReLU()
+        self.fc2 = nn.Linear(hidden_size, num_classes)
+
+    def forward(self, x):
+        out = self.fc1(x)
+        out = self.relu(out)
+        out = self.fc2(out)
+        return out
+
+model = NeuralNet(input_size, hidden_size, num_classes).to(device)
+
+# Loss and optimizer
+criterion = nn.CrossEntropyLoss()
+optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+
+# Train the model
+total_step = len(train_loader)
+for epoch in range(num_epochs):
+    for i, (images, labels) in enumerate(train_loader):
+        # Move tensors to the configured device
+        images = images.reshape(-1, 28*28).to(device)
+        labels = labels.to(device)
+
+        # Forward pass
+        outputs = model(images)
+        loss = criterion(outputs, labels)
+
+        # Backward and optimize
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+inp = gradio.inputs.Sketchpad(flatten=True, scale=1/255, dtype='float32')
+io = gradio.Interface(inputs=inp, outputs="label", model_type="pytorch", model=model)
+io.launch()
+        </code></pre>
+
         <h3><code><span class="var">model_type</span>="pyfunc"</code></h3>
         <p>This allows you to pass in an arbitrary python function, and get the outputs from the function. Here's a very simple example of a "model" with a <code>gradio</code> interface around it.
         </p>
@@ -299,10 +364,59 @@ def big(x):
 io = gradio.Interface(inputs="textbox", outputs="textbox", model=big, model_type='pyfunc')
 io.launch(inline=True, share=True)</code></pre>
 
-        <p>A more realistic examples of the <code>pyfunc</code> use case may be the following, where we pass in a
-        TensorFlow session and accompanying model as a .</p>
-        <h1>Launch Options</h1>
+        <p>A more realistic examples of the <code>pyfunc</code> use case may be the following, where we would like to
+        use a TensorFlow session with a trained model to do predictions. So we wrap the session inside a python function
+            like this:</p>
 
+        <pre><code class="python">import tensorflow as tf
+import gradio
+
+n_classes = 10
+(x_train, y_train),(x_test, y_test) = tf.keras.datasets.mnist.load_data()
+x_train, x_test = x_train.reshape(-1, 784) / 255.0, x_test.reshape(-1, 784) / 255.0
+y_train = tf.keras.utils.to_categorical(y_train, n_classes).astype(float)
+y_test = tf.keras.utils.to_categorical(y_test, n_classes).astype(float)
+
+learning_rate = 0.5
+epochs = 5
+batch_size = 100
+
+x = tf.placeholder(tf.float32, [None, 784], name="x")
+y = tf.placeholder(tf.float32, [None, 10], name="y")
+
+W1 = tf.Variable(tf.random_normal([784, 300], stddev=0.03), name='W1')
+b1 = tf.Variable(tf.random_normal([300]), name='b1')
+W2 = tf.Variable(tf.random_normal([300, 10], stddev=0.03), name='W2')
+hidden_out = tf.add(tf.matmul(x, W1), b1)
+hidden_out = tf.nn.relu(hidden_out)
+y_ = tf.matmul(hidden_out, W2)
+
+probs = tf.nn.softmax(y_)
+cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=y_, labels=y))
+optimizer = tf.train.GradientDescentOptimizer(learning_rate=learning_rate).minimize(cross_entropy)
+init_op = tf.global_variables_initializer()
+correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
+accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+
+sess = tf.Session()
+sess.run(init_op)
+total_batch = int(len(y_train) / batch_size)
+for epoch in range(epochs):
+    avg_cost = 0
+    for start, end in zip(range(0, len(y_train), batch_size), range(batch_size, len(y_train)+1, batch_size)):
+        batch_x = x_train[start: end]
+        batch_y = y_train[start: end]
+        _, c = sess.run([optimizer, cross_entropy], feed_dict={x: batch_x, y: batch_y})
+        avg_cost += c / total_batch
+
+def predict(inp):
+    return sess.run(probs, feed_dict={x:inp})
+
+inp = gradio.inputs.Sketchpad(flatten=True)
+io = gradio.Interface(inputs=inp, outputs="label", model_type="pyfunc", model=predict)
+io.launch(inline=True, share=True)</code></pre>
+
+        <h1>Launch Options</h1>
       <p>When launching the interface, you have the option to pass in several boolean parameters that determine how the interface is displayed. Here
           is an example showing all of the possible parameters:</p>
 
@@ -313,7 +427,7 @@ io.launch(inline=True, share=True)</code></pre>
       <p><code><span class="var">inbrowser</span></code> – whether the model should launch in a new browser window.<br>
       <code><span class="var">inline</span></code> – whether the model should launch embedded in an interactive python environment (like jupyter notebooks or colab notebooks).<br>
       <code><span class="var">validate</span></code> – whether gradio should try to validate the interface-model compatibility before launch.<br>
-      <code><span class="var">share</span></code> – the actual model to use
+      <code><span class="var">share</span></code> – whether a public link to share the model should be created.
       for processing.</p>
 
     </div>
