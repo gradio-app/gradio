@@ -33,35 +33,35 @@ You can supply your own model instead of the pretrained model above, as well as 
 * Textbox
 
 **Output interfaces**:
-* Class
+* Label
 * Textbox
 
 ## Screenshots
 
 Here are a few screenshots that show examples of gradio interfaces
 
-#### MNIST Digit Recognition (Input: Sketchpad, Output: Class)
+#### MNIST Digit Recognition (Input: Sketchpad, Output: Label)
 
 ```python
-iface = gradio.Interface(input='sketchpad', output='class', model=model, model_type='keras')
+iface = gradio.Interface(input='sketchpad', output='label', model=model, model_type='keras')
 iface.launch()
 ```
 
 ![alt text](https://raw.githubusercontent.com/abidlabs/gradio/master/screenshots/mnist4.png)
 
-#### Facial Emotion Detector (Input: Webcam, Output: Class)
+#### Facial Emotion Detector (Input: Webcam, Output: Label)
 
 ```python
-iface = gradio.Interface(input='webcam', output='class', model=model, model_type='keras')
+iface = gradio.Interface(inputs='webcam', outputs='label', model=model, model_type='keras')
 iface.launch()
 ```
 
 ![alt text](https://raw.githubusercontent.com/abidlabs/gradio/master/screenshots/webcam_happy.png)
 
-#### Sentiment Analysis (Input: Textbox, Output: Class)
+#### Sentiment Analysis (Input: Textbox, Output: Label)
 
 ```python
-iface = gradio.Interface(input='textbox', output='class', model=model, model_type='keras')
+iface = gradio.Interface(inputs='textbox', outputs='label', model=model, model_type='keras')
 iface.launch()
 ```
 
@@ -69,6 +69,6 @@ iface.launch()
 
 ### More Documentation
 
-More detailed documentation can be found on the gradio website: www.gradio.app.
+More detailed and up-to-date documentation can be found on the gradio website: www.gradio.app.
 
 
