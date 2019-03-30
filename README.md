@@ -12,21 +12,19 @@ pip install gradio
 
 ## Usage
 
-Gradio is very easy to use with your existing code. The general way it's used is something like this:
+Gradio is very easy to use with your existing code. Here is a minimum working example:
 
 
 ```python
-import tensorflow as tf
 import gradio
+import tensorflow as tf
+image_mdl = tf.keras.applications.inception_v3.InceptionV3()
 
-mdl = tf.keras.models.Sequential()
-# ... define and train the model as you would normally
-
-iface = gradio.Interface(input=“sketchpad”, output=“class”, model_type=“keras”, model=mdl)
-iface.launch()
+io = gradio.Interface(inputs="imageupload", outputs="label", model_type="keras", model=image_mdl)
+io.launch()
 ```
 
-Changing the `input` and `output` parameters in the `Interface` face object allow you to create different interfaces, depending on the needs of your model. Take a look at the python notebooks for more examples. The currently supported interfaces are as follows:
+You can supply your own model instead of the pretrained model above, as well as use different kinds of models, not just keras models. Changing the `input` and `output` parameters in the `Interface` face object allow you to create different interfaces, depending on the needs of your model. Take a look at the python notebooks for more examples. The currently supported interfaces are as follows:
 
 **Input interfaces**:
 * Sketchpad
@@ -69,5 +67,8 @@ iface.launch()
 
 ![alt text](https://raw.githubusercontent.com/abidlabs/gradio/master/screenshots/sentiment_positive.png)
 
+### More Documentation
+
+More detailed documentation can be found on the gradio website: www.gradio.app.
 
 
