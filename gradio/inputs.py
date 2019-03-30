@@ -65,13 +65,15 @@ class AbstractInput(ABC):
 
 
 class Sketchpad(AbstractInput):
-    def __init__(self, preprocessing_fn=None, shape=(28, 28), invert_colors=True, flatten=False, scale=1, shift=0):
+    def __init__(self, preprocessing_fn=None, shape=(28, 28), invert_colors=True, flatten=False, scale=1, shift=0,
+                 dtype='float64'):
         self.image_width = shape[0]
         self.image_height = shape[1]
         self.invert_colors = invert_colors
         self.flatten = flatten
         self.scale = scale
         self.shift = shift
+        self.dtype = dtype
         super().__init__(preprocessing_fn=preprocessing_fn)
 
     def get_name(self):
@@ -91,6 +93,7 @@ class Sketchpad(AbstractInput):
         else:
             array = np.array(im).flatten().reshape(1, self.image_width, self.image_height)
         array = array * self.scale + self.shift
+        array = array.astype(self.dtype)
         return array
 
 
