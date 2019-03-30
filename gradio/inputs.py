@@ -65,10 +65,13 @@ class AbstractInput(ABC):
 
 
 class Sketchpad(AbstractInput):
-    def __init__(self, preprocessing_fn=None, shape=(28, 28), invert_colors=True):
+    def __init__(self, preprocessing_fn=None, shape=(28, 28), invert_colors=True, flatten=False, scale=1, shift=0):
         self.image_width = shape[0]
         self.image_height = shape[1]
         self.invert_colors = invert_colors
+        self.flatten = flatten
+        self.scale = scale
+        self.shift = shift
         super().__init__(preprocessing_fn=preprocessing_fn)
 
     def get_name(self):
@@ -83,7 +86,11 @@ class Sketchpad(AbstractInput):
         if self.invert_colors:
             im = ImageOps.invert(im)
         im = preprocessing_utils.resize_and_crop(im, (self.image_width, self.image_height))
-        array = np.array(im).flatten().reshape(1, self.image_width, self.image_height)
+        if self.flatten:
+            array = np.array(im).flatten().reshape(1, self.image_width * self.image_height)
+        else:
+            array = np.array(im).flatten().reshape(1, self.image_width, self.image_height)
+        array = array * self.scale + self.shift
         return array
 
 
