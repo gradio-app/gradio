@@ -1,5 +1,12 @@
 from PIL import Image
+from io import BytesIO
+import base64
 
+
+def encoding_to_image(encoding):
+    content = encoding.split(';')[1]
+    image_encoded = content.split(',')[1]
+    return Image.open(BytesIO(base64.b64decode(image_encoded)))
 
 def resize_and_crop(img, size, crop_type='top'):
     """
