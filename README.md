@@ -1,4 +1,4 @@
-# Gradiome / Gradio
+# Gradio
 
 `Gradio` is a python library that allows you to place input and output interfaces over trained models to make it easy for you to "play around" with your model. Gradio runs entirely locally using your browser.
 
