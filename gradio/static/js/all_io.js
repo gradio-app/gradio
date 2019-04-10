@@ -23,6 +23,7 @@ var io_master = {
     })
   },
   output: function(data) {
+    console.log(data)
     this.output_interface.output(data);
   }
 }
@@ -30,6 +31,6 @@ var io_master = {
 ws.onmessage = function (event) {
   var output = JSON.parse(event.data)
   if (output['action'] == 'output') {
-    all_io.output(output['data']);
+    io_master.output(output['data']);
   }
 }
