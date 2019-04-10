@@ -31,7 +31,7 @@ BASE_TEMPLATE = pkg_resources.resource_filename('gradio', 'templates/base_templa
 STATIC_PATH_LIB = pkg_resources.resource_filename('gradio', 'static/')
 STATIC_PATH_TEMP = 'static/'
 TEMPLATE_TEMP = 'index.html'
-BASE_JS_FILE = 'static/js/all-io.js'
+BASE_JS_FILE = 'static/js/all_io.js'
 CONFIG_FILE = 'static/config.json'
 
 NGROK_ZIP_URLS = {

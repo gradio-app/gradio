@@ -21,10 +21,10 @@ const sketchpad_input = {
     this.canvas = this.target.find('.canvas_holder canvas')[0];
     this.context = this.canvas.getContext("2d");
     this.target.find(".brush").click(function (e) {
-      $(this).parent().removeClass("selected");
+      let io = get_interface(e.target)
+      io.target.find(".brush").removeClass("selected");
       $(this).addClass("selected");
-      // TODO: Fix
-//      sketchpad.penSize = $(this).attr("size");
+      io.sketchpad.penSize = $(this).attr("size");
     })
   },
   submit: function() {

@@ -6,9 +6,9 @@ input_to_object_map = {
 }
 output_to_object_map = {
   "csv" : {},
-  "image" : {},
-  "label" : {},
-  "textbox" : {}
+  "image" : image_output,
+  "label" : label_output,
+  "textbox" : textbox_output
 }
 id_to_interface_map = {}
 
@@ -32,19 +32,22 @@ $.getJSON("static/config.json", function(data) {
   input_interface.target = $("#input_interface");
   set_interface_id(input_interface, 1)
   input_interface.init();
-  // $("#output_interface").html(output_interface.html);
-  // output_interface.target = $("#output_interface");
-  // output_interface.init();
+  $("#output_interface").html(output_interface.html);
+  output_interface.target = $("#output_interface");
+  set_interface_id(output_interface, 2)
+ output_interface.init();
   $(".submit").click(function() {
     input_interface.submit();
-    // output_interface.submit();
+    output_interface.submit();
   })
   $(".clear").click(function() {
     input_interface.clear();
-    // output_interface.clear();
+     output_interface.clear();
   })
   input_interface.io_master = io_master;
   io_master.input_interface = input_interface;
+  output_interface.io_master = io_master;
+  io_master.output_interface = output_interface;
 });
 
 $('body').on('click', '.flag', function(e) {

@@ -31,4 +31,8 @@
 .output_class {
   font-weight: bold;
   font-size: 36px;
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

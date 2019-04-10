@@ -1,10 +1,14 @@
-ws.onmessage = function (event) {
-  loadEnd();
-  $(".output_image img").attr("src", event.data);
-  $(".output_image img").show();
+const image_output = {
+  html: `
+      <img class="output_image" />
+    `,
+  init: function() {},
+  output: function(data) {
+    this.target.find(".output_image").attr('src', data).show();
+  },
+  submit: function() {
+  },
+  clear: function() {
+    this.target.find(".output_image").attr('src', "").hide();
+  }
 }
-
-$('body').on('click', '.clear', function(e) {
-  $(".output_image img").removeAttr("src");
-  $(".output_image img").hide();
-})
