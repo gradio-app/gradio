@@ -64,7 +64,12 @@ $('body').on('click', '.submit', function(e) {
     maxHeight: 360,
     fillColor: "white"
   }).toDataURL();
-  ws.send(src, function(e) {
+var ws_data = {
+    'action': 'input',
+    'data': src
+  }
+
+  ws.send(JSON.stringify(ws_data), function(e) {
     notifyError(e)
   })
 })
