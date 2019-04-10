@@ -9,7 +9,7 @@ import nest_asyncio
 import webbrowser
 import gradio.inputs
 import gradio.outputs
-from gradio import networking
+from gradio import networking, strings
 import tempfile
 import threading
 import traceback
@@ -71,6 +71,7 @@ class Interface:
         self.status = self.STATUS_TYPES['OFF']
         self.validate_flag = False
         self.simple_server = None
+        self.ngrok_api_ports = None
 
     @staticmethod
     def _infer_model_type(model):
@@ -122,6 +123,7 @@ class Interface:
                     }
                     await websocket.send(json.dumps(output))
                 if msg['action'] == 'flag':
+                    print('flagged')
                     f = open('gradio-flagged.txt','a+')
                     f.write(str(msg['data']))
                     f.close()
@@ -240,25 +242,28 @@ class Interface:
             pass
 
         if self.verbose:
-            print("NOTE: Gradio is in beta stage, please report all bugs to: contact.gradio@gmail.com")
+            print(strings.en["BETA_MESSAGE"])
             if not is_colab:
-                print(f"Model is running locally at: {path_to_local_server}")
-
+                print(strings.en["RUNNING_LOCALLY"].format(path_to_local_server))
         if share:
             try:
-                path_to_ngrok_server = networking.setup_ngrok(server_port, websocket_port, output_directory)
+                path_to_ngrok_server, ngrok_api_ports = networking.setup_ngrok(
+                    server_port, websocket_port, output_directory, self.ngrok_api_ports)
+                self.ngrok_api_ports = ngrok_api_ports
             except RuntimeError:
                 path_to_ngrok_server = None
                 if self.verbose:
-                    print("Unable to create public link for interface, please check internet connection.")
+                    print(strings.en["NGROK_NO_INTERNET"])
         else:
             if is_colab:  # For a colab notebook, create a public link even if share is False.
-                path_to_ngrok_server = networking.setup_ngrok(server_port, websocket_port, output_directory)
+                path_to_ngrok_server, ngrok_api_ports = networking.setup_ngrok(
+                    server_port, websocket_port, output_directory, self.ngrok_api_ports)
+                self.ngrok_api_ports = ngrok_api_ports
                 if self.verbose:
-                    print(f"Cannot display local interface on google colab, public link created.")
+                    print(strings.en["COLAB_NO_LOCAL"])
             else:  # If it's not a colab notebook and share=False, print a message telling them about the share option.
                 if self.verbose:
-                    print("To create a public link, set `share=True` in the argument to `launch()`")
+                    print(strings.en["PUBLIC_SHARE_TRUE"])
                 path_to_ngrok_server = None
 
         if path_to_ngrok_server is not None:
@@ -266,7 +271,7 @@ class Interface:
             subdomain = url.hostname.split('.')[0]
             path_to_ngrok_interface_page = SHARE_LINK_FORMAT.format(subdomain)
             if self.verbose:
-                print(f"Model available publicly for 8 hours at: {path_to_ngrok_interface_page}")
+                print(strings.en["MODEL_PUBLICLY_AVAILABLE_URL"].format(path_to_ngrok_interface_page))
 
         # Keep the server running in the background.
         asyncio.get_event_loop().run_until_complete(start_server)
