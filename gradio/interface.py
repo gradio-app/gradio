@@ -121,6 +121,11 @@ class Interface:
                     'data': processed_output,
                     }
                     await websocket.send(json.dumps(output))
+                if msg['action'] == 'flag':
+                    f = open('gradio-flagged.txt','a+')
+                    f.write(str(msg['data']))
+                    f.close()
+
             except websockets.exceptions.ConnectionClosed:
                 pass
             # except Exception as e:
