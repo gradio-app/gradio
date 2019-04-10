@@ -123,6 +123,7 @@ class Interface:
                     }
                     await websocket.send(json.dumps(output))
                 if msg['action'] == 'flag':
+                    print('flagged')
                     f = open('gradio-flagged.txt','a+')
                     f.write(str(msg['data']))
                     f.close()
