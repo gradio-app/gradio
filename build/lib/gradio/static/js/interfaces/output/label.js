@@ -1,32 +1,28 @@
-ws.onmessage = function (event) {
-  loadEnd();
-  var data = JSON.parse(event.data)
-  // data = {
-  //   label: "happy",
-  //   confidences : [
-  //    {
-  //     label : "happy",
-  //     confidence: 0.7
-  //    },
-  //    {
-  //     label : "sad",
-  //     confidence: 0.3
-  //    },
-  //   ]
-  //   }
-  $(".output_class").text(data["label"])
-  $(".confidence_intervals").empty()
-  if ("confidences" in data) {
-    data["confidences"].forEach(function (c) {
-      var confidence = c["confidence"]
-      $(".confidence_intervals").append(`<div class="confidence"><div class=
-          "label">${c["label"]}</div><div class="level" style="flex-grow:
-            ${confidence}">${Math.round(confidence * 100)}%</div></div>`)
-    })
+const label_output = {
+  html: `
+    <div class="output_class"></div>
+    <div class="confidence_intervals"></div>
+    `,
+  init: function() {},
+  output: function(data) {
+    data = JSON.parse(data)
+    this.target.find(".output_class").html(data["label"])
+    this.target.find(".confidence_intervals").empty()
+    if (data.confidences) {
+      for (var i = 0; i < data.confidences.length; i++)
+      {
+        let c = data.confidences[i]
+        let confidence = c["confidence"]
+        this.target.find(".confidence_intervals").append(`<div class="confidence"><div class=
+            "label">${c["label"]}</div><div class="level" style="flex-grow:
+              ${confidence}">${Math.round(confidence * 100)}%</div></div>`)
+      }
+    }
+  },
+  submit: function() {
+  },
+  clear: function() {
+    this.target.find(".output_class").empty();
+    this.target.find(".confidence_intervals").empty();
   }
 }
-
-$('body').on('click', '.clear', function(e) {
-  $(".output_class").text("")
-  $(".confidence_intervals").empty()
-})

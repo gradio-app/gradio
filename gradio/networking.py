@@ -20,12 +20,14 @@ import pkg_resources
 from bs4 import BeautifulSoup
 from distutils import dir_util
 from gradio import inputs, outputs
+import time
+import json
+from urllib.parse import urlparse
 
 INITIAL_PORT_VALUE = 7860  # The http server will try to open on port 7860. If not available, 7861, 7862, etc.
 TRY_NUM_PORTS = 100  # Number of ports to try before giving up and throwing an exception.
 LOCALHOST_NAME = 'localhost'
-NGROK_TUNNELS_API_URL = "http://localhost:4040/api/tunnels"  # TODO(this should be captured from output)
-NGROK_TUNNELS_API_URL2 = "http://localhost:4041/api/tunnels"  # TODO(this should be captured from output)
+NGROK_TUNNEL_API_URL = "http://{}/api/tunnels"
 
 BASE_TEMPLATE = pkg_resources.resource_filename('gradio', 'templates/base_template.html')
 STATIC_PATH_LIB = pkg_resources.resource_filename('gradio', 'static/')
@@ -220,31 +222,46 @@ def download_ngrok():
         os.chmod('ngrok', st.st_mode | stat.S_IEXEC)
 
 
-def create_ngrok_tunnel(local_port, api_url):
+def create_ngrok_tunnel(local_port, log_file):
     if not(os.path.isfile('ngrok.exe') or os.path.isfile('ngrok')):
         download_ngrok()
     if sys.platform == 'win32':
-        subprocess.Popen(['ngrok', 'http', str(local_port)])
+        subprocess.Popen(['ngrok', 'http', str(local_port), '--log', log_file, '--log-format', 'json'])
     else:
-        subprocess.Popen(['./ngrok', 'http', str(local_port)])
+        subprocess.Popen(['./ngrok', 'http', str(local_port), '--log', log_file, '--log-format', 'json'])
+    time.sleep(1.5)  # Let ngrok write to the log file TODO(abidlabs): a better way to do this.
     session = requests.Session()
     retry = Retry(connect=3, backoff_factor=0.5)
     adapter = HTTPAdapter(max_retries=retry)
     session.mount('http://', adapter)
     session.mount('https://', adapter)
-    r = session.get(api_url)
+
+    api_url = None
+    with open(log_file) as f:
+        for line in f:
+            log = json.loads(line)
+            if log["msg"] == "starting web service":
+                api_url = log["addr"]
+                api_port = urlparse(api_url).port
+                break
+
+    if api_url is None:
+        raise RuntimeError("Tunnel information not available in log file")
+
+    r = session.get(NGROK_TUNNEL_API_URL.format(api_url))
     for tunnel in r.json()['tunnels']:
-        if '{}:'.format(LOCALHOST_NAME) + str(local_port) in tunnel['config']['addr']:
-            return tunnel['public_url']
+        if '{}:'.format(LOCALHOST_NAME) + str(local_port) in tunnel['config']['addr'] and tunnel['proto'] == 'https':
+            return tunnel['public_url'], api_port
     raise RuntimeError("Not able to retrieve ngrok public URL")
 
 
-def setup_ngrok(server_port, websocket_port, output_directory):
-    kill_processes([4040, 4041])  #TODO(abidlabs): better way to do this
-    site_ngrok_url = create_ngrok_tunnel(server_port, NGROK_TUNNELS_API_URL)
-    socket_ngrok_url = create_ngrok_tunnel(websocket_port, NGROK_TUNNELS_API_URL2)
+def setup_ngrok(server_port, websocket_port, output_directory, existing_ports):
+    if not(existing_ports is None):
+        kill_processes(existing_ports)
+    site_ngrok_url, port1 = create_ngrok_tunnel(server_port, os.path.join(output_directory, 'ngrok1.log'))
+    socket_ngrok_url, port2 = create_ngrok_tunnel(websocket_port, os.path.join(output_directory, 'ngrok2.log'))
     set_ngrok_url_in_js(output_directory, socket_ngrok_url)
-    return site_ngrok_url
+    return site_ngrok_url, [port1, port2]
 
 
 def kill_processes(process_ids):  #TODO(abidlabs): remove this, we shouldn't need to kill

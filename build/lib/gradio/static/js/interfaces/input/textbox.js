@@ -1,10 +1,11 @@
-$('body').on('click', '.clear', function(e) {
-  $(".input_text").val("");
-})
-$('body').on('click', '.submit', function(e) {
-  loadStart();
-  text = $(".input_text").val();
-  ws.send(text, function(e){
-    notifyError(e)
-  });
-})
+const textbox_input = {
+  html: `<textarea class="input_text" placeholder="Enter text here..."></textarea>`,
+  init: function() {},
+  submit: function() {
+    text = this.target.find(".input_text").val();
+    this.io_master.input(this.id, text);
+  },
+  clear: function() {
+    this.target.find(".input_text").val("");
+  }
+}
