@@ -34,13 +34,23 @@ $('body').on('click', '.clear', function(e) {
   $(".confidence_intervals").empty()
 })
 
-// $('body').on('click', '.flag', function(e) {
-//   src = cropper.getCroppedCanvas({
-//     maxWidth: 360,
-//     maxHeight: 360,
-//     fillColor: "white"
-//   }).toDataURL();
-//   ws.send(src, function(e) {
-//     notifyError(e)
-//   })
-// })
+$('body').on('click', '.flag', function(e) {
+  src = cropper.getCroppedCanvas({
+    maxWidth: 360,
+    maxHeight: 360,
+    fillColor: "white"
+  }).toDataURL();
+  var ws_data = {
+      'action': 'flag',
+      'data': {
+        'input': src,
+        'output': data,
+        'message': "This was flagged because..",
+        'timestamp': new Date(),
+    }
+  }
+
+    ws.send(JSON.stringify(ws_data), function(e) {
+      notifyError(e)
+    })
+  })
