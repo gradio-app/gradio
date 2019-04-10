@@ -1,15 +1,22 @@
 <html lang="en">
   <head>
+    <!-- <iframe src=""></iframe> -->
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Gradio</title>
-    <link rel="stylesheet" href="../static/css/font-awesome.min.css">
     <link rel="stylesheet" href="../static/css/style.css">
     <link rel="stylesheet" href="../static/css/gradio.css">
-    <link rel="stylesheet" type="text/css" href="../static/css/loading.css"/>
-    <link rel="shortcut icon" type="image/png" href="../static/img/logo_mini.png"/>
-    <script src="../static/js/jquery-3.2.1.slim.min.js"></script>
-    <script src="../static/js/utils.js"></script>
-    <script src="../static/js/all-io.js"></script>
+    <link rel="stylesheet" href="../static/css/interfaces/input/csv.css">
+    <link rel="stylesheet" href="../static/css/interfaces/input/image_upload.css">
+    <link rel="stylesheet" href="../static/css/interfaces/input/sketchpad.css">
+    <link rel="stylesheet" href="../static/css/interfaces/input/textbox.css">
+    <link rel="stylesheet" href="../static/css/interfaces/input/csv.css">
+    <link rel="stylesheet" href="../static/css/interfaces/output/image.css">
+    <link rel="stylesheet" href="../static/css/interfaces/output/label.css">
+    <link rel="stylesheet" href="../static/css/interfaces/output/textbox.css">
+    <link rel="stylesheet" href="../static/css/loading.css"/>
+    <!-- TUI EDITOR -->
+    <link type="text/css" href="../static/css/vendor/tui-color-picker.css" rel="stylesheet">
+    <link type="text/css" href="../static/css/vendor/tui-image-editor.css" rel="stylesheet">
   </head>
 
   <body>
@@ -18,15 +25,48 @@
     </nav>
     <div id="panels">
       <div class="panel">
-        <div id="input"></div>
-        <input class="submit" type="submit" value="Submit"/><!--DO NOT DELETE
-     --><input class="clear" type="reset" value="Clear">
+        <div class="panel_header">Input</div>
+        <div id="input_interface" class="interface"></div>
+        <div class="panel_buttons">
+          <input class="submit" type="submit" value="submit"/>
+          <input class="clear" type="reset" value="clear">
+        </div>
       </div>
       <div class="panel">
-        <div id="output"></div>
-        <input type="button" class="flag" value="Flag"/>
+        <div class="panel_header">
+          Output
+          <div class="loading">
+            <img src="../static/img/logo_mini.png" class="ld ld-skew"/>
+            <span class="loading_time"></span>
+          </div>
+        </div>
+        <div id="output_interface" class="interface"></div>
+        <div class="panel_buttons">
+          <input type="button" class="flag" value="flag"/>
+        </div>
       </div>
-
     </div>
+    <script src="../static/js/vendor/jquery.min.js"></script>
+    <!-- TUI EDITOR -->
+    <script src="../static/js/vendor/fabric.js"></script>
+    <script src="../static/js/vendor/tui-code-snippet.min.js"></script>
+    <script src="../static/js/vendor/FileSaver.min.js"></script>
+    <script src="../static/js/vendor/tui-color-picker.js"></script>
+    <script src="../static/js/vendor/tui-image-editor.js"></script>
+    <script src="../static/js/vendor/white-theme.js"></script>
+    <script src="../static/js/vendor/black-theme.js"></script>
+
+    <script src="../static/js/utils.js"></script>
+    <script src="../static/js/all_io.js"></script>
+    <script src="../static/js/interfaces/input/csv.js"></script>
+    <script src="../static/js/interfaces/input/image_upload.js"></script>
+    <script src="../static/js/vendor/sketchpad.js"></script>    
+    <script src="../static/js/interfaces/input/sketchpad.js"></script>
+    <script src="../static/js/interfaces/input/textbox.js"></script>
+    <script src="../static/js/interfaces/input/csv.js"></script>
+    <script src="../static/js/interfaces/output/image.js"></script>
+    <script src="../static/js/interfaces/output/label.js"></script>
+    <script src="../static/js/interfaces/output/textbox.js"></script>
+    <script src="../static/js/load_interfaces.js"></script>
   </body>
 </html>
