@@ -1,6 +1,11 @@
 .leftcolumn {
   width: 75%;
 }
+
+.leftcolumn img{
+  width: 80%;
+}
+
 p a{
   color: #ed9013;
   font-weight: bold;
