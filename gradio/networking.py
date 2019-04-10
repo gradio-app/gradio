@@ -27,21 +27,18 @@ LOCALHOST_NAME = 'localhost'
 NGROK_TUNNELS_API_URL = "http://localhost:4040/api/tunnels"  # TODO(this should be captured from output)
 NGROK_TUNNELS_API_URL2 = "http://localhost:4041/api/tunnels"  # TODO(this should be captured from output)
 
-
 BASE_TEMPLATE = pkg_resources.resource_filename('gradio', 'templates/base_template.html')
 STATIC_PATH_LIB = pkg_resources.resource_filename('gradio', 'static/')
 STATIC_PATH_TEMP = 'static/'
 TEMPLATE_TEMP = 'interface.html'
-BASE_JS_FILE = 'static/js/all-io.js'
+BASE_JS_FILE = 'static/js/all_io.js'
 CONFIG_FILE = 'static/config.json'
-
 
 NGROK_ZIP_URLS = {
     "linux": "https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip",
     "darwin": "https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-darwin-amd64.zip",
     "win32": "https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-windows-amd64.zip",
 }
-
 
 def build_template(temp_dir, input_interface, output_interface):
     """
@@ -67,8 +64,8 @@ def build_template(temp_dir, input_interface, output_interface):
     input_tag = all_io_soup.find("div", {"id": "input"})
     output_tag = all_io_soup.find("div", {"id": "output"})
 
-    input_tag.replace_with(input_soup)
-    output_tag.replace_with(output_soup)
+    # input_tag.replace_with(input_soup)
+    # output_tag.replace_with(output_soup)
 
     f = open(os.path.join(temp_dir, TEMPLATE_TEMP), "w")
     f.write(str(all_io_soup))
@@ -258,5 +255,3 @@ def kill_processes(process_ids):  #TODO(abidlabs): remove this, we shouldn't nee
                         proc.send_signal(SIGTERM)  # or SIGKILL
         except (AccessDenied, NoSuchProcess):
             pass
-
-

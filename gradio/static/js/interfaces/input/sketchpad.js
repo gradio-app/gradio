@@ -1,22 +1,19 @@
 const sketchpad_input = {
   html: `
-    <div class="gradio input sketchpad">
-      <div class="role">Input</div>
-      <div class="sketch_tools">
-        <div id="brush_1" size="8" class="brush"></div>
-        <div id="brush_2" size="16" class="brush selected"></div>
-        <div id="brush_3" size="24" class="brush"></div>
-      </div>
-      <div class="canvas_holder">
-        <canvas id="canvas"></canvas>
-      </div>
+    <div class="sketch_tools">
+      <div id="brush_1" size="8" class="brush"></div>
+      <div id="brush_2" size="16" class="brush selected"></div>
+      <div id="brush_3" size="24" class="brush"></div>
+    </div>
+    <div class="canvas_holder">
+      <canvas id="canvas"></canvas>
     </div>`,
   init: function() {
     var dimension = Math.min(this.target.find(".canvas_holder").width(),
         this.target.find(".canvas_holder").height()) - 2 // dimension - border
     var id = this.id;
     this.sketchpad = new Sketchpad({
-      element: '.input[interface_id=' + id + '] > .canvas_holder canvas',
+      element: '.interface[interface_id=' + id + '] > .canvas_holder canvas',
       width: dimension,
       height: dimension
     });
