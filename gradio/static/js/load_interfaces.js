@@ -39,10 +39,14 @@ $.getJSON("static/config.json", function(data) {
   $(".submit").click(function() {
     input_interface.submit();
     output_interface.submit();
+    $(".flag").removeClass("flagged");
   })
   $(".clear").click(function() {
     input_interface.clear();
-     output_interface.clear();
+    output_interface.clear();
+    $(".flag").removeClass("flagged");
+    io_master.last_input = null;
+    io_master.last_output = null;
   })
   input_interface.io_master = io_master;
   io_master.input_interface = input_interface;
@@ -51,9 +55,8 @@ $.getJSON("static/config.json", function(data) {
 });
 
 $('body').on('click', '.flag', function(e) {
-  if ($(".flag").hasClass("flagged")) {
-    $(".flag").removeClass("flagged").attr("value", "flag");
-  } else {
-    $(".flag").addClass("flagged").attr("value", "flagged");
+  if (io_master.last_output) {
+    $(".flag").addClass("flagged");
+    io_master.flag($(".flag_message").text());
   }
 })

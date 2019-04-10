@@ -36,22 +36,28 @@
 .panel_buttons {
   display: flex;
 }
-.panel_buttons > input, .panel_buttons > button {
-  background-color: #F6F6F6;
+.submit, .clear, .flag {
+  background-color: #F6F6F6 !important;
   flex-grow: 1;
-  padding: 8px;
+  padding: 8px !important;
   box-sizing: border-box;
   text-transform: uppercase;
   font-weight: bold;
-  border: 0 none;
+  border: 0 none !important;
 }
 .submit {
   background-color: #EEA45D !important;
   color: white !important;
+}
+.submit, .flag_message {
   flex-grow: 2 !important;
   margin-right: 8px;
 }
-.clear {
+.flag_message {
+  padding: 8px !important;
+  background-color: #F6F6F6 !important;
+}
+.clear, .flag {
   margin-left: 8px;
 }
 
@@ -100,4 +106,7 @@
   background-color: rgba(0, 0, 0, 0.7);
   top: 0;
   left: 0;
+}
+.flagged {
+  
 }
