@@ -17,12 +17,12 @@ args = parser.parse_args()
 
 def mdl(input):
   time.sleep(args.delay)
-  return np.array(1)
+  return np.array(1) 
 
 
 def launch_interface(args):
-    io = gradio.Interface(inputs=args.inputs, outputs=args.outputs, model=mdl, model_type='function')
-    httpd, _, _ = io.launch(share=args.share)
+    io = gradio.Interface(inputs=args.inputs, outputs=args.outputs, model=mdl, model_type='pyfunc')
+    httpd, _, _ = io.launch(share=args.share, validate=False)
 
     class ServiceExit(Exception):
         """
