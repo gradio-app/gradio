@@ -1,0 +1,11 @@
+.output_text {
+  resize: none;
+  width: 100%;
+  font-size: 18px;
+  outline: none;
+  height: 100%;
+  background-color: white;
+  border: solid 1px black;
+  box-sizing: border-box;
+  padding: 4px;
+}
