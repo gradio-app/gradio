@@ -1,6 +1,6 @@
 body {
   font-family: 'Open Sans', sans-serif;
-  font-size: 12px;
+  font-size: 1em;
   margin: 0;
 }
 body > div, body > nav {
@@ -41,7 +41,7 @@ nav a {
   margin-left: 30px;
   padding: 5px 0px;
   font-weight: bold;
-  font-size: 14px;
+  font-size: 1em;
 }
 nav a.selected {
   border-bottom: solid 2px #ed9013;
