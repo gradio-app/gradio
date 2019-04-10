@@ -9,14 +9,17 @@ import nest_asyncio
 import webbrowser
 import gradio.inputs
 import gradio.outputs
-from gradio import networking
+from gradio import networking, strings
 import tempfile
 import threading
 import traceback
+import urllib
+import json
 
 nest_asyncio.apply()
 
 LOCALHOST_IP = '127.0.0.1'
+SHARE_LINK_FORMAT = 'https://{}.gradio.app/'
 INITIAL_WEBSOCKET_PORT = 9200
 TRY_NUM_PORTS = 100
 
@@ -28,7 +31,7 @@ class Interface:
     """
 
     # Dictionary in which each key is a valid `model_type` argument to constructor, and the value being the description.
-    VALID_MODEL_TYPES = {'sklearn': 'sklearn model', 'keras': 'Keras model', 'function': 'python function',
+    VALID_MODEL_TYPES = {'sklearn': 'sklearn model', 'keras': 'Keras model', 'pyfunc': 'python function',
                          'pytorch': 'PyTorch model'}
     STATUS_TYPES = {'OFF': 'off', 'RUNNING': 'running'}
 
@@ -68,6 +71,7 @@ class Interface:
         self.status = self.STATUS_TYPES['OFF']
         self.validate_flag = False
         self.simple_server = None
+        self.ngrok_api_ports = None
 
     @staticmethod
     def _infer_model_type(model):
@@ -94,7 +98,7 @@ class Interface:
             pass
 
         if callable(model):
-            return 'function'
+            return 'pyfunc'
 
         raise ValueError("model_type could not be inferred, please specify parameter `model_type`")
 
@@ -108,11 +112,21 @@ class Interface:
         """
         while True:
             try:
-                msg = await websocket.recv()
-                processed_input = self.input_interface.preprocess(msg)
-                prediction = self.predict(processed_input)
-                processed_output = self.output_interface.postprocess(prediction)
-                await websocket.send(str(processed_output))
+                msg = json.loads(await websocket.recv())
+                if msg['action'] == 'input':
+                    processed_input = self.input_interface.preprocess(msg['data'])
+                    prediction = self.predict(processed_input)
+                    processed_output = self.output_interface.postprocess(prediction)
+                    output = {
+                    'action': 'output',
+                    'data': processed_output,
+                    }
+                    await websocket.send(json.dumps(output))
+                if msg['action'] == 'flag':
+                    f = open('gradio-flagged.txt','a+')
+                    f.write(str(msg['data']))
+                    f.close()
+
             except websockets.exceptions.ConnectionClosed:
                 pass
             # except Exception as e:
@@ -127,11 +141,13 @@ class Interface:
             return self.model_obj.predict(preprocessed_input)
         elif self.model_type=='keras':
             return self.model_obj.predict(preprocessed_input)
-        elif self.model_type=='function':
+        elif self.model_type=='pyfunc':
             return self.model_obj(preprocessed_input)
         elif self.model_type=='pytorch':
             import torch
+            print(preprocessed_input.dtype)
             value = torch.from_numpy(preprocessed_input)
+            print(value.dtype)
             value = torch.autograd.Variable(value)
             prediction = self.model_obj(value)
             return prediction.data.numpy()
@@ -203,7 +219,6 @@ class Interface:
         # Set up a port to serve the directory containing the static files with interface.
         server_port, httpd = networking.start_simple_server(output_directory)
         path_to_local_server = 'http://localhost:{}/'.format(server_port)
-        path_to_local_interface_page = path_to_local_server + networking.TEMPLATE_TEMP
         networking.build_template(output_directory, self.input_interface, self.output_interface)
 
         # Set up a port to serve a websocket that sets up the communication between the front-end and model.
@@ -226,29 +241,37 @@ class Interface:
             pass
 
         if self.verbose:
-            print("NOTE: Gradio is in beta stage, please report all bugs to: a12d@stanford.edu")
+            print(strings.en["BETA_MESSAGE"])
             if not is_colab:
-                print(f"Model is running locally at: {path_to_local_interface_page}")
-
+                print(strings.en["RUNNING_LOCALLY"].format(path_to_local_server))
         if share:
             try:
-                path_to_ngrok_server = networking.setup_ngrok(server_port, websocket_port, output_directory)
-                path_to_ngrok_interface_page = path_to_ngrok_server + '/' + networking.TEMPLATE_TEMP
-                if self.verbose:
-                    print(f"Model available publicly for 8 hours at: {path_to_ngrok_interface_page}")
+                path_to_ngrok_server, ngrok_api_ports = networking.setup_ngrok(
+                    server_port, websocket_port, output_directory, self.ngrok_api_ports)
+                self.ngrok_api_ports = ngrok_api_ports
             except RuntimeError:
                 path_to_ngrok_server = None
                 if self.verbose:
-                    print("Unable to create public link for interface, please check internet connection.")
+                    print(strings.en["NGROK_NO_INTERNET"])
         else:
+            if is_colab:  # For a colab notebook, create a public link even if share is False.
+                path_to_ngrok_server, ngrok_api_ports = networking.setup_ngrok(
+                    server_port, websocket_port, output_directory, self.ngrok_api_ports)
+                self.ngrok_api_ports = ngrok_api_ports
+                if self.verbose:
+                    print(strings.en["COLAB_NO_LOCAL"])
+            else:  # If it's not a colab notebook and share=False, print a message telling them about the share option.
+                if self.verbose:
+                    print(strings.en["PUBLIC_SHARE_TRUE"])
+                path_to_ngrok_server = None
+
+        if path_to_ngrok_server is not None:
+            url = urllib.parse.urlparse(path_to_ngrok_server)
+            subdomain = url.hostname.split('.')[0]
+            path_to_ngrok_interface_page = SHARE_LINK_FORMAT.format(subdomain)
             if self.verbose:
-                print("To create a public link, set `share=True` in the argument to `launch()`")
-            path_to_ngrok_server = None
-            if is_colab:  # for a colab notebook, create a public link even if share is False.
-                path_to_ngrok_server = networking.setup_ngrok(server_port, websocket_port, output_directory)
-                path_to_ngrok_interface_page = path_to_ngrok_server + '/' + networking.TEMPLATE_TEMP
-                print(f"Cannot display local interface on google colab, public link created at:"
-                      f"{path_to_ngrok_interface_page} and displayed below.")
+                print(strings.en["MODEL_PUBLICLY_AVAILABLE_URL"].format(path_to_ngrok_interface_page))
+
         # Keep the server running in the background.
         asyncio.get_event_loop().run_until_complete(start_server)
         try:
@@ -270,13 +293,14 @@ class Interface:
         else:
             if inbrowser is None:
                 inbrowser = False
+
         if inbrowser and not is_colab:
-            webbrowser.open(path_to_local_interface_page)  # Open a browser tab with the interface.
+            webbrowser.open(path_to_local_server)  # Open a browser tab with the interface.
         if inline:
             from IPython.display import IFrame
             if is_colab:  # Embed the remote interface page if on google colab; otherwise, embed the local page.
                 display(IFrame(path_to_ngrok_interface_page, width=1000, height=500))
             else:
-                display(IFrame(path_to_local_interface_page, width=1000, height=500))
+                display(IFrame(path_to_local_server, width=1000, height=500))
 
         return httpd, path_to_local_server, path_to_ngrok_server
