@@ -14,6 +14,7 @@ import tempfile
 import threading
 import traceback
 import urllib
+import json
 
 nest_asyncio.apply()
 
@@ -110,11 +111,16 @@ class Interface:
         """
         while True:
             try:
-                msg = await websocket.recv()
-                processed_input = self.input_interface.preprocess(msg)
-                prediction = self.predict(processed_input)
-                processed_output = self.output_interface.postprocess(prediction)
-                await websocket.send(str(processed_output))
+                msg = json.loads(await websocket.recv())
+                if msg['action'] == 'input':
+                    processed_input = self.input_interface.preprocess(msg['data'])
+                    prediction = self.predict(processed_input)
+                    processed_output = self.output_interface.postprocess(prediction)
+                    output = {
+                    'action': 'output',
+                    'data': processed_output,
+                    }
+                    await websocket.send(json.dumps(output))
             except websockets.exceptions.ConnectionClosed:
                 pass
             # except Exception as e:
