@@ -14,13 +14,7 @@ button, input[type="submit"], input[type="reset"], input[type="text"], input[typ
   -webkit-appearance: none;
   border-radius: 0;
 }
-
-input[type="text"] {
-  cursor: text;
-  text-transform: none;
-}
-
-body > div, body > nav {
+nav, #panels {
   margin-left: 60px;
   margin-right: 60px;
 }
@@ -37,9 +31,4 @@ nav img {
   flex-flow: row;
   flex-wrap: wrap;
   justify-content: center;
-}
-.panel {
-  min-width: 300px;
-  margin: 40px 0 0;
-  flex-grow: 1;
 }

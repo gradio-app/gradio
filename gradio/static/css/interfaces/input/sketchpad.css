@@ -1,0 +1,38 @@
+.sketchpad canvas {
+  background-color: white;
+}
+.sketch_tools {
+  flex: 0 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+.brush {
+  border-radius: 50%;
+  background-color: #AAA;
+  margin: 0px 20px;
+  cursor: pointer;
+}
+.brush.selected, .brush:hover {
+  background-color: black;
+}
+#brush_1 {
+  height: 8px;
+  width: 8px;
+}
+#brush_2 {
+  height: 16px;
+  width: 16px;
+}
+#brush_3 {
+  height: 24px;
+  width: 24px;
+}
+.canvas_holder {
+  flex: 1 1 auto;
+  text-align: center;
+}
+canvas {
+  border: solid 1px black;
+}
