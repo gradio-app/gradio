@@ -22,7 +22,7 @@ def mdl(input):
 
 def launch_interface(args):
     io = gradio.Interface(inputs=args.inputs, outputs=args.outputs, model=mdl, model_type='function')
-    httpd, _, _ = io.launch(share=args.share)
+    httpd, _, _ = io.launch(share=args.share, validate=False)
 
     class ServiceExit(Exception):
         """
