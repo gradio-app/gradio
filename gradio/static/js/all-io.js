@@ -22,7 +22,7 @@ function notifyError(error) {
 
 try {
   var origin = window.location.origin;
-  if (origin.includes("ngrok")){
+  if (origin.includes("ngrok") || origin.includes("gradio.app")){ //TODO(abidlabs): better way to distinguish localhost?
       var ws = new WebSocket(NGROK_URL)
   } else {
       var ws = new WebSocket("ws://127.0.0.1:" + SOCKET_PORT + "/")
