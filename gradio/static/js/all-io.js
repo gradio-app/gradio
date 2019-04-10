@@ -66,3 +66,11 @@ function loadEnd() {
   end_time = new Date().getTime()
   $(".loading_time").text(((end_time - start_time) / 1000).toFixed(2) + "s");
 }
+// for embedding interface in websites or blogs
+ // 
+ // var iframe = document.createElement('iframe');
+ // document.body.appendChild(iframe);
+ //
+ // iframe.src = NGROK_URL;
+ // iframe.width = '1000px';
+ // iframe.height = '500px';
