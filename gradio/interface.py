@@ -18,7 +18,7 @@ import urllib
 nest_asyncio.apply()
 
 LOCALHOST_IP = '127.0.0.1'
-SHARE_LINK_FORMAT = 'https://share.gradio.app/{}'
+SHARE_LINK_FORMAT = 'https://{}.gradio.app/'
 INITIAL_WEBSOCKET_PORT = 9200
 TRY_NUM_PORTS = 100
 
@@ -207,7 +207,6 @@ class Interface:
         # Set up a port to serve the directory containing the static files with interface.
         server_port, httpd = networking.start_simple_server(output_directory)
         path_to_local_server = 'http://localhost:{}/'.format(server_port)
-        path_to_local_interface_page = path_to_local_server + networking.TEMPLATE_TEMP
         networking.build_template(output_directory, self.input_interface, self.output_interface)
 
         # Set up a port to serve a websocket that sets up the communication between the front-end and model.
@@ -230,9 +229,9 @@ class Interface:
             pass
 
         if self.verbose:
-            print("NOTE: Gradio is in beta stage, please report all bugs to: a12d@stanford.edu")
+            print("NOTE: Gradio is in beta stage, please report all bugs to: contact.gradio@gmail.com")
             if not is_colab:
-                print(f"Model is running locally at: {path_to_local_interface_page}")
+                print(f"Model is running locally at: {path_to_local_server}")
 
         if share:
             try:
@@ -252,7 +251,6 @@ class Interface:
                 path_to_ngrok_server = None
 
         if path_to_ngrok_server is not None:
-            # path_to_ngrok_interface_page = path_to_ngrok_server + '/' + networking.TEMPLATE_TEMP
             url = urllib.parse.urlparse(path_to_ngrok_server)
             subdomain = url.hostname.split('.')[0]
             path_to_ngrok_interface_page = SHARE_LINK_FORMAT.format(subdomain)
@@ -282,12 +280,12 @@ class Interface:
                 inbrowser = False
 
         if inbrowser and not is_colab:
-            webbrowser.open(path_to_local_interface_page)  # Open a browser tab with the interface.
+            webbrowser.open(path_to_local_server)  # Open a browser tab with the interface.
         if inline:
             from IPython.display import IFrame
             if is_colab:  # Embed the remote interface page if on google colab; otherwise, embed the local page.
                 display(IFrame(path_to_ngrok_interface_page, width=1000, height=500))
             else:
-                display(IFrame(path_to_local_interface_page, width=1000, height=500))
+                display(IFrame(path_to_local_server, width=1000, height=500))
 
         return httpd, path_to_local_server, path_to_ngrok_server

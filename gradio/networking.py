@@ -31,7 +31,7 @@ NGROK_TUNNELS_API_URL2 = "http://localhost:4041/api/tunnels"  # TODO(this should
 BASE_TEMPLATE = pkg_resources.resource_filename('gradio', 'templates/base_template.html')
 STATIC_PATH_LIB = pkg_resources.resource_filename('gradio', 'static/')
 STATIC_PATH_TEMP = 'static/'
-TEMPLATE_TEMP = 'interface.html'
+TEMPLATE_TEMP = 'index.html'
 BASE_JS_FILE = 'static/js/all-io.js'
 CONFIG_FILE = 'static/config.json'
 
