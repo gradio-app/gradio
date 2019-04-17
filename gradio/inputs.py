@@ -8,6 +8,7 @@ from abc import ABC, abstractmethod
 from gradio import preprocessing_utils, validation_data
 import numpy as np
 from PIL import Image, ImageOps
+import datetime
 
 # Where to find the static resources associated with each template.
 BASE_INPUT_INTERFACE_TEMPLATE_PATH = 'templates/input/{}.html'
@@ -63,6 +64,12 @@ class AbstractInput(ABC):
         """
         pass
 
+    @abstractmethod
+    def rebuild_flagged(self, inp):
+        """
+        All interfaces should define a method that rebuilds the flagged input when it's passed back (i.e. rebuilds image from base64)
+        """
+        pass
 
 class Sketchpad(AbstractInput):
     def __init__(self, preprocessing_fn=None, shape=(28, 28), invert_colors=True, flatten=False, scale=1, shift=0,
@@ -95,7 +102,15 @@ class Sketchpad(AbstractInput):
         array = array * self.scale + self.shift
         array = array.astype(self.dtype)
         return array
-
+    def rebuild_flagged(self, inp):
+        """
+        Default rebuild method to decode a base64 image
+        """
+        im = preprocessing_utils.encoding_to_image(inp)
+        timestamp = datetime.datetime.now()
+        im.save(f'gradio-flagged/{timestamp.strftime("%Y-%m-%d %H-%M-%S")}.png', 'PNG')
+        return None
+    
 
 class Webcam(AbstractInput):
     def __init__(self, preprocessing_fn=None, image_width=224, image_height=224, num_channels=3):
@@ -119,6 +134,14 @@ class Webcam(AbstractInput):
         im = preprocessing_utils.resize_and_crop(im, (self.image_width, self.image_height))
         array = np.array(im).flatten().reshape(1, self.image_width, self.image_height, self.num_channels)
         return array
+    def rebuild_flagged(self, inp):
+        """
+        Default rebuild method to decode a base64 image
+        """
+        im = preprocessing_utils.encoding_to_image(inp)
+        timestamp = datetime.datetime.now()
+        im.save(f'gradio-flagged/{timestamp.strftime("%Y-%m-%d %H-%M-%S")}.png', 'PNG')
+        return None
 
 
 class Textbox(AbstractInput):
@@ -133,7 +156,15 @@ class Textbox(AbstractInput):
         By default, no pre-processing is applied to text.
         """
         return inp
-
+    def rebuild_flagged(self, inp):
+        """
+        Default rebuild method for text saves it .txt file
+        """
+        timestamp = datetime.datetime.now()
+        f = open(f'gradio-flagged/{timestamp.strftime("%Y-%m-%d %H-%M-%S")}.txt','w')
+        f.write(inp)
+        f.close()
+        return None
 
 class ImageUpload(AbstractInput):
     def __init__(self, preprocessing_fn=None, shape=(224, 224, 3), image_mode='RGB',
@@ -171,6 +202,14 @@ class ImageUpload(AbstractInput):
             array = im.reshape(1, self.image_width, self.image_height, self.num_channels)
         return array
 
+    def rebuild_flagged(self, inp):
+        """
+        Default rebuild method to decode a base64 image
+        """
+        im = preprocessing_utils.encoding_to_image(inp)
+        timestamp = datetime.datetime.now()
+        im.save(f'gradio-flagged/{timestamp.strftime("%Y-%m-%d %H-%M-%S")}.png', 'PNG')
+        return None
 
 class CSV(AbstractInput):
 
