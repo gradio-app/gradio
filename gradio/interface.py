@@ -9,12 +9,15 @@ import nest_asyncio
 import webbrowser
 import gradio.inputs
 import gradio.outputs
-from gradio import networking, strings
+from gradio import networking, strings, inputs
 import tempfile
 import threading
 import traceback
 import urllib
 import json
+import os
+import errno
+
 
 nest_asyncio.apply()
 
@@ -123,10 +126,17 @@ class Interface:
                     }
                     await websocket.send(json.dumps(output))
                 if msg['action'] == 'flag':
-                    print('flagged')
-                    f = open('gradio-flagged.txt','a+')
+                    if not os.path.exists(os.path.dirname('gradio-flagged/')):
+                        try:
+                            os.makedirs(os.path.dirname('gradio-flagged/'))
+                        except OSError as exc: # Guard against race condition
+                            if exc.errno != errno.EEXIST:
+                                raise
+                    f = open('gradio-flagged/gradio-flagged.txt','a+')
                     f.write(str(msg['data']))
                     f.close()
+                    inp = msg['data']['input']
+                    self.input_interface.rebuild_flagged(inp)
 
             except websockets.exceptions.ConnectionClosed:
                 pass
