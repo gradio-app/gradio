@@ -7,6 +7,7 @@ const image_output = {
     this.target.find(".output_image").attr('src', data).show();
   },
   submit: function() {
+    this.target.find(".output_image").attr('src', 'static/img/logo_loading.gif').show();
   },
   clear: function() {
     this.target.find(".output_image").attr('src', "").hide();
