@@ -29,7 +29,6 @@ function resizeImage(base64Str, max_width, max_height, callback) {
     canvas.height = height;
     var ctx = canvas.getContext('2d');
     ctx.drawImage(img, 0, 0, width, height);
-    console.log(canvas.toDataURL())
     callback.call(null, canvas.toDataURL());
   }
 }
