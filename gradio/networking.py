@@ -159,9 +159,13 @@ def get_first_available_port(initial, final):
     raise OSError("All ports from {} to {} are in use. Please close a port.".format(initial, final))
 
 
-def serve_files_in_background(port, directory_to_serve=None):
+def serve_files_in_background(interface, port, directory_to_serve=None):
     class HTTPHandler(SimpleHTTPRequestHandler):
         """This handler uses server.base_path instead of always using os.getcwd()"""
+        def _set_headers(self):
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
 
         def translate_path(self, path):
             path = SimpleHTTPRequestHandler.translate_path(self, path)
@@ -171,6 +175,28 @@ def serve_files_in_background(port, directory_to_serve=None):
 
         def log_message(self, format, *args):
             return
+
+        def do_POST(self):
+            # Read body of the request.
+            if self.path == "/api/predict/":
+
+                self._set_headers()
+                data_string = self.rfile.read(int(self.headers['Content-Length']))
+
+                # Make the prediction.
+                msg = json.loads(data_string)
+                processed_input = interface.input_interface.preprocess(msg['data'])
+                prediction = interface.predict(processed_input)
+                processed_output = interface.output_interface.postprocess(prediction)
+                output = {
+                    'action': 'output',
+                    'data': processed_output,
+                }
+
+                # Prepare return json dictionary.
+                self.wfile.write(json.dumps(output).encode())
+            else:
+                self.send_response(404)
 
     class HTTPServer(BaseHTTPServer):
         """The main server, you pass in base_path which is the path you want to serve requests from"""
@@ -196,9 +222,9 @@ def serve_files_in_background(port, directory_to_serve=None):
     return httpd
 
 
-def start_simple_server(directory_to_serve=None):
+def start_simple_server(interface, directory_to_serve=None):
     port = get_first_available_port(INITIAL_PORT_VALUE, INITIAL_PORT_VALUE + TRY_NUM_PORTS)
-    httpd = serve_files_in_background(port, directory_to_serve)
+    httpd = serve_files_in_background(interface, port, directory_to_serve)
     return port, httpd
 
 
@@ -255,13 +281,11 @@ def create_ngrok_tunnel(local_port, log_file):
     raise RuntimeError("Not able to retrieve ngrok public URL")
 
 
-def setup_ngrok(server_port, websocket_port, output_directory, existing_ports):
+def setup_ngrok(server_port, output_directory, existing_ports):
     if not(existing_ports is None):
         kill_processes(existing_ports)
     site_ngrok_url, port1 = create_ngrok_tunnel(server_port, os.path.join(output_directory, 'ngrok1.log'))
-    socket_ngrok_url, port2 = create_ngrok_tunnel(websocket_port, os.path.join(output_directory, 'ngrok2.log'))
-    set_ngrok_url_in_js(output_directory, socket_ngrok_url)
-    return site_ngrok_url, [port1, port2]
+    return site_ngrok_url, [port1]
 
 
 def kill_processes(process_ids):  #TODO(abidlabs): remove this, we shouldn't need to kill
