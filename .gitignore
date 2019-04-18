@@ -11,3 +11,7 @@ gradio_files/*
 ngrok*
 examples/ngrok*
 gradio-flagged/*
+.DS_Store
+__pycache__/
+*.py[cod]
+*$py.class
