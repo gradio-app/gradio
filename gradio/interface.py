@@ -1,19 +1,17 @@
-'''
+"""
 This is the core file in the `gradio` package, and defines the Interface class, including methods for constructing the
 interface using the input and output types.
-'''
+"""
 
-import webbrowser
-import gradio.inputs
-import gradio.outputs
-from gradio import networking, strings, inputs
 import tempfile
 import traceback
-import urllib
-import tensorflow as tf
+import webbrowser
 
-LOCALHOST_IP = '127.0.0.1'
-SHARE_LINK_FORMAT = 'https://{}.gradio.app/'
+import gradio.inputs
+import gradio.outputs
+from gradio import networking, strings
+
+LOCALHOST_IP = "127.0.0.1"
 INITIAL_WEBSOCKET_PORT = 9200
 TRY_NUM_PORTS = 100
 
@@ -25,12 +23,24 @@ class Interface:
     """
 
     # Dictionary in which each key is a valid `model_type` argument to constructor, and the value being the description.
-    VALID_MODEL_TYPES = {'sklearn': 'sklearn model', 'keras': 'Keras model', 'pyfunc': 'python function',
-                         'pytorch': 'PyTorch model'}
-    STATUS_TYPES = {'OFF': 'off', 'RUNNING': 'running'}
+    VALID_MODEL_TYPES = {
+        "sklearn": "sklearn model",
+        "keras": "Keras model",
+        "pyfunc": "python function",
+        "pytorch": "PyTorch model",
+    }
+    STATUS_TYPES = {"OFF": "off", "RUNNING": "running"}
 
-    def __init__(self, inputs, outputs, model, model_type=None, preprocessing_fns=None, postprocessing_fns=None,
-                 verbose=True):
+    def __init__(
+        self,
+        inputs,
+        outputs,
+        model,
+        model_type=None,
+        preprocessing_fns=None,
+        postprocessing_fns=None,
+        verbose=True,
+    ):
         """
         :param inputs: a string or `AbstractInput` representing the input interface.
         :param outputs: a string or `AbstractOutput` representing the output interface.
@@ -41,80 +51,94 @@ class Interface:
         :param postprocessing_fns: an optional function that overrides the postprocessing fn of the output interface.
         """
         if isinstance(inputs, str):
-            self.input_interface = gradio.inputs.registry[inputs.lower()](preprocessing_fns)
+            self.input_interface = gradio.inputs.registry[inputs.lower()](
+                preprocessing_fns
+            )
         elif isinstance(inputs, gradio.inputs.AbstractInput):
             self.input_interface = inputs
         else:
-            raise ValueError('Input interface must be of type `str` or `AbstractInput`')
+            raise ValueError("Input interface must be of type `str` or `AbstractInput`")
         if isinstance(outputs, str):
-            self.output_interface = gradio.outputs.registry[outputs.lower()](postprocessing_fns)
+            self.output_interface = gradio.outputs.registry[outputs.lower()](
+                postprocessing_fns
+            )
         elif isinstance(outputs, gradio.outputs.AbstractOutput):
             self.output_interface = outputs
         else:
-            raise ValueError('Output interface must be of type `str` or `AbstractOutput`')
+            raise ValueError(
+                "Output interface must be of type `str` or `AbstractOutput`"
+            )
         self.model_obj = model
         if model_type is None:
             model_type = self._infer_model_type(model)
             if verbose:
-                print("Model type not explicitly identified, inferred to be: {}".format(
-                        self.VALID_MODEL_TYPES[model_type]))
-        elif not(model_type.lower() in self.VALID_MODEL_TYPES):
-            ValueError('model_type must be one of: {}'.format(self.VALID_MODEL_TYPES))
+                print(
+                    "Model type not explicitly identified, inferred to be: {}".format(
+                        self.VALID_MODEL_TYPES[model_type]
+                    )
+                )
+        elif not (model_type.lower() in self.VALID_MODEL_TYPES):
+            ValueError("model_type must be one of: {}".format(self.VALID_MODEL_TYPES))
         self.model_type = model_type
         self.verbose = verbose
-        self.status = self.STATUS_TYPES['OFF']
+        self.status = self.STATUS_TYPES["OFF"]
         self.validate_flag = False
         self.simple_server = None
-        self.ngrok_api_ports = None
 
     @staticmethod
     def _infer_model_type(model):
         """ Helper method that attempts to identify the type of trained ML model."""
         try:
             import sklearn
+
             if isinstance(model, sklearn.base.BaseEstimator):
-                return 'sklearn'
+                return "sklearn"
         except ImportError:
             pass
 
         try:
             import tensorflow as tf
+
             if isinstance(model, tf.keras.Model):
-                return 'keras'
+                return "keras"
         except ImportError:
             pass
 
         try:
             import keras
+
             if isinstance(model, keras.Model):
-                return 'keras'
+                return "keras"
         except ImportError:
             pass
 
         if callable(model):
-            return 'pyfunc'
+            return "pyfunc"
 
-        raise ValueError("model_type could not be inferred, please specify parameter `model_type`")
+        raise ValueError(
+            "model_type could not be inferred, please specify parameter `model_type`"
+        )
 
     def predict(self, preprocessed_input):
         """
         Method that calls the relevant method of the model object to make a prediction.
         :param preprocessed_input: the preprocessed input returned by the input interface
         """
-        if self.model_type=='sklearn':
+        if self.model_type == "sklearn":
             return self.model_obj.predict(preprocessed_input)
-        elif self.model_type=='keras':
+        elif self.model_type == "keras":
             return self.model_obj.predict(preprocessed_input)
-        elif self.model_type=='pyfunc':
+        elif self.model_type == "pyfunc":
             return self.model_obj(preprocessed_input)
-        elif self.model_type=='pytorch':
+        elif self.model_type == "pytorch":
             import torch
+
             value = torch.from_numpy(preprocessed_input)
             value = torch.autograd.Variable(value)
             prediction = self.model_obj(value)
             return prediction.data.numpy()
         else:
-            ValueError('model_type must be one of: {}'.format(self.VALID_MODEL_TYPES))
+            ValueError("model_type must be one of: {}".format(self.VALID_MODEL_TYPES))
 
     def validate(self):
         if self.validate_flag:
@@ -126,18 +150,28 @@ class Interface:
         if n == 0:
             self.validate_flag = True
             if self.verbose:
-                print("No validation samples for this interface... skipping validation.")
+                print(
+                    "No validation samples for this interface... skipping validation."
+                )
             return
         for m, msg in enumerate(validation_inputs):
             if self.verbose:
-                print(f"Validating samples: {m+1}/{n}  [" + "="*(m+1) + "."*(n-m-1) + "]", end='\r')
+                print(
+                    f"Validating samples: {m+1}/{n}  ["
+                    + "=" * (m + 1)
+                    + "." * (n - m - 1)
+                    + "]",
+                    end="\r",
+                )
             try:
                 processed_input = self.input_interface.preprocess(msg)
                 prediction = self.predict(processed_input)
             except Exception as e:
                 if self.verbose:
                     print("\n----------")
-                    print("Validation failed, likely due to incompatible pre-processing and model input. See below:\n")
+                    print(
+                        "Validation failed, likely due to incompatible pre-processing and model input. See below:\n"
+                    )
                     print(traceback.format_exc())
                 break
             try:
@@ -145,8 +179,10 @@ class Interface:
             except Exception as e:
                 if self.verbose:
                     print("\n----------")
-                    print("Validation failed, likely due to incompatible model output and post-processing."
-                          "See below:\n")
+                    print(
+                        "Validation failed, likely due to incompatible model output and post-processing."
+                        "See below:\n"
+                    )
                     print(traceback.format_exc())
                 break
         else:  # This means if a break was not explicitly called
@@ -168,7 +204,7 @@ class Interface:
             self.validate()
 
         # If an existing interface is running with this instance, close it.
-        if self.status == self.STATUS_TYPES['RUNNING']:
+        if self.status == self.STATUS_TYPES["RUNNING"]:
             if self.verbose:
                 print("Closing existing server...")
             if self.simple_server is not None:
@@ -180,19 +216,23 @@ class Interface:
         output_directory = tempfile.mkdtemp()
         # Set up a port to serve the directory containing the static files with interface.
         server_port, httpd = networking.start_simple_server(self, output_directory)
-        path_to_local_server = 'http://localhost:{}/'.format(server_port)
-        networking.build_template(output_directory, self.input_interface, self.output_interface)
+        path_to_local_server = "http://localhost:{}/".format(server_port)
+        networking.build_template(
+            output_directory, self.input_interface, self.output_interface
+        )
 
-        networking.set_interface_types_in_config_file(output_directory,
-                                                      self.input_interface.__class__.__name__.lower(),
-                                                      self.output_interface.__class__.__name__.lower())
-        self.status = self.STATUS_TYPES['RUNNING']
+        networking.set_interface_types_in_config_file(
+            output_directory,
+            self.input_interface.__class__.__name__.lower(),
+            self.output_interface.__class__.__name__.lower(),
+        )
+        self.status = self.STATUS_TYPES["RUNNING"]
         self.simple_server = httpd
 
         is_colab = False
         try:  # Check if running interactively using ipython.
             from_ipynb = get_ipython()
-            if 'google.colab' in str(from_ipynb):
+            if "google.colab" in str(from_ipynb):
                 is_colab = True
         except NameError:
             pass
@@ -203,31 +243,26 @@ class Interface:
                 print(strings.en["RUNNING_LOCALLY"].format(path_to_local_server))
         if share:
             try:
-                path_to_ngrok_server, ngrok_api_ports = networking.setup_ngrok(
-                    server_port, output_directory, self.ngrok_api_ports)
-                self.ngrok_api_ports = ngrok_api_ports
+                share_url = networking.setup_tunnel(server_port)
             except RuntimeError:
-                path_to_ngrok_server = None
+                share_url = None
                 if self.verbose:
                     print(strings.en["NGROK_NO_INTERNET"])
         else:
-            if is_colab:  # For a colab notebook, create a public link even if share is False.
-                path_to_ngrok_server, ngrok_api_ports = networking.setup_ngrok(
-                    server_port, output_directory, self.ngrok_api_ports)
-                self.ngrok_api_ports = ngrok_api_ports
+            if (
+                is_colab
+            ):  # For a colab notebook, create a public link even if share is False.
+                share_url = networking.setup_tunnel(server_port)
                 if self.verbose:
                     print(strings.en["COLAB_NO_LOCAL"])
             else:  # If it's not a colab notebook and share=False, print a message telling them about the share option.
                 if self.verbose:
                     print(strings.en["PUBLIC_SHARE_TRUE"])
-                path_to_ngrok_server = None
+                share_url = None
 
-        if path_to_ngrok_server is not None:
-            url = urllib.parse.urlparse(path_to_ngrok_server)
-            subdomain = url.hostname.split('.')[0]
-            path_to_ngrok_interface_page = SHARE_LINK_FORMAT.format(subdomain)
+        if share_url is not None:
             if self.verbose:
-                print(strings.en["MODEL_PUBLICLY_AVAILABLE_URL"].format(path_to_ngrok_interface_page))
+                print(strings.en["MODEL_PUBLICLY_AVAILABLE_URL"].format(share_url))
 
         if inline is None:
             try:  # Check if running interactively using ipython.
@@ -244,12 +279,17 @@ class Interface:
                 inbrowser = False
 
         if inbrowser and not is_colab:
-            webbrowser.open(path_to_local_server)  # Open a browser tab with the interface.
+            webbrowser.open(
+                path_to_local_server
+            )  # Open a browser tab with the interface.
         if inline:
             from IPython.display import IFrame
-            if is_colab:  # Embed the remote interface page if on google colab; otherwise, embed the local page.
-                display(IFrame(path_to_ngrok_interface_page, width=1000, height=500))
+
+            if (
+                is_colab
+            ):  # Embed the remote interface page if on google colab; otherwise, embed the local page.
+                display(IFrame(share_url, width=1000, height=500))
             else:
                 display(IFrame(path_to_local_server, width=1000, height=500))
 
-        return httpd, path_to_local_server, path_to_ngrok_server
+        return httpd, path_to_local_server, share_url
