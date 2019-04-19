@@ -54,12 +54,11 @@ $.getJSON("static/config.json", function(data) {
   io_master.input_interface = input_interface;
   output_interface.io_master = io_master;
   io_master.output_interface = output_interface;
-  enable_sharing();
 });
 
 $('body').on('click', '.flag', function(e) {
   if (io_master.last_output) {
     $(".flag").addClass("flagged");
-    io_master.flag($(".flag_message").text());
+    io_master.flag($(".flag_message").val());
   }
 })
