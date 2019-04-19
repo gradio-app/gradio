@@ -19,15 +19,13 @@ var io_master = {
       'action': 'input',
       'data': data
     }
-    ws.send(JSON.stringify(ws_data), function(e) {
-      console.log(e)
-    })
+    ws.send(JSON.stringify(ws_data))
   },
   output: function(data) {
     this.last_output = data;
     this.output_interface.output(data);
   },
-  flag: function(input, output, message) {
+  flag: function(message) {
     var ws_data = {
       'action': 'flag',
       'data': {
@@ -36,9 +34,7 @@ var io_master = {
         'message' : message
       }
     }
-    ws.send(JSON.stringify(ws_data), function(e) {
-      console.log(e)
-    })
+    ws.send(JSON.stringify(ws_data))
   }
 }
 
