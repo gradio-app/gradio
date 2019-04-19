@@ -27,12 +27,10 @@ nav img {
   height: 32px;
 }
 #share_row {
-  display: flex;
   justify-content: center;
   margin-bottom: 10px;
 }
 #share_form {
-  display: flex;
   flex-grow: 1;
   justify-content: center;
   align-items: center;
@@ -48,7 +46,7 @@ nav img {
   flex-grow: 1;
   max-width: 400px;
 }
-#share_complete, #share_form {
+#share_row, #share_complete, #share_form {
   display: none;
 }
 #panels {

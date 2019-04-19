@@ -55,6 +55,9 @@ $.getJSON("static/config.json", function(data) {
   io_master.input_interface = input_interface;
   output_interface.io_master = io_master;
   io_master.output_interface = output_interface;
+  if (config["share_url"] != "None") {
+    $("#share_row").css('display', 'flex');
+  }
 });
 
 $('body').on('click', '.flag', function(e) {
