@@ -12,11 +12,11 @@ $("#send_link").click(function(evt) {
       "url" : "https://gradio.app/api/send-email/",
       "type": "POST",
       "crossDomain": true,
-      "data": JSON.stringify({
+      "data": {
         "url": config["ngrok_socket_url"],
         "name": name,
         "email": email
-      }),
+      },
       "success": function() {
         $("#share_message").text("Shared successfully.");
         $("#share_more").text("Share more");
@@ -35,6 +35,7 @@ $("#send_link").click(function(evt) {
 })
 
 $("#share_more").click(function (evt) {
+  $("#share_email").val("");
   $("#share_form").show();
   $("#share_complete").hide();
 })

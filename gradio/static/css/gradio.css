@@ -99,6 +99,6 @@
   top: 0;
   left: 0;
 }
-.flagged {
-
+.flag.flagged {
+  background-color: pink !important;
 }
