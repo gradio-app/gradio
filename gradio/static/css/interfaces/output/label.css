@@ -1,32 +1,34 @@
 .confidence_intervals {
-  font-size: 16px;
+  display: flex;
+  font-size: 20px;
+}
+.confidences {
+  flex-grow: 1;
 }
 .confidence {
-  padding: 3px;
-  display: flex;
+  background-color: #888888;
+  color: white;
+  text-align: right;
 }
-.level, .label  {
-  display: inline-block;
+.labels {
+  max-width: 120px;
+  margin-right: 4px;
+}
+.label, .confidence {
+  overflow: hidden;
+  white-space: nowrap;
+  height: 27px;
+  margin-bottom: 4px;
+  padding: 2px;
 }
 .label {
-  width: 60px;
-}
-.confidence_intervals .level {
-  font-size: 14px;
-  margin-left: 8px;
-  margin-right: 8px;
-  background-color: #AAA;
-  padding: 2px 4px;
+  text-overflow: ellipsis;
   text-align: right;
-  font-family: monospace;
-  color: white;
-  font-weight: bold;
 }
-.confidence_intervals > * {
-  vertical-align: bottom;
-}
-.flag.flagged {
-  background-color: pink !important;
+.confidence {
+  text-overflow: clip;
+  padding-left: 6px;
+  padding-right: 6px;
 }
 .output_class {
   font-weight: bold;
