@@ -42,13 +42,13 @@ nav img {
   margin-left: 5px;
 }
 #share_row input[type=text] {
-  background-color: #F6F6F6;  
+  background-color: #F6F6F6;
 }
 #share_email {
   flex-grow: 1;
   max-width: 400px;
 }
-#share_complete {
+#share_complete, #share_form {
   display: none;
 }
 #panels {
