@@ -37,6 +37,9 @@ CONFIG_FILE = "static/config.json"
 ASSOCIATION_PATH_IN_STATIC = "static/apple-app-site-association"
 ASSOCIATION_PATH_IN_ROOT = "apple-app-site-association"
 
+FLAGGING_DIRECTORY = 'gradio-flagged/{}'
+FLAGGING_FILENAME = 'gradio-flagged.txt'
+
 
 def build_template(temp_dir, input_interface, output_interface):
     """
@@ -219,13 +222,12 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
 
             elif self.path == "/api/flag/":
                 msg = json.loads(data_string)
-                dir = f'gradio-flagged/{interface.hash}'
-                os.makedirs((dir), exist_ok=True)
-                with open(f'{dir}/gradio-flagged.txt','a+') as f:
-                    message = ''
-                    if 'message' in msg:
-                        message = msg['data']['message']
-                    dict = {'input': interface.input_interface.rebuild_flagged(dir,msg), 'output': interface.output_interface.rebuild_flagged(dir,msg), 'message': message}
+                flag_dir = FLAGGING_DIRECTORY.format(interface.hash)
+                os.makedirs(flag_dir, exist_ok=True)
+                dict = {'input': interface.input_interface.rebuild_flagged(flag_dir, msg),
+                        'output': interface.output_interface.rebuild_flagged(flag_dir, msg),
+                        'message': msg['data']['message']}
+                with open(os.path.join(flag_dir, FLAGGING_FILENAME), 'a+') as f:
                     f.write(json.dumps(dict))
                     f.write("\n")
 
