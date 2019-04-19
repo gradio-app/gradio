@@ -204,30 +204,16 @@ class ImageUpload(AbstractInput):
             array = im.reshape(1, self.image_width, self.image_height, self.num_channels)
         return array
 
-    def rebuild_flagged(self, msg):
+    def rebuild_flagged(self, dir, msg):
         """
         Default rebuild method to decode a base64 image
         """
         inp = msg['data']['input']
         im = preprocessing_utils.encoding_to_image(inp)
         timestamp = datetime.datetime.now()
-        im.save(f'gradio-flagged/{timestamp.strftime("%Y-%m-%d %H-%M-%S")}.png', 'PNG')
-
-        f = open('gradio-flagged/gradio-flagged.csv','a+')
-        header = ['Gradio flag output: Records filename (timestamp) and associated output, as well confidences and second top two outputs (if they exist)']
-        columns = ['Filename (timestamp)','Label','Confidence','Label','Confidence','Label','Confidence']
-        fields = [timestamp.strftime("%Y-%m-%d %H-%M-%S"),msg['data']['output']]
-        writer = csv.writer(f)
-        # df = pd.read_csv('gradio-flagged/gradio-flagged.csv')
-        # if df.empty:
-        # sniffer = csv.Sniffer().sniff(f.readline())
-        # if sniffer.has_header(f.read(32)):
-        #     writer.writerow(header)
-        #     writer.writerow(columns)
-        writer.writerow(fields)
-        f.close()
-
-        return None
+        filename = f'input_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.png'
+        im.save(f'{dir}/{filename}', 'PNG')
+        return filename
 
 class CSV(AbstractInput):
 
