@@ -277,6 +277,7 @@ class Interface:
         if share_url is not None:
             if self.verbose:
                 print(strings.en["MODEL_PUBLICLY_AVAILABLE_URL"].format(share_url))
+        networking.set_share_url_in_config_file(output_directory, share_url)
 
         if inline is None:
             try:  # Check if running interactively using ipython.
