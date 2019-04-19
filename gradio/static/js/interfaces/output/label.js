@@ -1,21 +1,47 @@
 const label_output = {
   html: `
     <div class="output_class"></div>
-    <div class="confidence_intervals"></div>
+    <div class="confidence_intervals">
+      <div class="labels"></div>
+      <div class="confidences"></div>
+    </div>
     `,
   init: function() {},
   output: function(data) {
     data = JSON.parse(data)
+    data = {
+      label: "happy, happy, happy",
+      confidences: [
+        {
+          label: "happy, happy, happy",
+          confidence: 0.5064
+        },
+        {
+          label: "sad",
+          confidence: 0.2111
+        },
+        {
+          label: "angry, angry, angry",
+          confidence: 0.0757
+        },
+        {
+          label: "happy, happy, happy",
+          confidence: 0.03064
+        }
+      ]
+
+    }
     this.target.find(".output_class").html(data["label"])
-    this.target.find(".confidence_intervals").empty()
+    this.target.find(".confidence_intervals > div").empty()
     if (data.confidences) {
       for (var i = 0; i < data.confidences.length; i++)
       {
         let c = data.confidences[i]
-        let confidence = c["confidence"]
-        this.target.find(".confidence_intervals").append(`<div class="confidence"><div class=
-            "label">${c["label"]}</div><div class="level" style="flex-grow:
-              ${confidence}">${Math.round(confidence * 100)}%</div></div>`)
+        let label = c["label"]
+        let confidence = (c["confidence"] * 100).toFixed(1) + "%";
+        this.target.find(".labels").append(`<div class="label" title="${label}">${label}</div>`);
+        this.target.find(".confidences").append(`
+          <div class="confidence" style="width: ${confidence}" title="${confidence}">${confidence}</div>`);
       }
     }
   },
@@ -24,6 +50,6 @@ const label_output = {
   },
   clear: function() {
     this.target.find(".output_class").empty();
-    this.target.find(".confidence_intervals").empty();
+    this.target.find(".confidence_intervals > div").empty();
   }
 }
