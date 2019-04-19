@@ -19,7 +19,7 @@ const label_output = {
         let confidence = Math.round(c["confidence"] * 100) + "%";
         this.target.find(".labels").append(`<div class="label" title="${label}">${label}</div>`);
         this.target.find(".confidences").append(`
-          <div class="confidence" style="min-width: ${confidence}" title="${confidence}">${confidence}</div>`);
+          <div class="confidence" style="min-width: calc(${confidence} - 12px);" title="${confidence}">${confidence}</div>`);
       }
     }
   },
