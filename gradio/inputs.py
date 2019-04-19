@@ -9,6 +9,7 @@ from gradio import preprocessing_utils, validation_data
 import numpy as np
 from PIL import Image, ImageOps
 import datetime
+import csv
 
 # Where to find the static resources associated with each template.
 BASE_INPUT_INTERFACE_TEMPLATE_PATH = 'templates/input/{}.html'
@@ -110,7 +111,7 @@ class Sketchpad(AbstractInput):
         timestamp = datetime.datetime.now()
         im.save(f'gradio-flagged/{timestamp.strftime("%Y-%m-%d %H-%M-%S")}.png', 'PNG')
         return None
-    
+
 
 class Webcam(AbstractInput):
     def __init__(self, preprocessing_fn=None, image_width=224, image_height=224, num_channels=3):
@@ -202,13 +203,20 @@ class ImageUpload(AbstractInput):
             array = im.reshape(1, self.image_width, self.image_height, self.num_channels)
         return array
 
-    def rebuild_flagged(self, inp):
+    def rebuild_flagged(self, msg):
         """
         Default rebuild method to decode a base64 image
         """
+        inp = msg['data']['input']
         im = preprocessing_utils.encoding_to_image(inp)
         timestamp = datetime.datetime.now()
         im.save(f'gradio-flagged/{timestamp.strftime("%Y-%m-%d %H-%M-%S")}.png', 'PNG')
+        f = open('gradio-flagged/gradio-flagged.csv','a+')
+        fields = [timestamp.strftime("%Y-%m-%d %H-%M-%S"),msg['data']['output']]
+        writer = csv.writer(f)
+        writer.writerow(fields)
+        f.close()
+
         return None
 
 class CSV(AbstractInput):
