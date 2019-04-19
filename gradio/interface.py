@@ -17,6 +17,7 @@ import urllib
 import json
 import os
 import errno
+import random
 
 
 nest_asyncio.apply()
@@ -75,6 +76,7 @@ class Interface:
         self.validate_flag = False
         self.simple_server = None
         self.ngrok_api_ports = None
+        self.hash = random.getrandbits(128)
 
     @staticmethod
     def _infer_model_type(model):
@@ -126,17 +128,15 @@ class Interface:
                     }
                     await websocket.send(json.dumps(output))
                 if msg['action'] == 'flag':
-                    if not os.path.exists(os.path.dirname('gradio-flagged/')):
-                        try:
-                            os.makedirs(os.path.dirname('gradio-flagged/'))
-                        except OSError as exc: # Guard against race condition
-                            if exc.errno != errno.EEXIST:
-                                raise
-                    f = open('gradio-flagged/gradio-flagged.txt','a+')
-                    f.write(str(msg['data']))
-                    f.close()
-                    inp = msg['data']['input']
-                    self.input_interface.rebuild_flagged(msg)
+                    dir = f'gradio-flagged/{self.hash}'
+                    os.makedirs((dir), exist_ok=True)
+                    with open(f'{dir}/gradio-flagged.txt','a+') as f:
+                        message = ''
+                        if 'message' in msg:
+                            message = msg['data']['message']
+                        dict = {'input': self.input_interface.rebuild_flagged(dir,msg), 'output': self.output_interface.rebuild_flagged(dir,msg), 'message': message}
+                        f.write(json.dumps(dict))
+                        f.write("\n")
 
             except websockets.exceptions.ConnectionClosed:
                 pass

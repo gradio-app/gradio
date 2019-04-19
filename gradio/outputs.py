@@ -54,6 +54,13 @@ class AbstractOutput(ABC):
         """
         pass
 
+    @abstractmethod
+    def rebuild_flagged(self, inp):
+        """
+        All interfaces should define a method that rebuilds the flagged output when it's passed back (i.e. rebuilds image from base64)
+        """
+        pass
+
 
 class Label(AbstractOutput):
     LABEL_KEY = 'label'
@@ -107,6 +114,12 @@ class Label(AbstractOutput):
             raise ValueError("Unable to post-process model prediction.")
         return json.dumps(response)
 
+    def rebuild_flagged(self, dir, msg):
+        """
+        Default rebuild method for label
+        """
+        out = msg['data']['output']
+        return json.loads(out)
 
 class Textbox(AbstractOutput):
 
