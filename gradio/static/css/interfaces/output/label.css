@@ -4,11 +4,18 @@
 }
 .confidences {
   flex-grow: 1;
+  display: flex;
+  flex-flow: column;
+  align-items: baseline;
+  font-family: monospace;
 }
 .confidence {
   background-color: #888888;
   color: white;
   text-align: right;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 }
 .labels {
   max-width: 120px;
