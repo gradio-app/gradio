@@ -131,6 +131,12 @@ class Textbox(AbstractOutput):
         """
         return prediction
 
+    def rebuild_flagged(self, dir, msg):
+        """
+        Default rebuild method for label
+        """
+        out = msg['data']['output']
+        return json.loads(out)
 
 class Image(AbstractOutput):
 
@@ -141,6 +147,17 @@ class Image(AbstractOutput):
         """
         """
         return prediction
+
+    def rebuild_flagged(self, dir, msg):
+        """
+        Default rebuild method to decode a base64 image
+        """
+        out = msg['data']['output']
+        im = preprocessing_utils.encoding_to_image(out)
+        timestamp = datetime.datetime.now()
+        filename = f'output_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.png'
+        im.save(f'{dir}/{filename}', 'PNG')
+        return filename
 
 
 registry = {cls.__name__.lower(): cls for cls in AbstractOutput.__subclasses__()}
