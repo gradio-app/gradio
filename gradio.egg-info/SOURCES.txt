@@ -9,12 +9,14 @@ gradio/networking.py
 gradio/outputs.py
 gradio/preprocessing_utils.py
 gradio/strings.py
+gradio/tunneling.py
 gradio/validation_data.py
 gradio.egg-info/PKG-INFO
 gradio.egg-info/SOURCES.txt
 gradio.egg-info/dependency_links.txt
 gradio.egg-info/requires.txt
 gradio.egg-info/top_level.txt
+gradio/static/apple-app-site-association
 gradio/static/config.json
 gradio/static/css/.DS_Store
 gradio/static/css/font-awesome.min.css
@@ -32,7 +34,9 @@ gradio/static/css/vendor/tui-color-picker.css
 gradio/static/css/vendor/tui-image-editor.css
 gradio/static/img/logo.png
 gradio/static/img/logo_inline.png
+gradio/static/img/logo_loading.gif
 gradio/static/img/logo_mini.png
+gradio/static/img/logo_only.png
 gradio/static/img/mic.png
 gradio/static/img/table.png
 gradio/static/img/webcam.png
@@ -42,6 +46,7 @@ gradio/static/img/vendor/icon-c.svg
 gradio/static/img/vendor/icon-d.svg
 gradio/static/js/all_io.js
 gradio/static/js/load_interfaces.js
+gradio/static/js/share.js
 gradio/static/js/utils.js
 gradio/static/js/interfaces/input/csv.js
 gradio/static/js/interfaces/input/image_upload.js
