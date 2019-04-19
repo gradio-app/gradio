@@ -35,6 +35,7 @@ $("#send_link").click(function(evt) {
 })
 
 $("#share_more").click(function (evt) {
+  $("#share_email").val("");
   $("#share_form").show();
   $("#share_complete").hide();
 })
