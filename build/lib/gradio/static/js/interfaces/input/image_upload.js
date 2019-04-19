@@ -68,6 +68,9 @@ const image_input = {
        let io = get_interface(e.target);
        io.overlay_target.addClass("hide");
        if ($(e.target).hasClass('tui_save')) {
+         // if (io.tui_editor.ui.submenu == "crop") {
+         //   io.tui_editor._cropAction().crop());
+         // }
          io.set_image_data(io.tui_editor.toDataURL(), /*update_editor=*/false);
        }
      })

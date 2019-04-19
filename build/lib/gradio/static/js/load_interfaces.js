@@ -23,11 +23,13 @@ function get_interface(target) {
       attr("interface_id")];
 }
 
+var config;
 $.getJSON("static/config.json", function(data) {
+  config = data;
   input_interface = Object.create(input_to_object_map[
-      data["input_interface_type"]]);
+      config["input_interface_type"]]);
   output_interface = Object.create(output_to_object_map[
-      data["output_interface_type"]]);
+      config["output_interface_type"]]);
   $("#input_interface").html(input_interface.html);
   input_interface.target = $("#input_interface");
   set_interface_id(input_interface, 1)
@@ -39,21 +41,28 @@ $.getJSON("static/config.json", function(data) {
   $(".submit").click(function() {
     input_interface.submit();
     output_interface.submit();
+    $(".flag").removeClass("flagged");
   })
   $(".clear").click(function() {
     input_interface.clear();
-     output_interface.clear();
+    output_interface.clear();
+    $(".flag").removeClass("flagged");
+    $(".flag_message").empty()
+    io_master.last_input = null;
+    io_master.last_output = null;
   })
   input_interface.io_master = io_master;
   io_master.input_interface = input_interface;
   output_interface.io_master = io_master;
   io_master.output_interface = output_interface;
+  if (config["share_url"] != "None") {
+    $("#share_row").css('display', 'flex');
+  }
 });
 
 $('body').on('click', '.flag', function(e) {
-  if ($(".flag").hasClass("flagged")) {
-    $(".flag").removeClass("flagged").attr("value", "flag");
-  } else {
-    $(".flag").addClass("flagged").attr("value", "flagged");
+  if (io_master.last_output) {
+    $(".flag").addClass("flagged");
+    io_master.flag($(".flag_message").val());
   }
 })
