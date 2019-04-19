@@ -9,28 +9,6 @@ const label_output = {
   init: function() {},
   output: function(data) {
     data = JSON.parse(data)
-    data = {
-      label: "happy, happy, happy",
-      confidences: [
-        {
-          label: "happy, happy, happy",
-          confidence: 0.5064
-        },
-        {
-          label: "sad",
-          confidence: 0.2111
-        },
-        {
-          label: "angry, angry, angry",
-          confidence: 0.0757
-        },
-        {
-          label: "happy, happy, happy",
-          confidence: 0.03064
-        }
-      ]
-
-    }
     this.target.find(".output_class").html(data["label"])
     this.target.find(".confidence_intervals > div").empty()
     if (data.confidences) {
