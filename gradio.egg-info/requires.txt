@@ -5,3 +5,4 @@ beautifulsoup4
 Pillow
 requests
 psutil
+paramiko
