@@ -8,6 +8,9 @@ from abc import ABC, abstractmethod
 from gradio import preprocessing_utils, validation_data
 import numpy as np
 from PIL import Image, ImageOps
+import datetime
+import csv
+import pandas as pd
 
 # Where to find the static resources associated with each template.
 BASE_INPUT_INTERFACE_TEMPLATE_PATH = 'templates/input/{}.html'
@@ -63,6 +66,12 @@ class AbstractInput(ABC):
         """
         pass
 
+    @abstractmethod
+    def rebuild_flagged(self, dir, msg):
+        """
+        All interfaces should define a method that rebuilds the flagged input when it's passed back (i.e. rebuilds image from base64)
+        """
+        pass
 
 class Sketchpad(AbstractInput):
     def __init__(self, preprocessing_fn=None, shape=(28, 28), invert_colors=True, flatten=False, scale=1, shift=0,
@@ -95,6 +104,16 @@ class Sketchpad(AbstractInput):
         array = array * self.scale + self.shift
         array = array.astype(self.dtype)
         return array
+    def rebuild_flagged(self, dir, msg):
+        """
+        Default rebuild method to decode a base64 image
+        """
+        inp = msg['data']['input']
+        im = preprocessing_utils.encoding_to_image(inp)
+        timestamp = datetime.datetime.now()
+        filename = f'input_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.png'
+        im.save(f'{dir}/{filename}', 'PNG')
+        return filename
 
 
 class Webcam(AbstractInput):
@@ -119,6 +138,16 @@ class Webcam(AbstractInput):
         im = preprocessing_utils.resize_and_crop(im, (self.image_width, self.image_height))
         array = np.array(im).flatten().reshape(1, self.image_width, self.image_height, self.num_channels)
         return array
+    def rebuild_flagged(self, dir, msg):
+        """
+        Default rebuild method to decode a base64 image
+        """
+        inp = msg['data']['input']
+        im = preprocessing_utils.encoding_to_image(inp)
+        timestamp = datetime.datetime.now()
+        filename = f'input_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.png'
+        im.save(f'{dir}/{filename}', 'PNG')
+        return filename
 
 
 class Textbox(AbstractInput):
@@ -133,7 +162,15 @@ class Textbox(AbstractInput):
         By default, no pre-processing is applied to text.
         """
         return inp
-
+    def rebuild_flagged(self, dir, msg):
+        """
+        Default rebuild method for text saves it .txt file
+        """
+        timestamp = datetime.datetime.now()
+        filename = f'input_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.txt'
+        with open(f'{dir}/{filename}.txt','w') as f:
+            f.write(inp)
+        return filename
 
 class ImageUpload(AbstractInput):
     def __init__(self, preprocessing_fn=None, shape=(224, 224, 3), image_mode='RGB',
@@ -171,6 +208,16 @@ class ImageUpload(AbstractInput):
             array = im.reshape(1, self.image_width, self.image_height, self.num_channels)
         return array
 
+    def rebuild_flagged(self, dir, msg):
+        """
+        Default rebuild method to decode a base64 image
+        """
+        inp = msg['data']['input']
+        im = preprocessing_utils.encoding_to_image(inp)
+        timestamp = datetime.datetime.now()
+        filename = f'input_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.png'
+        im.save(f'{dir}/{filename}', 'PNG')
+        return filename
 
 class CSV(AbstractInput):
 
@@ -184,6 +231,12 @@ class CSV(AbstractInput):
         """
         return inp
 
+    def rebuild_flagged(self, dir, msg):
+        """
+        Default rebuild method for csv
+        """
+        inp = msg['data']['inp']
+        return json.loads(inp)
 
 # Automatically adds all subclasses of AbstractInput into a dictionary (keyed by class name) for easy referencing.
 registry = {cls.__name__.lower(): cls for cls in AbstractInput.__subclasses__()}

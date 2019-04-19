@@ -21,8 +21,20 @@
 
   <body>
     <nav>
-      <img src="../static/img/logo_inline.png" />
+      <a href="https://gradio.app"><img src="../static/img/logo_inline.png" /></a>
     </nav>
+    <div id="share_row">
+      <button id="share" class="primary">Share this Interface</button>
+      <div id="share_form">
+        <input type="text" id="share_name" placeholder="sender name (you)"></input>
+        <input type="text" id="share_email" placeholder="emails (comma-separated if multiple)"></input>
+        <button class="primary" id="send_link">Send Link</button>
+      </div>
+      <div id="share_complete">
+        <span id="share_message"></span>
+        <button class="secondary" id="share_more"></button>
+      </div>
+    </div>
     <div id="panels">
       <div class="panel">
         <div class="panel_header">Input</div>
@@ -42,6 +54,7 @@
         </div>
         <div id="output_interface" class="interface"></div>
         <div class="panel_buttons">
+          <input type="text" class="flag_message" placeholder="(Optional message for flagging)"/>
           <input type="button" class="flag" value="flag"/>
         </div>
       </div>
@@ -60,13 +73,14 @@
     <script src="../static/js/all_io.js"></script>
     <script src="../static/js/interfaces/input/csv.js"></script>
     <script src="../static/js/interfaces/input/image_upload.js"></script>
-    <script src="../static/js/vendor/sketchpad.js"></script>    
+    <script src="../static/js/vendor/sketchpad.js"></script>
     <script src="../static/js/interfaces/input/sketchpad.js"></script>
     <script src="../static/js/interfaces/input/textbox.js"></script>
     <script src="../static/js/interfaces/input/csv.js"></script>
     <script src="../static/js/interfaces/output/image.js"></script>
     <script src="../static/js/interfaces/output/label.js"></script>
     <script src="../static/js/interfaces/output/textbox.js"></script>
+    <script src="../static/js/share.js"></script>
     <script src="../static/js/load_interfaces.js"></script>
   </body>
 </html>
