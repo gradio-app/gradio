@@ -151,6 +151,16 @@ def set_interface_types_in_config_file(temp_dir, input_interface, output_interfa
     )
 
 
+def set_share_url_in_config_file(temp_dir, share_url):
+    config_file = os.path.join(temp_dir, CONFIG_FILE)
+    render_template_with_tags(
+        config_file,
+        {
+            "share_url": share_url,
+        },
+    )
+
+
 def get_first_available_port(initial, final):
     """
     Gets the first open port in a specified range of port numbers
