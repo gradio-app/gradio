@@ -47,6 +47,7 @@ $.getJSON("static/config.json", function(data) {
     input_interface.clear();
     output_interface.clear();
     $(".flag").removeClass("flagged");
+    $(".flag_message").empty()
     io_master.last_input = null;
     io_master.last_output = null;
   })
