@@ -1,46 +1,45 @@
-'''
+"""
 Defines helper methods useful for setting up ports, launching servers, and handling `ngrok`
-'''
+"""
 
-import subprocess
-import requests
-import zipfile
-import io
-import sys
 import os
 import socket
-from psutil import process_iter, AccessDenied, NoSuchProcess
-from signal import SIGTERM  # or SIGKILL
 import threading
 from http.server import HTTPServer as BaseHTTPServer, SimpleHTTPRequestHandler
-import stat
-from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util.retry import Retry
 import pkg_resources
 from bs4 import BeautifulSoup
 from distutils import dir_util
 from gradio import inputs, outputs
-import time
 import json
-from urllib.parse import urlparse
+from gradio.tunneling import create_tunnel
+import urllib.request
+from shutil import copyfile
 
-INITIAL_PORT_VALUE = 7860  # The http server will try to open on port 7860. If not available, 7861, 7862, etc.
-TRY_NUM_PORTS = 100  # Number of ports to try before giving up and throwing an exception.
-LOCALHOST_NAME = 'localhost'
-NGROK_TUNNEL_API_URL = "http://{}/api/tunnels"
 
-BASE_TEMPLATE = pkg_resources.resource_filename('gradio', 'templates/base_template.html')
-STATIC_PATH_LIB = pkg_resources.resource_filename('gradio', 'static/')
-STATIC_PATH_TEMP = 'static/'
-TEMPLATE_TEMP = 'index.html'
-BASE_JS_FILE = 'static/js/all_io.js'
-CONFIG_FILE = 'static/config.json'
+INITIAL_PORT_VALUE = (
+    7860
+)  # The http server will try to open on port 7860. If not available, 7861, 7862, etc.
+TRY_NUM_PORTS = (
+    100
+)  # Number of ports to try before giving up and throwing an exception.
+LOCALHOST_NAME = "localhost"
+GRADIO_API_SERVER = "https://api.gradio.app/v1/tunnel-request"
 
-NGROK_ZIP_URLS = {
-    "linux": "https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip",
-    "darwin": "https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-darwin-amd64.zip",
-    "win32": "https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-windows-amd64.zip",
-}
+BASE_TEMPLATE = pkg_resources.resource_filename(
+    "gradio", "templates/base_template.html"
+)
+STATIC_PATH_LIB = pkg_resources.resource_filename("gradio", "static/")
+STATIC_PATH_TEMP = "static/"
+TEMPLATE_TEMP = "index.html"
+BASE_JS_FILE = "static/js/all_io.js"
+CONFIG_FILE = "static/config.json"
+
+ASSOCIATION_PATH_IN_STATIC = "static/apple-app-site-association"
+ASSOCIATION_PATH_IN_ROOT = "apple-app-site-association"
+
+FLAGGING_DIRECTORY = 'gradio-flagged/{}'
+FLAGGING_FILENAME = 'gradio-flagged.txt'
+
 
 def build_template(temp_dir, input_interface, output_interface):
     """
@@ -50,16 +49,27 @@ def build_template(temp_dir, input_interface, output_interface):
     :param output_interface: an AbstractInput object which includes is used to get the input template
     """
     input_template_path = pkg_resources.resource_filename(
-        'gradio', inputs.BASE_INPUT_INTERFACE_TEMPLATE_PATH.format(input_interface.get_name()))
+        "gradio",
+        inputs.BASE_INPUT_INTERFACE_TEMPLATE_PATH.format(input_interface.get_name()),
+    )
     output_template_path = pkg_resources.resource_filename(
-        'gradio', outputs.BASE_OUTPUT_INTERFACE_TEMPLATE_PATH.format(output_interface.get_name()))
+        "gradio",
+        outputs.BASE_OUTPUT_INTERFACE_TEMPLATE_PATH.format(output_interface.get_name()),
+    )
     input_page = open(input_template_path)
     output_page = open(output_template_path)
-    input_soup = BeautifulSoup(render_string_or_list_with_tags(
-        input_page.read(), input_interface.get_template_context()), features="html.parser")
+    input_soup = BeautifulSoup(
+        render_string_or_list_with_tags(
+            input_page.read(), input_interface.get_template_context()
+        ),
+        features="html.parser",
+    )
     output_soup = BeautifulSoup(
         render_string_or_list_with_tags(
-            output_page.read(), output_interface.get_template_context()), features="html.parser")
+            output_page.read(), output_interface.get_template_context()
+        ),
+        features="html.parser",
+    )
 
     all_io_page = open(BASE_TEMPLATE)
     all_io_soup = BeautifulSoup(all_io_page.read(), features="html.parser")
@@ -73,12 +83,24 @@ def build_template(temp_dir, input_interface, output_interface):
     f.write(str(all_io_soup))
 
     copy_files(STATIC_PATH_LIB, os.path.join(temp_dir, STATIC_PATH_TEMP))
-    render_template_with_tags(os.path.join(
-        temp_dir, inputs.BASE_INPUT_INTERFACE_JS_PATH.format(input_interface.get_name())),
-        input_interface.get_js_context())
-    render_template_with_tags(os.path.join(
-        temp_dir, outputs.BASE_OUTPUT_INTERFACE_JS_PATH.format(output_interface.get_name())),
-        output_interface.get_js_context())
+    # Move association file to root of temporary directory.
+    copyfile(os.path.join(temp_dir, ASSOCIATION_PATH_IN_STATIC),
+             os.path.join(temp_dir, ASSOCIATION_PATH_IN_ROOT))
+
+    render_template_with_tags(
+        os.path.join(
+            temp_dir,
+            inputs.BASE_INPUT_INTERFACE_JS_PATH.format(input_interface.get_name()),
+        ),
+        input_interface.get_js_context(),
+    )
+    render_template_with_tags(
+        os.path.join(
+            temp_dir,
+            outputs.BASE_OUTPUT_INTERFACE_JS_PATH.format(output_interface.get_name()),
+        ),
+        output_interface.get_js_context(),
+    )
 
 
 def copy_files(src_dir, dest_dir):
@@ -100,7 +122,7 @@ def render_template_with_tags(template_path, context):
     with open(template_path) as fin:
         old_lines = fin.readlines()
     new_lines = render_string_or_list_with_tags(old_lines, context)
-    with open(template_path, 'w') as fout:
+    with open(template_path, "w") as fout:
         for line in new_lines:
             fout.write(line)
 
@@ -109,36 +131,37 @@ def render_string_or_list_with_tags(old_lines, context):
     # Handle string case
     if isinstance(old_lines, str):
         for key, value in context.items():
-            old_lines = old_lines.replace(r'{{' + key + r'}}', str(value))
+            old_lines = old_lines.replace(r"{{" + key + r"}}", str(value))
         return old_lines
 
     # Handle list case
     new_lines = []
     for line in old_lines:
         for key, value in context.items():
-            line = line.replace(r'{{' + key + r'}}', str(value))
+            line = line.replace(r"{{" + key + r"}}", str(value))
         new_lines.append(line)
     return new_lines
 
 
-#TODO(abidlabs): Handle the http vs. https issue that sometimes happens (a ws cannot be loaded from an https page)
-def set_ngrok_url_in_js(temp_dir, ngrok_socket_url):
-    ngrok_socket_url = ngrok_socket_url.replace('http', 'ws')
-    js_file = os.path.join(temp_dir, BASE_JS_FILE)
-    render_template_with_tags(js_file, {'ngrok_socket_url': ngrok_socket_url})
-    config_file = os.path.join(temp_dir, CONFIG_FILE)
-    render_template_with_tags(config_file, {'ngrok_socket_url': ngrok_socket_url})
-
-
-def set_socket_port_in_js(temp_dir, socket_port):
-    js_file = os.path.join(temp_dir, BASE_JS_FILE)
-    render_template_with_tags(js_file, {'socket_port': str(socket_port)})
-
-
 def set_interface_types_in_config_file(temp_dir, input_interface, output_interface):
     config_file = os.path.join(temp_dir, CONFIG_FILE)
-    render_template_with_tags(config_file, {'input_interface_type': input_interface,
-                                            'output_interface_type': output_interface})
+    render_template_with_tags(
+        config_file,
+        {
+            "input_interface_type": input_interface,
+            "output_interface_type": output_interface,
+        },
+    )
+
+
+def set_share_url_in_config_file(temp_dir, share_url):
+    config_file = os.path.join(temp_dir, CONFIG_FILE)
+    render_template_with_tags(
+        config_file,
+        {
+            "share_url": share_url,
+        },
+    )
 
 
 def get_first_available_port(initial, final):
@@ -156,12 +179,21 @@ def get_first_available_port(initial, final):
             return port
         except OSError:
             pass
-    raise OSError("All ports from {} to {} are in use. Please close a port.".format(initial, final))
+    raise OSError(
+        "All ports from {} to {} are in use. Please close a port.".format(
+            initial, final
+        )
+    )
 
 
-def serve_files_in_background(port, directory_to_serve=None):
+def serve_files_in_background(interface, port, directory_to_serve=None):
     class HTTPHandler(SimpleHTTPRequestHandler):
         """This handler uses server.base_path instead of always using os.getcwd()"""
+
+        def _set_headers(self):
+            self.send_response(200)
+            self.send_header("Content-type", "application/json")
+            self.end_headers()
 
         def translate_path(self, path):
             path = SimpleHTTPRequestHandler.translate_path(self, path)
@@ -171,6 +203,36 @@ def serve_files_in_background(port, directory_to_serve=None):
 
         def log_message(self, format, *args):
             return
+
+        def do_POST(self):
+            # Read body of the request.
+            self._set_headers()
+            data_string = self.rfile.read(int(self.headers["Content-Length"]))
+
+            if self.path == "/api/predict/":
+                # Make the prediction.
+                msg = json.loads(data_string)
+                processed_input = interface.input_interface.preprocess(msg["data"])
+                prediction = interface.predict(processed_input)
+                processed_output = interface.output_interface.postprocess(prediction)
+                output = {"action": "output", "data": processed_output}
+
+                # Prepare return json dictionary.
+                self.wfile.write(json.dumps(output).encode())
+
+            elif self.path == "/api/flag/":
+                msg = json.loads(data_string)
+                flag_dir = FLAGGING_DIRECTORY.format(interface.hash)
+                os.makedirs(flag_dir, exist_ok=True)
+                dict = {'input': interface.input_interface.rebuild_flagged(flag_dir, msg),
+                        'output': interface.output_interface.rebuild_flagged(flag_dir, msg),
+                        'message': msg['data']['message']}
+                with open(os.path.join(flag_dir, FLAGGING_FILENAME), 'a+') as f:
+                    f.write(json.dumps(dict))
+                    f.write("\n")
+
+            else:
+                self.send_response(404)
 
     class HTTPServer(BaseHTTPServer):
         """The main server, you pass in base_path which is the path you want to serve requests from"""
@@ -196,9 +258,11 @@ def serve_files_in_background(port, directory_to_serve=None):
     return httpd
 
 
-def start_simple_server(directory_to_serve=None):
-    port = get_first_available_port(INITIAL_PORT_VALUE, INITIAL_PORT_VALUE + TRY_NUM_PORTS)
-    httpd = serve_files_in_background(port, directory_to_serve)
+def start_simple_server(interface, directory_to_serve=None):
+    port = get_first_available_port(
+        INITIAL_PORT_VALUE, INITIAL_PORT_VALUE + TRY_NUM_PORTS
+    )
+    httpd = serve_files_in_background(interface, port, directory_to_serve)
     return port, httpd
 
 
@@ -207,68 +271,23 @@ def close_server(server):
     server.server_close()
 
 
-def download_ngrok():
+def url_request(url):
     try:
-        zip_file_url = NGROK_ZIP_URLS[sys.platform]
-    except KeyError:
-        print("Sorry, we don't currently support your operating system, please leave us a note on GitHub, and "
-              "we'll look into it!")
-        return
-    r = requests.get(zip_file_url)
-    z = zipfile.ZipFile(io.BytesIO(r.content))
-    z.extractall()
-    if sys.platform == 'darwin' or sys.platform == 'linux':
-        st = os.stat('ngrok')
-        os.chmod('ngrok', st.st_mode | stat.S_IEXEC)
+        req = urllib.request.Request(
+            url=url, headers={"content-type": "application/json"}
+        )
+        res = urllib.request.urlopen(req, timeout=10)
+        return res
+    except Exception as e:
+        raise RuntimeError(str(e))
 
 
-def create_ngrok_tunnel(local_port, log_file):
-    if not(os.path.isfile('ngrok.exe') or os.path.isfile('ngrok')):
-        download_ngrok()
-    if sys.platform == 'win32':
-        subprocess.Popen(['ngrok', 'http', str(local_port), '--log', log_file, '--log-format', 'json'])
-    else:
-        subprocess.Popen(['./ngrok', 'http', str(local_port), '--log', log_file, '--log-format', 'json'])
-    time.sleep(1.5)  # Let ngrok write to the log file TODO(abidlabs): a better way to do this.
-    session = requests.Session()
-    retry = Retry(connect=3, backoff_factor=0.5)
-    adapter = HTTPAdapter(max_retries=retry)
-    session.mount('http://', adapter)
-    session.mount('https://', adapter)
-
-    api_url = None
-    with open(log_file) as f:
-        for line in f:
-            log = json.loads(line)
-            if log["msg"] == "starting web service":
-                api_url = log["addr"]
-                api_port = urlparse(api_url).port
-                break
-
-    if api_url is None:
-        raise RuntimeError("Tunnel information not available in log file")
-
-    r = session.get(NGROK_TUNNEL_API_URL.format(api_url))
-    for tunnel in r.json()['tunnels']:
-        if '{}:'.format(LOCALHOST_NAME) + str(local_port) in tunnel['config']['addr'] and tunnel['proto'] == 'https':
-            return tunnel['public_url'], api_port
-    raise RuntimeError("Not able to retrieve ngrok public URL")
-
-
-def setup_ngrok(server_port, websocket_port, output_directory, existing_ports):
-    if not(existing_ports is None):
-        kill_processes(existing_ports)
-    site_ngrok_url, port1 = create_ngrok_tunnel(server_port, os.path.join(output_directory, 'ngrok1.log'))
-    socket_ngrok_url, port2 = create_ngrok_tunnel(websocket_port, os.path.join(output_directory, 'ngrok2.log'))
-    set_ngrok_url_in_js(output_directory, socket_ngrok_url)
-    return site_ngrok_url, [port1, port2]
-
-
-def kill_processes(process_ids):  #TODO(abidlabs): remove this, we shouldn't need to kill
-    for proc in process_iter():
+def setup_tunnel(local_server_port):
+    response = url_request(GRADIO_API_SERVER)
+    if response and response.code == 200:
         try:
-            for conns in proc.connections(kind='inet'):
-                if conns.laddr.port in process_ids:
-                        proc.send_signal(SIGTERM)  # or SIGKILL
-        except (AccessDenied, NoSuchProcess):
-            pass
+            payload = json.loads(response.read().decode("utf-8"))[0]
+            return create_tunnel(payload, LOCALHOST_NAME, local_server_port)
+
+        except Exception as e:
+            raise RuntimeError(str(e))
