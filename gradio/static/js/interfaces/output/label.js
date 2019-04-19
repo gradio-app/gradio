@@ -9,6 +9,28 @@ const label_output = {
   init: function() {},
   output: function(data) {
     data = JSON.parse(data)
+    data = {
+      label: "happy, happy, happy",
+      confidences: [
+        {
+          label: "happy, happy, happy",
+          confidence: 0.5064
+        },
+        {
+          label: "sad",
+          confidence: 0.2111
+        },
+        {
+          label: "angry, angry, angry",
+          confidence: 0.0757
+        },
+        {
+          label: "happy, happy, happy",
+          confidence: 0.001064
+        }
+      ]
+
+    }
     this.target.find(".output_class").html(data["label"])
     this.target.find(".confidence_intervals > div").empty()
     if (data.confidences) {
@@ -16,10 +38,10 @@ const label_output = {
       {
         let c = data.confidences[i]
         let label = c["label"]
-        let confidence = (c["confidence"] * 100).toFixed(1) + "%";
+        let confidence = Math.round(c["confidence"] * 100) + "%";
         this.target.find(".labels").append(`<div class="label" title="${label}">${label}</div>`);
         this.target.find(".confidences").append(`
-          <div class="confidence" style="width: ${confidence}" title="${confidence}">${confidence}</div>`);
+          <div class="confidence" style="min-width: ${confidence}" title="${confidence}">${confidence}</div>`);
       }
     }
   },

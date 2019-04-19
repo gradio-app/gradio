@@ -208,13 +208,14 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
                 self.wfile.write(json.dumps(output).encode())
 
             elif self.path == "/api/flag/":
-                dir = f'gradio-flagged/{self.hash}'
+                msg = json.loads(data_string)
+                dir = f'gradio-flagged/{interface.hash}'
                 os.makedirs((dir), exist_ok=True)
                 with open(f'{dir}/gradio-flagged.txt','a+') as f:
                     message = ''
                     if 'message' in msg:
                         message = msg['data']['message']
-                    dict = {'input': self.input_interface.rebuild_flagged(dir,msg), 'output': self.output_interface.rebuild_flagged(dir,msg), 'message': message}
+                    dict = {'input': interface.input_interface.rebuild_flagged(dir,msg), 'output': interface.output_interface.rebuild_flagged(dir,msg), 'message': message}
                     f.write(json.dumps(dict))
                     f.write("\n")
 
