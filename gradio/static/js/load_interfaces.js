@@ -23,11 +23,13 @@ function get_interface(target) {
       attr("interface_id")];
 }
 
+var config;
 $.getJSON("static/config.json", function(data) {
+  config = data;
   input_interface = Object.create(input_to_object_map[
-      data["input_interface_type"]]);
+      config["input_interface_type"]]);
   output_interface = Object.create(output_to_object_map[
-      data["output_interface_type"]]);
+      config["output_interface_type"]]);
   $("#input_interface").html(input_interface.html);
   input_interface.target = $("#input_interface");
   set_interface_id(input_interface, 1)
@@ -52,6 +54,7 @@ $.getJSON("static/config.json", function(data) {
   io_master.input_interface = input_interface;
   output_interface.io_master = io_master;
   io_master.output_interface = output_interface;
+  enable_sharing();
 });
 
 $('body').on('click', '.flag', function(e) {
