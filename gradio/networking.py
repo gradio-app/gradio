@@ -13,6 +13,7 @@ from gradio import inputs, outputs
 import json
 from gradio.tunneling import create_tunnel
 import urllib.request
+from shutil import copyfile
 
 INITIAL_PORT_VALUE = (
     7860
@@ -31,6 +32,9 @@ STATIC_PATH_TEMP = "static/"
 TEMPLATE_TEMP = "index.html"
 BASE_JS_FILE = "static/js/all_io.js"
 CONFIG_FILE = "static/config.json"
+
+ASSOCIATION_PATH_IN_STATIC = "static/apple-app-site-association"
+ASSOCIATION_PATH_IN_ROOT = "apple-app-site-association"
 
 
 def build_template(temp_dir, input_interface, output_interface):
@@ -75,6 +79,10 @@ def build_template(temp_dir, input_interface, output_interface):
     f.write(str(all_io_soup))
 
     copy_files(STATIC_PATH_LIB, os.path.join(temp_dir, STATIC_PATH_TEMP))
+    # Move association file to root of temporary directory.
+    copyfile(os.path.join(temp_dir, ASSOCIATION_PATH_IN_STATIC),
+             os.path.join(temp_dir, ASSOCIATION_PATH_IN_ROOT))
+
     render_template_with_tags(
         os.path.join(
             temp_dir,

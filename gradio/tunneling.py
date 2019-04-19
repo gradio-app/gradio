@@ -8,7 +8,7 @@ import socket
 import sys
 import threading
 from io import StringIO
-
+import warnings
 import paramiko
 
 DEBUG_MODE = False
@@ -68,12 +68,14 @@ def create_tunnel(payload, local_server, local_server_port):
         "Connecting to ssh host %s:%d ..." % (payload["host"], int(payload["port"]))
     )
     try:
-        client.connect(
-            hostname=payload["host"],
-            port=int(payload["port"]),
-            username=payload["user"],
-            pkey=paramiko.RSAKey.from_private_key(StringIO(payload["key"])),
-        )
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            client.connect(
+                hostname=payload["host"],
+                port=int(payload["port"]),
+                username=payload["user"],
+                pkey=paramiko.RSAKey.from_private_key(StringIO(payload["key"])),
+            )
     except Exception as e:
         print(
             "*** Failed to connect to %s:%d: %r"

@@ -10,10 +10,15 @@ import webbrowser
 import gradio.inputs
 import gradio.outputs
 from gradio import networking, strings
+from distutils.version import StrictVersion
+import pkg_resources
+import requests
+import termcolor
 
 LOCALHOST_IP = "127.0.0.1"
 INITIAL_WEBSOCKET_PORT = 9200
 TRY_NUM_PORTS = 100
+PKG_VERSION_URL = "https://gradio.app/api/pkg-version"
 
 
 class Interface:
@@ -80,6 +85,9 @@ class Interface:
         elif not (model_type.lower() in self.VALID_MODEL_TYPES):
             ValueError("model_type must be one of: {}".format(self.VALID_MODEL_TYPES))
         self.model_type = model_type
+        if self.model_type == "keras":
+            import tensorflow as tf
+            self.graph = tf.get_default_graph()
         self.verbose = verbose
         self.status = self.STATUS_TYPES["OFF"]
         self.validate_flag = False
@@ -127,12 +135,12 @@ class Interface:
         if self.model_type == "sklearn":
             return self.model_obj.predict(preprocessed_input)
         elif self.model_type == "keras":
-            return self.model_obj.predict(preprocessed_input)
+            with self.graph.as_default():
+                return self.model_obj.predict(preprocessed_input)
         elif self.model_type == "pyfunc":
             return self.model_obj(preprocessed_input)
         elif self.model_type == "pytorch":
             import torch
-
             value = torch.from_numpy(preprocessed_input)
             value = torch.autograd.Variable(value)
             prediction = self.model_obj(value)
@@ -237,6 +245,12 @@ class Interface:
         except NameError:
             pass
 
+        current_pkg_version = pkg_resources.require("gradio")[0].version
+        latest_pkg_version = requests.get(url=PKG_VERSION_URL).json()["version"]
+        if StrictVersion(latest_pkg_version) > StrictVersion(current_pkg_version):
+            print(f"IMPORTANT: You are using gradio version {current_pkg_version}, however version {latest_pkg_version} "
+                  f"is available, please upgrade.")
+            print('--------')
         if self.verbose:
             print(strings.en["BETA_MESSAGE"])
             if not is_colab:
