@@ -136,7 +136,7 @@ class Interface:
                     f.write(str(msg['data']))
                     f.close()
                     inp = msg['data']['input']
-                    self.input_interface.rebuild_flagged(inp)
+                    self.input_interface.rebuild_flagged(msg)
 
             except websockets.exceptions.ConnectionClosed:
                 pass
