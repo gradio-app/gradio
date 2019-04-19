@@ -76,7 +76,7 @@ class Interface:
         self.validate_flag = False
         self.simple_server = None
         self.ngrok_api_ports = None
-        self.hash = random.getrandbits(128)
+        self.hash = random.getrandbits(32)
 
     @staticmethod
     def _infer_model_type(model):
