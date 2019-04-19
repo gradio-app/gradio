@@ -5,5 +5,5 @@ en = {
                          "restarting python interpreter.",
     "COLAB_NO_LOCAL": "Cannot display local interface on google colab, public link created.",
     "PUBLIC_SHARE_TRUE": "To create a public link, set `share=True` in the argument to `launch()`.",
-    "MODEL_PUBLICLY_AVAILABLE_URL": "Model available publicly for 8 hours at: {}"
+    "MODEL_PUBLICLY_AVAILABLE_URL": "Model available publicly at: {} -- may take up to a minute to setup."
 }
