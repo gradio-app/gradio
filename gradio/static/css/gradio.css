@@ -89,14 +89,6 @@
   font-weight: bold;
   font-size: 14px;
 }
-.interface_button.primary {
-  color: white;
-  background-color: #EEA45D;
-}
-.interface_button.secondary {
-  color: black;
-  background-color: #F6F6F6;
-}
 .overlay {
   position: absolute;
   height: 100vh;
@@ -108,5 +100,5 @@
   left: 0;
 }
 .flagged {
-  
+
 }
