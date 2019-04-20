@@ -13,11 +13,9 @@ from gradio import networking, strings
 from distutils.version import StrictVersion
 import pkg_resources
 import requests
-import termcolor
 import random
 
 LOCALHOST_IP = "127.0.0.1"
-INITIAL_WEBSOCKET_PORT = 9200
 TRY_NUM_PORTS = 100
 PKG_VERSION_URL = "https://gradio.app/api/pkg-version"
 
