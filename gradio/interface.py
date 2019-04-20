@@ -89,6 +89,7 @@ class Interface:
         if self.model_type == "keras":
             import tensorflow as tf
             self.graph = tf.get_default_graph()
+            self.sess = tf.keras.backend.get_session()
         self.verbose = verbose
         self.status = self.STATUS_TYPES["OFF"]
         self.validate_flag = False
@@ -135,8 +136,10 @@ class Interface:
         if self.model_type == "sklearn":
             return self.model_obj.predict(preprocessed_input)
         elif self.model_type == "keras":
+            import tensorflow as tf
             with self.graph.as_default():
-                return self.model_obj.predict(preprocessed_input)
+                with self.sess.as_default():
+                    return self.model_obj.predict(preprocessed_input)
         elif self.model_type == "pyfunc":
             return self.model_obj(preprocessed_input)
         elif self.model_type == "pytorch":
@@ -200,7 +203,7 @@ class Interface:
             return
         raise RuntimeError("Validation did not pass")
 
-    def launch(self, inline=None, inbrowser=None, share=False, validate=True):
+    def launch(self, inline=None, inbrowser=None, share=True, validate=True):
         """
         Standard method shared by interfaces that creates the interface and sets up a websocket to communicate with it.
         :param inline: boolean. If True, then a gradio interface is created inline (e.g. in jupyter or colab notebook)
