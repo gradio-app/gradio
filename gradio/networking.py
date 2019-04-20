@@ -223,7 +223,9 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
             elif self.path == "/api/flag/":
                 self._set_headers()
                 data_string = self.rfile.read(int(self.headers["Content-Length"]))
+                print('data_string', data_string)
                 msg = json.loads(data_string)
+                print('msg', msg)
                 flag_dir = FLAGGING_DIRECTORY.format(interface.hash)
                 os.makedirs(flag_dir, exist_ok=True)
                 dict = {'input': interface.input_interface.rebuild_flagged(flag_dir, msg),
