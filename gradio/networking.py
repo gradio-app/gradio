@@ -206,11 +206,11 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
 
         def do_POST(self):
             # Read body of the request.
-            self._set_headers()
-            data_string = self.rfile.read(int(self.headers["Content-Length"]))
 
             if self.path == "/api/predict/":
                 # Make the prediction.
+                self._set_headers()
+                data_string = self.rfile.read(int(self.headers["Content-Length"]))
                 msg = json.loads(data_string)
                 processed_input = interface.input_interface.preprocess(msg["data"])
                 prediction = interface.predict(processed_input)
@@ -221,6 +221,8 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
                 self.wfile.write(json.dumps(output).encode())
 
             elif self.path == "/api/flag/":
+                self._set_headers()
+                data_string = self.rfile.read(int(self.headers["Content-Length"]))
                 msg = json.loads(data_string)
                 flag_dir = FLAGGING_DIRECTORY.format(interface.hash)
                 os.makedirs(flag_dir, exist_ok=True)
@@ -232,7 +234,7 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
                     f.write("\n")
 
             else:
-                self.send_response(404)
+                self.send_error(404, 'Path not found: %s' % self.path)
 
     class HTTPServer(BaseHTTPServer):
         """The main server, you pass in base_path which is the path you want to serve requests from"""
