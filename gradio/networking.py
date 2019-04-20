@@ -208,7 +208,6 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
             # Read body of the request.
 
             if self.path == "/api/predict/":
-                print("got hereffffffffffff")
                 # Make the prediction.
                 self._set_headers()
                 data_string = self.rfile.read(int(self.headers["Content-Length"]))
@@ -222,12 +221,9 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
                 self.wfile.write(json.dumps(output).encode())
 
             elif self.path == "/api/flag/":
-                print("got here")
                 self._set_headers()
                 data_string = self.rfile.read(int(self.headers["Content-Length"]))
-                print('data_string', data_string)
                 msg = json.loads(data_string)
-                print('msg', msg)
                 flag_dir = FLAGGING_DIRECTORY.format(interface.hash)
                 os.makedirs(flag_dir, exist_ok=True)
                 dict = {'input': interface.input_interface.rebuild_flagged(flag_dir, msg),

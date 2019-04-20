@@ -7,7 +7,8 @@ automatically added to a registry, which allows them to be easily referenced in 
 from abc import ABC, abstractmethod
 import numpy as np
 import json
-from gradio import imagenet_class_labels
+from gradio import imagenet_class_labels, preprocessing_utils
+import datetime
 
 # Where to find the static resources associated with each template.
 BASE_OUTPUT_INTERFACE_TEMPLATE_PATH = 'templates/output/{}.html'
@@ -121,6 +122,7 @@ class Label(AbstractOutput):
         out = msg['data']['output']
         return json.loads(out)
 
+
 class Textbox(AbstractOutput):
 
     def get_name(self):
@@ -137,6 +139,7 @@ class Textbox(AbstractOutput):
         """
         out = msg['data']['output']
         return json.loads(out)
+
 
 class Image(AbstractOutput):
 

@@ -14,6 +14,7 @@ from distutils.version import StrictVersion
 import pkg_resources
 import requests
 import random
+import time
 
 LOCALHOST_IP = "127.0.0.1"
 TRY_NUM_PORTS = 100
@@ -276,9 +277,11 @@ class Interface:
                 share_url = None
 
         if share_url is not None:
+            networking.set_share_url_in_config_file(output_directory, share_url)
             if self.verbose:
+                print(strings.en["GENERATING_PUBLIC_LINK"], end='\r')
+                time.sleep(5)
                 print(strings.en["MODEL_PUBLICLY_AVAILABLE_URL"].format(share_url))
-        networking.set_share_url_in_config_file(output_directory, share_url)
 
         if inline is None:
             try:  # Check if running interactively using ipython.

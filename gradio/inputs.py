@@ -7,10 +7,10 @@ automatically added to a registry, which allows them to be easily referenced in 
 from abc import ABC, abstractmethod
 from gradio import preprocessing_utils, validation_data
 import numpy as np
-from PIL import Image, ImageOps
+from PIL import ImageOps
 import datetime
-import csv
-import pandas as pd
+import warnings
+import json
 
 # Where to find the static resources associated with each template.
 BASE_INPUT_INTERFACE_TEMPLATE_PATH = 'templates/input/{}.html'
@@ -73,6 +73,7 @@ class AbstractInput(ABC):
         """
         pass
 
+
 class Sketchpad(AbstractInput):
     def __init__(self, preprocessing_fn=None, shape=(28, 28), invert_colors=True, flatten=False, scale=1, shift=0,
                  dtype='float64'):
@@ -104,6 +105,7 @@ class Sketchpad(AbstractInput):
         array = array * self.scale + self.shift
         array = array.astype(self.dtype)
         return array
+
     def rebuild_flagged(self, dir, msg):
         """
         Default rebuild method to decode a base64 image
@@ -138,6 +140,7 @@ class Webcam(AbstractInput):
         im = preprocessing_utils.resize_and_crop(im, (self.image_width, self.image_height))
         array = np.array(im).flatten().reshape(1, self.image_width, self.image_height, self.num_channels)
         return array
+
     def rebuild_flagged(self, dir, msg):
         """
         Default rebuild method to decode a base64 image
@@ -162,15 +165,18 @@ class Textbox(AbstractInput):
         By default, no pre-processing is applied to text.
         """
         return inp
+
     def rebuild_flagged(self, dir, msg):
         """
         Default rebuild method for text saves it .txt file
         """
+        inp = msg['data']['input']
         timestamp = datetime.datetime.now()
         filename = f'input_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.txt'
         with open(f'{dir}/{filename}.txt','w') as f:
             f.write(inp)
         return filename
+
 
 class ImageUpload(AbstractInput):
     def __init__(self, preprocessing_fn=None, shape=(224, 224, 3), image_mode='RGB',
@@ -198,7 +204,10 @@ class ImageUpload(AbstractInput):
         Default preprocessing method for is to convert the picture to black and white and resize to be 48x48
         """
         im = preprocessing_utils.encoding_to_image(inp)
-        im = im.convert(self.image_mode)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            im = im.convert(self.image_mode)
+
         im = preprocessing_utils.resize_and_crop(im, (self.image_width, self.image_height))
         im = np.array(im).flatten()
         im = im * self.scale + self.shift
@@ -219,6 +228,7 @@ class ImageUpload(AbstractInput):
         im.save(f'{dir}/{filename}', 'PNG')
         return filename
 
+
 class CSV(AbstractInput):
 
     def get_name(self):
@@ -237,6 +247,7 @@ class CSV(AbstractInput):
         """
         inp = msg['data']['inp']
         return json.loads(inp)
+
 
 # Automatically adds all subclasses of AbstractInput into a dictionary (keyed by class name) for easy referencing.
 registry = {cls.__name__.lower(): cls for cls in AbstractInput.__subclasses__()}

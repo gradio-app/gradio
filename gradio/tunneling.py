@@ -11,7 +11,7 @@ from io import StringIO
 import warnings
 import paramiko
 
-DEBUG_MODE = True
+DEBUG_MODE = False
 
 
 def handler(chan, host, port):
