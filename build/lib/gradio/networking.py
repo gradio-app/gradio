@@ -249,12 +249,12 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
 
     # Now loop forever
     def serve_forever():
-        try:
-            while True:
-                # sys.stdout.flush()
-                httpd.serve_forever()
-        except (KeyboardInterrupt, OSError):
-            httpd.server_close()
+        # try:
+        while True:
+            # sys.stdout.flush()
+            httpd.serve_forever()
+        # except (KeyboardInterrupt, OSError):
+        #     httpd.server_close()
 
     thread = threading.Thread(target=serve_forever, daemon=True)
     thread.start()
