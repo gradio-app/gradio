@@ -5,7 +5,7 @@ except ImportError:
 
 setup(
     name='gradio',
-    version='0.7.3',
+    version='0.7.4',
     include_package_data=True,
     description='Python library for easily interacting with trained machine learning models',
     author='Abubakar Abid',
@@ -15,8 +15,6 @@ setup(
     keywords=['machine learning', 'visualization', 'reproducibility'],
     install_requires=[
         'numpy',
-        'websockets',
-        'nest_asyncio',
         'beautifulsoup4',
         'Pillow',
         'requests',
