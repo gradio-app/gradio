@@ -13,7 +13,7 @@ $("#send_link").click(function(evt) {
       "type": "POST",
       "crossDomain": true,
       "data": {
-        "url": config["ngrok_socket_url"],
+        "url": config["share_url"],
         "name": name,
         "email": email
       },
