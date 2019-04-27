@@ -45,6 +45,7 @@ class Interface:
         preprocessing_fns=None,
         postprocessing_fns=None,
         verbose=True,
+        saliency=None,
     ):
         """
         :param inputs: a string or `AbstractInput` representing the input interface.
@@ -54,6 +55,8 @@ class Interface:
             provided.
         :param preprocessing_fns: an optional function that overrides the preprocessing function of the input interface.
         :param postprocessing_fns: an optional function that overrides the postprocessing fn of the output interface.
+        :param saliency: an optional function that takes the model and the processed input and returns a 2-d array
+
         """
         if isinstance(inputs, str):
             self.input_interface = gradio.inputs.registry[inputs.lower()](
@@ -94,6 +97,7 @@ class Interface:
         self.validate_flag = False
         self.simple_server = None
         self.hash = random.getrandbits(32)
+        self.saliency = saliency
 
     @staticmethod
     def _infer_model_type(model):
