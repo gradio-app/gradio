@@ -1,0 +1,9 @@
+.recording {
+  display: none;
+}
+.recording.input_caption {
+  color: #C00000;
+}
+.volume_display {
+
+}

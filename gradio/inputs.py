@@ -232,12 +232,29 @@ class ImageUpload(AbstractInput):
 class CSV(AbstractInput):
 
     def get_name(self):
-        # return 'templates/input/csv.html'
         return 'csv'
 
     def preprocess(self, inp):
         """
         By default, no pre-processing is applied to a CSV file (TODO:aliabid94 fix this)
+        """
+        return inp
+
+    def rebuild_flagged(self, dir, msg):
+        """
+        Default rebuild method for csv
+        """
+        inp = msg['data']['inp']
+        return json.loads(inp)
+
+class Microphone(AbstractInput):
+
+    def get_name(self):
+        return 'microphone'
+
+    def preprocess(self, inp):
+        """
+        By default, no pre-processing is applied to a microphone input file (TODO:aliabid94 fix this)
         """
         return inp
 
