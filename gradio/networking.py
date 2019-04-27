@@ -171,8 +171,11 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
                 processed_input = interface.input_interface.preprocess(msg["data"])
                 prediction = interface.predict(processed_input)
                 processed_output = interface.output_interface.postprocess(prediction)
-                output = {"action": "output", "data": processed_output}
-
+                if interface.saliency is not None:
+                    saliency = interface.saliency(interface.model_obj, processed_input)
+                    output = {"action": "output", "data": processed_output, "saliency": saliency.tolist()}
+                else:
+                    output = {"action": "output", "data": processed_output}
                 # Prepare return json dictionary.
                 self.wfile.write(json.dumps(output).encode())
 
