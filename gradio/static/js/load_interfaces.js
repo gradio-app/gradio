@@ -2,7 +2,8 @@ input_to_object_map = {
   "csv" : {},
   "imageupload" : image_input,
   "sketchpad" : sketchpad_input,
-  "textbox" : textbox_input
+  "textbox" : textbox_input,
+  "microphone" : microphone
 }
 output_to_object_map = {
   "csv" : {},
