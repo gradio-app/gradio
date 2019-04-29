@@ -97,7 +97,8 @@ class Sketchpad(AbstractInput):
         im = im.convert('L')
         if self.invert_colors:
             im = ImageOps.invert(im)
-        im = preprocessing_utils.resize_and_crop(im, (self.image_width, self.image_height))
+        im = im.resize((self.image_width, self.image_height))
+        # im = preprocessing_utils.resize_and_crop(im, (self.image_width, self.image_height))
         if self.flatten:
             array = np.array(im).flatten().reshape(1, self.image_width * self.image_height)
         else:

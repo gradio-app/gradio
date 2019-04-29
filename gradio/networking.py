@@ -171,11 +171,13 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
                 processed_input = interface.input_interface.preprocess(msg["data"])
                 prediction = interface.predict(processed_input)
                 processed_output = interface.output_interface.postprocess(prediction)
+                output = {"action": "output", "data": processed_output}
                 if interface.saliency is not None:
-                    saliency = interface.saliency(interface.model_obj, processed_input)
-                    output = {"action": "output", "data": processed_output, "saliency": saliency.tolist()}
-                else:
-                    output = {"action": "output", "data": processed_output}
+                    import numpy as np
+                    saliency = interface.saliency(interface.model_obj, processed_input, prediction)
+                    np.save('sal2.npy', saliency)
+                    output['saliency'] = saliency.tolist()
+
                 # Prepare return json dictionary.
                 self.wfile.write(json.dumps(output).encode())
 
@@ -185,11 +187,11 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
                 msg = json.loads(data_string)
                 flag_dir = FLAGGING_DIRECTORY.format(interface.hash)
                 os.makedirs(flag_dir, exist_ok=True)
-                dict = {'input': interface.input_interface.rebuild_flagged(flag_dir, msg),
-                        'output': interface.output_interface.rebuild_flagged(flag_dir, msg),
-                        'message': msg['data']['message']}
+                output = {'input': interface.input_interface.rebuild_flagged(flag_dir, msg),
+                          'output': interface.output_interface.rebuild_flagged(flag_dir, msg),
+                          'message': msg['data']['message']}
                 with open(os.path.join(flag_dir, FLAGGING_FILENAME), 'a+') as f:
-                    f.write(json.dumps(dict))
+                    f.write(json.dumps(output))
                     f.write("\n")
 
             else:
