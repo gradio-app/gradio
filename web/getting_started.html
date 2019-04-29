@@ -45,31 +45,10 @@ image_mdl = tf.keras.applications.inception_v3.InceptionV3()
 io = gradio.Interface(inputs="imageupload", outputs="label", model_type="keras", model=image_mdl)
 io.launch()</code></pre>
 
-        <p>Running the code above will open a new browser window with the following interface running:</p>
-        <div id="gradio">
-          <div class="panel">
-            <div class="gradio input image_file">
-              <div class="role">Input</div>
-              <div class="input_image drop_mode">
-                <div class="input_caption">Drop Image Here<br>- or -<br>Click to Upload</div>
-                <img />
-              </div>
-              <input class="hidden_upload" type="file" accept="image/x-png,image/gif,image/jpeg" />
-            </div>
-            <input class="submit" type="submit" value="Submit"/><!--
-         --><input class="clear" type="reset" value="Clear">
-          </div><!--
-       --><div class="panel">
-           <div class="gradio output classifier">
-             <div class="panel_head">
-               <div class="role">Output</div>
-             </div>
-             <div class="output_class"></div>
-             <div class="confidence_intervals">
-             </div>
-           </div>
-         </div>
-        </div>
+        <p>Running the code above will open a new browser window with an image upload. The user can drag and drop
+            their own image, which produces outputs like this:</p>
+              <img class="webcam" src="img/cheetah-clean.png" width="80%"/>
+
 
         <p>&nbsp;</p><p>&nbsp;</p>
       <h1>Basic Parameters</h1>
@@ -426,6 +405,46 @@ def predict(inp):
 inp = gradio.inputs.Sketchpad(flatten=True)
 io = gradio.Interface(inputs=inp, outputs="label", model_type="pyfunc", model=predict)
 io.launch(inline=True, share=True)</code></pre>
+
+
+        <h1>Saliency Maps</h1>
+<p>The <code>imageupload</code> interface also supports a saliency model, in which a heatmap
+    is overlaid on top of the input image. This can be used to show feature attributions, e.g. as an interpretation
+    methods. The user supplies their own saliency function, which should take in three arguments: the model object,
+    the input feature, and the input label. Here is an example of a saliency function and what it may produce: </p>
+        <pre><code class="python">import numpy as np
+import tensorflow as tf
+from deepexplain.tensorflow import DeepExplain
+from tensorflow.keras import backend as K
+from tensorflow.keras.models import Sequential, Model
+import gradio
+
+model = tf.keras.applications.MobileNet()
+
+def saliency(model, x, y):
+    y = y.reshape(1, 1, 1, 1000)
+    with DeepExplain(session=K.get_session()) as de:
+        input_tensor = model.layers[0].input
+        fModel = Model(inputs=input_tensor, outputs = model.layers[-3].output)
+        target_tensor = fModel(input_tensor)
+
+        attributions_gradin = de.explain('grad*input', target_tensor, input_tensor, x, ys=y)
+        sal = np.sum(np.abs(attributions_gradin.squeeze()), axis=-1)
+        sal = (sal - sal.min()) / (sal.max() - sal.min())
+        return sal
+
+inp = gradio.inputs.ImageUpload()
+out = gradio.outputs.Label(label_names='imagenet1000', max_label_words=1, word_delimiter=",")
+
+io = gradio.Interface(inputs=inp,
+                      outputs=out,
+                      model=model,
+                      model_type='keras',
+                      saliency=saliency)
+
+io.launch();</code></pre>
+        <p>Which produces this:</p>
+        <img class="webcam" src="img/cheetah-saliency2.jpg" width="80%"/>
 
         <h1>Launch Options</h1>
       <p>When launching the interface, you have the option to pass in several boolean parameters that determine how the interface is displayed. Here
