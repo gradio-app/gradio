@@ -4,6 +4,7 @@ staticfiles
 .env
 *.sqlite3
 .idea/*
+*.ipynb
 .ipynb_checkpoints/*
 models/*
 .models/*
