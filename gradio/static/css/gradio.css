@@ -74,6 +74,11 @@
   justify-content: center;
   text-align: center;
   line-height: 1.5em;
+  flex-flow: column;
+}
+.upload_zone img {
+  height: 120px;
+
 }
 .drop_zone {
   border: dashed 8px #DDD;
