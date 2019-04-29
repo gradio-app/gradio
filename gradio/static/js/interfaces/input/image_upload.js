@@ -12,7 +12,7 @@ const image_input = {
           <img class="image_preview" />
         </div>
         <div class="saliency_holder hide">
-          <div class="saliency"></div>
+          <canvas class="saliency"></canvas>
         </div>
       </div>
     </div>
@@ -100,18 +100,31 @@ const image_input = {
   output: function(data) {
     if (this.target.find(".image_preview").attr("src")) {
       var image = this.target.find(".image_preview");
-      this.target.find(".saliency_holder").removeClass("hide");
-      html = '';
+      var width = image.width();
+      var height = image.height();
+      this.target.find(".saliency_holder").removeClass("hide").html(`
+        <canvas class="saliency" width=${width} height=${height}></canvas>`);
+      var ctx = this.target.find(".saliency")[0].getContext('2d');
+      var cell_width = width / data[0].length
+      var cell_height = height / data.length
+      var r = 0
       data.forEach(function(row) {
-        html += "<div>"
+        var c = 0
         row.forEach(function(cell) {
-          opacity = cell > 0.3 ? cell : 0;
-          html += `<div style="opacity: ${opacity}"> </div>`
+          if (cell < 0.25) {
+            ctx.fillStyle = "white";
+          } else if (cell < 0.5) {
+            ctx.fillStyle = "yellow";
+          } else if (cell < 0.75) {
+            ctx.fillStyle = "orange";
+          } else {
+            ctx.fillStyle = "red";
+          }
+          ctx.fillRect(c * cell_width, r * cell_height, cell_width, cell_height);
+          c++;
         })
-        html += "</div>"
+        r++;
       })
-      this.target.find(".saliency").width(
-          image.width()).height(image.height()).html(html)
     }
   },
   state: "NO_IMAGE",

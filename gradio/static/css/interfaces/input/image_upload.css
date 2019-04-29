@@ -24,6 +24,8 @@
 .saliency {
   display: flex;
   flex-direction: column;
+  border: none;
+  opacity: 0.5;
 }
 .saliency > div {
   display: flex;
