@@ -7,8 +7,13 @@ const image_input = {
       <div class="edit_holder">
         <button class="edit_image interface_button primary">Edit</button>
       </div>
-      <div class="image_preview_holder">
-        <img class="image_preview" />
+      <div class="view_holders">
+        <div class="image_preview_holder">
+          <img class="image_preview" />
+        </div>
+        <div class="saliency_holder hide">
+          <div class="saliency"></div>
+        </div>
       </div>
     </div>
     <input class="hidden_upload" type="file" accept="image/x-png,image/gif,image/jpeg" />`
@@ -46,6 +51,7 @@ const image_input = {
     this.target.find('.edit_image').click(function (e) {
       let io = get_interface(e.target);
       io.overlay_target.removeClass("hide");
+      io.target.find(".saliency_holder").addClass("hide");
     })
     this.tui_editor = new tui.ImageEditor(this.overlay_target.
         find(".image_editor")[0], {
@@ -89,6 +95,24 @@ const image_input = {
     this.target.find(".hidden_upload").prop("value", "")
     this.state = "NO_IMAGE";
     this.image_data = null;
+    this.target.find(".saliency_holder").addClass("hide");
+  },
+  output: function(data) {
+    if (this.target.find(".image_preview").attr("src")) {
+      var image = this.target.find(".image_preview");
+      this.target.find(".saliency_holder").removeClass("hide");
+      html = '';
+      data.forEach(function(row) {
+        html += "<div>"
+        row.forEach(function(cell) {
+          opacity = cell > 0.3 ? cell : 0;
+          html += `<div style="opacity: ${opacity}"> </div>`
+        })
+        html += "</div>"
+      })
+      this.target.find(".saliency").width(
+          image.width()).height(image.height()).html(html)
+    }
   },
   state: "NO_IMAGE",
   image_data: null,
