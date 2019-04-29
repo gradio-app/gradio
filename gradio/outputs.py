@@ -69,11 +69,13 @@ class Label(AbstractOutput):
     CONFIDENCE_KEY = 'confidence'
 
     def __init__(self, postprocessing_fn=None, num_top_classes=3, show_confidences=True, label_names=None,
-                 max_label_length=None):
+                 max_label_length=None, max_label_words=None, word_delimiter=" "):
         self.num_top_classes = num_top_classes
         self.show_confidences = show_confidences
         self.label_names = label_names
         self.max_label_length = max_label_length
+        self.max_label_words = max_label_words
+        self.word_delimiter = word_delimiter
         super().__init__(postprocessing_fn=postprocessing_fn)
 
     def get_name(self):
@@ -86,6 +88,9 @@ class Label(AbstractOutput):
             name = imagenet_class_labels.NAMES1000[label]
         else:  # if list or dictionary
             name = self.label_names[label]
+        if self.max_label_words is not None:
+            name = name.split(self.word_delimiter)[:self.max_label_words]
+            name = self.word_delimiter.join(name)
         if self.max_label_length is not None:
             name = name[:self.max_label_length]
         return name
