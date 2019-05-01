@@ -19,11 +19,6 @@ function set_interface_id(interface, id) {
   interface.target.attr("interface_id", id);
 }
 
-function get_interface(target) {
-  return id_to_interface_map[$(target).closest(".interface, .interface_extension").
-      attr("interface_id")];
-}
-
 var config;
 $.getJSON("static/config.json", function(data) {
   config = data;
