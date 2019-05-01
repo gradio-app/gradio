@@ -79,7 +79,7 @@ const image_input = {
          // }
          io.set_image_data(io.tui_editor.toDataURL(), /*update_editor=*/false);
        }
-     })
+     });
   },
   submit: function() {
     if (this.state == "IMAGE_LOADED") {
