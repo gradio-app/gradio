@@ -14,7 +14,6 @@ from gradio.tunneling import create_tunnel
 import urllib.request
 from shutil import copyfile
 
-
 INITIAL_PORT_VALUE = (
     7860
 )  # The http server will try to open on port 7860. If not available, 7861, 7862, etc.
@@ -193,6 +192,71 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
                 with open(os.path.join(flag_dir, FLAGGING_FILENAME), 'a+') as f:
                     f.write(json.dumps(output))
                     f.write("\n")
+
+
+            #TODO(abidlabs): clean this up
+            elif self.path == "/api/auto/rotation":
+                from gradio import validation_data, preprocessing_utils
+                import numpy as np
+
+                self._set_headers()
+                # data_string = self.rfile.read(int(self.headers["Content-Length"]))
+                # msg = json.loads(data_string)
+                # processed_input = interface.input_interface.preprocess(msg["data"])
+                img_orig = preprocessing_utils.encoding_to_image(validation_data.BASE64_COLOR_IMAGES[0])
+
+                flag_dir = FLAGGING_DIRECTORY.format(interface.hash)
+                os.makedirs(flag_dir, exist_ok=True)
+                print(interface.hash)
+
+                for deg in range(-180, 180+45, 45):
+                    img = img_orig.rotate(deg)
+                    img_array = np.array(img) / 127.5 - 1
+                    prediction = interface.predict(np.expand_dims(img_array, axis=0))
+                    processed_output = interface.output_interface.postprocess(prediction)
+                    output = {'input': interface.input_interface.save_to_file(flag_dir, img),
+                              'output': interface.output_interface.rebuild_flagged(
+                                  flag_dir, {'data': {'output': processed_output}}),
+                              'message': f'rotation by {deg} degrees'}
+
+                    with open(os.path.join(flag_dir, FLAGGING_FILENAME), 'a+') as f:
+                        f.write(json.dumps(output))
+                        f.write("\n")
+
+                # Prepare return json dictionary.
+                self.wfile.write(json.dumps({}).encode())
+
+            elif self.path == "/api/auto/lighting":
+                from gradio import validation_data, preprocessing_utils
+                import numpy as np
+                from PIL import ImageEnhance
+
+                self._set_headers()
+                # data_string = self.rfile.read(int(self.headers["Content-Length"]))
+                # msg = json.loads(data_string)
+                # processed_input = interface.input_interface.preprocess(msg["data"])
+                img_orig = preprocessing_utils.encoding_to_image(validation_data.BASE64_COLOR_IMAGES[0])
+                enhancer = ImageEnhance.Brightness(img_orig)
+
+                flag_dir = FLAGGING_DIRECTORY.format(interface.hash)
+                os.makedirs(flag_dir, exist_ok=True)
+
+                for i in range(9):
+                    img = enhancer.enhance(i/4)
+                    img_array = np.array(img) / 127.5 - 1
+                    prediction = interface.predict(np.expand_dims(img_array, axis=0))
+                    processed_output = interface.output_interface.postprocess(prediction)
+                    output = {'input': interface.input_interface.save_to_file(flag_dir, img),
+                              'output': interface.output_interface.rebuild_flagged(
+                                  flag_dir, {'data': {'output': processed_output}}),
+                              'message': f'brighting adjustment by a factor of {i}'}
+
+                    with open(os.path.join(flag_dir, FLAGGING_FILENAME), 'a+') as f:
+                        f.write(json.dumps(output))
+                        f.write("\n")
+
+                # Prepare return json dictionary.
+                self.wfile.write(json.dumps({}).encode())
 
             else:
                 self.send_error(404, 'Path not found: %s' % self.path)
