@@ -9,6 +9,7 @@ const sketchpad_input = {
       <canvas id="canvas"></canvas>
     </div>`,
   init: function() {
+    var io = this;
     var dimension = Math.min(this.target.find(".canvas_holder").width(),
         this.target.find(".canvas_holder").height()) - 2 // dimension - border
     var id = this.id;
@@ -21,7 +22,6 @@ const sketchpad_input = {
     this.canvas = this.target.find('.canvas_holder canvas')[0];
     this.context = this.canvas.getContext("2d");
     this.target.find(".brush").click(function (e) {
-      let io = get_interface(e.target)
       io.target.find(".brush").removeClass("selected");
       $(this).addClass("selected");
       io.sketchpad.penSize = $(this).attr("size");
