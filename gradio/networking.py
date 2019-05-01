@@ -200,14 +200,12 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
                 import numpy as np
 
                 self._set_headers()
-                # data_string = self.rfile.read(int(self.headers["Content-Length"]))
-                # msg = json.loads(data_string)
-                # processed_input = interface.input_interface.preprocess(msg["data"])
-                img_orig = preprocessing_utils.encoding_to_image(validation_data.BASE64_COLOR_IMAGES[0])
+                data_string = self.rfile.read(int(self.headers["Content-Length"]))
+                msg = json.loads(data_string)
+                img_orig = preprocessing_utils.encoding_to_image(msg["data"])
 
                 flag_dir = FLAGGING_DIRECTORY.format(interface.hash)
                 os.makedirs(flag_dir, exist_ok=True)
-                print(interface.hash)
 
                 for deg in range(-180, 180+45, 45):
                     img = img_orig.rotate(deg)
@@ -232,10 +230,9 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
                 from PIL import ImageEnhance
 
                 self._set_headers()
-                # data_string = self.rfile.read(int(self.headers["Content-Length"]))
-                # msg = json.loads(data_string)
-                # processed_input = interface.input_interface.preprocess(msg["data"])
-                img_orig = preprocessing_utils.encoding_to_image(validation_data.BASE64_COLOR_IMAGES[0])
+                data_string = self.rfile.read(int(self.headers["Content-Length"]))
+                msg = json.loads(data_string)
+                img_orig = preprocessing_utils.encoding_to_image(msg["data"])
                 enhancer = ImageEnhance.Brightness(img_orig)
 
                 flag_dir = FLAGGING_DIRECTORY.format(interface.hash)
