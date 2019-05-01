@@ -7,7 +7,7 @@ automatically added to a registry, which allows them to be easily referenced in 
 from abc import ABC, abstractmethod
 from gradio import preprocessing_utils, validation_data
 import numpy as np
-from PIL import ImageOps
+from PIL import Image, ImageOps
 import datetime
 import warnings
 import json
@@ -107,6 +107,7 @@ class Sketchpad(AbstractInput):
         array = array.astype(self.dtype)
         return array
 
+    # TODO(abidlabs): clean this up
     def rebuild_flagged(self, dir, msg):
         """
         Default rebuild method to decode a base64 image
@@ -227,6 +228,15 @@ class ImageUpload(AbstractInput):
         timestamp = datetime.datetime.now()
         filename = f'input_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.png'
         im.save(f'{dir}/{filename}', 'PNG')
+        return filename
+
+    # TODO(abidlabs): clean this up
+    def save_to_file(self, dir, img):
+        """
+        """
+        timestamp = datetime.datetime.now()
+        filename = f'input_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.png'
+        img.save(f'{dir}/{filename}', 'PNG')
         return filename
 
 
