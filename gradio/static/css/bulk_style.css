@@ -11,9 +11,12 @@ nav img {
   margin-right: auto;
   height: 32px;
 }
-#bulk_rows tr {
+#bulk_rows td {
   text-align: center;
-  height: 40px;
+  height: 60px;
+}
+#bulk_rows tr:nth-child(even) {
+  background: #DDD
 }
 #bulk_rows img {
   text-align: center;
@@ -22,4 +25,6 @@ nav img {
 #bulk_rows {
   margin: 0 auto;
   width: 70%;
+  border-spacing: 0;
+  border-collapse: collapse;
 }
