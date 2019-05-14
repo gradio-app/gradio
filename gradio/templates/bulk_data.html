@@ -1,0 +1,33 @@
+<html lang="en">
+  <head>
+    <title>Gradio</title>
+    <link rel="stylesheet" href="../static/css/bulk_style.css">
+  </head>
+  <body>
+    <nav>
+      <a href="https://gradio.app"><img src="../static/img/logo_inline.png" /></a>
+    </nav>
+    <table id="bulk_rows">
+      <thead>
+        <th>Image</th>
+        <th>Label</th>
+      </thead>
+    </table>
+    <script src="../static/js/vendor/jquery.min.js"></script>
+    <script>
+    $.get("/static/flagged/data.txt", function(data) {
+      let lines = data.split("\n");
+      lines.forEach((line) => {
+        let row_data = JSON.parse(line);
+        let output = row_data["output"];
+        $("#bulk_rows").append(`
+          <tr class="bulk_row">
+            <td><img src="/static/flagged/${row_data["input"]}" /></td>
+            <td class="label">${output["label"] + (output["confidences"] ? ": " + Math.round(100 * output["confidences"][0]["confidence"]) + "%" : "")}</td>
+          </tr>
+        `)
+      })
+    });
+    </script>
+  </body>
+</html>
