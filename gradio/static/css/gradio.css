@@ -117,6 +117,10 @@
   align-items: center;
 }
 
+.tests {
+  margin-top: 10px;
+}
+
 .test_panel > input[type="button"] {
   max-width: 100px;
 }
