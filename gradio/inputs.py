@@ -8,7 +8,7 @@ from abc import ABC, abstractmethod
 from gradio import preprocessing_utils, validation_data
 import numpy as np
 from PIL import Image, ImageOps
-import datetime
+import time
 import warnings
 import json
 
@@ -114,8 +114,8 @@ class Sketchpad(AbstractInput):
         """
         inp = msg['data']['input']
         im = preprocessing_utils.encoding_to_image(inp)
-        timestamp = datetime.datetime.now()
-        filename = f'input_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.png'
+        timestamp = time.time()*1000
+        filename = f'input_{timestamp}.png'
         im.save(f'{dir}/{filename}', 'PNG')
         return filename
 
@@ -149,8 +149,8 @@ class Webcam(AbstractInput):
         """
         inp = msg['data']['input']
         im = preprocessing_utils.encoding_to_image(inp)
-        timestamp = datetime.datetime.now()
-        filename = f'input_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.png'
+        timestamp = time.time()*1000
+        filename = f'input_{timestamp}.png'
         im.save(f'{dir}/{filename}', 'PNG')
         return filename
 
@@ -173,8 +173,8 @@ class Textbox(AbstractInput):
         Default rebuild method for text saves it .txt file
         """
         inp = msg['data']['input']
-        timestamp = datetime.datetime.now()
-        filename = f'input_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.txt'
+        timestamp = time.time()*1000
+        filename = f'input_{timestamp}.png'
         with open(f'{dir}/{filename}.txt','w') as f:
             f.write(inp)
         return filename
@@ -225,8 +225,8 @@ class ImageUpload(AbstractInput):
         """
         inp = msg['data']['input']
         im = preprocessing_utils.encoding_to_image(inp)
-        timestamp = datetime.datetime.now()
-        filename = f'input_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.png'
+        timestamp = time.time()*1000
+        filename = f'input_{timestamp}.png'
         im.save(f'{dir}/{filename}', 'PNG')
         return filename
 
@@ -234,8 +234,8 @@ class ImageUpload(AbstractInput):
     def save_to_file(self, dir, img):
         """
         """
-        timestamp = datetime.datetime.now()
-        filename = f'input_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.png'
+        timestamp = time.time()*1000
+        filename = f'input_{timestamp}.png'
         img.save(f'{dir}/{filename}', 'PNG')
         return filename
 
