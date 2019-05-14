@@ -35,8 +35,8 @@ CONFIG_FILE = "static/config.json"
 ASSOCIATION_PATH_IN_STATIC = "static/apple-app-site-association"
 ASSOCIATION_PATH_IN_ROOT = "apple-app-site-association"
 
-FLAGGING_DIRECTORY = 'gradio-flagged/{}'
-FLAGGING_FILENAME = 'gradio-flagged.txt'
+FLAGGING_DIRECTORY = 'static/flagged/'
+FLAGGING_FILENAME = 'data.txt'
 
 
 def build_template(temp_dir, input_interface, output_interface):
@@ -174,7 +174,6 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
                 if interface.saliency is not None:
                     import numpy as np
                     saliency = interface.saliency(interface.model_obj, processed_input, prediction)
-                    np.save('sal2.npy', saliency)
                     output['saliency'] = saliency.tolist()
 
                 # Prepare return json dictionary.
@@ -184,7 +183,7 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
                 self._set_headers()
                 data_string = self.rfile.read(int(self.headers["Content-Length"]))
                 msg = json.loads(data_string)
-                flag_dir = FLAGGING_DIRECTORY.format(interface.hash)
+                flag_dir = os.path.join(directory_to_serve, FLAGGING_DIRECTORY)
                 os.makedirs(flag_dir, exist_ok=True)
                 output = {'input': interface.input_interface.rebuild_flagged(flag_dir, msg),
                           'output': interface.output_interface.rebuild_flagged(flag_dir, msg),
@@ -192,7 +191,6 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
                 with open(os.path.join(flag_dir, FLAGGING_FILENAME), 'a+') as f:
                     f.write(json.dumps(output))
                     f.write("\n")
-
 
             #TODO(abidlabs): clean this up
             elif self.path == "/api/auto/rotation":
@@ -203,8 +201,10 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
                 data_string = self.rfile.read(int(self.headers["Content-Length"]))
                 msg = json.loads(data_string)
                 img_orig = preprocessing_utils.encoding_to_image(msg["data"])
+                img_orig = img_orig.convert('RGB')
+                img_orig = img_orig.resize((224, 224))
 
-                flag_dir = FLAGGING_DIRECTORY.format(interface.hash)
+                flag_dir = os.path.join(directory_to_serve, FLAGGING_DIRECTORY)
                 os.makedirs(flag_dir, exist_ok=True)
 
                 for deg in range(-180, 180+45, 45):
@@ -233,9 +233,11 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
                 data_string = self.rfile.read(int(self.headers["Content-Length"]))
                 msg = json.loads(data_string)
                 img_orig = preprocessing_utils.encoding_to_image(msg["data"])
+                img_orig = img_orig.convert('RGB')
+                img_orig = img_orig.resize((224, 224))
                 enhancer = ImageEnhance.Brightness(img_orig)
 
-                flag_dir = FLAGGING_DIRECTORY.format(interface.hash)
+                flag_dir = os.path.join(directory_to_serve, FLAGGING_DIRECTORY)
                 os.makedirs(flag_dir, exist_ok=True)
 
                 for i in range(9):
