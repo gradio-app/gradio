@@ -23,9 +23,7 @@ TRY_NUM_PORTS = (
 LOCALHOST_NAME = "localhost"
 GRADIO_API_SERVER = "https://api.gradio.app/v1/tunnel-request"
 
-BASE_TEMPLATE = pkg_resources.resource_filename(
-    "gradio", "templates/base_template.html"
-)
+STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "templates/")
 STATIC_PATH_LIB = pkg_resources.resource_filename("gradio", "static/")
 STATIC_PATH_TEMP = "static/"
 TEMPLATE_TEMP = "index.html"
@@ -44,7 +42,7 @@ def build_template(temp_dir, input_interface, output_interface):
     Create HTML file with supporting JS and CSS files in a given directory.
     :param temp_dir: string with path to temp directory in which the html file should be built
     """
-    copyfile(BASE_TEMPLATE, os.path.join(temp_dir, TEMPLATE_TEMP));
+    dir_util.copy_tree(STATIC_TEMPLATE_LIB, temp_dir)
     dir_util.copy_tree(STATIC_PATH_LIB, os.path.join(temp_dir, STATIC_PATH_TEMP))
 
     # Move association file to root of temporary directory.
