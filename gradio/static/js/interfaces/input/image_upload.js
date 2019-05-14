@@ -34,6 +34,7 @@ const image_input = {
        <div><strong>Lighting</strong>: (adjusts the lighting to 9 different levels)</div>
        <input type="button" class="panel_button light_test" value="Run"/>
      </div>
+     <a href="bulk_data.html"><input type="button" class="panel_button" value="Bulk Data" style="margin-top: 10px;"/></a>
   `,
   init: function() {
     var io = this;
