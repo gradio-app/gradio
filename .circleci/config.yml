@@ -13,7 +13,7 @@ jobs:
           command: |
             python3 -m venv venv
             . venv/bin/activate
-            pip install -r requirements/dev.txt
+            pip install -r gradio.egg-info/requires.txt
       - save_cache:
           key: deps1-{{ .Branch }}-{{ checksum "gradio.egg-info/requires.txt" }}
           paths:
