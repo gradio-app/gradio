@@ -1,41 +1,29 @@
-version: 2 # use CircleCI 2.0
-jobs: # A basic unit of work in a run
-  build: # runs not using Workflows must have a `build` job as entry point
-    # directory where steps are run
-    working_directory: ~/gradio
-    docker: # run the steps with Docker
-      # CircleCI Python images available at: https://hub.docker.com/r/circleci/python/
+version: 2
+jobs:
+  build:
+    docker:
       - image: circleci/python:3.7.2
-        environment: # environment variables for primary container
-          PIPENV_VENV_IN_PROJECT: true
-          # DATABASE_URL: postgresql://root@localhost/circle_test?sslmode=disable
-      # CircleCI PostgreSQL images available at: https://hub.docker.com/r/circleci/postgres/
-      # - image: circleci/postgres:9.6.2
-        # environment: # environment variables for the Postgres container.
-          # POSTGRES_USER: root
-          # POSTGRES_DB: circle_test
-    steps: # steps that comprise the `build` job
-      - checkout # check out source code to working directory
-      - run: sudo chown -R circleci:circleci /usr/local/bin
-      - run: sudo chown -R circleci:circleci /usr/local/lib/python3.7.2/site-packages
+    steps:
+      - checkout
+      - run: mkdir test-reports
       - restore_cache:
-      # Read about caching dependencies: https://circleci.com/docs/2.0/caching/
-          key: deps9-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
+          key: deps1-{{ .Branch }}-{{ checksum "requirements/dev.txt" }}
       - run:
+          name: Install Python deps in a venv
           command: |
-            sudo pip install pipenv
-            pipenv install
-      - save_cache: # cache Python dependencies using checksum of Pipfile as the cache-key
-          key: deps9-{{ .Branch }}-{{ checksum "Pipfile.lock" }}
+            python3 -m venv venv
+            . venv/bin/activate
+            pip install -r requirements/dev.txt
+      - save_cache:
+          key: deps1-{{ .Branch }}-{{ checksum "requirements/dev.txt" }}
           paths:
-            - ".venv"
-            - "/usr/local/bin"
-            - "/usr/local/lib/python3.7.2/site-packages"
+            - "venv"
       - run:
           command: |
-            pipenv python3 -m unittest
-      - store_test_results: # Upload test results for display in Test Summary: https://circleci.com/docs/2.0/collect-test-data/
-          path: test-results
-      - store_artifacts: # Upload test summary for display in Artifacts: https://circleci.com/docs/2.0/artifacts/
-          path: test-results
+            . venv/bin/activate
+            python3 -m unittest
+      - store_artifacts:
+          path: test-reports/
           destination: tr1
+      - store_test_results:
+          path: test-reports/
