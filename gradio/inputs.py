@@ -258,6 +258,7 @@ class CSV(AbstractInput):
         inp = msg['data']['inp']
         return json.loads(inp)
 
+
 class Microphone(AbstractInput):
 
     def get_name(self):
