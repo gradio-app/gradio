@@ -11,7 +11,6 @@ from gradio import imagenet_class_labels, preprocessing_utils
 import datetime
 
 # Where to find the static resources associated with each template.
-BASE_OUTPUT_INTERFACE_TEMPLATE_PATH = 'templates/output/{}.html'
 BASE_OUTPUT_INTERFACE_JS_PATH = 'static/js/interfaces/output/{}.js'
 
 
