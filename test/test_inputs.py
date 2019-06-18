@@ -23,7 +23,7 @@ class TestWebcam(unittest.TestCase):
     def test_path_exists(self):
         inp = inputs.Webcam()
         path = inputs.BASE_INPUT_INTERFACE_JS_PATH.format(inp.get_name())
-        self.assertFalse(os.path.exists(os.path.join(PACKAGE_NAME, path)))  # Note implemented yet.
+        self.assertFalse(os.path.exists(os.path.join('..', PACKAGE_NAME, path)))  # Note implemented yet.
 
     def test_preprocessing(self):
         inp = inputs.Webcam()
