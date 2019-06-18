@@ -13,7 +13,7 @@ import warnings
 import json
 
 # Where to find the static resources associated with each template.
-BASE_INPUT_INTERFACE_TEMPLATE_PATH = 'templates/input/{}.html'
+# BASE_INPUT_INTERFACE_TEMPLATE_PATH = 'static/js/interfaces/input/{}.js'
 BASE_INPUT_INTERFACE_JS_PATH = 'static/js/interfaces/input/{}.js'
 
 
