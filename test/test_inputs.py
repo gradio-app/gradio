@@ -11,7 +11,7 @@ class TestSketchpad(unittest.TestCase):
     def test_path_exists(self):
         inp = inputs.Sketchpad()
         path = inputs.BASE_INPUT_INTERFACE_JS_PATH.format(inp.get_name())
-        self.assertTrue(os.path.exists(os.path.join('..', PACKAGE_NAME, path)))
+        self.assertTrue(os.path.exists(os.path.join(PACKAGE_NAME, path)))
 
     def test_preprocessing(self):
         inp = inputs.Sketchpad()
@@ -23,7 +23,7 @@ class TestWebcam(unittest.TestCase):
     def test_path_exists(self):
         inp = inputs.Webcam()
         path = inputs.BASE_INPUT_INTERFACE_JS_PATH.format(inp.get_name())
-        self.assertFalse(os.path.exists(os.path.join('..', PACKAGE_NAME, path)))  # Note implemented yet.
+        self.assertFalse(os.path.exists(os.path.join(PACKAGE_NAME, path)))  # Note implemented yet.
 
     def test_preprocessing(self):
         inp = inputs.Webcam()
@@ -35,7 +35,7 @@ class TestTextbox(unittest.TestCase):
     def test_path_exists(self):
         inp = inputs.Textbox()
         path = inputs.BASE_INPUT_INTERFACE_JS_PATH.format(inp.get_name())
-        self.assertTrue(os.path.exists(os.path.join('..', PACKAGE_NAME, path)))
+        self.assertTrue(os.path.exists(os.path.join(PACKAGE_NAME, path)))
 
     def test_preprocessing(self):
         inp = inputs.Textbox()
@@ -47,7 +47,7 @@ class TestImageUpload(unittest.TestCase):
     def test_path_exists(self):
         inp = inputs.ImageUpload()
         path = inputs.BASE_INPUT_INTERFACE_JS_PATH.format(inp.get_name())
-        self.assertTrue(os.path.exists(os.path.join('..', PACKAGE_NAME, path)))
+        self.assertTrue(os.path.exists(os.path.join(PACKAGE_NAME, path)))
 
     def test_preprocessing(self):
         inp = inputs.ImageUpload()
