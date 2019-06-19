@@ -21,7 +21,6 @@ jobs:
       - run:
           command: |
             . venv/bin/activate
-            cd test
             python3 -m unittest
       - store_artifacts:
           path: test-reports/
