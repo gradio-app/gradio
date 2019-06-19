@@ -3,8 +3,7 @@
 
 `Gradio` is a python library that allows you to place input and output interfaces over trained models to make it easy for you to "play around" with your model and share the public URL to the interface with others. Gradio runs entirely locally using your browser.
 
-For more details, see the accompanying paper: ["Gradio: Hassle-Free Sharing and Testing of ML Models in the Wild"]
-(https://arxiv.org/pdf/1906.02569.pdf), *ICML HILL 2019*, and please use the citation below.
+For more details, see the accompanying paper: ["Gradio: Hassle-Free Sharing and Testing of ML Models in the Wild"](https://arxiv.org/pdf/1906.02569.pdf), *ICML HILL 2019*, and please use the citation below.
 
 ```
 @article{abid2019gradio,
