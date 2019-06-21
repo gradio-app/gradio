@@ -9,10 +9,10 @@ BASE64_IMG = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAYEBQYFBAY
 
 
 class TestLabel(unittest.TestCase):
-    # def test_path_exists(self):
-    #     out = outputs.Label()
-    #     path = outputs.BASE_OUTPUT_INTERFACE_TEMPLATE_PATH.format(out.get_name())
-    #     self.assertTrue(os.path.exists(os.path.join(PACKAGE_NAME, path)))
+    def test_path_exists(self):
+        out = outputs.Label()
+        path = outputs.BASE_OUTPUT_INTERFACE_JS_PATH.format(out.get_name())
+        self.assertTrue(os.path.exists(os.path.join(PACKAGE_NAME, path)))
 
     def test_postprocessing_string(self):
         string = 'happy'
@@ -39,19 +39,19 @@ class TestLabel(unittest.TestCase):
         label = json.loads(out.postprocess(array))
         self.assertDictEqual(label, true_label)
 
-    # def test_postprocessing_int(self):
-    #     true_label_array = np.array([[[3]]])
-    #     true_label = {outputs.Label.LABEL_KEY: 3}
-    #     out = outputs.Label()
-    #     label = json.loads(out.postprocess(true_label_array))
-    #     self.assertDictEqual(label, true_label)
+    def test_postprocessing_int(self):
+        true_label_array = np.array([[[3]]])
+        true_label = {outputs.Label.LABEL_KEY: 3}
+        out = outputs.Label()
+        label = json.loads(out.postprocess(true_label_array))
+        self.assertDictEqual(label, true_label)
 
 
-# class TestTextbox(unittest.TestCase):
-#     def test_path_exists(self):
-#         out = outputs.Textbox()
-#         path = outputs.BASE_OUTPUT_INTERFACE_TEMPLATE_PATH.format(out.get_name())
-#         self.assertTrue(os.path.exists(os.path.join(PACKAGE_NAME, path)))
+class TestTextbox(unittest.TestCase):
+    def test_path_exists(self):
+        out = outputs.Textbox()
+        path = outputs.BASE_OUTPUT_INTERFACE_JS_PATH.format(out.get_name())
+        self.assertTrue(os.path.exists(os.path.join(PACKAGE_NAME, path)))
 
     def test_postprocessing(self):
         string = 'happy'
@@ -61,10 +61,10 @@ class TestLabel(unittest.TestCase):
 
 
 class TestImage(unittest.TestCase):
-    # def test_path_exists(self):
-    #     out = outputs.Image()
-    #     path = outputs.BASE_OUTPUT_INTERFACE_TEMPLATE_PATH.format(out.get_name())
-    #     self.assertTrue(os.path.exists(os.path.join(PACKAGE_NAME, path)))
+    def test_path_exists(self):
+        out = outputs.Image()
+        path = outputs.BASE_OUTPUT_INTERFACE_JS_PATH.format(out.get_name())
+        self.assertTrue(os.path.exists(os.path.join(PACKAGE_NAME, path)))
 
     def test_postprocessing(self):
         string = BASE64_IMG
