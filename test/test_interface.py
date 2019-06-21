@@ -21,25 +21,25 @@ class TestInterface(unittest.TestCase):
         io = Interface(inputs='SketCHPad', outputs=out, model=lambda x: x, model_type='function')
         self.assertEqual(io.output_interface, out)
 
-    # def test_keras_model(self):
-    #     try:
-    #         import tensorflow as tf
-    #     except:
-    #         raise unittest.SkipTest("Need tensorflow installed to do keras-based tests")
-    #     inputs = tf.keras.Input(shape=(3,))
-    #     x = tf.keras.layers.Dense(4, activation=tf.nn.relu)(inputs)
-    #     outputs = tf.keras.layers.Dense(5, activation=tf.nn.softmax)(x)
-    #     model = tf.keras.Model(inputs=inputs, outputs=outputs)
-    #     io = Interface(inputs='SketCHPad', outputs='textBOX', model=model, model_type='keras')
-    #     pred = io.predict(np.ones(shape=(1, 3), ))
-    #     self.assertEqual(pred.shape, (1, 5))
+    def test_keras_model(self):
+        try:
+            import tensorflow as tf
+        except:
+            raise unittest.SkipTest("Need tensorflow installed to do keras-based tests")
+        inputs = tf.keras.Input(shape=(3,))
+        x = tf.keras.layers.Dense(4, activation=tf.nn.relu)(inputs)
+        outputs = tf.keras.layers.Dense(5, activation=tf.nn.softmax)(x)
+        model = tf.keras.Model(inputs=inputs, outputs=outputs)
+        io = Interface(inputs='SketCHPad', outputs='textBOX', model=model, model_type='keras')
+        pred = io.predict(np.ones(shape=(1, 3), ))
+        self.assertEqual(pred.shape, (1, 5))
 
-    # def test_func_model(self):
-    #     def model(x):
-    #         return 2*x
-    #     io = Interface(inputs='SketCHPad', outputs='textBOX', model=model, model_type='function')
-    #     pred = io.predict(np.ones(shape=(1, 3)))
-    #     self.assertEqual(pred.shape, (1, 3))
+    def test_func_model(self):
+        def model(x):
+            return 2*x
+        io = Interface(inputs='SketCHPad', outputs='textBOX', model=model, model_type='pyfunc')
+        pred = io.predict(np.ones(shape=(1, 3)))
+        self.assertEqual(pred.shape, (1, 3))
 
     def test_pytorch_model(self):
         try:
