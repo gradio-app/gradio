@@ -4,13 +4,36 @@
 .image_display {
   height: 100%;
 }
-.image_preview_holder {
+.view_holders {
   flex-grow: 1;
   height: calc(100% - 36px);
+  background-color: #CCCCCC;
+  position: relative;
+}
+.image_preview_holder, .saliency_holder {
+  width: 100%;
+  height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #CCCCCC;
+}
+.saliency_holder {
+  position: absolute;
+  top: 0;
+}
+.saliency {
+  display: flex;
+  flex-direction: column;
+  border: none;
+  opacity: 1;
+}
+.saliency > div {
+  display: flex;
+  flex-grow: 1;
+}
+.saliency > div > div {
+  flex-grow: 1;
+  background-color: #EEA45D;
 }
 .image_preview {
   max-width: 100%;

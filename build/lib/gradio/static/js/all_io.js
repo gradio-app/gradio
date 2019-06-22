@@ -10,7 +10,7 @@ var io_master = {
         data: JSON.stringify(post_data),
         success: function(output){
             if (output['action'] == 'output') {
-              io_master.output(output['data']);
+              io_master.output(output);
             }
         },
         error: function(XMLHttpRequest, textStatus, errorThrown) {
@@ -21,8 +21,27 @@ var io_master = {
     });
   },
   output: function(data) {
-    this.last_output = data;
-    this.output_interface.output(data);
+    this.last_output = data["data"];
+    this.output_interface.output(data["data"]);
+    if (this.input_interface.output && data["saliency"]) {
+      this.input_interface.output(data["saliency"]);
+    }
+  },
+  test: function(type, data) {
+    var post_data = {
+      'data': data
+    };
+    if (type == "rotation") {
+      $.ajax({type: "POST",
+        url: "/api/auto/rotation",
+        data: JSON.stringify(post_data)
+      });
+    } else if (type == "lighting") {
+      $.ajax({type: "POST",
+        url: "/api/auto/lighting",
+        data: JSON.stringify(post_data)
+      });
+    }
   },
   flag: function(message) {
     var post_data = {

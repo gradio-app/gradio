@@ -2,7 +2,8 @@ input_to_object_map = {
   "csv" : {},
   "imageupload" : image_input,
   "sketchpad" : sketchpad_input,
-  "textbox" : textbox_input
+  "textbox" : textbox_input,
+  "microphone" : microphone
 }
 output_to_object_map = {
   "csv" : {},
@@ -16,11 +17,6 @@ function set_interface_id(interface, id) {
   interface.id = id;
   id_to_interface_map[id] = interface;
   interface.target.attr("interface_id", id);
-}
-
-function get_interface(target) {
-  return id_to_interface_map[$(target).closest(".interface, .interface_extension").
-      attr("interface_id")];
 }
 
 var config;
