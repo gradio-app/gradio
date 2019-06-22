@@ -161,7 +161,7 @@ class Image(AbstractOutput):
         Default rebuild method to decode a base64 image
         """
         out = msg['data']['output']
-        im = preprocessing_utils.encoding_to_image(out)
+        im = preprocessing_utils.decode_base64_to_image(out)
         timestamp = datetime.datetime.now()
         filename = f'output_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.png'
         im.save(f'{dir}/{filename}', 'PNG')

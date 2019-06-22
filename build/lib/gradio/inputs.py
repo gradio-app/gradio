@@ -93,7 +93,7 @@ class Sketchpad(AbstractInput):
         """
         Default preprocessing method for the SketchPad is to convert the sketch to black and white and resize 28x28
         """
-        im = preprocessing_utils.encoding_to_image(inp)
+        im = preprocessing_utils.decode_base64_to_image(inp)
         im = im.convert('L')
         if self.invert_colors:
             im = ImageOps.invert(im)
@@ -111,7 +111,7 @@ class Sketchpad(AbstractInput):
         Default rebuild method to decode a base64 image
         """
         inp = msg['data']['input']
-        im = preprocessing_utils.encoding_to_image(inp)
+        im = preprocessing_utils.decode_base64_to_image(inp)
         timestamp = datetime.datetime.now()
         filename = f'input_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.png'
         im.save(f'{dir}/{filename}', 'PNG')
@@ -135,7 +135,7 @@ class Webcam(AbstractInput):
         """
         Default preprocessing method for is to convert the picture to black and white and resize to be 48x48
         """
-        im = preprocessing_utils.encoding_to_image(inp)
+        im = preprocessing_utils.decode_base64_to_image(inp)
         im = im.convert('RGB')
         im = preprocessing_utils.resize_and_crop(im, (self.image_width, self.image_height))
         array = np.array(im).flatten().reshape(1, self.image_width, self.image_height, self.num_channels)
@@ -146,7 +146,7 @@ class Webcam(AbstractInput):
         Default rebuild method to decode a base64 image
         """
         inp = msg['data']['input']
-        im = preprocessing_utils.encoding_to_image(inp)
+        im = preprocessing_utils.decode_base64_to_image(inp)
         timestamp = datetime.datetime.now()
         filename = f'input_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.png'
         im.save(f'{dir}/{filename}', 'PNG')
@@ -203,7 +203,7 @@ class ImageUpload(AbstractInput):
         """
         Default preprocessing method for is to convert the picture to black and white and resize to be 48x48
         """
-        im = preprocessing_utils.encoding_to_image(inp)
+        im = preprocessing_utils.decode_base64_to_image(inp)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             im = im.convert(self.image_mode)
@@ -222,7 +222,7 @@ class ImageUpload(AbstractInput):
         Default rebuild method to decode a base64 image
         """
         inp = msg['data']['input']
-        im = preprocessing_utils.encoding_to_image(inp)
+        im = preprocessing_utils.decode_base64_to_image(inp)
         timestamp = datetime.datetime.now()
         filename = f'input_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.png'
         im.save(f'{dir}/{filename}', 'PNG')
