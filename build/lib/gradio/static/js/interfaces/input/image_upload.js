@@ -7,8 +7,13 @@ const image_input = {
       <div class="edit_holder">
         <button class="edit_image interface_button primary">Edit</button>
       </div>
-      <div class="image_preview_holder">
-        <img class="image_preview" />
+      <div class="view_holders">
+        <div class="image_preview_holder">
+          <img class="image_preview" />
+        </div>
+        <div class="saliency_holder hide">
+          <canvas class="saliency"></canvas>
+        </div>
       </div>
     </div>
     <input class="hidden_upload" type="file" accept="image/x-png,image/gif,image/jpeg" />`
@@ -20,11 +25,22 @@ const image_input = {
       </div>
     </div>
   `,
+  test_html: `
+    <div class="panel_buttons test_panel">
+       <div><strong>Rotation</strong>: (rotates between -180 and 180 degrees)</div>
+       <input type="button" class="panel_button rotate_test" value="Run"/>
+     </div>
+     <div class="panel_buttons test_panel">
+       <div><strong>Lighting</strong>: (adjusts the lighting to 9 different levels)</div>
+       <input type="button" class="panel_button light_test" value="Run"/>
+     </div>
+     <a href="bulk_data.html"><input type="button" class="panel_button" value="Bulk Data" style="margin-top: 10px;"/></a>
+  `,
   init: function() {
+    var io = this;
     $('body').append(this.overlay_html.format(this.id));
     this.overlay_target = $(`.overlay[interface_id=${this.id}]`);
     this.target.find(".upload_zone").click(function (e) {
-      let io = get_interface(e.target)
       io.target.find(".hidden_upload").click();
     });
     this.target.on('drag dragstart dragend dragover dragenter dragleave drop',
@@ -33,19 +49,17 @@ const image_input = {
       e.stopPropagation();
     })
     this.target.on('drop', '.drop_zone', function(e) {
-      let io = get_interface(e.target)
       files = e.originalEvent.dataTransfer.files;
       io.load_preview_from_files(files)
     });
     this.target.find('.hidden_upload').on('change', function (e) {
       if (this.files) {
-        let io = get_interface(e.target);
         io.load_preview_from_files(this.files);
       }
     })
     this.target.find('.edit_image').click(function (e) {
-      let io = get_interface(e.target);
       io.overlay_target.removeClass("hide");
+      io.target.find(".saliency_holder").addClass("hide");
     })
     this.tui_editor = new tui.ImageEditor(this.overlay_target.
         find(".image_editor")[0], {
@@ -65,13 +79,23 @@ const image_input = {
        <button class="tui_cancel tui_close interface_button secondary">Cancel</button>
      `)
      this.overlay_target.find('.tui_close').click(function (e) {
-       let io = get_interface(e.target);
        io.overlay_target.addClass("hide");
        if ($(e.target).hasClass('tui_save')) {
          // if (io.tui_editor.ui.submenu == "crop") {
          //   io.tui_editor._cropAction().crop());
          // }
          io.set_image_data(io.tui_editor.toDataURL(), /*update_editor=*/false);
+       }
+     });
+     $(".tests").html(this.test_html);
+     $(".rotate_test").click(function () {
+       if (io.image_data) {
+         io.io_master.test("rotation", io.image_data);
+       }
+     })
+     $(".light_test").click(function () {
+       if (io.image_data) {
+         io.io_master.test("lighting", io.image_data);
        }
      })
   },
@@ -89,6 +113,37 @@ const image_input = {
     this.target.find(".hidden_upload").prop("value", "")
     this.state = "NO_IMAGE";
     this.image_data = null;
+    this.target.find(".saliency_holder").addClass("hide");
+  },
+  output: function(data) {
+    if (this.target.find(".image_preview").attr("src")) {
+      var image = this.target.find(".image_preview");
+      var width = image.width();
+      var height = image.height();
+      this.target.find(".saliency_holder").removeClass("hide").html(`
+        <canvas class="saliency" width=${width} height=${height}></canvas>`);
+      var ctx = this.target.find(".saliency")[0].getContext('2d');
+      var cell_width = width / data[0].length
+      var cell_height = height / data.length
+      var r = 0
+      data.forEach(function(row) {
+        var c = 0
+        row.forEach(function(cell) {
+          if (cell < 0.25) {
+            ctx.fillStyle = "white";
+          } else if (cell < 0.5) {
+            ctx.fillStyle = "yellow";
+          } else if (cell < 0.75) {
+            ctx.fillStyle = "orange";
+          } else {
+            ctx.fillStyle = "red";
+          }
+          ctx.fillRect(c * cell_width, r * cell_height, cell_width, cell_height);
+          c++;
+        })
+        r++;
+      })
+    }
   },
   state: "NO_IMAGE",
   image_data: null,
