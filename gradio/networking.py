@@ -198,7 +198,7 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
                 self._set_headers()
                 data_string = self.rfile.read(int(self.headers["Content-Length"]))
                 msg = json.loads(data_string)
-                img_orig = preprocessing_utils.encoding_to_image(msg["data"])
+                img_orig = preprocessing_utils.decode_base64_to_image(msg["data"])
                 img_orig = img_orig.convert('RGB')
                 img_orig = img_orig.resize((224, 224))
 
@@ -230,7 +230,7 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
                 self._set_headers()
                 data_string = self.rfile.read(int(self.headers["Content-Length"]))
                 msg = json.loads(data_string)
-                img_orig = preprocessing_utils.encoding_to_image(msg["data"])
+                img_orig = preprocessing_utils.decode_base64_to_image(msg["data"])
                 img_orig = img_orig.convert('RGB')
                 img_orig = img_orig.resize((224, 224))
                 enhancer = ImageEnhance.Brightness(img_orig)
