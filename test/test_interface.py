@@ -37,7 +37,7 @@ class TestInterface(unittest.TestCase):
     def test_func_model(self):
         def model(x):
             return 2*x
-        io = Interface(inputs='SketCHPad', outputs='textBOX', model=model, model_type='function')
+        io = Interface(inputs='SketCHPad', outputs='textBOX', model=model, model_type='pyfunc')
         pred = io.predict(np.ones(shape=(1, 3)))
         self.assertEqual(pred.shape, (1, 3))
 

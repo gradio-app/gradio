@@ -1,0 +1,29 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/python:3.7.2
+    steps:
+      - checkout
+      - run: mkdir test-reports
+      - restore_cache:
+          key: deps1-{{ .Branch }}-{{ checksum "gradio.egg-info/requires.txt" }}
+      - run:
+          name: Install Python deps in a venv
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            pip install -r gradio.egg-info/requires.txt
+      - save_cache:
+          key: deps1-{{ .Branch }}-{{ checksum "gradio.egg-info/requires.txt" }}
+          paths:
+            - "venv"
+      - run:
+          command: |
+            . venv/bin/activate
+            python3 -m unittest
+      - store_artifacts:
+          path: test-reports/
+          destination: tr1
+      - store_test_results:
+          path: test-reports/
