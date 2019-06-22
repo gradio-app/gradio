@@ -136,6 +136,7 @@ class Interface:
         Method that calls the relevant method of the model object to make a prediction.
         :param preprocessed_input: the preprocessed input returned by the input interface
         """
+        print(preprocessed_input.shape)
         if self.model_type == "sklearn":
             return self.model_obj.predict(preprocessed_input)
         elif self.model_type == "keras":

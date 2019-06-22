@@ -20,5 +20,6 @@ setup(
         'requests',
         'psutil',
         'paramiko',
+        'scipy',
     ],
 )

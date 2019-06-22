@@ -12,6 +12,7 @@ import time
 import warnings
 import json
 
+
 # Where to find the static resources associated with each template.
 BASE_INPUT_INTERFACE_TEMPLATE_PATH = 'templates/input/{}.html'
 BASE_INPUT_INTERFACE_JS_PATH = 'static/js/interfaces/input/{}.js'
@@ -93,12 +94,11 @@ class Sketchpad(AbstractInput):
         """
         Default preprocessing method for the SketchPad is to convert the sketch to black and white and resize 28x28
         """
-        im = preprocessing_utils.encoding_to_image(inp)
+        im = preprocessing_utils.decode_base64_to_image(inp)
         im = im.convert('L')
         if self.invert_colors:
             im = ImageOps.invert(im)
         im = im.resize((self.image_width, self.image_height))
-        # im = preprocessing_utils.resize_and_crop(im, (self.image_width, self.image_height))
         if self.flatten:
             array = np.array(im).flatten().reshape(1, self.image_width * self.image_height)
         else:
@@ -113,7 +113,7 @@ class Sketchpad(AbstractInput):
         Default rebuild method to decode a base64 image
         """
         inp = msg['data']['input']
-        im = preprocessing_utils.encoding_to_image(inp)
+        im = preprocessing_utils.decode_base64_to_image(inp)
         timestamp = time.time()*1000
         filename = f'input_{timestamp}.png'
         im.save(f'{dir}/{filename}', 'PNG')
@@ -137,7 +137,7 @@ class Webcam(AbstractInput):
         """
         Default preprocessing method for is to convert the picture to black and white and resize to be 48x48
         """
-        im = preprocessing_utils.encoding_to_image(inp)
+        im = preprocessing_utils.decode_base64_to_image(inp)
         im = im.convert('RGB')
         im = preprocessing_utils.resize_and_crop(im, (self.image_width, self.image_height))
         array = np.array(im).flatten().reshape(1, self.image_width, self.image_height, self.num_channels)
@@ -148,7 +148,7 @@ class Webcam(AbstractInput):
         Default rebuild method to decode a base64 image
         """
         inp = msg['data']['input']
-        im = preprocessing_utils.encoding_to_image(inp)
+        im = preprocessing_utils.decode_base64_to_image(inp)
         timestamp = time.time()*1000
         filename = f'input_{timestamp}.png'
         im.save(f'{dir}/{filename}', 'PNG')
@@ -205,7 +205,7 @@ class ImageUpload(AbstractInput):
         """
         Default preprocessing method for is to convert the picture to black and white and resize to be 48x48
         """
-        im = preprocessing_utils.encoding_to_image(inp)
+        im = preprocessing_utils.decode_base64_to_image(inp)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             im = im.convert(self.image_mode)
@@ -224,7 +224,7 @@ class ImageUpload(AbstractInput):
         Default rebuild method to decode a base64 image
         """
         inp = msg['data']['input']
-        im = preprocessing_utils.encoding_to_image(inp)
+        im = preprocessing_utils.decode_base64_to_image(inp)
         timestamp = time.time()*1000
         filename = f'input_{timestamp}.png'
         im.save(f'{dir}/{filename}', 'PNG')
@@ -266,9 +266,11 @@ class Microphone(AbstractInput):
 
     def preprocess(self, inp):
         """
-        By default, no pre-processing is applied to a microphone input file (TODO:aliabid94 fix this)
+        By default, no pre-processing is applied to a microphone input file
         """
-        return inp
+        file_obj = preprocessing_utils.decode_base64_to_wav_file(inp)
+        mfcc_array = preprocessing_utils.generate_mfcc_features_from_audio_file(file_obj.name)
+        return mfcc_array
 
     def rebuild_flagged(self, dir, msg):
         """
