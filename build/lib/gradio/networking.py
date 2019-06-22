@@ -7,14 +7,12 @@ import socket
 import threading
 from http.server import HTTPServer as BaseHTTPServer, SimpleHTTPRequestHandler
 import pkg_resources
-from bs4 import BeautifulSoup
 from distutils import dir_util
 from gradio import inputs, outputs
 import json
 from gradio.tunneling import create_tunnel
 import urllib.request
 from shutil import copyfile
-
 
 INITIAL_PORT_VALUE = (
     7860
@@ -25,9 +23,7 @@ TRY_NUM_PORTS = (
 LOCALHOST_NAME = "localhost"
 GRADIO_API_SERVER = "https://api.gradio.app/v1/tunnel-request"
 
-BASE_TEMPLATE = pkg_resources.resource_filename(
-    "gradio", "templates/base_template.html"
-)
+STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "templates/")
 STATIC_PATH_LIB = pkg_resources.resource_filename("gradio", "static/")
 STATIC_PATH_TEMP = "static/"
 TEMPLATE_TEMP = "index.html"
@@ -37,52 +33,18 @@ CONFIG_FILE = "static/config.json"
 ASSOCIATION_PATH_IN_STATIC = "static/apple-app-site-association"
 ASSOCIATION_PATH_IN_ROOT = "apple-app-site-association"
 
-FLAGGING_DIRECTORY = 'gradio-flagged/{}'
-FLAGGING_FILENAME = 'gradio-flagged.txt'
+FLAGGING_DIRECTORY = 'static/flagged/'
+FLAGGING_FILENAME = 'data.txt'
 
 
 def build_template(temp_dir, input_interface, output_interface):
     """
-    Builds a complete HTML template with supporting JS and CSS files in a given directory.
-    :param temp_dir: string with path to temp directory in which the template should be built
-    :param input_interface: an AbstractInput object which includes is used to get the input template
-    :param output_interface: an AbstractInput object which includes is used to get the input template
+    Create HTML file with supporting JS and CSS files in a given directory.
+    :param temp_dir: string with path to temp directory in which the html file should be built
     """
-    input_template_path = pkg_resources.resource_filename(
-        "gradio",
-        inputs.BASE_INPUT_INTERFACE_TEMPLATE_PATH.format(input_interface.get_name()),
-    )
-    output_template_path = pkg_resources.resource_filename(
-        "gradio",
-        outputs.BASE_OUTPUT_INTERFACE_TEMPLATE_PATH.format(output_interface.get_name()),
-    )
-    input_page = open(input_template_path)
-    output_page = open(output_template_path)
-    input_soup = BeautifulSoup(
-        render_string_or_list_with_tags(
-            input_page.read(), input_interface.get_template_context()
-        ),
-        features="html.parser",
-    )
-    output_soup = BeautifulSoup(
-        render_string_or_list_with_tags(
-            output_page.read(), output_interface.get_template_context()
-        ),
-        features="html.parser",
-    )
+    dir_util.copy_tree(STATIC_TEMPLATE_LIB, temp_dir)
+    dir_util.copy_tree(STATIC_PATH_LIB, os.path.join(temp_dir, STATIC_PATH_TEMP))
 
-    all_io_page = open(BASE_TEMPLATE)
-    all_io_soup = BeautifulSoup(all_io_page.read(), features="html.parser")
-    input_tag = all_io_soup.find("div", {"id": "input"})
-    output_tag = all_io_soup.find("div", {"id": "output"})
-
-    # input_tag.replace_with(input_soup)
-    # output_tag.replace_with(output_soup)
-
-    f = open(os.path.join(temp_dir, TEMPLATE_TEMP), "w")
-    f.write(str(all_io_soup))
-
-    copy_files(STATIC_PATH_LIB, os.path.join(temp_dir, STATIC_PATH_TEMP))
     # Move association file to root of temporary directory.
     copyfile(os.path.join(temp_dir, ASSOCIATION_PATH_IN_STATIC),
              os.path.join(temp_dir, ASSOCIATION_PATH_IN_ROOT))
@@ -101,15 +63,6 @@ def build_template(temp_dir, input_interface, output_interface):
         ),
         output_interface.get_js_context(),
     )
-
-
-def copy_files(src_dir, dest_dir):
-    """
-    Copies all the files from one directory to another
-    :param src_dir: string path to source directory
-    :param dest_dir: string path to destination directory
-    """
-    dir_util.copy_tree(src_dir, dest_dir)
 
 
 def render_template_with_tags(template_path, context):
@@ -216,6 +169,10 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
                 prediction = interface.predict(processed_input)
                 processed_output = interface.output_interface.postprocess(prediction)
                 output = {"action": "output", "data": processed_output}
+                if interface.saliency is not None:
+                    import numpy as np
+                    saliency = interface.saliency(interface.model_obj, processed_input, prediction)
+                    output['saliency'] = saliency.tolist()
 
                 # Prepare return json dictionary.
                 self.wfile.write(json.dumps(output).encode())
@@ -224,14 +181,79 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
                 self._set_headers()
                 data_string = self.rfile.read(int(self.headers["Content-Length"]))
                 msg = json.loads(data_string)
-                flag_dir = FLAGGING_DIRECTORY.format(interface.hash)
+                flag_dir = os.path.join(directory_to_serve, FLAGGING_DIRECTORY)
                 os.makedirs(flag_dir, exist_ok=True)
-                dict = {'input': interface.input_interface.rebuild_flagged(flag_dir, msg),
-                        'output': interface.output_interface.rebuild_flagged(flag_dir, msg),
-                        'message': msg['data']['message']}
+                output = {'input': interface.input_interface.rebuild_flagged(flag_dir, msg),
+                          'output': interface.output_interface.rebuild_flagged(flag_dir, msg),
+                          'message': msg['data']['message']}
                 with open(os.path.join(flag_dir, FLAGGING_FILENAME), 'a+') as f:
-                    f.write(json.dumps(dict))
+                    f.write(json.dumps(output))
                     f.write("\n")
+
+            #TODO(abidlabs): clean this up
+            elif self.path == "/api/auto/rotation":
+                from gradio import validation_data, preprocessing_utils
+                import numpy as np
+
+                self._set_headers()
+                data_string = self.rfile.read(int(self.headers["Content-Length"]))
+                msg = json.loads(data_string)
+                img_orig = preprocessing_utils.decode_base64_to_image(msg["data"])
+                img_orig = img_orig.convert('RGB')
+                img_orig = img_orig.resize((224, 224))
+
+                flag_dir = os.path.join(directory_to_serve, FLAGGING_DIRECTORY)
+                os.makedirs(flag_dir, exist_ok=True)
+
+                for deg in range(-180, 180+45, 45):
+                    img = img_orig.rotate(deg)
+                    img_array = np.array(img) / 127.5 - 1
+                    prediction = interface.predict(np.expand_dims(img_array, axis=0))
+                    processed_output = interface.output_interface.postprocess(prediction)
+                    output = {'input': interface.input_interface.save_to_file(flag_dir, img),
+                              'output': interface.output_interface.rebuild_flagged(
+                                  flag_dir, {'data': {'output': processed_output}}),
+                              'message': f'rotation by {deg} degrees'}
+
+                    with open(os.path.join(flag_dir, FLAGGING_FILENAME), 'a+') as f:
+                        f.write(json.dumps(output))
+                        f.write("\n")
+
+                # Prepare return json dictionary.
+                self.wfile.write(json.dumps({}).encode())
+
+            elif self.path == "/api/auto/lighting":
+                from gradio import validation_data, preprocessing_utils
+                import numpy as np
+                from PIL import ImageEnhance
+
+                self._set_headers()
+                data_string = self.rfile.read(int(self.headers["Content-Length"]))
+                msg = json.loads(data_string)
+                img_orig = preprocessing_utils.decode_base64_to_image(msg["data"])
+                img_orig = img_orig.convert('RGB')
+                img_orig = img_orig.resize((224, 224))
+                enhancer = ImageEnhance.Brightness(img_orig)
+
+                flag_dir = os.path.join(directory_to_serve, FLAGGING_DIRECTORY)
+                os.makedirs(flag_dir, exist_ok=True)
+
+                for i in range(9):
+                    img = enhancer.enhance(i/4)
+                    img_array = np.array(img) / 127.5 - 1
+                    prediction = interface.predict(np.expand_dims(img_array, axis=0))
+                    processed_output = interface.output_interface.postprocess(prediction)
+                    output = {'input': interface.input_interface.save_to_file(flag_dir, img),
+                              'output': interface.output_interface.rebuild_flagged(
+                                  flag_dir, {'data': {'output': processed_output}}),
+                              'message': f'brighting adjustment by a factor of {i}'}
+
+                    with open(os.path.join(flag_dir, FLAGGING_FILENAME), 'a+') as f:
+                        f.write(json.dumps(output))
+                        f.write("\n")
+
+                # Prepare return json dictionary.
+                self.wfile.write(json.dumps({}).encode())
 
             else:
                 self.send_error(404, 'Path not found: %s' % self.path)

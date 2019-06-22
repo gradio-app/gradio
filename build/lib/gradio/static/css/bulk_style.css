@@ -1,0 +1,30 @@
+body {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 12px;
+  margin: 0;
+}
+nav {
+  text-align: center;
+  padding: 16px 0 4px;
+}
+nav img {
+  margin-right: auto;
+  height: 32px;
+}
+#bulk_rows td {
+  text-align: center;
+  height: 60px;
+}
+#bulk_rows tr:nth-child(even) {
+  background: #DDD
+}
+#bulk_rows img {
+  text-align: center;
+  height: 100%;
+}
+#bulk_rows {
+  margin: 0 auto;
+  width: 70%;
+  border-spacing: 0;
+  border-collapse: collapse;
+}
