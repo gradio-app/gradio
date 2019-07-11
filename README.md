@@ -64,25 +64,25 @@ iface = gradio.Interface(input='sketchpad', output='label', model=model, model_t
 iface.launch()
 ```
 
-![alt text](https://raw.githubusercontent.com/abidlabs/gradio/master/screenshots/mnist4.png)
+![alt text](https://raw.githubusercontent.com/abidlabs/gradio/master/screenshots/sketchpad_interface.png)
 
-#### Facial Emotion Detector (Input: Webcam, Output: Label)
+#### Image Classifier: InceptionNet (Input: Webcam, Output: Label)
 
 ```python
 iface = gradio.Interface(inputs='webcam', outputs='label', model=model, model_type='keras')
 iface.launch()
 ```
 
-![alt text](https://raw.githubusercontent.com/abidlabs/gradio/master/screenshots/webcam_happy.png)
+![alt text](https://raw.githubusercontent.com/abidlabs/gradio/master/screenshots/image_interface.png)
 
-#### Sentiment Analysis (Input: Textbox, Output: Label)
+#### Human DNA Variant Effect Prediction (Input: Textbox, Output: Label)
 
 ```python
 iface = gradio.Interface(inputs='textbox', outputs='label', model=model, model_type='keras')
 iface.launch()
 ```
 
-![alt text](https://raw.githubusercontent.com/abidlabs/gradio/master/screenshots/sentiment_positive.png)
+![alt text](https://raw.githubusercontent.com/abidlabs/gradio/master/screenshots/label_interface.png)
 
 ### More Documentation
 
