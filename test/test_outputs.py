@@ -11,7 +11,7 @@ BASE64_IMG = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAYEBQYFBAY
 class TestLabel(unittest.TestCase):
     def test_path_exists(self):
         out = outputs.Label()
-        path = outputs.BASE_OUTPUT_INTERFACE_TEMPLATE_PATH.format(out.get_name())
+        path = outputs.BASE_OUTPUT_INTERFACE_JS_PATH.format(out.get_name())
         self.assertTrue(os.path.exists(os.path.join(PACKAGE_NAME, path)))
 
     def test_postprocessing_string(self):
@@ -50,7 +50,7 @@ class TestLabel(unittest.TestCase):
 class TestTextbox(unittest.TestCase):
     def test_path_exists(self):
         out = outputs.Textbox()
-        path = outputs.BASE_OUTPUT_INTERFACE_TEMPLATE_PATH.format(out.get_name())
+        path = outputs.BASE_OUTPUT_INTERFACE_JS_PATH.format(out.get_name())
         self.assertTrue(os.path.exists(os.path.join(PACKAGE_NAME, path)))
 
     def test_postprocessing(self):
@@ -63,7 +63,7 @@ class TestTextbox(unittest.TestCase):
 class TestImage(unittest.TestCase):
     def test_path_exists(self):
         out = outputs.Image()
-        path = outputs.BASE_OUTPUT_INTERFACE_TEMPLATE_PATH.format(out.get_name())
+        path = outputs.BASE_OUTPUT_INTERFACE_JS_PATH.format(out.get_name())
         self.assertTrue(os.path.exists(os.path.join(PACKAGE_NAME, path)))
 
     def test_postprocessing(self):

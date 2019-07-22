@@ -1,7 +1,23 @@
 # Gradio
 [![CircleCI](https://circleci.com/gh/gradio-app/gradio.svg?style=svg)](https://circleci.com/gh/gradio-app/gradio)
 
-`Gradio` is a python library that allows you to place input and output interfaces over trained models to make it easy for you to "play around" with your model. Gradio runs entirely locally using your browser.
+`Gradio` is a python library that allows you to easily create input and output interfaces over trained models to make it easy for you to "play around" with your model in your browser by dragging-and-dropping in your own images (or pasting your own text, recording your own voice, etc.) and seeing what the model outputs. Gradio also creates a shareable, public link to your model so you can share the interface with others (e.g. your client, your advisor, or your dad), who can use the model without writing any code. 
+
+Gradio is useful for:
+* Creating demos for clients
+* Getting feedback from collaborators
+* Debugging your model during development
+
+For more details, see the accompanying paper: ["Gradio: Hassle-Free Sharing and Testing of ML Models in the Wild"](https://arxiv.org/pdf/1906.02569.pdf), *ICML HILL 2019*, and please use the citation below.
+
+```
+@article{abid2019gradio,
+title={Gradio: Hassle-Free Sharing and Testing of ML Models in the Wild},
+author={Abid, Abubakar and Abdalla, Ali and Abid, Ali and Khan, Dawood and Alfozan, Abdulrahman and Zou, James},
+journal={arXiv preprint arXiv:1906.02569},
+year={2019}
+}
+```
 
 To get a sense of `gradio`, take a look at the  python notebooks in the `examples` folder, or read on below! And be sure to visit the gradio website: www.gradio.app.
 
@@ -48,25 +64,25 @@ iface = gradio.Interface(input='sketchpad', output='label', model=model, model_t
 iface.launch()
 ```
 
-![alt text](https://raw.githubusercontent.com/abidlabs/gradio/master/screenshots/mnist4.png)
+![alt text](https://raw.githubusercontent.com/abidlabs/gradio/master/screenshots/sketchpad_interface.png)
 
-#### Facial Emotion Detector (Input: Webcam, Output: Label)
+#### Image Classifier: InceptionNet (Input: Webcam, Output: Label)
 
 ```python
 iface = gradio.Interface(inputs='webcam', outputs='label', model=model, model_type='keras')
 iface.launch()
 ```
 
-![alt text](https://raw.githubusercontent.com/abidlabs/gradio/master/screenshots/webcam_happy.png)
+![alt text](https://raw.githubusercontent.com/abidlabs/gradio/master/screenshots/image_interface.png)
 
-#### Sentiment Analysis (Input: Textbox, Output: Label)
+#### Human DNA Variant Effect Prediction (Input: Textbox, Output: Label)
 
 ```python
 iface = gradio.Interface(inputs='textbox', outputs='label', model=model, model_type='keras')
 iface.launch()
 ```
 
-![alt text](https://raw.githubusercontent.com/abidlabs/gradio/master/screenshots/sentiment_positive.png)
+![alt text](https://raw.githubusercontent.com/abidlabs/gradio/master/screenshots/label_interface.png)
 
 ### More Documentation
 
