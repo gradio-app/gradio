@@ -276,7 +276,7 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
         # except (KeyboardInterrupt, OSError):
         #     httpd.server_close()
 
-    thread = threading.Thread(target=serve_forever, daemon=True)
+    thread = threading.Thread(target=serve_forever, daemon=False)
     thread.start()
 
     return httpd
