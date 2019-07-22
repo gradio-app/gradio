@@ -1,4 +1,4 @@
-.input_text, .input_text_saliency {
+.input_text {
   resize: none;
   width: 100%;
   font-size: 18px;
@@ -8,8 +8,4 @@
   border: solid 1px black;
   box-sizing: border-box;
   padding: 4px;
-  font-family: monospace;
-}
-.input_text_saliency {
-  display: none;
 }
