@@ -25,11 +25,22 @@ const image_input = {
       </div>
     </div>
   `,
+  test_html: `
+    <!--<div class="panel_buttons test_panel">-->
+       <!--<div><strong>Rotation</strong>: (rotates between -180 and 180 degrees)</div>-->
+       <!--<input type="button" class="panel_button rotate_test" value="Run"/>-->
+     <!--</div>-->
+     <!--<div class="panel_buttons test_panel">-->
+       <!--<div><strong>Lighting</strong>: (adjusts the lighting to 9 different levels)</div>-->
+       <!--<input type="button" class="panel_button light_test" value="Run"/>-->
+     <!--</div>-->
+     <!--<a href="bulk_data.html"><input type="button" class="panel_button" value="Bulk Data" style="margin-top: 10px;"/></a>-->
+  `,
   init: function() {
+    var io = this;
     $('body').append(this.overlay_html.format(this.id));
     this.overlay_target = $(`.overlay[interface_id=${this.id}]`);
     this.target.find(".upload_zone").click(function (e) {
-      let io = get_interface(e.target)
       io.target.find(".hidden_upload").click();
     });
     this.target.on('drag dragstart dragend dragover dragenter dragleave drop',
@@ -38,18 +49,15 @@ const image_input = {
       e.stopPropagation();
     })
     this.target.on('drop', '.drop_zone', function(e) {
-      let io = get_interface(e.target)
       files = e.originalEvent.dataTransfer.files;
       io.load_preview_from_files(files)
     });
     this.target.find('.hidden_upload').on('change', function (e) {
       if (this.files) {
-        let io = get_interface(e.target);
         io.load_preview_from_files(this.files);
       }
     })
     this.target.find('.edit_image').click(function (e) {
-      let io = get_interface(e.target);
       io.overlay_target.removeClass("hide");
       io.target.find(".saliency_holder").addClass("hide");
     })
@@ -71,13 +79,23 @@ const image_input = {
        <button class="tui_cancel tui_close interface_button secondary">Cancel</button>
      `)
      this.overlay_target.find('.tui_close').click(function (e) {
-       let io = get_interface(e.target);
        io.overlay_target.addClass("hide");
        if ($(e.target).hasClass('tui_save')) {
          // if (io.tui_editor.ui.submenu == "crop") {
          //   io.tui_editor._cropAction().crop());
          // }
          io.set_image_data(io.tui_editor.toDataURL(), /*update_editor=*/false);
+       }
+     });
+     $(".tests").html(this.test_html);
+     $(".rotate_test").click(function () {
+       if (io.image_data) {
+         io.io_master.test("rotation", io.image_data);
+       }
+     })
+     $(".light_test").click(function () {
+       if (io.image_data) {
+         io.io_master.test("lighting", io.image_data);
        }
      })
   },

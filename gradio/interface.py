@@ -15,6 +15,7 @@ import pkg_resources
 import requests
 import random
 import time
+from IPython import get_ipython
 
 LOCALHOST_IP = "127.0.0.1"
 TRY_NUM_PORTS = 100
@@ -112,7 +113,6 @@ class Interface:
 
         try:
             import tensorflow as tf
-
             if isinstance(model, tf.keras.Model):
                 return "keras"
         except ImportError:
@@ -120,7 +120,6 @@ class Interface:
 
         try:
             import keras
-
             if isinstance(model, keras.Model):
                 return "keras"
         except ImportError:
@@ -136,6 +135,8 @@ class Interface:
         Method that calls the relevant method of the model object to make a prediction.
         :param preprocessed_input: the preprocessed input returned by the input interface
         """
+
+        # print(preprocessed_input.shape)
         if self.model_type == "sklearn":
             return self.model_obj.predict(preprocessed_input)
         elif self.model_type == "keras":
@@ -306,7 +307,7 @@ class Interface:
                 path_to_local_server
             )  # Open a browser tab with the interface.
         if inline:
-            from IPython.display import IFrame
+            from IPython.display import IFrame, display
 
             if (
                 is_colab

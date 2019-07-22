@@ -36,7 +36,7 @@
 .panel_buttons {
   display: flex;
 }
-.submit, .clear, .flag {
+.submit, .clear, .panel_button {
   background-color: #F6F6F6 !important;
   flex-grow: 1;
   padding: 8px !important;
@@ -106,4 +106,21 @@
 }
 .flag.flagged {
   background-color: pink !important;
+}
+
+.test_panel {
+  margin-top: 5px;
+  padding:10px;
+  background-color: #eea45d6b !important;
+  border: 1px solid #EEA45D;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tests {
+  margin-top: 10px;
+}
+
+.test_panel > input[type="button"] {
+  max-width: 100px;
 }
