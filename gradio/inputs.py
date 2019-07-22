@@ -53,6 +53,12 @@ class AbstractInput(ABC):
         """
         return {}
 
+    def sample_inputs(self):
+        """
+        An interface can optionally implement a method that sends a list of sample inputs for inference.
+        """
+        return []
+
     @abstractmethod
     def get_name(self):
         """
@@ -77,7 +83,7 @@ class AbstractInput(ABC):
 
 class Sketchpad(AbstractInput):
     def __init__(self, preprocessing_fn=None, shape=(28, 28), invert_colors=True, flatten=False, scale=1/255, shift=0,
-                 dtype='float64'):
+                 dtype='float64', sample_inputs=None):
         self.image_width = shape[0]
         self.image_height = shape[1]
         self.invert_colors = invert_colors
@@ -85,7 +91,9 @@ class Sketchpad(AbstractInput):
         self.scale = scale
         self.shift = shift
         self.dtype = dtype
+        self.sample_inputs = sample_inputs
         super().__init__(preprocessing_fn=preprocessing_fn)
+
 
     def get_name(self):
         return 'sketchpad'
@@ -120,6 +128,13 @@ class Sketchpad(AbstractInput):
         filename = f'input_{timestamp}.png'
         im.save(f'{dir}/{filename}', 'PNG')
         return filename
+
+    def get_sample_inputs(self):
+        encoded_images = []
+        if self.sample_inputs is not None:
+            for input in self.sample_inputs:
+                encoded_images.append(preprocessing_utils.encode_array_to_base64(input))
+        return encoded_images
 
 
 class Webcam(AbstractInput):
