@@ -21,5 +21,6 @@ setup(
         'psutil',
         'paramiko',
         'scipy',
+        'IPython',
     ],
 )
