@@ -135,8 +135,7 @@ class Interface:
         Method that calls the relevant method of the model object to make a prediction.
         :param preprocessed_input: the preprocessed input returned by the input interface
         """
-
-        # print(preprocessed_input.shape)
+#         print(preprocessed_input.shape)
         if self.model_type == "sklearn":
             return self.model_obj.predict(preprocessed_input)
         elif self.model_type == "keras":
@@ -252,12 +251,17 @@ class Interface:
         except NameError:
             pass
 
-        current_pkg_version = pkg_resources.require("gradio")[0].version
-        latest_pkg_version = requests.get(url=PKG_VERSION_URL).json()["version"]
-        if StrictVersion(latest_pkg_version) > StrictVersion(current_pkg_version):
-            print(f"IMPORTANT: You are using gradio version {current_pkg_version}, however version {latest_pkg_version} "
-                  f"is available, please upgrade.")
-            print('--------')
+        try:
+            current_pkg_version = pkg_resources.require("gradio")[0].version
+            latest_pkg_version = requests.get(url=PKG_VERSION_URL).json()["version"]
+            if StrictVersion(latest_pkg_version) > StrictVersion(current_pkg_version):
+                print(f"IMPORTANT: You are using gradio version {current_pkg_version}, "
+                      f"however version {latest_pkg_version} "
+                      f"is available, please upgrade.")
+                print('--------')
+        except:  # TODO(abidlabs): don't catch all exceptions
+            pass
+
         if self.verbose:
             print(strings.en["BETA_MESSAGE"])
             if not is_colab:
