@@ -76,7 +76,7 @@ class AbstractInput(ABC):
 
 
 class Sketchpad(AbstractInput):
-    def __init__(self, preprocessing_fn=None, shape=(28, 28), invert_colors=True, flatten=False, scale=1, shift=0,
+    def __init__(self, preprocessing_fn=None, shape=(28, 28), invert_colors=True, flatten=False, scale=1/255, shift=0,
                  dtype='float64'):
         self.image_width = shape[0]
         self.image_height = shape[1]
@@ -94,7 +94,9 @@ class Sketchpad(AbstractInput):
         """
         Default preprocessing method for the SketchPad is to convert the sketch to black and white and resize 28x28
         """
-        im = preprocessing_utils.decode_base64_to_image(inp)
+        im_transparent = preprocessing_utils.decode_base64_to_image(inp)
+        im = Image.new("RGBA", im_transparent.size, "WHITE")  # Create a white rgba background
+        im.paste(im_transparent, (0, 0), im_transparent)
         im = im.convert('L')
         if self.invert_colors:
             im = ImageOps.invert(im)
