@@ -27,6 +27,22 @@ var io_master = {
       this.input_interface.output(data["saliency"]);
     }
   },
+  test: function(type, data) {
+    var post_data = {
+      'data': data
+    };
+    if (type == "rotation") {
+      $.ajax({type: "POST",
+        url: "/api/auto/rotation",
+        data: JSON.stringify(post_data)
+      });
+    } else if (type == "lighting") {
+      $.ajax({type: "POST",
+        url: "/api/auto/lighting",
+        data: JSON.stringify(post_data)
+      });
+    }
+  },
   flag: function(message) {
     var post_data = {
       'data': {
