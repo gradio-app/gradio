@@ -18,7 +18,7 @@ import time
 
 LOCALHOST_IP = "127.0.0.1"
 TRY_NUM_PORTS = 100
-PKG_VERSION_URL = "https://gradio.app/api/pkg-version"
+# PKG_VERSION_URL = "https://gradio.app/api/pkg-version"
 
 
 class Interface:
@@ -249,12 +249,12 @@ class Interface:
         except NameError:
             pass
 
-        current_pkg_version = pkg_resources.require("gradio")[0].version
-        latest_pkg_version = requests.get(url=PKG_VERSION_URL).json()["version"]
-        if StrictVersion(latest_pkg_version) > StrictVersion(current_pkg_version):
-            print(f"IMPORTANT: You are using gradio version {current_pkg_version}, however version {latest_pkg_version} "
-                  f"is available, please upgrade.")
-            print('--------')
+        # current_pkg_version = pkg_resources.require("gradio")[0].version
+        # latest_pkg_version = requests.get(url=PKG_VERSION_URL).json()["version"]
+        # if StrictVersion(latest_pkg_version) > StrictVersion(current_pkg_version):
+        #     print(f"IMPORTANT: You are using gradio version {current_pkg_version}, however version {latest_pkg_version} "
+        #           f"is available, please upgrade.")
+        #     print('--------')
         if self.verbose:
             print(strings.en["BETA_MESSAGE"])
             if not is_colab:
