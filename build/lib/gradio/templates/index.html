@@ -1,0 +1,93 @@
+<html lang="en">
+  <head>
+    <!-- <iframe src=""></iframe> -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Gradio</title>
+    <link rel="stylesheet" href="../static/css/style.css">
+    <link rel="stylesheet" href="../static/css/gradio.css">
+    <link rel="stylesheet" href="../static/css/interfaces/input/csv.css">
+    <link rel="stylesheet" href="../static/css/interfaces/input/image_upload.css">
+    <link rel="stylesheet" href="../static/css/interfaces/input/sketchpad.css">
+    <link rel="stylesheet" href="../static/css/interfaces/input/textbox.css">
+    <link rel="stylesheet" href="../static/css/interfaces/input/csv.css">
+    <link rel="stylesheet" href="../static/css/interfaces/input/microphone.css">
+    <link rel="stylesheet" href="../static/css/interfaces/output/image.css">
+    <link rel="stylesheet" href="../static/css/interfaces/output/label.css">
+    <link rel="stylesheet" href="../static/css/interfaces/output/textbox.css">
+    <link rel="stylesheet" href="../static/css/loading.css"/>
+    <!-- TUI EDITOR -->
+    <link type="text/css" href="../static/css/vendor/tui-color-picker.css" rel="stylesheet">
+    <link type="text/css" href="../static/css/vendor/tui-image-editor.css" rel="stylesheet">
+  </head>
+
+  <body>
+    <nav>
+      <a href="https://gradio.app"><img src="../static/img/logo_inline.png" /></a>
+    </nav>
+    <div id="share_row">
+      <button id="share" class="primary">Share this Interface</button>
+      <div id="share_form">
+        <input type="text" id="share_name" placeholder="sender name (you)"></input>
+        <input type="text" id="share_email" placeholder="emails (comma-separated if multiple)"></input>
+        <button class="primary" id="send_link">Send Link</button>
+      </div>
+      <div id="share_complete">
+        <span id="share_message"></span>
+        <button class="secondary" id="share_more"></button>
+      </div>
+    </div>
+    <div id="panels">
+      <div class="panel">
+        <div class="panel_header">Input</div>
+        <div id="input_interface" class="interface"></div>
+        <div class="panel_buttons">
+          <input class="submit" type="submit" value="submit"/>
+          <input class="clear" type="reset" value="clear">
+        </div>
+        <div class="tests"></div>
+      </div>
+      <div class="panel">
+        <div class="panel_header">
+          Output
+          <div class="loading">
+            <img src="../static/img/logo_mini.png" class="ld ld-skew"/>
+            <span class="loading_time"></span>
+          </div>
+        </div>
+        <div id="output_interface" class="interface"></div>
+        <div class="panel_buttons">
+          <input type="text" class="flag_message" placeholder="(Optional message for flagging)"/>
+          <input type="button" class="panel_button flag" value="flag"/>
+        </div>
+      </div>
+    </div>
+    <script src="../static/js/vendor/jquery.min.js"></script>
+    <!-- TUI EDITOR -->
+    <script src="../static/js/vendor/fabric.js"></script>
+    <script src="../static/js/vendor/tui-code-snippet.min.js"></script>
+    <script src="../static/js/vendor/FileSaver.min.js"></script>
+    <script src="../static/js/vendor/tui-color-picker.js"></script>
+    <script src="../static/js/vendor/tui-image-editor.js"></script>
+    <script src="../static/js/vendor/white-theme.js"></script>
+    <script src="../static/js/vendor/black-theme.js"></script>
+
+    <script src="../static/js/utils.js"></script>
+    <script src="../static/js/all_io.js"></script>
+    <script src="../static/js/interfaces/input/csv.js"></script>
+    <script src="../static/js/interfaces/input/image_upload.js"></script>
+    <script src="../static/js/vendor/sketchpad.js"></script>
+    <script src="../static/js/interfaces/input/sketchpad.js"></script>
+    <script src="../static/js/interfaces/input/textbox.js"></script>
+    <script src="../static/js/interfaces/input/csv.js"></script>
+    <script src="../static/js/interfaces/input/microphone.js"></script>
+    <script src="../static/js/vendor/wavesurfer.min.js"></script>
+    <script src="../static/js/vendor/p5.min.js"></script>
+    <script src="../static/js/vendor/p5.sound.min.js"></script>
+    <script src="../static/js/vendor/p5.dom.min.js"></script>
+    <script src="../static/js/interfaces/output/image.js"></script>
+    <script src="../static/js/interfaces/output/label.js"></script>
+    <script src="../static/js/interfaces/output/textbox.js"></script>
+    <script src="../static/js/share.js"></script>
+    <script src="../static/js/load_interfaces.js"></script>
+  </body>
+</html>

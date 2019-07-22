@@ -25,6 +25,17 @@ const image_input = {
       </div>
     </div>
   `,
+  test_html: `
+    <!--<div class="panel_buttons test_panel">-->
+       <!--<div><strong>Rotation</strong>: (rotates between -180 and 180 degrees)</div>-->
+       <!--<input type="button" class="panel_button rotate_test" value="Run"/>-->
+     <!--</div>-->
+     <!--<div class="panel_buttons test_panel">-->
+       <!--<div><strong>Lighting</strong>: (adjusts the lighting to 9 different levels)</div>-->
+       <!--<input type="button" class="panel_button light_test" value="Run"/>-->
+     <!--</div>-->
+     <!--<a href="bulk_data.html"><input type="button" class="panel_button" value="Bulk Data" style="margin-top: 10px;"/></a>-->
+  `,
   init: function() {
     var io = this;
     $('body').append(this.overlay_html.format(this.id));
@@ -112,7 +123,26 @@ const image_input = {
       this.target.find(".saliency_holder").removeClass("hide").html(`
         <canvas class="saliency" width=${width} height=${height}></canvas>`);
       var ctx = this.target.find(".saliency")[0].getContext('2d');
-      paintSaliency(ctx, width, height);
+      var cell_width = width / data[0].length
+      var cell_height = height / data.length
+      var r = 0
+      data.forEach(function(row) {
+        var c = 0
+        row.forEach(function(cell) {
+          if (cell < 0.25) {
+            ctx.fillStyle = "white";
+          } else if (cell < 0.5) {
+            ctx.fillStyle = "yellow";
+          } else if (cell < 0.75) {
+            ctx.fillStyle = "orange";
+          } else {
+            ctx.fillStyle = "red";
+          }
+          ctx.fillRect(c * cell_width, r * cell_height, cell_width, cell_height);
+          c++;
+        })
+        r++;
+      })
     }
   },
   state: "NO_IMAGE",
