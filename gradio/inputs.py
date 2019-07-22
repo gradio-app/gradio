@@ -173,6 +173,9 @@ class Webcam(AbstractInput):
 
 
 class Textbox(AbstractInput):
+    def __init__(self, sample_inputs=None):
+        self.sample_inputs = sample_inputs
+
     def get_validation_inputs(self):
         return validation_data.ENGLISH_TEXTS
 
@@ -195,6 +198,9 @@ class Textbox(AbstractInput):
         with open(f'{dir}/{filename}.txt','w') as f:
             f.write(inp)
         return filename
+
+    def get_sample_inputs(self):
+        return self.sample_inputs
 
 
 class ImageUpload(AbstractInput):
