@@ -5,4 +5,3 @@ requests
 psutil
 paramiko
 scipy
-IPython
