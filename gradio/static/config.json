@@ -1,5 +1,6 @@
 {
   "input_interface_type": "{{input_interface_type}}",
   "output_interface_type": "{{output_interface_type}}",
-  "share_url": "{{share_url}}"
+  "share_url": "{{share_url}}",
+  "sample_inputs": "{{sample_inputs}}"
 }
