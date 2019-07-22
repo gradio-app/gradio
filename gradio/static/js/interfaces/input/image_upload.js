@@ -26,15 +26,15 @@ const image_input = {
     </div>
   `,
   test_html: `
-    <div class="panel_buttons test_panel">
-       <div><strong>Rotation</strong>: (rotates between -180 and 180 degrees)</div>
-       <input type="button" class="panel_button rotate_test" value="Run"/>
-     </div>
-     <div class="panel_buttons test_panel">
-       <div><strong>Lighting</strong>: (adjusts the lighting to 9 different levels)</div>
-       <input type="button" class="panel_button light_test" value="Run"/>
-     </div>
-     <a href="bulk_data.html"><input type="button" class="panel_button" value="Bulk Data" style="margin-top: 10px;"/></a>
+    <!--<div class="panel_buttons test_panel">-->
+       <!--<div><strong>Rotation</strong>: (rotates between -180 and 180 degrees)</div>-->
+       <!--<input type="button" class="panel_button rotate_test" value="Run"/>-->
+     <!--</div>-->
+     <!--<div class="panel_buttons test_panel">-->
+       <!--<div><strong>Lighting</strong>: (adjusts the lighting to 9 different levels)</div>-->
+       <!--<input type="button" class="panel_button light_test" value="Run"/>-->
+     <!--</div>-->
+     <!--<a href="bulk_data.html"><input type="button" class="panel_button" value="Bulk Data" style="margin-top: 10px;"/></a>-->
   `,
   init: function() {
     var io = this;
