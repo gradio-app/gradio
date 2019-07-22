@@ -95,7 +95,7 @@ class Sketchpad(AbstractInput):
         Default preprocessing method for the SketchPad is to convert the sketch to black and white and resize 28x28
         """
         im_transparent = preprocessing_utils.decode_base64_to_image(inp)
-        im = Image.new("RGBA", im_transparent.size, "WHITE")  # Create a white rgba background
+        im = Image.new("RGBA", im_transparent.size, "WHITE")  # Create a white background for the alpha channel
         im.paste(im_transparent, (0, 0), im_transparent)
         im = im.convert('L')
         if self.invert_colors:
