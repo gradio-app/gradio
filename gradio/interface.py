@@ -130,6 +130,22 @@ class Interface:
 
         raise ValueError("model_type could not be inferred, please specify parameter `model_type`")
 
+
+    @staticmethod
+    def update_config_file(self, output_directory):
+        networking.set_interface_types_in_config_file(
+            output_directory,
+            self.input_interface.__class__.__name__.lower(),
+            self.output_interface.__class__.__name__.lower(),
+        )
+
+        if self.input_interface.__class__.__name__.lower() == "sketchpad" or self.input_interface.__class__.__name__.lower() == "textbox":
+            networking.set_sample_data_in_config_file(
+                output_directory,
+                self.input_interface.get_sample_inputs()
+            )
+
+
     def predict(self, preprocessed_input):
         """
         Method that calls the relevant method of the model object to make a prediction.
@@ -235,11 +251,8 @@ class Interface:
             output_directory, self.input_interface, self.output_interface
         )
 
-        networking.set_interface_types_in_config_file(
-            output_directory,
-            self.input_interface.__class__.__name__.lower(),
-            self.output_interface.__class__.__name__.lower(),
-        )
+        self.update_config_file(self, output_directory)
+
         self.status = self.STATUS_TYPES["RUNNING"]
         self.simple_server = httpd
 
