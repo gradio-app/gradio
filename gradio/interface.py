@@ -19,7 +19,7 @@ from IPython import get_ipython
 
 LOCALHOST_IP = "127.0.0.1"
 TRY_NUM_PORTS = 100
-# PKG_VERSION_URL = "https://gradio.app/api/pkg-version"
+PKG_VERSION_URL = "https://gradio.app/api/pkg-version"
 
 
 class Interface:
