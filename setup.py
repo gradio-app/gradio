@@ -21,5 +21,7 @@ setup(
         'psutil',
         'paramiko',
         'scipy',
+        'IPython',
+        'scikit-image',
     ],
 )
