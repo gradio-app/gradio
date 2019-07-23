@@ -44,15 +44,14 @@
           <input class="submit" type="submit" value="submit"/>
           <input class="clear" type="reset" value="clear">
         </div>
-        <div class="tests"></div>
       </div>
       <div class="panel">
         <div class="panel_header">
           Output
-          <div class="loading">
-            <img src="../static/img/logo_mini.png" class="ld ld-skew"/>
-            <span class="loading_time"></span>
-          </div>
+        </div>
+        <div id="loading" class="interface invisible">
+          <img id="loading_in_progress" src="../static/img/logo_loading.gif">
+          <img id="loading_failed" src="../static/img/logo_error.png">
         </div>
         <div id="output_interface" class="interface"></div>
         <div class="panel_buttons">

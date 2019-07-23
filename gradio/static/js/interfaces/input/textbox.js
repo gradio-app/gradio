@@ -22,5 +22,12 @@ const textbox_input = {
     this.target.find(".input_text").val("");
     this.target.find(".input_text_saliency").hide();
     this.target.find(".input_text").show();
+  },
+  renderFeatured: function(data) {
+    return data;
+  },
+  loadFeatured: function(data) {
+    this.clear();
+    this.target.find(".input_text").val(data);
   }
 }
