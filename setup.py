@@ -22,5 +22,6 @@ setup(
         'paramiko',
         'scipy',
         'IPython',
+        'scikit-image',
     ],
 )
