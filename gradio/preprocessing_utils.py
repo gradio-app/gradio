@@ -24,7 +24,8 @@ def encode_array_to_base64(image_array):
         bytes_data = output_bytes.getvalue()
 
     base64_str = str(base64.b64encode(bytes_data), 'utf-8')
-    return base64_str
+
+    return "data:image/png;base64," + base64_str
 
 
 def resize_and_crop(img, size, crop_type='top'):
