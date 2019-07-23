@@ -56,6 +56,10 @@ $.getJSON("static/config.json", function(data) {
   if (config["share_url"] != "None") {
     $("#share_row").css('display', 'flex');
   }
+  load_history(config["sample_inputs"] || []);
+  if (!config["sample_inputs"]) {
+    $("#featured_history").hide();
+  }
 });
 
 $('body').on('click', '.flag', function(e) {

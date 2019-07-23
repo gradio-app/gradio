@@ -58,6 +58,7 @@ const sketchpad_input = {
     var img = new Image;
     let dimension = this.target.find(".canvas_holder canvas").width();
     img.onload = function(){
+      ctx.clearRect(0,0,dimension,dimension);
       ctx.drawImage(img,0,0,dimension,dimension);
     };
     img.src = data;

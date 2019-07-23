@@ -15,8 +15,7 @@ button, input[type="submit"], input[type="reset"], input[type="text"], input[typ
   border-radius: 0;
 }
 nav, #panels, #share_row {
-  margin-left: 60px;
-  margin-right: 60px;
+  margin-left: 30px;
 }
 nav {
   text-align: center;
@@ -63,6 +62,9 @@ button.secondary {
   color: black;
   background-color: #F6F6F6;
 }
+#featured_history {
+  margin: 4px 30px;
+}
 #featured_table {
   border-collapse: collapse;
   border: solid 2px #EEEEEE;
@@ -73,8 +75,8 @@ button.secondary {
   padding: 4px;
   text-align: center;
   cursor: pointer;
-  width: 250px;
-  max-width: 250px;
+  width: 650px;
+  max-width: 650px;
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -87,5 +89,4 @@ button.secondary {
 }
 #featured_history img {
   height: 60px;
-  width: 100px;
 }
