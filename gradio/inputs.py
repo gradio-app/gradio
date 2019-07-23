@@ -134,6 +134,7 @@ class Sketchpad(AbstractInput):
         if self.sample_inputs is not None:
             for input in self.sample_inputs:
                 encoded_images.append(preprocessing_utils.encode_array_to_base64(input))
+        print(encoded_images)
         return encoded_images
 
 
