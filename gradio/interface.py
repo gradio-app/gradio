@@ -139,7 +139,7 @@ class Interface:
             self.output_interface.__class__.__name__.lower(),
         )
 
-        if self.input_interface.__class__.__name__.lower() == "sketchpad" or self.input_interface.__class__.__name__.lower() == "textbox":
+        if hasattr(self.input_interface, 'get_sample_inputs'):
             networking.set_sample_data_in_config_file(
                 output_directory,
                 self.input_interface.get_sample_inputs()

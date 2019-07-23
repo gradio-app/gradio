@@ -1,8 +1,11 @@
 import unittest
 from gradio import networking
+from gradio import inputs
+from gradio import outputs
 import socket
 import tempfile
 import os
+import json
 LOCALHOST_NAME = 'localhost'
 
 
@@ -26,6 +29,19 @@ class TestGetAvailablePort(unittest.TestCase):
             new_port = networking.get_first_available_port(initial, final)
             s.close()
         self.assertFalse(port==new_port)
+
+class TestSetSampleData(unittest.TestCase):
+    def test_set_sample_data(self):
+        test_array = ["test1", "test2", "test3"]
+        temp_dir = tempfile.mkdtemp()
+        inp = inputs.Sketchpad()
+        out = outputs.Label()
+        networking.build_template(temp_dir, inp, out)
+        networking.set_sample_data_in_config_file(temp_dir, test_array)
+        config_file = os.path.join(temp_dir, 'static/config.json')
+        with open(config_file) as json_file:
+            data = json.load(json_file)
+            self.assertFalse(test_array == data["sample_inputs"])
 
 # class TestCopyFiles(unittest.TestCase):
 #     def test_copy_files(self):
