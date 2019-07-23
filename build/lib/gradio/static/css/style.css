@@ -63,3 +63,29 @@ button.secondary {
   color: black;
   background-color: #F6F6F6;
 }
+#featured_table {
+  border-collapse: collapse;
+  border: solid 2px #EEEEEE;
+  margin-bottom: 20px;
+  table-layout: fixed;
+}
+#featured_table td {
+  padding: 4px;
+  text-align: center;
+  cursor: pointer;
+  width: 250px;
+  max-width: 250px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+#featured_table tr:nth-child(even) {
+  background-color: #EEEEEE;
+}
+#featured_table tr:hover {
+  background-color: #EEA45D;
+}
+#featured_history img {
+  height: 60px;
+  width: 100px;
+}
