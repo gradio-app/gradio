@@ -117,6 +117,16 @@ def set_share_url_in_config_file(temp_dir, share_url):
     )
 
 
+def set_sample_data_in_config_file(temp_dir, sample_inputs):
+    config_file = os.path.join(temp_dir, CONFIG_FILE)
+    render_template_with_tags(
+        config_file,
+        {
+            "sample_inputs": sample_inputs
+        },
+    )
+
+
 def get_first_available_port(initial, final):
     """
     Gets the first open port in a specified range of port numbers
