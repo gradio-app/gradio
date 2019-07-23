@@ -19,8 +19,6 @@ gradio.egg-info/top_level.txt
 gradio/static/apple-app-site-association
 gradio/static/config.json
 gradio/static/css/.DS_Store
-gradio/static/css/bulk_style.css
-gradio/static/css/font-awesome.min.css
 gradio/static/css/gradio.css
 gradio/static/css/loading.css
 gradio/static/css/style.css
@@ -35,6 +33,7 @@ gradio/static/css/interfaces/output/textbox.css
 gradio/static/css/vendor/tui-color-picker.css
 gradio/static/css/vendor/tui-image-editor.css
 gradio/static/img/logo.png
+gradio/static/img/logo_error.png
 gradio/static/img/logo_inline.png
 gradio/static/img/logo_loading.gif
 gradio/static/img/logo_mini.png

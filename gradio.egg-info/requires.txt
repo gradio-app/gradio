@@ -6,4 +6,7 @@ psutil
 paramiko
 scipy
 IPython
+<<<<<<< HEAD
 scikit-image
+=======
+>>>>>>> master

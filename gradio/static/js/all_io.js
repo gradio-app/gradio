@@ -5,6 +5,10 @@ var io_master = {
     var post_data = {
       'data': data
     };
+    $("#loading").removeClass("invisible");
+    $("#loading_in_progress").show();
+    $("#loading_failed").hide();
+    $("#output_interface").addClass("invisible");
     $.ajax({type: "POST",
         url: "/api/predict/",
         data: JSON.stringify(post_data),
@@ -14,6 +18,8 @@ var io_master = {
             }
         },
         error: function(XMLHttpRequest, textStatus, errorThrown) {
+         $("#loading_in_progress").hide();
+         $("#loading_failed").show();
          console.log(XMLHttpRequest);
          console.log(textStatus);
          console.log(errorThrown);
@@ -26,28 +32,14 @@ var io_master = {
     if (this.input_interface.output && data["saliency"]) {
       this.input_interface.output(data["saliency"]);
     }
-  },
-  test: function(type, data) {
-    var post_data = {
-      'data': data
-    };
-    if (type == "rotation") {
-      $.ajax({type: "POST",
-        url: "/api/auto/rotation",
-        data: JSON.stringify(post_data)
-      });
-    } else if (type == "lighting") {
-      $.ajax({type: "POST",
-        url: "/api/auto/lighting",
-        data: JSON.stringify(post_data)
-      });
-    }
+    $("#loading").addClass("invisible");
+    $("#output_interface").removeClass("invisible");
   },
   flag: function(message) {
     var post_data = {
       'data': {
-        'input' : this.last_input,
-        'output' : this.last_output,
+        'input_data' : toStringIfObject(this.last_input) ,
+        'output_data' : toStringIfObject(this.last_output),
         'message' : message
       }
     }

@@ -1,14 +1,12 @@
 .panel {
   min-width: 300px;
-  flex-grow: 1;
+  flex: 1 1 0;
   display: inline-block;
-  max-width: 45%;
-  min-width: 300px;
   box-sizing: border-box;
-  margin: 0 14px 14px;
+  margin: 0 30px 14px 0;
 }
 .panel_header, .interface {
-  background-color: #F6F6F6;
+  background-color: #EEEEEE;
 }
 .panel_header {
   text-transform: uppercase;
@@ -37,7 +35,7 @@
   display: flex;
 }
 .submit, .clear, .panel_button {
-  background-color: #F6F6F6 !important;
+  background-color: #EEEEEE !important;
   flex-grow: 1;
   padding: 8px !important;
   box-sizing: border-box;
@@ -55,7 +53,7 @@
 }
 .flag_message {
   padding: 8px !important;
-  background-color: #F6F6F6 !important;
+  background-color: #EEEEEE !important;
 }
 .clear, .flag {
   margin-left: 8px;
@@ -107,20 +105,11 @@
 .flag.flagged {
   background-color: pink !important;
 }
-
-.test_panel {
-  margin-top: 5px;
-  padding:10px;
-  background-color: #eea45d6b !important;
-  border: 1px solid #EEA45D;
-  justify-content: space-between;
+#loading {
+  justify-content: center;
   align-items: center;
 }
 
-.tests {
-  margin-top: 10px;
-}
-
-.test_panel > input[type="button"] {
-  max-width: 100px;
+.invisible {
+  display: none !important;
 }
