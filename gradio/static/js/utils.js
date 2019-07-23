@@ -33,6 +33,13 @@ function resizeImage(base64Str, max_width, max_height, callback) {
   }
 }
 
+function toStringIfObject(input) {
+  if (input instanceof Object) {
+    return JSON.stringify(input);
+  }
+  return input;
+}
+
 function paintSaliency(data, width, height, ctx) {
   var cell_width = width / data[0].length
   var cell_height = height / data.length
