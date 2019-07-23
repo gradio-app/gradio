@@ -49,5 +49,17 @@ const sketchpad_input = {
     this.context.clearRect(0, 0, this.context.canvas.width, this.context.
         canvas.height);
     this.target.find(".saliency_holder").addClass("hide");
+  },
+  renderFeatured: function(data) {
+    return `<img src=${data}>`;
+  },
+  loadFeatured: function(data) {
+    let ctx = $(".canvas_holder canvas")[0].getContext("2d");
+    var img = new Image;
+    let dimension = this.target.find(".canvas_holder canvas").width();
+    img.onload = function(){
+      ctx.drawImage(img,0,0,dimension,dimension);
+    };
+    img.src = data;
   }
 }
