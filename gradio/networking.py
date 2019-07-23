@@ -122,7 +122,7 @@ def set_sample_data_in_config_file(temp_dir, sample_inputs):
     render_template_with_tags(
         config_file,
         {
-            "sample_inputs": sample_inputs
+            "sample_inputs": json.dumps(sample_inputs)
         },
     )
 
