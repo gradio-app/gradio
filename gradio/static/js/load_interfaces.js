@@ -26,7 +26,8 @@ $.getJSON("static/config.json", function(data) {
       config["input_interface_type"]]);
   output_interface = Object.create(output_to_object_map[
       config["output_interface_type"]]);
-  $("#input_interface").html(input_interface.html);
+  $("#input_interface").html(config.disabled ?
+    input_interface.disabled_html : input_interface.html);
   input_interface.target = $("#input_interface");
   set_interface_id(input_interface, 1)
   input_interface.init();
