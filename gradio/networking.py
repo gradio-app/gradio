@@ -126,6 +126,15 @@ def set_sample_data_in_config_file(temp_dir, sample_inputs):
         },
     )
 
+def set_disabled_in_config_file(temp_dir, disabled):
+    config_file = os.path.join(temp_dir, CONFIG_FILE)
+    render_template_with_tags(
+        config_file,
+        {
+            "disabled": disabled
+        },
+    )
+
 
 def get_first_available_port(initial, final):
     """

@@ -1,6 +1,8 @@
 const textbox_input = {
   html: `<textarea class="input_text" placeholder="Enter text here..."></textarea>
   <div class='input_text_saliency'></div>`,
+  disabled_html: `<textarea class="input_text" disabled></textarea>
+  <div class='input_text_saliency'></div>`,
   init: function() {},
   submit: function() {
     text = this.target.find(".input_text").val();
