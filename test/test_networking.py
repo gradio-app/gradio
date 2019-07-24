@@ -41,7 +41,7 @@ class TestSetSampleData(unittest.TestCase):
         config_file = os.path.join(temp_dir, 'static/config.json')
         with open(config_file) as json_file:
             data = json.load(json_file)
-            self.assertFalse(test_array == data["sample_inputs"])
+            self.assertTrue(test_array == data["sample_inputs"])
 
 # class TestCopyFiles(unittest.TestCase):
 #     def test_copy_files(self):
