@@ -126,6 +126,7 @@ def set_sample_data_in_config_file(temp_dir, sample_inputs):
         },
     )
 
+
 def set_disabled_in_config_file(temp_dir, disabled):
     config_file = os.path.join(temp_dir, CONFIG_FILE)
     render_template_with_tags(
@@ -184,13 +185,14 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
                 self._set_headers()
                 data_string = self.rfile.read(int(self.headers["Content-Length"]))
                 msg = json.loads(data_string)
-                processed_input = interface.input_interface.preprocess(msg["data"])
+                raw_input = msg["data"]
+                processed_input = interface.input_interface.preprocess(raw_input)
                 prediction = interface.predict(processed_input)
                 processed_output = interface.output_interface.postprocess(prediction)
                 output = {"action": "output", "data": processed_output}
                 if interface.saliency is not None:
                     import numpy as np
-                    saliency = interface.saliency(interface.model_obj, processed_input, prediction)
+                    saliency = interface.saliency(interface.model_obj, raw_input, processed_input, prediction, processed_output)
                     output['saliency'] = saliency.tolist()
 
                 # Prepare return json dictionary.

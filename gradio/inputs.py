@@ -174,8 +174,9 @@ class Webcam(AbstractInput):
 
 
 class Textbox(AbstractInput):
-    def __init__(self, sample_inputs=None):
+    def __init__(self, sample_inputs=None, preprocessing_fn=None):
         self.sample_inputs = sample_inputs
+        super().__init__(preprocessing_fn=preprocessing_fn)
 
     def get_validation_inputs(self):
         return validation_data.ENGLISH_TEXTS
