@@ -22,9 +22,7 @@ def encode_array_to_base64(image_array):
         PIL_image = Image.fromarray(skimage.img_as_ubyte(image_array))
         PIL_image.save(output_bytes, 'PNG')
         bytes_data = output_bytes.getvalue()
-
     base64_str = str(base64.b64encode(bytes_data), 'utf-8')
-
     return "data:image/png;base64," + base64_str
 
 
