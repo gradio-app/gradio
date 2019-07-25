@@ -133,8 +133,11 @@ class Sketchpad(AbstractInput):
         encoded_images = []
         if self.sample_inputs is not None:
             for input in self.sample_inputs:
+                if self.flatten:
+                    input = input.reshape((self.image_width, self.image_height))
+                if self.invert_colors:
+                    input = 1 - input
                 encoded_images.append(preprocessing_utils.encode_array_to_base64(input))
-        print(encoded_images)
         return encoded_images
 
 

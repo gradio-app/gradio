@@ -130,8 +130,6 @@ class Interface:
 
         raise ValueError("model_type could not be inferred, please specify parameter `model_type`")
 
-
-    @staticmethod
     def update_config_file(self, output_directory):
         networking.set_interface_types_in_config_file(
             output_directory,
@@ -144,7 +142,6 @@ class Interface:
                 output_directory,
                 self.input_interface.get_sample_inputs()
             )
-
 
     def predict(self, preprocessed_input):
         """
@@ -251,7 +248,7 @@ class Interface:
             output_directory, self.input_interface, self.output_interface
         )
 
-        self.update_config_file(self, output_directory)
+        self.update_config_file(output_directory)
 
         self.status = self.STATUS_TYPES["RUNNING"]
         self.simple_server = httpd
