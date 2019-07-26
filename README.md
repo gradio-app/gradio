@@ -4,9 +4,9 @@
 `Gradio` is a python library that allows you to easily create input and output interfaces over trained models to make it easy for you to "play around" with your model in your browser by dragging-and-dropping in your own images (or pasting your own text, recording your own voice, etc.) and seeing what the model outputs. Gradio also creates a shareable, public link to your model so you can share the interface with others (e.g. your client, your advisor, or your dad), who can use the model without writing any code. 
 
 Gradio is useful for:
-* Creating demos for clients
-* Getting feedback from collaborators
-* Debugging your model during development
+* Creating demos of your machine learning code for clients / collaborators / users
+* Getting feedback on model performance from users
+* Debugging your model interactively during development
 
 For more details, see the accompanying paper: ["Gradio: Hassle-Free Sharing and Testing of ML Models in the Wild"](https://arxiv.org/pdf/1906.02569.pdf), *ICML HILL 2019*, and please use the citation below.
 
