@@ -27,11 +27,12 @@ def get_trained_model(n):
     model.add(Dense(1))
     model.add(Activation('sigmoid'))
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-    model.fit(X_train[:n], y_train[:n], epochs=1, batch_size=128)
+    model.fit(X_train[:n], y_train[:n], epochs=2, batch_size=128)
+    print(model.evaluate(X_test, y_test))
     return model
 
 
-model = get_trained_model(n=100)
+model = get_trained_model(n=25000)
 
 # Gradio code #
 NUM_SPECIAL_TOKENS = 3

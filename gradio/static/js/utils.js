@@ -44,13 +44,18 @@ function paintSaliency(data, width, height, ctx) {
   var cell_width = width / data[0].length
   var cell_height = height / data.length
   var r = 0
-  let blue = [75, 150, 255];
-  let white = [255, 255, 255];
   data.forEach(function(row) {
     var c = 0
     row.forEach(function(cell) {
-      let shade = interpolate(cell, blue, white)
-      ctx.fillStyle = colorToString(shade);
+      if (cell < 0.25) {
+        ctx.fillStyle = "white";
+      } else if (cell < 0.5) {
+        ctx.fillStyle = "#add8ed";
+      } else if (cell < 0.75) {
+        ctx.fillStyle = "#5aa7d3";
+      } else {
+        ctx.fillStyle = "#072F5F";
+      }
       ctx.fillRect(c * cell_width, r * cell_height, cell_width, cell_height);
       c++;
     })
