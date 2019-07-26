@@ -71,20 +71,19 @@ button.secondary {
   margin-bottom: 20px;
   table-layout: fixed;
 }
-#featured_table td {
-  padding: 4px;
+#featured_table div {
+  display: inline-block;
+  padding: 10px;
   text-align: center;
   cursor: pointer;
-  width: 650px;
-  max-width: 650px;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
+  max-width: 200px;
+  max-height: 100px;
+  overflow-y: auto;
 }
-#featured_table tr:nth-child(even) {
+#featured_table div:nth-child(even) {
   background-color: #EEEEEE;
 }
-#featured_table tr:hover {
+#featured_table div:hover {
   background-color: #EEA45D;
 }
 #featured_history img {
