@@ -30,6 +30,7 @@ class TestGetAvailablePort(unittest.TestCase):
             s.close()
         self.assertFalse(port==new_port)
 
+
 class TestSetSampleData(unittest.TestCase):
     def test_set_sample_data(self):
         test_array = ["test1", "test2", "test3"]
@@ -38,6 +39,10 @@ class TestSetSampleData(unittest.TestCase):
         out = outputs.Label()
         networking.build_template(temp_dir, inp, out)
         networking.set_sample_data_in_config_file(temp_dir, test_array)
+        # We need to come up with a better way so that the config file isn't invalid json unless
+        # the following parameters are set... (TODO: abidlabs)
+        networking.set_always_flagged_in_config_file(temp_dir, False)
+        networking.set_disabled_in_config_file(temp_dir, False)
         config_file = os.path.join(temp_dir, 'static/config.json')
         with open(config_file) as json_file:
             data = json.load(json_file)
