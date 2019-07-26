@@ -122,8 +122,8 @@ class Sketchpad(AbstractInput):
         """
         Default rebuild method to decode a base64 image
         """
-        inp = msg['data']['input']
-        im = preprocessing_utils.decode_base64_to_image(inp)
+
+        im = preprocessing_utils.decode_base64_to_image(msg)
         timestamp = time.time()*1000
         filename = f'input_{timestamp}.png'
         im.save(f'{dir}/{filename}', 'PNG')
@@ -197,11 +197,10 @@ class Textbox(AbstractInput):
         """
         Default rebuild method for text saves it .txt file
         """
-        inp = msg['data']['input']
         timestamp = time.time()*1000
-        filename = f'input_{timestamp}.png'
+        filename = f'input_{timestamp}'
         with open(f'{dir}/{filename}.txt','w') as f:
-            f.write(inp)
+            f.write(msg)
         return filename
 
     def get_sample_inputs(self):
@@ -251,8 +250,7 @@ class ImageUpload(AbstractInput):
         """
         Default rebuild method to decode a base64 image
         """
-        inp = msg['data']['input']
-        im = preprocessing_utils.decode_base64_to_image(inp)
+        im = preprocessing_utils.decode_base64_to_image(msg)
         timestamp = time.time()*1000
         filename = f'input_{timestamp}.png'
         im.save(f'{dir}/{filename}', 'PNG')
@@ -283,8 +281,7 @@ class CSV(AbstractInput):
         """
         Default rebuild method for csv
         """
-        inp = msg['data']['inp']
-        return json.loads(inp)
+        return json.loads(msg)
 
 
 class Microphone(AbstractInput):
@@ -304,8 +301,7 @@ class Microphone(AbstractInput):
         """
         Default rebuild method for csv
         """
-        inp = msg['data']['inp']
-        return json.loads(inp)
+        return json.loads(msg)
 
 
 # Automatically adds all subclasses of AbstractInput into a dictionary (keyed by class name) for easy referencing.

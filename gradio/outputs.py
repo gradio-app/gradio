@@ -123,8 +123,7 @@ class Label(AbstractOutput):
         """
         Default rebuild method for label
         """
-        out = msg['data']['output']
-        return json.loads(out)
+        return json.loads(msg)
 
 
 class Textbox(AbstractOutput):
@@ -141,8 +140,7 @@ class Textbox(AbstractOutput):
         """
         Default rebuild method for label
         """
-        out = msg['data']['output']
-        return json.loads(out)
+        return json.loads(msg)
 
 
 class Image(AbstractOutput):
@@ -159,8 +157,7 @@ class Image(AbstractOutput):
         """
         Default rebuild method to decode a base64 image
         """
-        out = msg['data']['output']
-        im = preprocessing_utils.decode_base64_to_image(out)
+        im = preprocessing_utils.decode_base64_to_image(msg)
         timestamp = datetime.datetime.now()
         filename = f'output_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.png'
         im.save(f'{dir}/{filename}', 'PNG')
