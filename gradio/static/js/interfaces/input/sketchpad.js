@@ -54,9 +54,9 @@ const sketchpad_input = {
   },
   output: function(data) {
     this.target.find(".saliency_holder").removeClass("hide");
-    var ctx = this.target.find(".saliency")[0].getContext('2d');
+    let ctx = this.target.find(".saliency")[0].getContext('2d');
     let dimension = this.target.find(".saliency").width();
-    console.log(data, dimension, dimension);
+    ctx.clearRect(0,0,dimension,dimension);
     paintSaliency(data, dimension, dimension, ctx);
   },
   clear: function() {
