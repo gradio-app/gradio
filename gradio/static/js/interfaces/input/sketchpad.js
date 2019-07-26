@@ -29,7 +29,7 @@ const sketchpad_input = {
     var id = this.id;
     if (config.disabled) {
       this.target.find('.canvas_holder canvas')
-        .attr("width", dimension).attr("height", dimension);      
+        .attr("width", dimension).attr("height", dimension);
     } else {
       this.sketchpad = new Sketchpad({
         element: '.interface[interface_id=' + id + '] .sketch',
@@ -54,9 +54,9 @@ const sketchpad_input = {
   },
   output: function(data) {
     this.target.find(".saliency_holder").removeClass("hide");
-    var ctx = this.target.find(".saliency")[0].getContext('2d');
+    let ctx = this.target.find(".saliency")[0].getContext('2d');
     let dimension = this.target.find(".saliency").width();
-    console.log(data, dimension, dimension);
+    ctx.clearRect(0,0,dimension,dimension);
     paintSaliency(data, dimension, dimension, ctx);
   },
   clear: function() {
@@ -76,5 +76,6 @@ const sketchpad_input = {
       ctx.drawImage(img,0,0,dimension,dimension);
     };
     img.src = data;
+    this.target.find(".saliency_holder").addClass("hide");
   }
 }

@@ -44,21 +44,32 @@ function paintSaliency(data, width, height, ctx) {
   var cell_width = width / data[0].length
   var cell_height = height / data.length
   var r = 0
+  let blue = [75, 150, 255];
+  let white = [255, 255, 255];
   data.forEach(function(row) {
     var c = 0
     row.forEach(function(cell) {
-      if (cell < 0.25) {
-        ctx.fillStyle = "white";
-      } else if (cell < 0.5) {
-        ctx.fillStyle = "yellow";
-      } else if (cell < 0.75) {
-        ctx.fillStyle = "orange";
-      } else {
-        ctx.fillStyle = "red";
-      }
+      let shade = interpolate(cell, blue, white)
+      ctx.fillStyle = colorToString(shade);
       ctx.fillRect(c * cell_width, r * cell_height, cell_width, cell_height);
       c++;
     })
     r++;
   })
+}
+
+// val should be in the range [0.0, 1.0]
+// rgb1 and rgb2 should be an array of 3 values each in the range [0, 255]
+function interpolate(val, rgb1, rgb2) {
+  var rgb = [0,0,0];
+  var i;
+  for (i = 0; i < 3; i++) {
+    rgb[i] = rgb1[i] * (1.0 - val) + rgb2[i] * val;
+  }
+  return rgb;
+}
+
+// quick helper function to convert the array into something we can use for css
+function colorToString(rgb) {
+  return "rgb(" + rgb[0] + ", " + rgb[1] + ", " + rgb[2] + ")";
 }
