@@ -45,7 +45,7 @@
 .saliency_holder {
   position: absolute;
   top: 0;
-  opacity: 0.7;
+  opacity: 0.9;
 }
 .view_holders canvas {
   background-color: white;
