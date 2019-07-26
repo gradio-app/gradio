@@ -47,6 +47,7 @@ class Interface:
         postprocessing_fns=None,
         verbose=True,
         saliency=None,
+        always_flag=False
     ):
         """
         :param inputs: a string or `AbstractInput` representing the input interface.
@@ -99,6 +100,7 @@ class Interface:
         self.simple_server = None
         self.hash = random.getrandbits(32)
         self.saliency = saliency
+        self.always_flag = always_flag
 
     @staticmethod
     def _infer_model_type(model):
