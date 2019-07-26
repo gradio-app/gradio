@@ -162,3 +162,5 @@ def generate_mfcc_features_from_audio_file(wav_filename,
     filter_banks -= (np.mean(filter_banks, axis=0) + 1e-8)
     mfcc -= (np.mean(mfcc, axis=0) + 1e-8)
     return mfcc[np.newaxis, :, :]  # Create a batch dimension.
+
+
