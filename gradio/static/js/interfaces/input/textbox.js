@@ -16,7 +16,7 @@ const textbox_input = {
     let text = this.target.find(".input_text").val();
     let index = 0;
     data.forEach(function(value, index) {
-      html += `<span style='background-color:rgba(0,100,255,${value})'>${text.charAt(index)}</span>`;
+      html += `<span style='background-color:rgba(75,150,255,${value})'>${text.charAt(index)}</span>`;
     })
     $(".input_text_saliency").html(html);
   },
