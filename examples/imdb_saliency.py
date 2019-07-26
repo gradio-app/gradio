@@ -28,7 +28,7 @@ def get_trained_model(n):
     return model
 
 
-model = get_trained_model(n=100)
+model = get_trained_model(n=25000)
 
 # Gradio code #
 NUM_SPECIAL_TOKENS = 3
