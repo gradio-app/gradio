@@ -1,2 +1,0 @@
-{"input": "input_1564122648517.png", "output": {"label": 7, "confidences": [{"label": 7, "confidence": 0.9945800304412842}, {"label": 2, "confidence": 0.004080282989889383}, {"label": 0, "confidence": 0.0005652490654028952}]}}
-{"input": "input_1564122787604.png", "output": {"label": 6, "confidences": [{"label": 6, "confidence": 0.18893034756183624}, {"label": 0, "confidence": 0.1815452128648758}, {"label": 5, "confidence": 0.12178582698106766}]}}

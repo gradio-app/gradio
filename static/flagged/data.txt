@@ -1,3 +1,0 @@
-{"input": "input_1564121741675.png", "output": {"label": 3, "confidences": [{"label": 3, "confidence": 0.49897417426109314}, {"label": 2, "confidence": 0.49327075481414795}, {"label": 9, "confidence": 0.0031273311469703913}]}, "message": ""}
-{"input": "input_1564122304245.png", "output": {"label": 1, "confidences": [{"label": 1, "confidence": 0.9119029641151428}, {"label": 0, "confidence": 0.04364873468875885}, {"label": 6, "confidence": 0.014955705031752586}]}}
-{"input": "input_1564122365828.png", "output": {"label": 1, "confidences": [{"label": 1, "confidence": 0.8408133387565613}, {"label": 4, "confidence": 0.07017231732606888}, {"label": 2, "confidence": 0.032813962548971176}]}}
