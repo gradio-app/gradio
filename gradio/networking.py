@@ -132,7 +132,17 @@ def set_disabled_in_config_file(temp_dir, disabled):
     render_template_with_tags(
         config_file,
         {
-            "disabled": disabled
+            "disabled": json.dumps(disabled)
+        },
+    )
+
+
+def set_always_flagged_in_config_file(temp_dir, always_flagged):
+    config_file = os.path.join(temp_dir, CONFIG_FILE)
+    render_template_with_tags(
+        config_file,
+        {
+            "always_flagged": json.dumps(always_flagged)
         },
     )
 

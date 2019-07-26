@@ -47,7 +47,8 @@ class Interface:
         postprocessing_fns=None,
         verbose=True,
         saliency=None,
-        always_flag=False
+        always_flag=False,
+        interactivity_disabled=False,
     ):
         """
         :param inputs: a string or `AbstractInput` representing the input interface.
@@ -101,6 +102,7 @@ class Interface:
         self.hash = random.getrandbits(32)
         self.saliency = saliency
         self.always_flag = always_flag
+        self.interactivity_disabled = interactivity_disabled
 
     @staticmethod
     def _infer_model_type(model):
@@ -144,6 +146,9 @@ class Interface:
                 output_directory,
                 self.input_interface.get_sample_inputs()
             )
+
+        networking.set_always_flagged_in_config_file(output_directory, self.always_flag)
+        networking.set_disabled_in_config_file(output_directory, self.interactivity_disabled)
 
     def predict(self, preprocessed_input):
         """
