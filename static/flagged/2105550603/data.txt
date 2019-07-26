@@ -1,0 +1,4 @@
+{"input": "input_1564123829281.png", "output": {"label": 0, "confidences": [{"label": 0, "confidence": 0.2317967563867569}, {"label": 2, "confidence": 0.11798986792564392}, {"label": 1, "confidence": 0.10901963710784912}]}}
+{"input": "input_1564123833155.png", "output": {"label": 0, "confidences": [{"label": 0, "confidence": 0.3697940409183502}, {"label": 7, "confidence": 0.1192038357257843}, {"label": 4, "confidence": 0.11792784184217453}]}}
+{"input": "input_1564123844198.png", "output": {"label": 0, "confidences": [{"label": 0, "confidence": 0.26901713013648987}, {"label": 4, "confidence": 0.22054922580718994}, {"label": 7, "confidence": 0.1050516813993454}]}}
+{"input": "input_1564123848536.png", "output": {"label": 0, "confidences": [{"label": 0, "confidence": 0.17496652901172638}, {"label": 4, "confidence": 0.16769295930862427}, {"label": 7, "confidence": 0.11510172486305237}]}}
