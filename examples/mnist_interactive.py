@@ -21,15 +21,17 @@ def get_trained_model(n):
     model.add(Dropout(0.5))
     model.add(Dense(10, activation='softmax'))
     model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-    model.fit(x_train[:n], y_train[:n], epochs=1)
+    model.fit(x_train[:n], y_train[:n], epochs=2)
+    print(model.evaluate(x_test, y_test))
     return model
 
 
-model = get_trained_model(n=100)
+model = get_trained_model(n=50000)
 
 # Gradio code #
 sketchpad = gradio.inputs.Sketchpad(flatten=True, sample_inputs=x_test[:10])
-io = gradio.Interface(inputs=sketchpad, outputs="label", model=model, model_type="keras", verbose=False,
+label = gradio.outputs.Label(show_confidences=False)
+io = gradio.Interface(inputs=sketchpad, outputs=label, model=model, model_type="keras", verbose=False,
                       always_flag=True)
 httpd, path_to_local_server, share_url = io.launch(inline=True, share=True, inbrowser=True)
 

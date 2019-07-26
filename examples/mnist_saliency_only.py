@@ -44,8 +44,7 @@ def saliency(interface, model, input, processed_input, output, processed_output)
 model = get_trained_model(n=50000)
 
 sketchpad = gradio.inputs.Sketchpad(flatten=True, sample_inputs=x_test[:10])
-label = gradio.outputs.Label(show_confidences=False)
-io = gradio.Interface(inputs=sketchpad, outputs=label, model=model, model_type="keras", saliency=saliency, always_flag=True)
+io = gradio.Interface(inputs=sketchpad, outputs="label", model=model, model_type="keras", saliency=saliency, always_flag=True, interactivity_disabled=True)
 httpd, path_to_local_server, share_url = io.launch(inline=True, share=True, inbrowser=True)
 
 print("URL for MNIST model interface with saliency:", share_url)
