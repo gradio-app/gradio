@@ -20,9 +20,14 @@ X_test = tf.keras.preprocessing.sequence.pad_sequences(X_test, maxlen=max_word_l
 def get_trained_model(n):
     model = tf.keras.models.Sequential()
     model.add(Embedding(top_words, 32, input_length=max_word_length))
-    model.add(Flatten())
-    model.add(Dense(250, activation='relu'))
-    model.add(Dense(1, activation='sigmoid'))
+    model.add(Dropout(0.2))
+    model.add(Conv1D(250, 3, padding='valid', activation='relu', strides=1))
+    model.add(GlobalMaxPooling1D())
+    model.add(Dense(250))
+    model.add(Dropout(0.2))
+    model.add(Activation('relu'))
+    model.add(Dense(1))
+    model.add(Activation('sigmoid'))
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
     model.fit(X_train[:n], y_train[:n], epochs=1, batch_size=128)
     return model
