@@ -29,8 +29,8 @@ model = get_trained_model(n=100)
 
 # Gradio code #
 sketchpad = gradio.inputs.Sketchpad(flatten=True, sample_inputs=x_test[:10])
-label = gradio.outputs.Label(show_confidences=False)
-io = gradio.Interface(inputs=sketchpad, outputs=label, model=model, model_type="keras", verbose=False)
-httpd, path_to_local_server, share_url = io.launch(share=True, inbrowser=True)
+io = gradio.Interface(inputs=sketchpad, outputs="label", model=model, model_type="keras", verbose=False,
+                      always_flag=True)
+httpd, path_to_local_server, share_url = io.launch(inline=True, share=True, inbrowser=True)
 
 print("URL for MNIST model interface: ", share_url)
