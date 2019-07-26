@@ -124,7 +124,7 @@ class Sketchpad(AbstractInput):
         """
 
         im = preprocessing_utils.decode_base64_to_image(msg)
-        timestamp = int(time.time()*1000)
+        timestamp = time.time()*1000
         filename = f'input_{timestamp}.png'
         im.save(f'{dir}/{filename}', 'PNG')
         return filename
@@ -198,7 +198,7 @@ class Textbox(AbstractInput):
         Default rebuild method for text saves it .txt file
         """
         timestamp = time.time()*1000
-        filename = f'input_{timestamp}.png'
+        filename = f'input_{timestamp}'
         with open(f'{dir}/{filename}.txt','w') as f:
             f.write(msg)
         return filename

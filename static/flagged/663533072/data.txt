@@ -1,3 +1,0 @@
-{"input": "input_1564123918785.png", "output": {"label": 0, "confidences": [{"label": 0, "confidence": 0.22495222091674805}, {"label": 6, "confidence": 0.14923055469989777}, {"label": 4, "confidence": 0.11281339079141617}]}}
-{"input": "input_1564123923421.png", "output": {"label": 4, "confidences": [{"label": 4, "confidence": 0.16225437819957733}, {"label": 0, "confidence": 0.14157581329345703}, {"label": 6, "confidence": 0.12318442016839981}]}}
-{"input": "input_1564123928526.png", "output": {"label": 7, "confidences": [{"label": 7, "confidence": 0.14310938119888306}, {"label": 4, "confidence": 0.13427793979644775}, {"label": 3, "confidence": 0.12870848178863525}]}}
