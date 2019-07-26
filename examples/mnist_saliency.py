@@ -40,7 +40,7 @@ def saliency(interface, model, input, processed_input, output, processed_output)
             return normalized_saliency.reshape(28, 28)
 
 
-model = get_trained_model(n=100)
+model = get_trained_model(n=50000)
 sketchpad = gradio.inputs.Sketchpad(flatten=True, sample_inputs=x_test[:10])
 label = gradio.outputs.Label(show_confidences=False)
 io = gradio.Interface(inputs=sketchpad, outputs=label, model=model, model_type="keras", saliency=saliency)
