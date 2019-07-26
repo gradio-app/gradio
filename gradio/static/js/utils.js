@@ -47,15 +47,7 @@ function paintSaliency(data, width, height, ctx) {
   data.forEach(function(row) {
     var c = 0
     row.forEach(function(cell) {
-      if (cell < 0.25) {
-        ctx.fillStyle = "white";
-      } else if (cell < 0.5) {
-        ctx.fillStyle = "yellow";
-      } else if (cell < 0.75) {
-        ctx.fillStyle = "orange";
-      } else {
-        ctx.fillStyle = "red";
-      }
+      ctx.fillStyle = `rgba(${(1 - cell) * 255},${(1 - cell) * 255},255,0.5)`;
       ctx.fillRect(c * cell_width, r * cell_height, cell_width, cell_height);
       c++;
     })
