@@ -194,6 +194,16 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
                     import numpy as np
                     saliency = interface.saliency(interface, interface.model_obj, raw_input, processed_input, prediction, processed_output)
                     output['saliency'] = saliency.tolist()
+                if interface.always_flag:
+                    msg = json.loads(data_string)
+                    flag_dir = os.path.join(FLAGGING_DIRECTORY, str(interface.hash))
+                    os.makedirs(flag_dir, exist_ok=True)
+                    output_flag = {'input': interface.input_interface.rebuild_flagged(flag_dir, msg['data']),
+                              'output': interface.output_interface.rebuild_flagged(flag_dir, processed_output),
+                              }
+                    with open(os.path.join(flag_dir, FLAGGING_FILENAME), 'a+') as f:
+                        f.write(json.dumps(output_flag))
+                        f.write("\n")
 
                 # Prepare return json dictionary.
                 self.wfile.write(json.dumps(output).encode())
@@ -202,10 +212,10 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
                 self._set_headers()
                 data_string = self.rfile.read(int(self.headers["Content-Length"]))
                 msg = json.loads(data_string)
-                flag_dir = os.path.join(directory_to_serve, FLAGGING_DIRECTORY)
-                os.makedirs(flag_dir, exist_ok=True)
-                output = {'input': interface.input_interface.rebuild_flagged(flag_dir, msg),
-                          'output': interface.output_interface.rebuild_flagged(flag_dir, msg),
+                flag_dir = os.path.join(FLAGGING_DIRECTORY, str(interface.hash))
+                os.makedirs(FLAGGING_DIRECTORY, exist_ok=True)
+                output = {'input': interface.input_interface.rebuild_flagged(flag_dir, msg['data']['input_data']),
+                          'output': interface.output_interface.rebuild_flagged(flag_dir, msg['data']['output_data']),
                           'message': msg['data']['message']}
                 with open(os.path.join(flag_dir, FLAGGING_FILENAME), 'a+') as f:
                     f.write(json.dumps(output))
