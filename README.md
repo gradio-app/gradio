@@ -8,8 +8,7 @@ The biggest bottleneck in building artificial intelligence systems is acquiring 
 
 This is achieved through: (1) identifying and correcting mislabelled data;  (2) valuing each datapoint to automatically identify which data points should be labeled; and (3) intelligently augmenting data to diversify and maximize the value of the dataset. (See figure below.)
 
-
-
+![Gradio modules](https://raw.githubusercontent.com/gradio-app/gradio-UI/master/screenshots/gradio-3-modules.PNG)
 
 # Gradio UI Tool
 
