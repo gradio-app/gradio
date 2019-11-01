@@ -95,8 +95,7 @@ iface.launch()
 
 ![alt text](https://raw.githubusercontent.com/abidlabs/gradio/master/screenshots/label_interface.png)
 
-### More Documentation
-
-More detailed and up-to-date documentation can be found on the gradio website: www.gradio.app.
+### What we're up to now:
+Take a look at what we're working on now: www.gradio.app.
 
 
