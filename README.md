@@ -1,18 +1,6 @@
-[![CircleCI](https://circleci.com/gh/gradio-app/gradio-UI.svg?style=svg)](https://circleci.com/gh/gradio-app/gradio)
+# Gradio UI
 
-# About Gradio
-
-Gradio reduces the amount of data that a company needs to collect and label in order to build high-performing artificial intelligent systems. 
-
-The biggest bottleneck in building artificial intelligence systems is acquiring and labeling data. This process requires huge amounts of human labor and often requires domain expertise (e.g. costly lawyers to label contracts, costly doctors to label medical images). Applying recent machine learning research from Stanford, Gradio reduces the amount of data that an AI company needs to collect and label, often by as much as half. 
-
-This is achieved through: (1) identifying and correcting mislabelled data;  (2) valuing each datapoint to automatically identify which data points should be labeled; and (3) intelligently augmenting data to diversify and maximize the value of the dataset. (See figure below.)
-
-![Gradio modules](https://raw.githubusercontent.com/gradio-app/gradio-UI/master/screenshots/gradio-3-modules.PNG)
-
-# Gradio UI Tool
-
-As part of our work, we often try to understand what inputs that a model is particularly sensitive to. To help facilitate this, we've developed and open-sourced `gradio`, a python library that allows you to easily create input and output interfaces over trained models to make it easy for you to "play around" with your model in your browser by dragging-and-dropping in your own images (or pasting your own text, recording your own voice, etc.) and seeing what the model outputs. The library also automatically creates a shareable, public link to your model so you can share the interface with others (e.g. your client, your advisor, or your dad), who can use the model without writing any code. 
+At Gradio, we often try to understand what inputs that a model is particularly sensitive to. To help facilitate this, we've developed and open-sourced `gradio`, a python library that allows you to easily create input and output interfaces over trained models to make it easy for you to "play around" with your model in your browser by dragging-and-dropping in your own images (or pasting your own text, recording your own voice, etc.) and seeing what the model outputs. The library also automatically creates a shareable, public link to your model so you can share the interface with others (e.g. your client, your advisor, or your dad), who can use the model without writing any code. 
 
 Gradio is useful for:
 * Creating demos of your machine learning code for clients / collaborators / users
