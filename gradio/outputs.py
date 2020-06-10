@@ -159,8 +159,9 @@ class Image(AbstractOutput):
         """
         im = preprocessing_utils.decode_base64_to_image(msg)
         timestamp = datetime.datetime.now()
-        filename = f'output_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.png'
-        im.save(f'{dir}/{filename}', 'PNG')
+        filename = 'output_{}.png'.format(timestamp.
+                                          strftime("%Y-%m-%d-%H-%M-%S"))
+        im.save('{}/{}'.format(dir, filename), 'PNG')
         return filename
 
 
