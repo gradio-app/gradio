@@ -22,9 +22,6 @@ const label_output = {
       }
     }
   },
-  submit: function() {
-    this.target.find(".output_class").html("<img src='static/img/logo_loading.gif'>")
-  },
   clear: function() {
     this.target.find(".output_class").empty();
     this.target.find(".confidence_intervals > div").empty();

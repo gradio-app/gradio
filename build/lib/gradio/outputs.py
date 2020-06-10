@@ -54,9 +54,8 @@ class AbstractOutput(ABC):
 
 import operator
 class Label(AbstractOutput):
-    def __init__(self, num_top_classes=3, show_confidences=True):
+    def __init__(self, num_top_classes=None):
         self.num_top_classes = num_top_classes
-        self.show_confidences = show_confidences
         super().__init__()
 
     def get_name(self):
@@ -71,6 +70,8 @@ class Label(AbstractOutput):
                 key=operator.itemgetter(1),
                 reverse=True
             )
+            if self.num_top_classes is not None:
+                sorted_pred = sorted_pred[:self.num_top_classes]
             return {
                 "label": sorted_pred[0][0],
                 "confidences": [
@@ -115,7 +116,7 @@ class Image(AbstractOutput):
     def postprocess(self, prediction):
         """
         """
-        return prediction
+        return preprocessing_utils.encode_array_to_base64(prediction)
 
     def rebuild_flagged(self, dir, msg):
         """
