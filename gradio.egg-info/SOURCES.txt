@@ -2,7 +2,6 @@ MANIFEST.in
 README.md
 setup.py
 gradio/__init__.py
-gradio/imagenet_class_labels.py
 gradio/inputs.py
 gradio/interface.py
 gradio/networking.py
@@ -18,7 +17,6 @@ gradio.egg-info/requires.txt
 gradio.egg-info/top_level.txt
 gradio/static/apple-app-site-association
 gradio/static/config.json
-gradio/static/css/.DS_Store
 gradio/static/css/gradio.css
 gradio/static/css/loading.css
 gradio/static/css/style.css
@@ -47,6 +45,7 @@ gradio/static/img/vendor/icon-b.svg
 gradio/static/img/vendor/icon-c.svg
 gradio/static/img/vendor/icon-d.svg
 gradio/static/js/all_io.js
+gradio/static/js/load_history.js
 gradio/static/js/load_interfaces.js
 gradio/static/js/share.js
 gradio/static/js/utils.js

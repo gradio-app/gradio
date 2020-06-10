@@ -28,111 +28,33 @@ class Interface:
     the appropriate inputs and outputs
     """
 
-    # Dictionary in which each key is a valid `model_type` argument to constructor, and the value being the description.
-    VALID_MODEL_TYPES = {
-        "sklearn": "sklearn model",
-        "keras": "Keras model",
-        "pyfunc": "python function",
-        "pytorch": "PyTorch model",
-    }
-    STATUS_TYPES = {"OFF": "off", "RUNNING": "running"}
-
-    def __init__(
-        self,
-        inputs,
-        outputs,
-        model,
-        model_type=None,
-        preprocessing_fns=None,
-        postprocessing_fns=None,
-        verbose=True,
-        saliency=None,
-        always_flag=False,
-        interactivity_disabled=False,
-    ):
+    def __init__(self, fn, inputs, outputs, verbose=False):
         """
+        :param fn: a function that will process the input panel data from the interface and return the output panel data.
         :param inputs: a string or `AbstractInput` representing the input interface.
         :param outputs: a string or `AbstractOutput` representing the output interface.
-        :param model: the model object, such as a sklearn classifier or keras model.
-        :param model_type: what kind of trained model, can be 'keras' or 'sklearn' or 'function'. Inferred if not
-            provided.
-        :param preprocessing_fns: an optional function that overrides the preprocessing function of the input interface.
-        :param postprocessing_fns: an optional function that overrides the postprocessing fn of the output interface.
-        :param saliency: an optional function that takes the model and the processed input and returns a 2-d array
-
         """
         if isinstance(inputs, str):
-            self.input_interface = gradio.inputs.registry[inputs.lower()](
-                preprocessing_fns
-            )
+            self.input_interface = gradio.inputs.registry[inputs.lower()]()
         elif isinstance(inputs, gradio.inputs.AbstractInput):
             self.input_interface = inputs
         else:
             raise ValueError("Input interface must be of type `str` or `AbstractInput`")
         if isinstance(outputs, str):
-            self.output_interface = gradio.outputs.registry[outputs.lower()](
-                postprocessing_fns
-            )
+            self.output_interface = gradio.outputs.registry[outputs.lower()]()
         elif isinstance(outputs, gradio.outputs.AbstractOutput):
             self.output_interface = outputs
         else:
             raise ValueError(
                 "Output interface must be of type `str` or `AbstractOutput`"
             )
-        self.model_obj = model
-        if model_type is None:
-            model_type = self._infer_model_type(model)
-            if verbose:
-                print(
-                    "Model type not explicitly identified, inferred to be: {}".format(
-                        self.VALID_MODEL_TYPES[model_type]
-                    )
-                )
-        elif not (model_type.lower() in self.VALID_MODEL_TYPES):
-            ValueError("model_type must be one of: {}".format(self.VALID_MODEL_TYPES))
-        self.model_type = model_type
-        if self.model_type == "keras":
-            import tensorflow as tf
-            self.graph = tf.get_default_graph()
-            self.sess = tf.keras.backend.get_session()
+        self.predict = fn
         self.verbose = verbose
-        self.status = self.STATUS_TYPES["OFF"]
-        self.validate_flag = False
-        self.simple_server = None
-        self.hash = random.getrandbits(32)
-        self.saliency = saliency
-        self.always_flag = always_flag
-        self.interactivity_disabled = interactivity_disabled
+        self.status = "OFF"
+        self.always_flag = False
+        self.interactivity_disabled = False
+        self.saliency = None
 
-    @staticmethod
-    def _infer_model_type(model):
-        """ Helper method that attempts to identify the type of trained ML model."""
-        try:
-            import sklearn
-
-            if isinstance(model, sklearn.base.BaseEstimator):
-                return "sklearn"
-        except ImportError:
-            pass
-
-        try:
-            import tensorflow as tf
-            if isinstance(model, tf.keras.Model):
-                return "keras"
-        except ImportError:
-            pass
-
-        try:
-            import keras
-            if isinstance(model, keras.Model):
-                return "keras"
-        except ImportError:
-            pass
-
-        if callable(model):
-            return 'pyfunc'
-
-        raise ValueError("model_type could not be inferred, please specify parameter `model_type`")
 
     def update_config_file(self, output_directory):
         networking.set_interface_types_in_config_file(
@@ -149,30 +71,6 @@ class Interface:
 
         networking.set_always_flagged_in_config_file(output_directory, self.always_flag)
         networking.set_disabled_in_config_file(output_directory, self.interactivity_disabled)
-
-    def predict(self, preprocessed_input):
-        """
-        Method that calls the relevant method of the model object to make a prediction.
-        :param preprocessed_input: the preprocessed input returned by the input interface
-        """
-#         print(preprocessed_input.shape)
-        if self.model_type == "sklearn":
-            return self.model_obj.predict(preprocessed_input)
-        elif self.model_type == "keras":
-            import tensorflow as tf
-            with self.graph.as_default():
-                with self.sess.as_default():
-                    return self.model_obj.predict(preprocessed_input)
-        elif self.model_type == "pyfunc":
-            return self.model_obj(preprocessed_input)
-        elif self.model_type == "pytorch":
-            import torch
-            value = torch.from_numpy(preprocessed_input)
-            value = torch.autograd.Variable(value)
-            prediction = self.model_obj(value)
-            return prediction.data.numpy()
-        else:
-            ValueError("model_type must be one of: {}".format(self.VALID_MODEL_TYPES))
 
     def validate(self):
         if self.validate_flag:
@@ -234,11 +132,11 @@ class Interface:
         :param share: boolean. If True, then a share link is generated using ngrok is displayed to the user.
         :param validate: boolean. If True, then the validation is run if the interface has not already been validated.
         """
-        if validate and not self.validate_flag:
-            self.validate()
+        # if validate and not self.validate_flag:
+        #     self.validate()
 
         # If an existing interface is running with this instance, close it.
-        if self.status == self.STATUS_TYPES["RUNNING"]:
+        if self.status == "RUNNING":
             if self.verbose:
                 print("Closing existing server...")
             if self.simple_server is not None:
@@ -257,7 +155,7 @@ class Interface:
 
         self.update_config_file(output_directory)
 
-        self.status = self.STATUS_TYPES["RUNNING"]
+        self.status = "RUNNING"
         self.simple_server = httpd
 
         is_colab = False

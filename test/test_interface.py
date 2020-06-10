@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from gradio import Interface
+import gradio as gr
 import gradio.inputs
 import gradio.outputs
 

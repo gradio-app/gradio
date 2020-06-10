@@ -15,10 +15,7 @@ setup(
     keywords=['machine learning', 'visualization', 'reproducibility'],
     install_requires=[
         'numpy',
-        'beautifulsoup4',
-        'Pillow',
         'requests',
-        'psutil',
         'paramiko',
         'scipy',
         'IPython',
