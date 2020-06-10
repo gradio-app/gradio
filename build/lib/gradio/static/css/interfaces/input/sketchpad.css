@@ -1,9 +1,6 @@
 .hide {
   display: none !important;
 }
-.sketchpad canvas {
-  background-color: white;
-}
 .sketch_tools {
   flex: 0 1 auto;
   display: flex;
@@ -48,8 +45,9 @@
 .saliency_holder {
   position: absolute;
   top: 0;
-  opacity: 0.7;
+  opacity: 0.9;
 }
-canvas {
+.view_holders canvas {
+  background-color: white;
   border: solid 1px black;
 }
