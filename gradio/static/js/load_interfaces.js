@@ -1,6 +1,6 @@
 input_to_object_map = {
   "csv" : {},
-  "imageupload" : image_input,
+  "image" : image_input,
   "sketchpad" : sketchpad_input,
   "textbox" : textbox_input,
   "microphone" : microphone
@@ -20,9 +20,7 @@ function set_interface_id(interface, id) {
 }
 
 var config;
-console.log("POO")
 $.getJSON("static/config.json", function(data) {
-  console.log("POO2")
   config = data;
   input_interface = Object.create(input_to_object_map[
       config["input_interface_type"]]);
@@ -37,11 +35,6 @@ $.getJSON("static/config.json", function(data) {
   output_interface.target = $("#output_interface");
   set_interface_id(output_interface, 2)
   output_interface.init();
-  $(".submit").click(function() {
-    input_interface.submit();
-    output_interface.submit();
-    $(".flag").removeClass("flagged");
-  })
   $(".clear").click(function() {
     input_interface.clear();
     output_interface.clear();
@@ -62,6 +55,15 @@ $.getJSON("static/config.json", function(data) {
   load_history(config["sample_inputs"] || []);
   if (!config["sample_inputs"]) {
     $("#featured_history").hide();
+  }
+  if (config.live) {
+    input_interface.submit();
+  } else {
+    $(".submit").show();
+    $(".submit").click(function() {
+      input_interface.submit();
+      $(".flag").removeClass("flagged");
+    })
   }
 });
 

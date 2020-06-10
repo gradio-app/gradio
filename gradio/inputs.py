@@ -196,7 +196,7 @@ class Textbox(AbstractInput):
         return self.sample_inputs
 
 
-class ImageUpload(AbstractInput):
+class ImageIn(AbstractInput):
     def __init__(self, shape=(224, 224, 3), image_mode='RGB',
                  scale=1/127.5, shift=-1, cropper_aspect_ratio=None):
         self.image_width = shape[0]
@@ -212,7 +212,7 @@ class ImageUpload(AbstractInput):
         return validation_data.BASE64_COLOR_IMAGES
 
     def get_name(self):
-        return 'image_upload'
+        return 'image'
 
     def get_js_context(self):
         return {'aspect_ratio': self.cropper_aspect_ratio}
@@ -230,9 +230,9 @@ class ImageUpload(AbstractInput):
         im = np.array(im).flatten()
         im = im * self.scale + self.shift
         if self.num_channels is None:
-            array = im.reshape(1, self.image_width, self.image_height)
+            array = im.reshape(self.image_width, self.image_height)
         else:
-            array = im.reshape(1, self.image_width, self.image_height, self.num_channels)
+            array = im.reshape(self.image_width, self.image_height, self.num_channels)
         return array
 
     def rebuild_flagged(self, dir, msg):

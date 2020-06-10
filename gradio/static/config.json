@@ -1,8 +1,0 @@
-{
-  "input_interface_type": "{{input_interface_type}}",
-  "output_interface_type": "{{output_interface_type}}",
-  "share_url": "{{share_url}}",
-  "disabled": {{disabled}},
-  "always_flagged": {{always_flagged}},
-  "sample_inputs": {{sample_inputs}}
-}
