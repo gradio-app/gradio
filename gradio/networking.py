@@ -96,56 +96,10 @@ def render_string_or_list_with_tags(old_lines, context):
         new_lines.append(line)
     return new_lines
 
-
-def set_interface_types_in_config_file(temp_dir, input_interface, output_interface):
+def set_config(config, temp_dir):
     config_file = os.path.join(temp_dir, CONFIG_FILE)
-    render_template_with_tags(
-        config_file,
-        {
-            "input_interface_type": input_interface,
-            "output_interface_type": output_interface,
-        },
-    )
-
-
-def set_share_url_in_config_file(temp_dir, share_url):
-    config_file = os.path.join(temp_dir, CONFIG_FILE)
-    render_template_with_tags(
-        config_file,
-        {
-            "share_url": share_url,
-        },
-    )
-
-
-def set_sample_data_in_config_file(temp_dir, sample_inputs):
-    config_file = os.path.join(temp_dir, CONFIG_FILE)
-    render_template_with_tags(
-        config_file,
-        {
-            "sample_inputs": json.dumps(sample_inputs)
-        },
-    )
-
-
-def set_disabled_in_config_file(temp_dir, disabled):
-    config_file = os.path.join(temp_dir, CONFIG_FILE)
-    render_template_with_tags(
-        config_file,
-        {
-            "disabled": json.dumps(disabled)
-        },
-    )
-
-
-def set_always_flagged_in_config_file(temp_dir, always_flagged):
-    config_file = os.path.join(temp_dir, CONFIG_FILE)
-    render_template_with_tags(
-        config_file,
-        {
-            "always_flagged": json.dumps(always_flagged)
-        },
-    )
+    with open(config_file, "w") as output:
+        json.dump(config, output)
 
 
 def get_first_available_port(initial, final):
@@ -205,16 +159,16 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
                     import numpy as np
                     saliency = interface.saliency(interface, interface.model_obj, raw_input, processed_input, prediction, processed_output)
                     output['saliency'] = saliency.tolist()
-                if interface.always_flag:
-                    msg = json.loads(data_string)
-                    flag_dir = os.path.join(FLAGGING_DIRECTORY, str(interface.hash))
-                    os.makedirs(flag_dir, exist_ok=True)
-                    output_flag = {'input': interface.input_interface.rebuild_flagged(flag_dir, msg['data']),
-                              'output': interface.output_interface.rebuild_flagged(flag_dir, processed_output),
-                              }
-                    with open(os.path.join(flag_dir, FLAGGING_FILENAME), 'a+') as f:
-                        f.write(json.dumps(output_flag))
-                        f.write("\n")
+                # if interface.always_flag:
+                #     msg = json.loads(data_string)
+                #     flag_dir = os.path.join(FLAGGING_DIRECTORY, str(interface.hash))
+                #     os.makedirs(flag_dir, exist_ok=True)
+                #     output_flag = {'input': interface.input_interface.rebuild_flagged(flag_dir, msg['data']),
+                #               'output': interface.output_interface.rebuild_flagged(flag_dir, processed_output),
+                #               }
+                #     with open(os.path.join(flag_dir, FLAGGING_FILENAME), 'a+') as f:
+                #         f.write(json.dumps(output_flag))
+                #         f.write("\n")
 
                 # Prepare return json dictionary.
                 self.wfile.write(json.dumps(output).encode())

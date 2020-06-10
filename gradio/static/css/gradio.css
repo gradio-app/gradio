@@ -34,6 +34,9 @@
 .panel_buttons {
   display: flex;
 }
+.submit {
+  display: none;
+}
 .submit, .clear, .panel_button {
   background-color: #EEEEEE !important;
   flex-grow: 1;

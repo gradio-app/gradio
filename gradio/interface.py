@@ -28,7 +28,7 @@ class Interface:
     the appropriate inputs and outputs
     """
 
-    def __init__(self, fn, inputs, outputs, verbose=False):
+    def __init__(self, fn, inputs, outputs, verbose=False, live=False):
         """
         :param fn: a function that will process the input panel data from the interface and return the output panel data.
         :param inputs: a string or `AbstractInput` representing the input interface.
@@ -51,26 +51,17 @@ class Interface:
         self.predict = fn
         self.verbose = verbose
         self.status = "OFF"
-        self.always_flag = False
-        self.interactivity_disabled = False
         self.saliency = None
+        self.live = live
 
 
     def update_config_file(self, output_directory):
-        networking.set_interface_types_in_config_file(
-            output_directory,
-            self.input_interface.__class__.__name__.lower(),
-            self.output_interface.__class__.__name__.lower(),
-        )
-
-        if hasattr(self.input_interface, 'get_sample_inputs'):
-            networking.set_sample_data_in_config_file(
-                output_directory,
-                self.input_interface.get_sample_inputs()
-            )
-
-        networking.set_always_flagged_in_config_file(output_directory, self.always_flag)
-        networking.set_disabled_in_config_file(output_directory, self.interactivity_disabled)
+        config = {
+            "input_interface_type": self.input_interface.__class__.__name__.lower(),
+            "output_interface_type": self.output_interface.__class__.__name__.lower(),
+            "live": self.live
+        }
+        networking.set_config(config, output_directory)
 
     def validate(self):
         if self.validate_flag:
@@ -199,13 +190,6 @@ class Interface:
                 if self.verbose:
                     print(strings.en["PUBLIC_SHARE_TRUE"])
                 share_url = None
-
-        if share_url is not None:
-            networking.set_share_url_in_config_file(output_directory, share_url)
-            if self.verbose:
-                print(strings.en["GENERATING_PUBLIC_LINK"], end='\r')
-                time.sleep(5)
-                print(strings.en["MODEL_PUBLICLY_AVAILABLE_URL"].format(share_url))
 
         if inline is None:
             try:  # Check if running interactively using ipython.

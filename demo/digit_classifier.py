@@ -1,5 +1,6 @@
 import tensorflow as tf
 import gradio
+import os
 from tensorflow.keras.layers import *
 import gradio as gr
 
@@ -22,13 +23,24 @@ def get_trained_model(n):
     print(model.evaluate(x_test, y_test))
     return model
 
-model = get_trained_model(n=50000)
+if not os.path.exists("models/mnist.h5"):
+    model = get_trained_model(n=50000)
+    model.save('models/mnist.h5')
+else:
+    model = tf.keras.models.load_model('models/mnist.h5') 
+
+graph = tf.get_default_graph()
+sess = tf.keras.backend.get_session()
 
 def recognize_digit(image):
-    return {
-        "5": 0.6,
-        "4": 0.12,
-        "6": 0.1
-    }
+    with graph.as_default():
+        with sess.as_default():
+            prediction = model.predict(image).tolist()[0]
+    return {str(i): prediction[i] for i in range(10)}
 
-gr.Interface(recognize_digit, "sketchpad", "label").launch()
+gr.Interface(
+    recognize_digit, 
+    gradio.inputs.Sketchpad(flatten=True), 
+    gradio.outputs.Label(num_top_classes=3),
+    live=True
+).launch()

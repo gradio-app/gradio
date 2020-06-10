@@ -16,3 +16,4 @@ gradio-flagged/*
 __pycache__/
 *.py[cod]
 *$py.class
+demo/models/*

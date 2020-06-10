@@ -34,6 +34,9 @@ var io_master = {
     }
     $("#loading").addClass("invisible");
     $("#output_interface").removeClass("invisible");
+    if (config.live) {
+      io_master.input_interface.submit();
+    }
   },
   flag: function(message) {
     var post_data = {
