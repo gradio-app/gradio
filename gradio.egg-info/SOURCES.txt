@@ -2,6 +2,7 @@ MANIFEST.in
 README.md
 setup.py
 gradio/__init__.py
+gradio/hosted.py
 gradio/inputs.py
 gradio/interface.py
 gradio/networking.py
