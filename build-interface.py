@@ -32,7 +32,7 @@ def launch_interface(args):
         pass
 
     def service_shutdown(signum, frame):
-        print('Shutting server down due to signal %d' % signum)
+        print('Shutting server down due to signal {}'.format(signum))
         httpd.shutdown()
         raise ServiceExit
 
