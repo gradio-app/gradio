@@ -10,22 +10,36 @@ const sketchpad_input = {
         <canvas class="saliency"></canvas>
       </div>
       <div class="canvas_holder">
-        <canvas id="canvas"></canvas>
+        <canvas class="sketch"></canvas>
       </div>
     </div>`,
+    disabled_html: `
+      <div class="view_holders">
+        <div class="saliency_holder hide">
+          <canvas class="saliency"></canvas>
+        </div>
+        <div class="canvas_holder">
+          <canvas></canvas>
+        </div>
+      </div>`,
   init: function() {
     var io = this;
     var dimension = Math.min(this.target.find(".canvas_holder").width(),
         this.target.find(".canvas_holder").height()) - 2 // dimension - border
     var id = this.id;
-    this.sketchpad = new Sketchpad({
-      element: '.interface[interface_id=' + id + '] .canvas_holder canvas',
-      width: dimension,
-      height: dimension
-    });
+    if (config.disabled) {
+      this.target.find('.canvas_holder canvas')
+        .attr("width", dimension).attr("height", dimension);
+    } else {
+      this.sketchpad = new Sketchpad({
+        element: '.interface[interface_id=' + id + '] .sketch',
+        width: dimension,
+        height: dimension
+      });
+      this.sketchpad.penSize = this.target.find(".brush.selected").attr("size");
+    }
     this.target.find(".saliency")
       .attr("width", dimension+"px").attr("height", dimension+"px");
-    this.sketchpad.penSize = this.target.find(".brush.selected").attr("size");
     this.canvas = this.target.find('.canvas_holder canvas')[0];
     this.context = this.canvas.getContext("2d");
     this.target.find(".brush").click(function (e) {
@@ -40,9 +54,9 @@ const sketchpad_input = {
   },
   output: function(data) {
     this.target.find(".saliency_holder").removeClass("hide");
-    var ctx = this.target.find(".saliency")[0].getContext('2d');
+    let ctx = this.target.find(".saliency")[0].getContext('2d');
     let dimension = this.target.find(".saliency").width();
-    console.log(data, dimension, dimension);
+    ctx.clearRect(0,0,dimension,dimension);
     paintSaliency(data, dimension, dimension, ctx);
   },
   clear: function() {
@@ -54,12 +68,14 @@ const sketchpad_input = {
     return `<img src=${data}>`;
   },
   loadFeatured: function(data) {
-    let ctx = $(".canvas_holder canvas")[0].getContext("2d");
+    let ctx = this.context;
     var img = new Image;
     let dimension = this.target.find(".canvas_holder canvas").width();
     img.onload = function(){
+      ctx.clearRect(0,0,dimension,dimension);
       ctx.drawImage(img,0,0,dimension,dimension);
     };
     img.src = data;
+    this.target.find(".saliency_holder").addClass("hide");
   }
 }

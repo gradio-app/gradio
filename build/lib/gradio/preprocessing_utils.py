@@ -5,6 +5,7 @@ import tempfile
 import scipy.io.wavfile
 from scipy.fftpack import dct
 import numpy as np
+import skimage
 
 
 #########################
@@ -16,6 +17,15 @@ def decode_base64_to_image(encoding):
     return Image.open(BytesIO(base64.b64decode(image_encoded)))
 
 
+def encode_array_to_base64(image_array):
+    with BytesIO() as output_bytes:
+        PIL_image = Image.fromarray(skimage.img_as_ubyte(image_array))
+        PIL_image.save(output_bytes, 'PNG')
+        bytes_data = output_bytes.getvalue()
+    base64_str = str(base64.b64encode(bytes_data), 'utf-8')
+    return "data:image/png;base64," + base64_str
+
+
 def resize_and_crop(img, size, crop_type='top'):
     """
     Resize and crop an image to fit the specified size.
@@ -24,8 +34,8 @@ def resize_and_crop(img, size, crop_type='top'):
         modified_path: path to store the modified image.
         size: `(width, height)` tuple.
         crop_type: can be 'top', 'middle' or 'bottom', depending on this
-            value, the image will cropped getting the 'top/left', 'midle' or
-            'bottom/rigth' of the image to fit the size.
+            value, the image will cropped getting the 'top/left', 'middle' or
+            'bottom/right' of the image to fit the size.
     raises:
         Exception: if can not open the file in img_path of there is problems
             to save the image.
@@ -152,3 +162,5 @@ def generate_mfcc_features_from_audio_file(wav_filename,
     filter_banks -= (np.mean(filter_banks, axis=0) + 1e-8)
     mfcc -= (np.mean(mfcc, axis=0) + 1e-8)
     return mfcc[np.newaxis, :, :]  # Create a batch dimension.
+
+

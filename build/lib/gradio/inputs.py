@@ -24,16 +24,6 @@ class AbstractInput(ABC):
     When this is subclassed, it is automatically added to the registry
     """
 
-    def __init__(self, preprocessing_fn=None):
-        """
-        :param preprocessing_fn: an optional preprocessing function that overrides the default
-        """
-        if preprocessing_fn is not None:
-            if not callable(preprocessing_fn):
-                raise ValueError('`preprocessing_fn` must be a callable function')
-            self.preprocess = preprocessing_fn
-        super().__init__()
-
     def get_validation_inputs(self):
         """
         An interface can optionally implement a method that returns a list of examples inputs that it should be able to
@@ -52,6 +42,12 @@ class AbstractInput(ABC):
         :return: a dictionary with context variables for the javascript file associated with the context
         """
         return {}
+
+    def sample_inputs(self):
+        """
+        An interface can optionally implement a method that sends a list of sample inputs for inference.
+        """
+        return []
 
     @abstractmethod
     def get_name(self):
@@ -76,8 +72,8 @@ class AbstractInput(ABC):
 
 
 class Sketchpad(AbstractInput):
-    def __init__(self, preprocessing_fn=None, shape=(28, 28), invert_colors=True, flatten=False, scale=1/255, shift=0,
-                 dtype='float64'):
+    def __init__(self, shape=(28, 28), invert_colors=True, flatten=False, scale=1/255, shift=0,
+                 dtype='float64', sample_inputs=None):
         self.image_width = shape[0]
         self.image_height = shape[1]
         self.invert_colors = invert_colors
@@ -85,7 +81,8 @@ class Sketchpad(AbstractInput):
         self.scale = scale
         self.shift = shift
         self.dtype = dtype
-        super().__init__(preprocessing_fn=preprocessing_fn)
+        self.sample_inputs = sample_inputs
+        super().__init__()
 
     def get_name(self):
         return 'sketchpad'
@@ -114,20 +111,31 @@ class Sketchpad(AbstractInput):
         """
         Default rebuild method to decode a base64 image
         """
-        inp = msg['data']['input']
-        im = preprocessing_utils.decode_base64_to_image(inp)
+
+        im = preprocessing_utils.decode_base64_to_image(msg)
         timestamp = time.time()*1000
         filename = f'input_{timestamp}.png'
         im.save(f'{dir}/{filename}', 'PNG')
         return filename
 
+    def get_sample_inputs(self):
+        encoded_images = []
+        if self.sample_inputs is not None:
+            for input in self.sample_inputs:
+                if self.flatten:
+                    input = input.reshape((self.image_width, self.image_height))
+                if self.invert_colors:
+                    input = 1 - input
+                encoded_images.append(preprocessing_utils.encode_array_to_base64(input))
+        return encoded_images
+
 
 class Webcam(AbstractInput):
-    def __init__(self, preprocessing_fn=None, image_width=224, image_height=224, num_channels=3):
+    def __init__(self, image_width=224, image_height=224, num_channels=3):
         self.image_width = image_width
         self.image_height = image_height
         self.num_channels = num_channels
-        super().__init__(preprocessing_fn=preprocessing_fn)
+        super().__init__()
 
     def get_validation_inputs(self):
         return validation_data.BASE64_COLOR_IMAGES
@@ -158,6 +166,10 @@ class Webcam(AbstractInput):
 
 
 class Textbox(AbstractInput):
+    def __init__(self, sample_inputs=None):
+        self.sample_inputs = sample_inputs
+        super().__init__()
+
     def get_validation_inputs(self):
         return validation_data.ENGLISH_TEXTS
 
@@ -174,16 +186,18 @@ class Textbox(AbstractInput):
         """
         Default rebuild method for text saves it .txt file
         """
-        inp = msg['data']['input']
         timestamp = time.time()*1000
-        filename = f'input_{timestamp}.png'
+        filename = f'input_{timestamp}'
         with open(f'{dir}/{filename}.txt','w') as f:
-            f.write(inp)
+            f.write(msg)
         return filename
+
+    def get_sample_inputs(self):
+        return self.sample_inputs
 
 
 class ImageUpload(AbstractInput):
-    def __init__(self, preprocessing_fn=None, shape=(224, 224, 3), image_mode='RGB',
+    def __init__(self, shape=(224, 224, 3), image_mode='RGB',
                  scale=1/127.5, shift=-1, cropper_aspect_ratio=None):
         self.image_width = shape[0]
         self.image_height = shape[1]
@@ -192,7 +206,7 @@ class ImageUpload(AbstractInput):
         self.scale = scale
         self.shift = shift
         self.cropper_aspect_ratio = "false" if cropper_aspect_ratio is None else cropper_aspect_ratio
-        super().__init__(preprocessing_fn=preprocessing_fn)
+        super().__init__()
 
     def get_validation_inputs(self):
         return validation_data.BASE64_COLOR_IMAGES
@@ -225,8 +239,7 @@ class ImageUpload(AbstractInput):
         """
         Default rebuild method to decode a base64 image
         """
-        inp = msg['data']['input']
-        im = preprocessing_utils.decode_base64_to_image(inp)
+        im = preprocessing_utils.decode_base64_to_image(msg)
         timestamp = time.time()*1000
         filename = f'input_{timestamp}.png'
         im.save(f'{dir}/{filename}', 'PNG')
@@ -257,8 +270,7 @@ class CSV(AbstractInput):
         """
         Default rebuild method for csv
         """
-        inp = msg['data']['inp']
-        return json.loads(inp)
+        return json.loads(msg)
 
 
 class Microphone(AbstractInput):
@@ -278,8 +290,7 @@ class Microphone(AbstractInput):
         """
         Default rebuild method for csv
         """
-        inp = msg['data']['inp']
-        return json.loads(inp)
+        return json.loads(msg)
 
 
 # Automatically adds all subclasses of AbstractInput into a dictionary (keyed by class name) for easy referencing.
