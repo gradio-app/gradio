@@ -72,6 +72,7 @@ def render_template_with_tags(template_path, context):
     :param template_path: a string with the path to the template file
     :param context: a dictionary whose string keys are the tags to replace and whose string values are the replacements.
     """
+    print(template_path, context)
     with open(template_path) as fin:
         old_lines = fin.readlines()
     new_lines = render_string_or_list_with_tags(old_lines, context)
@@ -113,6 +114,36 @@ def set_share_url_in_config_file(temp_dir, share_url):
         config_file,
         {
             "share_url": share_url,
+        },
+    )
+
+
+def set_sample_data_in_config_file(temp_dir, sample_inputs):
+    config_file = os.path.join(temp_dir, CONFIG_FILE)
+    render_template_with_tags(
+        config_file,
+        {
+            "sample_inputs": json.dumps(sample_inputs)
+        },
+    )
+
+
+def set_disabled_in_config_file(temp_dir, disabled):
+    config_file = os.path.join(temp_dir, CONFIG_FILE)
+    render_template_with_tags(
+        config_file,
+        {
+            "disabled": json.dumps(disabled)
+        },
+    )
+
+
+def set_always_flagged_in_config_file(temp_dir, always_flagged):
+    config_file = os.path.join(temp_dir, CONFIG_FILE)
+    render_template_with_tags(
+        config_file,
+        {
+            "always_flagged": json.dumps(always_flagged)
         },
     )
 
@@ -165,14 +196,25 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
                 self._set_headers()
                 data_string = self.rfile.read(int(self.headers["Content-Length"]))
                 msg = json.loads(data_string)
-                processed_input = interface.input_interface.preprocess(msg["data"])
+                raw_input = msg["data"]
+                processed_input = interface.input_interface.preprocess(raw_input)
                 prediction = interface.predict(processed_input)
                 processed_output = interface.output_interface.postprocess(prediction)
                 output = {"action": "output", "data": processed_output}
                 if interface.saliency is not None:
                     import numpy as np
-                    saliency = interface.saliency(interface.model_obj, processed_input, prediction)
+                    saliency = interface.saliency(interface, interface.model_obj, raw_input, processed_input, prediction, processed_output)
                     output['saliency'] = saliency.tolist()
+                if interface.always_flag:
+                    msg = json.loads(data_string)
+                    flag_dir = os.path.join(FLAGGING_DIRECTORY, str(interface.hash))
+                    os.makedirs(flag_dir, exist_ok=True)
+                    output_flag = {'input': interface.input_interface.rebuild_flagged(flag_dir, msg['data']),
+                              'output': interface.output_interface.rebuild_flagged(flag_dir, processed_output),
+                              }
+                    with open(os.path.join(flag_dir, FLAGGING_FILENAME), 'a+') as f:
+                        f.write(json.dumps(output_flag))
+                        f.write("\n")
 
                 # Prepare return json dictionary.
                 self.wfile.write(json.dumps(output).encode())
@@ -181,79 +223,14 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
                 self._set_headers()
                 data_string = self.rfile.read(int(self.headers["Content-Length"]))
                 msg = json.loads(data_string)
-                flag_dir = os.path.join(directory_to_serve, FLAGGING_DIRECTORY)
-                os.makedirs(flag_dir, exist_ok=True)
-                output = {'input': interface.input_interface.rebuild_flagged(flag_dir, msg),
-                          'output': interface.output_interface.rebuild_flagged(flag_dir, msg),
+                flag_dir = os.path.join(FLAGGING_DIRECTORY, str(interface.hash))
+                os.makedirs(FLAGGING_DIRECTORY, exist_ok=True)
+                output = {'input': interface.input_interface.rebuild_flagged(flag_dir, msg['data']['input_data']),
+                          'output': interface.output_interface.rebuild_flagged(flag_dir, msg['data']['output_data']),
                           'message': msg['data']['message']}
                 with open(os.path.join(flag_dir, FLAGGING_FILENAME), 'a+') as f:
                     f.write(json.dumps(output))
                     f.write("\n")
-
-            #TODO(abidlabs): clean this up
-            elif self.path == "/api/auto/rotation":
-                from gradio import validation_data, preprocessing_utils
-                import numpy as np
-
-                self._set_headers()
-                data_string = self.rfile.read(int(self.headers["Content-Length"]))
-                msg = json.loads(data_string)
-                img_orig = preprocessing_utils.decode_base64_to_image(msg["data"])
-                img_orig = img_orig.convert('RGB')
-                img_orig = img_orig.resize((224, 224))
-
-                flag_dir = os.path.join(directory_to_serve, FLAGGING_DIRECTORY)
-                os.makedirs(flag_dir, exist_ok=True)
-
-                for deg in range(-180, 180+45, 45):
-                    img = img_orig.rotate(deg)
-                    img_array = np.array(img) / 127.5 - 1
-                    prediction = interface.predict(np.expand_dims(img_array, axis=0))
-                    processed_output = interface.output_interface.postprocess(prediction)
-                    output = {'input': interface.input_interface.save_to_file(flag_dir, img),
-                              'output': interface.output_interface.rebuild_flagged(
-                                  flag_dir, {'data': {'output': processed_output}}),
-                              'message': f'rotation by {deg} degrees'}
-
-                    with open(os.path.join(flag_dir, FLAGGING_FILENAME), 'a+') as f:
-                        f.write(json.dumps(output))
-                        f.write("\n")
-
-                # Prepare return json dictionary.
-                self.wfile.write(json.dumps({}).encode())
-
-            elif self.path == "/api/auto/lighting":
-                from gradio import validation_data, preprocessing_utils
-                import numpy as np
-                from PIL import ImageEnhance
-
-                self._set_headers()
-                data_string = self.rfile.read(int(self.headers["Content-Length"]))
-                msg = json.loads(data_string)
-                img_orig = preprocessing_utils.decode_base64_to_image(msg["data"])
-                img_orig = img_orig.convert('RGB')
-                img_orig = img_orig.resize((224, 224))
-                enhancer = ImageEnhance.Brightness(img_orig)
-
-                flag_dir = os.path.join(directory_to_serve, FLAGGING_DIRECTORY)
-                os.makedirs(flag_dir, exist_ok=True)
-
-                for i in range(9):
-                    img = enhancer.enhance(i/4)
-                    img_array = np.array(img) / 127.5 - 1
-                    prediction = interface.predict(np.expand_dims(img_array, axis=0))
-                    processed_output = interface.output_interface.postprocess(prediction)
-                    output = {'input': interface.input_interface.save_to_file(flag_dir, img),
-                              'output': interface.output_interface.rebuild_flagged(
-                                  flag_dir, {'data': {'output': processed_output}}),
-                              'message': f'brighting adjustment by a factor of {i}'}
-
-                    with open(os.path.join(flag_dir, FLAGGING_FILENAME), 'a+') as f:
-                        f.write(json.dumps(output))
-                        f.write("\n")
-
-                # Prepare return json dictionary.
-                self.wfile.write(json.dumps({}).encode())
 
             else:
                 self.send_error(404, 'Path not found: %s' % self.path)
