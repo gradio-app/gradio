@@ -191,7 +191,7 @@ class Interface:
         for m, msg in enumerate(validation_inputs):
             if self.verbose:
                 print(
-                    f"Validating samples: {m+1}/{n}  ["
+                    "Validating samples: {}/{}  [".format(m+1, n)
                     + "=" * (m + 1)
                     + "." * (n - m - 1)
                     + "]",
@@ -272,9 +272,10 @@ class Interface:
             current_pkg_version = pkg_resources.require("gradio")[0].version
             latest_pkg_version = requests.get(url=PKG_VERSION_URL).json()["version"]
             if StrictVersion(latest_pkg_version) > StrictVersion(current_pkg_version):
-                print(f"IMPORTANT: You are using gradio version {current_pkg_version}, "
-                      f"however version {latest_pkg_version} "
-                      f"is available, please upgrade.")
+                print("IMPORTANT: You are using gradio version {}, "
+                      "however version {} "
+                      "is available, please upgrade.".format(
+                            current_pkg_version, latest_pkg_version))
                 print('--------')
         except:  # TODO(abidlabs): don't catch all exceptions
             pass

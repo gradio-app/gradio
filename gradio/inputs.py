@@ -125,8 +125,8 @@ class Sketchpad(AbstractInput):
 
         im = preprocessing_utils.decode_base64_to_image(msg)
         timestamp = time.time()*1000
-        filename = f'input_{timestamp}.png'
-        im.save(f'{dir}/{filename}', 'PNG')
+        filename = 'input_{}.png'.format(timestamp)
+        im.save('{}/{}'.format(dir, filename), 'PNG')
         return filename
 
     def get_sample_inputs(self):
@@ -171,8 +171,8 @@ class Webcam(AbstractInput):
         inp = msg['data']['input']
         im = preprocessing_utils.decode_base64_to_image(inp)
         timestamp = time.time()*1000
-        filename = f'input_{timestamp}.png'
-        im.save(f'{dir}/{filename}', 'PNG')
+        filename = 'input_{}.png'.format(timestamp)
+        im.save('{}/{}'.format(dir, filename), 'PNG')
         return filename
 
 
@@ -198,8 +198,8 @@ class Textbox(AbstractInput):
         Default rebuild method for text saves it .txt file
         """
         timestamp = time.time()*1000
-        filename = f'input_{timestamp}'
-        with open(f'{dir}/{filename}.txt','w') as f:
+        filename = 'input_{}'.format(timestamp)
+        with open('{}/{}.txt'.format(dir, filename),'w') as f:
             f.write(msg)
         return filename
 
@@ -252,8 +252,8 @@ class ImageUpload(AbstractInput):
         """
         im = preprocessing_utils.decode_base64_to_image(msg)
         timestamp = time.time()*1000
-        filename = f'input_{timestamp}.png'
-        im.save(f'{dir}/{filename}', 'PNG')
+        filename = 'input_{}.png'.format(timestamp)
+        im.save('{}/{}'.format(dir, filename), 'PNG')
         return filename
 
     # TODO(abidlabs): clean this up
@@ -261,8 +261,8 @@ class ImageUpload(AbstractInput):
         """
         """
         timestamp = time.time()*1000
-        filename = f'input_{timestamp}.png'
-        img.save(f'{dir}/{filename}', 'PNG')
+        filename = 'input_{}.png'.format(timestamp)
+        img.save('{}/{}'.format(dir, filename), 'PNG')
         return filename
 
 

@@ -254,7 +254,8 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
                     output = {'input': interface.input_interface.save_to_file(flag_dir, img),
                               'output': interface.output_interface.rebuild_flagged(
                                   flag_dir, {'data': {'output': processed_output}}),
-                              'message': f'rotation by {deg} degrees'}
+                              'message': 'rotation by {} degrees'.format(
+                                  deg)}
 
                     with open(os.path.join(flag_dir, FLAGGING_FILENAME), 'a+') as f:
                         f.write(json.dumps(output))
@@ -287,7 +288,8 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
                     output = {'input': interface.input_interface.save_to_file(flag_dir, img),
                               'output': interface.output_interface.rebuild_flagged(
                                   flag_dir, {'data': {'output': processed_output}}),
-                              'message': f'brighting adjustment by a factor of {i}'}
+                              'message': 'brighting adjustment by a factor '
+                                         'of {}'.format(i)}
 
                     with open(os.path.join(flag_dir, FLAGGING_FILENAME), 'a+') as f:
                         f.write(json.dumps(output))
@@ -297,7 +299,7 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
                 self.wfile.write(json.dumps({}).encode())
 
             else:
-                self.send_error(404, 'Path not found: %s' % self.path)
+                self.send_error(404, 'Path not found: {}'.format(self.path))
 
     class HTTPServer(BaseHTTPServer):
         """The main server, you pass in base_path which is the path you want to serve requests from"""
