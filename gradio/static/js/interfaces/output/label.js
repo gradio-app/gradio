@@ -8,10 +8,9 @@ const label_output = {
     `,
   init: function() {},
   output: function(data) {
-    data = JSON.parse(data)
     this.target.find(".output_class").html(data["label"])
     this.target.find(".confidence_intervals > div").empty()
-    if (data.confidences) {
+    if ("confidences" in data) {
       for (var i = 0; i < data.confidences.length; i++)
       {
         let c = data.confidences[i]

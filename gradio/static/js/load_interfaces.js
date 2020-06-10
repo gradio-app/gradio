@@ -20,7 +20,9 @@ function set_interface_id(interface, id) {
 }
 
 var config;
+console.log("POO")
 $.getJSON("static/config.json", function(data) {
+  console.log("POO2")
   config = data;
   input_interface = Object.create(input_to_object_map[
       config["input_interface_type"]]);
@@ -34,7 +36,7 @@ $.getJSON("static/config.json", function(data) {
   $("#output_interface").html(output_interface.html);
   output_interface.target = $("#output_interface");
   set_interface_id(output_interface, 2)
- output_interface.init();
+  output_interface.init();
   $(".submit").click(function() {
     input_interface.submit();
     output_interface.submit();
@@ -44,7 +46,7 @@ $.getJSON("static/config.json", function(data) {
     input_interface.clear();
     output_interface.clear();
     $(".flag").removeClass("flagged");
-    $(".flag_message").empty
+    $(".flag_message").empty();
     $("#loading").addClass("invisible");
     $("#output_interface").removeClass("invisible");
     io_master.last_input = null;

@@ -72,6 +72,7 @@ def render_template_with_tags(template_path, context):
     :param template_path: a string with the path to the template file
     :param context: a dictionary whose string keys are the tags to replace and whose string values are the replacements.
     """
+    print(template_path, context)
     with open(template_path) as fin:
         old_lines = fin.readlines()
     new_lines = render_string_or_list_with_tags(old_lines, context)
