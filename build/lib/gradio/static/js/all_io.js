@@ -1,15 +1,30 @@
 var io_master = {
+  gather: function() {
+    this.clear();
+    for (let iface of this.input_interfaces) {
+      iface.submit();
+    }
+  },
+  clear: function() {
+    this.last_input = new Array(this.input_interfaces.length);
+    this.input_count = 0;
+  },
   input: function(interface_id, data) {
-    this.last_input = data;
-    this.last_output = null;
+    this.last_input[interface_id] = data;
+    this.input_count += 1;
+    if (this.input_count == this.input_interfaces.length) {
+      this.submit();
+    }
+  },
+  submit: function() {
     var post_data = {
-      'data': data
+      'data': this.last_input
     };
     if (!config.live) {
       $("#loading").removeClass("invisible");
       $("#loading_in_progress").show();
       $("#loading_failed").hide();
-      $("#output_interface").addClass("invisible");
+      $(".output_interface").addClass("invisible");
     }
     $.ajax({type: "POST",
         url: "/api/predict/",
@@ -30,15 +45,17 @@ var io_master = {
   },
   output: function(data) {
     this.last_output = data["data"];
-    this.output_interface.output(data["data"]);
-    if (this.input_interface.output && data["saliency"]) {
-      this.input_interface.output(data["saliency"]);
+    for (let i = 0; i < this.output_interfaces.length; i++) {
+      this.output_interfaces[i].output(data["data"][i]);
     }
+    // if (this.input_interface.output && data["saliency"]) {
+    //   this.input_interface.output(data["saliency"]);
+    // }
     if (config.live) {
-      io_master.input_interface.submit();
+      this.gather();
     } else {
       $("#loading").addClass("invisible");
-      $("#output_interface").removeClass("invisible");
+      $(".output_interface").removeClass("invisible");  
     }
   },
   flag: function(message) {
