@@ -1,9 +1,17 @@
 const textbox_input = {
-  html: `<textarea class="input_text" placeholder="Enter text here..."></textarea>
+  html: `<textarea class="input_text"></textarea>
   <div class='input_text_saliency'></div>`,
   disabled_html: `<textarea class="input_text" disabled></textarea>
   <div class='input_text_saliency'></div>`,
-  init: function() {},
+  init: function(opts) {
+    if (opts.lines) {
+      this.target.find(".input_text").attr("rows", opts.lines).css("height", "auto");
+      this.target.css("height", "auto");
+    }
+    if (opts.placeholder) {
+      this.target.find(".input_text").attr("placeholder", opts.placeholder)
+    }
+  },
   submit: function() {
     text = this.target.find(".input_text").val();
     this.io_master.input(this.id, text);

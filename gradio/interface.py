@@ -73,8 +73,12 @@ class Interface:
 
     def update_config_file(self, output_directory):
         config = {
-            "input_interfaces": [iface.__class__.__name__.lower() for iface in self.input_interfaces],
-            "output_interfaces": [iface.__class__.__name__.lower() for iface in self.output_interfaces],
+            "input_interfaces": [
+                (iface.__class__.__name__.lower(), iface.get_template_context())
+                for iface in self.input_interfaces],
+            "output_interfaces": [
+                (iface.__class__.__name__.lower(), iface.get_template_context())
+                for iface in self.output_interfaces],
             "function_count": len(self.predict),
             "live": self.live,
             "show_input": self.show_input,

@@ -92,9 +92,19 @@ class Label(AbstractOutput):
 
 
 class Textbox(AbstractOutput):
+    def __init__(self, lines=None, placeholder=None):
+        self.lines = lines
+        self.placeholder = placeholder
+        super().__init__()
 
     def get_name(self):
         return 'textbox'
+
+    def get_template_context(self):
+        return {
+            "lines": self.lines,
+            "placeholder": self.placeholder,
+        }
 
     def postprocess(self, prediction):
         """
