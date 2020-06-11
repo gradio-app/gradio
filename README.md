@@ -84,8 +84,7 @@ gradio.Interface(predict, sketchpad, label).launch();
 #### Human DNA Variant Effect Prediction (Input: Textbox, Output: Label)
 
 ```python
-iface = gradio.Interface(predict, 'textbox', 'label')
-iface.launch()
+gradio.Interface(predict, 'textbox', 'label').launch()
 ```
 
 ![alt text](https://raw.githubusercontent.com/abidlabs/gradio/master/screenshots/label_interface.png)
