@@ -143,7 +143,6 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
                     if len(interface.output_interfaces) == 1:
                         prediction = [prediction]
                     predictions.extend(prediction)
-                print(predictions)
                 processed_output = [output_interface.postprocess(predictions[i]) for i, output_interface in enumerate(interface.output_interfaces)]
                 output = {"action": "output", "data": processed_output}
                 if interface.saliency is not None:
