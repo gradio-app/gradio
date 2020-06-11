@@ -12,15 +12,17 @@
   text-transform: uppercase;
   font-family: Arial;
   color: #888;
-  padding: 6px;
+  padding: 6px 6px 0;
   font-size: 14px;
   font-weight: bold;
   display: flex;
 }
+.input_interfaces, .output_interfaces {
+  margin-bottom: 16px;
+}
 .interface {
   height: 360px;
-  margin-bottom: 16px;
-  padding: 0 6px 6px;
+  padding: 8px;
   display: flex;
   flex-flow: column;
 }
@@ -33,6 +35,10 @@
 }
 .panel_buttons {
   display: flex;
+  margin-left: -8px;
+}
+.panel_buttons > * {
+  margin-left: 8px;
 }
 .submit {
   display: none;
@@ -57,9 +63,6 @@
 .flag_message {
   padding: 8px !important;
   background-color: #EEEEEE !important;
-}
-.clear, .flag {
-  margin-left: 8px;
 }
 
 .upload_zone {

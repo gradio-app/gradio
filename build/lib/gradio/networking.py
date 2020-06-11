@@ -137,10 +137,14 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
                 msg = json.loads(data_string)
                 raw_input = msg["data"]
                 processed_input = [input_interface.preprocess(raw_input[i]) for i, input_interface in enumerate(interface.input_interfaces)]
-                prediction = interface.predict(*processed_input)
-                if len(interface.input_interfaces) == 1:
-                    prediction = [prediction]
-                processed_output = [output_interface.postprocess(prediction[i]) for i, output_interface in enumerate(interface.output_interfaces)]
+                predictions = []
+                for predict_fn in interface.predict:
+                    prediction = predict_fn(*processed_input)
+                    if len(interface.output_interfaces) == 1:
+                        prediction = [prediction]
+                    predictions.extend(prediction)
+                print(predictions)
+                processed_output = [output_interface.postprocess(predictions[i]) for i, output_interface in enumerate(interface.output_interfaces)]
                 output = {"action": "output", "data": processed_output}
                 if interface.saliency is not None:
                     import numpy as np
