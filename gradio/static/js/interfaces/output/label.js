@@ -6,7 +6,7 @@ const label_output = {
       <div class="confidences"></div>
     </div>
     `,
-  init: function() {},
+  init: function(opts) {},
   output: function(data) {
     this.target.find(".output_class").html(data["label"])
     this.target.find(".confidence_intervals > div").empty()

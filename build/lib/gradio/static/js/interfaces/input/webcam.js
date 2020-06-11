@@ -6,7 +6,7 @@ const webcam = {
       <span class="snapped">Snapped!</span>
     </button>
   `,
-  init: function() {
+  init: function(opts) {
     var io = this;
 //    this.target.find(".webcam_box").width(this.target.find(".webcam_box").width);
     let w = this.target.find(".webcam_box").width();

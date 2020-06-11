@@ -167,8 +167,10 @@ class Webcam(AbstractInput):
 
 
 class Textbox(AbstractInput):
-    def __init__(self, sample_inputs=None):
+    def __init__(self, sample_inputs=None, lines=None, placeholder=None):
         self.sample_inputs = sample_inputs
+        self.lines = lines
+        self.placeholder = placeholder
         super().__init__()
 
     def get_validation_inputs(self):
@@ -176,6 +178,12 @@ class Textbox(AbstractInput):
 
     def get_name(self):
         return 'textbox'
+
+    def get_template_context(self):
+        return {
+            "lines": self.lines,
+            "placeholder": self.placeholder,
+        }
 
     def preprocess(self, inp):
         """
