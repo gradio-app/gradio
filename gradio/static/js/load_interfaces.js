@@ -1,8 +1,9 @@
 input_to_object_map = {
   "csv" : {},
-  "image" : image_input,
+  "imagein" : image_input,
   "sketchpad" : sketchpad_input,
   "textbox" : textbox_input,
+  "webcam" : webcam,
   "microphone" : microphone
 }
 output_to_object_map = {
@@ -16,39 +17,60 @@ id_to_interface_map = {}
 function set_interface_id(interface, id) {
   interface.id = id;
   id_to_interface_map[id] = interface;
-  interface.target.attr("interface_id", id);
 }
 
 var config;
 $.getJSON("static/config.json", function(data) {
   config = data;
-  input_interface = Object.create(input_to_object_map[
-      config["input_interface_type"]]);
-  output_interface = Object.create(output_to_object_map[
-      config["output_interface_type"]]);
-  $("#input_interface").html(config.disabled ?
-    input_interface.disabled_html : input_interface.html);
-  input_interface.target = $("#input_interface");
-  set_interface_id(input_interface, 1)
-  input_interface.init();
-  $("#output_interface").html(output_interface.html);
-  output_interface.target = $("#output_interface");
-  set_interface_id(output_interface, 2)
-  output_interface.init();
+  _id = 0;
+  let input_interfaces = [];
+  let output_interfaces = [];
+  for (let i = 0; i < config["input_interfaces"].length; i++) {
+    input_interface = Object.create(input_to_object_map[
+      config["input_interfaces"][i]]);
+    $(".input_interfaces").append(`
+      <div class="input_interface interface" interface_id=${_id}>
+        ${input_interface.html}
+      </div>
+    `);
+    input_interface.target = $(`.input_interface[interface_id=${_id}]`);
+    set_interface_id(input_interface, _id);
+    input_interface.init();
+    input_interfaces.push(input_interface);
+    input_interface.io_master = io_master;
+    _id++;
+  }
+  for (let i = 0; i < config["output_interfaces"].length; i++) {
+    output_interface = Object.create(output_to_object_map[
+      config["output_interfaces"][i]]);
+    $(".output_interfaces").append(`
+      <div class="output_interface interface" interface_id=${_id}>
+        ${output_interface.html}
+      </div>
+    `);
+    output_interface.target = $(`.output_interface[interface_id=${_id}]`);
+    set_interface_id(output_interface, _id);
+    output_interface.init();
+    output_interfaces.push(output_interface);
+    output_interface.io_master = io_master;
+    _id++;
+  }
+  io_master.input_interfaces = input_interfaces;
+  io_master.output_interfaces = output_interfaces;
   $(".clear").click(function() {
-    input_interface.clear();
-    output_interface.clear();
+    for (let input_interface of input_interfaces) {
+      input_interface.clear();
+    }
+    for (let output_interface of output_interfaces) {
+      output_interface.clear();
+    }
     $(".flag").removeClass("flagged");
     $(".flag_message").empty();
     $("#loading").addClass("invisible");
-    $("#output_interface").removeClass("invisible");
+    $(".output_interface").removeClass("invisible");
     io_master.last_input = null;
     io_master.last_output = null;
   })
-  input_interface.io_master = io_master;
-  io_master.input_interface = input_interface;
-  output_interface.io_master = io_master;
-  io_master.output_interface = output_interface;
   if (config["share_url"] != "None") {
     $("#share_row").css('display', 'flex');
   }
@@ -57,13 +79,16 @@ $.getJSON("static/config.json", function(data) {
     $("#featured_history").hide();
   }
   if (config.live) {
-    input_interface.submit();
+    io_master.gather();
   } else {
     $(".submit").show();
     $(".submit").click(function() {
-      input_interface.submit();
+      io_master.gather();
       $(".flag").removeClass("flagged");
     })
+  }
+  if (!config.show_input) {
+    $(".input_panel").hide();
   }
 });
 

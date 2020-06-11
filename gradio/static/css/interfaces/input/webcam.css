@@ -1,0 +1,20 @@
+.webcam_box {
+  width: 100% !important;
+  flex-grow: 1;
+  background-color: #BBBBBB;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.webcam_box canvas {
+  border: none;
+}
+.take_photo {
+  font-weight: bold;
+  font-size: 14px;
+  padding: 10px 0;
+}
+.snapped {
+  display: none;
+}
