@@ -26,8 +26,8 @@ $.getJSON("static/config.json", function(data) {
   let input_interfaces = [];
   let output_interfaces = [];
   for (let i = 0; i < config["input_interfaces"].length; i++) {
-    input_interface = Object.create(input_to_object_map[
-      config["input_interfaces"][i]]);
+    input_interface_data = config["input_interfaces"][i];
+    input_interface = Object.create(input_to_object_map[input_interface_data[0]]);
     $(".input_interfaces").append(`
       <div class="input_interface interface" interface_id=${_id}>
         ${input_interface.html}
@@ -35,7 +35,7 @@ $.getJSON("static/config.json", function(data) {
     `);
     input_interface.target = $(`.input_interface[interface_id=${_id}]`);
     set_interface_id(input_interface, _id);
-    input_interface.init();
+    input_interface.init(input_interface_data[1]);
     input_interfaces.push(input_interface);
     input_interface.io_master = io_master;
     _id++;
@@ -44,8 +44,9 @@ $.getJSON("static/config.json", function(data) {
     if (i != 0 && i % (config["output_interfaces"].length / config.function_count) == 0) {
       $(".output_interfaces").append("<hr>");
     }
+    output_interface_data = config["output_interfaces"][i];
     output_interface = Object.create(output_to_object_map[
-      config["output_interfaces"][i]]);
+      output_interface_data[0]]);
     $(".output_interfaces").append(`
       <div class="output_interface interface" interface_id=${_id}>
         ${output_interface.html}
@@ -53,7 +54,7 @@ $.getJSON("static/config.json", function(data) {
     `);
     output_interface.target = $(`.output_interface[interface_id=${_id}]`);
     set_interface_id(output_interface, _id);
-    output_interface.init();
+    output_interface.init(output_interface_data[1]);
     output_interfaces.push(output_interface);
     output_interface.io_master = io_master;
     _id++;
