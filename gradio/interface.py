@@ -59,6 +59,9 @@ class Interface:
             self.output_interfaces = [get_output_instance(i) for i in outputs]
         else:
             self.output_interfaces = [get_output_instance(outputs)]
+        if not isinstance(fn, list):
+            fn = [fn]
+        self.output_interfaces *= len(fn)
         self.predict = fn
         self.verbose = verbose
         self.status = "OFF"
@@ -66,12 +69,13 @@ class Interface:
         self.live = live
         self.show_input = show_input
         self.show_output = show_output
-
+        self.flag_hash = random.getrandbits(32)
 
     def update_config_file(self, output_directory):
         config = {
             "input_interfaces": [iface.__class__.__name__.lower() for iface in self.input_interfaces],
             "output_interfaces": [iface.__class__.__name__.lower() for iface in self.output_interfaces],
+            "function_count": len(self.predict),
             "live": self.live,
             "show_input": self.show_input,
             "show_output": self.show_output,            
@@ -95,7 +99,7 @@ class Interface:
         for m, msg in enumerate(validation_inputs):
             if self.verbose:
                 print(
-                    f"Validating samples: {m+1}/{n}  ["
+                    "Validating samples: {}/{}  [".format(m+1, n)
                     + "=" * (m + 1)
                     + "." * (n - m - 1)
                     + "]",
@@ -174,9 +178,10 @@ class Interface:
             current_pkg_version = pkg_resources.require("gradio")[0].version
             latest_pkg_version = requests.get(url=PKG_VERSION_URL).json()["version"]
             if StrictVersion(latest_pkg_version) > StrictVersion(current_pkg_version):
-                print(f"IMPORTANT: You are using gradio version {current_pkg_version}, "
-                      f"however version {latest_pkg_version} "
-                      f"is available, please upgrade.")
+                print("IMPORTANT: You are using gradio version {}, "
+                      "however version {} "
+                      "is available, please upgrade.".format(
+                            current_pkg_version, latest_pkg_version))
                 print('--------')
         except:  # TODO(abidlabs): don't catch all exceptions
             pass

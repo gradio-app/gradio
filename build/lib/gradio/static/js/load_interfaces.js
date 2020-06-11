@@ -41,6 +41,9 @@ $.getJSON("static/config.json", function(data) {
     _id++;
   }
   for (let i = 0; i < config["output_interfaces"].length; i++) {
+    if (i != 0 && i % (config["output_interfaces"].length / config.function_count) == 0) {
+      $(".output_interfaces").append("<hr>");
+    }
     output_interface = Object.create(output_to_object_map[
       config["output_interfaces"][i]]);
     $(".output_interfaces").append(`
