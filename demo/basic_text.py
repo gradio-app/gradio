@@ -6,6 +6,12 @@ def upper(sentence, sentence2):
 
 
 gr.Interface(upper, 
-            ["textbox", "textbox"],
-            ["textbox", "textbox"],
+            [
+                "textbox", 
+                gr.inputs.Textbox(lines=3, placeholder="hello")
+            ],
+            [
+                "textbox",
+                gr.outputs.Textbox(lines=3, placeholder="hello")
+            ],
             live=True).launch()

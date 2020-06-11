@@ -11,4 +11,9 @@ def flip2(image):
     return np.fliplr(image), time() - start
 
 
-gr.Interface([flip, flip2], "imagein", ["image", "textbox"]).launch()
+gr.Interface([flip, flip2], 
+             "imagein", 
+             [
+                 "image", 
+                 gr.outputs.Textbox(lines=1)
+             ]).launch()
