@@ -32,8 +32,8 @@ model = TFGPT2LMHeadModel.from_pretrained("gpt2", pad_token_id=tokenizer.eos_tok
 def predict(inp):
     input_ids = tokenizer.encode(inp, return_tensors='tf')
     beam_output = model.generate(input_ids, max_length=49, num_beams=5, no_repeat_ngram_size=2, early_stopping=True)
-    return tokenizer.decode(beam_output[0], skip_special_tokens=True, clean_up_tokenization_spaces=True)
-
+    output = tokenizer.decode(beam_output[0], skip_special_tokens=True, clean_up_tokenization_spaces=True)
+    return ".".join(output.split(".")[:-1]) + "."
 
 # In[18]:
 
