@@ -28,38 +28,53 @@ class Interface:
     the appropriate inputs and outputs
     """
 
-    def __init__(self, fn, inputs, outputs, verbose=False, live=False):
+    def __init__(self, fn, inputs, outputs, saliency=None, verbose=False,
+                            live=False, show_input=True, show_output=True):
         """
         :param fn: a function that will process the input panel data from the interface and return the output panel data.
         :param inputs: a string or `AbstractInput` representing the input interface.
         :param outputs: a string or `AbstractOutput` representing the output interface.
         """
-        if isinstance(inputs, str):
-            self.input_interface = gradio.inputs.registry[inputs.lower()]()
-        elif isinstance(inputs, gradio.inputs.AbstractInput):
-            self.input_interface = inputs
+        def get_input_instance(iface):
+            if isinstance(iface, str):
+                return gradio.inputs.registry[iface.lower()]()
+            elif isinstance(iface, gradio.inputs.AbstractInput):
+                return iface
+            else:
+                raise ValueError("Input interface must be of type `str` or `AbstractInput`")
+        def get_output_instance(iface):
+            if isinstance(iface, str):
+                return gradio.outputs.registry[iface.lower()]()
+            elif isinstance(iface, gradio.outputs.AbstractOutput):
+                return iface
+            else:
+                raise ValueError(
+                    "Output interface must be of type `str` or `AbstractOutput`"
+                )
+        if isinstance(inputs, list):
+            self.input_interfaces = [get_input_instance(i) for i in inputs]
         else:
-            raise ValueError("Input interface must be of type `str` or `AbstractInput`")
-        if isinstance(outputs, str):
-            self.output_interface = gradio.outputs.registry[outputs.lower()]()
-        elif isinstance(outputs, gradio.outputs.AbstractOutput):
-            self.output_interface = outputs
+            self.input_interfaces = [get_input_instance(inputs)]
+        if isinstance(outputs, list):
+            self.output_interfaces = [get_output_instance(i) for i in outputs]
         else:
-            raise ValueError(
-                "Output interface must be of type `str` or `AbstractOutput`"
-            )
+            self.output_interfaces = [get_output_instance(outputs)]
         self.predict = fn
         self.verbose = verbose
         self.status = "OFF"
-        self.saliency = None
+        self.saliency = saliency
         self.live = live
+        self.show_input = show_input
+        self.show_output = show_output
 
 
     def update_config_file(self, output_directory):
         config = {
-            "input_interface_type": self.input_interface.__class__.__name__.lower(),
-            "output_interface_type": self.output_interface.__class__.__name__.lower(),
-            "live": self.live
+            "input_interfaces": [iface.__class__.__name__.lower() for iface in self.input_interfaces],
+            "output_interfaces": [iface.__class__.__name__.lower() for iface in self.output_interfaces],
+            "live": self.live,
+            "show_input": self.show_input,
+            "show_output": self.show_output,            
         }
         networking.set_config(config, output_directory)
 
@@ -140,9 +155,7 @@ class Interface:
         # Set up a port to serve the directory containing the static files with interface.
         server_port, httpd = networking.start_simple_server(self, output_directory)
         path_to_local_server = "http://localhost:{}/".format(server_port)
-        networking.build_template(
-            output_directory, self.input_interface, self.output_interface
-        )
+        networking.build_template(output_directory)
 
         self.update_config_file(output_directory)
 
