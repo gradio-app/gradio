@@ -58,6 +58,9 @@ class Interface:
             self.output_interfaces = [get_output_instance(i) for i in outputs]
         else:
             self.output_interfaces = [get_output_instance(outputs)]
+        if not isinstance(fn, list):
+            fn = [fn]
+        self.output_interfaces *= len(fn)
         self.predict = fn
         self.verbose = verbose
         self.status = "OFF"
@@ -71,6 +74,7 @@ class Interface:
         config = {
             "input_interfaces": [iface.__class__.__name__.lower() for iface in self.input_interfaces],
             "output_interfaces": [iface.__class__.__name__.lower() for iface in self.output_interfaces],
+            "function_count": len(self.predict),
             "live": self.live,
             "show_input": self.show_input,
             "show_output": self.show_output,            

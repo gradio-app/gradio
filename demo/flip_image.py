@@ -1,7 +1,14 @@
 import gradio as gr
 import numpy as np
+from time import time
 
 def flip(image):
-    return np.flipud(image)
+    start = time()
+    return np.flipud(image), time() - start
 
-gr.Interface(flip, "imagein", "image").launch()
+def flip2(image):
+    start = time()
+    return np.fliplr(image), time() - start
+
+
+gr.Interface([flip, flip2], "imagein", ["image", "textbox"]).launch()
