@@ -20,7 +20,7 @@ const microphone = {
     </div>
     `,
   state: "NO_AUDIO",
-  init: function() {
+  init: function(opts) {
     var io = this;
     this.wavesurfer = WaveSurfer.create({
       container: '.waveform',
