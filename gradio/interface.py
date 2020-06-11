@@ -181,10 +181,9 @@ class Interface:
         except:  # TODO(abidlabs): don't catch all exceptions
             pass
 
-        if self.verbose:
-            print(strings.en["BETA_MESSAGE"])
-            if not is_colab:
-                print(strings.en["RUNNING_LOCALLY"].format(path_to_local_server))
+        if not is_colab:
+            print(strings.en["RUNNING_LOCALLY"].format(path_to_local_server))
+
         if share:
             try:
                 share_url = networking.setup_tunnel(server_port)
@@ -231,5 +230,6 @@ class Interface:
                 display(IFrame(share_url, width=1000, height=500))
             else:
                 display(IFrame(path_to_local_server, width=1000, height=500))
+
 
         return httpd, path_to_local_server, share_url
