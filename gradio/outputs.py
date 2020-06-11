@@ -7,7 +7,7 @@ automatically added to a registry, which allows them to be easily referenced in 
 from abc import ABC, abstractmethod
 import numpy as np
 import json
-from gradio import imagenet_class_labels, preprocessing_utils
+from gradio import preprocessing_utils
 import datetime
 
 # Where to find the static resources associated with each template.

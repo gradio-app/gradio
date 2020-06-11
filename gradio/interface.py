@@ -28,7 +28,8 @@ class Interface:
     the appropriate inputs and outputs
     """
 
-    def __init__(self, fn, inputs, outputs, verbose=False, live=False):
+    def __init__(self, fn, inputs, outputs, saliency=None, verbose=False, \
+                                                             live=False):
         """
         :param fn: a function that will process the input panel data from the interface and return the output panel data.
         :param inputs: a string or `AbstractInput` representing the input interface.
@@ -51,7 +52,7 @@ class Interface:
         self.predict = fn
         self.verbose = verbose
         self.status = "OFF"
-        self.saliency = None
+        self.saliency = saliency
         self.live = live
 
 
