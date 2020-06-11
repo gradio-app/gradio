@@ -25,7 +25,7 @@ const image_input = {
       </div>
     </div>
   `,
-  init: function() {
+  init: function(opts) {
     var io = this;
     $('body').append(this.overlay_html.format(this.id));
     this.overlay_target = $(`.overlay[interface_id=${this.id}]`);
