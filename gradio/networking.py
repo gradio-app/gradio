@@ -163,11 +163,19 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
                 self._set_headers()
                 data_string = self.rfile.read(int(self.headers["Content-Length"]))
                 msg = json.loads(data_string)
-                flag_dir = os.path.join(FLAGGING_DIRECTORY, str(interface.hash))
-                os.makedirs(FLAGGING_DIRECTORY, exist_ok=True)
-                output = {'input': interface.input_interface.rebuild_flagged(flag_dir, msg['data']['input_data']),
-                          'output': interface.output_interface.rebuild_flagged(flag_dir, msg['data']['output_data']),
+                flag_dir = os.path.join(FLAGGING_DIRECTORY,
+                                        str(interface.flag_hash))
+                os.makedirs(flag_dir, exist_ok=True)
+                output = {'inputs': [interface.input_interfaces[
+                    i].rebuild_flagged(
+                                  flag_dir, msg['data']['input_data']) for i
+                    in range(len(interface.input_interfaces))],
+                          'outputs': [interface.output_interfaces[
+                              i].rebuild_flagged(
+                                  flag_dir, msg['data']['output_data']) for i
+                    in range(len(interface.output_interfaces))],
                           'message': msg['data']['message']}
+
                 with open(os.path.join(flag_dir, FLAGGING_FILENAME), 'a+') as f:
                     f.write(json.dumps(output))
                     f.write("\n")
