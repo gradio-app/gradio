@@ -2,7 +2,7 @@
 
 # Gradio UI
 
-At Gradio, we often try to understand what inputs that a model is particularly sensitive to. To help facilitate this, we've developed and open-sourced `gradio`, a python library that allows you to easily create input and output interfaces over trained models to make it easy for you to "play around" with your model in your browser by dragging-and-dropping in your own images (or pasting your own text, recording your own voice, etc.) and seeing what the model outputs. The library also automatically creates a shareable, public link to your model so you can share the interface with others (e.g. your client, your advisor, or your dad), who can use the model without writing any code. 
+At Gradio, we often try to understand what inputs that a model is particularly sensitive to. To help facilitate this, we've developed and open-sourced `gradio`, a python library that allows you to easily create input and output interfaces over trained models to make it easy for you to "play around" with your model in your browser by dragging-and-dropping in your own images (or pasting your own text, recording your own voice, etc.) and seeing what the model outputs. We are working on making creating a shareable, public link to your model so you can share the interface with others (e.g. your client, your advisor, or your dad), who can use the model without writing any code. 
 
 Gradio is useful for:
 * Creating demos of your machine learning code for clients / collaborators / users
@@ -20,7 +20,7 @@ year={2019}
 }
 ```
 
-To get a sense of `gradio`, take a look at the  python notebooks in the `examples` folder, or read on below! And be sure to visit the gradio website: www.gradio.app.
+To get a sense of `gradio`, take a look at the at the `examples` and `demo` folders, or read on below! And be sure to visit the gradio website: www.gradio.app.
 
 ## Installation
 ```
@@ -30,19 +30,31 @@ pip install gradio
 
 ## Usage
 
-Gradio is very easy to use with your existing code. Here is a minimum working example:
+Gradio is very easy to use with your existing code. Here's a working example:
 
 
 ```python
 import gradio
 import tensorflow as tf
-image_mdl = tf.keras.applications.inception_v3.InceptionV3()
+from imagenetlabels import idx_to_labels
 
-io = gradio.Interface(inputs="imageupload", outputs="label", model_type="keras", model=image_mdl)
-io.launch()
+graph = tf.get_default_graph()
+sess = tf.keras.backend.get_session()
+
+def classify_image(inp):
+    with graph.as_default():
+        with sess.as_default():
+            inp = inp.reshape((1, 224, 224, 3))
+            prediction = mobile_net.predict(inp).flatten()
+            return {idx_to_labels[i].split(',')[0]: float(prediction[i]) for i in range(1000)}
+
+imagein = gradio.inputs.ImageIn(shape=(224, 224, 3))
+label = gradio.outputs.Label(num_top_classes=3)
+
+gr.Interface(classify_image, imagein, label).launch();
 ```
 
-You can supply your own model instead of the pretrained model above, as well as use different kinds of models, not just keras models. Changing the `input` and `output` parameters in the `Interface` face object allow you to create different interfaces, depending on the needs of your model. Take a look at the python notebooks for more examples. The currently supported interfaces are as follows:
+You can supply your own model instead of the pretrained model above, as well as use different kinds of models or functions. Changing the `input` and `output` parameters in the `Interface` face object allow you to create different interfaces, depending on the needs of your model. Take a look at the python notebooks for more examples. The currently supported interfaces are as follows:
 
 **Input interfaces**:
 * Sketchpad
@@ -61,31 +73,24 @@ Here are a few screenshots that show examples of gradio interfaces
 #### MNIST Digit Recognition (Input: Sketchpad, Output: Label)
 
 ```python
-iface = gradio.Interface(input='sketchpad', output='label', model=model, model_type='keras')
-iface.launch()
+sketchpad = Sketchpad()
+label = Label(num_top_classes=4)
+
+gradio.Interface(predict, sketchpad, label).launch();
 ```
 
 ![alt text](https://raw.githubusercontent.com/abidlabs/gradio/master/screenshots/sketchpad_interface.png)
 
-#### Image Classifier: InceptionNet (Input: Webcam, Output: Label)
-
-```python
-iface = gradio.Interface(inputs='webcam', outputs='label', model=model, model_type='keras')
-iface.launch()
-```
-
-![alt text](https://raw.githubusercontent.com/abidlabs/gradio/master/screenshots/image_interface.png)
-
 #### Human DNA Variant Effect Prediction (Input: Textbox, Output: Label)
 
 ```python
-iface = gradio.Interface(inputs='textbox', outputs='label', model=model, model_type='keras')
+iface = gradio.Interface(predict, 'textbox', 'label')
 iface.launch()
 ```
 
 ![alt text](https://raw.githubusercontent.com/abidlabs/gradio/master/screenshots/label_interface.png)
 
-### What we're up to now:
-Take a look at what we're working on now: www.gradio.app.
+### See more:
+Find more info on usage here: www.gradio.app.
 
 
