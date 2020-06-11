@@ -66,7 +66,7 @@ class Interface:
         self.live = live
         self.show_input = show_input
         self.show_output = show_output
-
+        self.flag_hash = random.getrandbits(32)
 
     def update_config_file(self, output_directory):
         config = {
