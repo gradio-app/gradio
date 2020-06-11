@@ -25,6 +25,7 @@ gradio/static/css/interfaces/input/image.css
 gradio/static/css/interfaces/input/microphone.css
 gradio/static/css/interfaces/input/sketchpad.css
 gradio/static/css/interfaces/input/textbox.css
+gradio/static/css/interfaces/input/webcam.css
 gradio/static/css/interfaces/output/image.css
 gradio/static/css/interfaces/output/label.css
 gradio/static/css/interfaces/output/textbox.css
@@ -54,6 +55,7 @@ gradio/static/js/interfaces/input/image.js
 gradio/static/js/interfaces/input/microphone.js
 gradio/static/js/interfaces/input/sketchpad.js
 gradio/static/js/interfaces/input/textbox.js
+gradio/static/js/interfaces/input/webcam.js
 gradio/static/js/interfaces/output/image.js
 gradio/static/js/interfaces/output/label.js
 gradio/static/js/interfaces/output/textbox.js
@@ -70,6 +72,7 @@ gradio/static/js/vendor/tui-code-snippet.min.js
 gradio/static/js/vendor/tui-color-picker.js
 gradio/static/js/vendor/tui-image-editor.js
 gradio/static/js/vendor/wavesurfer.min.js
+gradio/static/js/vendor/webcam.min.js
 gradio/static/js/vendor/white-theme.js
 gradio/templates/bulk_data.html
 gradio/templates/index.html

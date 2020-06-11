@@ -89,9 +89,10 @@ const image_input = {
      })
   },
   submit: function() {
+    var io = this;
     if (this.state == "IMAGE_LOADED") {
       resizeImage.call(this, this.image_data, 300, 300, function(image_data) {
-        this.io_master.input(this.id, image_data);
+        this.io_master.input(io.id, image_data);
       })
     }
   },

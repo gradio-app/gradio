@@ -37,7 +37,7 @@ FLAGGING_DIRECTORY = 'static/flagged/'
 FLAGGING_FILENAME = 'data.txt'
 
 
-def build_template(temp_dir, input_interface, output_interface):
+def build_template(temp_dir):
     """
     Create HTML file with supporting JS and CSS files in a given directory.
     :param temp_dir: string with path to temp directory in which the html file should be built
@@ -48,21 +48,6 @@ def build_template(temp_dir, input_interface, output_interface):
     # Move association file to root of temporary directory.
     copyfile(os.path.join(temp_dir, ASSOCIATION_PATH_IN_STATIC),
              os.path.join(temp_dir, ASSOCIATION_PATH_IN_ROOT))
-
-    render_template_with_tags(
-        os.path.join(
-            temp_dir,
-            inputs.BASE_INPUT_INTERFACE_JS_PATH.format(input_interface.get_name()),
-        ),
-        input_interface.get_js_context(),
-    )
-    render_template_with_tags(
-        os.path.join(
-            temp_dir,
-            outputs.BASE_OUTPUT_INTERFACE_JS_PATH.format(output_interface.get_name()),
-        ),
-        output_interface.get_js_context(),
-    )
 
 
 def render_template_with_tags(template_path, context):
@@ -151,9 +136,11 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
                 data_string = self.rfile.read(int(self.headers["Content-Length"]))
                 msg = json.loads(data_string)
                 raw_input = msg["data"]
-                processed_input = interface.input_interface.preprocess(raw_input)
-                prediction = interface.predict(processed_input)
-                processed_output = interface.output_interface.postprocess(prediction)
+                processed_input = [input_interface.preprocess(raw_input[i]) for i, input_interface in enumerate(interface.input_interfaces)]
+                prediction = interface.predict(*processed_input)
+                if len(interface.input_interfaces) == 1:
+                    prediction = [prediction]
+                processed_output = [output_interface.postprocess(prediction[i]) for i, output_interface in enumerate(interface.output_interfaces)]
                 output = {"action": "output", "data": processed_output}
                 if interface.saliency is not None:
                     saliency = interface.saliency(raw_input, prediction)
