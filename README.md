@@ -54,6 +54,9 @@ label = gradio.outputs.Label(num_top_classes=3)
 gr.Interface(classify_image, imagein, label).launch();
 ```
 
+![alt text](https://raw.githubusercontent.com/abidlabs/gradio/master/image_interface.png)
+
+
 You can supply your own model instead of the pretrained model above, as well as use different kinds of models or functions. Changing the `input` and `output` parameters in the `Interface` face object allow you to create different interfaces, depending on the needs of your model. Take a look at the python notebooks for more examples. The currently supported interfaces are as follows:
 
 **Input interfaces**:
@@ -79,7 +82,7 @@ label = Label(num_top_classes=4)
 gradio.Interface(predict, sketchpad, label).launch();
 ```
 
-![alt text](https://raw.githubusercontent.com/abidlabs/gradio/master/screenshots/sketchpad_interface.png)
+![alt text](https://raw.githubusercontent.com/abidlabs/gradio/master/sketchpad_interface.png)
 
 #### Human DNA Variant Effect Prediction (Input: Textbox, Output: Label)
 
@@ -87,7 +90,7 @@ gradio.Interface(predict, sketchpad, label).launch();
 gradio.Interface(predict, 'textbox', 'label').launch()
 ```
 
-![alt text](https://raw.githubusercontent.com/abidlabs/gradio/master/screenshots/label_interface.png)
+![alt text](https://raw.githubusercontent.com/abidlabs/gradio/master/label_interface.png)
 
 ### See more:
 Find more info on usage here: www.gradio.app.
