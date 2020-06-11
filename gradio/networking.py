@@ -147,8 +147,7 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
                 processed_output = [output_interface.postprocess(predictions[i]) for i, output_interface in enumerate(interface.output_interfaces)]
                 output = {"action": "output", "data": processed_output}
                 if interface.saliency is not None:
-                    import numpy as np
-                    saliency = interface.saliency(interface, interface.model_obj, raw_input, processed_input, prediction, processed_output)
+                    saliency = interface.saliency(raw_input, prediction)
                     output['saliency'] = saliency.tolist()
                 # if interface.always_flag:
                 #     msg = json.loads(data_string)
@@ -168,17 +167,92 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
                 self._set_headers()
                 data_string = self.rfile.read(int(self.headers["Content-Length"]))
                 msg = json.loads(data_string)
-                flag_dir = os.path.join(FLAGGING_DIRECTORY, str(interface.hash))
-                os.makedirs(FLAGGING_DIRECTORY, exist_ok=True)
-                output = {'input': interface.input_interface.rebuild_flagged(flag_dir, msg['data']['input_data']),
-                          'output': interface.output_interface.rebuild_flagged(flag_dir, msg['data']['output_data']),
+                flag_dir = os.path.join(FLAGGING_DIRECTORY,
+                                        str(interface.flag_hash))
+                os.makedirs(flag_dir, exist_ok=True)
+                output = {'inputs': [interface.input_interfaces[
+                    i].rebuild_flagged(
+                                  flag_dir, msg['data']['input_data']) for i
+                    in range(len(interface.input_interfaces))],
+                          'outputs': [interface.output_interfaces[
+                              i].rebuild_flagged(
+                                  flag_dir, msg['data']['output_data']) for i
+                    in range(len(interface.output_interfaces))],
                           'message': msg['data']['message']}
+
                 with open(os.path.join(flag_dir, FLAGGING_FILENAME), 'a+') as f:
                     f.write(json.dumps(output))
                     f.write("\n")
 
+            #TODO(abidlabs): clean this up
+            elif self.path == "/api/auto/rotation":
+                from gradio import validation_data, preprocessing_utils
+                import numpy as np
+
+                self._set_headers()
+                data_string = self.rfile.read(int(self.headers["Content-Length"]))
+                msg = json.loads(data_string)
+                img_orig = preprocessing_utils.decode_base64_to_image(msg["data"])
+                img_orig = img_orig.convert('RGB')
+                img_orig = img_orig.resize((224, 224))
+
+                flag_dir = os.path.join(directory_to_serve, FLAGGING_DIRECTORY)
+                os.makedirs(flag_dir, exist_ok=True)
+
+                for deg in range(-180, 180+45, 45):
+                    img = img_orig.rotate(deg)
+                    img_array = np.array(img) / 127.5 - 1
+                    prediction = interface.predict(np.expand_dims(img_array, axis=0))
+                    processed_output = interface.output_interface.postprocess(prediction)
+                    output = {'input': interface.input_interface.save_to_file(flag_dir, img),
+                              'output': interface.output_interface.rebuild_flagged(
+                                  flag_dir, {'data': {'output': processed_output}}),
+                              'message': 'rotation by {} degrees'.format(
+                                  deg)}
+
+                    with open(os.path.join(flag_dir, FLAGGING_FILENAME), 'a+') as f:
+                        f.write(json.dumps(output))
+                        f.write("\n")
+
+                # Prepare return json dictionary.
+                self.wfile.write(json.dumps({}).encode())
+
+            elif self.path == "/api/auto/lighting":
+                from gradio import validation_data, preprocessing_utils
+                import numpy as np
+                from PIL import ImageEnhance
+
+                self._set_headers()
+                data_string = self.rfile.read(int(self.headers["Content-Length"]))
+                msg = json.loads(data_string)
+                img_orig = preprocessing_utils.decode_base64_to_image(msg["data"])
+                img_orig = img_orig.convert('RGB')
+                img_orig = img_orig.resize((224, 224))
+                enhancer = ImageEnhance.Brightness(img_orig)
+
+                flag_dir = os.path.join(directory_to_serve, FLAGGING_DIRECTORY)
+                os.makedirs(flag_dir, exist_ok=True)
+
+                for i in range(9):
+                    img = enhancer.enhance(i/4)
+                    img_array = np.array(img) / 127.5 - 1
+                    prediction = interface.predict(np.expand_dims(img_array, axis=0))
+                    processed_output = interface.output_interface.postprocess(prediction)
+                    output = {'input': interface.input_interface.save_to_file(flag_dir, img),
+                              'output': interface.output_interface.rebuild_flagged(
+                                  flag_dir, {'data': {'output': processed_output}}),
+                              'message': 'brighting adjustment by a factor '
+                                         'of {}'.format(i)}
+
+                    with open(os.path.join(flag_dir, FLAGGING_FILENAME), 'a+') as f:
+                        f.write(json.dumps(output))
+                        f.write("\n")
+
+                # Prepare return json dictionary.
+                self.wfile.write(json.dumps({}).encode())
+
             else:
-                self.send_error(404, 'Path not found: %s' % self.path)
+                self.send_error(404, 'Path not found: {}'.format(self.path))
 
     class HTTPServer(BaseHTTPServer):
         """The main server, you pass in base_path which is the path you want to serve requests from"""
