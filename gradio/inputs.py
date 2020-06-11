@@ -11,7 +11,7 @@ from PIL import Image, ImageOps
 import time
 import warnings
 import json
-
+import datetime
 
 # Where to find the static resources associated with each template.
 # BASE_INPUT_INTERFACE_TEMPLATE_PATH = 'static/js/interfaces/input/{}.js'
@@ -113,8 +113,9 @@ class Sketchpad(AbstractInput):
         """
 
         im = preprocessing_utils.decode_base64_to_image(msg)
-        timestamp = time.time()*1000
-        filename = f'input_{timestamp}.png'
+
+        timestamp = datetime.datetime.now()
+        filename = f'input_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.png'
         im.save(f'{dir}/{filename}', 'PNG')
         return filename
 
@@ -159,8 +160,8 @@ class Webcam(AbstractInput):
         """
         inp = msg['data']['input']
         im = preprocessing_utils.decode_base64_to_image(inp)
-        timestamp = time.time()*1000
-        filename = f'input_{timestamp}.png'
+        timestamp = datetime.datetime.now()
+        filename = f'input_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.png'
         im.save(f'{dir}/{filename}', 'PNG')
         return filename
 
@@ -186,11 +187,7 @@ class Textbox(AbstractInput):
         """
         Default rebuild method for text saves it .txt file
         """
-        timestamp = time.time()*1000
-        filename = f'input_{timestamp}'
-        with open(f'{dir}/{filename}.txt','w') as f:
-            f.write(msg)
-        return filename
+        return json.loads(msg)
 
     def get_sample_inputs(self):
         return self.sample_inputs
@@ -240,8 +237,8 @@ class ImageIn(AbstractInput):
         Default rebuild method to decode a base64 image
         """
         im = preprocessing_utils.decode_base64_to_image(msg)
-        timestamp = time.time()*1000
-        filename = f'input_{timestamp}.png'
+        timestamp = datetime.datetime.now()
+        filename = f'input_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.png'
         im.save(f'{dir}/{filename}', 'PNG')
         return filename
 
@@ -250,8 +247,8 @@ class ImageIn(AbstractInput):
         """
         """
         timestamp = time.time()*1000
-        filename = f'input_{timestamp}.png'
-        img.save(f'{dir}/{filename}', 'PNG')
+        filename = 'input_{}.png'.format(timestamp)
+        img.save('{}/{}'.format(dir, filename), 'PNG')
         return filename
 
 
