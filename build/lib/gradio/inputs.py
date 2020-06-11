@@ -150,7 +150,7 @@ class Webcam(AbstractInput):
         im = preprocessing_utils.decode_base64_to_image(inp)
         im = im.convert('RGB')
         im = preprocessing_utils.resize_and_crop(im, (self.image_width, self.image_height))
-        array = np.array(im).flatten().reshape(1, self.image_width, self.image_height, self.num_channels)
+        array = np.array(im).flatten().reshape(self.image_width, self.image_height, self.num_channels)
         return array
 
     def rebuild_flagged(self, dir, msg):
