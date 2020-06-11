@@ -113,6 +113,7 @@ class Sketchpad(AbstractInput):
         """
 
         im = preprocessing_utils.decode_base64_to_image(msg)
+
         timestamp = datetime.datetime.now()
         filename = f'input_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.png'
         im.save(f'{dir}/{filename}', 'PNG')
@@ -246,8 +247,8 @@ class ImageIn(AbstractInput):
         """
         """
         timestamp = time.time()*1000
-        filename = f'input_{timestamp}.png'
-        img.save(f'{dir}/{filename}', 'PNG')
+        filename = 'input_{}.png'.format(timestamp)
+        img.save('{}/{}'.format(dir, filename), 'PNG')
         return filename
 
 
