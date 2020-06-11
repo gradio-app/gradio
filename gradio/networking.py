@@ -156,8 +156,7 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
                 processed_output = interface.output_interface.postprocess(prediction)
                 output = {"action": "output", "data": processed_output}
                 if interface.saliency is not None:
-                    import numpy as np
-                    saliency = interface.saliency(interface, interface.model_obj, raw_input, processed_input, prediction, processed_output)
+                    saliency = interface.saliency(raw_input, prediction)
                     output['saliency'] = saliency.tolist()
                 # if interface.always_flag:
                 #     msg = json.loads(data_string)
