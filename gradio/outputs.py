@@ -126,6 +126,7 @@ class Image(AbstractOutput):
     def postprocess(self, prediction):
         """
         """
+        print(prediction.shape)
         return preprocessing_utils.encode_array_to_base64(prediction)
 
     def rebuild_flagged(self, dir, msg):
