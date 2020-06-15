@@ -37,14 +37,14 @@ class Interface:
         """
         def get_input_instance(iface):
             if isinstance(iface, str):
-                return gradio.inputs.registry[iface.lower()]()
+                return gradio.inputs.shortcuts[iface]
             elif isinstance(iface, gradio.inputs.AbstractInput):
                 return iface
             else:
                 raise ValueError("Input interface must be of type `str` or `AbstractInput`")
         def get_output_instance(iface):
             if isinstance(iface, str):
-                return gradio.outputs.registry[iface.lower()]()
+                return gradio.outputs.shortcuts[iface]
             elif isinstance(iface, gradio.outputs.AbstractOutput):
                 return iface
             else:
@@ -190,10 +190,9 @@ class Interface:
         except:  # TODO(abidlabs): don't catch all exceptions
             pass
 
-        if self.verbose:
-            print(strings.en["BETA_MESSAGE"])
-            if not is_colab:
-                print(strings.en["RUNNING_LOCALLY"].format(path_to_local_server))
+        if not is_colab:
+            print(strings.en["RUNNING_LOCALLY"].format(path_to_local_server))
+
         if share:
             try:
                 share_url = networking.setup_tunnel(server_port)
@@ -240,5 +239,6 @@ class Interface:
                 display(IFrame(share_url, width=1000, height=500))
             else:
                 display(IFrame(path_to_local_server, width=1000, height=500))
+
 
         return httpd, path_to_local_server, share_url
