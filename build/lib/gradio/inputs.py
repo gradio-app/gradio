@@ -23,6 +23,8 @@ class AbstractInput(ABC):
     An abstract class for defining the methods that all gradio inputs should have.
     When this is subclassed, it is automatically added to the registry
     """
+    def __init__(self, label):
+        self.label = label
 
     def get_validation_inputs(self):
         """
@@ -31,17 +33,11 @@ class AbstractInput(ABC):
         """
         return []
 
-    def get_js_context(self):
-        """
-        :return: a dictionary with context variables for the javascript file associated with the context
-        """
-        return {}
-
     def get_template_context(self):
         """
         :return: a dictionary with context variables for the javascript file associated with the context
         """
-        return {}
+        return {"label": self.label}
 
     def sample_inputs(self):
         """
@@ -49,21 +45,19 @@ class AbstractInput(ABC):
         """
         return []
 
-    @abstractmethod
-    def get_name(self):
-        """
-        All interfaces should define a method that returns a name used for identifying the related static resources.
-        """
-        pass
-
-    @abstractmethod
     def preprocess(self, inp):
         """
-        All interfaces should define a default preprocessing method
+        By default, no pre-processing is applied to text.
         """
-        pass
+        return inp
 
-    @abstractmethod
+    @classmethod
+    def get_shortcut_implementations(cls):
+        """
+        Return dictionary of shortcut implementations
+        """
+        return {}
+
     def rebuild_flagged(self, dir, msg):
         """
         All interfaces should define a method that rebuilds the flagged input when it's passed back (i.e. rebuilds image from base64)
@@ -73,7 +67,7 @@ class AbstractInput(ABC):
 
 class Sketchpad(AbstractInput):
     def __init__(self, shape=(28, 28), invert_colors=True, flatten=False, scale=1/255, shift=0,
-                 dtype='float64', sample_inputs=None):
+                 dtype='float64', sample_inputs=None, label=None):
         self.image_width = shape[0]
         self.image_height = shape[1]
         self.invert_colors = invert_colors
@@ -82,10 +76,7 @@ class Sketchpad(AbstractInput):
         self.shift = shift
         self.dtype = dtype
         self.sample_inputs = sample_inputs
-        super().__init__()
-
-    def get_name(self):
-        return 'sketchpad'
+        super().__init__(label)
 
     def preprocess(self, inp):
         """
@@ -132,17 +123,20 @@ class Sketchpad(AbstractInput):
 
 
 class Webcam(AbstractInput):
-    def __init__(self, image_width=224, image_height=224, num_channels=3):
+    def __init__(self, image_width=224, image_height=224, num_channels=3, label=None):
         self.image_width = image_width
         self.image_height = image_height
         self.num_channels = num_channels
-        super().__init__()
+        super().__init__(label)
 
     def get_validation_inputs(self):
         return validation_data.BASE64_COLOR_IMAGES
 
-    def get_name(self):
-        return 'webcam'
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "webcam": {},
+        }
 
     def preprocess(self, inp):
         """
@@ -167,29 +161,39 @@ class Webcam(AbstractInput):
 
 
 class Textbox(AbstractInput):
-    def __init__(self, sample_inputs=None, lines=None, placeholder=None):
+    def __init__(self, sample_inputs=None, lines=1, placeholder=None, label=None, numeric=False):
         self.sample_inputs = sample_inputs
         self.lines = lines
         self.placeholder = placeholder
-        super().__init__()
+        self.numeric = numeric
+        super().__init__(label)
 
     def get_validation_inputs(self):
         return validation_data.ENGLISH_TEXTS
-
-    def get_name(self):
-        return 'textbox'
 
     def get_template_context(self):
         return {
             "lines": self.lines,
             "placeholder": self.placeholder,
+            **super().get_template_context()
+        }
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "text": {},
+            "textbox": {"lines": 7},
+            "number": {"numeric": True}
         }
 
     def preprocess(self, inp):
         """
-        By default, no pre-processing is applied to text.
+        Cast type of input
         """
-        return inp
+        if self.numeric:
+            return float(inp)
+        else:
+            return inp
 
     def rebuild_flagged(self, dir, msg):
         """
@@ -201,9 +205,75 @@ class Textbox(AbstractInput):
         return self.sample_inputs
 
 
+class Radio(AbstractInput):
+    def __init__(self, choices, label=None):
+        self.choices = choices
+        super().__init__(label)
+
+    def get_template_context(self):
+        return {
+            "choices": self.choices,
+            **super().get_template_context()
+        }
+
+
+class Dropdown(AbstractInput):
+    def __init__(self, choices, label=None):
+        self.choices = choices
+        super().__init__(label)
+
+    def get_template_context(self):
+        return {
+            "choices": self.choices,
+            **super().get_template_context()
+        }
+
+
+class CheckboxGroup(AbstractInput):
+    def __init__(self, choices, label=None):
+        self.choices = choices
+        super().__init__(label)
+
+    def get_template_context(self):
+        return {
+            "choices": self.choices,
+            **super().get_template_context()
+        }
+
+
+class Slider(AbstractInput):
+    def __init__(self, minimum=0, maximum=100, label=None):
+        self.minimum = minimum
+        self.maximum = maximum
+        super().__init__(label)
+
+    def get_template_context(self):
+        return {
+            "minimum": self.minimum,
+            "maximum": self.maximum,
+            **super().get_template_context()
+        }
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "checkbox": {},
+        }
+
+class Checkbox(AbstractInput):
+    def __init__(self, label=None):
+        super().__init__(label)
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "checkbox": {},
+        }
+
+
 class ImageIn(AbstractInput):
     def __init__(self, shape=(224, 224, 3), image_mode='RGB',
-                 scale=1/127.5, shift=-1, cropper_aspect_ratio=None):
+                 scale=1/127.5, shift=-1, cropper_aspect_ratio=None, label=None):
         self.image_width = shape[0]
         self.image_height = shape[1]
         self.num_channels = shape[2]
@@ -211,16 +281,22 @@ class ImageIn(AbstractInput):
         self.scale = scale
         self.shift = shift
         self.cropper_aspect_ratio = "false" if cropper_aspect_ratio is None else cropper_aspect_ratio
-        super().__init__()
+        super().__init__(label)
 
     def get_validation_inputs(self):
         return validation_data.BASE64_COLOR_IMAGES
 
-    def get_name(self):
-        return 'image'
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "image": {},
+        }
 
-    def get_js_context(self):
-        return {'aspect_ratio': self.cropper_aspect_ratio}
+    def get_template_context(self):
+        return {
+            'aspect_ratio': self.cropper_aspect_ratio,
+            **super().get_template_context()
+        }
 
     def preprocess(self, inp):
         """
@@ -280,9 +356,6 @@ class CSV(AbstractInput):
 
 class Microphone(AbstractInput):
 
-    def get_name(self):
-        return 'microphone'
-
     def preprocess(self, inp):
         """
         By default, no pre-processing is applied to a microphone input file
@@ -298,5 +371,8 @@ class Microphone(AbstractInput):
         return json.loads(msg)
 
 
-# Automatically adds all subclasses of AbstractInput into a dictionary (keyed by class name) for easy referencing.
-registry = {cls.__name__.lower(): cls for cls in AbstractInput.__subclasses__()}
+# Automatically adds all shortcut implementations in AbstractInput into a dictionary.
+shortcuts = {}
+for cls in AbstractInput.__subclasses__():
+    for shortcut, parameters in cls.get_shortcut_implementations().items():
+        shortcuts[shortcut] = cls(**parameters)
