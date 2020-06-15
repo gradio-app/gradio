@@ -1,0 +1,9 @@
+.slider_container {
+    display: flex;
+    align-items: center;
+}
+.slider_container .value {
+    font-weight: bold;
+    display: inline-block;
+    margin-left: 8px;
+}
