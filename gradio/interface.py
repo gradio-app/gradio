@@ -29,7 +29,8 @@ class Interface:
     """
 
     def __init__(self, fn, inputs, outputs, saliency=None, verbose=False,
-                            live=False, show_input=True, show_output=True):
+                            live=False, show_input=True, show_output=True,
+                            load_fn=None):
         """
         :param fn: a function that will process the input panel data from the interface and return the output panel data.
         :param inputs: a string or `AbstractInput` representing the input interface.
@@ -63,6 +64,8 @@ class Interface:
             fn = [fn]
         self.output_interfaces *= len(fn)
         self.predict = fn
+        self.load_fn = load_fn
+        self.context = None
         self.verbose = verbose
         self.status = "OFF"
         self.saliency = saliency
@@ -148,6 +151,8 @@ class Interface:
         """
         # if validate and not self.validate_flag:
         #     self.validate()
+        context = self.load_fn() if self.load_fn else None
+        self.context = context
 
         # If an existing interface is running with this instance, close it.
         if self.status == "RUNNING":
