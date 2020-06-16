@@ -139,7 +139,11 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
                 processed_input = [input_interface.preprocess(raw_input[i]) for i, input_interface in enumerate(interface.input_interfaces)]
                 predictions = []
                 for predict_fn in interface.predict:
-                    prediction = predict_fn(*processed_input)
+                    if interface.context:
+                        prediction = predict_fn(*processed_input,
+                                                interface.context)
+                    else:
+                        prediction = predict_fn(*processed_input)
                     if len(interface.output_interfaces) / len(interface.predict) == 1:
                         prediction = [prediction]
                     predictions.extend(prediction)
