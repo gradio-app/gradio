@@ -17,6 +17,14 @@ def decode_base64_to_image(encoding):
     return Image.open(BytesIO(base64.b64decode(image_encoded)))
 
 
+def encode_plot_to_base64(plt):
+    with BytesIO() as output_bytes:
+        plt.savefig(output_bytes, format="png")
+        bytes_data = output_bytes.getvalue()
+    plt.close()
+    base64_str = str(base64.b64encode(bytes_data), 'utf-8')
+    return "data:image/png;base64," + base64_str
+
 def encode_array_to_base64(image_array):
     with BytesIO() as output_bytes:
         PIL_image = Image.fromarray(skimage.img_as_ubyte(image_array))

@@ -4,7 +4,12 @@ input_to_object_map = {
   "sketchpad" : sketchpad_input,
   "textbox" : textbox_input,
   "webcam" : webcam,
-  "microphone" : microphone
+  "microphone" : microphone,
+  "radio" : radio,
+  "checkbox" : checkbox,
+  "checkboxgroup" : checkbox_group,
+  "slider" : slider,
+  "dropdown" : dropdown,
 }
 output_to_object_map = {
   "csv" : {},
@@ -28,6 +33,11 @@ $.getJSON("static/config.json", function(data) {
   for (let i = 0; i < config["input_interfaces"].length; i++) {
     input_interface_data = config["input_interfaces"][i];
     input_interface = Object.create(input_to_object_map[input_interface_data[0]]);
+    if (input_interface_data[1]["label"]) {
+      $(".input_interfaces").append(`
+        <div class="panel_header">${input_interface_data[1]["label"]}</strong>
+      `);
+    }
     $(".input_interfaces").append(`
       <div class="input_interface interface" interface_id=${_id}>
         ${input_interface.html}
@@ -47,6 +57,11 @@ $.getJSON("static/config.json", function(data) {
     output_interface_data = config["output_interfaces"][i];
     output_interface = Object.create(output_to_object_map[
       output_interface_data[0]]);
+    if (output_interface_data[1]["label"]) {
+      $(".output_interfaces").append(`
+        <div class="panel_header">${output_interface_data[1]["label"]}</strong>
+      `);
+    }
     $(".output_interfaces").append(`
       <div class="output_interface interface" interface_id=${_id}>
         ${output_interface.html}
