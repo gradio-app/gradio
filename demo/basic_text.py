@@ -1,17 +1,15 @@
 import gradio as gr
 
-
-def upper(sentence, sentence2):
-    return sentence2.upper(), sentence[::-1]
+def upper(choice, sentence):
+    return sentence[::-1], choice.upper()
 
 
 gr.Interface(upper, 
             [
-                "textbox", 
-                gr.inputs.Textbox(lines=3, placeholder="hello")
+                gr.inputs.Dropdown(label="Pick something", choices=["big thing", "small", "other"]),
+                "text"
             ],
             [
                 "textbox",
-                gr.outputs.Textbox(lines=3, placeholder="hello")
-            ],
-            live=True).launch()
+                gr.outputs.Textbox(label="box 2", lines=3, placeholder="hello")
+            ]).launch()

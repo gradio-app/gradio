@@ -38,14 +38,14 @@ class Interface:
         """
         def get_input_instance(iface):
             if isinstance(iface, str):
-                return gradio.inputs.registry[iface.lower()]()
+                return gradio.inputs.shortcuts[iface]
             elif isinstance(iface, gradio.inputs.AbstractInput):
                 return iface
             else:
                 raise ValueError("Input interface must be of type `str` or `AbstractInput`")
         def get_output_instance(iface):
             if isinstance(iface, str):
-                return gradio.outputs.registry[iface.lower()]()
+                return gradio.outputs.shortcuts[iface]
             elif isinstance(iface, gradio.outputs.AbstractOutput):
                 return iface
             else:
