@@ -17,7 +17,7 @@ import random
 import time
 from IPython import get_ipython
 
-LOCALHOST_IP = "127.0.0.1"
+LOCALHOST_IP = "0.0.0.0"
 TRY_NUM_PORTS = 100
 PKG_VERSION_URL = "https://gradio.app/api/pkg-version"
 
@@ -30,7 +30,7 @@ class Interface:
 
     def __init__(self, fn, inputs, outputs, saliency=None, verbose=False,
                             live=False, show_input=True, show_output=True,
-                            load_fn=None, server_name=None):
+                            load_fn=None, server_name=LOCALHOST_IP):
         """
         :param fn: a function that will process the input panel data from the interface and return the output panel data.
         :param inputs: a string or `AbstractInput` representing the input interface.
