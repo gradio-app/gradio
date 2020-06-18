@@ -17,7 +17,7 @@ import random
 import time
 from IPython import get_ipython
 
-LOCALHOST_IP = "127.0.0.1"
+LOCALHOST_IP = "0.0.0.0"
 TRY_NUM_PORTS = 100
 PKG_VERSION_URL = "https://gradio.app/api/pkg-version"
 
@@ -29,7 +29,8 @@ class Interface:
     """
 
     def __init__(self, fn, inputs, outputs, saliency=None, verbose=False,
-                            live=False, show_input=True, show_output=True):
+                            live=False, show_input=True, show_output=True,
+                            load_fn=None, server_name=LOCALHOST_IP):
         """
         :param fn: a function that will process the input panel data from the interface and return the output panel data.
         :param inputs: a string or `AbstractInput` representing the input interface.
@@ -63,6 +64,8 @@ class Interface:
             fn = [fn]
         self.output_interfaces *= len(fn)
         self.predict = fn
+        self.load_fn = load_fn
+        self.context = None
         self.verbose = verbose
         self.status = "OFF"
         self.saliency = saliency
@@ -70,6 +73,7 @@ class Interface:
         self.show_input = show_input
         self.show_output = show_output
         self.flag_hash = random.getrandbits(32)
+        self.server_name = server_name
 
     def update_config_file(self, output_directory):
         config = {
@@ -148,6 +152,8 @@ class Interface:
         """
         # if validate and not self.validate_flag:
         #     self.validate()
+        context = self.load_fn() if self.load_fn else None
+        self.context = context
 
         # If an existing interface is running with this instance, close it.
         if self.status == "RUNNING":
@@ -161,8 +167,8 @@ class Interface:
 
         output_directory = tempfile.mkdtemp()
         # Set up a port to serve the directory containing the static files with interface.
-        server_port, httpd = networking.start_simple_server(self, output_directory)
-        path_to_local_server = "http://localhost:{}/".format(server_port)
+        server_port, httpd = networking.start_simple_server(self, output_directory, self.server_name)
+        path_to_local_server = "http://{}:{}/".format(self.server_name, server_port)
         networking.build_template(output_directory)
 
         self.update_config_file(output_directory)
