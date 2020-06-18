@@ -18,7 +18,7 @@ import time
 from IPython import get_ipython
 import tensorflow as tf
 
-LOCALHOST_IP = "127.0.0.1"
+LOCALHOST_IP = "0.0.0.0"
 TRY_NUM_PORTS = 100
 PKG_VERSION_URL = "https://gradio.app/api/pkg-version"
 
@@ -30,8 +30,9 @@ class Interface:
     """
 
     def __init__(self, fn, inputs, outputs, saliency=None, verbose=False,
-                            live=False, show_input=True, show_output=True,
-                            load_fn=None, capture_session=False):
+                 live=False, show_input=True, show_output=True,
+                 load_fn=None, capture_session=False,
+                 server_name=LOCALHOST_IP):
         """
         :param fn: a function that will process the input panel data from the interface and return the output panel data.
         :param inputs: a string or `AbstractInput` representing the input interface.
@@ -43,7 +44,9 @@ class Interface:
             elif isinstance(iface, gradio.inputs.AbstractInput):
                 return iface
             else:
-                raise ValueError("Input interface must be of type `str` or `AbstractInput`")
+                raise ValueError("Input interface must be of type `str` or "
+                                 "`AbstractInput`")
+
         def get_output_instance(iface):
             if isinstance(iface, str):
                 return gradio.outputs.shortcuts[iface]
@@ -51,7 +54,8 @@ class Interface:
                 return iface
             else:
                 raise ValueError(
-                    "Output interface must be of type `str` or `AbstractOutput`"
+                    "Output interface must be of type `str` or "
+                    "`AbstractOutput`"
                 )
         if isinstance(inputs, list):
             self.input_interfaces = [get_input_instance(i) for i in inputs]
@@ -76,6 +80,7 @@ class Interface:
         self.flag_hash = random.getrandbits(32)
         self.capture_session = capture_session
         self.session = None
+        self.server_name = server_name
 
     def update_config_file(self, output_directory):
         config = {
@@ -173,8 +178,8 @@ class Interface:
 
         output_directory = tempfile.mkdtemp()
         # Set up a port to serve the directory containing the static files with interface.
-        server_port, httpd = networking.start_simple_server(self, output_directory)
-        path_to_local_server = "http://localhost:{}/".format(server_port)
+        server_port, httpd = networking.start_simple_server(self, output_directory, self.server_name)
+        path_to_local_server = "http://{}:{}/".format(self.server_name, server_port)
         networking.build_template(output_directory)
 
         self.update_config_file(output_directory)
@@ -247,7 +252,8 @@ class Interface:
 
             if (
                 is_colab
-            ):  # Embed the remote interface page if on google colab; otherwise, embed the local page.
+            ):  # Embed the remote interface page if on google colab;
+                # otherwise, embed the local page.
                 display(IFrame(share_url, width=1000, height=500))
             else:
                 display(IFrame(path_to_local_server, width=1000, height=500))

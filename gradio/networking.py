@@ -20,7 +20,7 @@ INITIAL_PORT_VALUE = (
 TRY_NUM_PORTS = (
     100
 )  # Number of ports to try before giving up and throwing an exception.
-LOCALHOST_NAME = "localhost"
+LOCALHOST_NAME = "0.0.0.0"
 GRADIO_API_SERVER = "https://api.gradio.app/v1/tunnel-request"
 
 STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "templates/")
@@ -109,7 +109,7 @@ def get_first_available_port(initial, final):
     )
 
 
-def serve_files_in_background(interface, port, directory_to_serve=None):
+def serve_files_in_background(interface, port, directory_to_serve=None, server_name=LOCALHOST_NAME):
     class HTTPHandler(SimpleHTTPRequestHandler):
         """This handler uses server.base_path instead of always using os.getcwd()"""
 
@@ -278,7 +278,7 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
             self.base_path = base_path
             BaseHTTPServer.__init__(self, server_address, RequestHandlerClass)
 
-    httpd = HTTPServer(directory_to_serve, (LOCALHOST_NAME, port))
+    httpd = HTTPServer(directory_to_serve, (server_name, port))
 
     # Now loop forever
     def serve_forever():
@@ -295,11 +295,11 @@ def serve_files_in_background(interface, port, directory_to_serve=None):
     return httpd
 
 
-def start_simple_server(interface, directory_to_serve=None):
+def start_simple_server(interface, directory_to_serve=None, server_name=None):
     port = get_first_available_port(
         INITIAL_PORT_VALUE, INITIAL_PORT_VALUE + TRY_NUM_PORTS
     )
-    httpd = serve_files_in_background(interface, port, directory_to_serve)
+    httpd = serve_files_in_background(interface, port, directory_to_serve, server_name)
     return port, httpd
 
 
