@@ -92,6 +92,9 @@ gradio.Interface(predict, 'textbox', 'label').launch()
 
 ![alt text](https://raw.githubusercontent.com/abidlabs/gradio/master/label_interface.png)
 
+### Contributing:
+If you would like to contribute and your contribution is small, you can directly open a pull request (PR). If you would like to contribute a larger feature, we recommend first creating an issue with a proposed design for discussion. Please see our contributing guidelines for more info.
+
 ### See more:
 Find more info on usage here: www.gradio.app.
 
