@@ -16,6 +16,7 @@ import requests
 import random
 import time
 from IPython import get_ipython
+import tensorflow as tf
 
 LOCALHOST_IP = "127.0.0.1"
 TRY_NUM_PORTS = 100
@@ -30,7 +31,7 @@ class Interface:
 
     def __init__(self, fn, inputs, outputs, saliency=None, verbose=False,
                             live=False, show_input=True, show_output=True,
-                            load_fn=None):
+                            load_fn=None, capture_session=False):
         """
         :param fn: a function that will process the input panel data from the interface and return the output panel data.
         :param inputs: a string or `AbstractInput` representing the input interface.
@@ -73,6 +74,8 @@ class Interface:
         self.show_input = show_input
         self.show_output = show_output
         self.flag_hash = random.getrandbits(32)
+        self.capture_session = capture_session
+        self.session = None
 
     def update_config_file(self, output_directory):
         config = {
@@ -153,6 +156,10 @@ class Interface:
         #     self.validate()
         context = self.load_fn() if self.load_fn else None
         self.context = context
+
+        if self.capture_session:
+            self.session = tf.get_default_graph(), \
+                          tf.keras.backend.get_session()
 
         # If an existing interface is running with this instance, close it.
         if self.status == "RUNNING":
