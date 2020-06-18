@@ -26,4 +26,6 @@ gr.Interface(plot_forecast,
                  gr.inputs.Slider(1, 100, label="Noise Level"),
                  gr.inputs.Checkbox(label="Show Legend"),
                  gr.inputs.Dropdown(["cross", "line", "circle"], label="Style"),
-             ], "plot").launch()
+             ],
+             gr.outputs.Image(plot=True, label="forecast") 
+             ).launch()
