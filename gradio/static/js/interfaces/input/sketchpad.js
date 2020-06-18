@@ -27,7 +27,7 @@ const sketchpad_input = {
     var dimension = Math.min(this.target.find(".canvas_holder").width(),
         this.target.find(".canvas_holder").height()) - 2 // dimension - border
     var id = this.id;
-    if (config.disabled) {
+    if (this.io_master.config.disabled) {
       this.target.find('.canvas_holder canvas')
         .attr("width", dimension).attr("height", dimension);
     } else {
