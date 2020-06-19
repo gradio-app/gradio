@@ -3,10 +3,15 @@
   flex: 1 1 0;
   display: inline-block;
   box-sizing: border-box;
-  margin: 0 30px 14px 0;
+}
+.panel:first-child {
+  margin-right: 24px;
+}
+.panel:last-child {
+  margin-left: 8px;
 }
 .panel_header, .interface {
-  background-color: #EEEEEE;
+  background-color: whitesmoke;
 }
 .panel_header {
   text-transform: uppercase;
@@ -31,7 +36,6 @@
 }
 .loading img {
   display: none;
-  height: 18px;
 }
 .panel_buttons {
   display: flex;
@@ -44,7 +48,7 @@
   display: none;
 }
 .submit, .clear, .panel_button {
-  background-color: #EEEEEE !important;
+  background-color: whitesmoke !important;
   flex-grow: 1;
   padding: 8px !important;
   box-sizing: border-box;
@@ -62,7 +66,7 @@
 }
 .flag_message {
   padding: 8px !important;
-  background-color: #EEEEEE !important;
+  background-color: whitesmoke !important;
 }
 
 .upload_zone {
@@ -111,7 +115,7 @@
 .flag.flagged {
   background-color: pink !important;
 }
-#loading {
+.loading {
   justify-content: center;
   align-items: center;
 }

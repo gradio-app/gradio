@@ -50,8 +50,7 @@ gradio/static/img/vendor/icon-b.svg
 gradio/static/img/vendor/icon-c.svg
 gradio/static/img/vendor/icon-d.svg
 gradio/static/js/all_io.js
-gradio/static/js/load_history.js
-gradio/static/js/load_interfaces.js
+gradio/static/js/gradio.js
 gradio/static/js/share.js
 gradio/static/js/utils.js
 gradio/static/js/interfaces/input/checkbox.js

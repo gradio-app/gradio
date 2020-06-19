@@ -22,5 +22,5 @@
   padding: 2px 4px;
 }
 .csv_preview td:nth-child(even) {
-  background-color: #EEEEEE;
+  background-color: whitesmoke;
 }

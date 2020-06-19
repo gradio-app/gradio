@@ -1,15 +1,14 @@
 import gradio as gr
 
-def upper(choice, sentence):
-    return sentence[::-1], choice.upper()
+def answer_question(text1, text2):
+    return text1, text2, {"plagiarism": 0.62, "original": 0.38}
 
 
-gr.Interface(upper, 
+gr.Interface(answer_question, 
             [
-                gr.inputs.Dropdown(label="Pick something", choices=["big thing", "small", "other"]),
-                "text"
-            ],
-            [
-                "textbox",
-                gr.outputs.Textbox(label="box 2", lines=3, placeholder="hello")
-            ]).launch()
+                gr.inputs.Microphone(label="speech"), 
+                gr.inputs.Dropdown(["Deepspeech", "Sphynx", "Wav2Text"], label="model"), 
+            ], [
+                gr.outputs.Textbox(label="text 1", lines=8),
+            ]
+            ).launch()
