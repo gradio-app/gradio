@@ -139,35 +139,7 @@ def serve_files_in_background(interface, port, directory_to_serve=None, server_n
                     int(self.headers["Content-Length"]))
                 msg = json.loads(data_string)
                 raw_input = msg["data"]
-                processed_input = [input_interface.preprocess(
-                    raw_input[i]) for i, input_interface in enumerate(interface.input_interfaces)]
-                predictions = []
-                for predict_fn in interface.predict:
-                    if interface.context:
-                        if interface.capture_session:
-                            graph, sess = interface.session
-                            with graph.as_default():
-                                with sess.as_default():
-                                    prediction = predict_fn(*processed_input,
-                                                            interface.context)
-                        else:
-                            prediction = predict_fn(*processed_input,
-                                                    interface.context)
-                    else:
-                        if interface.capture_session:
-                            graph, sess = interface.session
-                            with graph.as_default():
-                                with sess.as_default():
-                                    prediction = predict_fn(*processed_input)
-                        else:
-                            prediction = predict_fn(*processed_input)
-                    if len(interface.output_interfaces) / \
-                            len(interface.predict) == 1:
-                        prediction = [prediction]
-                    predictions.extend(prediction)
-                processed_output = [output_interface.postprocess(
-                    predictions[i]) for i, output_interface in enumerate(interface.output_interfaces)]
-                output = {"action": "output", "data": processed_output}
+                output = {"action": "output", "data": interface.process(raw_input)}
                 if interface.saliency is not None:
                     saliency = interface.saliency(raw_input, prediction)
                     output['saliency'] = saliency.tolist()
