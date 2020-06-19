@@ -1,6 +1,5 @@
 body {
   font-family: 'Open Sans', sans-serif;
-  font-size: 12px;
   margin: 0;
 }
 button, input[type="submit"], input[type="reset"], input[type="text"], input[type="button"], select[type="submit"] {
@@ -13,9 +12,6 @@ button, input[type="submit"], input[type="reset"], input[type="text"], input[typ
 	outline: inherit;
   -webkit-appearance: none;
   border-radius: 0;
-}
-nav, #panels, #share_row {
-  margin-left: 30px;
 }
 nav {
   text-align: center;
@@ -48,11 +44,14 @@ nav img {
 #share_row, #share_complete, #share_form {
   display: none;
 }
-#panels {
+.panels {
   display: flex;
   flex-flow: row;
   flex-wrap: wrap;
   justify-content: center;
+  max-width: 1028px;
+  width: 100%;
+  margin: 0 auto;  
 }
 button.primary {
   color: white;
@@ -67,7 +66,7 @@ button.secondary {
 }
 #featured_table {
   border-collapse: collapse;
-  border: solid 2px #EEEEEE;
+  border: solid 2px whitesmoke;
   margin-bottom: 20px;
   table-layout: fixed;
 }
@@ -81,7 +80,7 @@ button.secondary {
   overflow-y: auto;
 }
 #featured_table div:nth-child(even) {
-  background-color: #EEEEEE;
+  background-color: whitesmoke;
 }
 #featured_table div:hover {
   background-color: #EEA45D;

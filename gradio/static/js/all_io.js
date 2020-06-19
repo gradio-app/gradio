@@ -1,4 +1,4 @@
-var io_master = {
+var io_master_template = {
   gather: function() {
     this.clear();
     for (let iface of this.input_interfaces) {
@@ -17,45 +17,32 @@ var io_master = {
     }
   },
   submit: function() {
-    var post_data = {
-      'data': this.last_input
-    };
-    if (!config.live) {
-      $("#loading").removeClass("invisible");
-      $("#loading_in_progress").show();
-      $("#loading_failed").hide();
-      $(".output_interface").addClass("invisible");
+    let io = this;
+    if (!this.config.live) {
+      this.target.find(".loading").removeClass("invisible");
+      this.target.find(".loading_in_progress").show();
+      this.target.find(".loading_failed").hide();
+      this.target.find(".output_interface").addClass("invisible");
+      this.target.find(".output_interfaces .panel_header").addClass("invisible");
     }
-    $.ajax({type: "POST",
-        url: "/api/predict/",
-        data: JSON.stringify(post_data),
-        success: function(output){
-            if (output['action'] == 'output') {
-              io_master.output(output);
-            }
-        },
-        error: function(XMLHttpRequest, textStatus, errorThrown) {
-         $("#loading_in_progress").hide();
-         $("#loading_failed").show();
-         console.log(XMLHttpRequest);
-         console.log(textStatus);
-         console.log(errorThrown);
-        }
-    });
+    this.fn(this.last_input).then((output) => {
+      io.output(output);
+    }).catch(() => {
+      this.target.find(".loading_in_progress").hide();
+      this.target.find(".loading_failed").show();
+    })
   },
   output: function(data) {
     this.last_output = data["data"];
     for (let i = 0; i < this.output_interfaces.length; i++) {
       this.output_interfaces[i].output(data["data"][i]);
     }
-    // if (this.input_interface.output && data["saliency"]) {
-    //   this.input_interface.output(data["saliency"]);
-    // }
-    if (config.live) {
+    if (this.config.live) {
       this.gather();
     } else {
-      $("#loading").addClass("invisible");
-      $(".output_interface").removeClass("invisible");  
+      this.target.find(".loading").addClass("invisible");
+      this.target.find(".output_interface").removeClass("invisible");  
+      this.target.find(".output_interfaces .panel_header").removeClass("invisible");
     }
   },
   flag: function(message) {

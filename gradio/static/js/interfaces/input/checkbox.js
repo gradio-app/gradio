@@ -1,5 +1,5 @@
 const checkbox = {
-  html: `<input type="checkbox">`,
+  html: `<input class="checkbox" type="checkbox">`,
   init: function(opts) {
     this.target.css("height", "auto");
   },

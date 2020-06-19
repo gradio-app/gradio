@@ -41,33 +41,7 @@
         <button class="secondary" id="share_more"></button>
       </div>
     </div>
-    <div id="panels">
-      <div class="panel input_panel">
-        <div class="input_interfaces">
-        </div>          
-        <div class="panel_buttons">
-          <input class="submit" type="submit" value="submit"/>
-          <input class="clear" type="reset" value="clear">
-        </div>
-      </div>
-      <div class="panel output_panel">
-        <div id="loading" class="interface invisible">
-          <img id="loading_in_progress" src="../static/img/logo_loading.gif">
-          <img id="loading_failed" src="../static/img/logo_error.png">
-        </div>
-        <div class="output_interfaces">
-        </div>          
-        <div class="panel_buttons">
-          <input type="text" class="flag_message" placeholder="(Optional message for flagging)"/>
-          <input type="button" class="panel_button flag" value="flag"/>
-        </div>
-      </div>
-    </div>
-    <div id="featured_history">
-      <h2>Click to Try Samples</h2>
-      <div id="featured_table">
-      </div>
-    </div>
+    <div id="interface_target"></div>
     <script src="../static/js/vendor/jquery.min.js"></script>
     <!-- TUI EDITOR -->
     <script src="../static/js/vendor/fabric.js"></script>
@@ -102,7 +76,20 @@
     <script src="../static/js/interfaces/output/label.js"></script>
     <script src="../static/js/interfaces/output/textbox.js"></script>
     <script src="../static/js/share.js"></script>
-    <script src="../static/js/load_history.js"></script>
-    <script src="../static/js/load_interfaces.js"></script>
+    <script src="../static/js/gradio.js"></script>
+    <script>
+      $.getJSON("static/config.json", function(config) {
+        gradio(config, function(data) {
+          return new Promise((resolve, reject) => {
+            $.ajax({type: "POST",
+              url: "/api/predict/",
+              data: JSON.stringify({"data": data}),
+              success: resolve,
+              error: reject,
+            });
+          });              
+        }, "#interface_target");
+      });
+    </script>
   </body>
 </html>
