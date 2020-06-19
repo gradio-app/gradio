@@ -311,9 +311,10 @@ class ImageIn(AbstractInput):
         im = np.array(im).flatten()
         im = im * self.scale + self.shift
         if self.num_channels is None:
-            array = im.reshape(self.image_width, self.image_height)
+            array = im.reshape(1, self.image_width, self.image_height)
         else:
-            array = im.reshape(self.image_width, self.image_height, self.num_channels)
+            array = im.reshape(1, self.image_width, self.image_height, \
+                                self.num_channels)
         return array
 
     def rebuild_flagged(self, dir, msg):
