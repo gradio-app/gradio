@@ -82,8 +82,8 @@ class Interface:
         self.session = None
         self.server_name = server_name
 
-    def update_config_file(self, output_directory):
-        config = {
+    def get_config_file(self):
+        return {
             "input_interfaces": [
                 (iface.__class__.__name__.lower(), iface.get_template_context())
                 for iface in self.input_interfaces],
@@ -95,7 +95,38 @@ class Interface:
             "show_input": self.show_input,
             "show_output": self.show_output,            
         }
-        networking.set_config(config, output_directory)
+
+    def process(self, raw_input):
+        processed_input = [input_interface.preprocess(
+            raw_input[i]) for i, input_interface in enumerate(self.input_interfaces)]
+        predictions = []
+        for predict_fn in self.predict:
+            if self.context:
+                if self.capture_session:
+                    graph, sess = self.session
+                    with graph.as_default():
+                        with sess.as_default():
+                            prediction = predict_fn(*processed_input,
+                                                    self.context)
+                else:
+                    prediction = predict_fn(*processed_input,
+                                            self.context)
+            else:
+                if self.capture_session:
+                    graph, sess = self.session
+                    with graph.as_default():
+                        with sess.as_default():
+                            prediction = predict_fn(*processed_input)
+                else:
+                    prediction = predict_fn(*processed_input)
+            if len(self.output_interfaces) / \
+                    len(self.predict) == 1:
+                prediction = [prediction]
+            predictions.extend(prediction)
+        processed_output = [output_interface.postprocess(
+            predictions[i]) for i, output_interface in enumerate(self.output_interfaces)]
+        return processed_output
+
 
     def validate(self):
         if self.validate_flag:
@@ -181,8 +212,7 @@ class Interface:
         server_port, httpd = networking.start_simple_server(self, output_directory, self.server_name)
         path_to_local_server = "http://{}:{}/".format(self.server_name, server_port)
         networking.build_template(output_directory)
-
-        self.update_config_file(output_directory)
+        networking.set_config(self.get_config_file(), output_directory)
 
         self.status = "RUNNING"
         self.simple_server = httpd
