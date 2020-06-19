@@ -16,6 +16,7 @@ import requests
 import random
 import time
 from IPython import get_ipython
+import tensorflow as tf
 
 LOCALHOST_IP = "0.0.0.0"
 TRY_NUM_PORTS = 100
@@ -29,8 +30,9 @@ class Interface:
     """
 
     def __init__(self, fn, inputs, outputs, saliency=None, verbose=False,
-                            live=False, show_input=True, show_output=True,
-                            load_fn=None, server_name=LOCALHOST_IP):
+                 live=False, show_input=True, show_output=True,
+                 load_fn=None, capture_session=False,
+                 server_name=LOCALHOST_IP):
         """
         :param fn: a function that will process the input panel data from the interface and return the output panel data.
         :param inputs: a string or `AbstractInput` representing the input interface.
@@ -42,7 +44,9 @@ class Interface:
             elif isinstance(iface, gradio.inputs.AbstractInput):
                 return iface
             else:
-                raise ValueError("Input interface must be of type `str` or `AbstractInput`")
+                raise ValueError("Input interface must be of type `str` or "
+                                 "`AbstractInput`")
+
         def get_output_instance(iface):
             if isinstance(iface, str):
                 return gradio.outputs.shortcuts[iface]
@@ -50,7 +54,8 @@ class Interface:
                 return iface
             else:
                 raise ValueError(
-                    "Output interface must be of type `str` or `AbstractOutput`"
+                    "Output interface must be of type `str` or "
+                    "`AbstractOutput`"
                 )
         if isinstance(inputs, list):
             self.input_interfaces = [get_input_instance(i) for i in inputs]
@@ -73,6 +78,8 @@ class Interface:
         self.show_input = show_input
         self.show_output = show_output
         self.flag_hash = random.getrandbits(32)
+        self.capture_session = capture_session
+        self.session = None
         self.server_name = server_name
 
     def update_config_file(self, output_directory):
@@ -154,6 +161,10 @@ class Interface:
         #     self.validate()
         context = self.load_fn() if self.load_fn else None
         self.context = context
+
+        if self.capture_session:
+            self.session = tf.get_default_graph(), \
+                          tf.keras.backend.get_session()
 
         # If an existing interface is running with this instance, close it.
         if self.status == "RUNNING":
@@ -241,7 +252,8 @@ class Interface:
 
             if (
                 is_colab
-            ):  # Embed the remote interface page if on google colab; otherwise, embed the local page.
+            ):  # Embed the remote interface page if on google colab;
+                # otherwise, embed the local page.
                 display(IFrame(share_url, width=1000, height=500))
             else:
                 display(IFrame(path_to_local_server, width=1000, height=500))
