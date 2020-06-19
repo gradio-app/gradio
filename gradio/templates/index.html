@@ -84,8 +84,8 @@
             $.ajax({type: "POST",
               url: "/api/predict/",
               data: JSON.stringify({"data": data}),
-              success: (data) => {console.log("y"); resolve(data)},
-              error: (data) => {console.log("n"); reject()},
+              success: resolve,
+              error: reject,
             });
           });              
         }, "#interface_target");

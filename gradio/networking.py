@@ -43,7 +43,8 @@ def build_template(temp_dir):
     :param temp_dir: string with path to temp directory in which the html file should be built
     """
     dir_util.copy_tree(STATIC_TEMPLATE_LIB, temp_dir)
-    dir_util.copy_tree(STATIC_PATH_LIB, os.path.join(temp_dir, STATIC_PATH_TEMP))
+    dir_util.copy_tree(STATIC_PATH_LIB, os.path.join(
+        temp_dir, STATIC_PATH_TEMP))
 
     # Move association file to root of temporary directory.
     copyfile(os.path.join(temp_dir, ASSOCIATION_PATH_IN_STATIC),
@@ -80,6 +81,7 @@ def render_string_or_list_with_tags(old_lines, context):
             line = line.replace(r"{{" + key + r"}}", str(value))
         new_lines.append(line)
     return new_lines
+
 
 def set_config(config, temp_dir):
     config_file = os.path.join(temp_dir, CONFIG_FILE)
@@ -133,10 +135,12 @@ def serve_files_in_background(interface, port, directory_to_serve=None, server_n
             if self.path == "/api/predict/":
                 # Make the prediction.
                 self._set_headers()
-                data_string = self.rfile.read(int(self.headers["Content-Length"]))
+                data_string = self.rfile.read(
+                    int(self.headers["Content-Length"]))
                 msg = json.loads(data_string)
                 raw_input = msg["data"]
-                processed_input = [input_interface.preprocess(raw_input[i]) for i, input_interface in enumerate(interface.input_interfaces)]
+                processed_input = [input_interface.preprocess(
+                    raw_input[i]) for i, input_interface in enumerate(interface.input_interfaces)]
                 predictions = []
                 for predict_fn in interface.predict:
                     if interface.context:
@@ -161,7 +165,8 @@ def serve_files_in_background(interface, port, directory_to_serve=None, server_n
                             len(interface.predict) == 1:
                         prediction = [prediction]
                     predictions.extend(prediction)
-                processed_output = [output_interface.postprocess(predictions[i]) for i, output_interface in enumerate(interface.output_interfaces)]
+                processed_output = [output_interface.postprocess(
+                    predictions[i]) for i, output_interface in enumerate(interface.output_interfaces)]
                 output = {"action": "output", "data": processed_output}
                 if interface.saliency is not None:
                     saliency = interface.saliency(raw_input, prediction)
@@ -182,34 +187,37 @@ def serve_files_in_background(interface, port, directory_to_serve=None, server_n
 
             elif self.path == "/api/flag/":
                 self._set_headers()
-                data_string = self.rfile.read(int(self.headers["Content-Length"]))
+                data_string = self.rfile.read(
+                    int(self.headers["Content-Length"]))
                 msg = json.loads(data_string)
                 flag_dir = os.path.join(FLAGGING_DIRECTORY,
                                         str(interface.flag_hash))
                 os.makedirs(flag_dir, exist_ok=True)
                 output = {'inputs': [interface.input_interfaces[
                     i].rebuild_flagged(
-                                  flag_dir, msg['data']['input_data']) for i
+                    flag_dir, msg['data']['input_data']) for i
                     in range(len(interface.input_interfaces))],
-                          'outputs': [interface.output_interfaces[
-                              i].rebuild_flagged(
-                                  flag_dir, msg['data']['output_data']) for i
+                    'outputs': [interface.output_interfaces[
+                        i].rebuild_flagged(
+                        flag_dir, msg['data']['output_data']) for i
                     in range(len(interface.output_interfaces))],
-                          'message': msg['data']['message']}
+                    'message': msg['data']['message']}
 
                 with open(os.path.join(flag_dir, FLAGGING_FILENAME), 'a+') as f:
                     f.write(json.dumps(output))
                     f.write("\n")
 
-            #TODO(abidlabs): clean this up
+            # TODO(abidlabs): clean this up
             elif self.path == "/api/auto/rotation":
                 from gradio import validation_data, preprocessing_utils
                 import numpy as np
 
                 self._set_headers()
-                data_string = self.rfile.read(int(self.headers["Content-Length"]))
+                data_string = self.rfile.read(
+                    int(self.headers["Content-Length"]))
                 msg = json.loads(data_string)
-                img_orig = preprocessing_utils.decode_base64_to_image(msg["data"])
+                img_orig = preprocessing_utils.decode_base64_to_image(
+                    msg["data"])
                 img_orig = img_orig.convert('RGB')
                 img_orig = img_orig.resize((224, 224))
 
@@ -219,8 +227,10 @@ def serve_files_in_background(interface, port, directory_to_serve=None, server_n
                 for deg in range(-180, 180+45, 45):
                     img = img_orig.rotate(deg)
                     img_array = np.array(img) / 127.5 - 1
-                    prediction = interface.predict(np.expand_dims(img_array, axis=0))
-                    processed_output = interface.output_interface.postprocess(prediction)
+                    prediction = interface.predict(
+                        np.expand_dims(img_array, axis=0))
+                    processed_output = interface.output_interface.postprocess(
+                        prediction)
                     output = {'input': interface.input_interface.save_to_file(flag_dir, img),
                               'output': interface.output_interface.rebuild_flagged(
                                   flag_dir, {'data': {'output': processed_output}}),
@@ -240,9 +250,11 @@ def serve_files_in_background(interface, port, directory_to_serve=None, server_n
                 from PIL import ImageEnhance
 
                 self._set_headers()
-                data_string = self.rfile.read(int(self.headers["Content-Length"]))
+                data_string = self.rfile.read(
+                    int(self.headers["Content-Length"]))
                 msg = json.loads(data_string)
-                img_orig = preprocessing_utils.decode_base64_to_image(msg["data"])
+                img_orig = preprocessing_utils.decode_base64_to_image(
+                    msg["data"])
                 img_orig = img_orig.convert('RGB')
                 img_orig = img_orig.resize((224, 224))
                 enhancer = ImageEnhance.Brightness(img_orig)
@@ -253,8 +265,10 @@ def serve_files_in_background(interface, port, directory_to_serve=None, server_n
                 for i in range(9):
                     img = enhancer.enhance(i/4)
                     img_array = np.array(img) / 127.5 - 1
-                    prediction = interface.predict(np.expand_dims(img_array, axis=0))
-                    processed_output = interface.output_interface.postprocess(prediction)
+                    prediction = interface.predict(
+                        np.expand_dims(img_array, axis=0))
+                    processed_output = interface.output_interface.postprocess(
+                        prediction)
                     output = {'input': interface.input_interface.save_to_file(flag_dir, img),
                               'output': interface.output_interface.rebuild_flagged(
                                   flag_dir, {'data': {'output': processed_output}}),
@@ -299,7 +313,8 @@ def start_simple_server(interface, directory_to_serve=None, server_name=None):
     port = get_first_available_port(
         INITIAL_PORT_VALUE, INITIAL_PORT_VALUE + TRY_NUM_PORTS
     )
-    httpd = serve_files_in_background(interface, port, directory_to_serve, server_name)
+    httpd = serve_files_in_background(
+        interface, port, directory_to_serve, server_name)
     return port, httpd
 
 

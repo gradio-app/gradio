@@ -19,7 +19,7 @@ function gradio(config, fn, target) {
         </div>          
       </div>
     </div>`);
-    let io_master = Object.create(io_master_template);
+    io_master = Object.create(io_master_template);
     io_master.fn = fn
     io_master.target = target;
     io_master.config = config;
@@ -68,9 +68,9 @@ function gradio(config, fn, target) {
       `);
       input_interface.target = target.find(`.input_interface[interface_id=${_id}]`);
       set_interface_id(input_interface, _id);
+      input_interface.io_master = io_master;
       input_interface.init(input_interface_data[1]);
       input_interfaces.push(input_interface);
-      input_interface.io_master = io_master;
       _id++;
     }
     for (let i = 0; i < config["output_interfaces"].length; i++) {
@@ -92,9 +92,9 @@ function gradio(config, fn, target) {
       `);
       output_interface.target = target.find(`.output_interface[interface_id=${_id}]`);
       set_interface_id(output_interface, _id);
+      output_interface.io_master = io_master;
       output_interface.init(output_interface_data[1]);
       output_interfaces.push(output_interface);
-      output_interface.io_master = io_master;
       _id++;
     }
     io_master.input_interfaces = input_interfaces;
