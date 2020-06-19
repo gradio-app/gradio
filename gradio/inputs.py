@@ -316,7 +316,7 @@ class ImageIn(AbstractInput):
         Default preprocessing method for is to convert the picture to black and white and resize to be 48x48
         """
         cast_to_type = {
-            "base64": self.cast_to_base64(),
+            "base64": self.cast_to_base64,
             "numpy": self.cast_to_numpy,
             "pillow": self.cast_to_im
         }
