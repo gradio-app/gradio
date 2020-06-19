@@ -66,7 +66,8 @@ class AbstractInput(ABC):
 
 
 class Sketchpad(AbstractInput):
-    def __init__(self, shape=(28, 28), invert_colors=True, flatten=False, scale=1/255, shift=0,
+    def __init__(self, cast_to="numpy", shape=(28, 28), invert_colors=True,
+                 flatten=False, scale=1/255, shift=0,
                  dtype='float64', sample_inputs=None, label=None):
         self.image_width = shape[0]
         self.image_height = shape[1]
@@ -272,8 +273,9 @@ class Checkbox(AbstractInput):
 
 
 class ImageIn(AbstractInput):
-    def __init__(self, shape=(224, 224, 3), image_mode='RGB',
+    def __init__(self, cast_to=None, shape=(224, 224, 3), image_mode='RGB',
                  scale=1/127.5, shift=-1, cropper_aspect_ratio=None, label=None):
+        self.cast_to = cast_to
         self.image_width = shape[0]
         self.image_height = shape[1]
         self.num_channels = shape[2]
@@ -298,10 +300,29 @@ class ImageIn(AbstractInput):
             **super().get_template_context()
         }
 
+    def cast_to_base64(self, inp):
+        return inp
+
+    def cast_to_im(self, inp):
+        return preprocessing_utils.decode_base64_to_image(inp)
+
+    def cast_to_numpy(self, inp):
+        im = self.cast_to_im(inp)
+        arr = np.array(im).flatten()
+        return arr
+
     def preprocess(self, inp):
         """
         Default preprocessing method for is to convert the picture to black and white and resize to be 48x48
         """
+        cast_to_type = {
+            "base64": self.cast_to_base64,
+            "numpy": self.cast_to_numpy,
+            "pillow": self.cast_to_im
+        }
+        if self.cast_to:
+            return cast_to_type[self.cast_to](inp)
+
         im = preprocessing_utils.decode_base64_to_image(inp)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
