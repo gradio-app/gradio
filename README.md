@@ -2,7 +2,7 @@
 
 # Gradio UI
 
-![alt text](https://github.com/gradio-app/gradio-UI/images/header.png?raw=true)
+![alt text](https://github.com/gradio-app/gradio-UI/blob/master/images/header-2.png?raw=true)
 
 At Gradio, we often try to understand what inputs that a model is particularly sensitive to. To help facilitate this, we've developed and open-sourced `gradio`, a python library that allows you to easily create input and output interfaces over trained models to make it easy for you to "play around" with your model in your browser by dragging-and-dropping in your own images (or pasting your own text, recording your own voice, etc.) and seeing what the model outputs. We are working on making creating a shareable, public link to your model so you can share the interface with others (e.g. your client, your advisor, or your dad), who can use the model without writing any code. 
 
