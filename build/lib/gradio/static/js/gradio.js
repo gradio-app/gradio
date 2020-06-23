@@ -12,14 +12,14 @@ function gradio(config, fn, target) {
       </div>
       <div class="panel output_panel">
         <div class="loading interface invisible">
-          <img class="loading_in_progress" src="../static/img/logo_loading.gif">
-          <img class="loading_failed" src="../static/img/logo_error.png">
+          <img class="loading_in_progress" src="static/img/logo_loading.gif">
+          <img class="loading_failed" src="static/img/logo_error.png">
         </div>
         <div class="output_interfaces">
         </div>          
       </div>
     </div>`);
-    io_master = Object.create(io_master_template);
+    let io_master = Object.create(io_master_template);
     io_master.fn = fn
     io_master.target = target;
     io_master.config = config;
