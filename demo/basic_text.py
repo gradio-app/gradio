@@ -1,14 +1,16 @@
 import gradio as gr
+from time import sleep
 
 def answer_question(text1, text2):
-    return text1, text2, {"plagiarism": 0.62, "original": 0.38}
+    sleep(2)
+    return text1[::-1]
 
 
 gr.Interface(answer_question, 
             [
-                gr.inputs.Microphone(label="speech"), 
-                gr.inputs.Dropdown(["Deepspeech", "Sphynx", "Wav2Text"], label="model"), 
+                gr.inputs.Textbox(label="text 1", lines=4),
+                gr.inputs.Textbox(label="text 2", lines=4),
             ], [
-                gr.outputs.Textbox(label="text 1", lines=8),
+                gr.outputs.Textbox(label="out", lines=8),
             ]
             ).launch()
