@@ -13,4 +13,4 @@ gr.Interface(answer_question,
             ], [
                 gr.outputs.Textbox(label="out", lines=8),
             ]
-            ).launch()
+            ).launch(share=True)

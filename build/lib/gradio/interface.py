@@ -180,7 +180,7 @@ class Interface:
             return
         raise RuntimeError("Validation did not pass")
 
-    def launch(self, inline=None, inbrowser=None, share=True, validate=True):
+    def launch(self, inline=None, inbrowser=None, share=False, validate=True):
         """
         Standard method shared by interfaces that creates the interface and sets up a websocket to communicate with it.
         :param inline: boolean. If True, then a gradio interface is created inline (e.g. in jupyter or colab notebook)
@@ -212,7 +212,6 @@ class Interface:
         server_port, httpd = networking.start_simple_server(self, output_directory, self.server_name)
         path_to_local_server = "http://{}:{}/".format(self.server_name, server_port)
         networking.build_template(output_directory)
-        networking.set_config(self.get_config_file(), output_directory)
 
         self.status = "RUNNING"
         self.simple_server = httpd
@@ -243,6 +242,7 @@ class Interface:
         if share:
             try:
                 share_url = networking.setup_tunnel(server_port)
+                print(share_url)
             except RuntimeError:
                 share_url = None
                 if self.verbose:
@@ -288,5 +288,8 @@ class Interface:
             else:
                 display(IFrame(path_to_local_server, width=1000, height=500))
 
+        config = self.get_config_file()
+        config["share_url"] = share_url
+        networking.set_config(config, output_directory)
 
         return httpd, path_to_local_server, share_url
