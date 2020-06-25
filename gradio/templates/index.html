@@ -29,17 +29,9 @@
     <nav>
       <a href="https://gradio.app"><img src="../static/img/logo_inline.png" /></a>
     </nav>
-    <div id="share_row">
-      <button id="share" class="primary">Share this Interface</button>
-      <div id="share_form">
-        <input type="text" id="share_name" placeholder="sender name (you)"></input>
-        <input type="text" id="share_email" placeholder="emails (comma-separated if multiple)"></input>
-        <button class="primary" id="send_link">Send Link</button>
-      </div>
-      <div id="share_complete">
-        <span id="share_message"></span>
-        <button class="secondary" id="share_more"></button>
-      </div>
+    <div id="share" class="invisible">
+      Live at <a id="share-link"></a>.
+      <button id="share-copy">Copy Link</button>
     </div>
     <div id="interface_target"></div>
     <script src="../static/js/vendor/jquery.min.js"></script>
@@ -75,7 +67,6 @@
     <script src="../static/js/interfaces/output/image.js"></script>
     <script src="../static/js/interfaces/output/label.js"></script>
     <script src="../static/js/interfaces/output/textbox.js"></script>
-    <script src="../static/js/share.js"></script>
     <script src="../static/js/gradio.js"></script>
     <script>
       $.getJSON("static/config.json", function(config) {
@@ -89,7 +80,23 @@
             });
           });              
         }, "#interface_target");
+        if (config["share_url"]) {
+          let share_url = config["share_url"];
+          $("#share").removeClass("invisible");
+          $("#share-link").text(share_url).attr("href", share_url);
+          $("#share-copy").click(function() {
+            copyToClipboard(share_url);
+          })
+        }
       });
+      const copyToClipboard = str => {
+        const el = document.createElement('textarea');
+        el.value = str;
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
+      };
     </script>
   </body>
 </html>

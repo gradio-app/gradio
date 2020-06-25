@@ -141,6 +141,7 @@ class Image(AbstractOutput):
         if self.plot:
             return preprocessing_utils.encode_plot_to_base64(prediction)
         else:
+            print(prediction.shape)
             return preprocessing_utils.encode_array_to_base64(prediction)
 
     def rebuild_flagged(self, dir, msg):

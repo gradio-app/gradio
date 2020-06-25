@@ -21,28 +21,15 @@ nav img {
   margin-right: auto;
   height: 32px;
 }
-#share_row {
-  justify-content: center;
+#share {
+  text-align: center;
   margin-bottom: 10px;
+  font-size: 14px;
 }
-#share_form {
-  flex-grow: 1;
-  justify-content: center;
-  align-items: center;
-}
-#share_row button, #share_row input[type=text] {
-  padding: 6px 4px;
-  margin-left: 5px;
-}
-#share_row input[type=text] {
-  background-color: #F6F6F6;
-}
-#share_email {
-  flex-grow: 1;
-  max-width: 400px;
-}
-#share_row, #share_complete, #share_form {
-  display: none;
+#share-copy {
+  background-color: whitesmoke;
+  padding: 4px;
+  border-radius: 2px;
 }
 .panels {
   display: flex;
