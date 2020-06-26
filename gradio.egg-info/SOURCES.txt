@@ -31,6 +31,7 @@ gradio/static/css/interfaces/input/slider.css
 gradio/static/css/interfaces/input/textbox.css
 gradio/static/css/interfaces/input/webcam.css
 gradio/static/css/interfaces/output/image.css
+gradio/static/css/interfaces/output/key_values.css
 gradio/static/css/interfaces/output/label.css
 gradio/static/css/interfaces/output/textbox.css
 gradio/static/css/vendor/tui-color-picker.css
@@ -51,7 +52,6 @@ gradio/static/img/vendor/icon-c.svg
 gradio/static/img/vendor/icon-d.svg
 gradio/static/js/all_io.js
 gradio/static/js/gradio.js
-gradio/static/js/share.js
 gradio/static/js/utils.js
 gradio/static/js/interfaces/input/checkbox.js
 gradio/static/js/interfaces/input/checkbox_group.js
@@ -65,6 +65,7 @@ gradio/static/js/interfaces/input/slider.js
 gradio/static/js/interfaces/input/textbox.js
 gradio/static/js/interfaces/input/webcam.js
 gradio/static/js/interfaces/output/image.js
+gradio/static/js/interfaces/output/key_values.js
 gradio/static/js/interfaces/output/label.js
 gradio/static/js/interfaces/output/textbox.js
 gradio/static/js/vendor/FileSaver.min.js

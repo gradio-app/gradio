@@ -4,16 +4,17 @@ from time import time
 
 def flip(image):
     start = time()
-    return np.flipud(image), time() - start
+    return image, {
+        "1": 0.2,
+        "2": 0.8
+    }
 
 def flip2(image):
     start = time()
     return np.fliplr(image), time() - start
 
 
-gr.Interface([flip, flip2], 
-             "imagein", 
-             [
-                 "image", 
-                 gr.outputs.Textbox(lines=1)
+gr.Interface(flip, 
+             "image", 
+             ["image", "label"
              ]).launch()

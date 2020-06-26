@@ -92,7 +92,7 @@ const image_input = {
     var io = this;
     if (this.state == "IMAGE_LOADED") {
       resizeImage.call(this, this.image_data, 300, 300, function(image_data) {
-        this.io_master.input(io.id, image_data);
+        io.io_master.input(io.id, image_data);
       })
     }
   },

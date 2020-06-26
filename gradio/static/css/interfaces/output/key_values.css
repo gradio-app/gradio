@@ -1,0 +1,13 @@
+.key_values th {
+  text-align: left;
+}
+.key_values tr {
+  padding: 4px;
+}
+.key_values {
+  font-family: monospace;
+  font-size: 16px;
+}
+.key_values tbody tr:nth-child(odd) {
+  background-color: white;
+}
