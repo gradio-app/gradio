@@ -9,6 +9,7 @@ import numpy as np
 import json
 from gradio import preprocessing_utils
 import datetime
+import operator
 
 # Where to find the static resources associated with each template.
 BASE_OUTPUT_INTERFACE_JS_PATH = 'static/js/interfaces/output/{}.js'
@@ -41,14 +42,6 @@ class AbstractOutput(ABC):
         """
         return {}
 
-    @abstractmethod
-    def rebuild_flagged(self, inp):
-        """
-        All interfaces should define a method that rebuilds the flagged output when it's passed back (i.e. rebuilds image from base64)
-        """
-        pass
-
-import operator
 class Label(AbstractOutput):
     def __init__(self, num_top_classes=None, label=None):
         self.num_top_classes = num_top_classes
@@ -88,6 +81,17 @@ class Label(AbstractOutput):
         Default rebuild method for label
         """
         return json.loads(msg)
+
+
+class KeyValues(AbstractOutput):
+    def __init__(self, label=None):
+        super().__init__(label)
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "key_values": {},
+        }
 
 
 class Textbox(AbstractOutput):

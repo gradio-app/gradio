@@ -2,6 +2,8 @@
 
 # Gradio UI
 
+![alt text](https://i.ibb.co/GHRk2JP/header-2.png)
+
 At Gradio, we often try to understand what inputs that a model is particularly sensitive to. To help facilitate this, we've developed and open-sourced `gradio`, a python library that allows you to easily create input and output interfaces over trained models to make it easy for you to "play around" with your model in your browser by dragging-and-dropping in your own images (or pasting your own text, recording your own voice, etc.) and seeing what the model outputs. We are working on making creating a shareable, public link to your model so you can share the interface with others (e.g. your client, your advisor, or your dad), who can use the model without writing any code. 
 
 Gradio is useful for:
@@ -54,7 +56,7 @@ label = gradio.outputs.Label(num_top_classes=3)
 gr.Interface(classify_image, imagein, label).launch();
 ```
 
-![alt text](https://raw.githubusercontent.com/abidlabs/gradio/master/image_interface.png)
+![alt text](https://i.ibb.co/nM97z2B/image-interface.png)
 
 
 You can supply your own model instead of the pretrained model above, as well as use different kinds of models or functions. Changing the `input` and `output` parameters in the `Interface` face object allow you to create different interfaces, depending on the needs of your model. Take a look at the python notebooks for more examples. The currently supported interfaces are as follows:
@@ -82,7 +84,7 @@ label = Label(num_top_classes=4)
 gradio.Interface(predict, sketchpad, label).launch();
 ```
 
-![alt text](https://raw.githubusercontent.com/abidlabs/gradio/master/sketchpad_interface.png)
+![alt text](https://i.ibb.co/CV8Kk3D/sketchpad-interface.png)
 
 #### Human DNA Variant Effect Prediction (Input: Textbox, Output: Label)
 
@@ -90,7 +92,7 @@ gradio.Interface(predict, sketchpad, label).launch();
 gradio.Interface(predict, 'textbox', 'label').launch()
 ```
 
-![alt text](https://raw.githubusercontent.com/abidlabs/gradio/master/label_interface.png)
+![alt text](https://i.ibb.co/C7GXDDQ/label-interface.png)
 
 ### Contributing:
 If you would like to contribute and your contribution is small, you can directly open a pull request (PR). If you would like to contribute a larger feature, we recommend first creating an issue with a proposed design for discussion. Please see our contributing guidelines for more info.
