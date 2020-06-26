@@ -41,6 +41,7 @@ function gradio(config, fn, target) {
       "csv" : {},
       "image" : image_output,
       "label" : label_output,
+      "keyvalues" : key_values,
       "textbox" : textbox_output
     }
     let id_to_interface_map = {}
