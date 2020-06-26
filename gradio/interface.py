@@ -16,7 +16,6 @@ import requests
 import random
 import time
 from IPython import get_ipython
-import tensorflow as tf
 
 LOCALHOST_IP = "0.0.0.0"
 TRY_NUM_PORTS = 100
@@ -194,6 +193,7 @@ class Interface:
         self.context = context
 
         if self.capture_session:
+            import tensorflow as tf
             self.session = tf.get_default_graph(), \
                           tf.keras.backend.get_session()
 
