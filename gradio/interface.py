@@ -115,13 +115,18 @@ class Interface:
                 else:
                     try:
                         prediction = predict_fn(*processed_input, self.context)
-                    except ValueError:
-                        print("It looks like you might be "
-                              "using tensorflow < 2.0. Please pass "
-                              "capture_session=True in Interface to avoid "
-                              "a 'Tensor is not an element of this graph.' "
-                              "error.")
-                        prediction = predict_fn(*processed_input, self.context)
+                    except ValueError as exception:
+                        if str(exception).endswith("is not an element "
+                                                       "of this graph."):
+                            print("It looks like you might be "
+                                  "using tensorflow < 2.0. Please pass "
+                                  "capture_session=True in Interface to avoid "
+                                  "the 'Tensor is not an element of this "
+                                  "graph.' "
+                                  "error.")
+                            prediction = predict_fn(*processed_input)
+                        else:
+                            prediction = predict_fn(*processed_input)
             else:
                 if self.capture_session:
                     graph, sess = self.session
@@ -131,13 +136,17 @@ class Interface:
                 else:
                     try:
                         prediction = predict_fn(*processed_input)
-                    except ValueError:
-                        print("It looks like you might be "
+                    except ValueError as exception:
+                        if str(exception).endswith("is not an element "
+                                                       "of this graph."):
+                            print("It looks like you might be "
                               "using tensorflow < 2.0. Please pass "
                               "capture_session=True in Interface to avoid "
-                              "a 'Tensor is not an element of this graph.' "
+                              "the 'Tensor is not an element of this graph.' "
                               "error.")
-                        prediction = predict_fn(*processed_input)
+                            prediction = predict_fn(*processed_input)
+                        else:
+                            prediction = predict_fn(*processed_input)
 
             if len(self.output_interfaces) / \
                     len(self.predict) == 1:
