@@ -76,12 +76,6 @@ class Label(AbstractOutput):
             "label": {},
         }
 
-    def rebuild_flagged(self, dir, msg):
-        """
-        Default rebuild method for label
-        """
-        return json.loads(msg)
-
 
 class KeyValues(AbstractOutput):
     def __init__(self, label=None):
@@ -119,12 +113,6 @@ class Textbox(AbstractOutput):
         """
         """
         return prediction
-
-    def rebuild_flagged(self, dir, msg):
-        """
-        Default rebuild method for label
-        """
-        return json.loads(msg)
 
 
 class Image(AbstractOutput):
