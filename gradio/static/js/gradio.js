@@ -26,7 +26,7 @@ function gradio(config, fn, target) {
 
     let input_to_object_map = {
       "csv" : {},
-      "imagein" : image_input,
+      "image" : image_input,
       "sketchpad" : sketchpad_input,
       "textbox" : textbox_input,
       "webcam" : webcam,
