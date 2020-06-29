@@ -18,4 +18,8 @@ gr.Interface(answer_question,
                 gr.outputs.Textbox(label="out", lines=8),
                 "key_values"
             ]
+<<<<<<< HEAD
+            ).launch(title="Demo", description="Trying out a funky model!")
+=======
             ).launch(share=True)
+>>>>>>> 2bd16c2f9c360c98583b94e2f6a6ea7259a98217

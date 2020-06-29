@@ -7,7 +7,7 @@ automatically added to a registry, which allows them to be easily referenced in 
 from abc import ABC, abstractmethod
 from gradio import preprocessing_utils, validation_data
 import numpy as np
-from PIL import Image, ImageOps
+import PIL.Image, PIL.ImageOps
 import time
 import warnings
 import json
@@ -84,11 +84,11 @@ class Sketchpad(AbstractInput):
         Default preprocessing method for the SketchPad is to convert the sketch to black and white and resize 28x28
         """
         im_transparent = preprocessing_utils.decode_base64_to_image(inp)
-        im = Image.new("RGBA", im_transparent.size, "WHITE")  # Create a white background for the alpha channel
+        im = PIL.Image.new("RGBA", im_transparent.size, "WHITE")  # Create a white background for the alpha channel
         im.paste(im_transparent, (0, 0), im_transparent)
         im = im.convert('L')
         if self.invert_colors:
-            im = ImageOps.invert(im)
+            im = PIL.ImageOps.invert(im)
         im = im.resize((self.image_width, self.image_height))
         if self.flatten:
             array = np.array(im).flatten().reshape(1, self.image_width * self.image_height)
@@ -261,6 +261,7 @@ class Slider(AbstractInput):
             "checkbox": {},
         }
 
+
 class Checkbox(AbstractInput):
     def __init__(self, label=None):
         super().__init__(label)
@@ -272,7 +273,7 @@ class Checkbox(AbstractInput):
         }
 
 
-class ImageIn(AbstractInput):
+class Image(AbstractInput):
     def __init__(self, cast_to=None, shape=(224, 224, 3), image_mode='RGB',
                  scale=1/127.5, shift=-1, cropper_aspect_ratio=None, label=None):
         self.cast_to = cast_to

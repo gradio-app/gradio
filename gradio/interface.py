@@ -195,7 +195,7 @@ class Interface:
             return
         raise RuntimeError("Validation did not pass")
 
-    def launch(self, inline=None, inbrowser=None, share=False, validate=True):
+    def launch(self, inline=None, inbrowser=None, share=False, validate=True, title=None, description=None):
         """
         Standard method shared by interfaces that creates the interface and sets up a websocket to communicate with it.
         :param inline: boolean. If True, then a gradio interface is created inline (e.g. in jupyter or colab notebook)
@@ -306,6 +306,8 @@ class Interface:
 
         config = self.get_config_file()
         config["share_url"] = share_url
+        config["title"] = title
+        config["description"] = description
         networking.set_config(config, output_directory)
 
         return httpd, path_to_local_server, share_url
