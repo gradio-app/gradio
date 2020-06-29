@@ -28,7 +28,7 @@ class Interface:
     the appropriate inputs and outputs
     """
 
-    def __init__(self, fn, inputs, outputs, saliency=None, verbose=False,
+    def __init__(self, fn, inputs, outputs, saliency=None, verbose=False, examples=None,
                  live=False, show_input=True, show_output=True,
                  load_fn=None, capture_session=False, title=None, description=None,
                  server_name=LOCALHOST_IP):
@@ -82,6 +82,7 @@ class Interface:
         self.server_name = server_name
         self.title = title
         self.description = description
+        self.examples = examples
 
     def get_config_file(self):
         return {
@@ -309,6 +310,7 @@ class Interface:
 
         config = self.get_config_file()
         config["share_url"] = share_url
+        config["examples"] = self.examples
         networking.set_config(config, output_directory)
 
         return httpd, path_to_local_server, share_url
