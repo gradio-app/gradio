@@ -30,7 +30,7 @@ class Interface:
 
     def __init__(self, fn, inputs, outputs, saliency=None, verbose=False,
                  live=False, show_input=True, show_output=True,
-                 load_fn=None, capture_session=False,
+                 load_fn=None, capture_session=False, title=None, description=None,
                  server_name=LOCALHOST_IP):
         """
         :param fn: a function that will process the input panel data from the interface and return the output panel data.
@@ -80,6 +80,8 @@ class Interface:
         self.capture_session = capture_session
         self.session = None
         self.server_name = server_name
+        self.title = title
+        self.description = description
 
     def get_config_file(self):
         return {
@@ -92,7 +94,9 @@ class Interface:
             "function_count": len(self.predict),
             "live": self.live,
             "show_input": self.show_input,
-            "show_output": self.show_output,            
+            "show_output": self.show_output,
+            "title": self.title,
+            "description": self.description,
         }
 
     def process(self, raw_input):
@@ -141,7 +145,6 @@ class Interface:
         processed_output = [output_interface.postprocess(
             predictions[i]) for i, output_interface in enumerate(self.output_interfaces)]
         return processed_output
-
 
     def validate(self):
         if self.validate_flag:
@@ -195,7 +198,7 @@ class Interface:
             return
         raise RuntimeError("Validation did not pass")
 
-    def launch(self, inline=None, inbrowser=None, share=False, validate=True, title=None, description=None):
+    def launch(self, inline=None, inbrowser=None, share=False, validate=True):
         """
         Standard method shared by interfaces that creates the interface and sets up a websocket to communicate with it.
         :param inline: boolean. If True, then a gradio interface is created inline (e.g. in jupyter or colab notebook)
@@ -306,8 +309,6 @@ class Interface:
 
         config = self.get_config_file()
         config["share_url"] = share_url
-        config["title"] = title
-        config["description"] = description
         networking.set_config(config, output_directory)
 
         return httpd, path_to_local_server, share_url
