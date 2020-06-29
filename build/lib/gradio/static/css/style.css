@@ -31,7 +31,6 @@ nav img {
   padding: 4px;
   border-radius: 2px;
 }
-<<<<<<< HEAD
 #title {
   text-align: center;
 }
@@ -40,19 +39,11 @@ nav img {
   width: 100%;
   margin: 0 auto;  
 }
-=======
->>>>>>> 2bd16c2f9c360c98583b94e2f6a6ea7259a98217
 .panels {
   display: flex;
   flex-flow: row;
   flex-wrap: wrap;
   justify-content: center;
-<<<<<<< HEAD
-=======
-  max-width: 1028px;
-  width: 100%;
-  margin: 0 auto;  
->>>>>>> 2bd16c2f9c360c98583b94e2f6a6ea7259a98217
 }
 button.primary {
   color: white;
