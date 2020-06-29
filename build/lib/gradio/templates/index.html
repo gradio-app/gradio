@@ -34,14 +34,16 @@
       Live at <a id="share-link"></a>.
       <button id="share-copy">Copy Link</button>
     </div>
-<<<<<<< HEAD
     <div class="container">
       <h1 id="title"></h1>
       <p id="description"></p>
     </div>
-=======
->>>>>>> 2bd16c2f9c360c98583b94e2f6a6ea7259a98217
     <div id="interface_target"></div>
+    <div id="examples" class="container invisible">
+      <h3>Examples</h3>
+      <table>
+      </table>
+    </div>
     <script src="../static/js/vendor/jquery.min.js"></script>
     <!-- TUI EDITOR -->
     <script src="../static/js/vendor/fabric.js"></script>
@@ -89,27 +91,40 @@
             });
           });              
         }, "#interface_target");
-<<<<<<< HEAD
         if (config["title"]) {
           $("#title").text(config["title"]);
         }
         if (config["description"]) {
           $("#description").text(config["description"]);
         }
-=======
->>>>>>> 2bd16c2f9c360c98583b94e2f6a6ea7259a98217
         if (config["share_url"]) {
           let share_url = config["share_url"];
           $("#share").removeClass("invisible");
           $("#share-link").text(share_url).attr("href", share_url);
           $("#share-copy").click(function() {
             copyToClipboard(share_url);
-<<<<<<< HEAD
             $("#share-copy").text("Copied!");
-=======
->>>>>>> 2bd16c2f9c360c98583b94e2f6a6ea7259a98217
           })
-        }
+        };
+        if (config["examples"]) {
+          $("#examples").removeClass("invisible");
+          let html = "<thead>"
+          for (let i = 0; i < config["input_interfaces"].length; i++) {
+            label = config["input_interfaces"][i][1]["label"];
+            html += "<th>" + label + "</th>";
+          }
+          html += "</thead>";
+          html += "<tbody>";
+          for (let example of config["examples"]) {
+            html += "<tr>";
+            for (let col of example) {
+              html += "<td>" + col + "</td>";
+            }
+            html += "</tr>";
+          }
+          html += "</tbody>";
+          $("#examples table").html(html);
+        };
       });
       const copyToClipboard = str => {
         const el = document.createElement('textarea');

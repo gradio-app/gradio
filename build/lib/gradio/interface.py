@@ -16,7 +16,6 @@ import requests
 import random
 import time
 from IPython import get_ipython
-import tensorflow as tf
 
 LOCALHOST_IP = "0.0.0.0"
 TRY_NUM_PORTS = 100
@@ -29,9 +28,9 @@ class Interface:
     the appropriate inputs and outputs
     """
 
-    def __init__(self, fn, inputs, outputs, saliency=None, verbose=False,
+    def __init__(self, fn, inputs, outputs, saliency=None, verbose=False, examples=None,
                  live=False, show_input=True, show_output=True,
-                 load_fn=None, capture_session=False,
+                 load_fn=None, capture_session=False, title=None, description=None,
                  server_name=LOCALHOST_IP):
         """
         :param fn: a function that will process the input panel data from the interface and return the output panel data.
@@ -81,6 +80,9 @@ class Interface:
         self.capture_session = capture_session
         self.session = None
         self.server_name = server_name
+        self.title = title
+        self.description = description
+        self.examples = examples
 
     def get_config_file(self):
         return {
@@ -93,7 +95,9 @@ class Interface:
             "function_count": len(self.predict),
             "live": self.live,
             "show_input": self.show_input,
-            "show_output": self.show_output,            
+            "show_output": self.show_output,
+            "title": self.title,
+            "description": self.description,
         }
 
     def process(self, raw_input):
@@ -109,8 +113,15 @@ class Interface:
                             prediction = predict_fn(*processed_input,
                                                     self.context)
                 else:
-                    prediction = predict_fn(*processed_input,
-                                            self.context)
+                    try:
+                        prediction = predict_fn(*processed_input, self.context)
+                    except ValueError:
+                        print("It looks like you might be "
+                              "using tensorflow < 2.0. Please pass "
+                              "capture_session=True in Interface to avoid "
+                              "a 'Tensor is not an element of this graph.' "
+                              "error.")
+                        prediction = predict_fn(*processed_input, self.context)
             else:
                 if self.capture_session:
                     graph, sess = self.session
@@ -118,7 +129,16 @@ class Interface:
                         with sess.as_default():
                             prediction = predict_fn(*processed_input)
                 else:
-                    prediction = predict_fn(*processed_input)
+                    try:
+                        prediction = predict_fn(*processed_input)
+                    except ValueError:
+                        print("It looks like you might be "
+                              "using tensorflow < 2.0. Please pass "
+                              "capture_session=True in Interface to avoid "
+                              "a 'Tensor is not an element of this graph.' "
+                              "error.")
+                        prediction = predict_fn(*processed_input)
+
             if len(self.output_interfaces) / \
                     len(self.predict) == 1:
                 prediction = [prediction]
@@ -126,7 +146,6 @@ class Interface:
         processed_output = [output_interface.postprocess(
             predictions[i]) for i, output_interface in enumerate(self.output_interfaces)]
         return processed_output
-
 
     def validate(self):
         if self.validate_flag:
@@ -180,11 +199,7 @@ class Interface:
             return
         raise RuntimeError("Validation did not pass")
 
-<<<<<<< HEAD
-    def launch(self, inline=None, inbrowser=None, share=False, validate=True, title=None, description=None):
-=======
     def launch(self, inline=None, inbrowser=None, share=False, validate=True):
->>>>>>> 2bd16c2f9c360c98583b94e2f6a6ea7259a98217
         """
         Standard method shared by interfaces that creates the interface and sets up a websocket to communicate with it.
         :param inline: boolean. If True, then a gradio interface is created inline (e.g. in jupyter or colab notebook)
@@ -198,6 +213,7 @@ class Interface:
         self.context = context
 
         if self.capture_session:
+            import tensorflow as tf
             self.session = tf.get_default_graph(), \
                           tf.keras.backend.get_session()
 
@@ -294,11 +310,7 @@ class Interface:
 
         config = self.get_config_file()
         config["share_url"] = share_url
-<<<<<<< HEAD
-        config["title"] = title
-        config["description"] = description
-=======
->>>>>>> 2bd16c2f9c360c98583b94e2f6a6ea7259a98217
+        config["examples"] = self.examples
         networking.set_config(config, output_directory)
 
         return httpd, path_to_local_server, share_url

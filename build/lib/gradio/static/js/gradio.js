@@ -1,11 +1,7 @@
 function gradio(config, fn, target) {
   target = $(target);
   target.html(`
-<<<<<<< HEAD
     <div class="panels container">
-=======
-    <div class="panels">
->>>>>>> 2bd16c2f9c360c98583b94e2f6a6ea7259a98217
       <div class="panel input_panel">
         <div class="input_interfaces">
         </div>          
@@ -30,7 +26,7 @@ function gradio(config, fn, target) {
 
     let input_to_object_map = {
       "csv" : {},
-      "imagein" : image_input,
+      "image" : image_input,
       "sketchpad" : sketchpad_input,
       "textbox" : textbox_input,
       "webcam" : webcam,
