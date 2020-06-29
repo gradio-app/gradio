@@ -1,7 +1,7 @@
 function gradio(config, fn, target) {
   target = $(target);
   target.html(`
-    <div class="panels">
+    <div class="panels container">
       <div class="panel input_panel">
         <div class="input_interfaces">
         </div>          
