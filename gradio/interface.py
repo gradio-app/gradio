@@ -29,8 +29,9 @@ class Interface:
     """
 
     def __init__(self, fn, inputs, outputs, saliency=None, verbose=False, examples=None,
-                 live=False, show_input=True, show_output=True, capture_session=False, title=None, description=None,
-                 server_name=LOCALHOST_IP):
+                 live=False, show_input=True, show_output=True,
+                 load_fn=None, capture_session=False, title=None, description=None,
+                 thumbnail=None, server_name=LOCALHOST_IP):
         """
         :param fn: a function that will process the input panel data from the interface and return the output panel data.
         :param inputs: a string or `AbstractInput` representing the input interface.
@@ -79,6 +80,7 @@ class Interface:
         self.server_name = server_name
         self.title = title
         self.description = description
+        self.thumbnail = thumbnail
         self.examples = examples
 
     def get_config_file(self):
@@ -95,6 +97,7 @@ class Interface:
             "show_output": self.show_output,
             "title": self.title,
             "description": self.description,
+            "thumbnail": self.thumbnail
         }
 
     def process(self, raw_input):
