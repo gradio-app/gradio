@@ -39,6 +39,11 @@
       <p id="description"></p>
     </div>
     <div id="interface_target"></div>
+    <div id="examples" class="container invisible">
+      <h3>Examples</h3>
+      <table>
+      </table>
+    </div>
     <script src="../static/js/vendor/jquery.min.js"></script>
     <!-- TUI EDITOR -->
     <script src="../static/js/vendor/fabric.js"></script>
@@ -100,7 +105,26 @@
             copyToClipboard(share_url);
             $("#share-copy").text("Copied!");
           })
-        }
+        };
+        if (config["examples"]) {
+          $("#examples").removeClass("invisible");
+          let html = "<thead>"
+          for (let i = 0; i < config["input_interfaces"].length; i++) {
+            label = config["input_interfaces"][i][1]["label"];
+            html += "<th>" + label + "</th>";
+          }
+          html += "</thead>";
+          html += "<tbody>";
+          for (let example of config["examples"]) {
+            html += "<tr>";
+            for (let col of example) {
+              html += "<td>" + col + "</td>";
+            }
+            html += "</tr>";
+          }
+          html += "</tbody>";
+          $("#examples table").html(html);
+        };
       });
       const copyToClipboard = str => {
         const el = document.createElement('textarea');
