@@ -20,16 +20,27 @@ const webcam = {
   },
   submit: function() {
     var io = this;
+<<<<<<< HEAD
+    Webcam.snap(function(image_data) {
+      io.io_master.input(io.id, image_data);
+    });
+    // Webcam.freeze();
+=======
     Webcam.freeze();
     Webcam.snap(function(image_data) {
       io.io_master.input(io.id, image_data);
     });
+>>>>>>> 2bd16c2f9c360c98583b94e2f6a6ea7259a98217
     this.state = "SNAPPED";
   },
   clear: function() {
     if (this.state == "SNAPPED") {
       this.state = "CAMERA_ON";
+<<<<<<< HEAD
+      // Webcam.unfreeze();
+=======
       Webcam.unfreeze();
+>>>>>>> 2bd16c2f9c360c98583b94e2f6a6ea7259a98217
     }
   },
   state: "NOT_STARTED",

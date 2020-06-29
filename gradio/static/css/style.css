@@ -31,14 +31,19 @@ nav img {
   padding: 4px;
   border-radius: 2px;
 }
+#title {
+  text-align: center;
+}
+.container {
+  max-width: 1028px;
+  width: 100%;
+  margin: 0 auto;  
+}
 .panels {
   display: flex;
   flex-flow: row;
   flex-wrap: wrap;
   justify-content: center;
-  max-width: 1028px;
-  width: 100%;
-  margin: 0 auto;  
 }
 button.primary {
   color: white;

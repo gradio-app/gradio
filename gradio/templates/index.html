@@ -34,6 +34,10 @@
       Live at <a id="share-link"></a>.
       <button id="share-copy">Copy Link</button>
     </div>
+    <div class="container">
+      <h1 id="title"></h1>
+      <p id="description"></p>
+    </div>
     <div id="interface_target"></div>
     <script src="../static/js/vendor/jquery.min.js"></script>
     <!-- TUI EDITOR -->
@@ -82,12 +86,19 @@
             });
           });              
         }, "#interface_target");
+        if (config["title"]) {
+          $("#title").text(config["title"]);
+        }
+        if (config["description"]) {
+          $("#description").text(config["description"]);
+        }
         if (config["share_url"]) {
           let share_url = config["share_url"];
           $("#share").removeClass("invisible");
           $("#share-link").text(share_url).attr("href", share_url);
           $("#share-copy").click(function() {
             copyToClipboard(share_url);
+            $("#share-copy").text("Copied!");
           })
         }
       });
