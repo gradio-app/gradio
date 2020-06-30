@@ -20,5 +20,9 @@ const radio = {
   },
   clear: function() {
     this.target.find("input").prop("checked", false);    
+  },
+  load_example: function(data) {
+    let child = this.choices.indexOf(data) + 1;
+    this.target.find("input:nth-child("+child+")").prop("checked", true);
   }
 }
