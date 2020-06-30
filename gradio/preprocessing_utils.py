@@ -17,6 +17,13 @@ def decode_base64_to_image(encoding):
     return Image.open(BytesIO(base64.b64decode(image_encoded)))
 
 
+def convert_file_to_base64(img):
+    with open(img, "rb") as image_file:
+        encoded_string = base64.b64encode(image_file.read())
+        base64_str = str(encoded_string, 'utf-8')
+        type = img.split(".")[-1]
+        return "data:image/" + type + ";base64," + base64_str
+
 def encode_plot_to_base64(plt):
     with BytesIO() as output_bytes:
         plt.savefig(output_bytes, format="png")

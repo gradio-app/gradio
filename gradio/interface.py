@@ -15,6 +15,7 @@ import pkg_resources
 import requests
 import random
 import time
+import inspect
 from IPython import get_ipython
 
 LOCALHOST_IP = "0.0.0.0"
@@ -84,7 +85,7 @@ class Interface:
         self.examples = examples
 
     def get_config_file(self):
-        return {
+        config = {
             "input_interfaces": [
                 (iface.__class__.__name__.lower(), iface.get_template_context())
                 for iface in self.input_interfaces],
@@ -99,6 +100,15 @@ class Interface:
             "description": self.description,
             "thumbnail": self.thumbnail
         }
+        try:
+            param_names = inspect.getfullargspec(self.predict[0])[0]
+            for iface, param in zip(config["input_interfaces"], param_names):
+                if not iface[1]["label"]:
+                    iface[1]["label"] = param.replace("_", " ")
+        except ValueError:
+            pass
+        return config    
+
 
     def process(self, raw_input):
         processed_input = [input_interface.preprocess(
@@ -295,7 +305,15 @@ class Interface:
 
         config = self.get_config_file()
         config["share_url"] = share_url
-        config["examples"] = self.examples
+
+        processed_examples = []
+        for example_set in self.examples:
+            processed_set = []
+            for iface, example in zip(self.input_interfaces, example_set):
+                processed_set.append(iface.process_example(example))
+            processed_examples.append(processed_set)
+
+        config["examples"] = processed_examples
         networking.set_config(config, output_directory)
 
         return httpd, path_to_local_server, share_url

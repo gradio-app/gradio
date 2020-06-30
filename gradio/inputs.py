@@ -12,6 +12,7 @@ import time
 import warnings
 import json
 import datetime
+import os
 
 # Where to find the static resources associated with each template.
 # BASE_INPUT_INTERFACE_TEMPLATE_PATH = 'static/js/interfaces/input/{}.js'
@@ -51,19 +52,18 @@ class AbstractInput(ABC):
         """
         return inp
 
+    def process_example(self, example):
+        """
+        Proprocess example for UI
+        """
+        return example
+
     @classmethod
     def get_shortcut_implementations(cls):
         """
         Return dictionary of shortcut implementations
         """
         return {}
-
-    @classmethod
-    def process_example(self, example):
-        """
-        Proprocess example for UI
-        """
-        return example
 
 
 class Sketchpad(AbstractInput):
@@ -79,6 +79,12 @@ class Sketchpad(AbstractInput):
         self.dtype = dtype
         self.sample_inputs = sample_inputs
         super().__init__(label)
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "sketchpad": {},
+        }
 
     def preprocess(self, inp):
         """
@@ -98,6 +104,9 @@ class Sketchpad(AbstractInput):
         array = array * self.scale + self.shift
         array = array.astype(self.dtype)
         return array
+
+    def process_example(self, example):
+        return preprocessing_utils.convert_file_to_base64(example)
 
 
 class Webcam(AbstractInput):
@@ -296,6 +305,8 @@ class Image(AbstractInput):
                                 self.num_channels)
         return array
 
+    def process_example(self, example):
+        return preprocessing_utils.convert_file_to_base64(example)
 
 class Microphone(AbstractInput):
 
