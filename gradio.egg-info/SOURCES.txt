@@ -81,7 +81,6 @@ gradio/static/js/vendor/tui-image-editor.js
 gradio/static/js/vendor/wavesurfer.min.js
 gradio/static/js/vendor/webcam.min.js
 gradio/static/js/vendor/white-theme.js
-gradio/templates/bulk_data.html
 gradio/templates/index.html
 test/test_inputs.py
 test/test_interface.py
