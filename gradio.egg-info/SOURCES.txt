@@ -55,7 +55,6 @@ gradio/static/js/gradio.js
 gradio/static/js/utils.js
 gradio/static/js/interfaces/input/checkbox.js
 gradio/static/js/interfaces/input/checkbox_group.js
-gradio/static/js/interfaces/input/csv.js
 gradio/static/js/interfaces/input/dropdown.js
 gradio/static/js/interfaces/input/image.js
 gradio/static/js/interfaces/input/microphone.js

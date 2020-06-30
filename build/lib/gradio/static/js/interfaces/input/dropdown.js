@@ -18,5 +18,9 @@ const dropdown = {
   },
   clear: function() {
     this.target.find("option").prop("selected", false);    
+  },
+  load_example: function(data) {
+    let child = this.choices.indexOf(data) + 1;
+    this.target.find("option:nth-child(" + child + ")").prop("selected", true);
   }
 }
