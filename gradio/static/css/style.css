@@ -80,3 +80,14 @@ button.secondary {
 #featured_history img {
   height: 60px;
 }
+#examples table {
+  min-width: 400px;
+  border-collapse: collapse;
+}
+#examples td {
+  padding: 8px;
+  cursor: pointer;
+}
+#examples tbody tr:hover {
+  background-color: lightgray;
+}

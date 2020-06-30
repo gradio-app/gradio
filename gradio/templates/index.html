@@ -81,7 +81,7 @@
     <script src="../static/js/gradio.js"></script>
     <script>
       $.getJSON("static/config.json", function(config) {
-        gradio(config, function(data) {
+        io = gradio(config, function(data) {
           return new Promise((resolve, reject) => {
             $.ajax({type: "POST",
               url: "/api/predict/",
@@ -115,8 +115,8 @@
           }
           html += "</thead>";
           html += "<tbody>";
-          for (let example of config["examples"]) {
-            html += "<tr>";
+          for (let [i, example] of config["examples"].entries()) {
+            html += "<tr row="+i+">";
             for (let col of example) {
               html += "<td>" + col + "</td>";
             }
@@ -124,6 +124,12 @@
           }
           html += "</tbody>";
           $("#examples table").html(html);
+          $("#examples tr").click(function() {
+            let example_id = parseInt($(this).attr("row"));
+            for (let [i, value] of config["examples"][example_id].entries()) {
+              io.input_interfaces[i].load_example(value);
+            }
+          })
         };
       });
       const copyToClipboard = str => {
