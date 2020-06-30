@@ -117,7 +117,10 @@
           html += "<tbody>";
           for (let [i, example] of config["examples"].entries()) {
             html += "<tr row="+i+">";
-            for (let col of example) {
+            for (let [j, col] of example.entries()) {
+              if (io.input_interfaces[j].load_example_preview) {
+                col = io.input_interfaces[j].load_example_preview(col);
+              }
               html += "<td>" + col + "</td>";
             }
             html += "</tr>";
