@@ -31,7 +31,7 @@ class Interface:
     def __init__(self, fn, inputs, outputs, saliency=None, verbose=False, examples=None,
                  live=False, show_input=True, show_output=True,
                  load_fn=None, capture_session=False, title=None, description=None,
-                 server_name=LOCALHOST_IP):
+                 thumbnail=None, server_name=LOCALHOST_IP):
         """
         :param fn: a function that will process the input panel data from the interface and return the output panel data.
         :param inputs: a string or `AbstractInput` representing the input interface.
@@ -68,8 +68,6 @@ class Interface:
             fn = [fn]
         self.output_interfaces *= len(fn)
         self.predict = fn
-        self.load_fn = load_fn
-        self.context = None
         self.verbose = verbose
         self.status = "OFF"
         self.saliency = saliency
@@ -82,6 +80,7 @@ class Interface:
         self.server_name = server_name
         self.title = title
         self.description = description
+        self.thumbnail = thumbnail
         self.examples = examples
 
     def get_config_file(self):
@@ -98,46 +97,34 @@ class Interface:
             "show_output": self.show_output,
             "title": self.title,
             "description": self.description,
+            "thumbnail": self.thumbnail
         }
 
     def process(self, raw_input):
         processed_input = [input_interface.preprocess(
-            raw_input[i]) for i, input_interface in enumerate(self.input_interfaces)]
+            raw_input[i]) for i, input_interface in
+            enumerate(self.input_interfaces)]
         predictions = []
         for predict_fn in self.predict:
-            if self.context:
-                if self.capture_session:
-                    graph, sess = self.session
-                    with graph.as_default():
-                        with sess.as_default():
-                            prediction = predict_fn(*processed_input,
-                                                    self.context)
-                else:
-                    try:
-                        prediction = predict_fn(*processed_input, self.context)
-                    except ValueError:
-                        print("It looks like you might be "
-                              "using tensorflow < 2.0. Please pass "
-                              "capture_session=True in Interface to avoid "
-                              "a 'Tensor is not an element of this graph.' "
-                              "error.")
-                        prediction = predict_fn(*processed_input, self.context)
+            if self.capture_session:
+                graph, sess = self.session
+                with graph.as_default():
+                    with sess.as_default():
+                        prediction = predict_fn(*processed_input)
             else:
-                if self.capture_session:
-                    graph, sess = self.session
-                    with graph.as_default():
-                        with sess.as_default():
-                            prediction = predict_fn(*processed_input)
-                else:
-                    try:
-                        prediction = predict_fn(*processed_input)
-                    except ValueError:
-                        print("It looks like you might be "
-                              "using tensorflow < 2.0. Please pass "
-                              "capture_session=True in Interface to avoid "
-                              "a 'Tensor is not an element of this graph.' "
-                              "error.")
-                        prediction = predict_fn(*processed_input)
+                try:
+                    prediction = predict_fn(*processed_input)
+                except ValueError as exception:
+                    if str(exception).endswith("is not an element of this "
+                                               "graph."):
+                        raise ValueError("It looks like you might be using "
+                                         "tensorflow < 2.0. Please "
+                                         "pass capture_session=True in "
+                                         "Interface to avoid the 'Tensor is "
+                                         "not an element of this graph.' "
+                                         "error.")
+                    else:
+                        raise exception
 
             if len(self.output_interfaces) / \
                     len(self.predict) == 1:
@@ -209,8 +196,6 @@ class Interface:
         """
         # if validate and not self.validate_flag:
         #     self.validate()
-        context = self.load_fn() if self.load_fn else None
-        self.context = context
 
         if self.capture_session:
             import tensorflow as tf
