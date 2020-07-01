@@ -13,6 +13,14 @@ button, input[type="submit"], input[type="reset"], input[type="text"], input[typ
   -webkit-appearance: none;
   border-radius: 0;
 }
+
+.loading_time {
+  font-size: large;
+  color: #EEA45D;
+  text-align: right;
+  padding-top: 5px;
+}
+
 nav {
   text-align: center;
   padding: 16px 0 4px;

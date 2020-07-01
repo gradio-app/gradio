@@ -139,7 +139,9 @@ def serve_files_in_background(interface, port, directory_to_serve=None, server_n
                     int(self.headers["Content-Length"]))
                 msg = json.loads(data_string)
                 raw_input = msg["data"]
-                output = {"data": interface.process(raw_input)}
+                prediction, durations = interface.process(raw_input)
+
+                output = {"data": prediction, "durations": durations}
                 if interface.saliency is not None:
                     saliency = interface.saliency(raw_input, prediction)
                     output['saliency'] = saliency.tolist()

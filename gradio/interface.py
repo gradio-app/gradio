@@ -105,7 +105,9 @@ class Interface:
             raw_input[i]) for i, input_interface in
             enumerate(self.input_interfaces)]
         predictions = []
+        durations = []
         for predict_fn in self.predict:
+            start = time.time()
             if self.capture_session:
                 graph, sess = self.session
                 with graph.as_default():
@@ -125,14 +127,16 @@ class Interface:
                                          "error.")
                     else:
                         raise exception
+            duration = time.time() - start
 
             if len(self.output_interfaces) / \
                     len(self.predict) == 1:
                 prediction = [prediction]
+            durations.append(duration)
             predictions.extend(prediction)
         processed_output = [output_interface.postprocess(
             predictions[i]) for i, output_interface in enumerate(self.output_interfaces)]
-        return processed_output
+        return processed_output, durations
 
     def validate(self):
         if self.validate_flag:
