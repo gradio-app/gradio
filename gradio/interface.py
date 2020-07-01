@@ -118,7 +118,7 @@ class Interface:
         durations = []
         for predict_fn in self.predict:
             start = time.time()
-            if self.capture_session:
+            if self.capture_session and not(self.session is None):
                 graph, sess = self.session
                 with graph.as_default():
                     with sess.as_default():
@@ -212,9 +212,12 @@ class Interface:
         #     self.validate()
 
         if self.capture_session:
-            import tensorflow as tf
-            self.session = tf.get_default_graph(), \
-                          tf.keras.backend.get_session()
+            try:
+                import tensorflow as tf
+                self.session = tf.get_default_graph(), \
+                              tf.keras.backend.get_session()
+            except (ImportError, AttributeError):  # If they are using TF >= 2.0 or don't have TF, just ignore this.
+                pass
 
         # If an existing interface is running with this instance, close it.
         if self.status == "RUNNING":
