@@ -6,8 +6,9 @@ const slider = {
       <span class="max"></span>:
       <div class="value"></div>
     </div>`,
-  init: function(opts) {this
+  init: function(opts) {
     let io = this;
+    this.minimum = opts.minimum;
     this.target.css("height", "auto");
     this.target.find(".min").text(opts.minimum);
     this.target.find(".max").text(opts.maximum);
@@ -32,6 +33,10 @@ const slider = {
     this.io_master.input(this.id, parseFloat(value));
   },
   clear: function() {
-    this.target.find("input").prop("checked", false);    
+    this.target.find("input").val(this.minimum);    
+  },
+  load_example: function(data) {
+    this.target.find("input").val(data);   
+    this.target.find(".value").text(data);
   }
 }

@@ -1,24 +1,23 @@
 import gradio as gr
 from time import sleep
 
-def answer_question(text1, text2):
-    sleep(2)
-    return text1[::-1], [
-        ("Value 1", 12.3),
-        ("Section", "DF3"),
-        ("Confidence", 100),
-    ]
+def answer_question(quantity, animal, place, activity_list, morning):
+    return f"""The {quantity} {animal}s went to the {place} where they {" and ".join(activity_list)} until the {"morning" if morning else "night"}"""
 
 
 gr.Interface(answer_question, 
             [
-                gr.inputs.Textbox(label="text 1", lines=4),
-                gr.inputs.Textbox(label="text 2", lines=4),
-            ], [
-                gr.outputs.Textbox(label="out", lines=8),
-                "key_values"
-            ], examples=[
-                ["things1", "things2"],
-                ["things10", "things20"],
+                gr.inputs.Slider(2, 20),
+                gr.inputs.Dropdown(["cat", "dog", "bird"]),
+                gr.inputs.Radio(["park", "zoo", "road"]),
+                gr.inputs.CheckboxGroup(["ran", "swam", "ate", "slept"]),
+                gr.inputs.Checkbox(label="Is it the morning?"),
+            ], 
+            gr.outputs.Textbox(label="out", lines=8),
+            examples=[
+                [2, "cat", "park", ["ran", "swam"], True],
+                [4, "dog", "zoo", ["ate", "swam"], False],
+                [10, "bird", "road", ["ran"], False],
+                [8, "cat", "zoo", ["ate"], True],
             ]
             ).launch()

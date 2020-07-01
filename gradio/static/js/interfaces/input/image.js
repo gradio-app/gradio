@@ -76,17 +76,6 @@ const image_input = {
          io.set_image_data(io.tui_editor.toDataURL(), /*update_editor=*/false);
        }
      });
-     $(".tests").html(this.test_html);
-     $(".rotate_test").click(function () {
-       if (io.image_data) {
-         io.io_master.test("rotation", io.image_data);
-       }
-     })
-     $(".light_test").click(function () {
-       if (io.image_data) {
-         io.io_master.test("lighting", io.image_data);
-       }
-     })
   },
   submit: function() {
     var io = this;
@@ -147,5 +136,15 @@ const image_input = {
       io.set_image_data(this.result, /*update_editor=*/true);
       io.state = "IMAGE_LOADED"
     }
+  },
+  load_example_preview: function(data) {
+    return "<img src="+data+" height=100>"
+  },
+  load_example: function(data) {
+    let io = this;
+    io.target.find(".upload_zone").hide();
+    io.target.find(".image_display").removeClass("hide");
+    io.set_image_data(data, /*update_editor=*/true);
+    io.state = "IMAGE_LOADED"
   }
 }

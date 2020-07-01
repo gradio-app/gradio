@@ -13,7 +13,7 @@ class TestInterface(unittest.TestCase):
         self.assertIsInstance(io.output_interfaces[0], gradio.outputs.Textbox)
 
     def test_input_interface_is_instance(self):
-        inp = gradio.inputs.ImageIn()
+        inp = gradio.inputs.Image()
         io = gr.Interface(inputs=inp, outputs='textBOX', fn=lambda x: x)
         self.assertEqual(io.input_interfaces[0], inp)
 

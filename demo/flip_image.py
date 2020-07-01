@@ -14,7 +14,12 @@ def flip2(image):
     return np.fliplr(image), time() - start
 
 
-gr.Interface(flip, 
+gr.Interface(flip2, 
              "image", 
-             ["image", "label"
-             ]).launch()
+             ["image", "text"],
+             examples=[
+                 ["images/cheetah1.jpg"],
+                 ["images/cheetah2.jpg"],
+                 ["images/lion.jpg"],
+             ]
+             ).launch()

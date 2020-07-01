@@ -11,7 +11,7 @@ PACKAGE_NAME = 'gradio'
 class TestSketchpad(unittest.TestCase):
     def test_path_exists(self):
         inp = inputs.Sketchpad()
-        path = inputs.BASE_INPUT_INTERFACE_JS_PATH.format(inp.get_name())
+        path = inputs.BASE_INPUT_INTERFACE_JS_PATH.format(inp.__class__.__name__)
         self.assertTrue(os.path.exists(os.path.join(PACKAGE_NAME, path)))
 
     def test_preprocessing(self):
@@ -23,7 +23,7 @@ class TestSketchpad(unittest.TestCase):
 class TestWebcam(unittest.TestCase):
     def test_path_exists(self):
         inp = inputs.Webcam()
-        path = inputs.BASE_INPUT_INTERFACE_JS_PATH.format(inp.get_name())
+        path = inputs.BASE_INPUT_INTERFACE_JS_PATH.format(inp.__class__.__name__)
         self.assertTrue(os.path.exists(os.path.join(PACKAGE_NAME, path)))
 
     def test_preprocessing(self):
@@ -35,7 +35,7 @@ class TestWebcam(unittest.TestCase):
 class TestTextbox(unittest.TestCase):
     def test_path_exists(self):
         inp = inputs.Textbox()
-        path = inputs.BASE_INPUT_INTERFACE_JS_PATH.format(inp.get_name())
+        path = inputs.BASE_INPUT_INTERFACE_JS_PATH.format(inp.__class__.__name__)
         self.assertTrue(os.path.exists(os.path.join(PACKAGE_NAME, path)))
 
     def test_preprocessing(self):
@@ -46,17 +46,17 @@ class TestTextbox(unittest.TestCase):
 
 class TestImageUpload(unittest.TestCase):
     def test_path_exists(self):
-        inp = inputs.ImageIn()
-        path = inputs.BASE_INPUT_INTERFACE_JS_PATH.format(inp.get_name())
+        inp = inputs.Image()
+        path = inputs.BASE_INPUT_INTERFACE_JS_PATH.format(inp.__class__.__name__)
         self.assertTrue(os.path.exists(os.path.join(PACKAGE_NAME, path)))
 
     def test_preprocessing(self):
-        inp = inputs.ImageIn()
+        inp = inputs.Image()
         array = inp.preprocess(BASE64_IMG)
         self.assertEqual(array.shape, (224, 224, 3))
 
     def test_preprocessing(self):
-        inp = inputs.ImageIn()
+        inp = inputs.Image()
         inp.image_height = 48
         inp.image_width = 48
         array = inp.preprocess(BASE64_IMG)
