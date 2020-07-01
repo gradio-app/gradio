@@ -80,3 +80,27 @@ button.secondary {
 #featured_history img {
   height: 60px;
 }
+#examples table {
+  border-collapse: collapse;
+  font-family: monospace;
+  padding: 8px;
+  background-color: whitesmoke;
+  border-right: solid 4px whitesmoke;
+  border-left: solid 4px whitesmoke;
+}
+#examples th {
+  padding: 8px;
+  text-align: left;
+  font-size: 18px;
+}
+#examples td {
+  padding: 8px;
+  cursor: pointer;
+}
+
+#examples tbody tr:nth-child(odd) {
+  background-color: white;
+}
+#examples tbody tr:hover {
+  background-color: lightgray;
+}
