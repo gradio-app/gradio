@@ -314,11 +314,12 @@ class Interface:
         config["share_url"] = share_url
 
         processed_examples = []
-        for example_set in self.examples:
-            processed_set = []
-            for iface, example in zip(self.input_interfaces, example_set):
-                processed_set.append(iface.process_example(example))
-            processed_examples.append(processed_set)
+        if self.examples:
+            for example_set in self.examples:
+                processed_set = []
+                for iface, example in zip(self.input_interfaces, example_set):
+                    processed_set.append(iface.process_example(example))
+                processed_examples.append(processed_set)
 
         config["examples"] = processed_examples
         networking.set_config(config, output_directory)
