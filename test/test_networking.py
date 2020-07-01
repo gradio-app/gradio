@@ -6,7 +6,6 @@ import socket
 import tempfile
 import os
 import json
-LOCALHOST_NAME = 'localhost'
 
 
 class TestGetAvailablePort(unittest.TestCase):
@@ -17,7 +16,7 @@ class TestGetAvailablePort(unittest.TestCase):
         for port in range(initial, final):
             try:
                 s = socket.socket()  # create a socket object
-                s.bind((LOCALHOST_NAME, port))  # Bind to the port
+                s.bind((networking.LOCALHOST_NAME, port))  # Bind to the port
                 s.close()
                 port_found = True
                 break
@@ -25,7 +24,7 @@ class TestGetAvailablePort(unittest.TestCase):
                 pass
         if port_found:
             s = socket.socket()  # create a socket object
-            s.bind((LOCALHOST_NAME, port))  # Bind to the port
+            s.bind((networking.LOCALHOST_NAME, port))  # Bind to the port
             new_port = networking.get_first_available_port(initial, final)
             s.close()
         self.assertFalse(port==new_port)
