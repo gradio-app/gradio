@@ -40,7 +40,7 @@ class Interface:
         """
         def get_input_instance(iface):
             if isinstance(iface, str):
-                return gradio.inputs.shortcuts[iface]
+                return gradio.inputs.shortcuts[iface.lower()]
             elif isinstance(iface, gradio.inputs.AbstractInput):
                 return iface
             else:
@@ -49,7 +49,7 @@ class Interface:
 
         def get_output_instance(iface):
             if isinstance(iface, str):
-                return gradio.outputs.shortcuts[iface]
+                return gradio.outputs.shortcuts[iface.lower()]
             elif isinstance(iface, gradio.outputs.AbstractOutput):
                 return iface
             else:
@@ -264,7 +264,7 @@ class Interface:
         if share:
             try:
                 share_url = networking.setup_tunnel(server_port)
-                print(share_url)
+                print("External URL:", share_url)
             except RuntimeError:
                 share_url = None
                 if self.verbose:
