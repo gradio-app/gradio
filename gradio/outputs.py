@@ -89,7 +89,7 @@ class KeyValues(AbstractOutput):
 
 
 class Textbox(AbstractOutput):
-    def __init__(self, lines=None, placeholder=None, label=None):
+    def __init__(self, lines=1, placeholder=None, label=None):
         self.lines = lines
         self.placeholder = placeholder
         super().__init__(label)

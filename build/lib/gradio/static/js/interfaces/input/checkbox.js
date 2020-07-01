@@ -10,5 +10,12 @@ const checkbox = {
   },
   clear: function() {
     this.target.find("input").prop("checked", false);    
+  },
+  load_example: function(data) {
+    if (data) {
+      this.target.find("input").prop("checked", true);
+    } else {
+      this.target.find("input").prop("checked", false);
+    }
   }
 }

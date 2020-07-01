@@ -6,8 +6,9 @@ const checkbox_group = {
     html = "<div class='checkbox_group'>"
     for ([index, choice] of opts.choices.entries()) {
       html += `
-        <input id="${this.id}_${index}" type="checkbox" name="${this.id}" value="${index}">
-        <label for="${this.id}_${index}">${choice}</label>`;
+        <label for="${this.id}_${index}">${choice}
+          <input id="${this.id}_${index}" type="checkbox" name="${this.id}" value="${index}">
+        </label>`;
     }
     html += "</div>"
     this.target.html(html);
@@ -22,5 +23,17 @@ const checkbox_group = {
   },
   clear: function() {
     this.target.find("input").prop("checked", false);    
+  },
+  load_example: function(data) {
+    for (let [i, choice] of this.choices.entries()) {
+      let child = i + 1;
+      let checkbox = this.target.find("label:nth-child("+child+") input");
+      console.log(data, choice, child)
+      if (data.includes(choice)) {
+        checkbox.prop("checked", true);
+      } else {
+        checkbox.prop("checked", false);
+      }
+    }
   }
 }
