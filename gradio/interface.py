@@ -18,8 +18,7 @@ import time
 import inspect
 from IPython import get_ipython
 
-LOCALHOST_IP = "0.0.0.0"
-TRY_NUM_PORTS = 100
+
 PKG_VERSION_URL = "https://gradio.app/api/pkg-version"
 
 
@@ -32,7 +31,7 @@ class Interface:
     def __init__(self, fn, inputs, outputs, saliency=None, verbose=False, examples=None,
                  live=False, show_input=True, show_output=True,
                  load_fn=None, capture_session=False, title=None, description=None,
-                 thumbnail=None, server_name=LOCALHOST_IP):
+                 thumbnail=None, server_name=networking.LOCALHOST_NAME):
         """
         :param fn: a function that will process the input panel data from the interface and return the output panel data.
         :param inputs: a string or `AbstractInput` representing the input interface.
@@ -306,7 +305,8 @@ class Interface:
                 is_colab
             ):  # Embed the remote interface page if on google colab;
                 # otherwise, embed the local page.
-                time.sleep(1)
+                while not networking.url_ok(share_url):
+                    time.sleep(1)
                 display(IFrame(share_url, width=1000, height=500))
             else:
                 display(IFrame(path_to_local_server, width=1000, height=500))
