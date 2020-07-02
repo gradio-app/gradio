@@ -11,15 +11,15 @@ const radio = {
     }
     html += "</div>"
     this.target.html(html);
+    this.target.find("input:first-child").prop("checked", true);    
   },
   submit: function() {
     checked_val = this.target.find("input:checked").val();
-    if (checked_val) {
-      this.io_master.input(this.id, this.choices[checked_val]);
-    }
+    this.io_master.input(this.id, this.choices[checked_val]);
   },
   clear: function() {
     this.target.find("input").prop("checked", false);    
+    this.target.find("input:first-child").prop("checked", true);    
   },
   load_example: function(data) {
     let child = this.choices.indexOf(data) + 1;
