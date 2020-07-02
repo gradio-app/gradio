@@ -209,15 +209,17 @@ class CheckboxGroup(AbstractInput):
 
 
 class Slider(AbstractInput):
-    def __init__(self, minimum=0, maximum=100, label=None):
+    def __init__(self, minimum=0, maximum=100, default=None, label=None):
         self.minimum = minimum
         self.maximum = maximum
+        self.default = minimum if default is None else default
         super().__init__(label)
 
     def get_template_context(self):
         return {
             "minimum": self.minimum,
             "maximum": self.maximum,
+            "default": self.default,
             **super().get_template_context()
         }
 
