@@ -20,7 +20,7 @@ INITIAL_PORT_VALUE = (
 TRY_NUM_PORTS = (
     100
 )  # Number of ports to try before giving up and throwing an exception.
-LOCALHOST_NAME = "0.0.0.0"
+LOCALHOST_NAME = "127.0.0.1"
 GRADIO_API_SERVER = "https://api.gradio.app/v1/tunnel-request"
 
 STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "templates/")
