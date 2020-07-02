@@ -12,6 +12,7 @@ const slider = {
     this.target.css("height", "auto");
     this.target.find(".min").text(opts.minimum);
     this.target.find(".max").text(opts.maximum);
+    this.target.find(".value").text(opts.default);
     let difference = opts.maximum - opts.minimum;
     if (difference <= 1) {
       step = 0.01;
@@ -23,6 +24,7 @@ const slider = {
     this.target.find(".slider")
       .attr("min", opts.minimum)
       .attr("max", opts.maximum)
+      .attr("value", opts.default)
       .attr("step", step)
       .on("change", function() {
         io.target.find(".value").text($(this).val());
@@ -33,7 +35,7 @@ const slider = {
     this.io_master.input(this.id, parseFloat(value));
   },
   clear: function() {
-    this.target.find("input").val(this.minimum);    
+    this.target.find("input").val(this.default);
   },
   load_example: function(data) {
     this.target.find("input").val(data);   

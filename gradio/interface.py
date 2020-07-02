@@ -40,7 +40,7 @@ class Interface:
         """
         def get_input_instance(iface):
             if isinstance(iface, str):
-                return gradio.inputs.shortcuts[iface]
+                return gradio.inputs.shortcuts[iface.lower()]
             elif isinstance(iface, gradio.inputs.AbstractInput):
                 return iface
             else:
@@ -49,7 +49,7 @@ class Interface:
 
         def get_output_instance(iface):
             if isinstance(iface, str):
-                return gradio.outputs.shortcuts[iface]
+                return gradio.outputs.shortcuts[iface.lower()]
             elif isinstance(iface, gradio.outputs.AbstractOutput):
                 return iface
             else:
@@ -118,7 +118,7 @@ class Interface:
         durations = []
         for predict_fn in self.predict:
             start = time.time()
-            if self.capture_session:
+            if self.capture_session and not(self.session is None):
                 graph, sess = self.session
                 with graph.as_default():
                     with sess.as_default():
@@ -212,9 +212,12 @@ class Interface:
         #     self.validate()
 
         if self.capture_session:
-            import tensorflow as tf
-            self.session = tf.get_default_graph(), \
-                          tf.keras.backend.get_session()
+            try:
+                import tensorflow as tf
+                self.session = tf.get_default_graph(), \
+                              tf.keras.backend.get_session()
+            except (ImportError, AttributeError):  # If they are using TF >= 2.0 or don't have TF, just ignore this.
+                pass
 
         # If an existing interface is running with this instance, close it.
         if self.status == "RUNNING":
@@ -261,7 +264,7 @@ class Interface:
         if share:
             try:
                 share_url = networking.setup_tunnel(server_port)
-                print(share_url)
+                print("External URL:", share_url)
             except RuntimeError:
                 share_url = None
                 if self.verbose:
@@ -312,11 +315,12 @@ class Interface:
         config["share_url"] = share_url
 
         processed_examples = []
-        for example_set in self.examples:
-            processed_set = []
-            for iface, example in zip(self.input_interfaces, example_set):
-                processed_set.append(iface.process_example(example))
-            processed_examples.append(processed_set)
+        if self.examples:
+            for example_set in self.examples:
+                processed_set = []
+                for iface, example in zip(self.input_interfaces, example_set):
+                    processed_set.append(iface.process_example(example))
+                processed_examples.append(processed_set)
 
         config["examples"] = processed_examples
         networking.set_config(config, output_directory)
