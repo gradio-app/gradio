@@ -49,7 +49,7 @@ class Label(AbstractOutput):
 
     def postprocess(self, prediction):
         if isinstance(prediction, str):
-            return {"label": str}
+            return {"label": prediction}
         elif isinstance(prediction, dict):
             sorted_pred = sorted(
                 prediction.items(), 

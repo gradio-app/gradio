@@ -13,6 +13,7 @@ import json
 from gradio.tunneling import create_tunnel
 import urllib.request
 from shutil import copyfile
+import requests
 
 INITIAL_PORT_VALUE = (
     7860
@@ -20,7 +21,7 @@ INITIAL_PORT_VALUE = (
 TRY_NUM_PORTS = (
     100
 )  # Number of ports to try before giving up and throwing an exception.
-LOCALHOST_NAME = "0.0.0.0"
+LOCALHOST_NAME = "127.0.0.1"
 GRADIO_API_SERVER = "https://api.gradio.app/v1/tunnel-request"
 
 STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "templates/")
@@ -242,3 +243,11 @@ def setup_tunnel(local_server_port):
 
         except Exception as e:
             raise RuntimeError(str(e))
+
+
+def url_ok(url):
+    try:
+        r = requests.head(url)
+        return r.status_code == 200
+    except ConnectionError:
+        return False
