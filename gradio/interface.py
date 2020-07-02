@@ -30,7 +30,7 @@ class Interface:
 
     def __init__(self, fn, inputs, outputs, saliency=None, verbose=False, examples=None,
                  live=False, show_input=True, show_output=True,
-                 load_fn=None, capture_session=False, title=None, description=None,
+                 capture_session=False, title=None, description=None,
                  thumbnail=None, server_name=networking.LOCALHOST_NAME):
         """
         :param fn: a function that will process the input panel data from the interface and return the output panel data.
