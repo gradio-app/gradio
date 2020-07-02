@@ -306,6 +306,7 @@ class Interface:
                 is_colab
             ):  # Embed the remote interface page if on google colab;
                 # otherwise, embed the local page.
+                time.sleep(1)
                 display(IFrame(share_url, width=1000, height=500))
             else:
                 display(IFrame(path_to_local_server, width=1000, height=500))
@@ -314,14 +315,14 @@ class Interface:
         config["share_url"] = share_url
 
         processed_examples = []
-        if self.examples:
+        if self.examples is not None:
             for example_set in self.examples:
                 processed_set = []
                 for iface, example in zip(self.input_interfaces, example_set):
                     processed_set.append(iface.process_example(example))
                 processed_examples.append(processed_set)
+            config["examples"] = processed_examples
 
-        config["examples"] = processed_examples
         networking.set_config(config, output_directory)
 
         return httpd, path_to_local_server, share_url
