@@ -1,8 +1,8 @@
 Metadata-Version: 1.0
 Name: gradio
-Version: 0.9.5
+Version: 0.9.6
 Summary: Python library for easily interacting with trained machine learning models
-Home-page: https://github.com/abidlabs/gradio
+Home-page: https://github.com/gradio-app/gradio-UI
 Author: Abubakar Abid
 Author-email: a12d@stanford.edu
 License: UNKNOWN
