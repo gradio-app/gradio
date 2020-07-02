@@ -32,16 +32,18 @@ var io_master_template = {
       this.target.find(".loading_failed").show();
     })
   },
-  output: function(data) {
+    output: function(data) {
     this.last_output = data["data"];
+
     for (let i = 0; i < this.output_interfaces.length; i++) {
       this.output_interfaces[i].output(data["data"][i]);
+      this.output_interfaces[i].target.parent().find(`.loading_time[interface="${i}"]`).text("Latency: " + ((data["durations"][i])).toFixed(2) + "s");
     }
     if (this.config.live) {
       this.gather();
     } else {
       this.target.find(".loading").addClass("invisible");
-      this.target.find(".output_interface").removeClass("invisible");  
+      this.target.find(".output_interface").removeClass("invisible");
       this.target.find(".output_interfaces .panel_header").removeClass("invisible");
     }
   },

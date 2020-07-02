@@ -91,6 +91,9 @@ function gradio(config, fn, target) {
           ${output_interface.html}
         </div>
       `);
+      target.find(".output_interfaces").append(`
+        <div class="loading_time" interface="${i}">  </div>
+      `);
       output_interface.target = target.find(`.output_interface[interface_id=${_id}]`);
       set_interface_id(output_interface, _id);
       output_interface.io_master = io_master;
@@ -110,6 +113,7 @@ function gradio(config, fn, target) {
       target.find(".flag").removeClass("flagged");
       target.find(".flag_message").empty();
       target.find(".loading").addClass("invisible");
+      target.find(".loading_time").text("");
       target.find(".output_interface").removeClass("invisible");
       io_master.last_input = null;
       io_master.last_output = null;
