@@ -40,7 +40,7 @@ class Interface:
         """
         def get_input_instance(iface):
             if isinstance(iface, str):
-                return gradio.inputs.shortcuts[iface]
+                return gradio.inputs.shortcuts[iface.lower()]
             elif isinstance(iface, gradio.inputs.AbstractInput):
                 return iface
             else:
@@ -49,7 +49,7 @@ class Interface:
 
         def get_output_instance(iface):
             if isinstance(iface, str):
-                return gradio.outputs.shortcuts[iface]
+                return gradio.outputs.shortcuts[iface.lower()]
             elif isinstance(iface, gradio.outputs.AbstractOutput):
                 return iface
             else:
@@ -115,8 +115,10 @@ class Interface:
             raw_input[i]) for i, input_interface in
             enumerate(self.input_interfaces)]
         predictions = []
+        durations = []
         for predict_fn in self.predict:
-            if self.capture_session:
+            start = time.time()
+            if self.capture_session and not(self.session is None):
                 graph, sess = self.session
                 with graph.as_default():
                     with sess.as_default():
@@ -135,14 +137,16 @@ class Interface:
                                          "error.")
                     else:
                         raise exception
+            duration = time.time() - start
 
             if len(self.output_interfaces) / \
                     len(self.predict) == 1:
                 prediction = [prediction]
+            durations.append(duration)
             predictions.extend(prediction)
         processed_output = [output_interface.postprocess(
             predictions[i]) for i, output_interface in enumerate(self.output_interfaces)]
-        return processed_output
+        return processed_output, durations
 
     def validate(self):
         if self.validate_flag:
@@ -208,9 +212,12 @@ class Interface:
         #     self.validate()
 
         if self.capture_session:
-            import tensorflow as tf
-            self.session = tf.get_default_graph(), \
-                          tf.keras.backend.get_session()
+            try:
+                import tensorflow as tf
+                self.session = tf.get_default_graph(), \
+                              tf.keras.backend.get_session()
+            except (ImportError, AttributeError):  # If they are using TF >= 2.0 or don't have TF, just ignore this.
+                pass
 
         # If an existing interface is running with this instance, close it.
         if self.status == "RUNNING":
@@ -257,7 +264,7 @@ class Interface:
         if share:
             try:
                 share_url = networking.setup_tunnel(server_port)
-                print(share_url)
+                print("External URL:", share_url)
             except RuntimeError:
                 share_url = None
                 if self.verbose:
@@ -299,6 +306,7 @@ class Interface:
                 is_colab
             ):  # Embed the remote interface page if on google colab;
                 # otherwise, embed the local page.
+                time.sleep(1)
                 display(IFrame(share_url, width=1000, height=500))
             else:
                 display(IFrame(path_to_local_server, width=1000, height=500))
