@@ -13,6 +13,7 @@ import json
 from gradio.tunneling import create_tunnel
 import urllib.request
 from shutil import copyfile
+import requests
 
 INITIAL_PORT_VALUE = (
     7860
@@ -242,3 +243,11 @@ def setup_tunnel(local_server_port):
 
         except Exception as e:
             raise RuntimeError(str(e))
+
+
+def url_ok(url):
+    try:
+        r = requests.head(url)
+        return r.status_code == 200
+    except ConnectionError:
+        return False
