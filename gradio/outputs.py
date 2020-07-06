@@ -42,6 +42,7 @@ class AbstractOutput(ABC):
         """
         return {}
 
+
 class Label(AbstractOutput):
     def __init__(self, num_top_classes=None, label=None):
         self.num_top_classes = num_top_classes
