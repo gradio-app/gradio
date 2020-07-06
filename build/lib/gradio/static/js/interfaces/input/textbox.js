@@ -9,10 +9,10 @@ const textbox_input = {
       this.target.css("height", "auto");
     }
     if (opts.placeholder) {
-      this.target.find(".input_text").attr("placeholder", opts.placeholder);
+      this.target.find(".input_text").attr("placeholder", opts.placeholder)
     }
     if (opts.default) {
-      this.target.find(".input_text").val(opts.default);
+      this.target.find(".input_text").val(opts.default)
     }
   },
   submit: function() {
