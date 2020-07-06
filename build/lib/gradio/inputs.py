@@ -137,10 +137,11 @@ class Webcam(AbstractInput):
 
 
 class Textbox(AbstractInput):
-    def __init__(self, sample_inputs=None, lines=1, placeholder=None, label=None, numeric=False):
+    def __init__(self, sample_inputs=None, lines=1, placeholder=None, default=None, label=None, numeric=False):
         self.sample_inputs = sample_inputs
         self.lines = lines
         self.placeholder = placeholder
+        self.default = default
         self.numeric = numeric
         super().__init__(label)
 
@@ -151,6 +152,7 @@ class Textbox(AbstractInput):
         return {
             "lines": self.lines,
             "placeholder": self.placeholder,
+            "default": self.default,
             **super().get_template_context()
         }
 
