@@ -15,7 +15,7 @@ def flip2(image):
 
 
 gr.Interface(flip2, 
-             "image", 
+             gr.inputs.Image(shape=(50, 50, 3)), 
              ["image", "text"],
              examples=[
                  ["images/cheetah1.jpg"],
