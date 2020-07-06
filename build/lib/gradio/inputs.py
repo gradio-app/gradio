@@ -308,10 +308,18 @@ class Image(AbstractInput):
         return array
 
     def process_example(self, example):
+<<<<<<< HEAD
         if os.path.exists(example)
             return preprocessing_utils.convert_file_to_base64(example)
         else:
             return example
+=======
+        if os.path.exists(example):
+            return preprocessing_utils.convert_file_to_base64(example)
+        else:
+            return example
+
+>>>>>>> 2e5378d7f8fce70786c93d727f5a5c008c74bff9
 
 class Microphone(AbstractInput):
 
