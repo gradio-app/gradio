@@ -11,6 +11,9 @@ const textbox_input = {
     if (opts.placeholder) {
       this.target.find(".input_text").attr("placeholder", opts.placeholder)
     }
+    if (opts.default) {
+      this.target.find(".input_text").val(opts.default)
+    }
   },
   submit: function() {
     text = this.target.find(".input_text").val();

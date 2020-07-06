@@ -1,7 +1,7 @@
 function gradio(config, fn, target) {
   target = $(target);
   target.html(`
-    <div class="panels container">
+    <div class="panels">
       <div class="panel input_panel">
         <div class="input_interfaces">
         </div>          
@@ -16,7 +16,7 @@ function gradio(config, fn, target) {
           <img class="loading_failed" src="static/img/logo_error.png">
         </div>
         <div class="output_interfaces">
-        </div>          
+        </div>
       </div>
     </div>`);
     let io_master = Object.create(io_master_template);
