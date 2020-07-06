@@ -313,6 +313,7 @@ class Image(AbstractInput):
         else:
             return example
 
+
 class Microphone(AbstractInput):
 
     def preprocess(self, inp):
