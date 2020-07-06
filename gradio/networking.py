@@ -14,7 +14,7 @@ from gradio.tunneling import create_tunnel
 import urllib.request
 from shutil import copyfile
 import requests
-import os
+import sys
 
 
 INITIAL_PORT_VALUE = (
@@ -114,9 +114,14 @@ def get_first_available_port(initial, final):
     )
 
 
-def serve_files_in_background(interface, port, directory_to_serve=None, server_name=LOCALHOST_NAME):
+def serve_files_in_background(interface, port, directory_to_serve=None, server_name=LOCALHOST_NAME,
+                              stdout=None):
     class HTTPHandler(SimpleHTTPRequestHandler):
         """This handler uses server.base_path instead of always using os.getcwd()"""
+        def __init__(self, *args):
+            if stdout is not None:
+                sys.stdout = stdout
+            super().__init__(*args)
 
         def _set_headers(self):
             self.send_response(200)
@@ -134,7 +139,6 @@ def serve_files_in_background(interface, port, directory_to_serve=None, server_n
 
         def do_POST(self):
             # Read body of the request.
-
             if self.path == "/api/predict/":
                 # Make the prediction.
                 self._set_headers()
@@ -216,7 +220,7 @@ def start_simple_server(interface, directory_to_serve=None, server_name=None):
         INITIAL_PORT_VALUE, INITIAL_PORT_VALUE + TRY_NUM_PORTS
     )
     httpd = serve_files_in_background(
-        interface, port, directory_to_serve, server_name)
+        interface, port, directory_to_serve, server_name, stdout=sys.stdout)
     return port, httpd
 
 
