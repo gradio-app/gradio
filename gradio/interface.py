@@ -268,7 +268,7 @@ class Interface:
         if share:
             try:
                 share_url = networking.setup_tunnel(server_port)
-                print("External URL:", share_url)
+                print("Running on External URL:", share_url)
             except RuntimeError:
                 share_url = None
                 if self.verbose:
