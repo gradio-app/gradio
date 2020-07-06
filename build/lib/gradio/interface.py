@@ -30,7 +30,7 @@ class Interface:
 
     def __init__(self, fn, inputs, outputs, saliency=None, verbose=False, examples=None,
                  live=False, show_input=True, show_output=True,
-                 load_fn=None, capture_session=False, title=None, description=None,
+                 capture_session=False, title=None, description=None,
                  thumbnail=None, server_name=networking.LOCALHOST_NAME):
         """
         :param fn: a function that will process the input panel data from the interface and return the output panel data.
@@ -104,8 +104,13 @@ class Interface:
             for iface, param in zip(config["input_interfaces"], param_names):
                 if not iface[1]["label"]:
                     iface[1]["label"] = param.replace("_", " ")
+            for i, iface in enumerate(config["output_interfaces"]):
+                ret_name = "Output " + str(i) if len(config["output_interfaces"]) > 1 else "Output"
+                if not iface[1]["label"]:
+                    iface[1]["label"] = ret_name
         except ValueError:
             pass
+        
         return config    
 
 
