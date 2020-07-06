@@ -67,7 +67,7 @@ class AbstractInput(ABC):
 
 
 class Sketchpad(AbstractInput):
-    def __init__(self, cast_to="numpy", shape=(28, 28), invert_colors=True,
+    def __init__(self, shape=(28, 28), invert_colors=True,
                  flatten=False, scale=1/255, shift=0,
                  dtype='float64', sample_inputs=None, label=None):
         self.image_width = shape[0]
