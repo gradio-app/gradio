@@ -42,7 +42,12 @@ class AbstractOutput(ABC):
         """
         return {}
 
+
 class Label(AbstractOutput):
+    LABEL_KEY = "label"
+    CONFIDENCE_KEY = "confidence"
+    CONFIDENCES_KEY = "confidences"
+
     def __init__(self, num_top_classes=None, label=None):
         self.num_top_classes = num_top_classes
         super().__init__(label)
@@ -59,16 +64,19 @@ class Label(AbstractOutput):
             if self.num_top_classes is not None:
                 sorted_pred = sorted_pred[:self.num_top_classes]
             return {
-                "label": sorted_pred[0][0],
-                "confidences": [
+                self.LABEL_KEY: sorted_pred[0][0],
+                self.CONFIDENCES_KEY: [
                     {
-                        "label": pred[0],
-                        "confidence" : pred[1]
+                        self.LABEL_KEY: pred[0],
+                        self.CONFIDENCE_KEY: pred[1]
                     } for pred in sorted_pred
                 ]
             }
+        elif isinstance(prediction, int) or isinstance(prediction, float):
+            return {self.LABEL_KEY: str(prediction)}
         else:
-            raise ValueError("Function output should be string or dict")
+            raise ValueError("The `Label` output interface expects one of: a string label, or an int label, a "
+                             "float label, or a dictionary whose keys are labels and values are confidences.")
 
     @classmethod
     def get_shortcut_implementations(cls):
@@ -80,6 +88,13 @@ class Label(AbstractOutput):
 class KeyValues(AbstractOutput):
     def __init__(self, label=None):
         super().__init__(label)
+
+    def postprocess(self, prediction):
+        if isinstance(prediction, dict):
+            return prediction
+        else:
+            raise ValueError("The `KeyValues` output interface expects an output that is a dictionary whose keys are "
+                             "labels and values are corresponding values.")
 
     @classmethod
     def get_shortcut_implementations(cls):
@@ -110,9 +125,11 @@ class Textbox(AbstractOutput):
         }
 
     def postprocess(self, prediction):
-        """
-        """
-        return prediction
+        if isinstance(prediction, str) or isinstance(prediction, int) or isinstance(prediction, float):
+            return str(prediction)
+        else:
+            raise ValueError("The `Textbox` output interface expects an output that is one of: a string, or"
+                             "an int/float that can be converted to a string.")
 
 
 class Image(AbstractOutput):
@@ -131,9 +148,16 @@ class Image(AbstractOutput):
         """
         """
         if self.plot:
-            return preprocessing_utils.encode_plot_to_base64(prediction)
+            try:
+                return preprocessing_utils.encode_plot_to_base64(prediction)
+            except:
+                raise ValueError("The `Image` output interface expects a `matplotlib.pyplot` object"
+                                 "if plt=True.")
         else:
-            return preprocessing_utils.encode_array_to_base64(prediction)
+            try:
+                return preprocessing_utils.encode_array_to_base64(prediction)
+            except:
+                raise ValueError("The `Image` output interface (with plt=False) expects a numpy array.")
 
     def rebuild_flagged(self, dir, msg):
         """

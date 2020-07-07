@@ -38,8 +38,22 @@ var io_master_template = {
 
     for (let i = 0; i < this.output_interfaces.length; i++) {
       this.output_interfaces[i].output(data["data"][i]);
-//      this.output_interfaces[i].target.parent().find(`.loading_time[interface="${i}"]`).text("Latency: " + ((data["durations"][i])).toFixed(2) + "s");
     }
+
+    let ratio;
+    if (data["durations"].length === 1) {
+      this.output_interfaces[0].target.parent().find(`.loading_time[interface="${this.output_interfaces.length - 1}"]`).text("Latency: " + ((data["durations"][0])).toFixed(2) + "s");
+    } else if (this.output_interfaces.length === data["durations"].length) {
+      for (let i = 0; i < this.output_interfaces.length; i++) {
+        this.output_interfaces[i].target.parent().find(`.loading_time[interface="${i}"]`).text("Latency: " + ((data["durations"][i])).toFixed(2) + "s");
+      }
+    } else {
+      ratio = this.output_interfaces.length / data["durations"].length;
+      for (let i = 0; i < this.output_interfaces.length; i = i + ratio) {
+        this.output_interfaces[i].target.parent().find(`.loading_time[interface="${i + ratio - 1}"]`).text("Latency: " + ((data["durations"][i / ratio])).toFixed(2) + "s");
+      }
+    }
+
     if (this.config.live) {
       this.gather();
     } else {
