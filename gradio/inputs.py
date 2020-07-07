@@ -261,7 +261,6 @@ class Image(AbstractInput):
 
     def get_template_context(self):
         return {
-            'aspect_ratio': self.cropper_aspect_ratio,
             **super().get_template_context()
         }
 
