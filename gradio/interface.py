@@ -17,6 +17,7 @@ import random
 import time
 import inspect
 from IPython import get_ipython
+import sys
 
 
 PKG_VERSION_URL = "https://gradio.app/api/pkg-version"
