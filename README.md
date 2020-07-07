@@ -4,14 +4,14 @@
 
 <img src="https://i.ibb.co/GHRk2JP/header-2.png" alt="drawing" width="1000"/>
 
-At Gradio, we often try to understand what inputs a model is particularly sensitive to. To help facilitate this, we've developed and open-sourced `gradio`, a python library that allows you to quickly create input and output interfaces over trained models to make it easy for you to "play around" with your model in your browser by dragging-and-dropping in your own images (or pasting your own text, recording your own voice, etc.) and seeing what the model outputs. `gradio` also allows you to generate a share link which allows anyone, anywhere to use the interface as the model continues to run on your machine. 
+At Gradio, we often try to understand what inputs a model is particularly sensitive to. To help facilitate this, we've developed and open-sourced `gradio`, a python library that allows you to quickly create input and output interfaces over trained models to make it easy for you to "play around" with your model in your browser by dragging-and-dropping in your own images (or pasting your own text, recording your own voice, etc.) and seeing what the model outputs. `gradio` can also generate a share link which allows anyone, anywhere to use the interface as the model continues to run on your machine. 
 
 Gradio is useful for:
 * Creating demos of your machine learning code for clients / collaborators / users
 * Getting feedback on model performance from users
 * Debugging your model interactively during development
 
-To get a sense of `gradio`, take a look at a few of these examples and colab notebooks, and find more on our website: www.gradio.app.
+To get a sense of `gradio`, take a look at a few of these examples, and find more on our website: www.gradio.app.
 
 ## Installation
 ```
@@ -89,21 +89,21 @@ interfaces.
 You can supply your own model instead of the pretrained model above, as well as use different kinds of models or functions. Here's a list of the interfaces we currently support, along with their preprocessing / postprocessing parameters:
 
 **Input Interfaces**:
-- Sketchpad(shape=(28, 28), invert_colors=True, flatten=False, scale=1/255, shift=0, dtype='float64')
-- Webcam(image_width=224, image_height=224, num_channels=3, label=None)
-- Textbox(lines=1, placeholder=None, label=None, numeric=False)
-- Radio(choices, label=None)
-- Dropdown(choices, label=None)
-- CheckboxGroup(choices, label=None)
-- Slider(minimum=0, maximum=100, default=None, label=None)
-- Image(shape=(224, 224, 3), image_mode='RGB', scale=1/127.5, shift=-1, label=None)
-- Microphone()
+- `Sketchpad(shape=(28, 28), invert_colors=True, flatten=False, scale=1/255, shift=0, dtype='float64')`
+- `Webcam(image_width=224, image_height=224, num_channels=3, label=None)`
+- `Textbox(lines=1, placeholder=None, label=None, numeric=False)`
+- `Radio(choices, label=None)`
+- `Dropdown(choices, label=None)`
+- `CheckboxGroup(choices, label=None)
+- `Slider(minimum=0, maximum=100, default=None, label=None)`
+- `Image(shape=(224, 224, 3), image_mode='RGB', scale=1/127.5, shift=-1, label=None)`
+- `Microphone()`
 
 **Output Interfaces**:
-- Label(num_top_classes=None, label=None)
-- KeyValues(label=None)
-- Textbox(lines=1, placeholder=None, label=None)
-- Image(label=None, plot=False)
+- `Label(num_top_classes=None, label=None)`
+- `KeyValues(label=None)`
+- `Textbox(lines=1, placeholder=None, label=None)`
+- `Image(label=None, plot=False)`
 
 Interfaces can also be combined together, for multiple-input or multiple-output models. 
 
@@ -136,7 +136,7 @@ This code will produce the interface below.
 
 ![alt text](https://i.ibb.co/9n2mGgk/mnist-live.png)
 
-You can find many more examples on our website (GPT-2, model comparison, multiple inputs, numerical interfaces): www.gradio.app
+You can find many more examples (like GPT-2, model comparison, multiple inputs, and numerical interfaces) on our website: www.gradio.app
 
 ## Contributing:
 If you would like to contribute and your contribution is small, you can directly open a pull request (PR). If you would like to contribute a larger feature, we recommend first creating an issue with a proposed design for discussion. Please see our contributing guidelines for more info.
