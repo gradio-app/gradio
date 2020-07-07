@@ -149,8 +149,7 @@ class Interface:
                         raise exception
             duration = time.time() - start
 
-            if len(self.output_interfaces) / \
-                    len(self.predict) == 1:
+            if len(self.output_interfaces) == len(self.predict):
                 prediction = [prediction]
             durations.append(duration)
             predictions.extend(prediction)
