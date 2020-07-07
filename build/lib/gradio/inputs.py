@@ -67,7 +67,7 @@ class AbstractInput(ABC):
 
 
 class Sketchpad(AbstractInput):
-    def __init__(self, shape=(28, 28), invert_colors=True,
+    def __init__(self, cast_to="numpy", shape=(28, 28), invert_colors=True,
                  flatten=False, scale=1/255, shift=0,
                  dtype='float64', sample_inputs=None, label=None):
         self.image_width = shape[0]
@@ -110,10 +110,10 @@ class Sketchpad(AbstractInput):
 
 
 class Webcam(AbstractInput):
-    def __init__(self, image_width=224, image_height=224, num_channels=3, label=None):
-        self.image_width = image_width
-        self.image_height = image_height
-        self.num_channels = num_channels
+    def __init__(self, shape=(224, 224), label=None):
+        self.image_width = shape[0]
+        self.image_height = shape[1]
+        self.num_channels = 3
         super().__init__(label)
 
     def get_validation_inputs(self):
@@ -132,8 +132,7 @@ class Webcam(AbstractInput):
         im = preprocessing_utils.decode_base64_to_image(inp)
         im = im.convert('RGB')
         im = preprocessing_utils.resize_and_crop(im, (self.image_width, self.image_height))
-        array = np.array(im).flatten().reshape(self.image_width, self.image_height, self.num_channels)
-        return array
+        return np.array(im)
 
 
 class Textbox(AbstractInput):
@@ -244,16 +243,11 @@ class Checkbox(AbstractInput):
 
 
 class Image(AbstractInput):
-    def __init__(self, cast_to=None, shape=(224, 224, 3), image_mode='RGB',
-                 scale=1/127.5, shift=-1, cropper_aspect_ratio=None, label=None):
+    def __init__(self, cast_to=None, shape=(224, 224), image_mode='RGB', label=None):
         self.cast_to = cast_to
         self.image_width = shape[0]
         self.image_height = shape[1]
-        self.num_channels = shape[2]
         self.image_mode = image_mode
-        self.scale = scale
-        self.shift = shift
-        self.cropper_aspect_ratio = "false" if cropper_aspect_ratio is None else cropper_aspect_ratio
         super().__init__(label)
 
     def get_validation_inputs(self):
@@ -267,7 +261,6 @@ class Image(AbstractInput):
 
     def get_template_context(self):
         return {
-            'aspect_ratio': self.cropper_aspect_ratio,
             **super().get_template_context()
         }
 
@@ -300,14 +293,7 @@ class Image(AbstractInput):
             im = im.convert(self.image_mode)
 
         im = preprocessing_utils.resize_and_crop(im, (self.image_width, self.image_height))
-        im = np.array(im).flatten()
-        im = im * self.scale + self.shift
-        if self.num_channels is None:
-            array = im.reshape(self.image_width, self.image_height)
-        else:
-            array = im.reshape(self.image_width, self.image_height, \
-                                self.num_channels)
-        return array
+        return np.array(im)
 
     def process_example(self, example):
         if os.path.exists(example):
