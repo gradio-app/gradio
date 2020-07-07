@@ -27,7 +27,8 @@ var io_master_template = {
     }
     this.fn(this.last_input).then((output) => {
       io.output(output);
-    }).catch(() => {
+    }).catch((error) => {
+      console.error(error)
       this.target.find(".loading_in_progress").hide();
       this.target.find(".loading_failed").show();
     })
