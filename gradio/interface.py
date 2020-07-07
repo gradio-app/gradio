@@ -86,6 +86,7 @@ class Interface:
         self.thumbnail = thumbnail
         self.examples = examples
         self.server_port = None
+        self.simple_server = None
         Interface.instances.add(self)
 
     def get_config_file(self):
@@ -210,7 +211,7 @@ class Interface:
         raise RuntimeError("Validation did not pass")
 
     def close(self):
-        if self.server_port:
+        if self.simple_server and not(self.simple_server.fileno() == -1):  # checks to see if server is running
             print("Closing Gradio server on port {}...".format(self.server_port))
             networking.close_server(self.simple_server)
 
