@@ -1,6 +1,6 @@
 en = {
     "BETA_MESSAGE": "NOTE: Gradio is in beta stage, please report all bugs to: gradio.app@gmail.com",
-    "RUNNING_LOCALLY": "Model is running locally at: {}",
+    "RUNNING_LOCALLY": "Running at: {}",
     "NGROK_NO_INTERNET": "Unable to create public link for interface, please check internet connection or try "
                          "restarting python interpreter.",
     "COLAB_NO_LOCAL": "Cannot display local interface on google colab, public link created.",

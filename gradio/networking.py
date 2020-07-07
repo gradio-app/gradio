@@ -114,14 +114,15 @@ def get_first_available_port(initial, final):
     )
 
 
-def serve_files_in_background(interface, port, directory_to_serve=None, server_name=LOCALHOST_NAME,
-                              stdout=None):
+def serve_files_in_background(interface, port, directory_to_serve=None, server_name=LOCALHOST_NAME, stdout=None):
     class HTTPHandler(SimpleHTTPRequestHandler):
         """This handler uses server.base_path instead of always using os.getcwd()"""
-        def __init__(self, *args):
-            if stdout is not None:
-                sys.stdout = stdout
-            super().__init__(*args)
+        # def __init__(self, *args):
+        #     if not(stdout is None):
+        #         sys.stdout = stdout
+        #     else:
+        #         print('out is None')
+        #     super().__init__(*args)
 
         def _set_headers(self):
             self.send_response(200)
@@ -203,8 +204,9 @@ def serve_files_in_background(interface, port, directory_to_serve=None, server_n
     # Now loop forever
     def serve_forever():
         # try:
+        sys.stdout = stdout
         while True:
-            # sys.stdout.flush()
+            sys.stdout.flush()
             httpd.serve_forever()
         # except (KeyboardInterrupt, OSError):
         #     httpd.server_close()
