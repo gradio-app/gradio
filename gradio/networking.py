@@ -14,6 +14,8 @@ from gradio.tunneling import create_tunnel
 import urllib.request
 from shutil import copyfile
 import requests
+import sys
+
 
 INITIAL_PORT_VALUE = (
     7860
@@ -21,7 +23,7 @@ INITIAL_PORT_VALUE = (
 TRY_NUM_PORTS = (
     100
 )  # Number of ports to try before giving up and throwing an exception.
-LOCALHOST_NAME = "127.0.0.1"
+LOCALHOST_NAME = os.getenv('GRADIO_SERVER_NAME', "127.0.0.1")
 GRADIO_API_SERVER = "https://api.gradio.app/v1/tunnel-request"
 
 STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "templates/")
@@ -115,7 +117,6 @@ def get_first_available_port(initial, final):
 def serve_files_in_background(interface, port, directory_to_serve=None, server_name=LOCALHOST_NAME):
     class HTTPHandler(SimpleHTTPRequestHandler):
         """This handler uses server.base_path instead of always using os.getcwd()"""
-
         def _set_headers(self):
             self.send_response(200)
             self.send_header("Content-type", "application/json")
@@ -132,7 +133,6 @@ def serve_files_in_background(interface, port, directory_to_serve=None, server_n
 
         def do_POST(self):
             # Read body of the request.
-
             if self.path == "/api/predict/":
                 # Make the prediction.
                 self._set_headers()
@@ -196,12 +196,13 @@ def serve_files_in_background(interface, port, directory_to_serve=None, server_n
 
     # Now loop forever
     def serve_forever():
-        # try:
-        while True:
-            # sys.stdout.flush()
-            httpd.serve_forever()
-        # except (KeyboardInterrupt, OSError):
-        #     httpd.server_close()
+        try:
+            while True:
+                sys.stdout.flush()
+                httpd.serve_forever()
+        except (KeyboardInterrupt, OSError):
+                httpd.shutdown()
+                httpd.server_close()
 
     thread = threading.Thread(target=serve_forever, daemon=False)
     thread.start()
@@ -213,13 +214,11 @@ def start_simple_server(interface, directory_to_serve=None, server_name=None):
     port = get_first_available_port(
         INITIAL_PORT_VALUE, INITIAL_PORT_VALUE + TRY_NUM_PORTS
     )
-    httpd = serve_files_in_background(
-        interface, port, directory_to_serve, server_name)
+    httpd = serve_files_in_background(interface, port, directory_to_serve, server_name)
     return port, httpd
 
 
 def close_server(server):
-    server.shutdown()
     server.server_close()
 
 
