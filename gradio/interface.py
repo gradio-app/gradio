@@ -262,8 +262,8 @@ class Interface:
         except:  # TODO(abidlabs): don't catch all exceptions
             pass
 
-        if not is_colab:
-            print(strings.en["RUNNING_LOCALLY"].format(path_to_local_server))
+        # if not is_colab:
+        print(strings.en["RUNNING_LOCALLY"].format(path_to_local_server))
 
         if share:
             try:
