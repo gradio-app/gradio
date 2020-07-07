@@ -204,7 +204,7 @@ class Interface:
             return
         raise RuntimeError("Validation did not pass")
 
-    def launch(self, inline=None, inbrowser=None, share=False, validate=True):
+    def launch(self, inline=None, inbrowser=None, share=False, validate=True, debug=False):
         """
         Standard method shared by interfaces that creates the interface and sets up a websocket to communicate with it.
         :param inline: boolean. If True, then a gradio interface is created inline (e.g. in jupyter or colab notebook)
@@ -247,6 +247,7 @@ class Interface:
             from_ipynb = get_ipython()
             if "google.colab" in str(from_ipynb):
                 is_colab = True
+                print("Google colab notebook detected.")
         except NameError:
             pass
 
@@ -262,8 +263,14 @@ class Interface:
         except:  # TODO(abidlabs): don't catch all exceptions
             pass
 
-        # if not is_colab:
-        print(strings.en["RUNNING_LOCALLY"].format(path_to_local_server))
+        if not is_colab:
+            print(strings.en["RUNNING_LOCALLY"].format(path_to_local_server))
+        else:
+            if debug:
+                print("This cell will run indefinitely so that you can see errors and logs. To turn off, "
+                      "set debug=False in launch().")
+            else:
+                print("To show errors in colab notebook, set debug=True in launch()")
 
         if share:
             try:
@@ -329,5 +336,10 @@ class Interface:
             config["examples"] = processed_examples
 
         networking.set_config(config, output_directory)
+
+        if debug:
+            while True:
+                sys.stdout.flush()
+                time.sleep(0.1)
 
         return httpd, path_to_local_server, share_url
