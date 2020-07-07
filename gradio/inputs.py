@@ -137,10 +137,11 @@ class Webcam(AbstractInput):
 
 
 class Textbox(AbstractInput):
-    def __init__(self, sample_inputs=None, lines=1, placeholder=None, label=None, numeric=False):
+    def __init__(self, sample_inputs=None, lines=1, placeholder=None, default=None, label=None, numeric=False):
         self.sample_inputs = sample_inputs
         self.lines = lines
         self.placeholder = placeholder
+        self.default = default
         self.numeric = numeric
         super().__init__(label)
 
@@ -151,6 +152,7 @@ class Textbox(AbstractInput):
         return {
             "lines": self.lines,
             "placeholder": self.placeholder,
+            "default": self.default,
             **super().get_template_context()
         }
 
@@ -242,16 +244,9 @@ class Checkbox(AbstractInput):
 
 
 class Image(AbstractInput):
-    def __init__(self, cast_to=None, shape=(224, 224, 3), image_mode='RGB',
-                 scale=1/127.5, shift=-1, cropper_aspect_ratio=None, label=None):
-        self.cast_to = cast_to
+    def __init__(self, cast_to=None, shape=(224, 224), label=None):
         self.image_width = shape[0]
         self.image_height = shape[1]
-        self.num_channels = shape[2]
-        self.image_mode = image_mode
-        self.scale = scale
-        self.shift = shift
-        self.cropper_aspect_ratio = "false" if cropper_aspect_ratio is None else cropper_aspect_ratio
         super().__init__(label)
 
     def get_validation_inputs(self):
@@ -269,29 +264,10 @@ class Image(AbstractInput):
             **super().get_template_context()
         }
 
-    def cast_to_base64(self, inp):
-        return inp
-
-    def cast_to_im(self, inp):
-        return preprocessing_utils.decode_base64_to_image(inp)
-
-    def cast_to_numpy(self, inp):
-        im = self.cast_to_im(inp)
-        arr = np.array(im).flatten()
-        return arr
-
     def preprocess(self, inp):
         """
         Default preprocessing method for is to convert the picture to black and white and resize to be 48x48
         """
-        cast_to_type = {
-            "base64": self.cast_to_base64,
-            "numpy": self.cast_to_numpy,
-            "pillow": self.cast_to_im
-        }
-        if self.cast_to:
-            return cast_to_type[self.cast_to](inp)
-
         im = preprocessing_utils.decode_base64_to_image(inp)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")

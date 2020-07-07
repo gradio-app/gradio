@@ -81,16 +81,7 @@
     <script src="../static/js/gradio.js"></script>
     <script>
       $.getJSON("static/config.json", function(config) {
-        io = gradio(config, function(data) {
-          return new Promise((resolve, reject) => {
-            $.ajax({type: "POST",
-              url: "/api/predict/",
-              data: JSON.stringify({"data": data}),
-              success: resolve,
-              error: reject,
-            });
-          });              
-        }, "#interface_target");
+        io = gradio_url(config, "/api/predict/", "#interface_target");
         if (config["title"]) {
           $("#title").text(config["title"]);
         }

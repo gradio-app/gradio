@@ -133,3 +133,15 @@ function gradio(config, fn, target) {
 
     return io_master;
 }
+function gradio_url(config, url, target) {
+  return gradio(config, function(data) {
+    return new Promise((resolve, reject) => {
+      $.ajax({type: "POST",
+        url: url,
+        data: JSON.stringify({"data": data}),
+        success: resolve,
+        error: reject,
+      });
+    });              
+  }, target);
+}
