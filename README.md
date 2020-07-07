@@ -44,7 +44,9 @@ The core Interface class is initialized with three parameters:
 
 Calling the `launch()` function of the `Interface` object produces the interface shown in image below.
 
-![alt text](https://i.ibb.co/Z8p7gLZ/hello-world.png)
+<p align="center">
+<img src="https://i.ibb.co/Z8p7gLZ/hello-world.png" alt="drawing"/>
+</p>
 
 ### 1. Inception Net [![alt text](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1c6gQiW88wKBwWq96nqEwuQ1Kyt5LejiU?usp=sharing)
 
@@ -84,7 +86,9 @@ function instead of using string shortcuts. This lets us use built-in preprocess
 and postprocessing (e.g. choosing the number of labels to display) provided by these
 interfaces.
 
-![alt text](https://i.ibb.co/BtRNc62/inception-net.png)
+<p align="center">
+<img src="https://i.ibb.co/BtRNc62/inception-net.png" alt="drawing"/>
+</p>
 
 You can supply your own model instead of the pretrained model above, as well as use different kinds of models or functions. Here's a list of the interfaces we currently support, along with their preprocessing / postprocessing parameters:
 
@@ -134,9 +138,9 @@ gr.Interface(fn=recognize_digit, inputs=sketchpad,
 
 This code will produce the interface below.
 
-![alt text](https://i.ibb.co/9n2mGgk/mnist-live.png)
-
-You can find many more examples (like GPT-2, model comparison, multiple inputs, and numerical interfaces) on our website: www.gradio.app
+<p align="center">
+<img src="https://i.ibb.co/9n2mGgk/mnist-live.png" alt="drawing"/>
+</p>
 
 ## Contributing:
 If you would like to contribute and your contribution is small, you can directly open a pull request (PR). If you would like to contribute a larger feature, we recommend first creating an issue with a proposed design for discussion. Please see our contributing guidelines for more info.
@@ -145,7 +149,8 @@ If you would like to contribute and your contribution is small, you can directly
 Gradio is licensed under the Apache License 2.0
 
 ## See more:
-Find more info on usage here: www.gradio.app.
+
+You can find many more examples (like GPT-2, model comparison, multiple inputs, and numerical interfaces) as well as more info on usage on our website: www.gradio.app
 
 See, also, the accompanying paper: ["Gradio: Hassle-Free Sharing and Testing of ML Models in the Wild"](https://arxiv.org/pdf/1906.02569.pdf), *ICML HILL 2019*, and please use the citation below.
 
