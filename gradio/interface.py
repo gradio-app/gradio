@@ -17,6 +17,8 @@ import random
 import time
 import inspect
 from IPython import get_ipython
+import sys
+import weakref
 
 
 PKG_VERSION_URL = "https://gradio.app/api/pkg-version"
@@ -27,6 +29,7 @@ class Interface:
     The Interface class represents a general input/output interface for a machine learning model. During construction,
     the appropriate inputs and outputs
     """
+    instances = weakref.WeakSet()
 
     def __init__(self, fn, inputs, outputs, saliency=None, verbose=False, examples=None,
                  live=False, show_input=True, show_output=True,
@@ -82,6 +85,9 @@ class Interface:
         self.description = description
         self.thumbnail = thumbnail
         self.examples = examples
+        self.server_port = None
+        self.simple_server = None
+        Interface.instances.add(self)
 
     def get_config_file(self):
         config = {
@@ -204,7 +210,12 @@ class Interface:
             return
         raise RuntimeError("Validation did not pass")
 
-    def launch(self, inline=None, inbrowser=None, share=False, validate=True):
+    def close(self):
+        if self.simple_server and not(self.simple_server.fileno() == -1):  # checks to see if server is running
+            print("Closing Gradio server on port {}...".format(self.server_port))
+            networking.close_server(self.simple_server)
+
+    def launch(self, inline=None, inbrowser=None, share=False, validate=True, debug=False):
         """
         Standard method shared by interfaces that creates the interface and sets up a websocket to communicate with it.
         :param inline: boolean. If True, then a gradio interface is created inline (e.g. in jupyter or colab notebook)
@@ -223,22 +234,13 @@ class Interface:
             except (ImportError, AttributeError):  # If they are using TF >= 2.0 or don't have TF, just ignore this.
                 pass
 
-        # If an existing interface is running with this instance, close it.
-        if self.status == "RUNNING":
-            if self.verbose:
-                print("Closing existing server...")
-            if self.simple_server is not None:
-                try:
-                    networking.close_server(self.simple_server)
-                except OSError:
-                    pass
-
         output_directory = tempfile.mkdtemp()
         # Set up a port to serve the directory containing the static files with interface.
         server_port, httpd = networking.start_simple_server(self, output_directory, self.server_name)
         path_to_local_server = "http://{}:{}/".format(self.server_name, server_port)
         networking.build_template(output_directory)
 
+        self.server_port = server_port
         self.status = "RUNNING"
         self.simple_server = httpd
 
@@ -247,6 +249,7 @@ class Interface:
             from_ipynb = get_ipython()
             if "google.colab" in str(from_ipynb):
                 is_colab = True
+                print("Google colab notebook detected.")
         except NameError:
             pass
 
@@ -264,11 +267,17 @@ class Interface:
 
         if not is_colab:
             print(strings.en["RUNNING_LOCALLY"].format(path_to_local_server))
+        else:
+            if debug:
+                print("This cell will run indefinitely so that you can see errors and logs. To turn off, "
+                      "set debug=False in launch().")
+            else:
+                print("To show errors in colab notebook, set debug=True in launch()")
 
         if share:
             try:
                 share_url = networking.setup_tunnel(server_port)
-                print("External URL:", share_url)
+                print("Running on External URL:", share_url)
             except RuntimeError:
                 share_url = None
                 if self.verbose:
@@ -330,4 +339,18 @@ class Interface:
 
         networking.set_config(config, output_directory)
 
+        if debug:
+            while True:
+                sys.stdout.flush()
+                time.sleep(0.1)
+
         return httpd, path_to_local_server, share_url
+
+    @classmethod
+    def get_instances(cls):
+        return list(Interface.instances) #Returns list of all current instances
+
+
+def reset_all():
+    for io in Interface.get_instances():
+        io.close()
