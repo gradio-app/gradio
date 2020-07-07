@@ -28,7 +28,7 @@ var io_master_template = {
     this.fn(this.last_input).then((output) => {
       io.output(output);
     }).catch((error) => {
-      console.error(error)
+      console.error(error);
       this.target.find(".loading_in_progress").hide();
       this.target.find(".loading_failed").show();
     })
@@ -38,8 +38,14 @@ var io_master_template = {
 
     for (let i = 0; i < this.output_interfaces.length; i++) {
       this.output_interfaces[i].output(data["data"][i]);
-//      this.output_interfaces[i].target.parent().find(`.loading_time[interface="${i}"]`).text("Latency: " + ((data["durations"][i])).toFixed(2) + "s");
     }
+    if (data["durations"]) {
+      let ratio = this.output_interfaces.length / data["durations"].length;
+      for (let i = 0; i < this.output_interfaces.length; i = i + ratio) {
+        this.output_interfaces[i].target.parent().find(`.loading_time[interface="${i + ratio - 1}"]`).text("Latency: " + ((data["durations"][i / ratio])).toFixed(2) + "s");
+      }
+    }
+
     if (this.config.live) {
       this.gather();
     } else {
