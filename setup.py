@@ -20,5 +20,6 @@ setup(
         'scipy',
         'IPython',
         'scikit-image',
+        'analytics',
     ],
 )
