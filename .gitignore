@@ -17,3 +17,4 @@ __pycache__/
 *.py[cod]
 *$py.class
 demo/models/*
+*.h5
