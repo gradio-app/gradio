@@ -40,12 +40,6 @@ class AbstractInput(ABC):
         """
         return {"label": self.label}
 
-    def sample_inputs(self):
-        """
-        An interface can optionally implement a method that sends a list of sample inputs for inference.
-        """
-        return []
-
     def preprocess(self, inp):
         """
         By default, no pre-processing is applied to text.
@@ -67,17 +61,12 @@ class AbstractInput(ABC):
 
 
 class Sketchpad(AbstractInput):
-    def __init__(self, cast_to="numpy", shape=(28, 28), invert_colors=True,
-                 flatten=False, scale=1/255, shift=0,
-                 dtype='float64', sample_inputs=None, label=None):
+    def __init__(self, shape=(28, 28), invert_colors=True,
+                 flatten=False, label=None):
         self.image_width = shape[0]
         self.image_height = shape[1]
         self.invert_colors = invert_colors
         self.flatten = flatten
-        self.scale = scale
-        self.shift = shift
-        self.dtype = dtype
-        self.sample_inputs = sample_inputs
         super().__init__(label)
 
     @classmethod
@@ -101,8 +90,6 @@ class Sketchpad(AbstractInput):
             array = np.array(im).flatten().reshape(1, self.image_width * self.image_height)
         else:
             array = np.array(im).flatten().reshape(1, self.image_width, self.image_height)
-        array = array * self.scale + self.shift
-        array = array.astype(self.dtype)
         return array
 
     def process_example(self, example):
@@ -136,8 +123,7 @@ class Webcam(AbstractInput):
 
 
 class Textbox(AbstractInput):
-    def __init__(self, sample_inputs=None, lines=1, placeholder=None, default=None, label=None, numeric=False):
-        self.sample_inputs = sample_inputs
+    def __init__(self, lines=1, placeholder=None, default=None, numeric=False, label=None):
         self.lines = lines
         self.placeholder = placeholder
         self.default = default
@@ -227,7 +213,7 @@ class Slider(AbstractInput):
     @classmethod
     def get_shortcut_implementations(cls):
         return {
-            "checkbox": {},
+            "slider": {},
         }
 
 
@@ -283,6 +269,8 @@ class Image(AbstractInput):
 
 
 class Microphone(AbstractInput):
+    def __init__(self, label=None):
+        super().__init__(label)
 
     def preprocess(self, inp):
         """

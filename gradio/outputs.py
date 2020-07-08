@@ -10,6 +10,7 @@ import json
 from gradio import preprocessing_utils
 import datetime
 import operator
+from numbers import Number
 
 # Where to find the static resources associated with each template.
 BASE_OUTPUT_INTERFACE_JS_PATH = 'static/js/interfaces/output/{}.js'
@@ -53,7 +54,7 @@ class Label(AbstractOutput):
         super().__init__(label)
 
     def postprocess(self, prediction):
-        if isinstance(prediction, str):
+        if isinstance(prediction, str) or isinstance(prediction, Number):
             return {"label": prediction}
         elif isinstance(prediction, dict):
             sorted_pred = sorted(
@@ -104,15 +105,11 @@ class KeyValues(AbstractOutput):
 
 
 class Textbox(AbstractOutput):
-    def __init__(self, lines=1, placeholder=None, label=None):
-        self.lines = lines
-        self.placeholder = placeholder
+    def __init__(self, label=None):
         super().__init__(label)
 
     def get_template_context(self):
         return {
-            "lines": self.lines,
-            "placeholder": self.placeholder,
             **super().get_template_context()
         }
 
@@ -121,7 +118,6 @@ class Textbox(AbstractOutput):
         return {
             "text": {},
             "number": {},
-            "textbox": {"lines": 7}
         }
 
     def postprocess(self, prediction):
@@ -133,7 +129,7 @@ class Textbox(AbstractOutput):
 
 
 class Image(AbstractOutput):
-    def __init__(self, label=None, plot=False):
+    def __init__(self, plot=False, label=None):
         self.plot = plot
         super().__init__(label)
 
