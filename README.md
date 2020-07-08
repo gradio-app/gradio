@@ -42,11 +42,13 @@ The core Interface class is initialized with three parameters:
 - `inputs`: the name of the input interface
 - `outputs`: the name of the output interface
 
-Calling the `launch()` function of the `Interface` object produces the interface shown in image below.
+Calling the `launch()` function of the `Interface` object produces the interface shown in image below. Click on the screenshot to go the live interface in our getting started page. 
 
+<a href="https://gradio.app/getting_started#interface_4">
 <p align="center">
 <img src="https://i.ibb.co/Z8p7gLZ/hello-world.png" alt="drawing"/>
 </p>
+</a>
 
 ### 1. Inception Net [![alt text](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1c6gQiW88wKBwWq96nqEwuQ1Kyt5LejiU?usp=sharing)
 
@@ -98,7 +100,7 @@ You can supply your own model instead of the pretrained model above, as well as 
 - `Textbox(lines=1, placeholder=None, label=None, numeric=False)`
 - `Radio(choices, label=None)`
 - `Dropdown(choices, label=None)`
-- `CheckboxGroup(choices, label=None)
+- `CheckboxGroup(choices, label=None)`
 - `Slider(minimum=0, maximum=100, default=None, label=None)`
 - `Image(shape=(224, 224, 3), image_mode='RGB', scale=1/127.5, shift=-1, label=None)`
 - `Microphone()`
