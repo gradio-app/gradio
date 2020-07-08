@@ -243,8 +243,7 @@ class Checkbox(AbstractInput):
 
 
 class Image(AbstractInput):
-    def __init__(self, cast_to=None, shape=(224, 224), image_mode='RGB', label=None):
-        self.cast_to = cast_to
+    def __init__(self, shape=(224, 224), image_mode='RGB', label=None):
         self.image_width = shape[0]
         self.image_height = shape[1]
         self.image_mode = image_mode
@@ -264,29 +263,10 @@ class Image(AbstractInput):
             **super().get_template_context()
         }
 
-    def cast_to_base64(self, inp):
-        return inp
-
-    def cast_to_im(self, inp):
-        return preprocessing_utils.decode_base64_to_image(inp)
-
-    def cast_to_numpy(self, inp):
-        im = self.cast_to_im(inp)
-        arr = np.array(im).flatten()
-        return arr
-
     def preprocess(self, inp):
         """
         Default preprocessing method for is to convert the picture to black and white and resize to be 48x48
         """
-        cast_to_type = {
-            "base64": self.cast_to_base64,
-            "numpy": self.cast_to_numpy,
-            "pillow": self.cast_to_im
-        }
-        if self.cast_to:
-            return cast_to_type[self.cast_to](inp)
-
         im = preprocessing_utils.decode_base64_to_image(inp)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
