@@ -5,7 +5,7 @@ from tensorflow.keras.layers import *
 import gradio as gr
 
 (x_train, y_train),(x_test, y_test) = tf.keras.datasets.mnist.load_data()
-x_train, x_test = x_train.reshape(-1,784) / 255.0, x_test.reshape(-1,784) / 255.0
+x_train, x_test = x_train.reshape(-1, 784) / 255.0, x_test.reshape(-1,784) / 255.0
 
 def get_trained_model(n):
     model = tf.keras.models.Sequential()
@@ -23,6 +23,7 @@ def get_trained_model(n):
     print(model.evaluate(x_test, y_test))
     return model
 
+
 if not os.path.exists("models/mnist.h5"):
     model = get_trained_model(n=50000)
     model.save('models/mnist.h5')
@@ -32,11 +33,13 @@ else:
 graph = tf.get_default_graph()
 sess = tf.keras.backend.get_session()
 
+
 def recognize_digit(image):
     with graph.as_default():
         with sess.as_default():
             prediction = model.predict(image).tolist()[0]
     return {str(i): prediction[i] for i in range(10)}
+
 
 gr.Interface(
     recognize_digit, 
