@@ -40,12 +40,6 @@ class AbstractInput(ABC):
         """
         return {"label": self.label}
 
-    def sample_inputs(self):
-        """
-        An interface can optionally implement a method that sends a list of sample inputs for inference.
-        """
-        return []
-
     def preprocess(self, inp):
         """
         By default, no pre-processing is applied to text.
@@ -67,17 +61,12 @@ class AbstractInput(ABC):
 
 
 class Sketchpad(AbstractInput):
-    def __init__(self, cast_to="numpy", shape=(28, 28), invert_colors=True,
-                 flatten=False, scale=1/255, shift=0,
-                 dtype='float64', sample_inputs=None, label=None):
+    def __init__(self, shape=(28, 28), invert_colors=True,
+                 flatten=False, label=None):
         self.image_width = shape[0]
         self.image_height = shape[1]
         self.invert_colors = invert_colors
         self.flatten = flatten
-        self.scale = scale
-        self.shift = shift
-        self.dtype = dtype
-        self.sample_inputs = sample_inputs
         super().__init__(label)
 
     @classmethod
@@ -101,8 +90,6 @@ class Sketchpad(AbstractInput):
             array = np.array(im).flatten().reshape(1, self.image_width * self.image_height)
         else:
             array = np.array(im).flatten().reshape(1, self.image_width, self.image_height)
-        array = array * self.scale + self.shift
-        array = array.astype(self.dtype)
         return array
 
     def process_example(self, example):
@@ -136,8 +123,7 @@ class Webcam(AbstractInput):
 
 
 class Textbox(AbstractInput):
-    def __init__(self, sample_inputs=None, lines=1, placeholder=None, default=None, label=None, numeric=False):
-        self.sample_inputs = sample_inputs
+    def __init__(self, lines=1, placeholder=None, default=None, numeric=False, label=None):
         self.lines = lines
         self.placeholder = placeholder
         self.default = default
@@ -227,7 +213,7 @@ class Slider(AbstractInput):
     @classmethod
     def get_shortcut_implementations(cls):
         return {
-            "checkbox": {},
+            "slider": {},
         }
 
 
@@ -243,8 +229,7 @@ class Checkbox(AbstractInput):
 
 
 class Image(AbstractInput):
-    def __init__(self, cast_to=None, shape=(224, 224), image_mode='RGB', label=None):
-        self.cast_to = cast_to
+    def __init__(self, shape=(224, 224), image_mode='RGB', label=None):
         self.image_width = shape[0]
         self.image_height = shape[1]
         self.image_mode = image_mode
@@ -264,29 +249,10 @@ class Image(AbstractInput):
             **super().get_template_context()
         }
 
-    def cast_to_base64(self, inp):
-        return inp
-
-    def cast_to_im(self, inp):
-        return preprocessing_utils.decode_base64_to_image(inp)
-
-    def cast_to_numpy(self, inp):
-        im = self.cast_to_im(inp)
-        arr = np.array(im).flatten()
-        return arr
-
     def preprocess(self, inp):
         """
         Default preprocessing method for is to convert the picture to black and white and resize to be 48x48
         """
-        cast_to_type = {
-            "base64": self.cast_to_base64,
-            "numpy": self.cast_to_numpy,
-            "pillow": self.cast_to_im
-        }
-        if self.cast_to:
-            return cast_to_type[self.cast_to](inp)
-
         im = preprocessing_utils.decode_base64_to_image(inp)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -303,6 +269,8 @@ class Image(AbstractInput):
 
 
 class Microphone(AbstractInput):
+    def __init__(self, label=None):
+        super().__init__(label)
 
     def preprocess(self, inp):
         """
