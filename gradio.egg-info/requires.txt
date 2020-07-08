@@ -4,3 +4,7 @@ paramiko
 scipy
 IPython
 scikit-image
+<<<<<<< HEAD
+=======
+analytics-python
+>>>>>>> 64fd79682b1939bca6d2efe2556fc7a7b43b1d9d
