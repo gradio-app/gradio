@@ -4,3 +4,4 @@ paramiko
 scipy
 IPython
 scikit-image
+analytics-python

@@ -3,6 +3,7 @@ import random
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 def plot_forecast(final_year, companies, noise, show_legend, point_style):
     start_year = 2020
     x = np.arange(start_year, final_year + 1)
@@ -16,6 +17,7 @@ def plot_forecast(final_year, companies, noise, show_legend, point_style):
     if show_legend:
         plt.legend(companies)
     return plt
+
 
 gr.Interface(plot_forecast,
              [

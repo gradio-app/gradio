@@ -18,3 +18,4 @@ __pycache__/
 *$py.class
 demo/models/*
 dist/*
+*.h5

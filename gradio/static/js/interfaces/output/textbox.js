@@ -1,13 +1,7 @@
 const textbox_output = {
-  html: `<textarea readonly class="output_text"></textarea>`,
+  html: `<div class="output_text"></div>`,
   init: function(opts) {
-    if (opts.lines) {
-      this.target.find(".output_text").attr("rows", opts.lines).css("height", "auto");
-      this.target.css("height", "auto");
-    }
-    if (opts.placeholder) {
-      this.target.find(".output_text").attr("placeholder", opts.placeholder)
-    }
+    this.target.css("height", "auto");
   },
   output: function(data) {
     this.target.find(".output_text").text(data);

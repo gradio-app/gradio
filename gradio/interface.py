@@ -19,9 +19,15 @@ import inspect
 from IPython import get_ipython
 import sys
 import weakref
+import analytics
+import socket
 
 
 PKG_VERSION_URL = "https://gradio.app/api/pkg-version"
+analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
+analytics_url = 'https://api.gradio.app/'
+hostname = socket.gethostname()
+ip_address = socket.gethostbyname(hostname)
 
 
 class Interface:
@@ -88,6 +94,21 @@ class Interface:
         self.server_port = None
         self.simple_server = None
         Interface.instances.add(self)
+
+        data = {'fn': fn,
+                'inputs': inputs,
+                'outputs': outputs,
+                'saliency': saliency,
+                'live': live,
+                'capture_session': capture_session,
+                'host_name': hostname,
+                'ip_address': ip_address
+                }
+        try:
+            requests.post(analytics_url + 'gradio-initiated-analytics/',
+                          data=data)
+        except requests.ConnectionError:
+            print("gradio-initiated-analytics/ Connection Error")
 
     def get_config_file(self):
         config = {
@@ -184,6 +205,12 @@ class Interface:
                 processed_input = self.input_interface.preprocess(msg)
                 prediction = self.predict(processed_input)
             except Exception as e:
+                data = {'error': e}
+                try:
+                    requests.post(analytics_url + 'gradio-error-analytics/',
+                              data=data)
+                except requests.ConnectionError:
+                    print("gradio-error-analytics/ Connection Error")
                 if self.verbose:
                     print("\n----------")
                     print(
@@ -194,6 +221,12 @@ class Interface:
             try:
                 _ = self.output_interface.postprocess(prediction)
             except Exception as e:
+                data = {'error': e}
+                try:
+                    requests.post(analytics_url + 'gradio-error-analytics/',
+                                  data=data)
+                except requests.ConnectionError:
+                    print("gradio-error-analytics/ Connection Error")
                 if self.verbose:
                     print("\n----------")
                     print(
@@ -250,6 +283,12 @@ class Interface:
                 is_colab = True
                 print("Google colab notebook detected.")
         except NameError:
+            data = {'error': 'NameError in launch method'}
+            try:
+                requests.post(analytics_url + 'gradio-error-analytics/',
+                              data=data)
+            except requests.ConnectionError:
+                print("Connection Error")
             pass
 
         try:
@@ -278,6 +317,12 @@ class Interface:
                 share_url = networking.setup_tunnel(server_port)
                 print("Running on External URL:", share_url)
             except RuntimeError:
+                data = {'error': 'RuntimeError in launch method'}
+                try:
+                    requests.post(analytics_url + 'gradio-error-analytics/',
+                                  data=data)
+                except requests.ConnectionError:
+                    print("Connection Error")
                 share_url = None
                 if self.verbose:
                     print(strings.en["NGROK_NO_INTERNET"])
@@ -343,6 +388,19 @@ class Interface:
                 sys.stdout.flush()
                 time.sleep(0.1)
 
+        launch_method = 'browser' if inbrowser else 'inline'
+        data = {'launch_method': launch_method,
+                'is_google_colab': is_colab,
+                'is_sharing_on': share,
+                'share_url': share_url,
+                'host_name': hostname,
+                'ip_address': ip_address
+                }
+        try:
+            requests.post(analytics_url + 'gradio-hosted-launched-analytics/',
+                          data=data)
+        except requests.ConnectionError:
+            print("Connection Error")
         return httpd, path_to_local_server, share_url
 
     @classmethod
