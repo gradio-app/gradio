@@ -11,7 +11,7 @@ function gradio(config, fn, target) {
         </div>
       </div>
       <div class="panel output_panel">
-        <div class="loading interface invisible">
+        <div class="loading invisible">
           <img class="loading_in_progress" src="static/img/logo_loading.gif">
           <img class="loading_failed" src="static/img/logo_error.png">
         </div>
@@ -114,7 +114,7 @@ function gradio(config, fn, target) {
       target.find(".flag_message").empty();
       target.find(".loading").addClass("invisible");
       target.find(".loading_time").text("");
-      target.find(".output_interface").removeClass("invisible");
+      target.find(".output_interfaces").css("opacity", 1);
       io_master.last_input = null;
       io_master.last_output = null;
     });
