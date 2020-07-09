@@ -27,7 +27,7 @@ class TestGetAvailablePort(unittest.TestCase):
             s.bind((networking.LOCALHOST_NAME, port))  # Bind to the port
             new_port = networking.get_first_available_port(initial, final)
             s.close()
-        self.assertFalse(port==new_port)
+        self.assertFalse(port == new_port)
 
 
 # class TestSetSampleData(unittest.TestCase):
