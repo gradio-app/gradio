@@ -1,0 +1,11 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+    {
+      "appID": "RHW8FBGSTX.app.gradio.Gradio",
+      "paths": ["*"]
+    }
+    ]
+  }
+}
