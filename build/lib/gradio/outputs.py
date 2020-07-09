@@ -117,6 +117,7 @@ class Textbox(AbstractOutput):
     def get_shortcut_implementations(cls):
         return {
             "text": {},
+            "textbox": {},
             "number": {},
         }
 
