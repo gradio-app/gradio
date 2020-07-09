@@ -55,7 +55,7 @@ class Label(AbstractOutput):
 
     def postprocess(self, prediction):
         if isinstance(prediction, str) or isinstance(prediction, Number):
-            return {"label": prediction}
+            return {"label": str(prediction)}
         elif isinstance(prediction, dict):
             sorted_pred = sorted(
                 prediction.items(), 
