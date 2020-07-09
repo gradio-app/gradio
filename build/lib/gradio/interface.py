@@ -27,7 +27,10 @@ PKG_VERSION_URL = "https://gradio.app/api/pkg-version"
 analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
 analytics_url = 'https://api.gradio.app/'
 hostname = socket.gethostname()
-ip_address = socket.gethostbyname(hostname)
+try:
+    ip_address = requests.get('https://api.ipify.org').text
+except requests.ConnectionError:
+    ip_address = "No internet connection"
 
 
 class Interface:
@@ -105,6 +108,7 @@ class Interface:
                 'ip_address': ip_address
                 }
         try:
+            print("try initiated")
             requests.post(analytics_url + 'gradio-initiated-analytics/',
                           data=data)
         except requests.ConnectionError:
@@ -397,7 +401,7 @@ class Interface:
                 'ip_address': ip_address
                 }
         try:
-            requests.post(analytics_url + 'gradio-hosted-launched-analytics/',
+            requests.post(analytics_url + 'gradio-launched-analytics/',
                           data=data)
         except requests.ConnectionError:
             print("Connection Error")
