@@ -104,6 +104,15 @@ class Interface:
                 'capture_session': capture_session,
                 'ip_address': ip_address
                 }
+
+        if self.capture_session:
+            try:
+                import tensorflow as tf
+                self.session = tf.get_default_graph(), \
+                              tf.keras.backend.get_session()
+            except (ImportError, AttributeError):  # If they are using TF >= 2.0 or don't have TF, just ignore this.
+                pass
+
         try:
             requests.post(analytics_url + 'gradio-initiated-analytics/',
                           data=data)
@@ -139,7 +148,6 @@ class Interface:
             pass
         
         return config    
-
 
     def process(self, raw_input):
         processed_input = [input_interface.preprocess(
@@ -257,14 +265,6 @@ class Interface:
         """
         # if validate and not self.validate_flag:
         #     self.validate()
-
-        if self.capture_session:
-            try:
-                import tensorflow as tf
-                self.session = tf.get_default_graph(), \
-                              tf.keras.backend.get_session()
-            except (ImportError, AttributeError):  # If they are using TF >= 2.0 or don't have TF, just ignore this.
-                pass
 
         output_directory = tempfile.mkdtemp()
         # Set up a port to serve the directory containing the static files with interface.
