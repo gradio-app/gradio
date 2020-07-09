@@ -22,8 +22,7 @@ var io_master_template = {
       this.target.find(".loading").removeClass("invisible");
       this.target.find(".loading_in_progress").show();
       this.target.find(".loading_failed").hide();
-      this.target.find(".output_interface").addClass("invisible");
-      this.target.find(".output_interfaces .panel_header").addClass("invisible");
+      this.target.find(".output_interfaces").css("opacity", 0.5);
     }
     this.fn(this.last_input).then((output) => {
       io.output(output);
@@ -54,8 +53,7 @@ var io_master_template = {
       }, refresh_lag);
     } else {
       this.target.find(".loading").addClass("invisible");
-      this.target.find(".output_interface").removeClass("invisible");
-      this.target.find(".output_interfaces .panel_header").removeClass("invisible");
+      this.target.find(".output_interfaces").css("opacity", 1);
     }
   },
   flag: function(message) {
