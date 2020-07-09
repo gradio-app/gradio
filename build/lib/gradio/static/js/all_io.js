@@ -47,7 +47,11 @@ var io_master_template = {
     }
 
     if (this.config.live) {
-      this.gather();
+      var io = this;
+      var refresh_lag = this.config.refresh_lag || 0;
+      window.setTimeout(function() {
+        io.gather();
+      }, refresh_lag);
     } else {
       this.target.find(".loading").addClass("invisible");
       this.target.find(".output_interface").removeClass("invisible");

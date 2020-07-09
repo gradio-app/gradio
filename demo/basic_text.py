@@ -1,5 +1,5 @@
 import gradio as gr
-from time import sleep
+
 
 def answer_question(quantity, animal, place, activity_list, morning, etc):
     return f"""The {quantity} {animal}s went to the {place} where they {" and ".join(activity_list)} until the {"morning" if morning else "night"}""", "OK"
@@ -15,8 +15,8 @@ gr.Interface(answer_question,
                 gr.inputs.Textbox(default="What else?"),
             ], 
             [
-                gr.outputs.Textbox(lines=8),
-                gr.outputs.Textbox(lines=1),
+                gr.outputs.Textbox(),
+                gr.outputs.Textbox(),
             ],
             examples=[
                 [2, "cat", "park", ["ran", "swam"], True],
