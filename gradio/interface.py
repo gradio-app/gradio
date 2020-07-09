@@ -112,7 +112,7 @@ class Interface:
             requests.post(analytics_url + 'gradio-initiated-analytics/',
                           data=data)
         except requests.ConnectionError:
-            print("gradio-initiated-analytics/ Connection Error")
+            pass  # do not push analytics if no network
 
     def get_config_file(self):
         config = {
@@ -214,7 +214,7 @@ class Interface:
                     requests.post(analytics_url + 'gradio-error-analytics/',
                               data=data)
                 except requests.ConnectionError:
-                    print("gradio-error-analytics/ Connection Error")
+                    pass  # do not push analytics if no network
                 if self.verbose:
                     print("\n----------")
                     print(
@@ -230,7 +230,7 @@ class Interface:
                     requests.post(analytics_url + 'gradio-error-analytics/',
                                   data=data)
                 except requests.ConnectionError:
-                    print("gradio-error-analytics/ Connection Error")
+                    pass  # do not push analytics if no network
                 if self.verbose:
                     print("\n----------")
                     print(
@@ -291,7 +291,7 @@ class Interface:
                 requests.post(analytics_url + 'gradio-error-analytics/',
                               data=data)
             except requests.ConnectionError:
-                print("Connection Error")
+                pass  # do not push analytics if no network
             pass
 
         try:
@@ -325,7 +325,7 @@ class Interface:
                     requests.post(analytics_url + 'gradio-error-analytics/',
                                   data=data)
                 except requests.ConnectionError:
-                    print("Connection Error")
+                    pass  # do not push analytics if no network
                 share_url = None
                 if self.verbose:
                     print(strings.en["NGROK_NO_INTERNET"])
@@ -404,7 +404,7 @@ class Interface:
             requests.post(analytics_url + 'gradio-launched-analytics/',
                           data=data)
         except requests.ConnectionError:
-            print("Connection Error")
+            pass  # do not push analytics if no network
         return httpd, path_to_local_server, share_url
 
     @classmethod
