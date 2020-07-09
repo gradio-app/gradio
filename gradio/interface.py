@@ -20,13 +20,11 @@ from IPython import get_ipython
 import sys
 import weakref
 import analytics
-import socket
 
 
 PKG_VERSION_URL = "https://gradio.app/api/pkg-version"
 analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
 analytics_url = 'https://api.gradio.app/'
-hostname = socket.gethostname()
 try:
     ip_address = requests.get('https://api.ipify.org').text
 except requests.ConnectionError:
@@ -104,7 +102,6 @@ class Interface:
                 'saliency': saliency,
                 'live': live,
                 'capture_session': capture_session,
-                'host_name': hostname,
                 'ip_address': ip_address
                 }
 
@@ -396,7 +393,6 @@ class Interface:
                 'is_google_colab': is_colab,
                 'is_sharing_on': share,
                 'share_url': share_url,
-                'host_name': hostname,
                 'ip_address': ip_address
                 }
         try:
