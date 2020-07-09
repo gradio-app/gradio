@@ -105,6 +105,7 @@ class Interface:
                 'ip_address': ip_address
                 }
         try:
+            print("try initiated")
             requests.post(analytics_url + 'gradio-initiated-analytics/',
                           data=data)
         except requests.ConnectionError:
@@ -397,7 +398,7 @@ class Interface:
                 'ip_address': ip_address
                 }
         try:
-            requests.post(analytics_url + 'gradio-hosted-launched-analytics/',
+            requests.post(analytics_url + 'gradio-launched-analytics/',
                           data=data)
         except requests.ConnectionError:
             print("Connection Error")
