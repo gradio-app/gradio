@@ -1,14 +1,14 @@
+.panels {
+  margin-top: -24px;
+  margin-left: -24px;
+}
 .panel {
+  margin-top: 24px;
+  margin-left: 24px;
   min-width: 300px;
   flex: 1 1 0;
   display: inline-block;
   box-sizing: border-box;
-}
-.panel:first-child {
-  margin-right: 24px;
-}
-.panel:last-child {
-  margin-left: 8px;
 }
 .panel_header, .interface {
   background-color: whitesmoke;
@@ -36,13 +36,13 @@
 }
 .loading {
   position: absolute;
-  top: 10px;
-  left: 10px;
+  top: 3px;
+  right: 3px;
   margin-left: auto;
   z-index: 1;
 }
 .loading img {
-  width: 50px;
+  height: 20px;
   display: none;
 }
 .panel_buttons {
