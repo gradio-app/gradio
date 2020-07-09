@@ -27,7 +27,10 @@ PKG_VERSION_URL = "https://gradio.app/api/pkg-version"
 analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
 analytics_url = 'https://api.gradio.app/'
 hostname = socket.gethostname()
-ip_address = socket.gethostbyname(hostname)
+try:
+    ip_address = requests.get('https://api.ipify.org').text
+except requests.ConnectionError:
+    ip_address = "No internet connection"
 
 
 class Interface:
@@ -105,6 +108,7 @@ class Interface:
                 'ip_address': ip_address
                 }
         try:
+            print("try initiated")
             requests.post(analytics_url + 'gradio-initiated-analytics/',
                           data=data)
         except requests.ConnectionError:
@@ -281,7 +285,6 @@ class Interface:
             from_ipynb = get_ipython()
             if "google.colab" in str(from_ipynb):
                 is_colab = True
-                print("Google colab notebook detected.")
         except NameError:
             data = {'error': 'NameError in launch method'}
             try:
@@ -307,10 +310,10 @@ class Interface:
             print(strings.en["RUNNING_LOCALLY"].format(path_to_local_server))
         else:
             if debug:
-                print("This cell will run indefinitely so that you can see errors and logs. To turn off, "
-                      "set debug=False in launch().")
+                print("Colab notebook detected. This cell will run indefinitely so that you can see errors and logs. "
+                      "To turn off, set debug=False in launch().")
             else:
-                print("To show errors in colab notebook, set debug=True in launch()")
+                print("Colab notebook detected. To show errors in colab notebook, set debug=True in launch()")
 
         if share:
             try:
@@ -331,6 +334,7 @@ class Interface:
                 is_colab
             ):  # For a colab notebook, create a public link even if share is False.
                 share_url = networking.setup_tunnel(server_port)
+                print("Running on External URL:", share_url)
                 if self.verbose:
                     print(strings.en["COLAB_NO_LOCAL"])
             else:  # If it's not a colab notebook and share=False, print a message telling them about the share option.
@@ -397,7 +401,7 @@ class Interface:
                 'ip_address': ip_address
                 }
         try:
-            requests.post(analytics_url + 'gradio-hosted-launched-analytics/',
+            requests.post(analytics_url + 'gradio-launched-analytics/',
                           data=data)
         except requests.ConnectionError:
             print("Connection Error")
