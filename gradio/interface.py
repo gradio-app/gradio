@@ -27,7 +27,10 @@ PKG_VERSION_URL = "https://gradio.app/api/pkg-version"
 analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
 analytics_url = 'https://api.gradio.app/'
 hostname = socket.gethostname()
-ip_address = requests.get('https://api.ipify.org').text
+try:
+    ip_address = requests.get('https://api.ipify.org').text
+except requests.ConnectionError:
+    ip_address = "No internet connection"
 
 
 class Interface:
