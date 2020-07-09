@@ -6,7 +6,7 @@ import gradio as gr
 from urllib.request import urlretrieve
 
 
-urlretrieve("https://gr-models.s3-us-west-2.amazonaws.com/mnist-model.h5","mnist-model.h5")
+urlretrieve("https://gr-models.s3-us-west-2.amazonaws.com/mnist-model.h5", "mnist-model.h5")
 model = tf.keras.models.load_model("mnist-model.h5")
 
 

@@ -13,12 +13,12 @@ def flip(image):
 
 def flip2(image):
     start = time()
-    return np.fliplr(image), time() - start
+    return np.fliplr(image), "stuff"
 
 
-gr.Interface(flip2, 
+gr.Interface([flip, flip2], 
              gr.inputs.Image(shape=(50, 50, 3)), 
-             ["image", "text"],
+             ["image", "label"],
              examples=[
                  ["images/cheetah1.jpg"],
                  ["images/cheetah2.jpg"],
