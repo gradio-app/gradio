@@ -20,13 +20,11 @@ from IPython import get_ipython
 import sys
 import weakref
 import analytics
-import socket
 
 
 PKG_VERSION_URL = "https://gradio.app/api/pkg-version"
 analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
 analytics_url = 'https://api.gradio.app/'
-hostname = socket.gethostname()
 try:
     ip_address = requests.get('https://api.ipify.org').text
 except requests.ConnectionError:
@@ -104,15 +102,22 @@ class Interface:
                 'saliency': saliency,
                 'live': live,
                 'capture_session': capture_session,
-                'host_name': hostname,
                 'ip_address': ip_address
                 }
+
+        if self.capture_session:
+            try:
+                import tensorflow as tf
+                self.session = tf.get_default_graph(), \
+                              tf.keras.backend.get_session()
+            except (ImportError, AttributeError):  # If they are using TF >= 2.0 or don't have TF, just ignore this.
+                pass
+
         try:
-            print("try initiated")
             requests.post(analytics_url + 'gradio-initiated-analytics/',
                           data=data)
         except requests.ConnectionError:
-            print("gradio-initiated-analytics/ Connection Error")
+            pass  # do not push analytics if no network
 
     def get_config_file(self):
         config = {
@@ -143,7 +148,6 @@ class Interface:
             pass
         
         return config    
-
 
     def process(self, raw_input):
         processed_input = [input_interface.preprocess(
@@ -214,7 +218,7 @@ class Interface:
                     requests.post(analytics_url + 'gradio-error-analytics/',
                               data=data)
                 except requests.ConnectionError:
-                    print("gradio-error-analytics/ Connection Error")
+                    pass  # do not push analytics if no network
                 if self.verbose:
                     print("\n----------")
                     print(
@@ -230,7 +234,7 @@ class Interface:
                     requests.post(analytics_url + 'gradio-error-analytics/',
                                   data=data)
                 except requests.ConnectionError:
-                    print("gradio-error-analytics/ Connection Error")
+                    pass  # do not push analytics if no network
                 if self.verbose:
                     print("\n----------")
                     print(
@@ -262,14 +266,6 @@ class Interface:
         # if validate and not self.validate_flag:
         #     self.validate()
 
-        if self.capture_session:
-            try:
-                import tensorflow as tf
-                self.session = tf.get_default_graph(), \
-                              tf.keras.backend.get_session()
-            except (ImportError, AttributeError):  # If they are using TF >= 2.0 or don't have TF, just ignore this.
-                pass
-
         output_directory = tempfile.mkdtemp()
         # Set up a port to serve the directory containing the static files with interface.
         server_port, httpd = networking.start_simple_server(self, output_directory, self.server_name)
@@ -291,7 +287,7 @@ class Interface:
                 requests.post(analytics_url + 'gradio-error-analytics/',
                               data=data)
             except requests.ConnectionError:
-                print("Connection Error")
+                pass  # do not push analytics if no network
             pass
 
         try:
@@ -325,7 +321,7 @@ class Interface:
                     requests.post(analytics_url + 'gradio-error-analytics/',
                                   data=data)
                 except requests.ConnectionError:
-                    print("Connection Error")
+                    pass  # do not push analytics if no network
                 share_url = None
                 if self.verbose:
                     print(strings.en["NGROK_NO_INTERNET"])
@@ -397,14 +393,13 @@ class Interface:
                 'is_google_colab': is_colab,
                 'is_sharing_on': share,
                 'share_url': share_url,
-                'host_name': hostname,
                 'ip_address': ip_address
                 }
         try:
             requests.post(analytics_url + 'gradio-launched-analytics/',
                           data=data)
         except requests.ConnectionError:
-            print("Connection Error")
+            pass  # do not push analytics if no network
         return httpd, path_to_local_server, share_url
 
     @classmethod
