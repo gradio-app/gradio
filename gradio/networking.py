@@ -15,6 +15,7 @@ import urllib.request
 from shutil import copyfile
 import requests
 import sys
+import analytics
 
 
 INITIAL_PORT_VALUE = (
@@ -38,6 +39,8 @@ ASSOCIATION_PATH_IN_ROOT = "apple-app-site-association"
 
 FLAGGING_DIRECTORY = 'static/flagged/'
 FLAGGING_FILENAME = 'data.txt'
+analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
+analytics_url = 'https://api.gradio.app/'
 
 
 def build_template(temp_dir):
@@ -159,6 +162,15 @@ def serve_files_in_background(interface, port, directory_to_serve=None, server_n
 
                 # Prepare return json dictionary.
                 self.wfile.write(json.dumps(output).encode())
+                data = {'input_interface': interface.input_interfaces,
+                        'output_interface': interface.output_interfaces,
+                        }
+                try:
+                    requests.post(
+                        analytics_url + 'gradio-prediction-analytics/',
+                        data=data)
+                except requests.ConnectionError:
+                    pass  # do not push analytics if no network
 
             elif self.path == "/api/flag/":
                 self._set_headers()
