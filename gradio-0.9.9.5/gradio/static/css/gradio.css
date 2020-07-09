@@ -1,0 +1,125 @@
+.panel {
+  min-width: 300px;
+  flex: 1 1 0;
+  display: inline-block;
+  box-sizing: border-box;
+}
+.panel:first-child {
+  margin-right: 24px;
+}
+.panel:last-child {
+  margin-left: 8px;
+}
+.panel_header, .interface {
+  background-color: whitesmoke;
+}
+.panel_header {
+  text-transform: uppercase;
+  font-family: Arial;
+  color: #888;
+  padding: 6px 6px 0;
+  font-size: 14px;
+  font-weight: bold;
+  display: flex;
+}
+.input_interfaces, .output_interfaces {
+  margin-bottom: 16px;
+}
+.interface {
+  height: 360px;
+  padding: 8px;
+  display: flex;
+  flex-flow: column;
+}
+.loading {
+  margin-left: auto;
+}
+.loading img {
+  display: none;
+}
+.panel_buttons {
+  display: flex;
+  margin-left: -8px;
+}
+.panel_buttons > * {
+  margin-left: 8px;
+}
+.submit {
+  display: none;
+}
+.submit, .clear, .panel_button {
+  background-color: whitesmoke !important;
+  flex-grow: 1;
+  padding: 8px !important;
+  box-sizing: border-box;
+  text-transform: uppercase;
+  font-weight: bold;
+  border: 0 none !important;
+}
+.submit {
+  background-color: #EEA45D !important;
+  color: white !important;
+}
+.submit, .flag_message {
+  flex-grow: 2 !important;
+  margin-right: 8px;
+}
+.flag_message {
+  padding: 8px !important;
+  background-color: whitesmoke !important;
+}
+
+.upload_zone {
+  font-weight: bold;
+  font-size: 24px;
+  color: #BBB;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.5em;
+  flex-flow: column;
+}
+.upload_zone img {
+  height: 120px;
+
+}
+.drop_zone {
+  border: dashed 8px #DDD;
+}
+.edit_holder {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 6px;
+}
+.interface_button {
+  padding: 6px;
+  text-transform: uppercase;
+  font-weight: bold;
+  font-size: 14px;
+}
+.overlay {
+  position: absolute;
+  height: 100vh;
+  width: 100vw;
+  position: fixed;
+  z-index: 1;
+  background-color: rgba(0, 0, 0, 0.7);
+  top: 0;
+  left: 0;
+}
+.flag.flagged {
+  background-color: pink !important;
+}
+.loading {
+  justify-content: center;
+  align-items: center;
+}
+
+.invisible {
+  display: none !important;
+}
