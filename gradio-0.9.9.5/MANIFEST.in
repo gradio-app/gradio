@@ -1,0 +1,2 @@
+recursive-include gradio/static *
+recursive-include gradio/templates *
