@@ -1,2 +1,2 @@
-recursive-include gradio/static *
 recursive-include gradio/templates *
+recursive-include gradio/static *
