@@ -31,18 +31,10 @@
   display: flex;
   flex-flow: column;
 }
-.output_panel {
-  position: relative;
-}
 .loading {
-  position: absolute;
-  top: 10px;
-  left: 10px;
   margin-left: auto;
-  z-index: 1;
 }
 .loading img {
-  width: 50px;
   display: none;
 }
 .panel_buttons {

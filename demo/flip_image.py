@@ -2,6 +2,7 @@ import gradio as gr
 import numpy as np
 from time import time
 
+
 def flip(image):
     start = time()
     return image, {
@@ -9,14 +10,15 @@ def flip(image):
         "2": 0.8
     }
 
+
 def flip2(image):
     start = time()
-    return np.fliplr(image), time() - start
+    return np.fliplr(image), "stuff"
 
 
-gr.Interface(flip2, 
+gr.Interface([flip, flip2], 
              gr.inputs.Image(shape=(50, 50, 3)), 
-             ["image", "text"],
+             ["image", "label"],
              examples=[
                  ["images/cheetah1.jpg"],
                  ["images/cheetah2.jpg"],

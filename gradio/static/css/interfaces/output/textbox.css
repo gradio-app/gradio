@@ -1,5 +1,4 @@
 .output_text {
-  resize: none;
   width: 100%;
   font-size: 18px;
   outline: none;
@@ -8,4 +7,9 @@
   border: solid 1px black;
   box-sizing: border-box;
   padding: 4px;
+  min-height: 30px;
+  font-family: monospace;
+  white-space: pre-wrap;      /* CSS3 */   
+  white-space: -moz-pre-wrap; /* Firefox */    
+  word-wrap: break-word;      /* IE */
 }
