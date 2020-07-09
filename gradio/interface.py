@@ -27,7 +27,7 @@ PKG_VERSION_URL = "https://gradio.app/api/pkg-version"
 analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
 analytics_url = 'https://api.gradio.app/'
 hostname = socket.gethostname()
-ip_address = socket.gethostbyname(hostname)
+ip_address = requests.get('https://api.ipify.org').text
 
 
 class Interface:
