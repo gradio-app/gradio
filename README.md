@@ -89,7 +89,7 @@ and postprocessing (e.g. choosing the number of labels to display) provided by t
 interfaces.
 
 <p align="center">
-<img src="https://i.ibb.co/mJsN0Rz/inception-net.gif" alt="drawing"/>
+<img src="https://i.ibb.co/X8KGJqB/inception-net-2.gif" alt="drawing"/>
 </p>
 
 You can supply your own model instead of the pretrained model above, as well as use different kinds of models or functions. Here's a list of the interfaces we currently support, along with their preprocessing / postprocessing parameters:
