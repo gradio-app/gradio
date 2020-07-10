@@ -42,11 +42,11 @@ The core Interface class is initialized with three parameters:
 - `inputs`: the name of the input interface
 - `outputs`: the name of the output interface
 
-Calling the `launch()` function of the `Interface` object produces the interface shown in image below. Click on the screenshot to go the live interface in our getting started page. 
+Calling the `launch()` function of the `Interface` object produces the interface shown in image below. Click on the gif to go the live interface in our getting started page. 
 
 <a href="https://gradio.app/getting_started#interface_4">
 <p align="center">
-<img src="https://i.ibb.co/Z8p7gLZ/hello-world.png" alt="drawing"/>
+<img src="https://i.ibb.co/T4Rqs5y/hello-name.gif" alt="drawing"/>
 </p>
 </a>
 
@@ -89,7 +89,7 @@ and postprocessing (e.g. choosing the number of labels to display) provided by t
 interfaces.
 
 <p align="center">
-<img src="https://i.ibb.co/BtRNc62/inception-net.png" alt="drawing"/>
+<img src="https://i.ibb.co/BjLhHRk/inception.gif" alt="drawing"/>
 </p>
 
 You can supply your own model instead of the pretrained model above, as well as use different kinds of models or functions. Here's a list of the interfaces we currently support, along with their preprocessing / postprocessing parameters:
@@ -141,7 +141,7 @@ gr.Interface(fn=recognize_digit, inputs=sketchpad,
 This code will produce the interface below.
 
 <p align="center">
-<img src="https://i.ibb.co/9n2mGgk/mnist-live.png" alt="drawing"/>
+<img src="https://i.ibb.co/vkgZLcH/gif6.gif" alt="drawing"/>
 </p>
 
 ## Contributing:
