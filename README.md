@@ -1,6 +1,6 @@
 [![CircleCI](https://circleci.com/gh/gradio-app/gradio.svg?style=svg)](https://circleci.com/gh/gradio-app/gradio) [![PyPI version](https://badge.fury.io/py/gradio.svg)](https://badge.fury.io/py/gradio)
 
-# Gradio UI
+# Gradio 
 
 <img src="https://i.ibb.co/GHRk2JP/header-2.png" alt="drawing" width="1000"/>
 
