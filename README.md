@@ -1,6 +1,6 @@
 [![CircleCI](https://circleci.com/gh/gradio-app/gradio.svg?style=svg)](https://circleci.com/gh/gradio-app/gradio) [![PyPI version](https://badge.fury.io/py/gradio.svg)](https://badge.fury.io/py/gradio)
 
-# Gradio 
+# Welcome to `gradio`  :rocket:
 
 <p align="center">
 <img src="https://i.ibb.co/m0skD0j/bert.gif" alt="drawing"/>
