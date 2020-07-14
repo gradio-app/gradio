@@ -4,15 +4,18 @@ This module defines various classes that can serve as the `input` to an interfac
 automatically added to a registry, which allows them to be easily referenced in other parts of the code.
 """
 
-from abc import ABC, abstractmethod
-from gradio import preprocessing_utils, validation_data
-import numpy as np
-import PIL.Image, PIL.ImageOps
+import datetime
+import json
+import os
 import time
 import warnings
-import json
-import datetime
-import os
+from abc import ABC, abstractmethod
+
+import numpy as np
+import PIL.Image
+import PIL.ImageOps
+import scipy.io.wavfile
+from gradio import preprocessing_utils, validation_data
 
 # Where to find the static resources associated with each template.
 # BASE_INPUT_INTERFACE_TEMPLATE_PATH = 'static/js/interfaces/input/{}.js'
@@ -269,16 +272,28 @@ class Image(AbstractInput):
 
 
 class Microphone(AbstractInput):
-    def __init__(self, label=None):
+    def __init__(self, preprocessing=None, label=None):
         super().__init__(label)
+        if preprocessing is None or preprocessing == "mfcc":
+            self.preprocessing = preprocessing
+        else:
+            raise ValueError("unexpected value for preprocessing", preprocessing)
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "microphone": {},
+        }
 
     def preprocess(self, inp):
         """
         By default, no pre-processing is applied to a microphone input file
         """
         file_obj = preprocessing_utils.decode_base64_to_wav_file(inp)
-        mfcc_array = preprocessing_utils.generate_mfcc_features_from_audio_file(file_obj.name)
-        return mfcc_array
+        if self.preprocessing == "mfcc":
+            return preprocessing_utils.generate_mfcc_features_from_audio_file(file_obj.name)
+        _, signal = scipy.io.wavfile.read(file_obj.name)
+        return signal
 
 
 # Automatically adds all shortcut implementations in AbstractInput into a dictionary.
