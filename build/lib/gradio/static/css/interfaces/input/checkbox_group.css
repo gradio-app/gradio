@@ -1,11 +1,42 @@
 .checkbox_group {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   font-size: 18px;
+  margin-top: -12px;
+  margin-left: -16px;
 }
 .checkbox_group input, .checkbox {
-  margin: 0px 4px 0px 0px;
+  margin: 0px;
 }
 .checkbox_group label {
-  margin-right: 16px;
+  margin-top: 12px;
+  margin-left: 16px;
+}
+
+.ui-icon-background, .ui-state-active .ui-icon-background {
+  border: #f39c12;
+  background-color: #ffffff;
+}
+.ui-visual-focus {
+  box-shadow: 0 0 3px 1px rgb(241, 171, 41);
+}
+.ui-button {
+  padding: 0.25em 0.6em;
+}
+.ui-widget {
+  font-family: inherit;
+}
+.ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default, .ui-button, html .ui-button.ui-state-disabled:hover, html .ui-button.ui-state-disabled:active {
+  border: 1px solid lightgray;
+  background: lightgray;
+}
+.ui-state-active, .ui-widget-content .ui-state-active, .ui-widget-header .ui-state-active, a.ui-button:active, .ui-button:active, .ui-button.ui-state-active:hover {
+  border: 1px solid #e67e22 !important;
+  background: #e67e22  !important;
+  font-weight: normal;
+  color: #ffffff;
+}
+.ui-button {
+  outline: none;
 }

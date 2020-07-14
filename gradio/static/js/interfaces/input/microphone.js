@@ -25,7 +25,7 @@ const microphone = {
     this.wavesurfer = WaveSurfer.create({
       container: '.waveform',
       waveColor: '#888888',
-      progressColor: '#EEA45D',
+      progressColor: '#e67e22',
       barWidth: 3,
       hideScrollbar: true
     });

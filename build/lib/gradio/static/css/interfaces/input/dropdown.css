@@ -1,4 +1,7 @@
 select.dropdown {
-  padding: 8px 0;
-  font-size: 14px;
+  padding: 4px;
+  font-size: 18px;
+  border: solid 1px lightgray;
+  border-radius: 2px;
+  outline: none;
 }

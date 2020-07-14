@@ -6,8 +6,8 @@ function gradio(config, fn, target) {
         <div class="input_interfaces">
         </div>          
         <div class="panel_buttons">
-          <input class="submit" type="submit" value="submit"/>
-          <input class="clear" type="reset" value="clear">
+          <input class="submit panel_button" type="submit" value="submit"/>
+          <input class="clear panel_button" type="reset" value="clear">
         </div>
       </div>
       <div class="panel output_panel">
@@ -16,6 +16,10 @@ function gradio(config, fn, target) {
           <img class="loading_failed" src="static/img/logo_error.png">
         </div>
         <div class="output_interfaces">
+        </div>
+        <div class="panel_buttons">
+          <input class="screenshot panel_button" type="button" value="screenshot"/>
+          <input class="flag panel_button" type="button" value="flag"/>
         </div>
       </div>
     </div>`);
@@ -118,6 +122,11 @@ function gradio(config, fn, target) {
       io_master.last_input = null;
       io_master.last_output = null;
     });
+    target.find(".screenshot").click(function() {
+      html2canvas(target[0]).then(function(canvas) {
+        saveAs(canvas.toDataURL(), 'screenshot.png');
+    });
+    });
     if (config.live) {
       io_master.gather();
     } else {
@@ -144,4 +153,19 @@ function gradio_url(config, url, target) {
       });
     });              
   }, target);
+}
+function saveAs(uri, filename) {
+  var link = document.createElement('a');
+  if (typeof link.download === 'string') {
+      link.href = uri;
+      link.download = filename;
+      //Firefox requires the link to be in the body
+      document.body.appendChild(link);
+      //simulate click
+      link.click();
+      //remove the link when done
+      document.body.removeChild(link);
+  } else {
+      window.open(uri);
+  }
 }
