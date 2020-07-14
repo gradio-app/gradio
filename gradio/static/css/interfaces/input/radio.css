@@ -1,11 +1,15 @@
 .radio_group {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   font-size: 18px;
+  margin-top: -12px;
+  margin-left: -16px;
 }
 .radio_group input {
-  margin: 0px 4px 0px 0px;
+  margin: 0px;
 }
 .radio_group label {
-  margin-right: 16px;
+  margin-top: 12px;
+  margin-left: 16px;
 }

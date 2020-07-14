@@ -6,12 +6,16 @@ const radio = {
     html = "<div class='radio_group'>"
     for ([index, choice] of opts.choices.entries()) {
       html += `
-        <input id="${this.id}_${index}" type="radio" name="${this.id}" value="${index}">
-        <label for="${this.id}_${index}">${choice}</label>`;
+        <label for="${this.id}_${index}">
+          <input id="${this.id}_${index}" type="radio" name="${this.id}" value="${index}">
+          ${choice}
+        </label>`;
     }
     html += "</div>"
     this.target.html(html);
-    this.target.find("input:first-child").prop("checked", true);    
+    this.target.find("input").checkboxradio();
+    this.target.find("label:first-child input").prop("checked", true);    
+    this.target.find("input").button("refresh");  
   },
   submit: function() {
     checked_val = this.target.find("input:checked").val();
@@ -19,10 +23,12 @@ const radio = {
   },
   clear: function() {
     this.target.find("input").prop("checked", false);    
-    this.target.find("input:first-child").prop("checked", true);    
+    this.target.find("label:first-child input").prop("checked", true);    
+    this.target.find("input").button("refresh");  
   },
   load_example: function(data) {
     let child = this.choices.indexOf(data) + 1;
     this.target.find("input:nth-child("+child+")").prop("checked", true);
+    this.target.find("input").button("refresh");  
   }
 }
