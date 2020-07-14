@@ -2,11 +2,11 @@
 
 # Welcome to `gradio`  :rocket:
 
+Quickly create customizable UI components around your TensorFlow or PyTorch models, or even arbitrary Python functions. Mix and match components to support any combination of inputs and outputs. Gradio makes it easy for you to "play around" with your model in your browser by dragging-and-dropping in your own images (or pasting your own text, recording your own voice, etc.) and seeing what the model outputs. You can also generate a share link which allows anyone, anywhere to use the interface as the model continues to run on your machine. Our core library is free and open-source! Take a look:
+
 <p align="center">
 <img src="https://i.ibb.co/m0skD0j/bert.gif" alt="drawing"/>
 </p>
-
-At Gradio, we often try to understand what inputs a model is particularly sensitive to. To help facilitate this, we've developed and open-sourced `gradio`, a python library that allows you to quickly create input and output interfaces over trained models to make it easy for you to "play around" with your model in your browser by dragging-and-dropping in your own images (or pasting your own text, recording your own voice, etc.) and seeing what the model outputs. `gradio` can also generate a share link which allows anyone, anywhere to use the interface as the model continues to run on your machine. 
 
 Gradio is useful for:
 * Creating demos of your machine learning code for clients / collaborators / users
