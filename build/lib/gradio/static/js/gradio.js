@@ -19,7 +19,6 @@ function gradio(config, fn, target) {
         </div>
         <div class="panel_buttons">
           <input class="screenshot panel_button" type="button" value="SCREENSHOT" style="visibility: hidden"/>
-          <input class="flag panel_button" type="button" value="FLAG" style="visibility: hidden"/>
         </div>
       </div>
     </div>`);
