@@ -1,7 +1,8 @@
 const checkbox = {
-  html: `<input class="checkbox" type="checkbox">`,
+  html: `<label><input class="checkbox" type="checkbox">&nbsp;</label>`,
   init: function(opts) {
     this.target.css("height", "auto");
+    this.target.find("input").checkboxradio();    
   },
   submit: function() {
     let io = this;
