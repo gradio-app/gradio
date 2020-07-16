@@ -117,9 +117,13 @@ def get_first_available_port(initial, final):
     )
 
 def send_prediction_analytics(interface):
-    data = {'input_interface': interface.input_interfaces,
+    data = {'title': interface.title,
+            'description': interface.description,
+            'thumbnail': interface.thumbnail,
+            'input_interface': interface.input_interfaces,
             'output_interface': interface.output_interfaces,
             }
+    print(data)
     try:
         requests.post(
             analytics_url + 'gradio-prediction-analytics/',
