@@ -1,8 +1,8 @@
-body {
+body#lib {
   font-family: 'Open Sans', sans-serif;
   margin: 20px 0 0;
   position: relative;
-  padding-bottom: 40px;
+  padding-bottom: 60px;
 }
 button, input[type="submit"], input[type="reset"], input[type="text"], input[type="button"], select[type="submit"] {
 	border: none;
@@ -87,7 +87,7 @@ button.secondary {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 8px;
+  bottom: 18pSx;
   height: 24px;
 }
 #credit a {
