@@ -80,7 +80,7 @@ gradio/static/js/vendor/fabric.js
 gradio/static/js/vendor/html2canvas.min.js
 gradio/static/js/vendor/jquery-ui.min.js
 gradio/static/js/vendor/jquery.min.js
-gradio/static/js/vendor/jquery.ui.touch-punch.min.js
+gradio/static/js/vendor/jquery.ui.touch-punch.js
 gradio/static/js/vendor/p5.dom.min.js
 gradio/static/js/vendor/p5.min.js
 gradio/static/js/vendor/p5.sound.min.js
