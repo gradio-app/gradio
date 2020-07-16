@@ -6,8 +6,8 @@ function gradio(config, fn, target) {
         <div class="input_interfaces">
         </div>          
         <div class="panel_buttons">
-          <input class="submit panel_button" type="submit" value="submit"/>
-          <input class="clear panel_button" type="reset" value="clear">
+          <input class="clear panel_button" type="reset" value="CLEAR">
+          <input class="submit panel_button" type="submit" value="SUBMIT"/>
         </div>
       </div>
       <div class="panel output_panel">
@@ -18,8 +18,7 @@ function gradio(config, fn, target) {
         <div class="output_interfaces">
         </div>
         <div class="panel_buttons">
-          <input class="screenshot panel_button" type="button" value="screenshot"/>
-          <input class="flag panel_button" type="button" value="flag"/>
+          <input class="screenshot panel_button" type="button" value="SCREENSHOT" style="visibility: hidden"/>
         </div>
       </div>
     </div>`);
