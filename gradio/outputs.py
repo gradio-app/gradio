@@ -21,6 +21,7 @@ class AbstractOutput(ABC):
     An abstract class for defining the methods that all gradio inputs should have.
     When this is subclassed, it is automatically added to the registry
     """
+
     def __init__(self, label):
         self.label = label
 
@@ -44,12 +45,56 @@ class AbstractOutput(ABC):
         return {}
 
 
+class Textbox(AbstractOutput):
+    '''
+    Component creates a textbox to render output text or number.
+    Output type: str
+    '''
+
+    def __init__(self, label=None):
+        '''
+        Parameters:
+        label (str): component name in interface.
+        '''
+        super().__init__(label)
+
+    def get_template_context(self):
+        return {
+            **super().get_template_context()
+        }
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "text": {},
+            "textbox": {},
+            "number": {},
+        }
+
+    def postprocess(self, prediction):
+        if isinstance(prediction, str) or isinstance(prediction, int) or isinstance(prediction, float):
+            return str(prediction)
+        else:
+            raise ValueError("The `Textbox` output interface expects an output that is one of: a string, or"
+                             "an int/float that can be converted to a string.")
+
+
 class Label(AbstractOutput):
+    '''
+    Component outputs a classification label, along with confidence scores of top categories if provided. Confidence scores are represented as a dictionary mapping labels to scores between 0 and 1.
+    Output type: Union[Dict[str, float], str, int, float]
+    '''
+
     LABEL_KEY = "label"
     CONFIDENCE_KEY = "confidence"
     CONFIDENCES_KEY = "confidences"
 
     def __init__(self, num_top_classes=None, label=None):
+        '''
+        Parameters:
+        num_top_classes (int): number of most confident classes to show.
+        label (str): component name in interface.
+        '''
         self.num_top_classes = num_top_classes
         super().__init__(label)
 
@@ -58,7 +103,7 @@ class Label(AbstractOutput):
             return {"label": str(prediction)}
         elif isinstance(prediction, dict):
             sorted_pred = sorted(
-                prediction.items(), 
+                prediction.items(),
                 key=operator.itemgetter(1),
                 reverse=True
             )
@@ -86,51 +131,18 @@ class Label(AbstractOutput):
         }
 
 
-class KeyValues(AbstractOutput):
-    def __init__(self, label=None):
-        super().__init__(label)
-
-    def postprocess(self, prediction):
-        if isinstance(prediction, dict):
-            return prediction
-        else:
-            raise ValueError("The `KeyValues` output interface expects an output that is a dictionary whose keys are "
-                             "labels and values are corresponding values.")
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "key_values": {},
-        }
-
-
-class Textbox(AbstractOutput):
-    def __init__(self, label=None):
-        super().__init__(label)
-
-    def get_template_context(self):
-        return {
-            **super().get_template_context()
-        }
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "text": {},
-            "textbox": {},
-            "number": {},
-        }
-
-    def postprocess(self, prediction):
-        if isinstance(prediction, str) or isinstance(prediction, int) or isinstance(prediction, float):
-            return str(prediction)
-        else:
-            raise ValueError("The `Textbox` output interface expects an output that is one of: a string, or"
-                             "an int/float that can be converted to a string.")
-
-
 class Image(AbstractOutput):
+    '''
+    Component displays an image. Expects a numpy array of shape `(width, height, 3)` to be returned by the function, or a `matplotlib.pyplot` if `plot = True`.
+    Output type: numpy.array
+    '''
+
     def __init__(self, plot=False, label=None):
+        '''
+        Parameters:
+        plot (bool): whether to expect a plot to be returned by the function.
+        label (str): component name in interface.
+        '''
         self.plot = plot
         super().__init__(label)
 
@@ -154,7 +166,8 @@ class Image(AbstractOutput):
             try:
                 return preprocessing_utils.encode_array_to_base64(prediction)
             except:
-                raise ValueError("The `Image` output interface (with plt=False) expects a numpy array.")
+                raise ValueError(
+                    "The `Image` output interface (with plt=False) expects a numpy array.")
 
     def rebuild_flagged(self, dir, msg):
         """
@@ -166,6 +179,33 @@ class Image(AbstractOutput):
                                           strftime("%Y-%m-%d-%H-%M-%S"))
         im.save('{}/{}'.format(dir, filename), 'PNG')
         return filename
+
+
+class KeyValues(AbstractOutput):
+    '''
+    Component displays a table representing values for multiple fields. 
+    Output type: List[Tuple[str, value]]
+    '''
+
+    def __init__(self, label=None):
+        '''
+        Parameters:
+        label (str): component name in interface.
+        '''
+        super().__init__(label)
+
+    def postprocess(self, prediction):
+        if isinstance(prediction, dict):
+            return prediction
+        else:
+            raise ValueError("The `KeyValues` output interface expects an output that is a dictionary whose keys are "
+                             "labels and values are corresponding values.")
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "key_values": {},
+        }
 
 
 # Automatically adds all shortcut implementations in AbstractInput into a dictionary.

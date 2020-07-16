@@ -60,11 +60,9 @@ input.panel_button {
   flex-grow: 1;
   padding: 12px;
   box-sizing: border-box;
-  text-transform: uppercase;
   font-weight: bold;
   border: 0 none;
   border-radius: 4px;
-  transition: background-color 0.2s ease;
   margin-left: 16px;
   flex-grow: 1;
 }
@@ -77,11 +75,6 @@ input.submit {
 }
 input.submit:hover {
   background-color: #f39c12;
-}
-label {
-  transition: background-color 0.2s ease;
-  padding: 2px 4px;
-  border-radius: 2px;
 }
 /* label:hover {
   background-color: lightgray;
