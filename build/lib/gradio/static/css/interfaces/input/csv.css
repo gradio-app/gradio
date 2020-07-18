@@ -15,7 +15,7 @@
   border-bottom: solid 1px black;
 }
 .csv_preview tr.header td {
-  background-color: #EEA45D;
+  background-color: #e67e22;
   font-weight: bold;
 }
 .csv_preview td {

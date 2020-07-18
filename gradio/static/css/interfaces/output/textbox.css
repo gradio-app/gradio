@@ -4,7 +4,8 @@
   outline: none;
   height: 100%;
   background-color: white;
-  border: solid 1px black;
+  border: solid 1px lightgray;
+  border-radius: 2px;
   box-sizing: border-box;
   padding: 4px;
   min-height: 30px;
