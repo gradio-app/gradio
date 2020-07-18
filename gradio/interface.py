@@ -268,7 +268,8 @@ class Interface:
 
         output_directory = tempfile.mkdtemp()
         # Set up a port to serve the directory containing the static files with interface.
-        server_port, httpd = networking.start_simple_server(self, output_directory, self.server_name)
+        server_port, httpd = networking.start_simple_server(self, output_directory, self.server_name,
+                                                            server_port=self.server_port)
         path_to_local_server = "http://{}:{}/".format(self.server_name, server_port)
         networking.build_template(output_directory)
 
