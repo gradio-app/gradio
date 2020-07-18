@@ -18,13 +18,12 @@ import sys
 import analytics
 
 
-INITIAL_PORT_VALUE = (
-    7860
-)  # The http server will try to open on port 7860. If not available, 7861, 7862, etc.
-TRY_NUM_PORTS = (
-    100
-)  # Number of ports to try before giving up and throwing an exception.
-LOCALHOST_NAME = os.getenv('GRADIO_SERVER_NAME', "127.0.0.1")
+INITIAL_PORT_VALUE = int(os.getenv(
+    'GRADIO_SERVER_PORT', "7860"))  # The http server will try to open on port 7860. If not available, 7861, 7862, etc.
+TRY_NUM_PORTS = int(os.getenv(
+    'GRADIO_NUM_PORTS', "100"))  # Number of ports to try before giving up and throwing an exception.
+LOCALHOST_NAME = os.getenv(
+    'GRADIO_SERVER_NAME', "127.0.0.1")
 GRADIO_API_SERVER = "https://api.gradio.app/v1/tunnel-request"
 
 STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "templates/")
@@ -231,9 +230,11 @@ def serve_files_in_background(interface, port, directory_to_serve=None, server_n
     return httpd
 
 
-def start_simple_server(interface, directory_to_serve=None, server_name=None):
+def start_simple_server(interface, directory_to_serve=None, server_name=None, server_port=None):
+    if server_port is None:
+        server_port = INITIAL_PORT_VALUE
     port = get_first_available_port(
-        INITIAL_PORT_VALUE, INITIAL_PORT_VALUE + TRY_NUM_PORTS
+        server_port, server_port + TRY_NUM_PORTS
     )
     httpd = serve_files_in_background(interface, port, directory_to_serve, server_name)
     return port, httpd
