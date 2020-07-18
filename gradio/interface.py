@@ -40,7 +40,7 @@ class Interface:
     def __init__(self, fn, inputs, outputs, saliency=None, verbose=False, examples=None,
                  live=False, show_input=True, show_output=True,
                  capture_session=False, title=None, description=None,
-                 thumbnail=None, server_name=networking.LOCALHOST_NAME):
+                 thumbnail=None,  server_port=None, server_name=networking.LOCALHOST_NAME):
         """
         Parameters:
         fn (Callable): the function to wrap an interface around.
@@ -97,7 +97,7 @@ class Interface:
         self.description = description
         self.thumbnail = thumbnail
         self.examples = examples
-        self.server_port = None
+        self.server_port = server_port
         self.simple_server = None
         Interface.instances.add(self)
 
@@ -270,7 +270,8 @@ class Interface:
 
         output_directory = tempfile.mkdtemp()
         # Set up a port to serve the directory containing the static files with interface.
-        server_port, httpd = networking.start_simple_server(self, output_directory, self.server_name)
+        server_port, httpd = networking.start_simple_server(self, output_directory, self.server_name,
+                                                            server_port=self.server_port)
         path_to_local_server = "http://{}:{}/".format(self.server_name, server_port)
         networking.build_template(output_directory)
 
