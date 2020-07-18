@@ -33,7 +33,7 @@
 }
 .saliency > div > div {
   flex-grow: 1;
-  background-color: #EEA45D;
+  background-color: #e67e22;
 }
 .image_preview {
   max-width: 100%;
@@ -65,4 +65,36 @@
   border: none !important;
   margin-left: 10px !important;
   font-family: 'Open Sans', sans-serif !important;
+}
+.upload_zone {
+  font-weight: bold;
+  font-size: 24px;
+  color: #BBB;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.5em;
+  flex-flow: column;
+}
+.upload_zone img {
+  height: 120px;
+}
+.drop_zone {
+  border: dashed 8px #DDD;
+}
+.edit_holder {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 6px;
+}
+.interface_button {
+  padding: 6px;
+  text-transform: uppercase;
+  font-weight: bold;
+  font-size: 14px;
 }

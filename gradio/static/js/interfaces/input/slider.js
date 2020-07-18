@@ -1,18 +1,14 @@
 const slider = {
   html: `
     <div class="slider_container">
-      <span class="min"></span>
-      <input type="range" class="slider">
-      <span class="max"></span>:
-      <div class="value"></div>
+      <div class="slider">
+        <div class="ui-slider-handle"></div>
+      </div>
     </div>`,
   init: function(opts) {
     let io = this;
     this.minimum = opts.minimum;
     this.target.css("height", "auto");
-    this.target.find(".min").text(opts.minimum);
-    this.target.find(".max").text(opts.maximum);
-    this.target.find(".value").text(opts.default);
     let difference = opts.maximum - opts.minimum;
     if (difference <= 1) {
       step = 0.01;
@@ -21,17 +17,21 @@ const slider = {
     } else {
       step = 1;
     }
-    this.target.find(".slider")
-      .attr("min", opts.minimum)
-      .attr("max", opts.maximum)
-      .attr("value", opts.default)
-      .attr("step", step)
-      .on("change", function() {
-        io.target.find(".value").text($(this).val());
-      }).change()
+    var handle = this.target.find(".ui-slider-handle");
+    this.slider = this.target.find(".slider").slider({
+      create: function() {
+        handle.text( $( this ).slider( "value" ) );
+      },
+      slide: function( event, ui ) {
+        handle.text( ui.value );
+      },
+      min: opts.minimum,
+      max: opts.maximum,
+      step: step
+    });
   },
   submit: function() {
-    let value = this.target.find("input").val();
+    let value = this.slider.slider("value");
     this.io_master.input(this.id, parseFloat(value));
   },
   clear: function() {

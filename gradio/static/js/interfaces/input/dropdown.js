@@ -9,6 +9,7 @@ const dropdown = {
     }
     html += "</select>"
     this.target.html(html);
+    this.target.find(".dropdown").selectmenu();
   },
   submit: function() {
     checked_val = this.target.find("option:selected").val();

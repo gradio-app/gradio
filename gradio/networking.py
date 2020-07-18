@@ -116,6 +116,21 @@ def get_first_available_port(initial, final):
         )
     )
 
+def send_prediction_analytics(interface):
+    data = {'title': interface.title,
+            'description': interface.description,
+            'thumbnail': interface.thumbnail,
+            'input_interface': interface.input_interfaces,
+            'output_interface': interface.output_interfaces,
+            }
+    print(data)
+    try:
+        requests.post(
+            analytics_url + 'gradio-prediction-analytics/',
+            data=data)
+    except requests.ConnectionError:
+        pass  # do not push analytics if no network
+
 
 def serve_files_in_background(interface, port, directory_to_serve=None, server_name=LOCALHOST_NAME):
     class HTTPHandler(SimpleHTTPRequestHandler):
@@ -160,17 +175,11 @@ def serve_files_in_background(interface, port, directory_to_serve=None, server_n
                 #         f.write(json.dumps(output_flag))
                 #         f.write("\n")
 
-                # Prepare return json dictionary.
                 self.wfile.write(json.dumps(output).encode())
-                data = {'input_interface': interface.input_interfaces,
-                        'output_interface': interface.output_interfaces,
-                        }
-                try:
-                    requests.post(
-                        analytics_url + 'gradio-prediction-analytics/',
-                        data=data)
-                except requests.ConnectionError:
-                    pass  # do not push analytics if no network
+
+                analytics_thread = threading.Thread(
+                    target=send_prediction_analytics, args=[interface])
+                analytics_thread.start()
 
             elif self.path == "/api/flag/":
                 self._set_headers()

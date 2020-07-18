@@ -6,12 +6,14 @@ const checkbox_group = {
     html = "<div class='checkbox_group'>"
     for ([index, choice] of opts.choices.entries()) {
       html += `
-        <label for="${this.id}_${index}">${choice}
+        <label for="${this.id}_${index}">
           <input id="${this.id}_${index}" type="checkbox" name="${this.id}" value="${index}">
+          ${choice}
         </label>`;
     }
     html += "</div>"
     this.target.html(html);
+    this.target.find("input").checkboxradio();
   },
   submit: function() {
     let io = this;
@@ -23,6 +25,7 @@ const checkbox_group = {
   },
   clear: function() {
     this.target.find("input").prop("checked", false);    
+    this.target.find("input").button("refresh");  
   },
   load_example: function(data) {
     for (let [i, choice] of this.choices.entries()) {
@@ -35,5 +38,6 @@ const checkbox_group = {
         checkbox.prop("checked", false);
       }
     }
+    this.target.find("input").button("refresh");  
   }
 }

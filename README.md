@@ -1,10 +1,12 @@
-[![CircleCI](https://circleci.com/gh/gradio-app/gradio-UI.svg?style=svg)](https://circleci.com/gh/gradio-app/gradio) [![PyPI version](https://badge.fury.io/py/gradio.svg)](https://badge.fury.io/py/gradio)
+[![CircleCI](https://circleci.com/gh/gradio-app/gradio.svg?style=svg)](https://circleci.com/gh/gradio-app/gradio) [![PyPI version](https://badge.fury.io/py/gradio.svg)](https://badge.fury.io/py/gradio)
 
-# Gradio UI
+# Welcome to `gradio`  :rocket:
 
-<img src="https://i.ibb.co/GHRk2JP/header-2.png" alt="drawing" width="1000"/>
+Quickly create customizable UI components around your TensorFlow or PyTorch models, or even arbitrary Python functions. Mix and match components to support any combination of inputs and outputs. Gradio makes it easy for you to "play around" with your model in your browser by dragging-and-dropping in your own images (or pasting your own text, recording your own voice, etc.) and seeing what the model outputs. You can also generate a share link which allows anyone, anywhere to use the interface as the model continues to run on your machine. Our core library is free and open-source! Take a look:
 
-At Gradio, we often try to understand what inputs a model is particularly sensitive to. To help facilitate this, we've developed and open-sourced `gradio`, a python library that allows you to quickly create input and output interfaces over trained models to make it easy for you to "play around" with your model in your browser by dragging-and-dropping in your own images (or pasting your own text, recording your own voice, etc.) and seeing what the model outputs. `gradio` can also generate a share link which allows anyone, anywhere to use the interface as the model continues to run on your machine. 
+<p align="center">
+<img src="https://i.ibb.co/m0skD0j/bert.gif" alt="drawing"/>
+</p>
 
 Gradio is useful for:
 * Creating demos of your machine learning code for clients / collaborators / users
@@ -42,11 +44,11 @@ The core Interface class is initialized with three parameters:
 - `inputs`: the name of the input interface
 - `outputs`: the name of the output interface
 
-Calling the `launch()` function of the `Interface` object produces the interface shown in image below. Click on the screenshot to go the live interface in our getting started page. 
+Calling the `launch()` function of the `Interface` object produces the interface shown in image below. Click on the gif to go the live interface in our getting started page. 
 
 <a href="https://gradio.app/getting_started#interface_4">
 <p align="center">
-<img src="https://i.ibb.co/Z8p7gLZ/hello-world.png" alt="drawing"/>
+<img src="https://i.ibb.co/T4Rqs5y/hello-name.gif" alt="drawing"/>
 </p>
 </a>
 
@@ -89,7 +91,7 @@ and postprocessing (e.g. choosing the number of labels to display) provided by t
 interfaces.
 
 <p align="center">
-<img src="https://i.ibb.co/BtRNc62/inception-net.png" alt="drawing"/>
+<img src="https://i.ibb.co/X8KGJqB/inception-net-2.gif" alt="drawing"/>
 </p>
 
 You can supply your own model instead of the pretrained model above, as well as use different kinds of models or functions. Here's a list of the interfaces we currently support, along with their preprocessing / postprocessing parameters:
@@ -141,7 +143,7 @@ gr.Interface(fn=recognize_digit, inputs=sketchpad,
 This code will produce the interface below.
 
 <p align="center">
-<img src="https://i.ibb.co/9n2mGgk/mnist-live.png" alt="drawing"/>
+<img src="https://i.ibb.co/vkgZLcH/gif6.gif" alt="drawing"/>
 </p>
 
 ## Contributing:
