@@ -241,12 +241,15 @@ class Image(AbstractInput):
     def __init__(self, shape=(224, 224), image_mode='RGB', label=None):
         '''
         Parameters:
-        shape (Tuple[int, int]): shape to crop and resize image to.
+        shape (Tuple[int, int]): shape to crop and resize image to; if None, matches input image size.
         image_mode (str): "RGB" if color, or "L" if black and white.
         label (str): component name in interface.
         '''
-        self.image_width = shape[0]
-        self.image_height = shape[1]
+        if shape is None:
+            self.image_width, self.image_height = None, None
+        else:
+            self.image_width = shape[0]
+            self.image_height = shape[1]
         self.image_mode = image_mode
         super().__init__(label)
 
@@ -272,9 +275,13 @@ class Image(AbstractInput):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             im = im.convert(self.image_mode)
-
+        image_width, image_height = self.image_width, self.image_height
+        if image_width is None:
+            image_width = im.size[0]
+        if image_height is None:
+            image_height = im.size[1]
         im = preprocessing_utils.resize_and_crop(
-            im, (self.image_width, self.image_height))
+            im, (image_width, image_height))
         return np.array(im)
 
     def process_example(self, example):
