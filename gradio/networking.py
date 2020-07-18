@@ -231,7 +231,9 @@ def serve_files_in_background(interface, port, directory_to_serve=None, server_n
     return httpd
 
 
-def start_simple_server(interface, directory_to_serve=None, server_name=None, server_port=INITIAL_PORT_VALUE):
+def start_simple_server(interface, directory_to_serve=None, server_name=None, server_port=None):
+    if server_port is None:
+        server_port = INITIAL_PORT_VALUE
     port = get_first_available_port(
         server_port, server_port + TRY_NUM_PORTS
     )

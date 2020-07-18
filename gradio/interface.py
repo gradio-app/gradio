@@ -40,7 +40,7 @@ class Interface:
     def __init__(self, fn, inputs, outputs, saliency=None, verbose=False, examples=None,
                  live=False, show_input=True, show_output=True,
                  capture_session=False, title=None, description=None,
-                 thumbnail=None, server_name=networking.LOCALHOST_NAME):
+                 thumbnail=None,  server_port=None, server_name=networking.LOCALHOST_NAME):
         """
         Parameters:
         fn (Callable): the function to wrap an interface around.
@@ -97,7 +97,7 @@ class Interface:
         self.description = description
         self.thumbnail = thumbnail
         self.examples = examples
-        self.server_port = None
+        self.server_port = server_port
         self.simple_server = None
         Interface.instances.add(self)
 
