@@ -1,7 +1,10 @@
 const checkbox = {
-  html: `<input class="checkbox" type="checkbox">`,
+  html: `<div class="checkbox_solo">
+    <label><input class="checkbox" type="checkbox">&nbsp;</label>
+  </div>`,
   init: function(opts) {
     this.target.css("height", "auto");
+    this.target.find("input").checkboxradio();    
   },
   submit: function() {
     let io = this;
@@ -10,6 +13,7 @@ const checkbox = {
   },
   clear: function() {
     this.target.find("input").prop("checked", false);    
+    this.target.find("input").button("refresh");  
   },
   load_example: function(data) {
     if (data) {
@@ -17,5 +21,6 @@ const checkbox = {
     } else {
       this.target.find("input").prop("checked", false);
     }
+    this.target.find("input").button("refresh");  
   }
 }

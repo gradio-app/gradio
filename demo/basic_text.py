@@ -1,5 +1,5 @@
 import gradio as gr
-
+import numpy as np
 
 def answer_question(quantity, animal, place, activity_list, morning, etc):
     return f"""The {quantity} {animal}s went to the {place} where they {" and ".join(activity_list)} until the {"morning" if morning else "night"}""", "OK"
@@ -19,9 +19,9 @@ gr.Interface(answer_question,
                 gr.outputs.Textbox(),
             ],
             examples=[
-                [2, "cat", "park", ["ran", "swam"], True],
-                [4, "dog", "zoo", ["ate", "swam"], False],
-                [10, "bird", "road", ["ran"], False],
-                [8, "cat", "zoo", ["ate"], True],
-            ]
+                [2, "cat", "park", ["ran", "swam"], True, "t1"],
+                [4, "dog", "zoo", ["ate", "swam"], False, "t2"],
+                [10, "bird", "road", ["ran"], False, "t3"],
+                [8, "cat", "zoo", ["ate"], True, "t1"],
+            ],
             ).launch()

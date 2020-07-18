@@ -18,6 +18,12 @@
       <!-- <iframe src=""></iframe> -->
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Gradio</title>
+    <!-- VENDOR -->
+    <link type="text/css" href="../static/css/vendor/tui-color-picker.css" rel="stylesheet">
+    <link type="text/css" href="../static/css/vendor/tui-image-editor.css" rel="stylesheet">
+    <link type="text/css" href="../static/css/vendor/jquery-ui.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+
     <link rel="stylesheet" href="../static/css/style.css">
     <link rel="stylesheet" href="../static/css/gradio.css">
     <link rel="stylesheet" href="../static/css/interfaces/input/csv.css">
@@ -28,7 +34,6 @@
     <link rel="stylesheet" href="../static/css/interfaces/input/dropdown.css">
     <link rel="stylesheet" href="../static/css/interfaces/input/checkbox_group.css">
     <link rel="stylesheet" href="../static/css/interfaces/input/slider.css">
-    <link rel="stylesheet" href="../static/css/interfaces/input/csv.css">
     <link rel="stylesheet" href="../static/css/interfaces/input/webcam.css">
     <link rel="stylesheet" href="../static/css/interfaces/input/microphone.css">
     <link rel="stylesheet" href="../static/css/interfaces/output/image.css">
@@ -36,15 +41,9 @@
     <link rel="stylesheet" href="../static/css/interfaces/output/key_values.css">
     <link rel="stylesheet" href="../static/css/interfaces/output/textbox.css">
     <link rel="stylesheet" href="../static/css/loading.css"/>
-    <!-- TUI EDITOR -->
-    <link type="text/css" href="../static/css/vendor/tui-color-picker.css" rel="stylesheet">
-    <link type="text/css" href="../static/css/vendor/tui-image-editor.css" rel="stylesheet">
   </head>
 
-  <body>
-    <nav>
-      <a href="https://gradio.app"><img src="../static/img/logo_inline.png" /></a>
-    </nav>
+  <body id="lib">
     <div id="share" class="invisible">
       Live at <a id="share-link" target="_blank"></a>.
       <button id="share-copy">Copy Link</button>
@@ -59,8 +58,12 @@
       <table>
       </table>
     </div>
+    <div id="credit">Built with <a href="https://github.com/gradio-app/gradio" target="_blank">Gradio</a>.</div>
+    <!-- VENDOR -->
     <script src="../static/js/vendor/jquery.min.js"></script>
-    <!-- TUI EDITOR -->
+    <script src="../static/js/vendor/html2canvas.min.js"></script>
+    <script src="../static/js/vendor/jquery-ui.min.js"></script>
+    <script src="../static/js/vendor/jquery.ui.touch-punch.js"></script>
     <script src="../static/js/vendor/fabric.js"></script>
     <script src="../static/js/vendor/tui-code-snippet.min.js"></script>
     <script src="../static/js/vendor/FileSaver.min.js"></script>

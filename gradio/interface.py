@@ -33,8 +33,7 @@ except requests.ConnectionError:
 
 class Interface:
     """
-    The Interface class represents a general input/output interface for a machine learning model. During construction,
-    the appropriate inputs and outputs
+    Interfaces are created with Gradio using the `gradio.Interface()` function.
     """
     instances = weakref.WeakSet()
 
@@ -43,9 +42,15 @@ class Interface:
                  capture_session=False, title=None, description=None,
                  thumbnail=None, server_name=networking.LOCALHOST_NAME):
         """
-        :param fn: a function that will process the input panel data from the interface and return the output panel data.
-        :param inputs: a string or `AbstractInput` representing the input interface.
-        :param outputs: a string or `AbstractOutput` representing the output interface.
+        Parameters:
+        fn (Callable): the function to wrap an interface around.
+        inputs (Union[str, List[Union[str, AbstractInput]]]): a single Gradio input component, or list of Gradio input components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of input components should match the number of parameters in fn.
+        outputs (Union[str, List[Union[str, AbstractOutput]]]): a single Gradio output component, or list of Gradio output components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of output components should match the number of values returned by fn.
+        live (bool): whether the interface should automatically reload on change.
+        capture_session (bool): if True, captures the default graph and session (needed for Tensorflow 1.x)
+        title (str): a title for the interface; if provided, appears above the input and output components.
+        description (str): a description for the interface; if provided, appears above the input and output components.
+        examples (List[List[Any]]): sample inputs for the function; if provided, appears below the UI components and can be used to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component.
         """
         def get_input_instance(iface):
             if isinstance(iface, str):
@@ -257,11 +262,8 @@ class Interface:
 
     def launch(self, inline=None, inbrowser=None, share=False, validate=True, debug=False):
         """
-        Standard method shared by interfaces that creates the interface and sets up a websocket to communicate with it.
-        :param inline: boolean. If True, then a gradio interface is created inline (e.g. in jupyter or colab notebook)
-        :param inbrowser: boolean. If True, then a new browser window opens with the gradio interface.
-        :param share: boolean. If True, then a share link is generated using ngrok is displayed to the user.
-        :param validate: boolean. If True, then the validation is run if the interface has not already been validated.
+        Parameters
+        share (bool): whether to create a publicly shareable link from your computer for the interface.
         """
         # if validate and not self.validate_flag:
         #     self.validate()
