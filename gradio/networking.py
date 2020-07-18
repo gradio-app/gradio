@@ -18,13 +18,12 @@ import sys
 import analytics
 
 
-INITIAL_PORT_VALUE = (
-    7860
-)  # The http server will try to open on port 7860. If not available, 7861, 7862, etc.
-TRY_NUM_PORTS = (
-    100
-)  # Number of ports to try before giving up and throwing an exception.
-LOCALHOST_NAME = os.getenv('GRADIO_SERVER_NAME', "127.0.0.1")
+INITIAL_PORT_VALUE = os.getenv(
+    'GRADIO_SERVER_PORT', "7860")  # The http server will try to open on port 7860. If not available, 7861, 7862, etc.
+TRY_NUM_PORTS = os.getenv(
+    'GRADIO_NUM_PORTS', "100")  # Number of ports to try before giving up and throwing an exception.
+LOCALHOST_NAME = os.getenv(
+    'GRADIO_SERVER_NAME', "127.0.0.1")
 GRADIO_API_SERVER = "https://api.gradio.app/v1/tunnel-request"
 
 STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "templates/")
