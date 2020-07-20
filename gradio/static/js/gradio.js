@@ -18,7 +18,7 @@ function gradio(config, fn, target) {
         <div class="output_interfaces">
         </div>
         <div class="panel_buttons">
-          <input class="screenshot panel_button" type="button" value="SCREENSHOT" style="visibility: hidden"/>
+          <input class="screenshot panel_button" type="button" value="SCREENSHOT"/>
         </div>
       </div>
     </div>`);
@@ -121,6 +121,9 @@ function gradio(config, fn, target) {
       io_master.last_input = null;
       io_master.last_output = null;
     });
+    if (config["allow_screenshot"]) {
+      target.find(".screenshot").css("visibility", "visible");
+    }
     target.find(".screenshot").click(function() {
       html2canvas(target[0]).then(function(canvas) {
         saveAs(canvas.toDataURL(), 'screenshot.png');
