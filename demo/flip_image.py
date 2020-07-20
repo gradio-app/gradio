@@ -13,8 +13,8 @@ def flip2(image):
     return np.fliplr(image)
 
 
-gr.Interface([flip, flip2], 
-             gr.inputs.Image(shape=(50, 50, 3)), 
+gr.Interface(flip, 
+             gr.inputs.Image(), 
              ["image"],
              examples=[
                  ["images/cheetah1.jpg"],

@@ -238,7 +238,7 @@ class Image(AbstractInput):
     Input type: numpy.array
     """
 
-    def __init__(self, shape=(224, 224), image_mode='RGB', label=None):
+    def __init__(self, shape=None, image_mode='RGB', label=None):
         '''
         Parameters:
         shape (Tuple[int, int]): shape to crop and resize image to; if None, matches input image size.
