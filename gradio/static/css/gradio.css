@@ -97,3 +97,6 @@ input.submit:hover {
 .invisible {
   display: none !important;
 }
+.screenshot {
+  visibility: hidden;
+}
