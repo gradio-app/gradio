@@ -90,9 +90,6 @@ button.secondary {
   bottom: 18px;
   height: 24px;
 }
-#credit a {
-  text-decoration: none;
-  color: cornflowerblue;
-  font-weight: bold;
-
+#credit img {
+  height: 24px;
 }
