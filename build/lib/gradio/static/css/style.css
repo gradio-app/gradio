@@ -87,12 +87,9 @@ button.secondary {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 18pSx;
+  bottom: 18px;
   height: 24px;
 }
-#credit a {
-  text-decoration: none;
-  color: cornflowerblue;
-  font-weight: bold;
-
+#credit img {
+  height: 24px;
 }
