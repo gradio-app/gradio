@@ -6,7 +6,6 @@
 }
 .view_holders {
   flex-grow: 1;
-  height: calc(100% - 36px);
   background-color: #CCCCCC;
   position: relative;
 }
@@ -90,7 +89,11 @@
 .edit_holder {
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 6px;
+  position: relative;
+}
+.edit_image {
+  position: absolute;
+  z-index: 1;
 }
 .interface_button {
   padding: 6px;
