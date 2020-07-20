@@ -40,7 +40,8 @@ class Interface:
     def __init__(self, fn, inputs, outputs, saliency=None, verbose=False, examples=None,
                  live=False, show_input=True, show_output=True,
                  capture_session=False, title=None, description=None,
-                 thumbnail=None,  server_port=None, server_name=networking.LOCALHOST_NAME):
+                 thumbnail=None,  server_port=None, server_name=networking.LOCALHOST_NAME,
+                 allow_screenshot=True):
         """
         Parameters:
         fn (Callable): the function to wrap an interface around.
@@ -99,6 +100,7 @@ class Interface:
         self.examples = examples
         self.server_port = server_port
         self.simple_server = None
+        self.allow_screenshot = allow_screenshot
         Interface.instances.add(self)
 
         data = {'fn': fn,
@@ -138,7 +140,8 @@ class Interface:
             "show_output": self.show_output,
             "title": self.title,
             "description": self.description,
-            "thumbnail": self.thumbnail
+            "thumbnail": self.thumbnail,
+            "allow_screenshot": self.allow_screenshot
         }
         try:
             param_names = inspect.getfullargspec(self.predict[0])[0]
