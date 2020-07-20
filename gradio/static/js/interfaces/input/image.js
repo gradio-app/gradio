@@ -80,7 +80,7 @@ const image_input = {
   submit: function() {
     var io = this;
     if (this.state == "IMAGE_LOADED") {
-      resizeImage.call(this, this.image_data, 300, 300, function(image_data) {
+      resizeImage.call(this, this.image_data, 600, 600, function(image_data) {
         io.io_master.input(io.id, image_data);
       })
     }
