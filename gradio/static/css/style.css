@@ -65,6 +65,7 @@ button.secondary {
   background-color: whitesmoke;
   border-right: solid 4px whitesmoke;
   border-left: solid 4px whitesmoke;
+  border-bottom: solid 4px whitesmoke;
 }
 #examples th {
   padding: 8px 16px;
