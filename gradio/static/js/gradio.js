@@ -130,7 +130,10 @@ function gradio(config, fn, target) {
     target.find(".screenshot").click(function() {
       $(".screenshot").hide();
       $(".screenshot_logo").show();
-      html2canvas(target[0]).then(function(canvas) {
+      html2canvas(target[0], {
+        scrollX: 0,
+        scrollY: -window.scrollY
+      }).then(function(canvas) {
         saveAs(canvas.toDataURL(), 'screenshot.png');
         $(".screenshot").show();
         $(".screenshot_logo").hide();
