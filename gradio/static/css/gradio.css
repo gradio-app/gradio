@@ -57,7 +57,6 @@ input.submit {
 }
 input.panel_button {
   background-color: whitesmoke;
-  flex-grow: 1;
   padding: 12px;
   box-sizing: border-box;
   font-weight: bold;
@@ -99,4 +98,15 @@ input.submit:hover {
 }
 .screenshot {
   visibility: hidden;
+}
+.screenshot_logo {
+  display: none;
+  flex-grow: 1;
+  text-align: center;
+  padding: 4px;
+  box-sizing: border-box;
+  margin-left: 16px;
+}
+.screenshot_logo img {
+  height: 38px;
 }

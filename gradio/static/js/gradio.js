@@ -19,6 +19,9 @@ function gradio(config, fn, target) {
         </div>
         <div class="panel_buttons">
           <input class="screenshot panel_button" type="button" value="SCREENSHOT"/>
+          <div class="screenshot_logo">
+            <img src="static/img/logo_inline.png">
+          </div>
         </div>
       </div>
     </div>`);
@@ -125,9 +128,13 @@ function gradio(config, fn, target) {
       target.find(".screenshot").css("visibility", "visible");
     }
     target.find(".screenshot").click(function() {
+      $(".screenshot").hide();
+      $(".screenshot_logo").show();
       html2canvas(target[0]).then(function(canvas) {
         saveAs(canvas.toDataURL(), 'screenshot.png');
-    });
+        $(".screenshot").show();
+        $(".screenshot_logo").hide();
+      });
     });
     if (config.live) {
       io_master.gather();
