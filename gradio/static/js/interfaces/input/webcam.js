@@ -23,13 +23,15 @@ const webcam = {
     Webcam.snap(function(image_data) {
       io.io_master.input(io.id, image_data);
     });
-    // Webcam.freeze();
+    Webcam.freeze();
+    this.target.find("video").hide();    
     this.state = "SNAPPED";
   },
   clear: function() {
     if (this.state == "SNAPPED") {
       this.state = "CAMERA_ON";
-      // Webcam.unfreeze();
+      Webcam.unfreeze();
+      this.target.find("video").show();    
     }
   },
   state: "NOT_STARTED",
