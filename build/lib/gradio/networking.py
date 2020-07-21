@@ -63,7 +63,6 @@ def render_template_with_tags(template_path, context):
     :param template_path: a string with the path to the template file
     :param context: a dictionary whose string keys are the tags to replace and whose string values are the replacements.
     """
-    print(template_path, context)
     with open(template_path) as fin:
         old_lines = fin.readlines()
     new_lines = render_string_or_list_with_tags(old_lines, context)
@@ -86,6 +85,19 @@ def render_string_or_list_with_tags(old_lines, context):
             line = line.replace(r"{{" + key + r"}}", str(value))
         new_lines.append(line)
     return new_lines
+
+
+def set_meta_tags(temp_dir, title, description, thumbnail):
+    title = "Gradio" if title is None else title
+    description = "Easy-to-use UI for your machine learning model" if description is None else description
+    thumbnail = "https://gradio.app/static/img/logo_only.png" if thumbnail is None else thumbnail
+
+    index_file = os.path.join(temp_dir, TEMPLATE_TEMP)
+    render_template_with_tags(index_file, {
+        "title": title,
+        "description": description,
+        "thumbnail": thumbnail
+    })
 
 
 def set_config(config, temp_dir):
@@ -114,6 +126,7 @@ def get_first_available_port(initial, final):
             initial, final
         )
     )
+
 
 def send_prediction_analytics(interface):
     data = {'title': interface.title,

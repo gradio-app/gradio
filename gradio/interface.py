@@ -389,6 +389,7 @@ class Interface:
             config["examples"] = processed_examples
 
         networking.set_config(config, output_directory)
+        networking.set_meta_tags(output_directory, self.title, self.description, self.thumbnail)
 
         if debug:
             while True:
@@ -411,7 +412,7 @@ class Interface:
 
     @classmethod
     def get_instances(cls):
-        return list(Interface.instances) #Returns list of all current instances
+        return list(Interface.instances)  # Returns list of all current instances.
 
 
 def reset_all():
