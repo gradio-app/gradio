@@ -63,6 +63,11 @@ class AbstractInput(ABC):
         """
         return {}
 
+    def rebuild_flagged(self, dir, msg):
+        """
+        All interfaces should define a method that rebuilds the flagged input when it's passed back (i.e. rebuilds image from base64)
+        """
+        pass
 
 class Textbox(AbstractInput):
     """
@@ -289,6 +294,16 @@ class Image(AbstractInput):
             return preprocessing_utils.convert_file_to_base64(example)
         else:
             return example
+
+    def rebuild_flagged(self, dir, msg):
+        """
+        Default rebuild method to decode a base64 image
+        """
+        im = preprocessing_utils.decode_base64_to_image(msg)
+        timestamp = datetime.datetime.now()
+        filename = f'input_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.png'
+        im.save(f'{dir}/{filename}', 'PNG')
+        return filename
 
 
 class Sketchpad(AbstractInput):

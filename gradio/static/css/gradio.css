@@ -75,6 +75,10 @@ input.submit {
 input.submit:hover {
   background-color: #f39c12;
 }
+
+.flag.flagged {
+  background-color: pink;
+}
 /* label:hover {
   background-color: lightgray;
 } */
