@@ -135,7 +135,6 @@ def send_prediction_analytics(interface):
             'input_interface': interface.input_interfaces,
             'output_interface': interface.output_interfaces,
             }
-    print(data)
     try:
         requests.post(
             analytics_url + 'gradio-prediction-analytics/',
