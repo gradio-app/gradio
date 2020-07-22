@@ -1,6 +1,12 @@
-.output_image {
+.output_image_holder {
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  display: none
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.output_image {
+  max-width: 100%;
+  max-height: 100%;
+  display: none;
 }
