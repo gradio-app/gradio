@@ -208,6 +208,95 @@ class KeyValues(AbstractOutput):
         }
 
 
+class HighlightedText(AbstractOutput):
+    '''
+    Component creates text that contains spans that are highlighted by category or numerical value.
+    Output is represent as a list of Tuple pairs, where the first element represents the span of text represented by the tuple, and the second element represents the category or value of the text.
+    Output type: List[Tuple[str, Union[float, str]]]
+    '''
+
+    def __init__(self, category_colors=None, label=None):
+        '''
+        Parameters:
+        category_colors (Dict[str, float]): 
+        label (str): component name in interface.
+        '''
+        super().__init__(label)
+
+    def get_template_context(self):
+        return {
+            **super().get_template_context()
+        }
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "highlight": {},
+        }
+
+    def postprocess(self, prediction):
+        if isinstance(prediction, str) or isinstance(prediction, int) or isinstance(prediction, float):
+            return str(prediction)
+        else:
+            raise ValueError("The `Textbox` output interface expects an output that is one of: a string, or"
+                             "an int/float that can be converted to a string.")
+
+
+class JSON(AbstractOutput):
+    '''
+    Used for JSON output. Expects a JSON string or a Python dictionary or list that can be converted to JSON. 
+    Output type: Union[str, Dict[str, Any], List[Any]]
+    '''
+
+    def __init__(self, label=None):
+        '''
+        Parameters:
+        label (str): component name in interface.
+        '''
+        super().__init__(label)
+
+    def postprocess(self, prediction):
+        if isinstance(prediction, dict) or isinstance(prediction, list):
+            return json.dumps(prediction)
+        elif isinstance(prediction, str):
+            return prediction
+        else:
+            raise ValueError("The `JSON` output interface expects an output that is a dictionary or list "
+                             "or a preformatted JSON string.")
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "json": {},
+        }
+
+
+class HTML(AbstractOutput):
+    '''
+    Used for HTML output. Expects a JSON string or a Python dictionary or list that can be converted to JSON. 
+    Output type: str
+    '''
+
+    def __init__(self, label=None):
+        '''
+        Parameters:
+        label (str): component name in interface.
+        '''
+        super().__init__(label)
+
+    def postprocess(self, prediction):
+        if isinstance(prediction, str):
+            return prediction
+        else:
+            raise ValueError("The `HTML` output interface expects an output that is a str.")
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "html": {},
+        }
+
+
 # Automatically adds all shortcut implementations in AbstractInput into a dictionary.
 shortcuts = {}
 for cls in AbstractOutput.__subclasses__():
