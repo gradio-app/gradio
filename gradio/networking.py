@@ -36,7 +36,7 @@ CONFIG_FILE = "static/config.json"
 ASSOCIATION_PATH_IN_STATIC = "static/apple-app-site-association"
 ASSOCIATION_PATH_IN_ROOT = "apple-app-site-association"
 
-FLAGGING_DIRECTORY = 'static/flagged/'
+FLAGGING_DIRECTORY = 'flagged/'
 FLAGGING_FILENAME = 'data.txt'
 analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
 analytics_url = 'https://api.gradio.app/'
@@ -175,16 +175,6 @@ def serve_files_in_background(interface, port, directory_to_serve=None, server_n
                 if interface.saliency is not None:
                     saliency = interface.saliency(raw_input, prediction)
                     output['saliency'] = saliency.tolist()
-                # if interface.always_flag:
-                #     msg = json.loads(data_string)
-                #     flag_dir = os.path.join(FLAGGING_DIRECTORY, str(interface.hash))
-                #     os.makedirs(flag_dir, exist_ok=True)
-                #     output_flag = {'input': interface.input_interface.rebuild_flagged(flag_dir, msg['data']),
-                #               'output': interface.output_interface.rebuild_flagged(flag_dir, processed_output),
-                #               }
-                #     with open(os.path.join(flag_dir, FLAGGING_FILENAME), 'a+') as f:
-                #         f.write(json.dumps(output_flag))
-                #         f.write("\n")
 
                 self.wfile.write(json.dumps(output).encode())
 

@@ -44,6 +44,12 @@ class AbstractOutput(ABC):
         """
         return {}
 
+    def rebuild_flagged(self, dir, msg):
+        """
+        All interfaces should define a method that rebuilds the flagged input when it's passed back (i.e. rebuilds image from base64)
+        """
+        pass
+
 
 class Textbox(AbstractOutput):
     '''
@@ -130,6 +136,11 @@ class Label(AbstractOutput):
             "label": {},
         }
 
+    def rebuild_flagged(self, dir, msg):
+        """
+        Default rebuild method for label
+        """
+        return json.loads(msg)
 
 class Image(AbstractOutput):
     '''
