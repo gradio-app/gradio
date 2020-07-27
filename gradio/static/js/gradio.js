@@ -128,6 +128,9 @@ function gradio(config, fn, target) {
     if (config["allow_screenshot"]) {
       target.find(".screenshot").css("visibility", "visible");
     }
+    if(config["allow_flagging"]){
+      target.find(".flag").css("visibility", "visible");
+    }
     target.find(".screenshot").click(function() {
       $(".screenshot").hide();
       $(".screenshot_logo").show();
