@@ -78,8 +78,8 @@ input.submit:hover {
 .flag {
   visibility: hidden;
 }
-.flag.flagged {
-  background-color: pink;
+.flagged {
+  background-color: pink !important;
 }
 /* label:hover {
   background-color: lightgray;
