@@ -48,7 +48,7 @@ class AbstractOutput(ABC):
         """
         All interfaces should define a method that rebuilds the flagged input when it's passed back (i.e. rebuilds image from base64)
         """
-        pass
+        return msg
 
 
 class Textbox(AbstractOutput):
