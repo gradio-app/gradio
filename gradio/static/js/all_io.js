@@ -60,8 +60,7 @@ var io_master_template = {
     var post_data = {
       'data': {
         'input_data' : toStringIfObject(this.last_input) ,
-        'output_data' : toStringIfObject(this.last_output),
-        'message' : "no-message"
+        'output_data' : toStringIfObject(this.last_output)
       }
     }
     $.ajax({type: "POST",
