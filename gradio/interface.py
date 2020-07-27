@@ -20,7 +20,7 @@ from IPython import get_ipython
 import sys
 import weakref
 import analytics
-
+import os
 
 PKG_VERSION_URL = "https://gradio.app/api/pkg-version"
 analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
@@ -29,6 +29,8 @@ try:
     ip_address = requests.get('https://api.ipify.org').text
 except requests.ConnectionError:
     ip_address = "No internet connection"
+
+FLAGGING_DIRECTORY = 'flagged/'
 
 
 class Interface:
@@ -121,6 +123,18 @@ class Interface:
             except (ImportError, AttributeError):  # If they are using TF >= 2.0 or don't have TF, just ignore this.
                 pass
 
+        if self.allow_flagging:
+            if self.title is not None:
+                dir_name = "-".join(self.title.split(" ")) + "-1"
+            else:
+                dir_name = "-".join(self.input_interfaces) + "-to-" \
+                           + "-".join(self.output_interfaces) + "-1"
+            i = 1
+            while os.path.exists(FLAGGING_DIRECTORY + dir_name):
+                i += 1
+                dir_name = dir_name[:-2] + "-" + str(i)
+            self.flagging_dir = FLAGGING_DIRECTORY + dir_name
+
         try:
             requests.post(analytics_url + 'gradio-initiated-analytics/',
                           data=data)
@@ -142,7 +156,8 @@ class Interface:
             "title": self.title,
             "description": self.description,
             "thumbnail": self.thumbnail,
-            "allow_screenshot": self.allow_screenshot
+            "allow_screenshot": self.allow_screenshot,
+            "allow_flagging": self.allow_flagging
         }
         try:
             param_names = inspect.getfullargspec(self.predict[0])[0]
