@@ -127,8 +127,11 @@ class Interface:
             if self.title is not None:
                 dir_name = "-".join(self.title.split(" ")) + "-1"
             else:
-                dir_name = "-".join(self.input_interfaces) + "-to-" \
-                           + "-".join(self.output_interfaces) + "-1"
+                dir_name = "-".join([inp.label for inp in
+                                     self.input_interfaces]) + "-to-" \
+                           + "-".join([out.label for out in
+                                       self.output_interfaces])\
+                           + "-1"
             i = 1
             while os.path.exists(FLAGGING_DIRECTORY + dir_name):
                 i += 1
