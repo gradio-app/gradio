@@ -41,7 +41,7 @@ class Interface:
                  live=False, show_input=True, show_output=True,
                  capture_session=False, title=None, description=None,
                  thumbnail=None,  server_port=None, server_name=networking.LOCALHOST_NAME,
-                 allow_screenshot=True):
+                 allow_screenshot=True, allow_flagging=True):
         """
         Parameters:
         fn (Callable): the function to wrap an interface around.
@@ -101,6 +101,7 @@ class Interface:
         self.server_port = server_port
         self.simple_server = None
         self.allow_screenshot = allow_screenshot
+        self.allow_flagging = allow_flagging
         Interface.instances.add(self)
 
         data = {'fn': fn,
