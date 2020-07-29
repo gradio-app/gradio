@@ -30,9 +30,6 @@ try:
 except requests.ConnectionError:
     ip_address = "No internet connection"
 
-FLAGGING_DIRECTORY = 'flagged/'
-
-
 class Interface:
     """
     Interfaces are created with Gradio using the `gradio.Interface()` function.
@@ -43,7 +40,8 @@ class Interface:
                  live=False, show_input=True, show_output=True,
                  capture_session=False, title=None, description=None,
                  thumbnail=None,  server_port=None, server_name=networking.LOCALHOST_NAME,
-                 allow_screenshot=True, allow_flagging=True):
+                 allow_screenshot=True, allow_flagging=True,
+                 flagging_dir="flagged"):
         """
         Parameters:
         fn (Callable): the function to wrap an interface around.
@@ -104,6 +102,7 @@ class Interface:
         self.simple_server = None
         self.allow_screenshot = allow_screenshot
         self.allow_flagging = allow_flagging
+        self.flagging_dir = flagging_dir
         Interface.instances.add(self)
 
         data = {'fn': fn,
@@ -125,15 +124,15 @@ class Interface:
 
         if self.allow_flagging:
             if self.title is not None:
-                dir_name = "_".join(self.title.split(" ")) + "_1"
+                dir_name = "_".join(self.title.split(" "))
             else:
-                dir_name = "_".join([fn.__name__ for fn in self.predict]) + \
-                           "_1"
-            i = 1
-            while os.path.exists(FLAGGING_DIRECTORY + dir_name):
-                i += 1
-                dir_name = dir_name[:-2] + "_" + str(i)
-            self.flagging_dir = FLAGGING_DIRECTORY + dir_name
+                dir_name = "_".join([fn.__name__ for fn in self.predict])
+            index = 1
+            while os.path.exists(self.flagging_dir + "/" + dir_name +
+                                 "_{}".format(index)):
+                index += 1
+            self.flagging_dir = self.flagging_dir + "/" + dir_name + \
+                "_{}".format(index)
 
         try:
             requests.post(analytics_url + 'gradio-initiated-analytics/',

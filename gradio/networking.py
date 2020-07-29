@@ -35,7 +35,6 @@ CONFIG_FILE = "static/config.json"
 ASSOCIATION_PATH_IN_STATIC = "static/apple-app-site-association"
 ASSOCIATION_PATH_IN_ROOT = "apple-app-site-association"
 
-FLAGGING_FILENAME = 'flagged.txt'
 analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
 analytics_url = 'https://api.gradio.app/'
 
@@ -187,15 +186,16 @@ def serve_files_in_background(interface, port, directory_to_serve=None, server_n
                 msg = json.loads(data_string)
                 os.makedirs(interface.flagging_dir, exist_ok=True)
                 output = {'inputs': [interface.input_interfaces[
-                    i].rebuild_flagged(
+                    i].rebuild(
                     interface.flagging_dir, msg['data']['input_data']) for i
                     in range(len(interface.input_interfaces))],
                     'outputs': [interface.output_interfaces[
-                        i].rebuild_flagged(
+                        i].rebuild(
                         interface.flagging_dir, msg['data']['output_data']) for i
                     in range(len(interface.output_interfaces))]}
 
-                with open(os.path.join(interface.flagging_dir, FLAGGING_FILENAME), 'a+') as f:
+                with open("{}/log.txt".format(interface.flagging_dir),
+                          'a+') as f:
                     f.write(json.dumps(output))
                     f.write("\n")
 
