@@ -20,7 +20,7 @@ from IPython import get_ipython
 import sys
 import weakref
 import analytics
-
+import os
 
 PKG_VERSION_URL = "https://gradio.app/api/pkg-version"
 analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
@@ -29,7 +29,6 @@ try:
     ip_address = requests.get('https://api.ipify.org').text
 except requests.ConnectionError:
     ip_address = "No internet connection"
-
 
 class Interface:
     """
@@ -41,7 +40,8 @@ class Interface:
                  live=False, show_input=True, show_output=True,
                  capture_session=False, title=None, description=None,
                  thumbnail=None,  server_port=None, server_name=networking.LOCALHOST_NAME,
-                 allow_screenshot=True):
+                 allow_screenshot=True, allow_flagging=True,
+                 flagging_dir="flagged"):
         """
         Parameters:
         fn (Callable): the function to wrap an interface around.
@@ -101,6 +101,8 @@ class Interface:
         self.server_port = server_port
         self.simple_server = None
         self.allow_screenshot = allow_screenshot
+        self.allow_flagging = allow_flagging
+        self.flagging_dir = flagging_dir
         Interface.instances.add(self)
 
         data = {'fn': fn,
@@ -119,6 +121,18 @@ class Interface:
                               tf.keras.backend.get_session()
             except (ImportError, AttributeError):  # If they are using TF >= 2.0 or don't have TF, just ignore this.
                 pass
+
+        if self.allow_flagging:
+            if self.title is not None:
+                dir_name = "_".join(self.title.split(" "))
+            else:
+                dir_name = "_".join([fn.__name__ for fn in self.predict])
+            index = 1
+            while os.path.exists(self.flagging_dir + "/" + dir_name +
+                                 "_{}".format(index)):
+                index += 1
+            self.flagging_dir = self.flagging_dir + "/" + dir_name + \
+                "_{}".format(index)
 
         try:
             requests.post(analytics_url + 'gradio-initiated-analytics/',
@@ -141,7 +155,8 @@ class Interface:
             "title": self.title,
             "description": self.description,
             "thumbnail": self.thumbnail,
-            "allow_screenshot": self.allow_screenshot
+            "allow_screenshot": self.allow_screenshot,
+            "allow_flagging": self.allow_flagging
         }
         try:
             param_names = inspect.getfullargspec(self.predict[0])[0]
