@@ -184,7 +184,7 @@ class Image(AbstractOutput):
 class KeyValues(AbstractOutput):
     '''
     Component displays a table representing values for multiple fields. 
-    Output type: List[Tuple[str, value]]
+    Output type: Dict[str, value]
     '''
 
     def __init__(self, label=None):
