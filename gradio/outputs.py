@@ -249,7 +249,7 @@ class HighlightedText(AbstractOutput):
         if isinstance(prediction, str) or isinstance(prediction, int) or isinstance(prediction, float):
             return str(prediction)
         else:
-            raise ValueError("The `Textbox` output interface expects an output that is one of: a string, or"
+            raise ValueError("The `HighlightedText` output interface expects an output that is one of: a string, or"
                              "an int/float that can be converted to a string.")
 
 
