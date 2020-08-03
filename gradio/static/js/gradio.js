@@ -125,12 +125,20 @@ function gradio(config, fn, target) {
       io_master.last_input = null;
       io_master.last_output = null;
     });
-    if (config["allow_screenshot"]) {
+
+    if (config["allow_screenshot"] && !config["allow_flagging"]) {
       target.find(".screenshot").css("visibility", "visible");
+      target.find(".flag").css("display", "none")
     }
-    if(config["allow_flagging"]){
+    if (!config["allow_screenshot"] && config["allow_flagging"]) {
       target.find(".flag").css("visibility", "visible");
+      target.find(".screenshot").css("display", "none")
     }
+    if (config["allow_screenshot"] && config["allow_flagging"]) {
+      target.find(".screenshot").css("visibility", "visible");
+      target.find(".flag").css("visibility", "visible")
+    }
+
     target.find(".screenshot").click(function() {
       $(".screenshot").hide();
       $(".screenshot_logo").show();
