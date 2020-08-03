@@ -169,10 +169,6 @@ def serve_files_in_background(interface, port, directory_to_serve=None, server_n
                 prediction, durations = interface.process(raw_input)
 
                 output = {"data": prediction, "durations": durations}
-                if interface.saliency is not None:
-                    saliency = interface.saliency(raw_input, prediction)
-                    output['saliency'] = saliency.tolist()
-
                 self.wfile.write(json.dumps(output).encode())
 
                 analytics_thread = threading.Thread(
