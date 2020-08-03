@@ -8,7 +8,7 @@ import webbrowser
 
 import gradio.inputs
 import gradio.outputs
-from gradio import networking, strings
+from gradio import networking, strings, utils
 from distutils.version import StrictVersion
 import pkg_resources
 import requests
@@ -21,6 +21,7 @@ import weakref
 import analytics
 import os
 
+
 PKG_VERSION_URL = "https://gradio.app/api/pkg-version"
 analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
 analytics_url = 'https://api.gradio.app/'
@@ -29,13 +30,22 @@ try:
 except requests.ConnectionError:
     ip_address = "No internet connection"
 
+
 class Interface:
     """
     Interfaces are created with Gradio using the `gradio.Interface()` function.
     """
     instances = weakref.WeakSet()
 
-    def __init__(self, fn, inputs, outputs, saliency=None, verbose=False, examples=None,
+    @classmethod
+    def get_instances(cls):
+        """
+        :return: list of all current instances.
+        """
+        return list(
+            Interface.instances)
+
+    def __init__(self, fn, inputs, outputs, verbose=False, examples=None,
                  live=False, show_input=True, show_output=True,
                  capture_session=False, title=None, description=None,
                  thumbnail=None,  server_port=None, server_name=networking.LOCALHOST_NAME,
@@ -46,11 +56,23 @@ class Interface:
         fn (Callable): the function to wrap an interface around.
         inputs (Union[str, List[Union[str, AbstractInput]]]): a single Gradio input component, or list of Gradio input components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of input components should match the number of parameters in fn.
         outputs (Union[str, List[Union[str, AbstractOutput]]]): a single Gradio output component, or list of Gradio output components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of output components should match the number of values returned by fn.
+        verbose (bool): whether to print detailed information during launch.
+        examples (List[List[Any]]): sample inputs for the function; if provided, appears below the UI components and can be used to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component.
         live (bool): whether the interface should automatically reload on change.
+        show_input (bool): if False, removes the input from the interface
+        and underlays it in the output.
+        show_output (bool): if False, removes the output from the interface
+        and overlays it in the input.
         capture_session (bool): if True, captures the default graph and session (needed for Tensorflow 1.x)
         title (str): a title for the interface; if provided, appears above the input and output components.
         description (str): a description for the interface; if provided, appears above the input and output components.
-        examples (List[List[Any]]): sample inputs for the function; if provided, appears below the UI components and can be used to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component.
+        thumbnail (str): path to image or src to use as display picture for
+        models listed in gradio.app/hub
+        allow_screenshot (bool): if False, users will not see a button to
+        take a screenshot of the interface.
+        allow_flagging (bool): if False, users will not see a button to flag an
+         input and output.
+        flagging_dir (str): what to name the dir where flagged data is stored.
         """
         def get_input_instance(iface):
             if isinstance(iface, str):
@@ -81,11 +103,11 @@ class Interface:
             self.output_interfaces = [get_output_instance(outputs)]
         if not isinstance(fn, list):
             fn = [fn]
+
         self.output_interfaces *= len(fn)
         self.predict = fn
         self.verbose = verbose
         self.status = "OFF"
-        self.saliency = saliency
         self.live = live
         self.show_input = show_input
         self.show_output = show_output
@@ -107,7 +129,6 @@ class Interface:
         data = {'fn': fn,
                 'inputs': inputs,
                 'outputs': outputs,
-                'saliency': saliency,
                 'live': live,
                 'capture_session': capture_session,
                 'ip_address': ip_address
@@ -118,7 +139,9 @@ class Interface:
                 import tensorflow as tf
                 self.session = tf.get_default_graph(), \
                               tf.keras.backend.get_session()
-            except (ImportError, AttributeError):  # If they are using TF >= 2.0 or don't have TF, just ignore this.
+            except (ImportError, AttributeError):
+                # If they are using TF >= 2.0 or don't have TF,
+                # just ignore this.
                 pass
 
         if self.allow_flagging:
@@ -172,6 +195,15 @@ class Interface:
         return config    
 
     def process(self, raw_input):
+        """
+        :param raw_input: a list of raw inputs to process and apply the
+        prediction(s) on.
+        :return:
+        processed output: a list of processed  outputs to return as the
+        prediction(s).
+        duration: a list of time deltas measuring inference time for each
+        prediction fn.
+        """
         processed_input = [input_interface.preprocess(
             raw_input[i]) for i, input_interface in
             enumerate(self.input_interfaces)]
@@ -216,8 +248,18 @@ class Interface:
     def launch(self, inline=None, inbrowser=None, share=False, debug=False):
         """
         Parameters
+        inline (bool): whether to display in the interface inline on python
+        notebooks.
+        inbrowser (bool): whether to automatically launch the interface in a
+        new tab on the default browser.
         share (bool): whether to create a publicly shareable link from
         your computer for the interface.
+        debug (bool): if True, and the interface was launched from Google
+        Colab, prints the errors in the cell output.
+        :returns
+        httpd (str): HTTPServer object
+        path_to_local_server (str): Locally accessible link
+        share_url (str): Publicly accessible link (if share=True)
         """
 
         output_directory = tempfile.mkdtemp()
@@ -231,20 +273,6 @@ class Interface:
         self.status = "RUNNING"
         self.simple_server = httpd
 
-        is_colab = False
-        try:  # Check if running interactively using ipython.
-            from_ipynb = get_ipython()
-            if "google.colab" in str(from_ipynb):
-                is_colab = True
-        except NameError:
-            data = {'error': 'NameError in launch method'}
-            try:
-                requests.post(analytics_url + 'gradio-error-analytics/',
-                              data=data)
-            except requests.ConnectionError:
-                pass  # do not push analytics if no network
-            pass
-
         try:
             current_pkg_version = pkg_resources.require("gradio")[0].version
             latest_pkg_version = requests.get(url=PKG_VERSION_URL).json()["version"]
@@ -257,6 +285,7 @@ class Interface:
         except:  # TODO(abidlabs): don't catch all exceptions
             pass
 
+        is_colab = utils.colab_check()
         if not is_colab:
             print(strings.en["RUNNING_LOCALLY"].format(path_to_local_server))
         else:
@@ -271,19 +300,13 @@ class Interface:
                 share_url = networking.setup_tunnel(server_port)
                 print("Running on External URL:", share_url)
             except RuntimeError:
-                data = {'error': 'RuntimeError in launch method'}
-                try:
-                    requests.post(analytics_url + 'gradio-error-analytics/',
-                                  data=data)
-                except requests.ConnectionError:
-                    pass  # do not push analytics if no network
+                utils.error_analytics("RuntimeError")
                 share_url = None
                 if self.verbose:
                     print(strings.en["NGROK_NO_INTERNET"])
         else:
-            if (
-                is_colab
-            ):  # For a colab notebook, create a public link even if share is False.
+            if is_colab:  # For a colab notebook, create a public link even if
+                # share is False.
                 share_url = networking.setup_tunnel(server_port)
                 print("Running on External URL:", share_url)
                 if self.verbose:
@@ -294,29 +317,22 @@ class Interface:
                 share_url = None
 
         if inline is None:
-            try:  # Check if running interactively using ipython.
-                get_ipython()
-                inline = True
-                if inbrowser is None:
-                    inbrowser = False
-            except NameError:
-                inline = False
-                if inbrowser is None:
-                    inbrowser = True
+            inline = utils.ipython_check()
+            if inbrowser is None:
+                # if interface won't appear inline, open it in new tab,
+                # otherwise keep it inline
+                inbrowser = not inline
         else:
             if inbrowser is None:
                 inbrowser = False
 
         if inbrowser and not is_colab:
-            webbrowser.open(
-                path_to_local_server
-            )  # Open a browser tab with the interface.
+            webbrowser.open(path_to_local_server)  # Open a browser tab
+            # with the interface.
         if inline:
             from IPython.display import IFrame, display
-
-            if (
-                is_colab
-            ):  # Embed the remote interface page if on google colab;
+            if (is_colab):
+                # Embed the remote interface page if on google colab;
                 # otherwise, embed the local page.
                 print("Interface loading below...")
                 while not networking.url_ok(share_url):
@@ -358,10 +374,6 @@ class Interface:
         except requests.ConnectionError:
             pass  # do not push analytics if no network
         return httpd, path_to_local_server, share_url
-
-    @classmethod
-    def get_instances(cls):
-        return list(Interface.instances)  # Returns list of all current instances.
 
 
 def reset_all():
