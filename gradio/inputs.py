@@ -11,6 +11,7 @@ import time
 import warnings
 from abc import ABC, abstractmethod
 
+import base64
 import numpy as np
 import PIL.Image
 import PIL.ImageOps
@@ -397,7 +398,7 @@ class Webcam(AbstractInput):
         im = preprocessing_utils.decode_base64_to_image(data)
         timestamp = datetime.datetime.now()
         filename = f'input_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.png'
-        im.save(f'{dir}/{filename}', 'PNG')
+        im.save('{}/{}'.format(dir, filename), 'PNG')
         return filename
 
 
@@ -435,6 +436,15 @@ class Microphone(AbstractInput):
             return preprocessing_utils.generate_mfcc_features_from_audio_file(file_obj.name)
         _, signal = scipy.io.wavfile.read(file_obj.name)
         return signal
+
+    def rebuild(self, dir, data):
+        inp = data.split(';')[1].split(',')[1]
+        wav_obj = base64.b64decode(inp)
+        timestamp = datetime.datetime.now()
+        filename = f'input_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.wav'
+        with open("{}/{}".format(dir, filename), "wb+") as f:
+            f.write(wav_obj)
+        return filename
 
 
 # Automatically adds all shortcut implementations in AbstractInput into a dictionary.

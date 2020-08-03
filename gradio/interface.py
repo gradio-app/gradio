@@ -4,7 +4,6 @@ interface using the input and output types.
 """
 
 import tempfile
-import traceback
 import webbrowser
 
 import gradio.inputs
@@ -217,7 +216,8 @@ class Interface:
     def launch(self, inline=None, inbrowser=None, share=False, debug=False):
         """
         Parameters
-        share (bool): whether to create a publicly shareable link from your computer for the interface.
+        share (bool): whether to create a publicly shareable link from
+        your computer for the interface.
         """
 
         output_directory = tempfile.mkdtemp()
