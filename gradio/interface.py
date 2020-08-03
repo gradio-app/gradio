@@ -209,82 +209,16 @@ class Interface:
             predictions[i]) for i, output_interface in enumerate(self.output_interfaces)]
         return processed_output, durations
 
-    def validate(self):
-        if self.validate_flag:
-            if self.verbose:
-                print("Interface already validated")
-            return
-        validation_inputs = self.input_interface.get_validation_inputs()
-        n = len(validation_inputs)
-        if n == 0:
-            self.validate_flag = True
-            if self.verbose:
-                print(
-                    "No validation samples for this interface... skipping validation."
-                )
-            return
-        for m, msg in enumerate(validation_inputs):
-            if self.verbose:
-                print(
-                    "Validating samples: {}/{}  [".format(m+1, n)
-                    + "=" * (m + 1)
-                    + "." * (n - m - 1)
-                    + "]",
-                    end="\r",
-                )
-            try:
-                processed_input = self.input_interface.preprocess(msg)
-                prediction = self.predict(processed_input)
-            except Exception as e:
-                data = {'error': e}
-                try:
-                    requests.post(analytics_url + 'gradio-error-analytics/',
-                              data=data)
-                except requests.ConnectionError:
-                    pass  # do not push analytics if no network
-                if self.verbose:
-                    print("\n----------")
-                    print(
-                        "Validation failed, likely due to incompatible pre-processing and model input. See below:\n"
-                    )
-                    print(traceback.format_exc())
-                break
-            try:
-                _ = self.output_interface.postprocess(prediction)
-            except Exception as e:
-                data = {'error': e}
-                try:
-                    requests.post(analytics_url + 'gradio-error-analytics/',
-                                  data=data)
-                except requests.ConnectionError:
-                    pass  # do not push analytics if no network
-                if self.verbose:
-                    print("\n----------")
-                    print(
-                        "Validation failed, likely due to incompatible model output and post-processing."
-                        "See below:\n"
-                    )
-                    print(traceback.format_exc())
-                break
-        else:  # This means if a break was not explicitly called
-            self.validate_flag = True
-            if self.verbose:
-                print("\n\nValidation passed successfully!")
-            return
-        raise RuntimeError("Validation did not pass")
-
     def close(self):
         if self.simple_server and not(self.simple_server.fileno() == -1):  # checks to see if server is running
             print("Closing Gradio server on port {}...".format(self.server_port))
             networking.close_server(self.simple_server)
 
-    def launch(self, inline=None, inbrowser=None, share=False, validate=True, debug=False):
+    def launch(self, inline=None, inbrowser=None, share=False, debug=False):
         """
         Parameters
         share (bool): whether to create a publicly shareable link from your computer for the interface.
         """
-        # if validate and not self.validate_flag:
-        #     self.validate()
 
         output_directory = tempfile.mkdtemp()
         # Set up a port to serve the directory containing the static files with interface.
