@@ -15,7 +15,7 @@ import numpy as np
 import PIL.Image
 import PIL.ImageOps
 import scipy.io.wavfile
-from gradio import preprocessing_utils, validation_data
+from gradio import preprocessing_utils
 
 # Where to find the static resources associated with each template.
 # BASE_INPUT_INTERFACE_TEMPLATE_PATH = 'static/js/interfaces/input/{}.js'
@@ -30,13 +30,6 @@ class AbstractInput(ABC):
 
     def __init__(self, label):
         self.label = label
-
-    def get_validation_inputs(self):
-        """
-        An interface can optionally implement a method that returns a list of examples inputs that it should be able to
-        accept and preprocess for validation purposes.
-        """
-        return []
 
     def get_template_context(self):
         """
@@ -258,9 +251,6 @@ class Image(AbstractInput):
         self.image_mode = image_mode
         super().__init__(label)
 
-    def get_validation_inputs(self):
-        return validation_data.BASE64_COLOR_IMAGES
-
     @classmethod
     def get_shortcut_implementations(cls):
         return {
@@ -383,9 +373,6 @@ class Webcam(AbstractInput):
         self.image_height = shape[1]
         self.num_channels = 3
         super().__init__(label)
-
-    def get_validation_inputs(self):
-        return validation_data.BASE64_COLOR_IMAGES
 
     @classmethod
     def get_shortcut_implementations(cls):
