@@ -1,4 +1,4 @@
-const microphone = {
+const audio_input = {
   html: `
     <div class="upload_zone">
       <img class="not_recording" src="/static/img/mic.png" />
@@ -23,7 +23,7 @@ const microphone = {
   init: function(opts) {
     var io = this;
     this.wavesurfer = WaveSurfer.create({
-      container: '.waveform',
+      container: io.target.find('.waveform')[0],
       waveColor: '#888888',
       progressColor: '#e67e22',
       barWidth: 3,
@@ -44,7 +44,7 @@ const microphone = {
         io.mic.start();
         io.recorder.record(io.soundFile);
 
-        var interval_id = window.setInterval(function () {
+        io.interval_id = window.setInterval(function () {
           var volume = Math.floor(100 * io.mic.getLevel());
           io.target.find(".volume_bar").width(`${(volume > 0 ? 10 : 0) + Math.round(2 * Math.sqrt(10 * volume))}px`)
         }, 100)
@@ -58,6 +58,7 @@ const microphone = {
         var reader = new window.FileReader();
         reader.readAsDataURL(blob);
         reader.onloadend = function() {
+          console.log(reader.result)
           io.audio_data = reader.result;
           io.target.find(".player").removeClass("hidden");
           io.wavesurfer.load(io.audio_data);
@@ -67,7 +68,9 @@ const microphone = {
           }
           io.state = "RECORDED";
         }
-        window.clearInterval(interval_id);
+        if (io.interval_id) {
+          window.clearInterval(io.interval_id);
+        }
       }
     })
     this.target.find(".playpause").click(function () {

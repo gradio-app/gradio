@@ -1,6 +1,6 @@
 import json
-from gradio.inputs import AbstractInput
-from gradio.outputs import AbstractOutput
+from gradio.inputs import InputComponent
+from gradio.outputs import OutputComponent
 from gradio.interface import Interface
 import inspect
 
@@ -44,8 +44,8 @@ def document(cls_set):
         docset.append(inp)
     return docset
 
-inputs = document(AbstractInput.__subclasses__())
-outputs = document(AbstractOutput.__subclasses__())
+inputs = document(InputComponent.__subclasses__())
+outputs = document(OutputComponent.__subclasses__())
 interface_params = get_params(Interface.__init__)
 interface = {
     "doc": inspect.getdoc(Interface),

@@ -7,11 +7,14 @@ BASE64_SKETCH = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAT4AAAE+CAYAAAAUO
 RAND_STRING = "2wBDAAYEBQYFBAYGBQYHBwYIC"
 PACKAGE_NAME = 'gradio'
 
+# Where to find the static resources associated with each template.
+BASE_INPUT_INTERFACE_JS_PATH = 'static/js/interfaces/input/{}.js'
+
 
 class TestSketchpad(unittest.TestCase):
     def test_path_exists(self):
         inp = inputs.Sketchpad()
-        path = inputs.BASE_INPUT_INTERFACE_JS_PATH.format(inp.__class__.__name__.lower())
+        path = BASE_INPUT_INTERFACE_JS_PATH.format(inp.__class__.__name__.lower())
         self.assertTrue(os.path.exists(os.path.join(PACKAGE_NAME, path)))
 
     def test_preprocessing(self):
@@ -23,7 +26,7 @@ class TestSketchpad(unittest.TestCase):
 class TestWebcam(unittest.TestCase):
     def test_path_exists(self):
         inp = inputs.Webcam()
-        path = inputs.BASE_INPUT_INTERFACE_JS_PATH.format(inp.__class__.__name__.lower())
+        path = BASE_INPUT_INTERFACE_JS_PATH.format(inp.__class__.__name__.lower())
         self.assertTrue(os.path.exists(os.path.join(PACKAGE_NAME, path)))
 
     def test_preprocessing(self):
@@ -35,7 +38,7 @@ class TestWebcam(unittest.TestCase):
 class TestTextbox(unittest.TestCase):
     def test_path_exists(self):
         inp = inputs.Textbox()
-        path = inputs.BASE_INPUT_INTERFACE_JS_PATH.format(
+        path = BASE_INPUT_INTERFACE_JS_PATH.format(
             inp.__class__.__name__.lower())
         self.assertTrue(os.path.exists(os.path.join(PACKAGE_NAME, path)))
 
@@ -48,7 +51,7 @@ class TestTextbox(unittest.TestCase):
 class TestImageUpload(unittest.TestCase):
     def test_path_exists(self):
         inp = inputs.Image()
-        path = inputs.BASE_INPUT_INTERFACE_JS_PATH.format(inp.__class__.__name__.lower())
+        path = BASE_INPUT_INTERFACE_JS_PATH.format(inp.__class__.__name__.lower())
         self.assertTrue(os.path.exists(os.path.join(PACKAGE_NAME, path)))
 
     def test_preprocessing(self):

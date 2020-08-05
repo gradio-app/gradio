@@ -7,8 +7,8 @@ import tempfile
 import traceback
 import webbrowser
 
-import gradio.inputs
-import gradio.outputs
+from gradio.inputs import InputComponent
+from gradio.outputs import OutputComponent
 from gradio import networking, strings
 from distutils.version import StrictVersion
 import pkg_resources
@@ -45,8 +45,8 @@ class Interface:
         """
         Parameters:
         fn (Callable): the function to wrap an interface around.
-        inputs (Union[str, List[Union[str, AbstractInput]]]): a single Gradio input component, or list of Gradio input components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of input components should match the number of parameters in fn.
-        outputs (Union[str, List[Union[str, AbstractOutput]]]): a single Gradio output component, or list of Gradio output components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of output components should match the number of values returned by fn.
+        inputs (Union[str, List[Union[str, InputComponent]]]): a single Gradio input component, or list of Gradio input components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of input components should match the number of parameters in fn.
+        outputs (Union[str, List[Union[str, OutputComponent]]]): a single Gradio output component, or list of Gradio output components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of output components should match the number of values returned by fn.
         live (bool): whether the interface should automatically reload on change.
         capture_session (bool): if True, captures the default graph and session (needed for Tensorflow 1.x)
         title (str): a title for the interface; if provided, appears above the input and output components.
@@ -55,22 +55,24 @@ class Interface:
         """
         def get_input_instance(iface):
             if isinstance(iface, str):
-                return gradio.inputs.shortcuts[iface.lower()]
-            elif isinstance(iface, gradio.inputs.AbstractInput):
+                shortcut = InputComponent.get_all_shortcut_implementations()[iface]
+                return shortcut[0](**shortcut[1])
+            elif isinstance(iface, InputComponent):
                 return iface
             else:
                 raise ValueError("Input interface must be of type `str` or "
-                                 "`AbstractInput`")
+                                 "`InputComponent`")
 
         def get_output_instance(iface):
             if isinstance(iface, str):
-                return gradio.outputs.shortcuts[iface.lower()]
-            elif isinstance(iface, gradio.outputs.AbstractOutput):
+                shortcut = OutputComponent.get_all_shortcut_implementations()[iface]
+                return shortcut[0](**shortcut[1])
+            elif isinstance(iface, OutputComponent):
                 return iface
             else:
                 raise ValueError(
                     "Output interface must be of type `str` or "
-                    "`AbstractOutput`"
+                    "`OutputComponent`"
                 )
         if isinstance(inputs, list):
             self.input_interfaces = [get_input_instance(i) for i in inputs]

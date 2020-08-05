@@ -408,7 +408,7 @@ class Microphone(AbstractInput):
         """
         By default, no pre-processing is applied to a microphone input file
         """
-        file_obj = preprocessing_utils.decode_base64_to_wav_file(inp)
+        file_obj = preprocessing_utils.decode_base64_to_file(inp)
         if self.preprocessing == "mfcc":
             return preprocessing_utils.generate_mfcc_features_from_audio_file(file_obj.name)
         _, signal = scipy.io.wavfile.read(file_obj.name)

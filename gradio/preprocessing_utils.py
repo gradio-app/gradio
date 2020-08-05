@@ -17,12 +17,14 @@ def decode_base64_to_image(encoding):
     return Image.open(BytesIO(base64.b64decode(image_encoded)))
 
 
-def convert_file_to_base64(img):
-    with open(img, "rb") as image_file:
-        encoded_string = base64.b64encode(image_file.read())
+def encode_file_to_base64(f, type="image", ext=None):
+    with open(f, "rb") as file:
+        encoded_string = base64.b64encode(file.read())
         base64_str = str(encoded_string, 'utf-8')
-        type = img.split(".")[-1]
-        return "data:image/" + type + ";base64," + base64_str
+        if ext is None:
+            ext = f.split(".")[-1]
+        return "data:" + type + "/" + ext + ";base64," + base64_str
+
 
 def encode_plot_to_base64(plt):
     with BytesIO() as output_bytes:
@@ -61,18 +63,23 @@ def resize_and_crop(img, size, crop_type='center'):
     return ImageOps.fit(img, size, centering=center) 
 
 ##################
-# AUDIO FILES
+# OUTPUT
 ##################
 
-def decode_base64_to_wav_file(encoding):
+def decode_base64_to_binary(encoding):
     inp = encoding.split(';')[1].split(',')[1]
-    wav_obj = base64.b64decode(inp)
+    return base64.b64decode(inp)
+
+
+def decode_base64_to_file(encoding):
     file_obj = tempfile.NamedTemporaryFile()
-    file_obj.close()
-    with open(file_obj.name, 'wb') as f:
-        f.write(wav_obj)
+    file_obj.write(decode_base64_to_binary(encoding))
     return file_obj
 
+
+##################
+# AUDIO FILES
+##################
 
 def generate_mfcc_features_from_audio_file(wav_filename,
                                            pre_emphasis=0.95,
