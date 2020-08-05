@@ -78,6 +78,7 @@ const microphone = {
     if (this.state == "RECORDED") {
       this.io_master.input(this.id, this.audio_data);
     } else if (this.state == "RECORDING") {
+      this.state = "STOP_RECORDING";
       this.target.find(".upload_zone").mousedown();
     }
   },
