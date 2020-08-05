@@ -20,7 +20,7 @@ from IPython import get_ipython
 import sys
 import weakref
 import analytics
-
+import inspect
 
 PKG_VERSION_URL = "https://gradio.app/api/pkg-version"
 analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
@@ -41,7 +41,8 @@ class Interface:
     def __init__(self, fn, inputs, outputs, saliency=None, verbose=False, examples=None,
                  live=False, show_input=True, show_output=True,
                  capture_session=False, title=None, description=None,
-                 thumbnail=None, server_name=networking.LOCALHOST_NAME):
+                 thumbnail=None, server_name=networking.LOCALHOST_NAME,
+                 analytics_enabled=True):
         """
         :param fn: a function that will process the input panel data from the interface and return the output panel data.
         :param inputs: a string or `AbstractInput` representing the input interface.
@@ -95,6 +96,7 @@ class Interface:
         self.server_port = None
         self.simple_server = None
         Interface.instances.add(self)
+        self.analytics_enabled=analytics_enabled
 
         data = {'fn': fn,
                 'inputs': inputs,
@@ -113,11 +115,12 @@ class Interface:
             except (ImportError, AttributeError):  # If they are using TF >= 2.0 or don't have TF, just ignore this.
                 pass
 
-        try:
-            requests.post(analytics_url + 'gradio-initiated-analytics/',
-                          data=data)
-        except requests.ConnectionError:
-            pass  # do not push analytics if no network
+        if self.analytics_enabled:
+            try:
+                requests.post(analytics_url + 'gradio-initiated-analytics/',
+                              data=data)
+            except requests.ConnectionError:
+                pass  # do not push analytics if no network
 
     def get_config_file(self):
         config = {
@@ -214,11 +217,12 @@ class Interface:
                 prediction = self.predict(processed_input)
             except Exception as e:
                 data = {'error': e}
-                try:
-                    requests.post(analytics_url + 'gradio-error-analytics/',
-                              data=data)
-                except requests.ConnectionError:
-                    pass  # do not push analytics if no network
+                if self.analytics_enabled:
+                    try:
+                        requests.post(analytics_url + 'gradio-error-analytics/',
+                                  data=data)
+                    except requests.ConnectionError:
+                        pass  # do not push analytics if no network
                 if self.verbose:
                     print("\n----------")
                     print(
@@ -230,11 +234,12 @@ class Interface:
                 _ = self.output_interface.postprocess(prediction)
             except Exception as e:
                 data = {'error': e}
-                try:
-                    requests.post(analytics_url + 'gradio-error-analytics/',
-                                  data=data)
-                except requests.ConnectionError:
-                    pass  # do not push analytics if no network
+                if self.analytics_enabled:
+                    try:
+                        requests.post(analytics_url + 'gradio-error-analytics/',
+                                      data=data)
+                    except requests.ConnectionError:
+                        pass  # do not push analytics if no network
                 if self.verbose:
                     print("\n----------")
                     print(
@@ -283,11 +288,12 @@ class Interface:
                 is_colab = True
         except NameError:
             data = {'error': 'NameError in launch method'}
-            try:
-                requests.post(analytics_url + 'gradio-error-analytics/',
-                              data=data)
-            except requests.ConnectionError:
-                pass  # do not push analytics if no network
+            if self.analytics_enabled:
+                try:
+                    requests.post(analytics_url + 'gradio-error-analytics/',
+                                  data=data)
+                except requests.ConnectionError:
+                    pass  # do not push analytics if no network
             pass
 
         try:
@@ -312,16 +318,19 @@ class Interface:
                 print("Colab notebook detected. To show errors in colab notebook, set debug=True in launch()")
 
         if share:
+            print("This share link will expire in 6 hours. If you need a "
+                  "permanent link, email support@gradio.app")
             try:
                 share_url = networking.setup_tunnel(server_port)
                 print("Running on External URL:", share_url)
             except RuntimeError:
                 data = {'error': 'RuntimeError in launch method'}
-                try:
-                    requests.post(analytics_url + 'gradio-error-analytics/',
-                                  data=data)
-                except requests.ConnectionError:
-                    pass  # do not push analytics if no network
+                if self.analytics_enabled:
+                    try:
+                        requests.post(analytics_url + 'gradio-error-analytics/',
+                                      data=data)
+                    except requests.ConnectionError:
+                        pass  # do not push analytics if no network
                 share_url = None
                 if self.verbose:
                     print(strings.en["NGROK_NO_INTERNET"])
@@ -396,11 +405,12 @@ class Interface:
                 'share_url': share_url,
                 'ip_address': ip_address
                 }
-        try:
-            requests.post(analytics_url + 'gradio-launched-analytics/',
-                          data=data)
-        except requests.ConnectionError:
-            pass  # do not push analytics if no network
+        if self.analytics_enabled:
+            try:
+                requests.post(analytics_url + 'gradio-launched-analytics/',
+                              data=data)
+            except requests.ConnectionError:
+                pass  # do not push analytics if no network
         return httpd, path_to_local_server, share_url
 
     @classmethod
