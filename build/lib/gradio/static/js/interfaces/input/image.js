@@ -48,7 +48,6 @@ const image_input = {
     })
     this.target.find('.edit_image').click(function (e) {
       io.overlay_target.removeClass("hide");
-      io.target.find(".saliency_holder").addClass("hide");
     })
     this.tui_editor = new tui.ImageEditor(this.overlay_target.
         find(".image_editor")[0], {
@@ -92,18 +91,6 @@ const image_input = {
     this.target.find(".hidden_upload").prop("value", "")
     this.state = "NO_IMAGE";
     this.image_data = null;
-    this.target.find(".saliency_holder").addClass("hide");
-  },
-  output: function(data) {
-    if (this.target.find(".image_preview").attr("src")) {
-      var image = this.target.find(".image_preview");
-      var width = image.width();
-      var height = image.height();
-      this.target.find(".saliency_holder").removeClass("hide").html(`
-        <canvas class="saliency" width=${width} height=${height}></canvas>`);
-      var ctx = this.target.find(".saliency")[0].getContext('2d');
-      paintSaliency(ctx, width, height);
-    }
   },
   state: "NO_IMAGE",
   image_data: null,

@@ -33,6 +33,8 @@
     <link type="text/css" href="../static/css/vendor/tui-color-picker.css" rel="stylesheet">
     <link type="text/css" href="../static/css/vendor/tui-image-editor.css" rel="stylesheet">
     <link type="text/css" href="../static/css/vendor/jquery-ui.css" rel="stylesheet">
+    <link type="text/css" href="../static/css/vendor/jexcel.min.css" rel="stylesheet">
+    <link type="text/css" href="../static/css/vendor/jsuites.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
 
     <link rel="stylesheet" href="../static/css/style.css">
@@ -47,10 +49,15 @@
     <link rel="stylesheet" href="../static/css/interfaces/input/slider.css">
     <link rel="stylesheet" href="../static/css/interfaces/input/webcam.css">
     <link rel="stylesheet" href="../static/css/interfaces/input/microphone.css">
+    <link rel="stylesheet" href="../static/css/interfaces/input/file.css">
     <link rel="stylesheet" href="../static/css/interfaces/output/image.css">
     <link rel="stylesheet" href="../static/css/interfaces/output/label.css">
     <link rel="stylesheet" href="../static/css/interfaces/output/key_values.css">
     <link rel="stylesheet" href="../static/css/interfaces/output/textbox.css">
+    <link rel="stylesheet" href="../static/css/interfaces/output/highlighted_text.css">
+    <link rel="stylesheet" href="../static/css/interfaces/output/audio.css">
+    <link rel="stylesheet" href="../static/css/interfaces/output/json.css">
+    <link rel="stylesheet" href="../static/css/interfaces/output/html.css">
     <link rel="stylesheet" href="../static/css/loading.css"/>
   </head>
 
@@ -77,6 +84,7 @@
     <script src="../static/js/vendor/html2canvas.min.js"></script>
     <script src="../static/js/vendor/jquery-ui.min.js"></script>
     <script src="../static/js/vendor/jquery.ui.touch-punch.js"></script>
+    <script src="../static/js/vendor/jsonTree.js"></script>
     <script src="../static/js/vendor/fabric.js"></script>
     <script src="../static/js/vendor/tui-code-snippet.min.js"></script>
     <script src="../static/js/vendor/FileSaver.min.js"></script>
@@ -84,6 +92,12 @@
     <script src="../static/js/vendor/tui-image-editor.js"></script>
     <script src="../static/js/vendor/white-theme.js"></script>
     <script src="../static/js/vendor/black-theme.js"></script>
+    <script src="../static/js/vendor/wavesurfer.min.js"></script>
+    <script src="../static/js/vendor/p5.min.js"></script>
+    <script src="../static/js/vendor/p5.sound.min.js"></script>
+    <script src="../static/js/vendor/p5.dom.min.js"></script>
+    <script src="../static/js/vendor/jexcel.min.js"></script>
+    <script src="../static/js/vendor/jsuites.min.js"></script>
 
     <script src="../static/js/utils.js"></script>
     <script src="../static/js/all_io.js"></script>
@@ -97,18 +111,22 @@
     <script src="../static/js/interfaces/input/checkbox.js"></script>
     <script src="../static/js/interfaces/input/dropdown.js"></script>
     <script src="../static/js/interfaces/input/slider.js"></script>
-    <script src="../static/js/interfaces/input/csv.js"></script>
+    <script src="../static/js/interfaces/input/dataframe.js"></script>
+    <script src="../static/js/interfaces/input/audio.js"></script>
+    <script src="../static/js/interfaces/input/file.js"></script>
     <script src="../static/js/vendor/webcam.min.js"></script>
     <script src="../static/js/interfaces/input/webcam.js"></script>
     <script src="../static/js/interfaces/input/microphone.js"></script>
-    <script src="../static/js/vendor/wavesurfer.min.js"></script>
-    <script src="../static/js/vendor/p5.min.js"></script>
-    <script src="../static/js/vendor/p5.sound.min.js"></script>
-    <script src="../static/js/vendor/p5.dom.min.js"></script>
     <script src="../static/js/interfaces/output/image.js"></script>
     <script src="../static/js/interfaces/output/label.js"></script>
     <script src="../static/js/interfaces/output/key_values.js"></script>
     <script src="../static/js/interfaces/output/textbox.js"></script>
+    <script src="../static/js/interfaces/output/highlighted_text.js"></script>
+    <script src="../static/js/interfaces/output/audio.js"></script>
+    <script src="../static/js/interfaces/output/json.js"></script>
+    <script src="../static/js/interfaces/output/html.js"></script>
+    <script src="../static/js/interfaces/output/dataframe.js"></script>
+    <script src="../static/js/interfaces/output/file.js"></script>
     <script src="../static/js/gradio.js"></script>
     <script>
       $.getJSON("static/config.json", function(config) {
