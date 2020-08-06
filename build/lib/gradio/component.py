@@ -36,3 +36,17 @@ class Component():
         Return dictionary of shortcut implementations
         """
         return {}
+
+    def rebuild(self, dir, data):
+        """
+        All interfaces should define a method that rebuilds the flagged input when it's passed back (i.e. rebuilds image from base64)
+        """
+        return data
+
+    @classmethod
+    def get_all_shortcut_implementations(cls):
+        shortcuts = {}
+        for sub_cls in cls.__subclasses__():
+            for shortcut, parameters in sub_cls.get_shortcut_implementations().items():
+                shortcuts[shortcut] = (sub_cls, parameters)
+        return shortcuts

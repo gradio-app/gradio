@@ -15,7 +15,7 @@ import numpy as np
 import PIL.Image
 import PIL.ImageOps
 import scipy.io.wavfile
-from gradio import preprocessing_utils, validation_data
+from gradio import processing_utils, validation_data
 
 # Where to find the static resources associated with each template.
 # BASE_INPUT_INTERFACE_TEMPLATE_PATH = 'static/js/interfaces/input/{}.js'
@@ -271,7 +271,7 @@ class Image(AbstractInput):
         """
         Default preprocessing method for is to convert the picture to black and white and resize to be 48x48
         """
-        im = preprocessing_utils.decode_base64_to_image(inp)
+        im = processing_utils.decode_base64_to_image(inp)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             im = im.convert(self.image_mode)
@@ -280,13 +280,13 @@ class Image(AbstractInput):
             image_width = im.size[0]
         if image_height is None:
             image_height = im.size[1]
-        im = preprocessing_utils.resize_and_crop(
+        im = processing_utils.resize_and_crop(
             im, (image_width, image_height))
         return np.array(im)
 
     def process_example(self, example):
         if os.path.exists(example):
-            return preprocessing_utils.convert_file_to_base64(example)
+            return processing_utils.convert_file_to_base64(example)
         else:
             return example
 
@@ -322,7 +322,7 @@ class Sketchpad(AbstractInput):
         """
         Default preprocessing method for the SketchPad is to convert the sketch to black and white and resize 28x28
         """
-        im_transparent = preprocessing_utils.decode_base64_to_image(inp)
+        im_transparent = processing_utils.decode_base64_to_image(inp)
         # Create a white background for the alpha channel
         im = PIL.Image.new("RGBA", im_transparent.size, "WHITE")
         im.paste(im_transparent, (0, 0), im_transparent)
@@ -339,7 +339,7 @@ class Sketchpad(AbstractInput):
         return array
 
     def process_example(self, example):
-        return preprocessing_utils.convert_file_to_base64(example)
+        return processing_utils.convert_file_to_base64(example)
 
 
 class Webcam(AbstractInput):
@@ -372,9 +372,9 @@ class Webcam(AbstractInput):
         """
         Default preprocessing method for is to convert the picture to black and white and resize to be 48x48
         """
-        im = preprocessing_utils.decode_base64_to_image(inp)
+        im = processing_utils.decode_base64_to_image(inp)
         im = im.convert('RGB')
-        im = preprocessing_utils.resize_and_crop(
+        im = processing_utils.resize_and_crop(
             im, (self.image_width, self.image_height))
         return np.array(im)
 
@@ -408,9 +408,9 @@ class Microphone(AbstractInput):
         """
         By default, no pre-processing is applied to a microphone input file
         """
-        file_obj = preprocessing_utils.decode_base64_to_file(inp)
+        file_obj = processing_utils.decode_base64_to_file(inp)
         if self.preprocessing == "mfcc":
-            return preprocessing_utils.generate_mfcc_features_from_audio_file(file_obj.name)
+            return processing_utils.generate_mfcc_features_from_audio_file(file_obj.name)
         _, signal = scipy.io.wavfile.read(file_obj.name)
         return signal
 

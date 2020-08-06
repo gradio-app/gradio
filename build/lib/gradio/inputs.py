@@ -11,11 +11,12 @@ import time
 import warnings
 from gradio.component import Component
 
+import base64
 import numpy as np
 import PIL.Image
 import PIL.ImageOps
 import scipy.io.wavfile
-from gradio import preprocessing_utils, validation_data
+from gradio import processing_utils
 import pandas as pd
 import math
 import tempfile
@@ -24,15 +25,7 @@ class InputComponent(Component):
     """
     Input Component. All input components subclass this.
     """
-
-    @classmethod
-    def get_all_shortcut_implementations(cls):
-        shortcuts = {}
-        for sub_cls in cls.__subclasses__():
-            for shortcut, parameters in sub_cls.get_shortcut_implementations().items():
-                shortcuts[shortcut] = (sub_cls, parameters)
-        return shortcuts
-
+    pass
 
 class Textbox(InputComponent):
     """
@@ -283,13 +276,12 @@ class Image(InputComponent):
         }
 
     def preprocess(self, x):
-        im = preprocessing_utils.decode_base64_to_image(x)
+        im = processing_utils.decode_base64_to_image(x)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             im = im.convert(self.image_mode)
-        image_width, image_height = self.image_width, self.image_height
         if self.shape is not None:
-            im = preprocessing_utils.resize_and_crop(
+            im = processing_utils.resize_and_crop(
                 im, (self.shape[0], self.shape[1]))
         if self.type == "pil":
             return im
@@ -303,9 +295,19 @@ class Image(InputComponent):
 
     def process_example(self, example):
         if os.path.exists(example):
-            return preprocessing_utils.encode_file_to_base64(example)
+            return processing_utils.encode_file_to_base64(example)
         else:
             return example
+
+    def rebuild(self, dir, data):
+        """
+        Default rebuild method to decode a base64 image
+        """
+        im = processing_utils.decode_base64_to_image(data)
+        timestamp = datetime.datetime.now()
+        filename = f'input_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.png'
+        im.save(f'{dir}/{filename}', 'PNG')
+        return filename
 
 
 class Audio(InputComponent):
@@ -336,13 +338,13 @@ class Audio(InputComponent):
         """
         By default, no pre-processing is applied to a microphone input file
         """
-        file_obj = preprocessing_utils.decode_base64_to_file(x)
+        file_obj = processing_utils.decode_base64_to_file(x)
         if self.type == "file":
             return file_obj
         elif self.type == "numpy":
             return scipy.io.wavfile.read(file_obj.name)
         elif self.type == "mfcc":
-            return preprocessing_utils.generate_mfcc_features_from_audio_file(file_obj.name)
+            return processing_utils.generate_mfcc_features_from_audio_file(file_obj.name)
 
 
 class File(InputComponent):
@@ -368,9 +370,9 @@ class File(InputComponent):
 
     def preprocess(self, x):
         if self.type == "file":
-            return preprocessing_utils.decode_base64_to_file(x)
+            return processing_utils.decode_base64_to_file(x)
         elif self.type == "bytes":
-            return preprocessing_utils.decode_base64_to_binary(x)
+            return processing_utils.decode_base64_to_binary(x)
         else:
             raise ValueError("Unknown type: " + self.type + ". Please choose from: 'file', 'bytes'.")
 
@@ -460,7 +462,7 @@ class Sketchpad(InputComponent):
         """
         Default preprocessing method for the SketchPad is to convert the sketch to black and white and resize 28x28
         """
-        im_transparent = preprocessing_utils.decode_base64_to_image(x)
+        im_transparent = processing_utils.decode_base64_to_image(x)
         # Create a white background for the alpha channel
         im = PIL.Image.new("RGBA", im_transparent.size, "WHITE")
         im.paste(im_transparent, (0, 0), im_transparent)
@@ -477,7 +479,17 @@ class Sketchpad(InputComponent):
         return array
 
     def process_example(self, example):
-        return preprocessing_utils.encode_file_to_base64(example)
+        return processing_utils.encode_file_to_base64(example)
+
+    def rebuild(self, dir, data):
+        """
+        Default rebuild method to decode a base64 image
+        """
+        im = processing_utils.decode_base64_to_image(data)
+        timestamp = datetime.datetime.now()
+        filename = f'input_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.png'
+        im.save(f'{dir}/{filename}', 'PNG')
+        return filename
 
 
 class Webcam(InputComponent):
@@ -502,11 +514,21 @@ class Webcam(InputComponent):
         """
         Default preprocessing method for is to convert the picture to black and white and resize to be 48x48
         """
-        im = preprocessing_utils.decode_base64_to_image(x)
+        im = processing_utils.decode_base64_to_image(x)
         im = im.convert('RGB')
-        im = preprocessing_utils.resize_and_crop(
+        im = processing_utils.resize_and_crop(
             im, (self.image_width, self.image_height))
         return np.array(im)
+
+    def rebuild(self, dir, data):
+        """
+        Default rebuild method to decode a base64 image
+        """
+        im = processing_utils.decode_base64_to_image(data)
+        timestamp = datetime.datetime.now()
+        filename = f'input_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.png'
+        im.save('{}/{}'.format(dir, filename), 'PNG')
+        return filename
 
 
 class Microphone(InputComponent):
@@ -533,9 +555,18 @@ class Microphone(InputComponent):
         """
         By default, no pre-processing is applied to a microphone input file
         """
-        file_obj = preprocessing_utils.decode_base64_to_file(x)
+        file_obj = processing_utils.decode_base64_to_file(x)
         if self.preprocessing == "mfcc":
-            return preprocessing_utils.generate_mfcc_features_from_audio_file(file_obj.name)
+            return processing_utils.generate_mfcc_features_from_audio_file(file_obj.name)
         _, signal = scipy.io.wavfile.read(file_obj.name)
         return signal
-        
+
+
+    def rebuild(self, dir, data):
+        inp = data.split(';')[1].split(',')[1]
+        wav_obj = base64.b64decode(inp)
+        timestamp = datetime.datetime.now()
+        filename = f'input_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.wav'
+        with open("{}/{}".format(dir, filename), "wb+") as f:
+            f.write(wav_obj)
+        return filename
