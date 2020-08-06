@@ -1,22 +1,24 @@
 const microphone = {
   html: `
-    <div class="upload_zone">
-      <img class="not_recording" src="/static/img/mic.png" />
-      <div class="recording hidden volume_display">
-        <div class="volume volume_left">
-          <div class="volume_bar"></div>
+    <div class="interface_box">
+      <div class="upload_zone">
+        <img class="not_recording" src="/static/img/mic.png" />
+        <div class="recording hidden volume_display">
+          <div class="volume volume_left">
+            <div class="volume_bar"></div>
+          </div>
+          <img src="/static/img/mic_recording.png" />
+          <div class="volume volume_right">
+            <div class="volume_bar"></div>
+          </div>
         </div>
-        <img src="/static/img/mic_recording.png" />
-        <div class="volume volume_right">
-          <div class="volume_bar"></div>
-        </div>
+        <div class="not_recording input_caption">Click to Record from Microphone</div>
+        <div class="recording hidden input_caption">Click to Stop Recording</div>
       </div>
-      <div class="not_recording input_caption">Click to Record from Microphone</div>
-      <div class="recording hidden input_caption">Click to Stop Recording</div>
-    </div>
-    <div class="player hidden">
-      <div class="waveform"></div>
-      <button class="playpause primary">Play / Pause</button>
+      <div class="player hidden">
+        <div class="waveform"></div>
+        <button class="playpause primary">Play / Pause</button>
+      </div>
     </div>
     `,
   state: "NO_AUDIO",

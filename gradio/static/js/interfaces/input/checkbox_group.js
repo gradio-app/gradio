@@ -1,7 +1,6 @@
 const checkbox_group = {
   html: ``,
   init: function(opts) {
-    this.target.css("height", "auto");
     this.choices = opts.choices;
     html = "<div class='checkbox_group'>"
     for ([index, choice] of opts.choices.entries()) {
