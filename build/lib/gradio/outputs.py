@@ -7,7 +7,7 @@ automatically added to a registry, which allows them to be easily referenced in 
 from gradio.component import Component
 import numpy as np
 import json
-from gradio import preprocessing_utils
+from gradio import processing_utils
 import datetime
 import operator
 from numbers import Number
@@ -19,15 +19,7 @@ class OutputComponent(Component):
     """
     Output Component. All output components subclass this.
     """
-
-    @classmethod
-    def get_all_shortcut_implementations(cls):
-        shortcuts = {}
-        for sub_cls in cls.__subclasses__():
-            for shortcut, parameters in sub_cls.get_shortcut_implementations().items():
-                shortcuts[shortcut] = (sub_cls, parameters)
-        return shortcuts
-
+    pass
 
 class Textbox(OutputComponent):
     '''
@@ -117,6 +109,11 @@ class Label(OutputComponent):
             "label": {},
         }
 
+    def rebuild(self, dir, data):
+        """
+        Default rebuild method for label
+        """
+        return json.loads(data)
 
 class Image(OutputComponent):
     '''
@@ -133,7 +130,7 @@ class Image(OutputComponent):
         '''
         if plot:
             warnings.warn("The 'plot' parameter has been deprecated. Set parameter 'type' to 'plot' instead.", DeprecationWarning)
-            self.type = plot
+            self.type = "plot"
         else:
             self.type = type
         super().__init__(label)
@@ -147,19 +144,27 @@ class Image(OutputComponent):
         }
 
     def postprocess(self, y):
-        """
-        """
-        if type in ("numpy", "pil"):
+        if self.type in ["numpy", "pil"]:
             if self.type == "pil":
                 y = np.array(y)
-            return preprocessing_utils.encode_array_to_base64(y)
-        elif type == "file":
-            return preprocessing_utils.encode_file_to_base64(y)
-        elif type == "plot":
-            return preprocessing_utils.encode_plot_to_base64(y)
+            return processing_utils.encode_array_to_base64(y)
+        elif self.type == "file":
+            return processing_utils.encode_file_to_base64(y)
+        elif self.type == "plot":
+            return processing_utils.encode_plot_to_base64(y)
         else:
             raise ValueError("Unknown type: " + self.type + ". Please choose from: 'numpy', 'pil', 'file', 'plot'.")
 
+    def rebuild(self, dir, data):
+        """
+        Default rebuild method to decode a base64 image
+        """
+        im = processing_utils.decode_base64_to_image(data)
+        timestamp = datetime.datetime.now()
+        filename = 'output_{}.png'.format(timestamp.
+                                          strftime("%Y-%m-%d-%H-%M-%S"))
+        im.save('{}/{}'.format(dir, filename), 'PNG')
+        return filename
 
 class KeyValues(OutputComponent):
     '''
@@ -249,12 +254,12 @@ class Audio(OutputComponent):
         }
 
     def postprocess(self, y):
-        if self.type in ("numpy", "file"):
+        if self.type in ["numpy", "file"]:
             if self.type == "numpy":
                 file = tempfile.NamedTemporaryFile()
                 scipy.io.wavfile.write(file, y[0], y[1])                
                 y = file.name
-            return preprocessing_utils.encode_file_to_base64(y, type="audio", ext="wav")
+            return processing_utils.encode_file_to_base64(y, type="audio", ext="wav")
         else:
             raise ValueError("Unknown type: " + self.type + ". Please choose from: 'numpy', 'file'.")
 
@@ -310,13 +315,13 @@ class HTML(OutputComponent):
 class File(OutputComponent):
     '''
     Used for file output. Expects a string path to a file if `return_path` is True.     
-    Output type: Union[io.BytesIO, str]
+    Output type: Union[bytes, str]
     '''
 
     def __init__(self, type="file", label=None):
         '''
         Parameters:
-        type (str): Type of value to be passed to component. "file" expects a  file path, "str" exxpects a string to be returned as a file, "binary" expects an io.BytesIO object to be returned as a file.  
+        type (str): Type of value to be passed to component. "file" expects a  file path, "str" exxpects a string to be returned as a file, "binary" expects an bytes object to be returned as a file.  
         label (str): component name in interface.
         '''
         super().__init__(label)
