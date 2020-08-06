@@ -27,9 +27,17 @@
   flex-grow: 1;
 }
 .interface {
-  height: 360px;
   display: flex;
   flex-flow: column;
+}
+.interface_box {
+  height: 360px;
+}
+.interface_mini_box {
+  height: 180px;
+}
+.interface_max_box {
+  max-height: 360px;
 }
 .interface:not(*:last-child) {
   margin-bottom: 16px;

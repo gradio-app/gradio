@@ -11,7 +11,6 @@ const highlighted_text = {
     <div class="output_text"></div>
   `,
   init: function(opts) {
-    this.target.css("height", "auto");
     this.color_map = {};
     if (opts.color_map) {
       this.generate_category_legend(opts.color_map);

@@ -1,9 +1,11 @@
 const audio_output = {
   html: `
-    <div class="player hidden">
-      <div class="waveform"></div>
-      <button class="playpause primary">Play / Pause</button>
-    </div>
+    <div class="interface_box">
+      <div class="player hidden">
+        <div class="waveform"></div>
+        <button class="playpause primary">Play / Pause</button>
+      </div>
+    </div
     `,
   state: "NO_AUDIO",
   init: function(opts) {
