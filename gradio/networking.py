@@ -17,7 +17,6 @@ import requests
 import sys
 import analytics
 
-
 INITIAL_PORT_VALUE = int(os.getenv(
     'GRADIO_SERVER_PORT', "7860"))  # The http server will try to open on port 7860. If not available, 7861, 7862, etc.
 TRY_NUM_PORTS = int(os.getenv(
@@ -36,8 +35,6 @@ CONFIG_FILE = "static/config.json"
 ASSOCIATION_PATH_IN_STATIC = "static/apple-app-site-association"
 ASSOCIATION_PATH_IN_ROOT = "apple-app-site-association"
 
-FLAGGING_DIRECTORY = 'static/flagged/'
-FLAGGING_FILENAME = 'data.txt'
 analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
 analytics_url = 'https://api.gradio.app/'
 
@@ -172,20 +169,6 @@ def serve_files_in_background(interface, port, directory_to_serve=None, server_n
                 prediction, durations = interface.process(raw_input)
 
                 output = {"data": prediction, "durations": durations}
-                if interface.saliency is not None:
-                    saliency = interface.saliency(raw_input, prediction)
-                    output['saliency'] = saliency.tolist()
-                # if interface.always_flag:
-                #     msg = json.loads(data_string)
-                #     flag_dir = os.path.join(FLAGGING_DIRECTORY, str(interface.hash))
-                #     os.makedirs(flag_dir, exist_ok=True)
-                #     output_flag = {'input': interface.input_interface.rebuild_flagged(flag_dir, msg['data']),
-                #               'output': interface.output_interface.rebuild_flagged(flag_dir, processed_output),
-                #               }
-                #     with open(os.path.join(flag_dir, FLAGGING_FILENAME), 'a+') as f:
-                #         f.write(json.dumps(output_flag))
-                #         f.write("\n")
-
                 self.wfile.write(json.dumps(output).encode())
 
                 analytics_thread = threading.Thread(
@@ -197,20 +180,18 @@ def serve_files_in_background(interface, port, directory_to_serve=None, server_n
                 data_string = self.rfile.read(
                     int(self.headers["Content-Length"]))
                 msg = json.loads(data_string)
-                flag_dir = os.path.join(FLAGGING_DIRECTORY,
-                                        str(interface.flag_hash))
-                os.makedirs(flag_dir, exist_ok=True)
+                os.makedirs(interface.flagging_dir, exist_ok=True)
                 output = {'inputs': [interface.input_interfaces[
-                    i].rebuild_flagged(
-                    flag_dir, msg['data']['input_data']) for i
+                    i].rebuild(
+                    interface.flagging_dir, msg['data']['input_data']) for i
                     in range(len(interface.input_interfaces))],
                     'outputs': [interface.output_interfaces[
-                        i].rebuild_flagged(
-                        flag_dir, msg['data']['output_data']) for i
-                    in range(len(interface.output_interfaces))],
-                    'message': msg['data']['message']}
+                        i].rebuild(
+                        interface.flagging_dir, msg['data']['output_data']) for i
+                    in range(len(interface.output_interfaces))]}
 
-                with open(os.path.join(flag_dir, FLAGGING_FILENAME), 'a+') as f:
+                with open("{}/log.txt".format(interface.flagging_dir),
+                          'a+') as f:
                     f.write(json.dumps(output))
                     f.write("\n")
 

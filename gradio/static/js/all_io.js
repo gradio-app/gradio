@@ -56,12 +56,11 @@ var io_master_template = {
       this.target.find(".output_interfaces").css("opacity", 1);
     }
   },
-  flag: function(message) {
+  flag: function() {
     var post_data = {
       'data': {
         'input_data' : toStringIfObject(this.last_input) ,
-        'output_data' : toStringIfObject(this.last_output),
-        'message' : message
+        'output_data' : toStringIfObject(this.last_output)
       }
     }
     $.ajax({type: "POST",
