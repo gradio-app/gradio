@@ -1,6 +1,8 @@
 const webcam = {
   html: `
-    <div class="webcam_box"></div>
+    <div class="interface_box">
+      <div class="webcam_box"></div>
+    </div>
   `,
   init: function(opts) {
     var io = this;

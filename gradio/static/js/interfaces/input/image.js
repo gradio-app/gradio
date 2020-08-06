@@ -1,22 +1,25 @@
 const image_input = {
   html: `
-    <div class="upload_zone drop_zone">
-      <div class="input_caption">Drop Image Here<br>- or -<br>Click to Upload</div>
-    </div>
-    <div class="image_display hide">
-      <div class="edit_holder">
-        <button class="edit_image interface_button primary">Edit</button>
+    <div class="interface_box">
+      <div class="upload_zone drop_zone">
+        <div class="input_caption">Drop Image Here<br>- or -<br>Click to Upload</div>
       </div>
-      <div class="view_holders">
-        <div class="image_preview_holder">
-          <img class="image_preview" />
+      <div class="image_display hide">
+        <div class="edit_holder">
+          <button class="edit_image interface_button primary">Edit</button>
         </div>
-        <div class="saliency_holder hide">
-          <canvas class="saliency"></canvas>
+        <div class="view_holders">
+          <div class="image_preview_holder">
+            <img class="image_preview" />
+          </div>
+          <div class="saliency_holder hide">
+            <canvas class="saliency"></canvas>
+          </div>
         </div>
       </div>
+      <input class="hidden_upload" type="file" accept="image/x-png,image/gif,image/jpeg" />
     </div>
-    <input class="hidden_upload" type="file" accept="image/x-png,image/gif,image/jpeg" />`
+    `
     ,
   overlay_html: `
     <div class="overlay interface_extension image_editor_overlay hide" interface_id="{0}">

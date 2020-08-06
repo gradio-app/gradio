@@ -3,7 +3,6 @@ const checkbox = {
     <label><input class="checkbox" type="checkbox">&nbsp;</label>
   </div>`,
   init: function(opts) {
-    this.target.css("height", "auto");
     this.target.find("input").checkboxradio();    
   },
   submit: function() {

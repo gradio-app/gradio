@@ -1,13 +1,16 @@
 const file_input = {
   html: `
-    <div class="upload_zone drop_zone">
-      <div class="input_caption">Drop File Here<br>- or -<br>Click to Upload</div>
+    <div class="interface_mini_box">
+      <div class="upload_zone drop_zone">
+        <div class="input_caption">Drop File Here<br>- or -<br>Click to Upload</div>
+      </div>
+      <div class="file_display hide">
+        <div class="file_name"></div>
+        <div class="file_size"></div>
+      </div>
+      <input class="hidden_upload" type="file" />
     </div>
-    <div class="file_display hide">
-      <div class="file_name"></div>
-      <div class="file_size"></div>
-    </div>
-    <input class="hidden_upload" type="file" />`
+    `
     ,
   init: function(opts) {
     var io = this;

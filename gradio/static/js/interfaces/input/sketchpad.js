@@ -1,15 +1,18 @@
 const sketchpad_input = {
   html: `
-    <div class="sketch_tools">
-      <div id="brush_1" size="8" class="brush"></div>
-      <div id="brush_2" size="16" class="brush selected"></div>
-      <div id="brush_3" size="24" class="brush"></div>
-    </div>
-    <div class="view_holders">
-      <div class="canvas_holder">
-        <canvas class="sketch"></canvas>
+    <div class="interface_box">
+      <div class="sketch_tools">
+        <div id="brush_1" size="8" class="brush"></div>
+        <div id="brush_2" size="16" class="brush selected"></div>
+        <div id="brush_3" size="24" class="brush"></div>
       </div>
-    </div>`,
+      <div class="view_holders">
+        <div class="canvas_holder">
+          <canvas class="sketch"></canvas>
+        </div>
+      </div>
+    </div>
+    `,
   init: function() {
     var io = this;
     var dimension = Math.min(this.target.find(".canvas_holder").width(),
