@@ -80,9 +80,7 @@ const image_input = {
   submit: function() {
     var io = this;
     if (this.state == "IMAGE_LOADED") {
-      resizeImage.call(this, this.image_data, 600, 600, function(image_data) {
-        io.io_master.input(io.id, image_data);
-      })
+      io.io_master.input(io.id, this.image_data);
     }
   },
   clear: function() {
@@ -109,17 +107,15 @@ const image_input = {
   image_data: null,
   set_image_data: function(data, update_editor) {
     let io = this;
-    resizeImage.call(this, data, 600, 600, function(image_data) {
-      io.image_data = image_data
-      io.target.find(".image_preview").attr('src', image_data);
-      if (update_editor) {
-        io.tui_editor.loadImageFromURL(io.image_data, 'input').then(function (sizeValue) {
-          io.tui_editor.clearUndoStack();
-          io.tui_editor.ui.activeMenuEvent();
-          io.tui_editor.ui.resizeEditor({ imageSize: sizeValue });
-        });
-      }
-    })
+    io.image_data = data
+    io.target.find(".image_preview").attr('src', data);
+    if (update_editor) {
+      io.tui_editor.loadImageFromURL(io.image_data, 'input').then(function (sizeValue) {
+        io.tui_editor.clearUndoStack();
+        io.tui_editor.ui.activeMenuEvent();
+        io.tui_editor.ui.resizeEditor({ imageSize: sizeValue });
+      });
+    }
   },
   load_preview_from_files: function(files) {
     if (!files.length || !window.FileReader || !/^image/.test(files[0].type)) {
