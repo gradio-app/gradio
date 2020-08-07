@@ -196,7 +196,7 @@ class Image(AbstractOutput):
 class KeyValues(AbstractOutput):
     '''
     Component displays a table representing values for multiple fields. 
-    Output type: List[Tuple[str, value]]
+    Output type: Dict[str, value]
     '''
 
     def __init__(self, label=None):
@@ -250,7 +250,7 @@ class HighlightedText(AbstractOutput):
         if isinstance(prediction, str) or isinstance(prediction, int) or isinstance(prediction, float):
             return str(prediction)
         else:
-            raise ValueError("The `Textbox` output interface expects an output that is one of: a string, or"
+            raise ValueError("The `HighlightedText` output interface expects an output that is one of: a string, or"
                              "an int/float that can be converted to a string.")
 
 

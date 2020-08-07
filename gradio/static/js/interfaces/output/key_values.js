@@ -11,10 +11,10 @@ const key_values = {
   init: function(opts) {},
   output: function(data) {
     let html = ""
-    for (let row of data) {
+    for (const [key, value] of Object.entries(data)) {
       html += `<tr>
-        <td>${row[0]}</td>
-        <td>${row[1]}</td>
+        <td>${key}</td>
+        <td>${value}</td>
       </tr>`;
     }
     this.target.find("tbody").html(html);
