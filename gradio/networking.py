@@ -16,6 +16,8 @@ from shutil import copyfile
 import requests
 import sys
 import analytics
+import csv
+
 
 INITIAL_PORT_VALUE = int(os.getenv(
     'GRADIO_SERVER_PORT', "7860"))  # The http server will try to open on port 7860. If not available, 7861, 7862, etc.
@@ -183,18 +185,32 @@ def serve_files_in_background(interface, port, directory_to_serve=None, server_n
                 os.makedirs(interface.flagging_dir, exist_ok=True)
                 output = {'inputs': [interface.input_interfaces[
                     i].rebuild(
-                    interface.flagging_dir, msg['data']['input_data']) for i
+                    interface.flagging_dir, msg['data']['input_data'][i]) for i
                     in range(len(interface.input_interfaces))],
                     'outputs': [interface.output_interfaces[
                         i].rebuild(
-                        interface.flagging_dir, msg['data']['output_data']) for i
+                        interface.flagging_dir, msg['data']['output_data'][i])
+                        for i
                     in range(len(interface.output_interfaces))]}
 
-                with open("{}/log.txt".format(interface.flagging_dir),
-                          'a+') as f:
-                    f.write(json.dumps(output))
-                    f.write("\n")
+                log_fp = "{}/log.csv".format(interface.flagging_dir)
 
+                is_new = not os.path.exists(log_fp)
+
+                with open(log_fp, "a") as csvfile:
+                    headers = ["input_{}".format(i) for i in range(len(
+                        output["inputs"]))] + ["output_{}".format(i) for i in
+                                               range(len(output["outputs"]))]
+                    writer = csv.DictWriter(csvfile, delimiter=',',
+                                            lineterminator='\n',
+                                            fieldnames=headers)
+                    if is_new:
+                        writer.writeheader()
+
+                    writer.writerow(
+                        dict(zip(headers, output["inputs"] +
+                                  output["outputs"]))
+                    )
             else:
                 self.send_error(404, 'Path not found: {}'.format(self.path))
 

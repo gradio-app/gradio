@@ -140,7 +140,8 @@ class Label(AbstractOutput):
         """
         Default rebuild method for label
         """
-        return json.loads(data)
+        # return json.loads(data)
+        return data
 
 class Image(AbstractOutput):
     '''
