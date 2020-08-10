@@ -9,6 +9,8 @@ def get_params(func):
     params_doc = []
     documented_params = {"self"}
     for param_line in params_str.split("\n")[1:]:
+        if param_line.strip() == "Returns":
+            break
         space_index = param_line.index(" ")
         colon_index = param_line.index(":")
         name = param_line[:space_index]
