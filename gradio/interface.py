@@ -4,12 +4,11 @@ interface using the input and output types.
 """
 
 import tempfile
-import traceback
 import webbrowser
 
 import gradio.inputs
 import gradio.outputs
-from gradio import networking, strings
+from gradio import networking, strings, utils
 from distutils.version import StrictVersion
 import pkg_resources
 import requests
@@ -20,7 +19,8 @@ from IPython import get_ipython
 import sys
 import weakref
 import analytics
-import inspect
+import os
+
 
 PKG_VERSION_URL = "https://gradio.app/api/pkg-version"
 analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
@@ -33,20 +33,47 @@ except requests.ConnectionError:
 
 class Interface:
     """
-    The Interface class represents a general input/output interface for a machine learning model. During construction,
-    the appropriate inputs and outputs
+    Interfaces are created with Gradio using the `gradio.Interface()` function.
     """
     instances = weakref.WeakSet()
 
-    def __init__(self, fn, inputs, outputs, saliency=None, verbose=False, examples=None,
+    @classmethod
+    def get_instances(cls):
+        """
+        :return: list of all current instances.
+        """
+        return list(
+            Interface.instances)
+
+    def __init__(self, fn, inputs, outputs, verbose=False, examples=None,
                  live=False, show_input=True, show_output=True,
                  capture_session=False, title=None, description=None,
-                 thumbnail=None, server_name=networking.LOCALHOST_NAME,
-                 analytics_enabled=True):
+                 thumbnail=None,  server_port=None, server_name=networking.LOCALHOST_NAME,
+                 allow_screenshot=True, allow_flagging=True,
+                 flagging_dir="flagged", analytics_enabled=True):
+
         """
-        :param fn: a function that will process the input panel data from the interface and return the output panel data.
-        :param inputs: a string or `AbstractInput` representing the input interface.
-        :param outputs: a string or `AbstractOutput` representing the output interface.
+        Parameters:
+        fn (Callable): the function to wrap an interface around.
+        inputs (Union[str, List[Union[str, AbstractInput]]]): a single Gradio input component, or list of Gradio input components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of input components should match the number of parameters in fn.
+        outputs (Union[str, List[Union[str, AbstractOutput]]]): a single Gradio output component, or list of Gradio output components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of output components should match the number of values returned by fn.
+        verbose (bool): whether to print detailed information during launch.
+        examples (List[List[Any]]): sample inputs for the function; if provided, appears below the UI components and can be used to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component.
+        live (bool): whether the interface should automatically reload on change.
+        show_input (bool): if False, removes the input from the interface
+        and underlays it in the output.
+        show_output (bool): if False, removes the output from the interface
+        and overlays it in the input.
+        capture_session (bool): if True, captures the default graph and session (needed for Tensorflow 1.x)
+        title (str): a title for the interface; if provided, appears above the input and output components.
+        description (str): a description for the interface; if provided, appears above the input and output components.
+        thumbnail (str): path to image or src to use as display picture for
+        models listed in gradio.app/hub
+        allow_screenshot (bool): if False, users will not see a button to
+        take a screenshot of the interface.
+        allow_flagging (bool): if False, users will not see a button to flag an
+         input and output.
+        flagging_dir (str): what to name the dir where flagged data is stored.
         """
         def get_input_instance(iface):
             if isinstance(iface, str):
@@ -77,11 +104,11 @@ class Interface:
             self.output_interfaces = [get_output_instance(outputs)]
         if not isinstance(fn, list):
             fn = [fn]
+
         self.output_interfaces *= len(fn)
         self.predict = fn
         self.verbose = verbose
         self.status = "OFF"
-        self.saliency = saliency
         self.live = live
         self.show_input = show_input
         self.show_output = show_output
@@ -93,15 +120,17 @@ class Interface:
         self.description = description
         self.thumbnail = thumbnail
         self.examples = examples
-        self.server_port = None
+        self.server_port = server_port
         self.simple_server = None
+        self.allow_screenshot = allow_screenshot
+        self.allow_flagging = allow_flagging
+        self.flagging_dir = flagging_dir
         Interface.instances.add(self)
         self.analytics_enabled=analytics_enabled
 
         data = {'fn': fn,
                 'inputs': inputs,
                 'outputs': outputs,
-                'saliency': saliency,
                 'live': live,
                 'capture_session': capture_session,
                 'ip_address': ip_address
@@ -112,8 +141,22 @@ class Interface:
                 import tensorflow as tf
                 self.session = tf.get_default_graph(), \
                               tf.keras.backend.get_session()
-            except (ImportError, AttributeError):  # If they are using TF >= 2.0 or don't have TF, just ignore this.
+            except (ImportError, AttributeError):
+                # If they are using TF >= 2.0 or don't have TF,
+                # just ignore this.
                 pass
+
+        if self.allow_flagging:
+            if self.title is not None:
+                dir_name = "_".join(self.title.split(" "))
+            else:
+                dir_name = "_".join([fn.__name__ for fn in self.predict])
+            index = 1
+            while os.path.exists(self.flagging_dir + "/" + dir_name +
+                                 "_{}".format(index)):
+                index += 1
+            self.flagging_dir = self.flagging_dir + "/" + dir_name + \
+                "_{}".format(index)
 
         if self.analytics_enabled:
             try:
@@ -136,7 +179,9 @@ class Interface:
             "show_output": self.show_output,
             "title": self.title,
             "description": self.description,
-            "thumbnail": self.thumbnail
+            "thumbnail": self.thumbnail,
+            "allow_screenshot": self.allow_screenshot,
+            "allow_flagging": self.allow_flagging
         }
         try:
             param_names = inspect.getfullargspec(self.predict[0])[0]
@@ -153,6 +198,15 @@ class Interface:
         return config    
 
     def process(self, raw_input):
+        """
+        :param raw_input: a list of raw inputs to process and apply the
+        prediction(s) on.
+        :return:
+        processed output: a list of processed  outputs to return as the
+        prediction(s).
+        duration: a list of time deltas measuring inference time for each
+        prediction fn.
+        """
         processed_input = [input_interface.preprocess(
             raw_input[i]) for i, input_interface in
             enumerate(self.input_interfaces)]
@@ -189,112 +243,38 @@ class Interface:
             predictions[i]) for i, output_interface in enumerate(self.output_interfaces)]
         return processed_output, durations
 
-    def validate(self):
-        if self.validate_flag:
-            if self.verbose:
-                print("Interface already validated")
-            return
-        validation_inputs = self.input_interface.get_validation_inputs()
-        n = len(validation_inputs)
-        if n == 0:
-            self.validate_flag = True
-            if self.verbose:
-                print(
-                    "No validation samples for this interface... skipping validation."
-                )
-            return
-        for m, msg in enumerate(validation_inputs):
-            if self.verbose:
-                print(
-                    "Validating samples: {}/{}  [".format(m+1, n)
-                    + "=" * (m + 1)
-                    + "." * (n - m - 1)
-                    + "]",
-                    end="\r",
-                )
-            try:
-                processed_input = self.input_interface.preprocess(msg)
-                prediction = self.predict(processed_input)
-            except Exception as e:
-                data = {'error': e}
-                if self.analytics_enabled:
-                    try:
-                        requests.post(analytics_url + 'gradio-error-analytics/',
-                                  data=data)
-                    except requests.ConnectionError:
-                        pass  # do not push analytics if no network
-                if self.verbose:
-                    print("\n----------")
-                    print(
-                        "Validation failed, likely due to incompatible pre-processing and model input. See below:\n"
-                    )
-                    print(traceback.format_exc())
-                break
-            try:
-                _ = self.output_interface.postprocess(prediction)
-            except Exception as e:
-                data = {'error': e}
-                if self.analytics_enabled:
-                    try:
-                        requests.post(analytics_url + 'gradio-error-analytics/',
-                                      data=data)
-                    except requests.ConnectionError:
-                        pass  # do not push analytics if no network
-                if self.verbose:
-                    print("\n----------")
-                    print(
-                        "Validation failed, likely due to incompatible model output and post-processing."
-                        "See below:\n"
-                    )
-                    print(traceback.format_exc())
-                break
-        else:  # This means if a break was not explicitly called
-            self.validate_flag = True
-            if self.verbose:
-                print("\n\nValidation passed successfully!")
-            return
-        raise RuntimeError("Validation did not pass")
-
     def close(self):
         if self.simple_server and not(self.simple_server.fileno() == -1):  # checks to see if server is running
             print("Closing Gradio server on port {}...".format(self.server_port))
             networking.close_server(self.simple_server)
 
-    def launch(self, inline=None, inbrowser=None, share=False, validate=True, debug=False):
+    def launch(self, inline=None, inbrowser=None, share=False, debug=False):
         """
-        Standard method shared by interfaces that creates the interface and sets up a websocket to communicate with it.
-        :param inline: boolean. If True, then a gradio interface is created inline (e.g. in jupyter or colab notebook)
-        :param inbrowser: boolean. If True, then a new browser window opens with the gradio interface.
-        :param share: boolean. If True, then a share link is generated using ngrok is displayed to the user.
-        :param validate: boolean. If True, then the validation is run if the interface has not already been validated.
+        Parameters
+        inline (bool): whether to display in the interface inline on python
+        notebooks.
+        inbrowser (bool): whether to automatically launch the interface in a
+        new tab on the default browser.
+        share (bool): whether to create a publicly shareable link from
+        your computer for the interface.
+        debug (bool): if True, and the interface was launched from Google
+        Colab, prints the errors in the cell output.
+        :returns
+        httpd (str): HTTPServer object
+        path_to_local_server (str): Locally accessible link
+        share_url (str): Publicly accessible link (if share=True)
         """
-        # if validate and not self.validate_flag:
-        #     self.validate()
 
         output_directory = tempfile.mkdtemp()
         # Set up a port to serve the directory containing the static files with interface.
-        server_port, httpd = networking.start_simple_server(self, output_directory, self.server_name)
+        server_port, httpd = networking.start_simple_server(self, output_directory, self.server_name,
+                                                            server_port=self.server_port)
         path_to_local_server = "http://{}:{}/".format(self.server_name, server_port)
         networking.build_template(output_directory)
 
         self.server_port = server_port
         self.status = "RUNNING"
         self.simple_server = httpd
-
-        is_colab = False
-        try:  # Check if running interactively using ipython.
-            from_ipynb = get_ipython()
-            if "google.colab" in str(from_ipynb):
-                is_colab = True
-        except NameError:
-            data = {'error': 'NameError in launch method'}
-            if self.analytics_enabled:
-                try:
-                    requests.post(analytics_url + 'gradio-error-analytics/',
-                                  data=data)
-                except requests.ConnectionError:
-                    pass  # do not push analytics if no network
-            pass
 
         try:
             current_pkg_version = pkg_resources.require("gradio")[0].version
@@ -308,6 +288,7 @@ class Interface:
         except:  # TODO(abidlabs): don't catch all exceptions
             pass
 
+        is_colab = utils.colab_check()
         if not is_colab:
             print(strings.en["RUNNING_LOCALLY"].format(path_to_local_server))
         else:
@@ -335,9 +316,8 @@ class Interface:
                 if self.verbose:
                     print(strings.en["NGROK_NO_INTERNET"])
         else:
-            if (
-                is_colab
-            ):  # For a colab notebook, create a public link even if share is False.
+            if is_colab:  # For a colab notebook, create a public link even if
+                # share is False.
                 share_url = networking.setup_tunnel(server_port)
                 print("Running on External URL:", share_url)
                 if self.verbose:
@@ -348,29 +328,22 @@ class Interface:
                 share_url = None
 
         if inline is None:
-            try:  # Check if running interactively using ipython.
-                get_ipython()
-                inline = True
-                if inbrowser is None:
-                    inbrowser = False
-            except NameError:
-                inline = False
-                if inbrowser is None:
-                    inbrowser = True
+            inline = utils.ipython_check()
+            if inbrowser is None:
+                # if interface won't appear inline, open it in new tab,
+                # otherwise keep it inline
+                inbrowser = not inline
         else:
             if inbrowser is None:
                 inbrowser = False
 
         if inbrowser and not is_colab:
-            webbrowser.open(
-                path_to_local_server
-            )  # Open a browser tab with the interface.
+            webbrowser.open(path_to_local_server)  # Open a browser tab
+            # with the interface.
         if inline:
             from IPython.display import IFrame, display
-
-            if (
-                is_colab
-            ):  # Embed the remote interface page if on google colab;
+            if (is_colab):
+                # Embed the remote interface page if on google colab;
                 # otherwise, embed the local page.
                 print("Interface loading below...")
                 while not networking.url_ok(share_url):
@@ -392,6 +365,7 @@ class Interface:
             config["examples"] = processed_examples
 
         networking.set_config(config, output_directory)
+        networking.set_meta_tags(output_directory, self.title, self.description, self.thumbnail)
 
         if debug:
             while True:
@@ -412,10 +386,6 @@ class Interface:
             except requests.ConnectionError:
                 pass  # do not push analytics if no network
         return httpd, path_to_local_server, share_url
-
-    @classmethod
-    def get_instances(cls):
-        return list(Interface.instances) #Returns list of all current instances
 
 
 def reset_all():

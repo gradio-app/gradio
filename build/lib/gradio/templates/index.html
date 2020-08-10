@@ -17,6 +17,17 @@
 
       <!-- <iframe src=""></iframe> -->
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta property="og:url" content="https://gradio.app/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="{{thumbnail}}" />
+    <meta property="og:title" content="{{title}}" />
+    <meta property="og:description" content="{{description}}" />
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:creator" content="@teamGradio">
+    <meta name="twitter:title" content="{{title}}">
+    <meta name="twitter:description" content="{{description}}">
+    <meta name="twitter:image" content="{{thumbnail}}">
+
     <title>Gradio</title>
     <!-- VENDOR -->
     <link type="text/css" href="../static/css/vendor/tui-color-picker.css" rel="stylesheet">
@@ -34,7 +45,6 @@
     <link rel="stylesheet" href="../static/css/interfaces/input/dropdown.css">
     <link rel="stylesheet" href="../static/css/interfaces/input/checkbox_group.css">
     <link rel="stylesheet" href="../static/css/interfaces/input/slider.css">
-    <link rel="stylesheet" href="../static/css/interfaces/input/csv.css">
     <link rel="stylesheet" href="../static/css/interfaces/input/webcam.css">
     <link rel="stylesheet" href="../static/css/interfaces/input/microphone.css">
     <link rel="stylesheet" href="../static/css/interfaces/output/image.css">
@@ -44,7 +54,7 @@
     <link rel="stylesheet" href="../static/css/loading.css"/>
   </head>
 
-  <body>
+  <body id="lib">
     <div id="share" class="invisible">
       Live at <a id="share-link" target="_blank"></a>.
       <button id="share-copy">Copy Link</button>
@@ -59,9 +69,14 @@
       <table>
       </table>
     </div>
-    <div id="credit">Built with <a href="http://gradio.app" target="_blank">Gradio</a>.</div>
+    <div id="credit"><a href="https://github.com/gradio-app/gradio" target="_blank">
+      <img src="static/img/logo_inline.png">
+    </a></div>
+    <!-- VENDOR -->
     <script src="../static/js/vendor/jquery.min.js"></script>
-    <!-- TUI EDITOR -->
+    <script src="../static/js/vendor/html2canvas.min.js"></script>
+    <script src="../static/js/vendor/jquery-ui.min.js"></script>
+    <script src="../static/js/vendor/jquery.ui.touch-punch.js"></script>
     <script src="../static/js/vendor/fabric.js"></script>
     <script src="../static/js/vendor/tui-code-snippet.min.js"></script>
     <script src="../static/js/vendor/FileSaver.min.js"></script>
@@ -69,9 +84,6 @@
     <script src="../static/js/vendor/tui-image-editor.js"></script>
     <script src="../static/js/vendor/white-theme.js"></script>
     <script src="../static/js/vendor/black-theme.js"></script>
-
-    <script src="../static/js/vendor/html2canvas.min.js"></script>
-    <script src="../static/js/vendor/jquery-ui.min.js"></script>
 
     <script src="../static/js/utils.js"></script>
     <script src="../static/js/all_io.js"></script>
