@@ -23,4 +23,4 @@ gr.Interface(flip2,
                  ["images/cheetah2.jpg"],
                  ["images/lion.jpg"],
              ]
-             ).launch()
+             ).launch(share=False)
