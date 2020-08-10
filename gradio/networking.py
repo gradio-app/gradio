@@ -9,6 +9,7 @@ from http.server import HTTPServer as BaseHTTPServer, SimpleHTTPRequestHandler
 import pkg_resources
 from distutils import dir_util
 from gradio import inputs, outputs
+import time
 import json
 from gradio.tunneling import create_tunnel
 import urllib.request
@@ -221,22 +222,21 @@ def serve_files_in_background(interface, port, directory_to_serve=None, server_n
             self.base_path = base_path
             BaseHTTPServer.__init__(self, server_address, RequestHandlerClass)
 
+    class QuittableHTTPThread(threading.Thread):
+        def __init__(self, httpd):
+            super().__init__(daemon=False)
+            self.httpd = httpd
+            self.keep_running =True
+
+        def run(self):
+            while self.keep_running:
+                self.httpd.handle_request()
+
     httpd = HTTPServer(directory_to_serve, (server_name, port))
-
-    # Now loop forever
-    def serve_forever():
-        try:
-            while True:
-                sys.stdout.flush()
-                httpd.serve_forever()
-        except (KeyboardInterrupt, OSError):
-                httpd.shutdown()
-                httpd.server_close()
-
-    thread = threading.Thread(target=serve_forever, daemon=False)
+    thread = QuittableHTTPThread(httpd=httpd)
     thread.start()
 
-    return httpd
+    return httpd, thread
 
 
 def start_simple_server(interface, directory_to_serve=None, server_name=None, server_port=None):
@@ -245,8 +245,8 @@ def start_simple_server(interface, directory_to_serve=None, server_name=None, se
     port = get_first_available_port(
         server_port, server_port + TRY_NUM_PORTS
     )
-    httpd = serve_files_in_background(interface, port, directory_to_serve, server_name)
-    return port, httpd
+    httpd, thread = serve_files_in_background(interface, port, directory_to_serve, server_name)
+    return port, httpd, thread
 
 
 def close_server(server):

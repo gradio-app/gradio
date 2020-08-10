@@ -21,7 +21,6 @@ import weakref
 import analytics
 import os
 
-
 PKG_VERSION_URL = "https://gradio.app/api/pkg-version"
 analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
 analytics_url = 'https://api.gradio.app/'
@@ -48,7 +47,7 @@ class Interface:
     def __init__(self, fn, inputs, outputs, verbose=False, examples=None,
                  live=False, show_input=True, show_output=True,
                  capture_session=False, title=None, description=None,
-                 thumbnail=None,  server_port=None, server_name=networking.LOCALHOST_NAME,
+                 thumbnail=None, server_port=None, server_name=networking.LOCALHOST_NAME,
                  allow_screenshot=True, allow_flagging=True,
                  flagging_dir="flagged"):
         """
@@ -69,6 +68,7 @@ class Interface:
         allow_flagging (bool): if False, users will not see a button to flag an input and output.
         flagging_dir (str): what to name the dir where flagged data is stored.
         """
+
         def get_input_instance(iface):
             if isinstance(iface, str):
                 shortcut = InputComponent.get_all_shortcut_implementations()[iface]
@@ -90,6 +90,7 @@ class Interface:
                     "Output interface must be of type `str` or "
                     "`OutputComponent`"
                 )
+
         if isinstance(inputs, list):
             self.input_interfaces = [get_input_instance(i) for i in inputs]
         else:
@@ -135,7 +136,7 @@ class Interface:
             try:
                 import tensorflow as tf
                 self.session = tf.get_default_graph(), \
-                              tf.keras.backend.get_session()
+                               tf.keras.backend.get_session()
             except (ImportError, AttributeError):
                 # If they are using TF >= 2.0 or don't have TF,
                 # just ignore this.
@@ -151,7 +152,7 @@ class Interface:
                                  "_{}".format(index)):
                 index += 1
             self.flagging_dir = self.flagging_dir + "/" + dir_name + \
-                "_{}".format(index)
+                                "_{}".format(index)
 
         try:
             requests.post(analytics_url + 'gradio-initiated-analytics/',
@@ -188,8 +189,8 @@ class Interface:
                     iface[1]["label"] = ret_name
         except ValueError:
             pass
-        
-        return config    
+
+        return config
 
     def process(self, raw_input):
         """
@@ -208,7 +209,7 @@ class Interface:
         durations = []
         for predict_fn in self.predict:
             start = time.time()
-            if self.capture_session and not(self.session is None):
+            if self.capture_session and not (self.session is None):
                 graph, sess = self.session
                 with graph.as_default():
                     with sess.as_default():
@@ -238,9 +239,18 @@ class Interface:
         return processed_output, durations
 
     def close(self):
-        if self.simple_server and not(self.simple_server.fileno() == -1):  # checks to see if server is running
+        if self.simple_server and not (self.simple_server.fileno() == -1):  # checks to see if server is running
             print("Closing Gradio server on port {}...".format(self.server_port))
             networking.close_server(self.simple_server)
+
+    def run_until_interrupted(self, thread, path_to_local_server):
+        try:
+            while 1:
+                pass
+        except (KeyboardInterrupt, OSError):
+            print("Keyboard interruption in main thread... closing server.")
+            thread.keep_running = False
+            networking.url_ok(path_to_local_server)
 
     def launch(self, inline=None, inbrowser=None, share=False, debug=False):
         """
@@ -258,11 +268,10 @@ class Interface:
         path_to_local_server (str): Locally accessible link
         share_url (str): Publicly accessible link (if share=True)
         """
-
         output_directory = tempfile.mkdtemp()
         # Set up a port to serve the directory containing the static files with interface.
-        server_port, httpd = networking.start_simple_server(self, output_directory, self.server_name,
-                                                            server_port=self.server_port)
+        server_port, httpd, thread = networking.start_simple_server(
+            self, output_directory, self.server_name, server_port=self.server_port)
         path_to_local_server = "http://{}:{}/".format(self.server_name, server_port)
         networking.build_template(output_directory)
 
@@ -277,7 +286,7 @@ class Interface:
                 print("IMPORTANT: You are using gradio version {}, "
                       "however version {} "
                       "is available, please upgrade.".format(
-                            current_pkg_version, latest_pkg_version))
+                    current_pkg_version, latest_pkg_version))
                 print('--------')
         except:  # TODO(abidlabs): don't catch all exceptions
             pass
@@ -370,6 +379,11 @@ class Interface:
                           data=data)
         except requests.ConnectionError:
             pass  # do not push analytics if no network
+
+        is_in_interactive_mode = bool(getattr(sys, 'ps1', sys.flags.interactive))
+        if not is_in_interactive_mode:
+            self.run_until_interrupted(thread, path_to_local_server)
+
         return httpd, path_to_local_server, share_url
 
 
