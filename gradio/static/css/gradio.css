@@ -37,6 +37,7 @@
   height: 180px;
 }
 .interface_max_box {
+  overflow: auto;
   max-height: 360px;
 }
 .interface:not(*:last-child) {

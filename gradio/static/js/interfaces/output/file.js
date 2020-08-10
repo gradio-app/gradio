@@ -1,7 +1,7 @@
 const file_output = {
   html: `
-    <div class="interface_mini_box">
-      <div class="file_display hide">
+    <a class="interface_mini_box">
+      <div class="file_display file_download">
         <div class="file_name"></div>
         <div class="file_size"></div>
       </div>
@@ -10,11 +10,19 @@ const file_output = {
   init: function(opts) {
   },
   output: function(data) {
-    this.target.find(".output_text").text(data);
+    this.target.find(".file_name").text(data.name);
+    this.target.find(".file_size").text(prettyBytes(data.size));
+    this.target.find(".interface_mini_box")
+      .attr("href", "data:;base64," + data.data)
+      .attr("download", data.name);
   },
   submit: function() {
   },
   clear: function() {
-    this.target.find(".output_text").empty();
+    this.target.find(".file_name").empty();
+    this.target.find(".file_size").empty();
+    this.target.find(".interface_mini_box")
+      .removeAttr("href")
+      .removeAttr("download");
   }
 }

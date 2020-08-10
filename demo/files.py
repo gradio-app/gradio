@@ -3,7 +3,6 @@ import random
 
 def upload(file):
     print(file.name)
-    with file:
-        return file.name
+    return "/mnt/c/Users/aliab/projects/gradio/gradio/static/js/interfaces/output/file.js"
 
-gr.Interface(upload, "file", "text").launch()
+gr.Interface(upload, "file", "file").launch()

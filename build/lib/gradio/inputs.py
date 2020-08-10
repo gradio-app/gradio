@@ -146,7 +146,7 @@ class CheckboxGroup(InputComponent):
     Input type: Union[List[str], List[int]]
     """
 
-    def __init__(self, choices, type="choices", label=None):
+    def __init__(self, choices, type="value", label=None):
         '''
         Parameters:
         choices (List[str]): list of options to select from.
@@ -241,20 +241,18 @@ class Image(InputComponent):
     Input type: Union[numpy.array, PIL.Image, str]
     """
 
-    def __init__(self, shape=None, image_mode='RGB', source="upload", tools=["brush", "crop", "rotate", "undo", "filter"], type="numpy", label=None):
+    def __init__(self, shape=None, image_mode='RGB', source="upload", type="numpy", label=None):
         '''
         Parameters:
         shape (Tuple[int, int]): shape to crop and resize image to; if None, matches input image size.
         image_mode (str): "RGB" if color, or "L" if black and white.
         source (str): Source of image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "canvas" defaults to a white image that can be edited and drawn upon with tools.
-        tools (List[str]): Tools available to user to edit images. "brush" allows user to draw on image, "crop" allows user to select portion of image, "rotate" allows user to rotate or flip image, "undo" allows user to revert changes, "filter" allows user to apply filters on image.
         type (str): Type of value to be returned by component. "numpy" returns a numpy array with shape (width, height, 3), "pil" returns a PIL image object, "file" returns a temporary file object whose path can be retrieved by file_obj.name.
         label (str): component name in interface.
         '''
         self.shape = shape
         self.image_mode = image_mode
         self.source = source
-        self.tools = tools
         self.type = type
         super().__init__(label)
 
@@ -263,15 +261,13 @@ class Image(InputComponent):
         return {
             "image": {},
             "webcam": {"source": "webcam"},
-            "sketchpad": {"image_mode": "L", "source": "canvas", "tools": ["brush"]},
-            "paint": {"source": "canvas", "tools": ["brush", "undo"]},
+            "sketchpad": {"image_mode": "L", "source": "canvas"},
         }
 
     def get_template_context(self):
         return {
             "image_mode": self.image_mode,
             "source": self.source,
-            "tools": self.tools,
             **super().get_template_context()
         }
 
@@ -292,7 +288,6 @@ class Image(InputComponent):
             im.save(file_obj.name)
             return file_obj
 
-
     def process_example(self, example):
         if os.path.exists(example):
             return processing_utils.encode_file_to_base64(example)
@@ -312,7 +307,7 @@ class Image(InputComponent):
 
 class Audio(InputComponent):
     """
-    Component accepts audio input files. Provides numpy array of shape `(samples, 2)` as an argument to the wrapped function.
+    Component accepts audio input files. 
     Input type: Union[Tuple[int, numpy.array], str, numpy.array]
     """
 
@@ -326,6 +321,12 @@ class Audio(InputComponent):
         self.source = source
         self.type = type
         super().__init__(label)
+
+    def get_template_context(self):
+        return {
+            "source": self.source,
+            **super().get_template_context()
+        }
 
     @classmethod
     def get_shortcut_implementations(cls):
@@ -434,7 +435,9 @@ class Dataframe(InputComponent):
         else:
             raise ValueError("Unknown type: " + self.type + ". Please choose from: 'pandas', 'numpy', 'array'.")
 
+#######################
 # DEPRECATED COMPONENTS
+#######################
 
 class Sketchpad(InputComponent):
     """

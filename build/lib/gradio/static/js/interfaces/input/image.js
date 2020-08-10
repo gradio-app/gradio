@@ -1,22 +1,39 @@
 const image_input = {
   html: `
-    <div class="upload_zone drop_zone">
-      <div class="input_caption">Drop Image Here<br>- or -<br>Click to Upload</div>
-    </div>
-    <div class="image_display hide">
-      <div class="edit_holder">
-        <button class="edit_image interface_button primary">Edit</button>
+    <div class="interface_box">
+      <div class="upload_zone drop_zone hide">
+        <div class="input_caption">Drop Image Here<br>- or -<br>Click to Upload</div>
       </div>
-      <div class="view_holders">
-        <div class="image_preview_holder">
-          <img class="image_preview" />
+      <div class="webcam upload_zone hide">
+        <div class="webcam_box">
         </div>
-        <div class="saliency_holder hide">
-          <canvas class="saliency"></canvas>
+        <span>Click to Snap!</span>
+      </div>
+      <div class="sketchpad hide">
+        <div class="sketch_tools">
+          <div id="brush_1" size="8" class="brush"></div>
+          <div id="brush_2" size="16" class="brush selected"></div>
+          <div id="brush_3" size="24" class="brush"></div>
+        </div>
+        <div class="view_holders">
+          <div class="canvas_holder">
+            <canvas class="sketch"></canvas>
+          </div>
+        </div>        
+      </div>
+      <div class="image_display hide">
+        <div class="edit_holder">
+          <button class="edit_image interface_button primary">Edit</button>
+        </div>
+        <div class="view_holders">
+          <div class="image_preview_holder">
+            <img class="image_preview" />
+          </div>
         </div>
       </div>
+      <input class="hidden_upload" type="file" accept="image/x-png,image/gif,image/jpeg" />
     </div>
-    <input class="hidden_upload" type="file" accept="image/x-png,image/gif,image/jpeg" />`
+    `
     ,
   overlay_html: `
     <div class="overlay interface_extension image_editor_overlay hide" interface_id="{0}">
@@ -27,25 +44,70 @@ const image_input = {
   `,
   init: function(opts) {
     var io = this;
+    this.source = opts.source;
     $('body').append(this.overlay_html.format(this.id));
     this.overlay_target = $(`.overlay[interface_id=${this.id}]`);
-    this.target.find(".upload_zone").click(function (e) {
-      io.target.find(".hidden_upload").click();
-    });
-    this.target.on('drag dragstart dragend dragover dragenter dragleave drop',
-        ".drop_zone", function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-    })
-    this.target.on('drop', '.drop_zone', function(e) {
-      files = e.originalEvent.dataTransfer.files;
-      io.load_preview_from_files(files)
-    });
-    this.target.find('.hidden_upload').on('change', function (e) {
-      if (this.files) {
-        io.load_preview_from_files(this.files);
-      }
-    })
+    if (this.source == "upload") {
+      io.target.find(".drop_zone").removeClass("hide");
+      this.target.find(".drop_zone").click(function (e) {
+        io.target.find(".hidden_upload").click();
+      });
+      this.target.on('drag dragstart dragend dragover dragenter dragleave drop',
+          ".drop_zone", function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+      })
+      this.target.on('drop', '.drop_zone', function(e) {
+        files = e.originalEvent.dataTransfer.files;
+        io.load_preview_from_files(files)
+      });
+      this.target.find('.hidden_upload').on('change', function (e) {
+        if (this.files) {
+          io.load_preview_from_files(this.files);
+        }
+      })
+    } else if (this.source == "webcam") {
+      io.target.find(".webcam").removeClass("hide");
+      let w = this.target.find(".webcam_box").width();
+      let h = this.target.find(".webcam_box").height();
+      let RATIO = 4/3;
+      let dim = Math.min(h, w / RATIO);
+      Webcam.set({
+        image_format: 'jpeg',
+        width: dim * RATIO,
+        height: dim,
+        dest_width: dim * RATIO,
+        dest_height: dim,
+      })
+      Webcam.attach(this.target.find(".webcam_box")[0]);
+      io.target.find(".webcam").click(function() {
+        Webcam.snap(function(image_data) {
+          io.target.find(".webcam").hide();
+          io.target.find(".image_display").removeClass("hide");
+          io.set_image_data(image_data, /*update_editor=*/true);
+          io.state = "IMAGE_LOADED";
+        });    
+      })
+    } else if (this.source == "canvas") {
+      io.target.find(".sketchpad").removeClass("hide");
+      var dimension = Math.min(this.target.find(".canvas_holder").width(),
+      this.target.find(".canvas_holder").height()) - 2 // dimension - border
+      var id = this.id;
+      this.sketchpad = new Sketchpad({
+        element: '.interface[interface_id=' + id + '] .sketch',
+        width: dimension,
+        height: dimension
+      });
+      this.sketchpad.penSize = this.target.find(".brush.selected").attr("size");
+      this.canvas = this.target.find('.canvas_holder canvas')[0];
+      this.context = this.canvas.getContext("2d");
+      this.target.find(".brush").click(function (e) {
+        io.target.find(".brush").removeClass("selected");
+        $(this).addClass("selected");
+        io.sketchpad.penSize = $(this).attr("size");
+      })    
+      this.clear();
+    }
     this.target.find('.edit_image').click(function (e) {
       io.overlay_target.removeClass("hide");
     })
@@ -69,42 +131,54 @@ const image_input = {
      this.overlay_target.find('.tui_close').click(function (e) {
        io.overlay_target.addClass("hide");
        if ($(e.target).hasClass('tui_save')) {
-         // if (io.tui_editor.ui.submenu == "crop") {
-         //   io.tui_editor._cropAction().crop());
-         // }
          io.set_image_data(io.tui_editor.toDataURL(), /*update_editor=*/false);
        }
      });
   },
   submit: function() {
     var io = this;
-    if (this.state == "IMAGE_LOADED") {
+    if (this.source == "canvas") {
+      var dataURL = this.canvas.toDataURL("image/png");
+      this.io_master.input(this.id, dataURL);  
+    } else if (this.state == "IMAGE_LOADED") {
       io.io_master.input(io.id, this.image_data);
+    } else if (this.source == "webcam") {
+      Webcam.snap(function(image_data) {
+        io.target.find(".webcam").hide();
+        io.target.find(".image_display").removeClass("hide");
+        io.set_image_data(image_data, /*update_editor=*/true);
+        io.state = "IMAGE_LOADED";
+        io.io_master.input(io.id, image_data);
+      });    
     }
   },
   clear: function() {
-    this.target.find(".upload_zone").show();
-    this.target.find(".image_preview").attr('src', '');
-    this.target.find(".image_display").addClass("hide");
-    this.target.find(".hidden_upload").prop("value", "")
-    this.state = "NO_IMAGE";
-    this.image_data = null;
+    if (this.source == "canvas") {
+      this.context.fillStyle = "#FFFFFF";
+      this.context.fillRect(0, 0, this.context.canvas.width, this.context.
+        canvas.height);
+    } else {
+      this.target.find(".upload_zone").show();
+      this.target.find(".image_preview").attr('src', '');
+      this.target.find(".image_display").addClass("hide");
+      this.target.find(".hidden_upload").prop("value", "")
+      this.state = "NO_IMAGE";
+      this.image_data = null;
+    }    
   },
   state: "NO_IMAGE",
   image_data: null,
-  set_image_data: function(data, update_editor) {
+  set_image_data: function(image_data, update_editor) {
     let io = this;
-    resizeImage.call(this, data, 600, 600, function(image_data) {
-      io.image_data = image_data
-      io.target.find(".image_preview").attr('src', image_data);
-      if (update_editor) {
-        io.tui_editor.loadImageFromURL(io.image_data, 'input').then(function (sizeValue) {
-          io.tui_editor.clearUndoStack();
-          io.tui_editor.ui.activeMenuEvent();
-          io.tui_editor.ui.resizeEditor({ imageSize: sizeValue });
-        });
-      }
-    })
+    io.image_data = image_data
+    io.target.find(".image_preview").attr('src', image_data);
+    if (update_editor) {
+      io.tui_editor.loadImageFromURL(io.image_data, 'input').then(function (sizeValue) {
+        io.tui_editor.clearUndoStack();
+        io.tui_editor.ui.activeMenuEvent();
+        io.tui_editor.ui.resizeEditor({ imageSize: sizeValue });
+      });
+    }
   },
   load_preview_from_files: function(files) {
     if (!files.length || !window.FileReader || !/^image/.test(files[0].type)) {
@@ -127,9 +201,21 @@ const image_input = {
   },
   load_example: function(data) {
     let io = this;
-    io.target.find(".upload_zone").hide();
-    io.target.find(".image_display").removeClass("hide");
-    io.set_image_data(data, /*update_editor=*/true);
-    io.state = "IMAGE_LOADED"
+    if (this.source == "canvas") {
+      this.clear();
+      let ctx = this.context;
+      var img = new Image;
+      let dimension = this.target.find(".canvas_holder canvas").width();
+      img.onload = function(){
+        ctx.clearRect(0,0,dimension,dimension);
+        ctx.drawImage(img,0,0,dimension,dimension);
+      };
+      img.src = data;  
+    } else {
+      io.target.find(".upload_zone").hide();
+      io.target.find(".image_display").removeClass("hide");
+      io.set_image_data(data, /*update_editor=*/true);
+      io.state = "IMAGE_LOADED";
+    }
   }
 }

@@ -1,13 +1,16 @@
 const file_input = {
   html: `
-    <div class="upload_zone drop_zone">
-      <div class="input_caption">Drop File Here<br>- or -<br>Click to Upload</div>
+    <div class="interface_mini_box">
+      <div class="upload_zone drop_zone">
+        <div class="input_caption">Drop File Here<br>- or -<br>Click to Upload</div>
+      </div>
+      <div class="file_display hide">
+        <div class="file_name"></div>
+        <div class="file_size"></div>
+      </div>
+      <input class="hidden_upload" type="file" />
     </div>
-    <div class="file_display hide">
-      <div class="file_name"></div>
-      <div class="file_size"></div>
-    </div>
-    <input class="hidden_upload" type="file" />`
+    `
     ,
   init: function(opts) {
     var io = this;
@@ -46,15 +49,7 @@ const file_input = {
       io.target.find(".upload_zone").hide();
       io.target.find(".file_display").removeClass("hide");
       io.target.find(".file_name").text(files[0].name);
-      let bytes = files[0].size;
-      let units = ["B", "KB", "MB", "GB", "PB"];
-      let i = 0;
-      while (bytes > 1024) {
-        bytes /= 1024;
-        i++;
-      }
-      let unit = units[i];
-      io.target.find(".file_size").text(bytes.toFixed(1) + " " + unit);
+      io.target.find(".file_size").text(prettyBytes(files[0].size));
       io.file_data = this.result;
     }
   },

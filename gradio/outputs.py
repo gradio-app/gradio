@@ -14,6 +14,7 @@ from numbers import Number
 import warnings
 import tempfile
 import scipy
+import os
 
 class OutputComponent(Component):
     """
@@ -318,10 +319,9 @@ class File(OutputComponent):
     Output type: Union[file-like, str]
     '''
 
-    def __init__(self, type="file", label=None):
+    def __init__(self, label=None):
         '''
         Parameters:
-        type (str): Type of value to be passed to component. "file" expects a file-like object, "filepath" expects a string to an output file.  
         label (str): component name in interface.
         '''
         super().__init__(label)
@@ -331,15 +331,14 @@ class File(OutputComponent):
     def get_shortcut_implementations(cls):
         return {
             "file": {},
-            "filepath": {type: "filepath"},
         }
 
     def postprocess(self, y):
-        if self.type == "file":
-
-        elif self.type == "filepath":
-        else:
-            raise ValueError("Unknown type: " + self.type + ". Please choose from: 'file', 'filepath'.")
+        return {
+            "name": os.path.basename(y),
+            "size": os.path.getsize(y), 
+            "data": processing_utils.encode_file_to_base64(y, header=False)
+        }
 
 
 class Dataframe(OutputComponent):

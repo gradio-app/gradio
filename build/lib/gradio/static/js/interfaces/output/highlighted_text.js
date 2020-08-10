@@ -11,7 +11,6 @@ const highlighted_text = {
     <div class="output_text"></div>
   `,
   init: function(opts) {
-    this.target.css("height", "auto");
     this.color_map = {};
     if (opts.color_map) {
       this.generate_category_legend(opts.color_map);
@@ -19,7 +18,6 @@ const highlighted_text = {
   },
   new_category_index: 0,
   generate_category_legend: function(map) {
-    console.log(map)
     let default_colors = ["pink", "lightblue", "gold", "plum", "lightskyblue", "greenyellow", "khaki", "cyan", "moccasin", "lightgray"]
     for (let category in map) {
       if (category in this.color_map) {
