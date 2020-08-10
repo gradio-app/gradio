@@ -1,6 +1,8 @@
 const dataframe_input = {
   html: `
-    <div class="dataframe">
+    <div class="interface_max_box">
+      <div class="dataframe">
+      </div>
     </div>
     `,
   init: function(opts) {

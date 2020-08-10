@@ -37,10 +37,10 @@
 .canvas_holder canvas {
   background-color: white;
 }
-.canvas_holder, .saliency_holder {
+.canvas_holder {
   text-align: center;
   width: 100%;
-  height: 100%;
+  height: calc(100% - 36px);
 }
 .saliency_holder {
   position: absolute;

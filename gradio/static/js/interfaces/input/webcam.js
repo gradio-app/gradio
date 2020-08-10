@@ -6,7 +6,6 @@ const webcam = {
   `,
   init: function(opts) {
     var io = this;
-//    this.target.find(".webcam_box").width(this.target.find(".webcam_box").width);
     let w = this.target.find(".webcam_box").width();
     let h = this.target.find(".webcam_box").height();
     let RATIO = 4/3;

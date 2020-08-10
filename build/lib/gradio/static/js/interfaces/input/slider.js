@@ -8,7 +8,6 @@ const slider = {
   init: function(opts) {
     let io = this;
     this.minimum = opts.minimum;
-    this.target.css("height", "auto");
     var handle = this.target.find(".ui-slider-handle");
     this.slider = this.target.find(".slider").slider({
       create: function() {

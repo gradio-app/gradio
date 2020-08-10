@@ -14,6 +14,7 @@ from numbers import Number
 import warnings
 import tempfile
 import scipy
+import os
 
 class OutputComponent(Component):
     """
@@ -314,14 +315,13 @@ class HTML(OutputComponent):
 
 class File(OutputComponent):
     '''
-    Used for file output. Expects a string path to a file if `return_path` is True.     
-    Output type: Union[bytes, str]
+    Used for file output.     
+    Output type: Union[file-like, str]
     '''
 
-    def __init__(self, type="file", label=None):
+    def __init__(self, label=None):
         '''
         Parameters:
-        type (str): Type of value to be passed to component. "file" expects a  file path, "str" exxpects a string to be returned as a file, "binary" expects an bytes object to be returned as a file.  
         label (str): component name in interface.
         '''
         super().__init__(label)
@@ -331,6 +331,13 @@ class File(OutputComponent):
     def get_shortcut_implementations(cls):
         return {
             "file": {},
+        }
+
+    def postprocess(self, y):
+        return {
+            "name": os.path.basename(y),
+            "size": os.path.getsize(y), 
+            "data": processing_utils.encode_file_to_base64(y, header=False)
         }
 
 

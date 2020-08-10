@@ -146,7 +146,7 @@ class CheckboxGroup(InputComponent):
     Input type: Union[List[str], List[int]]
     """
 
-    def __init__(self, choices, type="choices", label=None):
+    def __init__(self, choices, type="value", label=None):
         '''
         Parameters:
         choices (List[str]): list of options to select from.
@@ -268,7 +268,6 @@ class Image(InputComponent):
         return {
             "image_mode": self.image_mode,
             "source": self.source,
-            "tools": self.tools,
             **super().get_template_context()
         }
 
@@ -322,6 +321,12 @@ class Audio(InputComponent):
         self.source = source
         self.type = type
         super().__init__(label)
+
+    def get_template_context(self):
+        return {
+            "source": self.source,
+            **super().get_template_context()
+        }
 
     @classmethod
     def get_shortcut_implementations(cls):

@@ -16,12 +16,12 @@ def answer_question(text, audio):
             {"name": "Aziz", "age": 18},
             {"name": "Fozan", "age": None},
         ]
-    }, "<div style='background-color: pink; padding: 2px;'>" + str(audio[1].shape) + "</div>", ""
+    }, "<div style='background-color: pink; padding: 2px;'>" + str(audio[1].shape) + "</div>", audio
 
 gr.Interface(answer_question, 
             [
                 gr.inputs.Dropdown(["cat", "dog", "bird"]),
-                gr.inputs.Microphone(),
+                "microphone",
             ], 
             [
                 gr.outputs.HighlightedText(color_map={"good": "lightgreen", "bad": "pink"}),
