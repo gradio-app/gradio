@@ -4,15 +4,19 @@ This module defines various classes that can serve as the `input` to an interfac
 automatically added to a registry, which allows them to be easily referenced in other parts of the code.
 """
 
-from abc import ABC, abstractmethod
-from gradio import preprocessing_utils, validation_data
-import numpy as np
-import PIL.Image, PIL.ImageOps
+import datetime
+import json
+import os
 import time
 import warnings
-import json
-import datetime
-import os
+from abc import ABC, abstractmethod
+
+import base64
+import numpy as np
+import PIL.Image
+import PIL.ImageOps
+import scipy.io.wavfile
+from gradio import preprocessing_utils
 
 # Where to find the static resources associated with each template.
 # BASE_INPUT_INTERFACE_TEMPLATE_PATH = 'static/js/interfaces/input/{}.js'
@@ -24,15 +28,9 @@ class AbstractInput(ABC):
     An abstract class for defining the methods that all gradio inputs should have.
     When this is subclassed, it is automatically added to the registry
     """
+
     def __init__(self, label):
         self.label = label
-
-    def get_validation_inputs(self):
-        """
-        An interface can optionally implement a method that returns a list of examples inputs that it should be able to
-        accept and preprocess for validation purposes.
-        """
-        return []
 
     def get_template_context(self):
         """
@@ -59,79 +57,32 @@ class AbstractInput(ABC):
         """
         return {}
 
-
-class Sketchpad(AbstractInput):
-    def __init__(self, shape=(28, 28), invert_colors=True,
-                 flatten=False, label=None):
-        self.image_width = shape[0]
-        self.image_height = shape[1]
-        self.invert_colors = invert_colors
-        self.flatten = flatten
-        super().__init__(label)
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "sketchpad": {},
-        }
-
-    def preprocess(self, inp):
+    def rebuild(self, dir, data):
         """
-        Default preprocessing method for the SketchPad is to convert the sketch to black and white and resize 28x28
+        All interfaces should define a method that rebuilds the flagged input when it's passed back (i.e. rebuilds image from base64)
         """
-        im_transparent = preprocessing_utils.decode_base64_to_image(inp)
-        im = PIL.Image.new("RGBA", im_transparent.size, "WHITE")  # Create a white background for the alpha channel
-        im.paste(im_transparent, (0, 0), im_transparent)
-        im = im.convert('L')
-        if self.invert_colors:
-            im = PIL.ImageOps.invert(im)
-        im = im.resize((self.image_width, self.image_height))
-        if self.flatten:
-            array = np.array(im).flatten().reshape(1, self.image_width * self.image_height)
-        else:
-            array = np.array(im).flatten().reshape(1, self.image_width, self.image_height)
-        return array
-
-    def process_example(self, example):
-        return preprocessing_utils.convert_file_to_base64(example)
-
-
-class Webcam(AbstractInput):
-    def __init__(self, shape=(224, 224), label=None):
-        self.image_width = shape[0]
-        self.image_height = shape[1]
-        self.num_channels = 3
-        super().__init__(label)
-
-    def get_validation_inputs(self):
-        return validation_data.BASE64_COLOR_IMAGES
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "webcam": {},
-        }
-
-    def preprocess(self, inp):
-        """
-        Default preprocessing method for is to convert the picture to black and white and resize to be 48x48
-        """
-        im = preprocessing_utils.decode_base64_to_image(inp)
-        im = im.convert('RGB')
-        im = preprocessing_utils.resize_and_crop(im, (self.image_width, self.image_height))
-        return np.array(im)
-
+        return data
 
 class Textbox(AbstractInput):
+    """
+    Component creates a textbox for user to enter input. Provides a string (or number is `is_numeric` is true) as an argument to the wrapped function.
+    Input type: str
+    """
+
     def __init__(self, lines=1, placeholder=None, default=None, numeric=False, label=None):
+        '''
+        Parameters:
+        lines (int): number of line rows to provide in textarea.
+        placeholder (str): placeholder hint to provide behind textarea.
+        default (str): default text to provide in textarea.
+        numeric (bool): whether the input should be parsed as a number instead of a string.
+        label (str): component name in interface.
+        '''
         self.lines = lines
         self.placeholder = placeholder
         self.default = default
         self.numeric = numeric
         super().__init__(label)
-
-    def get_validation_inputs(self):
-        return validation_data.ENGLISH_TEXTS
 
     def get_template_context(self):
         return {
@@ -159,44 +110,21 @@ class Textbox(AbstractInput):
             return inp
 
 
-class Radio(AbstractInput):
-    def __init__(self, choices, label=None):
-        self.choices = choices
-        super().__init__(label)
-
-    def get_template_context(self):
-        return {
-            "choices": self.choices,
-            **super().get_template_context()
-        }
-
-
-class Dropdown(AbstractInput):
-    def __init__(self, choices, label=None):
-        self.choices = choices
-        super().__init__(label)
-
-    def get_template_context(self):
-        return {
-            "choices": self.choices,
-            **super().get_template_context()
-        }
-
-
-class CheckboxGroup(AbstractInput):
-    def __init__(self, choices, label=None):
-        self.choices = choices
-        super().__init__(label)
-
-    def get_template_context(self):
-        return {
-            "choices": self.choices,
-            **super().get_template_context()
-        }
-
-
 class Slider(AbstractInput):
-    def __init__(self, minimum=0, maximum=100, default=None, label=None):
+    """
+    Component creates a slider that ranges from `minimum` to `maximum`. Provides a number as an argument to the wrapped function.
+    Input type: float
+    """
+
+    def __init__(self, minimum=0, maximum=100, step=None, default=None, label=None):
+        '''
+        Parameters:
+        minimum (float): minimum value for slider.
+        maximum (float): maximum value for slider.
+        step (float): increment between slider values.
+        default (float): default value.
+        label (str): component name in interface.
+        '''
         self.minimum = minimum
         self.maximum = maximum
         self.default = minimum if default is None else default
@@ -218,7 +146,16 @@ class Slider(AbstractInput):
 
 
 class Checkbox(AbstractInput):
+    """
+    Component creates a checkbox that can be set to `True` or `False`. Provides a boolean as an argument to the wrapped function.
+    Input type: bool
+    """
+
     def __init__(self, label=None):
+        '''
+        Parameters:
+        label (str): component name in interface.
+        '''
         super().__init__(label)
 
     @classmethod
@@ -228,15 +165,92 @@ class Checkbox(AbstractInput):
         }
 
 
-class Image(AbstractInput):
-    def __init__(self, shape=(224, 224), image_mode='RGB', label=None):
-        self.image_width = shape[0]
-        self.image_height = shape[1]
-        self.image_mode = image_mode
+class CheckboxGroup(AbstractInput):
+    """
+    Component creates a set of checkboxes of which a subset can be selected. Provides a list of strings representing the selected choices as an argument to the wrapped function.
+    Input type: List[str]
+    """
+
+    def __init__(self, choices, label=None):
+        '''
+        Parameters:
+        choices (List[str]): list of options to select from.
+        label (str): component name in interface.
+        '''
+        self.choices = choices
         super().__init__(label)
 
-    def get_validation_inputs(self):
-        return validation_data.BASE64_COLOR_IMAGES
+    def get_template_context(self):
+        return {
+            "choices": self.choices,
+            **super().get_template_context()
+        }
+
+
+class Radio(AbstractInput):
+    """
+    Component creates a set of radio buttons of which only one can be selected. Provides string representing selected choice as an argument to the wrapped function.
+    Input type: str
+    """
+
+    def __init__(self, choices, label=None):
+        '''
+        Parameters:
+        choices (List[str]): list of options to select from.
+        label (str): component name in interface.
+        '''
+        self.choices = choices
+        super().__init__(label)
+
+    def get_template_context(self):
+        return {
+            "choices": self.choices,
+            **super().get_template_context()
+        }
+
+
+class Dropdown(AbstractInput):
+    """
+    Component creates a dropdown of which only one can be selected. Provides string representing selected choice as an argument to the wrapped function.
+    Input type: str
+    """
+
+    def __init__(self, choices, label=None):
+        '''
+        Parameters:
+        choices (List[str]): list of options to select from.
+        label (str): component name in interface.
+        '''
+        self.choices = choices
+        super().__init__(label)
+
+    def get_template_context(self):
+        return {
+            "choices": self.choices,
+            **super().get_template_context()
+        }
+
+
+class Image(AbstractInput):
+    """
+    Component creates an image upload box with editing capabilities. Provides numpy array of shape `(width, height, 3)` if `image_mode` is "RGB" as an argument to the wrapped function. Provides numpy array of shape `(width, height)` if `image_mode` is "L" as an argument to the wrapped function.
+    Input type: numpy.array
+    """
+
+    def __init__(self, shape=None, image_mode='RGB', label=None):
+        '''
+        Parameters:
+        shape (Tuple[int, int]): shape to crop and resize image to; if None, matches input image size.
+        image_mode (str): "RGB" if color, or "L" if black and white.
+        label (str): component name in interface.
+        '''
+        if shape is None:
+            self.image_width, self.image_height = None, None
+        else:
+            self.image_width = shape[0]
+            self.image_height = shape[1]
+        self.image_mode = image_mode
+        super().__init__(label)
 
     @classmethod
     def get_shortcut_implementations(cls):
@@ -257,8 +271,13 @@ class Image(AbstractInput):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             im = im.convert(self.image_mode)
-
-        im = preprocessing_utils.resize_and_crop(im, (self.image_width, self.image_height))
+        image_width, image_height = self.image_width, self.image_height
+        if image_width is None:
+            image_width = im.size[0]
+        if image_height is None:
+            image_height = im.size[1]
+        im = preprocessing_utils.resize_and_crop(
+            im, (image_width, image_height))
         return np.array(im)
 
     def process_example(self, example):
@@ -267,18 +286,165 @@ class Image(AbstractInput):
         else:
             return example
 
+    def rebuild(self, dir, data):
+        """
+        Default rebuild method to decode a base64 image
+        """
+        im = preprocessing_utils.decode_base64_to_image(data)
+        timestamp = datetime.datetime.now()
+        filename = f'input_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.png'
+        im.save(f'{dir}/{filename}', 'PNG')
+        return filename
+
+
+class Sketchpad(AbstractInput):
+    """
+    Component creates a sketchpad for black and white illustration. Provides numpy array of shape `(width, height)` as an argument to the wrapped function.
+    Input type: numpy.array
+    """
+
+    def __init__(self, shape=(28, 28), invert_colors=True,
+                 flatten=False, label=None):
+        '''
+        Parameters:
+        shape (Tuple[int, int]): shape to crop and resize image to.
+        invert_colors (bool): whether to represent black as 1 and white as 0 in the numpy array.
+        flatten (bool): whether to reshape the numpy array to a single dimension.
+        label (str): component name in interface.
+        '''
+        self.image_width = shape[0]
+        self.image_height = shape[1]
+        self.invert_colors = invert_colors
+        self.flatten = flatten
+        super().__init__(label)
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "sketchpad": {},
+        }
+
+    def preprocess(self, inp):
+        """
+        Default preprocessing method for the SketchPad is to convert the sketch to black and white and resize 28x28
+        """
+        im_transparent = preprocessing_utils.decode_base64_to_image(inp)
+        # Create a white background for the alpha channel
+        im = PIL.Image.new("RGBA", im_transparent.size, "WHITE")
+        im.paste(im_transparent, (0, 0), im_transparent)
+        im = im.convert('L')
+        if self.invert_colors:
+            im = PIL.ImageOps.invert(im)
+        im = im.resize((self.image_width, self.image_height))
+        if self.flatten:
+            array = np.array(im).flatten().reshape(
+                1, self.image_width * self.image_height)
+        else:
+            array = np.array(im).flatten().reshape(
+                1, self.image_width, self.image_height)
+        return array
+
+    def process_example(self, example):
+        return preprocessing_utils.convert_file_to_base64(example)
+
+    def rebuild(self, dir, data):
+        """
+        Default rebuild method to decode a base64 image
+        """
+        im = preprocessing_utils.decode_base64_to_image(data)
+        timestamp = datetime.datetime.now()
+        filename = f'input_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.png'
+        im.save(f'{dir}/{filename}', 'PNG')
+        return filename
+
+
+class Webcam(AbstractInput):
+    """
+    Component creates a webcam for captured image input. Provides numpy array of shape `(width, height, 3)` as an argument to the wrapped function.
+    Input type: numpy.array
+    """
+
+    def __init__(self, shape=(224, 224), label=None):
+        '''
+        Parameters:
+        shape (Tuple[int, int]): shape to crop and resize image to.
+        label (str): component name in interface.
+        '''
+        self.image_width = shape[0]
+        self.image_height = shape[1]
+        self.num_channels = 3
+        super().__init__(label)
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "webcam": {},
+        }
+
+    def preprocess(self, inp):
+        """
+        Default preprocessing method for is to convert the picture to black and white and resize to be 48x48
+        """
+        im = preprocessing_utils.decode_base64_to_image(inp)
+        im = im.convert('RGB')
+        im = preprocessing_utils.resize_and_crop(
+            im, (self.image_width, self.image_height))
+        return np.array(im)
+
+    def rebuild(self, dir, data):
+        """
+        Default rebuild method to decode a base64 image
+        """
+        im = preprocessing_utils.decode_base64_to_image(data)
+        timestamp = datetime.datetime.now()
+        filename = f'input_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.png'
+        im.save('{}/{}'.format(dir, filename), 'PNG')
+        return filename
+
 
 class Microphone(AbstractInput):
-    def __init__(self, label=None):
+    """
+    Component creates a microphone element for audio inputs. Provides numpy array of shape `(samples, 2)` as an argument to the wrapped function.
+    Input type: numpy.array
+    """
+
+    def __init__(self, preprocessing=None, label=None):
+        '''
+        Parameters:
+        preprocessing (Union[str, Callable]): preprocessing to apply to input
+        label (str): component name in interface.
+        '''
         super().__init__(label)
+        if preprocessing is None or preprocessing == "mfcc":
+            self.preprocessing = preprocessing
+        else:
+            raise ValueError(
+                "unexpected value for preprocessing", preprocessing)
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "microphone": {},
+        }
 
     def preprocess(self, inp):
         """
         By default, no pre-processing is applied to a microphone input file
         """
         file_obj = preprocessing_utils.decode_base64_to_wav_file(inp)
-        mfcc_array = preprocessing_utils.generate_mfcc_features_from_audio_file(file_obj.name)
-        return mfcc_array
+        if self.preprocessing == "mfcc":
+            return preprocessing_utils.generate_mfcc_features_from_audio_file(file_obj.name)
+        _, signal = scipy.io.wavfile.read(file_obj.name)
+        return signal
+
+    def rebuild(self, dir, data):
+        inp = data.split(';')[1].split(',')[1]
+        wav_obj = base64.b64decode(inp)
+        timestamp = datetime.datetime.now()
+        filename = f'input_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.wav'
+        with open("{}/{}".format(dir, filename), "wb+") as f:
+            f.write(wav_obj)
+        return filename
 
 
 # Automatically adds all shortcut implementations in AbstractInput into a dictionary.

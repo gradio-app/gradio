@@ -17,14 +17,12 @@ import requests
 import sys
 import analytics
 
-
-INITIAL_PORT_VALUE = (
-    7860
-)  # The http server will try to open on port 7860. If not available, 7861, 7862, etc.
-TRY_NUM_PORTS = (
-    100
-)  # Number of ports to try before giving up and throwing an exception.
-LOCALHOST_NAME = os.getenv('GRADIO_SERVER_NAME', "127.0.0.1")
+INITIAL_PORT_VALUE = int(os.getenv(
+    'GRADIO_SERVER_PORT', "7860"))  # The http server will try to open on port 7860. If not available, 7861, 7862, etc.
+TRY_NUM_PORTS = int(os.getenv(
+    'GRADIO_NUM_PORTS', "100"))  # Number of ports to try before giving up and throwing an exception.
+LOCALHOST_NAME = os.getenv(
+    'GRADIO_SERVER_NAME', "127.0.0.1")
 GRADIO_API_SERVER = "https://api.gradio.app/v1/tunnel-request"
 
 STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "templates/")
@@ -37,8 +35,6 @@ CONFIG_FILE = "static/config.json"
 ASSOCIATION_PATH_IN_STATIC = "static/apple-app-site-association"
 ASSOCIATION_PATH_IN_ROOT = "apple-app-site-association"
 
-FLAGGING_DIRECTORY = 'static/flagged/'
-FLAGGING_FILENAME = 'data.txt'
 analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
 analytics_url = 'https://api.gradio.app/'
 
@@ -64,7 +60,6 @@ def render_template_with_tags(template_path, context):
     :param template_path: a string with the path to the template file
     :param context: a dictionary whose string keys are the tags to replace and whose string values are the replacements.
     """
-    print(template_path, context)
     with open(template_path) as fin:
         old_lines = fin.readlines()
     new_lines = render_string_or_list_with_tags(old_lines, context)
@@ -87,6 +82,19 @@ def render_string_or_list_with_tags(old_lines, context):
             line = line.replace(r"{{" + key + r"}}", str(value))
         new_lines.append(line)
     return new_lines
+
+
+def set_meta_tags(temp_dir, title, description, thumbnail):
+    title = "Gradio" if title is None else title
+    description = "Easy-to-use UI for your machine learning model" if description is None else description
+    thumbnail = "https://gradio.app/static/img/logo_only.png" if thumbnail is None else thumbnail
+
+    index_file = os.path.join(temp_dir, TEMPLATE_TEMP)
+    render_template_with_tags(index_file, {
+        "title": title,
+        "description": description,
+        "thumbnail": thumbnail
+    })
 
 
 def set_config(config, temp_dir):
@@ -115,6 +123,21 @@ def get_first_available_port(initial, final):
             initial, final
         )
     )
+
+
+def send_prediction_analytics(interface):
+    data = {'title': interface.title,
+            'description': interface.description,
+            'thumbnail': interface.thumbnail,
+            'input_interface': interface.input_interfaces,
+            'output_interface': interface.output_interfaces,
+            }
+    try:
+        requests.post(
+            analytics_url + 'gradio-prediction-analytics/',
+            data=data)
+    except requests.ConnectionError:
+        pass  # do not push analytics if no network
 
 
 def serve_files_in_background(interface, port, directory_to_serve=None, server_name=LOCALHOST_NAME):
@@ -146,51 +169,29 @@ def serve_files_in_background(interface, port, directory_to_serve=None, server_n
                 prediction, durations = interface.process(raw_input)
 
                 output = {"data": prediction, "durations": durations}
-                if interface.saliency is not None:
-                    saliency = interface.saliency(raw_input, prediction)
-                    output['saliency'] = saliency.tolist()
-                # if interface.always_flag:
-                #     msg = json.loads(data_string)
-                #     flag_dir = os.path.join(FLAGGING_DIRECTORY, str(interface.hash))
-                #     os.makedirs(flag_dir, exist_ok=True)
-                #     output_flag = {'input': interface.input_interface.rebuild_flagged(flag_dir, msg['data']),
-                #               'output': interface.output_interface.rebuild_flagged(flag_dir, processed_output),
-                #               }
-                #     with open(os.path.join(flag_dir, FLAGGING_FILENAME), 'a+') as f:
-                #         f.write(json.dumps(output_flag))
-                #         f.write("\n")
-
-                # Prepare return json dictionary.
                 self.wfile.write(json.dumps(output).encode())
-                data = {'input_interface': interface.input_interfaces,
-                        'output_interface': interface.output_interfaces,
-                        }
-                try:
-                    requests.post(
-                        analytics_url + 'gradio-prediction-analytics/',
-                        data=data)
-                except requests.ConnectionError:
-                    pass  # do not push analytics if no network
+
+                analytics_thread = threading.Thread(
+                    target=send_prediction_analytics, args=[interface])
+                analytics_thread.start()
 
             elif self.path == "/api/flag/":
                 self._set_headers()
                 data_string = self.rfile.read(
                     int(self.headers["Content-Length"]))
                 msg = json.loads(data_string)
-                flag_dir = os.path.join(FLAGGING_DIRECTORY,
-                                        str(interface.flag_hash))
-                os.makedirs(flag_dir, exist_ok=True)
+                os.makedirs(interface.flagging_dir, exist_ok=True)
                 output = {'inputs': [interface.input_interfaces[
-                    i].rebuild_flagged(
-                    flag_dir, msg['data']['input_data']) for i
+                    i].rebuild(
+                    interface.flagging_dir, msg['data']['input_data']) for i
                     in range(len(interface.input_interfaces))],
                     'outputs': [interface.output_interfaces[
-                        i].rebuild_flagged(
-                        flag_dir, msg['data']['output_data']) for i
-                    in range(len(interface.output_interfaces))],
-                    'message': msg['data']['message']}
+                        i].rebuild(
+                        interface.flagging_dir, msg['data']['output_data']) for i
+                    in range(len(interface.output_interfaces))]}
 
-                with open(os.path.join(flag_dir, FLAGGING_FILENAME), 'a+') as f:
+                with open("{}/log.txt".format(interface.flagging_dir),
+                          'a+') as f:
                     f.write(json.dumps(output))
                     f.write("\n")
 
@@ -222,9 +223,11 @@ def serve_files_in_background(interface, port, directory_to_serve=None, server_n
     return httpd
 
 
-def start_simple_server(interface, directory_to_serve=None, server_name=None):
+def start_simple_server(interface, directory_to_serve=None, server_name=None, server_port=None):
+    if server_port is None:
+        server_port = INITIAL_PORT_VALUE
     port = get_first_available_port(
-        INITIAL_PORT_VALUE, INITIAL_PORT_VALUE + TRY_NUM_PORTS
+        server_port, server_port + TRY_NUM_PORTS
     )
     httpd = serve_files_in_background(interface, port, directory_to_serve, server_name)
     return port, httpd
