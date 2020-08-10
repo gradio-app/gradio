@@ -11,60 +11,22 @@ PACKAGE_NAME = 'gradio'
 BASE_INPUT_INTERFACE_JS_PATH = 'static/js/interfaces/input/{}.js'
 
 
-class TestSketchpad(unittest.TestCase):
-    def test_path_exists(self):
-        inp = inputs.Sketchpad()
-        path = BASE_INPUT_INTERFACE_JS_PATH.format(inp.__class__.__name__.lower())
-        self.assertTrue(os.path.exists(os.path.join(PACKAGE_NAME, path)))
-
+class TestImage(unittest.TestCase):
     def test_preprocessing(self):
-        inp = inputs.Sketchpad()
+        inp = inputs.Image(shape=(20, 20))
         array = inp.preprocess(BASE64_SKETCH)
-        self.assertEqual(array.shape, (1, 28, 28))
-
-
-class TestWebcam(unittest.TestCase):
-    def test_path_exists(self):
-        inp = inputs.Webcam()
-        path = BASE_INPUT_INTERFACE_JS_PATH.format(inp.__class__.__name__.lower())
-        self.assertTrue(os.path.exists(os.path.join(PACKAGE_NAME, path)))
-
-    def test_preprocessing(self):
-        inp = inputs.Webcam()
-        array = inp.preprocess(BASE64_IMG)
-        self.assertEqual(array.shape, (224, 224, 3))
+        self.assertEqual(array.shape, (20, 20, 3))
+        inp2 = inputs.Image(shape=(20, 20), image_mode="L")
+        array2 = inp2.preprocess(BASE64_SKETCH)
+        self.assertEqual(array2.shape, (20, 20))
 
 
 class TestTextbox(unittest.TestCase):
-    def test_path_exists(self):
-        inp = inputs.Textbox()
-        path = BASE_INPUT_INTERFACE_JS_PATH.format(
-            inp.__class__.__name__.lower())
-        self.assertTrue(os.path.exists(os.path.join(PACKAGE_NAME, path)))
-
     def test_preprocessing(self):
         inp = inputs.Textbox()
         string = inp.preprocess(RAND_STRING)
         self.assertEqual(string, RAND_STRING)
 
-
-class TestImageUpload(unittest.TestCase):
-    def test_path_exists(self):
-        inp = inputs.Image()
-        path = BASE_INPUT_INTERFACE_JS_PATH.format(inp.__class__.__name__.lower())
-        self.assertTrue(os.path.exists(os.path.join(PACKAGE_NAME, path)))
-
-    def test_preprocessing(self):
-        inp = inputs.Image()
-        array = inp.preprocess(BASE64_IMG)
-        self.assertEqual(array.shape, (224, 224, 3))
-
-    def test_preprocessing(self):
-        inp = inputs.Image()
-        inp.image_height = 48
-        inp.image_width = 48
-        array = inp.preprocess(BASE64_IMG)
-        self.assertEqual(array.shape, (48, 48, 3))
 
 if __name__ == '__main__':
     unittest.main()
