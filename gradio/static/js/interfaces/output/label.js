@@ -1,11 +1,9 @@
 const label_output = {
   html: `
-    <div class="interface_box">
-      <div class="output_class"></div>
-      <div class="confidence_intervals">
-        <div class="labels"></div>
-        <div class="confidences"></div>
-      </div>
+    <div class="output_class"></div>
+    <div class="confidence_intervals">
+      <div class="labels"></div>
+      <div class="confidences"></div>
     </div>
     `,
   init: function(opts) {},

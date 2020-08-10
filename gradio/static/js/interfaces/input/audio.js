@@ -1,7 +1,7 @@
 const audio_input = {
   html: `
     <div class="interface_box">
-      <div class="file_zone">
+      <div class="file_zone hidden">
         <div class="upload_zone drop_zone">
           <div class="input_caption">Drop Audio Here<br>- or -<br>Click to Upload</div>
         </div>
@@ -9,9 +9,9 @@ const audio_input = {
           <div class="file_name"></div>
           <div class="file_size"></div>
         </div>
-        <input class="hidden_upload" type="file" />
+        <input class="hidden_upload" type="file" accept="audio/*" />
       </div>
-      <div class="upload_zone mic_zone">
+      <div class="upload_zone mic_zone hidden">
         <img class="not_recording" src="/static/img/mic.png" />
         <div class="recording hidden volume_display">
           <div class="volume volume_left">
@@ -43,7 +43,7 @@ const audio_input = {
       hideScrollbar: true
     });
     if (this.source == "microphone") {
-      this.target.find(".file_zone").hide();
+      this.target.find(".mic_zone").removeClass("hidden");
       this.target.find(".mic_zone").click(function() {
         if (io.state == "NO_AUDIO") {
           if (!has_audio_loaded) {
@@ -74,28 +74,61 @@ const audio_input = {
           var reader = new window.FileReader();
           reader.readAsDataURL(blob);
           reader.onloadend = function() {
-            console.log(reader.result)
-            io.audio_data = reader.result;
-            io.target.find(".player").removeClass("hidden");
-            io.wavesurfer.load(io.audio_data);
-            if (io.state == "STOP_RECORDING") {
-              io.state = "RECORDED";
-              io.submit();
-            }
-            io.state = "RECORDED";
+            io.load_preview_from_audio(reader.result);
           }
           if (io.interval_id) {
             window.clearInterval(io.interval_id);
           }
         }
       })
-    } else if (self.type == "upload") {
-      this.target.find(".mic_zone").hide();
-
+    } else if (this.source == "upload") {
+      this.target.find(".file_zone").removeClass("hidden");
+      this.target.find(".upload_zone").click(function (e) {
+        io.target.find(".hidden_upload").click();
+      });
+      this.target.on('drag dragstart dragend dragover dragenter dragleave drop',
+          ".drop_zone", function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+      })
+      this.target.on('drop', '.drop_zone', function(e) {
+        files = e.originalEvent.dataTransfer.files;
+        io.load_preview_from_files(files)
+      });
+      this.target.find('.hidden_upload').on('change', function (e) {
+        if (this.files) {
+          io.load_preview_from_files(this.files);
+        }
+      })
     }
     this.target.find(".playpause").click(function () {
       io.wavesurfer.playPause();
     })
+  },
+  load_preview_from_audio: function(audio) {
+    var io = this;
+    io.audio_data = audio;
+    io.target.find(".player").removeClass("hidden");
+    io.wavesurfer.load(io.audio_data);
+    if (io.state == "STOP_RECORDING") {
+      io.state = "RECORDED";
+      io.submit();
+    }
+    io.state = "RECORDED";
+  },
+  load_preview_from_files: function(files) {
+    if (!files.length || !window.FileReader) {
+      return
+    }
+    var ReaderObj = new FileReader()
+    ReaderObj.readAsDataURL(files[0])
+    ReaderObj.io = this;
+    this.state = "AUDIO_LOADING"
+    ReaderObj.onloadend = function() {
+      let io = this.io;
+      io.target.find(".upload_zone").hide();
+      io.load_preview_from_audio(this.result);
+    }
   },
   submit: function() {
     if (this.state == "RECORDED") {
@@ -112,6 +145,7 @@ const audio_input = {
     this.target.find(".recording").addClass("hidden");
     this.target.find(".player").addClass("hidden");
     this.target.find(".upload_zone").show();
+    this.target.find(".hidden_upload").prop("value", "")
     if (this.wavesurfer) {
       this.wavesurfer.stop();
     }

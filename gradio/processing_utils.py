@@ -17,10 +17,12 @@ def decode_base64_to_image(encoding):
     return Image.open(BytesIO(base64.b64decode(image_encoded)))
 
 
-def encode_file_to_base64(f, type="image", ext=None):
+def encode_file_to_base64(f, type="image", ext=None, header=True):
     with open(f, "rb") as file:
         encoded_string = base64.b64encode(file.read())
         base64_str = str(encoded_string, 'utf-8')
+        if not header:
+            return base64_str
         if ext is None:
             ext = f.split(".")[-1]
         return "data:" + type + "/" + ext + ";base64," + base64_str

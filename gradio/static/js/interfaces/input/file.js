@@ -49,15 +49,7 @@ const file_input = {
       io.target.find(".upload_zone").hide();
       io.target.find(".file_display").removeClass("hide");
       io.target.find(".file_name").text(files[0].name);
-      let bytes = files[0].size;
-      let units = ["B", "KB", "MB", "GB", "PB"];
-      let i = 0;
-      while (bytes > 1024) {
-        bytes /= 1024;
-        i++;
-      }
-      let unit = units[i];
-      io.target.find(".file_size").text(bytes.toFixed(1) + " " + unit);
+      io.target.find(".file_size").text(prettyBytes(files[0].size));
       io.file_data = this.result;
     }
   },
