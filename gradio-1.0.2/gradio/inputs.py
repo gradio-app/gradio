@@ -11,12 +11,11 @@ import time
 import warnings
 from abc import ABC, abstractmethod
 
-import base64
 import numpy as np
 import PIL.Image
 import PIL.ImageOps
 import scipy.io.wavfile
-from gradio import preprocessing_utils
+from gradio import preprocessing_utils, validation_data
 
 # Where to find the static resources associated with each template.
 # BASE_INPUT_INTERFACE_TEMPLATE_PATH = 'static/js/interfaces/input/{}.js'
@@ -31,6 +30,13 @@ class AbstractInput(ABC):
 
     def __init__(self, label):
         self.label = label
+
+    def get_validation_inputs(self):
+        """
+        An interface can optionally implement a method that returns a list of examples inputs that it should be able to
+        accept and preprocess for validation purposes.
+        """
+        return []
 
     def get_template_context(self):
         """
@@ -57,11 +63,6 @@ class AbstractInput(ABC):
         """
         return {}
 
-    def rebuild(self, dir, data):
-        """
-        All interfaces should define a method that rebuilds the flagged input when it's passed back (i.e. rebuilds image from base64)
-        """
-        return data
 
 class Textbox(AbstractInput):
     """
@@ -252,6 +253,9 @@ class Image(AbstractInput):
         self.image_mode = image_mode
         super().__init__(label)
 
+    def get_validation_inputs(self):
+        return validation_data.BASE64_COLOR_IMAGES
+
     @classmethod
     def get_shortcut_implementations(cls):
         return {
@@ -285,16 +289,6 @@ class Image(AbstractInput):
             return preprocessing_utils.convert_file_to_base64(example)
         else:
             return example
-
-    def rebuild(self, dir, data):
-        """
-        Default rebuild method to decode a base64 image
-        """
-        im = preprocessing_utils.decode_base64_to_image(data)
-        timestamp = datetime.datetime.now()
-        filename = f'input_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.png'
-        im.save(f'{dir}/{filename}', 'PNG')
-        return filename
 
 
 class Sketchpad(AbstractInput):
@@ -347,16 +341,6 @@ class Sketchpad(AbstractInput):
     def process_example(self, example):
         return preprocessing_utils.convert_file_to_base64(example)
 
-    def rebuild(self, dir, data):
-        """
-        Default rebuild method to decode a base64 image
-        """
-        im = preprocessing_utils.decode_base64_to_image(data)
-        timestamp = datetime.datetime.now()
-        filename = f'input_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.png'
-        im.save(f'{dir}/{filename}', 'PNG')
-        return filename
-
 
 class Webcam(AbstractInput):
     """
@@ -375,6 +359,9 @@ class Webcam(AbstractInput):
         self.num_channels = 3
         super().__init__(label)
 
+    def get_validation_inputs(self):
+        return validation_data.BASE64_COLOR_IMAGES
+
     @classmethod
     def get_shortcut_implementations(cls):
         return {
@@ -390,16 +377,6 @@ class Webcam(AbstractInput):
         im = preprocessing_utils.resize_and_crop(
             im, (self.image_width, self.image_height))
         return np.array(im)
-
-    def rebuild(self, dir, data):
-        """
-        Default rebuild method to decode a base64 image
-        """
-        im = preprocessing_utils.decode_base64_to_image(data)
-        timestamp = datetime.datetime.now()
-        filename = f'input_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.png'
-        im.save('{}/{}'.format(dir, filename), 'PNG')
-        return filename
 
 
 class Microphone(AbstractInput):
@@ -436,15 +413,6 @@ class Microphone(AbstractInput):
             return preprocessing_utils.generate_mfcc_features_from_audio_file(file_obj.name)
         _, signal = scipy.io.wavfile.read(file_obj.name)
         return signal
-
-    def rebuild(self, dir, data):
-        inp = data.split(';')[1].split(',')[1]
-        wav_obj = base64.b64decode(inp)
-        timestamp = datetime.datetime.now()
-        filename = f'input_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.wav'
-        with open("{}/{}".format(dir, filename), "wb+") as f:
-            f.write(wav_obj)
-        return filename
 
 
 # Automatically adds all shortcut implementations in AbstractInput into a dictionary.

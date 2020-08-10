@@ -19,3 +19,5 @@ __pycache__/
 demo/models/*
 dist/*
 *.h5
+docs.json
+*.bak

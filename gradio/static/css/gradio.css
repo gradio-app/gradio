@@ -57,14 +57,11 @@ input.submit {
 }
 input.panel_button {
   background-color: whitesmoke;
-  flex-grow: 1;
   padding: 12px;
   box-sizing: border-box;
-  text-transform: uppercase;
   font-weight: bold;
   border: 0 none;
   border-radius: 4px;
-  transition: background-color 0.2s ease;
   margin-left: 16px;
   flex-grow: 1;
 }
@@ -78,10 +75,11 @@ input.submit {
 input.submit:hover {
   background-color: #f39c12;
 }
-label {
-  transition: background-color 0.2s ease;
-  padding: 2px 4px;
-  border-radius: 2px;
+.flag {
+  visibility: hidden;
+}
+.flagged {
+  background-color: pink !important;
 }
 /* label:hover {
   background-color: lightgray;
@@ -103,4 +101,18 @@ label {
 
 .invisible {
   display: none !important;
+}
+.screenshot {
+  visibility: hidden;
+}
+.screenshot_logo {
+  display: none;
+  flex-grow: 1;
+  text-align: center;
+  padding: 4px;
+  box-sizing: border-box;
+  margin-left: 16px;
+}
+.screenshot_logo img {
+  height: 38px;
 }

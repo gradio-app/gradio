@@ -1,8 +1,8 @@
-body {
+body#lib {
   font-family: 'Open Sans', sans-serif;
   margin: 20px 0 0;
   position: relative;
-  padding-bottom: 40px;
+  padding-bottom: 60px;
 }
 button, input[type="submit"], input[type="reset"], input[type="text"], input[type="button"], select[type="submit"] {
 	border: none;
@@ -65,6 +65,7 @@ button.secondary {
   background-color: whitesmoke;
   border-right: solid 4px whitesmoke;
   border-left: solid 4px whitesmoke;
+  border-bottom: solid 4px whitesmoke;
 }
 #examples th {
   padding: 8px 16px;
@@ -87,12 +88,9 @@ button.secondary {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 8px;
+  bottom: 18px;
   height: 24px;
 }
-#credit a {
-  text-decoration: none;
-  color: cornflowerblue;
-  font-weight: bold;
-
+#credit img {
+  height: 24px;
 }

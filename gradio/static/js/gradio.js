@@ -6,8 +6,8 @@ function gradio(config, fn, target) {
         <div class="input_interfaces">
         </div>          
         <div class="panel_buttons">
-          <input class="submit panel_button" type="submit" value="submit"/>
-          <input class="clear panel_button" type="reset" value="clear">
+          <input class="clear panel_button" type="reset" value="CLEAR">
+          <input class="submit panel_button" type="submit" value="SUBMIT"/>
         </div>
       </div>
       <div class="panel output_panel">
@@ -18,9 +18,11 @@ function gradio(config, fn, target) {
         <div class="output_interfaces">
         </div>
         <div class="panel_buttons">
-          <input class="screenshot panel_button" type="button" value="screenshot"/>
-          <input class="flag panel_button" type="button" value="flag"/>
-        </div>
+          <input class="screenshot panel_button" type="button" value="SCREENSHOT"/>
+          <div class="screenshot_logo">
+            <img src="static/img/logo_inline.png">
+          </div>
+          <input class="flag panel_button" type="button" value="FLAG"/>
       </div>
     </div>`);
     let io_master = Object.create(io_master_template);
@@ -115,6 +117,7 @@ function gradio(config, fn, target) {
         output_interface.clear();
       }
       target.find(".flag").removeClass("flagged");
+      target.find(".flag").val("FLAG");
       target.find(".flag_message").empty();
       target.find(".loading").addClass("invisible");
       target.find(".loading_time").text("");
@@ -122,10 +125,31 @@ function gradio(config, fn, target) {
       io_master.last_input = null;
       io_master.last_output = null;
     });
+
+    if (config["allow_screenshot"] && !config["allow_flagging"]) {
+      target.find(".screenshot").css("visibility", "visible");
+      target.find(".flag").css("display", "none")
+    }
+    if (!config["allow_screenshot"] && config["allow_flagging"]) {
+      target.find(".flag").css("visibility", "visible");
+      target.find(".screenshot").css("display", "none")
+    }
+    if (config["allow_screenshot"] && config["allow_flagging"]) {
+      target.find(".screenshot").css("visibility", "visible");
+      target.find(".flag").css("visibility", "visible")
+    }
+
     target.find(".screenshot").click(function() {
-      html2canvas(target[0]).then(function(canvas) {
+      $(".screenshot").hide();
+      $(".screenshot_logo").show();
+      html2canvas(target[0], {
+        scrollX: 0,
+        scrollY: -window.scrollY
+      }).then(function(canvas) {
         saveAs(canvas.toDataURL(), 'screenshot.png');
-    });
+        $(".screenshot").show();
+        $(".screenshot_logo").hide();
+      });
     });
     if (config.live) {
       io_master.gather();
@@ -134,11 +158,22 @@ function gradio(config, fn, target) {
       target.find(".submit").click(function() {
         io_master.gather();
         target.find(".flag").removeClass("flagged");
+        target.find(".flag").val("FLAG");
       })
     }
     if (!config.show_input) {
       target.find(".input_panel").hide();
-    } 
+    }
+
+    target.find(".flag").click(function() {
+    if (io_master.last_output) {
+      target.find(".flag").addClass("flagged");
+      target.find(".flag").val("FLAGGED");
+      io_master.flag();
+
+    // io_master.flag($(".flag_message").val());
+      }
+    })
 
     return io_master;
 }

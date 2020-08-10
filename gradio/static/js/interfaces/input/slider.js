@@ -38,7 +38,7 @@ const slider = {
     this.target.find("input").val(this.default);
   },
   load_example: function(data) {
-    this.target.find("input").val(data);   
-    this.target.find(".value").text(data);
+    this.target.find(".slider").slider("option", "value", data)
+    this.target.find(".ui-slider-handle").text(data);
   }
 }
