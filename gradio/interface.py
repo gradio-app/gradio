@@ -255,15 +255,11 @@ class Interface:
     def launch(self, inline=None, inbrowser=None, share=False, debug=False):
         """
         Parameters
-        inline (bool): whether to display in the interface inline on python
-        notebooks.
-        inbrowser (bool): whether to automatically launch the interface in a
-        new tab on the default browser.
-        share (bool): whether to create a publicly shareable link from
-        your computer for the interface.
-        debug (bool): if True, and the interface was launched from Google
-        Colab, prints the errors in the cell output.
-        :returns
+        inline (bool): whether to display in the interface inline on python notebooks.
+        inbrowser (bool): whether to automatically launch the interface in a new tab on the default browser.
+        share (bool): whether to create a publicly shareable link from your computer for the interface.
+        debug (bool): if True, and the interface was launched from Google Colab, prints the errors in the cell output.
+        Returns
         httpd (str): HTTPServer object
         path_to_local_server (str): Locally accessible link
         share_url (str): Publicly accessible link (if share=True)
