@@ -21,5 +21,6 @@ setup(
         'IPython',
         'scikit-image',
         'analytics-python',
+        'pandas'
     ],
 )
