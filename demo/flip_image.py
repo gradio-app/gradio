@@ -16,7 +16,7 @@ def flip10(i1, i2, i3, i4, i5):
     return i1 + i2
 
 gr.Interface(flip2, 
-             ["image"], 
+             ["webcam"], 
              ["image"],
              examples=[
                  ["images/cheetah1.jpg"],

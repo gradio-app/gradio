@@ -1,0 +1,15 @@
+.file_display {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+.file_name {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 18px;
+}
+.file_size {
+  font-size: 18px;
+}
