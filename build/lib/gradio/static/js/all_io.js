@@ -59,8 +59,8 @@ var io_master_template = {
   flag: function() {
     var post_data = {
       'data': {
-        'input_data' : toStringIfObject(this.last_input) ,
-        'output_data' : toStringIfObject(this.last_output)
+        'input_data' : this.last_input ,
+        'output_data' : this.last_output
       }
     }
     $.ajax({type: "POST",
