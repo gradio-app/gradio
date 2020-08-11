@@ -42,13 +42,22 @@ function gradio(config, fn, target) {
       "checkboxgroup" : checkbox_group,
       "slider" : slider,
       "dropdown" : dropdown,
+      "audio" : audio_input,
+      "file" : file_input,
+      "dataframe" : dataframe_input,
     }
     let output_to_object_map = {
       "csv" : {},
       "image" : image_output,
       "label" : label_output,
       "keyvalues" : key_values,
-      "textbox" : textbox_output
+      "textbox" : textbox_output,
+      "highlightedtext": highlighted_text,
+      "audio": audio_output,
+      "json": json_output,
+      "html": html_output,
+      "file" : file_output,
+      "dataframe" : dataframe_output,
     }
     let id_to_interface_map = {}
     
