@@ -1,8 +1,10 @@
 const image_output = {
   html: `
+    <div class="interface_box">
       <div class="output_image_holder">
         <img class="output_image" />
       </div>
+    </div>      
     `,
   init: function(opts) {},
   output: function(data) {

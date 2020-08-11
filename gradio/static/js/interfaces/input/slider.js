@@ -8,15 +8,6 @@ const slider = {
   init: function(opts) {
     let io = this;
     this.minimum = opts.minimum;
-    this.target.css("height", "auto");
-    let difference = opts.maximum - opts.minimum;
-    if (difference <= 1) {
-      step = 0.01;
-    } else if (difference <= 10) {
-      step = 0.1;
-    } else {
-      step = 1;
-    }
     var handle = this.target.find(".ui-slider-handle");
     this.slider = this.target.find(".slider").slider({
       create: function() {
@@ -27,7 +18,7 @@ const slider = {
       },
       min: opts.minimum,
       max: opts.maximum,
-      step: step
+      step: opts.step
     });
   },
   submit: function() {

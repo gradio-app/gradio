@@ -13,15 +13,23 @@
 
 /* Styles for the container of the tree (e.g. fonts, margins etc.) */
 .jsontree_tree {
-    margin-left: 30px;
     font-family: 'PT Mono', monospace;
     font-size: 14px;
+    padding-left: 0;
 }
+
+.jsontree_tree ul {
+    padding-left: 20px;
+}
+
+.jsontree_tree li {
+    list-style: none;
+}
+
 
 /* Styles for a list of child nodes */
 .jsontree_child-nodes {
     display: none;
-    margin-left: 35px; 
     margin-bottom: 5px;
     line-height: 2;
 }
