@@ -1,7 +1,6 @@
 const dropdown = {
   html: ``,
   init: function(opts) {
-    this.target.css("height", "auto");
     this.choices = opts.choices;
     html = "<select class='dropdown'>"
     for ([index, choice] of opts.choices.entries()) {

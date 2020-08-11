@@ -5,7 +5,7 @@ except ImportError:
 
 setup(
     name='gradio',
-    version='1.0.7',
+    version='1.1.4',
     include_package_data=True,
     description='Python library for easily interacting with trained machine learning models',
     author='Abubakar Abid',
@@ -21,5 +21,6 @@ setup(
         'IPython',
         'scikit-image',
         'analytics-python',
+        'pandas'
     ],
 )

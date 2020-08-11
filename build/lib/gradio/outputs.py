@@ -1,67 +1,40 @@
 """
 This module defines various classes that can serve as the `output` to an interface. Each class must inherit from
-`AbstractOutput`, and each class must define a path to its template. All of the subclasses of `AbstractOutput` are
+`OutputComponent`, and each class must define a path to its template. All of the subclasses of `OutputComponent` are
 automatically added to a registry, which allows them to be easily referenced in other parts of the code.
 """
 
-from abc import ABC, abstractmethod
+from gradio.component import Component
 import numpy as np
 import json
-from gradio import preprocessing_utils
+from gradio import processing_utils
 import datetime
 import operator
 from numbers import Number
+import warnings
+import tempfile
+import scipy
+import os
 
-# Where to find the static resources associated with each template.
-BASE_OUTPUT_INTERFACE_JS_PATH = 'static/js/interfaces/output/{}.js'
-
-
-class AbstractOutput(ABC):
+class OutputComponent(Component):
     """
-    An abstract class for defining the methods that all gradio inputs should have.
-    When this is subclassed, it is automatically added to the registry
+    Output Component. All output components subclass this.
     """
+    pass
 
-    def __init__(self, label):
-        self.label = label
-
-    def get_template_context(self):
-        """
-        :return: a dictionary with context variables for the javascript file associated with the context
-        """
-        return {"label": self.label}
-
-    def postprocess(self, prediction):
-        """
-        Any postprocessing needed to be performed on function output.
-        """
-        return prediction
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        """
-        Return dictionary of shortcut implementations
-        """
-        return {}
-
-    def rebuild(self, dir, data):
-        """
-        All interfaces should define a method that rebuilds the flagged input when it's passed back (i.e. rebuilds image from base64)
-        """
-        return data
-
-
-class Textbox(AbstractOutput):
+class Textbox(OutputComponent):
     '''
     Component creates a textbox to render output text or number.
-    Output type: str
+    Output type: Union[str, float, int]
     '''
 
-    def __init__(self, label=None):
+    def __init__(self, type="str", label=None):
         '''
         Parameters:
+        type (str): Type of value to be passed to component. "str" expects a string, "number" expects a float value.
         label (str): component name in interface.
         '''
+        self.type = type
         super().__init__(label)
 
     def get_template_context(self):
@@ -72,20 +45,21 @@ class Textbox(AbstractOutput):
     @classmethod
     def get_shortcut_implementations(cls):
         return {
-            "text": {},
-            "textbox": {},
-            "number": {},
+            "text": {"type": "str"},
+            "textbox": {"type": "str"},
+            "number": {"type": "number"},
         }
 
-    def postprocess(self, prediction):
-        if isinstance(prediction, str) or isinstance(prediction, int) or isinstance(prediction, float):
-            return str(prediction)
+    def postprocess(self, y):
+        if self.type == "str":
+            return y
+        elif self.type == "number":
+            return str(y)
         else:
-            raise ValueError("The `Textbox` output interface expects an output that is one of: a string, or"
-                             "an int/float that can be converted to a string.")
+            raise ValueError("Unknown type: " + self.type + ". Please choose from: 'str', 'number'")
 
 
-class Label(AbstractOutput):
+class Label(OutputComponent):
     '''
     Component outputs a classification label, along with confidence scores of top categories if provided. Confidence scores are represented as a dictionary mapping labels to scores between 0 and 1.
     Output type: Union[Dict[str, float], str, int, float]
@@ -104,12 +78,12 @@ class Label(AbstractOutput):
         self.num_top_classes = num_top_classes
         super().__init__(label)
 
-    def postprocess(self, prediction):
-        if isinstance(prediction, str) or isinstance(prediction, Number):
-            return {"label": str(prediction)}
-        elif isinstance(prediction, dict):
+    def postprocess(self, y):
+        if isinstance(y, str) or isinstance(y, Number):
+            return {"label": str(y)}
+        elif isinstance(y, dict):
             sorted_pred = sorted(
-                prediction.items(),
+                y.items(),
                 key=operator.itemgetter(1),
                 reverse=True
             )
@@ -124,8 +98,8 @@ class Label(AbstractOutput):
                     } for pred in sorted_pred
                 ]
             }
-        elif isinstance(prediction, int) or isinstance(prediction, float):
-            return {self.LABEL_KEY: str(prediction)}
+        elif isinstance(y, int) or isinstance(y, float):
+            return {self.LABEL_KEY: str(y)}
         else:
             raise ValueError("The `Label` output interface expects one of: a string label, or an int label, a "
                              "float label, or a dictionary whose keys are labels and values are confidences.")
@@ -140,62 +114,64 @@ class Label(AbstractOutput):
         """
         Default rebuild method for label
         """
-        return json.loads(data)
+        # return json.loads(data)
+        return data
 
-class Image(AbstractOutput):
+class Image(OutputComponent):
     '''
-    Component displays an image. Expects a numpy array of shape `(width, height, 3)` to be returned by the function, or a `matplotlib.pyplot` if `plot = True`.
-    Output type: numpy.array
+    Component displays an output image. 
+    Output type: Union[numpy.array, PIL.Image, str, matplotlib.pyplot]
     '''
 
-    def __init__(self, plot=False, label=None):
+    def __init__(self, type="numpy", plot=False, label=None):
         '''
         Parameters:
-        plot (bool): whether to expect a plot to be returned by the function.
+        type (str): Type of value to be passed to component. "numpy" expects a numpy array with shape (width, height, 3), "pil" expects a PIL image object, "file" expects a file path to the saved image, "plot" expects a matplotlib.pyplot object.
+        plot (bool): DEPRECATED. Whether to expect a plot to be returned by the function.
         label (str): component name in interface.
         '''
-        self.plot = plot
+        if plot:
+            warnings.warn("The 'plot' parameter has been deprecated. Set parameter 'type' to 'plot' instead.", DeprecationWarning)
+            self.type = "plot"
+        else:
+            self.type = type
         super().__init__(label)
 
     @classmethod
     def get_shortcut_implementations(cls):
         return {
             "image": {},
-            "plot": {"plot": True}
+            "plot": {"type": "plot"},
+            "pil": {"type": "pil"}
         }
 
-    def postprocess(self, prediction):
-        """
-        """
-        if self.plot:
-            try:
-                return preprocessing_utils.encode_plot_to_base64(prediction)
-            except:
-                raise ValueError("The `Image` output interface expects a `matplotlib.pyplot` object"
-                                 "if plt=True.")
+    def postprocess(self, y):
+        if self.type in ["numpy", "pil"]:
+            if self.type == "pil":
+                y = np.array(y)
+            return processing_utils.encode_array_to_base64(y)
+        elif self.type == "file":
+            return processing_utils.encode_file_to_base64(y)
+        elif self.type == "plot":
+            return processing_utils.encode_plot_to_base64(y)
         else:
-            try:
-                return preprocessing_utils.encode_array_to_base64(prediction)
-            except:
-                raise ValueError(
-                    "The `Image` output interface (with plt=False) expects a numpy array.")
+            raise ValueError("Unknown type: " + self.type + ". Please choose from: 'numpy', 'pil', 'file', 'plot'.")
 
     def rebuild(self, dir, data):
         """
         Default rebuild method to decode a base64 image
         """
-        im = preprocessing_utils.decode_base64_to_image(data)
+        im = processing_utils.decode_base64_to_image(data)
         timestamp = datetime.datetime.now()
         filename = 'output_{}.png'.format(timestamp.
                                           strftime("%Y-%m-%d-%H-%M-%S"))
         im.save('{}/{}'.format(dir, filename), 'PNG')
         return filename
 
-
-class KeyValues(AbstractOutput):
+class KeyValues(OutputComponent):
     '''
     Component displays a table representing values for multiple fields. 
-    Output type: Dict[str, value]
+    Output type: Union[Dict, List[Tuple[str, Union[str, int, float]]]]
     '''
 
     def __init__(self, label=None):
@@ -205,9 +181,11 @@ class KeyValues(AbstractOutput):
         '''
         super().__init__(label)
 
-    def postprocess(self, prediction):
-        if isinstance(prediction, dict):
-            return prediction
+    def postprocess(self, y):
+        if isinstance(y, dict):
+            return list(y.items())
+        elif isinstance(y, list):
+            return y
         else:
             raise ValueError("The `KeyValues` output interface expects an output that is a dictionary whose keys are "
                              "labels and values are corresponding values.")
@@ -219,19 +197,51 @@ class KeyValues(AbstractOutput):
         }
 
 
-class HighlightedText(AbstractOutput):
+class HighlightedText(OutputComponent):
     '''
     Component creates text that contains spans that are highlighted by category or numerical value.
     Output is represent as a list of Tuple pairs, where the first element represents the span of text represented by the tuple, and the second element represents the category or value of the text.
     Output type: List[Tuple[str, Union[float, str]]]
     '''
 
-    def __init__(self, category_colors=None, label=None):
+    def __init__(self, color_map=None, label=None):
         '''
         Parameters:
-        category_colors (Dict[str, float]): 
+        color_map (Dict[str, str]): Map between category and respective colors
         label (str): component name in interface.
         '''
+        self.color_map = color_map
+        super().__init__(label)
+
+    def get_template_context(self):
+        return {
+            "color_map": self.color_map,
+            **super().get_template_context()
+        }
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "highlight": {},
+        }
+
+    def postprocess(self, y):
+        return y
+
+
+class Audio(OutputComponent):
+    '''
+    Creates an audio player that plays the output audio.
+    Output type: Union[Tuple[int, numpy.array], str]
+    '''
+
+    def __init__(self, type="numpy", label=None):
+        '''
+        Parameters:
+        type (str): Type of value to be passed to component. "numpy" returns a 2-set tuple with an integer sample_rate and the data numpy.array of shape (samples, 2), "file" returns a temporary file path to the saved wav audio file.
+        label (str): component name in interface.
+        '''
+        self.type = type
         super().__init__(label)
 
     def get_template_context(self):
@@ -242,21 +252,24 @@ class HighlightedText(AbstractOutput):
     @classmethod
     def get_shortcut_implementations(cls):
         return {
-            "highlight": {},
+            "audio": {},
         }
 
-    def postprocess(self, prediction):
-        if isinstance(prediction, str) or isinstance(prediction, int) or isinstance(prediction, float):
-            return str(prediction)
+    def postprocess(self, y):
+        if self.type in ["numpy", "file"]:
+            if self.type == "numpy":
+                file = tempfile.NamedTemporaryFile()
+                scipy.io.wavfile.write(file, y[0], y[1])                
+                y = file.name
+            return processing_utils.encode_file_to_base64(y, type="audio", ext="wav")
         else:
-            raise ValueError("The `HighlightedText` output interface expects an output that is one of: a string, or"
-                             "an int/float that can be converted to a string.")
+            raise ValueError("Unknown type: " + self.type + ". Please choose from: 'numpy', 'file'.")
 
 
-class JSON(AbstractOutput):
+class JSON(OutputComponent):
     '''
-    Used for JSON output. Expects a JSON string or a Python dictionary or list that can be converted to JSON. 
-    Output type: Union[str, Dict[str, Any], List[Any]]
+    Used for JSON output. Expects a JSON string or a Python object that is JSON serializable. 
+    Output type: Union[str, Any]
     '''
 
     def __init__(self, label=None):
@@ -266,14 +279,12 @@ class JSON(AbstractOutput):
         '''
         super().__init__(label)
 
-    def postprocess(self, prediction):
-        if isinstance(prediction, dict) or isinstance(prediction, list):
-            return json.dumps(prediction)
-        elif isinstance(prediction, str):
-            return prediction
+    def postprocess(self, y):
+        if isinstance(y, str):
+            return json.dumps(y)
         else:
-            raise ValueError("The `JSON` output interface expects an output that is a dictionary or list "
-                             "or a preformatted JSON string.")
+            return y
+
 
     @classmethod
     def get_shortcut_implementations(cls):
@@ -282,9 +293,9 @@ class JSON(AbstractOutput):
         }
 
 
-class HTML(AbstractOutput):
+class HTML(OutputComponent):
     '''
-    Used for HTML output. Expects a JSON string or a Python dictionary or list that can be converted to JSON. 
+    Used for HTML output. Expects an HTML valid string. 
     Output type: str
     '''
 
@@ -295,11 +306,6 @@ class HTML(AbstractOutput):
         '''
         super().__init__(label)
 
-    def postprocess(self, prediction):
-        if isinstance(prediction, str):
-            return prediction
-        else:
-            raise ValueError("The `HTML` output interface expects an output that is a str.")
 
     @classmethod
     def get_shortcut_implementations(cls):
@@ -308,8 +314,75 @@ class HTML(AbstractOutput):
         }
 
 
-# Automatically adds all shortcut implementations in AbstractInput into a dictionary.
-shortcuts = {}
-for cls in AbstractOutput.__subclasses__():
-    for shortcut, parameters in cls.get_shortcut_implementations().items():
-        shortcuts[shortcut] = cls(**parameters)
+class File(OutputComponent):
+    '''
+    Used for file output.     
+    Output type: Union[file-like, str]
+    '''
+
+    def __init__(self, label=None):
+        '''
+        Parameters:
+        label (str): component name in interface.
+        '''
+        super().__init__(label)
+
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "file": {},
+        }
+
+    def postprocess(self, y):
+        return {
+            "name": os.path.basename(y),
+            "size": os.path.getsize(y), 
+            "data": processing_utils.encode_file_to_base64(y, header=False)
+        }
+
+
+class Dataframe(OutputComponent):
+    """
+    Component displays 2D output through a spreadsheet interface.
+    Output type: Union[pandas.DataFrame, numpy.array, List[Union[str, float]], List[List[Union[str, float]]]]
+    """
+
+    def __init__(self, headers=None, type="pandas", label=None):
+        '''
+        Parameters:
+        headers (List[str]): Header names to dataframe.
+        type (str): Type of value to be passed to component. "pandas" for pandas dataframe, "numpy" for numpy array, or "array" for Python array.
+        label (str): component name in interface.
+        '''
+        self.type = type
+        self.headers = headers
+        super().__init__(label)
+
+
+    def get_template_context(self):
+        return {
+            "headers": self.headers,
+            **super().get_template_context()
+        }
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "dataframe": {"type": "pandas"},
+            "numpy": {"type": "numpy"},
+            "matrix": {"type": "array"},
+            "list": {"type": "array"},
+        }
+
+    def postprocess(self, y):
+        if self.type == "pandas":
+            return {"headers": list(y.columns), "data": y.values.tolist()}
+        elif self.type in ("numpy", "array"):
+            if self.type == "numpy":
+                y = y.tolist()
+            if len(y) == 0 or not isinstance(y[0], list):
+                y = [y]
+            return {"data": y} 
+        else:
+            raise ValueError("Unknown type: " + self.type + ". Please choose from: 'pandas', 'numpy', 'array'.")

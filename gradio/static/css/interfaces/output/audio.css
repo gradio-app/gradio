@@ -1,0 +1,15 @@
+.output_text {
+  width: 100%;
+  font-size: 18px;
+  outline: none;
+  background-color: white;
+  border: solid 1px lightgray;
+  border-radius: 2px;
+  box-sizing: border-box;
+  padding: 4px;
+  min-height: 30px;
+  font-family: monospace;
+  white-space: pre-wrap;      /* CSS3 */   
+  white-space: -moz-pre-wrap; /* Firefox */    
+  word-wrap: break-word;      /* IE */
+}
