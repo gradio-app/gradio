@@ -49,7 +49,8 @@ class Interface:
                  capture_session=False, title=None, description=None,
                  thumbnail=None, server_port=None, server_name=networking.LOCALHOST_NAME,
                  allow_screenshot=True, allow_flagging=True,
-                 flagging_dir="flagged"):
+                 flagging_dir="flagged", analytics_enabled=True):
+
         """
         Parameters:
         fn (Callable): the function to wrap an interface around.
@@ -123,6 +124,7 @@ class Interface:
         self.allow_flagging = allow_flagging
         self.flagging_dir = flagging_dir
         Interface.instances.add(self)
+        self.analytics_enabled=analytics_enabled
 
         data = {'fn': fn,
                 'inputs': inputs,
@@ -154,11 +156,12 @@ class Interface:
             self.flagging_dir = self.flagging_dir + "/" + dir_name + \
                                 "_{}".format(index)
 
-        try:
-            requests.post(analytics_url + 'gradio-initiated-analytics/',
-                          data=data)
-        except requests.ConnectionError:
-            pass  # do not push analytics if no network
+        if self.analytics_enabled:
+            try:
+                requests.post(analytics_url + 'gradio-initiated-analytics/',
+                              data=data)
+            except requests.ConnectionError:
+                pass  # do not push analytics if no network
 
     def get_config_file(self):
         config = {
@@ -293,7 +296,10 @@ class Interface:
 
         is_colab = utils.colab_check()
         if not is_colab:
-            print(strings.en["RUNNING_LOCALLY"].format(path_to_local_server))
+            if not networking.url_ok(path_to_local_server):
+                share = True
+            else:
+                print(strings.en["RUNNING_LOCALLY"].format(path_to_local_server))
         else:
             if debug:
                 print("Colab notebook detected. This cell will run indefinitely so that you can see errors and logs. "
@@ -302,11 +308,19 @@ class Interface:
                 print("Colab notebook detected. To show errors in colab notebook, set debug=True in launch()")
 
         if share:
+            print("This share link will expire in 6 hours. If you need a "
+                  "permanent link, email support@gradio.app")
             try:
                 share_url = networking.setup_tunnel(server_port)
                 print("Running on External URL:", share_url)
             except RuntimeError:
-                utils.error_analytics("RuntimeError")
+                data = {'error': 'RuntimeError in launch method'}
+                if self.analytics_enabled:
+                    try:
+                        requests.post(analytics_url + 'gradio-error-analytics/',
+                                      data=data)
+                    except requests.ConnectionError:
+                        pass  # do not push analytics if no network
                 share_url = None
                 if self.verbose:
                     print(strings.en["NGROK_NO_INTERNET"])
@@ -374,11 +388,13 @@ class Interface:
                 'share_url': share_url,
                 'ip_address': ip_address
                 }
-        try:
-            requests.post(analytics_url + 'gradio-launched-analytics/',
-                          data=data)
-        except requests.ConnectionError:
-            pass  # do not push analytics if no network
+
+        if self.analytics_enabled:
+            try:
+                requests.post(analytics_url + 'gradio-launched-analytics/',
+                              data=data)
+            except requests.ConnectionError:
+                pass  # do not push analytics if no network
 
         is_in_interactive_mode = bool(getattr(sys, 'ps1', sys.flags.interactive))
         if not is_in_interactive_mode:

@@ -16,7 +16,6 @@ import urllib.request
 from shutil import copyfile
 import requests
 import sys
-import analytics
 import csv
 
 
@@ -37,9 +36,6 @@ CONFIG_FILE = "static/config.json"
 
 ASSOCIATION_PATH_IN_STATIC = "static/apple-app-site-association"
 ASSOCIATION_PATH_IN_ROOT = "apple-app-site-association"
-
-analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
-analytics_url = 'https://api.gradio.app/'
 
 
 def build_template(temp_dir):
@@ -128,21 +124,6 @@ def get_first_available_port(initial, final):
     )
 
 
-def send_prediction_analytics(interface):
-    data = {'title': interface.title,
-            'description': interface.description,
-            'thumbnail': interface.thumbnail,
-            'input_interface': interface.input_interfaces,
-            'output_interface': interface.output_interfaces,
-            }
-    try:
-        requests.post(
-            analytics_url + 'gradio-prediction-analytics/',
-            data=data)
-    except requests.ConnectionError:
-        pass  # do not push analytics if no network
-
-
 def serve_files_in_background(interface, port, directory_to_serve=None, server_name=LOCALHOST_NAME):
     class HTTPHandler(SimpleHTTPRequestHandler):
         """This handler uses server.base_path instead of always using os.getcwd()"""
@@ -173,10 +154,6 @@ def serve_files_in_background(interface, port, directory_to_serve=None, server_n
 
                 output = {"data": prediction, "durations": durations}
                 self.wfile.write(json.dumps(output).encode())
-
-                analytics_thread = threading.Thread(
-                    target=send_prediction_analytics, args=[interface])
-                analytics_thread.start()
 
             elif self.path == "/api/flag/":
                 self._set_headers()
