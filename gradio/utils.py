@@ -24,8 +24,7 @@ def colab_check():
     is_colab = False
     try:  # Check if running interactively using ipython.
         from_ipynb = get_ipython()
-        if "google.colab" in str(from_ipynb) or "ipykernel" in str(
-                from_ipynb):
+        if "google.colab" in str(from_ipynb):
             is_colab = True
     except NameError:
         error_analytics("NameError", analytics_url)
