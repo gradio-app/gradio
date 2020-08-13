@@ -151,6 +151,12 @@ def serve_files_in_background(interface, port, directory_to_serve=None, server_n
             self.send_header("Content-type", "application/json")
             self.end_headers()
 
+        def end_headers(self):
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.send_header('Access-Control-Allow-Methods', 'GET, POST')
+            self.send_header('Cache-Control', 'no-store, no-cache, must-revalidate')
+            return super(HTTPHandler, self).end_headers()
+
         def translate_path(self, path):
             path = SimpleHTTPRequestHandler.translate_path(self, path)
             relpath = os.path.relpath(path, os.getcwd())
