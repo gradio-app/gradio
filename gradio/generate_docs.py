@@ -39,6 +39,8 @@ def document(cls_set):
         inp = {}
         inp["name"] = cls.__name__
         doc = inspect.getdoc(cls)
+        if doc.startswith("DEPRECATED"):
+            continue
         inp["doc"] = "\n".join(doc.split("\n")[:-1])
         inp["type"] = doc.split("\n")[-1].split("type: ")[-1]
         inp["params"], inp["params_doc"] = get_params(cls.__init__)
