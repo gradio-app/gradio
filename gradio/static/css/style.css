@@ -26,17 +26,17 @@ button, input[type="submit"], input[type="reset"], input[type="button"], select[
   text-align: right;
   font-family: monospace;
 }
-#share {
+.share {
   text-align: center;
   margin-bottom: 10px;
   font-size: 14px;
 }
-#share-copy {
+.share-copy {
   background-color: whitesmoke;
   padding: 4px;
   border-radius: 2px;
 }
-#title {
+.title {
   text-align: center;
 }
 .container {
@@ -58,7 +58,7 @@ button.secondary {
   color: black;
   background-color: #F6F6F6;
 }
-#examples table {
+.examples table {
   border-collapse: collapse;
   font-family: monospace;
   padding: 8px;
@@ -67,20 +67,20 @@ button.secondary {
   border-left: solid 4px whitesmoke;
   border-bottom: solid 4px whitesmoke;
 }
-#examples th {
+.examples th {
   padding: 8px 16px;
   text-align: left;
   font-size: 18px;
 }
-#examples td {
+.examples td {
   padding: 8px;
   cursor: pointer;
 }
 
-#examples tbody tr:nth-child(odd) {
+.examples tbody tr:nth-child(odd) {
   background-color: white;
 }
-#examples tbody tr:hover {
+.examples tbody tr:hover {
   background-color: lightgray;
 }
 #credit {
