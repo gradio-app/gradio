@@ -206,7 +206,7 @@ class Radio(InputComponent):
 class Dropdown(InputComponent):
     """
     Component creates a dropdown of which only one can be selected. Provides string representing selected choice as an argument to the wrapped function.
-    Input type: str
+    Input type: Union[str, int]
     """
 
     def __init__(self, choices, type="value", label=None):

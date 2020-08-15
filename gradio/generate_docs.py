@@ -9,6 +9,8 @@ def get_params(func):
     params_doc = []
     documented_params = {"self"}
     for param_line in params_str.split("\n")[1:]:
+        if param_line.strip() == "Returns":
+            break
         space_index = param_line.index(" ")
         colon_index = param_line.index(":")
         name = param_line[:space_index]
@@ -37,6 +39,8 @@ def document(cls_set):
         inp = {}
         inp["name"] = cls.__name__
         doc = inspect.getdoc(cls)
+        if doc.startswith("DEPRECATED"):
+            continue
         inp["doc"] = "\n".join(doc.split("\n")[:-1])
         inp["type"] = doc.split("\n")[-1].split("type: ")[-1]
         inp["params"], inp["params_doc"] = get_params(cls.__init__)
