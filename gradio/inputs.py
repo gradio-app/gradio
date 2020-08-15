@@ -255,6 +255,7 @@ class Image(InputComponent):
         self.image_mode = image_mode
         self.source = source
         self.type = type
+        self.invert_colors = invert_colors
         super().__init__(label)
 
     @classmethod
