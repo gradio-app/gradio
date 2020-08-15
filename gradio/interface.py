@@ -59,8 +59,6 @@ class Interface:
         verbose (bool): whether to print detailed information during launch.
         examples (List[List[Any]]): sample inputs for the function; if provided, appears below the UI components and can be used to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component.
         live (bool): whether the interface should automatically reload on change.
-        show_input (bool): if False, removes the input from the interface and underlays it in the output.
-        show_output (bool): if False, removes the output from the interface and overlays it in the input.
         capture_session (bool): if True, captures the default graph and session (needed for Tensorflow 1.x)
         title (str): a title for the interface; if provided, appears above the input and output components.
         description (str): a description for the interface; if provided, appears above the input and output components.
@@ -258,15 +256,11 @@ class Interface:
     def launch(self, inline=None, inbrowser=None, share=False, debug=False):
         """
         Parameters
-        inline (bool): whether to display in the interface inline on python
-        notebooks.
-        inbrowser (bool): whether to automatically launch the interface in a
-        new tab on the default browser.
-        share (bool): whether to create a publicly shareable link from
-        your computer for the interface.
-        debug (bool): if True, and the interface was launched from Google
-        Colab, prints the errors in the cell output.
-        :returns
+        inline (bool): whether to display in the interface inline on python notebooks.
+        inbrowser (bool): whether to automatically launch the interface in a new tab on the default browser.
+        share (bool): whether to create a publicly shareable link from your computer for the interface.
+        debug (bool): if True, and the interface was launched from Google Colab, prints the errors in the cell output.
+        Returns
         httpd (str): HTTPServer object
         path_to_local_server (str): Locally accessible link
         share_url (str): Publicly accessible link (if share=True)
