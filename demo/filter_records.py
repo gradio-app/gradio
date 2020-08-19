@@ -10,5 +10,6 @@ gr.Interface(filter_records,
     gr.inputs.Dataframe(headers=["name", "age", "gender"], datatype=["str", "number", "str"], row_count=5), 
     gr.inputs.Dropdown(["M", "F", "O"])
   ],
-  "dataframe"
+  "dataframe",
+  description="Enter gender as 'M', 'F', or 'O' for other."
 ).launch()
