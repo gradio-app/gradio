@@ -11,7 +11,7 @@ const key_values = {
   init: function(opts) {},
   output: function(data) {
     let html = ""
-    for (const [key, value] of Object.entries(data)) {
+    for (const [key, value] of data) {
       html += `<tr>
         <td>${key}</td>
         <td>${value}</td>

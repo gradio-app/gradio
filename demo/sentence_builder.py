@@ -1,11 +1,11 @@
 import gradio as gr
 import numpy as np
 
-def answer_question(quantity, animal, place, activity_list, morning):
+def sentence_builder(quantity, animal, place, activity_list, morning):
     return f"""The {quantity} {animal}s went to the {place} where they {" and ".join(activity_list)} until the {"morning" if morning else "night"}"""
 
 
-gr.Interface(answer_question, 
+gr.Interface(sentence_builder, 
             [
                 gr.inputs.Slider(2, 20),
                 gr.inputs.Dropdown(["cat", "dog", "bird"]),
