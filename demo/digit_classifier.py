@@ -9,7 +9,7 @@ urlretrieve("https://gr-models.s3-us-west-2.amazonaws.com/mnist-model.h5", "mnis
 model = tf.keras.models.load_model("mnist-model.h5")
 
 def recognize_digit(image):
-    image = image.reshape(-1, 1)
+    image = image.reshape(1, -1)
     prediction = model.predict(image).tolist()[0]
     return {str(i): prediction[i] for i in range(10)}
 
