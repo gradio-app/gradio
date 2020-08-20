@@ -45,6 +45,7 @@ const image_input = {
   init: function(opts) {
     var io = this;
     this.source = opts.source;
+    this.tool = opts.tool;
     $('body').append(this.overlay_html.format(this.id));
     this.overlay_target = $(`.overlay[interface_id=${this.id}]`);
     if (this.source == "upload") {
@@ -139,9 +140,15 @@ const image_input = {
     var io = this;
     if (this.source == "canvas") {
       var dataURL = this.canvas.toDataURL("image/png");
-      this.io_master.input(this.id, dataURL);  
+      this.io_master.input(this.id, dataURL);
     } else if (this.state == "IMAGE_LOADED") {
-      io.io_master.input(io.id, this.image_data);
+      if (io.tool == "select") {
+        let canvas = io.cropper.getCroppedCanvas();
+        var dataURL = canvas.toDataURL("image/png");
+        this.io_master.input(this.id, dataURL);
+      } else {
+        io.io_master.input(io.id, this.image_data);
+      }
     } else if (this.source == "webcam") {
       Webcam.snap(function(image_data) {
         io.target.find(".webcam").hide();
@@ -150,6 +157,8 @@ const image_input = {
         io.state = "IMAGE_LOADED";
         io.io_master.input(io.id, image_data);
       });    
+    } else {
+      io.io_master.no_input();
     }
   },
   clear: function() {
@@ -164,6 +173,9 @@ const image_input = {
       this.target.find(".hidden_upload").prop("value", "")
       this.state = "NO_IMAGE";
       this.image_data = null;
+      if (this.cropper) {
+        this.cropper.destroy();
+      }
     }    
   },
   state: "NO_IMAGE",
@@ -179,7 +191,10 @@ const image_input = {
         io.tui_editor.ui.resizeEditor({ imageSize: sizeValue });
       });
     }
-  },
+    if (io.tool == "select") {
+      io.cropper = new Cropper(io.target.find(".image_preview")[0]);
+    }
+},
   load_preview_from_files: function(files) {
     if (!files.length || !window.FileReader || !/^image/.test(files[0].type)) {
       return
