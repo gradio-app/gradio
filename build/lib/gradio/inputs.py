@@ -241,19 +241,21 @@ class Image(InputComponent):
     Input type: Union[numpy.array, PIL.Image, str]
     """
 
-    def __init__(self, shape=None, image_mode='RGB', invert_colors=False, source="upload", type="numpy", label=None):
+    def __init__(self, shape=None, image_mode='RGB', invert_colors=False, source="upload", tool="editor", type="numpy", label=None):
         '''
         Parameters:
         shape (Tuple[int, int]): shape to crop and resize image to; if None, matches input image size.
         image_mode (str): "RGB" if color, or "L" if black and white.
         invert_colors (bool): whether to invert the image as a preprocessing step.
         source (str): Source of image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "canvas" defaults to a white image that can be edited and drawn upon with tools.
+        tool (str): Tools used for editing. "editor" allows a full screen editor, "select" provides a cropping and zoom tool.
         type (str): Type of value to be returned by component. "numpy" returns a numpy array with shape (width, height, 3), "pil" returns a PIL image object, "file" returns a temporary file object whose path can be retrieved by file_obj.name.
         label (str): component name in interface.
         '''
         self.shape = shape
         self.image_mode = image_mode
         self.source = source
+        self.tool = tool
         self.type = type
         self.invert_colors = invert_colors
         super().__init__(label)
@@ -270,6 +272,7 @@ class Image(InputComponent):
         return {
             "image_mode": self.image_mode,
             "source": self.source,
+            "tool": self.tool,
             **super().get_template_context()
         }
 
