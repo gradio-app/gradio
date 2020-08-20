@@ -8,7 +8,7 @@ def image_mod(image):
 
 
 gr.Interface(image_mod, 
-             gr.inputs.Image(type="pil"), 
+             gr.inputs.Image(type="pil", tool="select"), 
              [
                 gr.outputs.Image(type="pil"), 
                 gr.outputs.Image(type="pil"), 
@@ -17,5 +17,6 @@ gr.Interface(image_mod,
                  ["images/cheetah1.jpg"],
                  ["images/cheetah2.jpg"],
                  ["images/lion.jpg"],
-             ]
+             ],
+             live=True,
              ).launch(share=True)

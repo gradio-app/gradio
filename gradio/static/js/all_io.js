@@ -1,6 +1,7 @@
 var io_master_template = {
   gather: function() {
     this.clear();
+    this.gathering = true;
     for (let iface of this.input_interfaces) {
       iface.submit();
     }
@@ -8,12 +9,16 @@ var io_master_template = {
   clear: function() {
     this.last_input = new Array(this.input_interfaces.length);
     this.input_count = 0;
+    if (this.gather_timeout) {
+      window.clearTimeout(this.gather_timeout);
+    }
   },
   input: function(interface_id, data) {
     this.last_input[interface_id] = data;
     this.input_count += 1;
     if (this.input_count == this.input_interfaces.length) {
       this.submit();
+      this.gathering = false;
     }
   },
   submit: function() {
@@ -48,13 +53,22 @@ var io_master_template = {
     if (this.config.live) {
       var io = this;
       var refresh_lag = this.config.refresh_lag || 0;
-      window.setTimeout(function() {
+      this.gather_timeout = window.setTimeout(function() {
         io.gather();
       }, refresh_lag);
     } else {
       this.target.find(".loading").addClass("invisible");
       this.target.find(".output_interfaces").css("opacity", 1);
     }
+  },
+  no_input: function() {
+    if (this.gathering && this.config.live) {
+      var io = this;
+      this.gather_timeout = window.setTimeout(function() {
+        io.gather();
+      }, 200);
+    }
+    this.gathering = false;
   },
   flag: function() {
     var post_data = {
