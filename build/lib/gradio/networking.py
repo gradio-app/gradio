@@ -151,11 +151,13 @@ def serve_files_in_background(interface, port, directory_to_serve=None, server_n
             if self.path == "/api/predict/":
                 # Make the prediction.
                 self._set_headers()
+                print("in")
                 data_string = self.rfile.read(
                     int(self.headers["Content-Length"]))
                 msg = json.loads(data_string)
                 raw_input = msg["data"]
                 prediction, durations = interface.process(raw_input)
+                print("prediction")
 
                 output = {"data": prediction, "durations": durations}
                 self.wfile.write(json.dumps(output).encode())
