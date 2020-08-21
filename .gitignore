@@ -21,3 +21,4 @@ dist/*
 *.h5
 docs.json
 *.bak
+demo/tmp.zip

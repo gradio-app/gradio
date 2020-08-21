@@ -1,4 +1,4 @@
-# Demo (Dataframe, Dropdown) -> (Dataframe)
+# Demo: (Dataframe, Dropdown) -> (Dataframe)
 
 import gradio as gr
 import numpy as np
