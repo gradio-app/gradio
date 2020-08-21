@@ -1,3 +1,5 @@
+# Demo: (Image) -> (Label)
+
 import tensorflow as tf
 import gradio
 import os
@@ -16,7 +18,7 @@ def recognize_digit(image):
 
 gr.Interface(
     recognize_digit, 
-    gradio.inputs.Image(shape=(28, 28), image_mode="L", source="canvas"), 
+    "sketchpad", 
     gradio.outputs.Label(num_top_classes=3),
     live=True,
     capture_session=True,
