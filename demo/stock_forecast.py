@@ -1,3 +1,5 @@
+# (Radio, CheckboxGroup, Slider, Dropdown) -> (Image)
+
 import gradio as gr
 import random
 import matplotlib.pyplot as plt
