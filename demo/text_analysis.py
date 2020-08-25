@@ -17,8 +17,6 @@ def text_analysis(text):
     pos_tokens = []
 
     for token in doc:
-        pos_count["token_count"] += 1
-        pos_count[token.pos_] = pos_count.get(token.pos_, 0) + 1
         pos_tokens.extend([(token.text, token.pos_), (" ", None)])
     
     return pos_tokens, pos_count, html
