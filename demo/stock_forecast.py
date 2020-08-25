@@ -1,4 +1,4 @@
-# Demo: (Radio, CheckboxGroup, Slider, Dropdown) -> (Image)
+# Demo: (Radio, CheckboxGroup, Slider, Checkbox, Dropdown) -> (Image)
 
 import gradio as gr
 import random
