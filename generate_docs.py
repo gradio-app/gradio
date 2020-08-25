@@ -11,8 +11,8 @@ in_demos, out_demos = {}, {}
 demo_regex = "# Demo: \((.*)\) -> \((.*)\)"
 for demo in listdir("demo"):
     if demo.endswith(".py"):
-        screenshots = listdir(join("demo/screenshots", demo[:-3]))
-        demoset = [demo, screenshots]
+        screenshots = listdir(join("demo/screenshots", demo[:-3]))[0]
+        demoset = [demo, [screenshots]]
         with open(join("demo", demo)) as demo_file:
             first_line = demo_file.readline()
             match = re.match(demo_regex, first_line)
@@ -21,12 +21,12 @@ for demo in listdir("demo"):
             for i in inputs:
                 if i not in in_demos:
                     in_demos[i] = []
-                elif demoset not in in_demos[i]:
+                if demoset not in in_demos[i]:
                     in_demos[i].append(demoset)
             for o in outputs:
                 if o not in out_demos:
                     out_demos[o] = []
-                elif demoset not in out_demos[o]:
+                if demoset not in out_demos[o]:
                     out_demos[o].append(demoset)
 
 def get_params(func):
