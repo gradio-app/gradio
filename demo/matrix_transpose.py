@@ -1,9 +1,10 @@
+# Demo: (Dataframe) -> (Dataframe)
+
 import gradio as gr
 import numpy as np
 import random
 
 def transpose(matrix):
-    print(matrix)
     return matrix.T
 
 gr.Interface(transpose, 
