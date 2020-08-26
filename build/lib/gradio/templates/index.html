@@ -41,7 +41,6 @@
 
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="/static/css/gradio.css">
-    <link rel="stylesheet" href="/static/css/interfaces/input/csv.css">
     <link rel="stylesheet" href="/static/css/interfaces/input/image.css">
     <link rel="stylesheet" href="/static/css/interfaces/input/sketchpad.css">
     <link rel="stylesheet" href="/static/css/interfaces/input/textbox.css">
@@ -64,7 +63,7 @@
   </head>
 
   <body id="lib">
-    <div id="interface_target"></div>
+    <div id="interface_target" class="container"></div>
     <div id="credit"><a href="https://github.com/gradio-app/gradio" target="_blank">
       <img src="static/img/logo_inline.png">
     </a></div>
@@ -88,12 +87,12 @@
     <script src="/static/js/vendor/jexcel.min.js"></script>
     <script src="/static/js/vendor/jsuites.min.js"></script>
     <script src="/static/js/vendor/cropper.min.js"></script>
+    <script src="/static/js/vendor/sketchpad.js"></script>
+    <script src="/static/js/vendor/webcam.min.js"></script>
 
     <script src="/static/js/utils.js"></script>
     <script src="/static/js/all_io.js"></script>
-    <script src="/static/js/interfaces/input/csv.js"></script>
     <script src="/static/js/interfaces/input/image.js"></script>
-    <script src="/static/js/vendor/sketchpad.js"></script>
     <script src="/static/js/interfaces/input/sketchpad.js"></script>
     <script src="/static/js/interfaces/input/textbox.js"></script>
     <script src="/static/js/interfaces/input/radio.js"></script>
@@ -104,7 +103,6 @@
     <script src="/static/js/interfaces/input/dataframe.js"></script>
     <script src="/static/js/interfaces/input/audio.js"></script>
     <script src="/static/js/interfaces/input/file.js"></script>
-    <script src="/static/js/vendor/webcam.min.js"></script>
     <script src="/static/js/interfaces/input/webcam.js"></script>
     <script src="/static/js/interfaces/input/microphone.js"></script>
     <script src="/static/js/interfaces/output/image.js"></script>
