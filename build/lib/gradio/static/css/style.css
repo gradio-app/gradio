@@ -43,6 +43,9 @@ button, input[type="submit"], input[type="reset"], input[type="button"], select[
   max-width: 1028px;
   width: 100%;
   margin: 0 auto;  
+  padding-left: 24px;
+  padding-right: 24px;
+  box-sizing: border-box;
 }
 .panels {
   display: flex;
