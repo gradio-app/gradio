@@ -193,10 +193,11 @@ class Interface:
 
         return config
 
-    def process(self, raw_input):
+    def process(self, raw_input, predict_fn=None):
         """
         :param raw_input: a list of raw inputs to process and apply the
         prediction(s) on.
+        :param predict_fn: which function to process. If not provided, all of the model functions are used.
         :return:
         processed output: a list of processed  outputs to return as the
         prediction(s).
@@ -252,6 +253,12 @@ class Interface:
             print("Keyboard interruption in main thread... closing server.")
             thread.keep_running = False
             networking.url_ok(path_to_local_server)
+
+    def test_launch(self):
+        for predict_fn in self.predict:
+            print("Testing {}()...".format(predict_fn.__name__), end=' ')
+
+
 
     def launch(self, inline=None, inbrowser=None, share=False, debug=False):
         """
