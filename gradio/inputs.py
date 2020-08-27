@@ -13,8 +13,7 @@ from gradio.component import Component
 
 import base64
 import numpy as np
-import PIL.Image
-import PIL.ImageOps
+import PIL
 import scipy.io.wavfile
 from gradio import processing_utils
 import pandas as pd
