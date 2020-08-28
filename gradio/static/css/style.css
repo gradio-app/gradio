@@ -7,17 +7,13 @@ body#lib {
 button, input[type="submit"], input[type="reset"], input[type="text"], input[type="button"], select[type="submit"] {
 	border: none;
 	font: inherit;
-	cursor: pointer;
 	outline: inherit;
   -webkit-appearance: none;
 }
 select {
 	font: inherit;
 }
-label, input[type=radio], input[type=checkbox], select, input[type=range] {
-  cursor: pointer;
-}
-button, input[type="submit"], input[type="reset"], input[type="button"], select[type="submit"] {
+label, input[type=radio], input[type=checkbox], select, input[type=range], button, input[type="submit"], input[type="reset"], input[type="button"], select[type="submit"] {
 	cursor: pointer;
 }
 
@@ -43,6 +39,9 @@ button, input[type="submit"], input[type="reset"], input[type="button"], select[
   max-width: 1028px;
   width: 100%;
   margin: 0 auto;  
+  padding-left: 24px;
+  padding-right: 24px;
+  box-sizing: border-box;
 }
 .panels {
   display: flex;

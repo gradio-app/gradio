@@ -3,6 +3,31 @@ from gradio.inputs import InputComponent
 from gradio.outputs import OutputComponent
 from gradio.interface import Interface
 import inspect
+from os import listdir
+from os.path import join
+import re
+
+in_demos, out_demos = {}, {}
+demo_regex = "# Demo: \((.*)\) -> \((.*)\)"
+for demo in listdir("demo"):
+    if demo.endswith(".py"):
+        screenshots = listdir(join("demo/screenshots", demo[:-3]))[0]
+        demoset = [demo, [screenshots]]
+        with open(join("demo", demo)) as demo_file:
+            first_line = demo_file.readline()
+            match = re.match(demo_regex, first_line)
+            inputs = match.group(1).split(", ")
+            outputs = match.group(2).split(", ")
+            for i in inputs:
+                if i not in in_demos:
+                    in_demos[i] = []
+                if demoset not in in_demos[i]:
+                    in_demos[i].append(demoset)
+            for o in outputs:
+                if o not in out_demos:
+                    out_demos[o] = []
+                if demoset not in out_demos[o]:
+                    out_demos[o].append(demoset)
 
 def get_params(func):
     params_str = inspect.getdoc(func)
@@ -33,7 +58,7 @@ def get_params(func):
             param_set.insert(0, (params.args[neg_index],))
     return param_set, params_doc
 
-def document(cls_set):
+def document(cls_set, demos):
     docset = []
     for cls in cls_set:
         inp = {}
@@ -45,11 +70,14 @@ def document(cls_set):
         inp["type"] = doc.split("\n")[-1].split("type: ")[-1]
         inp["params"], inp["params_doc"] = get_params(cls.__init__)
         inp["shortcuts"] = list(cls.get_shortcut_implementations().items())
+        cls_name = cls.__name__
+        if cls_name in demos:
+            inp["demos"] = demos.get(cls_name, [])
         docset.append(inp)
     return docset
 
-inputs = document(InputComponent.__subclasses__())
-outputs = document(OutputComponent.__subclasses__())
+inputs = document(InputComponent.__subclasses__(), in_demos)
+outputs = document(OutputComponent.__subclasses__(), out_demos)
 interface_params = get_params(Interface.__init__)
 interface = {
     "doc": inspect.getdoc(Interface),
@@ -67,6 +95,6 @@ with open("docs.json", "w") as docs:
         "inputs": inputs,
         "outputs": outputs,
         "interface": interface,        
-        "launch": launch
+        "launch": launch,
     }, docs)
 

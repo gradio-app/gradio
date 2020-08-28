@@ -1,8 +1,9 @@
+# Demo: (Dataframe) -> (Dataframe)
+
 import gradio as gr
 
 
 def transpose(matrix):
-    print(matrix)
     return matrix.T
 
 
