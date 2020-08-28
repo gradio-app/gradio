@@ -46,6 +46,9 @@ const image_input = {
     var io = this;
     this.source = opts.source;
     this.tool = opts.tool;
+    if (this.tool == "select") {
+      this.target.find('.edit_holder').hide();      
+    }
     $('body').append(this.overlay_html.format(this.id));
     this.overlay_target = $(`.overlay[interface_id=${this.id}]`);
     if (this.source == "upload") {
