@@ -1,3 +1,5 @@
+# Demo: (Textbox, Textbox) -> (HighlightedText)
+
 import gradio as gr
 from difflib import Differ
 

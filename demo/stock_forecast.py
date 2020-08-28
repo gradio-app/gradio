@@ -1,3 +1,5 @@
+# Demo: (Radio, CheckboxGroup, Slider, Checkbox, Dropdown) -> (Image)
+
 import gradio as gr
 import matplotlib.pyplot as plt
 import numpy as np

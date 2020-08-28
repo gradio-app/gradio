@@ -5,31 +5,30 @@ function gradio(config, fn, target) {
       Live at <a class="share-link" target="_blank"></a>.
       <button class="share-copy">Copy Link</button>
     </div>
-    <div class="container">
-      <h1 class="title"></h1>
-      <p class="description"></p>
-      <div class="panels">
-        <div class="panel input_panel">
-          <div class="input_interfaces">
-          </div>          
-          <div class="panel_buttons">
-            <input class="clear panel_button" type="reset" value="CLEAR">
-            <input class="submit panel_button" type="submit" value="SUBMIT"/>
-          </div>
+    <h1 class="title"></h1>
+    <p class="description"></p>
+    <div class="panels">
+      <div class="panel input_panel">
+        <div class="input_interfaces">
+        </div>          
+        <div class="panel_buttons">
+          <input class="clear panel_button" type="reset" value="CLEAR">
+          <input class="submit panel_button" type="submit" value="SUBMIT"/>
         </div>
-        <div class="panel output_panel">
-          <div class="loading invisible">
-            <img class="loading_in_progress" src="/static/img/logo_loading.gif">
-            <img class="loading_failed" src="/static/img/logo_error.png">
+      </div>
+      <div class="panel output_panel">
+        <div class="loading invisible">
+          <img class="loading_in_progress" src="/static/img/logo_loading.gif">
+          <img class="loading_failed" src="/static/img/logo_error.png">
+        </div>
+        <div class="output_interfaces">
+        </div>
+        <div class="panel_buttons">
+          <input class="screenshot panel_button" type="button" value="SCREENSHOT"/>
+          <div class="screenshot_logo">
+            <img src="/static/img/logo_inline.png">
           </div>
-          <div class="output_interfaces">
-          </div>
-          <div class="panel_buttons">
-            <input class="screenshot panel_button" type="button" value="SCREENSHOT"/>
-            <div class="screenshot_logo">
-              <img src="/static/img/logo_inline.png">
-            </div>
-            <input class="flag panel_button" type="button" value="FLAG"/>
+          <input class="flag panel_button" type="button" value="FLAG"/>
         </div>
       </div>
     </div>
