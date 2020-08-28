@@ -1,22 +1,23 @@
 import gradio as gr
-from time import time
-from PIL import Image, ImageFilter
+from PIL import ImageFilter
 
 
 def image_mod(image):
     return image.rotate(45), image.filter(ImageFilter.FIND_EDGES)
 
 
-gr.Interface(image_mod, 
-             gr.inputs.Image(type="pil", tool="select"), 
-             [
-                gr.outputs.Image(type="pil"), 
-                gr.outputs.Image(type="pil"), 
-             ],
-             examples=[
-                 ["images/cheetah1.jpg"],
-                 ["images/cheetah2.jpg"],
-                 ["images/lion.jpg"],
-             ],
-             live=True,
-             ).launch(share=True)
+io = gr.Interface(
+    image_mod,
+    gr.inputs.Image(type="pil", tool="select"),
+    [
+        gr.outputs.Image(type="pil"),
+        gr.outputs.Image(type="pil"),
+    ],
+    examples=[
+        ["images/cheetah1.jpg"],
+        ["images/cheetah2.jpg"],
+        ["images/lion.jpg"],
+    ], live=True)
+
+io.test_launch()
+io.launch()
