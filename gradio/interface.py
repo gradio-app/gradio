@@ -256,9 +256,19 @@ class Interface:
 
     def test_launch(self):
         for predict_fn in self.predict:
-            print("Testing {}()...".format(predict_fn.__name__), end=' ')
+            print("Testing: {}()...".format(predict_fn.__name__), end=' ')
 
+            raw_input = []
+            for input_interface in self.input_interfaces:
+                if input_interface.test_input is None:
+                    break
+                else:
+                    raw_input.append(input_interface.test_input)
+            else:
+                self.process(raw_input)
+                print("PASSED")
 
+            print("SKIPPED")
 
     def launch(self, inline=None, inbrowser=None, share=False, debug=False):
         """
