@@ -204,9 +204,8 @@ class Interface:
         duration: a list of time deltas measuring inference time for each
         prediction fn.
         """
-        processed_input = [input_interface.preprocess(
-            raw_input[i]) for i, input_interface in
-            enumerate(self.input_interfaces)]
+        processed_input = [input_interface.preprocess(raw_input[i])
+                           for i, input_interface in enumerate(self.input_interfaces)]
         predictions = []
         durations = []
         for predict_fn in self.predict:
@@ -260,15 +259,16 @@ class Interface:
 
             raw_input = []
             for input_interface in self.input_interfaces:
-                if input_interface.test_input is None:
+                if input_interface.test_input is None:  # If no test input is defined for that input interface
+                    print("SKIPPED")
                     break
-                else:
+                else:  # If a test input is defined for each interface object
                     raw_input.append(input_interface.test_input)
             else:
                 self.process(raw_input)
                 print("PASSED")
+                continue
 
-            print("SKIPPED")
 
     def launch(self, inline=None, inbrowser=None, share=False, debug=False):
         """
