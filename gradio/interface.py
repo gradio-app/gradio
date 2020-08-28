@@ -269,7 +269,6 @@ class Interface:
                 print("PASSED")
                 continue
 
-
     def launch(self, inline=None, inbrowser=None, share=False, debug=False):
         """
         Parameters
