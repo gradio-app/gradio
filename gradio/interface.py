@@ -193,19 +193,19 @@ class Interface:
 
         return config
 
-    def process(self, raw_input):
+    def process(self, raw_input, predict_fn=None):
         """
         :param raw_input: a list of raw inputs to process and apply the
         prediction(s) on.
+        :param predict_fn: which function to process. If not provided, all of the model functions are used.
         :return:
         processed output: a list of processed  outputs to return as the
         prediction(s).
         duration: a list of time deltas measuring inference time for each
         prediction fn.
         """
-        processed_input = [input_interface.preprocess(
-            raw_input[i]) for i, input_interface in
-            enumerate(self.input_interfaces)]
+        processed_input = [input_interface.preprocess(raw_input[i])
+                           for i, input_interface in enumerate(self.input_interfaces)]
         predictions = []
         durations = []
         for predict_fn in self.predict:
@@ -252,6 +252,22 @@ class Interface:
             print("Keyboard interruption in main thread... closing server.")
             thread.keep_running = False
             networking.url_ok(path_to_local_server)
+
+    def test_launch(self):
+        for predict_fn in self.predict:
+            print("Test launching: {}()...".format(predict_fn.__name__), end=' ')
+
+            raw_input = []
+            for input_interface in self.input_interfaces:
+                if input_interface.test_input is None:  # If no test input is defined for that input interface
+                    print("SKIPPED")
+                    break
+                else:  # If a test input is defined for each interface object
+                    raw_input.append(input_interface.test_input)
+            else:
+                self.process(raw_input)
+                print("PASSED")
+                continue
 
     def launch(self, inline=None, inbrowser=None, share=False, debug=False):
         """
