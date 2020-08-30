@@ -15,16 +15,18 @@ import base64
 import numpy as np
 import PIL
 import scipy.io.wavfile
-from gradio import processing_utils
+from gradio import processing_utils, test_data
 import pandas as pd
 import math
 import tempfile
+
 
 class InputComponent(Component):
     """
     Input Component. All input components subclass this.
     """
     pass
+
 
 class Textbox(InputComponent):
     """
@@ -33,7 +35,7 @@ class Textbox(InputComponent):
     """
 
     def __init__(self, lines=1, placeholder=None, default=None, numeric=False, type="str", label=None):
-        '''
+        """
         Parameters:
         lines (int): number of line rows to provide in textarea.
         placeholder (str): placeholder hint to provide behind textarea.
@@ -41,7 +43,7 @@ class Textbox(InputComponent):
         numeric (bool): DEPRECATED. Whether the input should be parsed as a number instead of a string.        
         type (str): Type of value to be returned by component. "str" returns a string, "number" returns a float value.
         label (str): component name in interface.
-        '''
+        """
         self.lines = lines
         self.placeholder = placeholder
         self.default = default
@@ -50,6 +52,13 @@ class Textbox(InputComponent):
             self.type = "number"
         else:
             self.type = type
+        if default is None:
+            self.test_input = {
+                "str": "the quick brown fox jumped over the lazy dog",
+                "number": 786.92,
+            }[type]
+        else:
+            self.test_input = default
         super().__init__(label)
 
     def get_template_context(self):
@@ -77,7 +86,6 @@ class Textbox(InputComponent):
             raise ValueError("Unknown type: " + self.type + ". Please choose from: 'str', 'number'.")
 
 
-
 class Slider(InputComponent):
     """
     Component creates a slider that ranges from `minimum` to `maximum`. Provides a number as an argument to the wrapped function.
@@ -101,6 +109,7 @@ class Slider(InputComponent):
             step = 10 ** power
         self.step = step
         self.default = minimum if default is None else default
+        self.test_input = self.default
         super().__init__(label)
 
     def get_template_context(self):
@@ -126,10 +135,11 @@ class Checkbox(InputComponent):
     """
 
     def __init__(self, label=None):
-        '''
+        """
         Parameters:
         label (str): component name in interface.
-        '''
+        """
+        self.test_input = True
         super().__init__(label)
 
     @classmethod
@@ -154,6 +164,7 @@ class CheckboxGroup(InputComponent):
         '''
         self.choices = choices
         self.type = type
+        self.test_input = self.choices
         super().__init__(label)
 
     def get_template_context(self):
@@ -186,6 +197,7 @@ class Radio(InputComponent):
         '''
         self.choices = choices
         self.type = type
+        self.test_input = self.choices[0]
         super().__init__(label)
 
     def get_template_context(self):
@@ -202,6 +214,7 @@ class Radio(InputComponent):
         else:
             raise ValueError("Unknown type: " + self.type + ". Please choose from: 'value', 'index'.")
 
+
 class Dropdown(InputComponent):
     """
     Component creates a dropdown of which only one can be selected. Provides string representing selected choice as an argument to the wrapped function.
@@ -217,6 +230,7 @@ class Dropdown(InputComponent):
         '''
         self.choices = choices
         self.type = type
+        self.test_input = self.choices[0]
         super().__init__(label)
 
     def get_template_context(self):
@@ -248,7 +262,7 @@ class Image(InputComponent):
         invert_colors (bool): whether to invert the image as a preprocessing step.
         source (str): Source of image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "canvas" defaults to a white image that can be edited and drawn upon with tools.
         tool (str): Tools used for editing. "editor" allows a full screen editor, "select" provides a cropping and zoom tool.
-        type (str): Type of value to be returned by component. "numpy" returns a numpy array with shape (width, height, 3), "pil" returns a PIL image object, "file" returns a temporary file object whose path can be retrieved by file_obj.name.
+        type (str): Type of value to be returned by component. "numpy" returns a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" returns a PIL image object, "file" returns a temporary file object whose path can be retrieved by file_obj.name.
         label (str): component name in interface.
         '''
         self.shape = shape
@@ -257,6 +271,7 @@ class Image(InputComponent):
         self.tool = tool
         self.type = type
         self.invert_colors = invert_colors
+        self.test_input = test_data.BASE64_IMAGE
         super().__init__(label)
 
     @classmethod
@@ -293,6 +308,8 @@ class Image(InputComponent):
             file_obj = tempfile.NamedTemporaryFile()
             im.save(file_obj.name)
             return file_obj
+        else:
+            raise ValueError("Unknown type: " + self.type + ". Please choose from: 'numpy', 'pil', 'file'.")
 
     def process_example(self, example):
         if os.path.exists(example):
@@ -318,14 +335,15 @@ class Audio(InputComponent):
     """
 
     def __init__(self, source="upload", type="numpy", label=None):
-        '''
+        """
         Parameters:
         source (str): Source of audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input.
         type (str): Type of value to be returned by component. "numpy" returns a 2-set tuple with an integer sample_rate and the data numpy.array of shape (samples, 2), "file" returns a temporary file object whose path can be retrieved by file_obj.name, "mfcc" returns the mfcc coefficients of the input audio.
         label (str): component name in interface.
-        '''
+        """
         self.source = source
         self.type = type
+        self.test_input = test_data.BASE64_AUDIO
         super().__init__(label)
 
     def get_template_context(self):
@@ -367,6 +385,7 @@ class File(InputComponent):
         label (str): component name in interface.
         '''
         self.type = type
+        self.test_input = None
         super().__init__(label)
 
     @classmethod
@@ -391,7 +410,7 @@ class Dataframe(InputComponent):
     """
 
     def __init__(self, headers=None, row_count=3, col_count=3, datatype="str", type="pandas", label=None):
-        '''
+        """
         Parameters:
         headers (List[str]): Header names to dataframe.
         row_count (int): Limit number of rows for input.
@@ -399,14 +418,17 @@ class Dataframe(InputComponent):
         datatype (Union[str, List[str]]): Datatype of values in sheet. Can be provided per column as a list of strings, or for the entire sheet as a single string. Valid datatypes are "str", "number", "bool", and "date".
         type (str): Type of value to be returned by component. "pandas" for pandas dataframe, "numpy" for numpy array, or "array" for a Python array.
         label (str): component name in interface.
-        '''
+        """
         self.headers = headers
         self.datatype = datatype
         self.row_count = row_count
         self.col_count = len(headers) if headers else col_count
         self.type = type
-        super().__init__(label)
+        sample_values = {"str": "abc", "number": 786, "bool": True, "date": "02/08/1993"}
+        column_dtypes = [datatype]*self.col_count if isinstance(datatype, str) else datatype
+        self.test_input = [[sample_values[c] for c in column_dtypes] for _ in range(row_count)]
 
+        super().__init__(label)
 
     def get_template_context(self):
         return {
