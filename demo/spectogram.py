@@ -4,7 +4,6 @@ import gradio as gr
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy import signal
-from scipy.io import wavfile
 
 
 def spectrogram(audio):
@@ -15,4 +14,7 @@ def spectrogram(audio):
     return plt
 
 
-gr.Interface(spectrogram, "audio", "plot").launch()
+io = gr.Interface(spectrogram, "audio", "plot
+
+io.test_launch()
+io.launch()
