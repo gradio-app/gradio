@@ -127,7 +127,8 @@ class Image(OutputComponent):
         '''
         Parameters:
         type (str): Type of value to be passed to component. "numpy" expects a numpy array with shape (width, height, 3), "pil" expects a PIL image object, "file" expects a file path to the saved image, "plot" expects a matplotlib.pyplot object.
-        plot (bool): DEPRECATED. Whether to expect a plot to be returned by the function.
+        plot (bool): DEPRECATED. Whether to expect a plot figure to be
+        returned by the function.
         label (str): component name in interface.
         '''
         if plot:

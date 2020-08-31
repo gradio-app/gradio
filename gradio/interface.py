@@ -309,7 +309,9 @@ class Interface:
             if not networking.url_ok(path_to_local_server):
                 share = True
             else:
-                print(strings.en["RUNNING_LOCALLY"].format(path_to_local_server))
+                print(strings.en["RUNNING_LOCALLY (To get a public link of a "
+                                 "hosted model set Share=True)"].format(
+                    path_to_local_server))
         else:
             if debug:
                 print("Colab notebook detected. This cell will run indefinitely so that you can see errors and logs. "
@@ -361,15 +363,12 @@ class Interface:
             # with the interface.
         if inline:
             from IPython.display import IFrame, display
-            if (is_colab):
-                # Embed the remote interface page if on google colab;
-                # otherwise, embed the local page.
-                print("Interface loading below...")
-                while not networking.url_ok(share_url):
-                    time.sleep(1)
-                display(IFrame(share_url, width=1000, height=500))
-            else:
-                display(IFrame(path_to_local_server, width=1000, height=500))
+            # Embed the remote interface page if on google colab;
+            # otherwise, embed the local page.
+            print("Interface loading below...")
+            while not networking.url_ok(share_url):
+                time.sleep(1)
+            display(IFrame(share_url, width=1000, height=500))
 
         config = self.get_config_file()
         config["share_url"] = share_url
