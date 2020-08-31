@@ -1,0 +1,48 @@
+.confidence_intervals {
+  display: flex;
+  font-size: 20px;
+}
+.confidences {
+  flex-grow: 1;
+  display: flex;
+  flex-flow: column;
+  align-items: baseline;
+  font-family: monospace;
+}
+.confidence {
+  background-color: #888888;
+  color: white;
+  text-align: right;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+.labels {
+  max-width: 120px;
+  margin-right: 4px;
+}
+.label, .confidence {
+  overflow: hidden;
+  white-space: nowrap;
+  height: 27px;
+  margin-bottom: 4px;
+  padding: 2px;
+}
+.label {
+  text-overflow: ellipsis;
+  text-align: right;
+}
+.confidence {
+  text-overflow: clip;
+  padding-left: 6px;
+  padding-right: 6px;
+}
+.output_class {
+  font-weight: bold;
+  font-size: 36px;
+  padding: 32px 16px;;
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

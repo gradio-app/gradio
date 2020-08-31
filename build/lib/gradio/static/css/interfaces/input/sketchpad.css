@@ -1,0 +1,53 @@
+.hide {
+  display: none !important;
+}
+.sketch_tools {
+  flex: 0 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+.brush {
+  border-radius: 50%;
+  background-color: #AAA;
+  margin: 0px 20px;
+  cursor: pointer;
+}
+.brush.selected, .brush:hover {
+  background-color: black;
+}
+#brush_1 {
+  height: 8px;
+  width: 8px;
+}
+#brush_2 {
+  height: 16px;
+  width: 16px;
+}
+#brush_3 {
+  height: 24px;
+  width: 24px;
+}
+.view_holders {
+  flex-grow: 1;
+  background-color: #CCCCCC;
+  position: relative;
+}
+.canvas_holder canvas {
+  background-color: white;
+}
+.canvas_holder {
+  text-align: center;
+  width: 100%;
+  height: calc(100% - 36px);
+}
+.saliency_holder {
+  position: absolute;
+  top: 0;
+  opacity: 0.9;
+}
+.view_holders canvas {
+  background-color: white;
+  border: solid 1px black;
+}
