@@ -366,9 +366,12 @@ class Interface:
             # Embed the remote interface page if on google colab;
             # otherwise, embed the local page.
             print("Interface loading below...")
-            while not networking.url_ok(share_url):
-                time.sleep(1)
-            display(IFrame(share_url, width=1000, height=500))
+            if share:
+                while not networking.url_ok(share_url):
+                    time.sleep(1)
+                display(IFrame(share_url, width=1000, height=500))
+            else:
+                display(IFrame(path_to_local_server, width=1000, height=500))
 
         config = self.get_config_file()
         config["share_url"] = share_url
