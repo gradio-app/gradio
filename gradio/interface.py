@@ -309,9 +309,9 @@ class Interface:
             if not networking.url_ok(path_to_local_server):
                 share = True
             else:
-                print(strings.en["RUNNING_LOCALLY (To get a public link of a "
-                                 "hosted model set Share=True)"].format(
-                    path_to_local_server))
+                print(strings.en["RUNNING_LOCALLY"].format(path_to_local_server))
+                print("To get a public link for a hosted model, "
+                      "set Share=True")
         else:
             if debug:
                 print("Colab notebook detected. This cell will run indefinitely so that you can see errors and logs. "
