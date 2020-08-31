@@ -1,0 +1,95 @@
+body#lib {
+  font-family: 'Open Sans', sans-serif;
+  margin: 20px 0 0;
+  position: relative;
+  padding-bottom: 60px;
+}
+button, input[type="submit"], input[type="reset"], input[type="text"], input[type="button"], select[type="submit"] {
+	border: none;
+	font: inherit;
+	outline: inherit;
+  -webkit-appearance: none;
+}
+select {
+	font: inherit;
+}
+label, input[type=radio], input[type=checkbox], select, input[type=range], button, input[type="submit"], input[type="reset"], input[type="button"], select[type="submit"] {
+	cursor: pointer;
+}
+
+.loading_time {
+  color: #e67e22;
+  text-align: right;
+  font-family: monospace;
+}
+.share {
+  text-align: center;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+.share-copy {
+  background-color: whitesmoke;
+  padding: 4px;
+  border-radius: 2px;
+}
+.title {
+  text-align: center;
+}
+.container {
+  max-width: 1028px;
+  width: 100%;
+  margin: 0 auto;  
+  padding-left: 24px;
+  padding-right: 24px;
+  box-sizing: border-box;
+}
+.panels {
+  display: flex;
+  flex-flow: row;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+button.primary {
+  color: white;
+  background-color: #e67e22;
+}
+button.secondary {
+  color: black;
+  background-color: #F6F6F6;
+}
+.examples table {
+  border-collapse: collapse;
+  font-family: monospace;
+  padding: 8px;
+  background-color: whitesmoke;
+  border-right: solid 4px whitesmoke;
+  border-left: solid 4px whitesmoke;
+  border-bottom: solid 4px whitesmoke;
+}
+.examples th {
+  padding: 8px 16px;
+  text-align: left;
+  font-size: 18px;
+}
+.examples td {
+  padding: 8px;
+  cursor: pointer;
+}
+
+.examples tbody tr:nth-child(odd) {
+  background-color: white;
+}
+.examples tbody tr:hover {
+  background-color: lightgray;
+}
+#credit {
+  text-align: center;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 18px;
+  height: 24px;
+}
+#credit img {
+  height: 24px;
+}

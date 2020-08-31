@@ -1,0 +1,20 @@
+.checkbox_group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: 18px;
+  margin-top: -12px;
+  margin-left: -16px;
+}
+.checkbox_group input, .checkbox {
+  margin: 0px;
+}
+.checkbox_group label {
+  margin-top: 12px;
+  margin-left: 16px;
+}
+.checkbox_solo label {
+  width: 27px !important;
+  padding-left: 11px;
+  padding-right: 3px;
+}
