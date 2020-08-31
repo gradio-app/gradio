@@ -310,8 +310,6 @@ class Interface:
                 share = True
             else:
                 print(strings.en["RUNNING_LOCALLY"].format(path_to_local_server))
-                print("To get a public link for a hosted model, "
-                      "set Share=True")
         else:
             if debug:
                 print("Colab notebook detected. This cell will run indefinitely so that you can see errors and logs. "
@@ -344,6 +342,8 @@ class Interface:
                 if self.verbose:
                     print(strings.en["COLAB_NO_LOCAL"])
             else:  # If it's not a colab notebook and share=False, print a message telling them about the share option.
+                print("To get a public link for a hosted model, "
+                      "set Share=True")
                 if self.verbose:
                     print(strings.en["PUBLIC_SHARE_TRUE"])
                 share_url = None
