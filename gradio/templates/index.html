@@ -29,152 +29,96 @@
     <meta name="twitter:image" content="{{thumbnail}}">
 
     <title>Gradio</title>
-    <!-- VENDOR -->
-    <link type="text/css" href="../static/css/vendor/tui-color-picker.css" rel="stylesheet">
-    <link type="text/css" href="../static/css/vendor/tui-image-editor.css" rel="stylesheet">
-    <link type="text/css" href="../static/css/vendor/jquery-ui.css" rel="stylesheet">
-    <link type="text/css" href="../static/css/vendor/jexcel.min.css" rel="stylesheet">
-    <link type="text/css" href="../static/css/vendor/jsuites.min.css" rel="stylesheet">
-    <link type="text/css" href="../static/css/vendor/jsonTree.css" rel="stylesheet">    
     <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+    <!-- VENDOR -->
+    <link type="text/css" href="/static/css/vendor/tui-color-picker.css" rel="stylesheet">
+    <link type="text/css" href="/static/css/vendor/tui-image-editor.css" rel="stylesheet">
+    <link type="text/css" href="/static/css/vendor/jquery-ui.css" rel="stylesheet">
+    <link type="text/css" href="/static/css/vendor/jexcel.min.css" rel="stylesheet">
+    <link type="text/css" href="/static/css/vendor/jsuites.min.css" rel="stylesheet">
+    <link type="text/css" href="/static/css/vendor/jsonTree.css" rel="stylesheet">    
+    <link type="text/css" href="/static/css/vendor/cropper.min.css" rel="stylesheet">
 
-    <link rel="stylesheet" href="../static/css/style.css">
-    <link rel="stylesheet" href="../static/css/gradio.css">
-    <link rel="stylesheet" href="../static/css/interfaces/input/csv.css">
-    <link rel="stylesheet" href="../static/css/interfaces/input/image.css">
-    <link rel="stylesheet" href="../static/css/interfaces/input/sketchpad.css">
-    <link rel="stylesheet" href="../static/css/interfaces/input/textbox.css">
-    <link rel="stylesheet" href="../static/css/interfaces/input/radio.css">
-    <link rel="stylesheet" href="../static/css/interfaces/input/dropdown.css">
-    <link rel="stylesheet" href="../static/css/interfaces/input/checkbox_group.css">
-    <link rel="stylesheet" href="../static/css/interfaces/input/slider.css">
-    <link rel="stylesheet" href="../static/css/interfaces/input/webcam.css">
-    <link rel="stylesheet" href="../static/css/interfaces/input/microphone.css">
-    <link rel="stylesheet" href="../static/css/interfaces/input/file.css">
-    <link rel="stylesheet" href="../static/css/interfaces/output/image.css">
-    <link rel="stylesheet" href="../static/css/interfaces/output/label.css">
-    <link rel="stylesheet" href="../static/css/interfaces/output/key_values.css">
-    <link rel="stylesheet" href="../static/css/interfaces/output/textbox.css">
-    <link rel="stylesheet" href="../static/css/interfaces/output/highlighted_text.css">
-    <link rel="stylesheet" href="../static/css/interfaces/output/audio.css">
-    <link rel="stylesheet" href="../static/css/interfaces/output/json.css">
-    <link rel="stylesheet" href="../static/css/interfaces/output/html.css">
-    <link rel="stylesheet" href="../static/css/loading.css"/>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/gradio.css">
+    <link rel="stylesheet" href="/static/css/interfaces/input/image.css">
+    <link rel="stylesheet" href="/static/css/interfaces/input/sketchpad.css">
+    <link rel="stylesheet" href="/static/css/interfaces/input/textbox.css">
+    <link rel="stylesheet" href="/static/css/interfaces/input/radio.css">
+    <link rel="stylesheet" href="/static/css/interfaces/input/dropdown.css">
+    <link rel="stylesheet" href="/static/css/interfaces/input/checkbox_group.css">
+    <link rel="stylesheet" href="/static/css/interfaces/input/slider.css">
+    <link rel="stylesheet" href="/static/css/interfaces/input/webcam.css">
+    <link rel="stylesheet" href="/static/css/interfaces/input/microphone.css">
+    <link rel="stylesheet" href="/static/css/interfaces/input/file.css">
+    <link rel="stylesheet" href="/static/css/interfaces/output/image.css">
+    <link rel="stylesheet" href="/static/css/interfaces/output/label.css">
+    <link rel="stylesheet" href="/static/css/interfaces/output/key_values.css">
+    <link rel="stylesheet" href="/static/css/interfaces/output/textbox.css">
+    <link rel="stylesheet" href="/static/css/interfaces/output/highlighted_text.css">
+    <link rel="stylesheet" href="/static/css/interfaces/output/audio.css">
+    <link rel="stylesheet" href="/static/css/interfaces/output/json.css">
+    <link rel="stylesheet" href="/static/css/interfaces/output/html.css">
+    <link rel="stylesheet" href="/static/css/loading.css"/>
   </head>
 
   <body id="lib">
-    <div id="share" class="invisible">
-      Live at <a id="share-link" target="_blank"></a>.
-      <button id="share-copy">Copy Link</button>
-    </div>
-    <div class="container">
-      <h1 id="title"></h1>
-      <p id="description"></p>
-    </div>
     <div id="interface_target" class="container"></div>
-    <div id="examples" class="container invisible">
-      <h3>Examples <small>(click to load)</small></h3>
-      <table>
-      </table>
-    </div>
     <div id="credit"><a href="https://github.com/gradio-app/gradio" target="_blank">
       <img src="static/img/logo_inline.png">
     </a></div>
     <!-- VENDOR -->
-    <script src="../static/js/vendor/jquery.min.js"></script>
-    <script src="../static/js/vendor/html2canvas.min.js"></script>
-    <script src="../static/js/vendor/jquery-ui.min.js"></script>
-    <script src="../static/js/vendor/jquery.ui.touch-punch.js"></script>
-    <script src="../static/js/vendor/jsonTree.js"></script>
-    <script src="../static/js/vendor/fabric.js"></script>
-    <script src="../static/js/vendor/tui-code-snippet.min.js"></script>
-    <script src="../static/js/vendor/FileSaver.min.js"></script>
-    <script src="../static/js/vendor/tui-color-picker.js"></script>
-    <script src="../static/js/vendor/tui-image-editor.js"></script>
-    <script src="../static/js/vendor/white-theme.js"></script>
-    <script src="../static/js/vendor/black-theme.js"></script>
-    <script src="../static/js/vendor/wavesurfer.min.js"></script>
-    <script src="../static/js/vendor/p5.min.js"></script>
-    <script src="../static/js/vendor/p5.sound.min.js"></script>
-    <script src="../static/js/vendor/p5.dom.min.js"></script>
-    <script src="../static/js/vendor/jexcel.min.js"></script>
-    <script src="../static/js/vendor/jsuites.min.js"></script>
+    <script src="/static/js/vendor/jquery.min.js"></script>
+    <script src="/static/js/vendor/html2canvas.min.js"></script>
+    <script src="/static/js/vendor/jquery-ui.min.js"></script>
+    <script src="/static/js/vendor/jquery.ui.touch-punch.js"></script>
+    <script src="/static/js/vendor/jsonTree.js"></script>
+    <script src="/static/js/vendor/fabric.js"></script>
+    <script src="/static/js/vendor/tui-code-snippet.min.js"></script>
+    <script src="/static/js/vendor/FileSaver.min.js"></script>
+    <script src="/static/js/vendor/tui-color-picker.js"></script>
+    <script src="/static/js/vendor/tui-image-editor.js"></script>
+    <script src="/static/js/vendor/white-theme.js"></script>
+    <script src="/static/js/vendor/black-theme.js"></script>
+    <script src="/static/js/vendor/wavesurfer.min.js"></script>
+    <script src="/static/js/vendor/p5.min.js"></script>
+    <script src="/static/js/vendor/p5.sound.min.js"></script>
+    <script src="/static/js/vendor/p5.dom.min.js"></script>
+    <script src="/static/js/vendor/jexcel.min.js"></script>
+    <script src="/static/js/vendor/jsuites.min.js"></script>
+    <script src="/static/js/vendor/cropper.min.js"></script>
+    <script src="/static/js/vendor/sketchpad.js"></script>
+    <script src="/static/js/vendor/webcam.min.js"></script>
 
-    <script src="../static/js/utils.js"></script>
-    <script src="../static/js/all_io.js"></script>
-    <script src="../static/js/interfaces/input/csv.js"></script>
-    <script src="../static/js/interfaces/input/image.js"></script>
-    <script src="../static/js/vendor/sketchpad.js"></script>
-    <script src="../static/js/interfaces/input/sketchpad.js"></script>
-    <script src="../static/js/interfaces/input/textbox.js"></script>
-    <script src="../static/js/interfaces/input/radio.js"></script>
-    <script src="../static/js/interfaces/input/checkbox_group.js"></script>
-    <script src="../static/js/interfaces/input/checkbox.js"></script>
-    <script src="../static/js/interfaces/input/dropdown.js"></script>
-    <script src="../static/js/interfaces/input/slider.js"></script>
-    <script src="../static/js/interfaces/input/dataframe.js"></script>
-    <script src="../static/js/interfaces/input/audio.js"></script>
-    <script src="../static/js/interfaces/input/file.js"></script>
-    <script src="../static/js/vendor/webcam.min.js"></script>
-    <script src="../static/js/interfaces/input/webcam.js"></script>
-    <script src="../static/js/interfaces/input/microphone.js"></script>
-    <script src="../static/js/interfaces/output/image.js"></script>
-    <script src="../static/js/interfaces/output/label.js"></script>
-    <script src="../static/js/interfaces/output/key_values.js"></script>
-    <script src="../static/js/interfaces/output/textbox.js"></script>
-    <script src="../static/js/interfaces/output/highlighted_text.js"></script>
-    <script src="../static/js/interfaces/output/audio.js"></script>
-    <script src="../static/js/interfaces/output/json.js"></script>
-    <script src="../static/js/interfaces/output/html.js"></script>
-    <script src="../static/js/interfaces/output/dataframe.js"></script>
-    <script src="../static/js/interfaces/output/file.js"></script>
-    <script src="../static/js/gradio.js"></script>
+    <script src="/static/js/utils.js"></script>
+    <script src="/static/js/all_io.js"></script>
+    <script src="/static/js/interfaces/input/image.js"></script>
+    <script src="/static/js/interfaces/input/sketchpad.js"></script>
+    <script src="/static/js/interfaces/input/textbox.js"></script>
+    <script src="/static/js/interfaces/input/radio.js"></script>
+    <script src="/static/js/interfaces/input/checkbox_group.js"></script>
+    <script src="/static/js/interfaces/input/checkbox.js"></script>
+    <script src="/static/js/interfaces/input/dropdown.js"></script>
+    <script src="/static/js/interfaces/input/slider.js"></script>
+    <script src="/static/js/interfaces/input/dataframe.js"></script>
+    <script src="/static/js/interfaces/input/audio.js"></script>
+    <script src="/static/js/interfaces/input/file.js"></script>
+    <script src="/static/js/interfaces/input/webcam.js"></script>
+    <script src="/static/js/interfaces/input/microphone.js"></script>
+    <script src="/static/js/interfaces/output/image.js"></script>
+    <script src="/static/js/interfaces/output/label.js"></script>
+    <script src="/static/js/interfaces/output/key_values.js"></script>
+    <script src="/static/js/interfaces/output/textbox.js"></script>
+    <script src="/static/js/interfaces/output/highlighted_text.js"></script>
+    <script src="/static/js/interfaces/output/audio.js"></script>
+    <script src="/static/js/interfaces/output/json.js"></script>
+    <script src="/static/js/interfaces/output/html.js"></script>
+    <script src="/static/js/interfaces/output/dataframe.js"></script>
+    <script src="/static/js/interfaces/output/file.js"></script>
+    <script src="/static/js/gradio.js"></script>
     <script>
       $.getJSON("static/config.json", function(config) {
         io = gradio_url(config, "/api/predict/", "#interface_target");
-        if (config["title"]) {
-          $("#title").text(config["title"]);
-        }
-        if (config["description"]) {
-          $("#description").text(config["description"]);
-        }
-        if (config["share_url"]) {
-          let share_url = config["share_url"];
-          $("#share").removeClass("invisible");
-          $("#share-link").text(share_url).attr("href", share_url);
-          $("#share-copy").click(function() {
-            copyToClipboard(share_url);
-            $("#share-copy").text("Copied!");
-          })
-        };
-        if (config["examples"]) {
-          $("#examples").removeClass("invisible");
-          let html = "<thead>"
-          for (let i = 0; i < config["input_interfaces"].length; i++) {
-            label = config["input_interfaces"][i][1]["label"];
-            html += "<th>" + label + "</th>";
-          }
-          html += "</thead>";
-          html += "<tbody>";
-          for (let [i, example] of config["examples"].entries()) {
-            html += "<tr row="+i+">";
-            for (let [j, col] of example.entries()) {
-              if (io.input_interfaces[j].load_example_preview) {
-                col = io.input_interfaces[j].load_example_preview(col);
-              }
-              html += "<td>" + col + "</td>";
-            }
-            html += "</tr>";
-          }
-          html += "</tbody>";
-          $("#examples table").html(html);
-          $("#examples tr").click(function() {
-            let example_id = parseInt($(this).attr("row"));
-            for (let [i, value] of config["examples"][example_id].entries()) {
-              io.input_interfaces[i].load_example(value);
-            }
-          })
-        };
       });
       const copyToClipboard = str => {
         const el = document.createElement('textarea');

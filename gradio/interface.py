@@ -59,8 +59,6 @@ class Interface:
         verbose (bool): whether to print detailed information during launch.
         examples (List[List[Any]]): sample inputs for the function; if provided, appears below the UI components and can be used to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component.
         live (bool): whether the interface should automatically reload on change.
-        show_input (bool): if False, removes the input from the interface and underlays it in the output.
-        show_output (bool): if False, removes the output from the interface and overlays it in the input.
         capture_session (bool): if True, captures the default graph and session (needed for Tensorflow 1.x)
         title (str): a title for the interface; if provided, appears above the input and output components.
         description (str): a description for the interface; if provided, appears above the input and output components.
@@ -195,19 +193,19 @@ class Interface:
 
         return config
 
-    def process(self, raw_input):
+    def process(self, raw_input, predict_fn=None):
         """
         :param raw_input: a list of raw inputs to process and apply the
         prediction(s) on.
+        :param predict_fn: which function to process. If not provided, all of the model functions are used.
         :return:
         processed output: a list of processed  outputs to return as the
         prediction(s).
         duration: a list of time deltas measuring inference time for each
         prediction fn.
         """
-        processed_input = [input_interface.preprocess(
-            raw_input[i]) for i, input_interface in
-            enumerate(self.input_interfaces)]
+        processed_input = [input_interface.preprocess(raw_input[i])
+                           for i, input_interface in enumerate(self.input_interfaces)]
         predictions = []
         durations = []
         for predict_fn in self.predict:
@@ -255,18 +253,30 @@ class Interface:
             thread.keep_running = False
             networking.url_ok(path_to_local_server)
 
+    def test_launch(self):
+        for predict_fn in self.predict:
+            print("Test launching: {}()...".format(predict_fn.__name__), end=' ')
+
+            raw_input = []
+            for input_interface in self.input_interfaces:
+                if input_interface.test_input is None:  # If no test input is defined for that input interface
+                    print("SKIPPED")
+                    break
+                else:  # If a test input is defined for each interface object
+                    raw_input.append(input_interface.test_input)
+            else:
+                self.process(raw_input)
+                print("PASSED")
+                continue
+
     def launch(self, inline=None, inbrowser=None, share=False, debug=False):
         """
         Parameters
-        inline (bool): whether to display in the interface inline on python
-        notebooks.
-        inbrowser (bool): whether to automatically launch the interface in a
-        new tab on the default browser.
-        share (bool): whether to create a publicly shareable link from
-        your computer for the interface.
-        debug (bool): if True, and the interface was launched from Google
-        Colab, prints the errors in the cell output.
-        :returns
+        inline (bool): whether to display in the interface inline on python notebooks.
+        inbrowser (bool): whether to automatically launch the interface in a new tab on the default browser.
+        share (bool): whether to create a publicly shareable link from your computer for the interface.
+        debug (bool): if True, and the interface was launched from Google Colab, prints the errors in the cell output.
+        Returns
         httpd (str): HTTPServer object
         path_to_local_server (str): Locally accessible link
         share_url (str): Publicly accessible link (if share=True)
