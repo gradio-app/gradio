@@ -1,7 +1,6 @@
 # Demo: (Radio, CheckboxGroup, Slider, Checkbox, Dropdown) -> (Image)
 
 import gradio as gr
-import random
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -21,15 +20,15 @@ def stock_forecast(final_year, companies, noise, show_legend, point_style):
     return plt
 
 
-gr.Interface(stock_forecast,
-             [
-                 gr.inputs.Radio([2025, 2030, 2035, 2040],
-                                 label="Project to:"),
-                 gr.inputs.CheckboxGroup(
-                     ["Google", "Microsoft", "Gradio"]),
-                 gr.inputs.Slider(1, 100),
-                 "checkbox",
-                 gr.inputs.Dropdown(["cross", "line", "circle"], label="Style"),
-             ],
-             gr.outputs.Image(plot=True, label="forecast") 
-             ).launch()
+io = gr.Interface(
+    stock_forecast,
+    [
+        gr.inputs.Radio([2025, 2030, 2035, 2040], label="Project to:"),
+        gr.inputs.CheckboxGroup(["Google", "Microsoft", "Gradio"]),
+        gr.inputs.Slider(1, 100),
+        "checkbox",
+        gr.inputs.Dropdown(["cross", "line", "circle"], label="Style")],
+    gr.outputs.Image(plot=True, label="forecast"))
+
+io.test_launch()
+io.launch()

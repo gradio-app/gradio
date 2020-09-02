@@ -32,7 +32,6 @@ def encode_plot_to_base64(plt):
     with BytesIO() as output_bytes:
         plt.savefig(output_bytes, format="png")
         bytes_data = output_bytes.getvalue()
-    plt.close()
     base64_str = str(base64.b64encode(bytes_data), 'utf-8')
     return "data:image/png;base64," + base64_str
 
