@@ -6,6 +6,20 @@ String.prototype.format = function() {
   return a
 }
 
+function toDataURL(url, callback) {
+  var xhr = new XMLHttpRequest();
+  xhr.onload = function() {
+    var reader = new FileReader();
+    reader.onloadend = function() {
+      callback(reader.result);
+    }
+    reader.readAsDataURL(xhr.response);
+  };
+  xhr.open('GET', url);
+  xhr.responseType = 'blob';
+  xhr.send();
+}
+
 function resizeImage(base64Str, max_width, max_height, callback) {
   var img = new Image();
   img.src = base64Str;
