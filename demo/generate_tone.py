@@ -2,9 +2,9 @@
 
 import gradio as gr
 import numpy as np
-import random
 
 notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+
 
 def generate_tone(note, octave, duration):
     sr = 48000
@@ -13,13 +13,16 @@ def generate_tone(note, octave, duration):
     duration = int(duration)
     audio = np.linspace(0, duration, duration * sr)
     audio = (20000 * np.sin(audio * (2 * np.pi * frequency))).astype(np.int16)
-    return (sr, audio)
+    return sr, audio
 
 
-gr.Interface(
+io = gr.Interface(
     generate_tone, 
     [
         gr.inputs.Dropdown(notes, type="index"),
         gr.inputs.Slider(4, 6, step=1),
         gr.inputs.Textbox(type="number", default=1, label="Duration in seconds")
-    ], "audio").launch()
+    ], "audio")
+
+io.test_launch()
+io.launch()

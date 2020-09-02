@@ -3,6 +3,7 @@
 import gradio as gr
 from zipfile import ZipFile
 
+
 def zip_to_json(file_obj):
     files = []
     with ZipFile(file_obj.name) as zfile:
@@ -14,4 +15,8 @@ def zip_to_json(file_obj):
             })
     return files
 
-gr.Interface(zip_to_json, "file", "json").launch()
+
+io = gr.Interface(zip_to_json, "file", "json")
+
+io.test_launch()
+io.launch()
