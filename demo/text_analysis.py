@@ -6,6 +6,7 @@ import gradio as gr
 
 nlp = spacy.load("en_core_web_sm")
 
+
 def text_analysis(text):
     doc = nlp(text)
     html = displacy.render(doc, style="dep", page=True)
@@ -21,10 +22,14 @@ def text_analysis(text):
     
     return pos_tokens, pos_count, html
 
-gr.Interface(
+
+io = gr.Interface(
     text_analysis,
     gr.inputs.Textbox(placeholder="Enter sentence here..."),
     [
         "highlight", "key_values", "html"
     ]
-).launch()
+)
+
+io.test_launch()
+io.launch()
