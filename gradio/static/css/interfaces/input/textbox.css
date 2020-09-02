@@ -1,4 +1,4 @@
-.input_text {
+textarea.input_text, input.input_text {
   resize: none;
   width: 100%;
   font-size: 18px;
@@ -10,7 +10,4 @@
   box-sizing: border-box;
   padding: 4px;
   font-family: monospace;
-}
-.input_text_saliency {
-  display: none;
 }

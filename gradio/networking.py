@@ -197,6 +197,17 @@ def serve_files_in_background(interface, port, directory_to_serve=None, server_n
             else:
                 self.send_error(404, 'Path not found: {}'.format(self.path))
 
+
+        def do_GET(self):
+            if self.path.startswith("/file/"):
+                self.send_response(200)
+                self.end_headers()
+                with open(self.path[6:], "rb") as f:
+                    self.wfile.write(f.read())
+            else:
+                super().do_GET()
+                
+
     class HTTPServer(BaseHTTPServer):
         """The main server, you pass in base_path which is the path you want to serve requests from"""
 

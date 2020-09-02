@@ -215,25 +215,28 @@ const image_input = {
     }
   },
   load_example_preview: function(data) {
-    return "<img src="+data+" height=100>"
+    return "<img src='"+this.io_master.example_file_path+data+"' height=100>"
   },
-  load_example: function(data) {
+  load_example: function(example_data) {
+    example_data = this.io_master.example_file_path + example_data;
     let io = this;
-    if (this.source == "canvas") {
-      this.clear();
-      let ctx = this.context;
-      var img = new Image;
-      let dimension = this.target.find(".canvas_holder canvas").width();
-      img.onload = function(){
-        ctx.clearRect(0,0,dimension,dimension);
-        ctx.drawImage(img,0,0,dimension,dimension);
-      };
-      img.src = data;  
-    } else {
-      io.target.find(".upload_zone").hide();
-      io.target.find(".image_display").removeClass("hide");
-      io.set_image_data(data, /*update_editor=*/true);
-      io.state = "IMAGE_LOADED";
-    }
+    toDataURL(example_data, function(data) {
+      if (io.source == "canvas") {
+        io.clear();
+        let ctx = this.context;
+        var img = new Image;
+        let dimension = io.target.find(".canvas_holder canvas").width();
+        img.onload = function(){
+          ctx.clearRect(0,0,dimension,dimension);
+          ctx.drawImage(img,0,0,dimension,dimension);
+        };
+        img.src = data;  
+      } else {
+        io.target.find(".upload_zone").hide();
+        io.target.find(".image_display").removeClass("hide");
+        io.set_image_data(data, /*update_editor=*/true);
+        io.state = "IMAGE_LOADED";
+      }
+    })
   }
 }
