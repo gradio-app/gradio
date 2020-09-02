@@ -15,6 +15,9 @@ import warnings
 import tempfile
 import scipy
 import os
+import pandas as pd
+import PIL
+from types import ModuleType
 
 class OutputComponent(Component):
     """
@@ -28,10 +31,10 @@ class Textbox(OutputComponent):
     Output type: Union[str, float, int]
     '''
 
-    def __init__(self, type="str", label=None):
+    def __init__(self, type="auto", label=None):
         '''
         Parameters:
-        type (str): Type of value to be passed to component. "str" expects a string, "number" expects a float value.
+        type (str): Type of value to be passed to component. "str" expects a string, "number" expects a float value, "auto" detects return type.
         label (str): component name in interface.
         '''
         self.type = type
@@ -51,7 +54,7 @@ class Textbox(OutputComponent):
         }
 
     def postprocess(self, y):
-        if self.type == "str":
+        if self.type == "str" or self.type == "auto":
             return y
         elif self.type == "number":
             return str(y)
@@ -69,19 +72,21 @@ class Label(OutputComponent):
     CONFIDENCE_KEY = "confidence"
     CONFIDENCES_KEY = "confidences"
 
-    def __init__(self, num_top_classes=None, label=None):
+    def __init__(self, num_top_classes=None, type="auto", label=None):
         '''
         Parameters:
         num_top_classes (int): number of most confident classes to show.
+        type (str): Type of value to be passed to component. "value" expects a single out label, "confidences" expects a dictionary mapping labels to confidence scores, "auto" detects return type.
         label (str): component name in interface.
         '''
         self.num_top_classes = num_top_classes
+        self.type = type
         super().__init__(label)
 
     def postprocess(self, y):
-        if isinstance(y, str) or isinstance(y, Number):
-            return {"label": str(y)}
-        elif isinstance(y, dict):
+        if self.type == "label" or (self.type == "auto" and (isinstance(y, str) or isinstance(y, Number))):
+            return {self.LABEL_KEY: str(y)}
+        elif self.type == "confidences" or (self.type == "auto" and isinstance(y, dict)):
             sorted_pred = sorted(
                 y.items(),
                 key=operator.itemgetter(1),
@@ -98,8 +103,6 @@ class Label(OutputComponent):
                     } for pred in sorted_pred
                 ]
             }
-        elif isinstance(y, int) or isinstance(y, float):
-            return {self.LABEL_KEY: str(y)}
         else:
             raise ValueError("The `Label` output interface expects one of: a string label, or an int label, a "
                              "float label, or a dictionary whose keys are labels and values are confidences.")
@@ -123,10 +126,10 @@ class Image(OutputComponent):
     Output type: Union[numpy.array, PIL.Image, str, matplotlib.pyplot]
     '''
 
-    def __init__(self, type="numpy", plot=False, label=None):
+    def __init__(self, type="auto", plot=False, label=None):
         '''
         Parameters:
-        type (str): Type of value to be passed to component. "numpy" expects a numpy array with shape (width, height, 3), "pil" expects a PIL image object, "file" expects a file path to the saved image, "plot" expects a matplotlib.pyplot object.
+        type (str): Type of value to be passed to component. "numpy" expects a numpy array with shape (width, height, 3), "pil" expects a PIL image object, "file" expects a file path to the saved image, "plot" expects a matplotlib.pyplot object, "auto" detects return type.
         plot (bool): DEPRECATED. Whether to expect a plot to be returned by the function.
         label (str): component name in interface.
         '''
@@ -146,16 +149,27 @@ class Image(OutputComponent):
         }
 
     def postprocess(self, y):
-        if self.type in ["numpy", "pil"]:
-            if self.type == "pil":
+        if self.type == "auto":
+            if isinstance(y, np.ndarray):
+                dtype = "numpy"
+            elif isinstance(y, PIL.Image.Image):
+                dtype = "pil"
+            elif isinstance(y, str):
+                dtype = "file"
+            elif isinstance(y, ModuleType):
+                dtype = "plot"
+        else:
+            dtype = self.type
+        if dtype in ["numpy", "pil"]:
+            if dtype == "pil":
                 y = np.array(y)
             return processing_utils.encode_array_to_base64(y)
-        elif self.type == "file":
+        elif dtype == "file":
             return processing_utils.encode_file_to_base64(y)
-        elif self.type == "plot":
+        elif dtype == "plot":
             return processing_utils.encode_plot_to_base64(y)
         else:
-            raise ValueError("Unknown type: " + self.type + ". Please choose from: 'numpy', 'pil', 'file', 'plot'.")
+            raise ValueError("Unknown type: " + dtype + ". Please choose from: 'numpy', 'pil', 'file', 'plot'.")
 
     def rebuild(self, dir, data):
         """
@@ -235,10 +249,10 @@ class Audio(OutputComponent):
     Output type: Union[Tuple[int, numpy.array], str]
     '''
 
-    def __init__(self, type="numpy", label=None):
+    def __init__(self, type="auto", label=None):
         '''
         Parameters:
-        type (str): Type of value to be passed to component. "numpy" returns a 2-set tuple with an integer sample_rate and the data numpy.array of shape (samples, 2), "file" returns a temporary file path to the saved wav audio file.
+        type (str): Type of value to be passed to component. "numpy" returns a 2-set tuple with an integer sample_rate and the data numpy.array of shape (samples, 2), "file" returns a temporary file path to the saved wav audio file, "auto" detects return type.
         label (str): component name in interface.
         '''
         self.type = type
@@ -256,8 +270,8 @@ class Audio(OutputComponent):
         }
 
     def postprocess(self, y):
-        if self.type in ["numpy", "file"]:
-            if self.type == "numpy":
+        if self.type in ["numpy", "file", "auto"]:
+            if self.type == "numpy" or (self.type == "auto" and isinstance(y, tuple)):
                 file = tempfile.NamedTemporaryFile()
                 scipy.io.wavfile.write(file, y[0], y[1])                
                 y = file.name
@@ -348,11 +362,11 @@ class Dataframe(OutputComponent):
     Output type: Union[pandas.DataFrame, numpy.array, List[Union[str, float]], List[List[Union[str, float]]]]
     """
 
-    def __init__(self, headers=None, type="pandas", label=None):
+    def __init__(self, headers=None, type="auto", label=None):
         '''
         Parameters:
         headers (List[str]): Header names to dataframe.
-        type (str): Type of value to be passed to component. "pandas" for pandas dataframe, "numpy" for numpy array, or "array" for Python array.
+        type (str): Type of value to be passed to component. "pandas" for pandas dataframe, "numpy" for numpy array, or "array" for Python array, "auto" detects return type.
         label (str): component name in interface.
         '''
         self.type = type
@@ -369,17 +383,26 @@ class Dataframe(OutputComponent):
     @classmethod
     def get_shortcut_implementations(cls):
         return {
-            "dataframe": {"type": "pandas"},
+            "dataframe": {},
             "numpy": {"type": "numpy"},
             "matrix": {"type": "array"},
             "list": {"type": "array"},
         }
 
     def postprocess(self, y):
-        if self.type == "pandas":
+        if self.type == "auto":
+            if isinstance(y, pd.core.frame.DataFrame):
+                dtype = "pandas"
+            elif isinstance(y, np.ndarray):
+                dtype = "numpy"
+            elif isinstance(y, list):
+                dtype = "array"
+        else:
+            dtype = self.type
+        if dtype == "pandas":
             return {"headers": list(y.columns), "data": y.values.tolist()}
-        elif self.type in ("numpy", "array"):
-            if self.type == "numpy":
+        elif dtype in ("numpy", "array"):
+            if dtype == "numpy":
                 y = y.tolist()
             if len(y) == 0 or not isinstance(y[0], list):
                 y = [y]

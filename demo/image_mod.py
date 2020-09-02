@@ -11,11 +11,10 @@ def image_mod(image):
 
 gr.Interface(image_mod, 
              gr.inputs.Image(type="pil"), 
-             gr.outputs.Image(type="pil"), 
+             "image", 
              examples=[
                  ["images/cheetah1.jpg"],
                  ["images/cheetah2.jpg"],
                  ["images/lion.jpg"],
              ],
-             live=True,
              ).launch(share=True)
