@@ -10,14 +10,16 @@ def stock_forecast(final_year, companies, noise, show_legend, point_style):
     x = np.arange(start_year, final_year + 1)
     year_count = x.shape[0]
     plt_format = ({"cross": "X", "line": "-", "circle": "o--"})[point_style]
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
     for i, company in enumerate(companies):
         series = np.arange(0, year_count, dtype=float)
         series = series ** 2 * (i + 1)
         series += np.random.rand(year_count) * noise
-        plt.plot(x, series, plt_format)
+        ax.plot(x, series, plt_format)
     if show_legend:
         plt.legend(companies)
-    return plt
+    return fig
 
 
 io = gr.Interface(

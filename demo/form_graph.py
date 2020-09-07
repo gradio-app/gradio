@@ -10,7 +10,7 @@ def plot_forecast(final_year, companies, noise, show_legend, point_style):
     year_count = x.shape[0]
     plt_format = ({"cross": "X", "line": "-", "circle": "o--"})[point_style]
     fig = plt.figure()
-    ax = fig.add_subplot(1)
+    ax = fig.add_subplot(111)
     for i, company in enumerate(companies):
         series = np.arange(0, year_count, dtype=float)
         series = series ** 2 * (i + 1)
