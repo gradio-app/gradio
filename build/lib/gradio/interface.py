@@ -342,6 +342,8 @@ class Interface:
                 if self.verbose:
                     print(strings.en["COLAB_NO_LOCAL"])
             else:  # If it's not a colab notebook and share=False, print a message telling them about the share option.
+                print("To get a public link for a hosted model, "
+                      "set Share=True")
                 if self.verbose:
                     print(strings.en["PUBLIC_SHARE_TRUE"])
                 share_url = None
@@ -361,10 +363,10 @@ class Interface:
             # with the interface.
         if inline:
             from IPython.display import IFrame, display
-            if (is_colab):
-                # Embed the remote interface page if on google colab;
-                # otherwise, embed the local page.
-                print("Interface loading below...")
+            # Embed the remote interface page if on google colab;
+            # otherwise, embed the local page.
+            print("Interface loading below...")
+            if share:
                 while not networking.url_ok(share_url):
                     time.sleep(1)
                 display(IFrame(share_url, width=1000, height=500))

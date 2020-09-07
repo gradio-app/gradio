@@ -9,7 +9,7 @@ def image_mod(image):
   
 io = gr.Interface(image_mod, 
              gr.inputs.Image(type="pil"), 
-             gr.outputs.Image(type="pil"), 
+             "image", 
              examples=[
                  ["images/cheetah1.jpg"],
                  ["images/cheetah2.jpg"],
