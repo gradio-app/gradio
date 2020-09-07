@@ -311,12 +311,6 @@ class Image(InputComponent):
         else:
             raise ValueError("Unknown type: " + self.type + ". Please choose from: 'numpy', 'pil', 'file'.")
 
-    def process_example(self, example):
-        if os.path.exists(example):
-            return processing_utils.encode_file_to_base64(example)
-        else:
-            return example
-
     def rebuild(self, dir, data):
         """
         Default rebuild method to decode a base64 image

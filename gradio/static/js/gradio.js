@@ -1,4 +1,4 @@
-function gradio(config, fn, target) {
+function gradio(config, fn, target, example_file_path) {
   target = $(target);
   target.html(`
     <div class="share invisible">
@@ -42,6 +42,7 @@ function gradio(config, fn, target) {
     io_master.fn = fn
     io_master.target = target;
     io_master.config = config;
+    io_master.example_file_path = example_file_path;
 
     let input_to_object_map = {
       "csv" : {},
@@ -243,7 +244,7 @@ function gradio(config, fn, target) {
 
     return io_master;
 }
-function gradio_url(config, url, target) {
+function gradio_url(config, url, target, example_file_path) {
   return gradio(config, function(data) {
     return new Promise((resolve, reject) => {
       $.ajax({type: "POST",
@@ -253,7 +254,7 @@ function gradio_url(config, url, target) {
         error: reject,
       });
     });              
-  }, target);
+  }, target, example_file_path);
 }
 function saveAs(uri, filename) {
   var link = document.createElement('a');
