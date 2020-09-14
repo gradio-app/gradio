@@ -495,9 +495,9 @@ class Interface:
 
     def explain(self, input):
         if self.explain_by == "default":
-            self.simple_explanation(input)
+            return self.simple_explanation(input)
         else:
-            self.explain_by(input)
+            return self.explain_by(input)
 
 def reset_all():
     for io in Interface.get_instances():
