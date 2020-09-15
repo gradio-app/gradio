@@ -16,6 +16,7 @@ setup(
     install_requires=[
         'numpy',
         'requests',
+        'flask',
         'paramiko',
         'scipy',
         'IPython',

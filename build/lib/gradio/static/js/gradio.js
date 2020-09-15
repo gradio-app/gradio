@@ -250,6 +250,8 @@ function gradio_url(config, url, target, example_file_path) {
       $.ajax({type: "POST",
         url: url,
         data: JSON.stringify({"data": data}),
+        dataType: 'json',
+        contentType: 'application/json; charset=utf-8',
         success: resolve,
         error: reject,
       });
