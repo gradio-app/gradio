@@ -51,8 +51,7 @@ class Interface:
 
     def __init__(self, fn, inputs, outputs, verbose=False, examples=None,
                  live=False, show_input=True, show_output=True,
-                 capture_session=False, explain_by="default", title=None,
-                 description=None,
+                 capture_session=False, explain_by=None, title=None, description=None,
                  thumbnail=None, server_port=None, server_name=networking.LOCALHOST_NAME,
                  allow_screenshot=True, allow_flagging=True,
                  flagging_dir="flagged", analytics_enabled=True):
@@ -184,7 +183,8 @@ class Interface:
             "description": self.description,
             "thumbnail": self.thumbnail,
             "allow_screenshot": self.allow_screenshot,
-            "allow_flagging": self.allow_flagging
+            "allow_flagging": self.allow_flagging,
+            "allow_interpretation": self.explain_by is not None
         }
         try:
             param_names = inspect.getfullargspec(self.predict[0])[0]
@@ -423,12 +423,11 @@ class Interface:
     def tokenize_text(self, text):
         leave_one_out_tokens = []
         tokens = text.split()
-        leave_one_out_tokens.append(tokens)
         for idx, _ in enumerate(tokens):
             new_token_array = tokens.copy()
             del new_token_array[idx]
             leave_one_out_tokens.append(new_token_array)
-        return leave_one_out_tokens
+        return tokens, leave_one_out_tokens
 
     def tokenize_image(self, image):
         image = self.input_interfaces[0].preprocess(image)
@@ -440,24 +439,29 @@ class Interface:
             leave_one_out_tokens.append(mask)
         return leave_one_out_tokens
 
-    def score_text(self, leave_one_out_tokens, text):
+    def score_text(self, tokens, leave_one_out_tokens, text):
         original_label = ""
         original_confidence = 0
         tokens = text.split()
-        outputs = {}
+
+        input_text = " ".join(tokens)
+        output = self.predict[0](input_text)
+        original_label = max(output, key=output.get)
+        original_confidence = output[original_label]
+
+        scores = []
         for idx, input_text in enumerate(leave_one_out_tokens):
             input_text = " ".join(input_text)
-            output = self.process(input_text)
-            if idx == 0:
-                original_label = output[0][0]['confidences'][0][
-                    'label']
-                original_confidence = output[0][0]['confidences'][0][
-                    'confidence']
-            else:
-                if output[0][0]['confidences'][0]['label'] == original_label:
-                    outputs[tokens[idx-1]] = original_confidence - output[0][0]
-                    ['confidences'][0]['confidence']
-        return outputs
+            output = self.predict[0](input_text)
+            scores.append(original_confidence - output[original_label])
+        
+        scores_by_char = []
+        for idx, token in enumerate(tokens):
+            if idx != 0:
+                scores_by_char.append((" ", 0))
+            for char in token:
+                scores_by_char.append((char, scores[idx]))
+        return scores_by_char
 
     def score_image(self, leave_one_out_tokens, image):
         original_output = self.process(image)
@@ -485,11 +489,11 @@ class Interface:
 
     def simple_explanation(self, input):
         if isinstance(self.input_interfaces[0], Textbox):
-            leave_one_out_tokens = self.tokenize_text(input[0])
-            return self.score_text(leave_one_out_tokens, input[0])
+            tokens, leave_one_out_tokens = self.tokenize_text(input[0])
+            return [self.score_text(tokens, leave_one_out_tokens, input[0])]
         elif isinstance(self.input_interfaces[0], Image):
             leave_one_out_tokens = self.tokenize_image(input[0])
-            return self.score_image(leave_one_out_tokens, input)
+            return self.score_image(leave_one_out_tokens, input[0])
         else:
             print("Not valid input type")
 
