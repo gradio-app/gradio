@@ -1,5 +1,6 @@
 numpy
 requests
+flask
 paramiko
 scipy
 IPython
