@@ -5,7 +5,9 @@ nltk.download('vader_lexicon')
 sid = SentimentIntensityAnalyzer()
 
 def sentiment_analysis(text):
-    return sid.polarity_scores(text)
+    scores = sid.polarity_scores(text)
+    del scores["compound"]
+    return scores
 
 io = gr.Interface(sentiment_analysis, "textbox", "label", explain_by="default")
 

@@ -29,6 +29,9 @@ const image_input = {
           <div class="image_preview_holder">
             <img class="image_preview" />
           </div>
+          <div class="saliency_holder hide">
+            <canvas class="saliency"></canvas>
+          </div>          
         </div>
       </div>
       <input class="hidden_upload" type="file" accept="image/x-png,image/gif,image/jpeg" />
@@ -180,6 +183,19 @@ const image_input = {
         this.cropper.destroy();
       }
     }    
+    this.target.find(".saliency_holder").addClass("hide");
+  },
+  show_interpretation: function(data) {
+    if (this.target.find(".image_preview").attr("src")) {
+      var img = this.target.find(".image_preview")[0];
+      var size = getObjectFitSize(true, img.width, img.height, img.naturalWidth, img.naturalHeight)
+      var width = size.width;
+      var height = size.height;
+      this.target.find(".saliency_holder").removeClass("hide").html(`
+        <canvas class="saliency" width=${width} height=${height}></canvas>`);
+      var ctx = this.target.find(".saliency")[0].getContext('2d');
+      paintSaliency(data, ctx, width, height);
+    }
   },
   state: "NO_IMAGE",
   image_data: null,

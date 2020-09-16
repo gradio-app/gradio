@@ -94,6 +94,7 @@ var io_master_template = {
         data: JSON.stringify(post_data),
         success: function(data) {
           for (let [idx, interpretation] of data.entries()) {
+            console.log(idx)
             io.input_interfaces[idx].show_interpretation(interpretation);
           }
           io.target.find(".loading_in_progress").hide();

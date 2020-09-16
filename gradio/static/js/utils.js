@@ -54,27 +54,47 @@ function toStringIfObject(input) {
   return input;
 }
 
-function paintSaliency(data, width, height, ctx) {
+function paintSaliency(data, ctx, width, height) {
   var cell_width = width / data[0].length
   var cell_height = height / data.length
   var r = 0
   data.forEach(function(row) {
     var c = 0
     row.forEach(function(cell) {
-      if (cell < 0.25) {
-        ctx.fillStyle = "white";
-      } else if (cell < 0.5) {
-        ctx.fillStyle = "#add8ed";
-      } else if (cell < 0.75) {
-        ctx.fillStyle = "#5aa7d3";
+      if (cell < 0) {
+        var color = [7,47,95];
       } else {
-        ctx.fillStyle = "#072F5F";
+        var color = [112,62,8];
       }
+      ctx.fillStyle = colorToString(interpolate(cell, [255,255,255], color));
       ctx.fillRect(c * cell_width, r * cell_height, cell_width, cell_height);
       c++;
     })
     r++;
   })
+}
+
+function getObjectFitSize(contains /* true = contain, false = cover */, containerWidth, containerHeight, width, height){
+  var doRatio = width / height;
+  var cRatio = containerWidth / containerHeight;
+  var targetWidth = 0;
+  var targetHeight = 0;
+  var test = contains ? (doRatio > cRatio) : (doRatio < cRatio);
+
+  if (test) {
+      targetWidth = containerWidth;
+      targetHeight = targetWidth / doRatio;
+  } else {
+      targetHeight = containerHeight;
+      targetWidth = targetHeight * doRatio;
+  }
+
+  return {
+      width: targetWidth,
+      height: targetHeight,
+      x: (containerWidth - targetWidth) / 2,
+      y: (containerHeight - targetHeight) / 2
+  };
 }
 
 // val should be in the range [0.0, 1.0]
@@ -88,7 +108,6 @@ function interpolate(val, rgb1, rgb2) {
   return rgb;
 }
 
-// quick helper function to convert the array into something we can use for css
 function colorToString(rgb) {
   return "rgb(" + rgb[0] + ", " + rgb[1] + ", " + rgb[2] + ")";
 }
