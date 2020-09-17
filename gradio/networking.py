@@ -128,7 +128,7 @@ def file(path):
     return send_file(os.path.join(os.getcwd(), path))
                 
 
-def start_server(interface, directory_to_serve=None, server_name=None, server_port=None):
+def start_server(interface, server_name=None, server_port=None):
     if server_port is None:
         server_port = INITIAL_PORT_VALUE
     port = get_first_available_port(
