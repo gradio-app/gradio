@@ -11,5 +11,5 @@ def reverse_audio(audio):
 
 io = gr.Interface(reverse_audio, "microphone", "audio")
 
-io.test_launch()
+# io.test_launch()
 io.launch()
