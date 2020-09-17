@@ -54,10 +54,10 @@ class Textbox(OutputComponent):
         }
 
     def postprocess(self, y):
-        if self.type == "str":
-            return y
-        elif self.type == "number" or self.type == "auto":
+        if self.type == "str" or self.type == "auto":
             return str(y)
+        elif self.type == "number":
+            return y
         else:
             raise ValueError("Unknown type: " + self.type + ". Please choose from: 'str', 'number'")
 

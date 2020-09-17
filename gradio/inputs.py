@@ -292,6 +292,7 @@ class Image(InputComponent):
 
     def preprocess(self, x):
         im = processing_utils.decode_base64_to_image(x)
+        fmt = im.format
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             im = im.convert(self.image_mode)
@@ -305,7 +306,7 @@ class Image(InputComponent):
         elif self.type == "numpy":
             return np.array(im)
         elif self.type == "file":
-            file_obj = tempfile.NamedTemporaryFile()
+            file_obj = tempfile.NamedTemporaryFile(suffix="."+fmt)
             im.save(file_obj.name)
             return file_obj
         else:
