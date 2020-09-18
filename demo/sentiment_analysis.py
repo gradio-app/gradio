@@ -9,7 +9,7 @@ def sentiment_analysis(text):
     del scores["compound"]
     return scores
 
-io = gr.Interface(sentiment_analysis, "textbox", "label", explain_by="default")
+io = gr.Interface(sentiment_analysis, "textbox", "label", interpret_by="default")
 
 io.test_launch()
 io.launch()

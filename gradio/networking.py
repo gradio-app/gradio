@@ -12,6 +12,7 @@ from gradio import inputs, outputs
 import time
 import json
 from gradio.tunneling import create_tunnel
+from gradio.interpretation import interpret
 import urllib.request
 from shutil import copyfile
 import requests
@@ -199,7 +200,7 @@ def serve_files_in_background(interface, port, directory_to_serve=None, server_n
                 data_string = self.rfile.read(
                     int(self.headers["Content-Length"]))
                 msg = json.loads(data_string)
-                interpretation = interface.explain(msg["data"])
+                interpretation = interpret(interface, msg["data"])
                 self.wfile.write(json.dumps(interpretation).encode())
             else:
                 self.send_error(404, 'Path not found: {}'.format(self.path))

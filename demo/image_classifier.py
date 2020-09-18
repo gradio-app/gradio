@@ -40,7 +40,7 @@ label = gr.outputs.Label(num_top_classes=3)
 
 gr.Interface(image_classifier, imagein, label,
     capture_session=True,
-    explain_by="default",
+    interpret_by="default",
     examples=[
         ["images/cheetah1.jpg"],
         ["images/lion.jpg"]
