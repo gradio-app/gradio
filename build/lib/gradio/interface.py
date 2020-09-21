@@ -4,13 +4,11 @@ interface using the input and output types.
 """
 
 import tempfile
-import webbrowser
+# import webbrowser
 
 from gradio.inputs import InputComponent
 from gradio.outputs import OutputComponent
 from gradio import networking, strings, utils
-from distutils.version import StrictVersion
-import pkg_resources
 import requests
 import random
 import time
@@ -21,7 +19,6 @@ import weakref
 import analytics
 import os
 
-PKG_VERSION_URL = "https://gradio.app/api/pkg-version"
 analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
 analytics_url = 'https://api.gradio.app/'
 try:
@@ -46,7 +43,7 @@ class Interface:
 
     def __init__(self, fn, inputs, outputs, verbose=False, examples=None,
                  live=False, show_input=True, show_output=True,
-                 capture_session=False, title=None, description=None,
+                 capture_session=False, explain_by=None, title=None, description=None,
                  thumbnail=None, server_port=None, server_name=networking.LOCALHOST_NAME,
                  allow_screenshot=True, allow_flagging=True,
                  flagging_dir="flagged", analytics_enabled=True):
@@ -110,6 +107,7 @@ class Interface:
         self.show_output = show_output
         self.flag_hash = random.getrandbits(32)
         self.capture_session = capture_session
+        self.explain_by = explain_by
         self.session = None
         self.server_name = server_name
         self.title = title
@@ -177,7 +175,8 @@ class Interface:
             "description": self.description,
             "thumbnail": self.thumbnail,
             "allow_screenshot": self.allow_screenshot,
-            "allow_flagging": self.allow_flagging
+            "allow_flagging": self.allow_flagging,
+            "allow_interpretation": self.explain_by is not None
         }
         try:
             param_names = inspect.getfullargspec(self.predict[0])[0]
@@ -190,7 +189,14 @@ class Interface:
                     iface[1]["label"] = ret_name
         except ValueError:
             pass
-
+        processed_examples = []
+        if self.examples is not None:
+            for example_set in self.examples:
+                processed_set = []
+                for iface, example in zip(self.input_interfaces, example_set):
+                    processed_set.append(iface.process_example(example))
+                processed_examples.append(processed_set)
+            config["examples"] = processed_examples
         return config
 
     def process(self, raw_input, predict_fn=None):
@@ -210,7 +216,7 @@ class Interface:
         durations = []
         for predict_fn in self.predict:
             start = time.time()
-            if self.capture_session and not (self.session is None):
+            if self.capture_session and self.session is not None:
                 graph, sess = self.session
                 with graph.as_default():
                     with sess.as_default():
@@ -277,33 +283,22 @@ class Interface:
         share (bool): whether to create a publicly shareable link from your computer for the interface.
         debug (bool): if True, and the interface was launched from Google Colab, prints the errors in the cell output.
         Returns
-        httpd (str): HTTPServer object
+        app (flask.Flask): Flask app object
         path_to_local_server (str): Locally accessible link
         share_url (str): Publicly accessible link (if share=True)
         """
-        output_directory = tempfile.mkdtemp()
-        # Set up a port to serve the directory containing the static files with interface.
-        server_port, httpd, thread = networking.start_simple_server(
-            self, output_directory, self.server_name, server_port=self.server_port)
-        path_to_local_server = "http://{}:{}/".format(self.server_name, server_port)
-        networking.build_template(output_directory)
+        config = self.get_config_file()
+        networking.set_config(config)
+        networking.set_meta_tags(self.title, self.description, self.thumbnail)
 
+        server_port, app, thread = networking.start_server(
+            self, self.server_port)
+        path_to_local_server = "http://{}:{}/".format(self.server_name, server_port)
         self.server_port = server_port
         self.status = "RUNNING"
-        self.simple_server = httpd
+        self.server = app
 
-        try:
-            current_pkg_version = pkg_resources.require("gradio")[0].version
-            latest_pkg_version = requests.get(url=PKG_VERSION_URL).json()["version"]
-            if StrictVersion(latest_pkg_version) > StrictVersion(current_pkg_version):
-                print("IMPORTANT: You are using gradio version {}, "
-                      "however version {} "
-                      "is available, please upgrade.".format(
-                    current_pkg_version, latest_pkg_version))
-                print('--------')
-        except:  # TODO(abidlabs): don't catch all exceptions
-            pass
-
+        utils.version_check()
         is_colab = utils.colab_check()
         if not is_colab:
             if not networking.url_ok(path_to_local_server):
@@ -373,20 +368,7 @@ class Interface:
             else:
                 display(IFrame(path_to_local_server, width=1000, height=500))
 
-        config = self.get_config_file()
-        config["share_url"] = share_url
-
-        processed_examples = []
-        if self.examples is not None:
-            for example_set in self.examples:
-                processed_set = []
-                for iface, example in zip(self.input_interfaces, example_set):
-                    processed_set.append(iface.process_example(example))
-                processed_examples.append(processed_set)
-            config["examples"] = processed_examples
-
-        networking.set_config(config, output_directory)
-        networking.set_meta_tags(output_directory, self.title, self.description, self.thumbnail)
+        r = requests.get(path_to_local_server + "enable_sharing/" + (share_url or "None"))
 
         if debug:
             while True:
@@ -394,14 +376,15 @@ class Interface:
                 time.sleep(0.1)
 
         launch_method = 'browser' if inbrowser else 'inline'
-        data = {'launch_method': launch_method,
+
+        if self.analytics_enabled:
+            data = {
+                'launch_method': launch_method,
                 'is_google_colab': is_colab,
                 'is_sharing_on': share,
                 'share_url': share_url,
                 'ip_address': ip_address
-                }
-
-        if self.analytics_enabled:
+            }
             try:
                 requests.post(analytics_url + 'gradio-launched-analytics/',
                               data=data)
@@ -412,7 +395,8 @@ class Interface:
         if not is_in_interactive_mode:
             self.run_until_interrupted(thread, path_to_local_server)
 
-        return httpd, path_to_local_server, share_url
+
+        return app, path_to_local_server, share_url
 
 
 def reset_all():

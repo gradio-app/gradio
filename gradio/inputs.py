@@ -450,7 +450,7 @@ class Dataframe(InputComponent):
             else:
                 return pd.DataFrame(x)
         if self.col_count == 1:
-            x = x[0]
+            x = [row[0] for row in x]
         if self.type == "numpy":
             return np.array(x)
         elif self.type == "array":
