@@ -2,7 +2,6 @@
 
 import gradio as gr
 
-
 def sentence_builder(quantity, animal, place, activity_list, morning):
     return f"""The {quantity} {animal}s went to the {place} where they {" and ".join(activity_list)} until the {"morning" if morning else "night"}"""
 

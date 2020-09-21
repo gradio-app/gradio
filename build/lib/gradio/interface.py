@@ -5,18 +5,10 @@ interface using the input and output types.
 
 import tempfile
 import webbrowser
-
 from gradio.inputs import InputComponent
-from gradio.inputs import Image
-from gradio.inputs import Textbox
 from gradio.outputs import OutputComponent
-from gradio import networking, strings, utils, processing_utils
-from distutils.version import StrictVersion
-from skimage.segmentation import slic
-from skimage.util import img_as_float
-from gradio import processing_utils
-import PIL
-import pkg_resources
+from gradio import networking, strings, utils
+import gradio.interpretation
 import requests
 import random
 import time
@@ -26,9 +18,7 @@ import sys
 import weakref
 import analytics
 import os
-import numpy as np
 
-PKG_VERSION_URL = "https://gradio.app/api/pkg-version"
 analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
 analytics_url = 'https://api.gradio.app/'
 try:
@@ -53,8 +43,9 @@ class Interface:
 
     def __init__(self, fn, inputs, outputs, verbose=False, examples=None,
                  live=False, show_input=True, show_output=True,
-                 capture_session=False, explain_by=None, title=None, description=None,
-                 thumbnail=None, server_port=None, server_name=networking.LOCALHOST_NAME,
+                 capture_session=False, interpretation=None, title=None,
+                 description=None, thumbnail=None, server_port=None, 
+                 server_name=networking.LOCALHOST_NAME,
                  allow_screenshot=True, allow_flagging=True,
                  flagging_dir="flagged", analytics_enabled=True):
 
@@ -67,6 +58,7 @@ class Interface:
         examples (List[List[Any]]): sample inputs for the function; if provided, appears below the UI components and can be used to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component.
         live (bool): whether the interface should automatically reload on change.
         capture_session (bool): if True, captures the default graph and session (needed for Tensorflow 1.x)
+        interpretation (Union[Callable, str]): function that provides interpretation explaining prediction output. Pass "default" to use built-in interpreter. 
         title (str): a title for the interface; if provided, appears above the input and output components.
         description (str): a description for the interface; if provided, appears above the input and output components.
         thumbnail (str): path to image or src to use as display picture for models listed in gradio.app/hub
@@ -108,6 +100,7 @@ class Interface:
         if not isinstance(fn, list):
             fn = [fn]
 
+
         self.output_interfaces *= len(fn)
         self.predict = fn
         self.verbose = verbose
@@ -117,7 +110,7 @@ class Interface:
         self.show_output = show_output
         self.flag_hash = random.getrandbits(32)
         self.capture_session = capture_session
-        self.explain_by = explain_by
+        self.interpretation = interpretation            
         self.session = None
         self.server_name = server_name
         self.title = title
@@ -186,7 +179,7 @@ class Interface:
             "thumbnail": self.thumbnail,
             "allow_screenshot": self.allow_screenshot,
             "allow_flagging": self.allow_flagging,
-            "allow_interpretation": self.explain_by is not None
+            "allow_interpretation": self.interpretation is not None
         }
         try:
             param_names = inspect.getfullargspec(self.predict[0])[0]
@@ -199,21 +192,17 @@ class Interface:
                     iface[1]["label"] = ret_name
         except ValueError:
             pass
+        if self.examples is not None:
+            processed_examples = []
+            for example_set in self.examples:
+                processed_set = []
+                for iface, example in zip(self.input_interfaces, example_set):
+                    processed_set.append(iface.process_example(example))
+                processed_examples.append(processed_set)
+            config["examples"] = processed_examples
         return config
 
-    def process(self, raw_input, predict_fn=None):
-        """
-        :param raw_input: a list of raw inputs to process and apply the
-        prediction(s) on.
-        :param predict_fn: which function to process. If not provided, all of the model functions are used.
-        :return:
-        processed output: a list of processed  outputs to return as the
-        prediction(s).
-        duration: a list of time deltas measuring inference time for each
-        prediction fn.
-        """
-        processed_input = [input_interface.preprocess(raw_input[i])
-                           for i, input_interface in enumerate(self.input_interfaces)]
+    def run_prediction(self, processed_input, return_duration=False):
         predictions = []
         durations = []
         for predict_fn in self.predict:
@@ -243,6 +232,27 @@ class Interface:
                 prediction = [prediction]
             durations.append(duration)
             predictions.extend(prediction)
+        
+        if return_duration:
+            return predictions, durations
+        else:
+            return predictions
+
+
+    def process(self, raw_input, predict_fn=None):
+        """
+        :param raw_input: a list of raw inputs to process and apply the
+        prediction(s) on.
+        :param predict_fn: which function to process. If not provided, all of the model functions are used.
+        :return:
+        processed output: a list of processed  outputs to return as the
+        prediction(s).
+        duration: a list of time deltas measuring inference time for each
+        prediction fn.
+        """
+        processed_input = [input_interface.preprocess(raw_input[i])
+                           for i, input_interface in enumerate(self.input_interfaces)]
+        predictions, durations = self.run_prediction(processed_input, return_duration=True)
         processed_output = [output_interface.postprocess(
             predictions[i]) for i, output_interface in enumerate(self.output_interfaces)]
         return processed_output, durations
@@ -285,33 +295,22 @@ class Interface:
         share (bool): whether to create a publicly shareable link from your computer for the interface.
         debug (bool): if True, and the interface was launched from Google Colab, prints the errors in the cell output.
         Returns
-        httpd (str): HTTPServer object
+        app (flask.Flask): Flask app object
         path_to_local_server (str): Locally accessible link
         share_url (str): Publicly accessible link (if share=True)
         """
-        output_directory = tempfile.mkdtemp()
-        # Set up a port to serve the directory containing the static files with interface.
-        server_port, httpd, thread = networking.start_simple_server(
-            self, output_directory, self.server_name, server_port=self.server_port)
-        path_to_local_server = "http://{}:{}/".format(self.server_name, server_port)
-        networking.build_template(output_directory)
+        config = self.get_config_file()
+        networking.set_config(config)
+        networking.set_meta_tags(self.title, self.description, self.thumbnail)
 
+        server_port, app, thread = networking.start_server(
+            self, self.server_port)
+        path_to_local_server = "http://{}:{}/".format(self.server_name, server_port)
         self.server_port = server_port
         self.status = "RUNNING"
-        self.simple_server = httpd
+        self.server = app
 
-        try:
-            current_pkg_version = pkg_resources.require("gradio")[0].version
-            latest_pkg_version = requests.get(url=PKG_VERSION_URL).json()["version"]
-            if StrictVersion(latest_pkg_version) > StrictVersion(current_pkg_version):
-                print("IMPORTANT: You are using gradio version {}, "
-                      "however version {} "
-                      "is available, please upgrade.".format(
-                    current_pkg_version, latest_pkg_version))
-                print('--------')
-        except:  # TODO(abidlabs): don't catch all exceptions
-            pass
-
+        utils.version_check()
         is_colab = utils.colab_check()
         if not is_colab:
             if not networking.url_ok(path_to_local_server):
@@ -381,20 +380,7 @@ class Interface:
             else:
                 display(IFrame(path_to_local_server, width=1000, height=500))
 
-        config = self.get_config_file()
-        config["share_url"] = share_url
-
-        processed_examples = []
-        if self.examples is not None:
-            for example_set in self.examples:
-                processed_set = []
-                for iface, example in zip(self.input_interfaces, example_set):
-                    processed_set.append(iface.process_example(example))
-                processed_examples.append(processed_set)
-            config["examples"] = processed_examples
-
-        networking.set_config(config, output_directory)
-        networking.set_meta_tags(output_directory, self.title, self.description, self.thumbnail)
+        r = requests.get(path_to_local_server + "enable_sharing/" + (share_url or "None"))
 
         if debug:
             while True:
@@ -402,14 +388,15 @@ class Interface:
                 time.sleep(0.1)
 
         launch_method = 'browser' if inbrowser else 'inline'
-        data = {'launch_method': launch_method,
+
+        if self.analytics_enabled:
+            data = {
+                'launch_method': launch_method,
                 'is_google_colab': is_colab,
                 'is_sharing_on': share,
                 'share_url': share_url,
                 'ip_address': ip_address
-                }
-
-        if self.analytics_enabled:
+            }
             try:
                 requests.post(analytics_url + 'gradio-launched-analytics/',
                               data=data)
@@ -420,96 +407,8 @@ class Interface:
         if not is_in_interactive_mode:
             self.run_until_interrupted(thread, path_to_local_server)
 
-        return httpd, path_to_local_server, share_url
 
-    def tokenize_text(self, text):
-        leave_one_out_tokens = []
-        tokens = text.split()
-        for idx, _ in enumerate(tokens):
-            new_token_array = tokens.copy()
-            del new_token_array[idx]
-            leave_one_out_tokens.append(new_token_array)
-        return tokens, leave_one_out_tokens
-
-    def tokenize_image(self, image):
-        image = np.array(processing_utils.decode_base64_to_image(image))
-        segments_slic = slic(image, n_segments=20, compactness=10, sigma=1)
-        leave_one_out_tokens = []
-        for (i, segVal) in enumerate(np.unique(segments_slic)):
-            mask = segments_slic == segVal
-            white_screen = np.copy(image)
-            white_screen[segments_slic == segVal] = 255
-            leave_one_out_tokens.append((mask, white_screen))
-        return leave_one_out_tokens
-
-    def score_text(self, tokens, leave_one_out_tokens, text):
-        original_label = ""
-        original_confidence = 0
-        tokens = text.split()
-
-        input_text = " ".join(tokens)
-        original_output = self.process([input_text])
-        output = {result["label"] : result["confidence"] 
-            for result in original_output[0][0]['confidences']}
-        original_label = original_output[0][0]["label"]
-        original_confidence = output[original_label]
-
-        scores = []
-        for idx, input_text in enumerate(leave_one_out_tokens):
-            input_text = " ".join(input_text)
-            raw_output = self.process([input_text])
-            output = {result["label"] : result["confidence"] 
-                for result in raw_output[0][0]['confidences']}
-            scores.append(original_confidence - output[original_label])
-        
-        scores_by_char = []
-        for idx, token in enumerate(tokens):
-            if idx != 0:
-                scores_by_char.append((" ", 0))
-            for char in token:
-                scores_by_char.append((char, scores[idx]))
-        return scores_by_char
-
-    def score_image(self, leave_one_out_tokens, image):
-        original_output = self.process([image])
-        output = {result["label"] : result["confidence"] 
-            for result in original_output[0][0]['confidences']}
-        original_label = original_output[0][0]["label"]
-        original_confidence = output[original_label]
-
-        image_interface = self.input_interfaces[0]
-        shape = processing_utils.decode_base64_to_image(image).size
-        output_scores = np.full((shape[1], shape[0]), 0.0)
-
-        for mask, input_image in leave_one_out_tokens:
-            input_image_base64 = processing_utils.encode_array_to_base64(
-                input_image)
-            raw_output = self.process([input_image_base64])
-            output = {result["label"] : result["confidence"] 
-                for result in raw_output[0][0]['confidences']}
-            score = original_confidence - output[original_label]
-            output_scores += score * mask
-        max_val = np.max(np.abs(output_scores))
-        if max_val > 0:
-            output_scores = output_scores / max_val
-        return output_scores.tolist()
-
-    def simple_explanation(self, x):
-        if isinstance(self.input_interfaces[0], Textbox):
-            tokens, leave_one_out_tokens = self.tokenize_text(x[0])
-            return [self.score_text(tokens, leave_one_out_tokens, x[0])]
-        elif isinstance(self.input_interfaces[0], Image):
-            leave_one_out_tokens = self.tokenize_image(x[0])
-            return [self.score_image(leave_one_out_tokens, x[0])]
-        else:
-            print("Not valid input type")
-
-    def explain(self, x):
-        if self.explain_by == "default":
-            return self.simple_explanation(x)
-        else:
-            preprocessed_x = [input_interface(x_i) for x_i, input_interface in zip(x, self.input_interfaces)]
-            return self.explain_by(*preprocessed_x)
+        return app, path_to_local_server, share_url
 
 def reset_all():
     for io in Interface.get_instances():

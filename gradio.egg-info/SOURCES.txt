@@ -3,10 +3,11 @@ README.md
 setup.py
 gradio/__init__.py
 gradio/component.py
-gradio/explain.py
 gradio/inputs.py
 gradio/interface.py
+gradio/interpretation.py
 gradio/networking.py
+gradio/notebook.py
 gradio/outputs.py
 gradio/processing_utils.py
 gradio/strings.py
@@ -119,6 +120,5 @@ gradio/static/js/vendor/webcam.min.js
 gradio/static/js/vendor/white-theme.js
 gradio/templates/index.html
 test/test_inputs.py
-test/test_interface.py
-test/test_networking.py
+test/test_interfaces.py
 test/test_outputs.py

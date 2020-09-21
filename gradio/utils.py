@@ -1,7 +1,22 @@
 import requests
+import pkg_resources
+from distutils.version import StrictVersion
 from IPython import get_ipython
 analytics_url = 'https://api.gradio.app/'
 
+PKG_VERSION_URL = "https://gradio.app/api/pkg-version"
+def version_check():
+    try:
+        current_pkg_version = pkg_resources.require("gradio")[0].version
+        latest_pkg_version = requests.get(url=PKG_VERSION_URL).json()["version"]
+        if StrictVersion(latest_pkg_version) > StrictVersion(current_pkg_version):
+            print("IMPORTANT: You are using gradio version {}, "
+                    "however version {} "
+                    "is available, please upgrade.".format(
+                current_pkg_version, latest_pkg_version))
+            print('--------')
+    except:  # TODO(abidlabs): don't catch all exceptions
+        pass
 
 def error_analytics(type):
     """
