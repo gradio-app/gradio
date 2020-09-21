@@ -83,6 +83,13 @@ def gradio():
 def config():
     return jsonify(app.app_globals["config"])
 
+@app.route("/enable_sharing/<path:path>", methods=["GET"])
+def enable_sharing(path):
+    if path == "None":
+        path = None
+    app.app_globals["config"]["share_url"] = path
+    return jsonify(success=True)
+
 @app.route("/api/predict/", methods=["POST"])
 def predict():
     raw_input = request.json["data"]
@@ -128,14 +135,14 @@ def file(path):
     return send_file(os.path.join(os.getcwd(), path))
                 
 
-def start_server(interface, server_name=None, server_port=None):
+def start_server(interface, server_port=None):
     if server_port is None:
         server_port = INITIAL_PORT_VALUE
     port = get_first_available_port(
         server_port, server_port + TRY_NUM_PORTS
     )
     app.interface = interface
-    process = Process(target=app.run, kwargs={"port": port, "debug": True})
+    process = Process(target=app.run, kwargs={"port": port})
     process.start()
     return port, app, process
 

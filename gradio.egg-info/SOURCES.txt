@@ -119,5 +119,5 @@ gradio/static/js/vendor/webcam.min.js
 gradio/static/js/vendor/white-theme.js
 gradio/templates/index.html
 test/test_inputs.py
-test/test_networking.py
+test/test_interfaces.py
 test/test_outputs.py
