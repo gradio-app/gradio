@@ -24,6 +24,7 @@ function gradio(config, fn, target, example_file_path) {
         <div class="output_interfaces">
         </div>
         <div class="panel_buttons">
+          <input class="interpret panel_button" type="button" value="INTERPRET"/>
           <input class="screenshot panel_button" type="button" value="SCREENSHOT"/>
           <div class="screenshot_logo">
             <img src="/static/img/logo_inline.png">
@@ -165,17 +166,14 @@ function gradio(config, fn, target, example_file_path) {
       io_master.last_output = null;
     });
 
-    if (config["allow_screenshot"] && !config["allow_flagging"]) {
+    if (config["allow_screenshot"]) {
       target.find(".screenshot").css("visibility", "visible");
-      target.find(".flag").css("display", "none")
     }
-    if (!config["allow_screenshot"] && config["allow_flagging"]) {
+    if (config["allow_flagging"]) {
       target.find(".flag").css("visibility", "visible");
-      target.find(".screenshot").css("display", "none")
     }
-    if (config["allow_screenshot"] && config["allow_flagging"]) {
-      target.find(".screenshot").css("visibility", "visible");
-      target.find(".flag").css("visibility", "visible")
+    if (config["allow_interpretation"]) {
+      target.find(".interpret").css("visibility", "visible");
     }
     if (config["examples"]) {
       target.find(".examples").removeClass("invisible");
@@ -250,6 +248,8 @@ function gradio_url(config, url, target, example_file_path) {
       $.ajax({type: "POST",
         url: url,
         data: JSON.stringify({"data": data}),
+        dataType: 'json',
+        contentType: 'application/json; charset=utf-8',
         success: resolve,
         error: reject,
       });
