@@ -9,7 +9,7 @@ from flask import Flask, request, jsonify, abort, send_file, render_template
 from multiprocessing import Process
 import pkg_resources
 from distutils import dir_util
-from gradio import inputs, outputs
+import gradio as gr
 import time
 import json
 from gradio.tunneling import create_tunnel
@@ -18,7 +18,7 @@ from shutil import copyfile
 import requests
 import sys
 import csv
-
+import copy
 
 INITIAL_PORT_VALUE = int(os.getenv(
     'GRADIO_SERVER_PORT', "7860"))  # The http server will try to open on port 7860. If not available, 7861, 7862, etc.
@@ -72,16 +72,18 @@ def get_first_available_port(initial, final):
 
 
 @app.route("/", methods=["GET"])
-def gradio():
+def main():
     return render_template("index.html",
         title=app.app_globals["title"],
         description=app.app_globals["description"],
         thumbnail=app.app_globals["thumbnail"],
     )
 
+
 @app.route("/config/", methods=["GET"])
 def config():
     return jsonify(app.app_globals["config"])
+
 
 @app.route("/enable_sharing/<path:path>", methods=["GET"])
 def enable_sharing(path):
@@ -89,6 +91,7 @@ def enable_sharing(path):
         path = None
     app.app_globals["config"]["share_url"] = path
     return jsonify(success=True)
+    
 
 @app.route("/api/predict/", methods=["POST"])
 def predict():
@@ -96,6 +99,7 @@ def predict():
     prediction, durations = app.interface.process(raw_input)
     output = {"data": prediction, "durations": durations}
     return jsonify(output)
+
 
 @app.route("/api/flag/", methods=["POST"])
 def flag():
@@ -129,6 +133,25 @@ def flag():
                         output["outputs"]))
         )
         return jsonify(success=True)
+
+
+@app.route("/api/interpret/", methods=["POST"])
+def interpret():
+    raw_input = request.json["data"]
+    if app.interface.interpretation == "default":
+        interpreter = gr.interpretation.default()
+        processed_input = []
+        for i, x in enumerate(raw_input):
+            input_interface = copy.deepcopy(app.interface.input_interfaces[i])
+            input_interface.type = gr.interpretation.expected_types[type(input_interface)]
+            processed_input.append(input_interface.preprocess(x))
+    else:
+        processed_input = [input_interface.preprocess(raw_input[i])
+                            for i, input_interface in enumerate(app.interface.input_interfaces)]
+        interpreter = app.interface.interpretation
+    interpretation = interpreter(app.interface, processed_input)
+    return jsonify(interpretation)
+
 
 @app.route("/file/<path:path>", methods=["GET"])
 def file(path):
