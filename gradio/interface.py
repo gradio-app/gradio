@@ -5,10 +5,10 @@ interface using the input and output types.
 
 import tempfile
 import webbrowser
-
 from gradio.inputs import InputComponent
 from gradio.outputs import OutputComponent
 from gradio import networking, strings, utils
+import gradio.interpretation
 from distutils.version import StrictVersion
 import pkg_resources
 import requests
@@ -47,9 +47,9 @@ class Interface:
 
     def __init__(self, fn, inputs, outputs, verbose=False, examples=None,
                  live=False, show_input=True, show_output=True,
-                 capture_session=False, interpret_by=None, title=None,
-                 description=None,
-                 thumbnail=None, server_port=None, server_name=networking.LOCALHOST_NAME,
+                 capture_session=False, interpretation=None, title=None,
+                 description=None, thumbnail=None, server_port=None, 
+                 server_name=networking.LOCALHOST_NAME,
                  allow_screenshot=True, allow_flagging=True,
                  flagging_dir="flagged", analytics_enabled=True):
 
@@ -103,6 +103,11 @@ class Interface:
         if not isinstance(fn, list):
             fn = [fn]
 
+        if interpretation == "default":
+            self.interpretation = gradio.interpretation.default()
+        else:
+            self.interpretation = interpretation            
+
         self.output_interfaces *= len(fn)
         self.predict = fn
         self.verbose = verbose
@@ -112,7 +117,6 @@ class Interface:
         self.show_output = show_output
         self.flag_hash = random.getrandbits(32)
         self.capture_session = capture_session
-        self.interpret_by = interpret_by
         self.session = None
         self.server_name = server_name
         self.title = title
@@ -181,7 +185,7 @@ class Interface:
             "thumbnail": self.thumbnail,
             "allow_screenshot": self.allow_screenshot,
             "allow_flagging": self.allow_flagging,
-            "allow_interpretation": self.interpret_by is not None
+            "allow_interpretation": self.interpretation is not None
         }
         try:
             param_names = inspect.getfullargspec(self.predict[0])[0]
@@ -196,19 +200,7 @@ class Interface:
             pass
         return config
 
-    def process(self, raw_input, predict_fn=None):
-        """
-        :param raw_input: a list of raw inputs to process and apply the
-        prediction(s) on.
-        :param predict_fn: which function to process. If not provided, all of the model functions are used.
-        :return:
-        processed output: a list of processed  outputs to return as the
-        prediction(s).
-        duration: a list of time deltas measuring inference time for each
-        prediction fn.
-        """
-        processed_input = [input_interface.preprocess(raw_input[i])
-                           for i, input_interface in enumerate(self.input_interfaces)]
+    def run_prediction(self, processed_input, return_duration=False):
         predictions = []
         durations = []
         for predict_fn in self.predict:
@@ -238,6 +230,27 @@ class Interface:
                 prediction = [prediction]
             durations.append(duration)
             predictions.extend(prediction)
+        
+        if return_duration:
+            return predictions, durations
+        else:
+            return predictions
+
+
+    def process(self, raw_input, predict_fn=None):
+        """
+        :param raw_input: a list of raw inputs to process and apply the
+        prediction(s) on.
+        :param predict_fn: which function to process. If not provided, all of the model functions are used.
+        :return:
+        processed output: a list of processed  outputs to return as the
+        prediction(s).
+        duration: a list of time deltas measuring inference time for each
+        prediction fn.
+        """
+        processed_input = [input_interface.preprocess(raw_input[i])
+                           for i, input_interface in enumerate(self.input_interfaces)]
+        predictions, durations = self.run_prediction(processed_input, return_duration=True)
         processed_output = [output_interface.postprocess(
             predictions[i]) for i, output_interface in enumerate(self.output_interfaces)]
         return processed_output, durations

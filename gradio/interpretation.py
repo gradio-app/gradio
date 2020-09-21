@@ -1,99 +1,99 @@
-from gradio.inputs import Image
-from gradio.inputs import Textbox
+from gradio.inputs import Image, Textbox
+from gradio.outputs import Label
 from gradio import processing_utils
 from skimage.segmentation import slic
 import numpy as np
 
+def default(separator=" ", n_segments=20, replace_color=None):
+    """
+    Basic "default" interpretation method that uses "leave-one-out" to explain predictions for
+    the following inputs: Image, Text, and the following outputs: Label. In case of multiple
+    inputs and outputs, uses the first component.
+    """
+    def tokenize_text(text):
+        leave_one_out_tokens = []
+        tokens = text.split(separator)
+        for idx, _ in enumerate(tokens):
+            new_token_array = tokens.copy()
+            del new_token_array[idx]
+            leave_one_out_tokens.append(new_token_array)
+        return leave_one_out_tokens
 
-def tokenize_text(text):
-    leave_one_out_tokens = []
-    tokens = text.split()
-    for idx, _ in enumerate(tokens):
-        new_token_array = tokens.copy()
-        del new_token_array[idx]
-        leave_one_out_tokens.append(new_token_array)
-    return tokens, leave_one_out_tokens
+    def tokenize_image(image):
+        segments_slic = slic(image, n_segments=20, compactness=10, sigma=1)
+        leave_one_out_tokens = []
+        if replace_color is None:
+            replace_color = np.mean(image, axis=(0, 1))
+        for (i, segVal) in enumerate(np.unique(segments_slic)):
+            mask = segments_slic == segVal
+            white_screen = np.copy(image)
+            white_screen[segments_slic == segVal] = replace_color
+            leave_one_out_tokens.append((mask, white_screen))
+        return leave_one_out_tokens
 
+    def score_text(interface, leave_one_out_tokens, text):
+        tokens = text.split(separator)
+        original_output = interface.run_prediction([text])
 
-def tokenize_image(image):
-    image = np.array(processing_utils.decode_base64_to_image(image))
-    segments_slic = slic(image, n_segments=20, compactness=10, sigma=1)
-    leave_one_out_tokens = []
-    for (i, segVal) in enumerate(np.unique(segments_slic)):
-        mask = segments_slic == segVal
-        white_screen = np.copy(image)
-        white_screen[segments_slic == segVal] = 255
-        leave_one_out_tokens.append((mask, white_screen))
-    return leave_one_out_tokens
+        scores_by_words = []
+        for idx, input_text in enumerate(leave_one_out_tokens):
+            perturbed_text = separator.join(input_text)
+            perturbed_output = interface.run_prediction([perturbed_text])
+            score = quantify_difference_in_label(interface, original_output, perturbed_output)
+            scores_by_words.append(score)
 
+        scores_by_char = []
+        for idx, token in enumerate(tokens):
+            if idx != 0:
+                scores_by_char.append((" ", 0))
+            for char in token:
+                scores_by_char.append((char, scores_by_words[idx]))
+        
+        return scores_by_char
 
-def score_text(interface, leave_one_out_tokens, text):
-    tokens = text.split()
+    def score_image(interface, leave_one_out_tokens, image):
+        output_scores = np.zeros((image.shape[0], image.shape[1]))
+        original_output = interface.run_prediction([image])
 
-    input_text = " ".join(tokens)
-    original_output = interface.process([input_text])
-    output = {result["label"]: result["confidence"]
-              for result in original_output[0][0]['confidences']}
-    original_label = original_output[0][0]["label"]
-    original_confidence = output[original_label]
+        for mask, perturbed_image in leave_one_out_tokens:
+            perturbed_output = interface.run_prediction([perturbed_image])
+            score = quantify_difference_in_label(interface, original_output, perturbed_output)
+            output_scores += score * mask
 
-    scores = []
-    for idx, input_text in enumerate(leave_one_out_tokens):
-        input_text = " ".join(input_text)
-        raw_output = interface.process([input_text])
-        output = {result["label"]: result["confidence"]
-                  for result in raw_output[0][0]['confidences']}
-        scores.append(original_confidence - output[original_label])
+        max_val, min_val = np.max(output_scores), np.min(output_scores)
+        if max_val > 0:
+            output_scores = (output_scores - min_val) / (max_val - min_val)
+        return output_scores.tolist()
 
-    scores_by_char = []
-    for idx, token in enumerate(tokens):
-        if idx != 0:
-            scores_by_char.append((" ", 0))
-        for char in token:
-            scores_by_char.append((char, scores[idx]))
-    return scores_by_char
+    def quantify_difference_in_label(interface, original_output, perturbed_output):
+        post_original_output = interface.output_interfaces[0].postprocess(original_output[0])
+        post_perturbed_output = interface.output_interfaces[0].postprocess(perturbed_output[0])
+        original_label = post_original_output[Label.LABEL_KEY]
+        perturbed_label = post_perturbed_output[Label.LABEL_KEY]
 
+        # Handle different return types of Label interface
+        if Label.CONFIDENCES_KEY in post_original_output:
+            original_confidence = original_output[0][original_label]
+            perturbed_confidence = perturbed_output[0][original_label]
+            score = original_confidence - perturbed_confidence
+        else:
+            try:  # try computing numerical difference
+                score = float(original_label) - float(perturbed_label)
+            except ValueError:  # otherwise, look at strict difference in label
+                score = int(not(perturbed_label == original_label))
+        return score
 
-def score_image(interface, leave_one_out_tokens, image):
-    original_output = interface.process([image])
-    output = {result["label"]: result["confidence"]
-              for result in original_output[0][0]['confidences']}
-    original_label = original_output[0][0]["label"]
-    original_confidence = output[original_label]
+    def default_interpretation(interface, x):
+        if isinstance(interface.input_interfaces[0], Textbox) \
+                and isinstance(interface.output_interfaces[0], Label):
+            leave_one_out_tokens = tokenize_text(x[0])
+            return [score_text(interface, leave_one_out_tokens, x[0])]
+        if isinstance(interface.input_interfaces[0], Image) \
+                and isinstance(interface.output_interfaces[0], Label):
+            leave_one_out_tokens = tokenize_image(x[0])
+            return [score_image(interface, leave_one_out_tokens, x[0])]
+        else:
+            print("Not valid input or output types for 'default' interpretation")
 
-    shape = processing_utils.decode_base64_to_image(image).size
-    output_scores = np.full((shape[1], shape[0]), 0.0)
+    return default_interpretation
 
-    for mask, input_image in leave_one_out_tokens:
-        input_image_base64 = processing_utils.encode_array_to_base64(
-            input_image)
-        raw_output = interface.process([input_image_base64])
-        output = {result["label"]: result["confidence"]
-                  for result in raw_output[0][0]['confidences']}
-        score = original_confidence - output[original_label]
-        output_scores += score * mask
-    max_val = np.max(np.abs(output_scores))
-    if max_val > 0:
-        output_scores = output_scores / max_val
-    return output_scores.tolist()
-
-
-def simple_interpretation(interface, x):
-    if isinstance(interface.input_interfaces[0], Textbox):
-        tokens, leave_one_out_tokens = tokenize_text(interface,
-                                                     x[0])
-        return [score_text(interface, tokens, leave_one_out_tokens, x[0])]
-    elif isinstance(interface.input_interfaces[0], Image):
-        leave_one_out_tokens = tokenize_image(x[0])
-        return [score_image(interface, leave_one_out_tokens, x[0])]
-    else:
-        print("Not valid input type")
-
-
-def interpret(interface, x):
-    if interface.interpret_by == "default":
-        return simple_interpretation(interface, x)
-    else:
-        preprocessed_x = [input_interface(x_i) for x_i, input_interface in
-                          zip(x, interface.input_interfaces)]
-        return interface.interpret_by(*preprocessed_x)
