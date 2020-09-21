@@ -5,6 +5,7 @@ gradio/__init__.py
 gradio/component.py
 gradio/inputs.py
 gradio/interface.py
+gradio/interpretation.py
 gradio/networking.py
 gradio/notebook.py
 gradio/outputs.py

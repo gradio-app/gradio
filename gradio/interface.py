@@ -5,10 +5,10 @@ interface using the input and output types.
 
 import tempfile
 import webbrowser
-
 from gradio.inputs import InputComponent
 from gradio.outputs import OutputComponent
 from gradio import networking, strings, utils
+import gradio.interpretation
 import requests
 import random
 import time
@@ -43,8 +43,9 @@ class Interface:
 
     def __init__(self, fn, inputs, outputs, verbose=False, examples=None,
                  live=False, show_input=True, show_output=True,
-                 capture_session=False, title=None, description=None,
-                 thumbnail=None, server_port=None, server_name=networking.LOCALHOST_NAME,
+                 capture_session=False, interpretation=None, title=None,
+                 description=None, thumbnail=None, server_port=None, 
+                 server_name=networking.LOCALHOST_NAME,
                  allow_screenshot=True, allow_flagging=True,
                  flagging_dir="flagged", analytics_enabled=True):
 
@@ -57,6 +58,7 @@ class Interface:
         examples (List[List[Any]]): sample inputs for the function; if provided, appears below the UI components and can be used to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component.
         live (bool): whether the interface should automatically reload on change.
         capture_session (bool): if True, captures the default graph and session (needed for Tensorflow 1.x)
+        interpretation (Union[Callable, str]): function that provides interpretation explaining prediction output. Pass "default" to use built-in interpreter. 
         title (str): a title for the interface; if provided, appears above the input and output components.
         description (str): a description for the interface; if provided, appears above the input and output components.
         thumbnail (str): path to image or src to use as display picture for models listed in gradio.app/hub
@@ -98,6 +100,7 @@ class Interface:
         if not isinstance(fn, list):
             fn = [fn]
 
+
         self.output_interfaces *= len(fn)
         self.predict = fn
         self.verbose = verbose
@@ -107,6 +110,7 @@ class Interface:
         self.show_output = show_output
         self.flag_hash = random.getrandbits(32)
         self.capture_session = capture_session
+        self.interpretation = interpretation            
         self.session = None
         self.server_name = server_name
         self.title = title
@@ -175,6 +179,7 @@ class Interface:
             "thumbnail": self.thumbnail,
             "allow_screenshot": self.allow_screenshot,
             "allow_flagging": self.allow_flagging,
+            "allow_interpretation": self.interpretation is not None
         }
         try:
             param_names = inspect.getfullargspec(self.predict[0])[0]
@@ -187,8 +192,8 @@ class Interface:
                     iface[1]["label"] = ret_name
         except ValueError:
             pass
-        processed_examples = []
         if self.examples is not None:
+            processed_examples = []
             for example_set in self.examples:
                 processed_set = []
                 for iface, example in zip(self.input_interfaces, example_set):
@@ -197,19 +202,7 @@ class Interface:
             config["examples"] = processed_examples
         return config
 
-    def process(self, raw_input, predict_fn=None):
-        """
-        :param raw_input: a list of raw inputs to process and apply the
-        prediction(s) on.
-        :param predict_fn: which function to process. If not provided, all of the model functions are used.
-        :return:
-        processed output: a list of processed  outputs to return as the
-        prediction(s).
-        duration: a list of time deltas measuring inference time for each
-        prediction fn.
-        """
-        processed_input = [input_interface.preprocess(raw_input[i])
-                           for i, input_interface in enumerate(self.input_interfaces)]
+    def run_prediction(self, processed_input, return_duration=False):
         predictions = []
         durations = []
         for predict_fn in self.predict:
@@ -239,6 +232,27 @@ class Interface:
                 prediction = [prediction]
             durations.append(duration)
             predictions.extend(prediction)
+        
+        if return_duration:
+            return predictions, durations
+        else:
+            return predictions
+
+
+    def process(self, raw_input, predict_fn=None):
+        """
+        :param raw_input: a list of raw inputs to process and apply the
+        prediction(s) on.
+        :param predict_fn: which function to process. If not provided, all of the model functions are used.
+        :return:
+        processed output: a list of processed  outputs to return as the
+        prediction(s).
+        duration: a list of time deltas measuring inference time for each
+        prediction fn.
+        """
+        processed_input = [input_interface.preprocess(raw_input[i])
+                           for i, input_interface in enumerate(self.input_interfaces)]
+        predictions, durations = self.run_prediction(processed_input, return_duration=True)
         processed_output = [output_interface.postprocess(
             predictions[i]) for i, output_interface in enumerate(self.output_interfaces)]
         return processed_output, durations
@@ -395,7 +409,6 @@ class Interface:
 
 
         return app, path_to_local_server, share_url
-
 
 def reset_all():
     for io in Interface.get_instances():

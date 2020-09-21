@@ -25,14 +25,10 @@
   flex-direction: column;
   border: none;
   opacity: 1;
+  transition: opacity 0.2s ease;
 }
-.saliency > div {
-  display: flex;
-  flex-grow: 1;
-}
-.saliency > div > div {
-  flex-grow: 1;
-  background-color: #e67e22;
+.saliency:hover {
+  opacity: 0.4;
 }
 .image_preview {
   width: 100%;
