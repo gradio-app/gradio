@@ -4,7 +4,7 @@ interface using the input and output types.
 """
 
 import tempfile
-# import webbrowser
+import webbrowser
 
 from gradio.inputs import InputComponent
 from gradio.outputs import OutputComponent
@@ -43,7 +43,7 @@ class Interface:
 
     def __init__(self, fn, inputs, outputs, verbose=False, examples=None,
                  live=False, show_input=True, show_output=True,
-                 capture_session=False, explain_by=None, title=None, description=None,
+                 capture_session=False, title=None, description=None,
                  thumbnail=None, server_port=None, server_name=networking.LOCALHOST_NAME,
                  allow_screenshot=True, allow_flagging=True,
                  flagging_dir="flagged", analytics_enabled=True):
@@ -107,7 +107,6 @@ class Interface:
         self.show_output = show_output
         self.flag_hash = random.getrandbits(32)
         self.capture_session = capture_session
-        self.explain_by = explain_by
         self.session = None
         self.server_name = server_name
         self.title = title
@@ -176,7 +175,6 @@ class Interface:
             "thumbnail": self.thumbnail,
             "allow_screenshot": self.allow_screenshot,
             "allow_flagging": self.allow_flagging,
-            "allow_interpretation": self.explain_by is not None
         }
         try:
             param_names = inspect.getfullargspec(self.predict[0])[0]
