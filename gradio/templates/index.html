@@ -117,7 +117,7 @@
     <script src="/static/js/interfaces/output/file.js"></script>
     <script src="/static/js/gradio.js"></script>
     <script>
-      $.getJSON("static/config.json", function(config) {
+      $.getJSON("/config/", function(config) {
         io = gradio_url(config, "/api/predict/", "#interface_target", "/file/");
       });
       const copyToClipboard = str => {
