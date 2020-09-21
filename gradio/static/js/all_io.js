@@ -82,9 +82,26 @@ var io_master_template = {
         data: JSON.stringify(post_data),
         dataType: 'json',
         contentType: 'application/json; charset=utf-8',
-        success: function(output){
-            console.log("Flagging successful")
-        },
+    });
+  },
+  interpret: function() {
+    var io = this;
+    this.target.find(".loading").removeClass("invisible");
+    this.target.find(".loading_in_progress").show();
+    var post_data = {
+      'data': this.last_input
+    }
+    $.ajax({type: "POST",
+        url: "/api/interpret/",
+        data: JSON.stringify(post_data),
+        dataType: 'json',
+        contentType: 'application/json; charset=utf-8',
+        success: function(data) {
+          for (let [idx, interpretation] of data.entries()) {
+            io.input_interfaces[idx].show_interpretation(interpretation);
+          }
+          io.target.find(".loading_in_progress").hide();
+        }
     });
   }
 };
