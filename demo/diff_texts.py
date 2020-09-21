@@ -25,4 +25,4 @@ io = gr.Interface(
 )
 
 io.test_launch()
-io.launch()
+io.launch(share=True)
