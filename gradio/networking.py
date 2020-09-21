@@ -143,7 +143,9 @@ def interpret():
         processed_input = []
         for i, x in enumerate(raw_input):
             input_interface = copy.deepcopy(app.interface.input_interfaces[i])
-            input_interface.type = gr.interpretation.expected_types[type(input_interface)]
+            interface_type = type(input_interface)
+            if interface_type in gr.interpretation.expected_types:
+                input_interface.type = [gr.interpretation.expected_types[interface_type]]
             processed_input.append(input_interface.preprocess(x))
     else:
         processed_input = [input_interface.preprocess(raw_input[i])

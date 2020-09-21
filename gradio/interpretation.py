@@ -6,7 +6,6 @@ import numpy as np
 
 expected_types = {
     Image: "numpy",
-    Textbox: "str"
 }
 
 def default(separator=" ", n_segments=20):
