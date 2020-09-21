@@ -84,9 +84,6 @@ input.submit {
 input.submit:hover {
   background-color: #f39c12;
 }
-.flag {
-  visibility: hidden;
-}
 .flagged {
   background-color: pink !important;
 }
@@ -110,9 +107,6 @@ input.submit:hover {
 
 .invisible {
   display: none !important;
-}
-.screenshot {
-  visibility: hidden;
 }
 .screenshot_logo {
   display: none;
