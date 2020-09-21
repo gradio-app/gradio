@@ -162,15 +162,15 @@ def url_request(url):
         raise RuntimeError(str(e))
 
 
-# def setup_tunnel(local_server_port):
-#     response = url_request(GRADIO_API_SERVER)
-#     if response and response.code == 200:
-#         try:
-#             payload = json.loads(response.read().decode("utf-8"))[0]
-#             return create_tunnel(payload, LOCALHOST_NAME, local_server_port)
+def setup_tunnel(local_server_port):
+    response = url_request(GRADIO_API_SERVER)
+    if response and response.code == 200:
+        try:
+            payload = json.loads(response.read().decode("utf-8"))[0]
+            return create_tunnel(payload, LOCALHOST_NAME, local_server_port)
 
-#         except Exception as e:
-#             raise RuntimeError(str(e))
+        except Exception as e:
+            raise RuntimeError(str(e))
 
 
 def url_ok(url):
