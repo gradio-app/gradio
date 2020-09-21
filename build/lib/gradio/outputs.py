@@ -55,9 +55,9 @@ class Textbox(OutputComponent):
 
     def postprocess(self, y):
         if self.type == "str" or self.type == "auto":
-            return y
-        elif self.type == "number":
             return str(y)
+        elif self.type == "number":
+            return y
         else:
             raise ValueError("Unknown type: " + self.type + ". Please choose from: 'str', 'number'")
 
@@ -68,8 +68,6 @@ class Label(OutputComponent):
     Output type: Union[Dict[str, float], str, int, float]
     '''
 
-    LABEL_KEY = "label"
-    CONFIDENCE_KEY = "confidence"
     CONFIDENCES_KEY = "confidences"
 
     def __init__(self, num_top_classes=None, type="auto", label=None):
@@ -85,7 +83,7 @@ class Label(OutputComponent):
 
     def postprocess(self, y):
         if self.type == "label" or (self.type == "auto" and (isinstance(y, str) or isinstance(y, Number))):
-            return {self.LABEL_KEY: str(y)}
+            return {"label": str(y)}
         elif self.type == "confidences" or (self.type == "auto" and isinstance(y, dict)):
             sorted_pred = sorted(
                 y.items(),
@@ -95,11 +93,11 @@ class Label(OutputComponent):
             if self.num_top_classes is not None:
                 sorted_pred = sorted_pred[:self.num_top_classes]
             return {
-                self.LABEL_KEY: sorted_pred[0][0],
-                self.CONFIDENCES_KEY: [
+                "label": sorted_pred[0][0],
+                "confidences": [
                     {
-                        self.LABEL_KEY: pred[0],
-                        self.CONFIDENCE_KEY: pred[1]
+                        "label": pred[0],
+                        "confidence": pred[1]
                     } for pred in sorted_pred
                 ]
             }

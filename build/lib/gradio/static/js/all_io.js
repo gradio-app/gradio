@@ -80,6 +80,8 @@ var io_master_template = {
     $.ajax({type: "POST",
         url: "/api/flag/",
         data: JSON.stringify(post_data),
+        dataType: 'json',
+        contentType: 'application/json; charset=utf-8',
         success: function(output){
             console.log("Flagging successful")
         },
