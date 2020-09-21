@@ -4,7 +4,7 @@ interface using the input and output types.
 """
 
 import tempfile
-# import webbrowser
+import webbrowser
 
 from gradio.inputs import InputComponent
 from gradio.outputs import OutputComponent
