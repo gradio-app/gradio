@@ -80,6 +80,8 @@ var io_master_template = {
     $.ajax({type: "POST",
         url: "/api/flag/",
         data: JSON.stringify(post_data),
+        dataType: 'json',
+        contentType: 'application/json; charset=utf-8',
     });
   },
   interpret: function() {
@@ -92,9 +94,10 @@ var io_master_template = {
     $.ajax({type: "POST",
         url: "/api/interpret/",
         data: JSON.stringify(post_data),
+        dataType: 'json',
+        contentType: 'application/json; charset=utf-8',
         success: function(data) {
           for (let [idx, interpretation] of data.entries()) {
-            console.log(idx)
             io.input_interfaces[idx].show_interpretation(interpretation);
           }
           io.target.find(".loading_in_progress").hide();

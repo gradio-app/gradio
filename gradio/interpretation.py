@@ -4,7 +4,12 @@ from gradio import processing_utils
 from skimage.segmentation import slic
 import numpy as np
 
-def default(separator=" ", n_segments=20, replace_color=None):
+expected_types = {
+    Image: "numpy",
+    Textbox: "str"
+}
+
+def default(separator=" ", n_segments=20):
     """
     Basic "default" interpretation method that uses "leave-one-out" to explain predictions for
     the following inputs: Image, Text, and the following outputs: Label. In case of multiple
@@ -22,8 +27,7 @@ def default(separator=" ", n_segments=20, replace_color=None):
     def tokenize_image(image):
         segments_slic = slic(image, n_segments=20, compactness=10, sigma=1)
         leave_one_out_tokens = []
-        if replace_color is None:
-            replace_color = np.mean(image, axis=(0, 1))
+        replace_color = np.mean(image, axis=(0, 1))
         for (i, segVal) in enumerate(np.unique(segments_slic)):
             mask = segments_slic == segVal
             white_screen = np.copy(image)
@@ -68,11 +72,11 @@ def default(separator=" ", n_segments=20, replace_color=None):
     def quantify_difference_in_label(interface, original_output, perturbed_output):
         post_original_output = interface.output_interfaces[0].postprocess(original_output[0])
         post_perturbed_output = interface.output_interfaces[0].postprocess(perturbed_output[0])
-        original_label = post_original_output[Label.LABEL_KEY]
-        perturbed_label = post_perturbed_output[Label.LABEL_KEY]
+        original_label = post_original_output["label"]
+        perturbed_label = post_perturbed_output["label"]
 
         # Handle different return types of Label interface
-        if Label.CONFIDENCES_KEY in post_original_output:
+        if "confidences" in post_original_output:
             original_confidence = original_output[0][original_label]
             perturbed_confidence = perturbed_output[0][original_label]
             score = original_confidence - perturbed_confidence

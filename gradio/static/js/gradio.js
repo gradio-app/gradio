@@ -166,14 +166,18 @@ function gradio(config, fn, target, example_file_path) {
       io_master.last_output = null;
     });
 
-    if (config["allow_screenshot"]) {
-      target.find(".screenshot").css("visibility", "visible");
-    }
-    if (config["allow_flagging"]) {
-      target.find(".flag").css("visibility", "visible");
-    }
-    if (config["allow_interpretation"]) {
-      target.find(".interpret").css("visibility", "visible");
+    if (!config["allow_screenshot"] && !config["allow_flagging"] && !config["allow_interpretation"]) {
+      target.find(".screenshot, .flag, .interpret").css("visibility", "hidden");
+    } else {
+      if (!config["allow_screenshot"]) {
+        target.find(".screenshot").hide();
+      }
+      if (!config["allow_flagging"]) {
+        target.find(".flag").hide();
+      }
+      if (!config["allow_interpretation"]) {
+        target.find(".interpret").hide();
+      }
     }
     if (config["examples"]) {
       target.find(".examples").removeClass("invisible");

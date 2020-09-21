@@ -22,3 +22,5 @@ dist/*
 docs.json
 *.bak
 demo/tmp.zip
+demo/flagged
+test.txt
