@@ -1,5 +1,4 @@
 # Demo: (Slider, Dropdown, Radio, CheckboxGroup, Checkbox) -> (Textbox)
-print("0 -->")
 
 import gradio as gr
 
@@ -24,8 +23,5 @@ io = gr.Interface(
         [8, "cat", "zoo", ["ate"], True],
     ])
 
-# io.test_launch()
-a = 1
-print("start -->", a)
-a += 1
+io.test_launch()
 io.launch()
