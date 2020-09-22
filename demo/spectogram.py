@@ -14,7 +14,7 @@ def spectrogram(audio):
     return plt
 
 
-io = gr.Interface(spectrogram, "audio", "plot
+io = gr.Interface(spectrogram, "audio", "plot")
 
 io.test_launch()
 io.launch()
