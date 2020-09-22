@@ -311,8 +311,13 @@ class Interface:
 
         utils.version_check()
         is_colab = utils.colab_check()
-        if not is_colab:
+        if is_colab:
             share = True
+        if not is_colab:
+            if not networking.url_ok(path_to_local_server):
+                share = True
+            else:
+                print(strings.en["RUNNING_LOCALLY"].format(path_to_local_server))
         else:
             if debug:
                 print("Colab notebook detected. This cell will run indefinitely so that you can see errors and logs. "
@@ -326,6 +331,8 @@ class Interface:
             try:
                 share_url = networking.setup_tunnel(server_port)
                 print("Running on External URL:", share_url)
+                if is_colab and self.verbose:
+                    print(strings.en["COLAB_NO_LOCAL"])
             except RuntimeError:
                 data = {'error': 'RuntimeError in launch method'}
                 if self.analytics_enabled:
@@ -338,18 +345,11 @@ class Interface:
                 if self.verbose:
                     print(strings.en["NGROK_NO_INTERNET"])
         else:
-            if is_colab:  # For a colab notebook, create a public link even if
-                # share is False.
-                share_url = networking.setup_tunnel(server_port)
-                print("Running on External URL:", share_url)
-                if self.verbose:
-                    print(strings.en["COLAB_NO_LOCAL"])
-            else:  # If it's not a colab notebook and share=False, print a message telling them about the share option.
-                print("To get a public link for a hosted model, "
-                      "set Share=True")
-                if self.verbose:
-                    print(strings.en["PUBLIC_SHARE_TRUE"])
-                share_url = None
+            print("To get a public link for a hosted model, "
+                    "set Share=True")
+            if self.verbose:
+                print(strings.en["PUBLIC_SHARE_TRUE"])
+            share_url = None
 
         if inline is None:
             inline = utils.ipython_check()
