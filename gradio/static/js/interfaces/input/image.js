@@ -98,7 +98,7 @@ const image_input = {
     } else if (this.source == "canvas") {
       io.target.find(".sketchpad").removeClass("hide");
       var dimension = Math.min(this.target.find(".canvas_holder").width(),
-      this.target.find(".canvas_holder").height()) - 2 // dimension - border
+        this.target.find(".canvas_holder").height()) - 2 // dimension - border
       var id = this.id;
       this.sketchpad = new Sketchpad({
         element: '.interface[interface_id=' + id + '] .sketch',
