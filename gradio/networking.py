@@ -35,7 +35,8 @@ app = Flask(__name__,
     template_folder=STATIC_TEMPLATE_LIB,
     static_folder=STATIC_PATH_LIB)
 app.app_globals = {}
-
+# app.config["FLASK_SKIP_DOTENV"] = 1
+# app.FLASK_SKIP_DOTENV = 1
 
 def set_meta_tags(title, description, thumbnail):
     app.app_globals.update({
@@ -157,7 +158,7 @@ def interpret():
 
 @app.route("/file/<path:path>", methods=["GET"])
 def file(path):
-    return send_file(os.path.join(os.getcwd(), path))
+    return send_file(os.path.join(app.cwd, path))
                 
 
 def start_server(interface, server_port=None):
@@ -167,6 +168,7 @@ def start_server(interface, server_port=None):
         server_port, server_port + TRY_NUM_PORTS
     )
     app.interface = interface
+    app.cwd = os.getcwd()
     process = Process(target=app.run, kwargs={"port": port})
     process.start()
     return port, app, process
