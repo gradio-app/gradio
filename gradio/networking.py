@@ -35,8 +35,7 @@ app = Flask(__name__,
     template_folder=STATIC_TEMPLATE_LIB,
     static_folder=STATIC_PATH_LIB)
 app.app_globals = {}
-# app.config["FLASK_SKIP_DOTENV"] = 1
-# app.FLASK_SKIP_DOTENV = 1
+
 
 def set_meta_tags(title, description, thumbnail):
     app.app_globals.update({
