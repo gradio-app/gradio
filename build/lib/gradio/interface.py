@@ -311,6 +311,9 @@ class Interface:
 
         utils.version_check()
         is_colab = utils.colab_check()
+        if is_colab:
+            share = True
+        print("->", share)
         if not is_colab:
             if not networking.url_ok(path_to_local_server):
                 share = True
@@ -341,18 +344,11 @@ class Interface:
                 if self.verbose:
                     print(strings.en["NGROK_NO_INTERNET"])
         else:
-            if is_colab:  # For a colab notebook, create a public link even if
-                # share is False.
-                share_url = networking.setup_tunnel(server_port)
-                print("Running on External URL:", share_url)
-                if self.verbose:
-                    print(strings.en["COLAB_NO_LOCAL"])
-            else:  # If it's not a colab notebook and share=False, print a message telling them about the share option.
-                print("To get a public link for a hosted model, "
-                      "set Share=True")
-                if self.verbose:
-                    print(strings.en["PUBLIC_SHARE_TRUE"])
-                share_url = None
+            print("To get a public link for a hosted model, "
+                    "set Share=True")
+            if self.verbose:
+                print(strings.en["PUBLIC_SHARE_TRUE"])
+            share_url = None
 
         if inline is None:
             inline = utils.ipython_check()
@@ -375,8 +371,10 @@ class Interface:
             if share:
                 while not networking.url_ok(share_url):
                     time.sleep(1)
+                print("a ->")
                 display(IFrame(share_url, width=1000, height=500))
             else:
+                print("b ->")
                 display(IFrame(path_to_local_server, width=1000, height=500))
 
         r = requests.get(path_to_local_server + "enable_sharing/" + (share_url or "None"))
