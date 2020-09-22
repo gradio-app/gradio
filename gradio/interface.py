@@ -100,7 +100,6 @@ class Interface:
         if not isinstance(fn, list):
             fn = [fn]
 
-
         self.output_interfaces *= len(fn)
         self.predict = fn
         self.verbose = verbose
