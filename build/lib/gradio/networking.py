@@ -6,7 +6,7 @@ import os
 import socket
 import threading
 from flask import Flask, request, jsonify, abort, send_file, render_template
-from multiprocessing import Process
+import threading
 import pkg_resources
 from distutils import dir_util
 import gradio as gr
@@ -35,8 +35,7 @@ app = Flask(__name__,
     template_folder=STATIC_TEMPLATE_LIB,
     static_folder=STATIC_PATH_LIB)
 app.app_globals = {}
-# app.config["FLASK_SKIP_DOTENV"] = 1
-# app.FLASK_SKIP_DOTENV = 1
+
 
 def set_meta_tags(title, description, thumbnail):
     app.app_globals.update({
@@ -159,7 +158,6 @@ def interpret():
 @app.route("/file/<path:path>", methods=["GET"])
 def file(path):
     return send_file(os.path.join(app.cwd, path))
-                
 
 def start_server(interface, server_port=None):
     if server_port is None:
@@ -169,7 +167,7 @@ def start_server(interface, server_port=None):
     )
     app.interface = interface
     app.cwd = os.getcwd()
-    process = Process(target=app.run, kwargs={"port": port})
+    process = threading.Thread(target=app.run, kwargs={"port": port})
     process.start()
     return port, app, process
 
