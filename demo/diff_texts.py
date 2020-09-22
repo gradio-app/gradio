@@ -21,8 +21,9 @@ io = gr.Interface(
         "+": "lightgreen",
         "-": "pink",
         " ": "none",
-    })
-)
+    }), server_port=7860)
 
+# gr.reset_all()
 io.test_launch()
 io.launch()
+io.close()
