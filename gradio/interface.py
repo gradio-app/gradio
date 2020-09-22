@@ -312,10 +312,7 @@ class Interface:
         utils.version_check()
         is_colab = utils.colab_check()
         if not is_colab:
-            if not networking.url_ok(path_to_local_server):
-                share = True
-            else:
-                print(strings.en["RUNNING_LOCALLY"].format(path_to_local_server))
+            share = True
         else:
             if debug:
                 print("Colab notebook detected. This cell will run indefinitely so that you can see errors and logs. "
