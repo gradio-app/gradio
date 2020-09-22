@@ -1,6 +1,11 @@
 .hide {
   display: none !important;
 }
+.sketchpad {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
 .sketch_tools {
   flex: 0 1 auto;
   display: flex;
@@ -40,7 +45,7 @@
 .canvas_holder {
   text-align: center;
   width: 100%;
-  height: calc(100% - 36px);
+  height: 100%;
 }
 .saliency_holder {
   position: absolute;
