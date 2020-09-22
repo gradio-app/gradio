@@ -313,6 +313,7 @@ class Interface:
         is_colab = utils.colab_check()
         if is_colab:
             share = True
+        print("->", share)
         if not is_colab:
             if not networking.url_ok(path_to_local_server):
                 share = True
@@ -331,8 +332,6 @@ class Interface:
             try:
                 share_url = networking.setup_tunnel(server_port)
                 print("Running on External URL:", share_url)
-                if is_colab and self.verbose:
-                    print(strings.en["COLAB_NO_LOCAL"])
             except RuntimeError:
                 data = {'error': 'RuntimeError in launch method'}
                 if self.analytics_enabled:
@@ -372,8 +371,10 @@ class Interface:
             if share:
                 while not networking.url_ok(share_url):
                     time.sleep(1)
+                print("a ->")
                 display(IFrame(share_url, width=1000, height=500))
             else:
+                print("b ->")
                 display(IFrame(path_to_local_server, width=1000, height=500))
 
         r = requests.get(path_to_local_server + "enable_sharing/" + (share_url or "None"))
