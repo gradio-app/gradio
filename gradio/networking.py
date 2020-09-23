@@ -34,6 +34,7 @@ STATIC_PATH_LIB = pkg_resources.resource_filename("gradio", "static/")
 
 app = Flask(__name__,
     template_folder=STATIC_TEMPLATE_LIB,
+    static_url_path="/static/",
     static_folder=STATIC_PATH_LIB)
 app.app_globals = {}
 
