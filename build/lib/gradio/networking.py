@@ -34,8 +34,8 @@ STATIC_PATH_LIB = pkg_resources.resource_filename("gradio", "static/")
 
 app = Flask(__name__,
     template_folder=STATIC_TEMPLATE_LIB,
-    static_url_path="/static/",
-    static_folder=STATIC_PATH_LIB)
+    static_folder=None)  # TODO (aliabid94): replace with default static
+# handler
 app.app_globals = {}
 
 # Hide Flask default message
@@ -83,6 +83,11 @@ def main():
         description=app.app_globals["description"],
         thumbnail=app.app_globals["thumbnail"],
     )
+
+
+@app.route("/static/<path:path>")
+def static(path):
+    return send_file(os.path.join(STATIC_PATH_LIB, path))
 
 
 @app.route("/config/", methods=["GET"])
