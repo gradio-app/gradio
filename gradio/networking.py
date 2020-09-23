@@ -107,18 +107,20 @@ def predict():
 
 @app.route("/api/flag/", methods=["POST"])
 def flag():
-    os.makedirs(app.interface.flagging_dir, exist_ok=True)
+    flag_path = os.path.join(app.cwd, app.interface.flagging_dir)
+    os.makedirs(flag_path,
+                exist_ok=True)
     output = {'inputs': [app.interface.input_interfaces[
         i].rebuild(
-        app.interface.flagging_dir, request.json['data']['input_data'][i]) for i
+        flag_path, request.json['data']['input_data'][i]) for i
         in range(len(app.interface.input_interfaces))],
         'outputs': [app.interface.output_interfaces[
             i].rebuild(
-            app.interface.flagging_dir, request.json['data']['output_data'][i])
+            flag_path, request.json['data']['output_data'][i])
             for i
         in range(len(app.interface.output_interfaces))]}
 
-    log_fp = "{}/log.csv".format(app.interface.flagging_dir)
+    log_fp = "{}/log.csv".format(flag_path)
 
     is_new = not os.path.exists(log_fp)
 
