@@ -313,7 +313,6 @@ class Interface:
         is_colab = utils.colab_check()
         if is_colab:
             share = True
-        print("->", share)
         if not is_colab:
             if not networking.url_ok(path_to_local_server):
                 share = True
@@ -371,10 +370,8 @@ class Interface:
             if share:
                 while not networking.url_ok(share_url):
                     time.sleep(1)
-                print("a ->")
                 display(IFrame(share_url, width=1000, height=500))
             else:
-                print("b ->")
                 display(IFrame(path_to_local_server, width=1000, height=500))
 
         r = requests.get(path_to_local_server + "enable_sharing/" + (share_url or "None"))
