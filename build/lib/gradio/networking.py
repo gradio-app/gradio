@@ -19,6 +19,7 @@ import requests
 import sys
 import csv
 import copy
+import logging
 
 INITIAL_PORT_VALUE = int(os.getenv(
     'GRADIO_SERVER_PORT', "7860"))  # The http server will try to open on port 7860. If not available, 7861, 7862, etc.
@@ -36,6 +37,9 @@ app = Flask(__name__,
     static_folder=STATIC_PATH_LIB)
 app.app_globals = {}
 
+# Hide Flask default message
+cli = sys.modules['flask.cli']
+cli.show_server_banner = lambda *x: None
 
 def set_meta_tags(title, description, thumbnail):
     app.app_globals.update({
@@ -167,6 +171,8 @@ def start_server(interface, server_port=None):
     )
     app.interface = interface
     app.cwd = os.getcwd()
+    log = logging.getLogger('werkzeug')
+    log.setLevel(logging.ERROR)
     process = threading.Thread(target=app.run, kwargs={"port": port})
     process.start()
     return port, app, process
