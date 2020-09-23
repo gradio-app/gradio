@@ -19,6 +19,7 @@ def stock_forecast(final_year, companies, noise, show_legend, point_style):
         ax.plot(x, series, plt_format)
     if show_legend:
         plt.legend(companies)
+    plt.close()
     return fig
 
 
