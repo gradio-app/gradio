@@ -19,7 +19,6 @@ gradio.egg-info/SOURCES.txt
 gradio.egg-info/dependency_links.txt
 gradio.egg-info/requires.txt
 gradio.egg-info/top_level.txt
-gradio/static/.DS_Store
 gradio/static/apple-app-site-association
 gradio/static/css/gradio.css
 gradio/static/css/loading.css
@@ -57,7 +56,6 @@ gradio/static/css/vendor/images/ui-icons_777620_256x240.png
 gradio/static/css/vendor/images/ui-icons_777777_256x240.png
 gradio/static/css/vendor/images/ui-icons_cc0000_256x240.png
 gradio/static/css/vendor/images/ui-icons_ffffff_256x240.png
-gradio/static/img/.DS_Store
 gradio/static/img/logo.png
 gradio/static/img/logo_error.png
 gradio/static/img/logo_inline.png
@@ -72,7 +70,6 @@ gradio/static/img/vendor/icon-a.svg
 gradio/static/img/vendor/icon-b.svg
 gradio/static/img/vendor/icon-c.svg
 gradio/static/img/vendor/icon-d.svg
-gradio/static/js/.DS_Store
 gradio/static/js/all_io.js
 gradio/static/js/gradio.js
 gradio/static/js/utils.js
