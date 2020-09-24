@@ -8,7 +8,8 @@ const textbox_input = {
     if (opts.lines > 1) {
       this.target.find(".input_text").attr("rows", opts.lines).css("height", "auto");
     } else {
-      this.target.html(this.one_line_html);
+      this.target.find("textarea").remove();
+      this.target.prepend(this.one_line_html);
     }
     if (opts.placeholder) {
       this.target.find(".input_text").attr("placeholder", opts.placeholder)
