@@ -18,6 +18,7 @@ import sys
 import weakref
 import analytics
 import os
+import copy
 
 analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
 analytics_url = 'https://api.gradio.app/'
@@ -255,6 +256,26 @@ class Interface:
         processed_output = [output_interface.postprocess(
             predictions[i]) for i, output_interface in enumerate(self.output_interfaces)]
         return processed_output, durations
+    
+    def interpret(self, raw_input):
+        if self.interpretation == "default":
+            interpreter = gradio.interpretation.default()
+            processed_input = []
+            for i, x in enumerate(raw_input):
+                input_interface = copy.deepcopy(self.input_interfaces[i])
+                interface_type = type(input_interface)
+                if interface_type in gradio.interpretation.expected_types:
+                    input_interface.type = gradio.interpretation.expected_types[interface_type]
+                processed_input.append(input_interface.preprocess(x))
+            interpretation = interpreter(self, processed_input)
+        else:
+            processed_input = [input_interface.preprocess(raw_input[i])
+                                for i, input_interface in enumerate(self.input_interfaces)]
+            interpreter = self.interpretation
+            interpretation = interpreter(*processed_input)
+            if len(raw_input) == 1:
+                interpretation = [interpretation]
+        return interpretation
 
     def close(self):
         if self.simple_server and not (self.simple_server.fileno() == -1):  # checks to see if server is running
