@@ -29,7 +29,7 @@ var io_master_template = {
       this.target.find(".loading_failed").hide();
       this.target.find(".output_interfaces").css("opacity", 0.5);
     }
-    this.fn(this.last_input).then((output) => {
+    this.fn(this.last_input, "predict").then((output) => {
       io.output(output);
     }).catch((error) => {
       console.error(error);
@@ -72,36 +72,25 @@ var io_master_template = {
   },
   flag: function() {
     var post_data = {
-      'data': {
-        'input_data' : this.last_input ,
-        'output_data' : this.last_output
-      }
+      'input_data' : this.last_input ,
+      'output_data' : this.last_output
     }
-    $.ajax({type: "POST",
-        url: "/api/flag/",
-        data: JSON.stringify(post_data),
-        dataType: 'json',
-        contentType: 'application/json; charset=utf-8',
-    });
+    this.fn(post_data, "flag")
   },
   interpret: function() {
     var io = this;
     this.target.find(".loading").removeClass("invisible");
     this.target.find(".loading_in_progress").show();
-    var post_data = {
-      'data': this.last_input
-    }
-    $.ajax({type: "POST",
-        url: "/api/interpret/",
-        data: JSON.stringify(post_data),
-        dataType: 'json',
-        contentType: 'application/json; charset=utf-8',
-        success: function(data) {
-          for (let [idx, interpretation] of data.entries()) {
-            io.input_interfaces[idx].show_interpretation(interpretation);
-          }
-          io.target.find(".loading_in_progress").hide();
-        }
-    });
+    var post_data = this.last_input;
+    this.fn(post_data, "interpret").then((data) => {
+      for (let [idx, interpretation] of data.entries()) {
+        io.input_interfaces[idx].show_interpretation(interpretation);
+      }
+      io.target.find(".loading_in_progress").hide();
+    }).catch((error) => {
+      console.error(error);
+      this.target.find(".loading_in_progress").hide();
+      this.target.find(".loading_failed").show();
+    })
   }
 };

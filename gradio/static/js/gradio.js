@@ -250,10 +250,10 @@ function gradio(config, fn, target, example_file_path) {
     return io_master;
 }
 function gradio_url(config, url, target, example_file_path) {
-  return gradio(config, function(data) {
+  return gradio(config, function(data, action) {
     return new Promise((resolve, reject) => {
       $.ajax({type: "POST",
-        url: url,
+        url: url + action,
         data: JSON.stringify({"data": data}),
         dataType: 'json',
         contentType: 'application/json; charset=utf-8',
