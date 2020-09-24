@@ -159,11 +159,14 @@ def interpret():
             if interface_type in gr.interpretation.expected_types:
                 input_interface.type = gr.interpretation.expected_types[interface_type]
             processed_input.append(input_interface.preprocess(x))
+        interpretation = interpreter(app.interface, processed_input)
     else:
         processed_input = [input_interface.preprocess(raw_input[i])
                             for i, input_interface in enumerate(app.interface.input_interfaces)]
         interpreter = app.interface.interpretation
-    interpretation = interpreter(app.interface, processed_input)
+        interpretation = interpreter(*processed_input)
+        if len(raw_input) == 1:
+            interpretation = [interpretation]
     return jsonify(interpretation)
 
 
