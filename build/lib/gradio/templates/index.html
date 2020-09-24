@@ -118,7 +118,7 @@
     <script src="/static/js/gradio.js"></script>
     <script>
       $.getJSON("/config/", function(config) {
-        io = gradio_url(config, "/api/predict/", "#interface_target", "/file/");
+        io = gradio_url(config, "/api/", "#interface_target", "/file/");
       });
       const copyToClipboard = str => {
         const el = document.createElement('textarea');
