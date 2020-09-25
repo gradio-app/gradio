@@ -253,7 +253,7 @@ function gradio_url(config, url, target, example_file_path) {
   return gradio(config, function(data, action) {
     return new Promise((resolve, reject) => {
       $.ajax({type: "POST",
-        url: url + action,
+        url: url + action + "/",
         data: JSON.stringify({"data": data}),
         dataType: 'json',
         contentType: 'application/json; charset=utf-8',
