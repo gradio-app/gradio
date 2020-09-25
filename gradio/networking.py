@@ -6,6 +6,7 @@ import os
 import socket
 import threading
 from flask import Flask, request, jsonify, abort, send_file, render_template
+from flask_cors import CORS
 import threading
 import pkg_resources
 from distutils import dir_util
@@ -35,6 +36,7 @@ app = Flask(__name__,
     template_folder=STATIC_TEMPLATE_LIB,
     static_folder=None)  # TODO (aliabid94): replace with default static
 # handler
+CORS(app)
 app.app_globals = {}
 
 # Hide Flask default message
