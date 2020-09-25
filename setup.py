@@ -17,6 +17,7 @@ setup(
         'numpy',
         'requests',
         'flask',
+        'flask-cors',
         'paramiko',
         'scipy',
         'IPython',
