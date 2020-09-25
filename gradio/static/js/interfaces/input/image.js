@@ -122,7 +122,7 @@ const image_input = {
         find(".image_editor")[0], {
       includeUI: {
         menuBarPosition: 'left',
-        menu: ['crop', 'flip', 'rotate', 'draw', 'filter']
+        menu: ['crop', 'flip', 'rotate', 'draw', 'filter', 'text']
      },
        cssMaxWidth: 700,
        cssMaxHeight: 500,
