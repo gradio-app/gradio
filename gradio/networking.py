@@ -88,7 +88,7 @@ def main():
 def static(path):
     path = os.path.join(STATIC_PATH_LIB, path)
     if os.path.exists(path):
-        return send_file()
+        return send_file(path)
     else:
         abort(404)
 
