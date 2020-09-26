@@ -16,8 +16,8 @@ setup(
     install_requires=[
         'numpy',
         'requests',
-        'flask',
-        'flask-cors',
+        'Flask==1.1.1',
+        'Flask-Cors==3.0.8',
         'paramiko',
         'scipy',
         'IPython',
