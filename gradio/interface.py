@@ -266,10 +266,10 @@ class Interface:
             if self.capture_session and self.session is not None:
                 graph, sess = self.session
                 with graph.as_default(), sess.as_default():
-                    interpretation = interpreter(*processed_input).tolist()
+                    interpretation = interpreter(*processed_input)
             else:
                 try:
-                    interpretation = interpreter(*processed_input).tolist()
+                    interpretation = interpreter(*processed_input)
                 except ValueError as exception:
                     if str(exception).endswith("is not an element of this graph."):
                         raise ValueError(strings.en["TF1_ERROR"])
