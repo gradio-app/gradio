@@ -1,12 +1,12 @@
 from gradio.inputs import Image, Textbox
 from gradio.outputs import Label
-from gradio import processing_utils
 from skimage.segmentation import slic
 import numpy as np
 
 expected_types = {
     Image: "numpy",
 }
+
 
 def default(separator=" ", n_segments=20):
     """
