@@ -175,8 +175,7 @@ class Image(OutputComponent):
         """
         im = processing_utils.decode_base64_to_image(data)
         timestamp = datetime.datetime.now()
-        filename = 'output_{}.png'.format(timestamp.
-                                          strftime("%Y-%m-%d-%H-%M-%S"))
+        filename = 'output_{}_{}.png'.format(self.label, timestamp.strftime("%Y-%m-%d-%H-%M-%S"))
         im.save('{}/{}'.format(dir, filename), 'PNG')
         return filename
 
