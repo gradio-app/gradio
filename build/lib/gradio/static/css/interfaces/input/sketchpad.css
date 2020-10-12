@@ -1,6 +1,11 @@
 .hide {
   display: none !important;
 }
+.sketchpad {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
 .sketch_tools {
   flex: 0 1 auto;
   display: flex;

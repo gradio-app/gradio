@@ -5,10 +5,12 @@ Defines helper methods useful for setting up ports, launching servers, and handl
 import os
 import socket
 import threading
-from http.server import HTTPServer as BaseHTTPServer, SimpleHTTPRequestHandler
+from flask import Flask, request, jsonify, abort, send_file, render_template
+from flask_cors import CORS
+import threading
 import pkg_resources
 from distutils import dir_util
-from gradio import inputs, outputs
+import gradio as gr
 import time
 import json
 from gradio.tunneling import create_tunnel
@@ -17,7 +19,7 @@ from shutil import copyfile
 import requests
 import sys
 import csv
-
+import logging
 
 INITIAL_PORT_VALUE = int(os.getenv(
     'GRADIO_SERVER_PORT', "7860"))  # The http server will try to open on port 7860. If not available, 7861, 7862, etc.
@@ -29,77 +31,28 @@ GRADIO_API_SERVER = "https://api.gradio.app/v1/tunnel-request"
 
 STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "templates/")
 STATIC_PATH_LIB = pkg_resources.resource_filename("gradio", "static/")
-STATIC_PATH_TEMP = "static/"
-TEMPLATE_TEMP = "index.html"
-BASE_JS_FILE = "static/js/all_io.js"
-CONFIG_FILE = "static/config.json"
 
-ASSOCIATION_PATH_IN_STATIC = "static/apple-app-site-association"
-ASSOCIATION_PATH_IN_ROOT = "apple-app-site-association"
+app = Flask(__name__,
+    template_folder=STATIC_TEMPLATE_LIB,
+    static_folder=None)  # TODO (aliabid94): replace with default static
+# handler
+CORS(app)
+app.app_globals = {}
 
+# Hide Flask default message
+cli = sys.modules['flask.cli']
+cli.show_server_banner = lambda *x: None
 
-def build_template(temp_dir):
-    """
-    Create HTML file with supporting JS and CSS files in a given directory.
-    :param temp_dir: string with path to temp directory in which the html file should be built
-    """
-    dir_util.copy_tree(STATIC_TEMPLATE_LIB, temp_dir)
-    dir_util.copy_tree(STATIC_PATH_LIB, os.path.join(
-        temp_dir, STATIC_PATH_TEMP))
-
-    # Move association file to root of temporary directory.
-    copyfile(os.path.join(temp_dir, ASSOCIATION_PATH_IN_STATIC),
-             os.path.join(temp_dir, ASSOCIATION_PATH_IN_ROOT))
-
-
-def render_template_with_tags(template_path, context):
-    """
-    Combines the given template with a given context dictionary by replacing all of the occurrences of tags (enclosed
-    in double curly braces) with corresponding values.
-    :param template_path: a string with the path to the template file
-    :param context: a dictionary whose string keys are the tags to replace and whose string values are the replacements.
-    """
-    with open(template_path) as fin:
-        old_lines = fin.readlines()
-    new_lines = render_string_or_list_with_tags(old_lines, context)
-    with open(template_path, "w") as fout:
-        for line in new_lines:
-            fout.write(line)
-
-
-def render_string_or_list_with_tags(old_lines, context):
-    # Handle string case
-    if isinstance(old_lines, str):
-        for key, value in context.items():
-            old_lines = old_lines.replace(r"{{" + key + r"}}", str(value))
-        return old_lines
-
-    # Handle list case
-    new_lines = []
-    for line in old_lines:
-        for key, value in context.items():
-            line = line.replace(r"{{" + key + r"}}", str(value))
-        new_lines.append(line)
-    return new_lines
-
-
-def set_meta_tags(temp_dir, title, description, thumbnail):
-    title = "Gradio" if title is None else title
-    description = "Easy-to-use UI for your machine learning model" if description is None else description
-    thumbnail = "https://gradio.app/static/img/logo_only.png" if thumbnail is None else thumbnail
-
-    index_file = os.path.join(temp_dir, TEMPLATE_TEMP)
-    render_template_with_tags(index_file, {
+def set_meta_tags(title, description, thumbnail):
+    app.app_globals.update({
         "title": title,
         "description": description,
         "thumbnail": thumbnail
     })
 
 
-def set_config(config, temp_dir):
-    config_file = os.path.join(temp_dir, CONFIG_FILE)
-    with open(config_file, "w") as output:
-        json.dump(config, output)
+def set_config(config):
+    app.app_globals["config"] = config
 
 
 def get_first_available_port(initial, final):
@@ -124,127 +77,110 @@ def get_first_available_port(initial, final):
     )
 
 
-def serve_files_in_background(interface, port, directory_to_serve=None, server_name=LOCALHOST_NAME):
-    class HTTPHandler(SimpleHTTPRequestHandler):
-        """This handler uses server.base_path instead of always using os.getcwd()"""
-        def _set_headers(self):
-            self.send_response(200)
-            self.send_header("Content-type", "application/json")
-            self.end_headers()
-
-        def end_headers(self):
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.send_header('Access-Control-Allow-Methods', 'GET, POST')
-            return super(HTTPHandler, self).end_headers()
-
-        def translate_path(self, path):
-            path = SimpleHTTPRequestHandler.translate_path(self, path)
-            relpath = os.path.relpath(path, os.getcwd())
-            fullpath = os.path.join(self.server.base_path, relpath)
-            return fullpath
-
-        def log_message(self, format, *args):
-            return
-
-        def do_POST(self):
-            # Read body of the request.
-            if self.path == "/api/predict/":
-                # Make the prediction.
-                self._set_headers()
-                data_string = self.rfile.read(
-                    int(self.headers["Content-Length"]))
-                msg = json.loads(data_string)
-                raw_input = msg["data"]
-                prediction, durations = interface.process(raw_input)
-
-                output = {"data": prediction, "durations": durations}
-                self.wfile.write(json.dumps(output).encode())
-
-            elif self.path == "/api/flag/":
-                self._set_headers()
-                data_string = self.rfile.read(
-                    int(self.headers["Content-Length"]))
-                msg = json.loads(data_string)
-                os.makedirs(interface.flagging_dir, exist_ok=True)
-                output = {'inputs': [interface.input_interfaces[
-                    i].rebuild(
-                    interface.flagging_dir, msg['data']['input_data'][i]) for i
-                    in range(len(interface.input_interfaces))],
-                    'outputs': [interface.output_interfaces[
-                        i].rebuild(
-                        interface.flagging_dir, msg['data']['output_data'][i])
-                        for i
-                    in range(len(interface.output_interfaces))]}
-
-                log_fp = "{}/log.csv".format(interface.flagging_dir)
-
-                is_new = not os.path.exists(log_fp)
-
-                with open(log_fp, "a") as csvfile:
-                    headers = ["input_{}".format(i) for i in range(len(
-                        output["inputs"]))] + ["output_{}".format(i) for i in
-                                               range(len(output["outputs"]))]
-                    writer = csv.DictWriter(csvfile, delimiter=',',
-                                            lineterminator='\n',
-                                            fieldnames=headers)
-                    if is_new:
-                        writer.writeheader()
-
-                    writer.writerow(
-                        dict(zip(headers, output["inputs"] +
-                                  output["outputs"]))
-                    )
-            else:
-                self.send_error(404, 'Path not found: {}'.format(self.path))
+@app.route("/", methods=["GET"])
+def main():
+    return render_template("index.html",
+        title=app.app_globals["title"],
+        description=app.app_globals["description"],
+        thumbnail=app.app_globals["thumbnail"],
+    )
 
 
-        def do_GET(self):
-            if self.path.startswith("/file/"):
-                self.send_response(200)
-                self.end_headers()
-                with open(self.path[6:], "rb") as f:
-                    self.wfile.write(f.read())
-            else:
-                super().do_GET()
-                
-
-    class HTTPServer(BaseHTTPServer):
-        """The main server, you pass in base_path which is the path you want to serve requests from"""
-
-        def __init__(self, base_path, server_address, RequestHandlerClass=HTTPHandler):
-            self.base_path = base_path
-            BaseHTTPServer.__init__(self, server_address, RequestHandlerClass)
-
-    class QuittableHTTPThread(threading.Thread):
-        def __init__(self, httpd):
-            super().__init__(daemon=False)
-            self.httpd = httpd
-            self.keep_running =True
-
-        def run(self):
-            while self.keep_running:
-                self.httpd.handle_request()
-
-    httpd = HTTPServer(directory_to_serve, (server_name, port))
-    thread = QuittableHTTPThread(httpd=httpd)
-    thread.start()
-
-    return httpd, thread
+@app.route("/static/<path:path>")
+def static(path):
+    path = os.path.join(STATIC_PATH_LIB, path)
+    if os.path.exists(path):
+        return send_file(path)
+    else:
+        abort(404)
 
 
-def start_simple_server(interface, directory_to_serve=None, server_name=None, server_port=None):
+@app.route("/config/", methods=["GET"])
+def config():
+    return jsonify(app.app_globals["config"])
+
+
+@app.route("/enable_sharing/<path:path>", methods=["GET"])
+def enable_sharing(path):
+    if path == "None":
+        path = None
+    app.app_globals["config"]["share_url"] = path
+    return jsonify(success=True)
+    
+
+@app.route("/api/predict/", methods=["POST"])
+def predict():
+    raw_input = request.json["data"]
+    prediction, durations = app.interface.process(raw_input)
+    output = {"data": prediction, "durations": durations}
+    return jsonify(output)
+
+
+@app.route("/api/flag/", methods=["POST"])
+def flag():
+    flag_path = os.path.join(app.cwd, app.interface.flagging_dir)
+    os.makedirs(flag_path,
+                exist_ok=True)
+    output = {'inputs': [app.interface.input_interfaces[
+        i].rebuild(
+        flag_path, request.json['data']['input_data'][i]) for i
+        in range(len(app.interface.input_interfaces))],
+        'outputs': [app.interface.output_interfaces[
+            i].rebuild(
+            flag_path, request.json['data']['output_data'][i])
+            for i
+        in range(len(app.interface.output_interfaces))]}
+
+    log_fp = "{}/log.csv".format(flag_path)
+
+    is_new = not os.path.exists(log_fp)
+
+    with open(log_fp, "a") as csvfile:
+        headers = ["input_{}".format(i) for i in range(len(
+            output["inputs"]))] + ["output_{}".format(i) for i in
+                                    range(len(output["outputs"]))]
+        writer = csv.DictWriter(csvfile, delimiter=',',
+                                lineterminator='\n',
+                                fieldnames=headers)
+        if is_new:
+            writer.writeheader()
+
+        writer.writerow(
+            dict(zip(headers, output["inputs"] +
+                        output["outputs"]))
+        )
+        return jsonify(success=True)
+
+
+@app.route("/api/interpret/", methods=["POST"])
+def interpret():
+    raw_input = request.json["data"]
+    interpretation = app.interface.interpret(raw_input)
+    return jsonify(interpretation)
+
+
+@app.route("/file/<path:path>", methods=["GET"])
+def file(path):
+    return send_file(os.path.join(app.cwd, path))
+
+def start_server(interface, server_port=None):
     if server_port is None:
         server_port = INITIAL_PORT_VALUE
     port = get_first_available_port(
         server_port, server_port + TRY_NUM_PORTS
     )
-    httpd, thread = serve_files_in_background(interface, port, directory_to_serve, server_name)
-    return port, httpd, thread
+    app.interface = interface
+    app.cwd = os.getcwd()
+    log = logging.getLogger('werkzeug')
+    log.setLevel(logging.ERROR)
+    process = threading.Thread(target=app.run, kwargs={"port": port})
+    process.start()
+    return port, app, process
 
 
-def close_server(server):
-    server.server_close()
-
+def close_server(process):
+    process.terminate()
+    process.join()
 
 def url_request(url):
     try:

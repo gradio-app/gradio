@@ -7,4 +7,6 @@ en = {
     "PUBLIC_SHARE_TRUE": "To create a public link, set `share=True` in the argument to `launch()`.",
     "MODEL_PUBLICLY_AVAILABLE_URL": "Model available publicly at: {} (may take up to a minute for link to be usable)",
     "GENERATING_PUBLIC_LINK": "Generating public link (may take a few seconds...):",
+    "TF1_ERROR": "It looks like you might be using tensorflow < 2.0. Please pass capture_session=True in Interface() to"
+                 " avoid the 'Tensor is not an element of this graph.' error."
 }

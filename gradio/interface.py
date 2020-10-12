@@ -3,25 +3,21 @@ This is the core file in the `gradio` package, and defines the Interface class, 
 interface using the input and output types.
 """
 
-import tempfile
-import webbrowser
-
 from gradio.inputs import InputComponent
 from gradio.outputs import OutputComponent
 from gradio import networking, strings, utils
-from distutils.version import StrictVersion
-import pkg_resources
+import gradio.interpretation
 import requests
 import random
 import time
+import webbrowser
 import inspect
-from IPython import get_ipython
 import sys
 import weakref
 import analytics
 import os
+import copy
 
-PKG_VERSION_URL = "https://gradio.app/api/pkg-version"
 analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
 analytics_url = 'https://api.gradio.app/'
 try:
@@ -46,8 +42,9 @@ class Interface:
 
     def __init__(self, fn, inputs, outputs, verbose=False, examples=None,
                  live=False, show_input=True, show_output=True,
-                 capture_session=False, title=None, description=None,
-                 thumbnail=None, server_port=None, server_name=networking.LOCALHOST_NAME,
+                 capture_session=False, interpretation=None, title=None,
+                 description=None, thumbnail=None, server_port=None, 
+                 server_name=networking.LOCALHOST_NAME,
                  allow_screenshot=True, allow_flagging=True,
                  flagging_dir="flagged", analytics_enabled=True):
 
@@ -60,6 +57,7 @@ class Interface:
         examples (List[List[Any]]): sample inputs for the function; if provided, appears below the UI components and can be used to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component.
         live (bool): whether the interface should automatically reload on change.
         capture_session (bool): if True, captures the default graph and session (needed for Tensorflow 1.x)
+        interpretation (Union[Callable, str]): function that provides interpretation explaining prediction output. Pass "default" to use built-in interpreter. 
         title (str): a title for the interface; if provided, appears above the input and output components.
         description (str): a description for the interface; if provided, appears above the input and output components.
         thumbnail (str): path to image or src to use as display picture for models listed in gradio.app/hub
@@ -110,6 +108,7 @@ class Interface:
         self.show_output = show_output
         self.flag_hash = random.getrandbits(32)
         self.capture_session = capture_session
+        self.interpretation = interpretation            
         self.session = None
         self.server_name = server_name
         self.title = title
@@ -177,7 +176,8 @@ class Interface:
             "description": self.description,
             "thumbnail": self.thumbnail,
             "allow_screenshot": self.allow_screenshot,
-            "allow_flagging": self.allow_flagging
+            "allow_flagging": self.allow_flagging,
+            "allow_interpretation": self.interpretation is not None
         }
         try:
             param_names = inspect.getfullargspec(self.predict[0])[0]
@@ -190,43 +190,31 @@ class Interface:
                     iface[1]["label"] = ret_name
         except ValueError:
             pass
-
+        if self.examples is not None:
+            processed_examples = []
+            for example_set in self.examples:
+                processed_set = []
+                for iface, example in zip(self.input_interfaces, example_set):
+                    processed_set.append(iface.process_example(example))
+                processed_examples.append(processed_set)
+            config["examples"] = processed_examples
         return config
 
-    def process(self, raw_input, predict_fn=None):
-        """
-        :param raw_input: a list of raw inputs to process and apply the
-        prediction(s) on.
-        :param predict_fn: which function to process. If not provided, all of the model functions are used.
-        :return:
-        processed output: a list of processed  outputs to return as the
-        prediction(s).
-        duration: a list of time deltas measuring inference time for each
-        prediction fn.
-        """
-        processed_input = [input_interface.preprocess(raw_input[i])
-                           for i, input_interface in enumerate(self.input_interfaces)]
+    def run_prediction(self, processed_input, return_duration=False):
         predictions = []
         durations = []
         for predict_fn in self.predict:
             start = time.time()
-            if self.capture_session and not (self.session is None):
+            if self.capture_session and self.session is not None:
                 graph, sess = self.session
-                with graph.as_default():
-                    with sess.as_default():
-                        prediction = predict_fn(*processed_input)
+                with graph.as_default(), sess.as_default():
+                    prediction = predict_fn(*processed_input)
             else:
                 try:
                     prediction = predict_fn(*processed_input)
                 except ValueError as exception:
-                    if str(exception).endswith("is not an element of this "
-                                               "graph."):
-                        raise ValueError("It looks like you might be using "
-                                         "tensorflow < 2.0. Please "
-                                         "pass capture_session=True in "
-                                         "Interface to avoid the 'Tensor is "
-                                         "not an element of this graph.' "
-                                         "error.")
+                    if str(exception).endswith("is not an element of this graph."):
+                        raise ValueError(strings.en["TF1_ERROR"])
                     else:
                         raise exception
             duration = time.time() - start
@@ -235,9 +223,62 @@ class Interface:
                 prediction = [prediction]
             durations.append(duration)
             predictions.extend(prediction)
+        
+        if return_duration:
+            return predictions, durations
+        else:
+            return predictions
+
+    def process(self, raw_input):
+        """
+        :param raw_input: a list of raw inputs to process and apply the prediction(s) on.
+        processed output: a list of processed  outputs to return as the prediction(s).
+        duration: a list of time deltas measuring inference time for each prediction fn.
+        """
+        processed_input = [input_interface.preprocess(raw_input[i])
+                           for i, input_interface in enumerate(self.input_interfaces)]
+        predictions, durations = self.run_prediction(processed_input, return_duration=True)
         processed_output = [output_interface.postprocess(
             predictions[i]) for i, output_interface in enumerate(self.output_interfaces)]
         return processed_output, durations
+    
+    def interpret(self, raw_input):
+        """
+        Runs the interpretation command for the machine learning model. Handles both the "default" out-of-the-box
+        interpretation for a certain set of UI component types, as well as the custom interpretation case.
+        :param raw_input: a list of raw inputs to apply the interpretation(s) on.
+        """
+        if self.interpretation == "default":
+            interpreter = gradio.interpretation.default()
+            processed_input = []
+            for i, x in enumerate(raw_input):
+                input_interface = copy.deepcopy(self.input_interfaces[i])
+                interface_type = type(input_interface)
+                if interface_type in gradio.interpretation.expected_types:
+                    input_interface.type = gradio.interpretation.expected_types[interface_type]
+                processed_input.append(input_interface.preprocess(x))
+            interpretation = interpreter(self, processed_input)
+        else:
+            processed_input = [input_interface.preprocess(raw_input[i])
+                               for i, input_interface in enumerate(self.input_interfaces)]
+            interpreter = self.interpretation
+
+            if self.capture_session and self.session is not None:
+                graph, sess = self.session
+                with graph.as_default(), sess.as_default():
+                    interpretation = interpreter(*processed_input)
+            else:
+                try:
+                    interpretation = interpreter(*processed_input)
+                except ValueError as exception:
+                    if str(exception).endswith("is not an element of this graph."):
+                        raise ValueError(strings.en["TF1_ERROR"])
+                    else:
+                        raise exception
+
+            if len(raw_input) == 1:
+                interpretation = [interpretation]
+        return interpretation
 
     def close(self):
         if self.simple_server and not (self.simple_server.fileno() == -1):  # checks to see if server is running
@@ -277,34 +318,25 @@ class Interface:
         share (bool): whether to create a publicly shareable link from your computer for the interface.
         debug (bool): if True, and the interface was launched from Google Colab, prints the errors in the cell output.
         Returns
-        httpd (str): HTTPServer object
+        app (flask.Flask): Flask app object
         path_to_local_server (str): Locally accessible link
         share_url (str): Publicly accessible link (if share=True)
         """
-        output_directory = tempfile.mkdtemp()
-        # Set up a port to serve the directory containing the static files with interface.
-        server_port, httpd, thread = networking.start_simple_server(
-            self, output_directory, self.server_name, server_port=self.server_port)
-        path_to_local_server = "http://{}:{}/".format(self.server_name, server_port)
-        networking.build_template(output_directory)
+        config = self.get_config_file()
+        networking.set_config(config)
+        networking.set_meta_tags(self.title, self.description, self.thumbnail)
 
+        server_port, app, thread = networking.start_server(
+            self, self.server_port)
+        path_to_local_server = "http://{}:{}/".format(self.server_name, server_port)
         self.server_port = server_port
         self.status = "RUNNING"
-        self.simple_server = httpd
+        self.server = app
 
-        try:
-            current_pkg_version = pkg_resources.require("gradio")[0].version
-            latest_pkg_version = requests.get(url=PKG_VERSION_URL).json()["version"]
-            if StrictVersion(latest_pkg_version) > StrictVersion(current_pkg_version):
-                print("IMPORTANT: You are using gradio version {}, "
-                      "however version {} "
-                      "is available, please upgrade.".format(
-                    current_pkg_version, latest_pkg_version))
-                print('--------')
-        except:  # TODO(abidlabs): don't catch all exceptions
-            pass
-
+        utils.version_check()
         is_colab = utils.colab_check()
+        if is_colab:
+            share = True
         if not is_colab:
             if not networking.url_ok(path_to_local_server):
                 share = True
@@ -335,18 +367,11 @@ class Interface:
                 if self.verbose:
                     print(strings.en["NGROK_NO_INTERNET"])
         else:
-            if is_colab:  # For a colab notebook, create a public link even if
-                # share is False.
-                share_url = networking.setup_tunnel(server_port)
-                print("Running on External URL:", share_url)
-                if self.verbose:
-                    print(strings.en["COLAB_NO_LOCAL"])
-            else:  # If it's not a colab notebook and share=False, print a message telling them about the share option.
-                print("To get a public link for a hosted model, "
-                      "set Share=True")
-                if self.verbose:
-                    print(strings.en["PUBLIC_SHARE_TRUE"])
-                share_url = None
+            print("To get a public link for a hosted model, "
+                    "set Share=True")
+            if self.verbose:
+                print(strings.en["PUBLIC_SHARE_TRUE"])
+            share_url = None
 
         if inline is None:
             inline = utils.ipython_check()
@@ -373,20 +398,7 @@ class Interface:
             else:
                 display(IFrame(path_to_local_server, width=1000, height=500))
 
-        config = self.get_config_file()
-        config["share_url"] = share_url
-
-        processed_examples = []
-        if self.examples is not None:
-            for example_set in self.examples:
-                processed_set = []
-                for iface, example in zip(self.input_interfaces, example_set):
-                    processed_set.append(iface.process_example(example))
-                processed_examples.append(processed_set)
-            config["examples"] = processed_examples
-
-        networking.set_config(config, output_directory)
-        networking.set_meta_tags(output_directory, self.title, self.description, self.thumbnail)
+        r = requests.get(path_to_local_server + "enable_sharing/" + (share_url or "None"))
 
         if debug:
             while True:
@@ -394,14 +406,15 @@ class Interface:
                 time.sleep(0.1)
 
         launch_method = 'browser' if inbrowser else 'inline'
-        data = {'launch_method': launch_method,
+
+        if self.analytics_enabled:
+            data = {
+                'launch_method': launch_method,
                 'is_google_colab': is_colab,
                 'is_sharing_on': share,
                 'share_url': share_url,
                 'ip_address': ip_address
-                }
-
-        if self.analytics_enabled:
+            }
             try:
                 requests.post(analytics_url + 'gradio-launched-analytics/',
                               data=data)
@@ -412,7 +425,7 @@ class Interface:
         if not is_in_interactive_mode:
             self.run_until_interrupted(thread, path_to_local_server)
 
-        return httpd, path_to_local_server, share_url
+        return app, path_to_local_server, share_url
 
 
 def reset_all():

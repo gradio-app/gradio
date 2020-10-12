@@ -5,7 +5,7 @@ except ImportError:
 
 setup(
     name='gradio',
-    version='1.1.9',
+    version='1.2.4',
     include_package_data=True,
     description='Python library for easily interacting with trained machine learning models',
     author='Abubakar Abid',
@@ -16,6 +16,8 @@ setup(
     install_requires=[
         'numpy',
         'requests',
+        'Flask==1.1.1',
+        'Flask-Cors==3.0.8',
         'paramiko',
         'scipy',
         'IPython',

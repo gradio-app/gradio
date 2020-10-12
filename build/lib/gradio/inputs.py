@@ -83,7 +83,7 @@ class Textbox(InputComponent):
         elif self.type == "number":
             return float(x)
         else:
-            raise ValueError("Unknown type: " + self.type + ". Please choose from: 'str', 'number'.")
+            raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'str', 'number'.")
 
 
 class Slider(InputComponent):
@@ -179,7 +179,7 @@ class CheckboxGroup(InputComponent):
         elif self.type == "index":
             return [self.choices.index(choice) for choice in x]
         else:
-            raise ValueError("Unknown type: " + self.type + ". Please choose from: 'value', 'index'.")
+            raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'value', 'index'.")
 
 
 class Radio(InputComponent):
@@ -212,7 +212,7 @@ class Radio(InputComponent):
         elif self.type == "index":
             return self.choices.index(x)
         else:
-            raise ValueError("Unknown type: " + self.type + ". Please choose from: 'value', 'index'.")
+            raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'value', 'index'.")
 
 
 class Dropdown(InputComponent):
@@ -245,7 +245,7 @@ class Dropdown(InputComponent):
         elif self.type == "index":
             return self.choices.index(x)
         else:
-            raise ValueError("Unknown type: " + self.type + ". Please choose from: 'value', 'index'.")
+            raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'value', 'index'.")
 
 
 class Image(InputComponent):
@@ -292,6 +292,7 @@ class Image(InputComponent):
 
     def preprocess(self, x):
         im = processing_utils.decode_base64_to_image(x)
+        fmt = im.format
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             im = im.convert(self.image_mode)
@@ -305,11 +306,11 @@ class Image(InputComponent):
         elif self.type == "numpy":
             return np.array(im)
         elif self.type == "file":
-            file_obj = tempfile.NamedTemporaryFile()
+            file_obj = tempfile.NamedTemporaryFile(suffix="."+fmt)
             im.save(file_obj.name)
             return file_obj
         else:
-            raise ValueError("Unknown type: " + self.type + ". Please choose from: 'numpy', 'pil', 'file'.")
+            raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'numpy', 'pil', 'file'.")
 
     def rebuild(self, dir, data):
         """
@@ -394,7 +395,7 @@ class File(InputComponent):
         elif self.type == "bytes":
             return processing_utils.decode_base64_to_binary(x)
         else:
-            raise ValueError("Unknown type: " + self.type + ". Please choose from: 'file', 'bytes'.")
+            raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'file', 'bytes'.")
 
 
 class Dataframe(InputComponent):
@@ -449,13 +450,13 @@ class Dataframe(InputComponent):
             else:
                 return pd.DataFrame(x)
         if self.col_count == 1:
-            x = x[0]
+            x = [row[0] for row in x]
         if self.type == "numpy":
             return np.array(x)
         elif self.type == "array":
             return x
         else:
-            raise ValueError("Unknown type: " + self.type + ". Please choose from: 'pandas', 'numpy', 'array'.")
+            raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'pandas', 'numpy', 'array'.")
 
 #######################
 # DEPRECATED COMPONENTS
