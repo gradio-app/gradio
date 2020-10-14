@@ -4,7 +4,9 @@ const slider = {
       <div class="slider">
         <div class="ui-slider-handle"></div>
       </div>
-    </div>`,
+    </div>
+    <div class="interpret_range"></div>
+    `,
   init: function(opts) {
     let io = this;
     this.minimum = opts.minimum;
@@ -25,8 +27,21 @@ const slider = {
     let value = this.slider.slider("value");
     this.io_master.input(this.id, parseFloat(value));
   },
+  show_interpretation: function(data) {
+    this.target.find(".slider_container").hide();
+    let html = ""
+    for (let value of data) {
+      html += `
+        <div title="${value}"
+          style='background-color: ${getSaliencyColor(value)}'>
+        </div>      `
+    }
+    this.target.find(".interpret_range").html(html);
+  },
   clear: function() {
     this.target.find("input").val(this.default);
+    this.target.find(".slider_container").show();
+    this.target.find(".interpret_range").empty();
   },
   load_example: function(data) {
     this.target.find(".slider").slider("option", "value", data)

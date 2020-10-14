@@ -13,3 +13,11 @@
     font-weight: bold;
     outline: none !important;
 }
+.interpret_range {
+    width: 100%;
+    display: flex;
+}
+.interpret_range > div {
+    height: 24px;
+    flex-grow: 1;
+}
