@@ -74,6 +74,15 @@ function paintSaliency(data, ctx, width, height) {
   })
 }
 
+function getSaliencyColor(value) {
+  if (value < 0) {
+    var color = [0, 0, 255];
+  } else {
+    var color = [255, 0, 0];
+  }
+  return colorToString(interpolate(value, [255,255,255], color));
+}
+
 function getObjectFitSize(contains /* true = contain, false = cover */, containerWidth, containerHeight, width, height){
   var doRatio = width / height;
   var cRatio = containerWidth / containerHeight;
@@ -103,7 +112,7 @@ function interpolate(val, rgb1, rgb2) {
   var rgb = [0,0,0];
   var i;
   for (i = 0; i < 3; i++) {
-    rgb[i] = rgb1[i] * (1.0 - val) + rgb2[i] * val;
+    rgb[i] = Math.round(rgb1[i] * (1.0 - val) + rgb2[i] * val);
   }
   return rgb;
 }

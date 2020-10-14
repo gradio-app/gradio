@@ -8,7 +8,9 @@ const radio = {
         <label for="${this.id}_${index}">
           <input id="${this.id}_${index}" type="radio" name="${this.id}" value="${index}">
           ${choice}
-        </label>`;
+        </label>
+        <div style='display: inline-block' class="interpretation"></div>        
+      `;
     }
     html += "</div>"
     this.target.html(html);
@@ -20,7 +22,18 @@ const radio = {
     checked_val = this.target.find("input:checked").val();
     this.io_master.input(this.id, this.choices[checked_val]);
   },
+  show_interpretation: function(data) {
+    console.log(data)
+    for (let i = 0; i < data.length; i++) {
+      let html = `<div class='interpret_check' title='${data[i]}'
+        style='background-color: ${getSaliencyColor(data[i])}'>
+          +
+        </div>`
+      this.target.find(".interpretation").eq(i).html(html);
+    }
+  },
   clear: function() {
+    this.target.find(".interpretation").empty();    
     this.target.find("input").prop("checked", false);    
     this.target.find("label:first-child input").prop("checked", true);    
     this.target.find("input").button("refresh");  

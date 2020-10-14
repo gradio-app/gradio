@@ -27,6 +27,7 @@ const audio_input = {
       </div>
       <div class="player hidden">
         <div class="waveform"></div>
+        <div class="interpret_range"></div>
         <button class="playpause primary">Play / Pause</button>
       </div>
     </div>
@@ -137,6 +138,17 @@ const audio_input = {
       this.state = "STOP_RECORDING";
       this.target.find(".upload_zone").mousedown();
     }
+  },
+  show_interpretation: function(data) {
+    this.target.find(".slider_container").hide();
+    let html = ""
+    for (let value of data) {
+      html += `
+        <div title="${value}"
+          style='background-color: ${getSaliencyColor(value)}'>
+        </div>      `
+    }
+    this.target.find(".interpret_range").html(html);
   },
   clear: function() {
     this.audio_data = null;

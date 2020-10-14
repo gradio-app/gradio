@@ -4,8 +4,6 @@ class Component():
     """
 
     def __init__(self, label):
-        if label is None:
-            label = self.__class__.__name__
         self.label = label
 
     def get_template_context(self):
