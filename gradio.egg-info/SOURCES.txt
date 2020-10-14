@@ -121,4 +121,5 @@ gradio/static/js/vendor/white-theme.js
 gradio/templates/index.html
 test/test_inputs.py
 test/test_interfaces.py
+test/test_interpretation.py
 test/test_outputs.py

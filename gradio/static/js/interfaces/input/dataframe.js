@@ -41,7 +41,7 @@ const dataframe_input = {
     let data = this.table.getData();
     if (this.datatype) {
       for (let i = 0; i < data[0].length; i++) {
-        if (this.datatype == "number" || (i < this.datatype.length && this.datatype[i].type == "number")) {
+        if (this.datatype == "number" || (i < this.datatype.length && this.datatype[i] == "number")) {
           for (let j = 0; j < data.length; j++) {
             let val = data[j][i];
             data[j][i] = val == "" ? 0 : parseFloat(val);

@@ -14,19 +14,25 @@ from gradio.component import Component
 import base64
 import numpy as np
 import PIL
+from skimage.segmentation import slic
 import scipy.io.wavfile
 from gradio import processing_utils, test_data
 import pandas as pd
 import math
 import tempfile
+from pandas.api.types import is_bool_dtype, is_numeric_dtype, is_string_dtype
 
 
 class InputComponent(Component):
     """
     Input Component. All input components subclass this.
     """
-    pass
+    def __init__(self, label):
+        self.interpret_with()
+        super().__init__(label)
 
+    def interpret_with(self):
+        pass
 
 class Textbox(InputComponent):
     """
@@ -85,6 +91,26 @@ class Textbox(InputComponent):
         else:
             raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'str', 'number'.")
 
+    def interpret_with(separator=" ", replacement=None):
+        self.interpretation_separator = separator
+        self.interpretation_replacement = replacement
+    
+    def get_interpretation_neighbors(self, x):
+        tokens = x.split(self.interpretation_separator)
+        leave_one_out_strings = []
+        for index in range(len(tokens)):
+            leave_one_out_set = list(tokens)
+            if self.interpretation_replacement is None:
+                leave_one_out_set.pop(index)
+            else:
+                leave_one_out_set[index] = self.interpretation_replacement
+            leave_one_out_string.append("".join(leave_one_out_set))
+        return leave_one_out_strings, {}
+    
+    def get_interpretation_scores(self, x, scores):
+        tokens = x.split(self.interpretation_separator)
+        return list(zip(tokens, scores))
+
 
 class Slider(InputComponent):
     """
@@ -127,6 +153,15 @@ class Slider(InputComponent):
             "slider": {},
         }
 
+    def interpret_with(self, steps=8):
+        self.interpretation_steps = steps
+
+    def get_interpretation_neighbors(self, x):
+        return np.linspace(self.minimum, self.maximum, self.interpretation_steps).tolist(), {}
+
+    def get_interpretation_scores(self, x, scores):
+        return scores
+
 
 class Checkbox(InputComponent):
     """
@@ -147,6 +182,15 @@ class Checkbox(InputComponent):
         return {
             "checkbox": {},
         }
+
+    def get_interpretation_neighbors(self, x):
+        return [not x], {}
+
+    def get_interpretation_scores(self, x, scores):
+        if x:
+            return scores[0], 0
+        else:
+            return 0, scores[0]
 
 
 class CheckboxGroup(InputComponent):
@@ -181,6 +225,27 @@ class CheckboxGroup(InputComponent):
         else:
             raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'value', 'index'.")
 
+    def get_interpretation_neighbors(self, x):
+        leave_one_out_sets = []
+        for choice in self.choices:
+            leave_one_out_set = list(x)
+            if choice in leave_one_out_set:
+                leave_one_out_set.remove(choice)
+            else:
+                leave_one_out_set.append(choice)
+            leave_one_out_sets.append(leave_one_out_set)
+        return leave_one_out_sets, {}
+
+    def get_interpretation_scores(self, x, scores):
+        final_scores = []
+        for choice, score in zip(self.choices, scores):
+            if choice in x:
+                score_set = [score, 0]
+            else:
+                score_set = [0, score]
+            final_scores.append(score_set)
+        return final_scores
+
 
 class Radio(InputComponent):
     """
@@ -214,6 +279,15 @@ class Radio(InputComponent):
         else:
             raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'value', 'index'.")
 
+    def get_interpretation_neighbors(self, x):
+        choices = list(self.choices)
+        choices.remove(x)
+        return choices, {}
+
+    def get_interpretation_scores(self, x, scores):        
+        scores.insert(self.choices.index(x), 0)        
+        return scores
+
 
 class Dropdown(InputComponent):
     """
@@ -246,6 +320,15 @@ class Dropdown(InputComponent):
             return self.choices.index(x)
         else:
             raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'value', 'index'.")
+
+    def get_interpretation_neighbors(self, x):
+        choices = list(self.choices)
+        choices.remove(x)
+        return choices, {}
+
+    def get_interpretation_scores(self, x, scores):
+        scores.insert(self.choices.index(x), 0)
+        return scores
 
 
 class Image(InputComponent):
@@ -322,6 +405,36 @@ class Image(InputComponent):
         im.save(f'{dir}/{filename}', 'PNG')
         return filename
 
+    def interpret_with(segments=16):
+        self.interpretation_segments = segments
+
+    def get_interpretation_neighbors(self, x):
+        x = processing_utils.decode_base64_to_image(x)
+        x = np.array(x)
+        segments_slic = slic(x, self.interpretation_segments, compactness=10, sigma=1)
+        leave_one_out_tokens, masks = [], []
+        replace_color = np.mean(image, axis=(0, 1))
+        for (i, segVal) in enumerate(np.unique(segments_slic)):
+            mask = segments_slic == segVal
+            white_screen = np.copy(image)
+            white_screen[segments_slic == segVal] = replace_color
+            leave_one_out_tokens.append(
+                processing_utils.encode_array_to_base64(white_screen))
+            masks.append(masks)
+        return leave_one_out_tokens, {"masks": masks}
+
+    def get_interpretation_scores(self, x, scores, masks):
+        x = processing_utils.decode_base64_to_image(x)
+        output_scores = np.zeros((x.shape[0], x.shape[1]))
+
+        for score, mask in zip(scores, masks):
+            output_scores += score * mask
+
+        max_val, min_val = np.max(output_scores), np.min(output_scores)
+        if max_val > 0:
+            output_scores = (output_scores - min_val) / (max_val - min_val)
+        return output_scores.tolist()
+
 
 class Audio(InputComponent):
     """
@@ -365,6 +478,30 @@ class Audio(InputComponent):
             return scipy.io.wavfile.read(file_obj.name)
         elif self.type == "mfcc":
             return processing_utils.generate_mfcc_features_from_audio_file(file_obj.name)
+
+    def interpret_with(self, segments=8):
+        self.interpretation_segments = segments
+    
+    def get_interpretation_neighbors(self, x):
+        file_obj = processing_utils.decode_base64_to_file(x)
+        x = scipy.io.wavfile.read(file_obj.name)
+        sample_rate, data = x
+        leave_one_out_sets = []
+        duration = data.shape[0]
+        boundaries = np.linspace(0, duration, self.interpretation_segments + 1).tolist()
+        boundaries = [round(boundary) for boundary in boundaries]
+        for index in range(len(boundaries) - 1):
+            leave_one_out_data = np.copy(data)
+            start, stop = boundaries[index], boundaries[index + 1]
+            leave_one_out_data[start:stop] = 0
+            file = tempfile.NamedTemporaryFile()
+            scipy.io.wavfile.write(file, sample_rate, leave_one_out_data)                
+            out_data = processing_utils.encode_file_to_base64(file.name, type="audio", ext="wav")
+            leave_one_out_sets.append(out_data)
+        return leave_one_out_sets, {}
+
+    def get_interpretation_scores(self, x, scores):
+        return scores
 
 
 class File(InputComponent):
@@ -457,6 +594,27 @@ class Dataframe(InputComponent):
             return x
         else:
             raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'pandas', 'numpy', 'array'.")
+
+    def get_interpretation_neighbors(self, x):
+        x = pd.DataFrame(x)
+        leave_one_out_sets = []
+        shape = x.shape
+        for i in range(shape[0]):
+            for j in range(shape[1]):
+                scalar = x.iloc[i, j]
+                leave_one_out_df = x.copy()
+                if is_bool_dtype(scalar):
+                    leave_one_out_df.iloc[i, j] = not scalar
+                elif is_numeric_dtype(scalar):
+                    leave_one_out_df.iloc[i, j] = 0
+                elif is_string_dtype(scalar):
+                    leave_one_out_df.iloc[i, j] = ""
+                leave_one_out_sets.append(leave_one_out_df.values.tolist())
+        return leave_one_out_sets, {"shape": x.shape}
+
+    def get_interpretation_scores(self, x, scores, shape):
+        return np.array(scores).reshape((shape)).tolist()
+
 
 #######################
 # DEPRECATED COMPONENTS

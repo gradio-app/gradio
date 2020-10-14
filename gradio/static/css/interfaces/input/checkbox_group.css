@@ -18,3 +18,9 @@
   padding-left: 11px;
   padding-right: 3px;
 }
+.interpret_check {
+  display: inline-block;
+  padding: 4px 8px;
+  font-family: monospace;
+  font-weight: bold;
+}
