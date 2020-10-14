@@ -930,7 +930,7 @@ fabric.Collection = {
 
     /**
      * Returns true if context has transparent pixel
-     * at specified location (taking tolerance into account)
+     * at specified location (taking TOLERANCE into account)
      * @param {CanvasRenderingContext2D} ctx context
      * @param {Number} x x coordinate
      * @param {Number} y y coordinate
@@ -938,7 +938,7 @@ fabric.Collection = {
      */
     isTransparent: function(ctx, x, y, tolerance) {
 
-      // If tolerance is > 0 adjust start coords to take into account.
+      // If TOLERANCE is > 0 adjust start coords to take into account.
       // If moves off Canvas fix to 0
       if (tolerance > 0) {
         if (x > tolerance) {
@@ -959,7 +959,7 @@ fabric.Collection = {
           imageData = ctx.getImageData(x, y, (tolerance * 2) || 1, (tolerance * 2) || 1),
           l = imageData.data.length;
 
-      // Split image data - for tolerance > 1, pixelDataSize = 4;
+      // Split image data - for TOLERANCE > 1, pixelDataSize = 4;
       for (i = 3; i < l; i += 4) {
         temp = imageData.data[i];
         _isTransparent = temp <= 0;

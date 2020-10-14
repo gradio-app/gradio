@@ -23,7 +23,7 @@ io = gr.Interface(
         " ": "none",
     }), server_port=7860)
 
-# gr.reset_all()
 io.test_launch()
-io.launch()
-io.close()
+
+if __name__ == "__main__":
+    io.launch()
