@@ -2,13 +2,12 @@ version: 2
 jobs:
   build:
     docker:
-#      - image: circleci/python:3.7.2
-      - image: selenium/standalone-chrome:3.1.0
+      - image: circleci/python:3.7.2
     steps:
       - checkout
       - run: mkdir test-reports
-#      - restore_cache:
-#          key: deps1-{{ .Branch }}-{{ checksum "gradio.egg-info/requires.txt" }}
+      - restore_cache:
+          key: deps1-{{ .Branch }}-{{ checksum "gradio.egg-info/requires.txt" }}
       - run:
           name: Install Python deps in a venv
           command: |
@@ -16,6 +15,7 @@ jobs:
             . venv/bin/activate
             pip install -r gradio.egg-info/requires.txt
             pip install selenium
+            pip install chromedriver_installer --install-option="--chromedriver-version=2.10" --install-option="--chromedriver-checksums=4fecc99b066cb1a346035bf022607104,058cd8b7b4b9688507701b5e648fd821"
       - save_cache:
           key: deps1-{{ .Branch }}-{{ checksum "gradio.egg-info/requires.txt" }}
           paths:
