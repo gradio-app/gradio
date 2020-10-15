@@ -91,7 +91,7 @@ class Textbox(InputComponent):
         else:
             raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'str', 'number'.")
 
-    def interpret_with(separator=" ", replacement=None):
+    def interpret_with(self, separator=" ", replacement=None):
         self.interpretation_separator = separator
         self.interpretation_replacement = replacement
     
@@ -104,12 +104,16 @@ class Textbox(InputComponent):
                 leave_one_out_set.pop(index)
             else:
                 leave_one_out_set[index] = self.interpretation_replacement
-            leave_one_out_string.append("".join(leave_one_out_set))
+            leave_one_out_strings.append(self.interpretation_separator.join(leave_one_out_set))
         return leave_one_out_strings, {}
     
     def get_interpretation_scores(self, x, scores):
         tokens = x.split(self.interpretation_separator)
-        return list(zip(tokens, scores))
+        result = []
+        for token, score in zip(tokens, scores):
+            result.append((token, score))
+            result.append((self.interpretation_separator, 0))
+        return result
 
 
 class Slider(InputComponent):
@@ -405,13 +409,13 @@ class Image(InputComponent):
         im.save(f'{dir}/{filename}', 'PNG')
         return filename
 
-    def interpret_with(segments=16):
+    def interpret_with(self, segments=16):
         self.interpretation_segments = segments
 
     def get_interpretation_neighbors(self, x):
         x = processing_utils.decode_base64_to_image(x)
-        x = np.array(x)
-        segments_slic = slic(x, self.interpretation_segments, compactness=10, sigma=1)
+        image = np.array(x)
+        segments_slic = slic(image, self.interpretation_segments, compactness=10, sigma=1)
         leave_one_out_tokens, masks = [], []
         replace_color = np.mean(image, axis=(0, 1))
         for (i, segVal) in enumerate(np.unique(segments_slic)):
@@ -420,11 +424,12 @@ class Image(InputComponent):
             white_screen[segments_slic == segVal] = replace_color
             leave_one_out_tokens.append(
                 processing_utils.encode_array_to_base64(white_screen))
-            masks.append(masks)
+            masks.append(mask)
         return leave_one_out_tokens, {"masks": masks}
 
     def get_interpretation_scores(self, x, scores, masks):
         x = processing_utils.decode_base64_to_image(x)
+        x = np.array(x)
         output_scores = np.zeros((x.shape[0], x.shape[1]))
 
         for score, mask in zip(scores, masks):
