@@ -7,8 +7,8 @@ jobs:
     steps:
       - checkout
       - run: mkdir test-reports
-      - restore_cache:
-          key: deps1-{{ .Branch }}-{{ checksum "gradio.egg-info/requires.txt" }}
+#      - restore_cache:
+#          key: deps1-{{ .Branch }}-{{ checksum "gradio.egg-info/requires.txt" }}
       - run:
           name: Install Python deps in a venv
           command: |
