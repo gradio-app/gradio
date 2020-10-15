@@ -9,8 +9,6 @@ import requests
 from matplotlib.testing.compare import compare_images
 import random
 import os
-import sys
-sys.path.insert(0, "../demo/")
 
 LOCAL_HOST = "http://localhost:{}"
 GOLDEN_PATH = "test/golden/{}/{}.png"
@@ -136,11 +134,13 @@ class TestDemo(unittest.TestCase):
         elem.send_keys(os.path.join(cwd, rel))
         golden_img = GOLDEN_PATH.format("image_mod", "cheetah1")
         tmp = "test/tmp/{}.png".format(random.getrandbits(32))
-        elem = WebDriverWait(driver, timeout).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR,
+        WebDriverWait(driver, timeout).until(
+            EC.visibility_of_element_located((By.CSS_SELECTOR,
                                             ".output_interface["
-                                            "interface_id='1'] .output_image"))
+                                            "interface_id='1'] "
+                                            ".output_image"))
         )
+
         hide_latency(driver)
         driver.save_screenshot(tmp)
         self.assertIsNone(compare_images(tmp, golden_img, TOLERANCE))
