@@ -2,7 +2,8 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/python:3.7.2
+#      - image: circleci/python:3.7.2
+      - image: selenium/standalone-chrome:3.1.0
     steps:
       - checkout
       - run: mkdir test-reports
