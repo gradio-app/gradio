@@ -9,6 +9,7 @@ import requests
 from matplotlib.testing.compare import compare_images
 import random
 import os
+from chromedriver_py import binary_path
 
 LOCAL_HOST = "http://localhost:{}"
 GOLDEN_PATH = "test/golden/{}/{}.png"
@@ -72,7 +73,7 @@ class TestDemo(unittest.TestCase):
         URL = LOCAL_HOST.format(return_dict["port"])
         wait_for_url(URL)
 
-        driver = webdriver.Chrome()
+        driver = webdriver.Chrome(executable_path=binary_path)
         driver.set_window_size(1200, 800)
         driver.get(URL)
         timeout = 10

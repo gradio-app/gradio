@@ -14,8 +14,8 @@ jobs:
             python3 -m venv venv
             . venv/bin/activate
             pip install -r gradio.egg-info/requires.txt
-            sudo apt install chromium-chromedriver
             pip install -U selenium
+            pip install chromedriver-py
       - save_cache:
           key: deps1-{{ .Branch }}-{{ checksum "gradio.egg-info/requires.txt" }}
           paths:
