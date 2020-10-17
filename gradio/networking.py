@@ -163,7 +163,7 @@ def interpret():
 def file(path):
     return send_file(os.path.join(app.cwd, path))
 
-def start_server(interface, server_port=None):
+def start_server(interface, server_name, server_port=None):
     if server_port is None:
         server_port = INITIAL_PORT_VALUE
     port = get_first_available_port(
@@ -173,7 +173,7 @@ def start_server(interface, server_port=None):
     app.cwd = os.getcwd()
     log = logging.getLogger('werkzeug')
     log.setLevel(logging.ERROR)
-    process = threading.Thread(target=app.run, kwargs={"port": port})
+    process = threading.Thread(target=app.run, kwargs={"port": port, "host": server_name})
     process.start()
     return port, app, process
 
