@@ -3,20 +3,19 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-# from selenium.webdriver.chrome.service import Service
 import multiprocessing
 import time
 import requests
 from matplotlib.testing.compare import compare_images
 import random
 import os
-# from chromedriver_py import binary_path
+
+current_dir = os.getcwd()
+print(current_dir)
 
 LOCAL_HOST = "http://localhost:{}"
 GOLDEN_PATH = "test/golden/{}/{}.png"
 TOLERANCE = 0.1
-
-# s = Service(binary_path)
 
 
 def wait_for_url(url):
@@ -105,8 +104,10 @@ class TestDemo(unittest.TestCase):
             time.sleep(0.2)
 
         self.assertEqual(elem.text, "LeWant's tgo see a magic trick?!")
-        golden_img = GOLDEN_PATH.format("diff_texts", "magic_trick")
-        tmp = "test/tmp/{}.png".format(random.getrandbits(32))
+        golden_img = os.path.join(current_dir, GOLDEN_PATH.format(
+            "diff_texts", "magic_trick"))
+        tmp = os.path.join(current_dir, "test/tmp/{}.png".format(
+            random.getrandbits(32)))
         hide_latency(driver)
         driver.save_screenshot(tmp)
         driver.close()
@@ -139,8 +140,10 @@ class TestDemo(unittest.TestCase):
         cwd = os.getcwd()
         rel = "demo/images/cheetah1.jpg"
         elem.send_keys(os.path.join(cwd, rel))
-        golden_img = GOLDEN_PATH.format("image_mod", "cheetah1")
-        tmp = "test/tmp/{}.png".format(random.getrandbits(32))
+        golden_img = os.path.join(current_dir, GOLDEN_PATH.format(
+            "image_mod", "cheetah1"))
+        tmp = os.path.join(current_dir, "test/tmp/{}.png".format(
+            random.getrandbits(32)))
         WebDriverWait(driver, timeout).until(
             EC.visibility_of_element_located((By.CSS_SELECTOR,
                                             ".output_interface["
@@ -181,8 +184,10 @@ class TestDemo(unittest.TestCase):
                                             ".submit"))
         )
         elem.click()
-        golden_img = GOLDEN_PATH.format("longest_word", "wonderful")
-        tmp = "test/tmp/{}.png".format(random.getrandbits(32))
+        golden_img = os.path.join(current_dir, GOLDEN_PATH.format(
+            "longest_word", "wonderful"))
+        tmp = os.path.join(current_dir, "test/tmp/{}.png".format(
+            random.getrandbits(32)))
         hide_latency(driver)
         driver.save_screenshot(tmp)
         driver.close()
@@ -216,8 +221,10 @@ class TestDemo(unittest.TestCase):
                                             "interface_id='5'] .output_text"))
         )
         self.assertEqual(elem.text, "The 2 cats went to the park where they  until the night")
-        golden_img = GOLDEN_PATH.format("sentence_builder", "two_cats")
-        tmp = "test/tmp/{}.png".format(random.getrandbits(32))
+        golden_img = os.path.join(current_dir, GOLDEN_PATH.format(
+            "sentence_builder", "two_cats"))
+        tmp = os.path.join(current_dir, "test/tmp/{}.png".format(
+            random.getrandbits(32)))
         hide_latency(driver)
         driver.save_screenshot(tmp)
         self.assertIsNone(compare_images(tmp, golden_img, TOLERANCE))
