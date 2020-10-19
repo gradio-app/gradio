@@ -103,7 +103,7 @@ class TestDemo(unittest.TestCase):
         )
         while elem.text == "":
             time.sleep(0.2)
-        
+
         self.assertEqual(elem.text, "LeWant's tgo see a magic trick?!")
         golden_img = GOLDEN_PATH.format("diff_texts", "magic_trick")
         tmp = "test/tmp/{}.png".format(random.getrandbits(32))
