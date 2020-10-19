@@ -3,20 +3,20 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.chrome.service import Service
+# from selenium.webdriver.chrome.service import Service
 import multiprocessing
 import time
 import requests
 from matplotlib.testing.compare import compare_images
 import random
 import os
-from chromedriver_py import binary_path
+# from chromedriver_py import binary_path
 
 LOCAL_HOST = "http://localhost:{}"
 GOLDEN_PATH = "test/golden/{}/{}.png"
 TOLERANCE = 0.1
 
-s = Service(binary_path)
+# s = Service(binary_path)
 
 
 def wait_for_url(url):
@@ -76,7 +76,7 @@ class TestDemo(unittest.TestCase):
         URL = LOCAL_HOST.format(return_dict["port"])
         wait_for_url(URL)
 
-        driver = webdriver.Chrome(service=s)
+        driver = webdriver.Chrome()
         driver.set_window_size(1200, 800)
         driver.get(URL)
         timeout = 10

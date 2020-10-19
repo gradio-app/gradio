@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/python:3.7.2
+      - image: circleci/python:3.7.2-browsers
     steps:
       - checkout
       - run: mkdir test-reports
@@ -15,7 +15,6 @@ jobs:
             . venv/bin/activate
             pip install -r gradio.egg-info/requires.txt
             pip install selenium==4.0.0a6.post2
-            pip install chromedriver-py
       - save_cache:
           key: deps1-{{ .Branch }}-{{ checksum "gradio.egg-info/requires.txt" }}
           paths:
