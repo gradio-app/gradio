@@ -20,11 +20,7 @@ import copy
 
 analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
 analytics_url = 'https://api.gradio.app/'
-try:
-    ip_address = requests.get('https://api.ipify.org').text
-except requests.ConnectionError:
-    ip_address = "No internet connection"
-
+ip_address = networking.get_local_ip_address()
 
 class Interface:
     """
@@ -303,7 +299,7 @@ class Interface:
         except (KeyboardInterrupt, OSError):
             print("Keyboard interruption in main thread... closing server.")
             thread.keep_running = False
-            networking.url_ok(path_to_local_server)
+            networking.url_ok(path_to_local_server)  # Hit the server one more time to close it
 
     def test_launch(self):
         for predict_fn in self.predict:
