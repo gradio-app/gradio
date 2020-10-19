@@ -61,6 +61,7 @@ class Interface:
         title (str): a title for the interface; if provided, appears above the input and output components.
         description (str): a description for the interface; if provided, appears above the input and output components.
         thumbnail (str): path to image or src to use as display picture for models listed in gradio.app/hub
+        server_name (str): to make app accessible on local network set to "0.0.0.0".
         allow_screenshot (bool): if False, users will not see a button to take a screenshot of the interface.
         allow_flagging (bool): if False, users will not see a button to flag an input and output.
         flagging_dir (str): what to name the dir where flagged data is stored.
@@ -337,7 +338,7 @@ class Interface:
         networking.set_meta_tags(self.title, self.description, self.thumbnail)
 
         server_port, app, thread = networking.start_server(
-            self, self.server_port)
+            self, self.server_name, self.server_port)
         path_to_local_server = "http://{}:{}/".format(self.server_name, server_port)
         self.server_port = server_port
         self.status = "RUNNING"
