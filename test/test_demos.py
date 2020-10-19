@@ -3,6 +3,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.chrome.service import Service
 import multiprocessing
 import time
 import requests
@@ -14,6 +15,8 @@ from chromedriver_py import binary_path
 LOCAL_HOST = "http://localhost:{}"
 GOLDEN_PATH = "test/golden/{}/{}.png"
 TOLERANCE = 0.1
+
+s = Service(binary_path)
 
 
 def wait_for_url(url):
@@ -73,7 +76,7 @@ class TestDemo(unittest.TestCase):
         URL = LOCAL_HOST.format(return_dict["port"])
         wait_for_url(URL)
 
-        driver = webdriver.Chrome(executable_path=binary_path)
+        driver = webdriver.Chrome(service=s)
         driver.set_window_size(1200, 800)
         driver.get(URL)
         timeout = 10
@@ -98,6 +101,9 @@ class TestDemo(unittest.TestCase):
             EC.presence_of_element_located((By.CSS_SELECTOR,
                                             ".output_interface[interface_id='2'] .output_text"))
         )
+        while elem.text == "":
+            time.sleep(0.2)
+        
         self.assertEqual(elem.text, "LeWant's tgo see a magic trick?!")
         golden_img = GOLDEN_PATH.format("diff_texts", "magic_trick")
         tmp = "test/tmp/{}.png".format(random.getrandbits(32))
