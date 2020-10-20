@@ -10,6 +10,9 @@ from matplotlib.testing.compare import compare_images
 import random
 import os
 
+current_dir = os.getcwd()
+print(current_dir)
+
 LOCAL_HOST = "http://localhost:{}"
 GOLDEN_PATH = "test/golden/{}/{}.png"
 TOLERANCE = 0.1
