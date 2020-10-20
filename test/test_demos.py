@@ -184,6 +184,13 @@ class TestDemo(unittest.TestCase):
                                             ".submit"))
         )
         elem.click()
+        elem = WebDriverWait(driver, timeout).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR,
+                                            ".output_interface["
+                                            "interface_id='1'] .output_class"))
+        )
+        while elem.text == "":
+            time.sleep(0.2)
         golden_img = os.path.join(current_dir, GOLDEN_PATH.format(
             "longest_word", "wonderful"))
         tmp = os.path.join(current_dir, "test/tmp/{}.png".format(
