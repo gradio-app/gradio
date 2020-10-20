@@ -26,7 +26,7 @@ jobs:
       - run:
           command: |
             mkdir /tmp/artifacts/
-            cp `find /test/golden/ -name "*.png"` /tmp/artifacts/
+            cp `find /home/circleci/project/test/golden/ -name "*.png"` /tmp/artifacts/
       - store_artifacts:
           path: /tmp/artifacts/
           destination: screenshots
