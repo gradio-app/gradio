@@ -109,7 +109,7 @@ class TestDemo(unittest.TestCase):
         tmp = os.path.join(current_dir, "test/tmp/{}.png".format(
             random.getrandbits(32)))
         hide_latency(driver)
-        driver.save_screenshot("tmp/magic_trick.png")
+        driver.save_screenshot("screenshots/magic_trick.png")
         driver.close()
         # self.assertIsNone(compare_images(golden_img, golden_img, TOLERANCE))
         # os.remove(tmp)
@@ -152,7 +152,7 @@ class TestDemo(unittest.TestCase):
         )
 
         hide_latency(driver)
-        driver.save_screenshot("tmp/cheetah1.png")
+        driver.save_screenshot("screenshots/cheetah1.png")
         # self.assertIsNone(compare_images(golden_img, golden_img, TOLERANCE))
         # os.remove(tmp)
         driver.close()
@@ -189,7 +189,7 @@ class TestDemo(unittest.TestCase):
         tmp = os.path.join(current_dir, "test/tmp/{}.png".format(
             random.getrandbits(32)))
         hide_latency(driver)
-        driver.save_screenshot("tmp/wonderful.png")
+        driver.save_screenshot("screenshots/wonderful.png")
         driver.close()
         # self.assertIsNone(compare_images(tmp, golden_img, TOLERANCE))
         # os.remove(tmp)
@@ -232,9 +232,10 @@ class TestDemo(unittest.TestCase):
         # self.assertIsNone(compare_images(tmp, golden_img, TOLERANCE))
         # os.remove(tmp)
         driver.close()
-        if os.path.exists("tmp/two_cats.png"):
+        if os.path.exists("screenshots/two_cats.png"):
             print("##################")
             print("SAVED CORRECTLY")
+            print("CWD: ", str(os.getcwd()))
             print("##################")
         else:
             print("##################")
