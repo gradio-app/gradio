@@ -177,7 +177,7 @@ class TestDemo(unittest.TestCase):
             EC.presence_of_element_located((By.CSS_SELECTOR,
                                             ".input_interface[interface_id='0'] .input_text"))
         )
-        elem.send_keys("Gradio is the most wonderful machine learning "
+        elem.send_keys("This is the most wonderful machine learning "
                        "library.")
         elem = WebDriverWait(driver, timeout).until(
             EC.presence_of_element_located((By.CSS_SELECTOR,
