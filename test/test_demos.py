@@ -228,7 +228,7 @@ class TestDemo(unittest.TestCase):
         tmp = os.path.join(current_dir, "test/tmp/{}.png".format(
             random.getrandbits(32)))
         hide_latency(driver)
-        driver.save_screenshot("tmp/two_cats.png")
+        driver.save_screenshot("screenshots/two_cats.png")
         # self.assertIsNone(compare_images(tmp, golden_img, TOLERANCE))
         # os.remove(tmp)
         driver.close()
