@@ -21,14 +21,14 @@ jobs:
             - "venv"
       - run:
           command: |
-            mkdir /tmp/artifacts/
+            mkdir tmp
       - run:
           command: |
             . venv/bin/activate
             echo $PWD
             python3 -m unittest
       - store_artifacts:
-          path: /tmp/artifacts
+          path: /tmp/
           destination: screenshots
       - store_test_results:
           path: test-reports/
