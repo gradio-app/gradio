@@ -10,9 +10,6 @@ from matplotlib.testing.compare import compare_images
 import random
 import os
 
-current_dir = os.getcwd()
-print(current_dir)
-
 LOCAL_HOST = "http://localhost:{}"
 GOLDEN_PATH = "test/golden/{}/{}.png"
 TOLERANCE = 0.1
@@ -109,10 +106,10 @@ class TestDemo(unittest.TestCase):
         tmp = os.path.join(current_dir, "test/tmp/{}.png".format(
             random.getrandbits(32)))
         hide_latency(driver)
-        driver.save_screenshot("screenshots/magic_trick.png")
+        driver.save_screenshot(tmp)
         driver.close()
-        # self.assertIsNone(compare_images(golden_img, golden_img, TOLERANCE))
-        # os.remove(tmp)
+        self.assertIsNone(compare_images(tmp, golden_img, TOLERANCE))
+        os.remove(tmp)
 
     def test_image_mod(self):
         manager = multiprocessing.Manager()
@@ -152,9 +149,9 @@ class TestDemo(unittest.TestCase):
         )
 
         hide_latency(driver)
-        driver.save_screenshot("screenshots/cheetah1.png")
-        # self.assertIsNone(compare_images(golden_img, golden_img, TOLERANCE))
-        # os.remove(tmp)
+        driver.save_screenshot(tmp)
+        self.assertIsNone(compare_images(tmp, golden_img, TOLERANCE))
+        os.remove(tmp)
         driver.close()
 
     def test_longest_word(self):
@@ -196,10 +193,10 @@ class TestDemo(unittest.TestCase):
         tmp = os.path.join(current_dir, "test/tmp/{}.png".format(
             random.getrandbits(32)))
         hide_latency(driver)
-        driver.save_screenshot("screenshots/wonderful.png")
+        driver.save_screenshot(tmp)
         driver.close()
-        # self.assertIsNone(compare_images(tmp, golden_img, TOLERANCE))
-        # os.remove(tmp)
+        self.assertIsNone(compare_images(tmp, golden_img, TOLERANCE))
+        os.remove(tmp)
 
     def test_sentence_builder(self):
         manager = multiprocessing.Manager()
@@ -235,19 +232,10 @@ class TestDemo(unittest.TestCase):
         tmp = os.path.join(current_dir, "test/tmp/{}.png".format(
             random.getrandbits(32)))
         hide_latency(driver)
-        driver.save_screenshot("screenshots/two_cats.png")
-        # self.assertIsNone(compare_images(tmp, golden_img, TOLERANCE))
-        # os.remove(tmp)
+        driver.save_screenshot(tmp)
+        self.assertIsNone(compare_images(tmp, golden_img, TOLERANCE))
+        os.remove(tmp)
         driver.close()
-        if os.path.exists("screenshots/two_cats.png"):
-            print("##################")
-            print("SAVED CORRECTLY")
-            print("CWD: ", str(os.getcwd()))
-            print("##################")
-        else:
-            print("##################")
-            print("NOT SAVED")
-            print("##################")
 
     def tearDown(self):
         self.i_thread.terminate()
