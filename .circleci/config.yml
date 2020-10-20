@@ -25,6 +25,7 @@ jobs:
       - run:
           command: |
             . venv/bin/activate
+            echo $PWD
             python3 -m unittest
       - store_artifacts:
           path: /tmp/artifacts
