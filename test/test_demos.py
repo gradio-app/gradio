@@ -234,6 +234,10 @@ class TestDemo(unittest.TestCase):
         driver.close()
         if os.path.exists("tmp/artifacts/two_cats.png"):
             print("SAVED CORRECTLY")
+        else:
+            print("##################")
+            print("NOT SAVED")
+            print("##################")
 
     def tearDown(self):
         self.i_thread.terminate()
