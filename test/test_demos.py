@@ -76,7 +76,7 @@ class TestDemo(unittest.TestCase):
         wait_for_url(URL)
 
         driver = webdriver.Chrome()
-        driver.set_window_size(2400, 1354)
+        driver.set_window_size(2400, 1470)
         driver.get(URL)
         timeout = 10
         elem = WebDriverWait(driver, timeout).until(
@@ -127,7 +127,7 @@ class TestDemo(unittest.TestCase):
         wait_for_url(URL)
 
         driver = webdriver.Chrome()
-        driver.set_window_size(2400, 1354)
+        driver.set_window_size(2400, 1470)
         driver.get(URL)
         timeout = 10
         elem = WebDriverWait(driver, timeout).until(
@@ -170,7 +170,7 @@ class TestDemo(unittest.TestCase):
         wait_for_url(URL)
 
         driver = webdriver.Chrome()
-        driver.set_window_size(2400, 1354)
+        driver.set_window_size(2400, 1470)
         driver.get(URL)
         timeout = 10
         elem = WebDriverWait(driver, timeout).until(
@@ -207,7 +207,7 @@ class TestDemo(unittest.TestCase):
         wait_for_url(URL)
 
         driver = webdriver.Chrome()
-        driver.set_window_size(2400, 1354)
+        driver.set_window_size(2400, 1470)
         driver.get(URL)
         timeout = 10
         elem = WebDriverWait(driver, timeout).until(
