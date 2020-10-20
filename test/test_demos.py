@@ -109,7 +109,7 @@ class TestDemo(unittest.TestCase):
         tmp = os.path.join(current_dir, "test/tmp/{}.png".format(
             random.getrandbits(32)))
         hide_latency(driver)
-        driver.save_screenshot(golden_img)
+        driver.save_screenshot("tmp/artifacts/magic_trick.png")
         driver.close()
         # self.assertIsNone(compare_images(golden_img, golden_img, TOLERANCE))
         # os.remove(tmp)
@@ -152,7 +152,7 @@ class TestDemo(unittest.TestCase):
         )
 
         hide_latency(driver)
-        driver.save_screenshot(golden_img)
+        driver.save_screenshot("tmp/artifacts/cheetah1.png")
         # self.assertIsNone(compare_images(golden_img, golden_img, TOLERANCE))
         # os.remove(tmp)
         driver.close()
@@ -189,7 +189,7 @@ class TestDemo(unittest.TestCase):
         tmp = os.path.join(current_dir, "test/tmp/{}.png".format(
             random.getrandbits(32)))
         hide_latency(driver)
-        driver.save_screenshot(golden_img)
+        driver.save_screenshot("tmp/artifacts/wonderful.png")
         driver.close()
         # self.assertIsNone(compare_images(tmp, golden_img, TOLERANCE))
         # os.remove(tmp)
@@ -228,7 +228,7 @@ class TestDemo(unittest.TestCase):
         tmp = os.path.join(current_dir, "test/tmp/{}.png".format(
             random.getrandbits(32)))
         hide_latency(driver)
-        driver.save_screenshot(golden_img)
+        driver.save_screenshot("tmp/artifacts/two_cats.png")
         # self.assertIsNone(compare_images(tmp, golden_img, TOLERANCE))
         # os.remove(tmp)
         driver.close()

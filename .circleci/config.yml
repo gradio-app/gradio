@@ -21,12 +21,11 @@ jobs:
             - "venv"
       - run:
           command: |
-            . venv/bin/activate
-            python3 -m unittest
+            mkdir /tmp/artifacts/
       - run:
           command: |
-            mkdir /tmp/artifacts/
-            cp `find /home/circleci/project/test/golden/ -name "*.png"` /tmp/artifacts/
+            . venv/bin/activate
+            python3 -m unittest
       - store_artifacts:
           path: /tmp/artifacts/
           destination: screenshots
