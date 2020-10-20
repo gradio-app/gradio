@@ -232,6 +232,8 @@ class TestDemo(unittest.TestCase):
         # self.assertIsNone(compare_images(tmp, golden_img, TOLERANCE))
         # os.remove(tmp)
         driver.close()
+        if os.path.exists("tmp/artifacts/two_cats.png"):
+            print("SAVED CORRECTLY")
 
     def tearDown(self):
         self.i_thread.terminate()

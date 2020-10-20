@@ -27,7 +27,7 @@ jobs:
             . venv/bin/activate
             python3 -m unittest
       - store_artifacts:
-          path: /tmp/artifacts/
+          path: /tmp/artifacts
           destination: screenshots
       - store_test_results:
           path: test-reports/
