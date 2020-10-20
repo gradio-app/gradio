@@ -220,6 +220,8 @@ class TestDemo(unittest.TestCase):
                                             ".output_interface["
                                             "interface_id='5'] .output_text"))
         )
+        while elem.text == '':
+            time.sleep(0.2)
         self.assertEqual(elem.text, "The 2 cats went to the park where they  until the night")
         golden_img = os.path.join(current_dir, GOLDEN_PATH.format(
             "sentence_builder", "two_cats"))
