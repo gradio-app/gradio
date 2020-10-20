@@ -23,8 +23,12 @@ jobs:
           command: |
             . venv/bin/activate
             python3 -m unittest
+      - run:
+          command: |
+            mkdir /tmp/artifacts/
+            cp `find /test/golden/ -name "*.png"` /tmp/artifacts/
       - store_artifacts:
-          path: /test/tmp/
+          path: /tmp/artifacts/
           destination: screenshots
       - store_test_results:
           path: test-reports/
