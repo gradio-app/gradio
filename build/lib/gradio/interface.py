@@ -6,7 +6,7 @@ interface using the input and output types.
 from gradio.inputs import InputComponent
 from gradio.outputs import OutputComponent
 from gradio import networking, strings, utils
-import gradio.interpretation
+from gradio.interpretation import quantify_difference_in_label
 import requests
 import random
 import time
@@ -251,15 +251,25 @@ class Interface:
         :param raw_input: a list of raw inputs to apply the interpretation(s) on.
         """
         if self.interpretation == "default":
-            interpreter = gradio.interpretation.default()
-            processed_input = []
+            processed_input = [input_interface.preprocess(raw_input[i])
+                            for i, input_interface in enumerate(self.input_interfaces)]
+            original_output = self.run_prediction(processed_input)
+            scores = []
             for i, x in enumerate(raw_input):
-                input_interface = copy.deepcopy(self.input_interfaces[i])
-                interface_type = type(input_interface)
-                if interface_type in gradio.interpretation.expected_types:
-                    input_interface.type = gradio.interpretation.expected_types[interface_type]
-                processed_input.append(input_interface.preprocess(x))
-            interpretation = interpreter(self, processed_input)
+                input_interface = self.input_interfaces[i]
+                neighbor_raw_input = list(raw_input)
+                neighbor_values = input_interface.get_interpretation_neighbors(x)
+                interface_scores = []
+                for neighbor_input in neighbor_values[0]:
+                    neighbor_raw_input[i] = neighbor_input
+                    processed_neighbor_input = [input_interface.preprocess(neighbor_raw_input[i])
+                                    for i, input_interface in enumerate(self.input_interfaces)]
+                    neighbor_output = self.run_prediction(processed_neighbor_input)
+                    interface_scores.append(quantify_difference_in_label(self, original_output, neighbor_output))
+                scores.append(
+                    input_interface.get_interpretation_scores(
+                        raw_input[i], interface_scores, **neighbor_values[1]))
+            return scores
         else:
             processed_input = [input_interface.preprocess(raw_input[i])
                                for i, input_interface in enumerate(self.input_interfaces)]

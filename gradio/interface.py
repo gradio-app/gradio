@@ -6,7 +6,7 @@ interface using the input and output types.
 from gradio.inputs import InputComponent
 from gradio.outputs import OutputComponent
 from gradio import networking, strings, utils
-import gradio.interpretation
+from gradio.interpretation import quantify_difference_in_label
 import requests
 import random
 import time
@@ -20,11 +20,7 @@ import copy
 
 analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
 analytics_url = 'https://api.gradio.app/'
-try:
-    ip_address = requests.get('https://api.ipify.org').text
-except requests.ConnectionError:
-    ip_address = "No internet connection"
-
+ip_address = networking.get_local_ip_address()
 
 class Interface:
     """
@@ -61,6 +57,7 @@ class Interface:
         title (str): a title for the interface; if provided, appears above the input and output components.
         description (str): a description for the interface; if provided, appears above the input and output components.
         thumbnail (str): path to image or src to use as display picture for models listed in gradio.app/hub
+        server_name (str): to make app accessible on local network set to "0.0.0.0".
         allow_screenshot (bool): if False, users will not see a button to take a screenshot of the interface.
         allow_flagging (bool): if False, users will not see a button to flag an input and output.
         flagging_dir (str): what to name the dir where flagged data is stored.
@@ -251,15 +248,25 @@ class Interface:
         :param raw_input: a list of raw inputs to apply the interpretation(s) on.
         """
         if self.interpretation == "default":
-            interpreter = gradio.interpretation.default()
-            processed_input = []
+            processed_input = [input_interface.preprocess(raw_input[i])
+                            for i, input_interface in enumerate(self.input_interfaces)]
+            original_output = self.run_prediction(processed_input)
+            scores = []
             for i, x in enumerate(raw_input):
-                input_interface = copy.deepcopy(self.input_interfaces[i])
-                interface_type = type(input_interface)
-                if interface_type in gradio.interpretation.expected_types:
-                    input_interface.type = gradio.interpretation.expected_types[interface_type]
-                processed_input.append(input_interface.preprocess(x))
-            interpretation = interpreter(self, processed_input)
+                input_interface = self.input_interfaces[i]
+                neighbor_raw_input = list(raw_input)
+                neighbor_values = input_interface.get_interpretation_neighbors(x)
+                interface_scores = []
+                for neighbor_input in neighbor_values[0]:
+                    neighbor_raw_input[i] = neighbor_input
+                    processed_neighbor_input = [input_interface.preprocess(neighbor_raw_input[i])
+                                    for i, input_interface in enumerate(self.input_interfaces)]
+                    neighbor_output = self.run_prediction(processed_neighbor_input)
+                    interface_scores.append(quantify_difference_in_label(self, original_output, neighbor_output))
+                scores.append(
+                    input_interface.get_interpretation_scores(
+                        raw_input[i], interface_scores, **neighbor_values[1]))
+            return scores
         else:
             processed_input = [input_interface.preprocess(raw_input[i])
                                for i, input_interface in enumerate(self.input_interfaces)]
@@ -294,7 +301,7 @@ class Interface:
         except (KeyboardInterrupt, OSError):
             print("Keyboard interruption in main thread... closing server.")
             thread.keep_running = False
-            networking.url_ok(path_to_local_server)
+            networking.url_ok(path_to_local_server)  # Hit the server one more time to close it
 
     def test_launch(self):
         for predict_fn in self.predict:
@@ -329,7 +336,7 @@ class Interface:
         networking.set_meta_tags(self.title, self.description, self.thumbnail)
 
         server_port, app, thread = networking.start_server(
-            self, self.server_port)
+            self, self.server_name, self.server_port)
         path_to_local_server = "http://{}:{}/".format(self.server_name, server_port)
         self.status = "RUNNING"
         self.server = app
