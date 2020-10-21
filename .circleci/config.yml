@@ -21,7 +21,6 @@ jobs:
             - "venv"
       - run:
           command: |
-            echo $PWD
             mkdir screenshots
       - run:
           command: |
