@@ -15,6 +15,7 @@ const dropdown = {
   },
   show_interpretation: function(data) {
     let html = ""
+    let alternate_index = 0;
     for (let i = 0; i < this.choices.length; i++) {
       if (data[i] == null) {
         html += `
@@ -23,9 +24,12 @@ const dropdown = {
           </div>`
       } else {
         html += `
-          <div title='${data[i]}' style='background-color: ${getSaliencyColor(data[i])}'>
+          <div title='${data[i]}' class='alternate' 
+          alternate_index=${alternate_index} 
+          style='background-color: ${getSaliencyColor(data[i])}'>
             ${this.choices[i]}
-          </div>`
+          </div>`;
+        alternate_index++;
       }
     }
     this.target.find(".select_interpretation").html(html);
