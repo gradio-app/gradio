@@ -1,7 +1,7 @@
+# Demo: (Image) -> (Label)
+
 import gradio as gr
 import tensorflow as tf
-# from vis.utils import utils
-# from vis.visualization import visualize_cam
 
 import numpy as np
 from PIL import Image

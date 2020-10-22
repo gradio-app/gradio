@@ -1,7 +1,6 @@
+# Demo: (Textbox) -> (Label)
+
 import gradio as gr
-
-gr.reset_all()
-
 
 def longest_word(text):
     words = text.split(" ")
