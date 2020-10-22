@@ -1,28 +1,26 @@
 import unittest
 import gradio.interpretation
 import gradio.test_data
-from gradio.processing_utils import decode_base64_to_image
+from gradio.processing_utils import decode_base64_to_image, encode_array_to_base64
 from gradio import Interface
 import numpy as np
 
 
 class TestDefault(unittest.TestCase):
-    def setUp(self):
-        self.default_method = gradio.interpretation.default()
-
     def test_default_text(self):
         max_word_len = lambda text: max([len(word) for word in text.split(" ")])
-        text_interface = Interface(max_word_len, "textbox", "label")
-        interpretation = self.default_method(text_interface, ["quickest brown fox"])[0]		
-        self.assertGreater(interpretation[0][1], 0)  # Checks to see if the first letter has >0 score.
-        self.assertEqual(interpretation[-1][1], 0)  # Checks to see if the last letter has 0 score.
+        text_interface = Interface(max_word_len, "textbox", "label", interpretation="default")
+        interpretation = text_interface.interpret(["quickest brown fox"])[0]
+        self.assertGreater(interpretation[0][1], 0)  # Checks to see if the first word has >0 score.
+        self.assertEqual(interpretation[-1][1], 0)  # Checks to see if the last word has 0 score.
 
     def test_default_image(self):
         max_pixel_value = lambda img: img.max()
-        img_interface = Interface(max_pixel_value, "image", "label")
+        img_interface = Interface(max_pixel_value, "image", "number", interpretation="default")
         array = np.zeros((100,100))
         array[0, 0] = 1
-        interpretation = self.default_method(img_interface, [array])[0]
+        img = encode_array_to_base64(array)        
+        interpretation = img_interface.interpret([img])[0]        
         self.assertGreater(interpretation[0][0], 0)  # Checks to see if the top-left has >0 score.
         
 
