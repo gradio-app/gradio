@@ -15,10 +15,11 @@ current_dir = os.getcwd()
 LOCAL_HOST = "http://localhost:{}"
 GOLDEN_PATH = "test/golden/{}/{}.png"
 TOLERANCE = 0.1
+TIMEOUT = 10
 
 
 def wait_for_url(url):
-    for i in range(10):
+    for i in range(TIMEOUT):
         try:
             requests.get(url)
             print("Interface connected.")
@@ -62,48 +63,57 @@ def sentence_builder_thread(return_dict):
 
 
 class TestDemo(unittest.TestCase):
-    def test_diff_texts(self):
+    def setUp(self):
+        driver = webdriver.Chrome()
+        driver.set_window_size(1200, 800)
+
+    def start_test(self, target):
         manager = multiprocessing.Manager()
         return_dict = manager.dict()
-        self.i_thread = multiprocessing.Process(target=diff_texts_thread,
-                                         args=(return_dict,))
+        self.i_thread = multiprocessing.Process(target=target,
+                                                args=(return_dict,))
         self.i_thread.start()
-        total_time = 0
-        while not return_dict and total_time < 10:
+        total_sleep = 0
+        while not return_dict and total_sleep < TIMEOUT:
             time.sleep(0.2)
-            total_time += 0.2
+            total_sleep += 0.2
         URL = LOCAL_HOST.format(return_dict["port"])
         wait_for_url(URL)
 
         driver = webdriver.Chrome()
         driver.set_window_size(1200, 800)
         driver.get(URL)
-        timeout = 10
-        elem = WebDriverWait(driver, timeout).until(
+        
+        return driver
+
+    def test_diff_texts(self):
+        driver = self.start_test(target=diff_texts_thread)
+        elem = WebDriverWait(driver, TIMEOUT).until(
             EC.presence_of_element_located((By.CSS_SELECTOR,
                                             ".input_interface[interface_id='0'] .input_text"))
         )
         elem.clear()
         elem.send_keys("Want to see a magic trick?")
-        elem = WebDriverWait(driver, timeout).until(
+        elem = WebDriverWait(driver, TIMEOUT).until(
             EC.presence_of_element_located((By.CSS_SELECTOR,
                                             ".input_interface[interface_id='1'] .input_text"))
         )
         elem.clear()
         elem.send_keys("Let's go see a magic trick!")
-        elem = WebDriverWait(driver, timeout).until(
+        elem = WebDriverWait(driver, TIMEOUT).until(
             EC.presence_of_element_located((By.CSS_SELECTOR,
                                             ".submit"))
         )
         elem.click()
-        elem = WebDriverWait(driver, timeout).until(
+        elem = WebDriverWait(driver, TIMEOUT).until(
             EC.presence_of_element_located((By.CSS_SELECTOR,
                                             ".output_interface[interface_id='2'] .output_text"))
         )
-        total_time = 0
-        while elem.text == "" and total_time < 10:
+
+        total_sleep = 0
+        while elem.text == "" and total_sleep < TIMEOUT:
             time.sleep(0.2)
-            total_time += 0.2
+            total_sleep += 0.2
 
         self.assertEqual(elem.text, "LeWant's tgo see a magic trick?!")
         golden_img = os.path.join(current_dir, GOLDEN_PATH.format(
@@ -117,24 +127,8 @@ class TestDemo(unittest.TestCase):
         os.remove(tmp)
 
     def test_image_mod(self):
-        manager = multiprocessing.Manager()
-        return_dict = manager.dict()
-        self.i_thread = multiprocessing.Process(target=image_mod_thread,
-                                                args=(return_dict,))
-        self.i_thread.start()
-        total_time = 0
-        while not return_dict and total_time < 10:
-            time.sleep(0.2)
-            total_time += 0.2
-
-        URL = LOCAL_HOST.format(return_dict["port"])
-        wait_for_url(URL)
-
-        driver = webdriver.Chrome()
-        driver.set_window_size(1200, 800)
-        driver.get(URL)
-        timeout = 10
-        elem = WebDriverWait(driver, timeout).until(
+        driver = self.start_test(target=image_mod_thread)
+        elem = WebDriverWait(driver, TIMEOUT).until(
             EC.presence_of_element_located((By.CSS_SELECTOR,
                                             ".input_interface["
                                             "interface_id='0'] "
@@ -148,7 +142,7 @@ class TestDemo(unittest.TestCase):
             "image_mod", "cheetah1"))
         tmp = os.path.join(current_dir, "test/tmp/{}.png".format(
             random.getrandbits(32)))
-        WebDriverWait(driver, timeout).until(
+        WebDriverWait(driver, TIMEOUT).until(
             EC.visibility_of_element_located((By.CSS_SELECTOR,
                                             ".output_interface["
                                             "interface_id='1'] "
@@ -162,43 +156,28 @@ class TestDemo(unittest.TestCase):
         driver.close()
 
     def test_longest_word(self):
-        manager = multiprocessing.Manager()
-        return_dict = manager.dict()
-        self.i_thread = multiprocessing.Process(target=longest_word_thread,
-                                                args=(return_dict,))
-        self.i_thread.start()
-        total_time = 0
-        while not return_dict and total_time < 10:
-            time.sleep(0.2)
-            total_time += 0.2
-
-        URL = LOCAL_HOST.format(return_dict["port"])
-        wait_for_url(URL)
-
-        driver = webdriver.Chrome()
-        driver.set_window_size(1200, 800)
-        driver.get(URL)
-        timeout = 10
-        elem = WebDriverWait(driver, timeout).until(
+        driver = self.start_test(target=longest_word_thread)
+        elem = WebDriverWait(driver, TIMEOUT).until(
             EC.presence_of_element_located((By.CSS_SELECTOR,
                                             ".input_interface[interface_id='0'] .input_text"))
         )
         elem.send_keys("This is the most wonderful machine learning "
                        "library.")
-        elem = WebDriverWait(driver, timeout).until(
+        elem = WebDriverWait(driver, TIMEOUT).until(
             EC.presence_of_element_located((By.CSS_SELECTOR,
                                             ".submit"))
         )
         elem.click()
-        elem = WebDriverWait(driver, timeout).until(
+        elem = WebDriverWait(driver, TIMEOUT).until(
             EC.presence_of_element_located((By.CSS_SELECTOR,
                                             ".output_interface["
                                             "interface_id='1'] .output_class"))
         )
-        total_time = 0
-        while elem.text == "" and total_time < 10:
+
+        total_sleep = 0
+        while elem.text == "" and total_sleep < TIMEOUT:
             time.sleep(0.2)
-            total_time += 0.2
+            total_sleep += 0.2
 
         golden_img = os.path.join(current_dir, GOLDEN_PATH.format(
             "longest_word", "wonderful"))
@@ -211,37 +190,23 @@ class TestDemo(unittest.TestCase):
         os.remove(tmp)
 
     def test_sentence_builder(self):
-        manager = multiprocessing.Manager()
-        return_dict = manager.dict()
-        self.i_thread = multiprocessing.Process(target=sentence_builder_thread,
-                                                args=(return_dict,))
-        self.i_thread.start()
-        total_time = 0
-        while not return_dict and total_time < 10:
-            time.sleep(0.2)
-            total_time += 0.2
-
-        URL = LOCAL_HOST.format(return_dict["port"])
-        wait_for_url(URL)
-
-        driver = webdriver.Chrome()
-        driver.set_window_size(1200, 800)
-        driver.get(URL)
-        timeout = 10
-        elem = WebDriverWait(driver, timeout).until(
+        driver = self.start_test(target=sentence_builder_thread)
+        elem = WebDriverWait(driver, TIMEOUT).until(
             EC.presence_of_element_located((By.CSS_SELECTOR,
                                             ".submit"))
         )
         elem.click()
-        elem = WebDriverWait(driver, timeout).until(
+        elem = WebDriverWait(driver, TIMEOUT).until(
             EC.presence_of_element_located((By.CSS_SELECTOR,
                                             ".output_interface["
                                             "interface_id='5'] .output_text"))
         )
-        total_time = 0
-        while elem.text == "" and total_time < 10:
+
+        total_sleep = 0
+        while elem.text == "" and total_sleep < TIMEOUT:
             time.sleep(0.2)
-            total_time += 0.2
+            total_sleep += 0.2
+
         self.assertEqual(elem.text, "The 2 cats went to the park where they  until the night")
         golden_img = os.path.join(current_dir, GOLDEN_PATH.format(
             "sentence_builder", "two_cats"))
