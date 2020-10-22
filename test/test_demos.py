@@ -63,10 +63,6 @@ def sentence_builder_thread(return_dict):
 
 
 class TestDemo(unittest.TestCase):
-    def setUp(self):
-        driver = webdriver.Chrome()
-        driver.set_window_size(1200, 800)
-
     def start_test(self, target):
         manager = multiprocessing.Manager()
         return_dict = manager.dict()
