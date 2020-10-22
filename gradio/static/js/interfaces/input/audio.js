@@ -141,9 +141,9 @@ const audio_input = {
   },
   show_interpretation: function(data) {
     let html = ""
-    for (let value of data) {
+    for (let [i, value] of data.entries()) {
       html += `
-        <div title="${value}"
+        <div class='alternate' alternate_index='${i}' title="${value}"
           style='background-color: ${getSaliencyColor(value)}'>
         </div>      `
     }

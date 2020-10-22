@@ -9,6 +9,7 @@ const checkbox = {
   },
   show_interpretation: function(data) {
     let html = ""
+    let alternate_index = 0;
     for (let i = 0; i < data.length; i++) {
       let score = data[i];
       let mark = ["&#x2717;", "&#x2713;"][i];
@@ -17,10 +18,12 @@ const checkbox = {
           ${mark}
         </div>`
       } else {
-        html += `<div class='interpret_check' title='${score}'
+        html += `<div class='interpret_check alternate' title='${score}'
+        alternate_index='${alternate_index}'
         style='background-color: ${getSaliencyColor(score)}'>
           ${mark}
         </div>`
+        alternate_index++;
       }
     }
     this.target.find(".interpretation").html(html);

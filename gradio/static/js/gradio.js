@@ -246,7 +246,16 @@ function gradio(config, fn, target, example_file_path) {
       if (io_master.last_output) {
         io_master.interpret();
       }
+    });
+    $(".input_panel").on("mouseover", ".alternate", function() {
+      let interface_index = $(this).closest(".interface").attr("interface_id");
+      let alternate_index = $(this).attr("alternate_index");
+      io_master.alternative_interpret(interface_index, alternate_index);
     })
+    $(".input_panel").on("mouseout", ".alternate", function() {
+      io_master.alternative_interpret(false);
+    })
+
 
     return io_master;
 }

@@ -29,9 +29,10 @@ const slider = {
   },
   show_interpretation: function(data) {
     let html = ""
-    for (let value of data) {
+    for (let [i, value] of data.entries()) {
       html += `
-        <div title="${value}"
+        <div title="${value}" class='alternate'
+          alternate_index=${i}
           style='background-color: ${getSaliencyColor(value)}'>
         </div>      `
     }
