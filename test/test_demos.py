@@ -68,9 +68,10 @@ class TestDemo(unittest.TestCase):
         self.i_thread = multiprocessing.Process(target=diff_texts_thread,
                                          args=(return_dict,))
         self.i_thread.start()
-        while not return_dict:
+        total_time = 0
+        while not return_dict and total_time < 10:
             time.sleep(0.2)
-
+            total_time += 0.2
         URL = LOCAL_HOST.format(return_dict["port"])
         wait_for_url(URL)
 
@@ -99,8 +100,10 @@ class TestDemo(unittest.TestCase):
             EC.presence_of_element_located((By.CSS_SELECTOR,
                                             ".output_interface[interface_id='2'] .output_text"))
         )
-        while elem.text == "":
+        total_time = 0
+        while elem.text == "" and total_time < 10:
             time.sleep(0.2)
+            total_time += 0.2
 
         self.assertEqual(elem.text, "LeWant's tgo see a magic trick?!")
         golden_img = os.path.join(current_dir, GOLDEN_PATH.format(
@@ -119,8 +122,10 @@ class TestDemo(unittest.TestCase):
         self.i_thread = multiprocessing.Process(target=image_mod_thread,
                                                 args=(return_dict,))
         self.i_thread.start()
-        while not return_dict:
+        total_time = 0
+        while not return_dict and total_time < 10:
             time.sleep(0.2)
+            total_time += 0.2
 
         URL = LOCAL_HOST.format(return_dict["port"])
         wait_for_url(URL)
@@ -162,8 +167,10 @@ class TestDemo(unittest.TestCase):
         self.i_thread = multiprocessing.Process(target=longest_word_thread,
                                                 args=(return_dict,))
         self.i_thread.start()
-        while not return_dict:
+        total_time = 0
+        while not return_dict and total_time < 10:
             time.sleep(0.2)
+            total_time += 0.2
 
         URL = LOCAL_HOST.format(return_dict["port"])
         wait_for_url(URL)
@@ -188,8 +195,11 @@ class TestDemo(unittest.TestCase):
                                             ".output_interface["
                                             "interface_id='1'] .output_class"))
         )
-        while elem.text == "":
+        total_time = 0
+        while elem.text == "" and total_time < 10:
             time.sleep(0.2)
+            total_time += 0.2
+
         golden_img = os.path.join(current_dir, GOLDEN_PATH.format(
             "longest_word", "wonderful"))
         tmp = os.path.join(current_dir, "test/tmp/{}.png".format(
@@ -206,8 +216,10 @@ class TestDemo(unittest.TestCase):
         self.i_thread = multiprocessing.Process(target=sentence_builder_thread,
                                                 args=(return_dict,))
         self.i_thread.start()
-        while not return_dict:
+        total_time = 0
+        while not return_dict and total_time < 10:
             time.sleep(0.2)
+            total_time += 0.2
 
         URL = LOCAL_HOST.format(return_dict["port"])
         wait_for_url(URL)
@@ -226,8 +238,10 @@ class TestDemo(unittest.TestCase):
                                             ".output_interface["
                                             "interface_id='5'] .output_text"))
         )
-        while elem.text == '':
+        total_time = 0
+        while elem.text == "" and total_time < 10:
             time.sleep(0.2)
+            total_time += 0.2
         self.assertEqual(elem.text, "The 2 cats went to the park where they  until the night")
         golden_img = os.path.join(current_dir, GOLDEN_PATH.format(
             "sentence_builder", "two_cats"))
