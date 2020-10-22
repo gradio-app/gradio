@@ -5,3 +5,9 @@ select.dropdown {
   border-radius: 2px;
   outline: none;
 }
+.select_interpretation > div {
+  font-weight: bold;
+  padding: 4px;
+  font-size: 12px;
+  box-sizing: border-box;
+}
