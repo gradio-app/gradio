@@ -23,6 +23,7 @@ const radio = {
   },
   show_interpretation: function(data) {
     this.target.find(".interpret_check").remove();
+    let alternate_index = 0;
     for (let i = 0; i < data.length; i++) {
       let score = data[i];
       if (score == null) {
@@ -30,10 +31,12 @@ const radio = {
             &#x2713;
           </div>`
       } else {
-        var html = `<div class='interpret_check' title='${data[i]}'
+        var html = `<div class='interpret_check alternate' title='${data[i]}'
+            alternate_index=${alternate_index}
             style='background-color: ${getSaliencyColor(data[i])}'>
             &#x2713;
-          </div>`
+          </div>`;
+        alternate_index++;
       }
       this.target.find("label").eq(i).append(html);
     }

@@ -55,6 +55,14 @@ def set_config(config):
     app.app_globals["config"] = config
 
 
+def get_local_ip_address():
+    try:
+        ip_address = requests.get('https://api.ipify.org').text
+    except requests.ConnectionError:
+        ip_address = "No internet connection"
+    return ip_address
+
+
 def get_first_available_port(initial, final):
     """
     Gets the first open port in a specified range of port numbers
@@ -155,15 +163,18 @@ def flag():
 @app.route("/api/interpret/", methods=["POST"])
 def interpret():
     raw_input = request.json["data"]
-    interpretation = app.interface.interpret(raw_input)
-    return jsonify(interpretation)
+    interpretation_scores, alternative_outputs = app.interface.interpret(raw_input)
+    return jsonify({
+        "interpretation_scores": interpretation_scores,
+        "alternative_outputs": alternative_outputs
+    })
 
 
 @app.route("/file/<path:path>", methods=["GET"])
 def file(path):
     return send_file(os.path.join(app.cwd, path))
 
-def start_server(interface, server_port=None):
+def start_server(interface, server_name, server_port=None):
     if server_port is None:
         server_port = INITIAL_PORT_VALUE
     port = get_first_available_port(
@@ -173,9 +184,9 @@ def start_server(interface, server_port=None):
     app.cwd = os.getcwd()
     log = logging.getLogger('werkzeug')
     log.setLevel(logging.ERROR)
-    process = threading.Thread(target=app.run, kwargs={"port": port})
-    process.start()
-    return port, app, process
+    thread = threading.Thread(target=app.run, kwargs={"port": port, "host": server_name}, daemon=True)
+    thread.start()
+    return port, app, thread
 
 
 def close_server(process):

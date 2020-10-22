@@ -25,6 +25,7 @@ const checkbox_group = {
   },
   show_interpretation: function(data) {
     this.target.find(".interpret_check").remove();
+    let alternate_index = 0;
     for (let i = 0; i < data.length; i++) {
       let html = "<div class='interpret_sub'>"
       for (let j = 0; j < data[i].length; j++) {
@@ -35,10 +36,12 @@ const checkbox_group = {
               ${mark}
           </div>`
         } else {
-          html += `<div class='interpret_check' title='${score}'
+          html += `<div class='interpret_check alternate' title='${score}'
+            alternate_index='${alternate_index}'
             style='background-color: ${getSaliencyColor(score)}'>
               ${mark}
             </div>`
+            alternate_index++;
         }
       }
       html += "</div>"
