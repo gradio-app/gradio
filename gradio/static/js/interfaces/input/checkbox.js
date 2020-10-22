@@ -1,20 +1,27 @@
 const checkbox = {
   html: `
     <div class="checkbox_solo">
-      <div class="interpretation"></div>
       <label class='holder'><input class="checkbox" type="checkbox">&nbsp;</label>
+      <div class="interpretation interpret_sub"></div>
     </div>`,
   init: function(opts) {
     this.target.find("input").checkboxradio();    
   },
   show_interpretation: function(data) {
-    this.target.find(".holder").hide();
     let html = ""
     for (let i = 0; i < data.length; i++) {
-      html += `<div class='interpret_check' title='${data[i]}'
-        style='background-color: ${getSaliencyColor(data[i])}'>
-          ${["-", "+"][i]}
+      let score = data[i];
+      let mark = ["&#x2717;", "&#x2713;"][i];
+      if (score == null) {
+        html += `<div class='interpret_check interpret_select'>
+          ${mark}
         </div>`
+      } else {
+        html += `<div class='interpret_check' title='${score}'
+        style='background-color: ${getSaliencyColor(score)}'>
+          ${mark}
+        </div>`
+      }
     }
     this.target.find(".interpretation").html(html);
   },
@@ -24,7 +31,6 @@ const checkbox = {
     this.io_master.input(this.id, is_checked);
   },
   clear: function() {
-    this.target.find(".holder").show();
     this.target.find(".interpretation").empty();    
     this.target.find("input").prop("checked", false);    
     this.target.find("input").button("refresh");  

@@ -50,6 +50,7 @@ function gradio(config, fn, target, example_file_path) {
       "image" : image_input,
       "sketchpad" : sketchpad_input,
       "textbox" : textbox_input,
+      "number" : number_input,
       "webcam" : webcam,
       "microphone" : microphone,
       "radio" : radio,

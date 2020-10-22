@@ -18,9 +18,22 @@
   padding-left: 11px;
   padding-right: 3px;
 }
+.interpret_sub {
+  margin-top: 12px;
+}
+.interpret_sub:empty {
+  margin-top: 0;
+}
 .interpret_check {
   display: inline-block;
   padding: 4px 8px;
   font-family: monospace;
   font-weight: bold;
+  color: black;
+  font-size: 16px;
+}
+.interpret_select {
+  background-color: white;
+  border: solid 2px black;
+  box-sizing: border-box;
 }

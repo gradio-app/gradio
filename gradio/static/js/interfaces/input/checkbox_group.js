@@ -7,9 +7,8 @@ const checkbox_group = {
       html += `
       <label for="${this.id}_${index}">
           <input id="${this.id}_${index}" type="checkbox" name="${this.id}" value="${index}">
-          <span>${choice}<span>
+          <span>${choice}<span>          
         </label>
-        <div style='display: inline-block' class="interpretation"></div>
         `;
     }
     html += "</div>"
@@ -25,15 +24,25 @@ const checkbox_group = {
     this.io_master.input(this.id, val_names);
   },
   show_interpretation: function(data) {
+    this.target.find(".interpret_check").remove();
     for (let i = 0; i < data.length; i++) {
-      let html = ""
+      let html = "<div class='interpret_sub'>"
       for (let j = 0; j < data[i].length; j++) {
-        html += `<div class='interpret_check' title='${data[i][j]}'
-          style='background-color: ${getSaliencyColor(data[i][j])}'>
-            ${["-", "+"][j]}
+        let score = data[i][j];
+        let mark = ["&#x2717;", "&#x2713;"][j];
+        if (score == null) {
+          html += `<div class='interpret_check interpret_select'>
+              ${mark}
           </div>`
+        } else {
+          html += `<div class='interpret_check' title='${score}'
+            style='background-color: ${getSaliencyColor(score)}'>
+              ${mark}
+            </div>`
+        }
       }
-      this.target.find(".interpretation").eq(i).html(html);
+      html += "</div>"
+      this.target.find("label").eq(i).append(html);
     }
   },
   clear: function() {

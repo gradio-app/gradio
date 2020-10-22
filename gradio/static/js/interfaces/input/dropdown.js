@@ -1,7 +1,7 @@
 const dropdown = {
   html: `
     <div class="select_holder"></div>
-    <div class="interpretation"></div>
+    <div class="select_interpretation interpret_sub"></div>
   `,
   init: function(opts) {
     this.choices = opts.choices;
@@ -14,15 +14,21 @@ const dropdown = {
     this.target.find(".dropdown").selectmenu();
   },
   show_interpretation: function(data) {
-    this.target.find(".select_holder").hide();
     let html = ""
     for (let i = 0; i < this.choices.length; i++) {
-      html += `
-        <div title='${data[i]}' style='background-color: ${getSaliencyColor(data[i])}'>
-          ${this.choices[i]}
-        </div>      `
+      if (data[i] == null) {
+        html += `
+          <div class='interpret_select'>
+            ${this.choices[i]}
+          </div>`
+      } else {
+        html += `
+          <div title='${data[i]}' style='background-color: ${getSaliencyColor(data[i])}'>
+            ${this.choices[i]}
+          </div>`
+      }
     }
-    this.target.find(".interpretation").html(html);
+    this.target.find(".select_interpretation").html(html);
   },
   submit: function() {
     checked_val = this.target.find("option:selected").val();
@@ -32,8 +38,8 @@ const dropdown = {
   },
   clear: function() {
     this.target.find("option").prop("selected", false);    
-    this.target.find(".select_holder").show();
-    this.target.find(".interpretation").empty();    
+    this.target.find(".dropdown").selectmenu("refresh");
+    this.target.find(".select_interpretation").empty();    
   },
   load_example: function(data) {
     let child = this.choices.indexOf(data) + 1;

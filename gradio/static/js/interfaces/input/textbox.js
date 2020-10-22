@@ -34,13 +34,9 @@ const textbox_input = {
     this.target.find(".output_text").show();
     let html = "";
     for (let char_set of data) {
-      [char, value] = char_set;
-      if (value < 0) {
-        color = "8,241,255," + (-value * 2);
-      } else {
-        color = "230,126,34," + value * 2;
-      }
-      html += `<span title="${value}" style="background-color: rgba(${color})">${char}</span>`
+      [char, score] = char_set;
+      let color = getSaliencyColor(score);
+      html += `<span title="${score}" style="background-color: ${color}">${char}</span>`
     }
     this.target.find(".output_text").html(html);
   },

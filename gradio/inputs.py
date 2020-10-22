@@ -28,15 +28,42 @@ class InputComponent(Component):
     Input Component. All input components subclass this.
     """
     def __init__(self, label):
-        self.interpret_with()
+        self.interpret()
         super().__init__(label)
 
-    def interpret_with(self):
+    def interpret(self):
+        '''
+        Set any parameters for interpretation.
+        '''
+        return self
+
+    def get_interpretation_neighbors(self, x):
+        '''
+        Generates values similar to input to be used to interpret the significance of the input in the final output.
+        Parameters:
+        x (Any): Input to interface
+        Returns: (neighbor_values, interpret_kwargs, interpret_by_removal)
+        neighbor_values (List[Any]): Neighboring values to input x to compute for interpretation
+        interpret_kwargs (Dict[Any]): Keyword arguments to be passed to get_interpretation_scores
+        interpret_by_removal (bool): If True, returned neighbors are values where the interpreted subsection was removed. If False, returned neighbors are values where the interpreted subsection was modified to a different value.
+        '''
         pass
+
+    def get_interpretation_scores(self, x, neighbors, scores, **kwargs):
+        '''
+        Arrange the output values from the neighbors into interpretation scores for the interface to render.
+        Parameters:
+        x (Any): Input to interface
+        neighbors (List[Any]): Neighboring values to input x used for interpretation.
+        scores (List[float]): Output value corresponding to each neighbor in neighbors
+        kwargs (Dict[str, Any]): Any additional arguments passed from get_interpretation_neighbors.
+        Returns:
+        (List[Any]): Arrangement of interpretation scores for interfaces to render.
+        '''
 
 class Textbox(InputComponent):
     """
-    Component creates a textbox for user to enter input. Provides a string (or number is `type` is "float") as an argument to the wrapped function.
+    Component creates a textbox for user to enter input. Provides a string as an argument to the wrapped function.
     Input type: str
     """
 
@@ -47,14 +74,14 @@ class Textbox(InputComponent):
         placeholder (str): placeholder hint to provide behind textarea.
         default (str): default text to provide in textarea.
         numeric (bool): DEPRECATED. Whether the input should be parsed as a number instead of a string.        
-        type (str): Type of value to be returned by component. "str" returns a string, "number" returns a float value.
+        type (str): DEPRECATED. Type of value to be returned by component. "str" returns a string, "number" returns a float value. Use Number component in place of number type.
         label (str): component name in interface.
         """
         self.lines = lines
         self.placeholder = placeholder
         self.default = default
-        if numeric:
-            warnings.warn("The 'numeric' parameter has been deprecated. Set parameter 'type' to 'number' instead.", DeprecationWarning)
+        if numeric or type == "number":
+            warnings.warn("The 'numeric' type has been deprecated. Use the Number input component instead.", DeprecationWarning)
             self.type = "number"
         else:
             self.type = type
@@ -80,7 +107,6 @@ class Textbox(InputComponent):
         return {
             "text": {},
             "textbox": {"lines": 7},
-            "number": {"type": "number"}
         }
 
     def preprocess(self, x):
@@ -91,9 +117,16 @@ class Textbox(InputComponent):
         else:
             raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'str', 'number'.")
 
-    def interpret_with(self, separator=" ", replacement=None):
+    def interpret(self, separator=" ", replacement=None):
+        """
+        Calculates interpretation score of characters in input by splitting input into tokens, then using a "leave one out" method to calculate the score of each token by removing each token and measuring the delta of the output value.
+        Parameters:
+        separator (str): Separator to use to split input into tokens.
+        replacement (str): In the "leave one out" step, the text that the token should be replaced with.
+        """
         self.interpretation_separator = separator
         self.interpretation_replacement = replacement
+        return self
     
     def get_interpretation_neighbors(self, x):
         tokens = x.split(self.interpretation_separator)
@@ -105,15 +138,79 @@ class Textbox(InputComponent):
             else:
                 leave_one_out_set[index] = self.interpretation_replacement
             leave_one_out_strings.append(self.interpretation_separator.join(leave_one_out_set))
-        return leave_one_out_strings, {}
+        return leave_one_out_strings, {"tokens": tokens}, True
     
-    def get_interpretation_scores(self, x, scores):
-        tokens = x.split(self.interpretation_separator)
+    def get_interpretation_scores(self, x, neighbors, scores, tokens):
+        """
+        Returns:
+        (List[Tuple[str, float]]): Each tuple set represents a set of characters and their corresponding interpretation score.
+        """
         result = []
         for token, score in zip(tokens, scores):
             result.append((token, score))
             result.append((self.interpretation_separator, 0))
         return result
+
+
+class Number(InputComponent):
+    """
+    Component creates a field for user to enter numeric input. Provides a nuber as an argument to the wrapped function.
+    Input type: float
+    """
+
+    def __init__(self, default=None, label=None):
+        '''
+        Parameters:
+        default (float): default value.
+        label (str): component name in interface.
+        '''
+        self.default = default
+        self.test_input = default if default is not None else 1
+        super().__init__(label)
+
+    def get_template_context(self):
+        return {
+            "default": self.default,
+            **super().get_template_context()
+        }
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "number": {},
+        }
+
+    def interpret(self, steps=3, delta=1, delta_type="percent"):
+        """
+        Calculates interpretation scores of numeric values close to the input number.
+        Parameters:
+        steps (int): Number of nearby values to measure in each direction (above and below the input number).
+        delta (float): Size of step in each direction between nearby values.
+        delta_type (str): "percent" if delta step between nearby values should be a calculated as a percent, or "absolute" if delta should be a constant step change.
+        """
+        self.interpretation_steps = steps
+        self.interpretation_delta = delta
+        self.interpretation_delta_type = delta_type
+        return self
+        
+    def get_interpretation_neighbors(self, x):
+        neighbors = []
+        if self.interpretation_delta_type == "percent":
+            delta = 1.0 * self.interpretation_delta * x / 100
+        elif self.interpretation_delta_type == "absolute":
+            delta = self.interpretation_delta
+        negatives = (x + np.arange(-self.interpretation_steps, 0) * delta).tolist()
+        positives = (x + np.arange(1, self.interpretation_steps+1) * delta).tolist()
+        return negatives + positives, {}, False
+
+    def get_interpretation_scores(self, x, neighbors, scores):
+        """
+        Returns:
+        (List[Tuple[float, float]]): Each tuple set represents a numeric value near the input and its corresponding interpretation score.
+        """
+        interpretation = list(zip(neighbors, scores))
+        interpretation.insert(int(len(interpretation) / 2), [x, None])
+        return interpretation
 
 
 class Slider(InputComponent):
@@ -157,13 +254,23 @@ class Slider(InputComponent):
             "slider": {},
         }
 
-    def interpret_with(self, steps=8):
+    def interpret(self, steps=8):
+        """
+        Calculates interpretation scores of numeric values ranging between the minimum and maximum values of the slider.
+        Parameters:
+        steps (int): Number of neighboring values to measure between the minimum and maximum values of the slider range.
+        """
         self.interpretation_steps = steps
+        return self
 
     def get_interpretation_neighbors(self, x):
-        return np.linspace(self.minimum, self.maximum, self.interpretation_steps).tolist(), {}
+        return np.linspace(self.minimum, self.maximum, self.interpretation_steps).tolist(), {}, False
 
-    def get_interpretation_scores(self, x, scores):
+    def get_interpretation_scores(self, x, neighbors, scores):
+        """
+        Returns:
+        (List[float]): Each value represents the score corresponding to an evenly spaced range of inputs between the minimum and maximum slider values.
+        """
         return scores
 
 
@@ -187,14 +294,24 @@ class Checkbox(InputComponent):
             "checkbox": {},
         }
 
-    def get_interpretation_neighbors(self, x):
-        return [not x], {}
+    def interpret(self):
+        """
+        Calculates interpretation score of the input by comparing the output against the output when the input is the inverse boolean value of x.
+        """
+        return self
 
-    def get_interpretation_scores(self, x, scores):
+    def get_interpretation_neighbors(self, x):
+        return [not x], {}, False
+
+    def get_interpretation_scores(self, x, neighbors, scores):
+        """
+        Returns:
+        (Tuple[float, float]): The first value represents the interpretation score if the input is False, and the second if the input is True.
+        """
         if x:
-            return scores[0], 0
+            return scores[0], None
         else:
-            return 0, scores[0]
+            return None, scores[0]
 
 
 class CheckboxGroup(InputComponent):
@@ -229,6 +346,12 @@ class CheckboxGroup(InputComponent):
         else:
             raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'value', 'index'.")
 
+    def interpret(self):
+        """
+        Calculates interpretation score of each choice in the input by comparing the output against the outputs when each choice in the input is independently either removed or added.
+        """
+        return self
+
     def get_interpretation_neighbors(self, x):
         leave_one_out_sets = []
         for choice in self.choices:
@@ -238,15 +361,19 @@ class CheckboxGroup(InputComponent):
             else:
                 leave_one_out_set.append(choice)
             leave_one_out_sets.append(leave_one_out_set)
-        return leave_one_out_sets, {}
+        return leave_one_out_sets, {}, False
 
-    def get_interpretation_scores(self, x, scores):
+    def get_interpretation_scores(self, x, neighbors, scores):
+        """
+        Returns:
+        (List[Tuple[float, float]]): For each tuple in the list, the first value represents the interpretation score if the input is False, and the second if the input is True.
+        """
         final_scores = []
         for choice, score in zip(self.choices, scores):
             if choice in x:
-                score_set = [score, 0]
+                score_set = [score, None]
             else:
-                score_set = [0, score]
+                score_set = [None, score]
             final_scores.append(score_set)
         return final_scores
 
@@ -283,13 +410,23 @@ class Radio(InputComponent):
         else:
             raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'value', 'index'.")
 
+    def interpret(self):
+        """
+        Calculates interpretation score of each choice by comparing the output against each of the outputs when alternative choices are selected.
+        """
+        return self
+
     def get_interpretation_neighbors(self, x):
         choices = list(self.choices)
         choices.remove(x)
-        return choices, {}
+        return choices, {}, False
 
-    def get_interpretation_scores(self, x, scores):        
-        scores.insert(self.choices.index(x), 0)        
+    def get_interpretation_scores(self, x, neighbors, scores):        
+        """
+        Returns:
+        (List[float]): Each value represents the interpretation score corresponding to each choice.
+        """
+        scores.insert(self.choices.index(x), None)
         return scores
 
 
@@ -325,13 +462,23 @@ class Dropdown(InputComponent):
         else:
             raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'value', 'index'.")
 
+    def interpret(self):
+        """
+        Calculates interpretation score of each choice by comparing the output against each of the outputs when alternative choices are selected.
+        """
+        return self
+
     def get_interpretation_neighbors(self, x):
         choices = list(self.choices)
         choices.remove(x)
-        return choices, {}
+        return choices, {}, False
 
-    def get_interpretation_scores(self, x, scores):
-        scores.insert(self.choices.index(x), 0)
+    def get_interpretation_scores(self, x, neighbors, scores):
+        """
+        Returns:
+        (List[float]): Each value represents the interpretation score corresponding to each choice.
+        """
+        scores.insert(self.choices.index(x), None)
         return scores
 
 
@@ -409,8 +556,14 @@ class Image(InputComponent):
         im.save(f'{dir}/{filename}', 'PNG')
         return filename
 
-    def interpret_with(self, segments=16):
+    def interpret(self, segments=16):
+        """
+        Calculates interpretation score of image subsections by splitting the image into subsections, then using a "leave one out" method to calculate the score of each subsection by whiting out the subsection and measuring the delta of the output value.
+        Parameters:
+        segments (int): Number of interpretation segments to split image into.
+        """
         self.interpretation_segments = segments
+        return self
 
     def get_interpretation_neighbors(self, x):
         x = processing_utils.decode_base64_to_image(x)
@@ -425,9 +578,13 @@ class Image(InputComponent):
             leave_one_out_tokens.append(
                 processing_utils.encode_array_to_base64(white_screen))
             masks.append(mask)
-        return leave_one_out_tokens, {"masks": masks}
+        return leave_one_out_tokens, {"masks": masks}, True
 
-    def get_interpretation_scores(self, x, scores, masks):
+    def get_interpretation_scores(self, x, neighbors, scores, masks):
+        """
+        Returns:
+        (List[List[float]]): A 2D array representing the interpretation score of each pixel of the image.
+        """
         x = processing_utils.decode_base64_to_image(x)
         x = np.array(x)
         output_scores = np.zeros((x.shape[0], x.shape[1]))
@@ -484,8 +641,14 @@ class Audio(InputComponent):
         elif self.type == "mfcc":
             return processing_utils.generate_mfcc_features_from_audio_file(file_obj.name)
 
-    def interpret_with(self, segments=8):
+    def interpret(self, segments=8):
+        """
+        Calculates interpretation score of audio subsections by splitting the audio into subsections, then using a "leave one out" method to calculate the score of each subsection by removing the subsection and measuring the delta of the output value.
+        Parameters:
+        segments (int): Number of interpretation segments to split audio into.
+        """
         self.interpretation_segments = segments
+        return self
     
     def get_interpretation_neighbors(self, x):
         file_obj = processing_utils.decode_base64_to_file(x)
@@ -503,9 +666,13 @@ class Audio(InputComponent):
             scipy.io.wavfile.write(file, sample_rate, leave_one_out_data)                
             out_data = processing_utils.encode_file_to_base64(file.name, type="audio", ext="wav")
             leave_one_out_sets.append(out_data)
-        return leave_one_out_sets, {}
+        return leave_one_out_sets, {}, True
 
-    def get_interpretation_scores(self, x, scores):
+    def get_interpretation_scores(self, x, neighbors, scores):
+        """
+        Returns:
+        (List[float]): Each value represents the interpretation score corresponding to an evenly spaced subsection of audio.
+        """
         return scores
 
 
@@ -600,6 +767,12 @@ class Dataframe(InputComponent):
         else:
             raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'pandas', 'numpy', 'array'.")
 
+    def interpret(self):
+        """
+        Calculates interpretation score of each cell in the Dataframe by using a "leave one out" method to calculate the score of each cell by removing the cell and measuring the delta of the output value.
+        """
+        return self
+
     def get_interpretation_neighbors(self, x):
         x = pd.DataFrame(x)
         leave_one_out_sets = []
@@ -615,9 +788,13 @@ class Dataframe(InputComponent):
                 elif is_string_dtype(scalar):
                     leave_one_out_df.iloc[i, j] = ""
                 leave_one_out_sets.append(leave_one_out_df.values.tolist())
-        return leave_one_out_sets, {"shape": x.shape}
+        return leave_one_out_sets, {"shape": x.shape}, True
 
-    def get_interpretation_scores(self, x, scores, shape):
+    def get_interpretation_scores(self, x, neighbors, scores, shape):
+        """
+        Returns:
+        (List[List[float]]): A 2D array where each value corrseponds to the interpretation score of each cell.
+        """
         return np.array(scores).reshape((shape)).tolist()
 
 

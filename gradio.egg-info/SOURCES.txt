@@ -81,6 +81,7 @@ gradio/static/js/interfaces/input/dropdown.js
 gradio/static/js/interfaces/input/file.js
 gradio/static/js/interfaces/input/image.js
 gradio/static/js/interfaces/input/microphone.js
+gradio/static/js/interfaces/input/number.js
 gradio/static/js/interfaces/input/radio.js
 gradio/static/js/interfaces/input/sketchpad.js
 gradio/static/js/interfaces/input/slider.js
