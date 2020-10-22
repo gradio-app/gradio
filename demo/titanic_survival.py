@@ -1,3 +1,5 @@
+# Demo: (Dropdown, Checkbox, Slider, CheckboxGroup, Number, Radio) -> (Label)
+
 import pandas as pd
 import numpy as np
 import sklearn
@@ -71,7 +73,7 @@ io = gr.Interface(
         "checkbox",
         gr.inputs.Slider(0, 80),
         gr.inputs.CheckboxGroup(["Sibling", "Child"], label="Travelling with (select all)"),
-        gr.inputs.Slider(0, 150),
+        gr.inputs.Number().interpret(delta_type="absolute", delta=5),
         gr.inputs.Radio(["S", "C", "Q"], type="index"),
     ],
     "label",
