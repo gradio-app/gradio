@@ -173,6 +173,8 @@ def start_server(interface, server_port=None):
     app.cwd = os.getcwd()
     log = logging.getLogger('werkzeug')
     log.setLevel(logging.ERROR)
+    if interface.save_to is not None:
+        interface.save_to["port"] = port
     process = threading.Thread(target=app.run, kwargs={"port": port})
     process.start()
     return port, app, process
