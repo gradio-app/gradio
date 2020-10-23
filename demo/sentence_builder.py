@@ -24,4 +24,6 @@ io = gr.Interface(
     ])
 
 io.test_launch()
-io.launch()
+
+if __name__ == "__main__":
+    io.launch()

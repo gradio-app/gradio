@@ -181,10 +181,13 @@ def start_server(interface, server_name, server_port=None):
     app.cwd = os.getcwd()
     log = logging.getLogger('werkzeug')
     log.setLevel(logging.ERROR)
-    thread = threading.Thread(target=app.run, kwargs={"port": port, "host": server_name}, daemon=True)
+    if interface.save_to is not None:
+        interface.save_to["port"] = port
+    thread = threading.Thread(target=app.run,
+                              kwargs={"port": port, "host": server_name},
+                              daemon=True)
     thread.start()
     return port, app, thread
-
 
 def close_server(process):
     process.terminate()
