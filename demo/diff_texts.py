@@ -21,7 +21,7 @@ io = gr.Interface(
         "+": "lightgreen",
         "-": "pink",
         " ": "none",
-    }), server_port=7860)
+    }))
 
 io.test_launch()
 

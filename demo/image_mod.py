@@ -15,7 +15,7 @@ io = gr.Interface(image_mod,
                  ["images/cheetah2.jpg"],
                  ["images/lion.jpg"],
              ],
-             live=True, server_port=7860)
+             live=True)
 
 io.test_launch()
 
