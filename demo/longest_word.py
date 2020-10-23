@@ -1,3 +1,5 @@
+# Demo: (Textbox) -> (Label)
+
 import gradio as gr
 
 def longest_word(text):

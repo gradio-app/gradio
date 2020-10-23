@@ -17,6 +17,7 @@ const dataframe_input = {
       }
       data.push(row);
     }
+    this.default_data = data;
     let config = {data: data};
     if (opts.headers || opts.datatype) {
       let column_config = [];
@@ -51,6 +52,25 @@ const dataframe_input = {
     }
     this.io_master.input(this.id, data);
   },
+  show_interpretation: function(data) {
+    this.target.find("td").css("background-color", "white")
+    let cell_name = (i, j) => {
+      let letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      let column_name = letters[i % 26];
+      if (i >= 26) {
+        column_name = letters[Math.floor(i / 26) - 1] + column_name;
+      }
+      return column_name + (j + 1);
+    }
+    for (let [j, row] of data.entries()) {
+      for (let [i, value] of row.entries()) {
+        console.log(cell_name(i, j), value);
+        this.table.setStyle(cell_name(i, j), 'background-color', getSaliencyColor(value));
+      }
+    }
+  },
   clear: function() {
+    this.table.setData(this.default_data);
+    this.target.find("td").css("background-color", "white");
   }
 }

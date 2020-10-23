@@ -255,17 +255,19 @@ class Interface:
             for i, x in enumerate(raw_input):
                 input_interface = self.input_interfaces[i]
                 neighbor_raw_input = list(raw_input)
-                neighbor_values = input_interface.get_interpretation_neighbors(x)
+                neighbor_values, interpret_kwargs, interpret_by_removal = input_interface.get_interpretation_neighbors(x)
                 interface_scores = []
-                for neighbor_input in neighbor_values[0]:
+                for neighbor_input in neighbor_values:
                     neighbor_raw_input[i] = neighbor_input
                     processed_neighbor_input = [input_interface.preprocess(neighbor_raw_input[i])
                                     for i, input_interface in enumerate(self.input_interfaces)]
                     neighbor_output = self.run_prediction(processed_neighbor_input)
                     interface_scores.append(quantify_difference_in_label(self, original_output, neighbor_output))
+                if not interpret_by_removal:
+                    interface_scores = [-score for score in interface_scores]
                 scores.append(
                     input_interface.get_interpretation_scores(
-                        raw_input[i], interface_scores, **neighbor_values[1]))
+                        raw_input[i], neighbor_values, interface_scores, **interpret_kwargs))
             return scores
         else:
             processed_input = [input_interface.preprocess(raw_input[i])
@@ -321,12 +323,12 @@ class Interface:
 
     def launch(self, inline=None, inbrowser=None, share=False, debug=False):
         """
-        Parameters
+        Parameters:
         inline (bool): whether to display in the interface inline on python notebooks.
         inbrowser (bool): whether to automatically launch the interface in a new tab on the default browser.
         share (bool): whether to create a publicly shareable link from your computer for the interface.
         debug (bool): if True, and the interface was launched from Google Colab, prints the errors in the cell output.
-        Returns
+        Returns:
         app (flask.Flask): Flask app object
         path_to_local_server (str): Locally accessible link
         share_url (str): Publicly accessible link (if share=True)

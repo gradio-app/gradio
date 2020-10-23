@@ -16,8 +16,19 @@
 .interpret_range {
     width: 100%;
     display: flex;
+    margin-top: 12px;
+}
+.interpret_range:empty {
+    margin-top: 0px;
 }
 .interpret_range > div {
-    height: 24px;
+    min-height: 24px;
     flex-grow: 1;
+    text-align: center;
+    font-weight: bold;
+    padding: 4px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
 }

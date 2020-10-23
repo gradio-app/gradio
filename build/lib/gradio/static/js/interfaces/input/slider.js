@@ -4,8 +4,8 @@ const slider = {
       <div class="slider">
         <div class="ui-slider-handle"></div>
       </div>
+      <div class="interpret_range"></div>
     </div>
-    <div class="interpret_range"></div>
     `,
   init: function(opts) {
     let io = this;
@@ -28,7 +28,6 @@ const slider = {
     this.io_master.input(this.id, parseFloat(value));
   },
   show_interpretation: function(data) {
-    this.target.find(".slider_container").hide();
     let html = ""
     for (let value of data) {
       html += `
@@ -39,8 +38,7 @@ const slider = {
     this.target.find(".interpret_range").html(html);
   },
   clear: function() {
-    this.target.find("input").val(this.default);
-    this.target.find(".slider_container").show();
+    this.load_example(this.minimum)
     this.target.find(".interpret_range").empty();
   },
   load_example: function(data) {

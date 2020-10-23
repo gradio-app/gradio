@@ -140,7 +140,6 @@ const audio_input = {
     }
   },
   show_interpretation: function(data) {
-    this.target.find(".slider_container").hide();
     let html = ""
     for (let value of data) {
       html += `
@@ -153,6 +152,7 @@ const audio_input = {
   clear: function() {
     this.audio_data = null;
     this.state = "NO_AUDIO";
+    this.target.find(".interpret_range").empty();
     this.target.find(".not_recording").show();
     this.target.find(".recording").addClass("hidden");
     this.target.find(".player").addClass("hidden");
