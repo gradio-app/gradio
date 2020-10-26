@@ -12,7 +12,7 @@ template_dict = {}
 for code_src in codes:
     with open(os.path.join("demo", code_src + ".py")) as code_file:
         python_code = code_file.read().replace('if __name__ == "__main__":\n    iface.launch()', "iface.launch()")
-        template_dict["code_" + code_src] = "````python\n" + python_code + "\n```"
+        template_dict["code_" + code_src] = "````python\n" + python_code + "\n````"
 
 for demo_src in demos:
     template_dict["demo_" + demo_src] = "![" + demo_src + " interface](demo/screenshots/" + demo_src + "/1.gif)"

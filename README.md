@@ -36,7 +36,7 @@ def greet(name):
 
 iface = gr.Interface(fn=greet, inputs="text", outputs="text")
 iface.launch()
-```
+````
 
 3. The interface below will appear automatically within the Python notebook, or pop in a browser on  [http://localhost:7860](http://localhost:7860/)  if running from a script.
 ![hello_world interface](demo/screenshots/hello_world/1.gif)
@@ -68,7 +68,7 @@ iface = gr.Interface(
   inputs=gr.inputs.Textbox(lines=2, placeholder="Name Here..."), 
   outputs="text")
 iface.launch()
-```
+````
 ![hello_world_2 interface](demo/screenshots/hello_world_2/1.gif)
 
 ### Multiple Inputs and Outputs
@@ -90,7 +90,7 @@ iface = gr.Interface(
   inputs=["text", "checkbox", gr.inputs.Slider(0, 100)],
   outputs=["text", "number"])
 iface.launch()
-```
+````
 ![hello_world_3 interface](demo/screenshots/hello_world_3/1.gif)
 
 We simply wrap the components in a list. Furthermore, if we wanted to compare multiple functions that have the same input and return types, we can even pass a list of functions for quick comparison.
@@ -113,7 +113,7 @@ def sepia(img):
 
 iface = gr.Interface(sepia, gr.inputs.Image(shape=(200, 200)), "image")
 iface.launch()
-```
+````
 ![sepia_filter interface](demo/screenshots/sepia_filter/1.gif)
 
 Additionally, our  `Image`  input interface comes with an 'edit' button which opens tools for cropping, flipping, rotating, drawing over, and applying filters to images. We've found that manipulating images in this way will often reveal hidden flaws in a model.
@@ -145,7 +145,7 @@ iface = gr.Interface(calculator,
     ]
 )
 iface.launch()
-```
+````
 ![calculator interface](demo/screenshots/calculator/1.gif)
 
 ### Flagging
@@ -174,7 +174,7 @@ iface = gr.Interface(
   outputs="label", interpretation="default")
 iface.launch()
 
-```
+````
 ![gender_sentence_default_interpretation interface](demo/screenshots/gender_sentence_default_interpretation/1.gif)
 
 Notice the  `interpretation`  keyword argument. We're going to use Gradio's default interpreter here. After you submit and click Interpret, you'll see the interface automatically highlights the parts of the text that contributed to the final output orange! The parts that conflict with the output are highlight blue.
@@ -212,7 +212,7 @@ iface = gr.Interface(
   fn=gender_of_sentence, inputs=gr.inputs.Textbox(default="She went to his house to get her keys."),
   outputs="label", interpretation=interpret_gender)
 iface.launch()
-```
+````
 ![gender_sentence_custom_interpretation interface](demo/screenshots/gender_sentence_custom_interpretation/1.gif)
 
 ##  Contributing:
