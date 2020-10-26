@@ -46,7 +46,7 @@ const radio = {
   },
   load_example: function(data) {
     let child = this.choices.indexOf(data) + 1;
-    this.target.find("input:nth-child("+child+")").prop("checked", true);
+    this.target.find("label:nth-child("+child+") input").prop("checked", true);
     this.target.find("input").button("refresh");  
   }
 }
