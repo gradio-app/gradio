@@ -28,9 +28,11 @@ pip install gradio
 ````
 
 2. Run the code below as a Python script or in a Python notebook (or in a  [colab notebook](https://colab.research.google.com/drive/18ODkJvyxHutTN0P5APWyGFO_xwNcgHDZ?usp=sharing)).
+
 $code_hello_world
 
 3. The interface below will appear automatically within the Python notebook, or pop in a browser on  [http://localhost:7860](http://localhost:7860/)  if running from a script.
+
 $demo_hello_world
 
 ### The Interface

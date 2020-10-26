@@ -28,6 +28,7 @@ pip install gradio
 ````
 
 2. Run the code below as a Python script or in a Python notebook (or in a  [colab notebook](https://colab.research.google.com/drive/18ODkJvyxHutTN0P5APWyGFO_xwNcgHDZ?usp=sharing)).
+
 ````python
 import gradio as gr
 
@@ -39,6 +40,7 @@ iface.launch()
 ````
 
 3. The interface below will appear automatically within the Python notebook, or pop in a browser on  [http://localhost:7860](http://localhost:7860/)  if running from a script.
+
 ![hello_world interface](demo/screenshots/hello_world/1.gif)
 
 ### The Interface
