@@ -22,16 +22,17 @@ You can find an interactive version of this README at [https://gradio.app/gettin
 
 To get Gradio running with a simple example, follow these three steps:
 
-1. Install Gradio from pip.
-````bash
-pip install gradio
-````
+<span>1.</span> Install Gradio from pip.
 
-2. Run the code below as a Python script or in a Python notebook (or in a  [colab notebook](https://colab.research.google.com/drive/18ODkJvyxHutTN0P5APWyGFO_xwNcgHDZ?usp=sharing)).
+```bash
+pip install gradio
+```
+
+<span>2.</span> Run the code below as a Python script or in a Python notebook (or in a  [colab notebook](https://colab.research.google.com/drive/18ODkJvyxHutTN0P5APWyGFO_xwNcgHDZ?usp=sharing)).
 
 $code_hello_world
 
-3. The interface below will appear automatically within the Python notebook, or pop in a browser on  [http://localhost:7860](http://localhost:7860/)  if running from a script.
+<span>3.</span> The interface below will appear automatically within the Python notebook, or pop in a browser on  [http://localhost:7860](http://localhost:7860/)  if running from a script.
 
 $demo_hello_world
 
@@ -100,6 +101,22 @@ You can also write your own interpretation function. The demo below adds custom 
 
 $code_gender_sentence_custom_interpretation
 $demo_gender_sentence_custom_interpretation
+
+### Sharing Interfaces Publicly & Privacy
+
+Interfaces can be easily shared publicly by setting `share=True` in the `launch()` method. Like this:
+
+```python
+gr.Interface(classify_image, image, label).launch(share=True)
+```
+
+This generates a public, shareable link that you can send to anybody! When you send this link, the user on the other side can try out the model in their browser. Because the processing happens on your device (as long as your device stays on!), you don't have to worry about any dependencies. If you're working out of colab notebook, a share link is always automatically created. It usually looks something like this:  **XXXXX.gradio.app**. Although the link is served through a gradio link, we are only a proxy for your local server, and do not store any data sent through the interfaces.
+
+Keep in mind, however, that these links are publicly accessible, meaning that anyone can use your model for prediction! Therefore, make sure not to expose any sensitive information through the functions you write, or allow any critical changes to occur on your device. If you set `share=False` (the default), only a local link is created, which can be shared by  [port-forwarding](https://www.ssh.com/ssh/tunneling/example)  with specific users.
+
+Links expire after 6 hours. Need longer links, or private links?  [Contact us for Gradio Teams](https://gradio.app/#contact-box).
+
+![Sharing diagram](demo/images/sharing.svg)
 
 ##  Contributing:
 
