@@ -22,14 +22,15 @@ You can find an interactive version of this README at [https://gradio.app/gettin
 
 To get Gradio running with a simple example, follow these three steps:
 
-1. Install Gradio from pip.
-````bash
+<span>1.</span> Install Gradio from pip.
+
+```bash
 pip install gradio
-````
+```
 
-2. Run the code below as a Python script or in a Python notebook (or in a  [colab notebook](https://colab.research.google.com/drive/18ODkJvyxHutTN0P5APWyGFO_xwNcgHDZ?usp=sharing)).
+<span>2.</span> Run the code below as a Python script or in a Python notebook (or in a  [colab notebook](https://colab.research.google.com/drive/18ODkJvyxHutTN0P5APWyGFO_xwNcgHDZ?usp=sharing)).
 
-````python
+```python
 import gradio as gr
 
 def greet(name):
@@ -37,9 +38,9 @@ def greet(name):
 
 iface = gr.Interface(fn=greet, inputs="text", outputs="text")
 iface.launch()
-````
+```
 
-3. The interface below will appear automatically within the Python notebook, or pop in a browser on  [http://localhost:7860](http://localhost:7860/)  if running from a script.
+<span>3.</span> The interface below will appear automatically within the Python notebook, or pop in a browser on  [http://localhost:7860](http://localhost:7860/)  if running from a script.
 
 ![hello_world interface](demo/screenshots/hello_world/1.gif)
 
@@ -59,7 +60,7 @@ With these three arguments, we can quickly create interfaces and  `launch()`  th
 
 What if we wanted to customize the input text field - for example, we wanted it to be larger and have a text hint? If we use the actual input class for  `Textbox`  instead of using the string shortcut, we have access to much more customizability. To see a list of all the components we support and how you can customize them, check out the [Docs](https://gradio.app/docs)
 
-````python
+```python
 import gradio as gr
 
 def greet(name):
@@ -70,14 +71,14 @@ iface = gr.Interface(
   inputs=gr.inputs.Textbox(lines=2, placeholder="Name Here..."), 
   outputs="text")
 iface.launch()
-````
+```
 ![hello_world_2 interface](demo/screenshots/hello_world_2/1.gif)
 
 ### Multiple Inputs and Outputs
 
 Let's say we had a much more complex function, with multiple inputs and outputs. In the example below, we have a function that takes a string, boolean, and number, and returns a string and number. Take a look how we pass a list of input and output components.
 
-````python
+```python
 import gradio as gr
 
 def greet(name, is_morning, temperature):
@@ -92,7 +93,7 @@ iface = gr.Interface(
   inputs=["text", "checkbox", gr.inputs.Slider(0, 100)],
   outputs=["text", "number"])
 iface.launch()
-````
+```
 ![hello_world_3 interface](demo/screenshots/hello_world_3/1.gif)
 
 We simply wrap the components in a list. Furthermore, if we wanted to compare multiple functions that have the same input and return types, we can even pass a list of functions for quick comparison.
@@ -101,7 +102,7 @@ We simply wrap the components in a list. Furthermore, if we wanted to compare mu
 
 Let's try an image to image function. When using the  `Image`  component, your function will receive a numpy array of your specified size, with the shape  `(width, height, 3)`, where the last dimension represents the RGB values. We'll return an image as well in the form of a numpy array.
 
-````python
+```python
 import gradio as gr
 import numpy as np
 
@@ -115,7 +116,7 @@ def sepia(img):
 
 iface = gr.Interface(sepia, gr.inputs.Image(shape=(200, 200)), "image")
 iface.launch()
-````
+```
 ![sepia_filter interface](demo/screenshots/sepia_filter/1.gif)
 
 Additionally, our  `Image`  input interface comes with an 'edit' button which opens tools for cropping, flipping, rotating, drawing over, and applying filters to images. We've found that manipulating images in this way will often reveal hidden flaws in a model.
@@ -124,7 +125,7 @@ Additionally, our  `Image`  input interface comes with an 'edit' button which op
 
 You can provide example data that a user can easily load into the model. This can be helpful to demonstrate the types of inputs the model expects, as well as to provide a way to explore your dataset in conjunction with your model. To load example data, you provide a nested list to the  `examples=`  keyword argument of the Interface constructor. Each sublist within the outer list represents a data sample, and each element within the sublist represents an input for each input component. The format of example data for each component is specified in the  [Docs](https://gradio.app/docs).
 
-````python
+```python
 import gradio as gr
 
 def calculator(num1, operation, num2):
@@ -147,7 +148,7 @@ iface = gr.Interface(calculator,
     ]
 )
 iface.launch()
-````
+```
 ![calculator interface](demo/screenshots/calculator/1.gif)
 
 ### Flagging
@@ -160,7 +161,7 @@ You can review these flagged inputs by manually exploring the flagging directory
 
 Most models are black boxes such that the internal logic of the function is hidden from the end user. To encourage transparency, we've added the ability for interpretation so that users can understand what parts of the input are responsible for the output. Take a look at the simple interface below:
 
-````python
+```python
 import gradio as gr
 import re
 
@@ -176,7 +177,7 @@ iface = gr.Interface(
   outputs="label", interpretation="default")
 iface.launch()
 
-````
+```
 ![gender_sentence_default_interpretation interface](demo/screenshots/gender_sentence_default_interpretation/1.gif)
 
 Notice the  `interpretation`  keyword argument. We're going to use Gradio's default interpreter here. After you submit and click Interpret, you'll see the interface automatically highlights the parts of the text that contributed to the final output orange! The parts that conflict with the output are highlight blue.
@@ -185,7 +186,7 @@ Gradio's default interpretation works with single output type interfaces, where 
 
 You can also write your own interpretation function. The demo below adds custom interpretation to the previous demo. This function will take the same inputs as the main wrapped function. The output of this interpretation function will be used to highlight the input of each input interface - therefore the number of outputs here corresponds to the number of input interfaces. To see the format for interpretation for each input interface, check the [Docs](https://gradio.app/docs).
 
-````python
+```python
 import gradio as gr
 import re
 
@@ -205,7 +206,7 @@ def interpret_gender(sentence):
     token = word.lower()
     if (is_male and token in male_words) or (not is_male and token in female_words):
       score = 1
-    elif  (is_male and token in female_words) or (not is_male and token in male_words):
+    elif (is_male and token in female_words) or (not is_male and token in male_words):
       score = -1
     interpretation.append((word, score))
   return interpretation
@@ -214,8 +215,24 @@ iface = gr.Interface(
   fn=gender_of_sentence, inputs=gr.inputs.Textbox(default="She went to his house to get her keys."),
   outputs="label", interpretation=interpret_gender)
 iface.launch()
-````
+```
 ![gender_sentence_custom_interpretation interface](demo/screenshots/gender_sentence_custom_interpretation/1.gif)
+
+### Sharing Interfaces Publicly & Privacy
+
+Interfaces can be easily shared publicly by setting `share=True` in the `launch()` method. Like this:
+
+```python
+gr.Interface(classify_image, image, label).launch(share=True)
+```
+
+This generates a public, shareable link that you can send to anybody! When you send this link, the user on the other side can try out the model in their browser. Because the processing happens on your device (as long as your device stays on!), you don't have to worry about any dependencies. If you're working out of colab notebook, a share link is always automatically created. It usually looks something like this:  **XXXXX.gradio.app**. Although the link is served through a gradio link, we are only a proxy for your local server, and do not store any data sent through the interfaces.
+
+Keep in mind, however, that these links are publicly accessible, meaning that anyone can use your model for prediction! Therefore, make sure not to expose any sensitive information through the functions you write, or allow any critical changes to occur on your device. If you set `share=False` (the default), only a local link is created, which can be shared by  [port-forwarding](https://www.ssh.com/ssh/tunneling/example)  with specific users.
+
+Links expire after 6 hours. Need longer links, or private links?  [Contact us for Gradio Teams](https://gradio.app/#contact-box).
+
+![Sharing diagram](demo/images/sharing.svg)
 
 ##  Contributing:
 

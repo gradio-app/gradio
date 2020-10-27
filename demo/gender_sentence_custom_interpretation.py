@@ -17,7 +17,7 @@ def interpret_gender(sentence):
     token = word.lower()
     if (is_male and token in male_words) or (not is_male and token in female_words):
       score = 1
-    elif  (is_male and token in female_words) or (not is_male and token in male_words):
+    elif (is_male and token in female_words) or (not is_male and token in male_words):
       score = -1
     interpretation.append((word, score))
   return interpretation
