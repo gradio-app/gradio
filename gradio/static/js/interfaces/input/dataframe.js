@@ -18,24 +18,33 @@ const dataframe_input = {
       data.push(row);
     }
     this.default_data = data;
-    let config = {data: data};
-    if (opts.headers || opts.datatype) {
+    this.opts = opts;
+    this.reset(this.default_data);
+  },
+  reset: function(data) {
+    if (this.table) {
+      this.table.destroy();
+    }
+    row_count = data.length;
+    col_count = data[0].length;
+    config = {};
+    if (this.opts.headers || this.opts.datatype) {
       let column_config = [];
       for (let i = 0; i < col_count; i++) {
         let column = {};
-        if (opts.datatype) {
-          let datatype = typeof opts.datatype === "string" ? opts.datatype : opts.datatype[i];
+        if (this.opts.datatype) {
+          let datatype = typeof this.opts.datatype === "string" ? this.opts.datatype : this.opts.datatype[i];
           let datatype_map = {"str": "text", "bool": "checkbox", "number": "numeric", "date": "calendar"}
           column.type = datatype_map[datatype];
         }
-        if (opts.headers) {
-          column.title = opts.headers[i];
+        if (this.opts.headers) {
+          column.title = this.opts.headers[i];
         }
         column_config.push(column);
       }
       config.columns = column_config;
     }
-    this.config = config;
+    config.data = data;
     this.table = this.target.find(".dataframe").jexcel(config);
   },
   submit: function() {
@@ -69,8 +78,35 @@ const dataframe_input = {
       }
     }
   },
+  load_example_preview: function(data) {
+    let data_copy = [];
+    for (let row of data.splice(0,3)) {
+      new_row = row.splice(0,3)
+      if (row.length > 3) {
+        new_row.push("...");
+      }
+      data_copy.push(new_row);      
+    }
+    if (data.length > 3) {
+      new_row = Array(data_copy[0].length).fill("...");
+      data_copy.push(new_row);      
+    }
+    let html = "<table><tbody>"
+    for (let row of data_copy) {
+      html += "<tr>";
+      for (let cell of row) {
+        html += "<td>" + cell + "</td>";
+      }
+      html += "</tr>";
+    }
+    html += "</tbody></table>";
+    return html;
+  },
+  load_example: function(data) {
+    this.reset(data);
+  },
   clear: function() {
-    this.table.setData(this.default_data);
+    this.reset(this.default_data);
     this.target.find("td").css("background-color", "white");
   }
 }
