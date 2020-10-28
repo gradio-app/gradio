@@ -12,24 +12,6 @@ class Component():
         """
         return {"label": self.label}
 
-    def preprocess(self, x):
-        """
-        Any preprocessing needed to be performed on function input.
-        """
-        return x
-
-    def postprocess(self, y):
-        """
-        Any postprocessing needed to be performed on function output.
-        """
-        return y
-
-    def process_example(self, example):
-        """
-        Proprocess example for UI
-        """
-        return example
-
     @classmethod
     def get_shortcut_implementations(cls):
         """
