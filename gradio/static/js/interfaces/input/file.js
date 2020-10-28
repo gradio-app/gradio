@@ -8,9 +8,8 @@ const file_input = {
         <div class="file_name"></div>
         <div class="file_size"></div>
       </div>
-      <input class="hidden_upload" type="file" />
-    </div>
-    `
+      <input class="hidden_upload" type="file">
+    </div>`
     ,
   init: function(opts) {
     var io = this;
@@ -37,21 +36,42 @@ const file_input = {
       this.io_master.input(this.id, this.file_data);
     }
   },
+  load_preview: function() {
+    var io = this;
+    io.target.find(".upload_zone").hide();
+    io.target.find(".file_display").removeClass("hide");
+    io.target.find(".file_name").text(io.file_data.name);
+    io.target.find(".file_size").text(prettyBytes(io.file_data.size));
+  },
   load_preview_from_files: function(files) {
     if (!files.length || !window.FileReader) {
       return
     }
     var ReaderObj = new FileReader()
     ReaderObj.readAsDataURL(files[0])
-    ReaderObj.io = this;
+    var io = this;
     ReaderObj.onloadend = function() {
-      let io = this.io;
-      io.target.find(".upload_zone").hide();
-      io.target.find(".file_display").removeClass("hide");
-      io.target.find(".file_name").text(files[0].name);
-      io.target.find(".file_size").text(prettyBytes(files[0].size));
-      io.file_data = this.result;
-    }
+      io.file_data = {
+        "name": files[0].name,
+        "size": files[0].size,
+        "data": this.result,
+        "is_local_example": false
+      }
+      io.load_preview()
+    };
+  },
+  load_example_preview: function(data) {
+    return data["name"] + " <em>(" + prettyBytes(data["size"]) + ")</em>";
+  },
+  load_example: function(example_data) {
+    var io = this;
+    io.file_data = {
+      "name": example_data["name"],
+      "data": null, 
+      "size": example_data["size"],
+      "is_local_example": true
+    };
+    io.load_preview();
   },
   clear: function() {
     this.target.find(".upload_zone").show();

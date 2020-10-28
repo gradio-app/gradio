@@ -69,7 +69,6 @@ const audio_input = {
 
       this.target.find(".mic_zone").mousedown(function() {
         if (io.state == "RECORDING" || io.state == "STOP_RECORDING") {
-          io.target.find(".upload_zone").hide();
           io.recorder.stop();
           var blob = io.soundFile.getBlob();
           var reader = new window.FileReader();
@@ -109,6 +108,7 @@ const audio_input = {
   load_preview_from_audio: function(audio) {
     var io = this;
     io.audio_data = audio;
+    io.target.find(".upload_zone").hide();
     io.target.find(".player").removeClass("hidden");
     io.wavesurfer.load(io.audio_data);
     if (io.state == "STOP_RECORDING") {
@@ -123,11 +123,9 @@ const audio_input = {
     }
     var ReaderObj = new FileReader()
     ReaderObj.readAsDataURL(files[0])
-    ReaderObj.io = this;
+    io = this;
     this.state = "AUDIO_LOADING"
     ReaderObj.onloadend = function() {
-      let io = this.io;
-      io.target.find(".upload_zone").hide();
       io.load_preview_from_audio(this.result);
     }
   },
@@ -137,6 +135,16 @@ const audio_input = {
     } else if (this.state == "RECORDING") {
       this.state = "STOP_RECORDING";
       this.target.find(".upload_zone").mousedown();
+    }
+  },
+  load_example: function(example_data) {
+    example_data = this.io_master.example_file_path + example_data;
+    let io = this;
+    if (io.state == "NO_AUDIO" || io.state == "RECORDED") {
+      io.clear();
+      toDataURL(example_data, function(data) {
+        io.load_preview_from_audio(data);
+      })  
     }
   },
   show_interpretation: function(data) {

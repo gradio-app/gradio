@@ -38,7 +38,13 @@ def main_note(audio):
     return volume_per_pitch
 
 io = gr.Interface(
-    main_note, "microphone", gr.outputs.Label(num_top_classes=4),
+    main_note, 
+    "microphone", 
+    gr.outputs.Label(num_top_classes=4),
+    examples=[
+        ["audio/recording1.wav"],
+        ["audio/cantina.wav"],
+    ],
     interpretation="default")
 
 io.launch()

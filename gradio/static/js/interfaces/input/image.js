@@ -246,7 +246,7 @@ const image_input = {
           ctx.clearRect(0,0,dimension,dimension);
           ctx.drawImage(img,0,0,dimension,dimension);
         };
-        img.src = data;  
+        img.src = data;
       } else {
         io.target.find(".upload_zone").hide();
         io.target.find(".image_display").removeClass("hide");
