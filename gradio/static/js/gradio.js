@@ -35,6 +35,7 @@ function gradio(config, fn, target, example_file_path) {
     </div>
     <div class="examples invisible">
       <h3>Examples <small>(click to load)</small></h3>
+      <input class="run_examples" type="button" value="RUN ALL"/>
       <table>
       </table>
     </div>
@@ -206,6 +207,9 @@ function gradio(config, fn, target, example_file_path) {
         let example_id = parseInt($(this).attr("row"));
         for (let [i, value] of config["examples"][example_id].entries()) {
           input_interfaces[i].load_example(value);
+        };
+        if (io_master.loaded_examples && example_id in io_master.loaded_examples) {
+          io_master.output({"data": io_master.loaded_examples[example_id]});
         }
       })
     };
@@ -247,6 +251,9 @@ function gradio(config, fn, target, example_file_path) {
       if (io_master.last_output) {
         io_master.interpret();
       }
+    })
+    target.find(".run_examples").click(function() {
+      io_master.submit_examples();
     })
 
     return io_master;

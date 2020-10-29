@@ -41,7 +41,9 @@ const file_input = {
     io.target.find(".upload_zone").hide();
     io.target.find(".file_display").removeClass("hide");
     io.target.find(".file_name").text(io.file_data.name);
-    io.target.find(".file_size").text(prettyBytes(io.file_data.size));
+    if (io.file_data.size !== null) {
+      io.target.find(".file_size").text(prettyBytes(io.file_data.size));
+    }
   },
   load_preview_from_files: function(files) {
     if (!files.length || !window.FileReader) {
@@ -60,15 +62,12 @@ const file_input = {
       io.load_preview()
     };
   },
-  load_example_preview: function(data) {
-    return data["name"] + " <em>(" + prettyBytes(data["size"]) + ")</em>";
-  },
   load_example: function(example_data) {
     var io = this;
     io.file_data = {
-      "name": example_data["name"],
+      "name": example_data,
       "data": null, 
-      "size": example_data["size"],
+      "size": null,
       "is_local_example": true
     };
     io.load_preview();

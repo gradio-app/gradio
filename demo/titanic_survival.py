@@ -77,6 +77,11 @@ io = gr.Interface(
         gr.inputs.Radio(["S", "C", "Q"], type="index"),
     ],
     "label",
+    examples=[
+        ["First", True, 30, [], 50, "S"],
+        ["Second", False, 40, ["Sibling", "Child"], 10, "Q"],
+        ["Third", True, 30, ["Child"], 20, "S"],
+    ],
     interpretation="default"
 )
 

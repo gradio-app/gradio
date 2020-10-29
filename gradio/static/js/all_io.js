@@ -35,7 +35,40 @@ var io_master_template = {
       console.error(error);
       this.target.find(".loading_in_progress").hide();
       this.target.find(".loading_failed").show();
-    })
+    });
+  },
+  submit_examples: function() {
+    let example_ids = [];
+    for (let i = 0; i < this.config.examples.length; i++) {
+      example_ids.push(i);
+    }
+    this.fn(example_ids, "predict_examples").then((output) => {
+      output = output["data"];
+      if (!this.has_loaded_examples) {
+        this.has_loaded_examples = true;
+        this.loaded_examples = {};
+        let html = ""
+        for (let i = 0; i < this.output_interfaces.length; i++) {
+          html += "<th>" + this.config.output_interfaces[i][1]["label"] + "</th>";
+        }
+        this.target.find(".examples > table > thead > tr").append(html);
+      }
+      for (let i = 0; i < output.length; i++) {
+        let example_id = example_ids[i];
+        let output_values = output[i];
+        this.loaded_examples[example_id] = output_values;
+        let html = ""
+        for (let j = 0; j < output_values.length; j++) {
+          html += "<td>" + output_values[j] + "</td>";
+        }
+        this.target.find(".examples_body tr[row='" + example_id + "']").append(html);
+      }
+      this.has_loaded_examples = true;
+    }).catch((error) => {
+      console.error(error);
+      this.target.find(".loading_in_progress").hide();
+      this.target.find(".loading_failed").show();
+    });
   },
   output: function(data) {
     this.last_output = data["data"];
