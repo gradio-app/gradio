@@ -59,7 +59,12 @@ var io_master_template = {
         this.loaded_examples[example_id] = output_values;
         let html = ""
         for (let j = 0; j < output_values.length; j++) {
-          html += "<td>" + output_values[j] + "</td>";
+          let output_interface = this.output_interfaces[j];
+          let example_preview = output_values[j];
+          if (output_interface.load_example_preview) {
+            example_preview = output_interface.load_example_preview(example_preview)
+          }
+          html += "<td>" + example_preview + "</td>";
         }
         this.target.find(".examples_body tr[row='" + example_id + "']").append(html);
       }

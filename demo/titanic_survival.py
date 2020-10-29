@@ -78,9 +78,9 @@ io = gr.Interface(
     ],
     "label",
     examples=[
-        ["First", True, 30, [], 50, "S"],
-        ["Second", False, 40, ["Sibling", "Child"], 10, "Q"],
-        ["Third", True, 30, ["Child"], 20, "S"],
+        ["first", True, 30, [], 50, "S"],
+        ["second", False, 40, ["Sibling", "Child"], 10, "Q"],
+        ["third", True, 30, ["Child"], 20, "S"],
     ],
     interpretation="default"
 )

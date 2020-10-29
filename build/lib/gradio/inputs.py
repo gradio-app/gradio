@@ -586,6 +586,9 @@ class Image(InputComponent):
         else:
             raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'numpy', 'pil', 'file'.")
 
+    def preprocess_example(self, x):
+        return processing_utils.encode_file_to_base64(x)
+
     def rebuild(self, dir, data):
         """
         Default rebuild method to decode a base64 image
@@ -680,6 +683,9 @@ class Audio(InputComponent):
             return scipy.io.wavfile.read(file_obj.name)
         elif self.type == "mfcc":
             return processing_utils.generate_mfcc_features_from_audio_file(file_obj.name)
+
+    def preprocess_example(self, x):
+        return processing_utils.encode_file_to_base64(x, type="audio")
 
     def interpret(self, segments=8):
         """

@@ -22,6 +22,16 @@ const label_output = {
       }
     }
   },
+  load_example_preview: function(data) {
+    if ("confidences" in data) {
+      for (let confidence_set of data["confidences"]) {
+        if (confidence_set["label"] == data["label"]) {
+          return data["label"] + " (" + (100*confidence_set["confidence"]).toFixed(1) + "%)";
+        }
+      }
+    }
+    return data["label"];
+  },
   clear: function() {
     this.target.find(".output_class").empty();
     this.target.find(".confidence_intervals > div").empty();
