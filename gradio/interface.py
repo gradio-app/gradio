@@ -121,6 +121,7 @@ class Interface:
         self.analytics_enabled=analytics_enabled
         self.launch_port = None
         self.save_to = None
+        self.share = None
 
         data = {'fn': fn,
                 'inputs': inputs,
@@ -359,6 +360,7 @@ class Interface:
             else:
                 print("Colab notebook detected. To show errors in colab notebook, set debug=True in launch()")
 
+        self.share = share
         if share:
             print("This share link will expire in 6 hours. If you need a "
                   "permanent link, email support@gradio.app")
