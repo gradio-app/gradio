@@ -69,6 +69,7 @@ const dataframe_input = {
       }
     }
   },
+  interpretation_logic: "Highlights the output contribution of each cell in dataframe.",
   clear: function() {
     this.table.setData(this.default_data);
     this.target.find("td").css("background-color", "white");

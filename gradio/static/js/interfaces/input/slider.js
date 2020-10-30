@@ -31,13 +31,14 @@ const slider = {
     let html = ""
     for (let [i, value] of data.entries()) {
       html += `
-        <div title="${value}" class='alternate'
+        <div class='alternate'
           alternate_index=${i}
           style='background-color: ${getSaliencyColor(value)}'>
         </div>      `
     }
     this.target.find(".interpret_range").html(html);
   },
+  interpretation_logic: "Highlights the result of the alternative values along slider. Hover to see alternative output.",
   clear: function() {
     this.load_example(this.minimum)
     this.target.find(".interpret_range").empty();

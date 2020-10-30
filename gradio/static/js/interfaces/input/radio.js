@@ -31,7 +31,7 @@ const radio = {
             &#x2713;
           </div>`
       } else {
-        var html = `<div class='interpret_check alternate' title='${data[i]}'
+        var html = `<div class='interpret_check alternate'
             alternate_index=${alternate_index}
             style='background-color: ${getSaliencyColor(data[i])}'>
             &#x2713;
@@ -41,6 +41,7 @@ const radio = {
       this.target.find("label").eq(i).append(html);
     }
   },
+  interpretation_logic: "Highlights the result of the alternative selection to radio. Hover to see alternative output.",
   clear: function() {
     this.target.find(".interpretation").empty();    
     this.target.find("input").prop("checked", false);    

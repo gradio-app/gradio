@@ -33,8 +33,17 @@ function gradio(config, fn, target, example_file_path) {
         </div>
       </div>
     </div>
+    <div class="interpretation_explained">
+      <h4>Interpretation Legend <span class='close_explain'>&#10006;</span></h4>
+      <div class='interpretation_legend'>
+        <div>&larr; Decreased output score / confidence</div>
+        <div>Increased output score / confidence &rarr;</div>
+      </div>
+      <p>When you click Interpret, you can see how different parts of the input contributed to the final output. The legend above will highlight each of the input components as follows:</p>
+      <ul></ul>
+    </div>
     <div class="examples invisible">
-      <h3>Examples <small>(click to load)</small></h3>
+      <h4>Examples <small>(click to load)</small></h4>
       <table>
       </table>
     </div>
@@ -178,8 +187,19 @@ function gradio(config, fn, target, example_file_path) {
       }
       if (!config["allow_interpretation"]) {
         target.find(".interpret").hide();
+        target.find(".interpretation_explained").hide();
+      } else {
+        let interpret_html = ""; 
+        for (let [i, interface] of io_master.input_interfaces.entries()) {
+          let label = config.input_interfaces[i][1]["label"];;
+          interpret_html += "<li><strong>" + label + "</strong> - " + interface.interpretation_logic + "</li>";
+        }
+        target.find(".interpretation_explained ul").html(interpret_html);
       }
     }
+    target.find(".interpretation_explained .close_explain").click(function() {
+      target.find(".interpretation_explained").remove();
+    });
     if (config["examples"]) {
       target.find(".examples").removeClass("invisible");
       let html = "<thead>"
