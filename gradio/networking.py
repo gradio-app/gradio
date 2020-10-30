@@ -6,6 +6,7 @@ import os
 import socket
 import threading
 from flask import Flask, request, jsonify, abort, send_file, render_template
+from flask_cachebuster import CacheBuster
 from flask_cors import CORS
 import threading
 import pkg_resources
@@ -31,12 +32,14 @@ GRADIO_API_SERVER = "https://api.gradio.app/v1/tunnel-request"
 
 STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "templates/")
 STATIC_PATH_LIB = pkg_resources.resource_filename("gradio", "static/")
+GRADIO_STATIC_ROOT = "https://gradio.app"
 
 app = Flask(__name__,
     template_folder=STATIC_TEMPLATE_LIB,
-    static_folder=None)  # TODO (aliabid94): replace with default static
-# handler
+    static_folder=STATIC_PATH_LIB)
 CORS(app)
+cache_buster = CacheBuster(config={'extensions': ['.js', '.css'], 'hash_size': 5})
+cache_buster.init_app(app)
 app.app_globals = {}
 
 # Hide Flask default message
@@ -91,16 +94,8 @@ def main():
         title=app.app_globals["title"],
         description=app.app_globals["description"],
         thumbnail=app.app_globals["thumbnail"],
+        vendor_prefix=(GRADIO_STATIC_ROOT if app.interface.share else "")
     )
-
-
-@app.route("/static/<path:path>")
-def static(path):
-    path = os.path.join(STATIC_PATH_LIB, path)
-    if os.path.exists(path):
-        return send_file(path)
-    else:
-        abort(404)
 
 
 @app.route("/config/", methods=["GET"])
