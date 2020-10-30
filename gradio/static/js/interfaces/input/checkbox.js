@@ -18,7 +18,7 @@ const checkbox = {
           ${mark}
         </div>`
       } else {
-        html += `<div class='interpret_check alternate' title='${score}'
+        html += `<div class='interpret_check alternate'
         alternate_index='${alternate_index}'
         style='background-color: ${getSaliencyColor(score)}'>
           ${mark}
@@ -28,6 +28,7 @@ const checkbox = {
     }
     this.target.find(".interpretation").html(html);
   },
+  interpretation_logic: "Highlights the result of the alternative selection to checkbox. Hover to see alternative output.",
   submit: function() {
     let io = this;
     let is_checked = this.target.find("input").prop("checked")

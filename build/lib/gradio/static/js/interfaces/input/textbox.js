@@ -37,7 +37,7 @@ const textbox_input = {
       [char, score] = char_set;
       let color = getSaliencyColor(score);
       html += `
-      <span title="${score}" class='alternate'
+      <span class='alternate'
         alternate_index=${i}
         style="background-color: ${color}">
         ${char}
@@ -45,6 +45,7 @@ const textbox_input = {
     }
     this.target.find(".output_text").html(html);
   },
+  interpretation_logic: "Highlights the output contribution of substrings of input.",
   load_example: function(data) {
     this.target.find(".input_text").val(data);    
   }
