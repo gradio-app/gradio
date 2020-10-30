@@ -57,6 +57,20 @@ button.secondary {
   color: black;
   background-color: #F6F6F6;
 }
+.interpretation_legend {
+  display: flex;
+  padding: 8px;
+  border: solid 2px black;
+  justify-content: space-between;
+  font-family: monospace;
+  background-image: linear-gradient(to right, #3498db ,white,#e74c3c);
+}
+.interpretation_explained ul {
+  font-size: 14px;
+}
+.close_explain {
+  cursor: pointer;  
+}
 .examples table {
   border-collapse: collapse;
   font-family: monospace;

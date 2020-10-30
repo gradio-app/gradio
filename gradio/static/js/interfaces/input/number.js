@@ -33,7 +33,7 @@ const number_input = {
           </div>`
       } else {
         html += `
-          <div title="${score}" class='alternate'
+          <div class='alternate'
             alternate_index=${alternate_index}
             style='background-color: ${getSaliencyColor(score)}'>
             ${value}
@@ -42,8 +42,8 @@ const number_input = {
       }
     }
     this.target.find(".interpret_range").html(html);
-
   },
+  interpretation_logic: "Highlights the result of the alternative, neighboring values to input. Hover to see alternative output.",
   load_example: function(data) {
     this.target.find(".input_text").val(data);    
   }

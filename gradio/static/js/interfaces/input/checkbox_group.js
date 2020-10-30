@@ -36,7 +36,7 @@ const checkbox_group = {
               ${mark}
           </div>`
         } else {
-          html += `<div class='interpret_check alternate' title='${score}'
+          html += `<div class='interpret_check alternate'
             alternate_index='${alternate_index}'
             style='background-color: ${getSaliencyColor(score)}'>
               ${mark}
@@ -48,6 +48,7 @@ const checkbox_group = {
       this.target.find("label").eq(i).append(html);
     }
   },
+  interpretation_logic: "Highlights the result of alternative selections to the checkboxes. Hover to see alternative output.",
   clear: function() {
     this.target.find(".interpretation").empty();    
     this.target.find("input").prop("checked", false);    
