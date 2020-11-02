@@ -119,7 +119,6 @@ class Interface:
         self.flagging_dir = flagging_dir
         Interface.instances.add(self)
         self.analytics_enabled=analytics_enabled
-        self.launch_port = None
         self.save_to = None
         self.share = None
 
@@ -341,6 +340,7 @@ class Interface:
         server_port, app, thread = networking.start_server(
             self, self.server_name, self.server_port)
         path_to_local_server = "http://{}:{}/".format(self.server_name, server_port)
+        self.server_port = server_port
         self.status = "RUNNING"
         self.server = app
 
@@ -365,7 +365,7 @@ class Interface:
             print("This share link will expire in 6 hours. If you need a "
                   "permanent link, email support@gradio.app")
             try:
-                share_url = networking.setup_tunnel(self.launch_port)
+                share_url = networking.setup_tunnel(server_port)
                 print("Running on External URL:", share_url)
             except RuntimeError:
                 data = {'error': 'RuntimeError in launch method'}
