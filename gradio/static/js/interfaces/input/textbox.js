@@ -36,12 +36,9 @@ const textbox_input = {
     for (let [i, char_set] of data.entries()) {
       [char, score] = char_set;
       let color = getSaliencyColor(score);
-      html += `
-      <span class='alternate'
+      html += `<span class='alternate'
         alternate_index=${i}
-        style="background-color: ${color}">
-        ${char}
-      </span>`
+        style="background-color: ${color}">${char}</span>`
     }
     this.target.find(".output_text").html(html);
   },
