@@ -33,7 +33,7 @@ function gradio(config, fn, target, example_file_path) {
         </div>
       </div>
     </div>
-    <div class="interpretation_explained">
+    <div class="interpretation_explained invisible">
       <h4>Interpretation Legend <span class='close_explain'>&#10006;</span></h4>
       <div class='interpretation_legend'>
         <div>&larr; Decreased output score / confidence</div>
@@ -187,7 +187,6 @@ function gradio(config, fn, target, example_file_path) {
       }
       if (!config["allow_interpretation"]) {
         target.find(".interpret").hide();
-        target.find(".interpretation_explained").hide();
       } else {
         let interpret_html = ""; 
         for (let [i, interface] of io_master.input_interfaces.entries()) {
@@ -263,6 +262,7 @@ function gradio(config, fn, target, example_file_path) {
       }
     })
     target.find(".interpret").click(function() {
+      target.find(".interpretation_explained").removeClass("invisible");
       if (io_master.last_output) {
         io_master.interpret();
       }
