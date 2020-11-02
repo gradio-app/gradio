@@ -78,6 +78,7 @@ const dataframe_input = {
       }
     }
   },
+  interpretation_logic: "Highlights the output contribution of each cell in dataframe.",
   load_example_preview: function(data) {
     let data_copy = [];
     for (let row of data.splice(0,3)) {

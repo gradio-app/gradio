@@ -149,14 +149,15 @@ const audio_input = {
   },
   show_interpretation: function(data) {
     let html = ""
-    for (let value of data) {
+    for (let [i, value] of data.entries()) {
       html += `
-        <div title="${value}"
+        <div class='alternate' alternate_index='${i}'
           style='background-color: ${getSaliencyColor(value)}'>
         </div>      `
     }
     this.target.find(".interpret_range").html(html);
   },
+  interpretation_logic: "Highlights the output contribution of subsections of the audio input split by time.",
   clear: function() {
     this.audio_data = null;
     this.state = "NO_AUDIO";

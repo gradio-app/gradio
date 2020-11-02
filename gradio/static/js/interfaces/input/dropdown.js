@@ -15,6 +15,7 @@ const dropdown = {
   },
   show_interpretation: function(data) {
     let html = ""
+    let alternate_index = 0;
     for (let i = 0; i < this.choices.length; i++) {
       if (data[i] == null) {
         html += `
@@ -23,13 +24,17 @@ const dropdown = {
           </div>`
       } else {
         html += `
-          <div title='${data[i]}' style='background-color: ${getSaliencyColor(data[i])}'>
+          <div class='alternate' 
+          alternate_index=${alternate_index} 
+          style='background-color: ${getSaliencyColor(data[i])}'>
             ${this.choices[i]}
-          </div>`
+          </div>`;
+        alternate_index++;
       }
     }
     this.target.find(".select_interpretation").html(html);
   },
+  interpretation_logic: "Highlights the result of the alternative selection to dropdown. Hover to see alternative output.",
   submit: function() {
     checked_val = this.target.find("option:selected").val();
     if (checked_val) {
