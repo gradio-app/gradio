@@ -11,7 +11,15 @@ def zip_two_files(file1, file2):
     return "tmp.zip"
 
 
-io = gr.Interface(zip_two_files, ["file", "file"], "file")
+io = gr.Interface(
+    zip_two_files, 
+    ["file", "file"], 
+    "file",
+    examples=[
+        ["images/1.jpg", "images/2.jpg"],
+        ["files/titanic.csv", "audio/cantina.wav"],
+    ]
+)
 
 io.test_launch()
 io.launch()

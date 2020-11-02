@@ -9,8 +9,13 @@ class TestTextbox(unittest.TestCase):
     def test_in_interface(self):
         iface = gr.Interface(lambda x: x[::-1], "textbox", "textbox")
         self.assertEqual(iface.process(["Hello"])[0], ["olleH"])
+
+class TestNumber(unittest.TestCase):
+    def test_in_interface(self):
+        iface = gr.Interface(lambda x: x[::-1], "textbox", "textbox")
+        self.assertEqual(iface.process(["Hello"])[0], ["olleH"])
         iface = gr.Interface(lambda x: x*x, "number", "number")
-        self.assertEqual(iface.process(["5"])[0], [25])
+        self.assertEqual(iface.process([5])[0], [25])
 
 class TestSlider(unittest.TestCase):
     def test_in_interface(self):
@@ -103,7 +108,11 @@ class TestAudio(unittest.TestCase):
 
 class TestFile(unittest.TestCase):
     def test_in_interface(self):
-        x_file = gr.test_data.BASE64_AUDIO
+        x_file = {
+            "name": "audio.wav",
+            "data": gr.test_data.BASE64_AUDIO,
+            "is_local_example": False
+        }
         def get_size_of_file(file_obj):
             return os.path.getsize(file_obj.name)
 

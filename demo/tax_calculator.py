@@ -37,7 +37,11 @@ io = gr.Interface(
         )
     ],
     "number",
-    interpretation="default"
+    interpretation="default",
+    examples=[
+        [10000, "Married", [["Car", 5000, False], ["Laptop", 800, True]]],
+        [80000, "Single", [["Suit", 800, True], ["Watch", 1800, False]]],
+    ]
 )
 
 io.launch()

@@ -10,7 +10,7 @@ class TestTextbox(unittest.TestCase):
         iface = gr.Interface(lambda x: x[-1], "textbox", gr.outputs.Textbox())
         self.assertEqual(iface.process(["Hello"])[0], ["o"])
         iface = gr.Interface(lambda x: x / 2, "number", gr.outputs.Textbox(type="number"))
-        self.assertEqual(iface.process(["10"])[0], [5])
+        self.assertEqual(iface.process([10])[0], [5])
 
 
 class TestLabel(unittest.TestCase):

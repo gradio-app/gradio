@@ -31,6 +31,18 @@ class InputComponent(Component):
         self.interpret()
         super().__init__(label)
 
+    def preprocess(self, x):
+        """
+        Any preprocessing needed to be performed on function input.
+        """
+        return x
+
+    def preprocess_example(self, x):
+        """
+        Any preprocessing needed to be performed on an example.
+        """
+        return x
+
     def interpret(self):
         '''
         Set any parameters for interpretation.
@@ -699,12 +711,26 @@ class File(InputComponent):
         }
 
     def preprocess(self, x):
+        name, data, is_local_example = x["name"], x["data"], x["is_local_example"]            
         if self.type == "file":
-            return processing_utils.decode_base64_to_file(x)
+            if is_local_example:
+                return open(name)
+            else:
+                return processing_utils.decode_base64_to_file(data)
         elif self.type == "bytes":
-            return processing_utils.decode_base64_to_binary(x)
+            if is_local_example:
+                with open(name, "rb") as file_data:
+                    return file_data.read()
+            return processing_utils.decode_base64_to_binary(data)
         else:
             raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'file', 'bytes'.")
+
+    def preprocess_example(self, x):
+        return {
+            "name": x,
+            "size": os.path.getsize(x)
+        }
+
 
 
 class Dataframe(InputComponent):

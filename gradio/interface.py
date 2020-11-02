@@ -119,6 +119,8 @@ class Interface:
         self.flagging_dir = flagging_dir
         Interface.instances.add(self)
         self.analytics_enabled=analytics_enabled
+        self.save_to = None
+        self.share = None
 
         data = {'fn': fn,
                 'inputs': inputs,
@@ -192,7 +194,7 @@ class Interface:
             for example_set in self.examples:
                 processed_set = []
                 for iface, example in zip(self.input_interfaces, example_set):
-                    processed_set.append(iface.process_example(example))
+                    processed_set.append(iface.preprocess_example(example))
                 processed_examples.append(processed_set)
             config["examples"] = processed_examples
         return config
@@ -363,6 +365,7 @@ class Interface:
             else:
                 print("Colab notebook detected. To show errors in colab notebook, set debug=True in launch()")
 
+        self.share = share
         if share:
             print("This share link will expire in 6 hours. If you need a "
                   "permanent link, email support@gradio.app")
