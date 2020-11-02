@@ -207,20 +207,21 @@ function gradio(config, fn, target, example_file_path) {
         html += "<th>" + label + "</th>";
       }
       html += "</thead>";
-      html += "<tbody>";
+      html += "<tbody class='examples_body'>";
       for (let [i, example] of config["examples"].entries()) {
         html += "<tr row="+i+">";
         for (let [j, col] of example.entries()) {
+          let new_col = JSON.parse(JSON.stringify(col))
           if (input_interfaces[j].load_example_preview) {
-            col = input_interfaces[j].load_example_preview(col);
+            new_col = input_interfaces[j].load_example_preview(new_col);
           }
-          html += "<td>" + col + "</td>";
+          html += "<td>" + new_col + "</td>";
         }
         html += "</tr>";
       }
       html += "</tbody>";
       target.find(".examples table").html(html);
-      target.find(".examples tr").click(function() {
+      target.find(".examples_body > tr").click(function() {
         let example_id = parseInt($(this).attr("row"));
         for (let [i, value] of config["examples"][example_id].entries()) {
           input_interfaces[i].load_example(value);
