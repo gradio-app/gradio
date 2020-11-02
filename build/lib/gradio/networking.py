@@ -159,8 +159,11 @@ def flag():
 @app.route("/api/interpret/", methods=["POST"])
 def interpret():
     raw_input = request.json["data"]
-    interpretation = app.interface.interpret(raw_input)
-    return jsonify(interpretation)
+    interpretation_scores, alternative_outputs = app.interface.interpret(raw_input)
+    return jsonify({
+        "interpretation_scores": interpretation_scores,
+        "alternative_outputs": alternative_outputs
+    })
 
 
 @app.route("/file/<path:path>", methods=["GET"])

@@ -197,6 +197,7 @@ const image_input = {
       paintSaliency(data, ctx, width, height);
     }
   },
+  interpretation_logic: "Highlights the output contribution of subregions of image.",
   state: "NO_IMAGE",
   image_data: null,
   set_image_data: function(image_data, update_editor) {
