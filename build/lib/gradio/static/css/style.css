@@ -71,7 +71,7 @@ button.secondary {
 .close_explain {
   cursor: pointer;  
 }
-.examples table {
+.examples > table {
   border-collapse: collapse;
   font-family: monospace;
   padding: 8px;
@@ -80,20 +80,20 @@ button.secondary {
   border-left: solid 4px whitesmoke;
   border-bottom: solid 4px whitesmoke;
 }
-.examples th {
+.examples > table th {
   padding: 8px 16px;
   text-align: left;
   font-size: 18px;
 }
-.examples td {
+.examples_body > tr > td {
   padding: 8px;
   cursor: pointer;
 }
 
-.examples tbody tr:nth-child(odd) {
+.examples_body > tr:nth-child(odd) {
   background-color: white;
 }
-.examples tbody tr:hover {
+.examples_body > tr:hover {
   background-color: lightgray;
 }
 #credit {

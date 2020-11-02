@@ -21,8 +21,9 @@ io = gr.Interface(
         "+": "lightgreen",
         "-": "pink",
         " ": "none",
-    })
-)
+    }))
 
 io.test_launch()
-io.launch()
+
+if __name__ == "__main__":
+    io.launch()

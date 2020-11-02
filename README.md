@@ -1,33 +1,34 @@
-[![CircleCI](https://circleci.com/gh/gradio-app/gradio.svg?style=svg)](https://circleci.com/gh/gradio-app/gradio) [![PyPI version](https://badge.fury.io/py/gradio.svg)](https://badge.fury.io/py/gradio)
+[![CircleCI](https://circleci.com/gh/gradio-app/gradio.svg?style=svg)](https://circleci.com/gh/gradio-app/gradio)  [![PyPI version](https://badge.fury.io/py/gradio.svg)](https://badge.fury.io/py/gradio)
 
-# Welcome to `gradio`  :rocket:
+#  Welcome to Gradio
 
-Quickly create customizable UI components around your TensorFlow or PyTorch models, or even arbitrary Python functions. Mix and match components to support any combination of inputs and outputs. Gradio makes it easy for you to "play around" with your model in your browser by dragging-and-dropping in your own images (or pasting your own text, recording your own voice, etc.) and seeing what the model outputs. You can also generate a share link which allows anyone, anywhere to use the interface as the model continues to run on your machine. Our core library is free and open-source! Take a look:
+Quickly create customizable UI components around your models. Gradio makes it easy for you to "play around" with your model in your browser by dragging-and-dropping in your own images, pasting your own text, recording your own voice, etc. and seeing what the model outputs.  
 
-<p align="center">
-<img src="https://i.ibb.co/m0skD0j/bert.gif" alt="drawing"/>
-</p>
+![Interface montage](demo/screenshots/montage.gif)
 
 Gradio is useful for:
+
 * Creating demos of your machine learning code for clients / collaborators / users
+
 * Getting feedback on model performance from users
+
 * Debugging your model interactively during development
 
-To get a sense of `gradio`, take a look at a few of these examples, and find more on our website: www.gradio.app.
 
-## Installation
-```
+## Getting Started
+You can find an interactive version of this README at [https://gradio.app/getting_started](https://gradio.app/getting_started).
+
+### Quick Start
+
+To get Gradio running with a simple example, follow these three steps:
+
+<span>1.</span> Install Gradio from pip.
+
+```bash
 pip install gradio
 ```
-(you may need to replace `pip` with `pip3` if you're running `python3`).
 
-## Usage
-
-Gradio is very easy to use with your existing code. Here are a few working examples:
-
-### 0. Hello World [![alt text](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/18ODkJvyxHutTN0P5APWyGFO_xwNcgHDZ?usp=sharing)
-
-Let's start with a basic function (no machine learning yet!) that greets an input name. We'll wrap the function with a `Text` to `Text` interface.
+<span>2.</span> Run the code below as a Python script or in a Python notebook (or in a  [colab notebook](https://colab.research.google.com/drive/18ODkJvyxHutTN0P5APWyGFO_xwNcgHDZ?usp=sharing)).
 
 ```python
 import gradio as gr
@@ -35,124 +36,213 @@ import gradio as gr
 def greet(name):
   return "Hello " + name + "!"
 
-gr.Interface(fn=greet, inputs="text", outputs="text").launch()
+iface = gr.Interface(fn=greet, inputs="text", outputs="text")
+iface.launch()
 ```
 
-The core Interface class is initialized with three parameters:
+<span>3.</span> The interface below will appear automatically within the Python notebook, or pop in a browser on  [http://localhost:7860](http://localhost:7860/)  if running from a script.
 
-- `fn`: the function to wrap
-- `inputs`: the name of the input interface
-- `outputs`: the name of the output interface
+![hello_world interface](demo/screenshots/hello_world/1.gif)
 
-Calling the `launch()` function of the `Interface` object produces the interface shown in image below. Click on the gif to go the live interface in our getting started page. 
+### The Interface
 
-<a href="https://gradio.app/getting_started#interface_4">
-<p align="center">
-<img src="https://i.ibb.co/T4Rqs5y/hello-name.gif" alt="drawing"/>
-</p>
-</a>
+Gradio can wrap almost any Python function with an easy to use interface. That function could be anything from a simple tax calculator to a pretrained model.
 
-### 1. Inception Net [![alt text](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1c6gQiW88wKBwWq96nqEwuQ1Kyt5LejiU?usp=sharing)
+The core  `Interface`  class is initialized with three parameters:
 
-Now, let's do a machine learning example. We're going to wrap an
-interface around the InceptionV3 image classifier, which we'll load
-using Tensorflow! Since this is an image classification model, we will use the `Image` input interface.
-We'll output a dictionary of labels and their corresponding confidence scores with the `Label` output
-interface. (The original Inception Net architecture [can be found here](https://arxiv.org/abs/1409.4842))
+-   `fn`: the function to wrap
+-   `inputs`: the input component type(s)
+-   `outputs`: the output component type(s)
+
+With these three arguments, we can quickly create interfaces and  `launch()`  them. But what if you want to change how the UI components look or behave?
+
+### Customizable Components
+
+What if we wanted to customize the input text field - for example, we wanted it to be larger and have a text hint? If we use the actual input class for  `Textbox`  instead of using the string shortcut, we have access to much more customizability. To see a list of all the components we support and how you can customize them, check out the [Docs](https://gradio.app/docs)
 
 ```python
 import gradio as gr
-import tensorflow as tf
+
+def greet(name):
+  return "Hello " + name + "!"
+
+iface = gr.Interface(
+  fn=greet, 
+  inputs=gr.inputs.Textbox(lines=2, placeholder="Name Here..."), 
+  outputs="text")
+iface.launch()
+```
+![hello_world_2 interface](demo/screenshots/hello_world_2/1.gif)
+
+### Multiple Inputs and Outputs
+
+Let's say we had a much more complex function, with multiple inputs and outputs. In the example below, we have a function that takes a string, boolean, and number, and returns a string and number. Take a look how we pass a list of input and output components.
+
+```python
+import gradio as gr
+
+def greet(name, is_morning, temperature):
+  salutation = "Good morning" if is_morning else "Good evening"
+  greeting = "%s %s. It is %s degrees today" % (
+    salutation, name, temperature)
+  celsius = (temperature - 32) * 5 / 9
+  return greeting, round(celsius, 2)
+
+iface = gr.Interface(
+  fn=greet, 
+  inputs=["text", "checkbox", gr.inputs.Slider(0, 100)],
+  outputs=["text", "number"])
+iface.launch()
+```
+![hello_world_3 interface](demo/screenshots/hello_world_3/1.gif)
+
+We simply wrap the components in a list. Furthermore, if we wanted to compare multiple functions that have the same input and return types, we can even pass a list of functions for quick comparison.
+
+### Working with Images
+
+Let's try an image to image function. When using the  `Image`  component, your function will receive a numpy array of your specified size, with the shape  `(width, height, 3)`, where the last dimension represents the RGB values. We'll return an image as well in the form of a numpy array.
+
+```python
+import gradio as gr
 import numpy as np
-import requests
 
-inception_net = tf.keras.applications.InceptionV3() # load the model
+def sepia(img):
+  sepia_filter = np.array([[.393, .769, .189],
+                           [.349, .686, .168],
+                           [.272, .534, .131]])
+  sepia_img = img.dot(sepia_filter.T)
+  sepia_img /= sepia_img.max()                          
+  return sepia_img
 
-# Download human-readable labels for ImageNet.
-response = requests.get("https://git.io/JJkYN")
-labels = response.text.split("\n")
-
-def classify_image(inp):
-  inp = inp.reshape((-1, 299, 299, 3))
-  inp = tf.keras.applications.inception_v3.preprocess_input(inp)
-  prediction = inception_net.predict(inp).flatten()
-  return {labels[i]: float(prediction[i]) for i in range(1000)}
-
-image = gr.inputs.Image(shape=(299, 299, 3))
-label = gr.outputs.Label(num_top_classes=3)
-
-gr.Interface(fn=classify_image, inputs=image, outputs=label).launch()
+iface = gr.Interface(sepia, gr.inputs.Image(shape=(200, 200)), "image")
+iface.launch()
 ```
-This code will produce the interface below. The interface gives you a way to test
-Inception Net by dragging and dropping images, and also allows you to use naturally modify the input image using image editing tools that
-appear when you click EDIT. Notice here we provided actual `gradio.inputs` and `gradio.outputs` objects to the Interface
-function instead of using string shortcuts. This lets us use built-in preprocessing (e.g. image resizing)
-and postprocessing (e.g. choosing the number of labels to display) provided by these
-interfaces.
+![sepia_filter interface](demo/screenshots/sepia_filter/1.gif)
 
-<p align="center">
-<img src="https://i.ibb.co/X8KGJqB/inception-net-2.gif" alt="drawing"/>
-</p>
+Additionally, our  `Image`  input interface comes with an 'edit' button which opens tools for cropping, flipping, rotating, drawing over, and applying filters to images. We've found that manipulating images in this way will often reveal hidden flaws in a model.
 
-You can supply your own model instead of the pretrained model above, as well as use different kinds of models or functions. Here's a list of the interfaces we currently support, along with their preprocessing / postprocessing parameters:
+### Example Data
 
-**Input Interfaces**:
-- `Sketchpad(shape=(28, 28), invert_colors=True, flatten=False, scale=1/255, shift=0, dtype='float64')`
-- `Webcam(image_width=224, image_height=224, num_channels=3, label=None)`
-- `Textbox(lines=1, placeholder=None, label=None, numeric=False)`
-- `Radio(choices, label=None)`
-- `Dropdown(choices, label=None)`
-- `CheckboxGroup(choices, label=None)`
-- `Slider(minimum=0, maximum=100, default=None, label=None)`
-- `Image(shape=(224, 224, 3), image_mode='RGB', scale=1/127.5, shift=-1, label=None)`
-- `Microphone()`
-
-**Output Interfaces**:
-- `Label(num_top_classes=None, label=None)`
-- `KeyValues(label=None)`
-- `Textbox(lines=1, placeholder=None, label=None)`
-- `Image(label=None, plot=False)`
-
-Interfaces can also be combined together, for multiple-input or multiple-output models. 
-
-### 2. Real-Time MNIST [![alt text](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1LXJqwdkZNkt1J_yfLWQ3FLxbG2cAF8p4?usp=sharing)
-
-Let's wrap a fun `Sketchpad`-to-`Label` UI around MNIST. For this example, we'll take advantage of the `live`
-feature in the library. Set `live=True` inside `Interface()`> to have it run continuous predictions.
-We've abstracted the model training from the code below, but you can see the full code on the colab link.
+You can provide example data that a user can easily load into the model. This can be helpful to demonstrate the types of inputs the model expects, as well as to provide a way to explore your dataset in conjunction with your model. To load example data, you provide a nested list to the  `examples=`  keyword argument of the Interface constructor. Each sublist within the outer list represents a data sample, and each element within the sublist represents an input for each input component. The format of example data for each component is specified in the  [Docs](https://gradio.app/docs).
 
 ```python
-import tensorflow as tf
 import gradio as gr
-from urllib.request import urlretrieve
 
-urlretrieve("https://gr-models.s3-us-west-2.amazonaws.com/mnist-model.h5","mnist-model.h5")
-model = tf.keras.models.load_model("mnist-model.h5")
+def calculator(num1, operation, num2):
+    if operation == "add":
+        return num1 + num2
+    elif operation == "subtract":
+        return num1 - num2
+    elif operation == "multiply":
+        return num1 * num2
+    elif operation == "divide":
+        return num1 / num2
 
-def recognize_digit(inp):
-    prediction = model.predict(inp.reshape(1, 28, 28, 1)).tolist()[0]
-    return {str(i): prediction[i] for i in range(10)}
 
-sketchpad = gr.inputs.Sketchpad()
-label = gr.outputs.Label(num_top_classes=3)
+iface = gr.Interface(calculator, 
+    ["number", gr.inputs.Radio(["add", "subtract", "multiply", "divide"]), "number"],
+    "number",
+    examples=[
+        [5, "add", 3],
+        [12, "divide", -2]
+    ]
+)
+iface.launch()
+```
+![calculator interface](demo/screenshots/calculator/1.gif)
 
-gr.Interface(fn=recognize_digit, inputs=sketchpad,
-  outputs=label, live=True).launch()
+### Flagging
+
+Underneath the output interfaces, there is a button marked "Flag". When a user testing your model sees input with interesting output, such as erroneous or unexpected model behaviour, they can flag the input for review. Within the directory provided by the  `flagging_dir=`  argument to the Interface constructor, a CSV file will log the flagged inputs. If the interface involved file inputs, such as for Image and Audio interfaces, folders will be created to store those flagged inputs as well.
+
+You can review these flagged inputs by manually exploring the flagging directory, or load them into the Gradio interface by pointing the  `examples=`  argument to the flagged CSV file.
+
+### Interpretation
+
+Most models are black boxes such that the internal logic of the function is hidden from the end user. To encourage transparency, we've added the ability for interpretation so that users can understand what parts of the input are responsible for the output. Take a look at the simple interface below:
+
+```python
+import gradio as gr
+import re
+
+male_words, female_words = ["he", "his", "him"], ["she", "her"]
+def gender_of_sentence(sentence):
+  male_count = len([word for word in sentence.split() if word.lower() in male_words])
+  female_count = len([word for word in sentence.split() if word.lower() in female_words])
+  total = max(male_count + female_count, 1)
+  return {"male": male_count / total, "female": female_count / total}
+
+iface = gr.Interface(
+  fn=gender_of_sentence, inputs=gr.inputs.Textbox(default="She went to his house to get her keys."),
+  outputs="label", interpretation="default")
+iface.launch()
+
+```
+![gender_sentence_default_interpretation interface](demo/screenshots/gender_sentence_default_interpretation/1.gif)
+
+Notice the  `interpretation`  keyword argument. We're going to use Gradio's default interpreter here. After you submit and click Interpret, you'll see the interface automatically highlights the parts of the text that contributed to the final output orange! The parts that conflict with the output are highlight blue.
+
+Gradio's default interpretation works with single output type interfaces, where the output is either a Label or Number. We're working on expanding the default interpreter to be much more customizable and support more interfaces.
+
+You can also write your own interpretation function. The demo below adds custom interpretation to the previous demo. This function will take the same inputs as the main wrapped function. The output of this interpretation function will be used to highlight the input of each input interface - therefore the number of outputs here corresponds to the number of input interfaces. To see the format for interpretation for each input interface, check the [Docs](https://gradio.app/docs).
+
+```python
+import gradio as gr
+import re
+
+male_words, female_words = ["he", "his", "him"], ["she", "her"]
+def gender_of_sentence(sentence):
+  male_count = len([word for word in sentence.split() if word.lower() in male_words])
+  female_count = len([word for word in sentence.split() if word.lower() in female_words])
+  total = max(male_count + female_count, 1)
+  return {"male": male_count / total, "female": female_count / total}
+
+def interpret_gender(sentence):
+  result = gender_of_sentence(sentence)
+  is_male = result["male"] > result["female"]
+  interpretation = []
+  for word in re.split('( )', sentence):
+    score = 0
+    token = word.lower()
+    if (is_male and token in male_words) or (not is_male and token in female_words):
+      score = 1
+    elif (is_male and token in female_words) or (not is_male and token in male_words):
+      score = -1
+    interpretation.append((word, score))
+  return interpretation
+
+iface = gr.Interface(
+  fn=gender_of_sentence, inputs=gr.inputs.Textbox(default="She went to his house to get her keys."),
+  outputs="label", interpretation=interpret_gender)
+iface.launch()
+```
+![gender_sentence_custom_interpretation interface](demo/screenshots/gender_sentence_custom_interpretation/1.gif)
+
+### Sharing Interfaces Publicly & Privacy
+
+Interfaces can be easily shared publicly by setting `share=True` in the `launch()` method. Like this:
+
+```python
+gr.Interface(classify_image, image, label).launch(share=True)
 ```
 
-This code will produce the interface below.
+This generates a public, shareable link that you can send to anybody! When you send this link, the user on the other side can try out the model in their browser. Because the processing happens on your device (as long as your device stays on!), you don't have to worry about any dependencies. If you're working out of colab notebook, a share link is always automatically created. It usually looks something like this:  **XXXXX.gradio.app**. Although the link is served through a gradio link, we are only a proxy for your local server, and do not store any data sent through the interfaces.
 
-<p align="center">
-<img src="https://i.ibb.co/vkgZLcH/gif6.gif" alt="drawing"/>
-</p>
+Keep in mind, however, that these links are publicly accessible, meaning that anyone can use your model for prediction! Therefore, make sure not to expose any sensitive information through the functions you write, or allow any critical changes to occur on your device. If you set `share=False` (the default), only a local link is created, which can be shared by  [port-forwarding](https://www.ssh.com/ssh/tunneling/example)  with specific users.
 
-## Contributing:
+Links expire after 6 hours. Need longer links, or private links?  [Contact us for Gradio Teams](https://gradio.app/#contact-box).
+
+![Sharing diagram](demo/images/sharing.svg)
+
+##  Contributing:
+
 If you would like to contribute and your contribution is small, you can directly open a pull request (PR). If you would like to contribute a larger feature, we recommend first creating an issue with a proposed design for discussion. Please see our contributing guidelines for more info.
 
-## License:
+##  License:
+
 Gradio is licensed under the Apache License 2.0
 
-## See more:
+##  See more:
 
 You can find many more examples (like GPT-2, model comparison, multiple inputs, and numerical interfaces) as well as more info on usage on our website: www.gradio.app
 
@@ -166,5 +256,3 @@ journal={arXiv preprint arXiv:1906.02569},
 year={2019}
 }
 ```
-
-

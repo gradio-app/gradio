@@ -23,7 +23,14 @@ class OutputComponent(Component):
     """
     Output Component. All output components subclass this.
     """
-    pass
+
+    def postprocess(self, y):
+        """
+        Any postprocessing needed to be performed on function output.
+        """
+        return y
+
+
 
 class Textbox(OutputComponent):
     '''
