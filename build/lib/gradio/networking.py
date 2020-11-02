@@ -36,7 +36,8 @@ GRADIO_STATIC_ROOT = "https://gradio.app"
 
 app = Flask(__name__,
     template_folder=STATIC_TEMPLATE_LIB,
-    static_folder=STATIC_PATH_LIB)
+    static_folder=STATIC_PATH_LIB,
+    static_url_path="/static/")
 CORS(app)
 cache_buster = CacheBuster(config={'extensions': ['.js', '.css'], 'hash_size': 5})
 cache_buster.init_app(app)
