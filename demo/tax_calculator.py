@@ -44,4 +44,4 @@ io = gr.Interface(
     ]
 )
 
-io.launch()
+io.launch(share=True)

@@ -43,6 +43,12 @@ const textbox_input = {
     this.target.find(".output_text").html(html);
   },
   interpretation_logic: "Highlights the output contribution of substrings of input.",
+  load_example_preview: function(data) {
+    if (data.length > 20) {
+      return data.substring(0,20) + "...";
+    }
+    return data;
+  },
   load_example: function(data) {
     this.target.find(".input_text").val(data);    
   }

@@ -28,6 +28,10 @@ io = gr.Interface(
     gr.inputs.Textbox(placeholder="Enter sentence here..."),
     [
         "highlight", "key_values", "html"
+    ],
+    examples=[
+        ["What a beautiful morning for a walk!"],
+        ["It was the best of times, it was the worst of times."],
     ]
 )
 

@@ -39,7 +39,7 @@ class InputComponent(Component):
 
     def preprocess_example(self, x):
         """
-        Any preprocessing needed to be performed on an example.
+        Any preprocessing needed to be performed on an example before being passed to the main function.
         """
         return x
 
@@ -129,6 +129,13 @@ class Textbox(InputComponent):
         else:
             raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'str', 'number'.")
 
+    def preprocess_example(self, x):
+        """
+        Returns:
+        (str): Text representing function input
+        """
+        return x
+
     def interpret(self, separator=" ", replacement=None):
         """
         Calculates interpretation score of characters in input by splitting input into tokens, then using a "leave one out" method to calculate the score of each token by removing each token and measuring the delta of the output value.
@@ -191,6 +198,13 @@ class Number(InputComponent):
         return {
             "number": {},
         }
+
+    def preprocess_example(self, x):
+        """
+        Returns:
+        (float): Number representing function input
+        """
+        return x
 
     def interpret(self, steps=3, delta=1, delta_type="percent"):
         """
@@ -266,6 +280,13 @@ class Slider(InputComponent):
             "slider": {},
         }
 
+    def preprocess_example(self, x):
+        """
+        Returns:
+        (float): Number representing function input
+        """
+        return x
+
     def interpret(self, steps=8):
         """
         Calculates interpretation scores of numeric values ranging between the minimum and maximum values of the slider.
@@ -305,6 +326,13 @@ class Checkbox(InputComponent):
         return {
             "checkbox": {},
         }
+
+    def preprocess_example(self, x):
+        """
+        Returns:
+        (bool): Boolean representing function input
+        """
+        return x
 
     def interpret(self):
         """
@@ -558,6 +586,9 @@ class Image(InputComponent):
         else:
             raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'numpy', 'pil', 'file'.")
 
+    def preprocess_example(self, x):
+        return processing_utils.encode_file_to_base64(x)
+
     def rebuild(self, dir, data):
         """
         Default rebuild method to decode a base64 image
@@ -653,6 +684,9 @@ class Audio(InputComponent):
         elif self.type == "mfcc":
             return processing_utils.generate_mfcc_features_from_audio_file(file_obj.name)
 
+    def preprocess_example(self, x):
+        return processing_utils.encode_file_to_base64(x, type="audio")
+
     def interpret(self, segments=8):
         """
         Calculates interpretation score of audio subsections by splitting the audio into subsections, then using a "leave one out" method to calculate the score of each subsection by removing the subsection and measuring the delta of the output value.
@@ -724,12 +758,6 @@ class File(InputComponent):
             return processing_utils.decode_base64_to_binary(data)
         else:
             raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'file', 'bytes'.")
-
-    def preprocess_example(self, x):
-        return {
-            "name": x,
-            "size": os.path.getsize(x)
-        }
 
 
 

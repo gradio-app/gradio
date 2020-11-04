@@ -194,7 +194,7 @@ class Interface:
             for example_set in self.examples:
                 processed_set = []
                 for iface, example in zip(self.input_interfaces, example_set):
-                    processed_set.append(iface.preprocess_example(example))
+                    processed_set.append(example)
                 processed_examples.append(processed_set)
             config["examples"] = processed_examples
         return config
