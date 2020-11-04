@@ -7,5 +7,8 @@ const html_output = {
   },
   clear: function() {
     this.target.empty();
-  }
+  },
+  load_example_preview: function(data) {
+    return "[html]";
+  },
 }

@@ -9,5 +9,11 @@ const textbox_output = {
   },
   clear: function() {
     this.target.find(".output_text").empty();
-  }
+  },
+  load_example_preview: function(data) {
+    if (data.length > 20) {
+      return data.substring(0,20) + "...";
+    }
+    return data;
+  },
 }

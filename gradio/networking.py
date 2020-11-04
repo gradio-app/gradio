@@ -120,6 +120,23 @@ def predict():
     return jsonify(output)
 
 
+@app.route("/api/predict_examples/", methods=["POST"])
+def predict_examples():
+    example_ids = request.json["data"]
+    predictions_set = {}
+    for example_id in example_ids:
+        example_set = app.interface.examples[example_id]
+        processed_example_set = [iface.preprocess_example(example)
+            for iface, example in zip(app.interface.input_interfaces, example_set)]
+        try:
+            predictions, _ = app.interface.process(processed_example_set)
+        except:
+            continue
+        predictions_set[example_id] = predictions
+    output = {"data": predictions_set}
+    return jsonify(output)
+
+
 @app.route("/api/flag/", methods=["POST"])
 def flag():
     flag_path = os.path.join(app.cwd, app.interface.flagging_dir)

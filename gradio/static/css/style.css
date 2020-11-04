@@ -57,6 +57,9 @@ button.secondary {
   color: black;
   background-color: #F6F6F6;
 }
+h4 {
+  margin-bottom: 0.5em;
+}
 .interpretation_legend {
   display: flex;
   padding: 8px;
@@ -71,6 +74,12 @@ button.secondary {
 .close_explain {
   cursor: pointer;  
 }
+.examples > button {
+  padding: 4px;
+  border-radius: 2px;
+  margin-right: 4px;
+  background-color: whitesmoke;
+}
 .examples > table {
   border-collapse: collapse;
   font-family: monospace;
@@ -79,11 +88,13 @@ button.secondary {
   border-right: solid 4px whitesmoke;
   border-left: solid 4px whitesmoke;
   border-bottom: solid 4px whitesmoke;
+  margin-top: 8px;
 }
 .examples > table th {
   padding: 8px 16px;
   text-align: left;
   font-size: 18px;
+  text-transform: uppercase;
 }
 .examples_body > tr > td {
   padding: 8px;
@@ -95,6 +106,9 @@ button.secondary {
 }
 .examples_body > tr:hover {
   background-color: lightgray;
+}
+.examples_body > tr.current_example {
+  background-color: #ffb573;  
 }
 #credit {
   text-align: center;

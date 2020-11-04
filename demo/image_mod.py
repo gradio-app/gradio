@@ -14,8 +14,7 @@ io = gr.Interface(image_mod,
                  ["images/cheetah1.jpg"],
                  ["images/cheetah2.jpg"],
                  ["images/lion.jpg"],
-             ],
-             live=True)
+             ])
 
 io.test_launch()
 

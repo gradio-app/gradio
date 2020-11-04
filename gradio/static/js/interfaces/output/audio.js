@@ -30,5 +30,8 @@ const audio_output = {
     if (this.wavesurfer) {
       this.wavesurfer.stop();
     }
-  }
+  },
+  load_example_preview: function(data) {
+    return "[audio]";
+  },
 }

@@ -12,5 +12,9 @@ const image_output = {
   },
   clear: function() {
     this.target.find(".output_image").attr('src', "").hide();
-  }
+  },
+  load_example_preview: function(data) {
+    return "<img src='"+data+"' height=100>"
+  },
+
 }

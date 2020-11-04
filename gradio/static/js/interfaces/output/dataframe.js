@@ -23,5 +23,30 @@ const dataframe_output = {
   clear: function() {
     jexcel.destroy(this.target.find(".dataframe")[0]);
     this.table = null;
-  }
+  },
+  load_example_preview: function(data) {
+    data = JSON.parse(JSON.stringify(data["data"]))
+    let data_copy = [];
+    for (let row of data.splice(0,3)) {
+      new_row = row.splice(0,3)
+      if (row.length > 3) {
+        new_row.push("...");
+      }
+      data_copy.push(new_row);      
+    }
+    if (data.length > 3) {
+      new_row = Array(data_copy[0].length).fill("...");
+      data_copy.push(new_row);      
+    }
+    let html = "<table><tbody>"
+    for (let row of data_copy) {
+      html += "<tr>";
+      for (let cell of row) {
+        html += "<td>" + cell + "</td>";
+      }
+      html += "</tr>";
+    }
+    html += "</tbody></table>";
+    return html;
+  },
 }
