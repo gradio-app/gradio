@@ -34,7 +34,7 @@ function gradio(config, fn, target, example_file_path) {
       </div>
     </div>
     <div class="examples invisible">
-      <h4>Examples <small>(click to load)</small></h4>
+      <h4>Examples</small></h4>
       <button class="run_examples">Run All</button>
       <button class="load_prev">Load Previous <em>(CTRL + &larr;)</em></button>
       <button class="load_next">Load Next <em>(CTRL + &rarr;)</em></button>
