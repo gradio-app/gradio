@@ -75,7 +75,7 @@ h4 {
   cursor: pointer;  
 }
 .examples > button {
-  padding: 4px;
+  padding: 8px 16px;
   border-radius: 2px;
   margin-right: 4px;
   background-color: whitesmoke;
