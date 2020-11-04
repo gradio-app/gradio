@@ -15,11 +15,10 @@ iface = gr.Interface(calculator,
     ["number", gr.inputs.Radio(["add", "subtract", "multiply", "divide"]), "number"],
     "number",
     examples=[
-        [
-            random.randint(1, 10), 
-            random.choice(["add", "subtract", "multiply", "divide"]),
-            random.randint(1, 5),
-        ] for _ in range(10)
+        [5, "add", 3],
+        [4, "divide", 2],
+        [-4, "multiply", 2.5],
+        [0, "subtract", 1.2],
     ]
 )
 if __name__ == "__main__":
