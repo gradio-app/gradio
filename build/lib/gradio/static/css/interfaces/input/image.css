@@ -1,0 +1,100 @@
+.hide {
+  display: none !important;
+}
+.image_display {
+  height: 100%;
+}
+.view_holders {
+  flex-grow: 1;
+  background-color: #CCCCCC;
+  position: relative;
+}
+.image_preview_holder, .saliency_holder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.saliency_holder {
+  position: absolute;
+  top: 0;
+}
+.saliency {
+  display: flex;
+  flex-direction: column;
+  border: none;
+  opacity: 1;
+  transition: opacity 0.2s ease;
+}
+.saliency:hover {
+  opacity: 0.4;
+}
+.image_preview {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.hidden_upload {
+  display: none;
+}
+.image_editor_overlay {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.image_editor_holder {
+  height: 85%;
+  width: 85%;
+}
+.image_editor {
+  background-color: black;
+}
+#tie-btn-reset, #tie-btn-delete, #tie-btn-delete-all {
+  display: none !important;
+}
+.tui-image-editor-icpartition {
+  background-color: transparent !important;
+}
+.tui_close {
+  border-radius: 0 !important;
+  border: none !important;
+  margin-left: 10px !important;
+  font-family: 'Open Sans', sans-serif !important;
+}
+.upload_zone {
+  font-weight: bold;
+  font-size: 24px;
+  color: #BBB;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.5em;
+  flex-flow: column;
+}
+.upload_zone img {
+  height: 120px;
+}
+.drop_zone {
+  border: dashed 8px #DDD;
+}
+.edit_holder {
+  display: flex;
+  justify-content: flex-end;
+  position: relative;
+}
+.edit_image {
+  position: absolute;
+  z-index: 1;
+}
+.interface_button {
+  padding: 6px;
+  text-transform: uppercase;
+  font-weight: bold;
+  font-size: 14px;
+}
