@@ -1,0 +1,34 @@
+.slider_container .slider {
+    margin: 0 24px;
+}
+.slider_container .ui-slider-handle {
+    width: 3em !important;
+    height: 1.6em !important;
+    top: 50% !important;
+    margin-top: -.8em;
+    margin-left: -1.5em !important;
+    text-align: center;
+    line-height: 1.6em;
+    cursor: pointer !important;
+    font-weight: bold;
+    outline: none !important;
+}
+.interpret_range {
+    width: 100%;
+    display: flex;
+    margin-top: 12px;
+}
+.interpret_range:empty {
+    margin-top: 0px;
+}
+.interpret_range > div {
+    min-height: 24px;
+    flex-grow: 1;
+    text-align: center;
+    font-weight: bold;
+    padding: 4px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+}
