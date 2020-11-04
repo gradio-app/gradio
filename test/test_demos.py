@@ -138,6 +138,11 @@ class TestDemo(unittest.TestCase):
             "image_mod", "cheetah1"))
         tmp = os.path.join(current_dir, "test/tmp/{}.png".format(
             random.getrandbits(32)))
+        elem = WebDriverWait(driver, TIMEOUT).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR,
+                                            ".submit"))
+        )
+        elem.click()
         WebDriverWait(driver, TIMEOUT).until(
             EC.visibility_of_element_located((By.CSS_SELECTOR,
                                             ".output_interface["
