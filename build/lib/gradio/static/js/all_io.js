@@ -39,23 +39,25 @@ var io_master_template = {
   },
   submit_examples: function() {
     let example_ids = [];
+    if (this.loaded_examples == null) {
+      this.loaded_examples = {};
+    }
     for (let i = 0; i < this.config.examples.length; i++) {
-      example_ids.push(i);
+      if (!(i in this.loaded_examples)) {
+        example_ids.push(i);
+      }
     }
     this.fn(example_ids, "predict_examples").then((output) => {
       output = output["data"];
       if (!this.has_loaded_examples) {
         this.has_loaded_examples = true;
-        this.loaded_examples = {};
         let html = ""
         for (let i = 0; i < this.output_interfaces.length; i++) {
           html += "<th>" + this.config.output_interfaces[i][1]["label"] + "</th>";
         }
         this.target.find(".examples > table > thead > tr").append(html);
       }
-      for (let i = 0; i < output.length; i++) {
-        let example_id = example_ids[i];
-        let output_values = output[i];
+      for (let [example_id, output_values] of Object.entries(output)) {
         this.loaded_examples[example_id] = output_values;
         let html = ""
         for (let j = 0; j < output_values.length; j++) {

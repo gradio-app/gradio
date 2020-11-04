@@ -16,10 +16,10 @@ iface = gr.Interface(calculator,
     "number",
     examples=[
         [
-            random.randint(-10, 10), 
+            random.randint(0, 10), 
             random.choice(["add", "subtract", "multiply", "divide"]),
-            random.randint(-10, 10),
-        ] for _ in range(20)
+            random.randint(0, 5),
+        ] for _ in range(40)
     ]
 )
 if __name__ == "__main__":
