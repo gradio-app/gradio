@@ -36,7 +36,8 @@ GRADIO_STATIC_ROOT = "https://gradio.app"
 
 app = Flask(__name__,
     template_folder=STATIC_TEMPLATE_LIB,
-    static_folder=STATIC_PATH_LIB)
+    static_folder=STATIC_PATH_LIB,
+    static_url_path="/static/")
 CORS(app)
 cache_buster = CacheBuster(config={'extensions': ['.js', '.css'], 'hash_size': 5})
 cache_buster.init_app(app)
@@ -175,8 +176,11 @@ def flag():
 @app.route("/api/interpret/", methods=["POST"])
 def interpret():
     raw_input = request.json["data"]
-    interpretation = app.interface.interpret(raw_input)
-    return jsonify(interpretation)
+    interpretation_scores, alternative_outputs = app.interface.interpret(raw_input)
+    return jsonify({
+        "interpretation_scores": interpretation_scores,
+        "alternative_outputs": alternative_outputs
+    })
 
 
 @app.route("/file/<path:path>", methods=["GET"])

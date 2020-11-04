@@ -33,8 +33,17 @@ function gradio(config, fn, target, example_file_path) {
         </div>
       </div>
     </div>
+    <div class="interpretation_explained invisible">
+      <h4>Interpretation Legend <span class='close_explain'>&#10006;</span></h4>
+      <div class='interpretation_legend'>
+        <div>&larr; Decreased output score / confidence</div>
+        <div>Increased output score / confidence &rarr;</div>
+      </div>
+      <p>When you click Interpret, you can see how different parts of the input contributed to the final output. The legend above will highlight each of the input components as follows:</p>
+      <ul></ul>
+    </div>
     <div class="examples invisible">
-      <h4>Examples <small>(click to load)</small></h4>
+      <h4>Examples</small></h4>
       <button class="run_examples">Run All</button>
       <button class="load_prev">Load Previous <em>(CTRL + &larr;)</em></button>
       <button class="load_next">Load Next <em>(CTRL + &rarr;)</em></button>
@@ -180,6 +189,24 @@ function gradio(config, fn, target, example_file_path) {
     }
     if (!config["allow_interpretation"]) {
       target.find(".interpret").hide();
+    } else {
+      let interpret_html = ""; 
+      for (let [i, interface] of io_master.input_interfaces.entries()) {
+        let label = config.input_interfaces[i][1]["label"];;
+        interpret_html += "<li><strong>" + label + "</strong> - " + interface.interpretation_logic + "</li>";
+      }
+      target.find(".interpretation_explained ul").html(interpret_html);
+      target.find(".interpretation_explained .close_explain").click(function() {
+        target.find(".interpretation_explained").remove();
+      });
+      if (config["examples"]) {
+        target.find(".examples").removeClass("invisible");
+        let html = "<thead>"
+        for (let i = 0; i < config["input_interfaces"].length; i++) {
+          label = config["input_interfaces"][i][1]["label"];
+          html += "<th>" + label + "</th>";
+        }
+      }
     }
   }
   function load_example(example_id) {
@@ -291,12 +318,22 @@ function gradio(config, fn, target, example_file_path) {
     }
   })
   target.find(".interpret").click(function() {
+    target.find(".interpretation_explained").removeClass("invisible");
     if (io_master.last_output) {
       io_master.interpret();
     }
-  })
+  });
   target.find(".run_examples").click(function() {
     io_master.submit_examples();
+  })
+
+  $(".input_panel").on("mouseover", ".alternate", function() {
+    let interface_index = $(this).closest(".interface").attr("interface_id");
+    let alternate_index = $(this).attr("alternate_index");
+    io_master.alternative_interpret(interface_index, alternate_index);
+  })
+  $(".input_panel").on("mouseout", ".alternate", function() {
+    io_master.alternative_interpret(false);
   })
 
   return io_master;

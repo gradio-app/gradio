@@ -77,8 +77,10 @@ var io_master_template = {
       this.target.find(".loading_failed").show();
     });
   },
-  output: function(data) {
-    this.last_output = data["data"];
+  output: function(data, do_not_cache) {
+    if (!do_not_cache) {
+      this.last_output = data["data"];
+    }
 
     for (let i = 0; i < this.output_interfaces.length; i++) {
       this.output_interfaces[i].output(data["data"][i]);
@@ -123,14 +125,25 @@ var io_master_template = {
     this.target.find(".loading_in_progress").show();
     var post_data = this.last_input;
     this.fn(post_data, "interpret").then((data) => {
-      for (let [idx, interpretation] of data.entries()) {
+      for (let [idx, interpretation] of data["interpretation_scores"].entries()) {
         io.input_interfaces[idx].show_interpretation(interpretation);
       }
+      io.alternative_outputs = data["alternative_outputs"]
       io.target.find(".loading_in_progress").hide();
     }).catch((error) => {
       console.error(error);
       this.target.find(".loading_in_progress").hide();
       this.target.find(".loading_failed").show();
     })
+  },
+  alternative_interpret: function(interface_index, alternate_index) {
+    if (interface_index === false) {
+      this.output({"data": this.last_output});
+    } else if (io.alternative_outputs) {
+      this.output(
+        {"data": io.alternative_outputs[interface_index][alternate_index]},
+        /*do_not_cache=*/true
+      )
+    }
   }
 };

@@ -119,7 +119,6 @@ class Interface:
         self.flagging_dir = flagging_dir
         Interface.instances.add(self)
         self.analytics_enabled=analytics_enabled
-        self.launch_port = None
         self.save_to = None
         self.share = None
 
@@ -252,24 +251,30 @@ class Interface:
             processed_input = [input_interface.preprocess(raw_input[i])
                             for i, input_interface in enumerate(self.input_interfaces)]
             original_output = self.run_prediction(processed_input)
-            scores = []
+            scores, alternative_outputs = [], []
             for i, x in enumerate(raw_input):
                 input_interface = self.input_interfaces[i]
                 neighbor_raw_input = list(raw_input)
                 neighbor_values, interpret_kwargs, interpret_by_removal = input_interface.get_interpretation_neighbors(x)
                 interface_scores = []
+                alternative_output = []
                 for neighbor_input in neighbor_values:
                     neighbor_raw_input[i] = neighbor_input
                     processed_neighbor_input = [input_interface.preprocess(neighbor_raw_input[i])
                                     for i, input_interface in enumerate(self.input_interfaces)]
                     neighbor_output = self.run_prediction(processed_neighbor_input)
+                    processed_neighbor_output = [output_interface.postprocess(
+                        neighbor_output[i]) for i, output_interface in enumerate(self.output_interfaces)]
+
+                    alternative_output.append(processed_neighbor_output)
                     interface_scores.append(quantify_difference_in_label(self, original_output, neighbor_output))
+                alternative_outputs.append(alternative_output)
                 if not interpret_by_removal:
                     interface_scores = [-score for score in interface_scores]
                 scores.append(
                     input_interface.get_interpretation_scores(
                         raw_input[i], neighbor_values, interface_scores, **interpret_kwargs))
-            return scores
+            return scores, alternative_outputs
         else:
             processed_input = [input_interface.preprocess(raw_input[i])
                                for i, input_interface in enumerate(self.input_interfaces)]
@@ -287,10 +292,9 @@ class Interface:
                         raise ValueError(strings.en["TF1_ERROR"])
                     else:
                         raise exception
-
             if len(raw_input) == 1:
                 interpretation = [interpretation]
-        return interpretation
+            return interpretation, []
 
     def close(self):
         if self.simple_server and not (self.simple_server.fileno() == -1):  # checks to see if server is running
@@ -341,6 +345,7 @@ class Interface:
         server_port, app, thread = networking.start_server(
             self, self.server_name, self.server_port)
         path_to_local_server = "http://{}:{}/".format(self.server_name, server_port)
+        self.server_port = server_port
         self.status = "RUNNING"
         self.server = app
 
@@ -365,7 +370,7 @@ class Interface:
             print("This share link will expire in 6 hours. If you need a "
                   "permanent link, email support@gradio.app")
             try:
-                share_url = networking.setup_tunnel(self.launch_port)
+                share_url = networking.setup_tunnel(server_port)
                 print("Running on External URL:", share_url)
             except RuntimeError:
                 data = {'error': 'RuntimeError in launch method'}

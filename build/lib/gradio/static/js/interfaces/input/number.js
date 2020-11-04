@@ -23,6 +23,7 @@ const number_input = {
   },
   show_interpretation: function(data) {
     let html = ""
+    let alternate_index = 0;
     for (let value_set of data) {
       [value, score] = value_set;
       if (score == null) {
@@ -32,15 +33,17 @@ const number_input = {
           </div>`
       } else {
         html += `
-          <div title="${score}"
+          <div class='alternate'
+            alternate_index=${alternate_index}
             style='background-color: ${getSaliencyColor(score)}'>
             ${value}
-          </div>`
+          </div>`;
+        alternate_index++;
       }
     }
     this.target.find(".interpret_range").html(html);
-
   },
+  interpretation_logic: "Highlights the result of the alternative, neighboring values to input. Hover to see alternative output.",
   load_example: function(data) {
     this.target.find(".input_text").val(data);    
   }

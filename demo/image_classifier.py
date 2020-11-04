@@ -7,10 +7,11 @@ import numpy as np
 from PIL import Image
 import requests
 from urllib.request import urlretrieve
+import json
 
-# # Download human-readable labels for ImageNet.
-response = requests.get("https://git.io/JJkYN") 
-labels = response.text.split("\n")
+# Load human-readable labels for ImageNet.
+with open("files/imagenet_labels.json") as labels_file:
+    labels = json.load(labels_file)
 
 mobile_net = tf.keras.applications.MobileNetV2()
 
