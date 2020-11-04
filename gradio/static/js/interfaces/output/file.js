@@ -24,5 +24,8 @@ const file_output = {
     this.target.find(".interface_mini_box")
       .removeAttr("href")
       .removeAttr("download");
-  }
+  },
+  load_example_preview: function(data) {
+    return data.name;
+  },
 }

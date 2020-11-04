@@ -21,5 +21,15 @@ const key_values = {
   },
   clear: function() {
     this.target.find("tbody").empty();
-  }
+  },
+  load_example_preview: function(data) {
+    let html_preview = "";
+    for (const [key, value] of data.slice(0,3)) {
+      html_preview += key + ": " + value + "<br>"
+    }
+    if (data.length > 3) {
+      html_preview += "..."
+    }
+    return html_preview;
+  },
 }

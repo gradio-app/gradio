@@ -86,5 +86,15 @@ const highlighted_text = {
   clear: function() {
     this.target.find(".output_text").empty();
     this.target.find(".highlight_legend div").addClass("invisible");
-  }
+  },
+  load_example_preview: function(data) {
+    let output_string = "";
+    for (const [text, type] of data) {
+      output_string += text;
+    }
+    if (output_string.length > 20) {
+      return output_string.substring(0,20) + "...";
+    }
+    return data;
+  },
 }
