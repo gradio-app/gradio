@@ -16,7 +16,7 @@ Gradio is useful for:
 
 
 ## Getting Started
-You can find an interactive version of this README at [https://gradio.app/getting_started](https://gradio.app/getting_started).
+You can find an interactive version of this README at [https://gradio.app/getting_started](https://gradio.app/).
 
 ### Quick Start
 
