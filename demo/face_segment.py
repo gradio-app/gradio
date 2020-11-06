@@ -1,6 +1,6 @@
 import gradio as gr
 import os, sys
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__), "utils"))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "utils"))
 from FCN8s_keras import FCN
 from PIL import Image
 import cv2
