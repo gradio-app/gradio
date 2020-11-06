@@ -1,6 +1,7 @@
 import gradio as gr
 import os, sys
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "utils"))
+file_folder = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(file_folder, "utils"))
 from bert import QA
 
 model = QA('bert-large-uncased-whole-word-masking-finetuned-squad')
