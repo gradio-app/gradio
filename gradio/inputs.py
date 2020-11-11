@@ -640,6 +640,8 @@ class Image(InputComponent):
             output_scores = (output_scores - min_val) / (max_val - min_val)
         return output_scores.tolist()
 
+    def embed(self, x):
+        return x.flatten()
 
 class Audio(InputComponent):
     """

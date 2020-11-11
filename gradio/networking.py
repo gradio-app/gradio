@@ -11,16 +11,17 @@ from flask_cors import CORS
 import threading
 import pkg_resources
 from distutils import dir_util
-import gradio as gr
 import time
 import json
-from gradio.tunneling import create_tunnel
 import urllib.request
 from shutil import copyfile
 import requests
 import sys
 import csv
 import logging
+import gradio as gr
+from gradio.similarity import calculate_similarity
+from gradio.tunneling import create_tunnel
 
 INITIAL_PORT_VALUE = int(os.getenv(
     'GRADIO_SERVER_PORT', "7860"))  # The http server will try to open on port 7860. If not available, 7861, 7862, etc.
@@ -118,6 +119,19 @@ def predict():
     prediction, durations = app.interface.process(raw_input)
     output = {"data": prediction, "durations": durations}
     return jsonify(output)
+
+
+@app.route("/api/score_similarity/", methods=["POST"])
+def score_similarity():
+    raw_input = request.json["data"]
+    input_embedding = app.interface.embedding_fn(raw_input)
+    scores = list()
+    for example in app.interface.examples:
+        preprocessed_example = [iface.preprocess_example(example)
+            for iface, example in zip(app.interface.input_interfaces, example)]
+        example_embedding = app.interface.embedding_fn(preprocessed_example)
+        scores.append(calculate_similarity(input_embedding, example_embedding))
+    return jsonify({"data": scores})
 
 
 @app.route("/api/predict_examples/", methods=["POST"])

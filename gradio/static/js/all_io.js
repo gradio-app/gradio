@@ -37,7 +37,32 @@ var io_master_template = {
       this.target.find(".loading_failed").show();
     });
   },
+  score_similarity: function() {
+    this.target.find(".loading").removeClass("invisible");
+    this.target.find(".loading_in_progress").show();
+    this.target.find(".loading_failed").hide();
+    this.target.find(".output_interfaces").css("opacity", 0.5);
+
+    this.fn(this.last_input, "score_similarity").then((output) => {
+      console.log(output.data)
+      this.target.find(".loading").addClass("invisible");
+      this.target.find(".output_interfaces").css("opacity", 1);
+      let html = "<th>DIFFS</th>"
+      this.target.find(".examples > table > thead > tr").append(html); 
+      for (let i = 0; i < output["data"].length; i++) {
+        let html = "<td>" + output["data"][i] + "</td>"
+        this.target.find(".examples_body tr[row='" + i + "']").append(html);
+      }
+    })
+
+
+  },
   submit_examples: function() {
+    this.target.find(".loading").removeClass("invisible");
+    this.target.find(".loading_in_progress").show();
+    this.target.find(".loading_failed").hide();
+    this.target.find(".output_interfaces").css("opacity", 0.5);
+
     let example_ids = [];
     if (this.loaded_examples == null) {
       this.loaded_examples = {};
@@ -48,6 +73,9 @@ var io_master_template = {
       }
     }
     this.fn(example_ids, "predict_examples").then((output) => {
+      this.target.find(".loading").addClass("invisible");
+      this.target.find(".output_interfaces").css("opacity", 1);
+
       output = output["data"];
       if (!this.has_loaded_examples) {
         this.has_loaded_examples = true;
@@ -147,3 +175,5 @@ var io_master_template = {
     }
   }
 };
+
+
