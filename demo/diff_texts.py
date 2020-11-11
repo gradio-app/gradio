@@ -26,4 +26,4 @@ iface = gr.Interface(
 iface.test_launch()
 
 if __name__ == "__main__":
-    io.launch()
+    iface.launch()
