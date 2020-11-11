@@ -15,6 +15,7 @@ import inspect
 import sys
 import weakref
 import analytics
+import numpy as np
 import os
 import copy
 
@@ -42,6 +43,7 @@ class Interface:
                  description=None, thumbnail=None, server_port=None, 
                  server_name=networking.LOCALHOST_NAME,
                  allow_screenshot=True, allow_flagging=True,
+                 embedding_fn="default",
                  flagging_dir="flagged", analytics_enabled=True):
 
         """
@@ -241,6 +243,16 @@ class Interface:
             predictions[i]) for i, output_interface in enumerate(self.output_interfaces)]
         return processed_output, durations
     
+    def embedding_fn(self, raw_input):
+        if self.interpretation == "default":
+            processed_input = [input_interface.preprocess(raw_input[i])
+                            for i, input_interface in enumerate(self.input_interfaces)]
+            embedding = np.concatenate([input_interface.embed(processed_input[i])
+                            for i, input_interface in enumerate(self.input_interfaces)])
+        else:
+            raise NotImplementedError("Only default embedding is currently supported")
+        return embedding
+
     def interpret(self, raw_input):
         """
         Runs the interpretation command for the machine learning model. Handles both the "default" out-of-the-box
