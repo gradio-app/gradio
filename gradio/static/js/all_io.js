@@ -38,6 +38,11 @@ var io_master_template = {
     });
   },
   submit_examples: function() {
+    this.target.find(".loading").removeClass("invisible");
+    this.target.find(".loading_in_progress").show();
+    this.target.find(".loading_failed").hide();
+    this.target.find(".output_interfaces").css("opacity", 0.5);
+
     let example_ids = [];
     if (this.loaded_examples == null) {
       this.loaded_examples = {};
@@ -48,6 +53,9 @@ var io_master_template = {
       }
     }
     this.fn(example_ids, "predict_examples").then((output) => {
+      this.target.find(".loading").addClass("invisible");
+      this.target.find(".output_interfaces").css("opacity", 1);
+            
       output = output["data"];
       if (!this.has_loaded_examples) {
         this.has_loaded_examples = true;
