@@ -15,7 +15,7 @@ def recognize_digit(image):
     return {str(i): prediction[i] for i in range(10)}
 
 
-io = gr.Interface(
+iface = gr.Interface(
     recognize_digit, 
     "sketchpad", 
     gradio.outputs.Label(num_top_classes=3),
@@ -23,5 +23,8 @@ io = gr.Interface(
     capture_session=True,
 )
 
-io.test_launch()
-io.launch()
+iface.test_launch()
+
+if __name__ == "__main__":
+    iface.launch()
+
