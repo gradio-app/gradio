@@ -8,9 +8,11 @@ from PIL import Image
 import requests
 from urllib.request import urlretrieve
 import json
+import os
 
 # Load human-readable labels for ImageNet.
-with open("files/imagenet_labels.json") as labels_file:
+current_dir = os.path.dirname(os.path.realpath(__file__))
+with open(os.path.join(current_dir, "files/imagenet_labels.json")) as labels_file:
     labels = json.load(labels_file)
 
 mobile_net = tf.keras.applications.MobileNetV2()
@@ -26,7 +28,7 @@ def image_classifier(im):
 image = gr.inputs.Image(shape=(224, 224))
 label = gr.outputs.Label(num_top_classes=3)
 
-io = gr.Interface(image_classifier, image, label,
+iface = gr.Interface(image_classifier, image, label,
     capture_session=True,
     interpretation="default",
     examples=[
@@ -34,4 +36,5 @@ io = gr.Interface(image_classifier, image, label,
         ["images/lion.jpg"]
     ])
 
-io.launch()
+if __name__ == "__main__":
+    iface.launch()

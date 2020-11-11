@@ -23,7 +23,7 @@ def text_analysis(text):
     return pos_tokens, pos_count, html
 
 
-io = gr.Interface(
+iface = gr.Interface(
     text_analysis,
     gr.inputs.Textbox(placeholder="Enter sentence here..."),
     [
@@ -35,5 +35,6 @@ io = gr.Interface(
     ]
 )
 
-io.test_launch()
-io.launch()
+iface.test_launch()
+if __name__ == "__main__":
+    iface.launch()

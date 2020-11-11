@@ -21,5 +21,6 @@ iface = gr.Interface(calculator,
         [0, "subtract", 1.2],
     ]
 )
+
 if __name__ == "__main__":
     iface.launch()

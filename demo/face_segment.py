@@ -34,5 +34,6 @@ def segment_face(inp):
 
 
 iface = gr.Interface(segment_face, "webcam", "image", capture_session=True)
+
 if __name__ == "__main__":
     iface.launch()

@@ -7,7 +7,7 @@ def image_mod(image):
     return image.rotate(45)
 
 
-io = gr.Interface(image_mod, 
+iface = gr.Interface(image_mod, 
              gr.inputs.Image(type="pil"), 
              "image", 
              examples=[
@@ -16,7 +16,7 @@ io = gr.Interface(image_mod,
                  ["images/lion.jpg"],
              ])
 
-io.test_launch()
+iface.test_launch()
 
 if __name__ == "__main__":
-    io.launch()
+    iface.launch()

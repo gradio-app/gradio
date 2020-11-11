@@ -9,10 +9,10 @@ def longest_word(text):
 
 ex = "The quick brown fox jumped over the lazy dog."
 
-io = gr.Interface(longest_word, "textbox", "label",
+iface = gr.Interface(longest_word, "textbox", "label",
                   interpretation="default", examples=[[ex]])
 
-io.test_launch()
+iface.test_launch()
 
 if __name__ == "__main__":
-    io.launch()
+    iface.launch()
