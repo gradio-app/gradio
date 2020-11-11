@@ -11,7 +11,7 @@ def zip_two_files(file1, file2):
     return "tmp.zip"
 
 
-io = gr.Interface(
+iface = gr.Interface(
     zip_two_files, 
     ["file", "file"], 
     "file",
@@ -21,5 +21,6 @@ io = gr.Interface(
     ]
 )
 
-io.test_launch()
-io.launch()
+iface.test_launch()
+if __name__ == "__main__":
+    iface.launch()
