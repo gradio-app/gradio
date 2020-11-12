@@ -20,7 +20,7 @@ import sys
 import csv
 import logging
 import gradio as gr
-from gradio.similarity import calculate_similarity
+from gradio.embeddings import calculate_similarity
 from gradio.tunneling import create_tunnel
 
 INITIAL_PORT_VALUE = int(os.getenv(
