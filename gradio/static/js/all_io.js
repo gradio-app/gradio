@@ -1,3 +1,4 @@
+
 var io_master_template = {
   gather: function() {
     this.clear();
@@ -44,7 +45,6 @@ var io_master_template = {
     this.target.find(".output_interfaces").css("opacity", 0.5);
 
     this.fn(this.last_input, "score_similarity").then((output) => {
-      console.log(output.data)
       this.target.find(".loading").addClass("invisible");
       this.target.find(".output_interfaces").css("opacity", 1);
       let html = "<th>SIMILARITY</th>"
@@ -53,9 +53,21 @@ var io_master_template = {
         let html = "<td>" + output["data"][i] + "</td>"
         this.target.find(".examples_body tr[row='" + i + "']").append(html);
       }
+
+      function getCellValue(row, index){ return $(row).children('td').eq(index).text() }
+    
+      function comparer(index) {
+          return function(a, b) {
+              var valA = getCellValue(a, index), valB = getCellValue(b, index)
+              return $.isNumeric(valA) && $.isNumeric(valB) ? valA - valB : valA.toString().localeCompare(valB)
+          }
+      }
+      
+      var table = $(".examples > table").eq(0)
+      var rows = table.find('tr:gt(0)').toArray().sort(comparer(-1)).reverse() // sort by last column
+      table.find("tr:gt(0)").remove()
+      for (var i = 0; i < rows.length; i++){table.append(rows[i]); console.log(i)}
     })
-
-
   },
   submit_examples: function() {
     this.target.find(".loading").removeClass("invisible");
