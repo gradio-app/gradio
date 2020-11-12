@@ -47,7 +47,7 @@ var io_master_template = {
       console.log(output.data)
       this.target.find(".loading").addClass("invisible");
       this.target.find(".output_interfaces").css("opacity", 1);
-      let html = "<th>DIFFS</th>"
+      let html = "<th>SIMILARITY</th>"
       this.target.find(".examples > table > thead > tr").append(html); 
       for (let i = 0; i < output["data"].length; i++) {
         let html = "<td>" + output["data"][i] + "</td>"

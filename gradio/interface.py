@@ -123,6 +123,7 @@ class Interface:
         self.analytics_enabled=analytics_enabled
         self.save_to = None
         self.share = None
+        self.embedding_fn = embedding_fn
 
         data = {'fn': fn,
                 'inputs': inputs,
@@ -243,14 +244,12 @@ class Interface:
             predictions[i]) for i, output_interface in enumerate(self.output_interfaces)]
         return processed_output, durations
     
-    def embedding_fn(self, raw_input):
-        if self.interpretation == "default":
-            processed_input = [input_interface.preprocess(raw_input[i])
-                            for i, input_interface in enumerate(self.input_interfaces)]
+    def embed(self, processed_input):
+        if self.embedding_fn == "default":
             embedding = np.concatenate([input_interface.embed(processed_input[i])
                             for i, input_interface in enumerate(self.input_interfaces)])
         else:
-            raise NotImplementedError("Only default embedding is currently supported")
+            embedding = self.embedding_fn(processed_input)
         return embedding
 
     def interpret(self, raw_input):

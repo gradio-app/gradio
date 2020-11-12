@@ -124,12 +124,14 @@ def predict():
 @app.route("/api/score_similarity/", methods=["POST"])
 def score_similarity():
     raw_input = request.json["data"]
-    input_embedding = app.interface.embedding_fn(raw_input)
+    preprocessed_input = [input_interface.preprocess(raw_input[i])
+                    for i, input_interface in enumerate(app.interface.input_interfaces)]
+    input_embedding = app.interface.embed(preprocessed_input)
     scores = list()
     for example in app.interface.examples:
-        preprocessed_example = [iface.preprocess_example(example)
+        preprocessed_example = [iface.preprocess(iface.preprocess_example(example))
             for iface, example in zip(app.interface.input_interfaces, example)]
-        example_embedding = app.interface.embedding_fn(preprocessed_example)
+        example_embedding = app.interface.embed(preprocessed_example)
         scores.append(calculate_similarity(input_embedding, example_embedding))
     return jsonify({"data": scores})
 

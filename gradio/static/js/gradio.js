@@ -318,7 +318,7 @@ function gradio(config, fn, target, example_file_path) {
     }
   })
   target.find(".interpret").click(function() {
-    target.find(".interpretation_explained").removeClass("invisible");
+    // target.find(".interpretation_explained").removeClass("invisible");
     if (io_master.last_output) {
       io_master.score_similarity();
       // io_master.interpret(); // TODO(UNDO)
