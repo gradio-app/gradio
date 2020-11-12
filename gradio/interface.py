@@ -249,7 +249,7 @@ class Interface:
             embedding = np.concatenate([input_interface.embed(processed_input[i])
                             for i, input_interface in enumerate(self.input_interfaces)])
         else:
-            embedding = self.embedding_fn(processed_input)
+            embedding = self.embedding_fn(*processed_input)
         return embedding
 
     def interpret(self, raw_input):
