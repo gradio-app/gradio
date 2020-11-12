@@ -13,9 +13,9 @@ def embed_text(text):
 
 def calculate_similarity(embedding1, embedding2):
     """
-    Scores the similarity between two embeddings by taking the cosine distance
+    Scores the similarity between two embeddings by taking the cosine similarity
     """
     e1, e2 = np.array(embedding1), np.array(embedding2)
-    cosine_distance = np.dot(e1, e2) / (np.linalg.norm(e1) * np.linalg.norm(e2) + SMALL_CONST)
-    return 1 - cosine_distance
+    cosine_similarity = np.dot(e1, e2) / (np.linalg.norm(e1) * np.linalg.norm(e2) + SMALL_CONST)
+    return cosine_similarity
     
