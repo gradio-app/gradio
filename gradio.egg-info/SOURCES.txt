@@ -119,6 +119,14 @@ gradio/static/js/vendor/tui-image-editor.js
 gradio/static/js/vendor/wavesurfer.min.js
 gradio/static/js/vendor/webcam.min.js
 gradio/static/js/vendor/white-theme.js
+gradio/static/js/vendor/gifcap/Makefile
+gradio/static/js/vendor/gifcap/configure
+gradio/static/js/vendor/gifcap/encoder.c
+gradio/static/js/vendor/gifcap/encoder.js
+gradio/static/js/vendor/gifcap/encoder.wasm
+gradio/static/js/vendor/gifcap/gifencoder.js
+gradio/static/js/vendor/gifcap/quantizer.js
+gradio/static/js/vendor/gifcap/writer.js
 gradio/templates/index.html
 test/test_demos.py
 test/test_inputs.py
