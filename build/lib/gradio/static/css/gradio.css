@@ -74,6 +74,31 @@ input.panel_button {
   margin-left: 16px;
   flex-grow: 1;
 }
+.panel_button.left_panel_button {
+  border-top-right-radius: 0;  
+  border-bottom-right-radius: 0;  
+  flex-grow: 0.6;
+}
+.panel_button.right_panel_button {
+  border-top-left-radius: 0;  
+  border-bottom-left-radius: 0;  
+  flex-grow: 0.6;
+  margin-left: 0px;
+  background-color: #EEE;
+}
+.record_stop {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  border-radius: 4px;
+}
+.record_square {
+  width: 20px; 
+  height: 20px;
+  background-color: #c90a0a;
+  box-shadow: inset 0 0 4px darkred;
+}
 input.submit {
   background-color: #e67e22;
   color: white;
@@ -109,9 +134,9 @@ input.submit:hover {
   display: none !important;
 }
 .screenshot_logo {
-  display: none;
+  display: flex;
+  justify-content: center;
   flex-grow: 1;
-  text-align: center;
   padding: 4px;
   box-sizing: border-box;
   margin-left: 16px;

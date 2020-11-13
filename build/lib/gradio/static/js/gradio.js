@@ -25,9 +25,13 @@ function gradio(config, fn, target, example_file_path) {
         </div>
         <div class="panel_buttons">
           <input class="interpret panel_button" type="button" value="INTERPRET"/>
-          <input class="screenshot panel_button" type="button" value="SCREENSHOT"/>
-          <div class="screenshot_logo">
+          <input class="screenshot panel_button left_panel_button" type="button" value="SCREENSHOT"/>
+          <input class="record panel_button right_panel_button" type="button" value="GIF"/>
+          <div class="screenshot_logo invisible">
             <img src="/static/img/logo_inline.png">
+            <button class='record_stop'>
+              <div class='record_square' style=''></div>
+            </button>
           </div>
           <input class="flag panel_button" type="button" value="FLAG"/>
         </div>
@@ -179,10 +183,10 @@ function gradio(config, fn, target, example_file_path) {
   });
 
   if (!config["allow_screenshot"] && !config["allow_flagging"] && !config["allow_interpretation"]) {
-    target.find(".screenshot, .flag, .interpret").css("visibility", "hidden");
+    target.find(".screenshot, .record, .flag, .interpret").css("visibility", "hidden");
   } else {
     if (!config["allow_screenshot"]) {
-      target.find(".screenshot").hide();
+      target.find(".screenshot, .record").hide();
     }
     if (!config["allow_flagging"]) {
       target.find(".flag").hide();
@@ -210,7 +214,6 @@ function gradio(config, fn, target, example_file_path) {
     }
   }
   function load_example(example_id) {
-    console.log(example_id)
     for (let [i, value] of config["examples"][example_id].entries()) {
       input_interfaces[i].load_example(value);
     };
@@ -285,17 +288,82 @@ function gradio(config, fn, target, example_file_path) {
   };
 
   target.find(".screenshot").click(function() {
-    $(".screenshot").hide();
-    $(".screenshot_logo").show();
+    $(".screenshot, .record").hide();
+    $(".screenshot_logo").removeClass("invisible");
+    $(".record_stop").hide();
     html2canvas(target[0], {
       scrollX: 0,
       scrollY: -window.scrollY
     }).then(function(canvas) {
       saveAs(canvas.toDataURL(), 'screenshot.png');
-      $(".screenshot").show();
-      $(".screenshot_logo").hide();
+      $(".screenshot, .record").show();
+      $(".screenshot_logo").addClass("invisible");
     });
   });
+  target.find(".record").click(function() {
+    $(".screenshot, .record").hide();
+    $(".screenshot_logo").removeClass("invisible");
+    $(".record_stop").show();
+    target.append("<canvas class='recording_draw invisible' width=640 height=480></canvas>");
+    target.append("<video class='recording invisible' autoplay playsinline></video>");
+    navigator.mediaDevices.getDisplayMedia(
+      { video: { width: 9999, height: 9999 } }
+    ).then(stream => {
+      video = target.find("video.recording")[0];
+      canvas = target.find("canvas.recording_draw")[0];
+      io_master.recording = {frames: [], stream: stream};
+      video.srcObject = stream;
+      const ctx = canvas.getContext('2d');
+      io_master.recording.interval = window.setInterval(() => {
+        let first = (io_master.recording.width === undefined);
+        if (first) {
+          io_master.recording.width = video.videoWidth;          
+          io_master.recording.height = video.videoHeight;          
+          io_master.recording.start = Date.now();          
+          canvas.width = `${video.videoWidth}`;
+          canvas.height = `${video.videoHeight}`;
+        }
+        ctx.drawImage(video, 0, 0);
+        const imageData = ctx.getImageData(0, 0, io_master.recording.width, io_master.recording.height);
+        io_master.recording.frames.push({
+          imageData,
+          timestamp: first ? 0 : Date.now() - this.startTime
+        });
+      }, 100);
+    });
+  });
+  target.find(".record_stop").click(function() {
+    window.clearInterval(io_master.recording.interval);
+    io_master.recording.stream.getTracks().forEach(track => track.stop());
+    const gif = new GifEncoder({
+      width: io_master.recording.width,
+      height: io_master.recording.height,
+    });
+
+    gif.once('finished', blob => {
+      saveAs(URL.createObjectURL(blob), 'recording.gif');
+    });
+
+    const start = 0;
+    const end = io_master.recording.frames.length - 1;
+
+    const processFrame = index => {
+      if (index > end) {
+        gif.render();
+        return;
+      }
+      let { imageData, timestamp } = io_master.recording.frames[index];
+      const delay = index < end ? io_master.recording.frames[index + 1].timestamp - timestamp : 100;
+      gif.addFrame(imageData, delay);
+      setTimeout(() => processFrame(index + 1), 0);
+    };
+    processFrame(start);
+
+    $(".screenshot, .record").show();
+    $(".screenshot_logo").addClass("invisible");
+    target.find("canvas.recording_draw").remove();
+    target.find("video.recording").remove();
+  })
   if (config.live) {
     io_master.gather();
   } else {
