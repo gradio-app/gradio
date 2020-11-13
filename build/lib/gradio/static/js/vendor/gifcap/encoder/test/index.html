@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset='utf-8'>
+  <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+  <title>GIF Encoder</title>
+  <meta name='viewport' content='width=device-width, initial-scale=1'>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"
+    integrity="sha256-qLERBxuzsSPDAuYYLAHWs1UPk6S2JzmLB8RoddhAkLs=" crossorigin="anonymous"></script>
+  <script src='/encoder/encoder.js'></script>
+  <script src='/encoder/gifencoder.js'></script>
+  <style>
+    .hidden {
+      visibility: hidden;
+      position: absolute;
+    }
+  </style>
+</head>
+
+<body>
+  <video id="video" src="video.mp4" class="hidden"></video>
+  <canvas id="canvas" width="480" height="270" class="hidden"></canvas>
+  <p id="log"></p>
+  <img id="gifsicle" />
+  <img id="gifjs" />
+  <script src='test.js'></script>
+</body>
+
+</html>
