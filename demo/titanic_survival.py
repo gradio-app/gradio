@@ -8,8 +8,10 @@ from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
+import os
 
-data = pd.read_csv('files/titanic.csv')
+current_dir = os.path.dirname(os.path.realpath(__file__))
+data = pd.read_csv(os.path.join(current_dir, 'files/titanic.csv'))
 
 def encode_age(df):
     df.Age = df.Age.fillna(-0.5)
@@ -66,7 +68,7 @@ def predict_survival(passenger_class, is_male, age, company, fare, embark_point)
     pred = clf.predict_proba(df)[0]
     return {'Perishes': pred[0], 'Survives': pred[1]}
 
-io = gr.Interface(
+iface = gr.Interface(
     predict_survival,
     [
         gr.inputs.Dropdown(["first", "second", "third"], type="index"),
@@ -85,4 +87,5 @@ io = gr.Interface(
     interpretation="default"
 )
 
-io.launch()
+if __name__ == "__main__":
+    iface.launch()

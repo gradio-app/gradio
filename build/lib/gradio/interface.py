@@ -15,6 +15,7 @@ import inspect
 import sys
 import weakref
 import analytics
+import numpy as np
 import os
 import copy
 
@@ -37,11 +38,12 @@ class Interface:
             Interface.instances)
 
     def __init__(self, fn, inputs, outputs, verbose=False, examples=None,
-                 live=False, show_input=True, show_output=True,
-                 capture_session=False, interpretation=None, title=None,
-                 description=None, thumbnail=None, server_port=None, 
-                 server_name=networking.LOCALHOST_NAME,
+                 examples_per_page=10, live=False, show_input=True, show_output=True,
+                 capture_session=False, interpretation=None,
+                 title=None, description=None, thumbnail=None, 
+                 server_port=None, server_name=networking.LOCALHOST_NAME,
                  allow_screenshot=True, allow_flagging=True,
+                 embedding_fn="default",
                  flagging_dir="flagged", analytics_enabled=True):
 
         """
@@ -51,6 +53,7 @@ class Interface:
         outputs (Union[str, List[Union[str, OutputComponent]]]): a single Gradio output component, or list of Gradio output components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of output components should match the number of values returned by fn.
         verbose (bool): whether to print detailed information during launch.
         examples (List[List[Any]]): sample inputs for the function; if provided, appears below the UI components and can be used to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component.
+        examples_per_page (int): If examples are provided, how many to display per page.
         live (bool): whether the interface should automatically reload on change.
         capture_session (bool): if True, captures the default graph and session (needed for Tensorflow 1.x)
         interpretation (Union[Callable, str]): function that provides interpretation explaining prediction output. Pass "default" to use built-in interpreter. 
@@ -112,6 +115,7 @@ class Interface:
         self.description = description
         self.thumbnail = thumbnail
         self.examples = examples
+        self.examples_per_page = examples_per_page
         self.server_port = server_port
         self.simple_server = None
         self.allow_screenshot = allow_screenshot
@@ -121,6 +125,7 @@ class Interface:
         self.analytics_enabled=analytics_enabled
         self.save_to = None
         self.share = None
+        self.embedding_fn = embedding_fn
 
         data = {'fn': fn,
                 'inputs': inputs,
@@ -169,6 +174,7 @@ class Interface:
                 for iface in self.output_interfaces],
             "function_count": len(self.predict),
             "live": self.live,
+            "examples_per_page": self.examples_per_page,
             "show_input": self.show_input,
             "show_output": self.show_output,
             "title": self.title,
@@ -241,6 +247,14 @@ class Interface:
             predictions[i]) for i, output_interface in enumerate(self.output_interfaces)]
         return processed_output, durations
     
+    def embed(self, processed_input):
+        if self.embedding_fn == "default":
+            embedding = np.concatenate([input_interface.embed(processed_input[i])
+                            for i, input_interface in enumerate(self.input_interfaces)])
+        else:
+            embedding = self.embedding_fn(*processed_input)
+        return embedding
+
     def interpret(self, raw_input):
         """
         Runs the interpretation command for the machine learning model. Handles both the "default" out-of-the-box

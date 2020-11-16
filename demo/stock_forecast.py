@@ -23,7 +23,7 @@ def stock_forecast(final_year, companies, noise, show_legend, point_style):
     return fig
 
 
-io = gr.Interface(
+iface = gr.Interface(
     stock_forecast,
     [
         gr.inputs.Radio([2025, 2030, 2035, 2040], label="Project to:"),
@@ -33,5 +33,6 @@ io = gr.Interface(
         gr.inputs.Dropdown(["cross", "line", "circle"], label="Style")],
     gr.outputs.Image(plot=True, label="forecast"))
 
-io.test_launch()
-io.launch()
+iface.test_launch()
+if __name__ == "__main__":
+    iface.launch()
