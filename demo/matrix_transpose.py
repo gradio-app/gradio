@@ -7,7 +7,7 @@ def transpose(matrix):
     return matrix.T
 
 
-io = gr.Interface(
+iface = gr.Interface(
     transpose,
     gr.inputs.Dataframe(type="numpy", datatype="number", row_count=5, col_count=3),
     "numpy",
@@ -20,7 +20,7 @@ io = gr.Interface(
     ]
 )
 
-io.test_launch()
+iface.test_launch()
 
 if __name__ == "__main__":
-    io.launch()
+    iface.launch()

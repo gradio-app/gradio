@@ -17,7 +17,7 @@ def recognize_digit(image):
 
 im = gradio.inputs.Image(shape=(28, 28), image_mode='L', invert_colors=False)
 
-io = gr.Interface(
+iface = gr.Interface(
     recognize_digit, 
     im, 
     gradio.outputs.Label(num_top_classes=3),
@@ -27,5 +27,8 @@ io = gr.Interface(
     capture_session=True,
 )
 
-io.test_launch()
-io.launch()
+iface.test_launch()
+
+if __name__ == "__main__":
+    iface.launch()
+

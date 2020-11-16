@@ -11,7 +11,7 @@ def diff_texts(text1, text2):
     ]
 
 
-io = gr.Interface(
+iface = gr.Interface(
     diff_texts,
     [
         gr.inputs.Textbox(lines=3, default="The quick brown fox jumped over the lazy dogs."),
@@ -23,7 +23,7 @@ io = gr.Interface(
         " ": "none",
     }))
 
-io.test_launch()
+iface.test_launch()
 
 if __name__ == "__main__":
-    io.launch()
+    iface.launch()

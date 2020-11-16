@@ -7,7 +7,7 @@ import random
 def filter_records(records, gender):
     return records[records['gender'] == gender]
 
-io = gr.Interface(filter_records,
+iface = gr.Interface(filter_records,
   [
     gr.inputs.Dataframe(headers=["name", "age", "gender"], datatype=["str", "number", "str"], row_count=5), 
     gr.inputs.Dropdown(["M", "F", "O"])
@@ -16,5 +16,8 @@ io = gr.Interface(filter_records,
   description="Enter gender as 'M', 'F', or 'O' for other."
 )
 
-io.test_launch()
-io.launch()
+iface.test_launch()
+
+if __name__ == "__main__":
+    iface.launch()
+
