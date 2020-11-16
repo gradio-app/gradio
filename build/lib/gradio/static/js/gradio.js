@@ -51,6 +51,7 @@ function gradio(config, fn, target, example_file_path) {
       <button class="run_examples">Run All</button>
       <button class="load_prev">Load Previous <em>(CTRL + &larr;)</em></button>
       <button class="load_next">Load Next <em>(CTRL + &rarr;)</em></button>
+      <div class="pages invisible">Page:</div>
       <table>
       </table>
     </div>`);
@@ -220,6 +221,11 @@ function gradio(config, fn, target, example_file_path) {
     if (io_master.loaded_examples && example_id in io_master.loaded_examples) {
       io_master.output({"data": io_master.loaded_examples[example_id]});
     }
+    let current_page = Math.floor(example_id / config["examples_per_page"]);
+    if (current_page != io_master.current_page) {
+      io_master.current_page = current_page;
+      load_page();
+    }
     $(".examples_body > tr").removeClass("current_example");
     $(".examples_body > tr[row='" + example_id + "'").addClass("current_example");
     io_master.current_example = example_id;
@@ -242,6 +248,40 @@ function gradio(config, fn, target, example_file_path) {
     }
     load_example(current_example);
   }
+  function load_page() {
+    page_num = io_master.current_page;
+    target.find(".page").removeClass("primary");
+    target.find(`.page[page=${page_num}]`).addClass("primary");
+    let page_start = page_num * config["examples_per_page"]
+    examples_subset = config["examples"].slice(
+      page_start, page_start + config["examples_per_page"]
+    )
+    let html = "";
+    for (let [i, example] of examples_subset.entries()) {
+      let example_id = page_start + i;
+      html += "<tr row=" + example_id + ">";
+      for (let [j, col] of example.entries()) {
+        let new_col = JSON.parse(JSON.stringify(col))
+        if (input_interfaces[j].load_example_preview) {
+          new_col = input_interfaces[j].load_example_preview(new_col);
+        }
+        html += "<td>" + new_col + "</td>";
+      }
+      if (io_master.loaded_examples && example_id in io_master.loaded_examples) {
+        output_values = io_master.loaded_examples[example_id]
+        for (let j = 0; j < output_values.length; j++) {
+          let output_interface = io_master.output_interfaces[j];
+          let example_preview = output_values[j];
+          if (output_interface.load_example_preview) {
+            example_preview = output_interface.load_example_preview(example_preview)
+          }
+          html += "<td>" + example_preview + "</td>";
+        }
+      }
+      html += "</tr>";
+    }
+    target.find(".examples > table > tbody").html(html);
+  }
   if (config["examples"]) {
     target.find(".examples").removeClass("invisible");
     let html = "<thead>"
@@ -250,23 +290,27 @@ function gradio(config, fn, target, example_file_path) {
       html += "<th>" + label + "</th>";
     }
     html += "</thead>";
-    html += "<tbody class='examples_body'>";
-    for (let [i, example] of config["examples"].entries()) {
-      html += "<tr row="+i+">";
-      for (let [j, col] of example.entries()) {
-        let new_col = JSON.parse(JSON.stringify(col))
-        if (input_interfaces[j].load_example_preview) {
-          new_col = input_interfaces[j].load_example_preview(new_col);
-        }
-        html += "<td>" + new_col + "</td>";
-      }
-      html += "</tr>";
-    }
-    html += "</tbody>";
+    html += "<tbody class='examples_body'></tbody>";
     target.find(".examples table").html(html);
-    target.find(".examples_body > tr").click(function() {
+    io_master.current_page = 0;
+    let page_count = Math.ceil(config.examples.length / config.examples_per_page)
+    if (page_count > 1) {
+      target.find(".pages").removeClass("invisible");
+      let html = "";
+      for (let i = 0; i < page_count; i++) {
+        html += `<button class='page' page='${i}'>${i+1}</button>`
+      }
+      target.find(".pages").append(html);
+    }
+    load_page();
+    target.on("click", ".examples_body > tr", function() {
       let example_id = parseInt($(this).attr("row"));
       load_example(example_id);
+    })
+    target.on("click", ".page", function() {
+      let page_num = parseInt($(this).attr("page"));
+      io_master.current_page = page_num;
+      load_page();
     })
     target.find(".load_prev").click(prev_example);
     target.find(".load_next").click(next_example);
@@ -392,8 +436,17 @@ function gradio(config, fn, target, example_file_path) {
     }
   });
   target.find(".run_examples").click(function() {
-    io_master.submit_examples();
-  })
+    if (!io_master.has_loaded_examples) {
+      this.has_loaded_examples = true;
+      let html = ""
+      for (let i = 0; i < io_master.output_interfaces.length; i++) {
+        html += "<th>" + config.output_interfaces[i][1]["label"] + "</th>";
+      }
+      target.find(".examples > table > thead > tr").append(html);
+    }
+    io_master.has_loaded_examples = true;
+    io_master.submit_examples(load_page);
+})
 
   $(".input_panel").on("mouseover", ".alternate", function() {
     let interface_index = $(this).closest(".interface").attr("interface_id");

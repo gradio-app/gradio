@@ -100,7 +100,17 @@ h4 {
   padding: 8px;
   cursor: pointer;
 }
-
+.pages {
+  display: flex;
+  align-items: center;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.page {
+  padding: 8px;
+  margin: 4px;
+  border-radius: 4px;
+}
 .examples_body > tr:nth-child(odd) {
   background-color: white;
 }
