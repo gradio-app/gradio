@@ -48,7 +48,7 @@ var io_master_template = {
       output = output["data"];
       this.target.find(".loading").addClass("invisible");
       this.target.find(".output_interfaces").css("opacity", 1);
-      this.order_mapping = sortWithIndices(output);
+      this.order_mapping = sortWithIndices(output).reverse();
       callback();
     })
   },
