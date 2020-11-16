@@ -1,0 +1,3 @@
+#!/bin/sh
+(cd vendor/libimagequant && ./configure --disable-sse CC=emcc)
+(cd vendor/gifsicle && autoreconf -i && ./configure --disable-gifview --disable-gifdiff --disable-simd --disable-threads CC=emcc && rm -f a.out a.out.js a.out.wasm)

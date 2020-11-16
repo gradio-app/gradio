@@ -25,7 +25,7 @@ def tax_calculator(income, marital_status, assets):
     
     return round(total_tax)
 
-io = gr.Interface(
+iface = gr.Interface(
     tax_calculator, 
     [
         "number",
@@ -44,4 +44,5 @@ io = gr.Interface(
     ]
 )
 
-io.launch()
+if __name__ == "__main__":
+    iface.launch()

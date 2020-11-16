@@ -6,7 +6,7 @@ def sentence_builder(quantity, animal, place, activity_list, morning):
     return f"""The {quantity} {animal}s went to the {place} where they {" and ".join(activity_list)} until the {"morning" if morning else "night"}"""
 
 
-io = gr.Interface(
+iface = gr.Interface(
     sentence_builder,
     [
         gr.inputs.Slider(2, 20),
@@ -23,7 +23,7 @@ io = gr.Interface(
         [8, "cat", "zoo", ["ate"], True],
     ])
 
-io.test_launch()
+iface.test_launch()
 
 if __name__ == "__main__":
-    io.launch()
+    iface.launch()

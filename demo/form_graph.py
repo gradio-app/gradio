@@ -22,7 +22,7 @@ def plot_forecast(final_year, companies, noise, show_legend, point_style):
     return fig
 
 
-gr.Interface(plot_forecast,
+iface = gr.Interface(plot_forecast,
              [
                  gr.inputs.Radio([2025, 2030, 2035, 2040],
                                  label="Project to:"),
@@ -33,4 +33,7 @@ gr.Interface(plot_forecast,
                  gr.inputs.Dropdown(["cross", "line", "circle"], label="Style"),
              ],
              gr.outputs.Image(plot=True, label="forecast") 
-             ).launch()
+             )
+
+if __name__ == "__main__":
+    iface.launch()

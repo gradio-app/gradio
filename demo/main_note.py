@@ -37,7 +37,7 @@ def main_note(audio):
         volume_per_pitch[pitch] += 1.0 * volume / total_volume
     return volume_per_pitch
 
-io = gr.Interface(
+iface = gr.Interface(
     main_note, 
     "microphone", 
     gr.outputs.Label(num_top_classes=4),
@@ -47,4 +47,5 @@ io = gr.Interface(
     ],
     interpretation="default")
 
-io.launch()
+if __name__ == "__main__":
+    iface.launch()

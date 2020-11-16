@@ -52,7 +52,7 @@ var io_master_template = {
       callback();
     })
   },
-  submit_examples: function() {
+  submit_examples: function(callback) {
     this.target.find(".loading").removeClass("invisible");
     this.target.find(".loading_in_progress").show();
     this.target.find(".loading_failed").hide();
@@ -72,28 +72,10 @@ var io_master_template = {
       this.target.find(".output_interfaces").css("opacity", 1);
 
       output = output["data"];
-      if (!this.has_loaded_examples) {
-        this.has_loaded_examples = true;
-        let html = ""
-        for (let i = 0; i < this.output_interfaces.length; i++) {
-          html += "<th>" + this.config.output_interfaces[i][1]["label"] + "</th>";
-        }
-        this.target.find(".examples > table > thead > tr").append(html);
-      }
       for (let [example_id, output_values] of Object.entries(output)) {
         this.loaded_examples[example_id] = output_values;
-        let html = ""
-        for (let j = 0; j < output_values.length; j++) {
-          let output_interface = this.output_interfaces[j];
-          let example_preview = output_values[j];
-          if (output_interface.load_example_preview) {
-            example_preview = output_interface.load_example_preview(example_preview)
-          }
-          html += "<td>" + example_preview + "</td>";
-        }
-        this.target.find(".examples_body tr[row='" + example_id + "']").append(html);
       }
-      this.has_loaded_examples = true;
+      callback();
     }).catch((error) => {
       console.error(error);
       this.target.find(".loading_in_progress").hide();
