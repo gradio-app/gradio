@@ -87,14 +87,18 @@ const image_input = {
         dest_height: dim,
       })
       Webcam.attach(this.target.find(".webcam_box")[0]);
-      io.target.find(".webcam").click(function() {
-        Webcam.snap(function(image_data) {
-          io.target.find(".webcam").hide();
-          io.target.find(".image_display").removeClass("hide");
-          io.set_image_data(image_data, /*update_editor=*/true);
-          io.state = "IMAGE_LOADED";
-        });    
-      })
+      if (io.io_master.config.live) {
+        io.target.find(".webcam span").hide();
+      } else {
+        io.target.find(".webcam").click(function() {
+          Webcam.snap(function(image_data) {
+            io.target.find(".webcam").hide();
+            io.target.find(".image_display").removeClass("hide");
+            io.set_image_data(image_data, /*update_editor=*/true);
+            io.state = "IMAGE_LOADED";
+          });    
+        })  
+      }
     } else if (this.source == "canvas") {
       io.target.find(".sketchpad").removeClass("hide");
       var dimension = Math.min(this.target.find(".canvas_holder").width(),
@@ -156,12 +160,20 @@ const image_input = {
         io.io_master.input(io.id, this.image_data);
       }
     } else if (this.source == "webcam") {
+      if (!Webcam.loaded) {
+        io.io_master.no_input();
+        return;
+      }
       Webcam.snap(function(image_data) {
-        io.target.find(".webcam").hide();
-        io.target.find(".image_display").removeClass("hide");
-        io.set_image_data(image_data, /*update_editor=*/true);
-        io.state = "IMAGE_LOADED";
-        io.io_master.input(io.id, image_data);
+        if (io.io_master.config.live) {
+          io.io_master.input(io.id, image_data);  
+        } else {
+          io.target.find(".webcam").hide();
+          io.target.find(".image_display").removeClass("hide");
+          io.set_image_data(image_data, /*update_editor=*/true);
+          io.state = "IMAGE_LOADED";
+          io.io_master.input(io.id, image_data);  
+        }
       });    
     } else {
       io.io_master.no_input();
