@@ -531,7 +531,7 @@ class Image(InputComponent):
     def __init__(self, shape=None, image_mode='RGB', invert_colors=False, source="upload", tool="editor", type="numpy", label=None):
         '''
         Parameters:
-        shape (Tuple[int, int]): shape to crop and resize image to; if None, matches input image size.
+        shape (Tuple[int, int]): (width, height) shape to crop and resize image to; if None, matches input image size.
         image_mode (str): "RGB" if color, or "L" if black and white.
         invert_colors (bool): whether to invert the image as a preprocessing step.
         source (str): Source of image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "canvas" defaults to a white image that can be edited and drawn upon with tools.
@@ -559,6 +559,7 @@ class Image(InputComponent):
     def get_template_context(self):
         return {
             "image_mode": self.image_mode,
+            "shape": self.shape,
             "source": self.source,
             "tool": self.tool,
             **super().get_template_context()
@@ -571,8 +572,7 @@ class Image(InputComponent):
             warnings.simplefilter("ignore")
             im = im.convert(self.image_mode)
         if self.shape is not None:
-            im = processing_utils.resize_and_crop(
-                im, (self.shape[0], self.shape[1]))
+            im = processing_utils.resize_and_crop(im, self.shape)
         if self.invert_colors:
             im = PIL.ImageOps.invert(im)
         if self.type == "pil":
@@ -610,6 +610,8 @@ class Image(InputComponent):
 
     def get_interpretation_neighbors(self, x):
         x = processing_utils.decode_base64_to_image(x)
+        if self.shape is not None:
+            x = processing_utils.resize_and_crop(x, self.shape)
         image = np.array(x)
         segments_slic = slic(image, self.interpretation_segments, compactness=10, sigma=1)
         leave_one_out_tokens, masks = [], []
@@ -629,6 +631,8 @@ class Image(InputComponent):
         (List[List[float]]): A 2D array representing the interpretation score of each pixel of the image.
         """
         x = processing_utils.decode_base64_to_image(x)
+        if self.shape is not None:
+            x = processing_utils.resize_and_crop(x, self.shape)
         x = np.array(x)
         output_scores = np.zeros((x.shape[0], x.shape[1]))
 
