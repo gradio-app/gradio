@@ -167,7 +167,7 @@ function gradio(config, fn, target, example_file_path) {
   }
   io_master.input_interfaces = input_interfaces;
   io_master.output_interfaces = output_interfaces;
-  target.find(".clear").click(function() {
+  function clear_all() {
     for (let input_interface of input_interfaces) {
       input_interface.clear();
     }
@@ -182,7 +182,8 @@ function gradio(config, fn, target, example_file_path) {
     target.find(".output_interfaces").css("opacity", 1);
     io_master.last_input = null;
     io_master.last_output = null;
-  });
+  }  
+  target.find(".clear").click(clear_all);
 
   if (!config["allow_screenshot"] && !config["allow_flagging"] && !config["allow_interpretation"]) {
     target.find(".screenshot, .record, .flag, .interpret").css("visibility", "hidden");
@@ -216,6 +217,7 @@ function gradio(config, fn, target, example_file_path) {
     }
   }
   function load_example(example_id) {
+    clear_all();
     for (let [i, value] of config["examples"][example_id].entries()) {
       input_interfaces[i].load_example(value);
     };
