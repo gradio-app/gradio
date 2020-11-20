@@ -47,6 +47,7 @@ const image_input = {
   `,
   init: function(opts) {
     var io = this;
+    this.shape = opts.shape;
     this.source = opts.source;
     this.tool = opts.tool;
     if (this.tool == "select") {
@@ -200,7 +201,10 @@ const image_input = {
   show_interpretation: function(data) {
     if (this.target.find(".image_preview").attr("src")) {
       var img = this.target.find(".image_preview")[0];
-      var size = getObjectFitSize(true, img.width, img.height, img.naturalWidth, img.naturalHeight)
+      var size = getObjectFitSize(true, img.width, img.height, img.naturalWidth, img.naturalHeight);
+      if (this.shape) {
+        size = getObjectFitSize(true, size.width, size.height, this.shape[0], this.shape[1])
+      }
       var width = size.width;
       var height = size.height;
       this.target.find(".saliency_holder").removeClass("hide").html(`
