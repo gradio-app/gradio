@@ -37,7 +37,8 @@ class Interface:
             Interface.instances)
 
     def __init__(self, fn, inputs, outputs, verbose=False, examples=None,
-                 examples_per_page=10, live=False, show_input=True, show_output=True,
+                 examples_per_page=10, live=False, 
+                 layout="horizontal", show_input=True, show_output=True,
                  capture_session=False, interpretation=None,
                  title=None, description=None, thumbnail=None, 
                  server_port=None, server_name=networking.LOCALHOST_NAME,
@@ -53,6 +54,7 @@ class Interface:
         examples (List[List[Any]]): sample inputs for the function; if provided, appears below the UI components and can be used to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component.
         examples_per_page (int): If examples are provided, how many to display per page.
         live (bool): whether the interface should automatically reload on change.
+        layout (str): Layout of input and output panels. "horizontal" arranges them as two columns of equal height, "unaligned" arranges them as two columns of unequal height, and "vertical" arranges them vertically.
         capture_session (bool): if True, captures the default graph and session (needed for Tensorflow 1.x)
         interpretation (Union[Callable, str]): function that provides interpretation explaining prediction output. Pass "default" to use built-in interpreter. 
         title (str): a title for the interface; if provided, appears above the input and output components.
@@ -102,6 +104,7 @@ class Interface:
         self.verbose = verbose
         self.status = "OFF"
         self.live = live
+        self.layout = layout
         self.show_input = show_input
         self.show_output = show_output
         self.flag_hash = random.getrandbits(32)
@@ -172,6 +175,7 @@ class Interface:
             "function_count": len(self.predict),
             "live": self.live,
             "examples_per_page": self.examples_per_page,
+            "layout": self.layout,
             "show_input": self.show_input,
             "show_output": self.show_output,
             "title": self.title,
