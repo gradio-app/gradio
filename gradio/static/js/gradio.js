@@ -48,13 +48,17 @@ function gradio(config, fn, target, example_file_path) {
     </div>
     <div class="examples invisible">
       <h4>Examples</small></h4>
-      <button class="run_examples">Run All</button>
-      <button class="load_prev">Load Previous <em>(CTRL + &larr;)</em></button>
-      <button class="load_next">Load Next <em>(CTRL + &rarr;)</em></button>
-      <button class="order_similar">Order by Similarity</em></button>
+      <button class="run_examples examples-content">Run All</button>
+      <button class="load_prev examples-content">Load Previous <em>(CTRL + &larr;)</em></button>
+      <button class="load_next examples-content">Load Next <em>(CTRL + &rarr;)</em></button>
+      <button class="order_similar examples-content">Order by Similarity</button>
+      <button class="view_embeddings examples-content">View Embeddings</button>
+      <button class="update_embeddings embeddings-content invisible">Update Embeddings</button>
+      <button class="view_examples embeddings-content invisible">View Examples</button>
       <div class="pages invisible">Page:</div>
-      <table>
+      <table class="examples-content">
       </table>
+      <div class="plot embeddings-content invisible"><canvas id="canvas" width="400px" height="300px"></canvas></div>
     </div>`);
   let io_master = Object.create(io_master_template);
   io_master.fn = fn
@@ -93,7 +97,8 @@ function gradio(config, fn, target, example_file_path) {
     "dataframe" : dataframe_output,
   }
   let id_to_interface_map = {}
-  
+  let embedding_chart;
+
   function set_interface_id(interface, id) {
     interface.id = id;
     id_to_interface_map[id] = interface;
@@ -229,7 +234,8 @@ function gradio(config, fn, target, example_file_path) {
     if (io_master.loaded_examples && example_id in io_master.loaded_examples) {
       io_master.output({"data": io_master.loaded_examples[example_id]});
     }
-    let current_page = Math.floor(example_id / config["examples_per_page"]);
+    let example_order = io_master.order_mapping.indexOf(example_id);
+    let current_page = Math.floor(example_order / config["examples_per_page"]);
     if (current_page != io_master.current_page) {
       io_master.current_page = current_page;
       load_page();
@@ -241,32 +247,30 @@ function gradio(config, fn, target, example_file_path) {
   function next_example() {
     current_example = io_master.current_example;
     if (current_example == null) {
-      current_example = 0;
+      new_index = 0;
     } else {
-      current_example = (current_example + 1 + config.examples.length) % config.examples.length;
+      new_index = (io_master.order_mapping.indexOf(current_example) + 1 + config.examples.length) % config.examples.length;
     }
-    load_example(current_example);
+    load_example(io_master.order_mapping[new_index]);
   }
   function prev_example() {
     current_example = io_master.current_example;
-    if (current_example === null) {
-      current_example = 0;
+    if (current_example == null) {
+      new_index = 0;
     } else {
-      current_example = (current_example - 1 + config.examples.length) % config.examples.length;
+      new_index = (io_master.order_mapping.indexOf(current_example) - 1 + config.examples.length) % config.examples.length;
     }
-    load_example(current_example);
+    load_example(io_master.order_mapping[new_index]);
   }
   function load_page() {
     page_num = io_master.current_page;
     target.find(".page").removeClass("primary");
     target.find(`.page[page=${page_num}]`).addClass("primary");
     let page_start = page_num * config["examples_per_page"]
-    examples_subset = config["examples"].slice(
-      page_start, page_start + config["examples_per_page"]
-    )
     let html = "";
-    for (let [i, example] of examples_subset.entries()) {
-      let example_id = page_start + i;
+    for (let i = page_start; i < page_start + config["examples_per_page"] && i < config.examples.length; i++) {
+      let example_id = io_master.order_mapping[i];
+      let example = config["examples"][example_id];
       html += "<tr row=" + example_id + ">";
       for (let [j, col] of example.entries()) {
         let new_col = JSON.parse(JSON.stringify(col))
@@ -301,6 +305,7 @@ function gradio(config, fn, target, example_file_path) {
     html += "<tbody class='examples_body'></tbody>";
     target.find(".examples table").html(html);
     io_master.current_page = 0;
+    io_master.order_mapping = [...Array(config.examples.length).keys()];
     let page_count = Math.ceil(config.examples.length / config.examples_per_page)
     if (page_count > 1) {
       target.find(".pages").removeClass("invisible");
@@ -322,6 +327,66 @@ function gradio(config, fn, target, example_file_path) {
     })
     target.find(".load_prev").click(prev_example);
     target.find(".load_next").click(next_example);
+    target.find(".order_similar").click(function() {
+      io_master.score_similarity(function() {
+        io_master.current_page = 0
+        io_master.current_example = null;
+        load_page();  
+      })
+    });
+    target.find(".view_examples").click(function() {
+      target.find(".examples-content").removeClass("invisible");        
+      target.find(".embeddings-content").addClass("invisible");  
+    });
+    target.find(".update_embeddings").click(function() {
+      io_master.update_embeddings(function(output) {
+        embedding_chart.data.datasets[0].data.push(output["sample_embedding_2d"][0]);
+        console.log(output["sample_embedding_2d"][0])
+        embedding_chart.update();
+      })
+    });
+    target.find(".view_embeddings").click(function() {
+      io_master.view_embeddings(function(output) {
+        let ctx = $('#canvas')[0].getContext('2d');
+        let backgroundColors = getBackgroundColors(io_master);
+        embedding_chart = new Chart(ctx, {
+          type: 'scatter',
+          data: {
+              datasets: [{
+                label: 'Sample Embedding',
+                data: output["sample_embedding_2d"],
+                backgroundColor: 'rgb(0, 0, 0)',
+                borderColor: 'rgb(0, 0, 0)',
+                pointRadius: 13,
+                pointHoverRadius: 13,
+                pointStyle: 'rectRot',
+                showLine: true,
+                fill: false,
+              }, {
+                label: 'Dataset Embeddings',
+                data: output["example_embeddings_2d"],
+                backgroundColor: backgroundColors,
+                borderColor: backgroundColors,
+                pointRadius: 7,
+                pointHoverRadius: 7
+              }]
+          },
+          options: {
+            legend: {display: false}
+          }
+        });
+        $("#canvas")[0].onclick = function(evt){
+          var activePoints = embedding_chart.getElementsAtEvent(evt);
+          var firstPoint = activePoints[0];
+          if (firstPoint._datasetIndex==1) { // if it's from the sample embeddings dataset
+            load_example(firstPoint._index)
+          }
+        };
+    
+        target.find(".examples-content").addClass("invisible");        
+        target.find(".embeddings-content").removeClass("invisible");  
+        })
+    });
     $("body").keydown(function(e) {
       if ($(document.activeElement).attr("type") == "text" || $(document.activeElement).attr("type") == "textarea") {
         return;
@@ -339,6 +404,7 @@ function gradio(config, fn, target, example_file_path) {
     });
   };
 
+  
   target.find(".screenshot").click(function() {
     $(".screenshot, .record").hide();
     $(".screenshot_logo").removeClass("invisible");
