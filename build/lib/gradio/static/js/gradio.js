@@ -48,13 +48,17 @@ function gradio(config, fn, target, example_file_path) {
     </div>
     <div class="examples invisible">
       <h4>Examples</small></h4>
-      <button class="run_examples">Run All</button>
-      <button class="load_prev">Load Previous <em>(CTRL + &larr;)</em></button>
-      <button class="load_next">Load Next <em>(CTRL + &rarr;)</em></button>
-      <button class="order_similar">Order by Similarity</em></button>
+      <button class="run_examples examples-content">Run All</button>
+      <button class="load_prev examples-content">Load Previous <em>(CTRL + &larr;)</em></button>
+      <button class="load_next examples-content">Load Next <em>(CTRL + &rarr;)</em></button>
+      <button class="order_similar examples-content">Order by Similarity</button>
+      <button class="view_embeddings examples-content">View Embeddings</button>
+      <button class="update_embeddings embeddings-content invisible">Update Embeddings</button>
+      <button class="view_examples embeddings-content invisible">View Examples</button>
       <div class="pages invisible">Page:</div>
-      <table>
+      <table class="examples-content">
       </table>
+      <div class="plot embeddings-content invisible"><canvas id="canvas" width="400px" height="300px"></canvas></div>
     </div>`);
   let io_master = Object.create(io_master_template);
   io_master.fn = fn
@@ -93,7 +97,8 @@ function gradio(config, fn, target, example_file_path) {
     "dataframe" : dataframe_output,
   }
   let id_to_interface_map = {}
-  
+  let embedding_chart;
+
   function set_interface_id(interface, id) {
     interface.id = id;
     id_to_interface_map[id] = interface;
@@ -265,7 +270,6 @@ function gradio(config, fn, target, example_file_path) {
     let html = "";
     for (let i = page_start; i < page_start + config["examples_per_page"] && i < config.examples.length; i++) {
       let example_id = io_master.order_mapping[i];
-      console.log(example_id)
       let example = config["examples"][example_id];
       html += "<tr row=" + example_id + ">";
       for (let [j, col] of example.entries()) {
@@ -330,6 +334,59 @@ function gradio(config, fn, target, example_file_path) {
         load_page();  
       })
     });
+    target.find(".view_examples").click(function() {
+      target.find(".examples-content").removeClass("invisible");        
+      target.find(".embeddings-content").addClass("invisible");  
+    });
+    target.find(".update_embeddings").click(function() {
+      io_master.update_embeddings(function(output) {
+        embedding_chart.data.datasets[0].data.push(output["sample_embedding_2d"][0]);
+        console.log(output["sample_embedding_2d"][0])
+        embedding_chart.update();
+      })
+    });
+    target.find(".view_embeddings").click(function() {
+      io_master.view_embeddings(function(output) {
+        let ctx = $('#canvas')[0].getContext('2d');
+        let backgroundColors = getBackgroundColors(io_master);
+        embedding_chart = new Chart(ctx, {
+          type: 'scatter',
+          data: {
+              datasets: [{
+                label: 'Sample Embedding',
+                data: output["sample_embedding_2d"],
+                backgroundColor: 'rgb(0, 0, 0)',
+                borderColor: 'rgb(0, 0, 0)',
+                pointRadius: 13,
+                pointHoverRadius: 13,
+                pointStyle: 'rectRot',
+                showLine: true,
+                fill: false,
+              }, {
+                label: 'Dataset Embeddings',
+                data: output["example_embeddings_2d"],
+                backgroundColor: backgroundColors,
+                borderColor: backgroundColors,
+                pointRadius: 7,
+                pointHoverRadius: 7
+              }]
+          },
+          options: {
+            legend: {display: false}
+          }
+        });
+        $("#canvas")[0].onclick = function(evt){
+          var activePoints = embedding_chart.getElementsAtEvent(evt);
+          var firstPoint = activePoints[0];
+          if (firstPoint._datasetIndex==1) { // if it's from the sample embeddings dataset
+            load_example(firstPoint._index)
+          }
+        };
+    
+        target.find(".examples-content").addClass("invisible");        
+        target.find(".embeddings-content").removeClass("invisible");  
+        })
+    });
     $("body").keydown(function(e) {
       if ($(document.activeElement).attr("type") == "text" || $(document.activeElement).attr("type") == "textarea") {
         return;
@@ -345,8 +402,9 @@ function gradio(config, fn, target, example_file_path) {
         }
       }
     });
-  });
+  };
 
+  
   target.find(".screenshot").click(function() {
     $(".screenshot, .record").hide();
     $(".screenshot_logo").removeClass("invisible");
