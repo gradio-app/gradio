@@ -43,7 +43,7 @@ class Interface:
                  title=None, description=None, thumbnail=None, 
                  server_port=None, server_name=networking.LOCALHOST_NAME,
                  allow_screenshot=True, allow_flagging=True,
-                 embedding_fn="default",
+                 embedding="default",
                  flagging_dir="flagged", analytics_enabled=True):
 
         """
@@ -125,7 +125,7 @@ class Interface:
         self.analytics_enabled=analytics_enabled
         self.save_to = None
         self.share = None
-        self.embedding_fn = embedding_fn
+        self.embedding = embedding
 
         data = {'fn': fn,
                 'inputs': inputs,
@@ -248,12 +248,12 @@ class Interface:
         return processed_output, durations
     
     def embed(self, processed_input):
-        if self.embedding_fn == "default":
-            embedding = np.concatenate([input_interface.embed(processed_input[i])
+        if self.embedding == "default":
+            embeddings = np.concatenate([input_interface.embed(processed_input[i])
                             for i, input_interface in enumerate(self.input_interfaces)])
         else:
-            embedding = self.embedding_fn(*processed_input)
-        return embedding
+            embeddings = self.embedding(*processed_input)
+        return embeddings
 
     def interpret(self, raw_input):
         """

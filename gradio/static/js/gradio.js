@@ -48,17 +48,17 @@ function gradio(config, fn, target, example_file_path) {
     </div>
     <div class="examples invisible">
       <h4>Examples</small></h4>
-      <button class="run_examples">Run All</button>
-      <button class="load_prev">Load Previous <em>(CTRL + &larr;)</em></button>
-      <button class="load_next">Load Next <em>(CTRL + &rarr;)</em></button>
-      <button class="order_similar">Order by Similarity</button>
-      <button class="view_embeddings">View Embeddings</button>
-      <button class="update_embeddings invisible">Update Embeddings</button>
-      <button class="view_examples invisible">View Examples</button>
+      <button class="run_examples examples-content">Run All</button>
+      <button class="load_prev examples-content">Load Previous <em>(CTRL + &larr;)</em></button>
+      <button class="load_next examples-content">Load Next <em>(CTRL + &rarr;)</em></button>
+      <button class="order_similar examples-content">Order by Similarity</button>
+      <button class="view_embeddings examples-content">View Embeddings</button>
+      <button class="update_embeddings embeddings-content invisible">Update Embeddings</button>
+      <button class="view_examples embeddings-content invisible">View Examples</button>
       <div class="pages invisible">Page:</div>
-      <table>
+      <table class="examples-content">
       </table>
-      <div class="plot invisible"><canvas id="canvas" width="400px" height="300px"></canvas></div>
+      <div class="plot embeddings-content invisible"><canvas id="canvas" width="400px" height="300px"></canvas></div>
     </div>`);
   let io_master = Object.create(io_master_template);
   io_master.fn = fn
@@ -263,7 +263,6 @@ function gradio(config, fn, target, example_file_path) {
     let html = "";
     for (let i = page_start; i < page_start + config["examples_per_page"] && i < config.examples.length; i++) {
       let example_id = io_master.order_mapping[i];
-      console.log(example_id)
       let example = config["examples"][example_id];
       html += "<tr row=" + example_id + ">";
       for (let [j, col] of example.entries()) {
@@ -287,63 +286,6 @@ function gradio(config, fn, target, example_file_path) {
       html += "</tr>";
     }
     target.find(".examples > table > tbody").html(html);
-  }
-  function getBackgroundColors(){
-    //Gets the background colors for the embedding plot
-    console.log("io", io_master)
-    // If labels aren't loaded, or it's not a label output interface:
-    if (!io_master.loaded_examples || io_master["config"]["output_interfaces"][0][0]!="label") {
-      return 'rgb(54, 162, 235)'
-    }
-    // If it is a label interface, get the labels
-    let labels = []
-    let isConfidencesPresent = false;
-    for (let i=0; i<Object.keys(io_master.loaded_examples).length; i++) {
-      console.log(io_master.loaded_examples[i])
-      let label = io_master.loaded_examples[i][0]["label"];
-      if ("confidences" in io_master.loaded_examples[i][0]){
-        isConfidencesPresent = true;
-      }
-      labels.push(label);
-    }
-    const isNumeric = (currentValue) => !isNaN(currentValue);
-    let isNumericArray = labels.every(isNumeric);
-    // If they are all numbers, and there are no confidences, then it's a regression
-    if (isNumericArray && !isConfidencesPresent) {
-      let backgroundColors = [];
-      labels = labels.map(Number);
-      let max = Math.max(...labels);
-      let min = Math.min(...labels);
-      let rgb_max = [255, 178, 102]
-      let rgb_min = [204, 255, 255]
-      for (let i=0; i<labels.length; i++) {
-        let frac = (Number(labels[i])-min)/(max-min)
-        let color = [rgb_min[0]+frac*(rgb_max[0]-rgb_min[0]),
-                     rgb_min[1]+frac*(rgb_max[1]-rgb_min[1]),
-                     rgb_min[2]+frac*(rgb_max[2]-rgb_min[2])]
-        backgroundColors.push(color);
-      }
-    }
-    // Otherwise, it's a classification
-    let colorArray = ['#FF6633', '#FFB399', '#FF33FF', '#00B3E6', 
-                      '#E6B333', '#3366E6', '#999966', '#99FF99', '#B34D4D',
-                      '#80B300', '#809900', '#E6B3B3', '#6680B3', '#66991A', 
-                      '#FF99E6', '#CCFF1A', '#FF1A66', '#E6331A', '#33FFCC',
-                      '#66994D', '#B366CC', '#4D8000', '#B33300', '#CC80CC', 
-                      '#66664D', '#991AFF', '#E666FF', '#4DB3FF', '#1AB399',
-                      '#E666B3', '#33991A', '#CC9999', '#B3B31A', '#00E680', 
-                      '#4D8066', '#809980', '#E6FF80', '#1AFF33', '#999933',
-                      '#FF3380', '#CCCC00', '#66E64D', '#4D80CC', '#9900B3', 
-                      '#E64D66', '#4DB380', '#FF4D4D', '#99E6E6', '#6666FF'];
-    let backgroundColors = [];
-    let label_list = [];
-    for (let i=0; i<labels.length; i++) {
-      if (!(label_list.includes(labels[i]))){
-        label_list.push(labels[i]);
-      }
-    backgroundColors.push(colorArray[label_list.indexOf(labels[i]) % colorArray.length]);
-    }
-    return backgroundColors
   }
   if (config["examples"]) {
     target.find(".examples").removeClass("invisible");
@@ -386,16 +328,8 @@ function gradio(config, fn, target, example_file_path) {
       })
     });
     target.find(".view_examples").click(function() {
-      target.find(".examples > table").removeClass("invisible");        
-      target.find(".examples > .plot").addClass("invisible");  
-      target.find(".run_examples").removeClass("invisible");
-      target.find(".view_embeddings").removeClass("invisible");
-      target.find(".load_prev").removeClass("invisible");
-      target.find(".load_next").removeClass("invisible");
-      target.find(".order_similar").removeClass("invisible");
-      target.find(".pages").removeClass("invisible");
-      target.find(".update_embeddings").addClass("invisible");
-      target.find(".view_examples").addClass("invisible");    
+      target.find(".examples-content").removeClass("invisible");        
+      target.find(".embeddings-content").addClass("invisible");  
     });
     target.find(".update_embeddings").click(function() {
       io_master.update_embeddings(function(output) {
@@ -407,7 +341,7 @@ function gradio(config, fn, target, example_file_path) {
     target.find(".view_embeddings").click(function() {
       io_master.view_embeddings(function(output) {
         let ctx = $('#canvas')[0].getContext('2d');
-        let backgroundColors = getBackgroundColors();
+        let backgroundColors = getBackgroundColors(io_master);
         embedding_chart = new Chart(ctx, {
           type: 'scatter',
           data: {
@@ -442,17 +376,9 @@ function gradio(config, fn, target, example_file_path) {
           }
         };
     
-        target.find(".examples > table").addClass("invisible");        
-        target.find(".examples > .plot").removeClass("invisible");  
-        target.find(".run_examples").addClass("invisible");
-        target.find(".view_embeddings").addClass("invisible");
-        target.find(".load_prev").addClass("invisible");
-        target.find(".load_next").addClass("invisible");
-        target.find(".order_similar").addClass("invisible");
-        target.find(".pages").addClass("invisible");
-        target.find(".update_embeddings").removeClass("invisible");
-        target.find(".view_examples").removeClass("invisible");
-      })
+        target.find(".examples-content").addClass("invisible");        
+        target.find(".embeddings-content").removeClass("invisible");  
+        })
     });
     $("body").keydown(function(e) {
       if ($(document.activeElement).attr("type") == "text" || $(document.activeElement).attr("type") == "textarea") {
