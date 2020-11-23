@@ -38,28 +38,28 @@ def hide_latency(driver):
 
 
 def diff_texts_thread(return_dict):
-    from demo.diff_texts import io
-    io.save_to = return_dict
-    io.launch()
+    from demo.diff_texts import iface
+    iface.save_to = return_dict
+    iface.launch()
 
 
 def image_mod_thread(return_dict):
-    from demo.image_mod import io
-    io.examples = None
-    io.save_to = return_dict
-    io.launch()
+    from demo.image_mod import iface
+    iface.examples = None
+    iface.save_to = return_dict
+    iface.launch()
 
 
 def longest_word_thread(return_dict):
-    from demo.longest_word import io
-    io.save_to = return_dict
-    io.launch()
+    from demo.longest_word import iface
+    iface.save_to = return_dict
+    iface.launch()
 
 
 def sentence_builder_thread(return_dict):
-    from demo.sentence_builder import io
-    io.save_to = return_dict
-    io.launch()
+    from demo.sentence_builder import iface
+    iface.save_to = return_dict
+    iface.launch()
 
 
 class TestDemo(unittest.TestCase):
@@ -79,7 +79,6 @@ class TestDemo(unittest.TestCase):
         driver = webdriver.Chrome()
         driver.set_window_size(1200, 800)
         driver.get(URL)
-        
         return driver
 
     def test_diff_texts(self):
