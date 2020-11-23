@@ -167,6 +167,11 @@ function gradio(config, fn, target, example_file_path) {
   }
   io_master.input_interfaces = input_interfaces;
   io_master.output_interfaces = output_interfaces;
+  if (config.layout == "unaligned") {
+    target.find(".panels").css("align-items", "flex-start");
+  } else if (config.layout == "vertical") {
+    target.find(".panels").css("flex-direction", "column");
+  }
   function clear_all() {
     for (let input_interface of input_interfaces) {
       input_interface.clear();
