@@ -52,6 +52,7 @@ function gradio(config, fn, target, example_file_path) {
       <button class="load_prev">Load Previous <em>(CTRL + &larr;)</em></button>
       <button class="load_next">Load Next <em>(CTRL + &rarr;)</em></button>
       <button class="order_similar">Order by Similarity</button>
+      <button class="view_embeddings">Plot Embeddings</button>
       <div class="pages invisible">Page:</div>
       <table>
       </table>
@@ -338,7 +339,7 @@ function gradio(config, fn, target, example_file_path) {
         }
       }
     });
-  };
+  });
 
   target.find(".screenshot").click(function() {
     $(".screenshot, .record").hide();

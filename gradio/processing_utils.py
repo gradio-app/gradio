@@ -83,16 +83,19 @@ def decode_base64_to_file(encoding):
 # AUDIO FILES
 ##################
 
-def generate_mfcc_features_from_audio_file(wav_filename,
+def generate_mfcc_features_from_audio_file(wav_filename=None,
                                            pre_emphasis=0.95,
                                            frame_size= 0.025,
                                            frame_stride=0.01,
                                            NFFT=512,
                                            nfilt=40,
                                            num_ceps=12,
-                                           cep_lifter=22):
+                                           cep_lifter=22,
+                                           sample_rate=None,
+                                           signal=None,
+                                           downsample_to=None):
     """
-    Loads and preprocesses a .wav audio file into mfcc coefficients, the typical inputs to models.
+    Loads and preprocesses a .wav audio file (or alternatively, a sample rate & signal) into mfcc coefficients, the typical inputs to models.
     Adapted from: https://haythamfayek.com/2016/04/21/speech-processing-for-machine-learning.html
     :param wav_filename: string name of audio file to process.
     :param pre_emphasis: a float factor, typically 0.95 or 0.97, which amplifies high frequencies.
@@ -102,9 +105,21 @@ def generate_mfcc_features_from_audio_file(wav_filename,
     :param nfilt: The number of filters on the Mel-scale to extract frequency bands.
     :param num_ceps: the number of cepstral coefficients to retrain.
     :param cep_lifter: the int factor, by which to de-emphasize higher-frequency.
-    :return: a numpy array of mfcc coefficients.
+    :param sample_rate: optional param represnting sample rate that is used if `wav_filename` is not provided
+    :param signal: optional param representing sample data that is used if `wav_filename` is not provided
+    :param downsample_to: optional param. If provided, audio file is downsampled to this many frames.  
+    :return: a 3D numpy array of mfcc coefficients, of the shape 1 x num_frames x num_coeffs.
     """
-    sample_rate, signal = scipy.io.wavfile.read(wav_filename)
+    if (wav_filename is None) and (sample_rate is None or signal is None):
+        raise ValueError("Either a wav_filename must be provdied or a sample_rate and signal") 
+    elif wav_filename is None:
+        pass
+    else:
+        sample_rate, signal = scipy.io.wavfile.read(wav_filename)
+
+    if not(downsample_to is None):
+        signal = scipy.signal.resample(signal, downsample_to)    
+
     emphasized_signal = np.append(signal[0], signal[1:] - pre_emphasis * signal[:-1])
 
     frame_length, frame_step = frame_size * sample_rate, frame_stride * sample_rate  # Convert from seconds to samples
