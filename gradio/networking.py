@@ -20,7 +20,7 @@ import sys
 import csv
 import logging
 import gradio as gr
-from gradio.embeddings import calculate_similarity
+from gradio.embeddings import calculate_similarity, fit_pca_to_embeddings, transform_with_pca
 from gradio.tunneling import create_tunnel
 
 INITIAL_PORT_VALUE = int(os.getenv(
@@ -124,16 +124,55 @@ def predict():
 @app.route("/api/score_similarity/", methods=["POST"])
 def score_similarity():
     raw_input = request.json["data"]
+
     preprocessed_input = [input_interface.preprocess(raw_input[i])
                     for i, input_interface in enumerate(app.interface.input_interfaces)]
     input_embedding = app.interface.embed(preprocessed_input)
     scores = list()
+
     for example in app.interface.examples:
         preprocessed_example = [iface.preprocess(iface.preprocess_example(example))
             for iface, example in zip(app.interface.input_interfaces, example)]
         example_embedding = app.interface.embed(preprocessed_example)
-        scores.append(calculate_similarity(input_embedding, example_embedding))
+        scores.append(calculate_similarity(input_embedding, example_embedding))    
+    
     return jsonify({"data": scores})
+
+
+@app.route("/api/view_embeddings/", methods=["POST"])
+def view_embeddings():    
+    sample_embedding = []
+    if "data" in request.json:
+        raw_input = request.json["data"]
+        preprocessed_input = [input_interface.preprocess(raw_input[i])
+                        for i, input_interface in enumerate(app.interface.input_interfaces)]
+        sample_embedding.append(app.interface.embed(preprocessed_input))
+
+    example_embeddings = []
+    for example in app.interface.examples:
+        preprocessed_example = [iface.preprocess(iface.preprocess_example(example))
+            for iface, example in zip(app.interface.input_interfaces, example)]
+        example_embedding = app.interface.embed(preprocessed_example)
+        example_embeddings.append(example_embedding)
+    
+    pca_model, embeddings_2d = fit_pca_to_embeddings(sample_embedding + example_embeddings)
+    sample_embedding_2d = embeddings_2d[:len(sample_embedding)]
+    example_embeddings_2d = embeddings_2d[len(sample_embedding):]
+    app.pca_model = pca_model
+    return jsonify({"sample_embedding_2d": sample_embedding_2d, "example_embeddings_2d": example_embeddings_2d})
+
+
+@app.route("/api/update_embeddings/", methods=["POST"])
+def update_embeddings():    
+    sample_embedding, sample_embedding_2d = [], []
+    if "data" in request.json:
+        raw_input = request.json["data"]
+        preprocessed_input = [input_interface.preprocess(raw_input[i])
+                        for i, input_interface in enumerate(app.interface.input_interfaces)]
+        sample_embedding.append(app.interface.embed(preprocessed_input))
+        sample_embedding_2d = transform_with_pca(app.pca_model, sample_embedding)
+    
+    return jsonify({"sample_embedding_2d": sample_embedding_2d})
 
 
 @app.route("/api/predict_examples/", methods=["POST"])

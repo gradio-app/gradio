@@ -52,6 +52,30 @@ var io_master_template = {
       callback();
     })
   },
+  view_embeddings: function(callback) {
+    this.target.find(".loading").removeClass("invisible");
+    this.target.find(".loading_in_progress").show();
+    this.target.find(".loading_failed").hide();
+    this.target.find(".output_interfaces").css("opacity", 0.5);
+
+    this.fn(this.last_input, "view_embeddings").then((output) => {
+      this.target.find(".loading").addClass("invisible");
+      this.target.find(".output_interfaces").css("opacity", 1);
+      callback(output)
+    })
+  },
+  update_embeddings: function(callback) {
+    this.target.find(".loading").removeClass("invisible");
+    this.target.find(".loading_in_progress").show();
+    this.target.find(".loading_failed").hide();
+    this.target.find(".output_interfaces").css("opacity", 0.5);
+
+    this.fn(this.last_input, "update_embeddings").then((output) => {
+      this.target.find(".loading").addClass("invisible");
+      this.target.find(".output_interfaces").css("opacity", 1);
+      callback(output)
+    })
+  },
   submit_examples: function(callback) {
     this.target.find(".loading").removeClass("invisible");
     this.target.find(".loading_in_progress").show();

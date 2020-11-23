@@ -453,7 +453,7 @@ class CheckboxGroup(InputComponent):
         if self.type == "value":
             return [choice in x for choice in self.choices]
         elif self.type == "index":
-            return [index in x for index in range(len(choices))]
+            return [index in x for index in range(len(self.choices))]
         else:
             raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'value', 'index'.")
 
@@ -514,7 +514,7 @@ class Radio(InputComponent):
         if self.type == "value":
             return [choice==x for choice in self.choices]
         elif self.type == "index":
-            return [index==x for index in range(len(choices))]
+            return [index==x for index in range(len(self.choices))]
         else:
             raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'value', 'index'.")
 
@@ -574,7 +574,7 @@ class Dropdown(InputComponent):
         if self.type == "value":
             return [choice==x for choice in self.choices]
         elif self.type == "index":
-            return [index==x for index in range(len(choices))]
+            return [index==x for index in range(len(self.choices))]
         else:
             raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'value', 'index'.")
 
@@ -791,7 +791,23 @@ class Audio(InputComponent):
         return scores
 
     def embed(self, x):
-        raise NotImplementedError("Audio doesn't currently support embeddings")
+        """
+        Resamples each audio signal to be 1,000 frames and then returns the flattened vectors
+        """
+        num_frames = 1000
+        if self.type == "file":
+            filename = x.name
+            mfcc = processing_utils.generate_mfcc_features_from_audio_file(filename, downsample_to=num_frames)
+            return mfcc.flatten() 
+        elif self.type == "numpy":
+            sample_rate, signal = x
+            mfcc = processing_utils.generate_mfcc_features_from_audio_file(wav_filename=None, sample_rate=sample_rate, signal=signal, downsample_to=num_frames)
+            return mfcc.flatten() 
+        elif self.type == "mfcc":
+            mfcc = scipy.signal.resample(x, num_frames, axis=1)
+            return mfcc.flatten()
+        else:
+            raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'numpy', 'mfcc', 'file'.")
 
 
 class File(InputComponent):
