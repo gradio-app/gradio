@@ -80,6 +80,12 @@ You can provide example data that a user can easily load into the model. This ca
 $code_calculator
 $demo_calculator
 
+### Exploring Similar Examples with Embeddings
+
+When you provide input to the function, you may wish to see if there are similar samples in the example dataset that could explain the behaviour of the function. For example, if an image model returns a peculiar output for a given input, you may load the training data into the examples dataset and see what training data samples are similar to the input you provided. If you enable this feature, you can click the *Order by Similarity* button to show the most similar samples from the example dataset.
+
+Gradio supports exploring similar data samples through embeddings. Embeddings are a list of floats that numerically represent any input. To the `embedding` keyword argument of Interface, you must pass a function that takes the same inputs as the main `fn` argument, but instead returns an embedding that represents all the input values as a single list of floats. You can also pass the "default" string to `embedding` and Gradio will automatically generate embeddings for each sample in the examples dataset.
+
 ### Flagging
 
 Underneath the output interfaces, there is a button marked "Flag". When a user testing your model sees input with interesting output, such as erroneous or unexpected model behaviour, they can flag the input for review. Within the directory provided by the  `flagging_dir=`  argument to the Interface constructor, a CSV file will log the flagged inputs. If the interface involved file inputs, such as for Image and Audio interfaces, folders will be created to store those flagged inputs as well.

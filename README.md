@@ -127,6 +127,7 @@ You can provide example data that a user can easily load into the model. This ca
 
 ```python
 import gradio as gr
+import random
 
 def calculator(num1, operation, num2):
     if operation == "add":
@@ -138,18 +139,27 @@ def calculator(num1, operation, num2):
     elif operation == "divide":
         return num1 / num2
 
-
 iface = gr.Interface(calculator, 
     ["number", gr.inputs.Radio(["add", "subtract", "multiply", "divide"]), "number"],
     "number",
     examples=[
         [5, "add", 3],
-        [12, "divide", -2]
+        [4, "divide", 2],
+        [-4, "multiply", 2.5],
+        [0, "subtract", 1.2],
     ]
 )
+
 iface.launch()
+
 ```
 ![calculator interface](demo/screenshots/calculator/1.gif)
+
+### Exploring Similar Examples with Embeddings
+
+When you provide input to the function, you may wish to see if there are similar samples in the example dataset that could explain the behaviour of the function. For example, if an image model returns a peculiar output for a given input, you may load the training data into the examples dataset and see what training data samples are similar to the input you provided. If you enable this feature, you can click the *Order by Similarity* button to show the most similar samples from the example dataset.
+
+Gradio supports exploring similar data samples through embeddings. Embeddings are a list of floats that numerically represent any input. To the `embedding` keyword argument of Interface, you must pass a function that takes the same inputs as the main `fn` argument, but instead returns an embedding that represents all the input values as a single list of floats. You can also pass the "default" string to `embedding` and Gradio will automatically generate embeddings for each sample in the examples dataset.
 
 ### Flagging
 
