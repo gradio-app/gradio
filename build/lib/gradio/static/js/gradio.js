@@ -229,7 +229,8 @@ function gradio(config, fn, target, example_file_path) {
     if (io_master.loaded_examples && example_id in io_master.loaded_examples) {
       io_master.output({"data": io_master.loaded_examples[example_id]});
     }
-    let current_page = Math.floor(example_id / config["examples_per_page"]);
+    let example_order = io_master.order_mapping.indexOf(example_id);
+    let current_page = Math.floor(example_order / config["examples_per_page"]);
     if (current_page != io_master.current_page) {
       io_master.current_page = current_page;
       load_page();
@@ -241,32 +242,31 @@ function gradio(config, fn, target, example_file_path) {
   function next_example() {
     current_example = io_master.current_example;
     if (current_example == null) {
-      current_example = 0;
+      new_index = 0;
     } else {
-      current_example = (current_example + 1 + config.examples.length) % config.examples.length;
+      new_index = (io_master.order_mapping.indexOf(current_example) + 1 + config.examples.length) % config.examples.length;
     }
-    load_example(current_example);
+    load_example(io_master.order_mapping[new_index]);
   }
   function prev_example() {
     current_example = io_master.current_example;
-    if (current_example === null) {
-      current_example = 0;
+    if (current_example == null) {
+      new_index = 0;
     } else {
-      current_example = (current_example - 1 + config.examples.length) % config.examples.length;
+      new_index = (io_master.order_mapping.indexOf(current_example) - 1 + config.examples.length) % config.examples.length;
     }
-    load_example(current_example);
+    load_example(io_master.order_mapping[new_index]);
   }
   function load_page() {
     page_num = io_master.current_page;
     target.find(".page").removeClass("primary");
     target.find(`.page[page=${page_num}]`).addClass("primary");
     let page_start = page_num * config["examples_per_page"]
-    examples_subset = config["examples"].slice(
-      page_start, page_start + config["examples_per_page"]
-    )
     let html = "";
-    for (let [i, example] of examples_subset.entries()) {
-      let example_id = page_start + i;
+    for (let i = page_start; i < page_start + config["examples_per_page"] && i < config.examples.length; i++) {
+      let example_id = io_master.order_mapping[i];
+      console.log(example_id)
+      let example = config["examples"][example_id];
       html += "<tr row=" + example_id + ">";
       for (let [j, col] of example.entries()) {
         let new_col = JSON.parse(JSON.stringify(col))
@@ -301,6 +301,7 @@ function gradio(config, fn, target, example_file_path) {
     html += "<tbody class='examples_body'></tbody>";
     target.find(".examples table").html(html);
     io_master.current_page = 0;
+    io_master.order_mapping = [...Array(config.examples.length).keys()];
     let page_count = Math.ceil(config.examples.length / config.examples_per_page)
     if (page_count > 1) {
       target.find(".pages").removeClass("invisible");
@@ -322,6 +323,13 @@ function gradio(config, fn, target, example_file_path) {
     })
     target.find(".load_prev").click(prev_example);
     target.find(".load_next").click(next_example);
+    target.find(".order_similar").click(function() {
+      io_master.score_similarity(function() {
+        io_master.current_page = 0
+        io_master.current_example = null;
+        load_page();  
+      })
+    });
     $("body").keydown(function(e) {
       if ($(document.activeElement).attr("type") == "text" || $(document.activeElement).attr("type") == "textarea") {
         return;
@@ -337,7 +345,7 @@ function gradio(config, fn, target, example_file_path) {
         }
       }
     });
-  };
+  });
 
   target.find(".screenshot").click(function() {
     $(".screenshot, .record").hide();
