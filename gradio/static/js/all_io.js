@@ -1,3 +1,4 @@
+
 var io_master_template = {
   gather: function() {
     this.clear();
@@ -37,6 +38,44 @@ var io_master_template = {
       this.target.find(".loading_failed").show();
     });
   },
+  score_similarity: function(callback) {
+    this.target.find(".loading").removeClass("invisible");
+    this.target.find(".loading_in_progress").show();
+    this.target.find(".loading_failed").hide();
+    this.target.find(".output_interfaces").css("opacity", 0.5);
+
+    this.fn(this.last_input, "score_similarity").then((output) => {
+      output = output["data"];
+      this.target.find(".loading").addClass("invisible");
+      this.target.find(".output_interfaces").css("opacity", 1);
+      this.order_mapping = sortWithIndices(output).reverse();
+      callback();
+    })
+  },
+  view_embeddings: function(callback) {
+    this.target.find(".loading").removeClass("invisible");
+    this.target.find(".loading_in_progress").show();
+    this.target.find(".loading_failed").hide();
+    this.target.find(".output_interfaces").css("opacity", 0.5);
+
+    this.fn(this.last_input, "view_embeddings").then((output) => {
+      this.target.find(".loading").addClass("invisible");
+      this.target.find(".output_interfaces").css("opacity", 1);
+      callback(output)
+    })
+  },
+  update_embeddings: function(callback) {
+    this.target.find(".loading").removeClass("invisible");
+    this.target.find(".loading_in_progress").show();
+    this.target.find(".loading_failed").hide();
+    this.target.find(".output_interfaces").css("opacity", 0.5);
+
+    this.fn(this.last_input, "update_embeddings").then((output) => {
+      this.target.find(".loading").addClass("invisible");
+      this.target.find(".output_interfaces").css("opacity", 1);
+      callback(output)
+    })
+  },
   submit_examples: function(callback) {
     this.target.find(".loading").removeClass("invisible");
     this.target.find(".loading_in_progress").show();
@@ -55,7 +94,7 @@ var io_master_template = {
     this.fn(example_ids, "predict_examples").then((output) => {
       this.target.find(".loading").addClass("invisible");
       this.target.find(".output_interfaces").css("opacity", 1);
-            
+
       output = output["data"];
       for (let [example_id, output_values] of Object.entries(output)) {
         this.loaded_examples[example_id] = output_values;
@@ -137,3 +176,5 @@ var io_master_template = {
     }
   }
 };
+
+

@@ -10,7 +10,7 @@ import os
 import time
 import warnings
 from gradio.component import Component
-
+from gradio.embeddings import embed_text
 import base64
 import numpy as np
 import PIL
@@ -72,6 +72,16 @@ class InputComponent(Component):
         Returns:
         (List[Any]): Arrangement of interpretation scores for interfaces to render.
         '''
+        pass
+
+    def embed(self, x):
+        """
+        Return a default embedding for the *preprocessed* input to the interface. Used to compute similar inputs.
+        x (Any): Input to interface
+        Returns:
+        (List[Float]): An embedding vector as a list or numpy array of floats
+        """
+        pass
 
 class Textbox(InputComponent):
     """
@@ -170,6 +180,17 @@ class Textbox(InputComponent):
             result.append((self.interpretation_separator, 0))
         return result
 
+    def embed(self, x):
+        """
+        Embeds an arbitrary text based on word frequency
+        """
+        if self.type == "str":
+            return embed_text(x)
+        elif self.type == "number":
+            return [float(x)]
+        else:
+            raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'str', 'number'.")
+
 
 class Number(InputComponent):
     """
@@ -237,6 +258,9 @@ class Number(InputComponent):
         interpretation = list(zip(neighbors, scores))
         interpretation.insert(int(len(interpretation) / 2), [x, None])
         return interpretation
+
+    def embed(self, x):
+        return [float(x)]
 
 
 class Slider(InputComponent):
@@ -306,6 +330,10 @@ class Slider(InputComponent):
         """
         return scores
 
+    def embed(self, x):
+        return [float(x)]
+
+
 
 class Checkbox(InputComponent):
     """
@@ -352,6 +380,10 @@ class Checkbox(InputComponent):
             return scores[0], None
         else:
             return None, scores[0]
+
+    def embed(self, x):
+        return [float(x)]
+
 
 
 class CheckboxGroup(InputComponent):
@@ -417,6 +449,15 @@ class CheckboxGroup(InputComponent):
             final_scores.append(score_set)
         return final_scores
 
+    def embed(self, x):
+        if self.type == "value":
+            return [choice in x for choice in self.choices]
+        elif self.type == "index":
+            return [index in x for index in range(len(choices))]
+        else:
+            raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'value', 'index'.")
+
+
 
 class Radio(InputComponent):
     """
@@ -469,6 +510,14 @@ class Radio(InputComponent):
         scores.insert(self.choices.index(x), None)
         return scores
 
+    def embed(self, x):
+        if self.type == "value":
+            return [choice==x for choice in self.choices]
+        elif self.type == "index":
+            return [index==x for index in range(len(choices))]
+        else:
+            raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'value', 'index'.")
+
 
 class Dropdown(InputComponent):
     """
@@ -520,6 +569,14 @@ class Dropdown(InputComponent):
         """
         scores.insert(self.choices.index(x), None)
         return scores
+
+    def embed(self, x):
+        if self.type == "value":
+            return [choice==x for choice in self.choices]
+        elif self.type == "index":
+            return [index==x for index in range(len(choices))]
+        else:
+            raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'value', 'index'.")
 
 
 class Image(InputComponent):
@@ -644,6 +701,18 @@ class Image(InputComponent):
             output_scores = (output_scores - min_val) / (max_val - min_val)
         return output_scores.tolist()
 
+    def embed(self, x):
+        shape = (100, 100) if self.shape is None else self.shape  
+        if self.type == "pil":
+            im = x
+        elif self.type == "numpy":
+            im = PIL.Image.fromarray(x)
+        elif self.type == "file":
+            im = PIL.Image.open(x)
+        else:
+            raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'numpy', 'pil', 'file'.")
+        im = processing_utils.resize_and_crop(im, (shape[0], shape[1]))
+        return np.asarray(im).flatten()
 
 class Audio(InputComponent):
     """
@@ -725,6 +794,9 @@ class Audio(InputComponent):
         """
         return scores
 
+    def embed(self, x):
+        raise NotImplementedError("Audio doesn't currently support embeddings")
+
 
 class File(InputComponent):
     """
@@ -763,6 +835,8 @@ class File(InputComponent):
         else:
             raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'file', 'bytes'.")
 
+    def embed(self, x):
+        raise NotImplementedError("File doesn't currently support embeddings")
 
 
 class Dataframe(InputComponent):
@@ -854,6 +928,9 @@ class Dataframe(InputComponent):
         (List[List[float]]): A 2D array where each value corrseponds to the interpretation score of each cell.
         """
         return np.array(scores).reshape((shape)).tolist()
+
+    def embed(self, x):
+        raise NotImplementedError("DataFrame doesn't currently support embeddings")
 
 
 #######################
