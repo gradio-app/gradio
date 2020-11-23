@@ -528,7 +528,7 @@ class Image(InputComponent):
     Input type: Union[numpy.array, PIL.Image, str]
     """
 
-    def __init__(self, shape=None, image_mode='RGB', invert_colors=False, source="upload", tool="editor", type="numpy", label=None):
+    def __init__(self, shape=None, image_mode='RGB', invert_colors=False, source="upload", tool="editor", labeled_segments=False, type="numpy", label=None):
         '''
         Parameters:
         shape (Tuple[int, int]): (width, height) shape to crop and resize image to; if None, matches input image size.
