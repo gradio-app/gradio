@@ -6,6 +6,21 @@ String.prototype.format = function() {
   return a
 }
 
+function sortWithIndices(toSort) {
+  for (var i = 0; i < toSort.length; i++) {
+    toSort[i] = [toSort[i], i];
+  }
+  toSort.sort(function(left, right) {
+    return left[0] < right[0] ? -1 : 1;
+  });
+  toSort.sortIndices = [];
+  for (var j = 0; j < toSort.length; j++) {
+    toSort.sortIndices.push(toSort[j][1]);
+    toSort[j] = toSort[j][0];
+  }
+  return toSort.sortIndices;
+}
+
 function toDataURL(url, callback) {
   var xhr = new XMLHttpRequest();
   xhr.onload = function() {
@@ -68,6 +83,67 @@ function paintSaliency(data, ctx, width, height) {
     r++;
   })
 }
+
+function getBackgroundColors(io_master){
+  //Gets the background colors for the embedding plot
+
+  // If labels aren't loaded, or it's not a label output interface:
+  if (!io_master.loaded_examples || io_master["config"]["output_interfaces"][0][0]!="label") {
+    return 'rgb(54, 162, 235)'
+  }
+
+  // If it is a label interface, get the labels
+  let labels = []
+  let isConfidencesPresent = false;
+  for (let i=0; i<Object.keys(io_master.loaded_examples).length; i++) {
+    let label = io_master.loaded_examples[i][0]["label"];
+    if ("confidences" in io_master.loaded_examples[i][0]){
+      isConfidencesPresent = true;
+    }
+    labels.push(label);
+  }
+  
+  // If they are all numbers, and there are no confidences, then it's a regression
+  const isNumeric = (currentValue) => !isNaN(currentValue);
+  let isNumericArray = labels.every(isNumeric);
+  if (isNumericArray && !isConfidencesPresent) {
+    let backgroundColors = [];
+    labels = labels.map(Number);
+    let max = Math.max(...labels);
+    let min = Math.min(...labels);
+    let rgb_max = [255, 178, 102]
+    let rgb_min = [204, 255, 255]
+    for (let i=0; i<labels.length; i++) {
+      let frac = (Number(labels[i])-min)/(max-min)
+      let color = [rgb_min[0]+frac*(rgb_max[0]-rgb_min[0]),
+                   rgb_min[1]+frac*(rgb_max[1]-rgb_min[1]),
+                   rgb_min[2]+frac*(rgb_max[2]-rgb_min[2])]
+      backgroundColors.push(color);
+    }
+  }
+  
+  // Otherwise, it's a classification
+  let colorArray = ['#FF6633', '#FFB399', '#FF33FF', '#00B3E6', 
+                    '#E6B333', '#3366E6', '#999966', '#99FF99', '#B34D4D',
+                    '#80B300', '#809900', '#E6B3B3', '#6680B3', '#66991A', 
+                    '#FF99E6', '#CCFF1A', '#FF1A66', '#E6331A', '#33FFCC',
+                    '#66994D', '#B366CC', '#4D8000', '#B33300', '#CC80CC', 
+                    '#66664D', '#991AFF', '#E666FF', '#4DB3FF', '#1AB399',
+                    '#E666B3', '#33991A', '#CC9999', '#B3B31A', '#00E680', 
+                    '#4D8066', '#809980', '#E6FF80', '#1AFF33', '#999933',
+                    '#FF3380', '#CCCC00', '#66E64D', '#4D80CC', '#9900B3', 
+                    '#E64D66', '#4DB380', '#FF4D4D', '#99E6E6', '#6666FF'];
+  let backgroundColors = [];
+  let label_list = [];
+  for (let i=0; i<labels.length; i++) {
+    if (!(label_list.includes(labels[i]))){
+      label_list.push(labels[i]);
+    }
+  backgroundColors.push(colorArray[label_list.indexOf(labels[i]) % colorArray.length]);
+  }
+  return backgroundColors
+}
+
 
 function getSaliencyColor(value) {
   if (value < 0) {
