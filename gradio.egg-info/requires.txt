@@ -6,6 +6,7 @@ flask-cachebuster
 paramiko
 scipy
 IPython
+scikit-learn
 scikit-image
 analytics-python
 pandas
