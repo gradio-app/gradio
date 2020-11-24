@@ -44,8 +44,7 @@ class Interface:
                  title=None, description=None, thumbnail=None, 
                  server_port=None, server_name=networking.LOCALHOST_NAME,
                  allow_screenshot=True, allow_flagging=True,
-                 embedding="default",
-                 flagging_dir="flagged", analytics_enabled=True):
+                 embedding="default", flagging_dir="flagged", analytics_enabled=True):
 
         """
         Parameters:
@@ -135,7 +134,11 @@ class Interface:
                 'outputs': outputs,
                 'live': live,
                 'capture_session': capture_session,
-                'ip_address': ip_address
+                'ip_address': ip_address,
+                'interpretation': interpretation,
+                'embedding': embedding,
+                'allow_flagging': allow_flagging,
+                'allow_screenshot': allow_screenshot,
                 }
 
         if self.capture_session:
@@ -385,7 +388,7 @@ class Interface:
 
         self.share = share
         if share:
-            print("This share link will expire in 6 hours. If you need a "
+            print("This share link will expire in 24 hours. If you need a "
                   "permanent link, email support@gradio.app")
             try:
                 share_url = networking.setup_tunnel(server_port)
