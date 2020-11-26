@@ -1,0 +1,133 @@
+body#lib {
+  font-family: 'Open Sans', sans-serif;
+  margin: 20px 0 0;
+  position: relative;
+  padding-bottom: 60px;
+}
+button, input[type="submit"], input[type="reset"], input[type="text"], input[type="button"], select[type="submit"] {
+	border: none;
+	font: inherit;
+	outline: inherit;
+  -webkit-appearance: none;
+}
+select {
+	font: inherit;
+}
+label, input[type=radio], input[type=checkbox], select, input[type=range], button, input[type="submit"], input[type="reset"], input[type="button"], select[type="submit"] {
+	cursor: pointer;
+}
+
+.loading_time {
+  color: #e67e22;
+  text-align: right;
+  font-family: monospace;
+}
+.share {
+  text-align: center;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+.share-copy {
+  background-color: whitesmoke;
+  padding: 4px;
+  border-radius: 2px;
+}
+.title {
+  text-align: center;
+}
+.container {
+  max-width: 1028px;
+  width: 100%;
+  margin: 0 auto;  
+  padding-left: 24px;
+  padding-right: 24px;
+  box-sizing: border-box;
+}
+.panels {
+  display: flex;
+  flex-flow: row;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+button.primary {
+  color: white;
+  background-color: #e67e22;
+}
+button.secondary {
+  color: black;
+  background-color: #F6F6F6;
+}
+h4 {
+  margin-bottom: 0.5em;
+}
+.interpretation_legend {
+  display: flex;
+  padding: 8px;
+  border: solid 2px black;
+  justify-content: space-between;
+  font-family: monospace;
+  background-image: linear-gradient(to right, #3498db ,white,#e74c3c);
+}
+.interpretation_explained ul {
+  font-size: 14px;
+}
+.close_explain {
+  cursor: pointer;  
+}
+.examples > button {
+  padding: 8px 16px;
+  border-radius: 2px;
+  margin-right: 4px;
+  background-color: whitesmoke;
+}
+.examples > table {
+  border-collapse: collapse;
+  font-family: monospace;
+  padding: 8px;
+  background-color: whitesmoke;
+  border-right: solid 4px whitesmoke;
+  border-left: solid 4px whitesmoke;
+  border-bottom: solid 4px whitesmoke;
+  margin-top: 8px;
+}
+.examples > table th {
+  padding: 8px 16px;
+  text-align: left;
+  font-size: 18px;
+  text-transform: uppercase;
+}
+.examples_body > tr > td {
+  padding: 8px;
+  cursor: pointer;
+}
+.pages {
+  display: flex;
+  align-items: center;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.page {
+  padding: 8px;
+  margin: 4px;
+  border-radius: 4px;
+}
+.examples_body > tr:nth-child(odd) {
+  background-color: white;
+}
+.examples_body > tr:hover {
+  background-color: lightgray;
+}
+.examples_body > tr.current_example {
+  background-color: #ffb573;  
+}
+#credit {
+  text-align: center;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 18px;
+  height: 24px;
+}
+#credit img {
+  height: 24px;
+}

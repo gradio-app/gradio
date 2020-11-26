@@ -1,0 +1,52 @@
+.hidden {
+  display: none !important;
+}
+.recording.input_caption {
+  color: #C00000;
+}
+.volume_display {
+  width: 100%;
+  display: flex;
+}
+.volume {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+}
+.volume_left {
+  justify-content: flex-end;
+}
+.volume_bar {
+  height: 12px;
+  background-color: #C00000;
+  transition: width 0.1s;
+}
+.volume_left .volume_bar {
+  border-radius: 4px 0 0 4px;
+}
+.volume_right .volume_bar {
+  border-radius: 0 4px 4px 0;
+}
+.player {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  flex-flow: column;
+  align-items: center;
+  justify-content: center;
+}
+.waveform {
+  width: 100%;
+}
+.waveform > wave {
+  overflow: visible !important;
+}
+.waveform canvas {
+  border: none !important;
+}
+.playpause {
+  margin-top: 26px;
+  font-size: 20px;
+  padding: 4px;
+  border-radius: 2px;
+}

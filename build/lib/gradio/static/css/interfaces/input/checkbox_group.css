@@ -1,0 +1,39 @@
+.checkbox_group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: 18px;
+  margin-top: -12px;
+  margin-left: -16px;
+}
+.checkbox_group input, .checkbox {
+  margin: 0px;
+}
+.checkbox_group label {
+  margin-top: 12px;
+  margin-left: 16px;
+}
+.checkbox_solo label {
+  width: 27px !important;
+  padding-left: 11px;
+  padding-right: 3px;
+}
+.interpret_sub {
+  margin-top: 12px;
+}
+.interpret_sub:empty {
+  margin-top: 0;
+}
+.interpret_check {
+  display: inline-block;
+  padding: 4px 8px;
+  font-family: monospace;
+  font-weight: bold;
+  color: black;
+  font-size: 16px;
+}
+.interpret_select {
+  background-color: white;
+  border: solid 2px black;
+  box-sizing: border-box;
+}
