@@ -98,6 +98,7 @@ gradio/static/js/interfaces/output/json.js
 gradio/static/js/interfaces/output/key_values.js
 gradio/static/js/interfaces/output/label.js
 gradio/static/js/interfaces/output/textbox.js
+gradio/static/js/vendor/Chart.min.js
 gradio/static/js/vendor/FileSaver.min.js
 gradio/static/js/vendor/black-theme.js
 gradio/static/js/vendor/cropper.min.js

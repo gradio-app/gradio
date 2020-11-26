@@ -1,0 +1,22 @@
+.highlight_legend {
+  margin-bottom: 4px;
+}
+.color_legend {
+  font-family: monospace;
+  padding: 4px;
+  border-radius: 2px;
+  display: flex;
+  justify-content: space-between;
+  background: linear-gradient(90deg, rgba(58,241,255,1) 0%, rgba(58,241,255,0) 49%, rgba(230,126,34,0) 50%, rgba(230,126,34,1) 100%); 
+  margin-bottom: 4px;
+}
+.category-label {
+  display: inline-flex;
+  margin-right: 8px;
+  margin-bottom: 4px;
+}
+.category-label div {
+  width: 24px;
+  margin-right: 4px;
+}
+
