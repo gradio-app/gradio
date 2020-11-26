@@ -438,7 +438,7 @@ class Interface:
 
         r = requests.get(path_to_local_server + "enable_sharing/" + (share_url or "None"))
 
-        if debug:
+        if debug or int(os.getenv('GRADIO_DEBUG',0))==1:
             while True:
                 sys.stdout.flush()
                 time.sleep(0.1)
