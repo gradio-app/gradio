@@ -19,4 +19,3 @@ paramiko==2.7.2
 Pillow==8.0.1
 pytorch_transformers==1.2.0
 scikit_learn==0.23.2
-skimage==0.0
