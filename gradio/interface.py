@@ -44,8 +44,7 @@ class Interface:
                  title=None, description=None, thumbnail=None, 
                  server_port=None, server_name=networking.LOCALHOST_NAME,
                  allow_screenshot=True, allow_flagging=True,
-                 embedding="default",
-                 flagging_dir="flagged", analytics_enabled=True):
+                 embedding="default", flagging_dir="flagged", analytics_enabled=True):
 
         """
         Parameters:
@@ -135,7 +134,11 @@ class Interface:
                 'outputs': outputs,
                 'live': live,
                 'capture_session': capture_session,
-                'ip_address': ip_address
+                'ip_address': ip_address,
+                'interpretation': interpretation,
+                'embedding': embedding,
+                'allow_flagging': allow_flagging,
+                'allow_screenshot': allow_screenshot,
                 }
 
         if self.capture_session:
@@ -330,7 +333,7 @@ class Interface:
 
     def test_launch(self):
         for predict_fn in self.predict:
-            print("Test launching: {}()...".format(predict_fn.__name__), end=' ')
+            print("Test launch: {}()...".format(predict_fn.__name__), end=' ')
 
             raw_input = []
             for input_interface in self.input_interfaces:
@@ -385,7 +388,7 @@ class Interface:
 
         self.share = share
         if share:
-            print("This share link will expire in 6 hours. If you need a "
+            print("This share link will expire in 24 hours. If you need a "
                   "permanent link, email support@gradio.app")
             try:
                 share_url = networking.setup_tunnel(server_port)
@@ -435,7 +438,7 @@ class Interface:
 
         r = requests.get(path_to_local_server + "enable_sharing/" + (share_url or "None"))
 
-        if debug:
+        if debug or int(os.getenv('GRADIO_DEBUG',0))==1:
             while True:
                 sys.stdout.flush()
                 time.sleep(0.1)
