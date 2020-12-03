@@ -25,6 +25,7 @@ setup(
         'scikit-learn',
         'scikit-image',
         'analytics-python',
-        'pandas'
+        'pandas',
+        'markdown2'
     ],
 )
