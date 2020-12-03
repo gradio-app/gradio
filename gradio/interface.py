@@ -18,6 +18,7 @@ import analytics
 import numpy as np
 import os
 import copy
+import markdown2
 
 analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
 analytics_url = 'https://api.gradio.app/'
@@ -41,7 +42,7 @@ class Interface:
                  examples_per_page=10, live=False, 
                  layout="horizontal", show_input=True, show_output=True,
                  capture_session=False, interpretation=None,
-                 title=None, description=None, thumbnail=None, 
+                 title=None, description=None, article=None, thumbnail=None, 
                  server_port=None, server_name=networking.LOCALHOST_NAME,
                  allow_screenshot=True, allow_flagging=True,
                  embedding="default", flagging_dir="flagged", analytics_enabled=True):
@@ -60,6 +61,7 @@ class Interface:
         interpretation (Union[Callable, str]): function that provides interpretation explaining prediction output. Pass "default" to use built-in interpreter. 
         title (str): a title for the interface; if provided, appears above the input and output components.
         description (str): a description for the interface; if provided, appears above the input and output components.
+        article (str): an expanded article explaining the interface; if provided, appears below the input and output components. Accepts Markdown and HTML content.
         thumbnail (str): path to image or src to use as display picture for models listed in gradio.app/hub
         server_name (str): to make app accessible on local network set to "0.0.0.0".
         allow_screenshot (bool): if False, users will not see a button to take a screenshot of the interface.
@@ -115,6 +117,9 @@ class Interface:
         self.server_name = server_name
         self.title = title
         self.description = description
+        if article is not None:
+            article = markdown2.markdown(article)
+        self.article = article
         self.thumbnail = thumbnail
         self.examples = examples
         self.examples_per_page = examples_per_page
@@ -186,6 +191,7 @@ class Interface:
             "show_output": self.show_output,
             "title": self.title,
             "description": self.description,
+            "article": self.article,
             "thumbnail": self.thumbnail,
             "allow_screenshot": self.allow_screenshot,
             "allow_flagging": self.allow_flagging,

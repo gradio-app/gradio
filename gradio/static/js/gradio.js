@@ -59,7 +59,9 @@ function gradio(config, fn, target, example_file_path) {
       <table class="examples-content">
       </table>
       <div class="plot embeddings-content invisible"><canvas id="canvas" width="400px" height="300px"></canvas></div>
-    </div>`);
+    </div>
+    <p class="article"></p>    
+    `);
   let io_master = Object.create(io_master_template);
   io_master.fn = fn
   io_master.target = target;
@@ -108,6 +110,9 @@ function gradio(config, fn, target, example_file_path) {
   }
   if (config["description"]) {
     target.find(".description").text(config["description"]);
+  }
+  if (config["article"]) {
+    target.find(".article").html(config["article"]);
   }
   if (config["share_url"]) {
     let share_url = config["share_url"];
