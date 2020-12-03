@@ -244,6 +244,10 @@ Links expire after 6 hours. Need longer links, or private links?  [Contact us fo
 
 ![Sharing diagram](demo/images/sharing.svg)
 
+### Permanent Hosting
+
+You can share your interface publicly and permanently by hosting on Gradio's infrastructure. You will need to create a Gradio premium account. First, log into Gradio on [gradio.app](https://gradio.app) and click Sign In at the top. Once you've logged in with your Github account, you can specify which repositories from your Github profile you'd like to have hosted by Gradio. You must also specify the file within the repository that runs the Gradio `launch()` command. Once you've taken these steps, Gradio will launch your interface on a URL of the format **XXXXXX.gradio.app** where **XXXXXX** is any string you specify.
+
 ##  Contributing:
 
 If you would like to contribute and your contribution is small, you can directly open a pull request (PR). If you would like to contribute a larger feature, we recommend first creating an issue with a proposed design for discussion. Please see our contributing guidelines for more info.
