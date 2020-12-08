@@ -7,6 +7,7 @@ gradio/embeddings.py
 gradio/inputs.py
 gradio/interface.py
 gradio/interpretation.py
+gradio/launches.json
 gradio/networking.py
 gradio/notebook.py
 gradio/outputs.py
