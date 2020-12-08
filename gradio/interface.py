@@ -104,6 +104,7 @@ class Interface:
 
         self.output_interfaces *= len(fn)
         self.predict = fn
+        self.function_names = [func.__name__ for func in fn]
         self.verbose = verbose
         self.status = "OFF"
         self.live = live
@@ -203,9 +204,16 @@ class Interface:
                 if not iface[1]["label"]:
                     iface[1]["label"] = param.replace("_", " ")
             for i, iface in enumerate(config["output_interfaces"]):
-                ret_name = "Output " + str(i + 1) if len(config["output_interfaces"]) > 1 else "Output"
+                outputs_per_function = int(len(self.output_interfaces) / len(self.predict))
+                function_index = i // outputs_per_function
+                component_index = i - function_index * outputs_per_function
+                print(outputs_per_function, function_index, component_index)
+                ret_name = "Output " + str(component_index + 1) if outputs_per_function > 1 else "Output"
                 if not iface[1]["label"]:
                     iface[1]["label"] = ret_name
+                if len(self.predict) > 1:
+                    iface[1]["label"] = self.function_names[function_index].replace("_", " ") + ": " + iface[1]["label"]
+                    
         except ValueError:
             pass
         if self.examples is not None:
