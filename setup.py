@@ -16,8 +16,8 @@ setup(
     install_requires=[
         'numpy',
         'requests',
-        'Flask==1.1.1',
-        'Flask-Cors==3.0.8',
+        'Flask>=1.1.1',
+        'Flask-Cors>=3.0.8',
         'flask-cachebuster',
         'paramiko',
         'scipy',
