@@ -49,7 +49,7 @@ class Interface:
                  title=None, description=None, article=None, thumbnail=None, 
                  server_port=None, server_name=networking.LOCALHOST_NAME,
                  allow_screenshot=True, allow_flagging=True,
-                 embedding="default", flagging_dir="flagged", analytics_enabled=True):
+                 embedding=None, flagging_dir="flagged", analytics_enabled=True):
 
         """
         Parameters:
@@ -199,7 +199,8 @@ class Interface:
             "thumbnail": self.thumbnail,
             "allow_screenshot": self.allow_screenshot,
             "allow_flagging": self.allow_flagging,
-            "allow_interpretation": self.interpretation is not None
+            "allow_interpretation": self.interpretation is not None,
+            "allow_embedding": self.embedding is not None,
         }
         try:
             param_names = inspect.getfullargspec(self.predict[0])[0]
