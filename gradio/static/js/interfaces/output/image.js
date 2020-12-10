@@ -1,6 +1,6 @@
 const image_output = {
   html: `
-    <div class="interface_box">
+    <div class="view_holder_parent">
     <div class="view_holders">
         <div class="saliency_holder hide">
           <canvas class="saliency"></canvas>
@@ -15,6 +15,7 @@ const image_output = {
   output: function(data) {
     let io = this;
     let [img_data, coord] = data;
+    this.target.find(".view_holder_parent").addClass("interface_box");
     this.target.find(".output_image_holder").removeClass("hide");
     img = this.target.find(".output_image").attr('src', img_data);
     if (coord.length) {
@@ -39,6 +40,7 @@ const image_output = {
     }
   },
   clear: function() {
+    this.target.find(".view_holder_parent").removeClass("interface_box");
     this.target.find(".output_image_holder").addClass("hide");
     this.target.find(".saliency_holder").addClass("hide");
     this.target.find(".output_image").attr('src', "")

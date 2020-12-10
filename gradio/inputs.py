@@ -645,7 +645,7 @@ class Image(InputComponent):
         elif self.type == "numpy":
             return np.array(im)
         elif self.type == "file":
-            file_obj = tempfile.NamedTemporaryFile(suffix="."+fmt)
+            file_obj = tempfile.NamedTemporaryFile(suffix=("."+fmt.lower() if fmt is not None else ".png"))
             im.save(file_obj.name)
             return file_obj
         else:
