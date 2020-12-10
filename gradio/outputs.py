@@ -170,6 +170,8 @@ class Image(OutputComponent):
                 dtype = "file"
             elif isinstance(y, ModuleType):
                 dtype = "plot"
+            else:
+                raise ValueError("Unknown type. Please choose from: 'numpy', 'pil', 'file', 'plot'.")
         else:
             dtype = self.type
         if dtype in ["numpy", "pil"]:
