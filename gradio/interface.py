@@ -7,6 +7,7 @@ from gradio.inputs import InputComponent
 from gradio.outputs import OutputComponent
 from gradio import networking, strings, utils
 from gradio.interpretation import quantify_difference_in_label
+import pkg_resources
 import requests
 import random
 import time
@@ -19,10 +20,13 @@ import numpy as np
 import os
 import copy
 import markdown2
+import json
 
 analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
 analytics_url = 'https://api.gradio.app/'
 ip_address = networking.get_local_ip_address()
+
+JSON_PATH = pkg_resources.resource_filename("gradio", "launches.json")
 
 class Interface:
     """
@@ -45,7 +49,7 @@ class Interface:
                  title=None, description=None, article=None, thumbnail=None, 
                  server_port=None, server_name=networking.LOCALHOST_NAME,
                  allow_screenshot=True, allow_flagging=True,
-                 embedding="default", flagging_dir="flagged", analytics_enabled=True):
+                 embedding=None, flagging_dir="flagged", analytics_enabled=True):
 
         """
         Parameters:
@@ -196,7 +200,8 @@ class Interface:
             "thumbnail": self.thumbnail,
             "allow_screenshot": self.allow_screenshot,
             "allow_flagging": self.allow_flagging,
-            "allow_interpretation": self.interpretation is not None
+            "allow_interpretation": self.interpretation is not None,
+            "allow_embedding": self.embedding is not None,
         }
         try:
             param_names = inspect.getfullargspec(self.predict[0])[0]
@@ -373,6 +378,7 @@ class Interface:
         path_to_local_server (str): Locally accessible link
         share_url (str): Publicly accessible link (if share=True)
         """
+
         config = self.get_config_file()
         networking.set_config(config)
         networking.set_meta_tags(self.title, self.description, self.thumbnail)
@@ -399,6 +405,17 @@ class Interface:
                       "To turn off, set debug=False in launch().")
             else:
                 print("Colab notebook detected. To show errors in colab notebook, set debug=True in launch()")
+
+        if not os.path.exists(JSON_PATH):
+            with open(JSON_PATH, "w+") as j:
+                launches = {"launches": 0}
+                j.write(json.dumps(launches))
+        else:
+            with open(JSON_PATH) as j:
+                launches = json.load(j)
+
+        if launches["launches"] in [25, 50]:
+            print(strings.en["BETA_INVITE"])
 
         self.share = share
         if share:
@@ -476,6 +493,10 @@ class Interface:
         is_in_interactive_mode = bool(getattr(sys, 'ps1', sys.flags.interactive))
         if not is_in_interactive_mode:
             self.run_until_interrupted(thread, path_to_local_server)
+
+        launches["launches"] += 1
+        with open(JSON_PATH, "w") as j:
+            j.write(json.dumps(launches))
 
         return app, path_to_local_server, share_url
 

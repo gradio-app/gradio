@@ -51,8 +51,8 @@ function gradio(config, fn, target, example_file_path) {
       <button class="run_examples examples-content">Run All</button>
       <button class="load_prev examples-content">Load Previous <em>(CTRL + &larr;)</em></button>
       <button class="load_next examples-content">Load Next <em>(CTRL + &rarr;)</em></button>
-      <button class="order_similar examples-content">Order by Similarity</button>
-      <button class="view_embeddings examples-content">View Embeddings</button>
+      <button class="order_similar examples-content embedding">Order by Similarity</button>
+      <button class="view_embeddings examples-content embedding">View Embeddings</button>
       <button class="update_embeddings embeddings-content invisible">Update Embeddings</button>
       <button class="view_examples embeddings-content invisible">View Examples</button>
       <div class="pages invisible">Page:</div>
@@ -200,6 +200,9 @@ function gradio(config, fn, target, example_file_path) {
   }  
   target.find(".clear").click(clear_all);
 
+  if (!config["allow_embedding"]) {
+    target.find(".embedding").css("visibility", "hidden");
+  }
   if (!config["allow_screenshot"] && !config["allow_flagging"] && !config["allow_interpretation"]) {
     target.find(".screenshot, .record, .flag, .interpret").css("visibility", "hidden");
   } else {
