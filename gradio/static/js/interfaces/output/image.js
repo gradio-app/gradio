@@ -46,7 +46,7 @@ const image_output = {
     this.target.find(".output_image").attr('src', "")
   },
   load_example_preview: function(data) {
-    return "<img src='"+data+"' height=100>"
+    return "<img src='"+data[0]+"' height=100>"
   },
 
 }
