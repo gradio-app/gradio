@@ -212,7 +212,6 @@ class Interface:
                 outputs_per_function = int(len(self.output_interfaces) / len(self.predict))
                 function_index = i // outputs_per_function
                 component_index = i - function_index * outputs_per_function
-                print(outputs_per_function, function_index, component_index)
                 ret_name = "Output " + str(component_index + 1) if outputs_per_function > 1 else "Output"
                 if not iface[1]["label"]:
                     iface[1]["label"] = ret_name
