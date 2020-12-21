@@ -82,7 +82,7 @@ class TestImage(unittest.TestCase):
             open_and_rotate, 
             gr.inputs.Image(shape=(30, 10), type="file"),
             "image")
-        output = iface.process([x_img])[0][0]
+        output = iface.process([x_img])[0][0][0]
         self.assertEqual(gr.processing_utils.decode_base64_to_image(output).size, (10, 30))
         
 
