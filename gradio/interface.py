@@ -491,23 +491,18 @@ class Interface:
 def launch_counter():
     try:
         if not os.path.exists(JSON_PATH):
-            print("creating")
             launches = {"launches": 1}
             with open(JSON_PATH, "w+") as j:
                 json.dump(launches, j)
         else:
-            print("loading")
             with open(JSON_PATH) as j:
                 launches = json.load(j)
             launches["launches"] += 1
-            print(launches["launches"])
             if launches["launches"] in [25, 50]:
                 print(strings.en["BETA_INVITE"])
             with open(JSON_PATH, "w") as j:
                 j.write(json.dumps(launches))
     except:
-        import sys
-        print(sys.exc_info()[0])
         print("Not tracking launches.")
 
 
