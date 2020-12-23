@@ -1,3 +1,2 @@
 recursive-include gradio/templates *
 recursive-include gradio/static *
-include gradio/launches.json
