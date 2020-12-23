@@ -503,7 +503,7 @@ def launch_counter():
             with open(JSON_PATH, "w") as j:
                 j.write(json.dumps(launches))
     except:
-        print("Not tracking launches.")
+        pass
 
 
 def reset_all():
