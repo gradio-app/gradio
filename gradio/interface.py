@@ -3,6 +3,7 @@ This is the core file in the `gradio` package, and defines the Interface class, 
 interface using the input and output types.
 """
 
+import gradio
 from gradio.inputs import InputComponent
 from gradio.outputs import OutputComponent
 from gradio import networking, strings, utils
@@ -26,7 +27,7 @@ analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
 analytics_url = 'https://api.gradio.app/'
 ip_address = networking.get_local_ip_address()
 
-JSON_PATH = pkg_resources.resource_filename("gradio", "launches.json")
+JSON_PATH = os.path.join(os.path.dirname(gradio.__file__), "launches.json")
 
 class Interface:
     """
@@ -405,16 +406,6 @@ class Interface:
             else:
                 print("Colab notebook detected. To show errors in colab notebook, set debug=True in launch()")
 
-        if not os.path.exists(JSON_PATH):
-            with open(JSON_PATH, "w+") as j:
-                launches = {"launches": 0}
-                j.write(json.dumps(launches))
-        else:
-            with open(JSON_PATH) as j:
-                launches = json.load(j)
-
-        if launches["launches"] in [25, 50]:
-            print(strings.en["BETA_INVITE"])
 
         self.share = share
         if share:
@@ -450,6 +441,8 @@ class Interface:
         else:
             if inbrowser is None:
                 inbrowser = False
+
+        launch_counter()
 
         if inbrowser and not is_colab:
             webbrowser.open(path_to_local_server)  # Open a browser tab
@@ -492,12 +485,30 @@ class Interface:
         is_in_interactive_mode = bool(getattr(sys, 'ps1', sys.flags.interactive))
         if not is_in_interactive_mode:
             self.run_until_interrupted(thread, path_to_local_server)
-
-        launches["launches"] += 1
-        with open(JSON_PATH, "w") as j:
-            j.write(json.dumps(launches))
-
+        
         return app, path_to_local_server, share_url
+
+def launch_counter():
+    try:
+        if not os.path.exists(JSON_PATH):
+            print("creating")
+            launches = {"launches": 1}
+            with open(JSON_PATH, "w+") as j:
+                json.dump(launches, j)
+        else:
+            print("loading")
+            with open(JSON_PATH) as j:
+                launches = json.load(j)
+            launches["launches"] += 1
+            print(launches["launches"])
+            if launches["launches"] in [25, 50]:
+                print(strings.en["BETA_INVITE"])
+            with open(JSON_PATH, "w") as j:
+                j.write(json.dumps(launches))
+    except:
+        import sys
+        print(sys.exc_info()[0])
+        print("Not tracking launches.")
 
 
 def reset_all():
