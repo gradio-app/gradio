@@ -49,6 +49,7 @@ class Interface:
                  capture_session=False, interpretation=None,
                  title=None, description=None, article=None, thumbnail=None, 
                  server_port=None, server_name=networking.LOCALHOST_NAME,
+                 flask_host_name=networking.FLASK_HOST_NAME, 
                  allow_screenshot=True, allow_flagging=True,
                  embedding=None, flagging_dir="flagged", analytics_enabled=True):
 
@@ -131,6 +132,7 @@ class Interface:
         self.examples_per_page = examples_per_page
         self.server_port = server_port
         self.simple_server = None
+        self.flask_host_name = flask_host_name
         self.allow_screenshot = allow_screenshot
         self.allow_flagging = allow_flagging
         self.flagging_dir = flagging_dir
@@ -384,7 +386,7 @@ class Interface:
         networking.set_meta_tags(self.title, self.description, self.thumbnail)
 
         server_port, app, thread = networking.start_server(
-            self, self.server_name, self.server_port)
+            self, self.flask_host_name, self.server_port)
         path_to_local_server = "http://{}:{}/".format(self.server_name, server_port)
         self.server_port = server_port
         self.status = "RUNNING"
