@@ -30,7 +30,7 @@ TRY_NUM_PORTS = int(os.getenv(
 LOCALHOST_NAME = os.getenv(
     'GRADIO_SERVER_NAME', "127.0.0.1")
 FLASK_HOST_NAME = os.getenv(
-    'FLASK_HOST_NAME', "0.0.0.0")
+    'FLASK_HOST_NAME', "127.0.0.1")
 GRADIO_API_SERVER = "https://api.gradio.app/v1/tunnel-request"
 GRADIO_FEATURE_ANALYTICS_URL = "https://api.gradio.app/gradio-feature-analytics/"
 
