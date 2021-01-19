@@ -7,6 +7,7 @@ import socket
 import threading
 from flask import Flask, request, jsonify, abort, send_file, render_template
 from flask_cachebuster import CacheBuster
+from flask_basicauth import BasicAuth
 from flask_cors import CORS
 import threading
 import pkg_resources
@@ -256,12 +257,17 @@ def interpret():
 def file(path):
     return send_file(os.path.join(app.cwd, path))
 
-def start_server(interface, server_name, server_port=None):
+def start_server(interface, server_name, server_port=None, auth=None):
     if server_port is None:
         server_port = INITIAL_PORT_VALUE
     port = get_first_available_port(
         server_port, server_port + TRY_NUM_PORTS
     )
+    if auth is not None:
+        app.config['BASIC_AUTH_USERNAME'] = auth[0]
+        app.config['BASIC_AUTH_PASSWORD'] = auth[1]
+        app.config['BASIC_AUTH_FORCE'] = True
+        basic_auth = BasicAuth(app)        
     app.interface = interface
     app.cwd = os.getcwd()
     log = logging.getLogger('werkzeug')
@@ -304,6 +310,6 @@ def setup_tunnel(local_server_port):
 def url_ok(url):
     try:
         r = requests.head(url)
-        return r.status_code == 200
+        return r.status_code == 200 or r.status_code == 401
     except ConnectionError:
         return False

@@ -19,6 +19,7 @@ setup(
         'Flask>=1.1.1',
         'Flask-Cors>=3.0.8',
         'flask-cachebuster',
+        'Flask-BasicAuth',
         'paramiko',
         'scipy',
         'IPython',
