@@ -48,7 +48,7 @@ class Interface:
                  layout="horizontal", show_input=True, show_output=True,
                  capture_session=False, interpretation=None,
                  title=None, description=None, article=None, thumbnail=None, 
-                 server_port=None, server_name=networking.LOCALHOST_NAME,
+                 css=None, server_port=None, server_name=networking.LOCALHOST_NAME,
                  allow_screenshot=True, allow_flagging=True,
                  embedding=None, flagging_dir="flagged", analytics_enabled=True):
 
@@ -68,6 +68,7 @@ class Interface:
         description (str): a description for the interface; if provided, appears above the input and output components.
         article (str): an expanded article explaining the interface; if provided, appears below the input and output components. Accepts Markdown and HTML content.
         thumbnail (str): path to image or src to use as display picture for models listed in gradio.app/hub
+        css (str): custom css or path to custom css file to use with interface.
         server_name (str): to make app accessible on local network set to "0.0.0.0".
         allow_screenshot (bool): if False, users will not see a button to take a screenshot of the interface.
         allow_flagging (bool): if False, users will not see a button to flag an input and output.
@@ -127,6 +128,11 @@ class Interface:
             article = markdown2.markdown(article)
         self.article = article
         self.thumbnail = thumbnail
+        if css is not None and os.path.exists(css):
+            with open(css) as css_file:
+                self.css = css_file.read()
+        else:
+            self.css = css
         self.examples = examples
         self.examples_per_page = examples_per_page
         self.server_port = server_port

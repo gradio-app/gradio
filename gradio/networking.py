@@ -99,7 +99,8 @@ def main():
         title=app.app_globals["title"],
         description=app.app_globals["description"],
         thumbnail=app.app_globals["thumbnail"],
-        vendor_prefix=(GRADIO_STATIC_ROOT if app.interface.share else "")
+        vendor_prefix=(GRADIO_STATIC_ROOT if app.interface.share else ""),
+        css=app.interface.css
     )
 
 
