@@ -61,6 +61,9 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/interfaces/output/json.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/interfaces/output/html.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/loading.css') }}"/>
+    {% if css is not none %}
+    <style>{{ css }}</style>
+    {% endif %}
   </head>
 
   <body id="lib">
