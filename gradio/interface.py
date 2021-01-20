@@ -44,7 +44,7 @@ class Interface:
             Interface.instances)
 
     def __init__(self, fn, inputs, outputs, verbose=False, examples=None,
-                 examples_per_page=10, live=False, auth=None, 
+                 examples_per_page=10, live=False,
                  layout="horizontal", show_input=True, show_output=True,
                  capture_session=False, interpretation=None,
                  title=None, description=None, article=None, thumbnail=None, 
@@ -61,7 +61,6 @@ class Interface:
         examples (List[List[Any]]): sample inputs for the function; if provided, appears below the UI components and can be used to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component.
         examples_per_page (int): If examples are provided, how many to display per page.
         live (bool): whether the interface should automatically reload on change.
-        auth (Tuple[str, str]): If provided, username and password required to access interface.
         layout (str): Layout of input and output panels. "horizontal" arranges them as two columns of equal height, "unaligned" arranges them as two columns of unequal height, and "vertical" arranges them vertically.
         capture_session (bool): if True, captures the default graph and session (needed for Tensorflow 1.x)
         interpretation (Union[Callable, str]): function that provides interpretation explaining prediction output. Pass "default" to use built-in interpreter. 
@@ -114,7 +113,6 @@ class Interface:
         self.verbose = verbose
         self.status = "OFF"
         self.live = live
-        self.auth = auth
         self.layout = layout
         self.show_input = show_input
         self.show_output = show_output
@@ -368,13 +366,14 @@ class Interface:
                 print("PASSED")
                 continue
 
-    def launch(self, inline=None, inbrowser=None, share=False, debug=False):
+    def launch(self, inline=None, inbrowser=None, share=False, debug=False, auth=None):
         """
         Parameters:
         inline (bool): whether to display in the interface inline on python notebooks.
         inbrowser (bool): whether to automatically launch the interface in a new tab on the default browser.
         share (bool): whether to create a publicly shareable link from your computer for the interface.
         debug (bool): if True, and the interface was launched from Google Colab, prints the errors in the cell output.
+        auth (Tuple[str, str]): If provided, username and password required to access interface.
         Returns:
         app (flask.Flask): Flask app object
         path_to_local_server (str): Locally accessible link
@@ -384,6 +383,7 @@ class Interface:
         config = self.get_config_file()
         networking.set_config(config)
         networking.set_meta_tags(self.title, self.description, self.thumbnail)
+        self.auth = auth
 
         server_port, app, thread = networking.start_server(
             self, self.server_name, self.server_port, self.auth)
