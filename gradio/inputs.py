@@ -645,7 +645,7 @@ class Image(InputComponent):
         elif self.type == "numpy":
             return np.array(im)
         elif self.type == "file":
-            file_obj = tempfile.NamedTemporaryFile(suffix=("."+fmt.lower() if fmt is not None else ".png"))
+            file_obj = tempfile.NamedTemporaryFile(delete=False, suffix=("."+fmt.lower() if fmt is not None else ".png"))
             im.save(file_obj.name)
             return file_obj
         else:
@@ -789,7 +789,7 @@ class Audio(InputComponent):
             leave_one_out_data = np.copy(data)
             start, stop = boundaries[index], boundaries[index + 1]
             leave_one_out_data[start:stop] = 0
-            file = tempfile.NamedTemporaryFile()
+            file = tempfile.NamedTemporaryFile(delete=False)
             scipy.io.wavfile.write(file, sample_rate, leave_one_out_data)                
             out_data = processing_utils.encode_file_to_base64(file.name, type="audio", ext="wav")
             leave_one_out_sets.append(out_data)
