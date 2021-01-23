@@ -73,7 +73,7 @@ def decode_base64_to_binary(encoding):
 
 
 def decode_base64_to_file(encoding):
-    file_obj = tempfile.NamedTemporaryFile()
+    file_obj = tempfile.NamedTemporaryFile(delete=False)
     file_obj.write(decode_base64_to_binary(encoding))
     file_obj.flush()
     return file_obj
