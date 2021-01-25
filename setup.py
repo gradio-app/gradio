@@ -23,7 +23,6 @@ setup(
         'paramiko',
         'scipy',
         'IPython',
-        'scikit-learn',
         'scikit-image',
         'analytics-python',
         'pandas',
