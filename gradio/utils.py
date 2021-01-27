@@ -3,8 +3,8 @@ import pkg_resources
 from distutils.version import StrictVersion
 from IPython import get_ipython
 analytics_url = 'https://api.gradio.app/'
-
 PKG_VERSION_URL = "https://gradio.app/api/pkg-version"
+
 def version_check():
     try:
         current_pkg_version = pkg_resources.require("gradio")[0].version
@@ -42,7 +42,7 @@ def colab_check():
         if "google.colab" in str(from_ipynb):
             is_colab = True
     except NameError:
-        error_analytics("NameError", analytics_url)
+        error_analytics("NameError")
     return is_colab
 
 
