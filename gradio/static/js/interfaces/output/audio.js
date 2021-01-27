@@ -22,7 +22,7 @@ const audio_output = {
     })
   },
   output: function(data) {
-    io.target.find(".player").removeClass("hidden");
+    this.target.find(".player").removeClass("hidden");
     this.wavesurfer.load(data);
   },
   clear: function() {
