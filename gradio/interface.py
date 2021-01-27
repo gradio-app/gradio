@@ -48,7 +48,7 @@ class Interface:
                  layout="horizontal", show_input=True, show_output=True,
                  capture_session=False, interpretation=None,
                  title=None, description=None, article=None, thumbnail=None, 
-                 css=None, server_port=None, server_name=networking.LOCALHOST_NAME,
+                 css=None, server_port=7860, server_name=networking.LOCALHOST_NAME,
                  allow_screenshot=True, allow_flagging=True,
                  embedding=None, flagging_dir="flagged", analytics_enabled=True):
 
@@ -69,6 +69,7 @@ class Interface:
         article (str): an expanded article explaining the interface; if provided, appears below the input and output components. Accepts Markdown and HTML content.
         thumbnail (str): path to image or src to use as display picture for models listed in gradio.app/hub
         css (str): custom css or path to custom css file to use with interface.
+        server_port (int): will start gradio app on this port (if available) 
         server_name (str): to make app accessible on local network set to "0.0.0.0".
         allow_screenshot (bool): if False, users will not see a button to take a screenshot of the interface.
         allow_flagging (bool): if False, users will not see a button to flag an input and output.
@@ -385,12 +386,16 @@ class Interface:
         path_to_local_server (str): Locally accessible link
         share_url (str): Publicly accessible link (if share=True)
         """
+        # Alert user if a more recent version of the library exists
+        utils.version_check()
 
+        # Set up local flask server
         config = self.get_config_file()
         networking.set_config(config)
         networking.set_meta_tags(self.title, self.description, self.thumbnail)
         self.auth = auth
 
+        # Launch local flask server
         server_port, app, thread = networking.start_server(
             self, self.server_name, self.server_port, self.auth)
         path_to_local_server = "http://{}:{}/".format(self.server_name, server_port)
@@ -398,67 +403,47 @@ class Interface:
         self.status = "RUNNING"
         self.server = app
 
-        utils.version_check()
-        is_colab = utils.colab_check()
-        if is_colab:
-            share = True
-        if not is_colab:
-            if not networking.url_ok(path_to_local_server):
-                share = True
-            else:
-                print(strings.en["RUNNING_LOCALLY"].format(path_to_local_server))
-        else:
-            if debug:
-                print("Colab notebook detected. This cell will run indefinitely so that you can see errors and logs. "
-                      "To turn off, set debug=False in launch().")
-            else:
-                print("Colab notebook detected. To show errors in colab notebook, set debug=True in launch()")
-
-
-        self.share = share
-        if share:
-            print("This share link will expire in 24 hours. If you need a "
-                  "permanent link, email support@gradio.app")
-            try:
-                share_url = networking.setup_tunnel(server_port)
-                print("Running on External URL:", share_url)
-            except RuntimeError:
-                data = {'error': 'RuntimeError in launch method'}
-                if self.analytics_enabled:
-                    try:
-                        requests.post(analytics_url + 'gradio-error-analytics/',
-                                      data=data)
-                    except requests.ConnectionError:
-                        pass  # do not push analytics if no network
-                share_url = None
-                if self.verbose:
-                    print(strings.en["NGROK_NO_INTERNET"])
-        else:
-            print("To get a public link for a hosted model, "
-                    "set Share=True")
-            if self.verbose:
-                print(strings.en["PUBLIC_SHARE_TRUE"])
-            share_url = None
-
-        if inline is None:
-            inline = utils.ipython_check()
-            if inbrowser is None:
-                # if interface won't appear inline, open it in new tab,
-                # otherwise keep it inline
-                inbrowser = not inline
-        else:
-            if inbrowser is None:
-                inbrowser = False
-
+        # Count number of launches
         launch_counter()
 
-        if inbrowser and not is_colab:
-            webbrowser.open(path_to_local_server)  # Open a browser tab
-            # with the interface.
+        # If running in a colab or not able to access localhost, automatically create a shareable link        
+        is_colab = utils.colab_check()
+        if is_colab or not(networking.url_ok(path_to_local_server)):  
+            share = True
+            if debug:
+                print(strings.en["COLAB_DEBUG_TRUE"])
+            else:
+                print(strings.en["COLAB_DEBUG_FALSE"])
+        else:
+            print(strings.en["RUNNING_LOCALLY"].format(path_to_local_server))
+
+        # Set up shareable link 
+        self.share = share
+        if share:
+            print(strings.en["SHARE_LINK_MESSAGE"])
+            try:
+                share_url = networking.setup_tunnel(server_port)
+                print(strings.en["SHARE_LINK_DISPLAY"].format(share_url))
+            except RuntimeError:
+                send_error_analytics(self.analytics_enabled)
+                share_url = None
+        else:
+            print(strings.en["PUBLIC_SHARE_TRUE"])
+            share_url = None
+
+        # Open a browser tab with the interface.
+        if inbrowser: 
+            if share:
+                webbrowser.open(share_url) 
+            else:
+                webbrowser.open(path_to_local_server) 
+                
+        # Check if running in a Python notebook in which case, display inline
+        if inline is None:
+            inline = utils.ipython_check()
         if inline:
             from IPython.display import IFrame, display
-            # Embed the remote interface page if on google colab;
-            # otherwise, embed the local page.
+            # Embed the remote interface page if on google colab; otherwise, embed the local page.
             print("Interface loading below...")
             if share:
                 while not networking.url_ok(share_url):
@@ -467,29 +452,14 @@ class Interface:
             else:
                 display(IFrame(path_to_local_server, width=1000, height=500))
 
-        r = requests.get(path_to_local_server + "enable_sharing/" + (share_url or "None"))
+        send_launch_analytics(analytics_enabled=self.analytics_enabled, inbrowser=inbrowser, is_colab=is_colab, 
+                              share=share, share_url=share_url)
 
-        if debug or int(os.getenv('GRADIO_DEBUG',0))==1:
+        # Run server perpetually under certain circumstances
+        if debug or int(os.getenv('GRADIO_DEBUG', 0))==1:
             while True:
                 sys.stdout.flush()
                 time.sleep(0.1)
-
-        launch_method = 'browser' if inbrowser else 'inline'
-
-        if self.analytics_enabled:
-            data = {
-                'launch_method': launch_method,
-                'is_google_colab': is_colab,
-                'is_sharing_on': share,
-                'share_url': share_url,
-                'ip_address': ip_address
-            }
-            try:
-                requests.post(analytics_url + 'gradio-launched-analytics/',
-                              data=data)
-            except requests.ConnectionError:
-                pass  # do not push analytics if no network
-
         is_in_interactive_mode = bool(getattr(sys, 'ps1', sys.flags.interactive))
         if not is_in_interactive_mode:
             self.run_until_interrupted(thread, path_to_local_server)
@@ -512,6 +482,31 @@ def launch_counter():
                 j.write(json.dumps(launches))
     except:
         pass
+
+def send_error_analytics(analytics_enabled):
+    data = {'error': 'RuntimeError in launch method'}
+    if analytics_enabled:
+        try:
+            requests.post(analytics_url + 'gradio-error-analytics/',
+                            data=data)
+        except requests.ConnectionError:
+            pass  # do not push analytics if no network
+
+def send_launch_analytics(analytics_enabled, inbrowser, is_colab, share, share_url):
+    launch_method = 'browser' if inbrowser else 'inline'
+    if analytics_enabled:
+        data = {
+            'launch_method': launch_method,
+            'is_google_colab': is_colab,
+            'is_sharing_on': share,
+            'share_url': share_url,
+            'ip_address': ip_address
+        }
+        try:
+            requests.post(analytics_url + 'gradio-launched-analytics/',
+                            data=data)
+        except requests.ConnectionError:
+            pass  # do not push analytics if no network
 
 
 def reset_all():
