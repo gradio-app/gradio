@@ -3,7 +3,7 @@ import pkg_resources
 from distutils.version import StrictVersion
 from IPython import get_ipython
 analytics_url = 'https://api.gradio.app/'
-PKG_VERSION_URL = "https://gradio.app/api/pkg-version"
+PKG_VERSION_URL = "https://api.gradio.app/pkg-version"
 
 def version_check():
     try:
