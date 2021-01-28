@@ -49,7 +49,7 @@ class Interface:
                  capture_session=False, interpretation=None,
                  title=None, description=None, article=None, thumbnail=None, 
                  css=None, server_port=7860, server_name=networking.LOCALHOST_NAME,
-                 allow_screenshot=True, allow_flagging=True,
+                 allow_screenshot=True, allow_flagging=True, show_tips=True,
                  embedding=None, flagging_dir="flagged", analytics_enabled=True):
 
         """
@@ -74,6 +74,7 @@ class Interface:
         allow_screenshot (bool): if False, users will not see a button to take a screenshot of the interface.
         allow_flagging (bool): if False, users will not see a button to flag an input and output.
         flagging_dir (str): what to name the dir where flagged data is stored.
+        show_tips (bool): if True, will occasionally show tips about new Gradio features
         """
 
         def get_input_instance(iface):
@@ -146,6 +147,7 @@ class Interface:
         self.save_to = None
         self.share = None
         self.embedding = embedding
+        self.show_tips = show_tips
 
         data = {'fn': fn,
                 'inputs': inputs,
@@ -444,7 +446,7 @@ class Interface:
         if inline:
             from IPython.display import IFrame, display
             # Embed the remote interface page if on google colab; otherwise, embed the local page.
-            print("Interface loading below...")
+            print(strings.en["INLINE_DISPLAY_BELOW"])
             if share:
                 while not networking.url_ok(share_url):
                     time.sleep(1)
@@ -454,6 +456,8 @@ class Interface:
 
         send_launch_analytics(analytics_enabled=self.analytics_enabled, inbrowser=inbrowser, is_colab=is_colab, 
                               share=share, share_url=share_url)
+
+        show_tip(self)
 
         # Run server perpetually under certain circumstances
         if debug or int(os.getenv('GRADIO_DEBUG', 0))==1:
@@ -465,6 +469,18 @@ class Interface:
             self.run_until_interrupted(thread, path_to_local_server)
         
         return app, path_to_local_server, share_url
+
+def show_tip(io):
+    if not(io.show_tips):
+        return
+    if random.random() < 0.8:  # Only show tips once every 5 uses
+        return
+    relevant_tips = []
+    if io.interpretation is None:
+        relevant_tips.append(strings.en["TIP_INTERPRETATION"])
+    if io.embedding is None and len(io.examples)>4:
+        relevant_tips.append(strings.en["TIP_EMBEDDING"])
+    print(random.choice(relevant_tips))
 
 def launch_counter():
     try:

@@ -20,8 +20,11 @@ en = {
     "COLAB_DEBUG_TRUE": "Colab notebook detected. This cell will run indefinitely so that you can see errors and logs. "
                       "To turn off, set debug=False in launch().",
     "COLAB_DEBUG_FALSE": "Colab notebook detected. To show errors in colab notebook, set debug=True in launch()",
-    "SHARE_LINK_MESSAGE": "This share link will expire in 24 hours. If you need a permanent link, email support@gradio.app",
+    "SHARE_LINK_MESSAGE": "This share link will expire in 24 hours. If you need a permanent link, visit: https://gradio.app/hosted (NEW!)",
     "SHARE_LINK_DISPLAY": "Running on External URL: {}",
+    "INLINE_DISPLAY_BELOW": "Interface loading below...",
+    "TIP_INTERPRETATION": "Tip: Add interpretation to your model by simply adding `interpretation=\"default\"` to `Interface()`",
+    "TIP_EMBEDDING": "Tip: View embeddings of your dataset by simply adding `embedding=\"default\"` to `Interface()`",
 }
 
 try:
