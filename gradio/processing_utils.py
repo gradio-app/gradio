@@ -68,16 +68,24 @@ def resize_and_crop(img, size, crop_type='center'):
 ##################
 
 def decode_base64_to_binary(encoding):
-    inp = encoding.split(';')[1].split(',')[1]
-    return base64.b64decode(inp)
-
+    header, data = encoding.split(",")
+    header = header[5:]
+    if ";base64" in header:
+        header = header[0:header.index(";base64")]
+    extension = None
+    if "/" in header:
+        extension = header[header.index("/") + 1:]
+    return base64.b64decode(data), extension
 
 def decode_base64_to_file(encoding):
-    file_obj = tempfile.NamedTemporaryFile(delete=False)
-    file_obj.write(decode_base64_to_binary(encoding))
+    data, extension = decode_base64_to_binary(encoding)
+    if extension is None:
+        file_obj = tempfile.NamedTemporaryFile(delete=False)
+    else:
+        file_obj = tempfile.NamedTemporaryFile(delete=False, suffix="."+extension)
+    file_obj.write(data)
     file_obj.flush()
     return file_obj
-
 
 ##################
 # AUDIO FILES

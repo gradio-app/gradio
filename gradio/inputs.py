@@ -17,6 +17,7 @@ from skimage.segmentation import slic
 import scipy.io.wavfile
 from gradio import processing_utils, test_data
 import pandas as pd
+from ffmpy import FFmpeg
 import math
 import tempfile
 from pandas.api.types import is_bool_dtype, is_numeric_dtype, is_string_dtype
@@ -590,7 +591,7 @@ class Dropdown(InputComponent):
 class Image(InputComponent):
     """
     Component creates an image upload box with editing capabilities. 
-    Input type: Union[numpy.array, PIL.Image, str]
+    Input type: Union[numpy.array, PIL.Image, file-object]
     """
 
     def __init__(self, shape=None, image_mode='RGB', invert_colors=False, source="upload", tool="editor", labeled_segments=False, type="numpy", label=None):
@@ -654,16 +655,6 @@ class Image(InputComponent):
     def preprocess_example(self, x):
         return processing_utils.encode_file_to_base64(x)
 
-    def rebuild(self, dir, data):
-        """
-        Default rebuild method to decode a base64 image
-        """
-        im = processing_utils.decode_base64_to_image(data)
-        timestamp = datetime.datetime.now()
-        filename = f'input_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.png'
-        im.save(f'{dir}/{filename}', 'PNG')
-        return filename
-
     def interpret(self, segments=16):
         """
         Calculates interpretation score of image subsections by splitting the image into subsections, then using a "leave one out" method to calculate the score of each subsection by whiting out the subsection and measuring the delta of the output value.
@@ -722,10 +713,52 @@ class Image(InputComponent):
         im = processing_utils.resize_and_crop(im, (shape[0], shape[1]))
         return np.asarray(im).flatten()
 
+class Video(InputComponent):
+    """
+    Component creates a video file upload that is converted to a file path.
+    Input type: filepath
+    """
+
+    def __init__(self, type="avi", label=None):
+        '''
+        Parameters:
+        type (str): Type of video format to be returned by component, such as 'avi' or 'mp4'. If set to None, video will keep uploaded format.
+        label (str): component name in interface.
+        '''
+        self.type = type
+        super().__init__(label)
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "video": {},
+        }
+
+    def get_template_context(self):
+        return {
+            **super().get_template_context()
+        }
+
+    def preprocess(self, x):
+        file = processing_utils.decode_base64_to_file(x)
+        file_name = file.name
+        uploaded_format = file_name.split(".")[-1].lower()
+        if self.type is not None and uploaded_format != self.type:
+            ff = FFmpeg(
+                inputs={file_name: None},
+                outputs={file_name + "." + self.type: None}
+            )
+            file_name += "." + self.type
+        ff.run()
+        return file_name
+
+    def preprocess_example(self, x):
+        return processing_utils.encode_file_to_base64(x)
+
 class Audio(InputComponent):
     """
     Component accepts audio input files. 
-    Input type: Union[Tuple[int, numpy.array], str, numpy.array]
+    Input type: Union[Tuple[int, numpy.array], file-object, numpy.array]
     """
 
     def __init__(self, source="upload", type="numpy", label=None):
@@ -825,7 +858,7 @@ class Audio(InputComponent):
 class File(InputComponent):
     """
     Component accepts generic file uploads.
-    Input type: Union[str, bytes]
+    Input type: Union[file-object, bytes]
     """
 
     def __init__(self, type="file", label=None):
@@ -855,7 +888,7 @@ class File(InputComponent):
             if is_local_example:
                 with open(name, "rb") as file_data:
                     return file_data.read()
-            return processing_utils.decode_base64_to_binary(data)
+            return processing_utils.decode_base64_to_binary(data)[0]
         else:
             raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'file', 'bytes'.")
 

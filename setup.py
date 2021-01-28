@@ -26,6 +26,7 @@ setup(
         'scikit-image',
         'analytics-python',
         'pandas',
+        'ffmpy',
         'markdown2'
     ],
 )

@@ -71,6 +71,7 @@ function gradio(config, fn, target, example_file_path) {
   let input_to_object_map = {
     "csv" : {},
     "image" : image_input,
+    "video" : video_input,
     "sketchpad" : sketchpad_input,
     "textbox" : textbox_input,
     "number" : number_input,
@@ -88,6 +89,7 @@ function gradio(config, fn, target, example_file_path) {
   let output_to_object_map = {
     "csv" : {},
     "image" : image_output,
+    "video" : video_output,
     "label" : label_output,
     "keyvalues" : key_values,
     "textbox" : textbox_output,
