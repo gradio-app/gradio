@@ -10,4 +10,5 @@ IPython
 scikit-image
 analytics-python
 pandas
+ffmpy
 markdown2
