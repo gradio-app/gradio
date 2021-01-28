@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "..\\gradio_static"
+		},
+		{
+			"path": "..\\gradiohub"
+		},
+		{
+			"path": "."
+		}
+	],
+	"settings": {}
+}
