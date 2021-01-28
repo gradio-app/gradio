@@ -87,6 +87,7 @@ gradio/static/js/interfaces/input/radio.js
 gradio/static/js/interfaces/input/sketchpad.js
 gradio/static/js/interfaces/input/slider.js
 gradio/static/js/interfaces/input/textbox.js
+gradio/static/js/interfaces/input/video.js
 gradio/static/js/interfaces/input/webcam.js
 gradio/static/js/interfaces/output/audio.js
 gradio/static/js/interfaces/output/dataframe.js
@@ -98,6 +99,7 @@ gradio/static/js/interfaces/output/json.js
 gradio/static/js/interfaces/output/key_values.js
 gradio/static/js/interfaces/output/label.js
 gradio/static/js/interfaces/output/textbox.js
+gradio/static/js/interfaces/output/video.js
 gradio/static/js/vendor/Chart.min.js
 gradio/static/js/vendor/FileSaver.min.js
 gradio/static/js/vendor/black-theme.js
