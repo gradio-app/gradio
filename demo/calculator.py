@@ -19,7 +19,8 @@ iface = gr.Interface(calculator,
         [4, "divide", 2],
         [-4, "multiply", 2.5],
         [0, "subtract", 1.2],
-    ]
+    ],
+    allow_flagging="auto"
 )
 
 if __name__ == "__main__":
