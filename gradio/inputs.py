@@ -713,6 +713,17 @@ class Image(InputComponent):
         im = processing_utils.resize_and_crop(im, (shape[0], shape[1]))
         return np.asarray(im).flatten()
 
+    def rebuild(self, dir, data):
+        """
+        Default rebuild method to decode a base64 image
+        """
+        im = processing_utils.decode_base64_to_image(data)
+        timestamp = datetime.datetime.now()
+        filename = f'input_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.png'
+        im.save(f'{dir}/{filename}', 'PNG')
+        return filename
+
+
 class Video(InputComponent):
     """
     Component creates a video file upload that is converted to a file path.
