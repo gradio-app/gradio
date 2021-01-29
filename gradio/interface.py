@@ -140,7 +140,7 @@ class Interface:
         self.server_port = server_port
         self.simple_server = None
         self.allow_screenshot = allow_screenshot
-        self.allow_flagging = allow_flagging
+        self.allow_flagging = os.getenv("GRADIO_FLAGGING") or allow_flagging
         self.flagging_dir = flagging_dir
         Interface.instances.add(self)
         self.analytics_enabled=analytics_enabled
@@ -384,8 +384,7 @@ class Interface:
 
         # Set up local flask server
         config = self.get_config_file()
-        networking.set_config(config)
-        networking.set_meta_tags(self.title, self.description, self.thumbnail)
+        self.config = config
         self.auth = auth
 
         # Launch local flask server
