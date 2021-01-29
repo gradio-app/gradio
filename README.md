@@ -1,5 +1,7 @@
 [![CircleCI](https://circleci.com/gh/gradio-app/gradio.svg?style=svg)](https://circleci.com/gh/gradio-app/gradio)  [![PyPI version](https://badge.fury.io/py/gradio.svg)](https://badge.fury.io/py/gradio)
 
+**Note: We just launched Hosted, where anyone can upload their interface for permanent hosting. [Check it out](https://gradio.app/introducing-hosted)!**
+
 #  Welcome to Gradio
 
 Quickly create customizable UI components around your models. Gradio makes it easy for you to "play around" with your model in your browser by dragging-and-dropping in your own images, pasting your own text, recording your own voice, etc. and seeing what the model outputs.  
@@ -246,7 +248,7 @@ Links expire after 6 hours. Need longer links, or private links?  [Contact us fo
 
 ### Permanent Hosting
 
-You can share your interface publicly and permanently by hosting on Gradio's infrastructure. You will need to create a Gradio premium account. First, log into Gradio on [gradio.app](https://gradio.app) and click Sign In at the top. Once you've logged in with your Github account, you can specify which repositories from your Github profile you'd like to have hosted by Gradio. You must also specify the file within the repository that runs the Gradio `launch()` command. Once you've taken these steps, Gradio will launch your interface and provide a public link you can share.
+You can share your interface publicly and permanently through [Hosted](https://gradio.app/hosted), read more in our (introductury post)[https://gradio.app/introducing-hosted]. You will need to create a Gradio account. Just go to [gradio.app/hosted](https://gradio.app/hosted) and sign in through Github. Once you've logged in, you can specify which repositories from your Github profile you'd like to have hosted by Gradio. You must also specify the file within the repository that runs the Gradio `launch()` command. Once you've taken these steps, Gradio will launch your interface and provide a public link you can share. Hosted costs $7/month. Deploy one interface for free in February using the FEBRUARY promo code. 
 
 ##  Contributing:
 
