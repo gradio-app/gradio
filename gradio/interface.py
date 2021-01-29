@@ -140,7 +140,7 @@ class Interface:
         self.server_port = server_port
         self.simple_server = None
         self.allow_screenshot = allow_screenshot
-        self.allow_flagging = allow_flagging
+        self.allow_flagging = os.getenv("GRADIO_FLAGGING") or allow_flagging
         self.flagging_dir = flagging_dir
         Interface.instances.add(self)
         self.analytics_enabled=analytics_enabled
@@ -172,16 +172,7 @@ class Interface:
                 pass
 
         if self.allow_flagging:
-            if self.title is not None:
-                dir_name = "_".join(self.title.split(" "))
-            else:
-                dir_name = "_".join([fn.__name__ for fn in self.predict])
-            index = 1
-            while os.path.exists(self.flagging_dir + "/" + dir_name +
-                                 "_{}".format(index)):
-                index += 1
-            self.flagging_dir = self.flagging_dir + "/" + dir_name + \
-                                "_{}".format(index)
+            os.makedirs(self.flagging_dir, exist_ok=True)
 
         if self.analytics_enabled:
             try:
@@ -393,8 +384,7 @@ class Interface:
 
         # Set up local flask server
         config = self.get_config_file()
-        networking.set_config(config)
-        networking.set_meta_tags(self.title, self.description, self.thumbnail)
+        self.config = config
         self.auth = auth
 
         # Launch local flask server

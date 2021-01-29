@@ -186,6 +186,16 @@ class Image(OutputComponent):
             raise ValueError("Unknown type: " + dtype + ". Please choose from: 'numpy', 'pil', 'file', 'plot'.")
         return out_y, coordinates
 
+    def rebuild(self, dir, data):
+        """
+        Default rebuild method to decode a base64 image
+        """
+        im = processing_utils.decode_base64_to_image(data)
+        timestamp = datetime.datetime.now()
+        filename = 'output_{}_{}.png'.format(self.label, timestamp.strftime("%Y-%m-%d-%H-%M-%S"))
+        im.save('{}/{}'.format(dir, filename), 'PNG')
+        return filename
+
 class Video(OutputComponent):
     '''
     Used for video output.     

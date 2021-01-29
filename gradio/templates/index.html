@@ -19,14 +19,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta property="og:url" content="https://gradio.app/" />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="{{thumbnail}}" />
-    <meta property="og:title" content="{{title}}" />
-    <meta property="og:description" content="{{description}}" />
+    <meta property="og:image" content="{{ config['thumbnail'] or '' }}" />
+    <meta property="og:title" content="{{ config['title'] or '' }}" />
+    <meta property="og:description" content="{{ config['description'] or '' }}" />
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:creator" content="@teamGradio">
-    <meta name="twitter:title" content="{{title}}">
-    <meta name="twitter:description" content="{{description}}">
-    <meta name="twitter:image" content="{{thumbnail}}">
+    <meta name="twitter:title" content="{{ config['title'] or '' }}">
+    <meta name="twitter:description" content="{{ config['description'] or '' }}">
+    <meta name="twitter:image" content="{{ config['thumbnail'] or '' }}">
 
     <title>Gradio</title>
     <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
@@ -127,7 +127,10 @@
     <script src="{{ url_for('static', filename='js/gradio.js') }}"></script>
     <script>
       $.getJSON("/config/", function(config) {
-        io = gradio_url(config, "/api/", "#interface_target", "/file/");
+        {% if examples %}
+        config["examples"] = {{ examples|tojson }}
+        {% endif %}
+        io = gradio_url(config, "/api/", "#interface_target", "/file/{% if path %}{{ path }}/{% endif %}");
       });
       const copyToClipboard = str => {
         const el = document.createElement('textarea');
