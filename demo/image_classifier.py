@@ -37,4 +37,4 @@ iface = gr.Interface(image_classifier, image, label,
     ])
 
 if __name__ == "__main__":
-    iface.launch(share=True)
+    iface.launch()

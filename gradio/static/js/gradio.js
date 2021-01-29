@@ -205,13 +205,13 @@ function gradio(config, fn, target, example_file_path) {
   if (!config["allow_embedding"]) {
     target.find(".embedding").css("visibility", "hidden");
   }
-  if (!config["allow_screenshot"] && !config["allow_flagging"] && !config["allow_interpretation"]) {
+  if (!config["allow_screenshot"] && config["allow_flagging"] !== true && !config["allow_interpretation"]) {
     target.find(".screenshot, .record, .flag, .interpret").css("visibility", "hidden");
   } else {
     if (!config["allow_screenshot"]) {
       target.find(".screenshot, .record").hide();
     }
-    if (!config["allow_flagging"]) {
+    if (config["allow_flagging"] !== true) {
       target.find(".flag").hide();
     }
     if (!config["allow_interpretation"]) {
