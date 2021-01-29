@@ -478,8 +478,10 @@ def show_tip(io):
     relevant_tips = []
     if io.interpretation is None:
         relevant_tips.append(strings.en["TIP_INTERPRETATION"])
-    if io.embedding is None and len(io.examples)>4:
+    if io.embedding is None and not(io.examples is None) and len(io.examples)>4:
         relevant_tips.append(strings.en["TIP_EMBEDDING"])
+    if len(relevant_tips)==0:
+        return
     print(random.choice(relevant_tips))
 
 def launch_counter():
