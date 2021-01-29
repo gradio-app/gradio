@@ -210,8 +210,6 @@ def predict_examples():
 def flag():
     log_feature_analytics('flag')
     flag_path = os.path.join(app.cwd, app.interface.flagging_dir)
-    os.makedirs(flag_path,
-                exist_ok=True)
     output = {'inputs': [app.interface.input_interfaces[
         i].rebuild(
         flag_path, request.json['data']['input_data'][i]) for i

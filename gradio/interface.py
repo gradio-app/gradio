@@ -172,16 +172,7 @@ class Interface:
                 pass
 
         if self.allow_flagging:
-            if self.title is not None:
-                dir_name = "_".join(self.title.split(" "))
-            else:
-                dir_name = "_".join([fn.__name__ for fn in self.predict])
-            index = 1
-            while os.path.exists(self.flagging_dir + "/" + dir_name +
-                                 "_{}".format(index)):
-                index += 1
-            self.flagging_dir = self.flagging_dir + "/" + dir_name + \
-                                "_{}".format(index)
+            os.makedirs(self.flagging_dir, exist_ok=True)
 
         if self.analytics_enabled:
             try:
