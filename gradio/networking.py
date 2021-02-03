@@ -311,5 +311,5 @@ def url_ok(url):
     try:
         r = requests.head(url)
         return r.status_code == 200 or r.status_code == 401
-    except ConnectionError:
+    except (ConnectionError, requests.exceptions.ConnectionError):
         return False
