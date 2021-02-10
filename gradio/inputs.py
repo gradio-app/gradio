@@ -760,7 +760,7 @@ class Video(InputComponent):
                 outputs={file_name + "." + self.type: None}
             )
             file_name += "." + self.type
-        ff.run()
+            ff.run()
         return file_name
 
     def preprocess_example(self, x):
