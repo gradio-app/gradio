@@ -251,6 +251,17 @@ function gradio(config, fn, target, example_file_path) {
     $(".examples_body > tr").removeClass("current_example");
     $(".examples_body > tr[row='" + example_id + "'").addClass("current_example");
     io_master.current_example = example_id;
+    window.location.hash = example_id + 1;
+  }
+  function hash_handler() {
+    let hash = window.location.hash;
+    if (hash == "") {
+      return;
+    }
+    hash = hash.substring(1)
+    if (!isNaN(parseInt(hash))) {
+      load_example(parseInt(hash) - 1);
+    }
   }
   function next_example() {
     current_example = io_master.current_example;
@@ -324,6 +335,8 @@ function gradio(config, fn, target, example_file_path) {
       target.find(".pages").append(html);
     }
     load_page();
+    window.onhashchange = hash_handler;
+    hash_handler();  
     target.on("click", ".examples_body > tr", function() {
       let example_id = parseInt($(this).attr("row"));
       load_example(example_id);
