@@ -191,8 +191,6 @@ function gradio(config, fn, target, example_file_path) {
     for (let output_interface of output_interfaces) {
       output_interface.clear();
     }
-    target.find(".flag").removeClass("flagged");
-    target.find(".flag").val("FLAG");
     target.find(".flag_message").empty();
     target.find(".loading").addClass("invisible");
     target.find(".loading_time").text("");
@@ -498,8 +496,6 @@ function gradio(config, fn, target, example_file_path) {
     target.find(".submit").show();
     target.find(".submit").click(function() {
       io_master.gather();
-      target.find(".flag").removeClass("flagged");
-      target.find(".flag").val("FLAG");
     })
   }
   if (!config.show_input) {
@@ -509,7 +505,7 @@ function gradio(config, fn, target, example_file_path) {
   target.find(".flag").click(function() {
     if (io_master.last_output) {
       target.find(".flag").addClass("flagged");
-      target.find(".flag").val("FLAGGED");
+      window.setTimeout(() => {target.find(".flag").removeClass("flagged");}, 100);
       io_master.flag();
     }
   })
