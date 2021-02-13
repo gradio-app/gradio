@@ -127,6 +127,7 @@ class Interface:
         self.title = title
         self.description = description
         if article is not None:
+            article = utils.readme_to_html(article)
             article = markdown2.markdown(article)
         self.article = article
         self.thumbnail = thumbnail
