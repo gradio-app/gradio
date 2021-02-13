@@ -5,6 +5,7 @@ from IPython import get_ipython
 analytics_url = 'https://api.gradio.app/'
 PKG_VERSION_URL = "https://api.gradio.app/pkg-version"
 
+
 def version_check():
     try:
         current_pkg_version = pkg_resources.require("gradio")[0].version
@@ -17,6 +18,7 @@ def version_check():
             print('--------')
     except:  # TODO(abidlabs): don't catch all exceptions
         pass
+
 
 def error_analytics(type):
     """
@@ -57,3 +59,13 @@ def ipython_check():
     except NameError:
         is_ipython = False
     return is_ipython
+
+
+def readme_to_html(article):
+    try:
+        response = requests.get(article)
+        if response.status_code == requests.codes.ok:
+            article = response.text
+    except requests.exceptions.MissingSchema:
+        pass
+    return article
