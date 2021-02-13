@@ -109,12 +109,12 @@ input.submit {
 input.submit:hover {
   background-color: #f39c12;
 }
-.flagged {
-  background-color: pink !important;
+.flag {
+  transition: background-color 100ms;
 }
-/* label:hover {
-  background-color: lightgray;
-} */
+.flagged {
+  background-color: #e74c3c !important;
+}
 .overlay {
   position: absolute;
   height: 100vh;
