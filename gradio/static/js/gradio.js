@@ -191,8 +191,6 @@ function gradio(config, fn, target, example_file_path) {
     for (let output_interface of output_interfaces) {
       output_interface.clear();
     }
-    target.find(".flag").removeClass("flagged");
-    target.find(".flag").val("FLAG");
     target.find(".flag_message").empty();
     target.find(".loading").addClass("invisible");
     target.find(".loading_time").text("");
@@ -253,6 +251,17 @@ function gradio(config, fn, target, example_file_path) {
     $(".examples_body > tr").removeClass("current_example");
     $(".examples_body > tr[row='" + example_id + "'").addClass("current_example");
     io_master.current_example = example_id;
+    window.location.hash = example_id + 1;
+  }
+  function hash_handler() {
+    let hash = window.location.hash;
+    if (hash == "") {
+      return;
+    }
+    hash = hash.substring(1)
+    if (!isNaN(parseInt(hash))) {
+      load_example(parseInt(hash) - 1);
+    }
   }
   function next_example() {
     current_example = io_master.current_example;
@@ -326,6 +335,8 @@ function gradio(config, fn, target, example_file_path) {
       target.find(".pages").append(html);
     }
     load_page();
+    window.onhashchange = hash_handler;
+    hash_handler();  
     target.on("click", ".examples_body > tr", function() {
       let example_id = parseInt($(this).attr("row"));
       load_example(example_id);
@@ -498,8 +509,6 @@ function gradio(config, fn, target, example_file_path) {
     target.find(".submit").show();
     target.find(".submit").click(function() {
       io_master.gather();
-      target.find(".flag").removeClass("flagged");
-      target.find(".flag").val("FLAG");
     })
   }
   if (!config.show_input) {
@@ -509,7 +518,7 @@ function gradio(config, fn, target, example_file_path) {
   target.find(".flag").click(function() {
     if (io_master.last_output) {
       target.find(".flag").addClass("flagged");
-      target.find(".flag").val("FLAGGED");
+      window.setTimeout(() => {target.find(".flag").removeClass("flagged");}, 100);
       io_master.flag();
     }
   })
