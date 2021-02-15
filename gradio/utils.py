@@ -66,6 +66,6 @@ def readme_to_html(article):
         response = requests.get(article)
         if response.status_code == requests.codes.ok:
             article = response.text
-    except requests.exceptions.MissingSchema:
+    except requests.exceptions.RequestException:
         pass
     return article
