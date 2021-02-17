@@ -5,6 +5,9 @@ jobs:
       - image: circleci/python:3.7.2-browsers
     steps:
       - checkout
+      - run:
+          name: Avoid Rust build for Cryptography
+          command: CRYPTOGRAPHY_DONT_BUILD_RUST=1
       - run: mkdir test-reports
       - restore_cache:
           key: deps1-{{ .Branch }}-{{ checksum "gradio.egg-info/requires.txt" }}
