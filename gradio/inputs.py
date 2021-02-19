@@ -865,6 +865,15 @@ class Audio(InputComponent):
         else:
             raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'numpy', 'mfcc', 'file'.")
 
+    def rebuild(self, dir, data):
+        inp = data.split(';')[1].split(',')[1]
+        wav_obj = base64.b64decode(inp)
+        timestamp = datetime.datetime.now()
+        filename = f'input_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.wav'
+        with open("{}/{}".format(dir, filename), "wb+") as f:
+            f.write(wav_obj)
+        return filename
+
 
 class File(InputComponent):
     """
