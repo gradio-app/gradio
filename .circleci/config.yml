@@ -13,6 +13,7 @@ jobs:
           command: |
             python3 -m venv venv
             . venv/bin/activate
+            pip install --upgrade pip
             pip install -r gradio.egg-info/requires.txt
             pip install selenium==4.0.0a6.post2
       - save_cache:
