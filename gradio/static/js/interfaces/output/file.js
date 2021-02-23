@@ -25,7 +25,12 @@ const file_output = {
       .removeAttr("href")
       .removeAttr("download");
   },
-  load_example_preview: function(data) {
-    return data.name;
-  },
+  load_example: function(example_data) {
+    example_path = this.io_master.example_file_path + example_data;
+    this.target.find(".file_name").text(example_data);
+    this.target.find(".file_size").empty();
+    this.target.find(".interface_mini_box")
+      .attr("href", example_path)
+      .attr("download", example_data);
+  }
 }
