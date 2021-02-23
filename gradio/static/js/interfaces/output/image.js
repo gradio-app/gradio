@@ -46,7 +46,16 @@ const image_output = {
     this.target.find(".output_image").attr('src', "")
   },
   load_example_preview: function(data) {
-    return "<img src='"+data[0]+"' height=100>"
+    data = this.io_master.example_file_path + data;
+    return "<img src='"+data+"' height=100>"
   },
-
+  load_example: function(example_data) {
+    example_data = this.io_master.example_file_path + example_data;
+    let io = this;
+    toDataURL(example_data, function(data) {
+      io.target.find(".upload_zone").hide();
+      io.target.find(".image_display").removeClass("hide");
+      io.output([data, []]);
+    })
+  }
 }

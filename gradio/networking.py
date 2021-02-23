@@ -82,6 +82,8 @@ def get_first_available_port(initial, final):
 
 @app.route("/", methods=["GET"])
 def main():
+    if isinstance(app.interface.examples, str):
+        return redirect("/from_dir/" + app.interface.examples)
     return render_template("index.html",
         config=app.interface.config,
         vendor_prefix=(GRADIO_STATIC_ROOT if app.interface.share else ""),
@@ -100,13 +102,16 @@ def main_from_dir(path):
     with open(log_file) as logs:
         examples = list(csv.reader(logs)) 
     examples = examples[1:] #remove header
-    input_examples = [example[:len(app.interface.input_interfaces)] for example in examples]
+    for i, example in enumerate(examples):
+        for j, (interface, cell) in enumerate(zip(app.interface.input_interfaces + app.interface.output_interfaces, example)):
+            examples[i][j] = interface.restore_flagged(cell)
+    examples = [example[:len(app.interface.input_interfaces) + len(app.interface.output_interfaces)] for example in examples]
     return render_template("index.html",
         config=app.interface.config,
         vendor_prefix=(GRADIO_STATIC_ROOT if app.interface.share else ""),
         css=app.interface.css,
         path=path,
-        examples=input_examples
+        examples=examples
     )
 
 
@@ -217,11 +222,13 @@ def predict_examples():
     return jsonify(output)
 
 
-def flag_data(data):
+def flag_data(input_data, output_data):
     flag_path = os.path.join(app.cwd, app.interface.flagging_dir)
-    output = [app.interface.input_interfaces[i].rebuild(
-            flag_path, component_data)
-            for i, component_data in enumerate(data)]
+    csv_data = []
+    for i, interface in enumerate(app.interface.input_interfaces):
+        csv_data.append(interface.save_flagged(flag_path, app.interface.config["input_interfaces"][i][1]["label"], input_data[i]))
+    for i, interface in enumerate(app.interface.output_interfaces):
+        csv_data.append(interface.save_flagged(flag_path, app.interface.config["output_interfaces"][i][1]["label"], output_data[i]))
 
     log_fp = "{}/log.csv".format(flag_path)
     is_new = not os.path.exists(log_fp)
@@ -230,15 +237,16 @@ def flag_data(data):
         writer = csv.writer(csvfile)
         if is_new:
             headers = [interface[1]["label"] for interface in app.interface.config["input_interfaces"]]
+            headers += [interface[1]["label"] for interface in app.interface.config["output_interfaces"]]
             writer.writerow(headers)
 
-        writer.writerow(output)
+        writer.writerow(csv_data)
 
 @app.route("/api/flag/", methods=["POST"])
 def flag():
     log_feature_analytics('flag')
-    data = request.json['data']['input_data']
-    flag_data(data)
+    input_data, output_data = request.json['data']['input_data'], request.json['data']['output_data']
+    flag_data(input_data, output_data)
     return jsonify(success=True)
 
 

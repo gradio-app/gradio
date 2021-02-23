@@ -74,21 +74,60 @@ h4 {
 .close_explain {
   cursor: pointer;  
 }
-.examples > button {
+.backward {
+  display: inline-block;
+  -moz-transform: scale(-1, 1);
+  -webkit-transform: scale(-1, 1);
+  transform: scale(-1, 1);
+}
+.examples_control button {
   padding: 8px 16px;
   border-radius: 2px;
-  margin-right: 4px;
+  margin-right: 8px;
   background-color: whitesmoke;
+}
+.examples_control {
+  display: flex;
+}
+.examples_control > div {
+  display: flex;
+  align-items: stretch;
+}
+
+.examples_control button small {
+  display: block;
+  font-weight: bold;
+}
+.examples_control_right {
+  padding-left: 8px;
+  border-left: solid 2px whitesmoke;
+}
+.examples_control_right .current {
+  background-color: #e67e22;
+  color: white;
 }
 .examples > table {
   border-collapse: collapse;
-  font-family: monospace;
   padding: 8px;
   background-color: whitesmoke;
   border-right: solid 4px whitesmoke;
   border-left: solid 4px whitesmoke;
   border-bottom: solid 4px whitesmoke;
   margin-top: 8px;
+}
+.examples > table.gallery {
+  background-color: white;
+  border: none;
+}
+.examples > table.gallery > thead {
+  display: none;
+}
+.examples > table.gallery > tbody > tr {
+  padding: 4px;
+  border-radius: 4px;
+  margin: 0 8px 8px 0;
+  background-color: whitesmoke;
+  display: inline-block;
 }
 .examples > table th {
   padding: 8px 16px;
@@ -118,7 +157,7 @@ h4 {
   background-color: lightgray;
 }
 .examples_body > tr.current_example {
-  background-color: #ffb573;  
+  background-color: lightgray !important;  
 }
 #credit {
   text-align: center;
