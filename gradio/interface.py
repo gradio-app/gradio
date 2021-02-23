@@ -222,14 +222,8 @@ class Interface:
                     
         except ValueError:
             pass
-        if self.examples is not None:
-            processed_examples = []
-            for example_set in self.examples:
-                processed_set = []
-                for iface, example in zip(self.input_interfaces, example_set):
-                    processed_set.append(example)
-                processed_examples.append(processed_set)
-            config["examples"] = processed_examples
+        if self.examples is not None and not isinstance(self.examples, str):
+            config["examples"] = self.examples
         return config
 
     def run_prediction(self, processed_input, return_duration=False):
