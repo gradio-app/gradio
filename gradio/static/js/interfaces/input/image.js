@@ -256,7 +256,7 @@ const image_input = {
     toDataURL(example_data, function(data) {
       if (io.source == "canvas") {
         io.clear();
-        let ctx = this.context;
+        let ctx = io.context;
         var img = new Image;
         let dimension = io.target.find(".canvas_holder canvas").width();
         img.onload = function(){
