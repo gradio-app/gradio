@@ -321,6 +321,6 @@ def setup_tunnel(local_server_port):
 def url_ok(url):
     try:
         r = requests.head(url)
-        return r.status_code == 200 or r.status_code == 401
+        return r.status_code == 200
     except (ConnectionError, requests.exceptions.ConnectionError):
         return False
