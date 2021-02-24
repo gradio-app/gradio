@@ -68,13 +68,16 @@ def resize_and_crop(img, size, crop_type='center'):
 ##################
 
 def decode_base64_to_binary(encoding):
-    header, data = encoding.split(",")
-    header = header[5:]
-    if ";base64" in header:
-        header = header[0:header.index(";base64")]
     extension = None
-    if "/" in header:
-        extension = header[header.index("/") + 1:]
+    if "," in encoding:
+        header, data = encoding.split(",")
+        header = header[5:]
+        if ";base64" in header:
+            header = header[0:header.index(";base64")]
+        if "/" in header:
+            extension = header[header.index("/") + 1:]
+    else:
+        data = encoding
     return base64.b64decode(data), extension
 
 def decode_base64_to_file(encoding):

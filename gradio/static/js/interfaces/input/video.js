@@ -80,29 +80,14 @@ const video_input = {
       io.state = "VIDEO_LOADED"
     }
   },
-  load_example_preview: function(data) {
-    return "<video src='"+this.io_master.example_file_path+data+"' height=100>"
-  },
   load_example: function(example_data) {
     example_data = this.io_master.example_file_path + example_data;
     let io = this;
     toDataURL(example_data, function(data) {
-      if (io.source == "canvas") {
-        io.clear();
-        let ctx = this.context;
-        var img = new Image;
-        let dimension = io.target.find(".canvas_holder canvas").width();
-        img.onload = function(){
-          ctx.clearRect(0,0,dimension,dimension);
-          ctx.drawImage(img,0,0,dimension,dimension);
-        };
-        img.src = data;
-      } else {
-        io.target.find(".upload_zone").hide();
-        io.target.find(".image_display").removeClass("hide");
-        io.set_video_data(data, /*update_editor=*/true);
-        io.state = "VIDEO_LOADED";
-      }
+      io.target.find(".upload_zone").hide();
+      io.target.find(".image_display").removeClass("hide");
+      io.set_video_data(data, /*update_editor=*/true);
+      io.state = "VIDEO_LOADED";
     })
   }
 }

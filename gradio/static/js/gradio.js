@@ -48,13 +48,25 @@ function gradio(config, fn, target, example_file_path) {
     </div>
     <div class="examples invisible">
       <h4>Examples</small></h4>
-      <button class="run_examples examples-content">Run All</button>
-      <button class="load_prev examples-content">Load Previous <em>(CTRL + &larr;)</em></button>
-      <button class="load_next examples-content">Load Next <em>(CTRL + &rarr;)</em></button>
-      <button class="order_similar examples-content embedding">Order by Similarity</button>
-      <button class="view_embeddings examples-content embedding">View Embeddings</button>
-      <button class="update_embeddings embeddings-content invisible">Update Embeddings</button>
-      <button class="view_examples embeddings-content invisible">View Examples</button>
+      <div class="examples_control">
+        <div class="examples_control_left">
+          <button class="run_examples examples-content">Run All</button>
+          <button class="load_prev examples-content">Load Previous <small>CTRL + <span class="backward">&#10140;</span></small></button>
+          <button class="load_next examples-content">Load Next <small>CTRL + &#10140;</small></button>
+          <button class="order_similar examples-content embedding">Order by Similarity</button>
+          <button class="view_embeddings examples-content embedding">View Embeddings</button>
+          <button class="update_embeddings embeddings-content invisible">Update Embeddings</button>
+          <button class="view_examples embeddings-content invisible">View Examples</button>
+        </div>
+        <div class="examples_control_right">
+          <button class="table_examples">
+            <svg width="40" height="24"><rect x="0" y="0" width="40" height="6"></rect><rect x="0" y="9" width="40" height="6"></rect><rect x="0" y="18" width="40" height="6"></rect></svg>
+          </button>
+          <button class="gallery_examples current">
+            <svg width="40" height="24"><rect x="0" y="0" width="18" height="40"></rect><rect x="22" y="0" width="18" height="40"></rect></svg>
+          </button>
+        </div>
+      </div>
       <div class="pages invisible">Page:</div>
       <table class="examples-content">
       </table>
@@ -201,7 +213,7 @@ function gradio(config, fn, target, example_file_path) {
   target.find(".clear").click(clear_all);
 
   if (!config["allow_embedding"]) {
-    target.find(".embedding").css("visibility", "hidden");
+    target.find(".embedding").hide();
   }
   if (!config["allow_screenshot"] && config["allow_flagging"] !== true && !config["allow_interpretation"]) {
     target.find(".screenshot, .record, .flag, .interpret").css("visibility", "hidden");
@@ -224,20 +236,24 @@ function gradio(config, fn, target, example_file_path) {
       target.find(".interpretation_explained .close_explain").click(function() {
         target.find(".interpretation_explained").remove();
       });
-      if (config["examples"]) {
-        target.find(".examples").removeClass("invisible");
-        let html = "<thead>"
-        for (let i = 0; i < config["input_interfaces"].length; i++) {
-          label = config["input_interfaces"][i][1]["label"];
-          html += "<th>" + label + "</th>";
-        }
-      }
     }
   }
   function load_example(example_id) {
     clear_all();
+    if (!(example_id in config["examples"])) {
+      return;
+    }
     for (let [i, value] of config["examples"][example_id].entries()) {
-      input_interfaces[i].load_example(value);
+      if (i < input_interfaces.length) {
+        input_interfaces[i].load_example(value);
+      } else if (i - input_interfaces.length < output_interfaces.length) {
+        let output_interface = output_interfaces[i - input_interfaces.length];
+        if ("load_example" in output_interface) {
+          output_interface.load_example(value);
+        } else {
+          output_interface.output(value)
+        }
+      }
     };
     if (io_master.loaded_examples && example_id in io_master.loaded_examples) {
       io_master.output({"data": io_master.loaded_examples[example_id]});
@@ -293,8 +309,15 @@ function gradio(config, fn, target, example_file_path) {
       html += "<tr row=" + example_id + ">";
       for (let [j, col] of example.entries()) {
         let new_col = JSON.parse(JSON.stringify(col))
-        if (input_interfaces[j].load_example_preview) {
-          new_col = input_interfaces[j].load_example_preview(new_col);
+        if (j < input_interfaces.length) {
+          if (input_interfaces[j].load_example_preview) {
+            new_col = input_interfaces[j].load_example_preview(new_col);
+          }
+        } else {
+          let k = j - input_interfaces.length;
+          if (k < output_interfaces.length && output_interfaces[k].load_example_preview) {
+            new_col = output_interfaces[k].load_example_preview(new_col);
+          }
         }
         html += "<td>" + new_col + "</td>";
       }
@@ -316,9 +339,13 @@ function gradio(config, fn, target, example_file_path) {
   if (config["examples"]) {
     target.find(".examples").removeClass("invisible");
     let html = "<thead>"
-    for (let i = 0; i < config["input_interfaces"].length; i++) {
-      label = config["input_interfaces"][i][1]["label"];
-      html += "<th>" + label + "</th>";
+    for (let input_interface of config["input_interfaces"]) {
+      html += "<th>" + input_interface[1]["label"] + "</th>";
+    }
+    if (config["examples"].length > 0 && config["examples"][0].length > config["input_interfaces"].length) {
+      for (let output_interface of config["output_interfaces"]) {
+        html += "<th>" + output_interface[1]["label"] + "</th>";
+      }
     }
     html += "</thead>";
     html += "<tbody class='examples_body'></tbody>";
@@ -346,6 +373,23 @@ function gradio(config, fn, target, example_file_path) {
       io_master.current_page = page_num;
       load_page();
     })
+    set_table_mode = function() {
+      target.find(".examples-content").removeClass("gallery");
+      target.find(".examples_control_right button").removeClass("current");
+      target.find(".table_examples").addClass("current");
+    }
+    set_gallery_mode = function() {
+      target.find(".examples-content").addClass("gallery");
+      target.find(".examples_control_right button").removeClass("current");
+      target.find(".gallery_examples").addClass("current");
+    }
+    target.on("click", ".table_examples",  set_table_mode);
+    target.on("click", ".gallery_examples",  set_gallery_mode);
+    if (config["examples"].length > 0 && config["examples"][0].length > 1) {
+      set_table_mode();
+    } else {
+      set_gallery_mode();
+    }
     target.find(".load_prev").click(prev_example);
     target.find(".load_next").click(next_example);
     target.find(".order_similar").click(function() {
@@ -518,7 +562,7 @@ function gradio(config, fn, target, example_file_path) {
   target.find(".flag").click(function() {
     if (io_master.last_output) {
       target.find(".flag").addClass("flagged");
-      window.setTimeout(() => {target.find(".flag").removeClass("flagged");}, 100);
+      window.setTimeout(() => {target.find(".flag").removeClass("flagged");}, 500);
       io_master.flag();
     }
   })

@@ -31,7 +31,14 @@ const audio_output = {
       this.wavesurfer.stop();
     }
   },
-  load_example_preview: function(data) {
-    return "[audio]";
+  load_example: function(example_data) {
+    example_data = this.io_master.example_file_path + example_data;
+    let io = this;
+    if (io.state == "NO_AUDIO" || io.state == "RECORDED") {
+      io.clear();
+      toDataURL(example_data, function(data) {
+        io.output(data);
+      })  
+    }
   },
 }

@@ -24,11 +24,14 @@ const dataframe_output = {
     jexcel.destroy(this.target.find(".dataframe")[0]);
     this.table = null;
   },
+  load_example: function(data) {
+    this.output({"data": data});
+  },
   load_example_preview: function(data) {
-    data = JSON.parse(JSON.stringify(data["data"]))
+    data = JSON.parse(JSON.stringify(data))
     let data_copy = [];
-    for (let row of data.splice(0,3)) {
-      new_row = row.splice(0,3)
+    for (let row of data.slice(0,3)) {
+      new_row = row.slice(0,3)
       if (row.length > 3) {
         new_row.push("...");
       }
