@@ -12,8 +12,8 @@ function gradio(config, fn, target, example_file_path) {
         <div class="input_interfaces">
         </div>          
         <div class="panel_buttons">
-          <input class="clear panel_button" type="reset" value="CLEAR">
-          <input class="submit panel_button" type="submit" value="SUBMIT"/>
+          <button class="clear panel_button">CLEAR</button>
+          <button class="submit panel_button">SUBMIT</button>
         </div>
       </div>
       <div class="panel output_panel">
@@ -24,16 +24,19 @@ function gradio(config, fn, target, example_file_path) {
         <div class="output_interfaces">
         </div>
         <div class="panel_buttons">
-          <input class="interpret panel_button" type="button" value="INTERPRET"/>
-          <input class="screenshot panel_button left_panel_button" type="button" value="SCREENSHOT"/>
-          <input class="record panel_button right_panel_button" type="button" value="GIF"/>
+          <button class="interpret panel_button">INTERPRET</button>
+          <button class="screenshot panel_button left_panel_button">SCREENSHOT</button>
+          <button class="record panel_button right_panel_button">GIF</button>
           <div class="screenshot_logo invisible">
             <img src="/static/img/logo_inline.png">
             <button class='record_stop'>
-              <div class='record_square' style=''></div>
+              <div class='record_square'></div>
             </button>
           </div>
-          <input class="flag panel_button" type="button" value="FLAG"/>
+          <div class="flag panel_button">
+            FLAG
+            <div class="dropcontent"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -558,14 +561,38 @@ function gradio(config, fn, target, example_file_path) {
   if (!config.show_input) {
     target.find(".input_panel").hide();
   }
+  function flash_flag() {
+    target.find(".flag").addClass("flagged");
+    target.find(".dropcontent").addClass("invisible");
+    window.setTimeout(() => {
+      target.find(".flag").removeClass("flagged");
+      target.find(".dropcontent").removeClass("invisible");
+    }, 500);
 
-  target.find(".flag").click(function() {
-    if (io_master.last_output) {
-      target.find(".flag").addClass("flagged");
-      window.setTimeout(() => {target.find(".flag").removeClass("flagged");}, 500);
-      io_master.flag();
+  }
+  if (config.allow_flagging) {
+    if (config.flagging_options) {
+      target.find(".flag").addClass("dropdown");
+      for (let option of config.flagging_options) {
+        target.find(".dropcontent").append(`<div>${option}</div>`)
+      }
+      target.find(".flag .dropcontent div").click(function() {
+        if (io_master.last_output) {
+          target.find(".flag .dropcontent");
+          flash_flag();
+          io_master.flag($(this).text());
+        }
+      });
+      
+    } else {
+      target.find(".flag").click(function() {
+        if (io_master.last_output) {
+          flash_flag();
+          io_master.flag();
+        }
+      });
     }
-  })
+  }
   target.find(".interpret").click(function() {
     target.find(".interpretation_explained").removeClass("invisible");
     if (io_master.last_output) {
