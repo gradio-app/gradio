@@ -403,10 +403,11 @@ class Interface:
         is_colab = utils.colab_check()
         if is_colab or not(networking.url_ok(path_to_local_server)):  
             share = True
-            if debug:
-                print(strings.en["COLAB_DEBUG_TRUE"])
-            else:
-                print(strings.en["COLAB_DEBUG_FALSE"])
+            if is_colab:
+                if debug:
+                    print(strings.en["COLAB_DEBUG_TRUE"])
+                else:
+                    print(strings.en["COLAB_DEBUG_FALSE"])
         else:
             print(strings.en["RUNNING_LOCALLY"].format(path_to_local_server))
 
