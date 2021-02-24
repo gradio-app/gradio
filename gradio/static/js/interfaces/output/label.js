@@ -22,15 +22,42 @@ const label_output = {
       }
     }
   },
+  load_example: function(data) {
+    this.output(this.convert_example_to_output(data));
+  },
   load_example_preview: function(data) {
-    if ("confidences" in data) {
-      for (let confidence_set of data["confidences"]) {
-        if (confidence_set["label"] == data["label"]) {
-          return data["label"] + " (" + (100*confidence_set["confidence"]).toFixed(1) + "%)";
+    let output = this.convert_example_to_output(data);
+    if ("confidences" in output) {
+      if (typeof data == "string") {
+        try {
+          data = JSON.parse(data);
+        } catch (e) {
+          return output["label"]
         }
       }
+      return output["label"] + " (" + (100 * data[output["label"]]).toFixed(2) + "%)";
     }
-    return data["label"];
+    return output["label"]
+  },
+  convert_example_to_output: function(data) {
+    if (typeof data == "string") {
+      try {
+        data = JSON.parse(data);
+      } catch (e) {
+        return {"label": data};
+      }
+    }
+    let [max_label, max_confidence] = ["", 0]
+    let output = {"confidences": []}
+    for (let [label, confidence] of Object.entries(data)) {
+      output["confidences"].push({"label": label, "confidence": confidence});
+      if (confidence > max_confidence) {
+        max_confidence = confidence;
+        max_label = label;
+      }
+    }
+    output["label"] = max_label;
+    return output;
   },
   clear: function() {
     this.target.find(".output_class").empty();

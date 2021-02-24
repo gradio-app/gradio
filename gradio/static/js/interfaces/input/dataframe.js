@@ -81,8 +81,8 @@ const dataframe_input = {
   interpretation_logic: "Highlights the output contribution of each cell in dataframe.",
   load_example_preview: function(data) {
     let data_copy = [];
-    for (let row of data.splice(0,3)) {
-      new_row = row.splice(0,3)
+    for (let row of data.slice(0,3)) {
+      new_row = row.slice(0,3)
       if (row.length > 3) {
         new_row.push("...");
       }

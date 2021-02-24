@@ -118,12 +118,21 @@ class Label(OutputComponent):
             "label": {},
         }
 
-    def rebuild(self, dir, data):
+    def save_flagged(self, dir, label, data):
         """
-        Default rebuild method for label
+        Returns: (Union[str, Dict[str, number]]): Either a string representing the main category label, or a dictionary with category keys mapping to confidence levels.
         """
-        # return json.loads(data)
-        return data
+        if "confidences" in data:
+            return json.dumps({example["label"]: example["confidence"] for example in data["confidences"]})
+        else:
+            return data["label"]
+    
+    def restore_flagged(self, data):
+        try:
+            data = json.loads(data)
+            return data
+        except:
+            return data
 
 class Image(OutputComponent):
     '''
@@ -186,15 +195,12 @@ class Image(OutputComponent):
             raise ValueError("Unknown type: " + dtype + ". Please choose from: 'numpy', 'pil', 'file', 'plot'.")
         return out_y, coordinates
 
-    def rebuild(self, dir, data):
+    def save_flagged(self, dir, label, data):
         """
-        Default rebuild method to decode a base64 image
+        Returns: (str) path to image file
         """
-        im = processing_utils.decode_base64_to_image(data)
-        timestamp = datetime.datetime.now()
-        filename = 'output_{}_{}.png'.format(self.label, timestamp.strftime("%Y-%m-%d-%H-%M-%S"))
-        im.save('{}/{}'.format(dir, filename), 'PNG')
-        return filename
+        return self.save_flagged_file(dir, label, data[0])
+
 
 class Video(OutputComponent):
     '''
@@ -217,6 +223,12 @@ class Video(OutputComponent):
 
     def postprocess(self, y):
         return processing_utils.encode_file_to_base64(y, type="video")
+
+    def save_flagged(self, dir, label, data):
+        """
+        Returns: (str) path to image file
+        """
+        return self.save_flagged_file(dir, label, data)
 
 
 class KeyValues(OutputComponent):
@@ -246,6 +258,12 @@ class KeyValues(OutputComponent):
         return {
             "key_values": {},
         }
+    
+    def save_flagged(self, dir, label, data):
+        return json.dumps(data)
+
+    def restore_flagged(self, data):
+        return json.loads(data)
 
 
 class HighlightedText(OutputComponent):
@@ -278,6 +296,12 @@ class HighlightedText(OutputComponent):
 
     def postprocess(self, y):
         return y
+
+    def save_flagged(self, dir, label, data):
+        return json.dumps(data)
+
+    def restore_flagged(self, data):
+        return json.loads(data)
 
 
 class Audio(OutputComponent):
@@ -316,6 +340,12 @@ class Audio(OutputComponent):
         else:
             raise ValueError("Unknown type: " + self.type + ". Please choose from: 'numpy', 'file'.")
 
+    def save_flagged(self, dir, label, data):
+        """
+        Returns: (str) path to audio file
+        """
+        return self.save_flagged_file(dir, label, data)
+
 
 class JSON(OutputComponent):
     '''
@@ -342,6 +372,12 @@ class JSON(OutputComponent):
         return {
             "json": {},
         }
+
+    def save_flagged(self, dir, label, data):
+        return json.dumps(data)
+
+    def restore_flagged(self, data):
+        return json.loads(data)
 
 
 class HTML(OutputComponent):
@@ -391,6 +427,12 @@ class File(OutputComponent):
             "size": os.path.getsize(y), 
             "data": processing_utils.encode_file_to_base64(y, header=False)
         }
+
+    def save_flagged(self, dir, label, data):
+        """
+        Returns: (str) path to image file
+        """
+        return self.save_flagged_file(dir, label, data["data"])
 
 
 class Dataframe(OutputComponent):
@@ -446,3 +488,12 @@ class Dataframe(OutputComponent):
             return {"data": y} 
         else:
             raise ValueError("Unknown type: " + self.type + ". Please choose from: 'pandas', 'numpy', 'array'.")
+
+    def save_flagged(self, dir, label, data):
+        """
+        Returns: (List[List[Union[str, float]]]) 2D array
+        """
+        return json.dumps(data["data"])
+
+    def restore_flagged(self, data):
+        return json.loads(data)

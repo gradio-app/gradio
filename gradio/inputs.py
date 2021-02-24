@@ -7,6 +7,7 @@ automatically added to a registry, which allows them to be easily referenced in 
 import datetime
 import json
 import os
+import shutil
 import time
 import warnings
 from gradio.component import Component
@@ -466,6 +467,14 @@ class CheckboxGroup(InputComponent):
         else:
             raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'value', 'index'.")
 
+    def save_flagged(self, dir, label, data):
+        """
+        Returns: (List[str]])
+        """
+        return json.dumps(data)
+
+    def restore_flagged(self, data):
+        return json.loads(data)
 
 
 class Radio(InputComponent):
@@ -713,15 +722,11 @@ class Image(InputComponent):
         im = processing_utils.resize_and_crop(im, (shape[0], shape[1]))
         return np.asarray(im).flatten()
 
-    def rebuild(self, dir, data):
+    def save_flagged(self, dir, label, data):
         """
-        Default rebuild method to decode a base64 image
+        Returns: (str) path to image file
         """
-        im = processing_utils.decode_base64_to_image(data)
-        timestamp = datetime.datetime.now()
-        filename = f'input_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.png'
-        im.save(f'{dir}/{filename}', 'PNG')
-        return filename
+        return self.save_flagged_file(dir, label, data)
 
 
 class Video(InputComponent):
@@ -765,6 +770,12 @@ class Video(InputComponent):
 
     def preprocess_example(self, x):
         return processing_utils.encode_file_to_base64(x)
+
+    def save_flagged(self, dir, label, data):
+        """
+        Returns: (str) path to video file
+        """
+        return self.save_flagged_file(dir, label, data)
 
 class Audio(InputComponent):
     """
@@ -865,14 +876,11 @@ class Audio(InputComponent):
         else:
             raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'numpy', 'mfcc', 'file'.")
 
-    def rebuild(self, dir, data):
-        inp = data.split(';')[1].split(',')[1]
-        wav_obj = base64.b64decode(inp)
-        timestamp = datetime.datetime.now()
-        filename = f'input_{timestamp.strftime("%Y-%m-%d-%H-%M-%S")}.wav'
-        with open("{}/{}".format(dir, filename), "wb+") as f:
-            f.write(wav_obj)
-        return filename
+    def save_flagged(self, dir, label, data):
+        """
+        Returns: (str) path to audio file
+        """
+        return self.save_flagged_file(dir, label, data)
 
 
 class File(InputComponent):
@@ -914,6 +922,12 @@ class File(InputComponent):
 
     def embed(self, x):
         raise NotImplementedError("File doesn't currently support embeddings")
+
+    def save_flagged(self, dir, label, data):
+        """
+        Returns: (str) path to file
+        """
+        return self.save_flagged_file(dir, label, data["data"])
 
 
 class Dataframe(InputComponent):
@@ -1009,6 +1023,15 @@ class Dataframe(InputComponent):
     def embed(self, x):
         raise NotImplementedError("DataFrame doesn't currently support embeddings")
 
+    def save_flagged(self, dir, label, data):
+        """
+        Returns: (List[List[Union[str, float]]]) 2D array
+        """
+        return json.dumps(data)
+
+    def restore_flagged(self, data):
+        return json.loads(data)
+
 
 #######################
 # DEPRECATED COMPONENTS
@@ -1059,7 +1082,7 @@ class Sketchpad(InputComponent):
     def process_example(self, example):
         return processing_utils.encode_file_to_base64(example)
 
-    def rebuild(self, dir, data):
+    def save_flagged(self, dir, label, data):
         """
         Default rebuild method to decode a base64 image
         """
@@ -1098,7 +1121,7 @@ class Webcam(InputComponent):
             im, (self.image_width, self.image_height))
         return np.array(im)
 
-    def rebuild(self, dir, data):
+    def save_flagged(self, dir, label, data):
         """
         Default rebuild method to decode a base64 image
         """
@@ -1140,7 +1163,7 @@ class Microphone(InputComponent):
         return signal
 
 
-    def rebuild(self, dir, data):
+    def save_flagged(self, dir, label, data):
         inp = data.split(';')[1].split(',')[1]
         wav_obj = base64.b64decode(inp)
         timestamp = datetime.datetime.now()
