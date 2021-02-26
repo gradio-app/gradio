@@ -11,7 +11,10 @@ template_dict = {}
 
 for code_src in codes:
     with open(os.path.join("demo", code_src + ".py")) as code_file:
-        python_code = code_file.read().replace('if __name__ == "__main__":\n    iface.launch()', "iface.launch()")
+        python_code = code_file.read()
+        python_code = python_code.replace('if __name__ == "__main__":\n    iface.launch()', "iface.launch()")
+        if python_code.startswith("# Demo"):
+            python_code = "\n".join(python_code.split("\n")[2:])
         template_dict["code_" + code_src] = "```python\n" + python_code + "\n```"
 
 for demo_src in demos:

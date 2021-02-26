@@ -2,33 +2,26 @@
 
 import gradio as gr
 import tensorflow as tf
-
 import numpy as np
-from PIL import Image
-import requests
-from urllib.request import urlretrieve
 import json
-import os
+from os.path import dirname, realpath, join
 
 # Load human-readable labels for ImageNet.
-current_dir = os.path.dirname(os.path.realpath(__file__))
-with open(os.path.join(current_dir, "files/imagenet_labels.json")) as labels_file:
+current_dir = dirname(realpath(__file__))
+with open(join(current_dir, "files/imagenet_labels.json")) as labels_file:
     labels = json.load(labels_file)
 
 mobile_net = tf.keras.applications.MobileNetV2()
-
-
 def image_classifier(im):
     arr = np.expand_dims(im, axis=0)
     arr = tf.keras.applications.mobilenet.preprocess_input(arr)
     prediction = mobile_net.predict(arr).flatten()
     return {labels[i]: float(prediction[i]) for i in range(1000)}
 
-
-image = gr.inputs.Image(shape=(224, 224))
-label = gr.outputs.Label(num_top_classes=3)
-
-iface = gr.Interface(image_classifier, image, label,
+iface = gr.Interface(
+    image_classifier, 
+    gr.inputs.Image(shape=(224, 224)), 
+    gr.outputs.Label(num_top_classes=3),
     capture_session=True,
     interpretation="default",
     examples=[
