@@ -163,14 +163,14 @@ Underneath the output interfaces, there is a button marked "Flag". When a user t
 
 For example, with the calculator interface shown above, we would have the flagged data stored in the flagged directory shown below:
 
-```
+```directory
 +-- calculator.py
 +-- flagged/
 |   +-- logs.csv
 ```
 
 *flagged/logs.csv*
-```
+```csv
 num1,operation,num2,Output
 5,add,7,12
 6,subtract,1.5,4.5
@@ -178,7 +178,7 @@ num1,operation,num2,Output
 
 With the sepia interface shown above, we would have the flagged data stored in the flagged directory shown below:
 
-```
+```directory
 +-- sepia.py
 +-- flagged/
 |   +-- logs.csv
@@ -190,8 +190,8 @@ With the sepia interface shown above, we would have the flagged data stored in t
 |   |   +-- 1.png
 ```
 
-*flagged/logs.csv*:
-```
+*flagged/logs.csv*
+```csv
 im,Output
 im/0.png,Output/0.png
 im/1.png,Output/1.png
