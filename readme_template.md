@@ -136,7 +136,7 @@ This generates a public, shareable link that you can send to anybody! When you s
 
 Keep in mind, however, that these links are publicly accessible, meaning that anyone can use your model for prediction! Therefore, make sure not to expose any sensitive information through the functions you write, or allow any critical changes to occur on your device. If you set `share=False` (the default), only a local link is created, which can be shared by  [port-forwarding](https://www.ssh.com/ssh/tunneling/example)  with specific users.
 
-Links expire after 6 hours. Need longer links, or private links?  [Contact us for Gradio Teams](https://gradio.app/#contact-box).
+Share links expire after 6 hours.
 
 ![Sharing diagram](demo/images/sharing.svg)
 
