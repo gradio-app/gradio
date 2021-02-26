@@ -137,7 +137,10 @@ class Interface:
                 self.css = css_file.read()
         else:
             self.css = css
-        self.examples = examples
+        if examples is None or isinstance(examples, str) or (isinstance(examples, list) and (len(examples) == 0 or isinstance(examples[0], list))):
+            self.examples = examples
+        else:
+            raise ValueError("Examples argument must either be a directory or a nested list, where each sublist represents a set of inputs.")
         self.examples_per_page = examples_per_page
         self.server_port = server_port
         self.simple_server = None
