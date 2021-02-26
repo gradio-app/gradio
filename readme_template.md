@@ -75,45 +75,53 @@ Additionally, our  `Image`  input interface comes with an 'edit' button which op
 
 ### Example Data
 
-You can provide example data that a user can easily load into the model. This can be helpful to demonstrate the types of inputs the model expects, as well as to provide a way to explore your dataset in conjunction with your model. To load example data, you provide a nested list to the  `examples=`  keyword argument of the Interface constructor. Each sublist within the outer list represents a data sample, and each element within the sublist represents an input for each input component. The format of example data for each component is specified in the  [Docs](https://gradio.app/docs).
+You can provide example data that a user can easily load into the model. This can be helpful to demonstrate the types of inputs the model expects, as well as to provide a way to explore your dataset in conjunction with your model. To load example data, you provide a **nested list** to the  `examples=`  keyword argument of the Interface constructor. Each sublist within the outer list represents a data sample, and each element within the sublist represents an input for each input component. The format of example data for each component is specified in the  [Docs](https://gradio.app/docs).
 
 $code_calculator
 $demo_calculator
 
-### Exploring Similar Examples with Embeddings
-
-When you provide input to the function, you may wish to see if there are similar samples in the example dataset that could explain the behaviour of the function. For example, if an image model returns a peculiar output for a given input, you may load the training data into the examples dataset and see what training data samples are similar to the input you provided. If you enable this feature, you can click the *Order by Similarity* button to show the most similar samples from the example dataset.
-
-Gradio supports exploring similar data samples through embeddings. Embeddings are a list of floats that numerically represent any input. To the `embedding` keyword argument of Interface, you must pass a function that takes the same inputs as the main `fn` argument, but instead returns an embedding that represents all the input values as a single list of floats. You can also pass the "default" string to `embedding` and Gradio will automatically generate embeddings for each sample in the examples dataset.
+You can load a large dataset into the examples to browse and interact with the dataset through Gradio. The examples will be automatically paginated (you can configure this through the `examples_per_page` argument of Interface) and you can use CTRL + arrow keys to navigate through the examples quickly.
 
 ### Flagging
 
-Underneath the output interfaces, there is a button marked "Flag". When a user testing your model sees input with interesting output, such as erroneous or unexpected model behaviour, they can flag the input for review. Within the directory provided by the  `flagging_dir=`  argument to the Interface constructor, a CSV file will log the flagged inputs. If the interface involved file inputs, such as for Image and Audio interfaces, folders will be created to store those flagged inputs as well.
+Underneath the output interfaces, there is a button marked "Flag". When a user testing your model sees input with interesting output, such as erroneous or unexpected model behaviour, they can flag the input for the interface creator to review. Within the directory provided by the  `flagging_dir=`  argument to the Interface constructor, a CSV file will log the flagged inputs. If the interface involves file data, such as for Image and Audio components, folders will be created to store those flagged data as well.
 
-You can review these flagged inputs by manually exploring the flagging directory, or load them into the Gradio interface by pointing the  `examples=`  argument to the flagged CSV file.
+For example, with the calculator interface shown above, we would have the flagged data stored in the flagged directory shown below:
 
-### Interpretation
++-- calculator.py
++-- flagged/
+|   +-- logs.csv
 
-Most models are black boxes such that the internal logic of the function is hidden from the end user. To encourage transparency, we've added the ability for interpretation so that users can understand what parts of the input are responsible for the output. Take a look at the simple interface below:
+*flagged/logs.csv*
+num1,operation,num2,Output
+5,add,7,12
+6,subtract,1.5,4.5
 
-$code_gender_sentence_default_interpretation
-$demo_gender_sentence_default_interpretation
+With the sepia interface shown above, we would have the flagged data stored in the flagged directory shown below:
 
-Notice the  `interpretation`  keyword argument. We're going to use Gradio's default interpreter here. After you submit and click Interpret, you'll see the interface automatically highlights the parts of the text that contributed to the final output orange! The parts that conflict with the output are highlight blue.
++-- sepia.py
++-- flagged/
+|   +-- logs.csv
+|   +-- im/
+|   |   +-- 0.png
+|   |   +-- 1.png
+|   +-- Output/
+|   |   +-- 0.png
+|   |   +-- 1.png
 
-Gradio's default interpretation works with single output type interfaces, where the output is either a Label or Number. We're working on expanding the default interpreter to be much more customizable and support more interfaces.
+*flagged/logs.csv*
+im,Output
+im/0.png,Output/0.png
+im/1.png,Output/1.png
 
-You can also write your own interpretation function. The demo below adds custom interpretation to the previous demo. This function will take the same inputs as the main wrapped function. The output of this interpretation function will be used to highlight the input of each input interface - therefore the number of outputs here corresponds to the number of input interfaces. To see the format for interpretation for each input interface, check the [Docs](https://gradio.app/docs).
-
-$code_gender_sentence_custom_interpretation
-$demo_gender_sentence_custom_interpretation
+You can review these flagged inputs by manually exploring the flagging directory, or load them into the examples of the Gradio interface by pointing the  `examples=`  argument to the flagged directory. If you wish for the user to provide a reason for flagging, you can pass a list of strings to the `flagging_options` argument of Interface. Users will have to select one of the strings when flagging, which will be saved as an additional column to the CSV.
 
 ### Sharing Interfaces Publicly & Privacy
 
 Interfaces can be easily shared publicly by setting `share=True` in the `launch()` method. Like this:
 
 ```python
-gr.Interface(classify_image, image, label).launch(share=True)
+gr.Interface(classify_image, "image", "label").launch(share=True)
 ```
 
 This generates a public, shareable link that you can send to anybody! When you send this link, the user on the other side can try out the model in their browser. Because the processing happens on your device (as long as your device stays on!), you don't have to worry about any dependencies. If you're working out of colab notebook, a share link is always automatically created. It usually looks something like this:  **XXXXX.gradio.app**. Although the link is served through a gradio link, we are only a proxy for your local server, and do not store any data sent through the interfaces.
@@ -127,6 +135,33 @@ Links expire after 6 hours. Need longer links, or private links?  [Contact us fo
 ### Permanent Hosting
 
 You can share your interface publicly and permanently by hosting on Gradio's infrastructure. You will need to create a Gradio premium account. First, log into Gradio on [gradio.app](https://gradio.app) and click Sign In at the top. Once you've logged in with your Github account, you can specify which repositories from your Github profile you'd like to have hosted by Gradio. You must also specify the file within the repository that runs the Gradio `launch()` command. Once you've taken these steps, Gradio will launch your interface and provide a public link you can share.
+
+## Advanced Features
+
+### Exploring Similar Examples with Embeddings
+
+When you provide input to the function, you may wish to see if there are similar samples in the example dataset that could explain the behaviour of the function. For example, if an image model returns a peculiar output for a given input, you may load the training data into the examples dataset and see what training data samples are similar to the input you provided. If you enable this feature, you can click the *Order by Similarity* button to show the most similar samples from the example dataset.
+
+Gradio supports exploring similar data samples through embeddings. Embeddings are a list of floats that numerically represent any input. To the `embedding` keyword argument of Interface, you must pass a function that takes the same inputs as the main `fn` argument, but instead returns an embedding that represents all the input values as a single list of floats. You can also pass the "default" string to `embedding` and Gradio will automatically generate embeddings for each sample in the examples dataset.
+
+### Interpretation
+
+Most models are black boxes such that the internal logic of the function is hidden from the end user. To encourage transparency, we've added the ability for interpretation so that users can understand what parts of the input are responsible for the output. Take a look at the simple interface below:
+
+$code_gender_sentence_default_interpretation
+$demo_gender_sentence_default_interpretation
+
+Notice the  `interpretation`  keyword argument. We're going to use Gradio's default interpreter here. After you submit and click Interpret, you'll see the interface automatically highlights the parts of the text that contributed to the final output orange! The parts that conflict with the output are highlight blue.
+
+You can also write your own interpretation function. The demo below adds custom interpretation to the previous demo. This function will take the same inputs as the main wrapped function. The output of this interpretation function will be used to highlight the input of each input interface - therefore the number of outputs here corresponds to the number of input interfaces. To see the format for interpretation for each input interface, check the [Docs](https://gradio.app/docs).
+
+$code_gender_sentence_custom_interpretation
+$demo_gender_sentence_custom_interpretation
+
+If you use Gradio's default interpretation, the output component must be a label or a number. All input components are supported for default interpretation. Below is an example with image input.
+
+$code_image_classifier
+$demo_image_classifier
 
 ##  Contributing:
 

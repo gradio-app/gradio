@@ -593,6 +593,9 @@ function gradio(config, fn, target, example_file_path) {
       });
     }
   }
+  if (config.hide_run_all) {
+    $(".run_examples").hide();
+  }
   target.find(".interpret").click(function() {
     target.find(".interpretation_explained").removeClass("invisible");
     if (io_master.last_output) {
