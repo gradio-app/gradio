@@ -170,9 +170,11 @@ For example, with the calculator interface shown above, we would have the flagge
 ```
 
 *flagged/logs.csv*
+```
 num1,operation,num2,Output
 5,add,7,12
 6,subtract,1.5,4.5
+```
 
 With the sepia interface shown above, we would have the flagged data stored in the flagged directory shown below:
 
@@ -188,10 +190,12 @@ With the sepia interface shown above, we would have the flagged data stored in t
 |   |   +-- 1.png
 ```
 
-*flagged/logs.csv*
+*flagged/logs.csv*:
+```
 im,Output
 im/0.png,Output/0.png
 im/1.png,Output/1.png
+```
 
 You can review these flagged inputs by manually exploring the flagging directory, or load them into the examples of the Gradio interface by pointing the  `examples=`  argument to the flagged directory. If you wish for the user to provide a reason for flagging, you can pass a list of strings to the `flagging_options` argument of Interface. Users will have to select one of the strings when flagging, which will be saved as an additional column to the CSV.
 
