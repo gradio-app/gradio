@@ -128,7 +128,8 @@
     <script>
       $.getJSON("/config/", function(config) {
         {% if examples %}
-        config["examples"] = {{ examples|tojson }}
+        config["examples"] = {{ examples|tojson }};
+        config["hide_run_all"] = true;
         {% endif %}
         io = gradio_url(config, "/api/", "#interface_target", "/file/{% if path %}{{ path }}/{% endif %}");
       });

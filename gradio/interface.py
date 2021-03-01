@@ -49,8 +49,8 @@ class Interface:
                  capture_session=False, interpretation=None,
                  title=None, description=None, article=None, thumbnail=None, 
                  css=None, server_port=7860, server_name=networking.LOCALHOST_NAME,
-                 allow_screenshot=True, allow_flagging=True, show_tips=True,
-                 embedding=None, flagging_dir="flagged", analytics_enabled=True):
+                 allow_screenshot=True, allow_flagging=True, flagging_options=None,
+                 show_tips=True, embedding=None, flagging_dir="flagged", analytics_enabled=True):
 
         """
         Parameters:
@@ -73,6 +73,7 @@ class Interface:
         server_name (str): to make app accessible on local network set to "0.0.0.0".
         allow_screenshot (bool): if False, users will not see a button to take a screenshot of the interface.
         allow_flagging (bool): if False, users will not see a button to flag an input and output.
+        flagging_options (List[str]): if not None, provides options a user must select when flagging.
         flagging_dir (str): what to name the dir where flagged data is stored.
         show_tips (bool): if True, will occasionally show tips about new Gradio features
         """
@@ -136,12 +137,16 @@ class Interface:
                 self.css = css_file.read()
         else:
             self.css = css
-        self.examples = examples
+        if examples is None or isinstance(examples, str) or (isinstance(examples, list) and (len(examples) == 0 or isinstance(examples[0], list))):
+            self.examples = examples
+        else:
+            raise ValueError("Examples argument must either be a directory or a nested list, where each sublist represents a set of inputs.")
         self.examples_per_page = examples_per_page
         self.server_port = server_port
         self.simple_server = None
         self.allow_screenshot = allow_screenshot
         self.allow_flagging = os.getenv("GRADIO_FLAGGING") or allow_flagging
+        self.flagging_options = flagging_options 
         self.flagging_dir = flagging_dir
         Interface.instances.add(self)
         self.analytics_enabled=analytics_enabled
@@ -202,6 +207,7 @@ class Interface:
             "thumbnail": self.thumbnail,
             "allow_screenshot": self.allow_screenshot,
             "allow_flagging": self.allow_flagging,
+            "flagging_options": self.flagging_options,
             "allow_interpretation": self.interpretation is not None,
             "allow_embedding": self.embedding is not None,
         }

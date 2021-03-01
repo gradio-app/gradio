@@ -141,11 +141,12 @@ var io_master_template = {
     }
     this.gathering = false;
   },
-  flag: function() {
+  flag: function(flag_option) {
     var post_data = {
       'input_data' : this.last_input ,
-      'output_data' : this.last_output
-    }
+      'output_data' : this.last_output,
+      'flag_option': flag_option
+    };
     this.fn(post_data, "flag")
   },
   interpret: function() {
