@@ -105,7 +105,6 @@ def main_from_dir(path):
     for i, example in enumerate(examples):
         for j, (interface, cell) in enumerate(zip(app.interface.input_interfaces + app.interface.output_interfaces, example)):
             examples[i][j] = interface.restore_flagged(cell)
-    examples = [example[:len(app.interface.input_interfaces) + len(app.interface.output_interfaces)] for example in examples]
     return render_template("index.html",
         config=app.interface.config,
         vendor_prefix=(GRADIO_STATIC_ROOT if app.interface.share else ""),
@@ -222,13 +221,15 @@ def predict_examples():
     return jsonify(output)
 
 
-def flag_data(input_data, output_data):
+def flag_data(input_data, output_data, flag_option=None):
     flag_path = os.path.join(app.cwd, app.interface.flagging_dir)
     csv_data = []
     for i, interface in enumerate(app.interface.input_interfaces):
         csv_data.append(interface.save_flagged(flag_path, app.interface.config["input_interfaces"][i][1]["label"], input_data[i]))
     for i, interface in enumerate(app.interface.output_interfaces):
         csv_data.append(interface.save_flagged(flag_path, app.interface.config["output_interfaces"][i][1]["label"], output_data[i]))
+    if flag_option:
+        csv_data.append(flag_option)
 
     log_fp = "{}/log.csv".format(flag_path)
     is_new = not os.path.exists(log_fp)
@@ -238,6 +239,8 @@ def flag_data(input_data, output_data):
         if is_new:
             headers = [interface[1]["label"] for interface in app.interface.config["input_interfaces"]]
             headers += [interface[1]["label"] for interface in app.interface.config["output_interfaces"]]
+            if app.interface.flagging_options is not None:
+                headers.append("flag")
             writer.writerow(headers)
 
         writer.writerow(csv_data)
@@ -245,8 +248,8 @@ def flag_data(input_data, output_data):
 @app.route("/api/flag/", methods=["POST"])
 def flag():
     log_feature_analytics('flag')
-    input_data, output_data = request.json['data']['input_data'], request.json['data']['output_data']
-    flag_data(input_data, output_data)
+    data = request.json['data']
+    flag_data(data['input_data'], data['output_data'], data.get("flag_option"))
     return jsonify(success=True)
 
 
