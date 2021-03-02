@@ -164,7 +164,7 @@ button.submit:hover {
   align-items: center;
 }
 
-.invisible {
+.hidden {
   display: none !important;
 }
 .screenshot_logo {

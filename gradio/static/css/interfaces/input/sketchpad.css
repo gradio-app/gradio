@@ -45,7 +45,7 @@
 .canvas_holder {
   text-align: center;
   width: 100%;
-  height: calc(100% - 36px);
+  height: 100%;
 }
 .saliency_holder {
   position: absolute;
