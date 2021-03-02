@@ -183,7 +183,7 @@ class Interface:
         if self.analytics_enabled:
             try:
                 requests.post(analytics_url + 'gradio-initiated-analytics/',
-                              data=data)
+                              data=data, timeout=2)
             except requests.ConnectionError:
                 pass  # do not push analytics if no network
 
@@ -498,7 +498,7 @@ def send_error_analytics(analytics_enabled):
     if analytics_enabled:
         try:
             requests.post(analytics_url + 'gradio-error-analytics/',
-                            data=data)
+                            data=data, timeout=2)
         except requests.ConnectionError:
             pass  # do not push analytics if no network
 
@@ -514,7 +514,7 @@ def send_launch_analytics(analytics_enabled, inbrowser, is_colab, share, share_u
         }
         try:
             requests.post(analytics_url + 'gradio-launched-analytics/',
-                            data=data)
+                            data=data, timeout=2)
         except requests.ConnectionError:
             pass  # do not push analytics if no network
 
