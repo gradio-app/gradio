@@ -31,13 +31,19 @@
     <title>Gradio</title>
     <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
     <!-- VENDOR -->
+    <link type="text/css" href="{{ vendor_prefix }}/static/css/vendor/jquery-ui.css" rel="stylesheet">
+    {% if "image" in input_interfaces %}
     <link type="text/css" href="{{ vendor_prefix }}/static/css/vendor/tui-color-picker.css" rel="stylesheet">
     <link type="text/css" href="{{ vendor_prefix }}/static/css/vendor/tui-image-editor.css" rel="stylesheet">
-    <link type="text/css" href="{{ vendor_prefix }}/static/css/vendor/jquery-ui.css" rel="stylesheet">
+    <link type="text/css" href="{{ vendor_prefix }}/static/css/vendor/cropper.min.css" rel="stylesheet">
+    {% endif %}
+    {% if "dataframe" in input_interfaces or "dataframe" in output_interfaces %}
     <link type="text/css" href="{{ vendor_prefix }}/static/css/vendor/jexcel.min.css" rel="stylesheet">
     <link type="text/css" href="{{ vendor_prefix }}/static/css/vendor/jsuites.min.css" rel="stylesheet">
+    {% endif %}
+    {% if "json" in output_interfaces %}
     <link type="text/css" href="{{ vendor_prefix }}/static/css/vendor/jsonTree.css" rel="stylesheet">    
-    <link type="text/css" href="{{ vendor_prefix }}/static/css/vendor/cropper.min.css" rel="stylesheet">
+    {% endif %}
 
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -76,7 +82,7 @@
     <script src="{{ vendor_prefix }}/static/js/vendor/html2canvas.min.js"></script>
     <script src="{{ vendor_prefix }}/static/js/vendor/jquery-ui.min.js"></script>
     <script src="{{ vendor_prefix }}/static/js/vendor/jquery.ui.touch-punch.js"></script>
-    <script src="{{ vendor_prefix }}/static/js/vendor/jsonTree.js"></script>
+    {% if "image" in input_interfaces %}
     <script src="{{ vendor_prefix }}/static/js/vendor/fabric.js"></script>
     <script src="{{ vendor_prefix }}/static/js/vendor/tui-code-snippet.min.js"></script>
     <script src="{{ vendor_prefix }}/static/js/vendor/FileSaver.min.js"></script>
@@ -84,17 +90,27 @@
     <script src="{{ vendor_prefix }}/static/js/vendor/tui-image-editor.js"></script>
     <script src="{{ vendor_prefix }}/static/js/vendor/white-theme.js"></script>
     <script src="{{ vendor_prefix }}/static/js/vendor/black-theme.js"></script>
-    <script src="{{ vendor_prefix }}/static/js/vendor/wavesurfer.min.js"></script>
-    <script src="{{ vendor_prefix }}/static/js/vendor/p5.min.js"></script>
-    <script src="{{ vendor_prefix }}/static/js/vendor/p5.sound.min.js"></script>
-    <script src="{{ vendor_prefix }}/static/js/vendor/p5.dom.min.js"></script>
-    <script src="{{ vendor_prefix }}/static/js/vendor/jexcel.min.js"></script>
-    <script src="{{ vendor_prefix }}/static/js/vendor/jsuites.min.js"></script>
     <script src="{{ vendor_prefix }}/static/js/vendor/cropper.min.js"></script>
     <script src="{{ vendor_prefix }}/static/js/vendor/sketchpad.js"></script>
     <script src="{{ vendor_prefix }}/static/js/vendor/webcam.min.js"></script>
-    <script src="{{ vendor_prefix }}/static/js/vendor/gifcap/gifencoder.js"></script>
+    {% endif %}
+    {% if "audio" in input_interfaces or "audio" in output_interfaces %}
+    <script src="{{ vendor_prefix }}/static/js/vendor/wavesurfer.min.js"></script>
+    {% endif %}
+    {% if "audio" in input_interfaces %}
+    <script src="{{ vendor_prefix }}/static/js/vendor/p5.min.js"></script>
+    <script src="{{ vendor_prefix }}/static/js/vendor/p5.sound.min.js"></script>
+    <script src="{{ vendor_prefix }}/static/js/vendor/p5.dom.min.js"></script>
+    {% endif %}
+    {% if "dataframe" in input_interfaces or "dataframe" in output_interfaces %}
+    <script src="{{ vendor_prefix }}/static/js/vendor/jexcel.min.js"></script>
+    <script src="{{ vendor_prefix }}/static/js/vendor/jsuites.min.js"></script>
+    {% endif%}
+    {% if "json" in output_interfaces %}
+    <script src="{{ vendor_prefix }}/static/js/vendor/jsonTree.js"></script>
+    {% endif %}
     <script src="{{ vendor_prefix }}/static/js/vendor/Chart.min.js"></script>
+    <script src="{{ vendor_prefix }}/static/js/vendor/gifcap/gifencoder.js"></script>
 
     <script src="{{ url_for('static', filename='js/utils.js') }}"></script>
     <script src="{{ url_for('static', filename='js/all_io.js') }}"></script>
