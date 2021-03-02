@@ -51,8 +51,8 @@ cli.show_server_banner = lambda *x: None
 
 def get_local_ip_address():
     try:
-        ip_address = requests.get('https://api.ipify.org', timeout=2).text
-    except requests.ConnectionError:
+        ip_address = requests.get('https://api.ipify.org', timeout=3).text
+    except (requests.ConnectionError, requests.exceptions.ReadTimeout):
         ip_address = "No internet connection"
     return ip_address
 
@@ -145,8 +145,8 @@ def log_feature_analytics(feature):
             requests.post(GRADIO_FEATURE_ANALYTICS_URL, 
             data={
                 'ip_address': IP_ADDRESS,
-                'feature': feature}, timeout=2)
-        except requests.ConnectionError:
+                'feature': feature}, timeout=3)
+        except (requests.ConnectionError, requests.exceptions.ReadTimeout):
             pass  # do not push analytics if no network
 
 @app.route("/api/score_similarity/", methods=["POST"])
@@ -322,7 +322,7 @@ def url_ok(url):
     try:
         for _ in range(5):
             time.sleep(.500)
-            r = requests.head(url, timeout=2)
+            r = requests.head(url, timeout=3)
             if r.status_code == 200:
                 return True
     except (ConnectionError, requests.exceptions.ConnectionError):

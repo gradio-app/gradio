@@ -28,7 +28,7 @@ en = {
 }
 
 try:
-    updated_messaging = requests.get(MESSAGING_API_ENDPOINT, timeout=2).json()
+    updated_messaging = requests.get(MESSAGING_API_ENDPOINT, timeout=3).json()
     en.update(updated_messaging)
-except (requests.ConnectionError, json.decoder.JSONDecodeError):  # Use default messaging
+except (requests.ConnectionError, requests.exceptions.ReadTimeout, json.decoder.JSONDecodeError):  # Use default messaging
     pass
