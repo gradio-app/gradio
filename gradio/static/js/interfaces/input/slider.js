@@ -20,7 +20,8 @@ const slider = {
       },
       min: opts.minimum,
       max: opts.maximum,
-      step: opts.step
+      step: opts.step,
+      value: opts.default
     });
   },
   submit: function() {

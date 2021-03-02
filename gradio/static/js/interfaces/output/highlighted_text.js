@@ -1,12 +1,12 @@
 const highlighted_text = {
   html: `
     <div class="highlight_legend">
-      <div class="color_legend invisible">
+      <div class="color_legend hidden">
         <span>-1</span>
         <span>0</span>
         <span>+1</span>
       </div>
-      <div class="category_legend invisible"></div>
+      <div class="category_legend hidden"></div>
     </div>
     <div class="output_text"></div>
   `,
@@ -48,7 +48,7 @@ const highlighted_text = {
     if (data.length == 0) {
       return;
     } else if (typeof(data[0][1]) == "string") {
-      this.target.find(".category_legend").removeClass("invisible");
+      this.target.find(".category_legend").removeClass("hidden");
       let new_color_map = {};
       for (let span of data) {
         let category = span[1];
@@ -66,7 +66,7 @@ const highlighted_text = {
       this.target.find(".output_text").html(html);
 
     } else {
-      this.target.find(".color_legend").removeClass("invisible");
+      this.target.find(".color_legend").removeClass("hidden");
       let html = "";
       for (let span of data) {
         let value = span[1];
@@ -85,7 +85,7 @@ const highlighted_text = {
   },
   clear: function() {
     this.target.find(".output_text").empty();
-    this.target.find(".highlight_legend div").addClass("invisible");
+    this.target.find(".highlight_legend div").addClass("hidden");
   },
   load_example_preview: function(data) {
     let output_string = "";

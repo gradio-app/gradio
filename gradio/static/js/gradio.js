@@ -1,7 +1,7 @@
 function gradio(config, fn, target, example_file_path) {
   target = $(target);
   target.html(`
-    <div class="share invisible">
+    <div class="share hidden">
       Live at <a class="share-link" target="_blank"></a>.
       <button class="share-copy">Copy Link</button>
     </div>
@@ -17,30 +17,30 @@ function gradio(config, fn, target, example_file_path) {
         </div>
       </div>
       <div class="panel output_panel">
-        <div class="loading invisible">
+        <div class="loading hidden">
           <img class="loading_in_progress" src="/static/img/logo_loading.gif">
           <img class="loading_failed" src="/static/img/logo_error.png">
         </div>
         <div class="output_interfaces">
         </div>
         <div class="panel_buttons">
-          <button class="interpret panel_button">INTERPRET</button>
+          <button class="interpret inactive panel_button">INTERPRET</button>
           <button class="screenshot panel_button left_panel_button">SCREENSHOT</button>
           <button class="record panel_button right_panel_button">GIF</button>
-          <div class="screenshot_logo invisible">
+          <div class="screenshot_logo hidden">
             <img src="/static/img/logo_inline.png">
             <button class='record_stop'>
               <div class='record_square'></div>
             </button>
           </div>
-          <div class="flag panel_button">
+          <div class="flag panel_button inactive">
             FLAG
             <div class="dropcontent"></div>
           </div>
         </div>
       </div>
     </div>
-    <div class="interpretation_explained invisible">
+    <div class="interpretation_explained hidden">
       <h4>Interpretation Legend <span class='close_explain'>&#10006;</span></h4>
       <div class='interpretation_legend'>
         <div>&larr; Decreased output score / confidence</div>
@@ -49,7 +49,7 @@ function gradio(config, fn, target, example_file_path) {
       <p>When you click Interpret, you can see how different parts of the input contributed to the final output. The legend above will highlight each of the input components as follows:</p>
       <ul></ul>
     </div>
-    <div class="examples invisible">
+    <div class="examples hidden">
       <h4>Examples</small></h4>
       <div class="examples_control">
         <div class="examples_control_left">
@@ -58,8 +58,8 @@ function gradio(config, fn, target, example_file_path) {
           <button class="load_next examples-content">Load Next <small>CTRL + &#10140;</small></button>
           <button class="order_similar examples-content embedding">Order by Similarity</button>
           <button class="view_embeddings examples-content embedding">View Embeddings</button>
-          <button class="update_embeddings embeddings-content invisible">Update Embeddings</button>
-          <button class="view_examples embeddings-content invisible">View Examples</button>
+          <button class="update_embeddings embeddings-content hidden">Update Embeddings</button>
+          <button class="view_examples embeddings-content hidden">View Examples</button>
         </div>
         <div class="examples_control_right">
           <button class="table_examples">
@@ -70,10 +70,10 @@ function gradio(config, fn, target, example_file_path) {
           </button>
         </div>
       </div>
-      <div class="pages invisible">Page:</div>
+      <div class="pages hidden">Page:</div>
       <table class="examples-content">
       </table>
-      <div class="plot embeddings-content invisible"><canvas id="canvas" width="400px" height="300px"></canvas></div>
+      <div class="plot embeddings-content hidden"><canvas id="canvas" width="400px" height="300px"></canvas></div>
     </div>
     <p class="article"></p>    
     `);
@@ -133,7 +133,7 @@ function gradio(config, fn, target, example_file_path) {
   }
   if (config["share_url"]) {
     let share_url = config["share_url"];
-    target.find(".share").removeClass("invisible");
+    target.find(".share").removeClass("hidden");
     target.find(".share-link").text(share_url).attr("href", share_url);
     target.find(".share-copy").click(function() {
       copyToClipboard(share_url);
@@ -206,10 +206,11 @@ function gradio(config, fn, target, example_file_path) {
     for (let output_interface of output_interfaces) {
       output_interface.clear();
     }
-    target.find(".flag_message").empty();
-    target.find(".loading").addClass("invisible");
+    target.find(".loading").addClass("hidden");
     target.find(".loading_time").text("");
     target.find(".output_interfaces").css("opacity", 1);
+    target.find(".flag").addClass("inactive");
+    target.find(".interpret").addClass("inactive");
     io_master.last_input = null;
     io_master.last_output = null;
   }  
@@ -218,28 +219,24 @@ function gradio(config, fn, target, example_file_path) {
   if (!config["allow_embedding"]) {
     target.find(".embedding").hide();
   }
-  if (!config["allow_screenshot"] && config["allow_flagging"] !== true && !config["allow_interpretation"]) {
-    target.find(".screenshot, .record, .flag, .interpret").css("visibility", "hidden");
+  if (!config["allow_screenshot"]) {
+    target.find(".screenshot, .record").hide();
+  }
+  if (config["allow_flagging"] !== true) {
+    target.find(".flag").hide();
+  }
+  if (!config["allow_interpretation"]) {
+    target.find(".interpret").hide();
   } else {
-    if (!config["allow_screenshot"]) {
-      target.find(".screenshot, .record").hide();
+    let interpret_html = ""; 
+    for (let [i, interface] of io_master.input_interfaces.entries()) {
+      let label = config.input_interfaces[i][1]["label"];
+      interpret_html += "<li><strong>" + label + "</strong> - " + interface.interpretation_logic + "</li>";
     }
-    if (config["allow_flagging"] !== true) {
-      target.find(".flag").hide();
-    }
-    if (!config["allow_interpretation"]) {
-      target.find(".interpret").hide();
-    } else {
-      let interpret_html = ""; 
-      for (let [i, interface] of io_master.input_interfaces.entries()) {
-        let label = config.input_interfaces[i][1]["label"];;
-        interpret_html += "<li><strong>" + label + "</strong> - " + interface.interpretation_logic + "</li>";
-      }
-      target.find(".interpretation_explained ul").html(interpret_html);
-      target.find(".interpretation_explained .close_explain").click(function() {
-        target.find(".interpretation_explained").remove();
-      });
-    }
+    target.find(".interpretation_explained ul").html(interpret_html);
+    target.find(".interpretation_explained .close_explain").click(function() {
+      target.find(".interpretation_explained").remove();
+    });
   }
   function load_example(example_id) {
     clear_all();
@@ -340,7 +337,7 @@ function gradio(config, fn, target, example_file_path) {
     target.find(".examples > table > tbody").html(html);
   }
   if (config["examples"]) {
-    target.find(".examples").removeClass("invisible");
+    target.find(".examples").removeClass("hidden");
     let html = "<thead>"
     for (let input_interface of config["input_interfaces"]) {
       html += "<th>" + input_interface[1]["label"] + "</th>";
@@ -357,7 +354,7 @@ function gradio(config, fn, target, example_file_path) {
     io_master.order_mapping = [...Array(config.examples.length).keys()];
     let page_count = Math.ceil(config.examples.length / config.examples_per_page)
     if (page_count > 1) {
-      target.find(".pages").removeClass("invisible");
+      target.find(".pages").removeClass("hidden");
       let html = "";
       for (let i = 0; i < page_count; i++) {
         html += `<button class='page' page='${i}'>${i+1}</button>`
@@ -403,8 +400,8 @@ function gradio(config, fn, target, example_file_path) {
       })
     });
     target.find(".view_examples").click(function() {
-      target.find(".examples-content").removeClass("invisible");        
-      target.find(".embeddings-content").addClass("invisible");  
+      target.find(".examples-content").removeClass("hidden");        
+      target.find(".embeddings-content").addClass("hidden");  
     });
     target.find(".update_embeddings").click(function() {
       io_master.update_embeddings(function(output) {
@@ -451,8 +448,8 @@ function gradio(config, fn, target, example_file_path) {
           }
         };
     
-        target.find(".examples-content").addClass("invisible");        
-        target.find(".embeddings-content").removeClass("invisible");  
+        target.find(".examples-content").addClass("hidden");        
+        target.find(".embeddings-content").removeClass("hidden");  
         })
     });
     $("body").keydown(function(e) {
@@ -475,7 +472,7 @@ function gradio(config, fn, target, example_file_path) {
   
   target.find(".screenshot").click(function() {
     $(".screenshot, .record").hide();
-    $(".screenshot_logo").removeClass("invisible");
+    $(".screenshot_logo").removeClass("hidden");
     $(".record_stop").hide();
     html2canvas(target[0], {
       scrollX: 0,
@@ -483,15 +480,15 @@ function gradio(config, fn, target, example_file_path) {
     }).then(function(canvas) {
       saveAs(canvas.toDataURL(), 'screenshot.png');
       $(".screenshot, .record").show();
-      $(".screenshot_logo").addClass("invisible");
+      $(".screenshot_logo").addClass("hidden");
     });
   });
   target.find(".record").click(function() {
     $(".screenshot, .record").hide();
-    $(".screenshot_logo").removeClass("invisible");
+    $(".screenshot_logo").removeClass("hidden");
     $(".record_stop").show();
-    target.append("<canvas class='recording_draw invisible' width=640 height=480></canvas>");
-    target.append("<video class='recording invisible' autoplay playsinline></video>");
+    target.append("<canvas class='recording_draw hidden' width=640 height=480></canvas>");
+    target.append("<video class='recording hidden' autoplay playsinline></video>");
     navigator.mediaDevices.getDisplayMedia(
       { video: { width: 9999, height: 9999 } }
     ).then(stream => {
@@ -546,7 +543,7 @@ function gradio(config, fn, target, example_file_path) {
     processFrame(start);
 
     $(".screenshot, .record").show();
-    $(".screenshot_logo").addClass("invisible");
+    $(".screenshot_logo").addClass("hidden");
     target.find("canvas.recording_draw").remove();
     target.find("video.recording").remove();
   })
@@ -563,10 +560,10 @@ function gradio(config, fn, target, example_file_path) {
   }
   function flash_flag() {
     target.find(".flag").addClass("flagged");
-    target.find(".dropcontent").addClass("invisible");
+    target.find(".dropcontent").addClass("hidden");
     window.setTimeout(() => {
       target.find(".flag").removeClass("flagged");
-      target.find(".dropcontent").removeClass("invisible");
+      target.find(".dropcontent").removeClass("hidden");
     }, 500);
 
   }
@@ -597,7 +594,7 @@ function gradio(config, fn, target, example_file_path) {
     $(".run_examples").hide();
   }
   target.find(".interpret").click(function() {
-    target.find(".interpretation_explained").removeClass("invisible");
+    target.find(".interpretation_explained").removeClass("hidden");
     if (io_master.last_output) {
       io_master.interpret();
     }

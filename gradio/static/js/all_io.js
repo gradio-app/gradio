@@ -25,13 +25,15 @@ var io_master_template = {
   submit: function() {
     let io = this;
     if (!this.config.live) {
-      this.target.find(".loading").removeClass("invisible");
+      this.target.find(".loading").removeClass("hidden");
       this.target.find(".loading_in_progress").show();
       this.target.find(".loading_failed").hide();
       this.target.find(".output_interfaces").css("opacity", 0.5);
     }
     this.fn(this.last_input, "predict").then((output) => {
       io.output(output);
+      this.target.find(".flag").removeClass("inactive");
+      this.target.find(".interpret").removeClass("inactive");  
     }).catch((error) => {
       console.error(error);
       this.target.find(".loading_in_progress").hide();
@@ -39,45 +41,45 @@ var io_master_template = {
     });
   },
   score_similarity: function(callback) {
-    this.target.find(".loading").removeClass("invisible");
+    this.target.find(".loading").removeClass("hidden");
     this.target.find(".loading_in_progress").show();
     this.target.find(".loading_failed").hide();
     this.target.find(".output_interfaces").css("opacity", 0.5);
 
     this.fn(this.last_input, "score_similarity").then((output) => {
       output = output["data"];
-      this.target.find(".loading").addClass("invisible");
+      this.target.find(".loading").addClass("hidden");
       this.target.find(".output_interfaces").css("opacity", 1);
       this.order_mapping = sortWithIndices(output).reverse();
       callback();
     })
   },
   view_embeddings: function(callback) {
-    this.target.find(".loading").removeClass("invisible");
+    this.target.find(".loading").removeClass("hidden");
     this.target.find(".loading_in_progress").show();
     this.target.find(".loading_failed").hide();
     this.target.find(".output_interfaces").css("opacity", 0.5);
 
     this.fn(this.last_input, "view_embeddings").then((output) => {
-      this.target.find(".loading").addClass("invisible");
+      this.target.find(".loading").addClass("hidden");
       this.target.find(".output_interfaces").css("opacity", 1);
       callback(output)
     })
   },
   update_embeddings: function(callback) {
-    this.target.find(".loading").removeClass("invisible");
+    this.target.find(".loading").removeClass("hidden");
     this.target.find(".loading_in_progress").show();
     this.target.find(".loading_failed").hide();
     this.target.find(".output_interfaces").css("opacity", 0.5);
 
     this.fn(this.last_input, "update_embeddings").then((output) => {
-      this.target.find(".loading").addClass("invisible");
+      this.target.find(".loading").addClass("hidden");
       this.target.find(".output_interfaces").css("opacity", 1);
       callback(output)
     })
   },
   submit_examples: function(callback) {
-    this.target.find(".loading").removeClass("invisible");
+    this.target.find(".loading").removeClass("hidden");
     this.target.find(".loading_in_progress").show();
     this.target.find(".loading_failed").hide();
     this.target.find(".output_interfaces").css("opacity", 0.5);
@@ -92,7 +94,7 @@ var io_master_template = {
       }
     }
     this.fn(example_ids, "predict_examples").then((output) => {
-      this.target.find(".loading").addClass("invisible");
+      this.target.find(".loading").addClass("hidden");
       this.target.find(".output_interfaces").css("opacity", 1);
 
       output = output["data"];
@@ -128,7 +130,7 @@ var io_master_template = {
         io.gather();
       }, refresh_lag);
     } else {
-      this.target.find(".loading").addClass("invisible");
+      this.target.find(".loading").addClass("hidden");
       this.target.find(".output_interfaces").css("opacity", 1);
     }
   },
@@ -151,7 +153,7 @@ var io_master_template = {
   },
   interpret: function() {
     var io = this;
-    this.target.find(".loading").removeClass("invisible");
+    this.target.find(".loading").removeClass("hidden");
     this.target.find(".loading_in_progress").show();
     var post_data = this.last_input;
     this.fn(post_data, "interpret").then((data) => {

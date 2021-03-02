@@ -79,16 +79,20 @@ def get_first_available_port(initial, final):
         )
     )
 
+def home_page(examples=None, path=None):
+    return render_template("index.html",
+        config=app.interface.config,
+        vendor_prefix=(GRADIO_STATIC_ROOT if app.interface.share else ""),
+        input_interfaces=[interface[0] for interface in app.interface.config["input_interfaces"]],
+        output_interfaces=[interface[0] for interface in app.interface.config["output_interfaces"]],
+        css=app.interface.css, examples=examples, path=path
+    )
 
 @app.route("/", methods=["GET"])
 def main():
     if isinstance(app.interface.examples, str):
         return redirect("/from_dir/" + app.interface.examples)
-    return render_template("index.html",
-        config=app.interface.config,
-        vendor_prefix=(GRADIO_STATIC_ROOT if app.interface.share else ""),
-        css=app.interface.css,
-    )
+    return home_page()
 
 @app.route("/from_dir", methods=["GET"])
 def main_from_flagging_dir():
@@ -98,21 +102,17 @@ def main_from_flagging_dir():
 def main_from_dir(path):
     log_file = os.path.join(path, "log.csv")
     if not os.path.exists(log_file):
-        abort(404)
+        if isinstance(app.interface.examples, str):
+            abort(404, "Examples dir not found")
+        else:
+            redirect("/")
     with open(log_file) as logs:
         examples = list(csv.reader(logs)) 
     examples = examples[1:] #remove header
     for i, example in enumerate(examples):
         for j, (interface, cell) in enumerate(zip(app.interface.input_interfaces + app.interface.output_interfaces, example)):
             examples[i][j] = interface.restore_flagged(cell)
-    return render_template("index.html",
-        config=app.interface.config,
-        vendor_prefix=(GRADIO_STATIC_ROOT if app.interface.share else ""),
-        css=app.interface.css,
-        path=path,
-        examples=examples
-    )
-
+    return home_page(examples=examples, path=path)
 
 @app.route("/config/", methods=["GET"])
 def config():

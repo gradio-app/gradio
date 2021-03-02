@@ -15,13 +15,12 @@ def recognize_digit(image):
     prediction = model.predict(image).tolist()[0]
     return {str(i): prediction[i] for i in range(10)}
 
-im = gradio.inputs.Image(shape=(28, 28), image_mode='L', invert_colors=False)
+im = gradio.inputs.Image(shape=(28, 28), image_mode='L', invert_colors=False, source="canvas")
 
 iface = gr.Interface(
     recognize_digit, 
     im, 
     gradio.outputs.Label(num_top_classes=3),
-    examples=[['digits/' + x] for x in os.listdir('digits/')],
     # live=True,
     interpretation="default",
     capture_session=True,
