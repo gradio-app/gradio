@@ -28,8 +28,8 @@ def error_analytics(type):
     data = {'error': '{} in launch method'.format(type)}
     try:
         requests.post(analytics_url + 'gradio-error-analytics/',
-                      data=data, timeout=2)
-    except requests.ConnectionError:
+                      data=data, timeout=3)
+    except (requests.ConnectionError, requests.exceptions.ReadTimeout):
         pass  # do not push analytics if no network
 
 
@@ -63,7 +63,7 @@ def ipython_check():
 
 def readme_to_html(article):
     try:
-        response = requests.get(article, timeout=2)
+        response = requests.get(article, timeout=3)
         if response.status_code == requests.codes.ok:
             article = response.text
     except requests.exceptions.RequestException:
