@@ -13,3 +13,4 @@ iface = gr.Interface(snap, gr.inputs.Image(source="webcam", tool=None), "image")
 iface.test_launch()
 if __name__ == "__main__":
     iface.launch()
+ 
