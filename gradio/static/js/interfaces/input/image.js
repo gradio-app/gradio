@@ -50,11 +50,6 @@ const image_input = {
     this.shape = opts.shape;
     this.source = opts.source;
     this.tool = opts.tool;
-    if (this.tool == "select") {
-      this.target.find('.edit_holder').hide();      
-    }
-    $('body').append(this.overlay_html.format(this.id));
-    this.overlay_target = $(`.overlay[interface_id=${this.id}]`);
     if (this.source == "upload") {
       io.target.find(".drop_zone").removeClass("hide");
       this.target.find(".drop_zone").click(function (e) {
@@ -120,32 +115,38 @@ const image_input = {
       })    
       this.clear();
     }
-    this.target.find('.edit_image').click(function (e) {
-      io.overlay_target.removeClass("hide");
-    })
-    this.tui_editor = new tui.ImageEditor(this.overlay_target.
-        find(".image_editor")[0], {
-      includeUI: {
-        menuBarPosition: 'left',
-        menu: ['crop', 'flip', 'rotate', 'draw', 'filter', 'text']
-     },
-       cssMaxWidth: 700,
-       cssMaxHeight: 500,
-       selectionStyle: {
-         cornerSize: 20,
-         rotatingPointOffset: 70
-       }
-     })
-     this.overlay_target.find(".tui-image-editor-header-buttons").html(`
-       <button class="tui_save tui_close interface_button primary">Save</button>
-       <button class="tui_cancel tui_close interface_button secondary">Cancel</button>
-     `)
-     this.overlay_target.find('.tui_close').click(function (e) {
-       io.overlay_target.addClass("hide");
-       if ($(e.target).hasClass('tui_save')) {
-         io.set_image_data(io.tui_editor.toDataURL(), /*update_editor=*/false);
-       }
-     });
+    if (this.tool == "editor") {
+      $('body').append(this.overlay_html.format(this.id));
+      this.overlay_target = $(`.overlay[interface_id=${this.id}]`);  
+      this.target.find('.edit_image').click(function (e) {
+        io.overlay_target.removeClass("hide");
+      })
+      this.tui_editor = new tui.ImageEditor(this.overlay_target.
+          find(".image_editor")[0], {
+        includeUI: {
+          menuBarPosition: 'left',
+          menu: ['crop', 'flip', 'rotate', 'draw', 'filter', 'text']
+       },
+         cssMaxWidth: 700,
+         cssMaxHeight: 500,
+         selectionStyle: {
+           cornerSize: 20,
+           rotatingPointOffset: 70
+         }
+       })
+       this.overlay_target.find(".tui-image-editor-header-buttons").html(`
+         <button class="tui_save tui_close interface_button primary">Save</button>
+         <button class="tui_cancel tui_close interface_button secondary">Cancel</button>
+       `)
+       this.overlay_target.find('.tui_close').click(function (e) {
+         io.overlay_target.addClass("hide");
+         if ($(e.target).hasClass('tui_save')) {
+           io.set_image_data(io.tui_editor.toDataURL(), /*update_editor=*/false);
+         }
+       });
+      } else {
+      this.target.find('.edit_holder').hide();      
+    }
   },
   submit: function() {
     var io = this;
@@ -220,7 +221,7 @@ const image_input = {
     let io = this;
     io.image_data = image_data
     io.target.find(".image_preview").attr('src', image_data);
-    if (update_editor) {
+    if (io.tool == "editor" && update_editor) {
       io.tui_editor.loadImageFromURL(io.image_data, 'input').then(function (sizeValue) {
         io.tui_editor.clearUndoStack();
         io.tui_editor.ui.activeMenuEvent();
