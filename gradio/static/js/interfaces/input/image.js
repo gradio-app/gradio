@@ -37,7 +37,7 @@ const image_input = {
       <input class="hidden_upload" type="file" accept="image/x-png,image/gif,image/jpeg" />
     </div>
     `
-    ,
+  ,
   overlay_html: `
     <div class="overlay interface_extension image_editor_overlay hide" interface_id="{0}">
       <div class="image_editor_holder">
@@ -45,7 +45,7 @@ const image_input = {
       </div>
     </div>
   `,
-  init: function(opts) {
+  init: function (opts) {
     var io = this;
     this.shape = opts.shape;
     this.source = opts.source;
@@ -56,11 +56,11 @@ const image_input = {
         io.target.find(".hidden_upload").click();
       });
       this.target.on('drag dragstart dragend dragover dragenter dragleave drop',
-          ".drop_zone", function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-      })
-      this.target.on('drop', '.drop_zone', function(e) {
+        ".drop_zone", function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+        })
+      this.target.on('drop', '.drop_zone', function (e) {
         files = e.originalEvent.dataTransfer.files;
         io.load_preview_from_files(files)
       });
@@ -73,7 +73,7 @@ const image_input = {
       io.target.find(".webcam").removeClass("hide");
       let w = this.target.find(".webcam_box").width();
       let h = this.target.find(".webcam_box").height();
-      let RATIO = 4/3;
+      let RATIO = 4 / 3;
       let dim = Math.min(h, w / RATIO);
       Webcam.set({
         image_format: 'jpeg',
@@ -86,14 +86,14 @@ const image_input = {
       if (io.io_master.config.live) {
         io.target.find(".webcam span").hide();
       } else {
-        io.target.find(".webcam").click(function() {
-          Webcam.snap(function(image_data) {
+        io.target.find(".webcam").click(function () {
+          Webcam.snap(function (image_data) {
             io.target.find(".webcam").hide();
             io.target.find(".image_display").removeClass("hide");
             io.set_image_data(image_data, /*update_editor=*/true);
             io.state = "IMAGE_LOADED";
-          });    
-        })  
+          });
+        })
       }
     } else if (this.source == "canvas") {
       io.target.find(".sketchpad").removeClass("hide");
@@ -112,43 +112,43 @@ const image_input = {
         io.target.find(".brush").removeClass("selected");
         $(this).addClass("selected");
         io.sketchpad.penSize = $(this).attr("size");
-      })    
+      })
       this.clear();
     }
     if (this.tool == "editor") {
       $('body').append(this.overlay_html.format(this.id));
-      this.overlay_target = $(`.overlay[interface_id=${this.id}]`);  
+      this.overlay_target = $(`.overlay[interface_id=${this.id}]`);
       this.target.find('.edit_image').click(function (e) {
         io.overlay_target.removeClass("hide");
       })
       this.tui_editor = new tui.ImageEditor(this.overlay_target.
-          find(".image_editor")[0], {
+        find(".image_editor")[0], {
         includeUI: {
           menuBarPosition: 'left',
           menu: ['crop', 'flip', 'rotate', 'draw', 'filter', 'text']
-       },
-         cssMaxWidth: 700,
-         cssMaxHeight: 500,
-         selectionStyle: {
-           cornerSize: 20,
-           rotatingPointOffset: 70
-         }
-       })
-       this.overlay_target.find(".tui-image-editor-header-buttons").html(`
+        },
+        cssMaxWidth: 700,
+        cssMaxHeight: 500,
+        selectionStyle: {
+          cornerSize: 20,
+          rotatingPointOffset: 70
+        }
+      })
+      this.overlay_target.find(".tui-image-editor-header-buttons").html(`
          <button class="tui_save tui_close interface_button primary">Save</button>
          <button class="tui_cancel tui_close interface_button secondary">Cancel</button>
        `)
-       this.overlay_target.find('.tui_close').click(function (e) {
-         io.overlay_target.addClass("hide");
-         if ($(e.target).hasClass('tui_save')) {
-           io.set_image_data(io.tui_editor.toDataURL(), /*update_editor=*/false);
-         }
-       });
-      } else {
-      this.target.find('.edit_holder').hide();      
+      this.overlay_target.find('.tui_close').click(function (e) {
+        io.overlay_target.addClass("hide");
+        if ($(e.target).hasClass('tui_save')) {
+          io.set_image_data(io.tui_editor.toDataURL(), /*update_editor=*/false);
+        }
+      });
+    } else {
+      this.target.find('.edit_holder').hide();
     }
   },
-  submit: function() {
+  submit: function () {
     var io = this;
     if (this.source == "canvas") {
       var dataURL = this.canvas.toDataURL("image/png");
@@ -166,22 +166,22 @@ const image_input = {
         io.io_master.no_input();
         return;
       }
-      Webcam.snap(function(image_data) {
+      Webcam.snap(function (image_data) {
         if (io.io_master.config.live) {
-          io.io_master.input(io.id, image_data);  
+          io.io_master.input(io.id, image_data);
         } else {
           io.target.find(".webcam").hide();
           io.target.find(".image_display").removeClass("hide");
           io.set_image_data(image_data, /*update_editor=*/true);
           io.state = "IMAGE_LOADED";
-          io.io_master.input(io.id, image_data);  
+          io.io_master.input(io.id, image_data);
         }
-      });    
+      });
     } else {
       io.io_master.no_input();
     }
   },
-  clear: function() {
+  clear: function () {
     if (this.source == "canvas") {
       this.context.fillStyle = "#FFFFFF";
       this.context.fillRect(0, 0, this.context.canvas.width, this.context.
@@ -196,10 +196,10 @@ const image_input = {
       if (this.cropper) {
         this.cropper.destroy();
       }
-    }    
+    }
     this.target.find(".saliency_holder").addClass("hide");
   },
-  show_interpretation: function(data) {
+  show_interpretation: function (data) {
     if (this.target.find(".image_preview").attr("src")) {
       var img = this.target.find(".image_preview")[0];
       var size = getObjectFitSize(true, img.width, img.height, img.naturalWidth, img.naturalHeight);
@@ -217,7 +217,7 @@ const image_input = {
   interpretation_logic: "Highlights the output contribution of subregions of image.",
   state: "NO_IMAGE",
   image_data: null,
-  set_image_data: function(image_data, update_editor) {
+  set_image_data: function (image_data, update_editor) {
     let io = this;
     io.image_data = image_data
     io.target.find(".image_preview").attr('src', image_data);
@@ -231,8 +231,8 @@ const image_input = {
     if (io.tool == "select") {
       io.cropper = new Cropper(io.target.find(".image_preview")[0]);
     }
-},
-  load_preview_from_files: function(files) {
+  },
+  load_preview_from_files: function (files) {
     if (!files.length || !window.FileReader || !/^image/.test(files[0].type)) {
       return
     }
@@ -240,7 +240,7 @@ const image_input = {
     ReaderObj.readAsDataURL(files[0])
     ReaderObj.io = this;
     this.state = "IMAGE_LOADING"
-    ReaderObj.onloadend = function() {
+    ReaderObj.onloadend = function () {
       let io = this.io;
       io.target.find(".upload_zone").hide();
       io.target.find(".image_display").removeClass("hide");
@@ -248,21 +248,21 @@ const image_input = {
       io.state = "IMAGE_LOADED"
     }
   },
-  load_example_preview: function(data) {
-    return "<img src='"+this.io_master.example_file_path+data+"' height=100>"
+  load_example_preview: function (data) {
+    return "<img src='" + this.io_master.example_file_path + data + "' height=100>"
   },
-  load_example: function(example_data) {
+  load_example: function (example_data) {
     example_data = this.io_master.example_file_path + example_data;
     let io = this;
-    toDataURL(example_data, function(data) {
+    toDataURL(example_data, function (data) {
       if (io.source == "canvas") {
         io.clear();
         let ctx = io.context;
         var img = new Image;
         let dimension = io.target.find(".canvas_holder canvas").width();
-        img.onload = function(){
-          ctx.clearRect(0,0,dimension,dimension);
-          ctx.drawImage(img,0,0,dimension,dimension);
+        img.onload = function () {
+          ctx.clearRect(0, 0, dimension, dimension);
+          ctx.drawImage(img, 0, 0, dimension, dimension);
         };
         img.src = data;
       } else {
