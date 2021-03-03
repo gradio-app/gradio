@@ -33,7 +33,7 @@ def segment_face(inp):
     return result / 255
 
 
-iface = gr.Interface(segment_face, "webcam", "image", capture_session=True)
+iface = gr.Interface(segment_face, gr.inputs.Image(source="webcam", tools=None), "image", capture_session=True)
 
 if __name__ == "__main__":
     iface.launch()
