@@ -91,7 +91,9 @@ class Interface:
         def get_output_instance(iface):
             if isinstance(iface, str):
                 shortcut = OutputComponent.get_all_shortcut_implementations()[iface]
-                return shortcut[0](**shortcut[1])
+                shortcut = shortcut[0](**shortcut[1])
+                shortcut *= len(fn)
+                return shortcut
             elif isinstance(iface, OutputComponent):
                 return iface
             else:
@@ -111,7 +113,6 @@ class Interface:
         if not isinstance(fn, list):
             fn = [fn]
 
-        self.output_interfaces *= len(fn)
         self.predict = fn
         self.function_names = [func.__name__ for func in fn]
         self.verbose = verbose
