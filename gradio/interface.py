@@ -113,6 +113,9 @@ class Interface:
         if not isinstance(fn, list):
             fn = [fn]
 
+        assert len(self.output_interfaces) == len(fn), \
+            "Number of prediction functions does not match the number of outputs"
+
         self.predict = fn
         self.function_names = [func.__name__ for func in fn]
         self.verbose = verbose
