@@ -88,7 +88,7 @@ function getBackgroundColors(io_master){
   //Gets the background colors for the embedding plot
 
   // If labels aren't loaded, or it's not a label output interface:
-  if (!io_master.loaded_examples || io_master["config"]["output_interfaces"][0][0]!="label") {
+  if (!io_master.loaded_examples || io_master["config"]["output_components"][0][0]!="label") {
     return 'rgb(54, 162, 235)'
   }
 

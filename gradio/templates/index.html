@@ -32,16 +32,16 @@
     <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
     <!-- VENDOR -->
     <link type="text/css" href="{{ vendor_prefix }}/static/css/vendor/jquery-ui.css" rel="stylesheet">
-    {% if "image" in input_interfaces %}
+    {% if "image" in input_components %}
     <link type="text/css" href="{{ vendor_prefix }}/static/css/vendor/tui-color-picker.css" rel="stylesheet">
     <link type="text/css" href="{{ vendor_prefix }}/static/css/vendor/tui-image-editor.css" rel="stylesheet">
     <link type="text/css" href="{{ vendor_prefix }}/static/css/vendor/cropper.min.css" rel="stylesheet">
     {% endif %}
-    {% if "dataframe" in input_interfaces or "dataframe" in output_interfaces %}
+    {% if "dataframe" in input_components or "dataframe" in output_components %}
     <link type="text/css" href="{{ vendor_prefix }}/static/css/vendor/jexcel.min.css" rel="stylesheet">
     <link type="text/css" href="{{ vendor_prefix }}/static/css/vendor/jsuites.min.css" rel="stylesheet">
     {% endif %}
-    {% if "json" in output_interfaces %}
+    {% if "json" in output_components %}
     <link type="text/css" href="{{ vendor_prefix }}/static/css/vendor/jsonTree.css" rel="stylesheet">    
     {% endif %}
 
@@ -82,7 +82,10 @@
     <script src="{{ vendor_prefix }}/static/js/vendor/html2canvas.min.js"></script>
     <script src="{{ vendor_prefix }}/static/js/vendor/jquery-ui.min.js"></script>
     <script src="{{ vendor_prefix }}/static/js/vendor/jquery.ui.touch-punch.js"></script>
-    {% if "image" in input_interfaces %}
+    <script type="application/javascript" src="https://unpkg.com/react@16.0.0/umd/react.development.js"></script>
+    <script type="application/javascript" src="https://unpkg.com/react-dom@16.0.0/umd/react-dom.development.js"></script>
+    <script type="application/javascript" src="https://unpkg.com/babel-standalone@6.26.0/babel.js"></script>  
+    {% if "image" in input_components %}
     <script src="{{ vendor_prefix }}/static/js/vendor/fabric.js"></script>
     <script src="{{ vendor_prefix }}/static/js/vendor/tui-code-snippet.min.js"></script>
     <script src="{{ vendor_prefix }}/static/js/vendor/FileSaver.min.js"></script>
@@ -94,19 +97,19 @@
     <script src="{{ vendor_prefix }}/static/js/vendor/sketchpad.js"></script>
     <script src="{{ vendor_prefix }}/static/js/vendor/webcam.min.js"></script>
     {% endif %}
-    {% if "audio" in input_interfaces or "audio" in output_interfaces %}
+    {% if "audio" in input_components or "audio" in output_components %}
     <script src="{{ vendor_prefix }}/static/js/vendor/wavesurfer.min.js"></script>
     {% endif %}
-    {% if "audio" in input_interfaces %}
+    {% if "audio" in input_components %}
     <script src="{{ vendor_prefix }}/static/js/vendor/p5.min.js"></script>
     <script src="{{ vendor_prefix }}/static/js/vendor/p5.sound.min.js"></script>
     <script src="{{ vendor_prefix }}/static/js/vendor/p5.dom.min.js"></script>
     {% endif %}
-    {% if "dataframe" in input_interfaces or "dataframe" in output_interfaces %}
+    {% if "dataframe" in input_components or "dataframe" in output_components %}
     <script src="{{ vendor_prefix }}/static/js/vendor/jexcel.min.js"></script>
     <script src="{{ vendor_prefix }}/static/js/vendor/jsuites.min.js"></script>
     {% endif%}
-    {% if "json" in output_interfaces %}
+    {% if "json" in output_components %}
     <script src="{{ vendor_prefix }}/static/js/vendor/jsonTree.js"></script>
     {% endif %}
     <script src="{{ vendor_prefix }}/static/js/vendor/Chart.min.js"></script>
@@ -114,49 +117,17 @@
 
     <script src="{{ url_for('static', filename='js/utils.js') }}"></script>
     <script src="{{ url_for('static', filename='js/all_io.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/interfaces/input/image.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/interfaces/input/video.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/interfaces/input/sketchpad.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/interfaces/input/textbox.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/interfaces/input/number.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/interfaces/input/radio.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/interfaces/input/checkbox_group.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/interfaces/input/checkbox.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/interfaces/input/dropdown.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/interfaces/input/slider.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/interfaces/input/dataframe.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/interfaces/input/audio.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/interfaces/input/file.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/interfaces/input/webcam.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/interfaces/input/microphone.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/interfaces/output/image.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/interfaces/output/video.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/interfaces/output/label.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/interfaces/output/key_values.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/interfaces/output/textbox.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/interfaces/output/highlighted_text.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/interfaces/output/audio.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/interfaces/output/json.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/interfaces/output/html.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/interfaces/output/dataframe.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/interfaces/output/file.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/gradio.js') }}"></script>
-    <script>
-      $.getJSON("/config/", function(config) {
-        {% if examples %}
-        config["examples"] = {{ examples|tojson }};
-        config["hide_run_all"] = true;
-        {% endif %}
-        io = gradio_url(config, "/api/", "#interface_target", "/file/{% if path %}{{ path }}/{% endif %}");
-      });
-      const copyToClipboard = str => {
-        const el = document.createElement('textarea');
-        el.value = str;
-        document.body.appendChild(el);
-        el.select();
-        document.execCommand('copy');
-        document.body.removeChild(el);
-      };
+    <script type="text/babel" src="{{ url_for('static', filename='js/interfaces/input/textbox.js') }}"></script>
+    <script type="text/babel" src="{{ url_for('static', filename='js/interfaces/output/textbox.js') }}"></script>
+    <script type="text/babel" src="{{ url_for('static', filename='js/gradio.js') }}"></script>
+    <script type="text/babel">
+      var io;
+      var config = {{config|tojson}};
+      {% if examples %}
+      config["examples"] = {{ examples|tojson }};
+      config["hide_run_all"] = true;
+      {% endif %}
+      io = gradio_url(config, "/api/", "#interface_target", "/file/{% if path %}{{ path }}/{% endif %}");
     </script>
   </body>
 </html>
