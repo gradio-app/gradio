@@ -3,12 +3,12 @@ var io_master_template = {
   gather: function() {
     this.clear();
     this.gathering = true;
-    for (let iface of this.input_interfaces) {
+    for (let iface of this.input_components) {
       iface.submit();
     }
   },
   clear: function() {
-    this.last_input = new Array(this.input_interfaces.length);
+    this.last_input = new Array(this.input_components.length);
     this.input_count = 0;
     if (this.gather_timeout) {
       window.clearTimeout(this.gather_timeout);
@@ -17,7 +17,7 @@ var io_master_template = {
   input: function(interface_id, data) {
     this.last_input[interface_id] = data;
     this.input_count += 1;
-    if (this.input_count == this.input_interfaces.length) {
+    if (this.input_count == this.input_components.length) {
       this.submit();
       this.gathering = false;
     }
@@ -28,7 +28,7 @@ var io_master_template = {
       this.target.find(".loading").removeClass("hidden");
       this.target.find(".loading_in_progress").show();
       this.target.find(".loading_failed").hide();
-      this.target.find(".output_interfaces").css("opacity", 0.5);
+      this.target.find(".output_components").css("opacity", 0.5);
     }
     this.fn(this.last_input, "predict").then((output) => {
       io.output(output);
@@ -44,12 +44,12 @@ var io_master_template = {
     this.target.find(".loading").removeClass("hidden");
     this.target.find(".loading_in_progress").show();
     this.target.find(".loading_failed").hide();
-    this.target.find(".output_interfaces").css("opacity", 0.5);
+    this.target.find(".output_components").css("opacity", 0.5);
 
     this.fn(this.last_input, "score_similarity").then((output) => {
       output = output["data"];
       this.target.find(".loading").addClass("hidden");
-      this.target.find(".output_interfaces").css("opacity", 1);
+      this.target.find(".output_components").css("opacity", 1);
       this.order_mapping = sortWithIndices(output).reverse();
       callback();
     })
@@ -58,11 +58,11 @@ var io_master_template = {
     this.target.find(".loading").removeClass("hidden");
     this.target.find(".loading_in_progress").show();
     this.target.find(".loading_failed").hide();
-    this.target.find(".output_interfaces").css("opacity", 0.5);
+    this.target.find(".output_components").css("opacity", 0.5);
 
     this.fn(this.last_input, "view_embeddings").then((output) => {
       this.target.find(".loading").addClass("hidden");
-      this.target.find(".output_interfaces").css("opacity", 1);
+      this.target.find(".output_components").css("opacity", 1);
       callback(output)
     })
   },
@@ -70,11 +70,11 @@ var io_master_template = {
     this.target.find(".loading").removeClass("hidden");
     this.target.find(".loading_in_progress").show();
     this.target.find(".loading_failed").hide();
-    this.target.find(".output_interfaces").css("opacity", 0.5);
+    this.target.find(".output_components").css("opacity", 0.5);
 
     this.fn(this.last_input, "update_embeddings").then((output) => {
       this.target.find(".loading").addClass("hidden");
-      this.target.find(".output_interfaces").css("opacity", 1);
+      this.target.find(".output_components").css("opacity", 1);
       callback(output)
     })
   },
@@ -82,7 +82,7 @@ var io_master_template = {
     this.target.find(".loading").removeClass("hidden");
     this.target.find(".loading_in_progress").show();
     this.target.find(".loading_failed").hide();
-    this.target.find(".output_interfaces").css("opacity", 0.5);
+    this.target.find(".output_components").css("opacity", 0.5);
 
     let example_ids = [];
     if (this.loaded_examples == null) {
@@ -95,7 +95,7 @@ var io_master_template = {
     }
     this.fn(example_ids, "predict_examples").then((output) => {
       this.target.find(".loading").addClass("hidden");
-      this.target.find(".output_interfaces").css("opacity", 1);
+      this.target.find(".output_components").css("opacity", 1);
 
       output = output["data"];
       for (let [example_id, output_values] of Object.entries(output)) {
@@ -113,13 +113,13 @@ var io_master_template = {
       this.last_output = data["data"];
     }
 
-    for (let i = 0; i < this.output_interfaces.length; i++) {
-      this.output_interfaces[i].output(data["data"][i]);
+    for (let i = 0; i < this.output_components.length; i++) {
+      this.output_components[i].output(data["data"][i]);
     }
     if (data["durations"]) {
-      let ratio = this.output_interfaces.length / data["durations"].length;
-      for (let i = 0; i < this.output_interfaces.length; i = i + ratio) {
-        this.output_interfaces[i].target.parent().find(`.loading_time[interface="${i + ratio - 1}"]`).text("Latency: " + ((data["durations"][i / ratio])).toFixed(2) + "s");
+      let ratio = this.output_components.length / data["durations"].length;
+      for (let i = 0; i < this.output_components.length; i = i + ratio) {
+        this.output_components[i].target.parent().find(`.loading_time[interface="${i + ratio - 1}"]`).text("Latency: " + ((data["durations"][i / ratio])).toFixed(2) + "s");
       }
     }
 
@@ -131,7 +131,7 @@ var io_master_template = {
       }, refresh_lag);
     } else {
       this.target.find(".loading").addClass("hidden");
-      this.target.find(".output_interfaces").css("opacity", 1);
+      this.target.find(".output_components").css("opacity", 1);
     }
   },
   no_input: function() {
@@ -158,7 +158,7 @@ var io_master_template = {
     var post_data = this.last_input;
     this.fn(post_data, "interpret").then((data) => {
       for (let [idx, interpretation] of data["interpretation_scores"].entries()) {
-        io.input_interfaces[idx].show_interpretation(interpretation);
+        io.input_components[idx].show_interpretation(interpretation);
       }
       io.alternative_outputs = data["alternative_outputs"]
       io.target.find(".loading_in_progress").hide();

@@ -85,13 +85,13 @@ class TestDemo(unittest.TestCase):
         driver = self.start_test(target=diff_texts_thread)
         elem = WebDriverWait(driver, TIMEOUT).until(
             EC.presence_of_element_located((By.CSS_SELECTOR,
-                                            ".input_interface[interface_id='0'] .input_text"))
+                                            ".input_component[interface_id='0'] .input_text"))
         )
         elem.clear()
         elem.send_keys("Want to see a magic trick?")
         elem = WebDriverWait(driver, TIMEOUT).until(
             EC.presence_of_element_located((By.CSS_SELECTOR,
-                                            ".input_interface[interface_id='1'] .input_text"))
+                                            ".input_component[interface_id='1'] .input_text"))
         )
         elem.clear()
         elem.send_keys("Let's go see a magic trick!")
@@ -102,7 +102,7 @@ class TestDemo(unittest.TestCase):
         elem.click()
         elem = WebDriverWait(driver, TIMEOUT).until(
             EC.presence_of_element_located((By.CSS_SELECTOR,
-                                            ".output_interface[interface_id='2'] .output_text"))
+                                            ".output_component[interface_id='2'] .output_text"))
         )
 
         total_sleep = 0
@@ -125,7 +125,7 @@ class TestDemo(unittest.TestCase):
         driver = self.start_test(target=image_mod_thread)
         elem = WebDriverWait(driver, TIMEOUT).until(
             EC.presence_of_element_located((By.CSS_SELECTOR,
-                                            ".input_interface["
+                                            ".input_component["
                                             "interface_id='0'] "
                                             ".hidden_upload"))
         )
@@ -144,7 +144,7 @@ class TestDemo(unittest.TestCase):
         elem.click()
         WebDriverWait(driver, TIMEOUT).until(
             EC.visibility_of_element_located((By.CSS_SELECTOR,
-                                            ".output_interface["
+                                            ".output_component["
                                             "interface_id='1'] "
                                             ".output_image"))
         )
@@ -159,7 +159,7 @@ class TestDemo(unittest.TestCase):
         driver = self.start_test(target=longest_word_thread)
         elem = WebDriverWait(driver, TIMEOUT).until(
             EC.presence_of_element_located((By.CSS_SELECTOR,
-                                            ".input_interface[interface_id='0'] .input_text"))
+                                            ".input_component[interface_id='0'] .input_text"))
         )
         elem.send_keys("This is the most wonderful machine learning "
                        "library.")
@@ -170,7 +170,7 @@ class TestDemo(unittest.TestCase):
         elem.click()
         elem = WebDriverWait(driver, TIMEOUT).until(
             EC.presence_of_element_located((By.CSS_SELECTOR,
-                                            ".output_interface["
+                                            ".output_component["
                                             "interface_id='1'] .output_class"))
         )
 
@@ -198,7 +198,7 @@ class TestDemo(unittest.TestCase):
         elem.click()
         elem = WebDriverWait(driver, TIMEOUT).until(
             EC.presence_of_element_located((By.CSS_SELECTOR,
-                                            ".output_interface["
+                                            ".output_component["
                                             "interface_id='5'] .output_text"))
         )
 

@@ -19,7 +19,7 @@
   display: flex;
   margin-bottom: 8px;
 }
-.input_interfaces, .output_interfaces {
+.input_components, .output_components {
   margin-bottom: 16px;
   background-color: whitesmoke;
   border-radius: 4px;

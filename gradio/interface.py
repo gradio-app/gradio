@@ -101,17 +101,17 @@ class Interface:
                 )
 
         if isinstance(inputs, list):
-            self.input_interfaces = [get_input_instance(i) for i in inputs]
+            self.input_components = [get_input_instance(i) for i in inputs]
         else:
-            self.input_interfaces = [get_input_instance(inputs)]
+            self.input_components = [get_input_instance(inputs)]
         if isinstance(outputs, list):
-            self.output_interfaces = [get_output_instance(i) for i in outputs]
+            self.output_components = [get_output_instance(i) for i in outputs]
         else:
-            self.output_interfaces = [get_output_instance(outputs)]
+            self.output_components = [get_output_instance(outputs)]
         if not isinstance(fn, list):
             fn = [fn]
 
-        self.output_interfaces *= len(fn)
+        self.output_components *= len(fn)
         self.predict = fn
         self.function_names = [func.__name__ for func in fn]
         self.verbose = verbose
@@ -189,12 +189,12 @@ class Interface:
 
     def get_config_file(self):
         config = {
-            "input_interfaces": [
-                (iface.__class__.__name__.lower(), iface.get_template_context())
-                for iface in self.input_interfaces],
-            "output_interfaces": [
-                (iface.__class__.__name__.lower(), iface.get_template_context())
-                for iface in self.output_interfaces],
+            "input_components": [
+                iface.get_template_context()
+                for iface in self.input_components],
+            "output_components": [
+                iface.get_template_context()
+                for iface in self.output_components],
             "function_count": len(self.predict),
             "live": self.live,
             "examples_per_page": self.examples_per_page,
@@ -213,18 +213,18 @@ class Interface:
         }
         try:
             param_names = inspect.getfullargspec(self.predict[0])[0]
-            for iface, param in zip(config["input_interfaces"], param_names):
-                if not iface[1]["label"]:
-                    iface[1]["label"] = param.replace("_", " ")
-            for i, iface in enumerate(config["output_interfaces"]):
-                outputs_per_function = int(len(self.output_interfaces) / len(self.predict))
+            for iface, param in zip(config["input_components"], param_names):
+                if not iface["label"]:
+                    iface["label"] = param.replace("_", " ")
+            for i, iface in enumerate(config["output_components"]):
+                outputs_per_function = int(len(self.output_components) / len(self.predict))
                 function_index = i // outputs_per_function
                 component_index = i - function_index * outputs_per_function
                 ret_name = "Output " + str(component_index + 1) if outputs_per_function > 1 else "Output"
-                if not iface[1]["label"]:
-                    iface[1]["label"] = ret_name
+                if not iface["label"]:
+                    iface["label"] = ret_name
                 if len(self.predict) > 1:
-                    iface[1]["label"] = self.function_names[function_index].replace("_", " ") + ": " + iface[1]["label"]
+                    iface["label"] = self.function_names[function_index].replace("_", " ") + ": " + iface["label"]
                     
         except ValueError:
             pass
@@ -251,7 +251,7 @@ class Interface:
                         raise exception
             duration = time.time() - start
 
-            if len(self.output_interfaces) == len(self.predict):
+            if len(self.output_components) == len(self.predict):
                 prediction = [prediction]
             durations.append(duration)
             predictions.extend(prediction)
@@ -267,17 +267,17 @@ class Interface:
         processed output: a list of processed  outputs to return as the prediction(s).
         duration: a list of time deltas measuring inference time for each prediction fn.
         """
-        processed_input = [input_interface.preprocess(raw_input[i])
-                           for i, input_interface in enumerate(self.input_interfaces)]
+        processed_input = [input_component.preprocess(raw_input[i])
+                           for i, input_component in enumerate(self.input_components)]
         predictions, durations = self.run_prediction(processed_input, return_duration=True)
-        processed_output = [output_interface.postprocess(
-            predictions[i]) for i, output_interface in enumerate(self.output_interfaces)]
+        processed_output = [output_component.postprocess(
+            predictions[i]) for i, output_component in enumerate(self.output_components)]
         return processed_output, durations
     
     def embed(self, processed_input):
         if self.embedding == "default":
-            embeddings = np.concatenate([input_interface.embed(processed_input[i])
-                            for i, input_interface in enumerate(self.input_interfaces)])
+            embeddings = np.concatenate([input_component.embed(processed_input[i])
+                            for i, input_component in enumerate(self.input_components)])
         else:
             embeddings = self.embedding(*processed_input)
         return embeddings
@@ -289,23 +289,23 @@ class Interface:
         :param raw_input: a list of raw inputs to apply the interpretation(s) on.
         """
         if self.interpretation == "default":
-            processed_input = [input_interface.preprocess(raw_input[i])
-                            for i, input_interface in enumerate(self.input_interfaces)]
+            processed_input = [input_component.preprocess(raw_input[i])
+                            for i, input_component in enumerate(self.input_components)]
             original_output = self.run_prediction(processed_input)
             scores, alternative_outputs = [], []
             for i, x in enumerate(raw_input):
-                input_interface = self.input_interfaces[i]
+                input_component = self.input_components[i]
                 neighbor_raw_input = list(raw_input)
-                neighbor_values, interpret_kwargs, interpret_by_removal = input_interface.get_interpretation_neighbors(x)
+                neighbor_values, interpret_kwargs, interpret_by_removal = input_component.get_interpretation_neighbors(x)
                 interface_scores = []
                 alternative_output = []
                 for neighbor_input in neighbor_values:
                     neighbor_raw_input[i] = neighbor_input
-                    processed_neighbor_input = [input_interface.preprocess(neighbor_raw_input[i])
-                                    for i, input_interface in enumerate(self.input_interfaces)]
+                    processed_neighbor_input = [input_component.preprocess(neighbor_raw_input[i])
+                                    for i, input_component in enumerate(self.input_components)]
                     neighbor_output = self.run_prediction(processed_neighbor_input)
-                    processed_neighbor_output = [output_interface.postprocess(
-                        neighbor_output[i]) for i, output_interface in enumerate(self.output_interfaces)]
+                    processed_neighbor_output = [output_component.postprocess(
+                        neighbor_output[i]) for i, output_component in enumerate(self.output_components)]
 
                     alternative_output.append(processed_neighbor_output)
                     interface_scores.append(quantify_difference_in_label(self, original_output, neighbor_output))
@@ -313,12 +313,12 @@ class Interface:
                 if not interpret_by_removal:
                     interface_scores = [-score for score in interface_scores]
                 scores.append(
-                    input_interface.get_interpretation_scores(
+                    input_component.get_interpretation_scores(
                         raw_input[i], neighbor_values, interface_scores, **interpret_kwargs))
             return scores, alternative_outputs
         else:
-            processed_input = [input_interface.preprocess(raw_input[i])
-                               for i, input_interface in enumerate(self.input_interfaces)]
+            processed_input = [input_component.preprocess(raw_input[i])
+                               for i, input_component in enumerate(self.input_components)]
             interpreter = self.interpretation
 
             if self.capture_session and self.session is not None:
@@ -356,12 +356,12 @@ class Interface:
             print("Test launch: {}()...".format(predict_fn.__name__), end=' ')
 
             raw_input = []
-            for input_interface in self.input_interfaces:
-                if input_interface.test_input is None:  # If no test input is defined for that input interface
+            for input_component in self.input_components:
+                if input_component.test_input is None:  # If no test input is defined for that input interface
                     print("SKIPPED")
                     break
                 else:  # If a test input is defined for each interface object
-                    raw_input.append(input_interface.test_input)
+                    raw_input.append(input_component.test_input)
             else:
                 self.process(raw_input)
                 print("PASSED")

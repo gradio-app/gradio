@@ -83,8 +83,8 @@ def home_page(examples=None, path=None):
     return render_template("index.html",
         config=app.interface.config,
         vendor_prefix=(GRADIO_STATIC_ROOT if app.interface.share else ""),
-        input_interfaces=[interface[0] for interface in app.interface.config["input_interfaces"]],
-        output_interfaces=[interface[0] for interface in app.interface.config["output_interfaces"]],
+        input_components=[interface["name"] for interface in app.interface.config["input_components"]],
+        output_components=[interface["name"] for interface in app.interface.config["output_components"]],
         css=app.interface.css, examples=examples, path=path
     )
 
@@ -110,7 +110,7 @@ def main_from_dir(path):
         examples = list(csv.reader(logs)) 
     examples = examples[1:] #remove header
     for i, example in enumerate(examples):
-        for j, (interface, cell) in enumerate(zip(app.interface.input_interfaces + app.interface.output_interfaces, example)):
+        for j, (interface, cell) in enumerate(zip(app.interface.input_components + app.interface.output_components, example)):
             examples[i][j] = interface.restore_flagged(cell)
     return home_page(examples=examples, path=path)
 
@@ -153,14 +153,14 @@ def log_feature_analytics(feature):
 def score_similarity():
     raw_input = request.json["data"]
 
-    preprocessed_input = [input_interface.preprocess(raw_input[i])
-                    for i, input_interface in enumerate(app.interface.input_interfaces)]
+    preprocessed_input = [input_component.preprocess(raw_input[i])
+                    for i, input_component in enumerate(app.interface.input_components)]
     input_embedding = app.interface.embed(preprocessed_input)
     scores = list()
 
     for example in app.interface.examples:
         preprocessed_example = [iface.preprocess(iface.preprocess_example(example))
-            for iface, example in zip(app.interface.input_interfaces, example)]
+            for iface, example in zip(app.interface.input_components, example)]
         example_embedding = app.interface.embed(preprocessed_example)
         scores.append(calculate_similarity(input_embedding, example_embedding))    
     log_feature_analytics('score_similarity')
@@ -172,14 +172,14 @@ def view_embeddings():
     sample_embedding = []
     if "data" in request.json:
         raw_input = request.json["data"]
-        preprocessed_input = [input_interface.preprocess(raw_input[i])
-                        for i, input_interface in enumerate(app.interface.input_interfaces)]
+        preprocessed_input = [input_component.preprocess(raw_input[i])
+                        for i, input_component in enumerate(app.interface.input_components)]
         sample_embedding.append(app.interface.embed(preprocessed_input))
 
     example_embeddings = []
     for example in app.interface.examples:
         preprocessed_example = [iface.preprocess(iface.preprocess_example(example))
-            for iface, example in zip(app.interface.input_interfaces, example)]
+            for iface, example in zip(app.interface.input_components, example)]
         example_embedding = app.interface.embed(preprocessed_example)
         example_embeddings.append(example_embedding)
     
@@ -196,8 +196,8 @@ def update_embeddings():
     sample_embedding, sample_embedding_2d = [], []
     if "data" in request.json:
         raw_input = request.json["data"]
-        preprocessed_input = [input_interface.preprocess(raw_input[i])
-                        for i, input_interface in enumerate(app.interface.input_interfaces)]
+        preprocessed_input = [input_component.preprocess(raw_input[i])
+                        for i, input_component in enumerate(app.interface.input_components)]
         sample_embedding.append(app.interface.embed(preprocessed_input))
         sample_embedding_2d = transform_with_pca(app.pca_model, sample_embedding)
     
@@ -211,7 +211,7 @@ def predict_examples():
     for example_id in example_ids:
         example_set = app.interface.examples[example_id]
         processed_example_set = [iface.preprocess_example(example)
-            for iface, example in zip(app.interface.input_interfaces, example_set)]
+            for iface, example in zip(app.interface.input_components, example_set)]
         try:
             predictions, _ = app.interface.process(processed_example_set)
         except:
@@ -224,10 +224,10 @@ def predict_examples():
 def flag_data(input_data, output_data, flag_option=None):
     flag_path = os.path.join(app.cwd, app.interface.flagging_dir)
     csv_data = []
-    for i, interface in enumerate(app.interface.input_interfaces):
-        csv_data.append(interface.save_flagged(flag_path, app.interface.config["input_interfaces"][i][1]["label"], input_data[i]))
-    for i, interface in enumerate(app.interface.output_interfaces):
-        csv_data.append(interface.save_flagged(flag_path, app.interface.config["output_interfaces"][i][1]["label"], output_data[i]))
+    for i, interface in enumerate(app.interface.input_components):
+        csv_data.append(interface.save_flagged(flag_path, app.interface.config["input_components"][i][1]["label"], input_data[i]))
+    for i, interface in enumerate(app.interface.output_components):
+        csv_data.append(interface.save_flagged(flag_path, app.interface.config["output_components"][i][1]["label"], output_data[i]))
     if flag_option:
         csv_data.append(flag_option)
 
@@ -237,8 +237,8 @@ def flag_data(input_data, output_data, flag_option=None):
     with open(log_fp, "a") as csvfile:
         writer = csv.writer(csvfile)
         if is_new:
-            headers = [interface[1]["label"] for interface in app.interface.config["input_interfaces"]]
-            headers += [interface[1]["label"] for interface in app.interface.config["output_interfaces"]]
+            headers = [interface[1]["label"] for interface in app.interface.config["input_components"]]
+            headers += [interface[1]["label"] for interface in app.interface.config["output_components"]]
             if app.interface.flagging_options is not None:
                 headers.append("flag")
             writer.writerow(headers)

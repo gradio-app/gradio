@@ -90,7 +90,7 @@ class Textbox(InputComponent):
     Input type: str
     """
 
-    def __init__(self, lines=1, placeholder=None, default=None, numeric=False, type="str", label=None):
+    def __init__(self, lines=1, placeholder=None, default="", numeric=False, type="str", label=None):
         """
         Parameters:
         lines (int): number of line rows to provide in textarea.
@@ -108,7 +108,7 @@ class Textbox(InputComponent):
             self.type = "number"
         else:
             self.type = type
-        if default is None:
+        if default == "":
             self.test_input = {
                 "str": "the quick brown fox jumped over the lazy dog",
                 "number": 786.92,

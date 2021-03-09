@@ -1,220 +1,163 @@
-function gradio(config, fn, target, example_file_path) {
-  target = $(target);
-  target.html(`
-    <div class="share hidden">
-      Live at <a class="share-link" target="_blank"></a>.
-      <button class="share-copy">Copy Link</button>
-    </div>
-    <h1 class="title"></h1>
-    <p class="description"></p>
-    <div class="panels">
-      <div class="panel input_panel">
-        <div class="input_interfaces">
-        </div>          
-        <div class="panel_buttons">
-          <button class="clear panel_button">CLEAR</button>
-          <button class="submit panel_button">SUBMIT</button>
+let input_component_map = {
+  "textbox": TextboxInput,
+}
+let output_component_map = {
+  "textbox": TextboxOutput,
+}
+
+class InterfacePanel extends React.Component {
+  constructor(props) {
+    super(props);
+    this.clear = this.clear.bind(this);
+    this.handleChange = this.handleChange.bind(this);
+    this.clear(/*use_set_state=*/false);
+  }
+  clear(use_set_state) {
+    let state = {};
+    for (let [i, component] of this.props.input_components.entries()) {
+      state[i] = component.default;
+    }
+    let index_start = this.props.input_components.length;
+    for (let [i, component] of this.props.output_components.entries()) {
+      state[index_start + i] = component.default;
+    }
+    if (use_set_state) {
+      this.setState(state);
+    } else {
+      this.state = state;
+    }
+  }
+  handleChange(_id, value) {
+    this.setState({[_id]: value});
+  }
+  render() {
+    let title = this.props.title ? <h1 className="title">{this.props.title}</h1> : false;
+    let description = this.props.description ? <p className="description">{this.props.description}</p> : false;
+    let article = this.props.article ? <p className="article">{this.props.article}</p> : false;
+  
+    return (
+    <div>
+      {title}
+      {description}
+      <div className="panels" style={
+        {"alignItems" : this.props.layout == "unaligned" ? "flex-start" : "stretch",
+         "flexDirection": this.props.layout == "vertical" ? "column" : "row"}}>
+        <div className="panel input_panel">
+          <div className="input_components">
+            {this.props.input_components.map((component, index) => {
+              const Component = input_component_map[component.name];
+              return (
+              <div className="component" key={index}>
+                <div className="panel_header">{component.label}</div>
+                <Component {...component} handleChange={this.handleChange.bind(this, index)} value={this.state[index]} />
+              </div>);
+            })}
+          </div>
+          <div className="panel_buttons">
+            <button className="clear panel_button" onClick={this.clear.bind(this, /*use_set_state=*/true)}>CLEAR</button>
+            <button className="submit panel_button">SUBMIT</button>
+          </div>
+        </div>
+        <div className="panel output_panel">
+          <div className="loading hidden">
+            <img className="loading_in_progress" src="/static/img/logo_loading.gif"/>
+            <img className="loading_failed" src="/static/img/logo_error.png"/>
+          </div>
+          <div className="output_components">
+            {this.props.output_components.map((component, index) => {
+              const Component = output_component_map[component.name];
+              const key = this.props.input_components.length + index;
+              return (
+              <div className="component" key={key}>
+                <div className="panel_header">{component.label}</div>
+                <Component {...component}  handleChange={this.handleChange.bind(this, key)} value={this.state[key]}/>
+              </div>);
+            })}
+          </div>
+          <div className="panel_buttons">
+            <button className="interpret inactive panel_button">INTERPRET</button>
+            <button className="screenshot panel_button left_panel_button">SCREENSHOT</button>
+            <button className="record panel_button right_panel_button">GIF</button>
+            <div className="screenshot_logo hidden">
+              <img src="/static/img/logo_inline.png" />
+              <button className='record_stop'>
+                <div className='record_square'></div>
+              </button>
+            </div>
+            <div className="flag panel_button inactive">
+              FLAG
+              <div className="dropcontent"></div>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="panel output_panel">
-        <div class="loading hidden">
-          <img class="loading_in_progress" src="/static/img/logo_loading.gif">
-          <img class="loading_failed" src="/static/img/logo_error.png">
+      <div className="interpretation_explained hidden">
+        <h4>Interpretation Legend <span className='close_explain'>&#10006;</span></h4>
+        <div className='interpretation_legend'>
+          <div>&larr; Decreased output score / confidence</div>
+          <div>Increased output score / confidence &rarr;</div>
         </div>
-        <div class="output_interfaces">
-        </div>
-        <div class="panel_buttons">
-          <button class="interpret inactive panel_button">INTERPRET</button>
-          <button class="screenshot panel_button left_panel_button">SCREENSHOT</button>
-          <button class="record panel_button right_panel_button">GIF</button>
-          <div class="screenshot_logo hidden">
-            <img src="/static/img/logo_inline.png">
-            <button class='record_stop'>
-              <div class='record_square'></div>
+        <p>When you click Interpret, you can see how different parts of the input contributed to the final output. The legend above will highlight each of the input components as follows:</p>
+        <ul></ul>
+      </div>
+      <div className="examples hidden">
+        <h4>Examples</h4>
+        <div className="examples_control">
+          <div className="examples_control_left">
+            <button className="run_examples examples-content">Run All</button>
+            <button className="load_prev examples-content">Load Previous <small>CTRL + <span className="backward">&#10140;</span></small></button>
+            <button className="load_next examples-content">Load Next <small>CTRL + &#10140;</small></button>
+            <button className="order_similar examples-content embedding">Order by Similarity</button>
+            <button className="view_embeddings examples-content embedding">View Embeddings</button>
+            <button className="update_embeddings embeddings-content hidden">Update Embeddings</button>
+            <button className="view_examples embeddings-content hidden">View Examples</button>
+          </div>
+          <div className="examples_control_right">
+            <button className="table_examples">
+              <svg width="40" height="24"><rect x="0" y="0" width="40" height="6"></rect><rect x="0" y="9" width="40" height="6"></rect><rect x="0" y="18" width="40" height="6"></rect></svg>
+            </button>
+            <button className="gallery_examples current">
+              <svg width="40" height="24"><rect x="0" y="0" width="18" height="40"></rect><rect x="22" y="0" width="18" height="40"></rect></svg>
             </button>
           </div>
-          <div class="flag panel_button inactive">
-            FLAG
-            <div class="dropcontent"></div>
-          </div>
+        </div>
+        <div className="pages hidden">Page:</div>
+        <table className="examples-content">
+        </table>
+        <div className="plot embeddings-content hidden">
+          <canvas id="canvas" width="400px" height="300px"></canvas>
         </div>
       </div>
+      {article}
     </div>
-    <div class="interpretation_explained hidden">
-      <h4>Interpretation Legend <span class='close_explain'>&#10006;</span></h4>
-      <div class='interpretation_legend'>
-        <div>&larr; Decreased output score / confidence</div>
-        <div>Increased output score / confidence &rarr;</div>
-      </div>
-      <p>When you click Interpret, you can see how different parts of the input contributed to the final output. The legend above will highlight each of the input components as follows:</p>
-      <ul></ul>
-    </div>
-    <div class="examples hidden">
-      <h4>Examples</small></h4>
-      <div class="examples_control">
-        <div class="examples_control_left">
-          <button class="run_examples examples-content">Run All</button>
-          <button class="load_prev examples-content">Load Previous <small>CTRL + <span class="backward">&#10140;</span></small></button>
-          <button class="load_next examples-content">Load Next <small>CTRL + &#10140;</small></button>
-          <button class="order_similar examples-content embedding">Order by Similarity</button>
-          <button class="view_embeddings examples-content embedding">View Embeddings</button>
-          <button class="update_embeddings embeddings-content hidden">Update Embeddings</button>
-          <button class="view_examples embeddings-content hidden">View Examples</button>
-        </div>
-        <div class="examples_control_right">
-          <button class="table_examples">
-            <svg width="40" height="24"><rect x="0" y="0" width="40" height="6"></rect><rect x="0" y="9" width="40" height="6"></rect><rect x="0" y="18" width="40" height="6"></rect></svg>
-          </button>
-          <button class="gallery_examples current">
-            <svg width="40" height="24"><rect x="0" y="0" width="18" height="40"></rect><rect x="22" y="0" width="18" height="40"></rect></svg>
-          </button>
-        </div>
-      </div>
-      <div class="pages hidden">Page:</div>
-      <table class="examples-content">
-      </table>
-      <div class="plot embeddings-content hidden"><canvas id="canvas" width="400px" height="300px"></canvas></div>
-    </div>
-    <p class="article"></p>    
-    `);
+    )
+  }
+}
+
+function gradio(config, fn, target, example_file_path) {
+  target = $(target);
   let io_master = Object.create(io_master_template);
   io_master.fn = fn
   io_master.target = target;
   io_master.config = config;
   io_master.example_file_path = example_file_path;
 
-  let input_to_object_map = {
-    "csv" : {},
-    "image" : image_input,
-    "video" : video_input,
-    "sketchpad" : sketchpad_input,
-    "textbox" : textbox_input,
-    "number" : number_input,
-    "webcam" : webcam,
-    "microphone" : microphone,
-    "radio" : radio,
-    "checkbox" : checkbox,
-    "checkboxgroup" : checkbox_group,
-    "slider" : slider,
-    "dropdown" : dropdown,
-    "audio" : audio_input,
-    "file" : file_input,
-    "dataframe" : dataframe_input,
-  }
-  let output_to_object_map = {
-    "csv" : {},
-    "image" : image_output,
-    "video" : video_output,
-    "label" : label_output,
-    "keyvalues" : key_values,
-    "textbox" : textbox_output,
-    "highlightedtext": highlighted_text,
-    "audio": audio_output,
-    "json": json_output,
-    "html": html_output,
-    "file" : file_output,
-    "dataframe" : dataframe_output,
-  }
-  let id_to_interface_map = {}
-  let embedding_chart;
-
-  function set_interface_id(interface, id) {
-    interface.id = id;
-    id_to_interface_map[id] = interface;
-  }
-  if (config["title"]) {
-    target.find(".title").text(config["title"]);
-  }
-  if (config["description"]) {
-    target.find(".description").text(config["description"]);
-  }
-  if (config["article"]) {
-    target.find(".article").html(config["article"]);
-  }
-  if (config["share_url"]) {
-    let share_url = config["share_url"];
-    target.find(".share").removeClass("hidden");
-    target.find(".share-link").text(share_url).attr("href", share_url);
-    target.find(".share-copy").click(function() {
-      copyToClipboard(share_url);
-      target.find(".share-copy").text("Copied!");
-    })
-  };
-
-
-  _id = 0;
-  let input_interfaces = [];
-  let output_interfaces = [];
-  for (let i = 0; i < config["input_interfaces"].length; i++) {
-    input_interface_data = config["input_interfaces"][i];
-    input_interface = Object.create(input_to_object_map[input_interface_data[0]]);
-    if (input_interface_data[1]["label"]) {
-      target.find(".input_interfaces").append(`
-        <div class="panel_header">${input_interface_data[1]["label"]}</strong>
-      `);
-    }
-    target.find(".input_interfaces").append(`
-      <div class="input_interface interface" interface_id=${_id}>
-        ${input_interface.html}
-      </div>
-    `);
-    input_interface.target = target.find(`.input_interface[interface_id=${_id}]`);
-    set_interface_id(input_interface, _id);
-    input_interface.io_master = io_master;
-    input_interface.init(input_interface_data[1]);
-    input_interfaces.push(input_interface);
-    _id++;
-  }
-  for (let i = 0; i < config["output_interfaces"].length; i++) {
-    if (i != 0 && i % (config["output_interfaces"].length / config.function_count) == 0) {
-      target.find(".output_interfaces").append("<hr>");
-    }
-    output_interface_data = config["output_interfaces"][i];
-    output_interface = Object.create(output_to_object_map[
-      output_interface_data[0]]);
-    if (output_interface_data[1]["label"]) {
-      target.find(".output_interfaces").append(`
-        <div class="panel_header">${output_interface_data[1]["label"]}</strong>
-      `);
-    }
-    target.find(".output_interfaces").append(`
-      <div class="output_interface interface" interface_id=${_id}>
-        ${output_interface.html}
-      </div>
-    `);
-    target.find(".output_interfaces").append(`
-      <div class="loading_time" interface="${i}">  </div>
-    `);
-    output_interface.target = target.find(`.output_interface[interface_id=${_id}]`);
-    set_interface_id(output_interface, _id);
-    output_interface.io_master = io_master;
-    output_interface.init(output_interface_data[1]);
-    output_interfaces.push(output_interface);
-    _id++;
-  }
-  io_master.input_interfaces = input_interfaces;
-  io_master.output_interfaces = output_interfaces;
-  if (config.layout == "unaligned") {
-    target.find(".panels").css("align-items", "flex-start");
-  } else if (config.layout == "vertical") {
-    target.find(".panels").css("flex-direction", "column");
-  }
+  ReactDOM.render(<InterfacePanel {...config} />, target[0]);
   function clear_all() {
-    for (let input_interface of input_interfaces) {
-      input_interface.clear();
+    for (let input_component of input_components) {
+      input_component.clear();
     }
-    for (let output_interface of output_interfaces) {
-      output_interface.clear();
+    for (let output_component of output_components) {
+      output_component.clear();
     }
     target.find(".loading").addClass("hidden");
     target.find(".loading_time").text("");
-    target.find(".output_interfaces").css("opacity", 1);
+    target.find(".output_components").css("opacity", 1);
     target.find(".flag").addClass("inactive");
     target.find(".interpret").addClass("inactive");
     io_master.last_input = null;
     io_master.last_output = null;
-  }  
-  target.find(".clear").click(clear_all);
+  }
 
   if (!config["allow_embedding"]) {
     target.find(".embedding").hide();
@@ -227,16 +170,6 @@ function gradio(config, fn, target, example_file_path) {
   }
   if (!config["allow_interpretation"]) {
     target.find(".interpret").hide();
-  } else {
-    let interpret_html = ""; 
-    for (let [i, interface] of io_master.input_interfaces.entries()) {
-      let label = config.input_interfaces[i][1]["label"];
-      interpret_html += "<li><strong>" + label + "</strong> - " + interface.interpretation_logic + "</li>";
-    }
-    target.find(".interpretation_explained ul").html(interpret_html);
-    target.find(".interpretation_explained .close_explain").click(function() {
-      target.find(".interpretation_explained").remove();
-    });
   }
   function load_example(example_id) {
     clear_all();
@@ -244,19 +177,19 @@ function gradio(config, fn, target, example_file_path) {
       return;
     }
     for (let [i, value] of config["examples"][example_id].entries()) {
-      if (i < input_interfaces.length) {
-        input_interfaces[i].load_example(value);
-      } else if (i - input_interfaces.length < output_interfaces.length) {
-        let output_interface = output_interfaces[i - input_interfaces.length];
-        if ("load_example" in output_interface) {
-          output_interface.load_example(value);
+      if (i < input_components.length) {
+        input_components[i].load_example(value);
+      } else if (i - input_components.length < output_components.length) {
+        let output_component = output_components[i - input_components.length];
+        if ("load_example" in output_component) {
+          output_component.load_example(value);
         } else {
-          output_interface.output(value)
+          output_component.output(value)
         }
       }
     };
     if (io_master.loaded_examples && example_id in io_master.loaded_examples) {
-      io_master.output({"data": io_master.loaded_examples[example_id]});
+      io_master.output({ "data": io_master.loaded_examples[example_id] });
     }
     let example_order = io_master.order_mapping.indexOf(example_id);
     let current_page = Math.floor(example_order / config["examples_per_page"]);
@@ -280,7 +213,7 @@ function gradio(config, fn, target, example_file_path) {
     }
   }
   function next_example() {
-    current_example = io_master.current_example;
+    var current_example = io_master.current_example;
     if (current_example == null) {
       new_index = 0;
     } else {
@@ -289,7 +222,7 @@ function gradio(config, fn, target, example_file_path) {
     load_example(io_master.order_mapping[new_index]);
   }
   function prev_example() {
-    current_example = io_master.current_example;
+    var current_example = io_master.current_example;
     if (current_example == null) {
       new_index = 0;
     } else {
@@ -298,7 +231,7 @@ function gradio(config, fn, target, example_file_path) {
     load_example(io_master.order_mapping[new_index]);
   }
   function load_page() {
-    page_num = io_master.current_page;
+    var page_num = io_master.current_page;
     target.find(".page").removeClass("primary");
     target.find(`.page[page=${page_num}]`).addClass("primary");
     let page_start = page_num * config["examples_per_page"]
@@ -309,14 +242,14 @@ function gradio(config, fn, target, example_file_path) {
       html += "<tr row=" + example_id + ">";
       for (let [j, col] of example.entries()) {
         let new_col = JSON.parse(JSON.stringify(col))
-        if (j < input_interfaces.length) {
-          if (input_interfaces[j].load_example_preview) {
-            new_col = input_interfaces[j].load_example_preview(new_col);
+        if (j < input_components.length) {
+          if (input_components[j].load_example_preview) {
+            new_col = input_components[j].load_example_preview(new_col);
           }
         } else {
-          let k = j - input_interfaces.length;
-          if (k < output_interfaces.length && output_interfaces[k].load_example_preview) {
-            new_col = output_interfaces[k].load_example_preview(new_col);
+          let k = j - input_components.length;
+          if (k < output_components.length && output_components[k].load_example_preview) {
+            new_col = output_components[k].load_example_preview(new_col);
           }
         }
         html += "<td>" + new_col + "</td>";
@@ -324,10 +257,10 @@ function gradio(config, fn, target, example_file_path) {
       if (io_master.loaded_examples && example_id in io_master.loaded_examples) {
         output_values = io_master.loaded_examples[example_id]
         for (let j = 0; j < output_values.length; j++) {
-          let output_interface = io_master.output_interfaces[j];
+          let output_component = io_master.output_components[j];
           let example_preview = output_values[j];
-          if (output_interface.load_example_preview) {
-            example_preview = output_interface.load_example_preview(example_preview)
+          if (output_component.load_example_preview) {
+            example_preview = output_component.load_example_preview(example_preview)
           }
           html += "<td>" + example_preview + "</td>";
         }
@@ -339,16 +272,16 @@ function gradio(config, fn, target, example_file_path) {
   if (config["examples"]) {
     target.find(".examples").removeClass("hidden");
     let html = "<thead>"
-    for (let input_interface of config["input_interfaces"]) {
-      html += "<th>" + input_interface[1]["label"] + "</th>";
+    for (let input_component of config["input_components"]) {
+      html += "<th>" + input_component[1]["label"] + "</th>";
     }
-    if (config["examples"].length > 0 && config["examples"][0].length > config["input_interfaces"].length) {
-      for (let output_interface of config["output_interfaces"]) {
-        html += "<th>" + output_interface[1]["label"] + "</th>";
+    if (config["examples"].length > 0 && config["examples"][0].length > config["input_components"].length) {
+      for (let output_component of config["output_components"]) {
+        html += "<th>" + output_component[1]["label"] + "</th>";
       }
     }
     html += "</thead>";
-    html += "<tbody class='examples_body'></tbody>";
+    html += "<tbody className='examples_body'></tbody>";
     target.find(".examples table").html(html);
     io_master.current_page = 0;
     io_master.order_mapping = [...Array(config.examples.length).keys()];
@@ -357,34 +290,34 @@ function gradio(config, fn, target, example_file_path) {
       target.find(".pages").removeClass("hidden");
       let html = "";
       for (let i = 0; i < page_count; i++) {
-        html += `<button class='page' page='${i}'>${i+1}</button>`
+        html += `<button className='page' page='${i}'>${i + 1}</button>`
       }
       target.find(".pages").append(html);
     }
     load_page();
     window.onhashchange = hash_handler;
-    hash_handler();  
-    target.on("click", ".examples_body > tr", function() {
+    hash_handler();
+    target.on("click", ".examples_body > tr", function () {
       let example_id = parseInt($(this).attr("row"));
       load_example(example_id);
     })
-    target.on("click", ".page", function() {
+    target.on("click", ".page", function () {
       let page_num = parseInt($(this).attr("page"));
       io_master.current_page = page_num;
       load_page();
     })
-    set_table_mode = function() {
+    set_table_mode = function () {
       target.find(".examples-content").removeClass("gallery");
       target.find(".examples_control_right button").removeClass("current");
       target.find(".table_examples").addClass("current");
     }
-    set_gallery_mode = function() {
+    set_gallery_mode = function () {
       target.find(".examples-content").addClass("gallery");
       target.find(".examples_control_right button").removeClass("current");
       target.find(".gallery_examples").addClass("current");
     }
-    target.on("click", ".table_examples",  set_table_mode);
-    target.on("click", ".gallery_examples",  set_gallery_mode);
+    target.on("click", ".table_examples", set_table_mode);
+    target.on("click", ".gallery_examples", set_gallery_mode);
     if (config["examples"].length > 0 && config["examples"][0].length > 1) {
       set_table_mode();
     } else {
@@ -392,73 +325,73 @@ function gradio(config, fn, target, example_file_path) {
     }
     target.find(".load_prev").click(prev_example);
     target.find(".load_next").click(next_example);
-    target.find(".order_similar").click(function() {
-      io_master.score_similarity(function() {
+    target.find(".order_similar").click(function () {
+      io_master.score_similarity(function () {
         io_master.current_page = 0
         io_master.current_example = null;
-        load_page();  
+        load_page();
       })
     });
-    target.find(".view_examples").click(function() {
-      target.find(".examples-content").removeClass("hidden");        
-      target.find(".embeddings-content").addClass("hidden");  
+    target.find(".view_examples").click(function () {
+      target.find(".examples-content").removeClass("hidden");
+      target.find(".embeddings-content").addClass("hidden");
     });
-    target.find(".update_embeddings").click(function() {
-      io_master.update_embeddings(function(output) {
+    target.find(".update_embeddings").click(function () {
+      io_master.update_embeddings(function (output) {
         embedding_chart.data.datasets[0].data.push(output["sample_embedding_2d"][0]);
         console.log(output["sample_embedding_2d"][0])
         embedding_chart.update();
       })
     });
-    target.find(".view_embeddings").click(function() {
-      io_master.view_embeddings(function(output) {
+    target.find(".view_embeddings").click(function () {
+      io_master.view_embeddings(function (output) {
         let ctx = $('#canvas')[0].getContext('2d');
         let backgroundColors = getBackgroundColors(io_master);
         embedding_chart = new Chart(ctx, {
           type: 'scatter',
           data: {
-              datasets: [{
-                label: 'Sample Embedding',
-                data: output["sample_embedding_2d"],
-                backgroundColor: 'rgb(0, 0, 0)',
-                borderColor: 'rgb(0, 0, 0)',
-                pointRadius: 13,
-                pointHoverRadius: 13,
-                pointStyle: 'rectRot',
-                showLine: true,
-                fill: false,
-              }, {
-                label: 'Dataset Embeddings',
-                data: output["example_embeddings_2d"],
-                backgroundColor: backgroundColors,
-                borderColor: backgroundColors,
-                pointRadius: 7,
-                pointHoverRadius: 7
-              }]
+            datasets: [{
+              label: 'Sample Embedding',
+              data: output["sample_embedding_2d"],
+              backgroundColor: 'rgb(0, 0, 0)',
+              borderColor: 'rgb(0, 0, 0)',
+              pointRadius: 13,
+              pointHoverRadius: 13,
+              pointStyle: 'rectRot',
+              showLine: true,
+              fill: false,
+            }, {
+              label: 'Dataset Embeddings',
+              data: output["example_embeddings_2d"],
+              backgroundColor: backgroundColors,
+              borderColor: backgroundColors,
+              pointRadius: 7,
+              pointHoverRadius: 7
+            }]
           },
           options: {
-            legend: {display: false}
+            legend: { display: false }
           }
         });
-        $("#canvas")[0].onclick = function(evt){
+        $("#canvas")[0].onclick = function (evt) {
           var activePoints = embedding_chart.getElementsAtEvent(evt);
           var firstPoint = activePoints[0];
-          if (firstPoint._datasetIndex==1) { // if it's from the sample embeddings dataset
+          if (firstPoint._datasetIndex == 1) { // if it's from the sample embeddings dataset
             load_example(firstPoint._index)
           }
         };
-    
-        target.find(".examples-content").addClass("hidden");        
-        target.find(".embeddings-content").removeClass("hidden");  
-        })
+
+        target.find(".examples-content").addClass("hidden");
+        target.find(".embeddings-content").removeClass("hidden");
+      })
     });
-    $("body").keydown(function(e) {
+    $("body").keydown(function (e) {
       if ($(document.activeElement).attr("type") == "text" || $(document.activeElement).attr("type") == "textarea") {
         return;
       }
       e = e || window.event;
       var keyCode = e.keyCode || e.which,
-          arrow = {left: 37, up: 38, right: 39, down: 40 };    
+        arrow = { left: 37, up: 38, right: 39, down: 40 };
       if (e.ctrlKey) {
         if (keyCode == arrow.left) {
           prev_example();
@@ -469,40 +402,40 @@ function gradio(config, fn, target, example_file_path) {
     });
   };
 
-  
-  target.find(".screenshot").click(function() {
+
+  target.find(".screenshot").click(function () {
     $(".screenshot, .record").hide();
     $(".screenshot_logo").removeClass("hidden");
     $(".record_stop").hide();
     html2canvas(target[0], {
       scrollX: 0,
       scrollY: -window.scrollY
-    }).then(function(canvas) {
+    }).then(function (canvas) {
       saveAs(canvas.toDataURL(), 'screenshot.png');
       $(".screenshot, .record").show();
       $(".screenshot_logo").addClass("hidden");
     });
   });
-  target.find(".record").click(function() {
+  target.find(".record").click(function () {
     $(".screenshot, .record").hide();
     $(".screenshot_logo").removeClass("hidden");
     $(".record_stop").show();
-    target.append("<canvas class='recording_draw hidden' width=640 height=480></canvas>");
-    target.append("<video class='recording hidden' autoplay playsinline></video>");
+    target.append("<canvas className='recording_draw hidden' width=640 height=480></canvas>");
+    target.append("<video className='recording hidden' autoplay playsinline></video>");
     navigator.mediaDevices.getDisplayMedia(
       { video: { width: 9999, height: 9999 } }
     ).then(stream => {
       video = target.find("video.recording")[0];
       canvas = target.find("canvas.recording_draw")[0];
-      io_master.recording = {frames: [], stream: stream};
+      io_master.recording = { frames: [], stream: stream };
       video.srcObject = stream;
       const ctx = canvas.getContext('2d');
       io_master.recording.interval = window.setInterval(() => {
         let first = (io_master.recording.width === undefined);
         if (first) {
-          io_master.recording.width = video.videoWidth;          
-          io_master.recording.height = video.videoHeight;          
-          io_master.recording.start = Date.now();          
+          io_master.recording.width = video.videoWidth;
+          io_master.recording.height = video.videoHeight;
+          io_master.recording.start = Date.now();
           canvas.width = `${video.videoWidth}`;
           canvas.height = `${video.videoHeight}`;
         }
@@ -515,7 +448,7 @@ function gradio(config, fn, target, example_file_path) {
       }, 100);
     });
   });
-  target.find(".record_stop").click(function() {
+  target.find(".record_stop").click(function () {
     window.clearInterval(io_master.recording.interval);
     io_master.recording.stream.getTracks().forEach(track => track.stop());
     const gif = new GifEncoder({
@@ -551,7 +484,7 @@ function gradio(config, fn, target, example_file_path) {
     io_master.gather();
   } else {
     target.find(".submit").show();
-    target.find(".submit").click(function() {
+    target.find(".submit").click(function () {
       io_master.gather();
     })
   }
@@ -573,16 +506,16 @@ function gradio(config, fn, target, example_file_path) {
       for (let option of config.flagging_options) {
         target.find(".dropcontent").append(`<div>${option}</div>`)
       }
-      target.find(".flag .dropcontent div").click(function() {
+      target.find(".flag .dropcontent div").click(function () {
         if (io_master.last_output) {
           target.find(".flag .dropcontent");
           flash_flag();
           io_master.flag($(this).text());
         }
       });
-      
+
     } else {
-      target.find(".flag").click(function() {
+      target.find(".flag").click(function () {
         if (io_master.last_output) {
           flash_flag();
           io_master.flag();
@@ -593,62 +526,63 @@ function gradio(config, fn, target, example_file_path) {
   if (config.hide_run_all) {
     $(".run_examples").hide();
   }
-  target.find(".interpret").click(function() {
+  target.find(".interpret").click(function () {
     target.find(".interpretation_explained").removeClass("hidden");
     if (io_master.last_output) {
       io_master.interpret();
     }
   });
-  target.find(".run_examples").click(function() {
+  target.find(".run_examples").click(function () {
     if (!io_master.has_loaded_examples) {
       this.has_loaded_examples = true;
       let html = ""
-      for (let i = 0; i < io_master.output_interfaces.length; i++) {
-        html += "<th>" + config.output_interfaces[i][1]["label"] + "</th>";
+      for (let i = 0; i < io_master.output_components.length; i++) {
+        html += "<th>" + config.output_components[i][1]["label"] + "</th>";
       }
       target.find(".examples > table > thead > tr").append(html);
     }
     io_master.has_loaded_examples = true;
     io_master.submit_examples(load_page);
-})
+  })
 
-  $(".input_panel").on("mouseover", ".alternate", function() {
+  $(".input_panel").on("mouseover", ".alternate", function () {
     let interface_index = $(this).closest(".interface").attr("interface_id");
     let alternate_index = $(this).attr("alternate_index");
     io_master.alternative_interpret(interface_index, alternate_index);
   })
-  $(".input_panel").on("mouseout", ".alternate", function() {
+  $(".input_panel").on("mouseout", ".alternate", function () {
     io_master.alternative_interpret(false);
   })
 
   return io_master;
 }
 function gradio_url(config, url, target, example_file_path) {
-  return gradio(config, function(data, action) {
+  return gradio(config, function (data, action) {
     return new Promise((resolve, reject) => {
-      $.ajax({type: "POST",
+      $.ajax({
+        type: "POST",
         url: url + action + "/",
-        data: JSON.stringify({"data": data}),
+        data: JSON.stringify({ "data": data }),
         dataType: 'json',
         contentType: 'application/json; charset=utf-8',
         success: resolve,
         error: reject,
       });
-    });              
+    });
   }, target, example_file_path);
 }
 function saveAs(uri, filename) {
   var link = document.createElement('a');
   if (typeof link.download === 'string') {
-      link.href = uri;
-      link.download = filename;
-      //Firefox requires the link to be in the body
-      document.body.appendChild(link);
-      //simulate click
-      link.click();
-      //remove the link when done
-      document.body.removeChild(link);
+    link.href = uri;
+    link.download = filename;
+    //Firefox requires the link to be in the body
+    document.body.appendChild(link);
+    //simulate click
+    link.click();
+    //remove the link when done
+    document.body.removeChild(link);
   } else {
-      window.open(uri);
+    window.open(uri);
   }
 }
