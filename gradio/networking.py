@@ -275,9 +275,9 @@ def start_server(interface, server_name, server_port=None, auth=None):
         server_port, server_port + TRY_NUM_PORTS
     )
     if auth is not None:
-        app.interface.config['BASIC_AUTH_USERNAME'] = auth[0]
-        app.interface.config['BASIC_AUTH_PASSWORD'] = auth[1]
-        app.interface.config['BASIC_AUTH_FORCE'] = True
+        app.config['BASIC_AUTH_USERNAME'] = auth[0]
+        app.config['BASIC_AUTH_PASSWORD'] = auth[1]
+        app.config['BASIC_AUTH_FORCE'] = True
         basic_auth = BasicAuth(app)        
     app.interface = interface
     app.cwd = os.getcwd()
@@ -323,7 +323,7 @@ def url_ok(url):
         for _ in range(5):
             time.sleep(.500)
             r = requests.head(url, timeout=3)
-            if r.status_code == 200:
+            if r.status_code == 200 or r.status_code == 401: # 401 if auth is set
                 return True
     except (ConnectionError, requests.exceptions.ConnectionError):
         return False
