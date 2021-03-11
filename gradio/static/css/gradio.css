@@ -104,7 +104,11 @@ button.submit {
   background-color: #e67e22;
   color: white;
 }
-.panel_button:hover {
+.panel_button.inactive {
+  color: lightgray;
+  cursor: not-allowed;
+}
+.panel_button:not(.inactive):hover {
   background-color: lightgray;
 }
 button.submit:hover {
