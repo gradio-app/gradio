@@ -39,7 +39,7 @@ def main_note(audio):
 
 iface = gr.Interface(
     main_note, 
-    "microphone", 
+    "audio", 
     gr.outputs.Label(num_top_classes=4),
     examples=[
         ["audio/recording1.wav"],

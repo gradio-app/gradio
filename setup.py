@@ -27,6 +27,8 @@ setup(
         'analytics-python',
         'pandas',
         'ffmpy',
+        'librosa',
+        'colorama >= 0.3.9',
         'markdown2'
     ],
 )
