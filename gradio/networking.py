@@ -7,7 +7,7 @@ import socket
 import threading
 from flask import Flask, request, jsonify, abort, send_file, render_template, redirect
 from flask_cachebuster import CacheBuster
-from flask_basicauth import BasicAuth
+from flask_login import LoginManager, login_user, logout_user, current_user, login_required
 from flask_cors import CORS
 import threading
 import pkg_resources
@@ -23,6 +23,9 @@ import logging
 import gradio as gr
 from gradio.embeddings import calculate_similarity, fit_pca_to_embeddings, transform_with_pca
 from gradio.tunneling import create_tunnel
+from gradio import encryptor
+from functools import wraps
+import io
 
 INITIAL_PORT_VALUE = int(os.getenv(
     'GRADIO_SERVER_PORT', "7860"))  # The http server will try to open on port 7860. If not available, 7861, 7862, etc.
@@ -44,10 +47,42 @@ app = Flask(__name__,
 CORS(app)
 cache_buster = CacheBuster(config={'extensions': ['.js', '.css'], 'hash_size': 5})
 cache_buster.init_app(app)
+app.secret_key = os.getenv("GRADIO_KEY", "secret")
+login_manager = LoginManager()
+login_manager.login_view = 'login'
+login_manager.init_app(app)
 
 # Hide Flask default message
 cli = sys.modules['flask.cli']
 cli.show_server_banner = lambda *x: None
+
+class User:
+    def __init__(self, id):
+        self.is_authenticated = True
+        self.is_active = True
+        self.is_anonymous = False
+        self.id = id
+
+    def get_id(self):
+        return self.id
+
+@login_manager.user_loader
+def load_user(_id):
+    return User(_id)
+
+def login_check(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if app.auth:
+            @login_required
+            def func2(*args, **kwargs):
+                return func(*args, **kwargs)
+            
+            return func2(*args, **kwargs)
+        else:
+            return func(*args, **kwargs)
+    return wrapper
+
 
 def get_local_ip_address():
     try:
@@ -89,16 +124,32 @@ def home_page(examples=None, path=None):
     )
 
 @app.route("/", methods=["GET"])
+@login_check
 def main():
     if isinstance(app.interface.examples, str):
         return redirect("/from_dir/" + app.interface.examples)
     return home_page()
 
+@app.route('/login', methods=["GET", "POST"])
+def login():
+    if request.method == "GET":
+        return render_template("login.html", current_user=current_user)
+    elif request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+        if username in app.auth and app.auth[username] == password:
+            login_user(User(username))
+            return redirect("/")
+        else:
+            return abort(401)    
+
 @app.route("/from_dir", methods=["GET"])
+@login_check
 def main_from_flagging_dir():
     return redirect("/from_dir/" + app.interface.flagging_dir)
 
 @app.route("/from_dir/<path:path>", methods=["GET"])
+@login_check
 def main_from_dir(path):
     log_file = os.path.join(path, "log.csv")
     if not os.path.exists(log_file):
@@ -106,8 +157,15 @@ def main_from_dir(path):
             abort(404, "Examples dir not found")
         else:
             redirect("/")
-    with open(log_file) as logs:
-        examples = list(csv.reader(logs)) 
+    if app.interface.encrypt:
+        with open(log_file, "rb") as csvfile:
+            encrypted_csv = csvfile.read()
+            decrypted_csv = encryptor.decrypt(app.interface.encryption_key, encrypted_csv)
+            csv_data = io.StringIO(decrypted_csv.decode())
+            examples = list(csv.reader(csv_data))
+    else:
+        with open(log_file) as logs:
+            examples = list(csv.reader(logs))
     examples = examples[1:] #remove header
     for i, example in enumerate(examples):
         for j, (interface, cell) in enumerate(zip(app.interface.input_interfaces + app.interface.output_interfaces, example)):
@@ -115,11 +173,13 @@ def main_from_dir(path):
     return home_page(examples=examples, path=path)
 
 @app.route("/config/", methods=["GET"])
+@login_check
 def config():
     return jsonify(app.interface.config)
 
 
 @app.route("/enable_sharing/<path:path>", methods=["GET"])
+@login_check
 def enable_sharing(path):
     if path == "None":
         path = None
@@ -128,13 +188,14 @@ def enable_sharing(path):
     
 
 @app.route("/api/predict/", methods=["POST"])
+@login_check
 def predict():
     raw_input = request.json["data"]
     prediction, durations = app.interface.process(raw_input)
     output = {"data": prediction, "durations": durations}
     if app.interface.allow_flagging == "auto":
         try:
-            flag_data(raw_input)
+            flag_data(raw_input, prediction)
         except:
             pass
     return jsonify(output)
@@ -150,6 +211,7 @@ def log_feature_analytics(feature):
             pass  # do not push analytics if no network
 
 @app.route("/api/score_similarity/", methods=["POST"])
+@login_check
 def score_similarity():
     raw_input = request.json["data"]
 
@@ -168,6 +230,7 @@ def score_similarity():
 
 
 @app.route("/api/view_embeddings/", methods=["POST"])
+@login_check
 def view_embeddings():    
     sample_embedding = []
     if "data" in request.json:
@@ -192,6 +255,7 @@ def view_embeddings():
 
 
 @app.route("/api/update_embeddings/", methods=["POST"])
+@login_check
 def update_embeddings():    
     sample_embedding, sample_embedding_2d = [], []
     if "data" in request.json:
@@ -205,6 +269,7 @@ def update_embeddings():
 
 
 @app.route("/api/predict_examples/", methods=["POST"])
+@login_check
 def predict_examples():
     example_ids = request.json["data"]
     predictions_set = {}
@@ -224,28 +289,44 @@ def predict_examples():
 def flag_data(input_data, output_data, flag_option=None):
     flag_path = os.path.join(app.cwd, app.interface.flagging_dir)
     csv_data = []
+    encryption_key = app.interface.encryption_key if app.interface.encrypt else None
     for i, interface in enumerate(app.interface.input_interfaces):
-        csv_data.append(interface.save_flagged(flag_path, app.interface.config["input_interfaces"][i][1]["label"], input_data[i]))
+        csv_data.append(interface.save_flagged(flag_path, app.interface.config["input_interfaces"][i][1]["label"], input_data[i], encryption_key))
     for i, interface in enumerate(app.interface.output_interfaces):
-        csv_data.append(interface.save_flagged(flag_path, app.interface.config["output_interfaces"][i][1]["label"], output_data[i]))
+        csv_data.append(interface.save_flagged(flag_path, app.interface.config["output_interfaces"][i][1]["label"], output_data[i], encryption_key))
     if flag_option:
         csv_data.append(flag_option)
+
+    headers = [interface[1]["label"] for interface in app.interface.config["input_interfaces"]]
+    headers += [interface[1]["label"] for interface in app.interface.config["output_interfaces"]]
+    if app.interface.flagging_options is not None:
+        headers.append("flag")
 
     log_fp = "{}/log.csv".format(flag_path)
     is_new = not os.path.exists(log_fp)
 
-    with open(log_fp, "a") as csvfile:
-        writer = csv.writer(csvfile)
+    if app.interface.encrypt:
+        output = io.StringIO()
+        if not is_new:
+            with open(log_fp, "rb") as csvfile:
+                encrypted_csv = csvfile.read()
+                decrypted_csv = encryptor.decrypt(app.interface.encryption_key, encrypted_csv)
+                output.write(decrypted_csv.decode())
+        writer = csv.writer(output)
         if is_new:
-            headers = [interface[1]["label"] for interface in app.interface.config["input_interfaces"]]
-            headers += [interface[1]["label"] for interface in app.interface.config["output_interfaces"]]
-            if app.interface.flagging_options is not None:
-                headers.append("flag")
             writer.writerow(headers)
-
         writer.writerow(csv_data)
+        with open(log_fp, "wb") as csvfile:
+            csvfile.write(encryptor.encrypt(app.interface.encryption_key, output.getvalue().encode()))
+    else:
+        with open(log_fp, "a") as csvfile:
+            writer = csv.writer(csvfile)
+            if is_new:
+                writer.writerow(headers)
+            writer.writerow(csv_data)
 
 @app.route("/api/flag/", methods=["POST"])
+@login_check
 def flag():
     log_feature_analytics('flag')
     data = request.json['data']
@@ -254,6 +335,7 @@ def flag():
 
 
 @app.route("/api/interpret/", methods=["POST"])
+@login_check
 def interpret():
     log_feature_analytics('interpret')
     raw_input = request.json["data"]
@@ -265,28 +347,38 @@ def interpret():
 
 
 @app.route("/file/<path:path>", methods=["GET"])
+@login_check
 def file(path):
-    return send_file(os.path.join(app.cwd, path))
+    if app.interface.encrypt and isinstance(app.interface.examples, str) and path.startswith(app.interface.examples):
+        with open(os.path.join(app.cwd, path), "rb") as encrypted_file:
+            encrypted_data = encrypted_file.read()
+        file_data = encryptor.decrypt(app.interface.encryption_key, encrypted_data)
+        return send_file(io.BytesIO(file_data), attachment_filename=os.path.basename(path))
+    else:
+        return send_file(os.path.join(app.cwd, path))
 
-def start_server(interface, server_name, server_port=None, auth=None):
+def start_server(interface, server_name, server_port=None, auth=None, ssl=None):
     if server_port is None:
         server_port = INITIAL_PORT_VALUE
     port = get_first_available_port(
         server_port, server_port + TRY_NUM_PORTS
     )
     if auth is not None:
-        app.config['BASIC_AUTH_USERNAME'] = auth[0]
-        app.config['BASIC_AUTH_PASSWORD'] = auth[1]
-        app.config['BASIC_AUTH_FORCE'] = True
-        basic_auth = BasicAuth(app)        
+        app.auth = {account[0]: account[1] for account in auth}
+    else:
+        app.auth = None
     app.interface = interface
     app.cwd = os.getcwd()
     log = logging.getLogger('werkzeug')
     log.setLevel(logging.ERROR)
     if interface.save_to is not None:
         interface.save_to["port"] = port
+    app_kwargs = {"port": port, "host": server_name}
+    if ssl:
+        print(ssl)
+        app_kwargs["ssl_context"] = ssl
     thread = threading.Thread(target=app.run,
-                              kwargs={"port": port, "host": server_name},
+                              kwargs=app_kwargs,
                               daemon=True)
     thread.start()
 
@@ -307,8 +399,8 @@ def url_request(url):
         raise RuntimeError(str(e))
 
 
-def setup_tunnel(local_server_port):
-    response = url_request(GRADIO_API_SERVER)
+def setup_tunnel(local_server_port, endpoint):
+    response = url_request(endpoint if endpoint is not None else GRADIO_API_SERVER)
     if response and response.code == 200:
         try:
             payload = json.loads(response.read().decode("utf-8"))[0]
@@ -323,7 +415,7 @@ def url_ok(url):
         for _ in range(5):
             time.sleep(.500)
             r = requests.head(url, timeout=3)
-            if r.status_code == 200 or r.status_code == 401: # 401 if auth is set
+            if r.status_code in (200, 401, 302): # 401 or 302 if auth is set
                 return True
     except (ConnectionError, requests.exceptions.ConnectionError):
         return False

@@ -8,6 +8,7 @@ from gradio.inputs import InputComponent
 from gradio.outputs import OutputComponent
 from gradio import networking, strings, utils
 from gradio.interpretation import quantify_difference_in_label
+from gradio import encryptor
 import pkg_resources
 import requests
 import random
@@ -22,6 +23,7 @@ import os
 import copy
 import markdown2
 import json
+from getpass import getpass
 
 analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
 analytics_url = 'https://api.gradio.app/'
@@ -49,7 +51,7 @@ class Interface:
                  capture_session=False, interpretation=None,
                  title=None, description=None, article=None, thumbnail=None, 
                  css=None, server_port=7860, server_name=networking.LOCALHOST_NAME,
-                 allow_screenshot=True, allow_flagging=True, flagging_options=None,
+                 allow_screenshot=True, allow_flagging=True, flagging_options=None, encrypt=False,
                  show_tips=True, embedding=None, flagging_dir="flagged", analytics_enabled=True):
 
         """
@@ -74,6 +76,7 @@ class Interface:
         allow_screenshot (bool): if False, users will not see a button to take a screenshot of the interface.
         allow_flagging (bool): if False, users will not see a button to flag an input and output.
         flagging_options (List[str]): if not None, provides options a user must select when flagging.
+        encrypt (bool): If True, flagged data will be encrypted by key provided by creator at launch
         flagging_dir (str): what to name the dir where flagged data is stored.
         show_tips (bool): if True, will occasionally show tips about new Gradio features
         """
@@ -148,6 +151,7 @@ class Interface:
         self.allow_flagging = os.getenv("GRADIO_FLAGGING") or allow_flagging
         self.flagging_options = flagging_options 
         self.flagging_dir = flagging_dir
+        self.encrypt = encrypt
         Interface.instances.add(self)
         self.analytics_enabled=analytics_enabled
         self.save_to = None
@@ -367,7 +371,7 @@ class Interface:
                 print("PASSED")
                 continue
 
-    def launch(self, inline=None, inbrowser=None, share=False, debug=False, auth=None):
+    def launch(self, inline=None, inbrowser=None, share=False, debug=False, auth=None, private_endpoint=None):
         """
         Parameters:
         inline (bool): whether to display in the interface inline on python notebooks.
@@ -386,7 +390,13 @@ class Interface:
         # Set up local flask server
         config = self.get_config_file()
         self.config = config
+        if auth and not isinstance(auth[0], tuple) and not isinstance(auth[0], list):
+            auth = [auth]
         self.auth = auth
+
+        # Request key for encryption
+        if self.encrypt:
+            self.encryption_key = encryptor.get_key(getpass("Enter key for encryption: "))
 
         # Launch local flask server
         server_port, app, thread = networking.start_server(
@@ -416,7 +426,7 @@ class Interface:
         if share:
             print(strings.en["SHARE_LINK_MESSAGE"])
             try:
-                share_url = networking.setup_tunnel(server_port)
+                share_url = networking.setup_tunnel(server_port, private_endpoint)
                 print(strings.en["SHARE_LINK_DISPLAY"].format(share_url))
             except RuntimeError:
                 send_error_analytics(self.analytics_enabled)
