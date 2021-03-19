@@ -6,7 +6,7 @@ import scipy.io.wavfile
 from scipy.fftpack import dct
 import numpy as np
 import skimage
-
+from gradio import encryptor
 
 #########################
 # IMAGE PRE-PROCESSING
@@ -80,12 +80,14 @@ def decode_base64_to_binary(encoding):
         data = encoding
     return base64.b64decode(data), extension
 
-def decode_base64_to_file(encoding):
+def decode_base64_to_file(encoding, encryption_key=None):
     data, extension = decode_base64_to_binary(encoding)
     if extension is None:
         file_obj = tempfile.NamedTemporaryFile(delete=False)
     else:
         file_obj = tempfile.NamedTemporaryFile(delete=False, suffix="."+extension)
+    if encryption_key is not None:
+        data = encryptor.encrypt(encryption_key, data)
     file_obj.write(data)
     file_obj.flush()
     return file_obj

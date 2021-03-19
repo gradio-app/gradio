@@ -467,7 +467,7 @@ class CheckboxGroup(InputComponent):
         else:
             raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'value', 'index'.")
 
-    def save_flagged(self, dir, label, data):
+    def save_flagged(self, dir, label, data, encryption_key):
         """
         Returns: (List[str]])
         """
@@ -722,11 +722,11 @@ class Image(InputComponent):
         im = processing_utils.resize_and_crop(im, (shape[0], shape[1]))
         return np.asarray(im).flatten()
 
-    def save_flagged(self, dir, label, data):
+    def save_flagged(self, dir, label, data, encryption_key):
         """
         Returns: (str) path to image file
         """
-        return self.save_flagged_file(dir, label, data)
+        return self.save_flagged_file(dir, label, data, encryption_key)
 
 
 class Video(InputComponent):
@@ -771,11 +771,11 @@ class Video(InputComponent):
     def preprocess_example(self, x):
         return processing_utils.encode_file_to_base64(x)
 
-    def save_flagged(self, dir, label, data):
+    def save_flagged(self, dir, label, data, encryption_key):
         """
         Returns: (str) path to video file
         """
-        return self.save_flagged_file(dir, label, data)
+        return self.save_flagged_file(dir, label, data, encryption_key)
 
 class Audio(InputComponent):
     """
@@ -876,11 +876,11 @@ class Audio(InputComponent):
         else:
             raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'numpy', 'mfcc', 'file'.")
 
-    def save_flagged(self, dir, label, data):
+    def save_flagged(self, dir, label, data, encryption_key):
         """
         Returns: (str) path to audio file
         """
-        return self.save_flagged_file(dir, label, data)
+        return self.save_flagged_file(dir, label, data, encryption_key)
 
 
 class File(InputComponent):
@@ -923,11 +923,11 @@ class File(InputComponent):
     def embed(self, x):
         raise NotImplementedError("File doesn't currently support embeddings")
 
-    def save_flagged(self, dir, label, data):
+    def save_flagged(self, dir, label, data, encryption_key):
         """
         Returns: (str) path to file
         """
-        return self.save_flagged_file(dir, label, data["data"])
+        return self.save_flagged_file(dir, label, data["data"], encryption_key)
 
 
 class Dataframe(InputComponent):
@@ -1023,7 +1023,7 @@ class Dataframe(InputComponent):
     def embed(self, x):
         raise NotImplementedError("DataFrame doesn't currently support embeddings")
 
-    def save_flagged(self, dir, label, data):
+    def save_flagged(self, dir, label, data, encryption_key):
         """
         Returns: (List[List[Union[str, float]]]) 2D array
         """
@@ -1082,7 +1082,7 @@ class Sketchpad(InputComponent):
     def process_example(self, example):
         return processing_utils.encode_file_to_base64(example)
 
-    def save_flagged(self, dir, label, data):
+    def save_flagged(self, dir, label, data, encryption_key):
         """
         Default rebuild method to decode a base64 image
         """
@@ -1121,7 +1121,7 @@ class Webcam(InputComponent):
             im, (self.image_width, self.image_height))
         return np.array(im)
 
-    def save_flagged(self, dir, label, data):
+    def save_flagged(self, dir, label, data, encryption_key):
         """
         Default rebuild method to decode a base64 image
         """
@@ -1163,7 +1163,7 @@ class Microphone(InputComponent):
         return signal
 
 
-    def save_flagged(self, dir, label, data):
+    def save_flagged(self, dir, label, data, encryption_key):
         inp = data.split(';')[1].split(',')[1]
         wav_obj = base64.b64decode(inp)
         timestamp = datetime.datetime.now()

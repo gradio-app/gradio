@@ -112,7 +112,7 @@ button.submit {
   background-color: lightgray;
 }
 button.submit:hover {
-  background-color: #f39c12;
+  background-color: #f39c12 !important;
 }
 .flag {
   cursor: pointer;
@@ -181,4 +181,38 @@ button.submit:hover {
 }
 .screenshot_logo img {
   height: 38px;
+}
+#login {
+  margin: 40px auto;
+  width: 50%;
+  background-color: whitesmoke;
+  padding: 24px;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+}
+#login h2 {
+  margin-top: 8px
+}
+#login label  {
+  display: block;
+  margin: 0.5em 0;
+}
+#login input[type=text], #login input[type=password], #login textarea {
+  background-color: white;
+  color: inherit;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-size: 1.1em;
+  outline: inherit;
+  padding: 0.5em;
+}
+#login input[type="submit"] {
+  padding: 12px;
+  margin-top: 20px;
+  background-color: #e67e22;
+  color: white;  
+  border-radius: 4px;
+  font-weight: bold;
 }
