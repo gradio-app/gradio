@@ -30,6 +30,6 @@ setup(
         'librosa',
         'colorama >= 0.3.9',
         'markdown2',
-        'Crypto'
+        'pycrypto'
     ],
 )
