@@ -424,7 +424,8 @@ class Interface:
         # Set up shareable link 
         self.share = share
         if share:
-            print(strings.en["SHARE_LINK_MESSAGE"])
+            if not private_endpoint:
+                print(strings.en["SHARE_LINK_MESSAGE"])
             try:
                 share_url = networking.setup_tunnel(server_port, private_endpoint)
                 print(strings.en["SHARE_LINK_DISPLAY"].format(share_url))
