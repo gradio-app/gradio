@@ -3,7 +3,6 @@ textarea.input_text, input.input_text {
   width: 100%;
   font-size: 18px;
   outline: none;
-  height: 100%;
   background-color: white;
   border: solid 1px lightgray;
   border-radius: 2px;

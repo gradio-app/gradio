@@ -55,7 +55,6 @@
 }
 .loading img {
   height: 20px;
-  display: none;
 }
 .panel_buttons {
   display: flex;
