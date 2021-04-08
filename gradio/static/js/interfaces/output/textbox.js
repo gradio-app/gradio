@@ -3,17 +3,7 @@ class TextboxOutput extends React.Component {
     super(props);
   }
   render() {
-    return <div className="output_text"></div>
-  }
-  init(opts) {
-  }
-  output(data) {
-    this.target.find(".output_text").text(data);
-  }
-  submit() {
-  }
-  clear() {
-    this.target.find(".output_text").empty();
+    return <div className="output_text">{this.props.value}</div>
   }
   load_example_preview(data) {
     if (typeof data == "string" && data.length > 20) {

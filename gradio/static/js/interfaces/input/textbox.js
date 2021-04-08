@@ -10,29 +10,14 @@ class TextboxInput extends React.Component {
     if (this.props.lines > 1) {
       return (
         <div>
-          <textarea className="input_text"></textarea>
-          <div className="output_text"></div>
+          <textarea className="input_text" onChange={this.handleChange}>
+            {this.props.value}
+          </textarea>
         </div>
         )
     } else {
       return <input type="text" className="input_text" onChange={this.handleChange} value={this.props.value}></input>
     }
-  }
-  init(opts) {
-    if (opts.placeholder) {
-      this.target.find(".input_text").attr("placeholder", opts.placeholder)
-    }
-    this.target.find(".output_text").hide();
-  }
-  submit() {
-    text = this.target.find(".input_text").val();
-    this.io_master.input(this.id, text);
-  }
-  clear() {
-    this.target.find(".input_text").val("");
-    this.target.find(".output_text").empty();
-    this.target.find(".input_text").show();
-    this.target.find(".output_text").hide();
   }
   show_interpretation(data) {
     this.target.find(".input_text").hide();

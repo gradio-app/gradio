@@ -1,18 +1,21 @@
 let input_component_map = {
   "textbox": TextboxInput,
+  "image": ImageInput,
 }
 let output_component_map = {
   "textbox": TextboxOutput,
+  "label": LabelOutput,
 }
 
 class InterfacePanel extends React.Component {
   constructor(props) {
     super(props);
     this.clear = this.clear.bind(this);
+    this.submit = this.submit.bind(this);
     this.handleChange = this.handleChange.bind(this);
-    this.clear(/*use_set_state=*/false);
+    this.state = this.get_default_state();
   }
-  clear(use_set_state) {
+  get_default_state() {
     let state = {};
     for (let [i, component] of this.props.input_components.entries()) {
       state[i] = component.default;
@@ -21,20 +24,53 @@ class InterfacePanel extends React.Component {
     for (let [i, component] of this.props.output_components.entries()) {
       state[index_start + i] = component.default;
     }
-    if (use_set_state) {
-      this.setState(state);
-    } else {
-      this.state = state;
+    state["predicting"] = false;
+    state["error"] = false;
+    state["has_changed"] = false;
+    return state;
+  }
+  clear() {
+    this.setState(this.get_default_state());
+  }
+  submit() {
+    let input_state = [];
+    for (let [i, component] of this.props.input_components.entries()) {
+      input_state[i] = this.state[i];
     }
+    this.setState({"submitting": true, "has_changed": false});
+    this.props.fn(input_state, "predict").then((output) => {
+      let index_start = this.props.input_components.length;
+      for (let [i, value] of output["data"].entries()) {
+        this.setState({[index_start + i]: value});
+      }
+      this.setState({"submitting": false});
+      if (this.state.has_changed) {
+        this.submit();
+      }
+    });
   }
   handleChange(_id, value) {
-    this.setState({[_id]: value});
+    let state_change = {[_id]: value, "has_changed": true};
+    if (this.props.live && !(this.state.submitting)) {
+      this.setState(state_change, this.submit);
+    } else {
+      this.setState(state_change);
+    }
   }
   render() {
     let title = this.props.title ? <h1 className="title">{this.props.title}</h1> : false;
     let description = this.props.description ? <p className="description">{this.props.description}</p> : false;
     let article = this.props.article ? <p className="article">{this.props.article}</p> : false;
-  
+    let status = false;
+    if (this.state.submitting) {
+      status = (<div className="loading">
+        <img className="loading_in_progress" src="/static/img/logo_loading.gif"/>
+      </div>)
+    } else if (this.state.error) {
+      status = (<div className="loading">
+        <img className="loading_failed" src="/static/img/logo_error.png"/>
+      </div>)
+    }
     return (
     <div>
       {title}
@@ -54,16 +90,15 @@ class InterfacePanel extends React.Component {
             })}
           </div>
           <div className="panel_buttons">
-            <button className="clear panel_button" onClick={this.clear.bind(this, /*use_set_state=*/true)}>CLEAR</button>
-            <button className="submit panel_button">SUBMIT</button>
+            <button className="clear panel_button" onClick={this.clear.bind(this)}>CLEAR</button>
+            {this.props.live ? false :
+              <button className="submit panel_button"  onClick={this.submit.bind(this)}>SUBMIT</button>
+            }
           </div>
         </div>
         <div className="panel output_panel">
-          <div className="loading hidden">
-            <img className="loading_in_progress" src="/static/img/logo_loading.gif"/>
-            <img className="loading_failed" src="/static/img/logo_error.png"/>
-          </div>
-          <div className="output_components">
+          {status}
+          <div className="output_components" style={{"opacity" : status && !this.props.live ? 0.5 : 1}}>
             {this.props.output_components.map((component, index) => {
               const Component = output_component_map[component.name];
               const key = this.props.input_components.length + index;
@@ -142,7 +177,7 @@ function gradio(config, fn, target, example_file_path) {
   io_master.config = config;
   io_master.example_file_path = example_file_path;
 
-  ReactDOM.render(<InterfacePanel {...config} />, target[0]);
+  ReactDOM.render(<InterfacePanel {...config} fn={fn} />, target[0]);
   function clear_all() {
     for (let input_component of input_components) {
       input_component.clear();
@@ -269,138 +304,138 @@ function gradio(config, fn, target, example_file_path) {
     }
     target.find(".examples > table > tbody").html(html);
   }
-  if (config["examples"]) {
-    target.find(".examples").removeClass("hidden");
-    let html = "<thead>"
-    for (let input_component of config["input_components"]) {
-      html += "<th>" + input_component[1]["label"] + "</th>";
-    }
-    if (config["examples"].length > 0 && config["examples"][0].length > config["input_components"].length) {
-      for (let output_component of config["output_components"]) {
-        html += "<th>" + output_component[1]["label"] + "</th>";
-      }
-    }
-    html += "</thead>";
-    html += "<tbody className='examples_body'></tbody>";
-    target.find(".examples table").html(html);
-    io_master.current_page = 0;
-    io_master.order_mapping = [...Array(config.examples.length).keys()];
-    let page_count = Math.ceil(config.examples.length / config.examples_per_page)
-    if (page_count > 1) {
-      target.find(".pages").removeClass("hidden");
-      let html = "";
-      for (let i = 0; i < page_count; i++) {
-        html += `<button className='page' page='${i}'>${i + 1}</button>`
-      }
-      target.find(".pages").append(html);
-    }
-    load_page();
-    window.onhashchange = hash_handler;
-    hash_handler();
-    target.on("click", ".examples_body > tr", function () {
-      let example_id = parseInt($(this).attr("row"));
-      load_example(example_id);
-    })
-    target.on("click", ".page", function () {
-      let page_num = parseInt($(this).attr("page"));
-      io_master.current_page = page_num;
-      load_page();
-    })
-    set_table_mode = function () {
-      target.find(".examples-content").removeClass("gallery");
-      target.find(".examples_control_right button").removeClass("current");
-      target.find(".table_examples").addClass("current");
-    }
-    set_gallery_mode = function () {
-      target.find(".examples-content").addClass("gallery");
-      target.find(".examples_control_right button").removeClass("current");
-      target.find(".gallery_examples").addClass("current");
-    }
-    target.on("click", ".table_examples", set_table_mode);
-    target.on("click", ".gallery_examples", set_gallery_mode);
-    if (config["examples"].length > 0 && config["examples"][0].length > 1) {
-      set_table_mode();
-    } else {
-      set_gallery_mode();
-    }
-    target.find(".load_prev").click(prev_example);
-    target.find(".load_next").click(next_example);
-    target.find(".order_similar").click(function () {
-      io_master.score_similarity(function () {
-        io_master.current_page = 0
-        io_master.current_example = null;
-        load_page();
-      })
-    });
-    target.find(".view_examples").click(function () {
-      target.find(".examples-content").removeClass("hidden");
-      target.find(".embeddings-content").addClass("hidden");
-    });
-    target.find(".update_embeddings").click(function () {
-      io_master.update_embeddings(function (output) {
-        embedding_chart.data.datasets[0].data.push(output["sample_embedding_2d"][0]);
-        console.log(output["sample_embedding_2d"][0])
-        embedding_chart.update();
-      })
-    });
-    target.find(".view_embeddings").click(function () {
-      io_master.view_embeddings(function (output) {
-        let ctx = $('#canvas')[0].getContext('2d');
-        let backgroundColors = getBackgroundColors(io_master);
-        embedding_chart = new Chart(ctx, {
-          type: 'scatter',
-          data: {
-            datasets: [{
-              label: 'Sample Embedding',
-              data: output["sample_embedding_2d"],
-              backgroundColor: 'rgb(0, 0, 0)',
-              borderColor: 'rgb(0, 0, 0)',
-              pointRadius: 13,
-              pointHoverRadius: 13,
-              pointStyle: 'rectRot',
-              showLine: true,
-              fill: false,
-            }, {
-              label: 'Dataset Embeddings',
-              data: output["example_embeddings_2d"],
-              backgroundColor: backgroundColors,
-              borderColor: backgroundColors,
-              pointRadius: 7,
-              pointHoverRadius: 7
-            }]
-          },
-          options: {
-            legend: { display: false }
-          }
-        });
-        $("#canvas")[0].onclick = function (evt) {
-          var activePoints = embedding_chart.getElementsAtEvent(evt);
-          var firstPoint = activePoints[0];
-          if (firstPoint._datasetIndex == 1) { // if it's from the sample embeddings dataset
-            load_example(firstPoint._index)
-          }
-        };
+  // if (config["examples"]) {
+  //   target.find(".examples").removeClass("hidden");
+  //   let html = "<thead>"
+  //   for (let input_component of config["input_components"]) {
+  //     html += "<th>" + input_component[1]["label"] + "</th>";
+  //   }
+  //   if (config["examples"].length > 0 && config["examples"][0].length > config["input_components"].length) {
+  //     for (let output_component of config["output_components"]) {
+  //       html += "<th>" + output_component[1]["label"] + "</th>";
+  //     }
+  //   }
+  //   html += "</thead>";
+  //   html += "<tbody className='examples_body'></tbody>";
+  //   target.find(".examples table").html(html);
+  //   io_master.current_page = 0;
+  //   io_master.order_mapping = [...Array(config.examples.length).keys()];
+  //   let page_count = Math.ceil(config.examples.length / config.examples_per_page)
+  //   if (page_count > 1) {
+  //     target.find(".pages").removeClass("hidden");
+  //     let html = "";
+  //     for (let i = 0; i < page_count; i++) {
+  //       html += `<button className='page' page='${i}'>${i + 1}</button>`
+  //     }
+  //     target.find(".pages").append(html);
+  //   }
+  //   load_page();
+  //   window.onhashchange = hash_handler;
+  //   hash_handler();
+  //   target.on("click", ".examples_body > tr", function () {
+  //     let example_id = parseInt($(this).attr("row"));
+  //     load_example(example_id);
+  //   })
+  //   target.on("click", ".page", function () {
+  //     let page_num = parseInt($(this).attr("page"));
+  //     io_master.current_page = page_num;
+  //     load_page();
+  //   })
+  //   set_table_mode = function () {
+  //     target.find(".examples-content").removeClass("gallery");
+  //     target.find(".examples_control_right button").removeClass("current");
+  //     target.find(".table_examples").addClass("current");
+  //   }
+  //   set_gallery_mode = function () {
+  //     target.find(".examples-content").addClass("gallery");
+  //     target.find(".examples_control_right button").removeClass("current");
+  //     target.find(".gallery_examples").addClass("current");
+  //   }
+  //   target.on("click", ".table_examples", set_table_mode);
+  //   target.on("click", ".gallery_examples", set_gallery_mode);
+  //   if (config["examples"].length > 0 && config["examples"][0].length > 1) {
+  //     set_table_mode();
+  //   } else {
+  //     set_gallery_mode();
+  //   }
+  //   target.find(".load_prev").click(prev_example);
+  //   target.find(".load_next").click(next_example);
+  //   target.find(".order_similar").click(function () {
+  //     io_master.score_similarity(function () {
+  //       io_master.current_page = 0
+  //       io_master.current_example = null;
+  //       load_page();
+  //     })
+  //   });
+  //   target.find(".view_examples").click(function () {
+  //     target.find(".examples-content").removeClass("hidden");
+  //     target.find(".embeddings-content").addClass("hidden");
+  //   });
+  //   target.find(".update_embeddings").click(function () {
+  //     io_master.update_embeddings(function (output) {
+  //       embedding_chart.data.datasets[0].data.push(output["sample_embedding_2d"][0]);
+  //       console.log(output["sample_embedding_2d"][0])
+  //       embedding_chart.update();
+  //     })
+  //   });
+  //   target.find(".view_embeddings").click(function () {
+  //     io_master.view_embeddings(function (output) {
+  //       let ctx = $('#canvas')[0].getContext('2d');
+  //       let backgroundColors = getBackgroundColors(io_master);
+  //       embedding_chart = new Chart(ctx, {
+  //         type: 'scatter',
+  //         data: {
+  //           datasets: [{
+  //             label: 'Sample Embedding',
+  //             data: output["sample_embedding_2d"],
+  //             backgroundColor: 'rgb(0, 0, 0)',
+  //             borderColor: 'rgb(0, 0, 0)',
+  //             pointRadius: 13,
+  //             pointHoverRadius: 13,
+  //             pointStyle: 'rectRot',
+  //             showLine: true,
+  //             fill: false,
+  //           }, {
+  //             label: 'Dataset Embeddings',
+  //             data: output["example_embeddings_2d"],
+  //             backgroundColor: backgroundColors,
+  //             borderColor: backgroundColors,
+  //             pointRadius: 7,
+  //             pointHoverRadius: 7
+  //           }]
+  //         },
+  //         options: {
+  //           legend: { display: false }
+  //         }
+  //       });
+  //       $("#canvas")[0].onclick = function (evt) {
+  //         var activePoints = embedding_chart.getElementsAtEvent(evt);
+  //         var firstPoint = activePoints[0];
+  //         if (firstPoint._datasetIndex == 1) { // if it's from the sample embeddings dataset
+  //           load_example(firstPoint._index)
+  //         }
+  //       };
 
-        target.find(".examples-content").addClass("hidden");
-        target.find(".embeddings-content").removeClass("hidden");
-      })
-    });
-    $("body").keydown(function (e) {
-      if ($(document.activeElement).attr("type") == "text" || $(document.activeElement).attr("type") == "textarea") {
-        return;
-      }
-      e = e || window.event;
-      var keyCode = e.keyCode || e.which,
-        arrow = { left: 37, up: 38, right: 39, down: 40 };
-      if (e.ctrlKey) {
-        if (keyCode == arrow.left) {
-          prev_example();
-        } else if (keyCode == arrow.right) {
-          next_example();
-        }
-      }
-    });
-  };
+  //       target.find(".examples-content").addClass("hidden");
+  //       target.find(".embeddings-content").removeClass("hidden");
+  //     })
+  //   });
+  //   $("body").keydown(function (e) {
+  //     if ($(document.activeElement).attr("type") == "text" || $(document.activeElement).attr("type") == "textarea") {
+  //       return;
+  //     }
+  //     e = e || window.event;
+  //     var keyCode = e.keyCode || e.which,
+  //       arrow = { left: 37, up: 38, right: 39, down: 40 };
+  //     if (e.ctrlKey) {
+  //       if (keyCode == arrow.left) {
+  //         prev_example();
+  //       } else if (keyCode == arrow.right) {
+  //         next_example();
+  //       }
+  //     }
+  //   });
+  // };
 
 
   target.find(".screenshot").click(function () {
@@ -484,9 +519,6 @@ function gradio(config, fn, target, example_file_path) {
     io_master.gather();
   } else {
     target.find(".submit").show();
-    target.find(".submit").click(function () {
-      io_master.gather();
-    })
   }
   if (!config.show_input) {
     target.find(".input_panel").hide();

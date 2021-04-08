@@ -82,8 +82,8 @@
     <script src="{{ vendor_prefix }}/static/js/vendor/html2canvas.min.js"></script>
     <script src="{{ vendor_prefix }}/static/js/vendor/jquery-ui.min.js"></script>
     <script src="{{ vendor_prefix }}/static/js/vendor/jquery.ui.touch-punch.js"></script>
-    <script type="application/javascript" src="https://unpkg.com/react@16.0.0/umd/react.development.js"></script>
-    <script type="application/javascript" src="https://unpkg.com/react-dom@16.0.0/umd/react-dom.development.js"></script>
+    <script type="application/javascript" src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script type="application/javascript" src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
     <script type="application/javascript" src="https://unpkg.com/babel-standalone@6.26.0/babel.js"></script>  
     {% if "image" in input_components %}
     <script src="{{ vendor_prefix }}/static/js/vendor/fabric.js"></script>
@@ -118,7 +118,9 @@
     <script src="{{ url_for('static', filename='js/utils.js') }}"></script>
     <script src="{{ url_for('static', filename='js/all_io.js') }}"></script>
     <script type="text/babel" src="{{ url_for('static', filename='js/interfaces/input/textbox.js') }}"></script>
+    <script type="text/babel" src="{{ url_for('static', filename='js/interfaces/input/image.js') }}"></script>
     <script type="text/babel" src="{{ url_for('static', filename='js/interfaces/output/textbox.js') }}"></script>
+    <script type="text/babel" src="{{ url_for('static', filename='js/interfaces/output/label.js') }}"></script>
     <script type="text/babel" src="{{ url_for('static', filename='js/gradio.js') }}"></script>
     <script type="text/babel">
       var io;
