@@ -20,7 +20,6 @@ gradio.egg-info/SOURCES.txt
 gradio.egg-info/dependency_links.txt
 gradio.egg-info/requires.txt
 gradio.egg-info/top_level.txt
-gradio/static/apple-app-site-association
 gradio/static/css/gradio.css
 gradio/static/css/loading.css
 gradio/static/css/style.css
@@ -132,6 +131,7 @@ gradio/static/js/vendor/gifcap/gifencoder.js
 gradio/static/js/vendor/gifcap/quantizer.js
 gradio/static/js/vendor/gifcap/writer.js
 gradio/templates/index.html
+gradio/templates/index2.html
 test/test_demos.py
 test/test_inputs.py
 test/test_interfaces.py
