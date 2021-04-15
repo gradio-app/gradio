@@ -72,7 +72,7 @@ class InterfacePanel extends React.Component {
       </div>)
     }
     return (
-    <div>
+    <div className="interface">
       {title}
       {description}
       <div className="panels" style={

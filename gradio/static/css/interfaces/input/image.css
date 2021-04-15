@@ -1,9 +1,6 @@
 .hide {
   display: none !important;
 }
-.image_display {
-  height: 100%;
-}
 .view_holders {
   flex-grow: 1;
   background-color: #CCCCCC;
@@ -82,11 +79,6 @@
 }
 .drop_zone {
   border: dashed 8px #DDD;
-}
-.edit_holder {
-  display: flex;
-  justify-content: flex-end;
-  position: relative;
 }
 .edit_image {
   position: absolute;

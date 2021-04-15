@@ -90,9 +90,13 @@ def home_page(examples=None, path=None):
 
 @app.route("/", methods=["GET"])
 def main():
-    if isinstance(app.interface.examples, str):
-        return redirect("/from_dir/" + app.interface.examples)
-    return home_page()
+    return render_template("index2.html", config=app.interface.config)
+
+# @app.route("/", methods=["GET"])
+# def main():
+#     if isinstance(app.interface.examples, str):
+#         return redirect("/from_dir/" + app.interface.examples)
+#     return home_page()
 
 @app.route("/from_dir", methods=["GET"])
 def main_from_flagging_dir():

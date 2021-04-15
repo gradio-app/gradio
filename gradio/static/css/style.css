@@ -1,53 +1,7 @@
-body#lib {
-  font-family: 'Open Sans', sans-serif;
-  margin: 20px 0 0;
-  position: relative;
-  padding-bottom: 60px;
-}
-button, input[type="submit"], input[type="reset"], input[type="text"], input[type="button"], select[type="submit"] {
-	border: none;
-	font: inherit;
-	outline: inherit;
-  -webkit-appearance: none;
-}
-select {
-	font: inherit;
-}
-label, input[type=radio], input[type=checkbox], select, input[type=range], button, input[type="submit"], input[type="reset"], input[type="button"], select[type="submit"] {
-	cursor: pointer;
-}
-
 .loading_time {
   color: #e67e22;
   text-align: right;
   font-family: monospace;
-}
-.share {
-  text-align: center;
-  margin-bottom: 10px;
-  font-size: 14px;
-}
-.share-copy {
-  background-color: whitesmoke;
-  padding: 4px;
-  border-radius: 2px;
-}
-.title {
-  text-align: center;
-}
-.container {
-  max-width: 1028px;
-  width: 100%;
-  margin: 0 auto;  
-  padding-left: 24px;
-  padding-right: 24px;
-  box-sizing: border-box;
-}
-.panels {
-  display: flex;
-  flex-flow: row;
-  flex-wrap: wrap;
-  justify-content: center;
 }
 button.primary {
   color: white;
