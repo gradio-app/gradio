@@ -1,8 +1,8 @@
 textarea.input_text, input.input_text {
   resize: none;
+  outline: none;
   width: 100%;
   font-size: 18px;
-  outline: none;
   background-color: white;
   border: solid 1px lightgray;
   border-radius: 2px;
