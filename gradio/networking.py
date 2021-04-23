@@ -166,22 +166,34 @@ def main_from_flagging_dir():
 @login_check
 def main_from_dir(path):
     log_file = os.path.join(path, "log.csv")
-    if not os.path.exists(log_file):
-        if isinstance(app.interface.examples, str):
-            abort(404, "Examples dir not found")
-        else:
-            redirect("/")
-    if app.interface.encrypt:
-        with open(log_file, "rb") as csvfile:
-            encrypted_csv = csvfile.read()
-            decrypted_csv = encryptor.decrypt(
-                app.interface.encryption_key, encrypted_csv)
-            csv_data = io.StringIO(decrypted_csv.decode())
-            examples = list(csv.reader(csv_data))
+    path_exists = os.path.exists(path)
+    log_file_exists = os.path.exists(log_file)
+    examples_from_folder = isinstance(app.interface.examples, str) and app.interface.examples == path
+    multiple_inputs = len(app.interface.input_interfaces) > 1
+    if path_exists:
+        if not log_file_exists and multiple_inputs:
+            if examples_from_folder:
+                abort(404, "log.csv file required for multiple inputs.")
+            else:
+                return redirect("/")
+    elif examples_from_folder:
+        abort(404, "Examples dir not found")
     else:
-        with open(log_file) as logs:
-            examples = list(csv.reader(logs))
-    examples = examples[1:]  # remove header
+        return redirect("/")
+    if log_file_exists:
+        if app.interface.encrypt:
+            with open(log_file, "rb") as csvfile:
+                encrypted_csv = csvfile.read()
+                decrypted_csv = encryptor.decrypt(
+                    app.interface.encryption_key, encrypted_csv)
+                csv_data = io.StringIO(decrypted_csv.decode())
+                examples = list(csv.reader(csv_data))
+        else:
+            with open(log_file) as logs:
+                examples = list(csv.reader(logs))
+        examples = examples[1:]  # remove header
+    else:
+        examples = [[filename] for filename in os.listdir(path)]
     for i, example in enumerate(examples):
         for j, (interface, cell) in enumerate(zip(app.interface.input_interfaces + app.interface.output_interfaces, example)):
             examples[i][j] = interface.restore_flagged(cell)
