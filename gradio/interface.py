@@ -371,14 +371,15 @@ class Interface:
                 print("PASSED")
                 continue
 
-    def launch(self, inline=None, inbrowser=None, share=False, debug=False, auth=None, private_endpoint=None):
+    def launch(self, inline=None, inbrowser=None, share=False, debug=False, auth=None, auth_message=None, private_endpoint=None):
         """
         Parameters:
         inline (bool): whether to display in the interface inline on python notebooks.
         inbrowser (bool): whether to automatically launch the interface in a new tab on the default browser.
         share (bool): whether to create a publicly shareable link from your computer for the interface.
         debug (bool): if True, and the interface was launched from Google Colab, prints the errors in the cell output.
-        auth (Tuple[str, str]): If provided, username and password required to access interface.
+        auth (Union[Tuple[str, str], List[Tuple[str, str]]]): If provided, username and password (or list of username-password tuples) required to access interface.
+        auth_message (str): If provided, HTML message provided on login page.
         Returns:
         app (flask.Flask): Flask app object
         path_to_local_server (str): Locally accessible link
@@ -393,6 +394,7 @@ class Interface:
         if auth and not isinstance(auth[0], tuple) and not isinstance(auth[0], list):
             auth = [auth]
         self.auth = auth
+        self.auth_message = auth_message
 
         # Request key for encryption
         if self.encrypt:

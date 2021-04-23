@@ -192,7 +192,8 @@ button.submit:hover {
   flex-direction: column;
 }
 #login h2 {
-  margin-top: 8px
+  margin-top: 8px;
+  margin-bottom: 8px
 }
 #login label  {
   display: block;

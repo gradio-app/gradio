@@ -8,7 +8,10 @@
 <body id="lib">
   <div class="container">
     <form id="login" method="POST" action="/login">
-      <h2>login</h2>        
+      <h2>login</h2>     
+      {% if auth_message is not none %}
+      <p>{{ auth_message|safe }}</p>
+      {% endif %}
       <label for="username">username</label>
       <input type="text" name="username">
       <label for="password">password</label>
