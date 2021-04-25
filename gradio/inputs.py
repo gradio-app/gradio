@@ -886,39 +886,54 @@ class Audio(InputComponent):
 class File(InputComponent):
     """
     Component accepts generic file uploads.
-    Input type: Union[file-object, bytes]
+    Input type: Union[file-object, bytes, List[Union[file-object, bytes]]]
     """
 
-    def __init__(self, type="file", label=None):
+    def __init__(self, file_count="single", type="file", label=None):
         '''
         Parameters:
+        file_count (str): if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
         type (str): Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name, "binary" returns an bytes object.
         label (str): component name in interface.
         '''
+        self.file_count = file_count
         self.type = type
         self.test_input = None
         super().__init__(label)
+
+    def get_template_context(self):
+        return {
+            "file_count": self.file_count,
+            **super().get_template_context()
+        }
 
     @classmethod
     def get_shortcut_implementations(cls):
         return {
             "file": {},
+            "files": {"file_count": "multiple"},
         }
 
     def preprocess(self, x):
-        name, data, is_local_example = x["name"], x["data"], x["is_local_example"]            
-        if self.type == "file":
-            if is_local_example:
-                return open(name)
+        def process_single_file(f):
+            name, data, is_local_example = f["name"], f["data"], f["is_local_example"]            
+            if self.type == "file":
+                if is_local_example:
+                    return open(name)
+                else:
+                    return processing_utils.decode_base64_to_file(data)
+            elif self.type == "bytes":
+                if is_local_example:
+                    with open(name, "rb") as file_data:
+                        return file_data.read()
+                return processing_utils.decode_base64_to_binary(data)[0]
             else:
-                return processing_utils.decode_base64_to_file(data)
-        elif self.type == "bytes":
-            if is_local_example:
-                with open(name, "rb") as file_data:
-                    return file_data.read()
-            return processing_utils.decode_base64_to_binary(data)[0]
+                raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'file', 'bytes'.")
+        if self.file_count == "single":
+            return process_single_file(x[0])
         else:
-            raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'file', 'bytes'.")
+            return [process_single_file(f) for f in x]
+
 
     def embed(self, x):
         raise NotImplementedError("File doesn't currently support embeddings")
