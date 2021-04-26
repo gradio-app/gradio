@@ -118,7 +118,7 @@ class TestFile(unittest.TestCase):
 
         iface = gr.Interface(
             get_size_of_file, "file", "number")
-        self.assertEqual(iface.process([x_file])[0], [16362])
+        self.assertEqual(iface.process([[x_file]])[0], [16362])
 
 
 class TestDataframe(unittest.TestCase):
