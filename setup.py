@@ -5,7 +5,7 @@ except ImportError:
 
 setup(
     name='gradio',
-    version='1.6.4',
+    version='1.7.0',
     include_package_data=True,
     description='Python library for easily interacting with trained machine learning models',
     author='Abubakar Abid',
@@ -30,6 +30,6 @@ setup(
         'librosa',
         'colorama >= 0.3.9',
         'markdown2',
-        'pycrypto'
+        'pycryptodome'
     ],
 )
