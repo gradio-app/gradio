@@ -156,6 +156,8 @@ class Interface:
         self.analytics_enabled=analytics_enabled
         self.save_to = None
         self.share = None
+        self.share_url = None
+        self.local_url = None
         self.embedding = embedding
         self.show_tips = show_tips
 
@@ -404,6 +406,7 @@ class Interface:
         server_port, app, thread = networking.start_server(
             self, self.server_name, self.server_port, self.auth)
         path_to_local_server = "http://{}:{}/".format(self.server_name, server_port)
+        self.local_url = path_to_local_server
         self.server_port = server_port
         self.status = "RUNNING"
         self.server = app
@@ -433,6 +436,7 @@ class Interface:
                 print(strings.en["SHARE_LINK_MESSAGE"])
             try:
                 share_url = networking.setup_tunnel(server_port, private_endpoint)
+                self.share_url = share_url
                 print(strings.en["SHARE_LINK_DISPLAY"].format(share_url))
             except RuntimeError:
                 send_error_analytics(self.analytics_enabled)
@@ -477,6 +481,15 @@ class Interface:
             self.run_until_interrupted(thread, path_to_local_server)
         
         return app, path_to_local_server, share_url
+
+
+    def integrate(self, comet_ml=None):
+        if self.share_url is not None:
+            comet_ml.log_text(self.share_url)
+            comet_ml.end()
+        else:
+            comet_ml.log_text(self.local_url)
+            comet_ml.end()
 
 def show_tip(io):
     if not(io.show_tips):
