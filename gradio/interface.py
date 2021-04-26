@@ -423,8 +423,11 @@ class Interface:
         else:
             print(strings.en["RUNNING_LOCALLY"].format(path_to_local_server))
 
+        if private_endpoint is not None:
+            share = True
         # Set up shareable link 
         self.share = share
+
         if share:
             if not private_endpoint:
                 print(strings.en["SHARE_LINK_MESSAGE"])
