@@ -22,6 +22,7 @@ from ffmpy import FFmpeg
 import math
 import tempfile
 from pandas.api.types import is_bool_dtype, is_numeric_dtype, is_string_dtype
+from pathlib import Path
 
 
 class InputComponent(Component):
@@ -889,16 +890,18 @@ class File(InputComponent):
     Input type: Union[file-object, bytes, List[Union[file-object, bytes]]]
     """
 
-    def __init__(self, file_count="single", type="file", label=None):
+    def __init__(self, file_count="single", type="file", label=None, keepfilename=True):
         '''
         Parameters:
         file_count (str): if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
         type (str): Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name, "binary" returns an bytes object.
+        keepfilename (bool): whether to keep the original filename in the f.name field upon upload. If true, will place 'originalfilename' + a '_' before the unique temporary safe filename string and extension
         label (str): component name in interface.
         '''
         self.file_count = file_count
         self.type = type
         self.test_input = None
+        self.keepfilename = keepfilename
         super().__init__(label)
 
     def get_template_context(self):
@@ -921,7 +924,9 @@ class File(InputComponent):
                 if is_local_example:
                     return open(name)
                 else:
-                    return processing_utils.decode_base64_to_file(data)
+                    if self.keepfilename: filenameprefix=Path(name).stem+'_'
+                    else: filenameprefix=""
+                    return processing_utils.decode_base64_to_file(data, filenameprefix=filenameprefix)
             elif self.type == "bytes":
                 if is_local_example:
                     with open(name, "rb") as file_data:
@@ -930,7 +935,7 @@ class File(InputComponent):
             else:
                 raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'file', 'bytes'.")
         if self.file_count == "single":
-            return process_single_file(x[0])
+            return process_single_file(x)
         else:
             return [process_single_file(f) for f in x]
 
