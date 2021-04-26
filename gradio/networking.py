@@ -445,7 +445,7 @@ def url_request(url):
 
 def setup_tunnel(local_server_port, endpoint):
     response = url_request(
-        endpoint if endpoint is not None else GRADIO_API_SERVER)
+        endpoint + '/v1/tunnel-request' if endpoint is not None else GRADIO_API_SERVER)
     if response and response.code == 200:
         try:
             payload = json.loads(response.read().decode("utf-8"))[0]
