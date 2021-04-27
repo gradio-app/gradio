@@ -935,7 +935,8 @@ class File(InputComponent):
             else:
                 raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'file', 'bytes'.")
         if self.file_count == "single":
-            return process_single_file(x)
+            if isinstance(x, list): return process_single_file(x[0])
+            else: return process_single_file(x)
         else:
             return [process_single_file(f) for f in x]
 
