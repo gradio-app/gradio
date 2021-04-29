@@ -22,7 +22,6 @@ setup(
         'Flask-Login',
         'paramiko',
         'scipy',
-        'IPython',
         'scikit-image',
         'analytics-python',
         'pandas',

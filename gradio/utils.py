@@ -1,7 +1,6 @@
 import requests
 import pkg_resources
 from distutils.version import StrictVersion
-from IPython import get_ipython
 analytics_url = 'https://api.gradio.app/'
 PKG_VERSION_URL = "https://api.gradio.app/pkg-version"
 
@@ -40,10 +39,11 @@ def colab_check():
     """
     is_colab = False
     try:  # Check if running interactively using ipython.
+        from IPython import get_ipython
         from_ipynb = get_ipython()
         if "google.colab" in str(from_ipynb):
             is_colab = True
-    except NameError:
+    except (ImportError, NameError):
         error_analytics("NameError")
     return is_colab
 
@@ -54,9 +54,10 @@ def ipython_check():
     :return is_ipython (bool): True or False
     """
     try:  # Check if running interactively using ipython.
+        from IPython import get_ipython
         get_ipython()
         is_ipython = True
-    except NameError:
+    except (ImportError, NameError):
         is_ipython = False
     return is_ipython
 
