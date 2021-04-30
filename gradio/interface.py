@@ -192,7 +192,29 @@ class Interface:
                               data=data, timeout=3)
             except (requests.ConnectionError, requests.exceptions.ReadTimeout):
                 pass  # do not push analytics if no network
+    
+    def __str__(self):
+        repr = "Gradio interface for function: {}".format(",".join(fn.__name__ for fn in self.predict))
+        repr += "\n------------------------------"
+        repr += "\ninputs:"
+        for component in self.input_interfaces:
+            repr += "\n|-{}".format(str(component))
+        repr += "\noutputs:"
+        for component in self.output_interfaces:
+            repr+= "\n|-{}".format(str(component))
+        return repr
 
+    def __repr__(self):
+        repr = "Gradio interface for function: {}".format(",".join(fn.__name__ for fn in self.predict))
+        repr += "\n------------------------------"
+        repr += "\ninputs:"
+        for component in self.input_interfaces:
+            repr += "\n|-{}".format(str(component))
+        repr += "\noutputs:"
+        for component in self.output_interfaces:
+            repr+= "\n|-{}".format(str(component))
+        return repr
+        
     def get_config_file(self):
         config = {
             "input_interfaces": [
@@ -463,9 +485,9 @@ class Interface:
                 if share:
                     while not networking.url_ok(share_url):
                         time.sleep(1)
-                    display(IFrame(share_url, width=1000, height=500))
+                    display(IFrame(share_url, width=900, height=500))
                 else:
-                    display(IFrame(path_to_local_server, width=1000, height=500))
+                    display(IFrame(path_to_local_server, width=900, height=500))
             except ImportError:
                 pass  # IPython is not available so does not print inline.
 
@@ -480,7 +502,6 @@ class Interface:
                 sys.stdout.flush()
                 time.sleep(0.1)
         is_in_interactive_mode = bool(getattr(sys, 'ps1', sys.flags.interactive))
-        print('is_in_interactive_mode=={}'.format(is_in_interactive_mode))
         if not prevent_thread_lock and not is_in_interactive_mode:
             print("going to lock thread and run in foreground  ...")
             self.run_until_interrupted(thread, path_to_local_server)
