@@ -89,7 +89,7 @@ class Interface:
                 return iface
             else:
                 raise ValueError("Input interface must be of type `str` or "
-                                 "`InputComponent`")
+                                 "`InputComponent` but is {}".format(iface))
 
         def get_output_instance(iface):
             if isinstance(iface, str):
@@ -194,19 +194,11 @@ class Interface:
                 pass  # do not push analytics if no network
     
     def __str__(self):
-        repr = "Gradio interface for function: {}".format(",".join(fn.__name__ for fn in self.predict))
-        repr += "\n------------------------------"
-        repr += "\ninputs:"
-        for component in self.input_interfaces:
-            repr += "\n|-{}".format(str(component))
-        repr += "\noutputs:"
-        for component in self.output_interfaces:
-            repr+= "\n|-{}".format(str(component))
-        return repr
+        return self.__repr__()
 
     def __repr__(self):
         repr = "Gradio interface for function: {}".format(",".join(fn.__name__ for fn in self.predict))
-        repr += "\n------------------------------"
+        repr += "\n" + "-"*len(repr)
         repr += "\ninputs:"
         for component in self.input_interfaces:
             repr += "\n|-{}".format(str(component))
