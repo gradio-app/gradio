@@ -8,6 +8,7 @@ paramiko
 scipy
 analytics-python
 pandas
+pillow
 ffmpy
 markdown2
 pycryptodome
