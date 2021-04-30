@@ -680,7 +680,7 @@ class Image(InputComponent):
         try:
             from skimage.segmentation import slic
         except ImportError:
-            print("Running default interpretation for images requires scikit-image, please install it first.")
+            print("Error: running default interpretation for images requires scikit-image, please install it first.")
             return
         segments_slic = slic(image, self.interpretation_segments, compactness=10, sigma=1)
         leave_one_out_tokens, masks = [], []
