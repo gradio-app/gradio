@@ -65,7 +65,7 @@ def ipython_check():
 def readme_to_html(article):
     try:
         response = requests.get(article, timeout=3)
-        if response.status_code == requests.codes.ok:
+        if response.status_code == requests.codes.ok:  #pylint: disable=no-member
             article = response.text
     except requests.exceptions.RequestException:
         pass
