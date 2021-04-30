@@ -5,7 +5,8 @@ pandas
 pillow
 ffmpy
 markdown2
-pycryptodomerequests
+pycryptodome
+requests
 paramiko
 analytics-python
 Flask>=1.1.1
