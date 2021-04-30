@@ -373,7 +373,7 @@ class Interface:
                 print("PASSED")
                 continue
 
-    def launch(self, inline=None, inbrowser=None, share=False, debug=False, auth=None, auth_message=None, private_endpoint=None, prevent_thread_lock=False):
+    def launch(self, inline=None, inbrowser=None, share=False, debug=False, auth=None, auth_message=None, private_endpoint=None):
         """
         Parameters:
         inline (bool): whether to display in the interface inline on python notebooks.
@@ -416,7 +416,7 @@ class Interface:
 
         # If running in a colab or not able to access localhost, automatically create a shareable link        
         is_colab = utils.colab_check()
-        if is_colab or (share and not(networking.url_ok(path_to_local_server))):  
+        if is_colab or not(networking.url_ok(path_to_local_server)):  
             share = True
             if is_colab:
                 if debug:
@@ -480,12 +480,10 @@ class Interface:
                 sys.stdout.flush()
                 time.sleep(0.1)
         is_in_interactive_mode = bool(getattr(sys, 'ps1', sys.flags.interactive))
-        print('is_in_interactive_mode=={}'.format(is_in_interactive_mode))
-        if not prevent_thread_lock and not is_in_interactive_mode:
-            print("going to lock thread and run in foreground  ...")
+        if not is_in_interactive_mode:
             self.run_until_interrupted(thread, path_to_local_server)
-        
-        return app, path_to_local_server, share_url, thread
+                
+        return app, path_to_local_server, share_url
 
 
     def integrate(self, comet_ml=None):
