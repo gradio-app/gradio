@@ -15,18 +15,19 @@ setup(
     keywords=['machine learning', 'visualization', 'reproducibility'],
     install_requires=[
         'numpy',
-        'requests',
-        'Flask>=1.1.1',
-        'Flask-Cors>=3.0.8',
-        'flask-cachebuster',
-        'Flask-Login',
-        'paramiko',
         'scipy',
-        'analytics-python',
+        'matplotlib'
         'pandas',
         'pillow',
         'ffmpy',
         'markdown2',
         'pycryptodome'
+        'requests',
+        'paramiko',
+        'analytics-python',
+        'Flask>=1.1.1',
+        'Flask-Cors>=3.0.8',
+        'flask-cachebuster',
+        'Flask-Login',
     ],
 )
