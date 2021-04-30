@@ -11,7 +11,10 @@ class Component():
         self.label = label
 
     def __str__(self):
-        return type(self).__name__
+        return self.__repr__()
+
+    def __repr__(self):
+        return "{}(label=\"{}\")".format(type(self).__name__, self.label)
 
     def get_template_context(self):
         """
