@@ -456,15 +456,18 @@ class Interface:
         if inline is None:
             inline = utils.ipython_check()
         if inline:
-            from IPython.display import IFrame, display
-            # Embed the remote interface page if on google colab; otherwise, embed the local page.
-            print(strings.en["INLINE_DISPLAY_BELOW"])
-            if share:
-                while not networking.url_ok(share_url):
-                    time.sleep(1)
-                display(IFrame(share_url, width=1000, height=500))
-            else:
-                display(IFrame(path_to_local_server, width=1000, height=500))
+            try:                
+                from IPython.display import IFrame, display
+                # Embed the remote interface page if on google colab; otherwise, embed the local page.
+                print(strings.en["INLINE_DISPLAY_BELOW"])
+                if share:
+                    while not networking.url_ok(share_url):
+                        time.sleep(1)
+                    display(IFrame(share_url, width=1000, height=500))
+                else:
+                    display(IFrame(path_to_local_server, width=1000, height=500))
+            except ImportError:
+                pass  # IPython is not available so does not print inline.
 
         send_launch_analytics(analytics_enabled=self.analytics_enabled, inbrowser=inbrowser, is_colab=is_colab, 
                               share=share, share_url=share_url)
