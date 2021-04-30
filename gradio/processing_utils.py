@@ -79,14 +79,15 @@ def decode_base64_to_binary(encoding):
         data = encoding
     return base64.b64decode(data), extension
 
-def decode_base64_to_file(encoding, encryption_key=None):
+def decode_base64_to_file(encoding, encryption_key=None, filenameprefix=""):
     data, extension = decode_base64_to_binary(encoding)
     if extension is None:
-        file_obj = tempfile.NamedTemporaryFile(delete=False)
+        file_obj = tempfile.NamedTemporaryFile(delete=False, prefix=filenameprefix)
     else:
-        file_obj = tempfile.NamedTemporaryFile(delete=False, suffix="."+extension)
+        file_obj = tempfile.NamedTemporaryFile(delete=False, prefix=filenameprefix, suffix="."+extension)
     if encryption_key is not None:
         data = encryptor.encrypt(encryption_key, data)
+    #print("saving to ", file_obj.name)
     file_obj.write(data)
     file_obj.flush()
     return file_obj
