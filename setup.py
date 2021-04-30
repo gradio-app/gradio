@@ -22,12 +22,9 @@ setup(
         'Flask-Login',
         'paramiko',
         'scipy',
-        'scikit-image',
         'analytics-python',
         'pandas',
         'ffmpy',
-        'librosa',
-        'colorama >= 0.3.9',
         'markdown2',
         'pycryptodome'
     ],
