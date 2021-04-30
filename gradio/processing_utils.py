@@ -5,7 +5,6 @@ import tempfile
 import scipy.io.wavfile
 from scipy.fftpack import dct
 import numpy as np
-import skimage
 from gradio import encryptor
 
 #########################
