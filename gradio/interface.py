@@ -50,7 +50,7 @@ class Interface:
                  layout="horizontal", show_input=True, show_output=True,
                  capture_session=False, interpretation=None,
                  title=None, description=None, article=None, thumbnail=None, 
-                 css=None, server_port=7860, server_name=networking.LOCALHOST_NAME,
+                 css=None, server_port=None, server_name=networking.LOCALHOST_NAME,
                  allow_screenshot=True, allow_flagging=True, flagging_options=None, encrypt=False,
                  show_tips=True, embedding=None, flagging_dir="flagged", analytics_enabled=True):
 
