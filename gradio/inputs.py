@@ -14,7 +14,6 @@ from gradio.component import Component
 import base64
 import numpy as np
 import PIL
-from skimage.segmentation import slic
 import scipy.io.wavfile
 from gradio import processing_utils, test_data
 import pandas as pd
@@ -678,6 +677,11 @@ class Image(InputComponent):
         if self.shape is not None:
             x = processing_utils.resize_and_crop(x, self.shape)
         image = np.array(x)
+        try:
+            from skimage.segmentation import slic
+        except ImportError:
+            print("Running default interpretation for images requires scikit-image, please install it first.")
+            return
         segments_slic = slic(image, self.interpretation_segments, compactness=10, sigma=1)
         leave_one_out_tokens, masks = [], []
         replace_color = np.mean(image, axis=(0, 1))

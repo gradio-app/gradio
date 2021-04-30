@@ -6,12 +6,8 @@ flask-cachebuster
 Flask-Login
 paramiko
 scipy
-IPython
-scikit-image
 analytics-python
 pandas
 ffmpy
-librosa
-colorama>=0.3.9
 markdown2
 pycryptodome
