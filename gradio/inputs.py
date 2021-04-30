@@ -181,7 +181,7 @@ class Textbox(InputComponent):
             result.append((self.interpretation_separator, 0))
         return result
 
-    def _embed_text(text):
+    def _embed_text(self, text):
         """
         Figures out a "reasonable" embedding for any particular text. Did it this way to avoid loading any 
         external machine learning models, which would be slow and require additional dependencies.
@@ -195,7 +195,7 @@ class Textbox(InputComponent):
         Embeds an arbitrary text based on word frequency
         """
         if self.type == "str":
-            return _embed_text(x)
+            return self._embed_text(x)
         elif self.type == "number":
             return [float(x)]
         else:
@@ -1102,10 +1102,10 @@ class Sketchpad(InputComponent):
         im = im.resize((self.image_width, self.image_height))
         if self.flatten:
             array = np.array(im).flatten().reshape(
-                1, self.image_width * self.image_height)
+                (1, self.image_width * self.image_height))
         else:
             array = np.array(im).flatten().reshape(
-                1, self.image_width, self.image_height)
+                (1, self.image_width, self.image_height))
         return array
 
     def process_example(self, example):
