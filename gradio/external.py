@@ -7,25 +7,91 @@ from gradio import inputs, outputs
 def get_huggingface_interface(model_name, api_key):
     api_url = "https://api-inference.huggingface.co/models/{}".format(model_name)
     
-    def query_huggingface_api(payload):
+    # Checking if model exists, and if so, it gets the pipeline
+    response = requests.request("GET", api_url)
+    assert response.status_code == 200, "Invalid model name or src"
+    p = response.json().get('pipeline_tag')
+
+    pipelines = {
+        'question-answering': {
+            'inputs': [inputs.Textbox(label="Context", lines=7), inputs.Textbox(label="Question")],
+            'outputs': [outputs.Textbox(label="Answer"), outputs.Label(label="Score")],
+            'preprocess': lambda c, q: {"inputs": {"context": c, "question": q}},
+            'postprocess': lambda r: (r["answer"], r["score"]),
+            # 'examples': [['My name is Sarah and I live in London', 'Where do I live?']]
+        },
+        'text-generation': {
+            'inputs': inputs.Textbox(label="Input"),
+            'outputs': outputs.Textbox(label="Question"),
+            'preprocess': lambda x: x,
+            'postprocess': lambda r: r[0]["generated_text"],
+            # 'examples': [['My name is Clara and I am']]
+        }
+    }
+
+    if p is None or not(p in pipelines):
+        print("Warning: no interface information found")
+    
+    pipeline = pipelines[p]
+
+    def query_huggingface_api(*input):
+        payload = pipeline['preprocess'](*input)
         data = json.dumps(payload)
         response = requests.request("POST", api_url, data=data)
         result = json.loads(response.content.decode("utf-8"))
-        return list(result[0].values())[0]
-    query_huggingface_api.__name__ = model_name
+        output = pipeline['postprocess'](result)
+        return output
     
-    return query_huggingface_api, inputs.Textbox(label="Input"), outputs.Textbox(label="Output")
+    query_huggingface_api.__name__ = model_name
+
+    interface_info = {
+        'fn': query_huggingface_api, 
+        'inputs': pipeline['inputs'],
+        'outputs': pipeline['outputs'],
+        'title': model_name,
+        # 'examples': pipeline['examples'],
+    }
+
+    return interface_info
+
+def get_gradio_interface(model_name, api_key):
+    api_url = "http://4553.gradiohub.com/api/predict/"  #TODO(dawood): fetch based on model name
+    pipeline = {  #TODO(dawood): load from the config file
+        'inputs': inputs.Textbox(label="Input"),
+        'outputs': outputs.Textbox(label="Question"),
+        'preprocess': lambda x: {"data": [x]},
+        'postprocess': lambda r: r["data"][0],
+        'examples': [['Hi, how are you?']]
+    }
+
+    def query_gradio_api(*input):
+        payload = pipeline['preprocess'](*input)
+        data = json.dumps(payload)
+        response = requests.request("POST", api_url, data=data)
+        result = json.loads(response.content.decode("utf-8"))
+        output = pipeline['postprocess'](result)
+        return output
+
+    query_gradio_api.__name__ = model_name
+
+    interface_info = {
+        'fn': query_gradio_api, 
+        'inputs': pipeline['inputs'],
+        'outputs': pipeline['outputs'],
+        'title': model_name,
+        # 'examples': pipeline['examples'],
+    }
+
+    return interface_info
 
 def load_interface(model, src, api_key=None, verbose=True):
     assert src.lower() in repos, "parameter: src must be one of {}".format(repos.keys())
-    inference_fn, inp, out = repos[src](model, api_key)
-    return Interface(fn=inference_fn, inputs=inp, outputs=out)
+    interface_info = repos[src](model, api_key)
+    return Interface(**interface_info)
 
 repos = {
-    # for each repo, we have a method that returns the fn, inputs, and outputs
+    # for each repo, we have a method that returns the Interface given the model name & optionally an api_key
     "huggingface": get_huggingface_interface,
-    "pytorch": None,
-    "tensorflow": None,
-    "gradio": None,
+    "gradio": get_gradio_interface,
 }
 
