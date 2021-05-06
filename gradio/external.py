@@ -26,6 +26,48 @@ def get_huggingface_interface(model_name, api_key):
             'preprocess': lambda x: x,
             'postprocess': lambda r: r[0]["generated_text"],
             # 'examples': [['My name is Clara and I am']]
+        },
+        'summarization': {
+            'inputs': inputs.Textbox(label="Input"),
+            'outputs': outputs.Textbox(label="Summary"),
+            'preprocess': lambda x: x,
+            'postprocess': lambda r: r[0]["summary_text"]
+        },
+        'translation': {
+            'inputs': inputs.Textbox(label="Input"),
+            'outputs': outputs.Textbox(label="Translation"),
+            'preprocess': lambda x: x,
+            'postprocess': lambda r: r[0]["translation_text"]
+        },
+        'text2text-generation': {
+            'inputs': inputs.Textbox(label="Input"),
+            'outputs': outputs.Textbox(label="Generated Text"),
+            'preprocess': lambda x: x,
+            'postprocess': lambda r: r[0]["generated_text"]
+        },
+        'text-classification': {
+            'inputs': inputs.Textbox(label="Input"),
+            'outputs': "label",
+            'preprocess': lambda x: x,
+            'postprocess': lambda r: {'Negative': r[0][0]["score"],
+                                      'Positive': r[0][1]["score"]}
+        },
+        'fill-mask': {
+            'inputs': inputs.Textbox(label="Input"),
+            'outputs': "label",
+            'preprocess': lambda x: x,
+            'postprocess': lambda r: {i["token_str"]: i["score"] for i in r}
+        },
+        'zero-shot-classification': {
+            'inputs': [inputs.Textbox(label="Input"),
+                       inputs.Textbox(label="Possible class names ("
+                                            "comma-separated)"),
+                       inputs.Checkbox(label="Allow multiple true classes")],
+            'outputs': "label",
+            'preprocess': lambda i, c, m: {"inputs": i, "parameters":
+            {"candidate_labels": c, "multi_class": m}},
+            'postprocess': lambda r: {r["labels"][i]: r["scores"][i] for i in
+                                      range(len(r["labels"]))}
         }
     }
 
