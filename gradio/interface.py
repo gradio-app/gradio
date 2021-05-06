@@ -9,6 +9,7 @@ from gradio.outputs import OutputComponent
 from gradio import networking, strings, utils
 from gradio.interpretation import quantify_difference_in_label
 from gradio import encryptor
+from gradio import 
 import pkg_resources
 import requests
 import random
@@ -52,7 +53,7 @@ class Interface:
                  title=None, description=None, article=None, thumbnail=None, 
                  css=None, server_port=None, server_name=networking.LOCALHOST_NAME,
                  allow_screenshot=True, allow_flagging=True, flagging_options=None, encrypt=False,
-                 show_tips=True, embedding=None, flagging_dir="flagged", analytics_enabled=True):
+                 show_tips=False, embedding=None, flagging_dir="flagged", analytics_enabled=True):
 
         """
         Parameters:
