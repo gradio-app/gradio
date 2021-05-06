@@ -1,6 +1,5 @@
 import json
 import requests
-from gradio.interface import Interface
 from gradio import inputs, outputs
 
 
@@ -126,13 +125,12 @@ def get_gradio_interface(model_name, api_key):
 
     return interface_info
 
-def load_interface(name, src=None, api_key=None, verbose=True):
+def load_interface(name, src=None, api_key=None):
     if src is None:
         src, name = name.split("/")
-
     assert src.lower() in repos, "parameter: src must be one of {}".format(repos.keys())
     interface_info = repos[src](name, api_key)
-    return Interface(**interface_info)
+    return interface_info
 
 repos = {
     # for each repo, we have a method that returns the Interface given the model name & optionally an api_key

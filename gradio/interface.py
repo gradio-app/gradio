@@ -10,7 +10,6 @@ from gradio import networking, strings, utils
 from gradio.interpretation import quantify_difference_in_label
 from gradio.external import load_interface
 from gradio import encryptor
-from gradio import 
 import pkg_resources
 import requests
 import random
@@ -46,6 +45,14 @@ class Interface:
         """
         return list(
             Interface.instances)
+
+    @classmethod
+    def load(cls, name, src=None, api_key=None):
+        interface_info = load_interface(name, src, api_key)
+        return cls(**interface_info)
+
+
+        return load_interface(name, src, api_key)
 
     def __init__(self, fn, inputs, outputs, verbose=False, examples=None,
                  examples_per_page=10, live=False,
@@ -511,9 +518,6 @@ class Interface:
             comet_ml.log_text(self.local_url)
             comet_ml.end()
     
-    @classmethod
-    def load(name, src=None, api_key=None):
-        return load_interface(name, src, api_key)
 
 def show_tip(io):
     if not(io.show_tips):
