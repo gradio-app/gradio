@@ -8,6 +8,7 @@ from gradio.inputs import InputComponent
 from gradio.outputs import OutputComponent
 from gradio import networking, strings, utils
 from gradio.interpretation import quantify_difference_in_label
+from gradio.external import load_interface
 from gradio import encryptor
 from gradio import 
 import pkg_resources
@@ -509,6 +510,10 @@ class Interface:
         else:
             comet_ml.log_text(self.local_url)
             comet_ml.end()
+    
+    @classmethod
+    def load(name, src=None, api_key=None):
+        return load_interface(name, src, api_key)
 
 def show_tip(io):
     if not(io.show_tips):
