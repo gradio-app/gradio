@@ -8,7 +8,7 @@ def get_huggingface_interface(model_name, api_key):
     headers = {"Authorization": f"Bearer {api_key}"}
 
     # Checking if model exists, and if so, it gets the pipeline
-    response = requests.request("GET", api_url)
+    response = requests.request("GET", api_url,  headers=headers)
     assert response.status_code == 200, "Invalid model name or src"
     p = response.json().get('pipeline_tag')
 
@@ -80,7 +80,7 @@ def get_huggingface_interface(model_name, api_key):
         payload = pipeline['preprocess'](*input)
         payload.update({'options': {'wait_for_model': True}})
         data = json.dumps(payload)
-        response = requests.request("POST", api_url, data=data)
+        response = requests.request("POST", api_url, headers=headers, data=data)
         result = json.loads(response.content.decode("utf-8"))
         output = pipeline['postprocess'](result)
         return output
