@@ -21,40 +21,40 @@ def get_huggingface_interface(model_name, api_key):
         },
         'text-generation': {
             'inputs': inputs.Textbox(label="Input"),
-            'outputs': outputs.Textbox(label="Question"),
-            'preprocess': lambda x: x,
+            'outputs': outputs.Textbox(label="Output"),
+            'preprocess': lambda x: {"inputs": x},
             'postprocess': lambda r: r[0]["generated_text"],
             # 'examples': [['My name is Clara and I am']]
         },
         'summarization': {
             'inputs': inputs.Textbox(label="Input"),
             'outputs': outputs.Textbox(label="Summary"),
-            'preprocess': lambda x: x,
+            'preprocess': lambda x: {"inputs": x},
             'postprocess': lambda r: r[0]["summary_text"]
         },
         'translation': {
             'inputs': inputs.Textbox(label="Input"),
             'outputs': outputs.Textbox(label="Translation"),
-            'preprocess': lambda x: x,
+            'preprocess': lambda x: {"inputs": x},
             'postprocess': lambda r: r[0]["translation_text"]
         },
         'text2text-generation': {
             'inputs': inputs.Textbox(label="Input"),
             'outputs': outputs.Textbox(label="Generated Text"),
-            'preprocess': lambda x: x,
+            'preprocess': lambda x: {"inputs": x},
             'postprocess': lambda r: r[0]["generated_text"]
         },
         'text-classification': {
             'inputs': inputs.Textbox(label="Input"),
-            'outputs': "label",
-            'preprocess': lambda x: x,
+            'outputs': outputs.Label(label="Class"),
+            'preprocess': lambda x: {"inputs": x},
             'postprocess': lambda r: {'Negative': r[0][0]["score"],
                                       'Positive': r[0][1]["score"]}
         },
         'fill-mask': {
             'inputs': inputs.Textbox(label="Input"),
             'outputs': "label",
-            'preprocess': lambda x: x,
+            'preprocess': lambda x: {"inputs": x},
             'postprocess': lambda r: {i["token_str"]: i["score"] for i in r}
         },
         'zero-shot-classification': {
@@ -77,6 +77,7 @@ def get_huggingface_interface(model_name, api_key):
 
     def query_huggingface_api(*input):
         payload = pipeline['preprocess'](*input)
+        payload.update({'options': {'wait_for_model': True}})
         data = json.dumps(payload)
         response = requests.request("POST", api_url, data=data)
         result = json.loads(response.content.decode("utf-8"))
@@ -127,7 +128,10 @@ def get_gradio_interface(model_name, api_key):
 
 def load_interface(name, src=None, api_key=None):
     if src is None:
-        src, name = name.split("/")
+        tokens = name.split("/")
+        assert len(tokens) > 1, "Either `src` parameter must be provided, or `name` must be formatted as \{src\}/\{repo name\}"
+        src = tokens[0]
+        name = "/".join(tokens[1:])
     assert src.lower() in repos, "parameter: src must be one of {}".format(repos.keys())
     interface_info = repos[src](name, api_key)
     return interface_info
