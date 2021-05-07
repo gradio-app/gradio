@@ -6,7 +6,8 @@ from gradio import inputs, outputs
 
 def get_huggingface_interface(model_name, api_key):
     api_url = "https://api-inference.huggingface.co/models/{}".format(model_name)
-    
+    headers = {"Authorization": f"Bearer {api_key}"}
+
     # Checking if model exists, and if so, it gets the pipeline
     response = requests.request("GET", api_url)
     assert response.status_code == 200, "Invalid model name or src"
