@@ -3,7 +3,7 @@ import requests
 from gradio import inputs, outputs
 
 
-def get_huggingface_interface(model_name, api_key):
+def get_huggingface_interface(model_name, api_key, alias):
     api_url = "https://api-inference.huggingface.co/models/{}".format(model_name)
     
     # Checking if model exists, and if so, it gets the pipeline
@@ -46,7 +46,7 @@ def get_huggingface_interface(model_name, api_key):
         },
         'text-classification': {
             'inputs': inputs.Textbox(label="Input"),
-            'outputs': outputs.Label(label="Class"),
+            'outputs': outputs.Label(label="Classification"),
             'preprocess': lambda x: {"inputs": x},
             'postprocess': lambda r: {'Negative': r[0][0]["score"],
                                       'Positive': r[0][1]["score"]}
@@ -84,7 +84,10 @@ def get_huggingface_interface(model_name, api_key):
         output = pipeline['postprocess'](result)
         return output
     
-    query_huggingface_api.__name__ = model_name
+    if alias is None:
+        query_huggingface_api.__name__ = model_name
+    else:
+        query_huggingface_api.__name__ = alias
 
     interface_info = {
         'fn': query_huggingface_api, 
@@ -96,7 +99,7 @@ def get_huggingface_interface(model_name, api_key):
 
     return interface_info
 
-def get_gradio_interface(model_name, api_key):
+def get_gradio_interface(model_name, api_key, alias):
     api_url = "http://4553.gradiohub.com/api/predict/"  #TODO(dawood): fetch based on model name
     pipeline = {  #TODO(dawood): load from the config file
         'inputs': inputs.Textbox(label="Input"),
@@ -126,14 +129,14 @@ def get_gradio_interface(model_name, api_key):
 
     return interface_info
 
-def load_interface(name, src=None, api_key=None):
+def load_interface(name, src=None, api_key=None, alias=None):
     if src is None:
         tokens = name.split("/")
         assert len(tokens) > 1, "Either `src` parameter must be provided, or `name` must be formatted as \{src\}/\{repo name\}"
         src = tokens[0]
         name = "/".join(tokens[1:])
     assert src.lower() in repos, "parameter: src must be one of {}".format(repos.keys())
-    interface_info = repos[src](name, api_key)
+    interface_info = repos[src](name, api_key, alias)
     return interface_info
 
 repos = {

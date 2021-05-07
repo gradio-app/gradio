@@ -47,8 +47,8 @@ class Interface:
             Interface.instances)
 
     @classmethod
-    def load(cls, name, src=None, api_key=None, **kwargs):
-        interface_info = load_interface(name, src, api_key)
+    def load(cls, name, src=None, api_key=None, alias=None, **kwargs):
+        interface_info = load_interface(name, src, api_key, alias)
         interface_info.update(kwargs)
         return cls(**interface_info)
 
