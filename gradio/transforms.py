@@ -3,7 +3,7 @@ Ways to transform interfaces to produce new interfaces
 """
 from gradio.interface import Interface
 
-def compare(*interfaces, **options):
+def parallel(*interfaces, **options):
     fns = []
     outputs = []
     
@@ -15,7 +15,7 @@ def compare(*interfaces, **options):
                      repeat_outputs_per_model=False, **options) 
 
 
-def cascade(*interfaces, **options):
+def series(*interfaces, **options):
     fns = [io.predict for io in interfaces]
     
     def connected_fn(data):  # actually not used.

@@ -5,7 +5,10 @@ from gradio import inputs, outputs
 
 def get_huggingface_interface(model_name, api_key, alias):
     api_url = "https://api-inference.huggingface.co/models/{}".format(model_name)
-    headers = {"Authorization": f"Bearer {api_key}"}
+    if api_key is not None:
+        headers = {"Authorization": f"Bearer {api_key}"}
+    else:
+        headers = {}
 
     # Checking if model exists, and if so, it gets the pipeline
     response = requests.request("GET", api_url,  headers=headers)
@@ -81,8 +84,11 @@ def get_huggingface_interface(model_name, api_key, alias):
         payload.update({'options': {'wait_for_model': True}})
         data = json.dumps(payload)
         response = requests.request("POST", api_url, headers=headers, data=data)
-        result = json.loads(response.content.decode("utf-8"))
-        output = pipeline['postprocess'](result)
+        if response.status_code == 200:
+            result = json.loads(response.content.decode("utf-8"))
+            output = pipeline['postprocess'](result)
+        else:
+            raise ValueError("Could not complete request to HuggingFace API, Error {}".format(response.status_code))
         return output
     
     if alias is None:
