@@ -230,6 +230,13 @@ class Number(InputComponent):
             "number": {},
         }
 
+    def preprocess(self, x):
+        """
+        Returns:
+        (float): Number representing function input
+        """
+        return float(x)
+
     def preprocess_example(self, x):
         """
         Returns:
@@ -402,14 +409,16 @@ class CheckboxGroup(InputComponent):
     Input type: Union[List[str], List[int]]
     """
 
-    def __init__(self, choices, type="value", label=None):
+    def __init__(self, choices, default=[], type="value", label=None):
         '''
         Parameters:
         choices (List[str]): list of options to select from.
+        default (List[str]): default selected list of options.
         type (str): Type of value to be returned by component. "value" returns the list of strings of the choices selected, "index" returns the list of indicies of the choices selected.
         label (str): component name in interface.
         '''
         self.choices = choices
+        self.default = default
         self.type = type
         self.test_input = self.choices
         super().__init__(label)
@@ -417,14 +426,15 @@ class CheckboxGroup(InputComponent):
     def get_template_context(self):
         return {
             "choices": self.choices,
+            "default": self.default,
             **super().get_template_context()
         }
 
     def preprocess(self, x):
         if self.type == "value":
-            return x
+            return [self.choices[index] for index in x]
         elif self.type == "index":
-            return [self.choices.index(choice) for choice in x]
+            return x
         else:
             raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'value', 'index'.")
 
@@ -503,9 +513,9 @@ class Radio(InputComponent):
 
     def preprocess(self, x):
         if self.type == "value":
-            return x
+            return self.choices[x]
         elif self.type == "index":
-            return self.choices.index(x)
+            return x
         else:
             raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'value', 'index'.")
 
@@ -563,9 +573,9 @@ class Dropdown(InputComponent):
 
     def preprocess(self, x):
         if self.type == "value":
-            return x
+            return self.choices[x]
         elif self.type == "index":
-            return self.choices.index(x)
+            return x
         else:
             raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'value', 'index'.")
 
