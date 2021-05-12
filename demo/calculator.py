@@ -2,6 +2,7 @@ import gradio as gr
 import random
 
 def calculator(num1, operation, num2):
+    print(num1, operation, num2)
     if operation == "add":
         return num1 + num2
     elif operation == "subtract":
@@ -12,7 +13,7 @@ def calculator(num1, operation, num2):
         return num1 / num2
 
 iface = gr.Interface(calculator, 
-    ["number", gr.inputs.Radio(["add", "subtract", "multiply", "divide"]), "number"],
+    ["number", gr.inputs.CheckboxGroup(["add", "subtract", "multiply", "divide"]), "number"],
     "number",
     examples=[
         [5, "add", 3],

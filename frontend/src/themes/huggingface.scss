@@ -1,0 +1,218 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.gradio_interface {
+    @apply container mx-auto my-4;
+    .title {
+        @apply text-center;
+    }
+    .loading {
+        @apply absolute right-0.5;
+    }
+    .panels {
+        @apply flex flex-wrap justify-center gap-4;
+    }
+    .panel {
+        @apply flex-1;
+    }
+    .component_set {
+        @apply bg-gray-50 p-2 rounded flex flex-col gap-2;
+    }
+    .panel_header {
+        @apply flex items-center text-sm text-gray-500 mb-1.5;
+    }
+    .panel_button {
+        @apply flex-grow p-3 rounded transition bg-gradient-to-b from-gray-50 hover:from-gray-100 to-gray-200 border-gray-300 focus:ring-offset-purple-300;
+    }
+    .panel_buttons {
+        @apply flex gap-4 my-4;
+    }
+    .screenshot_set {
+        @apply flex flex-grow;
+    }
+    .panel_button.left_panel_button {
+        @apply rounded-tr-none rounded-br-none;
+    }
+    .panel_button.right_panel_button {
+        @apply rounded-tl-none rounded-bl-none bg-gray-200 hover:bg-gray-300;
+    }
+    /* Input Components */
+    textarea.input_text {
+        @apply w-full p-3 border border-gray-200 rounded-lg shadow-inner outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-200 focus:shadow-inner placeholder-gray-400;
+    }
+    input.input_text {
+        @apply w-full p-3 border border-gray-200 rounded-lg shadow-inner outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-200 focus:shadow-inner placeholder-gray-400;
+    }
+    .input_number {
+        @apply w-full p-3 border border-gray-200 rounded-lg shadow-inner outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-200 focus:shadow-inner placeholder-gray-400;
+    }
+    .input_image {
+        @apply w-full h-80;
+        .upload_zone {
+            @apply border-8 border-gray-300 border-dashed w-full h-full flex justify-center items-center text-3xl text-gray-400 text-center cursor-pointer leading-10;
+        }
+        .image_preview_holder {
+            @apply w-full h-full flex justify-center items-center bg-gray-300;
+        }
+        .image_preview {
+            @apply w-full h-full object-contain;
+        }
+    }
+    .input_radio {
+        @apply flex flex-wrap gap-2;
+        .radio_item {
+            @apply bg-gradient-to-t from-gray-200 to-gray-50 text-gray-600 py-1.5 px-3 hover:to-gray-100 font-semibold rounded cursor-pointer flex items-center gap-1;
+        }
+        .radio_item.selected {
+            @apply text-purple-500;
+        }
+        .radio_circle {
+            @apply w-4 h-4 bg-white rounded-full box-border;
+        }
+        .selected .radio_circle {
+            @apply border-4 border-purple-600;
+        }
+    }
+    .input_checkbox_group {
+        @apply flex flex-wrap gap-2;
+        .checkbox_item {
+            @apply bg-gradient-to-t from-gray-200 to-gray-50 text-gray-600 py-1.5 px-3 hover:to-gray-100 font-semibold rounded cursor-pointer flex items-center gap-1;
+        }
+        .checkbox_item.selected {
+            @apply text-purple-500;
+        }
+        .checkbox {
+            @apply w-4 h-4 bg-white;
+            .check {
+                @apply hidden;
+            }
+        }
+        .selected .checkbox {
+            @apply bg-purple-600;
+            .check {
+                @apply block;
+            }
+        }
+        .check line {
+            stroke: white;
+            stroke-width: 4;
+            stroke-linecap: round;
+        }
+    }
+    .input_checkbox {
+        @apply flex flex-wrap gap-2;
+        .checkbox_item {
+            @apply bg-gradient-to-t from-gray-200 to-gray-50 text-gray-600 py-1.5 px-3 hover:to-gray-100 font-semibold rounded cursor-pointer flex items-center gap-1;
+        }
+        .checkbox_item.selected {
+            @apply text-purple-500;
+        }
+        .checkbox {
+            @apply w-4 h-4 bg-white;
+            .check {
+                @apply hidden;
+            }
+        }
+        .selected .checkbox {
+            @apply bg-purple-600;
+            .check {
+                @apply block;
+            }
+        }
+        .check line {
+            stroke: white;
+            stroke-width: 4;
+            stroke-linecap: round;
+        }
+    }
+    .input_dropdown {
+        @apply inline-block relative;
+        .selector {
+            @apply bg-gradient-to-t from-gray-200 to-gray-50 text-gray-600 py-1.5 px-3 hover:to-gray-100 font-semibold rounded inline-flex items-center;
+        }
+        .current {
+            @apply mr-1;
+        }
+        .caret {
+            @apply fill-current h-4 w-4;
+        }
+        .dropdown_menu {
+            @apply absolute hidden text-gray-700 pt-1;
+        }
+        .dropdown_item:first-child {
+            @apply rounded-t;
+        }
+        .dropdown_item {
+            @apply bg-gray-200 hover:bg-gray-400 hover:text-gray-50 py-2 px-4 block whitespace-nowrap cursor-pointer;
+        }
+        .dropdown_item:last-child {
+            @apply rounded-b;
+        }
+        :hover .dropdown_menu {
+            @apply block;
+        }
+    }
+    .input_slider {
+        @apply text-center;
+        .range {
+            @apply w-full appearance-none bg-gray-200 hover:bg-gray-100 transition rounded h-4;
+        }
+        .range::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            @apply appearance-none w-5 h-5 bg-purple-500 rounded cursor-pointer;
+        }
+        .range::-moz-range-thumb {
+            @apply appearance-none w-5 h-5 bg-purple-500 rounded cursor-pointer;
+        }
+        .value {
+            @apply inline-block mx-auto mt-1 px-2 py-0.5 bg-gray-200 rounded text-gray-700;
+        }
+    }
+    .input_audio {
+        .audio-react-recorder {
+            @apply hidden;
+        }
+        .start {
+            @apply bg-gradient-to-t from-gray-200 to-gray-50 text-gray-600 py-1.5 px-3 hover:to-gray-100 font-semibold rounded;
+        }
+        .stop {
+            @apply bg-gradient-to-t from-red-200 to-red-50 text-red-600 py-1.5 px-3 hover:to-gray-100 font-semibold rounded;
+        }
+        audio {
+            @apply w-full;
+        }
+    } /* Output Components */
+    .output_label {
+        .output_class {
+            @apply hidden;
+        }
+        .confidence_intervals {
+            @apply flex text-xl;
+        }
+        .labels {
+            @apply mr-1;
+        }
+        .confidences {
+            @apply flex flex-grow flex-col items-baseline;
+        }
+        .label {
+            @apply overflow-hidden whitespace-nowrap h-7 mb-1 overflow-ellipsis text-right;
+        }
+        .confidence {
+            @apply bg-gradient-to-r from-purple-200 to-purple-500 rounded text-white flex justify-end overflow-hidden whitespace-nowrap h-7 mb-1 px-1;
+            color: transparent;
+        }
+    }
+    .output_image {
+        @apply w-full h-80 object-contain flex justify-center;
+        img {
+            @apply h-full;
+        }
+    }
+    .output_audio {
+        audio {
+            @apply w-full;
+        }
+    }
+}

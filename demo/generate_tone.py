@@ -24,6 +24,5 @@ iface = gr.Interface(
         gr.inputs.Textbox(type="number", default=1, label="Duration in seconds")
     ], "audio")
 
-iface.test_launch()
 if __name__ == "__main__":
     iface.launch()
