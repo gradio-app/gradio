@@ -1,4 +1,5 @@
 import json
+from tempfile import _TemporaryFileWrapper
 import requests
 from gradio import inputs, outputs
 
@@ -71,6 +72,13 @@ def get_huggingface_interface(model_name, api_key, alias):
             {"candidate_labels": c, "multi_class": m}},
             'postprocess': lambda r: {r["labels"][i]: r["scores"][i] for i in
                                       range(len(r["labels"]))}
+        },
+        'automatic-speech-recognition': {
+            'inputs': inputs.Audio(label="Input", source="upload",
+                                   type="file"),
+            'outputs': "label",
+            'preprocess': lambda i: {"inputs": i},
+            'postprocess': lambda r: {r["text"]}
         }
     }
 
@@ -81,6 +89,13 @@ def get_huggingface_interface(model_name, api_key, alias):
 
     def query_huggingface_api(*input):
         payload = pipeline['preprocess'](*input)
+        if type(*input) is _TemporaryFileWrapper:
+            print(input[0])
+            print(input[0].name)
+            with open(input[0].name, "rb") as f:
+                data = f.read()
+                payload = pipeline['preprocess'](json.dumps(data))
+
         payload.update({'options': {'wait_for_model': True}})
         data = json.dumps(payload)
         response = requests.request("POST", api_url, headers=headers, data=data)
