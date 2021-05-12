@@ -1,7 +1,7 @@
 import json
-from tempfile import _TemporaryFileWrapper
 import requests
 from gradio import inputs, outputs
+from tempfile import _TemporaryFileWrapper
 
 
 def get_huggingface_interface(model_name, api_key, alias):
