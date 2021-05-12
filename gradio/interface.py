@@ -46,7 +46,7 @@ class Interface:
     def __init__(self, fn, inputs, outputs, verbose=False, examples=None,
                  examples_per_page=10, live=False,
                  layout="horizontal", show_input=True, show_output=True,
-                 capture_session=False, interpretation=None,
+                 capture_session=False, interpretation=None, theme="default",
                  title=None, description=None, article=None, thumbnail=None, 
                  css=None, server_port=7860, server_name=networking.LOCALHOST_NAME,
                  allow_screenshot=True, allow_flagging=True, flagging_options=None,
@@ -68,6 +68,7 @@ class Interface:
         description (str): a description for the interface; if provided, appears above the input and output components.
         article (str): an expanded article explaining the interface; if provided, appears below the input and output components. Accepts Markdown and HTML content.
         thumbnail (str): path to image or src to use as display picture for models listed in gradio.app/hub
+        theme (str): Theme to use - one of "dark", "default", or "huggingface".
         css (str): custom css or path to custom css file to use with interface.
         server_port (int): will start gradio app on this port (if available) 
         server_name (str): to make app accessible on local network set to "0.0.0.0".
@@ -132,6 +133,7 @@ class Interface:
             article = markdown2.markdown(article)
         self.article = article
         self.thumbnail = thumbnail
+        self.theme = theme
         if css is not None and os.path.exists(css):
             with open(css) as css_file:
                 self.css = css_file.read()
@@ -204,6 +206,7 @@ class Interface:
             "title": self.title,
             "description": self.description,
             "article": self.article,
+            "theme": self.theme,
             "thumbnail": self.thumbnail,
             "allow_screenshot": self.allow_screenshot,
             "allow_flagging": self.allow_flagging,

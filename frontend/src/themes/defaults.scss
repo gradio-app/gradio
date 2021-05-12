@@ -1,0 +1,224 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.gradio_interface {
+    @apply container mx-auto my-4;
+    .title {
+        @apply text-center;
+    }
+    .loading {
+        @apply absolute right-1;
+    }
+    .panels {
+        @apply flex flex-wrap justify-center gap-4;
+    }
+    .panel {
+        @apply flex-1;
+    }
+    .component_set {
+        @apply bg-gray-100 p-2 rounded flex flex-col gap-2;
+    }
+    .panel_header {
+        @apply mb-1 uppercase text-sm font-semibold;
+    }
+    .panel_button {
+        @apply flex-grow p-3 rounded bg-gray-100 hover:bg-gray-200 transition font-semibold focus:outline-none;
+    }
+    .panel_button.submit {
+        @apply bg-yellow-500 hover:bg-yellow-400 text-white;
+    }
+    .panel_buttons {
+        @apply flex gap-4 my-4;
+    }
+    .screenshot_set {
+        @apply flex flex-grow;
+    }
+    .panel_button.left_panel_button {
+        @apply rounded-tr-none rounded-br-none;
+    }
+    .panel_button.right_panel_button {
+        @apply rounded-tl-none rounded-bl-none bg-gray-200 hover:bg-gray-300;
+    }
+    /* Input Components */
+    textarea.input_text {
+        @apply w-full bg-white border-gray-400 rounded box-border p-1 resize-none;
+    }
+    input.input_text {
+        @apply w-full bg-white border-gray-400 rounded box-border p-1;
+    }
+    .input_number {
+        @apply w-full bg-white border-gray-400 rounded box-border p-1;
+    }
+    .input_image {
+        @apply w-full h-80;
+        .upload_zone {
+            @apply border-8 border-gray-300 border-dashed w-full h-full flex justify-center items-center text-3xl text-gray-400 text-center cursor-pointer leading-10;
+        }
+        .image_preview_holder {
+            @apply w-full h-full flex justify-center items-center bg-gray-300;
+        }
+        .image_preview {
+            @apply w-full h-full object-contain;
+        }
+    }
+    .input_radio {
+        @apply flex flex-wrap gap-2;
+        .radio_item {
+            @apply bg-gray-300 text-gray-700 py-2 px-4 font-semibold rounded cursor-pointer flex items-center gap-1;
+        }
+        .radio_item.selected {
+            @apply bg-yellow-500 text-white;
+        }
+        .radio_circle {
+            @apply w-4 h-4 bg-white rounded-full box-border;
+        }
+        .selected .radio_circle {
+            @apply border-4 border-yellow-600;
+        }
+    }
+    .input_checkbox_group {
+        @apply flex flex-wrap gap-2;
+        .checkbox_item {
+            @apply bg-gray-300 text-gray-700 py-2 px-4 font-semibold rounded cursor-pointer flex items-center gap-1;
+        }
+        .checkbox_item.selected {
+            @apply bg-yellow-500 text-white;
+        }
+        .checkbox {
+            @apply w-4 h-4 bg-white;
+            .check {
+                @apply hidden;
+            }
+        }
+        .selected .checkbox {
+            @apply bg-yellow-600;
+            .check {
+                @apply block;
+            }
+        }
+        .check line {
+            stroke: white;
+            stroke-width: 4;
+            stroke-linecap: round;
+        }
+    }
+    .input_checkbox {
+        @apply flex flex-wrap gap-2;
+        .checkbox_item {
+            @apply bg-gray-300 text-gray-700 py-2 px-4 font-semibold rounded cursor-pointer flex items-center gap-1;
+        }
+        .checkbox_item.selected {
+            @apply bg-yellow-500 text-white;
+        }
+        .checkbox {
+            @apply w-4 h-4 bg-white;
+            .check {
+                @apply hidden;
+            }
+        }
+        .selected .checkbox {
+            @apply bg-yellow-600;
+            .check {
+                @apply block;
+            }
+        }
+        .check line {
+            stroke: white;
+            stroke-width: 4;
+            stroke-linecap: round;
+        }
+    }
+    .input_dropdown {
+        @apply inline-block relative;
+        .selector {
+            @apply bg-gray-300 text-gray-700 py-2 px-4 font-semibold rounded inline-flex items-center;
+        }
+        .current {
+            @apply mr-1;
+        }
+        .caret {
+            @apply fill-current h-4 w-4;
+        }
+        .dropdown_menu {
+            @apply absolute hidden text-gray-700 pt-1;
+        }
+        .dropdown_item:first-child {
+            @apply rounded-t;
+        }
+        .dropdown_item {
+            @apply bg-gray-200 hover:bg-gray-400 hover:text-gray-50 py-2 px-4 block whitespace-nowrap cursor-pointer;
+        }
+        .dropdown_item:last-child {
+            @apply rounded-b;
+        }
+        :hover .dropdown_menu {
+            @apply block;
+        }
+    }
+    .input_slider {
+        @apply text-center;
+        .range {
+            @apply w-full appearance-none bg-gray-300 hover:bg-gray-200 transition rounded h-4;
+        }
+        .range::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            @apply appearance-none w-5 h-5 bg-yellow-500 rounded cursor-pointer;
+        }
+        .range::-moz-range-thumb {
+            @apply appearance-none w-5 h-5 bg-yellow-500 rounded cursor-pointer;
+        }
+        .value {
+            @apply inline-block mx-auto mt-1 px-2 py-0.5 bg-gray-200 rounded text-gray-700;
+        }
+    }
+    .input_audio {
+        .audio-react-recorder {
+            @apply hidden;
+        }
+        .start {
+            @apply bg-gray-200 p-2 rounded font-semibold;
+        }
+        .stop {
+            @apply bg-red-200 text-red-500 p-2 rounded font-semibold;
+        }
+        audio {
+            @apply w-full border-2 border-gray-300 rounded;
+        }
+    }
+    /* Output Components */
+    .output_text {
+        @apply w-full bg-white border-gray-400 rounded box-border p-1;
+    }
+    .output_label {
+        .output_class {
+            @apply font-bold text-2xl py-8 px-4 flex-grow flex items-center justify-center;
+        }
+        .confidence_intervals {
+            @apply flex text-xl;
+        }
+        .labels {
+            @apply mr-1;
+        }
+        .confidences {
+            @apply flex flex-grow flex-col items-baseline;
+        }
+        .label {
+            @apply overflow-hidden whitespace-nowrap h-7 mb-1 overflow-ellipsis text-right;
+        }
+        .confidence {
+            @apply bg-gray-400 text-white flex justify-end overflow-hidden whitespace-nowrap h-7 mb-1 px-1;
+        }
+    }
+    .output_image {
+        @apply w-full h-80 object-contain flex justify-center;
+        img {
+            @apply h-full;
+        }
+    }
+    .output_audio {
+        audio {
+            @apply w-full border-2 border-gray-300 rounded;
+        }
+    }
+}
