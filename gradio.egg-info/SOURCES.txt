@@ -5,6 +5,7 @@ gradio/__init__.py
 gradio/component.py
 gradio/embeddings.py
 gradio/encryptor.py
+gradio/external.py
 gradio/inputs.py
 gradio/interface.py
 gradio/interpretation.py
@@ -14,6 +15,7 @@ gradio/outputs.py
 gradio/processing_utils.py
 gradio/strings.py
 gradio/test_data.py
+gradio/transforms.py
 gradio/tunneling.py
 gradio/utils.py
 gradio.egg-info/PKG-INFO
