@@ -128,31 +128,50 @@ def get_huggingface_interface(model_name, api_key, alias):
     return interface_info
 
 def get_gradio_interface(model_name, api_key, alias):
-    api_url = "http://4553.gradiohub.com/api/predict/"  #TODO(dawood): fetch based on model name
-    pipeline = {  #TODO(dawood): load from the config file
-        'inputs': inputs.Textbox(label="Input"),
-        'outputs': outputs.Textbox(label="Question"),
-        'preprocess': lambda x: {"data": [x]},
-        'postprocess': lambda r: r["data"][0],
-        'examples': [['Hi, how are you?']]
+    model_info = requests.get("https://gradio.app/get_config/{}".format(model_name)).json()
+    config_info = json.loads(model_info["config"])
+    api_url = "{}/api/predict/".format(model_info["url"])
+
+    headers = {
+        'authority': model_info["url"],
+        'sec-ch-ua': '" Not A;Brand";v="99", "Chromium";v="90", "Microsoft Edge";v="90"',
+        'accept': 'application/json, text/javascript, */*; q=0.01',
+        'sec-ch-ua-mobile': '?1',
+        'user-agent': 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Mobile Safari/537.36 Edg/90.0.818.56',
+        'content-type': 'application/json; charset=UTF-8',
+        'origin': 'https://gradio.app',
+        'sec-fetch-site': 'cross-site',
+        'sec-fetch-mode': 'cors',
+        'sec-fetch-dest': 'empty',
+        'referer': 'https://gradio.app/',
+        'accept-language': 'en-US,en;q=0.9',
     }
 
     def query_gradio_api(*input):
         payload = pipeline['preprocess'](*input)
         data = json.dumps(payload)
-        response = requests.request("POST", api_url, data=data)
+        response = requests.post(api_url, headers=headers, data=data)
         result = json.loads(response.content.decode("utf-8"))
         output = pipeline['postprocess'](result)
         return output
 
-    query_gradio_api.__name__ = model_name
+    if alias is None:
+        query_gradio_api.__name__ = model_name
+    else:
+        query_gradio_api.__name__ = alias
+
+    pipeline = {
+        'inputs': [inp[0] for inp in config_info["input_interfaces"]],
+        'outputs': [out[0] for out in config_info["output_interfaces"]],
+        'preprocess': lambda x: {"data": [x]},
+        'postprocess': lambda r: r["data"][0],
+    }
 
     interface_info = {
         'fn': query_gradio_api, 
         'inputs': pipeline['inputs'],
         'outputs': pipeline['outputs'],
         'title': model_name,
-        # 'examples': pipeline['examples'],
     }
 
     return interface_info
