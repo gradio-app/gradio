@@ -76,9 +76,16 @@ def get_huggingface_interface(model_name, api_key, alias):
         'automatic-speech-recognition': {
             'inputs': inputs.Audio(label="Input", source="upload",
                                    type="file"),
-            'outputs': "label",
+            'outputs': outputs.Textbox(label="Output"),
             'preprocess': lambda i: {"inputs": i},
-            'postprocess': lambda r: {r["text"]}
+            'postprocess': lambda r: r["text"]
+        },
+        'image-classification': {
+            'inputs': inputs.Image(label="Input Image", type="file"),
+            'outputs': outputs.Label(label="Classification"),
+            'preprocess': lambda i: i,
+            'postprocess': lambda r: {i["label"].split(", ")[0]: i["score"] for
+                                      i in r}
         }
     }
 
@@ -90,14 +97,13 @@ def get_huggingface_interface(model_name, api_key, alias):
     def query_huggingface_api(*input):
         payload = pipeline['preprocess'](*input)
         if type(*input) is _TemporaryFileWrapper:
-            print(input[0])
-            print(input[0].name)
             with open(input[0].name, "rb") as f:
                 data = f.read()
-                payload = pipeline['preprocess'](json.dumps(data))
+                payload = pipeline['preprocess'](data)
 
-        payload.update({'options': {'wait_for_model': True}})
-        data = json.dumps(payload)
+        if type(*input) is not _TemporaryFileWrapper:
+            payload.update({'options': {'wait_for_model': True}})
+            data = json.dumps(payload)
         response = requests.request("POST", api_url, headers=headers, data=data)
         if response.status_code == 200:
             result = json.loads(response.content.decode("utf-8"))
