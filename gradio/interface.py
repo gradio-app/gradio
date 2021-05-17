@@ -287,6 +287,7 @@ class Interface:
 
             if len(self.output_interfaces) == len(self.predict):
                 prediction = [prediction]
+            
             durations.append(duration)
             predictions.extend(prediction)
         
