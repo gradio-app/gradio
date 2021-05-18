@@ -5,6 +5,10 @@ class RadioInput extends React.Component {
   constructor(props) {
     super(props);
     this.handleChange = this.handleChange.bind(this);
+    const index = this.props.choices.indexOf(this.props.default);
+    if (index !== -1) {
+      this.handleChange(index);
+    }
   }
   handleChange(selected_index) {
     this.props.handleChange(selected_index);

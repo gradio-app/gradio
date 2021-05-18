@@ -493,14 +493,16 @@ class Radio(InputComponent):
     Input type: Union[str, int]
     """
 
-    def __init__(self, choices, type="value", label=None):
+    def __init__(self, choices, default=None, type="value", label=None):
         '''
         Parameters:
         choices (List[str]): list of options to select from.
+        default (str): default selected option.
         type (str): Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
         label (str): component name in interface.
         '''
         self.choices = choices
+        self.default = default
         self.type = type
         self.test_input = self.choices[0]
         super().__init__(label)
@@ -508,6 +510,7 @@ class Radio(InputComponent):
     def get_template_context(self):
         return {
             "choices": self.choices,
+            "default": self.default,
             **super().get_template_context()
         }
 

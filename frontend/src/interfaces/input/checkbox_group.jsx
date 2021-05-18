@@ -5,6 +5,14 @@ class CheckboxGroupInput extends React.Component {
   constructor(props) {
     super(props);
     this.handleChange = this.handleChange.bind(this);
+    if (Array.isArray(this.props.default)) {
+      for (const value of this.props.default) {
+        const index = this.props.choices.indexOf(value);
+        if (index !== -1) {
+          this.handleChange(index);
+        }
+      }
+    }
   }
   handleChange(selected_index) {
     let all_selected = this.props.value;
