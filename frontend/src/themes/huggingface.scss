@@ -17,13 +17,13 @@
         @apply flex-1;
     }
     .component_set {
-        @apply bg-gray-50 p-2 rounded flex flex-col gap-2;
+        @apply border border-gray-100 p-4 rounded-lg flex flex-col gap-3 bg-gradient-to-br from-gray-50 to-white;
     }
     .panel_header {
-        @apply flex items-center text-sm text-gray-500 mb-1.5;
+        @apply flex items-center text-sm text-gray-700 mb-1.5;
     }
     .panel_button {
-        @apply flex-grow p-3 rounded transition bg-gradient-to-b from-gray-50 hover:from-gray-100 to-gray-200 border-gray-300 focus:ring-offset-purple-300;
+        @apply shadow-sm font-semibold border flex-grow p-3 rounded-lg transition bg-gradient-to-b from-gray-50 hover:from-gray-100 to-gray-100 focus:ring-offset-indigo-300;
     }
     .panel_buttons {
         @apply flex gap-4 my-4;
@@ -35,17 +35,17 @@
         @apply rounded-tr-none rounded-br-none;
     }
     .panel_button.right_panel_button {
-        @apply rounded-tl-none rounded-bl-none bg-gray-200 hover:bg-gray-300;
+        @apply rounded-tl-none rounded-bl-none bg-gray-100 hover:bg-gray-300;
     }
     /* Input Components */
     textarea.input_text {
-        @apply w-full p-3 border border-gray-200 rounded-lg shadow-inner outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-200 focus:shadow-inner placeholder-gray-400;
+        @apply w-full p-3 border rounded-lg shadow-inner outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-200 focus:shadow-inner placeholder-gray-400;
     }
     input.input_text {
-        @apply w-full p-3 border border-gray-200 rounded-lg shadow-inner outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-200 focus:shadow-inner placeholder-gray-400;
+        @apply w-full p-3 border rounded-lg shadow-inner outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-200 focus:shadow-inner placeholder-gray-400;
     }
     .input_number {
-        @apply w-full p-3 border border-gray-200 rounded-lg shadow-inner outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-200 focus:shadow-inner placeholder-gray-400;
+        @apply w-full p-3 border rounded-lg shadow-inner outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-200 focus:shadow-inner placeholder-gray-400;
     }
     .input_image {
         @apply w-full h-80;
@@ -62,34 +62,34 @@
     .input_radio {
         @apply flex flex-wrap gap-2;
         .radio_item {
-            @apply bg-gradient-to-t from-gray-200 to-gray-50 text-gray-600 py-1.5 px-3 hover:to-gray-100 font-semibold rounded cursor-pointer flex items-center gap-1;
+            @apply border bg-gradient-to-t from-gray-100 to-gray-50 text-gray-600 py-1.5 px-3 hover:to-gray-100 font-semibold rounded cursor-pointer flex items-center gap-1;
         }
         .radio_item.selected {
-            @apply text-purple-500;
+            @apply text-indigo-500;
         }
         .radio_circle {
             @apply w-4 h-4 bg-white rounded-full box-border;
         }
         .selected .radio_circle {
-            @apply border-4 border-purple-600;
+            @apply border-4 border-indigo-600;
         }
     }
     .input_checkbox_group {
         @apply flex flex-wrap gap-2;
         .checkbox_item {
-            @apply bg-gradient-to-t from-gray-200 to-gray-50 text-gray-600 py-1.5 px-3 hover:to-gray-100 font-semibold rounded cursor-pointer flex items-center gap-1;
+            @apply border bg-gradient-to-t from-gray-100 to-gray-50 text-gray-600 py-1.5 px-3 hover:to-gray-100 font-semibold rounded cursor-pointer flex items-center gap-1;
         }
         .checkbox_item.selected {
-            @apply text-purple-500;
+            @apply text-indigo-500;
         }
         .checkbox {
-            @apply w-4 h-4 bg-white;
+            @apply w-4 h-4 bg-white rounded p-1;
             .check {
                 @apply hidden;
             }
         }
         .selected .checkbox {
-            @apply bg-purple-600;
+            @apply bg-indigo-600;
             .check {
                 @apply block;
             }
@@ -103,19 +103,19 @@
     .input_checkbox {
         @apply flex flex-wrap gap-2;
         .checkbox_item {
-            @apply bg-gradient-to-t from-gray-200 to-gray-50 text-gray-600 py-1.5 px-3 hover:to-gray-100 font-semibold rounded cursor-pointer flex items-center gap-1;
+            @apply border bg-gradient-to-t from-gray-100 to-gray-50 text-gray-600 py-1.5 px-3 hover:to-gray-100 font-semibold rounded cursor-pointer flex items-center gap-1;
         }
         .checkbox_item.selected {
-            @apply text-purple-500;
+            @apply text-indigo-500;
         }
         .checkbox {
-            @apply w-4 h-4 bg-white;
+            @apply w-4 h-4 bg-white rounded p-1;
             .check {
                 @apply hidden;
             }
         }
         .selected .checkbox {
-            @apply bg-purple-600;
+            @apply bg-indigo-600;
             .check {
                 @apply block;
             }
@@ -129,7 +129,7 @@
     .input_dropdown {
         @apply inline-block relative;
         .selector {
-            @apply bg-gradient-to-t from-gray-200 to-gray-50 text-gray-600 py-1.5 px-3 hover:to-gray-100 font-semibold rounded inline-flex items-center;
+            @apply border bg-gradient-to-t from-gray-100 to-gray-50 text-gray-600 py-1.5 px-3 hover:to-gray-100 font-semibold rounded inline-flex items-center;
         }
         .current {
             @apply mr-1;
@@ -144,7 +144,7 @@
             @apply rounded-t;
         }
         .dropdown_item {
-            @apply bg-gray-200 hover:bg-gray-400 hover:text-gray-50 py-2 px-4 block whitespace-nowrap cursor-pointer;
+            @apply bg-gray-100 hover:bg-gray-400 hover:text-gray-50 py-2 px-4 block whitespace-nowrap cursor-pointer;
         }
         .dropdown_item:last-child {
             @apply rounded-b;
@@ -156,17 +156,17 @@
     .input_slider {
         @apply text-center;
         .range {
-            @apply w-full appearance-none bg-gray-200 hover:bg-gray-100 transition rounded h-4;
+            @apply w-full appearance-none bg-gray-100 hover:bg-gray-100 transition rounded-full h-4 border;
         }
         .range::-webkit-slider-thumb {
             -webkit-appearance: none;
-            @apply appearance-none w-5 h-5 bg-purple-500 rounded cursor-pointer;
+            @apply appearance-none w-5 h-5 bg-indigo-500 rounded-full cursor-pointer shadow;
         }
         .range::-moz-range-thumb {
-            @apply appearance-none w-5 h-5 bg-purple-500 rounded cursor-pointer;
+            @apply appearance-none w-5 h-5 bg-indigo-500 rounded-full cursor-pointer shadow;
         }
         .value {
-            @apply inline-block mx-auto mt-1 px-2 py-0.5 bg-gray-200 rounded text-gray-700;
+            @apply inline-block mx-auto mt-1 px-2 py-0.5 bg-gray-100 text-gray-700 rounded shadow-inner;
         }
     }
     .input_audio {
@@ -174,7 +174,7 @@
             @apply hidden;
         }
         .start {
-            @apply bg-gradient-to-t from-gray-200 to-gray-50 text-gray-600 py-1.5 px-3 hover:to-gray-100 font-semibold rounded;
+            @apply bg-gradient-to-t from-gray-100 to-gray-50 text-gray-600 py-1.5 px-3 hover:to-gray-100 font-semibold rounded;
         }
         .stop {
             @apply bg-gradient-to-t from-red-200 to-red-50 text-red-600 py-1.5 px-3 hover:to-gray-100 font-semibold rounded;
@@ -200,7 +200,7 @@
             @apply overflow-hidden whitespace-nowrap h-7 mb-1 overflow-ellipsis text-right;
         }
         .confidence {
-            @apply bg-gradient-to-r from-purple-200 to-purple-500 rounded text-white flex justify-end overflow-hidden whitespace-nowrap h-7 mb-1 px-1;
+            @apply bg-gradient-to-r from-indigo-200 to-indigo-500 rounded text-white flex justify-end overflow-hidden whitespace-nowrap h-7 mb-1 px-1;
             color: transparent;
         }
     }
