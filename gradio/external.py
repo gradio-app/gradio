@@ -1,7 +1,6 @@
 import json
 import requests
 from gradio import inputs, outputs
-from tempfile import _TemporaryFileWrapper
 
 
 def get_huggingface_interface(model_name, api_key, alias):
@@ -96,12 +95,10 @@ def get_huggingface_interface(model_name, api_key, alias):
 
     def query_huggingface_api(*input):
         payload = pipeline['preprocess'](*input)
-        if type(*input) is _TemporaryFileWrapper:
+        if p == 'automatic-speech-recognition' or p == 'image-classification':
             with open(input[0].name, "rb") as f:
                 data = f.read()
-                payload = pipeline['preprocess'](data)
-
-        if type(*input) is not _TemporaryFileWrapper:
+        else:
             payload.update({'options': {'wait_for_model': True}})
             data = json.dumps(payload)
         response = requests.request("POST", api_url, headers=headers, data=data)
