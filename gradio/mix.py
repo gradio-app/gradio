@@ -11,9 +11,15 @@ class Parallel(Interface):
         for io in interfaces:
             fns.extend(io.predict)
             outputs.extend(io.output_interfaces)
-    
-        super().__init__(fn=fns, inputs=interfaces[0].input_interfaces, outputs=outputs, 
-                         repeat_outputs_per_model=False, **options) 
+
+        kwargs = {
+            "fn": fns,
+            "inputs": interfaces[0].input_interfaces,
+            "outputs": outputs,
+            "repeat_outputs_per_model": False,
+        }
+        kwargs.update(options)
+        super().__init__(**kwargs) 
 
 
 class Series(Interface):
@@ -39,5 +45,11 @@ class Series(Interface):
     
         connected_fn.__name__ = " => ".join([f[0].__name__ for f in fns])
 
-        super().__init__(connected_fn, interfaces[0].input_interfaces, interfaces[-1].output_interfaces, **options)
+        kwargs = {
+            "fn": connected_fn,
+            "inputs": interfaces[0].input_interfaces,
+            "outputs": interfaces[-1].output_interfaces,
+        }
+        kwargs.update(options)
+        super().__init__(**kwargs) 
 
