@@ -4,6 +4,14 @@ Ways to transform interfaces to produce new interfaces
 from gradio.interface import Interface
 
 class Parallel(Interface):
+    """
+    Creates a new Interface consisting of multiple models in parallel
+    Parameters: 
+    interfaces: any number of Interface objects that are to be compared in parallel 
+    options: additional kwargs that are passed into the new Interface object to customize it  
+    Returns:
+    (Interface): an Interface object comparing the given models
+    """
     def __init__(self, *interfaces, **options):
         fns = []
         outputs = []
@@ -23,6 +31,14 @@ class Parallel(Interface):
 
 
 class Series(Interface):
+    """
+    Creates a new Interface from multiple models in series (the output of one is fed as the input to the next)
+    Parameters: 
+    interfaces: any number of Interface objects that are to be connected in series 
+    options: additional kwargs that are passed into the new Interface object to customize it  
+    Returns:
+    (Interface): an Interface object connecting the given models
+    """
     def __init__(self, *interfaces, **options):
         fns = [io.predict for io in interfaces]
     
