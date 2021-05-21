@@ -445,7 +445,7 @@ class Interface:
 
         # If running in a colab or not able to access localhost, automatically create a shareable link        
         is_colab = utils.colab_check()
-        if is_colab or (share and not(networking.url_ok(path_to_local_server))):  
+        if is_colab or not(networking.url_ok(path_to_local_server)):  
             share = True
             if is_colab:
                 if debug:
@@ -508,7 +508,7 @@ class Interface:
             while True:
                 sys.stdout.flush()
                 time.sleep(0.1)
-        
+
         return app, path_to_local_server, share_url
 
 
