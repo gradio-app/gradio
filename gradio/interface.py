@@ -48,6 +48,16 @@ class Interface:
 
     @classmethod
     def load(cls, name, src=None, api_key=None, alias=None, **kwargs):
+        """
+        Loads a model and Interface from an external source repo
+        Parameters: 
+        name (str): the name of the model (e.g. "gpt2"), can include the `src` as prefix (e.g. "huggingface/gpt2")
+        src (str): the source of the model: `huggingface` or `gradio` (or empty if source is provided as a prefix in `name`)
+        api_key (str): optional api key for use with Hugging Face Model Hub
+        alias (str): optional, used as the name of the loaded model instead of the default name
+        Returns:
+        (Interface): an Interface object for the given model
+        """
         interface_info = load_interface(name, src, api_key, alias)
         interface_info.update(kwargs)
         return cls(**interface_info)
