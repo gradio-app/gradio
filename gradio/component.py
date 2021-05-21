@@ -10,6 +10,12 @@ class Component():
     def __init__(self, label):
         self.label = label
 
+    def __str__(self):
+        return self.__repr__()
+
+    def __repr__(self):
+        return "{}(label=\"{}\")".format(type(self).__name__, self.label)
+
     def get_template_context(self):
         """
         :return: a dictionary with context variables for the javascript file associated with the context

@@ -8,6 +8,7 @@ from gradio.inputs import InputComponent
 from gradio.outputs import OutputComponent
 from gradio import networking, strings, utils
 from gradio.interpretation import quantify_difference_in_label
+from gradio.external import load_interface
 from gradio import encryptor
 import pkg_resources
 import requests
@@ -45,14 +46,20 @@ class Interface:
         return list(
             Interface.instances)
 
-    def __init__(self, fn, inputs, outputs, verbose=False, examples=None,
+    @classmethod
+    def load(cls, name, src=None, api_key=None, alias=None, **kwargs):
+        interface_info = load_interface(name, src, api_key, alias)
+        interface_info.update(kwargs)
+        return cls(**interface_info)
+
+    def __init__(self, fn, inputs=None, outputs=None, verbose=False, examples=None,
                  examples_per_page=10, live=False,
                  layout="horizontal", show_input=True, show_output=True,
-                 capture_session=False, interpretation=None,
+                 capture_session=False, interpretation=None, repeat_outputs_per_model=True,
                  title=None, description=None, article=None, thumbnail=None, 
-                 css=None, server_port=None, server_name=networking.LOCALHOST_NAME,
+                 css=None, server_port=None, server_name=networking.LOCALHOST_NAME, height=500, width=900,
                  allow_screenshot=True, allow_flagging=True, flagging_options=None, encrypt=False,
-                 show_tips=True, embedding=None, flagging_dir="flagged", analytics_enabled=True):
+                 show_tips=False, embedding=None, flagging_dir="flagged", analytics_enabled=True):
 
         """
         Parameters:
@@ -80,7 +87,6 @@ class Interface:
         flagging_dir (str): what to name the dir where flagged data is stored.
         show_tips (bool): if True, will occasionally show tips about new Gradio features
         """
-
         def get_input_instance(iface):
             if isinstance(iface, str):
                 shortcut = InputComponent.get_all_shortcut_implementations()[iface]
@@ -89,7 +95,7 @@ class Interface:
                 return iface
             else:
                 raise ValueError("Input interface must be of type `str` or "
-                                 "`InputComponent`")
+                                 "`InputComponent` but is {}".format(iface))
 
         def get_output_instance(iface):
             if isinstance(iface, str):
@@ -103,6 +109,8 @@ class Interface:
                     "`OutputComponent`"
                 )
 
+        if not isinstance(fn, list):
+            fn = [fn]
         if isinstance(inputs, list):
             self.input_interfaces = [get_input_instance(i) for i in inputs]
         else:
@@ -111,12 +119,13 @@ class Interface:
             self.output_interfaces = [get_output_instance(i) for i in outputs]
         else:
             self.output_interfaces = [get_output_instance(outputs)]
-        if not isinstance(fn, list):
-            fn = [fn]
 
-        self.output_interfaces *= len(fn)
+        # self.original_output_interfaces = copy.copy(self.output_interfaces)
+        if repeat_outputs_per_model:
+            self.output_interfaces *= len(fn)
         self.predict = fn
         self.function_names = [func.__name__ for func in fn]
+        self.__name__ = ", ".join(self.function_names)
         self.verbose = verbose
         self.status = "OFF"
         self.live = live
@@ -135,6 +144,8 @@ class Interface:
             article = markdown2.markdown(article)
         self.article = article
         self.thumbnail = thumbnail
+        self.height = height
+        self.width = width
         if css is not None and os.path.exists(css):
             with open(css) as css_file:
                 self.css = css_file.read()
@@ -193,6 +204,23 @@ class Interface:
             except (requests.ConnectionError, requests.exceptions.ReadTimeout):
                 pass  # do not push analytics if no network
 
+    def __call__(self, params_per_function):
+        return self.predict[0](params_per_function)
+
+    def __str__(self):
+        return self.__repr__()
+
+    def __repr__(self):
+        repr = "Gradio Interface for: {}".format(", ".join(fn.__name__ for fn in self.predict))
+        repr += "\n" + "-"*len(repr)
+        repr += "\ninputs:"
+        for component in self.input_interfaces:
+            repr += "\n|-{}".format(str(component))
+        repr += "\noutputs:"
+        for component in self.output_interfaces:
+            repr+= "\n|-{}".format(str(component))
+        return repr
+        
     def get_config_file(self):
         config = {
             "input_interfaces": [
@@ -259,6 +287,7 @@ class Interface:
 
             if len(self.output_interfaces) == len(self.predict):
                 prediction = [prediction]
+            
             durations.append(duration)
             predictions.extend(prediction)
         
@@ -463,9 +492,9 @@ class Interface:
                 if share:
                     while not networking.url_ok(share_url):
                         time.sleep(1)
-                    display(IFrame(share_url, width=1000, height=500))
+                    display(IFrame(share_url, width=self.width, height=self.height))
                 else:
-                    display(IFrame(path_to_local_server, width=1000, height=500))
+                    display(IFrame(path_to_local_server, width=self.width, height=self.height))
             except ImportError:
                 pass  # IPython is not available so does not print inline.
 
@@ -479,10 +508,7 @@ class Interface:
             while True:
                 sys.stdout.flush()
                 time.sleep(0.1)
-        is_in_interactive_mode = bool(getattr(sys, 'ps1', sys.flags.interactive))
-        if not is_in_interactive_mode:
-            self.run_until_interrupted(thread, path_to_local_server)
-                
+
         return app, path_to_local_server, share_url
 
 
@@ -493,6 +519,7 @@ class Interface:
         else:
             comet_ml.log_text(self.local_url)
             comet_ml.end()
+    
 
 def show_tip(io):
     if not(io.show_tips):
