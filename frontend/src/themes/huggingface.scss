@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-.gradio_interface {
+.gradio_interface[theme="huggingface"] {
     @apply container mx-auto my-4;
     .title {
         @apply text-center;
