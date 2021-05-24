@@ -1,7 +1,7 @@
 import React from 'react';
 import { DataURLComponentExample } from '../component_example';
 import Webcam from "react-webcam";
-// import { SketchField, Tools } from 'react-sketch';
+import { SketchField, Tools } from '../../vendor/ReactSketch';
 
 class ImageInput extends React.Component {
   constructor(props) {
@@ -65,7 +65,7 @@ class ImageInput extends React.Component {
           this.sketchKey += 1;
         }
         return (<div className="input_image">
-          {/* <div className="image_preview_holder sketch">
+          <div className="image_preview_holder sketch">
             <SketchField
               ref={this.sketchRef}
               key={this.sketchKey}
@@ -77,7 +77,7 @@ class ImageInput extends React.Component {
               backgroundColor="white"
               onChange={this.getSketch}
                /> 
-          </div>*/}
+          </div>
         </div>);
       }
     }
