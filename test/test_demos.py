@@ -85,13 +85,13 @@ class TestDemo(unittest.TestCase):
         driver = self.start_test(target=diff_texts_thread)
         elem = WebDriverWait(driver, TIMEOUT).until(
             EC.presence_of_element_located((By.CSS_SELECTOR,
-                                            ".input_component[interface_id='0'] .input_text"))
+                                            ".panel:nth-child(1) .component:nth-child(1) .input_text"))
         )
         elem.clear()
         elem.send_keys("Want to see a magic trick?")
         elem = WebDriverWait(driver, TIMEOUT).until(
             EC.presence_of_element_located((By.CSS_SELECTOR,
-                                            ".input_component[interface_id='1'] .input_text"))
+                                            ".panel:nth-child(1) .component:nth-child(2) .input_text"))
         )
         elem.clear()
         elem.send_keys("Let's go see a magic trick!")
@@ -102,7 +102,7 @@ class TestDemo(unittest.TestCase):
         elem.click()
         elem = WebDriverWait(driver, TIMEOUT).until(
             EC.presence_of_element_located((By.CSS_SELECTOR,
-                                            ".output_component[interface_id='2'] .output_text"))
+                                            ".panel:nth-child(2) .component:nth-child(1) .output_highlightedtext"))
         )
 
         total_sleep = 0
@@ -124,10 +124,8 @@ class TestDemo(unittest.TestCase):
     def test_image_mod(self):
         driver = self.start_test(target=image_mod_thread)
         elem = WebDriverWait(driver, TIMEOUT).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR,
-                                            ".input_component["
-                                            "interface_id='0'] "
-                                            ".hidden_upload"))
+            EC.presence_of_element_located(
+                (By.CSS_SELECTOR, ".panel:nth-child(1) .component:nth-child(1) .hidden_upload"))
         )
         hide_latency(driver)
         cwd = os.getcwd()
@@ -143,10 +141,8 @@ class TestDemo(unittest.TestCase):
         )
         elem.click()
         WebDriverWait(driver, TIMEOUT).until(
-            EC.visibility_of_element_located((By.CSS_SELECTOR,
-                                            ".output_component["
-                                            "interface_id='1'] "
-                                            ".output_image"))
+            EC.visibility_of_element_located(
+                (By.CSS_SELECTOR, ".panel:nth-child(2) .component:nth-child(1) .output_image"))
         )
 
         hide_latency(driver)
@@ -159,7 +155,7 @@ class TestDemo(unittest.TestCase):
         driver = self.start_test(target=longest_word_thread)
         elem = WebDriverWait(driver, TIMEOUT).until(
             EC.presence_of_element_located((By.CSS_SELECTOR,
-                                            ".input_component[interface_id='0'] .input_text"))
+                                            ".panel:nth-child(1) .component:nth-child(1) .input_text"))
         )
         elem.send_keys("This is the most wonderful machine learning "
                        "library.")
@@ -169,9 +165,7 @@ class TestDemo(unittest.TestCase):
         )
         elem.click()
         elem = WebDriverWait(driver, TIMEOUT).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR,
-                                            ".output_component["
-                                            "interface_id='1'] .output_class"))
+            EC.presence_of_element_located((By.CSS_SELECTOR, ".panel:nth-child(2) .component:nth-child(1) .output_class"))
         )
 
         total_sleep = 0
@@ -197,9 +191,7 @@ class TestDemo(unittest.TestCase):
         )
         elem.click()
         elem = WebDriverWait(driver, TIMEOUT).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR,
-                                            ".output_component["
-                                            "interface_id='5'] .output_text"))
+            EC.presence_of_element_located((By.CSS_SELECTOR, ".panel:nth-child(2) .component:nth-child(1) .output_text"))
         )
 
         total_sleep = 0
@@ -207,7 +199,8 @@ class TestDemo(unittest.TestCase):
             time.sleep(0.2)
             total_sleep += 0.2
 
-        self.assertEqual(elem.text, "The 2 cats went to the park where they  until the night")
+        self.assertEqual(
+            elem.text, "The 2 cats went to the park where they  until the night")
         golden_img = os.path.join(current_dir, GOLDEN_PATH.format(
             "sentence_builder", "two_cats"))
         tmp = os.path.join(current_dir, "test/tmp/{}.png".format(
