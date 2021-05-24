@@ -7,7 +7,7 @@ import socket
 import threading
 from flask import Flask, request, jsonify, abort, send_file, render_template, redirect
 from flask_cachebuster import CacheBuster
-from flask_basicauth import BasicAuth
+from flask_login import LoginManager, login_user, logout_user, current_user, login_required
 from flask_cors import CORS
 import threading
 import pkg_resources
@@ -23,6 +23,9 @@ import logging
 import gradio as gr
 from gradio.embeddings import calculate_similarity, fit_pca_to_embeddings, transform_with_pca
 from gradio.tunneling import create_tunnel
+from gradio import encryptor
+from functools import wraps
+import io
 
 INITIAL_PORT_VALUE = int(os.getenv(
     'GRADIO_SERVER_PORT', "7860"))  # The http server will try to open on port 7860. If not available, 7861, 7862, etc.
@@ -38,16 +41,52 @@ STATIC_PATH_LIB = pkg_resources.resource_filename("gradio", "frontend/static")
 GRADIO_STATIC_ROOT = "https://gradio.app"
 
 app = Flask(__name__,
-    template_folder=STATIC_TEMPLATE_LIB,
-    static_folder=STATIC_PATH_LIB,
-    static_url_path="/static/")
+            template_folder=STATIC_TEMPLATE_LIB,
+            static_folder=STATIC_PATH_LIB,
+            static_url_path="/static/")
 CORS(app)
-cache_buster = CacheBuster(config={'extensions': ['.js', '.css'], 'hash_size': 5})
+cache_buster = CacheBuster(
+    config={'extensions': ['.js', '.css'], 'hash_size': 5})
 cache_buster.init_app(app)
+app.secret_key = os.getenv("GRADIO_KEY", "secret")
+login_manager = LoginManager()
+login_manager.login_view = 'login'
+login_manager.init_app(app)
 
 # Hide Flask default message
 cli = sys.modules['flask.cli']
 cli.show_server_banner = lambda *x: None
+
+
+class User:
+    def __init__(self, id):
+        self.is_authenticated = True
+        self.is_active = True
+        self.is_anonymous = False
+        self.id = id
+
+    def get_id(self):
+        return self.id
+
+
+@login_manager.user_loader
+def load_user(_id):
+    return User(_id)
+
+
+def login_check(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if app.auth:
+            @login_required
+            def func2(*args, **kwargs):
+                return func(*args, **kwargs)
+
+            return func2(*args, **kwargs)
+        else:
+            return func(*args, **kwargs)
+    return wrapper
+
 
 def get_local_ip_address():
     try:
@@ -56,7 +95,9 @@ def get_local_ip_address():
         ip_address = "No internet connection"
     return ip_address
 
+
 IP_ADDRESS = get_local_ip_address()
+
 
 def get_first_available_port(initial, final):
     """
@@ -79,110 +120,163 @@ def get_first_available_port(initial, final):
         )
     )
 
+
 def home_page(examples=None, path=None):
     return render_template("index.html",
-        config=app.interface.config,
-        vendor_prefix=(GRADIO_STATIC_ROOT if app.interface.share else ""),
-        input_components=[interface["name"] for interface in app.interface.config["input_components"]],
-        output_components=[interface["name"] for interface in app.interface.config["output_components"]],
-        css=app.interface.css, examples=examples, path=path
-    )
+                           config=app.interface.config,
+                           vendor_prefix=(
+                               GRADIO_STATIC_ROOT if app.interface.share else ""),
+                           input_interfaces=[interface[0]
+                                             for interface in app.interface.config["input_interfaces"]],
+                           output_interfaces=[interface[0]
+                                              for interface in app.interface.config["output_interfaces"]],
+                           css=app.interface.css, examples=examples, path=path
+                           )
+
 
 
 @app.route("/", methods=["GET"])
+@login_check
 def main():
     return home_page()
 
+
+@app.route('/login', methods=["GET", "POST"])
+def login():
+    if request.method == "GET":
+        return render_template("login.html", current_user=current_user, auth_message=app.interface.auth_message)
+    elif request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+        if username in app.auth and app.auth[username] == password:
+            login_user(User(username))
+            return redirect("/")
+        else:
+            return abort(401)
+
+
 @app.route("/from_dir", methods=["GET"])
+@login_check
 def main_from_flagging_dir():
     return redirect("/from_dir/" + app.interface.flagging_dir)
 
+
 @app.route("/from_dir/<path:path>", methods=["GET"])
+@login_check
 def main_from_dir(path):
     log_file = os.path.join(path, "log.csv")
-    if not os.path.exists(log_file):
-        if isinstance(app.interface.examples, str):
-            abort(404, "Examples dir not found")
+    path_exists = os.path.exists(path)
+    log_file_exists = os.path.exists(log_file)
+    examples_from_folder = isinstance(app.interface.examples, str) and app.interface.examples == path
+    multiple_inputs = len(app.interface.input_interfaces) > 1
+    if path_exists:
+        if not log_file_exists and multiple_inputs:
+            if examples_from_folder:
+                abort(404, "log.csv file required for multiple inputs.")
+            else:
+                return redirect("/")
+    elif examples_from_folder:
+        abort(404, "Examples dir not found")
+    else:
+        return redirect("/")
+    if log_file_exists:
+        if app.interface.encrypt:
+            with open(log_file, "rb") as csvfile:
+                encrypted_csv = csvfile.read()
+                decrypted_csv = encryptor.decrypt(
+                    app.interface.encryption_key, encrypted_csv)
+                csv_data = io.StringIO(decrypted_csv.decode())
+                examples = list(csv.reader(csv_data))
         else:
-            redirect("/")
-    with open(log_file) as logs:
-        examples = list(csv.reader(logs)) 
-    examples = examples[1:] #remove header
+            with open(log_file) as logs:
+                examples = list(csv.reader(logs))
+        examples = examples[1:]  # remove header
+    else:
+        examples = [[filename] for filename in os.listdir(path)]
     for i, example in enumerate(examples):
         for j, (interface, cell) in enumerate(zip(app.interface.input_components + app.interface.output_components, example)):
             examples[i][j] = interface.restore_flagged(cell)
     return home_page(examples=examples, path=path)
 
+
 @app.route("/config/", methods=["GET"])
+@login_check
 def config():
     return jsonify(app.interface.config)
 
 
 @app.route("/enable_sharing/<path:path>", methods=["GET"])
+@login_check
 def enable_sharing(path):
     if path == "None":
         path = None
     app.interface.config["share_url"] = path
     return jsonify(success=True)
-    
+
 
 @app.route("/api/predict/", methods=["POST"])
+@login_check
 def predict():
     raw_input = request.json["data"]
     prediction, durations = app.interface.process(raw_input)
     output = {"data": prediction, "durations": durations}
     if app.interface.allow_flagging == "auto":
         try:
-            flag_data(raw_input)
+            flag_data(raw_input, prediction)
         except:
             pass
     return jsonify(output)
 
+
 def log_feature_analytics(feature):
     if app.interface.analytics_enabled:
         try:
-            requests.post(GRADIO_FEATURE_ANALYTICS_URL, 
-            data={
-                'ip_address': IP_ADDRESS,
-                'feature': feature}, timeout=3)
+            requests.post(GRADIO_FEATURE_ANALYTICS_URL,
+                          data={
+                              'ip_address': IP_ADDRESS,
+                              'feature': feature}, timeout=3)
         except (requests.ConnectionError, requests.exceptions.ReadTimeout):
             pass  # do not push analytics if no network
 
+
 @app.route("/api/score_similarity/", methods=["POST"])
+@login_check
 def score_similarity():
     raw_input = request.json["data"]
 
-    preprocessed_input = [input_component.preprocess(raw_input[i])
-                    for i, input_component in enumerate(app.interface.input_components)]
+    preprocessed_input = [input_interface.preprocess(raw_input[i])
+                          for i, input_interface in enumerate(app.interface.input_interfaces)]
     input_embedding = app.interface.embed(preprocessed_input)
     scores = list()
 
     for example in app.interface.examples:
         preprocessed_example = [iface.preprocess(iface.preprocess_example(example))
-            for iface, example in zip(app.interface.input_components, example)]
+                                for iface, example in zip(app.interface.input_interfaces, example)]
         example_embedding = app.interface.embed(preprocessed_example)
-        scores.append(calculate_similarity(input_embedding, example_embedding))    
+        scores.append(calculate_similarity(input_embedding, example_embedding))
     log_feature_analytics('score_similarity')
     return jsonify({"data": scores})
 
 
 @app.route("/api/view_embeddings/", methods=["POST"])
-def view_embeddings():    
+@login_check
+def view_embeddings():
     sample_embedding = []
     if "data" in request.json:
         raw_input = request.json["data"]
-        preprocessed_input = [input_component.preprocess(raw_input[i])
-                        for i, input_component in enumerate(app.interface.input_components)]
+        preprocessed_input = [input_interface.preprocess(raw_input[i])
+                              for i, input_interface in enumerate(app.interface.input_interfaces)]
         sample_embedding.append(app.interface.embed(preprocessed_input))
 
     example_embeddings = []
     for example in app.interface.examples:
         preprocessed_example = [iface.preprocess(iface.preprocess_example(example))
-            for iface, example in zip(app.interface.input_components, example)]
+                                for iface, example in zip(app.interface.input_interfaces, example)]
         example_embedding = app.interface.embed(preprocessed_example)
         example_embeddings.append(example_embedding)
-    
-    pca_model, embeddings_2d = fit_pca_to_embeddings(sample_embedding + example_embeddings)
+
+    pca_model, embeddings_2d = fit_pca_to_embeddings(
+        sample_embedding + example_embeddings)
     sample_embedding_2d = embeddings_2d[:len(sample_embedding)]
     example_embeddings_2d = embeddings_2d[len(sample_embedding):]
     app.pca_model = pca_model
@@ -191,26 +285,29 @@ def view_embeddings():
 
 
 @app.route("/api/update_embeddings/", methods=["POST"])
-def update_embeddings():    
+@login_check
+def update_embeddings():
     sample_embedding, sample_embedding_2d = [], []
     if "data" in request.json:
         raw_input = request.json["data"]
-        preprocessed_input = [input_component.preprocess(raw_input[i])
-                        for i, input_component in enumerate(app.interface.input_components)]
+        preprocessed_input = [input_interface.preprocess(raw_input[i])
+                              for i, input_interface in enumerate(app.interface.input_interfaces)]
         sample_embedding.append(app.interface.embed(preprocessed_input))
-        sample_embedding_2d = transform_with_pca(app.pca_model, sample_embedding)
-    
+        sample_embedding_2d = transform_with_pca(
+            app.pca_model, sample_embedding)
+
     return jsonify({"sample_embedding_2d": sample_embedding_2d})
 
 
 @app.route("/api/predict_examples/", methods=["POST"])
+@login_check
 def predict_examples():
     example_ids = request.json["data"]
     predictions_set = {}
     for example_id in example_ids:
         example_set = app.interface.examples[example_id]
         processed_example_set = [iface.preprocess_example(example)
-            for iface, example in zip(app.interface.input_components, example_set)]
+                                 for iface, example in zip(app.interface.input_interfaces, example_set)]
         try:
             predictions, _ = app.interface.process(processed_example_set)
         except:
@@ -223,28 +320,51 @@ def predict_examples():
 def flag_data(input_data, output_data, flag_option=None):
     flag_path = os.path.join(app.cwd, app.interface.flagging_dir)
     csv_data = []
-    for i, interface in enumerate(app.interface.input_components):
-        csv_data.append(interface.save_flagged(flag_path, app.interface.config["input_components"][i]["label"], input_data[i]))
-    for i, interface in enumerate(app.interface.output_components):
-        csv_data.append(interface.save_flagged(flag_path, app.interface.config["output_components"][i]["label"], output_data[i]))
+    encryption_key = app.interface.encryption_key if app.interface.encrypt else None
+    for i, interface in enumerate(app.interface.input_interfaces):
+        csv_data.append(interface.save_flagged(
+            flag_path, app.interface.config["input_interfaces"][i]["label"], input_data[i], encryption_key))
+    for i, interface in enumerate(app.interface.output_interfaces):
+        csv_data.append(interface.save_flagged(
+            flag_path, app.interface.config["output_interfaces"][i]["label"], output_data[i], encryption_key))
     if flag_option:
         csv_data.append(flag_option)
+
+    headers = [interface["label"]
+               for interface in app.interface.config["input_interfaces"]]
+    headers += [interface["label"]
+                for interface in app.interface.config["output_interfaces"]]
+    if app.interface.flagging_options is not None:
+        headers.append("flag")
 
     log_fp = "{}/log.csv".format(flag_path)
     is_new = not os.path.exists(log_fp)
 
-    with open(log_fp, "a") as csvfile:
-        writer = csv.writer(csvfile)
+    if app.interface.encrypt:
+        output = io.StringIO()
+        if not is_new:
+            with open(log_fp, "rb") as csvfile:
+                encrypted_csv = csvfile.read()
+                decrypted_csv = encryptor.decrypt(
+                    app.interface.encryption_key, encrypted_csv)
+                output.write(decrypted_csv.decode())
+        writer = csv.writer(output)
         if is_new:
-            headers = [interface[1]["label"] for interface in app.interface.config["input_components"]]
-            headers += [interface[1]["label"] for interface in app.interface.config["output_components"]]
-            if app.interface.flagging_options is not None:
-                headers.append("flag")
             writer.writerow(headers)
-
         writer.writerow(csv_data)
+        with open(log_fp, "wb") as csvfile:
+            csvfile.write(encryptor.encrypt(
+                app.interface.encryption_key, output.getvalue().encode()))
+    else:
+        with open(log_fp, "a") as csvfile:
+            writer = csv.writer(csvfile)
+            if is_new:
+                writer.writerow(headers)
+            writer.writerow(csv_data)
+
 
 @app.route("/api/flag/", methods=["POST"])
+@login_check
 def flag():
     log_feature_analytics('flag')
     data = request.json['data']
@@ -253,10 +373,12 @@ def flag():
 
 
 @app.route("/api/interpret/", methods=["POST"])
+@login_check
 def interpret():
     log_feature_analytics('interpret')
     raw_input = request.json["data"]
-    interpretation_scores, alternative_outputs = app.interface.interpret(raw_input)
+    interpretation_scores, alternative_outputs = app.interface.interpret(
+        raw_input)
     return jsonify({
         "interpretation_scores": interpretation_scores,
         "alternative_outputs": alternative_outputs
@@ -264,36 +386,50 @@ def interpret():
 
 
 @app.route("/file/<path:path>", methods=["GET"])
+@login_check
 def file(path):
-    return send_file(os.path.join(app.cwd, path))
+    if app.interface.encrypt and isinstance(app.interface.examples, str) and path.startswith(app.interface.examples):
+        with open(os.path.join(app.cwd, path), "rb") as encrypted_file:
+            encrypted_data = encrypted_file.read()
+        file_data = encryptor.decrypt(
+            app.interface.encryption_key, encrypted_data)
+        return send_file(io.BytesIO(file_data), attachment_filename=os.path.basename(path))
+    else:
+        return send_file(os.path.join(app.cwd, path))
 
-def start_server(interface, server_name, server_port=None, auth=None):
+
+def start_server(interface, server_name, server_port=None, auth=None, ssl=None):
     if server_port is None:
         server_port = INITIAL_PORT_VALUE
     port = get_first_available_port(
         server_port, server_port + TRY_NUM_PORTS
     )
     if auth is not None:
-        app.interface.config['BASIC_AUTH_USERNAME'] = auth[0]
-        app.interface.config['BASIC_AUTH_PASSWORD'] = auth[1]
-        app.interface.config['BASIC_AUTH_FORCE'] = True
-        basic_auth = BasicAuth(app)        
+        app.auth = {account[0]: account[1] for account in auth}
+    else:
+        app.auth = None
     app.interface = interface
     app.cwd = os.getcwd()
     log = logging.getLogger('werkzeug')
     log.setLevel(logging.ERROR)
     if interface.save_to is not None:
         interface.save_to["port"] = port
+    app_kwargs = {"port": port, "host": server_name}
+    if ssl:
+        print(ssl)
+        app_kwargs["ssl_context"] = ssl
     thread = threading.Thread(target=app.run,
-                              kwargs={"port": port, "host": server_name},
+                              kwargs=app_kwargs,
                               daemon=True)
     thread.start()
 
     return port, app, thread
 
+
 def close_server(process):
     process.terminate()
     process.join()
+
 
 def url_request(url):
     try:
@@ -306,8 +442,9 @@ def url_request(url):
         raise RuntimeError(str(e))
 
 
-def setup_tunnel(local_server_port):
-    response = url_request(GRADIO_API_SERVER)
+def setup_tunnel(local_server_port, endpoint):
+    response = url_request(
+        endpoint + '/v1/tunnel-request' if endpoint is not None else GRADIO_API_SERVER)
     if response and response.code == 200:
         try:
             payload = json.loads(response.read().decode("utf-8"))[0]
@@ -322,7 +459,7 @@ def url_ok(url):
         for _ in range(5):
             time.sleep(.500)
             r = requests.head(url, timeout=3)
-            if r.status_code == 200:
+            if r.status_code in (200, 401, 302):  # 401 or 302 if auth is set
                 return True
     except (ConnectionError, requests.exceptions.ConnectionError):
         return False

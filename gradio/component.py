@@ -10,6 +10,12 @@ class Component():
     def __init__(self, label):
         self.label = label
 
+    def __str__(self):
+        return self.__repr__()
+
+    def __repr__(self):
+        return "{}(label=\"{}\")".format(type(self).__name__, self.label)
+
     def get_template_context(self):
         """
         :return: a dictionary with context variables for the javascript file associated with the context
@@ -26,7 +32,7 @@ class Component():
         """
         return {}
 
-    def save_flagged(self, dir, label, data):
+    def save_flagged(self, dir, label, data, encryption_key):
         """
         Saves flagged data from component
         """
@@ -38,8 +44,8 @@ class Component():
         """
         return data
 
-    def save_flagged_file(self, dir, label, data):
-        file = processing_utils.decode_base64_to_file(data)
+    def save_flagged_file(self, dir, label, data, encryption_key):
+        file = processing_utils.decode_base64_to_file(data, encryption_key)
         old_file_name = file.name
         output_dir = os.path.join(dir, label)
         if os.path.exists(output_dir):

@@ -8,6 +8,8 @@ from gradio.inputs import InputComponent
 from gradio.outputs import OutputComponent
 from gradio import networking, strings, utils
 from gradio.interpretation import quantify_difference_in_label
+from gradio.external import load_interface
+from gradio import encryptor
 import pkg_resources
 import requests
 import random
@@ -23,6 +25,7 @@ import copy
 import markdown2
 import json
 import csv
+from getpass import getpass
 
 analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
 analytics_url = 'https://api.gradio.app/'
@@ -44,14 +47,30 @@ class Interface:
         return list(
             Interface.instances)
 
-    def __init__(self, fn, inputs, outputs, verbose=False, examples=None,
+    @classmethod
+    def load(cls, name, src=None, api_key=None, alias=None, **kwargs):
+        """
+        Loads a model and Interface from an external source repo
+        Parameters: 
+        name (str): the name of the model (e.g. "gpt2"), can include the `src` as prefix (e.g. "huggingface/gpt2")
+        src (str): the source of the model: `huggingface` or `gradio` (or empty if source is provided as a prefix in `name`)
+        api_key (str): optional api key for use with Hugging Face Model Hub
+        alias (str): optional, used as the name of the loaded model instead of the default name
+        Returns:
+        (Interface): an Interface object for the given model
+        """
+        interface_info = load_interface(name, src, api_key, alias)
+        interface_info.update(kwargs)
+        return cls(**interface_info)
+
+    def __init__(self, fn, inputs=None, outputs=None, verbose=False, examples=None,
                  examples_per_page=10, live=False,
                  layout="horizontal", show_input=True, show_output=True,
-                 capture_session=False, interpretation=None, theme="default",
+                 capture_session=False, interpretation=None, theme="default", repeat_outputs_per_model=True,
                  title=None, description=None, article=None, thumbnail=None, 
-                 css=None, server_port=7860, server_name=networking.LOCALHOST_NAME,
-                 allow_screenshot=True, allow_flagging=True, flagging_options=None,
-                 show_tips=True, embedding=None, flagging_dir="flagged", analytics_enabled=True):
+                 css=None, server_port=None, server_name=networking.LOCALHOST_NAME, height=500, width=900,
+                 allow_screenshot=True, allow_flagging=True, flagging_options=None, encrypt=False,
+                 show_tips=False, embedding=None, flagging_dir="flagged", analytics_enabled=True):
 
         """
         Parameters:
@@ -59,7 +78,7 @@ class Interface:
         inputs (Union[str, List[Union[str, InputComponent]]]): a single Gradio input component, or list of Gradio input components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of input components should match the number of parameters in fn.
         outputs (Union[str, List[Union[str, OutputComponent]]]): a single Gradio output component, or list of Gradio output components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of output components should match the number of values returned by fn.
         verbose (bool): whether to print detailed information during launch.
-        examples (List[List[Any]]): sample inputs for the function; if provided, appears below the UI components and can be used to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component.
+        examples (Union[List[List[Any]], str]): sample inputs for the function; if provided, appears below the UI components and can be used to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided. If there are multiple input components, a log.csv file must be present in the directory to link corresponding inputs.
         examples_per_page (int): If examples are provided, how many to display per page.
         live (bool): whether the interface should automatically reload on change.
         layout (str): Layout of input and output panels. "horizontal" arranges them as two columns of equal height, "unaligned" arranges them as two columns of unequal height, and "vertical" arranges them vertically.
@@ -76,10 +95,10 @@ class Interface:
         allow_screenshot (bool): if False, users will not see a button to take a screenshot of the interface.
         allow_flagging (bool): if False, users will not see a button to flag an input and output.
         flagging_options (List[str]): if not None, provides options a user must select when flagging.
+        encrypt (bool): If True, flagged data will be encrypted by key provided by creator at launch
         flagging_dir (str): what to name the dir where flagged data is stored.
         show_tips (bool): if True, will occasionally show tips about new Gradio features
         """
-
         def get_input_instance(iface):
             if isinstance(iface, str):
                 shortcut = InputComponent.get_all_shortcut_implementations()[iface]
@@ -88,7 +107,7 @@ class Interface:
                 return iface
             else:
                 raise ValueError("Input interface must be of type `str` or "
-                                 "`InputComponent`")
+                                 "`InputComponent` but is {}".format(iface))
 
         def get_output_instance(iface):
             if isinstance(iface, str):
@@ -102,6 +121,8 @@ class Interface:
                     "`OutputComponent`"
                 )
 
+        if not isinstance(fn, list):
+            fn = [fn]
         if isinstance(inputs, list):
             self.input_components = [get_input_instance(i) for i in inputs]
         else:
@@ -109,13 +130,13 @@ class Interface:
         if isinstance(outputs, list):
             self.output_components = [get_output_instance(i) for i in outputs]
         else:
-            self.output_components = [get_output_instance(outputs)]
-        if not isinstance(fn, list):
-            fn = [fn]
+            self.output_interfaces = [get_output_instance(outputs)]
 
-        self.output_components *= len(fn)
+        if repeat_outputs_per_model:
+            self.output_interfaces *= len(fn)
         self.predict = fn
         self.function_names = [func.__name__ for func in fn]
+        self.__name__ = ", ".join(self.function_names)
         self.verbose = verbose
         self.status = "OFF"
         self.live = live
@@ -135,6 +156,8 @@ class Interface:
         self.article = article
         self.thumbnail = thumbnail
         self.theme = theme
+        self.height = height
+        self.width = width
         if css is not None and os.path.exists(css):
             with open(css) as css_file:
                 self.css = css_file.read()
@@ -151,10 +174,13 @@ class Interface:
         self.allow_flagging = os.getenv("GRADIO_FLAGGING") or allow_flagging
         self.flagging_options = flagging_options 
         self.flagging_dir = flagging_dir
+        self.encrypt = encrypt
         Interface.instances.add(self)
         self.analytics_enabled=analytics_enabled
         self.save_to = None
         self.share = None
+        self.share_url = None
+        self.local_url = None
         self.embedding = embedding
         self.show_tips = show_tips
 
@@ -190,6 +216,23 @@ class Interface:
             except (requests.ConnectionError, requests.exceptions.ReadTimeout):
                 pass  # do not push analytics if no network
 
+    def __call__(self, params_per_function):
+        return self.predict[0](params_per_function)
+
+    def __str__(self):
+        return self.__repr__()
+
+    def __repr__(self):
+        repr = "Gradio Interface for: {}".format(", ".join(fn.__name__ for fn in self.predict))
+        repr += "\n" + "-"*len(repr)
+        repr += "\ninputs:"
+        for component in self.input_interfaces:
+            repr += "\n|-{}".format(str(component))
+        repr += "\noutputs:"
+        for component in self.output_interfaces:
+            repr+= "\n|-{}".format(str(component))
+        return repr
+        
     def get_config_file(self):
         config = {
             "input_components": [
@@ -276,6 +319,7 @@ class Interface:
 
             if len(self.output_components) == len(self.predict):
                 prediction = [prediction]
+            
             durations.append(duration)
             predictions.extend(prediction)
         
@@ -390,14 +434,15 @@ class Interface:
                 print("PASSED")
                 continue
 
-    def launch(self, inline=None, inbrowser=None, share=False, debug=False, auth=None):
+    def launch(self, inline=None, inbrowser=None, share=False, debug=False, auth=None, auth_message=None, private_endpoint=None, prevent_thread_lock=False):
         """
         Parameters:
         inline (bool): whether to display in the interface inline on python notebooks.
         inbrowser (bool): whether to automatically launch the interface in a new tab on the default browser.
         share (bool): whether to create a publicly shareable link from your computer for the interface.
         debug (bool): if True, and the interface was launched from Google Colab, prints the errors in the cell output.
-        auth (Tuple[str, str]): If provided, username and password required to access interface.
+        auth (Union[Tuple[str, str], List[Tuple[str, str]]]): If provided, username and password (or list of username-password tuples) required to access interface.
+        auth_message (str): If provided, HTML message provided on login page.
         Returns:
         app (flask.Flask): Flask app object
         path_to_local_server (str): Locally accessible link
@@ -409,12 +454,20 @@ class Interface:
         # Set up local flask server
         config = self.get_config_file()
         self.config = config
+        if auth and not isinstance(auth[0], tuple) and not isinstance(auth[0], list):
+            auth = [auth]
         self.auth = auth
+        self.auth_message = auth_message
+
+        # Request key for encryption
+        if self.encrypt:
+            self.encryption_key = encryptor.get_key(getpass("Enter key for encryption: "))
 
         # Launch local flask server
         server_port, app, thread = networking.start_server(
             self, self.server_name, self.server_port, self.auth)
         path_to_local_server = "http://{}:{}/".format(self.server_name, server_port)
+        self.local_url = path_to_local_server
         self.server_port = server_port
         self.status = "RUNNING"
         self.server = app
@@ -434,12 +487,17 @@ class Interface:
         else:
             print(strings.en["RUNNING_LOCALLY"].format(path_to_local_server))
 
+        if private_endpoint is not None:
+            share = True
         # Set up shareable link 
         self.share = share
+
         if share:
-            print(strings.en["SHARE_LINK_MESSAGE"])
+            if not private_endpoint:
+                print(strings.en["SHARE_LINK_MESSAGE"])
             try:
-                share_url = networking.setup_tunnel(server_port)
+                share_url = networking.setup_tunnel(server_port, private_endpoint)
+                self.share_url = share_url
                 print(strings.en["SHARE_LINK_DISPLAY"].format(share_url))
             except RuntimeError:
                 send_error_analytics(self.analytics_enabled)
@@ -459,15 +517,18 @@ class Interface:
         if inline is None:
             inline = utils.ipython_check()
         if inline:
-            from IPython.display import IFrame, display
-            # Embed the remote interface page if on google colab; otherwise, embed the local page.
-            print(strings.en["INLINE_DISPLAY_BELOW"])
-            if share:
-                # while not networking.url_ok(share_url):
-                #     time.sleep(1)
-                display(IFrame(share_url, width=1000, height=500))
-            else:
-                display(IFrame(path_to_local_server, width=1000, height=500))
+            try:                
+                from IPython.display import IFrame, display
+                # Embed the remote interface page if on google colab; otherwise, embed the local page.
+                print(strings.en["INLINE_DISPLAY_BELOW"])
+                if share:
+                    while not networking.url_ok(share_url):
+                        time.sleep(1)
+                    display(IFrame(share_url, width=self.width, height=self.height))
+                else:
+                    display(IFrame(path_to_local_server, width=self.width, height=self.height))
+            except ImportError:
+                pass  # IPython is not available so does not print inline.
 
         send_launch_analytics(analytics_enabled=self.analytics_enabled, inbrowser=inbrowser, is_colab=is_colab, 
                               share=share, share_url=share_url)
@@ -480,10 +541,21 @@ class Interface:
                 sys.stdout.flush()
                 time.sleep(0.1)
         is_in_interactive_mode = bool(getattr(sys, 'ps1', sys.flags.interactive))
-        if not is_in_interactive_mode:
+        if not prevent_thread_lock and not is_in_interactive_mode:
             self.run_until_interrupted(thread, path_to_local_server)
-        
+
+
         return app, path_to_local_server, share_url
+
+
+    def integrate(self, comet_ml=None):
+        if self.share_url is not None:
+            comet_ml.log_text(self.share_url)
+            comet_ml.end()
+        else:
+            comet_ml.log_text(self.local_url)
+            comet_ml.end()
+    
 
 def show_tip(io):
     if not(io.show_tips):
