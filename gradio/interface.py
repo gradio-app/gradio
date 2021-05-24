@@ -130,10 +130,10 @@ class Interface:
         if isinstance(outputs, list):
             self.output_components = [get_output_instance(i) for i in outputs]
         else:
-            self.output_interfaces = [get_output_instance(outputs)]
+            self.output_components = [get_output_instance(outputs)]
 
         if repeat_outputs_per_model:
-            self.output_interfaces *= len(fn)
+            self.output_components *= len(fn)
         self.predict = fn
         self.function_names = [func.__name__ for func in fn]
         self.__name__ = ", ".join(self.function_names)
@@ -226,10 +226,10 @@ class Interface:
         repr = "Gradio Interface for: {}".format(", ".join(fn.__name__ for fn in self.predict))
         repr += "\n" + "-"*len(repr)
         repr += "\ninputs:"
-        for component in self.input_interfaces:
+        for component in self.input_components:
             repr += "\n|-{}".format(str(component))
         repr += "\noutputs:"
-        for component in self.output_interfaces:
+        for component in self.output_components:
             repr+= "\n|-{}".format(str(component))
         return repr
         
