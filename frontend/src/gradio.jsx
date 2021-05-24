@@ -69,12 +69,6 @@ export class GradioInterface extends React.Component {
     this.state = this.get_default_state();
     this.state["examples_page"] = 0;
     this.examples_dir = process.env.REACT_APP_BACKEND_URL + (this.props.examples_dir === null ? "/file" + this.props.examples_dir + (this.props.examples_dir.endswith("/") ? "" : "/") : "/file");
-
-    document.body.onkeyup = (function (e) {
-      if (e.code === "Space") {
-        console.log(this.state)
-      }
-    }).bind(this)
   }
   get_default_state() {
     let state = {};
