@@ -1,13 +1,13 @@
 import React from 'react';
 import ComponentExample from '../component_example';
 import jspreadsheet from "jspreadsheet-ce";
+import "../../../node_modules/jspreadsheet-ce/dist/jspreadsheet.css"
 
 class DataframeInput extends React.Component {
   constructor(props) {
     super(props);
     this.wrapper = React.createRef();
     this.handleChange = this.handleChange.bind(this);
-    this.getEmptyArray = this.getEmptyArray.bind(this);
     this.getConfig = this.getConfig.bind(this);
   }
   componentDidMount = function () {
@@ -24,13 +24,13 @@ class DataframeInput extends React.Component {
       let column_config = [];
       for (let i = 0; i < col_count; i++) {
         let column = {};
-        if (this.opts.datatype) {
-          let datatype = typeof this.opts.datatype === "string" ? this.opts.datatype : this.opts.datatype[i];
+        if (this.props.datatype) {
+          let datatype = typeof this.props.datatype === "string" ? this.props.datatype : this.props.datatype[i];
           let datatype_map = { "str": "text", "bool": "checkbox", "number": "numeric", "date": "calendar" }
           column.type = datatype_map[datatype];
         }
-        if (this.opts.headers) {
-          column.title = this.opts.headers[i];
+        if (this.props.headers) {
+          column.title = this.props.headers[i];
         }
         column_config.push(column);
       }
@@ -39,9 +39,25 @@ class DataframeInput extends React.Component {
     config.data = this.props.value;
     return config;
   }
+  resetData(new_data) {
+    let [new_rows, new_cols] = [new_data.length, new_data[0].length];
+    let current_data = this.el.getData();
+    let [cur_rows, cur_cols] = [current_data.length, current_data[0].length];
+    if (cur_rows < new_rows) {
+      this.el.insertRow(new_rows - cur_rows);
+    } else if (cur_rows > new_rows) {
+      this.el.deleteRow(0, cur_rows - new_rows);
+    }
+    if (cur_cols < new_cols) {
+      this.el.insertColumn(new_cols - cur_cols);
+    } else if (cur_cols > new_cols) {
+      this.el.deleteColumn(0, cur_cols - new_cols);
+    }
+    this.el.setData(new_data);
+  }
   render() {
-    if (JSON.stringify(this.props.value) !== JSON.stringify(this.data)) {
-      this.el.setData(this.props.value);
+    if (JSON.stringify(this.props.value) !== JSON.stringify(this.data) && this.el) {
+      this.resetData(this.props.value);
       this.data = this.props.value;
     }
     return (

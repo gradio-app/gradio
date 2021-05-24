@@ -229,9 +229,9 @@ def flag_data(input_data, output_data, flag_option=None):
     flag_path = os.path.join(app.cwd, app.interface.flagging_dir)
     csv_data = []
     for i, interface in enumerate(app.interface.input_components):
-        csv_data.append(interface.save_flagged(flag_path, app.interface.config["input_components"][i][1]["label"], input_data[i]))
+        csv_data.append(interface.save_flagged(flag_path, app.interface.config["input_components"][i]["label"], input_data[i]))
     for i, interface in enumerate(app.interface.output_components):
-        csv_data.append(interface.save_flagged(flag_path, app.interface.config["output_components"][i][1]["label"], output_data[i]))
+        csv_data.append(interface.save_flagged(flag_path, app.interface.config["output_components"][i]["label"], output_data[i]))
     if flag_option:
         csv_data.append(flag_option)
 
