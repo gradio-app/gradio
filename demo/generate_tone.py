@@ -5,7 +5,6 @@ import numpy as np
 
 notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 
-
 def generate_tone(note, octave, duration):
     sr = 48000
     a4_freq, tones_from_a4 = 440, 12 * (octave - 4) + (note - 9)

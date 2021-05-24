@@ -1,11 +1,9 @@
 import React from 'react';
+import ComponentExample from '../component_example';
 
 class TextboxOutput extends React.Component {
-  constructor(props) {
-    super(props);
-  }
   render() {
-    return <div className="output_text">{this.props.value || <span>&nbsp;</span>}</div>
+    return <div className="output_text">{this.props.value === null ? <span>&nbsp;</span> : this.props.value}</div>
   }
   static load_example_preview(data) {
     if (data.length > 20) {
@@ -15,4 +13,10 @@ class TextboxOutput extends React.Component {
   }  
 }
 
-export default TextboxOutput;
+class TextboxOutputExample extends ComponentExample {
+  render() {
+    return <div className="output_textbox_example">{this.props.value}</div>
+  }
+}
+
+export {TextboxOutput, TextboxOutputExample};

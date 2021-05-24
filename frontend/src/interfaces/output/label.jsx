@@ -1,9 +1,7 @@
 import React from 'react';
+import ComponentExample from '../component_example';
 
 class LabelOutput extends React.Component {
-  constructor(props) {
-    super(props);
-  }
   render() {
     if (this.props.value == null) {
       return false;
@@ -20,43 +18,29 @@ class LabelOutput extends React.Component {
         }}>{confidence}</div>)
       }
     }
-    return (<div class="output_label">
+    return (<div className="output_label">
       <div className="output_class">{this.props.value["label"]}</div>
       <div className="confidence_intervals">
-        <div className="labels" style={{ maxWidth: "120px"}}>{labels}</div>
+        <div className="labels" style={{ maxWidth: "120px" }}>{labels}</div>
         <div className="confidences">{confidences}</div>
       </div>
     </div>)
   }
-  static load_example(example_data) {
-    this.output(this.convert_example_to_output(example_data));
-  }
-  load_example_preview(example_data) {
-    let output = this.convert_example_to_output(example_data);
-    if ("confidences" in output) {
-      if (typeof example_data == "string") {
-        try {
-          example_data = JSON.parse(example_data);
-        } catch (e) {
-          return output["label"]
-        }
-      }
-      return output["label"] + " (" + (100 * example_data[output["label"]]).toFixed(2) + "%)";
-    }
-    return output["label"]
-  }
-  static convert_example_to_output(example_data) {
+}
+
+class LabelOutputExample extends ComponentExample {
+  convert_example_to_output(example_data) {
     if (typeof example_data == "string") {
       try {
         example_data = JSON.parse(example_data);
       } catch (e) {
-        return {"label": example_data};
+        return { "label": example_data };
       }
     }
     let [max_label, max_confidence] = ["", 0]
-    let output = {"confidences": []}
+    let output = { "confidences": [] }
     for (let [label, confidence] of Object.entries(example_data)) {
-      output["confidences"].push({"label": label, "confidence": confidence});
+      output["confidences"].push({ "label": label, "confidence": confidence });
       if (confidence > max_confidence) {
         max_confidence = confidence;
         max_label = label;
@@ -64,13 +48,23 @@ class LabelOutput extends React.Component {
     }
     output["label"] = max_label;
     return output;
-  }  
-  // load_example_preview(data) {
-  //   if (typeof data == "string" && data.length > 20) {
-  //     return data.substring(0,20) + "...";
-  //   }
-  //   return data;
-  // }
+  }
+  render() {
+    let format = (data, output) => {
+      if ("confidences" in output) {
+        if (typeof data == "string") {
+          try {
+            data = JSON.parse(data);
+          } catch (e) {
+            return output["label"]
+          }
+        }
+        return output["label"] + " (" + (100 * data[output["label"]]).toFixed(2) + "%)";
+      }
+      return output["label"]
+    }
+    return <div className="output_label_example">{format(this.props.value, this.convert_example_to_output(this.props.value))}</div>
+  }
 }
 
-export default LabelOutput;
+export { LabelOutput, LabelOutputExample };

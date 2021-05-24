@@ -358,13 +358,21 @@ class Checkbox(InputComponent):
     Input type: bool
     """
 
-    def __init__(self, label=None):
+    def __init__(self, default=False, label=None):
         """
         Parameters:
         label (str): component name in interface.
+        default (bool): default value.
         """
         self.test_input = True
+        self.default = default
         super().__init__(label)
+    
+    def get_template_context(self):
+        return {
+            "default": self.default,
+            **super().get_template_context()
+        }
 
     @classmethod
     def get_shortcut_implementations(cls):
@@ -432,9 +440,9 @@ class CheckboxGroup(InputComponent):
 
     def preprocess(self, x):
         if self.type == "value":
-            return [self.choices[index] for index in x]
-        elif self.type == "index":
             return x
+        elif self.type == "index":
+            return [self.choices.index(choice) for choice in x]
         else:
             raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'value', 'index'.")
 
@@ -493,29 +501,32 @@ class Radio(InputComponent):
     Input type: Union[str, int]
     """
 
-    def __init__(self, choices, type="value", label=None):
+    def __init__(self, choices, type="value", default=None, label=None):
         '''
         Parameters:
         choices (List[str]): list of options to select from.
         type (str): Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
+        default (str): default value.
         label (str): component name in interface.
         '''
         self.choices = choices
         self.type = type
         self.test_input = self.choices[0]
+        self.default = default if default is not None else self.choices[0]
         super().__init__(label)
 
     def get_template_context(self):
         return {
             "choices": self.choices,
+            "default": self.default,
             **super().get_template_context()
         }
 
     def preprocess(self, x):
         if self.type == "value":
-            return self.choices[x]
-        elif self.type == "index":
             return x
+        elif self.type == "index":
+            return self.choices.index(x)
         else:
             raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'value', 'index'.")
 
@@ -553,29 +564,32 @@ class Dropdown(InputComponent):
     Input type: Union[str, int]
     """
 
-    def __init__(self, choices, type="value", label=None):
+    def __init__(self, choices, type="value", default=None, label=None):
         '''
         Parameters:
         choices (List[str]): list of options to select from.
         type (str): Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
+        default (str): default value.
         label (str): component name in interface.
         '''
         self.choices = choices
         self.type = type
         self.test_input = self.choices[0]
+        self.default = default if default is not None else self.choices[0]
         super().__init__(label)
 
     def get_template_context(self):
         return {
             "choices": self.choices,
+            "default": self.default,
             **super().get_template_context()
         }
 
     def preprocess(self, x):
         if self.type == "value":
-            return self.choices[x]
-        elif self.type == "index":
             return x
+        elif self.type == "index":
+            return self.choices.index(x)
         else:
             raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'value', 'index'.")
 
@@ -953,6 +967,7 @@ class Dataframe(InputComponent):
         row_count (int): Limit number of rows for input.
         col_count (int): Limit number of columns for input. If equal to 1, return data will be one-dimensional. Ignored if `headers` is provided.
         datatype (Union[str, List[str]]): Datatype of values in sheet. Can be provided per column as a list of strings, or for the entire sheet as a single string. Valid datatypes are "str", "number", "bool", and "date".
+        default (List[List[Any]]): Default value
         type (str): Type of value to be returned by component. "pandas" for pandas dataframe, "numpy" for numpy array, or "array" for a Python array.
         label (str): component name in interface.
         """
@@ -961,6 +976,7 @@ class Dataframe(InputComponent):
         self.row_count = row_count
         self.col_count = len(headers) if headers else col_count
         self.type = type
+        self.default = default if default is not None else [[None for _ in range(self.col_count)] for _ in range(self.row_count)]
         sample_values = {"str": "abc", "number": 786, "bool": True, "date": "02/08/1993"}
         column_dtypes = [datatype]*self.col_count if isinstance(datatype, str) else datatype
         self.test_input = [[sample_values[c] for c in column_dtypes] for _ in range(row_count)]
@@ -973,6 +989,7 @@ class Dataframe(InputComponent):
             "datatype": self.datatype,
             "row_count": self.row_count,
             "col_count": self.col_count,
+            "default": self.default,
             **super().get_template_context()
         }
 

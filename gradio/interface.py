@@ -22,6 +22,7 @@ import os
 import copy
 import markdown2
 import json
+import csv
 
 analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
 analytics_url = 'https://api.gradio.app/'
@@ -231,8 +232,27 @@ class Interface:
                     
         except ValueError:
             pass
-        if self.examples is not None and not isinstance(self.examples, str):
-            config["examples"] = self.examples
+        if self.examples is not None:
+            if isinstance(self.examples, str):
+                if not os.path.exists(self.examples):
+                    raise FileNotFoundError("Could not find examples directory: " + self.examples)
+                log_file = os.path.join(self.examples, "log.csv")
+                if not os.path.exists(log_file):
+                    if len(self.input_components) == 1:
+                        examples = [[item] for item in os.listdir(self.examples)]
+                    else:
+                        raise FileNotFoundError("Could not find log file (required for multiple inputs): " + log_file)
+                else:
+                    with open(log_file) as logs:
+                        examples = list(csv.reader(logs)) 
+                        examples = examples[1:] #remove header
+                for i, example in enumerate(examples):
+                    for j, (interface, cell) in enumerate(zip(self.input_components + self.output_components, example)):
+                        examples[i][j] = interface.restore_flagged(cell)
+                config["examples"] = examples
+                config["examples_dir"] = self.examples
+            else:
+                config["examples"] = self.examples
         return config
 
     def run_prediction(self, processed_input, return_duration=False):

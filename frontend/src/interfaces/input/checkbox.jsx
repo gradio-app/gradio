@@ -1,4 +1,5 @@
 import React from 'react';
+import ComponentExample from '../component_example';
 import classNames from "classnames";
 
 class CheckboxInput extends React.Component {
@@ -7,7 +8,7 @@ class CheckboxInput extends React.Component {
     this.handleChange = this.handleChange.bind(this);
   }
   handleChange() {
-    this.props.handleChange(this.props.value != true);
+    this.props.handleChange(this.props.value !== true);
   }
   render() {
     return (<div className="input_checkbox">
@@ -15,7 +16,7 @@ class CheckboxInput extends React.Component {
         "selected": this.props.value
       })} onClick={this.handleChange}>
         <div className="checkbox">
-          <svg class="check" viewBox="-10 -10 20 20">
+          <svg className="check" viewBox="-10 -10 20 20">
             <line x1="-7.5" y1="0" x2="-2.5" y2="5"></line>
             <line x1="-2.5" y1="5" x2="7.5" y2="-7.5"></line>
           </svg>
@@ -25,4 +26,10 @@ class CheckboxInput extends React.Component {
   }
 }
 
-export default CheckboxInput;
+class CheckboxInputExample extends ComponentExample {
+  render() {
+    return <div className="input_checkbox_example">{JSON.stringify(this.props.value)}</div>
+  }
+}
+
+export {CheckboxInput, CheckboxInputExample};

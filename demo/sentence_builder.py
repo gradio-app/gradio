@@ -23,7 +23,6 @@ iface = gr.Interface(
         [10, "bird", "road", ["ran"], False],
         [8, "cat", "zoo", ["ate"], True],
     ],
-    theme="huggingface"
     )
 
 if __name__ == "__main__":

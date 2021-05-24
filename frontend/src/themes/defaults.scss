@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-.gradio_interface {
+.gradio_interface[theme="default"] {
     @apply container mx-auto my-4;
     .title {
         @apply text-center;
@@ -40,6 +40,41 @@
     .panel_button.right_panel_button {
         @apply rounded-tl-none rounded-bl-none bg-gray-200 hover:bg-gray-300;
     }
+    .examples {
+        h4 {
+            @apply text-lg font-semibold my-2;
+        }
+        .examples_control {
+            @apply flex gap-2;
+        }
+        .examples_control_left {
+            @apply flex gap-2;
+        }
+        .shortcut {
+            @apply block text-xs;
+        }
+        .examples_control button {
+            @apply bg-gray-100 hover:bg-gray-200 p-2;
+        }
+        table {
+            @apply table-auto p-2 bg-gray-100 mt-4 rounded;
+            tbody tr {
+                @apply cursor-pointer;
+            }
+            thead {
+                @apply border-b-2 border-gray-300;
+            }
+            tbody tr:hover {
+                @apply bg-yellow-500 text-white;
+            }
+            tbody tr.selected {
+                @apply font-bold;
+            }
+            td, th {
+                @apply py-2 px-4;
+            }
+        }
+    }
     /* Input Components */
     textarea.input_text {
         @apply w-full bg-white border-gray-400 rounded box-border p-1 resize-none;
@@ -61,6 +96,9 @@
         .image_preview {
             @apply w-full h-full object-contain;
         }
+    }
+    .input_image_example {
+        @apply h-24;
     }
     .input_radio {
         @apply flex flex-wrap gap-2;
@@ -141,7 +179,7 @@
             @apply fill-current h-4 w-4;
         }
         .dropdown_menu {
-            @apply absolute hidden text-gray-700 pt-1;
+            @apply absolute hidden text-gray-700 pt-1 max-h-80 overflow-y-auto;
         }
         .dropdown_item:first-child {
             @apply rounded-t;
@@ -186,6 +224,18 @@
             @apply w-full border-2 border-gray-300 rounded;
         }
     }
+    .input_video {
+        @apply w-full h-80;
+        .upload_zone {
+            @apply border-8 border-gray-300 border-dashed w-full h-full flex justify-center items-center text-3xl text-gray-400 text-center cursor-pointer leading-10;
+        }
+        .video_preview_holder {
+            @apply w-full h-full flex justify-center items-center bg-gray-300;
+        }
+        .video_preview {
+            @apply w-full h-full object-contain;
+        }
+    }
     /* Output Components */
     .output_text {
         @apply w-full bg-white border-gray-400 rounded box-border p-1;
@@ -219,6 +269,23 @@
     .output_audio {
         audio {
             @apply w-full border-2 border-gray-300 rounded;
+        }
+    }
+    .output_highlightedtext {
+        .category_legend {
+            @apply flex flex-wrap gap-4 mb-2;
+            .category-label {
+                @apply flex gap-2;
+            }
+            .colorbox {
+                @apply w-6;                
+            }
+        }
+    }
+    .output_video {
+        @apply w-full h-80 object-contain flex justify-center;
+        video {
+            @apply h-full;
         }
     }
 }
