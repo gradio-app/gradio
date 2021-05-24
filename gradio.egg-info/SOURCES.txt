@@ -38,8 +38,8 @@ gradio/frontend/static/js/3.66c6a8f4.chunk.js
 gradio/frontend/static/js/3.66c6a8f4.chunk.js.map
 gradio/frontend/static/js/4.0a51054c.chunk.js
 gradio/frontend/static/js/4.0a51054c.chunk.js.map
-gradio/frontend/static/js/main.535df397.chunk.js
-gradio/frontend/static/js/main.535df397.chunk.js.map
+gradio/frontend/static/js/main.c3f3a6fd.chunk.js
+gradio/frontend/static/js/main.c3f3a6fd.chunk.js.map
 gradio/frontend/static/js/runtime-main.86797e02.js
 gradio/frontend/static/js/runtime-main.86797e02.js.map
 gradio/frontend/static/media/logo_loading.e93acd82.gif
