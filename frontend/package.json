@@ -14,14 +14,13 @@
     "react-dom": "^17.0.2",
     "react-json-tree": "^0.15.0",
     "react-scripts": "4.0.3",
-    "react-sketch": "^0.5.1",
     "react-webcam": "^5.2.3",
     "sass": "^1.32.8",
     "web-vitals": "^1.1.1"
   },
   "scripts": {
-    "start": "REACT_APP_BACKEND_URL=http://localhost:7860 craco start",
-    "build": "craco build",
+    "start": "REACT_APP_BACKEND_URL='http://localhost:7860' craco start",
+    "build": "BUILD_PATH='../gradio/frontend' REACT_APP_BACKEND_URL='' craco build",
     "test": "craco test",
     "eject": "react-scripts eject"
   },
