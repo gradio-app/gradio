@@ -158,8 +158,8 @@ def get_gradio_interface(model_name, api_key, alias):
         query_gradio_api.__name__ = alias
 
     pipeline = {
-        'inputs': [inp[0] for inp in config_info["input_interfaces"]],
-        'outputs': [out[0] for out in config_info["output_interfaces"]],
+        'inputs': [inp[0] for inp in config_info["input_components"]],
+        'outputs': [out[0] for out in config_info["output_components"]],
         'preprocess': lambda x: {"data": [x]},
         'postprocess': lambda r: r["data"][0],
     }

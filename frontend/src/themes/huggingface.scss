@@ -5,10 +5,16 @@
 .gradio_interface[theme="huggingface"] {
     @apply container mx-auto my-4;
     .title {
-        @apply text-center;
+        @apply text-center p-4 text-4xl;
+    }
+    .description {
+        @apply pb-4;
     }
     .loading {
-        @apply absolute right-0.5;
+        @apply absolute right-1;
+    }
+    .loading img {
+        @apply h-5;
     }
     .panels {
         @apply flex flex-wrap justify-center gap-4;
@@ -29,13 +35,48 @@
         @apply flex gap-4 my-4;
     }
     .screenshot_set {
-        @apply flex flex-grow;
+        @apply hidden flex hidden flex-grow;
     }
     .panel_button.left_panel_button {
         @apply rounded-tr-none rounded-br-none;
     }
     .panel_button.right_panel_button {
         @apply rounded-tl-none rounded-bl-none bg-gray-200 hover:bg-gray-300;
+    }
+    .examples {
+        h4 {
+            @apply text-lg font-semibold my-2;
+        }
+        .examples_control {
+            @apply hidden flex hidden gap-2;
+        }
+        .examples_control_left {
+            @apply flex gap-2;
+        }
+        .shortcut {
+            @apply block text-xs;
+        }
+        .examples_control button {
+            @apply bg-gray-100 hover:bg-gray-200 p-2;
+        }
+        .examples_table {
+            @apply table-auto p-2 bg-gray-100 mt-4 rounded;
+            tbody tr {
+                @apply cursor-pointer;
+            }
+            thead {
+                @apply border-b-2 border-gray-300;
+            }
+            tbody tr:hover {
+                @apply bg-purple-500 text-white;
+            }
+            tbody tr.selected {
+                @apply font-bold;
+            }
+            td, th {
+                @apply py-2 px-4;
+            }
+        }
     }
     /* Input Components */
     textarea.input_text {
@@ -51,13 +92,22 @@
         @apply w-full h-80;
         .upload_zone {
             @apply border-8 border-gray-300 border-dashed w-full h-full flex justify-center items-center text-3xl text-gray-400 text-center cursor-pointer leading-10;
-        }
+        }        
         .image_preview_holder {
-            @apply w-full h-full flex justify-center items-center bg-gray-300;
+            @apply w-full h-full flex justify-center items-center bg-gray-300 relative inline-block;
         }
-        .image_preview {
+        .sketch > div {
+            @apply bg-white;
+        }
+        .image_preview, video {
             @apply w-full h-full object-contain;
         }
+        .snapshot {
+            @apply absolute bottom-0 w-full bg-white bg-opacity-90 py-3 font-bold text-lg text-center;
+        }
+    }
+    .input_image_example {
+        @apply h-24;
     }
     .input_radio {
         @apply flex flex-wrap gap-2;
@@ -182,7 +232,36 @@
         audio {
             @apply w-full;
         }
-    } /* Output Components */
+    } 
+    .input_video {
+        @apply w-full h-80;
+        .upload_zone {
+            @apply border-8 border-gray-300 border-dashed w-full h-full flex justify-center items-center text-3xl text-gray-400 text-center cursor-pointer leading-10;
+        }
+        .video_preview_holder {
+            @apply w-full h-full flex justify-center items-center bg-gray-200;
+        }
+        .video_preview {
+            @apply w-full h-full object-contain;
+        }
+    }
+    .input_file {
+        @apply w-full h-80;
+        .upload_zone {
+            @apply border-8 border-gray-300 border-dashed w-full h-full flex justify-center items-center text-3xl text-gray-400 text-center cursor-pointer leading-10;
+        }
+        .file_preview_holder {
+            @apply w-full h-full flex flex-col justify-center items-center relative inline-block;
+        }
+        .file_name {
+            @apply text-6xl p-6;
+        }
+        .file_size {
+            @apply text-2xl p-2;
+        }
+    }
+
+    /* Output Components */
     .output_label {
         .output_class {
             @apply hidden;
@@ -212,7 +291,47 @@
     }
     .output_audio {
         audio {
-            @apply w-full;
+            @apply w-full border-2 border-gray-300 rounded;
+        }
+    }
+    .output_highlightedtext {
+        .category_legend {
+            @apply flex flex-wrap gap-4 mb-2;
+            .category-label {
+                @apply flex gap-2;
+            }
+            .colorbox {
+                @apply w-6;                
+            }
+        }
+    }
+    .output_keyvalues {
+        table {
+            @apply bg-white;
+            thead {
+                @apply font-bold;
+            }
+            td, th {
+                @apply p-2;
+            }
+        }
+    }
+    .output_video {
+        @apply w-full h-80 object-contain flex justify-center;
+        video {
+            @apply h-full;
+        }
+    }
+    .output_file {
+        @apply w-full h-80;
+        .file_display {
+            @apply w-full h-full flex flex-col justify-center items-center relative inline-block;
+        }
+        .file_name {
+            @apply text-6xl p-6;
+        }
+        .file_size {
+            @apply text-2xl p-2;
         }
     }
 }

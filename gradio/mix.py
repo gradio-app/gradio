@@ -18,11 +18,11 @@ class Parallel(Interface):
         
         for io in interfaces:
             fns.extend(io.predict)
-            outputs.extend(io.output_interfaces)
+            outputs.extend(io.output_components)
 
         kwargs = {
             "fn": fns,
-            "inputs": interfaces[0].input_interfaces,
+            "inputs": interfaces[0].input_components,
             "outputs": outputs,
             "repeat_outputs_per_model": False,
         }
@@ -47,7 +47,7 @@ class Series(Interface):
             for idx, io in enumerate(interfaces):
                 # skip preprocessing for first interface since the compound interface will include it
                 if idx > 0:
-                    data = [input_interface.preprocess(data[i]) for i, input_interface in enumerate(io.input_interfaces)]
+                    data = [input_interface.preprocess(data[i]) for i, input_interface in enumerate(io.input_components)]
                 # run all of predictions sequentially
                 predictions = []
                 for predict_fn in io.predict:
@@ -56,15 +56,15 @@ class Series(Interface):
                 data = predictions
                 # skip postprocessing for final interface since the compound interface will include it
                 if idx < len(interfaces) - 1:
-                    data = [output_interface.postprocess(data[i]) for i, output_interface in enumerate(io.output_interfaces)]
+                    data = [output_interface.postprocess(data[i]) for i, output_interface in enumerate(io.output_components)]
             return data[0]
     
         connected_fn.__name__ = " => ".join([f[0].__name__ for f in fns])
 
         kwargs = {
             "fn": connected_fn,
-            "inputs": interfaces[0].input_interfaces,
-            "outputs": interfaces[-1].output_interfaces,
+            "inputs": interfaces[0].input_components,
+            "outputs": interfaces[-1].output_components,
         }
         kwargs.update(options)
         super().__init__(**kwargs) 

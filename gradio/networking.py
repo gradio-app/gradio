@@ -121,24 +121,10 @@ def get_first_available_port(initial, final):
     )
 
 
-def home_page(examples=None, path=None):
-    return render_template("index.html",
-                           config=app.interface.config,
-                           vendor_prefix=(
-                               GRADIO_STATIC_ROOT if app.interface.share else ""),
-                           input_interfaces=[interface[0]
-                                             for interface in app.interface.config["input_interfaces"]],
-                           output_interfaces=[interface[0]
-                                              for interface in app.interface.config["output_interfaces"]],
-                           css=app.interface.css, examples=examples, path=path
-                           )
-
-
-
 @app.route("/", methods=["GET"])
 @login_check
 def main():
-    return home_page()
+    return render_template("index.html")
 
 
 @app.route('/login', methods=["GET", "POST"])
@@ -153,50 +139,6 @@ def login():
             return redirect("/")
         else:
             return abort(401)
-
-
-@app.route("/from_dir", methods=["GET"])
-@login_check
-def main_from_flagging_dir():
-    return redirect("/from_dir/" + app.interface.flagging_dir)
-
-
-@app.route("/from_dir/<path:path>", methods=["GET"])
-@login_check
-def main_from_dir(path):
-    log_file = os.path.join(path, "log.csv")
-    path_exists = os.path.exists(path)
-    log_file_exists = os.path.exists(log_file)
-    examples_from_folder = isinstance(app.interface.examples, str) and app.interface.examples == path
-    multiple_inputs = len(app.interface.input_interfaces) > 1
-    if path_exists:
-        if not log_file_exists and multiple_inputs:
-            if examples_from_folder:
-                abort(404, "log.csv file required for multiple inputs.")
-            else:
-                return redirect("/")
-    elif examples_from_folder:
-        abort(404, "Examples dir not found")
-    else:
-        return redirect("/")
-    if log_file_exists:
-        if app.interface.encrypt:
-            with open(log_file, "rb") as csvfile:
-                encrypted_csv = csvfile.read()
-                decrypted_csv = encryptor.decrypt(
-                    app.interface.encryption_key, encrypted_csv)
-                csv_data = io.StringIO(decrypted_csv.decode())
-                examples = list(csv.reader(csv_data))
-        else:
-            with open(log_file) as logs:
-                examples = list(csv.reader(logs))
-        examples = examples[1:]  # remove header
-    else:
-        examples = [[filename] for filename in os.listdir(path)]
-    for i, example in enumerate(examples):
-        for j, (interface, cell) in enumerate(zip(app.interface.input_components + app.interface.output_components, example)):
-            examples[i][j] = interface.restore_flagged(cell)
-    return home_page(examples=examples, path=path)
 
 
 @app.route("/config/", methods=["GET"])
@@ -245,13 +187,13 @@ def score_similarity():
     raw_input = request.json["data"]
 
     preprocessed_input = [input_interface.preprocess(raw_input[i])
-                          for i, input_interface in enumerate(app.interface.input_interfaces)]
+                          for i, input_interface in enumerate(app.interface.input_components)]
     input_embedding = app.interface.embed(preprocessed_input)
     scores = list()
 
     for example in app.interface.examples:
         preprocessed_example = [iface.preprocess(iface.preprocess_example(example))
-                                for iface, example in zip(app.interface.input_interfaces, example)]
+                                for iface, example in zip(app.interface.input_components, example)]
         example_embedding = app.interface.embed(preprocessed_example)
         scores.append(calculate_similarity(input_embedding, example_embedding))
     log_feature_analytics('score_similarity')
@@ -265,13 +207,13 @@ def view_embeddings():
     if "data" in request.json:
         raw_input = request.json["data"]
         preprocessed_input = [input_interface.preprocess(raw_input[i])
-                              for i, input_interface in enumerate(app.interface.input_interfaces)]
+                              for i, input_interface in enumerate(app.interface.input_components)]
         sample_embedding.append(app.interface.embed(preprocessed_input))
 
     example_embeddings = []
     for example in app.interface.examples:
         preprocessed_example = [iface.preprocess(iface.preprocess_example(example))
-                                for iface, example in zip(app.interface.input_interfaces, example)]
+                                for iface, example in zip(app.interface.input_components, example)]
         example_embedding = app.interface.embed(preprocessed_example)
         example_embeddings.append(example_embedding)
 
@@ -291,7 +233,7 @@ def update_embeddings():
     if "data" in request.json:
         raw_input = request.json["data"]
         preprocessed_input = [input_interface.preprocess(raw_input[i])
-                              for i, input_interface in enumerate(app.interface.input_interfaces)]
+                              for i, input_interface in enumerate(app.interface.input_components)]
         sample_embedding.append(app.interface.embed(preprocessed_input))
         sample_embedding_2d = transform_with_pca(
             app.pca_model, sample_embedding)
@@ -307,7 +249,7 @@ def predict_examples():
     for example_id in example_ids:
         example_set = app.interface.examples[example_id]
         processed_example_set = [iface.preprocess_example(example)
-                                 for iface, example in zip(app.interface.input_interfaces, example_set)]
+                                 for iface, example in zip(app.interface.input_components, example_set)]
         try:
             predictions, _ = app.interface.process(processed_example_set)
         except:
@@ -321,19 +263,19 @@ def flag_data(input_data, output_data, flag_option=None):
     flag_path = os.path.join(app.cwd, app.interface.flagging_dir)
     csv_data = []
     encryption_key = app.interface.encryption_key if app.interface.encrypt else None
-    for i, interface in enumerate(app.interface.input_interfaces):
+    for i, interface in enumerate(app.interface.input_components):
         csv_data.append(interface.save_flagged(
-            flag_path, app.interface.config["input_interfaces"][i]["label"], input_data[i], encryption_key))
-    for i, interface in enumerate(app.interface.output_interfaces):
+            flag_path, app.interface.config["input_components"][i]["label"], input_data[i], encryption_key))
+    for i, interface in enumerate(app.interface.output_components):
         csv_data.append(interface.save_flagged(
-            flag_path, app.interface.config["output_interfaces"][i]["label"], output_data[i], encryption_key))
+            flag_path, app.interface.config["output_components"][i]["label"], output_data[i], encryption_key))
     if flag_option:
         csv_data.append(flag_option)
 
     headers = [interface["label"]
-               for interface in app.interface.config["input_interfaces"]]
+               for interface in app.interface.config["input_components"]]
     headers += [interface["label"]
-                for interface in app.interface.config["output_interfaces"]]
+                for interface in app.interface.config["output_components"]]
     if app.interface.flagging_options is not None:
         headers.append("flag")
 
