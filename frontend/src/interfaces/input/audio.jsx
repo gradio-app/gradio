@@ -10,6 +10,13 @@ class AudioInput extends React.Component {
     }
     this.src = null;
     this.key = 0; // needed to prevent audio caching
+
+    this.uploader = React.createRef();
+    this.openFileUpload = this.openFileUpload.bind(this);
+    this.load_preview_from_files = this.load_preview_from_files.bind(this);
+    this.load_preview_from_upload = this.load_preview_from_upload.bind(this);
+    this.load_preview_from_drop = this.load_preview_from_drop.bind(this);
+
   }
   start = () => {
     this.setState({
@@ -26,6 +33,9 @@ class AudioInput extends React.Component {
     reader.onload = (function (e) { this.props.handleChange(e.target.result) }).bind(this);
     reader.readAsDataURL(audioData.blob);
   }
+  openFileUpload() {
+    this.uploader.current.click();
+  }
   render() {
     if (this.props.value !== null) {
       if (this.props.value !== this.src) {
@@ -38,13 +48,44 @@ class AudioInput extends React.Component {
         </audio>
       </div>);
     } else {
-      return (<div className="input_audio">
-        <AudioReactRecorder state={this.state.recordState} onStop={this.onStop} />
-        {this.state.recordState === RecordState.STOP ?
-          <button className="start" onClick={this.start}>Record</button> :
-          <button className="stop" onClick={this.stop}>Recording...</button>
+      if (this.props.source === "microphone") {
+        return (<div className="input_audio">
+          <AudioReactRecorder state={this.state.recordState} onStop={this.onStop} />
+          {this.state.recordState === RecordState.STOP ?
+            <button className="start" onClick={this.start}>Record</button> :
+            <button className="stop" onClick={this.stop}>Recording...</button>
+          }
+        </div>);
+      } else if (this.props.source === "upload") {
+        let no_action = (evt) => {
+          evt.preventDefault();
+          evt.stopPropagation();      
         }
-      </div>);
+        return (
+          <div className="input_image" onDrag={no_action} onDragStart={no_action} onDragEnd={no_action} onDragOver={no_action} onDragEnter={no_action} onDragLeave={no_action} onDrop={no_action} >
+            <div className="upload_zone" onClick={this.openFileUpload} onDrop={this.load_preview_from_drop}>
+              Drop Audio Here<br />- or -<br />Click to Upload
+            </div>
+            <input className="hidden_upload" type="file" ref={this.uploader} onChange={this.load_preview_from_upload} accept="audio/*" style={{ display: "none" }} />
+          </div>);
+      }
+    }
+  }
+  load_preview_from_drop(evt) {
+    this.load_preview_from_files(evt.dataTransfer.files)
+  }
+  load_preview_from_upload(evt) {
+    this.load_preview_from_files(evt.target.files);
+  }
+  load_preview_from_files(files) {
+    if (!files.length || !window.FileReader) {
+      return;
+    }
+    var component = this;
+    var ReaderObj = new FileReader()
+    ReaderObj.readAsDataURL(files[0])
+    ReaderObj.onloadend = function () {
+      component.props.handleChange(this.result);
     }
   }
 }

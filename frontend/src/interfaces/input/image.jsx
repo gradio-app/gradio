@@ -1,5 +1,7 @@
 import React from 'react';
-import {DataURLComponentExample} from '../component_example';
+import { DataURLComponentExample } from '../component_example';
+import Webcam from "react-webcam";
+import { SketchField, Tools } from 'react-sketch';
 
 class ImageInput extends React.Component {
   constructor(props) {
@@ -10,33 +12,74 @@ class ImageInput extends React.Component {
     this.load_preview_from_files = this.load_preview_from_files.bind(this);
     this.load_preview_from_upload = this.load_preview_from_upload.bind(this);
     this.load_preview_from_drop = this.load_preview_from_drop.bind(this);
+    this.snapshot = this.snapshot.bind(this);
+    this.getSketch = this.getSketch.bind(this);
+    this.webcamRef = React.createRef();
+    this.sketchRef = React.createRef();
+    this.sketchKey = 0;
   }
-  handleChange(evt) {
-    this.props.handleChange(evt.target.value);
+  handleChange(data) {
+    this.props.handleChange(data);
   }
   openFileUpload() {
     this.uploader.current.click();
   }
+  snapshot() {
+    let imageSrc = this.webcamRef.current.getScreenshot();
+    this.handleChange(imageSrc);
+  }
+  getSketch() {
+    let imageSrc = this.sketchRef.current.toDataURL();
+    this.handleChange(imageSrc);
+  }
   render() {
     let no_action = (evt) => {
       evt.preventDefault();
-      evt.stopPropagation();      
+      evt.stopPropagation();
     }
-    if (this.props.value != null) {
+    if (this.props.value !== null && this.props.source !== "canvas") {
       return (
         <div className="input_image">
           <div className="image_preview_holder">
-            <img className="image_preview" alt="" src={this.props.value}/>
+            <img className="image_preview" alt="" src={this.props.value} />
           </div>
         </div>)
     } else {
-      return (
-      <div className="input_image" onDrag={no_action} onDragStart={no_action} onDragEnd={no_action} onDragOver={no_action} onDragEnter={no_action} onDragLeave={no_action} onDrop={no_action} >
-        <div className="upload_zone" onClick={this.openFileUpload} onDrop={this.load_preview_from_drop}>
-          Drop Image Here<br />- or -<br />Click to Upload
-        </div>
-        <input className="hidden_upload" type="file" ref={this.uploader} onChange={this.load_preview_from_upload} accept="image/x-png,image/gif,image/jpeg" style={{display: "none"}} />
-      </div>)
+      if (this.props.source === "upload") {
+        return (
+          <div className="input_image" onDrag={no_action} onDragStart={no_action} onDragEnd={no_action} onDragOver={no_action} onDragEnter={no_action} onDragLeave={no_action} onDrop={no_action} >
+            <div className="upload_zone" onClick={this.openFileUpload} onDrop={this.load_preview_from_drop}>
+              Drop Image Here<br />- or -<br />Click to Upload
+            </div>
+            <input className="hidden_upload" type="file" ref={this.uploader} onChange={this.load_preview_from_upload} accept="image/x-png,image/gif,image/jpeg" style={{ display: "none" }} />
+          </div>);
+      } else if (this.props.source === "webcam") {
+        return (<div className="input_image">
+          <div className="image_preview_holder">
+            <Webcam ref={this.webcamRef} />
+            <button class="snapshot" onClick={this.snapshot}>- Click to Take Snapshot -</button>
+          </div>
+        </div>);
+      } else if (this.props.source === "canvas") {
+        if (this.props.value === null && this.sketchRef && this.sketchRef.current) {
+          this.sketchKey += 1;
+        }
+        return (<div className="input_image">
+          <div className="image_preview_holder sketch">
+            <SketchField
+              ref={this.sketchRef}
+              key={this.sketchKey}
+              width='320px'
+              height='100%'
+              tool={Tools.Pencil}
+              lineColor='black'
+              lineWidth={20}
+              backgroundColor="white"
+              onChange={this.getSketch}
+               />
+          </div>
+        </div>);
+      }
     }
   }
   load_preview_from_drop(evt) {
@@ -64,4 +107,4 @@ class ImageInputExample extends DataURLComponentExample {
   }
 }
 
-export {ImageInput, ImageInputExample};
+export { ImageInput, ImageInputExample };

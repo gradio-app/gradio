@@ -54,7 +54,7 @@ class FileInput extends React.Component {
         <div className="upload_zone" onClick={this.openFileUpload} onDrop={this.load_preview_from_drop}>
           Drop File Here<br />- or -<br />Click to Upload
         </div>
-        <input className="hidden_upload" type="file" multiple={this.props.file_count === "multiple"} webkitdirectory={this.props.file_count === "directory"} mozdirectory={this.props.file_count === "directory"}  ref={this.uploader} onChange={this.load_preview_from_upload} accept="image/x-png,image/gif,image/jpeg" style={{display: "none"}} />
+        <input className="hidden_upload" type="file" multiple={this.props.file_count === "multiple"} webkitdirectory={this.props.file_count === "directory"} mozdirectory={this.props.file_count === "directory"}  ref={this.uploader} onChange={this.load_preview_from_upload} style={{display: "none"}} />
       </div>)
     }
   }

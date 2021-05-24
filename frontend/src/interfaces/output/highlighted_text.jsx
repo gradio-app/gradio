@@ -4,7 +4,7 @@ import ComponentExample from '../component_example';
 class HighlightedTextOutput extends React.Component {
   constructor(props) {
     super(props);
-    this.color_map = this.props.color_map;
+    this.color_map = this.props.color_map || {};
     this.new_category_index = 0;
   }
   generate_category_legend(category_map) {
