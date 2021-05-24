@@ -1,4 +1,5 @@
 import React from 'react';
+import ComponentExample from '../component_example';
 
 class TextboxInput extends React.Component {
   constructor(props) {
@@ -22,4 +23,10 @@ class TextboxInput extends React.Component {
   }
 }
 
-export default TextboxInput;
+class TextboxInputExample extends ComponentExample {
+  render() {
+    return <div className="input_textbox_example">{this.props.value}</div>
+  }
+}
+
+export {TextboxInput, TextboxInputExample};

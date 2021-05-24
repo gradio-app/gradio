@@ -1,4 +1,5 @@
 import React from 'react';
+import ComponentExample from '../component_example';
 import classNames from "classnames";
 
 class DropdownInput extends React.Component {
@@ -6,21 +7,21 @@ class DropdownInput extends React.Component {
     super(props);
     this.handleChange = this.handleChange.bind(this);
   }
-  handleChange(selected_index) {
-    this.props.handleChange(selected_index);
+  handleChange(selected_item) {
+    this.props.handleChange(selected_item);
   }
   render() {
     return (<div className="input_dropdown">
-      <div class="dropdown inline-block relative">
-        <button class="selector ">
-          <span class="current">{this.props.value == null ? "- Select -" : this.props.choices[this.props.value]}</span>
-          <svg class="caret" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /> </svg>
+      <div className="dropdown inline-block relative">
+        <button className="selector ">
+          <span className="current">{this.props.value}</span>
+          <svg className="caret" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /> </svg>
         </button>
-        <ul class="dropdown_menu">
+        <ul className="dropdown_menu">
           {this.props.choices.map((item, index) => {
             return <li className={classNames("dropdown_item", {
-              "selected": index == this.props.value
-            })} onClick={this.handleChange.bind(this, index)} key={index}>
+              "selected": item === this.props.value
+            })} onClick={this.handleChange.bind(this, item)} key={index}>
               {item}
             </li>
           })}
@@ -30,4 +31,10 @@ class DropdownInput extends React.Component {
   }
 }
 
-export default DropdownInput;
+class DropdownInputExample extends ComponentExample {
+  render() {
+    return <div className="input_dropdown_example">{this.props.value}</div>
+  }
+}
+
+export {DropdownInput, DropdownInputExample};

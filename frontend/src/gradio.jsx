@@ -1,56 +1,62 @@
 import React from 'react';
 import classNames from "classnames";
 
-import TextboxInput from './interfaces/input/textbox';
-import ImageInput from './interfaces/input/image';
-import NumberInput from './interfaces/input/number';
-import RadioInput from './interfaces/input/radio';
-import CheckboxGroupInput from './interfaces/input/checkbox_group';
-import CheckboxInput from './interfaces/input/checkbox';
-import DropdownInput from './interfaces/input/dropdown';
-import SliderInput from './interfaces/input/slider';
-import AudioInput from './interfaces/input/audio';
-import TextboxOutput from './interfaces/output/textbox';
-import LabelOutput from './interfaces/output/label';
-import ImageOutput from './interfaces/output/image';
-import AudioOutput from './interfaces/output/audio';
+import { AudioInput, AudioInputExample } from './interfaces/input/audio';
+import { CheckboxGroupInput, CheckboxGroupInputExample } from './interfaces/input/checkbox_group';
+import { CheckboxInput, CheckboxInputExample } from './interfaces/input/checkbox';
+import { DataframeInput, DataframeInputExample } from './interfaces/input/dataframe';
+import { DropdownInput, DropdownInputExample } from './interfaces/input/dropdown';
+import { FileInput, FileInputExample } from './interfaces/input/file';
+import { ImageInput, ImageInputExample } from './interfaces/input/image';
+import { NumberInput, NumberInputExample } from './interfaces/input/number';
+import { RadioInput, RadioInputExample } from './interfaces/input/radio';
+import { SliderInput, SliderInputExample } from './interfaces/input/slider';
+import { TextboxInput, TextboxInputExample } from './interfaces/input/textbox';
+import { VideoInput, VideoInputExample } from './interfaces/input/video';
+
+import { AudioOutput, AudioOutputExample } from './interfaces/output/audio';
+import { DataframeOutput, DataframeOutputExample } from './interfaces/output/dataframe';
+import { FileOutput, FileOutputExample } from './interfaces/output/file';
+import { HighlightedTextOutput, HighlightedTextOutputExample } from './interfaces/output/highlighted_text';
+import { HTMLOutput, HTMLOutputExample } from './interfaces/output/html';
+import { ImageOutput, ImageOutputExample } from './interfaces/output/image';
+import { JSONOutput, JSONOutputExample } from './interfaces/output/json';
+import { KeyValuesOutput, KeyValuesOutputExample } from './interfaces/output/key_values';
+import { LabelOutput, LabelOutputExample } from './interfaces/output/label';
+import { TextboxOutput, TextboxOutputExample } from './interfaces/output/textbox';
+import { VideoOutput, VideoOutputExample } from './interfaces/output/video';
+
 import logo_loading from './static/img/logo_loading.gif'
 import logo_error from './static/img/logo_error.png'
-const DefaultTheme = React.lazy(() => import('./themes/defaults'));
-const HuggingFaceTheme = React.lazy(() => import('./themes/huggingface'));
+import('./themes/defaults.scss');
+import('./themes/huggingface.scss');
 
 let input_component_map = {
-  "textbox": TextboxInput,
-  "image": ImageInput,
-  "number": NumberInput,
-  "radio": RadioInput,
-  "checkboxgroup": CheckboxGroupInput,
-  "checkbox": CheckboxInput,
-  "dropdown": DropdownInput,
-  "slider": SliderInput,
-  "audio": AudioInput,
+  "audio": [AudioInput, AudioInputExample],
+  "checkboxgroup": [CheckboxGroupInput, CheckboxGroupInputExample],
+  "checkbox": [CheckboxInput, CheckboxInputExample],
+  "dataframe": [DataframeInput, DataframeInputExample],
+  "dropdown": [DropdownInput, DropdownInputExample],
+  "file": [FileInput, FileInputExample],
+  "image": [ImageInput, ImageInputExample],
+  "number": [NumberInput, NumberInputExample],
+  "radio": [RadioInput, RadioInputExample],
+  "slider": [SliderInput, SliderInputExample],
+  "textbox": [TextboxInput, TextboxInputExample],
+  "video": [VideoInput, VideoInputExample],
 }
 let output_component_map = {
-  "textbox": TextboxOutput,
-  "label": LabelOutput,
-  "image": ImageOutput,
-  "audio": AudioOutput,
-}
-let theme_map = {
-  "default": DefaultTheme,
-  "huggingface": HuggingFaceTheme
-}
-
-class GradioTheme extends React.Component {
-  render() {
-    let Theme = theme_map[this.props.theme];
-    return <>
-      <React.Suspense fallback={() => null}>
-        <Theme />
-      </React.Suspense>
-      {this.props.children}
-    </>
-  }
+  "audio": [AudioOutput, AudioOutputExample],
+  "dataframe": [DataframeOutput, DataframeOutputExample],
+  "file": [FileOutput, FileOutputExample],
+  "highlightedtext": [HighlightedTextOutput, HighlightedTextOutputExample],
+  "html": [HTMLOutput, HTMLOutputExample],
+  "image": [ImageOutput, ImageOutputExample],
+  "json": [JSONOutput, JSONOutputExample],
+  "key_values": [KeyValuesOutput, KeyValuesOutputExample],
+  "label": [LabelOutput, LabelOutputExample],
+  "textbox": [TextboxOutput, TextboxOutputExample],
+  "video": [VideoOutput, VideoOutputExample],
 }
 
 export class GradioInterface extends React.Component {
@@ -58,22 +64,30 @@ export class GradioInterface extends React.Component {
     super(props);
     this.clear = this.clear.bind(this);
     this.submit = this.submit.bind(this);
-    this.handleChange = this.handleChange.bind(this);
+    this.handleExampleChange = this.handleExampleChange.bind(this);
     this.state = this.get_default_state();
     this.state["examples_page"] = 0;
+    this.examples_dir = process.env.REACT_APP_BACKEND_URL + (this.props.examples_dir === null ? "/file" + this.props.examples_dir + (this.props.examples_dir.endswith("/") ? "" : "/") : "/file");
+
+    document.body.onkeyup = (function (e) {
+      if (e.code === "Space") {
+        console.log(this.state)
+      }
+    }).bind(this)
   }
   get_default_state() {
     let state = {};
     for (let [i, component] of this.props.input_components.entries()) {
-      state[i] = component.default;
+      state[i] = component.default !== undefined ? component.default : null;
     }
     let index_start = this.props.input_components.length;
     for (let [i, component] of this.props.output_components.entries()) {
-      state[index_start + i] = component.default;
+      state[index_start + i] = component.default !== undefined ? component.default : null;
     }
     state["predicting"] = false;
     state["error"] = false;
     state["has_changed"] = false;
+    state["example_id"] = null;
     return state;
   }
   clear() {
@@ -81,7 +95,10 @@ export class GradioInterface extends React.Component {
   }
   submit() {
     let input_state = [];
-    for (let [i, component] of this.props.input_components.entries()) {
+    for (let i = 0; i < this.props.input_components.length; i++) {
+      if (this.state[i] === null) {
+        return;
+      }
       input_state[i] = this.state[i];
     }
     this.setState({ "submitting": true, "has_changed": false });
@@ -104,6 +121,16 @@ export class GradioInterface extends React.Component {
       this.setState(state_change);
     }
   }
+  handleExampleChange(example_id) {
+    let state_change = {};
+    this.setState({"example_id": example_id});
+    for (let [i, item] of this.props.examples[example_id].entries()) {
+      let ExampleComponent = i < this.props.input_components.length ? input_component_map[this.props.input_components[i].name][1] : output_component_map[this.props.output_components[i - this.props.input_components.length].name][1]
+      state_change[i] = ExampleComponent.preprocess(item, this.examples_dir).then((data) => {
+        this.handleChange(i, data);
+      });
+    }
+  }
   render() {
     let title = this.props.title ? <h1 className="title">{this.props.title}</h1> : false;
     let description = this.props.description ? <p className="description">{this.props.description}</p> : false;
@@ -111,27 +138,26 @@ export class GradioInterface extends React.Component {
     let status = false;
     if (this.state.submitting) {
       status = (<div className="loading">
-        <img className="h-4" src={logo_loading} />
+        <img className="h-4" alt="loading" src={logo_loading} />
       </div>)
     } else if (this.state.error) {
       status = (<div className="loading">
-        <img className="loading_failed" src={logo_error} />
+        <img className="loading_failed" alt="error" src={logo_error} />
       </div>)
     }
     return (
-      <GradioTheme theme={this.props.theme}>
-      <div className="gradio_interface">
+      <div className="gradio_interface" theme={this.props.theme}>
         {title}
         {description}
         <div className={classNames("panels", {
-          "items-start": this.props.layout == "unaligned",
-          "items-stretch": this.props.layout != "unaligned",
-          "flex-col": this.props.layout == "vertical",
+          "items-start": this.props.layout === "unaligned",
+          "items-stretch": this.props.layout !== "unaligned",
+          "flex-col": this.props.layout === "vertical",
         })}>
           <div className="panel">
             <div className="component_set">
               {this.props.input_components.map((component, index) => {
-                const Component = input_component_map[component.name];
+                const Component = input_component_map[component.name][0];
                 return (
                   <div className="component" key={index}>
                     <div className="panel_header">{component.label}</div>
@@ -151,7 +177,7 @@ export class GradioInterface extends React.Component {
               { "opacity-50": status && !this.props.live })}>
               {status}
               {this.props.output_components.map((component, index) => {
-                const Component = output_component_map[component.name];
+                const Component = output_component_map[component.name][0];
                 const key = this.props.input_components.length + index;
                 return (
                   <div className="component" key={key}>
@@ -165,12 +191,12 @@ export class GradioInterface extends React.Component {
                 <button className="panel_button">Interpret</button> : false
               }
               {this.props.allow_screenshot ?
-                <div class="screenshot_set">
+                <div className="screenshot_set">
                   <button className="panel_button left_panel_button">Screenshot</button>
                   <button className="panel_button right_panel_button">GIF</button>
                   {this.state.screenshot_mode ?
                     <div className="screenshot_logo">
-                      <img src="/static/img/logo_inline.png" />
+                      <img src="/static/img/logo_inline.png" alt="Gradio" />
                       <button className='record_stop'>
                         <div className='record_square'></div>
                       </button>
@@ -198,457 +224,53 @@ export class GradioInterface extends React.Component {
             <ul></ul>
           </div>
           : false}
+        {this.props.examples ? <GradioInterfaceExamples examples={this.props.examples} examples_dir={this.examples_dir} example_id={this.state.example_id} input_components={this.props.input_components} output_components={this.props.output_components} handleExampleChange={this.handleExampleChange} /> : false}
         {article}
       </div>
-      </GradioTheme>
     )
   }
 }
 
+class GradioInterfaceExamples extends React.Component {
+  render() {
+    return <div className="examples">
+      <h4>Examples</h4>
+      <div className="examples_control">
+        <button className="load_prev examples-content">Load Previous <div className="shortcut">CTRL + <span style={{ "display": "inline-block", "transform": "scale(-1, 1)" }}>&#10140;</span></div></button>
+        <button className="load_next examples-content">Load Next <div className="shortcut">CTRL + &#10140;</div></button>
+        <button className="table_examples">
+          <svg width="40" height="24"><rect x="0" y="0" width="40" height="6"></rect><rect x="0" y="9" width="40" height="6"></rect><rect x="0" y="18" width="40" height="6"></rect></svg>
+        </button>
+        <button className="gallery_examples current">
+          <svg width="40" height="24"><rect x="0" y="0" width="18" height="40"></rect><rect x="22" y="0" width="18" height="40"></rect></svg>
+        </button>
+      </div>
+      <div className="pages hidden">Page:</div>
+      <table>
+        <thead>
+          <tr>
+            {this.props.input_components.map((component, i) => {
+              return <th key={i}>{component.label}</th>
+            })}
+            {this.props.examples[0].length > this.props.input_components.length ? this.props.output_components.map((component, i) => {
+              return <th key={i + this.props.input_components.length}>{component.label}</th>
+            }) : false}
+          </tr>
+        </thead>
+        <tbody>
+          {this.props.examples.map((example_row, i) => {
+            return <tr key={i} className={classNames({ "selected": i === this.props.example_id })} onClick={() => this.props.handleExampleChange(i)}>
+              {example_row.map((example_data, j) => {
+                let ExampleComponent = input_component_map[this.props.input_components[j].name][1];
+                return <td><ExampleComponent examples_dir={this.props.examples_dir} value={example_data} key={j} /></td>
+              })}
+            </tr>
+          })}
+        </tbody>
+      </table>
+    </div>
+  }
+}
 
-// function gradio(config, fn, target, example_file_path) {
-//   // target = $(target);
-//   // let io_master = Object.create(io_master_template);
-//   // io_master.fn = fn
-//   // io_master.target = target;
-//   // io_master.config = config;
-//   // io_master.example_file_path = example_file_path;
-
-//   ReactDOM.render(<GradioInterface {...config} fn={fn} />, target);
-//   // function clear_all() {
-//   //   for (let input_component of input_components) {
-//   //     input_component.clear();
-//   //   }
-//   //   for (let output_component of output_components) {
-//   //     output_component.clear();
-//   //   }
-//   //   target.find(".loading").addClass("hidden");
-//   //   target.find(".loading_time").text("");
-//   //   target.find(".output_components").css("opacity", 1);
-//   //   target.find(".flag").addClass("inactive");
-//   //   target.find(".interpret").addClass("inactive");
-//   //   io_master.last_input = null;
-//   //   io_master.last_output = null;
-//   // }
-
-//   // if (!config["allow_embedding"]) {
-//   //   target.find(".embedding").hide();
-//   // }
-//   // if (!config["allow_screenshot"]) {
-//   //   target.find(".screenshot, .record").hide();
-//   // }
-//   // if (config["allow_flagging"] !== true) {
-//   //   target.find(".flag").hide();
-//   // }
-//   // if (!config["allow_interpretation"]) {
-//   //   target.find(".interpret").hide();
-//   // }
-//   // function load_example(example_id) {
-//   //   clear_all();
-//   //   if (!(example_id in config["examples"])) {
-//   //     return;
-//   //   }
-//   //   for (let [i, value] of config["examples"][example_id].entries()) {
-//   //     if (i < input_components.length) {
-//   //       input_components[i].load_example(value);
-//   //     } else if (i - input_components.length < output_components.length) {
-//   //       let output_component = output_components[i - input_components.length];
-//   //       if ("load_example" in output_component) {
-//   //         output_component.load_example(value);
-//   //       } else {
-//   //         output_component.output(value)
-//   //       }
-//   //     }
-//   //   };
-//   //   if (io_master.loaded_examples && example_id in io_master.loaded_examples) {
-//   //     io_master.output({ "data": io_master.loaded_examples[example_id] });
-//   //   }
-//   //   let example_order = io_master.order_mapping.indexOf(example_id);
-//   //   let current_page = Math.floor(example_order / config["examples_per_page"]);
-//   //   if (current_page != io_master.current_page) {
-//   //     io_master.current_page = current_page;
-//   //     load_page();
-//   //   }
-//   //   $(".examples_body > tr").removeClass("current_example");
-//   //   $(".examples_body > tr[row='" + example_id + "'").addClass("current_example");
-//   //   io_master.current_example = example_id;
-//   //   window.location.hash = example_id + 1;
-//   // }
-//   // function hash_handler() {
-//   //   let hash = window.location.hash;
-//   //   if (hash == "") {
-//   //     return;
-//   //   }
-//   //   hash = hash.substring(1)
-//   //   if (!isNaN(parseInt(hash))) {
-//   //     load_example(parseInt(hash) - 1);
-//   //   }
-//   // }
-//   // function next_example() {
-//   //   var current_example = io_master.current_example;
-//   //   if (current_example == null) {
-//   //     new_index = 0;
-//   //   } else {
-//   //     new_index = (io_master.order_mapping.indexOf(current_example) + 1 + config.examples.length) % config.examples.length;
-//   //   }
-//   //   load_example(io_master.order_mapping[new_index]);
-//   // }
-//   // function prev_example() {
-//   //   var current_example = io_master.current_example;
-//   //   if (current_example == null) {
-//   //     new_index = 0;
-//   //   } else {
-//   //     new_index = (io_master.order_mapping.indexOf(current_example) - 1 + config.examples.length) % config.examples.length;
-//   //   }
-//   //   load_example(io_master.order_mapping[new_index]);
-//   // }
-//   // function load_page() {
-//   //   var page_num = io_master.current_page;
-//   //   target.find(".page").removeClass("primary");
-//   //   target.find(`.page[page=${page_num}]`).addClass("primary");
-//   //   let page_start = page_num * config["examples_per_page"]
-//   //   let html = "";
-//   //   for (let i = page_start; i < page_start + config["examples_per_page"] && i < config.examples.length; i++) {
-//   //     let example_id = io_master.order_mapping[i];
-//   //     let example = config["examples"][example_id];
-//   //     html += "<tr row=" + example_id + ">";
-//   //     for (let [j, col] of example.entries()) {
-//   //       let new_col = JSON.parse(JSON.stringify(col))
-//   //       if (j < input_components.length) {
-//   //         if (input_components[j].load_example_preview) {
-//   //           new_col = input_components[j].load_example_preview(new_col);
-//   //         }
-//   //       } else {
-//   //         let k = j - input_components.length;
-//   //         if (k < output_components.length && output_components[k].load_example_preview) {
-//   //           new_col = output_components[k].load_example_preview(new_col);
-//   //         }
-//   //       }
-//   //       html += "<td>" + new_col + "</td>";
-//   //     }
-//   //     if (io_master.loaded_examples && example_id in io_master.loaded_examples) {
-//   //       output_values = io_master.loaded_examples[example_id]
-//   //       for (let j = 0; j < output_values.length; j++) {
-//   //         let output_component = io_master.output_components[j];
-//   //         let example_preview = output_values[j];
-//   //         if (output_component.load_example_preview) {
-//   //           example_preview = output_component.load_example_preview(example_preview)
-//   //         }
-//   //         html += "<td>" + example_preview + "</td>";
-//   //       }
-//   //     }
-//   //     html += "</tr>";
-//   //   }
-//   //   target.find(".examples > table > tbody").html(html);
-//   // }
-//   // // if (config["examples"]) {
-//   // //   target.find(".examples").removeClass("hidden");
-//   // //   let html = "<thead>"
-//   // //   for (let input_component of config["input_components"]) {
-//   // //     html += "<th>" + input_component[1]["label"] + "</th>";
-//   // //   }
-//   // //   if (config["examples"].length > 0 && config["examples"][0].length > config["input_components"].length) {
-//   // //     for (let output_component of config["output_components"]) {
-//   // //       html += "<th>" + output_component[1]["label"] + "</th>";
-//   // //     }
-//   // //   }
-//   // //   html += "</thead>";
-//   // //   html += "<tbody className='examples_body'></tbody>";
-//   // //   target.find(".examples table").html(html);
-//   // //   io_master.current_page = 0;
-//   // //   io_master.order_mapping = [...Array(config.examples.length).keys()];
-//   // //   let page_count = Math.ceil(config.examples.length / config.examples_per_page)
-//   // //   if (page_count > 1) {
-//   // //     target.find(".pages").removeClass("hidden");
-//   // //     let html = "";
-//   // //     for (let i = 0; i < page_count; i++) {
-//   // //       html += `<button className='page' page='${i}'>${i + 1}</button>`
-//   // //     }
-//   // //     target.find(".pages").append(html);
-//   // //   }
-//   // //   load_page();
-//   // //   window.onhashchange = hash_handler;
-//   // //   hash_handler();
-//   // //   target.on("click", ".examples_body > tr", function () {
-//   // //     let example_id = parseInt($(this).attr("row"));
-//   // //     load_example(example_id);
-//   // //   })
-//   // //   target.on("click", ".page", function () {
-//   // //     let page_num = parseInt($(this).attr("page"));
-//   // //     io_master.current_page = page_num;
-//   // //     load_page();
-//   // //   })
-//   // //   set_table_mode = function () {
-//   // //     target.find(".examples-content").removeClass("gallery");
-//   // //     target.find(".examples_control_right button").removeClass("current");
-//   // //     target.find(".table_examples").addClass("current");
-//   // //   }
-//   // //   set_gallery_mode = function () {
-//   // //     target.find(".examples-content").addClass("gallery");
-//   // //     target.find(".examples_control_right button").removeClass("current");
-//   // //     target.find(".gallery_examples").addClass("current");
-//   // //   }
-//   // //   target.on("click", ".table_examples", set_table_mode);
-//   // //   target.on("click", ".gallery_examples", set_gallery_mode);
-//   // //   if (config["examples"].length > 0 && config["examples"][0].length > 1) {
-//   // //     set_table_mode();
-//   // //   } else {
-//   // //     set_gallery_mode();
-//   // //   }
-//   // //   target.find(".load_prev").click(prev_example);
-//   // //   target.find(".load_next").click(next_example);
-//   // //   target.find(".order_similar").click(function () {
-//   // //     io_master.score_similarity(function () {
-//   // //       io_master.current_page = 0
-//   // //       io_master.current_example = null;
-//   // //       load_page();
-//   // //     })
-//   // //   });
-//   // //   target.find(".view_examples").click(function () {
-//   // //     target.find(".examples-content").removeClass("hidden");
-//   // //     target.find(".embeddings-content").addClass("hidden");
-//   // //   });
-//   // //   target.find(".update_embeddings").click(function () {
-//   // //     io_master.update_embeddings(function (output) {
-//   // //       embedding_chart.data.datasets[0].data.push(output["sample_embedding_2d"][0]);
-//   // //       console.log(output["sample_embedding_2d"][0])
-//   // //       embedding_chart.update();
-//   // //     })
-//   // //   });
-//   // //   target.find(".view_embeddings").click(function () {
-//   // //     io_master.view_embeddings(function (output) {
-//   // //       let ctx = $('#canvas')[0].getContext('2d');
-//   // //       let backgroundColors = getBackgroundColors(io_master);
-//   // //       embedding_chart = new Chart(ctx, {
-//   // //         type: 'scatter',
-//   // //         data: {
-//   // //           datasets: [{
-//   // //             label: 'Sample Embedding',
-//   // //             data: output["sample_embedding_2d"],
-//   // //             backgroundColor: 'rgb(0, 0, 0)',
-//   // //             borderColor: 'rgb(0, 0, 0)',
-//   // //             pointRadius: 13,
-//   // //             pointHoverRadius: 13,
-//   // //             pointStyle: 'rectRot',
-//   // //             showLine: true,
-//   // //             fill: false,
-//   // //           }, {
-//   // //             label: 'Dataset Embeddings',
-//   // //             data: output["example_embeddings_2d"],
-//   // //             backgroundColor: backgroundColors,
-//   // //             borderColor: backgroundColors,
-//   // //             pointRadius: 7,
-//   // //             pointHoverRadius: 7
-//   // //           }]
-//   // //         },
-//   // //         options: {
-//   // //           legend: { display: false }
-//   // //         }
-//   // //       });
-//   // //       $("#canvas")[0].onclick = function (evt) {
-//   // //         var activePoints = embedding_chart.getElementsAtEvent(evt);
-//   // //         var firstPoint = activePoints[0];
-//   // //         if (firstPoint._datasetIndex == 1) { // if it's from the sample embeddings dataset
-//   // //           load_example(firstPoint._index)
-//   // //         }
-//   // //       };
-
-//   // //       target.find(".examples-content").addClass("hidden");
-//   // //       target.find(".embeddings-content").removeClass("hidden");
-//   // //     })
-//   // //   });
-//   // //   $("body").keydown(function (e) {
-//   // //     if ($(document.activeElement).attr("type") == "text" || $(document.activeElement).attr("type") == "textarea") {
-//   // //       return;
-//   // //     }
-//   // //     e = e || window.event;
-//   // //     var keyCode = e.keyCode || e.which,
-//   // //       arrow = { left: 37, up: 38, right: 39, down: 40 };
-//   // //     if (e.ctrlKey) {
-//   // //       if (keyCode == arrow.left) {
-//   // //         prev_example();
-//   // //       } else if (keyCode == arrow.right) {
-//   // //         next_example();
-//   // //       }
-//   // //     }
-//   // //   });
-//   // // };
-
-
-//   // target.find(".screenshot").click(function () {
-//   //   $(".screenshot, .record").hide();
-//   //   $(".screenshot_logo").removeClass("hidden");
-//   //   $(".record_stop").hide();
-//   //   html2canvas(target[0], {
-//   //     scrollX: 0,
-//   //     scrollY: -window.scrollY
-//   //   }).then(function (canvas) {
-//   //     saveAs(canvas.toDataURL(), 'screenshot.png');
-//   //     $(".screenshot, .record").show();
-//   //     $(".screenshot_logo").addClass("hidden");
-//   //   });
-//   // });
-//   // target.find(".record").click(function () {
-//   //   $(".screenshot, .record").hide();
-//   //   $(".screenshot_logo").removeClass("hidden");
-//   //   $(".record_stop").show();
-//   //   target.append("<canvas className='recording_draw hidden' width=640 height=480></canvas>");
-//   //   target.append("<video className='recording hidden' autoplay playsinline></video>");
-//   //   navigator.mediaDevices.getDisplayMedia(
-//   //     { video: { width: 9999, height: 9999 } }
-//   //   ).then(stream => {
-//   //     video = target.find("video.recording")[0];
-//   //     canvas = target.find("canvas.recording_draw")[0];
-//   //     io_master.recording = { frames: [], stream: stream };
-//   //     video.srcObject = stream;
-//   //     const ctx = canvas.getContext('2d');
-//   //     io_master.recording.interval = window.setInterval(() => {
-//   //       let first = (io_master.recording.width === undefined);
-//   //       if (first) {
-//   //         io_master.recording.width = video.videoWidth;
-//   //         io_master.recording.height = video.videoHeight;
-//   //         io_master.recording.start = Date.now();
-//   //         canvas.width = `${video.videoWidth}`;
-//   //         canvas.height = `${video.videoHeight}`;
-//   //       }
-//   //       ctx.drawImage(video, 0, 0);
-//   //       const imageData = ctx.getImageData(0, 0, io_master.recording.width, io_master.recording.height);
-//   //       io_master.recording.frames.push({
-//   //         imageData,
-//   //         timestamp: first ? 0 : Date.now() - this.startTime
-//   //       });
-//   //     }, 100);
-//   //   });
-//   // });
-//   // target.find(".record_stop").click(function () {
-//   //   window.clearInterval(io_master.recording.interval);
-//   //   io_master.recording.stream.getTracks().forEach(track => track.stop());
-//   //   const gif = new GifEncoder({
-//   //     width: io_master.recording.width,
-//   //     height: io_master.recording.height,
-//   //   });
-
-//   //   gif.once('finished', blob => {
-//   //     saveAs(URL.createObjectURL(blob), 'recording.gif');
-//   //   });
-
-//   //   const start = 0;
-//   //   const end = io_master.recording.frames.length - 1;
-
-//   //   const processFrame = index => {
-//   //     if (index > end) {
-//   //       gif.render();
-//   //       return;
-//   //     }
-//   //     let { imageData, timestamp } = io_master.recording.frames[index];
-//   //     const delay = index < end ? io_master.recording.frames[index + 1].timestamp - timestamp : 100;
-//   //     gif.addFrame(imageData, delay);
-//   //     setTimeout(() => processFrame(index + 1), 0);
-//   //   };
-//   //   processFrame(start);
-
-//   //   $(".screenshot, .record").show();
-//   //   $(".screenshot_logo").addClass("hidden");
-//   //   target.find("canvas.recording_draw").remove();
-//   //   target.find("video.recording").remove();
-//   // })
-//   // if (config.live) {
-//   //   io_master.gather();
-//   // } else {
-//   //   target.find(".submit").show();
-//   // }
-//   // if (!config.show_input) {
-//   //   target.find(".input_panel").hide();
-//   // }
-//   // function flash_flag() {
-//   //   target.find(".flag").addClass("flagged");
-//   //   target.find(".dropcontent").addClass("hidden");
-//   //   window.setTimeout(() => {
-//   //     target.find(".flag").removeClass("flagged");
-//   //     target.find(".dropcontent").removeClass("hidden");
-//   //   }, 500);
-
-//   // }
-//   // if (config.allow_flagging) {
-//   //   if (config.flagging_options) {
-//   //     target.find(".flag").addClass("dropdown");
-//   //     for (let option of config.flagging_options) {
-//   //       target.find(".dropcontent").append(`<div>${option}</div>`)
-//   //     }
-//   //     target.find(".flag .dropcontent div").click(function () {
-//   //       if (io_master.last_output) {
-//   //         target.find(".flag .dropcontent");
-//   //         flash_flag();
-//   //         io_master.flag($(this).text());
-//   //       }
-//   //     });
-
-//   //   } else {
-//   //     target.find(".flag").click(function () {
-//   //       if (io_master.last_output) {
-//   //         flash_flag();
-//   //         io_master.flag();
-//   //       }
-//   //     });
-//   //   }
-//   // }
-//   // if (config.hide_run_all) {
-//   //   $(".run_examples").hide();
-//   // }
-//   // target.find(".interpret").click(function () {
-//   //   target.find(".interpretation_explained").removeClass("hidden");
-//   //   if (io_master.last_output) {
-//   //     io_master.interpret();
-//   //   }
-//   // });
-//   // target.find(".run_examples").click(function () {
-//   //   if (!io_master.has_loaded_examples) {
-//   //     this.has_loaded_examples = true;
-//   //     let html = ""
-//   //     for (let i = 0; i < io_master.output_components.length; i++) {
-//   //       html += "<th>" + config.output_components[i][1]["label"] + "</th>";
-//   //     }
-//   //     target.find(".examples > table > thead > tr").append(html);
-//   //   }
-//   //   io_master.has_loaded_examples = true;
-//   //   io_master.submit_examples(load_page);
-//   // })
-
-//   // $(".input_panel").on("mouseover", ".alternate", function () {
-//   //   let interface_index = $(this).closest(".interface").attr("interface_id");
-//   //   let alternate_index = $(this).attr("alternate_index");
-//   //   io_master.alternative_interpret(interface_index, alternate_index);
-//   // })
-//   // $(".input_panel").on("mouseout", ".alternate", function () {
-//   //   io_master.alternative_interpret(false);
-//   // })
-
-//   // return io_master;
-// }
-// function gradio_url(config, url, target, example_file_path) {
-//   return gradio(config, function (data, action) {
-//     return new Promise((resolve, reject) => {
-//       return fetch(url + action + "/", {
-//         method: "POST", 
-//         data: JSON.stringify({ "data": data }),
-//       }).then(resolve)
-//     });
-//   }, target, example_file_path);
-// }
-// function saveAs(uri, filename) {
-//   var link = document.createElement('a');
-//   if (typeof link.download === 'string') {
-//     link.href = uri;
-//     link.download = filename;
-//     //Firefox requires the link to be in the body
-//     document.body.appendChild(link);
-//     //simulate click
-//     link.click();
-//     //remove the link when done
-//     document.body.removeChild(link);
-//   } else {
-//     window.open(uri);
-//   }
-// }
 
 export default GradioInterface;

@@ -1,7 +1,7 @@
 import React from 'react';
-import {DataURLComponentExample} from '../component_example';
+import ComponentExample from '../component_example';
 
-class ImageInput extends React.Component {
+class VideoInput extends React.Component {
   constructor(props) {
     super(props);
     this.handleChange = this.handleChange.bind(this);
@@ -24,18 +24,18 @@ class ImageInput extends React.Component {
     }
     if (this.props.value != null) {
       return (
-        <div className="input_image">
-          <div className="image_preview_holder">
-            <img className="image_preview" alt="" src={this.props.value}/>
+        <div className="input_video">
+          <div className="video_preview_holder">
+            <video className="video_preview" controls src={this.props.value}></video>
           </div>
         </div>)
     } else {
       return (
-      <div className="input_image" onDrag={no_action} onDragStart={no_action} onDragEnd={no_action} onDragOver={no_action} onDragEnter={no_action} onDragLeave={no_action} onDrop={no_action} >
+      <div className="input_video" onDrag={no_action} onDragStart={no_action} onDragEnd={no_action} onDragOver={no_action} onDragEnter={no_action} onDragLeave={no_action} onDrop={no_action} >
         <div className="upload_zone" onClick={this.openFileUpload} onDrop={this.load_preview_from_drop}>
-          Drop Image Here<br />- or -<br />Click to Upload
+          Drop Video Here<br />- or -<br />Click to Upload
         </div>
-        <input className="hidden_upload" type="file" ref={this.uploader} onChange={this.load_preview_from_upload} accept="image/x-png,image/gif,image/jpeg" style={{display: "none"}} />
+        <input className="hidden_upload" type="file" ref={this.uploader} onChange={this.load_preview_from_upload} accept="video/mp4,video/x-m4v,video/*" style={{display: "none"}} />
       </div>)
     }
   }
@@ -46,7 +46,7 @@ class ImageInput extends React.Component {
     this.load_preview_from_files(evt.target.files);
   }
   load_preview_from_files(files) {
-    if (!files.length || !window.FileReader || !/^image/.test(files[0].type)) {
+    if (!files.length || !window.FileReader || !/^video/.test(files[0].type)) {
       return;
     }
     var component = this;
@@ -58,10 +58,10 @@ class ImageInput extends React.Component {
   }
 }
 
-class ImageInputExample extends DataURLComponentExample {
+class VideoInputExample extends ComponentExample {
   render() {
-    return <img className="input_image_example" src={this.props.examples_dir + "/" + this.props.value} alt="" />
+    return <video className="input_radio_example" src={this.props.value} controls></video>
   }
 }
 
-export {ImageInput, ImageInputExample};
+export {VideoInput, VideoInputExample};

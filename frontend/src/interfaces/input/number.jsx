@@ -1,4 +1,5 @@
 import React from 'react';
+import ComponentExample from '../component_example';
 
 class NumberInput extends React.Component {
   constructor(props) {
@@ -13,8 +14,15 @@ class NumberInput extends React.Component {
     }
   }
   render() {
-      return <input type="text" className="input_number" onChange={this.handleChange} value={this.props.value || ""}></input>
+      return <input type="text" className="input_number" onChange={this.handleChange} value={this.props.value === null ? "" : this.props.value}></input>
   }
 }
 
-export default NumberInput;
+
+class NumberInputExample extends ComponentExample {
+  render() {
+    return <div className="input_number_example">{this.props.value}</div>
+  }
+}
+
+export {NumberInput, NumberInputExample};
