@@ -1,0 +1,23 @@
+<html>
+<head>
+  <title>Gradio Login</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/gradio.css') }}">
+  <meta name="viewport" content="width=device-width">
+</head>
+<body id="lib">
+  <div class="container">
+    <form id="login" method="POST" action="/login">
+      <h2>login</h2>     
+      {% if auth_message is not none %}
+      <p>{{ auth_message|safe }}</p>
+      {% endif %}
+      <label for="username">username</label>
+      <input type="text" name="username">
+      <label for="password">password</label>
+      <input type="password" name="password">
+      <input class="link" type="submit">
+    </form>
+  </div>
+</body>
+</html>
