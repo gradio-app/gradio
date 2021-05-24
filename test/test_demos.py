@@ -30,13 +30,6 @@ def wait_for_url(url):
         raise ConnectionError("Could not connect to interface.")
 
 
-def hide_latency(driver):
-    js = "document.getElementsByClassName('loading_time')[" \
-         "0].style.visibility = " \
-         "'hidden';"
-    driver.execute_script(js)
-
-
 def diff_texts_thread(return_dict):
     from demo.diff_texts import iface
     iface.save_to = return_dict
@@ -102,7 +95,7 @@ class TestDemo(unittest.TestCase):
         elem.click()
         elem = WebDriverWait(driver, TIMEOUT).until(
             EC.presence_of_element_located((By.CSS_SELECTOR,
-                                            ".panel:nth-child(2) .component:nth-child(1) .output_highlightedtext"))
+                                            ".panel:nth-child(2) .component:nth-child(1) .output_text"))
         )
 
         total_sleep = 0
@@ -115,7 +108,6 @@ class TestDemo(unittest.TestCase):
             "diff_texts", "magic_trick"))
         tmp = os.path.join(current_dir, "test/tmp/{}.png".format(
             random.getrandbits(32)))
-        hide_latency(driver)
         driver.save_screenshot(tmp)
         driver.close()
         self.assertIsNone(compare_images(tmp, golden_img, TOLERANCE))
@@ -127,7 +119,6 @@ class TestDemo(unittest.TestCase):
             EC.presence_of_element_located(
                 (By.CSS_SELECTOR, ".panel:nth-child(1) .component:nth-child(1) .hidden_upload"))
         )
-        hide_latency(driver)
         cwd = os.getcwd()
         rel = "demo/images/cheetah1.jpg"
         elem.send_keys(os.path.join(cwd, rel))
@@ -145,7 +136,6 @@ class TestDemo(unittest.TestCase):
                 (By.CSS_SELECTOR, ".panel:nth-child(2) .component:nth-child(1) .output_image"))
         )
 
-        hide_latency(driver)
         driver.save_screenshot(tmp)
         self.assertIsNone(compare_images(tmp, golden_img, TOLERANCE))
         os.remove(tmp)
@@ -177,7 +167,6 @@ class TestDemo(unittest.TestCase):
             "longest_word", "wonderful"))
         tmp = os.path.join(current_dir, "test/tmp/{}.png".format(
             random.getrandbits(32)))
-        hide_latency(driver)
         driver.save_screenshot(tmp)
         driver.close()
         self.assertIsNone(compare_images(tmp, golden_img, TOLERANCE))
@@ -200,12 +189,11 @@ class TestDemo(unittest.TestCase):
             total_sleep += 0.2
 
         self.assertEqual(
-            elem.text, "The 2 cats went to the park where they  until the night")
+            elem.text, "The 2 cats went to the park where they until the night")
         golden_img = os.path.join(current_dir, GOLDEN_PATH.format(
             "sentence_builder", "two_cats"))
         tmp = os.path.join(current_dir, "test/tmp/{}.png".format(
             random.getrandbits(32)))
-        hide_latency(driver)
         driver.save_screenshot(tmp)
         self.assertIsNone(compare_images(tmp, golden_img, TOLERANCE))
         os.remove(tmp)
