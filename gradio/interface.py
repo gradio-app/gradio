@@ -412,7 +412,7 @@ class Interface:
                 print("PASSED")
                 continue
 
-    def launch(self, inline=None, inbrowser=None, share=False, debug=False, auth=None, auth_message=None, private_endpoint=None):
+    def launch(self, inline=None, inbrowser=None, share=False, debug=False, auth=None, auth_message=None, private_endpoint=None, prevent_thread_lock=False):
         """
         Parameters:
         inline (bool): whether to display in the interface inline on python notebooks.
@@ -518,6 +518,10 @@ class Interface:
             while True:
                 sys.stdout.flush()
                 time.sleep(0.1)
+        is_in_interactive_mode = bool(getattr(sys, 'ps1', sys.flags.interactive))
+        if not prevent_thread_lock and not is_in_interactive_mode:
+            self.run_until_interrupted(thread, path_to_local_server)
+
 
         return app, path_to_local_server, share_url
 
