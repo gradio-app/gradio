@@ -53,7 +53,7 @@ let output_component_map = {
   "html": [HTMLOutput, HTMLOutputExample],
   "image": [ImageOutput, ImageOutputExample],
   "json": [JSONOutput, JSONOutputExample],
-  "key_values": [KeyValuesOutput, KeyValuesOutputExample],
+  "keyvalues": [KeyValuesOutput, KeyValuesOutputExample],
   "label": [LabelOutput, LabelOutputExample],
   "textbox": [TextboxOutput, TextboxOutputExample],
   "video": [VideoOutput, VideoOutputExample],
@@ -64,6 +64,7 @@ export class GradioInterface extends React.Component {
     super(props);
     this.clear = this.clear.bind(this);
     this.submit = this.submit.bind(this);
+    this.flag = this.flag.bind(this);
     this.handleExampleChange = this.handleExampleChange.bind(this);
     this.state = this.get_default_state();
     this.state["examples_page"] = 0;
@@ -84,8 +85,10 @@ export class GradioInterface extends React.Component {
     for (let [i, component] of this.props.output_components.entries()) {
       state[index_start + i] = component.default !== undefined ? component.default : null;
     }
-    state["predicting"] = false;
+    state["submitting"] = false;
     state["error"] = false;
+    state["complete"] = false;
+    state["just_flagged"] = false;
     state["has_changed"] = false;
     state["example_id"] = null;
     return state;
@@ -107,11 +110,34 @@ export class GradioInterface extends React.Component {
       for (let [i, value] of output["data"].entries()) {
         this.setState({ [index_start + i]: value });
       }
-      this.setState({ "submitting": false });
+      this.setState({ "submitting": false, "complete": true });
       if (this.state.has_changed) {
         this.submit();
       }
+    }).catch(e => {
+      console.error(e);
+      this.setState({
+        "error": true,
+        "submitting": false
+      });
     });
+  }
+  flag() {
+    if (!this.state.complete) {
+      return;
+    }
+    let component_state = { "input_data": [], "output_data": [] };
+    for (let i = 0; i < this.props.input_components.length; i++) {
+      component_state["input_data"].push(this.state[i]);
+    }
+    for (let i = 0; i < this.props.output_components.length; i++) {
+      component_state["output_data"].push(this.state[this.props.input_components.length + i]);
+    }
+    this.setState({ "just_flagged": true });
+    window.setTimeout(() => {
+      this.setState({ "just_flagged": false });
+    }, 1000)
+    this.props.fn(component_state, "flag");
   }
   handleChange(_id, value) {
     let state_change = { [_id]: value, "has_changed": true };
@@ -123,7 +149,7 @@ export class GradioInterface extends React.Component {
   }
   handleExampleChange(example_id) {
     let state_change = {};
-    this.setState({"example_id": example_id});
+    this.setState({ "example_id": example_id });
     for (let [i, item] of this.props.examples[example_id].entries()) {
       let ExampleComponent = i < this.props.input_components.length ? input_component_map[this.props.input_components[i].name][1] : output_component_map[this.props.output_components[i - this.props.input_components.length].name][1]
       state_change[i] = ExampleComponent.preprocess(item, this.examples_dir).then((data) => {
@@ -138,7 +164,7 @@ export class GradioInterface extends React.Component {
     let status = false;
     if (this.state.submitting) {
       status = (<div className="loading">
-        <img className="h-4" alt="loading" src={logo_loading} />
+        <img alt="loading" src={logo_loading} />
       </div>)
     } else if (this.state.error) {
       status = (<div className="loading">
@@ -166,9 +192,9 @@ export class GradioInterface extends React.Component {
               })}
             </div>
             <div className="panel_buttons">
-              <button className="panel_button" onClick={this.clear.bind(this)}>Clear</button>
+              <button className="panel_button" onClick={this.clear}>Clear</button>
               {this.props.live ? false :
-                <button className="panel_button submit" onClick={this.submit.bind(this)}>Submit</button>
+                <button className="panel_button submit" onClick={this.submit}>Submit</button>
               }
             </div>
           </div>
@@ -205,25 +231,15 @@ export class GradioInterface extends React.Component {
                 </div>
                 : false}
               {this.props.allow_flagging ?
-                <button className="panel_button">
-                  Flag
-              {/* <div className="dropcontent"></div> */}
+                <button className={classNames("panel_button", { "disabled": this.state.complete === false })}
+                  onClick={this.flag}>
+                  {this.state.just_flagged ? "Flagged" : "Flag"}
+                  {/* <div className="dropcontent"></div> */}
                 </button>
                 : false}
             </div>
           </div>
         </div>
-        {this.state.show_interpretation ?
-          <div className="interpretation_explained">
-            <h4>Interpretation Legend <span className='close_explain'>&#10006;</span></h4>
-            <div className='interpretation_legend'>
-              <div>&larr; Decreased output score / confidence</div>
-              <div>Increased output score / confidence &rarr;</div>
-            </div>
-            <p>When you click Interpret, you can see how different parts of the input contributed to the final output. The legend above will highlight each of the input components as follows:</p>
-            <ul></ul>
-          </div>
-          : false}
         {this.props.examples ? <GradioInterfaceExamples examples={this.props.examples} examples_dir={this.examples_dir} example_id={this.state.example_id} input_components={this.props.input_components} output_components={this.props.output_components} handleExampleChange={this.handleExampleChange} /> : false}
         {article}
       </div>
@@ -246,7 +262,7 @@ class GradioInterfaceExamples extends React.Component {
         </button>
       </div>
       <div className="pages hidden">Page:</div>
-      <table>
+      <table className="examples_table">
         <thead>
           <tr>
             {this.props.input_components.map((component, i) => {
