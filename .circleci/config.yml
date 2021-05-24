@@ -16,6 +16,11 @@ jobs:
             pip install --upgrade pip
             pip install -r gradio.egg-info/requires.txt
             pip install selenium==4.0.0a6.post2
+      - browser-tools/install-chromedriver
+      - run:
+          command: |
+            chromedriver --version
+          name: Check chrome driver install
       - save_cache:
           key: deps1-{{ .Branch }}-{{ checksum "gradio.egg-info/requires.txt" }}
           paths:
