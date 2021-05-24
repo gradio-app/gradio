@@ -463,8 +463,8 @@ class Interface:
             # Embed the remote interface page if on google colab; otherwise, embed the local page.
             print(strings.en["INLINE_DISPLAY_BELOW"])
             if share:
-                while not networking.url_ok(share_url):
-                    time.sleep(1)
+                # while not networking.url_ok(share_url):
+                #     time.sleep(1)
                 display(IFrame(share_url, width=1000, height=500))
             else:
                 display(IFrame(path_to_local_server, width=1000, height=500))

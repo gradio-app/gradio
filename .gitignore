@@ -26,3 +26,4 @@ demo/flagged
 test.txt
 build/
 gradio/launches.json
+gradio/frontend/

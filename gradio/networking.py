@@ -33,8 +33,8 @@ LOCALHOST_NAME = os.getenv(
 GRADIO_API_SERVER = "https://api.gradio.app/v1/tunnel-request"
 GRADIO_FEATURE_ANALYTICS_URL = "https://api.gradio.app/gradio-feature-analytics/"
 
-STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "templates/")
-STATIC_PATH_LIB = pkg_resources.resource_filename("gradio", "static/")
+STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "frontend/")
+STATIC_PATH_LIB = pkg_resources.resource_filename("gradio", "frontend/static")
 GRADIO_STATIC_ROOT = "https://gradio.app"
 
 app = Flask(__name__,
@@ -88,15 +88,10 @@ def home_page(examples=None, path=None):
         css=app.interface.css, examples=examples, path=path
     )
 
+
 @app.route("/", methods=["GET"])
 def main():
-    return render_template("index2.html", config=app.interface.config)
-
-# @app.route("/", methods=["GET"])
-# def main():
-#     if isinstance(app.interface.examples, str):
-#         return redirect("/from_dir/" + app.interface.examples)
-#     return home_page()
+    return home_page()
 
 @app.route("/from_dir", methods=["GET"])
 def main_from_flagging_dir():
