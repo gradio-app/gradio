@@ -14,7 +14,6 @@ from gradio.component import Component
 import base64
 import numpy as np
 import PIL
-from skimage.segmentation import slic
 import scipy.io.wavfile
 from gradio import processing_utils, test_data
 import pandas as pd
@@ -182,7 +181,7 @@ class Textbox(InputComponent):
             result.append((self.interpretation_separator, 0))
         return result
 
-    def _embed_text(text):
+    def _embed_text(self, text):
         """
         Figures out a "reasonable" embedding for any particular text. Did it this way to avoid loading any 
         external machine learning models, which would be slow and require additional dependencies.
@@ -196,7 +195,7 @@ class Textbox(InputComponent):
         Embeds an arbitrary text based on word frequency
         """
         if self.type == "str":
-            return _embed_text(x)
+            return self._embed_text(x)
         elif self.type == "number":
             return [float(x)]
         else:
@@ -486,7 +485,7 @@ class CheckboxGroup(InputComponent):
         else:
             raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'value', 'index'.")
 
-    def save_flagged(self, dir, label, data):
+    def save_flagged(self, dir, label, data, encryption_key):
         """
         Returns: (List[str]])
         """
@@ -703,6 +702,11 @@ class Image(InputComponent):
         if self.shape is not None:
             x = processing_utils.resize_and_crop(x, self.shape)
         image = np.array(x)
+        try:
+            from skimage.segmentation import slic
+        except ImportError:
+            print("Error: running default interpretation for images requires scikit-image, please install it first.")
+            return
         segments_slic = slic(image, self.interpretation_segments, compactness=10, sigma=1)
         leave_one_out_tokens, masks = [], []
         replace_color = np.mean(image, axis=(0, 1))
@@ -747,11 +751,11 @@ class Image(InputComponent):
         im = processing_utils.resize_and_crop(im, (shape[0], shape[1]))
         return np.asarray(im).flatten()
 
-    def save_flagged(self, dir, label, data):
+    def save_flagged(self, dir, label, data, encryption_key):
         """
         Returns: (str) path to image file
         """
-        return self.save_flagged_file(dir, label, data)
+        return self.save_flagged_file(dir, label, data, encryption_key)
 
 
 class Video(InputComponent):
@@ -796,11 +800,11 @@ class Video(InputComponent):
     def preprocess_example(self, x):
         return processing_utils.encode_file_to_base64(x)
 
-    def save_flagged(self, dir, label, data):
+    def save_flagged(self, dir, label, data, encryption_key):
         """
         Returns: (str) path to video file
         """
-        return self.save_flagged_file(dir, label, data)
+        return self.save_flagged_file(dir, label, data, encryption_key)
 
 class Audio(InputComponent):
     """
@@ -901,11 +905,11 @@ class Audio(InputComponent):
         else:
             raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'numpy', 'mfcc', 'file'.")
 
-    def save_flagged(self, dir, label, data):
+    def save_flagged(self, dir, label, data, encryption_key):
         """
         Returns: (str) path to audio file
         """
-        return self.save_flagged_file(dir, label, data)
+        return self.save_flagged_file(dir, label, data, encryption_key)
 
 
 class File(InputComponent):
@@ -967,6 +971,16 @@ class File(InputComponent):
                 return process_single_file(x)
         else:
             return [process_single_file(f) for f in x]
+
+
+    def embed(self, x):
+        raise NotImplementedError("File doesn't currently support embeddings")
+
+    def save_flagged(self, dir, label, data, encryption_key):
+        """
+        Returns: (str) path to file
+        """
+        return self.save_flagged_file(dir, label, data["data"], encryption_key)
 
 
 class Dataframe(InputComponent):
@@ -1065,7 +1079,7 @@ class Dataframe(InputComponent):
     def embed(self, x):
         raise NotImplementedError("DataFrame doesn't currently support embeddings")
 
-    def save_flagged(self, dir, label, data):
+    def save_flagged(self, dir, label, data, encryption_key):
         """
         Returns: (List[List[Union[str, float]]]) 2D array
         """

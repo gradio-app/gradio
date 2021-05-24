@@ -118,10 +118,29 @@ class TestFile(unittest.TestCase):
 
         iface = gr.Interface(
             get_size_of_file, "file", "number")
-        self.assertEqual(iface.process([x_file])[0], [16362])
+        self.assertEqual(iface.process([[x_file]])[0], [16362])
 
 
 class TestDataframe(unittest.TestCase):
+    def test_as_component(self):
+        x_data = [["Tim",12,False],["Jan",24,True]]
+        dataframe_input = gr.inputs.Dataframe(headers=["Name","Age","Member"])
+        output = dataframe_input.preprocess(x_data)
+        self.assertEqual(output["Age"][1], 24)
+        self.assertEqual(output["Member"][0], False)
+
+    def test_in_interface(self):
+        x_data = [[1,2,3],[4,5,6]]
+        iface = gr.Interface(np.max, "numpy", "number")
+        self.assertEqual(iface.process([x_data])[0], [6])
+
+        x_data = [["Tim"], ["Jon"], ["Sal"]]
+        def get_last(l):
+            return l[-1]
+        iface = gr.Interface(get_last, "list", "text")
+        self.assertEqual(iface.process([x_data])[0], ["Sal"])
+
+class TestSequential(unittest.TestCase):
     def test_as_component(self):
         x_data = [["Tim",12,False],["Jan",24,True]]
         dataframe_input = gr.inputs.Dataframe(headers=["Name","Age","Member"])

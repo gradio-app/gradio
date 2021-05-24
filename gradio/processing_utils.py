@@ -5,7 +5,7 @@ import tempfile
 import scipy.io.wavfile
 from scipy.fftpack import dct
 import numpy as np
-# from gradio import encryptor
+from gradio import encryptor
 
 #########################
 # IMAGE PRE-PROCESSING
