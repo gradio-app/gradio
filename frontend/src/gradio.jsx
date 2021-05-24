@@ -98,7 +98,7 @@ export class GradioInterface extends React.Component {
       }
       input_state[i] = this.state[i];
     }
-    this.setState({ "submitting": true, "has_changed": false });
+    this.setState({ "submitting": true, "has_changed": false, "error": false });
     this.props.fn(input_state, "predict").then((output) => {
       let index_start = this.props.input_components.length;
       for (let [i, value] of output["data"].entries()) {

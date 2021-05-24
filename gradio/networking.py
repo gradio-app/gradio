@@ -38,12 +38,12 @@ GRADIO_FEATURE_ANALYTICS_URL = "https://api.gradio.app/gradio-feature-analytics/
 
 STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "frontend/")
 STATIC_PATH_LIB = pkg_resources.resource_filename("gradio", "frontend/static")
-GRADIO_STATIC_ROOT = "https://gradio.app"
+GRADIO_STATIC_ROOT = "https://gradio.app/static/"
 
 app = Flask(__name__,
             template_folder=STATIC_TEMPLATE_LIB,
-            static_folder=STATIC_PATH_LIB,
-            static_url_path="/static/")
+            static_folder="",
+            static_url_path="/none/")
 CORS(app)
 cache_buster = CacheBuster(
     config={'extensions': ['.js', '.css'], 'hash_size': 5})
@@ -124,8 +124,14 @@ def get_first_available_port(initial, final):
 @app.route("/", methods=["GET"])
 @login_check
 def main():
-    return render_template("index.html")
+    return render_template("index.html", config=app.interface.config)
 
+@app.route("/static/<path:path>", methods=["GET"])
+def static_resource(path):
+    if app.interface.share:
+        return redirect(GRADIO_STATIC_ROOT + path)
+    else:
+        return send_file(os.path.join(STATIC_PATH_LIB, path))
 
 @app.route('/login', methods=["GET", "POST"])
 def login():
