@@ -30,8 +30,12 @@ gradio/frontend/static/bundle.css.map
 gradio/frontend/static/bundle.js
 gradio/frontend/static/bundle.js.LICENSE.txt
 gradio/frontend/static/bundle.js.map
+gradio/frontend/static/css/0.3c510f42.chunk.css
+gradio/frontend/static/css/0.3c510f42.chunk.css.map
 gradio/frontend/static/css/0.chunk.css
 gradio/frontend/static/css/0.chunk.css.map
+gradio/frontend/static/css/main.c6f1eff9.css
+gradio/frontend/static/css/main.c6f1eff9.css.map
 gradio/frontend/static/js/0.chunk.js
 gradio/frontend/static/js/0.chunk.js.map
 gradio/frontend/static/media/logo_loading.e93acd82.jpg

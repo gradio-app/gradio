@@ -25,7 +25,7 @@
     gtag('js', new Date());
     gtag('config', 'UA-156449732-1');
     try {
-      window.config = JSON.parse("{{ config|tojson }}");
+      window.config = {{ config|tojson }};
     } catch (e) {
       window.config = {};
     }
