@@ -26,4 +26,4 @@ iface = gr.Interface(calculator,
 )
 
 if __name__ == "__main__":
-    iface.launch(share=True)
+    iface.launch()
