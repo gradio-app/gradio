@@ -60,7 +60,7 @@
             @apply bg-gray-100 hover:bg-gray-200 p-2;
         }
         .examples_table {
-            @apply table-auto p-2 bg-gray-100 mt-4 rounded;
+            @apply table-auto p-2 bg-gray-50 mt-4 rounded;
             tbody tr {
                 @apply cursor-pointer;
             }
@@ -196,7 +196,7 @@
             @apply rounded-t;
         }
         .dropdown_item {
-            @apply bg-gray-100 hover:bg-gray-400 hover:text-gray-50 py-2 px-4 block whitespace-nowrap cursor-pointer;
+            @apply bg-gray-50 hover:bg-gray-400 hover:text-gray-50 py-2 px-4 block whitespace-nowrap cursor-pointer;
         }
         .dropdown_item:last-child {
             @apply rounded-b;

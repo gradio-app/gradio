@@ -10,8 +10,8 @@ iface = gr.Interface(
     sentence_builder,
     [
         gr.inputs.Slider(2, 20),
-        gr.inputs.Dropdown(["cat", "dog", "bird", "ran", "swam", "ate", "slept"]),
-        gr.inputs.Dropdown(["park", "zoo", "road"]),
+        gr.inputs.Dropdown(["cat", "dog", "bird"]),
+        gr.inputs.Radio(["park", "zoo", "road"]),
         gr.inputs.CheckboxGroup(["ran", "swam", "ate", "slept"]),
         gr.inputs.Checkbox(label="Is it the morning?"),
     ],
@@ -26,4 +26,4 @@ iface = gr.Interface(
     )
 
 if __name__ == "__main__":
-    iface.launch(share=True)
+    iface.launch()
