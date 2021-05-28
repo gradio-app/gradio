@@ -194,7 +194,7 @@
             @apply fill-current h-4 w-4;
         }
         .dropdown_menu {
-            @apply absolute hidden text-gray-700 pt-1 max-h-80 overflow-y-auto;
+            @apply absolute hidden text-gray-700 pt-1 max-h-80 overflow-y-auto z-10;
         }
         .dropdown_item:first-child {
             @apply rounded-t;

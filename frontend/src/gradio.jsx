@@ -26,7 +26,7 @@ import { LabelOutput, LabelOutputExample } from './interfaces/output/label';
 import { TextboxOutput, TextboxOutputExample } from './interfaces/output/textbox';
 import { VideoOutput, VideoOutputExample } from './interfaces/output/video';
 
-import logo_loading from './static/img/logo_loading.gif'
+import logo_loading from './static/img/logo_loading.jpg'
 import logo_error from './static/img/logo_error.png'
 import('./themes/defaults.scss');
 import('./themes/huggingface.scss');

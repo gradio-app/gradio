@@ -1,6 +1,6 @@
 {
-  "name": "testapp",
-  "version": "0.1.0",
+  "name": "gradio",
+  "version": "1.0.0",
   "private": true,
   "dependencies": {
     "@craco/craco": "^6.1.2",
@@ -17,11 +17,12 @@
     "react-scripts": "4.0.3",
     "react-webcam": "^5.2.3",
     "sass": "^1.32.8",
-    "web-vitals": "^1.1.1"
+    "web-vitals": "^1.1.1",
+    "webpack": "^4.44.2"
   },
   "scripts": {
     "start": "REACT_APP_BACKEND_URL='http://localhost:7860' craco start",
-    "build": "BUILD_PATH='../gradio/frontend' REACT_APP_BACKEND_URL='' craco build",
+    "build": "REACT_APP_BACKEND_URL='' craco build",
     "test": "craco test",
     "eject": "react-scripts eject"
   },
@@ -45,6 +46,7 @@
   },
   "devDependencies": {
     "autoprefixer": "^9.8.6",
+    "mini-css-extract-plugin": "^0.11.3",
     "postcss": "^7.0.35",
     "tailwindcss": "npm:@tailwindcss/postcss7-compat@^2.1.2"
   }
