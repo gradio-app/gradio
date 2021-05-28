@@ -6,7 +6,7 @@ module.exports = {
   webpack: {
     plugins: [
       new webpack.optimize.LimitChunkCountPlugin({
-        maxChunks: 2,
+        maxChunks: 1,
       }),
       new MiniCssExtractPlugin({
         filename: "static/bundle.css",
