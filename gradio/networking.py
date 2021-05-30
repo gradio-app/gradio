@@ -38,7 +38,9 @@ GRADIO_FEATURE_ANALYTICS_URL = "https://api.gradio.app/gradio-feature-analytics/
 
 STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "frontend/")
 STATIC_PATH_LIB = pkg_resources.resource_filename("gradio", "frontend/static")
-GRADIO_STATIC_ROOT = "https://cdn.jsdelivr.net/gh/gradio-app/gradio/gradio/frontend/static/"
+VERSION_FILE = pkg_resources.resource_filename("gradio", "version.txt")
+with open(VERSION_FILE) as version_file:
+    GRADIO_STATIC_ROOT = "https://gradio.s3-us-west-2.amazonaws.com/" + version_file.read().strip() + "/static/"
 
 app = Flask(__name__,
             template_folder=STATIC_TEMPLATE_LIB,

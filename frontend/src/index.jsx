@@ -13,18 +13,24 @@ let fn = async (data, action) => {
   return await output.json();
 }
 
-if (process.env.REACT_APP_BACKEND_URL) { // dev mode
-  fetch(process.env.REACT_APP_BACKEND_URL + "/config")
-    .then(config => config.json())
-    .then(config => {
-      ReactDOM.render(
-        <GradioInterface {...config} fn={fn} />,
-        document.getElementById('root')
-      );
-    })
-} else { // prod mode
+async function get_config() {
+  if (process.env.REACT_APP_BACKEND_URL) { // dev mode
+    let config = await fetch(process.env.REACT_APP_BACKEND_URL + "/config");
+    config = await config.json()
+    return config;
+  } else {
+    return window.config;
+  }  
+}
+
+get_config().then(config => {
   ReactDOM.render(
-    <GradioInterface {...window.config} fn={fn} />,
+    <div class="gradio_page">
+      {config.title ? <h1 className="title">{config.title}</h1> : false}
+      {config.description ? <p className="description">{config.description}</p> : false}
+      <GradioInterface {...config} fn={fn} />
+      {config.article ? <p className="article prose" dangerouslySetInnerHTML={{"__html": config.article}} /> : false}
+    </div>,
     document.getElementById('root')
   );
-}
+})

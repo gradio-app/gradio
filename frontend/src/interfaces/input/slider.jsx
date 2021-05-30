@@ -11,7 +11,7 @@ class SliderInput extends React.Component {
   }
   render() {
       return (<div className="input_slider">
-        <input type="range" className="range" onChange={this.handleChange} value={this.props.value} min={this.props.minimum} max={this.props.maximum}></input>
+        <input type="range" className="range" onChange={this.handleChange} value={this.props.value} min={this.props.minimum} max={this.props.maximum} step={this.props.step}></input>
         <div className="value">{this.props.value}</div>
       </div>)
   }
