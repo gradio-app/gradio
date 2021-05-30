@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-.gradio_interface[theme="huggingface"] {
+.gradio_page {
     @apply container mx-auto my-4;
     .title {
         @apply text-center p-4 text-4xl;
@@ -10,6 +10,12 @@
     .description {
         @apply pb-4;
     }
+    .article {
+        @apply pt-8 pb-4 max-w-none;        
+    }
+}
+
+.gradio_interface[theme="huggingface"] {
     .loading {
         @apply absolute right-1;
     }
