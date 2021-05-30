@@ -152,9 +152,6 @@ export class GradioInterface extends React.Component {
     }
   }
   render() {
-    let title = this.props.title ? <h1 className="title">{this.props.title}</h1> : false;
-    let description = this.props.description ? <p className="description">{this.props.description}</p> : false;
-    let article = this.props.article ? <p className="article">{this.props.article}</p> : false;
     let status = false;
     if (this.state.submitting) {
       status = (<div className="loading">
@@ -167,8 +164,6 @@ export class GradioInterface extends React.Component {
     }
     return (
       <div className="gradio_interface" theme={this.props.theme}>
-        {title}
-        {description}
         <div className={classNames("panels", {
           "items-start": this.props.layout === "unaligned",
           "items-stretch": this.props.layout !== "unaligned",
@@ -235,7 +230,6 @@ export class GradioInterface extends React.Component {
           </div>
         </div>
         {this.props.examples ? <GradioInterfaceExamples examples={this.props.examples} examples_dir={this.examples_dir} example_id={this.state.example_id} input_components={this.props.input_components} output_components={this.props.output_components} handleExampleChange={this.handleExampleChange} /> : false}
-        {article}
       </div>
     )
   }

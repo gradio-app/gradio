@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-.gradio_interface[theme="default"] {
+.gradio_page {
     @apply container mx-auto my-4;
     .title {
         @apply text-center p-4 text-4xl;
@@ -10,6 +10,12 @@
     .description {
         @apply pb-4;
     }
+    .article {
+        @apply pt-8 pb-4 max-w-none;        
+    }
+}
+
+.gradio_interface[theme="default"] {
     .loading {
         @apply absolute right-1;
     }
@@ -32,7 +38,7 @@
         @apply flex-grow p-3 rounded bg-gray-50 hover:bg-gray-100 transition font-semibold focus:outline-none;
     }
     .panel_button.disabled {
-        @apply text-gray-400 cursor-not-allowed;         
+        @apply text-gray-400 cursor-not-allowed;
     }
     .panel_button.submit {
         @apply bg-yellow-500 hover:bg-yellow-400 text-white;
@@ -79,7 +85,8 @@
             tbody tr.selected {
                 @apply font-bold;
             }
-            td, th {
+            td,
+            th {
                 @apply py-2 px-4;
             }
         }
@@ -105,7 +112,8 @@
         .sketch > div {
             @apply bg-white;
         }
-        .image_preview, video {
+        .image_preview,
+        video {
             @apply w-full h-full object-contain;
         }
         .snapshot {
@@ -308,7 +316,7 @@
                 @apply flex gap-2;
             }
             .colorbox {
-                @apply w-6;                
+                @apply w-6;
             }
         }
     }
@@ -318,7 +326,8 @@
             thead {
                 @apply font-bold;
             }
-            td, th {
+            td,
+            th {
                 @apply p-2;
             }
         }
