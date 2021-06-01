@@ -33,8 +33,12 @@ gradio/frontend/static/bundle.js.LICENSE.txt
 gradio/frontend/static/bundle.js.map
 gradio/frontend/static/css/main.20be28ac.css
 gradio/frontend/static/css/main.20be28ac.css.map
+gradio/frontend/static/css/main.380e3222.css
+gradio/frontend/static/css/main.380e3222.css.map
 gradio/frontend/static/css/main.99922310.css
 gradio/frontend/static/css/main.99922310.css.map
+gradio/frontend/static/css/main.acb02c85.css
+gradio/frontend/static/css/main.acb02c85.css.map
 gradio/frontend/static/media/logo_loading.e93acd82.jpg
 gradio/templates/login.html
 test/test_demos.py
