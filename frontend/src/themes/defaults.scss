@@ -276,7 +276,8 @@
     }
     /* Output Components */
     .output_text {
-        @apply w-full bg-white border-gray-400 rounded box-border p-1;
+        word-break: break-word;
+        @apply w-full bg-white border-gray-400 rounded box-border p-1 whitespace-pre-wrap;
     }
     .output_label {
         .output_class {
