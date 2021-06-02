@@ -4,7 +4,9 @@ import ComponentExample from '../component_example';
 class ImageOutput extends React.Component {
   render() {
     return this.props.value ? <div className="output_image">
-      <img alt="" src={this.props.value[0]}></img>
+      <div class="image_preview_holder">
+        <img class="image_preview" alt="" src={this.props.value[0]}></img>
+      </div>
     </div> : false;
   }
 }
@@ -15,4 +17,4 @@ class ImageOutputExample extends ComponentExample {
   }
 }
 
-export {ImageOutput, ImageOutputExample};
+export { ImageOutput, ImageOutputExample };
