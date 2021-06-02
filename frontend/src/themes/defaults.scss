@@ -109,12 +109,12 @@
         .image_preview_holder {
             @apply w-full h-full flex justify-center items-center bg-gray-200 relative inline-block;
         }
-        .sketch > div {
-            @apply bg-white;
-        }
         .image_preview,
         video {
             @apply w-full h-full object-contain;
+        }
+        .sketch > div {
+            @apply bg-white;
         }
         .snapshot {
             @apply absolute bottom-0 w-full bg-white bg-opacity-90 py-3 font-bold text-lg text-center;
@@ -300,9 +300,13 @@
         }
     }
     .output_image {
-        @apply w-full h-80 object-contain flex justify-center;
-        img {
-            @apply h-full;
+        @apply w-full h-80;
+        .image_preview_holder {
+            @apply w-full h-full flex justify-center items-center bg-gray-200 relative inline-block;
+        }
+        .image_preview,
+        video {
+            @apply w-full h-full object-contain;
         }
     }
     .output_audio {
