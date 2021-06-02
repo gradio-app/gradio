@@ -296,9 +296,13 @@
         }
     }
     .output_image {
-        @apply w-full h-80 object-contain flex justify-center;
-        img {
-            @apply h-full;
+        @apply w-full h-80;
+        .image_preview_holder {
+            @apply w-full h-full flex justify-center items-center bg-gray-200 relative inline-block;
+        }
+        .image_preview,
+        video {
+            @apply w-full h-full object-contain;
         }
     }
     .output_audio {
