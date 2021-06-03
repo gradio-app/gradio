@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import GradioInterface from './gradio';
 
 let fn = async (data, action) => {
-  const output = await fetch(process.env.REACT_APP_BACKEND_URL + "/api/" + action + "/", {
+  const output = await fetch(process.env.REACT_APP_BACKEND_URL + "api/" + action + "/", {
     method: "POST",
     body: JSON.stringify({ "data": data }),
     headers: {
@@ -15,7 +15,7 @@ let fn = async (data, action) => {
 
 async function get_config() {
   if (process.env.REACT_APP_BACKEND_URL) { // dev mode
-    let config = await fetch(process.env.REACT_APP_BACKEND_URL + "/config");
+    let config = await fetch(process.env.REACT_APP_BACKEND_URL + "config");
     config = await config.json()
     return config;
   } else {

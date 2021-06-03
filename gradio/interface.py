@@ -66,7 +66,7 @@ class Interface:
     def __init__(self, fn, inputs=None, outputs=None, verbose=False, examples=None,
                  examples_per_page=10, live=False,
                  layout="horizontal", show_input=True, show_output=True,
-                 capture_session=False, interpretation=None, theme="default", repeat_outputs_per_model=True,
+                 capture_session=False, interpretation=None, theme=None, repeat_outputs_per_model=True,
                  title=None, description=None, article=None, thumbnail=None, 
                  css=None, server_port=None, server_name=networking.LOCALHOST_NAME, height=500, width=900,
                  allow_screenshot=True, allow_flagging=True, flagging_options=None, encrypt=False,
@@ -155,7 +155,7 @@ class Interface:
             article = markdown2.markdown(article)
         self.article = article
         self.thumbnail = thumbnail
-        self.theme = theme
+        self.theme = theme if theme is not None else os.getenv("GRADIO_THEME", "default")
         self.height = height
         self.width = width
         if css is not None and os.path.exists(css):
