@@ -22,7 +22,7 @@
     "webpack": "^4.44.2"
   },
   "scripts": {
-    "start": "REACT_APP_BACKEND_URL='http://localhost:7860' craco start",
+    "start": "REACT_APP_BACKEND_URL='http://localhost:7860/' craco start",
     "build": "REACT_APP_BACKEND_URL='' craco build",
     "test": "craco test",
     "eject": "react-scripts eject"

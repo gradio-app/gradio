@@ -24,6 +24,7 @@ module.exports = {
       },
       entry: './src/index',
       output: {
+        publicPath: "",
         path: path.resolve(__dirname, '../gradio/frontend'),
         filename: "static/bundle.js",
         chunkFilename: "static/js/[name].chunk.js",
