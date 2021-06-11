@@ -550,7 +550,7 @@ class Interface:
 
     def integrate(self, comet_ml=None):
         if self.share_url is not None:
-            comet_ml.log_text(self.share_url)
+            comet_ml.log_text("gradio: " + self.share_url)
             comet_ml.end()
         else:
             comet_ml.log_text(self.local_url)
