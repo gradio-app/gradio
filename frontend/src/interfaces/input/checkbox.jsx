@@ -1,6 +1,7 @@
 import React from 'react';
 import ComponentExample from '../component_example';
 import classNames from "classnames";
+import { getSaliencyColor } from '../utils';
 
 class CheckboxInput extends React.Component {
   constructor(props) {
@@ -15,12 +16,23 @@ class CheckboxInput extends React.Component {
       <div className={classNames("checkbox_item", {
         "selected": this.props.value
       })} onClick={this.handleChange}>
-        <div className="checkbox">
-          <svg className="check" viewBox="-10 -10 20 20">
-            <line x1="-7.5" y1="0" x2="-2.5" y2="5"></line>
-            <line x1="-2.5" y1="5" x2="7.5" y2="-7.5"></line>
-          </svg>
-        </div>
+        {this.props.interpretation === null ?
+          <div className="checkbox">
+            <svg className="check" viewBox="-10 -10 20 20">
+              <line x1="-7.5" y1="0" x2="-2.5" y2="5"></line>
+              <line x1="-2.5" y1="5" x2="7.5" y2="-7.5"></line>
+            </svg>
+          </div>
+          :
+          <div class="interpretation">
+            <div class="interpretation_box" style={{ "backgroundColor": getSaliencyColor(this.props.interpretation[0]) }}></div>
+            <div class="interpretation_box" style={{ "backgroundColor": getSaliencyColor(this.props.interpretation[1]) }}>
+              <svg className="interpret_check" viewBox="-10 -10 20 20">
+                <line x1="-7.5" y1="0" x2="-2.5" y2="5"></line>
+                <line x1="-2.5" y1="5" x2="7.5" y2="-7.5"></line>
+              </svg>
+            </div>
+          </div>}
       </div>
     </div>)
   }
@@ -32,4 +44,4 @@ class CheckboxInputExample extends ComponentExample {
   }
 }
 
-export {CheckboxInput, CheckboxInputExample};
+export { CheckboxInput, CheckboxInputExample };
