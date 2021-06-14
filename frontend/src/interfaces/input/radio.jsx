@@ -1,6 +1,7 @@
 import React from 'react';
 import ComponentExample from '../component_example';
 import classNames from "classnames";
+import { getSaliencyColor } from '../utils';
 
 class RadioInput extends React.Component {
   constructor(props) {
@@ -11,16 +12,21 @@ class RadioInput extends React.Component {
     this.props.handleChange(selected_item);
   }
   render() {
-      return (<div className="input_radio">
-        {this.props.choices.map((item, index) => {
-          return <div className={classNames("radio_item", {
+    return (<div className="input_radio">
+      {this.props.choices.map((item, index) => {
+        return <div key={index}>
+          <div className={classNames("radio_item", {
             "selected": item === this.props.value
-          })} onClick={this.handleChange.bind(this, item)} key={index}>
-            <div className="radio_circle"></div>
+          })} onClick={this.handleChange.bind(this, item)}>
+            {this.props.interpretation === null ?
+              <div className="radio_circle"></div> :
+              <div className="radio_circle" style={{"backgroundColor": getSaliencyColor(this.props.interpretation[index])}}></div>
+            }
             {item}
           </div>
-        })}
-      </div>)
+        </div>
+      })}
+    </div>)
   }
 }
 
@@ -30,4 +36,4 @@ class RadioInputExample extends ComponentExample {
   }
 }
 
-export {RadioInput, RadioInputExample};
+export { RadioInput, RadioInputExample };

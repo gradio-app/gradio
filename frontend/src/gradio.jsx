@@ -65,6 +65,8 @@ export class GradioInterface extends React.Component {
     this.clear = this.clear.bind(this);
     this.submit = this.submit.bind(this);
     this.flag = this.flag.bind(this);
+    this.interpret = this.interpret.bind(this);
+    this.removeInterpret = this.removeInterpret.bind(this);
     this.handleExampleChange = this.handleExampleChange.bind(this);
     this.state = this.get_default_state();
     this.state["examples_page"] = 0;
@@ -82,6 +84,7 @@ export class GradioInterface extends React.Component {
     state["submitting"] = false;
     state["error"] = false;
     state["complete"] = false;
+    state["interpretation"] = null;
     state["just_flagged"] = false;
     state["has_changed"] = false;
     state["example_id"] = null;
@@ -99,13 +102,13 @@ export class GradioInterface extends React.Component {
       input_state[i] = this.state[i];
     }
     this.setState({ "submitting": true, "has_changed": false, "error": false });
-    this.props.fn(input_state, "predict").then((output) => {
+    this.props.fn(input_state, "predict").then(output => {
       let index_start = this.props.input_components.length;
       for (let [i, value] of output["data"].entries()) {
         this.setState({ [index_start + i]: value });
       }
       this.setState({ "submitting": false, "complete": true });
-      if (this.state.has_changed) {
+      if (this.props.live && this.state.has_changed) {
         this.submit();
       }
     }).catch(e => {
@@ -132,6 +135,31 @@ export class GradioInterface extends React.Component {
       this.setState({ "just_flagged": false });
     }, 1000)
     this.props.fn(component_state, "flag");
+  }
+  interpret() {
+    if (!this.state.complete) {
+      return;
+    }
+    let input_state = [];
+    for (let i = 0; i < this.props.input_components.length; i++) {
+      if (this.state[i] === null) {
+        return;
+      }
+      input_state[i] = this.state[i];
+    }
+    this.setState({ "submitting": true, "has_changed": false, "error": false });
+    this.props.fn(input_state, "interpret").then(output => {
+      this.setState({ "interpretation": output["interpretation_scores"], "submitting": false })
+    }).catch(e => {
+      console.error(e);
+      this.setState({
+        "error": true,
+        "submitting": false
+      });
+    });
+  }
+  removeInterpret() {
+    this.setState({ "interpretation": null });
   }
   handleChange(_id, value) {
     let state_change = { [_id]: value, "has_changed": true };
@@ -176,7 +204,7 @@ export class GradioInterface extends React.Component {
                 return (
                   <div className="component" key={index}>
                     <div className="panel_header">{component.label}</div>
-                    <Component {...component} handleChange={this.handleChange.bind(this, index)} value={this.state[index]} />
+                    <Component {...component} handleChange={this.handleChange.bind(this, index)} value={this.state[index]} interpretation={this.state["interpretation"] === null ? null : this.state["interpretation"][index]} />
                   </div>);
               })}
             </div>
@@ -203,21 +231,13 @@ export class GradioInterface extends React.Component {
             </div>
             <div className="panel_buttons">
               {this.props.allow_interpretation ?
-                <button className="panel_button">Interpret</button> : false
+                (this.state.interpretation === null ?
+                  <button className={classNames("panel_button", { "disabled": this.state.complete === false })} onClick={this.interpret}>Interpret</button> :
+                  <button className="panel_button" onClick={this.removeInterpret}>Hide</button>)
+                : false
               }
               {this.props.allow_screenshot ?
-                <div className="screenshot_set">
-                  <button className="panel_button left_panel_button">Screenshot</button>
-                  <button className="panel_button right_panel_button">GIF</button>
-                  {this.state.screenshot_mode ?
-                    <div className="screenshot_logo">
-                      <img src="/static/img/logo_inline.png" alt="Gradio" />
-                      <button className='record_stop'>
-                        <div className='record_square'></div>
-                      </button>
-                    </div>
-                    : false}
-                </div>
+                <button className="panel_button hidden">Screenshot</button>
                 : false}
               {this.props.allow_flagging ?
                 <button className={classNames("panel_button", { "disabled": this.state.complete === false })}

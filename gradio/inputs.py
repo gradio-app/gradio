@@ -258,6 +258,7 @@ class Number(InputComponent):
         return self
         
     def get_interpretation_neighbors(self, x):
+        x = float(x)
         neighbors = []
         if self.interpretation_delta_type == "percent":
             delta = 1.0 * self.interpretation_delta * x / 100

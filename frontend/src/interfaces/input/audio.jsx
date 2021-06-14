@@ -1,6 +1,7 @@
 import React from 'react';
 import { DataURLComponentExample } from '../component_example';
 import AudioReactRecorder, { RecordState } from 'audio-react-recorder'
+import { getSaliencyColor } from '../utils';
 
 class AudioInput extends React.Component {
   constructor(props) {
@@ -46,6 +47,13 @@ class AudioInput extends React.Component {
         <audio controls key={this.key}>
           <source src={this.props.value}></source>
         </audio>
+        {this.props.interpretation === null ? false :
+          <div class="interpret_range">
+            {this.props.interpretation.map(value =>
+              <div style={{ 'background-color': getSaliencyColor(value) }}>
+              </div>
+            )}
+          </div>}
       </div>);
     } else {
       if (this.props.source === "microphone") {
@@ -59,7 +67,7 @@ class AudioInput extends React.Component {
       } else if (this.props.source === "upload") {
         let no_action = (evt) => {
           evt.preventDefault();
-          evt.stopPropagation();      
+          evt.stopPropagation();
         }
         return (
           <div className="input_image" onDrag={no_action} onDragStart={no_action} onDragEnd={no_action} onDragOver={no_action} onDragEnter={no_action} onDragLeave={no_action} onDrop={no_action} >
