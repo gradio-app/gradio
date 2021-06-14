@@ -86,13 +86,13 @@
         }
     }
     /* Input Components */
-    textarea.input_text {
+    .input_text textarea {
         @apply w-full p-3 border rounded-lg shadow-inner outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-200 focus:shadow-inner placeholder-gray-400;
     }
-    input.input_text {
+    .input_text input {
         @apply w-full p-3 border rounded-lg shadow-inner outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-200 focus:shadow-inner placeholder-gray-400;
     }
-    .input_number {
+    .input_number input {
         @apply w-full p-3 border rounded-lg shadow-inner outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-200 focus:shadow-inner placeholder-gray-400;
     }
     .input_image {

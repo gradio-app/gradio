@@ -11,7 +11,7 @@ def sentiment_analysis(text):
     del scores["compound"]
     return scores
 
-iface = gr.Interface(sentiment_analysis, "textbox", "label", allow_screenshot=False, allow_flagging=False)
+iface = gr.Interface(sentiment_analysis, "textbox", "label", interpretation="default")
 
 iface.test_launch()
 if __name__ == "__main__":
