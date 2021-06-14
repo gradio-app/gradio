@@ -2,6 +2,7 @@ import React from 'react';
 import { DataURLComponentExample } from '../component_example';
 import Webcam from "react-webcam";
 import { SketchField, Tools } from '../../vendor/ReactSketch';
+import { getObjectFitSize, paintSaliency } from '../utils';
 
 class ImageInput extends React.Component {
   constructor(props) {
@@ -9,11 +10,13 @@ class ImageInput extends React.Component {
     this.handleChange = this.handleChange.bind(this);
     this.uploader = React.createRef();
     this.openFileUpload = this.openFileUpload.bind(this);
+    this.onImgLoad = this.onImgLoad.bind(this);
     this.load_preview_from_files = this.load_preview_from_files.bind(this);
     this.load_preview_from_upload = this.load_preview_from_upload.bind(this);
     this.load_preview_from_drop = this.load_preview_from_drop.bind(this);
     this.snapshot = this.snapshot.bind(this);
     this.getSketch = this.getSketch.bind(this);
+    this.imgRef = React.createRef();
     this.webcamRef = React.createRef();
     this.sketchRef = React.createRef();
     this.sketchKey = 0;
@@ -32,17 +35,39 @@ class ImageInput extends React.Component {
     let imageSrc = this.sketchRef.current.toDataURL();
     this.handleChange(imageSrc);
   }
+  onImgLoad({target:img}) {
+    this.setState({dimensions:{height:img.offsetHeight,
+                               width:img.offsetWidth}});
+  }  
   render() {
     let no_action = (evt) => {
       evt.preventDefault();
       evt.stopPropagation();
     }
     if (this.props.value !== null && this.props.source !== "canvas") {
+      let interpretation = false;
+      if (this.props.interpretation !== null) {
+        let img = this.imgRef.current;
+        let size = getObjectFitSize(true, img.width, img.height, img.naturalWidth, img.naturalHeight);
+        if (this.props.shape) {
+          size = getObjectFitSize(true, size.width, size.height, this.props.shape[0], this.props.shape[1])
+        }
+        let width = size.width;
+        let height = size.height;
+        let canvas = document.createElement("canvas")
+        canvas.setAttribute("height", height);
+        canvas.setAttribute("width", width);
+        paintSaliency(this.props.interpretation, canvas.getContext("2d"), width, height);
+        interpretation = (<div class="interpretation">
+          <img src={canvas.toDataURL()}></img>
+        </div>)
+      }
       return (
         <div className="input_image">
           <div className="image_preview_holder">
-            <img className="image_preview" alt="" src={this.props.value} />
+            <img ref={this.imgRef} onLoad={this.onImgLoad} className="image_preview" alt="" src={this.props.value} />
           </div>
+          {interpretation}
         </div>)
     } else {
       if (this.props.source === "upload") {
