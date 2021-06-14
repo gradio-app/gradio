@@ -1,5 +1,6 @@
 import React from 'react';
 import ComponentExample from '../component_example';
+import { getSaliencyColor } from '../utils';
 
 class NumberInput extends React.Component {
   constructor(props) {
@@ -14,7 +15,16 @@ class NumberInput extends React.Component {
     }
   }
   render() {
-      return <input type="text" className="input_number" onChange={this.handleChange} value={this.props.value === null ? "" : this.props.value}></input>
+    return <div className="input_number">
+      {this.props.interpretation === null ? 
+        <input type="text" onChange={this.handleChange} value={this.props.value === null ? "" : this.props.value}></input>
+       :
+        <div class="interpretation">
+          {this.props.interpretation.map((value, index) =>
+            <div class="interpretation_box" key={index} style={{ "backgroundColor": getSaliencyColor(value[1]) }}>{value[0]}</div>
+          )}
+        </div>}
+    </div>
   }
 }
 
@@ -25,4 +35,4 @@ class NumberInputExample extends ComponentExample {
   }
 }
 
-export {NumberInput, NumberInputExample};
+export { NumberInput, NumberInputExample };
