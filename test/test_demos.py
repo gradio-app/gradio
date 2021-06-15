@@ -79,13 +79,13 @@ class TestDemo(unittest.TestCase):
         driver = self.start_test(target=diff_texts_thread)
         elem = WebDriverWait(driver, TIMEOUT).until(
             EC.presence_of_element_located((By.CSS_SELECTOR,
-                                            ".panel:nth-child(1) .component:nth-child(1) .input_text"))
+                                            ".panel:nth-child(1) .component:nth-child(1) .input_text textarea"))
         )
         elem.clear()
         elem.send_keys("Want to see a magic trick?")
         elem = WebDriverWait(driver, TIMEOUT).until(
             EC.presence_of_element_located((By.CSS_SELECTOR,
-                                            ".panel:nth-child(1) .component:nth-child(2) .input_text"))
+                                            ".panel:nth-child(1) .component:nth-child(2) .input_text textarea"))
         )
         elem.clear()
         elem.send_keys("Let's go see a magic trick!")
@@ -146,7 +146,7 @@ class TestDemo(unittest.TestCase):
         driver = self.start_test(target=longest_word_thread)
         elem = WebDriverWait(driver, TIMEOUT).until(
             EC.presence_of_element_located((By.CSS_SELECTOR,
-                                            ".panel:nth-child(1) .component:nth-child(1) .input_text"))
+                                            ".panel:nth-child(1) .component:nth-child(1) .input_text textarea"))
         )
         elem.send_keys("This is the most wonderful machine learning "
                        "library.")
@@ -190,7 +190,7 @@ class TestDemo(unittest.TestCase):
             total_sleep += 0.2
 
         self.assertEqual(
-            elem.text, "The 2 cats went to the park where they until the night")
+            elem.text, "The 2 cats went to the park where they  until the night")
         golden_img = os.path.join(current_dir, GOLDEN_PATH.format(
             "sentence_builder", "two_cats"))
         tmp = os.path.join(current_dir, "test/tmp/{}.png".format(
