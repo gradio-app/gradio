@@ -11,6 +11,7 @@ import random
 import os
 
 current_dir = os.getcwd()
+os.environ["GRADIO_TEST_MODE"] = "1"
 
 LOCAL_HOST = "http://localhost:{}"
 GOLDEN_PATH = "test/golden/{}/{}.png"
