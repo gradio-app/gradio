@@ -39,12 +39,13 @@ gradio/frontend/static/css/main.380e3222.css
 gradio/frontend/static/css/main.380e3222.css.map
 gradio/frontend/static/css/main.4aea80f8.css
 gradio/frontend/static/css/main.4aea80f8.css.map
+gradio/frontend/static/css/main.4f157d97.css
+gradio/frontend/static/css/main.4f157d97.css.map
 gradio/frontend/static/css/main.99922310.css
 gradio/frontend/static/css/main.99922310.css.map
 gradio/frontend/static/css/main.acb02c85.css
 gradio/frontend/static/css/main.acb02c85.css.map
 gradio/frontend/static/media/logo_loading.e93acd82.jpg
-gradio/templates/login.html
 test/test_demos.py
 test/test_inputs.py
 test/test_interfaces.py

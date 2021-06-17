@@ -138,7 +138,8 @@ def static_resource(path):
 @app.route('/login', methods=["GET", "POST"])
 def login():
     if request.method == "GET":
-        return render_template("login.html", current_user=current_user, auth_message=app.interface.auth_message)
+        config = get_config()
+        return render_template("index.html", config=config)
     elif request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
@@ -150,10 +151,11 @@ def login():
 
 
 @app.route("/config/", methods=["GET"])
-@login_check
-def config():
-    return jsonify(app.interface.config)
-
+def get_config():
+    if current_user.is_authenticated:
+        return jsonify(app.interface.config)
+    else:
+        return {"auth_required": True, "auth_message": app.interface.auth_message}
 
 @app.route("/enable_sharing/<path:path>", methods=["GET"])
 @login_check

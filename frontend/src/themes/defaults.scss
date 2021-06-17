@@ -15,6 +15,25 @@
     }
 }
 
+.login {
+    @apply container mt-8;
+    form {
+        @apply mx-auto p-4 bg-gray-50 shadow-md w-1/2;
+    }
+    h2 {
+        @apply text-2xl font-semibold my-2;
+    }
+    label {
+        @apply block uppercase mt-4;
+    }
+    input {
+        @apply p-2 block;
+    }
+    .submit {
+        @apply bg-yellow-500 hover:bg-yellow-400 transition px-4 py-2 rounded text-white font-semibold cursor-pointer mt-4;
+    }
+}
+
 .gradio_interface[theme="default"] {
     .loading {
         @apply absolute right-1;
@@ -45,6 +64,23 @@
     }
     .panel_buttons {
         @apply flex gap-4 my-4;
+    }
+    .flag {
+        @apply relative;
+        .dropcontent {
+            @apply hidden absolute top-8 left-0 bg-white border-gray-200 border-2 w-full;
+            div {
+                @apply p-2;
+            }
+            div:hover {
+                @apply bg-gray-100;
+            }
+        }
+    }
+    .flag:hover:not(.disabled) {
+        .dropcontent {
+            @apply block;
+        }
     }
     .screenshot_set {
         @apply hidden flex hidden flex-grow;
