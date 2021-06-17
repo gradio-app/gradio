@@ -22,7 +22,8 @@ iface = gr.Interface(calculator,
         [0, "subtract", 1.2],
     ],
     title="test calculator",
-    description="heres a sample toy calculator. enjoy!"
+    description="heres a sample toy calculator. enjoy!",
+    flagging_options=["this", "or", "that"]
 )
 
 if __name__ == "__main__":
