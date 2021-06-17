@@ -119,7 +119,7 @@ export class GradioInterface extends React.Component {
       });
     });
   }
-  flag() {
+  flag(flag_option) {
     if (!this.state.complete) {
       return;
     }
@@ -134,6 +134,7 @@ export class GradioInterface extends React.Component {
     window.setTimeout(() => {
       this.setState({ "just_flagged": false });
     }, 1000)
+    component_state["flag_option"] = flag_option;
     this.props.fn(component_state, "flag");
   }
   interpret() {
@@ -240,11 +241,17 @@ export class GradioInterface extends React.Component {
                 <button className="panel_button hidden">Screenshot</button>
                 : false}
               {this.props.allow_flagging ?
-                <button className={classNames("panel_button", { "disabled": this.state.complete === false })}
-                  onClick={this.flag}>
-                  {this.state.just_flagged ? "Flagged" : "Flag"}
-                  {/* <div className="dropcontent"></div> */}
-                </button>
+                (this.props.flagging_options === null ?
+                  <button className={classNames("panel_button", "flag", { "disabled": this.state.complete === false })}
+                    onClick={this.flag.bind(this, null)}>
+                    {this.state.just_flagged ? "Flagged" : "Flag"}
+                  </button> :
+                  <button className={classNames("panel_button", "flag", { "disabled": this.state.complete === false })}>
+                    {this.state.just_flagged ? "Flagged" : "Flag ▼"}
+                    <div className="dropcontent">
+                      {this.props.flagging_options.map(item => <div onClick={this.flag.bind(this, item)}>{item}</div>)}
+                    </div>
+                  </button>)
                 : false}
             </div>
           </div>
