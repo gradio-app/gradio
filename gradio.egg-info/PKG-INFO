@@ -5,7 +5,7 @@ Summary: Python library for easily interacting with trained machine learning mod
 Home-page: https://github.com/gradio-app/gradio-UI
 Author: Abubakar Abid
 Author-email: a12d@stanford.edu
-License: UNKNOWN
+License: Apache License 2.0
 Description: UNKNOWN
 Keywords: machine learning,visualization,reproducibility
 Platform: UNKNOWN
