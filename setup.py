@@ -12,6 +12,7 @@ setup(
     author_email='a12d@stanford.edu',
     url='https://github.com/gradio-app/gradio-UI',
     packages=['gradio'],
+    license='Apache License 2.0',
     keywords=['machine learning', 'visualization', 'reproducibility'],
     install_requires=[
         'numpy',
