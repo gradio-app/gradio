@@ -152,7 +152,7 @@ def login():
 
 @app.route("/config/", methods=["GET"])
 def get_config():
-    if current_user.is_authenticated:
+    if app.interface.auth is None or current_user.is_authenticated:
         return jsonify(app.interface.config)
     else:
         return {"auth_required": True, "auth_message": app.interface.auth_message}
