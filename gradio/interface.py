@@ -548,15 +548,22 @@ class Interface:
         return app, path_to_local_server, share_url
 
 
-    def integrate(self, comet_ml=None):
+    def integrate(self, comet_ml=None, wandb=None):
         if comet_ml is not None:
             comet_ml.log_other("Created from", "Gradio")
             if self.share_url is not None:
+                print("")
                 comet_ml.log_text("gradio: " + self.share_url)
                 comet_ml.end()
             else:
                 comet_ml.log_text("gradio: " + self.local_url)
                 comet_ml.end()
+        if wandb is not None:
+            if self.share_url is not None:
+                wandb.log({"Gradio panel": wandb.Html('<iframe src="' + self.share_url + '" width="' + str(self.width) + '" height="' + str(self.height) + '" frameBorder="0"></iframe>')})
+            else:
+                print("The WandB integration requires you to `launch(share=True)` first.")
+
     
 
 def show_tip(io):
