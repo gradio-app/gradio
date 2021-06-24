@@ -411,8 +411,8 @@ class Interface:
 
     def run_until_interrupted(self, thread, path_to_local_server):
         try:
-            while 1:
-                pass
+            while True:
+                time.sleep(0.5)
         except (KeyboardInterrupt, OSError):
             print("Keyboard interruption in main thread... closing server.")
             thread.keep_running = False
