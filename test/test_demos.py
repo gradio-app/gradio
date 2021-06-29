@@ -109,6 +109,7 @@ class TestDemo(unittest.TestCase):
             "diff_texts", "magic_trick"))
         tmp = os.path.join(current_dir, "test/tmp/{}.png".format(
             random.getrandbits(32)))
+        time.sleep(1)
         driver.save_screenshot(tmp)
         driver.close()
         self.assertIsNone(compare_images(tmp, golden_img, TOLERANCE))
@@ -137,6 +138,7 @@ class TestDemo(unittest.TestCase):
                 (By.CSS_SELECTOR, ".panel:nth-child(2) .component:nth-child(1) .output_image"))
         )
 
+        time.sleep(1)
         driver.save_screenshot(tmp)
         self.assertIsNone(compare_images(tmp, golden_img, TOLERANCE))
         os.remove(tmp)
@@ -168,6 +170,7 @@ class TestDemo(unittest.TestCase):
             "longest_word", "wonderful"))
         tmp = os.path.join(current_dir, "test/tmp/{}.png".format(
             random.getrandbits(32)))
+        time.sleep(1)
         driver.save_screenshot(tmp)
         driver.close()
         self.assertIsNone(compare_images(tmp, golden_img, TOLERANCE))
@@ -195,6 +198,7 @@ class TestDemo(unittest.TestCase):
             "sentence_builder", "two_cats"))
         tmp = os.path.join(current_dir, "test/tmp/{}.png".format(
             random.getrandbits(32)))
+        time.sleep(1)
         driver.save_screenshot(tmp)
         self.assertIsNone(compare_images(tmp, golden_img, TOLERANCE))
         os.remove(tmp)
