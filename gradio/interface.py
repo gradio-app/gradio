@@ -183,6 +183,7 @@ class Interface:
         self.local_url = None
         self.embedding = embedding
         self.show_tips = show_tips
+        self.requires_permissions = any([component.requires_permissions for component in self.input_components])
 
         data = {'fn': fn,
                 'inputs': inputs,
@@ -486,6 +487,8 @@ class Interface:
                     print(strings.en["COLAB_DEBUG_FALSE"])
         else:
             print(strings.en["RUNNING_LOCALLY"].format(path_to_local_server))
+        if is_colab and self.requires_permissions:
+            print(strings.en["MEDIA_PERMISSIONS_IN_COLAB"])
 
         if private_endpoint is not None:
             share = True
@@ -567,18 +570,9 @@ class Interface:
     
 
 def show_tip(io):
-    if not(io.show_tips):
+    if not(io.show_tips) or random.random() < 0.5:  # Only show tip every other use.
         return
-    if random.random() < 0.8:  # Only show tips once every 5 uses
-        return
-    relevant_tips = []
-    if io.interpretation is None:
-        relevant_tips.append(strings.en["TIP_INTERPRETATION"])
-    if io.embedding is None and not(io.examples is None) and len(io.examples)>4:
-        relevant_tips.append(strings.en["TIP_EMBEDDING"])
-    if len(relevant_tips)==0:
-        return
-    print(random.choice(relevant_tips))
+    print(random.choice(strings.en.TIPS))
 
 def launch_counter():
     try:

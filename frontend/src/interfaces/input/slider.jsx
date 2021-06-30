@@ -1,6 +1,6 @@
 import React from 'react';
 import ComponentExample from '../component_example';
-import { getSaliencyColor } from '../utils';
+import { getSaliencyColor } from '../../utils';
 
 class SliderInput extends React.Component {
   constructor(props) {

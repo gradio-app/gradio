@@ -1,7 +1,7 @@
 import React from 'react';
 import ComponentExample from '../component_example';
 import classNames from "classnames";
-import { getSaliencyColor } from '../utils';
+import { getSaliencyColor } from '../../utils';
 
 class RadioInput extends React.Component {
   constructor(props) {

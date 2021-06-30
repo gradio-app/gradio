@@ -1,6 +1,6 @@
 import React from 'react';
 import ComponentExample from '../component_example';
-import {prettyBytes} from '../utils';
+import {prettyBytes} from '../../utils';
 
 class FileOutput extends React.Component {
   render() {

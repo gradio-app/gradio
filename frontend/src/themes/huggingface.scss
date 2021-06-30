@@ -11,7 +11,7 @@
         @apply pb-4;
     }
     .article {
-        @apply pt-8 pb-4 max-w-none;        
+        @apply pt-8 pb-4 max-w-none;
     }
 }
 
@@ -39,6 +39,23 @@
     }
     .panel_buttons {
         @apply flex gap-4 my-4;
+    }
+    .flag {
+        @apply relative;
+        .dropcontent {
+            @apply hidden absolute top-8 left-0 bg-white border-gray-200 border-2 w-full;
+            div {
+                @apply p-2;
+            }
+            div:hover {
+                @apply bg-gray-100;
+            }
+        }
+    }
+    .flag:hover:not(.disabled) {
+        .dropcontent {
+            @apply block;
+        }
     }
     .screenshot_set {
         @apply hidden flex hidden flex-grow;
@@ -86,32 +103,70 @@
         }
     }
     /* Input Components */
-    .input_text textarea {
-        @apply w-full p-3 border rounded-lg shadow-inner outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-200 focus:shadow-inner placeholder-gray-400;
+    .input_text {
+        textarea {
+            @apply w-full p-3 border rounded-lg shadow-inner outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-200 focus:shadow-inner placeholder-gray-400;
+        }
+        input {
+            @apply w-full p-3 border rounded-lg shadow-inner outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-200 focus:shadow-inner placeholder-gray-400;
+        }
+        .interpretation {
+            .interpretation_box {
+                @apply inline-block whitespace-pre-wrap;
+            }
+        }
     }
-    .input_text input {
-        @apply w-full p-3 border rounded-lg shadow-inner outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-200 focus:shadow-inner placeholder-gray-400;
-    }
-    .input_number input {
-        @apply w-full p-3 border rounded-lg shadow-inner outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-200 focus:shadow-inner placeholder-gray-400;
+    .input_number {
+        input {
+            @apply w-full p-3 border rounded-lg shadow-inner outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-200 focus:shadow-inner placeholder-gray-400;
+        }
+        .interpretation {
+            @apply flex h-6;
+            .interpretation_box {
+                @apply flex-grow;
+            }
+        }
     }
     .input_image {
-        @apply w-full h-80;
+        @apply w-full h-80 relative;
         .upload_zone {
             @apply border-8 border-gray-300 border-dashed w-full h-full flex justify-center items-center text-3xl text-gray-400 text-center cursor-pointer leading-10;
         }
         .image_preview_holder {
             @apply w-full h-full flex justify-center items-center bg-gray-300 relative inline-block;
         }
-        .sketch > div {
-            @apply bg-white;
+        .edit_button {
+            @apply absolute top-1 right-1 bg-indigo-500 text-white px-2 py-1;
+        }
+        .image_editor {
+            @apply fixed w-screen h-screen top-0 left-0 bg-black bg-opacity-50 z-40 flex flex-col justify-center items-center;
+            .image_editor_buttons {
+                width: 800px;
+                @apply flex justify-end gap-1;
+                button {
+                    @apply px-2 py-1 text-xl bg-black text-white font-semibold rounded-t;
+                }
+            }
+            .tui-image-editor-header-buttons {
+                @apply hidden;
+            }
+            .tui-colorpicker-palette-button {
+                width: 12px;
+                height: 12px;
+            }
         }
         .image_preview,
         video {
             @apply w-full h-full object-contain;
         }
+        .sketch > div {
+            @apply bg-white;
+        }
         .snapshot {
             @apply absolute bottom-0 w-full bg-white bg-opacity-90 py-3 font-bold text-lg text-center;
+        }
+        .interpretation {
+            @apply w-full h-full absolute top-0 left-0 flex justify-center items-center opacity-90 hover:opacity-20 transition;
         }
     }
     .input_image_example {
@@ -157,6 +212,20 @@
             stroke-width: 4;
             stroke-linecap: round;
         }
+        .interpretation {
+            @apply flex;
+            .interpretation_box {
+                @apply flex-grow h-4 w-4;
+            }
+            .interpret_check {
+                @apply w-full h-full;
+            }
+            .interpret_check line {
+                stroke: gray;
+                stroke-width: 4;
+                stroke-linecap: round;
+            }
+        }
     }
     .input_checkbox {
         @apply flex flex-wrap gap-2;
@@ -182,6 +251,20 @@
             stroke: white;
             stroke-width: 4;
             stroke-linecap: round;
+        }
+        .interpretation {
+            @apply flex;
+            .interpretation_box {
+                @apply flex-grow h-4 w-4;
+            }
+            .interpret_check {
+                @apply w-full h-full;
+            }
+            .interpret_check line {
+                stroke: gray;
+                stroke-width: 4;
+                stroke-linecap: round;
+            }
         }
     }
     .input_dropdown {
@@ -210,6 +293,9 @@
         :hover .dropdown_menu {
             @apply block;
         }
+        .interpretation_box {
+            @apply p-1;
+        }
     }
     .input_slider {
         @apply text-center;
@@ -226,6 +312,12 @@
         .value {
             @apply inline-block mx-auto mt-1 px-2 py-0.5 bg-gray-100 text-gray-700 rounded shadow-inner;
         }
+        .interpret_range {
+            @apply flex h-6;
+            div {
+                @apply flex-grow;
+            }
+        }
     }
     .input_audio {
         .audio-react-recorder {
@@ -239,6 +331,12 @@
         }
         audio {
             @apply w-full;
+            .interpret_range {
+                @apply flex h-4;
+                div {
+                    @apply flex-grow h-full;
+                }
+            }
         }
     }
     .input_video {
@@ -268,7 +366,6 @@
             @apply text-2xl p-2;
         }
     }
-
     /* Output Components */
     .output_text {
         word-break: break-word;

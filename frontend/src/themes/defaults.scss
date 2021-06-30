@@ -160,6 +160,26 @@
         .image_preview_holder {
             @apply w-full h-full flex justify-center items-center bg-gray-200 relative inline-block;
         }
+        .edit_button {
+            @apply absolute top-1 right-1 bg-yellow-500 text-white px-2 py-1;
+        }
+        .image_editor {
+            @apply fixed w-screen h-screen top-0 left-0 bg-black bg-opacity-50 z-40 flex flex-col justify-center items-center;
+            .image_editor_buttons {
+                width: 800px;
+                @apply flex justify-end gap-1;
+                button {
+                    @apply px-2 py-1 text-xl bg-black text-white font-semibold rounded-t;
+                }
+            }
+            .tui-image-editor-header-buttons {
+                @apply hidden;
+            }
+            .tui-colorpicker-palette-button {
+                width: 12px;
+                height: 12px;
+            }
+        }
         .image_preview,
         video {
             @apply w-full h-full object-contain;

@@ -28,9 +28,9 @@ class InputComponent(Component):
     """
     Input Component. All input components subclass this.
     """
-    def __init__(self, label):
+    def __init__(self, label, requires_permissions=False):
         self.interpret()
-        super().__init__(label)
+        super().__init__(label, requires_permissions)
 
     def preprocess(self, x):
         """
@@ -642,11 +642,12 @@ class Image(InputComponent):
         self.shape = shape
         self.image_mode = image_mode
         self.source = source
+        requires_permissions = source == "webcam" 
         self.tool = tool
         self.type = type
         self.invert_colors = invert_colors
         self.test_input = test_data.BASE64_IMAGE
-        super().__init__(label)
+        super().__init__(label, requires_permissions)
 
     @classmethod
     def get_shortcut_implementations(cls):
@@ -821,9 +822,10 @@ class Audio(InputComponent):
         label (str): component name in interface.
         """
         self.source = source
+        requires_permissions = source == "microphone" 
         self.type = type
         self.test_input = test_data.BASE64_AUDIO
-        super().__init__(label)
+        super().__init__(label, requires_permissions)
 
     def get_template_context(self):
         return {

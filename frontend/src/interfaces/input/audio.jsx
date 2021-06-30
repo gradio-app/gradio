@@ -1,7 +1,7 @@
 import React from 'react';
 import { DataURLComponentExample } from '../component_example';
 import AudioReactRecorder, { RecordState } from 'audio-react-recorder'
-import { getSaliencyColor } from '../utils';
+import { getSaliencyColor } from '../../utils';
 
 class AudioInput extends React.Component {
   constructor(props) {
