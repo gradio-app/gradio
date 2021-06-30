@@ -1,4 +1,7 @@
 import React from 'react';
+import html2canvas from 'html2canvas-objectfit-fix';
+import { saveAs } from './utils';
+import ReactDOM from "react-dom";
 import classNames from "classnames";
 
 import { AudioInput, AudioInputExample } from './interfaces/input/audio';
@@ -67,6 +70,7 @@ export class GradioInterface extends React.Component {
     this.flag = this.flag.bind(this);
     this.interpret = this.interpret.bind(this);
     this.removeInterpret = this.removeInterpret.bind(this);
+    this.takeScreenshot = this.takeScreenshot.bind(this);
     this.handleExampleChange = this.handleExampleChange.bind(this);
     this.state = this.get_default_state();
     this.state["examples_page"] = 0;
@@ -162,6 +166,11 @@ export class GradioInterface extends React.Component {
   removeInterpret() {
     this.setState({ "interpretation": null });
   }
+  takeScreenshot() {
+    html2canvas(ReactDOM.findDOMNode(this)).then(canvas => {
+      saveAs(canvas.toDataURL(), 'screenshot.png');
+    });
+  }
   handleChange(_id, value) {
     let state_change = { [_id]: value, "has_changed": true };
     if (this.props.live && !(this.state.submitting)) {
@@ -238,7 +247,7 @@ export class GradioInterface extends React.Component {
                 : false
               }
               {this.props.allow_screenshot ?
-                <button className="panel_button hidden">Screenshot</button>
+                <button onClick={this.takeScreenshot} className="panel_button">Screenshot</button>
                 : false}
               {this.props.allow_flagging ?
                 (this.props.flagging_options === null ?
