@@ -2,7 +2,9 @@ import React from 'react';
 import { DataURLComponentExample } from '../component_example';
 import Webcam from "react-webcam";
 import { SketchField, Tools } from '../../vendor/ReactSketch';
-import { getObjectFitSize, paintSaliency } from '../utils';
+import { getObjectFitSize, paintSaliency } from '../../utils';
+import 'tui-image-editor/dist/tui-image-editor.css';
+import ImageEditor from '@toast-ui/react-image-editor';
 
 class ImageInput extends React.Component {
   constructor(props) {
@@ -14,12 +16,17 @@ class ImageInput extends React.Component {
     this.load_preview_from_files = this.load_preview_from_files.bind(this);
     this.load_preview_from_upload = this.load_preview_from_upload.bind(this);
     this.load_preview_from_drop = this.load_preview_from_drop.bind(this);
+    this.saveEditor = this.saveEditor.bind(this);
+    this.cancelEditor = this.cancelEditor.bind(this);
     this.snapshot = this.snapshot.bind(this);
     this.getSketch = this.getSketch.bind(this);
+    this.openEditor = this.openEditor.bind(this);
     this.imgRef = React.createRef();
     this.webcamRef = React.createRef();
     this.sketchRef = React.createRef();
+    this.editorRef = React.createRef();
     this.sketchKey = 0;
+    this.state = { editorMode: false };
   }
   handleChange(data) {
     this.props.handleChange(data);
@@ -35,10 +42,25 @@ class ImageInput extends React.Component {
     let imageSrc = this.sketchRef.current.toDataURL();
     this.handleChange(imageSrc);
   }
-  onImgLoad({target:img}) {
-    this.setState({dimensions:{height:img.offsetHeight,
-                               width:img.offsetWidth}});
-  }  
+  cancelEditor() {
+    this.setState({"editorMode": false});
+  }
+  saveEditor() {
+    const editorInstance = this.editorRef.current.getInstance();
+    this.handleChange(editorInstance.toDataURL());
+    this.setState({"editorMode": false});
+  }
+  onImgLoad({ target: img }) {
+    this.setState({
+      dimensions: {
+        height: img.offsetHeight,
+        width: img.offsetWidth
+      }
+    });
+  }
+  openEditor() {
+    this.setState({ editorMode: true })
+  }
   render() {
     let no_action = (evt) => {
       evt.preventDefault();
@@ -65,6 +87,29 @@ class ImageInput extends React.Component {
       return (
         <div className="input_image">
           <div className="image_preview_holder">
+            {this.state.editorMode ?
+              <div className="image_editor">
+                <div className="image_editor_buttons">
+                  <button onClick={this.saveEditor}>Save</button>
+                  <button onClick={this.cancelEditor}>Cancel</button>
+                </div>
+                <ImageEditor
+                  ref={this.editorRef}
+                  includeUI={{
+                    loadImage: {path: this.props.value, name: "value"},
+                    uiSize: {
+                      width: '800px',
+                      height: '600px',
+                    },
+                    menuBarPosition: 'left',
+                  }}
+                  cssMaxHeight={500}
+                  cssMaxWidth={700}
+                  usageStatistics={false}
+                />
+              </div>
+              :
+              <button className="edit_button" onClick={this.openEditor}>Edit</button>}
             <img ref={this.imgRef} onLoad={this.onImgLoad} className="image_preview" alt="" src={this.props.value} />
           </div>
           {interpretation}
@@ -101,7 +146,7 @@ class ImageInput extends React.Component {
               lineWidth={20}
               backgroundColor="white"
               onChange={this.getSketch}
-               /> 
+            />
           </div>
         </div>);
       }

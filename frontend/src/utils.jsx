@@ -63,13 +63,29 @@ export function paintSaliency(data, ctx, width, height) {
     var cell_width = width / data[0].length
     var cell_height = height / data.length
     var r = 0
-    data.forEach(function(row) {
-      var c = 0
-      row.forEach(function(cell) {
-        ctx.fillStyle = getSaliencyColor(cell);
-        ctx.fillRect(c * cell_width, r * cell_height, cell_width, cell_height);
-        c++;
-      })
-      r++;
+    data.forEach(function (row) {
+        var c = 0
+        row.forEach(function (cell) {
+            ctx.fillStyle = getSaliencyColor(cell);
+            ctx.fillRect(c * cell_width, r * cell_height, cell_width, cell_height);
+            c++;
+        })
+        r++;
     })
+}
+
+export function saveAs(uri, filename) {
+    var link = document.createElement('a');
+    if (typeof link.download === 'string') {
+        link.href = uri;
+        link.download = filename;
+        //Firefox requires the link to be in the body
+        document.body.appendChild(link);
+        //simulate click
+        link.click();
+        //remove the link when done
+        document.body.removeChild(link);
+    } else {
+        window.open(uri);
+    }
   }

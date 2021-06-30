@@ -7,8 +7,9 @@ class Component():
     A class for defining the methods that all gradio input and output components should have.
     """
 
-    def __init__(self, label):
+    def __init__(self, label, requires_permissions=False):
         self.label = label
+        self.requires_permissions = requires_permissions
 
     def __str__(self):
         return self.__repr__()

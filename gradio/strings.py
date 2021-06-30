@@ -23,8 +23,14 @@ en = {
     "SHARE_LINK_MESSAGE": "This share link will expire in 24 hours. If you need a permanent link, visit: https://gradio.app/introducing-hosted (NEW!)",
     "SHARE_LINK_DISPLAY": "Running on External URL: {}",
     "INLINE_DISPLAY_BELOW": "Interface loading below...",
-    "TIP_INTERPRETATION": "Tip: Add interpretation to your model by simply adding `interpretation=\"default\"` to `Interface()`",
-    "TIP_EMBEDDING": "Tip: View embeddings of your dataset by simply adding `embedding=\"default\"` to `Interface()`",
+    "MEDIA_PERMISSIONS_IN_COLAB": "Your interface requires microphone or webcam permissions - this may cause issues in Colab. Use the External URL in case of issues.",
+    "TIPS": [
+        "You can add authentication to your app with the auth= kwarg in the launch command; for example: gr.Interface(...).launch(auth=('username', 'password'))",
+        "Let users specify why they flagged input with the flagging_options= kwarg; for example: gr.Interface(..., flagging_options=['too slow', 'incorrect output', 'other'])",
+        "You can show or hide the buttons for flagging, screenshots, and interpretation with the allow_*= kwargs; for example: gr.Interface(..., allow_screenshot=True, allow_flagging=False)",
+        "The inputs and outputs flagged by the users are stored in the flagging directory, specified by the flagging_dir= kwarg. You can view this data through the interface by setting the examples= kwarg to the flagging directory; for example gr.Interface(..., examples='flagged')",
+        "You can add a title and description to your interface using the title= and description= kwargs. The article= kwarg can be used to add markdown or HTML under the interface; for example gr.Interface(..., title='My app', description='Lorem ipsum')"
+    ]
 }
 
 try:
