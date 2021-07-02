@@ -1,66 +1,15 @@
 import React from 'react';
 import html2canvas from 'html2canvas-objectfit-fix';
+import { input_component_map, output_component_map } from './components';
 import { saveAs } from './utils';
 import ReactDOM from "react-dom";
 import classNames from "classnames";
-
-import { AudioInput, AudioInputExample } from './interfaces/input/audio';
-import { CheckboxGroupInput, CheckboxGroupInputExample } from './interfaces/input/checkbox_group';
-import { CheckboxInput, CheckboxInputExample } from './interfaces/input/checkbox';
-import { DataframeInput, DataframeInputExample } from './interfaces/input/dataframe';
-import { DropdownInput, DropdownInputExample } from './interfaces/input/dropdown';
-import { FileInput, FileInputExample } from './interfaces/input/file';
-import { ImageInput, ImageInputExample } from './interfaces/input/image';
-import { NumberInput, NumberInputExample } from './interfaces/input/number';
-import { RadioInput, RadioInputExample } from './interfaces/input/radio';
-import { SliderInput, SliderInputExample } from './interfaces/input/slider';
-import { TextboxInput, TextboxInputExample } from './interfaces/input/textbox';
-import { VideoInput, VideoInputExample } from './interfaces/input/video';
-
-import { AudioOutput, AudioOutputExample } from './interfaces/output/audio';
-import { DataframeOutput, DataframeOutputExample } from './interfaces/output/dataframe';
-import { FileOutput, FileOutputExample } from './interfaces/output/file';
-import { HighlightedTextOutput, HighlightedTextOutputExample } from './interfaces/output/highlighted_text';
-import { HTMLOutput, HTMLOutputExample } from './interfaces/output/html';
-import { ImageOutput, ImageOutputExample } from './interfaces/output/image';
-import { JSONOutput, JSONOutputExample } from './interfaces/output/json';
-import { KeyValuesOutput, KeyValuesOutputExample } from './interfaces/output/key_values';
-import { LabelOutput, LabelOutputExample } from './interfaces/output/label';
-import { TextboxOutput, TextboxOutputExample } from './interfaces/output/textbox';
-import { VideoOutput, VideoOutputExample } from './interfaces/output/video';
 
 import logo_loading from './static/img/logo_loading.jpg'
 import logo_error from './static/img/logo_error.png'
 import('./themes/defaults.scss');
 import('./themes/huggingface.scss');
-
-let input_component_map = {
-  "audio": [AudioInput, AudioInputExample],
-  "checkboxgroup": [CheckboxGroupInput, CheckboxGroupInputExample],
-  "checkbox": [CheckboxInput, CheckboxInputExample],
-  "dataframe": [DataframeInput, DataframeInputExample],
-  "dropdown": [DropdownInput, DropdownInputExample],
-  "file": [FileInput, FileInputExample],
-  "image": [ImageInput, ImageInputExample],
-  "number": [NumberInput, NumberInputExample],
-  "radio": [RadioInput, RadioInputExample],
-  "slider": [SliderInput, SliderInputExample],
-  "textbox": [TextboxInput, TextboxInputExample],
-  "video": [VideoInput, VideoInputExample],
-}
-let output_component_map = {
-  "audio": [AudioOutput, AudioOutputExample],
-  "dataframe": [DataframeOutput, DataframeOutputExample],
-  "file": [FileOutput, FileOutputExample],
-  "highlightedtext": [HighlightedTextOutput, HighlightedTextOutputExample],
-  "html": [HTMLOutput, HTMLOutputExample],
-  "image": [ImageOutput, ImageOutputExample],
-  "json": [JSONOutput, JSONOutputExample],
-  "keyvalues": [KeyValuesOutput, KeyValuesOutputExample],
-  "label": [LabelOutput, LabelOutputExample],
-  "textbox": [TextboxOutput, TextboxOutputExample],
-  "video": [VideoOutput, VideoOutputExample],
-}
+import('./themes/compact.scss');
 
 export class GradioInterface extends React.Component {
   constructor(props) {
@@ -232,7 +181,7 @@ export class GradioInterface extends React.Component {
               {this.props.output_components.map((component, index) => {
                 const Component = output_component_map[component.name][0];
                 const key = this.props.input_components.length + index;
-                return (
+                return this.state[key] === null ? false : (
                   <div className="component" key={key}>
                     <div className="panel_header">{component.label}</div>
                     <Component {...component} handleChange={this.handleChange.bind(this, key)} value={this.state[key]} />

@@ -1090,3 +1090,15 @@ class Dataframe(InputComponent):
 
     def restore_flagged(self, data):
         return json.loads(data)
+
+
+def get_input_instance(iface):
+    if isinstance(iface, str):
+        shortcut = InputComponent.get_all_shortcut_implementations()[
+                                                                    iface]
+        return shortcut[0](**shortcut[1])
+    elif isinstance(iface, InputComponent):
+        return iface
+    else:
+        raise ValueError("Input interface must be of type `str` or "
+                            "`InputComponent` but is {}".format(iface))

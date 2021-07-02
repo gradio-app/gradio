@@ -2,39 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-.gradio_page {
-    @apply container mx-auto my-4;
-    .title {
-        @apply text-center p-4 text-4xl;
-    }
-    .description {
-        @apply pb-4;
-    }
-    .article {
-        @apply pt-8 pb-4 max-w-none;        
-    }
+html {
+    font-size: 14px;
 }
 
-.login {
-    @apply container mt-8;
-    form {
-        @apply mx-auto p-4 bg-gray-50 shadow-md w-1/2;
-    }
-    h2 {
-        @apply text-2xl font-semibold my-2;
-    }
-    label {
-        @apply block uppercase mt-4;
-    }
-    input {
-        @apply p-2 block;
-    }
-    .submit {
-        @apply bg-yellow-500 hover:bg-yellow-400 transition px-4 py-2 rounded text-white font-semibold cursor-pointer mt-4;
-    }
-}
-
-.gradio_interface[theme="default"] {
+.gradio_interface[theme="compact"] {
     .loading {
         @apply absolute right-1;
     }
@@ -60,7 +32,7 @@
         @apply text-gray-400 cursor-not-allowed;
     }
     .panel_button.submit {
-        @apply bg-yellow-500 hover:bg-yellow-400 text-white;
+        @apply bg-green-500 hover:bg-green-400 text-white;
     }
     .panel_buttons {
         @apply flex gap-4 my-4;
@@ -116,7 +88,7 @@
                 @apply border-b-2 border-gray-300;
             }
             tbody tr:hover {
-                @apply bg-yellow-500 text-white;
+                @apply bg-green-500 text-white;
             }
             tbody tr.selected {
                 @apply font-bold;
@@ -161,7 +133,7 @@
             @apply w-full h-full flex justify-center items-center bg-gray-200 relative inline-block;
         }
         .edit_button {
-            @apply absolute top-1 right-1 bg-yellow-500 text-white px-2 py-1;
+            @apply absolute top-1 right-1 bg-green-500 text-white px-2 py-1;
         }
         .image_editor {
             @apply fixed w-screen h-screen top-0 left-0 bg-black bg-opacity-50 z-40 flex flex-col justify-center items-center;
@@ -203,13 +175,13 @@
             @apply bg-gray-200 text-gray-700 py-2 px-4 font-semibold rounded cursor-pointer flex items-center gap-1;
         }
         .radio_item.selected {
-            @apply bg-yellow-500 text-white;
+            @apply bg-green-500 text-white;
         }
         .radio_circle {
             @apply w-4 h-4 bg-white rounded-full box-border;
         }
         .selected .radio_circle {
-            @apply border-4 border-yellow-600;
+            @apply border-4 border-green-600;
         }
     }
     .input_checkbox_group {
@@ -218,7 +190,7 @@
             @apply bg-gray-200 text-gray-700 py-2 px-4 font-semibold rounded cursor-pointer flex items-center gap-1;
         }
         .checkbox_item.selected {
-            @apply bg-yellow-500 text-white;
+            @apply bg-green-500 text-white;
         }
         .checkbox {
             @apply w-4 h-4 bg-white;
@@ -227,7 +199,7 @@
             }
         }
         .selected .checkbox {
-            @apply bg-yellow-600;
+            @apply bg-green-600;
             .check {
                 @apply block;
             }
@@ -258,7 +230,7 @@
             @apply bg-gray-200 text-gray-700 py-2 px-4 font-semibold rounded cursor-pointer flex items-center gap-1;
         }
         .checkbox_item.selected {
-            @apply bg-yellow-500 text-white;
+            @apply bg-green-500 text-white;
         }
         .checkbox {
             @apply w-4 h-4 bg-white;
@@ -267,7 +239,7 @@
             }
         }
         .selected .checkbox {
-            @apply bg-yellow-600;
+            @apply bg-green-600;
             .check {
                 @apply block;
             }
@@ -329,10 +301,10 @@
         }
         .range::-webkit-slider-thumb {
             -webkit-appearance: none;
-            @apply appearance-none w-5 h-5 bg-yellow-500 rounded cursor-pointer;
+            @apply appearance-none w-5 h-5 bg-green-500 rounded cursor-pointer;
         }
         .range::-moz-range-thumb {
-            @apply appearance-none w-5 h-5 bg-yellow-500 rounded cursor-pointer;
+            @apply appearance-none w-5 h-5 bg-green-500 rounded cursor-pointer;
         }
         .value {
             @apply inline-block mx-auto mt-1 px-2 py-0.5 bg-gray-200 rounded text-gray-700;
@@ -461,15 +433,12 @@
         }
     }
     .output_file {
-        @apply w-full h-80;
-        .file_display {
-            @apply w-full h-full flex flex-col justify-center items-center relative inline-block;
-        }
+        @apply bg-gray-200 hover:bg-gray-100 transition inline-block rounded;
         .file_name {
-            @apply text-6xl p-6;
+            @apply text-lg p-2;
         }
         .file_size {
-            @apply text-2xl p-2;
+            @apply hidden;
         }
     }
     .output_carousel {
