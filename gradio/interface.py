@@ -4,8 +4,8 @@ interface using the input and output types.
 """
 
 import gradio
-from gradio.inputs import InputComponent
-from gradio.outputs import OutputComponent
+from gradio.inputs import InputComponent, get_input_instance
+from gradio.outputs import OutputComponent, get_output_instance
 from gradio import networking, strings, utils
 from gradio.interpretation import quantify_difference_in_label
 from gradio.external import load_interface
@@ -88,7 +88,7 @@ class Interface:
         description (str): a description for the interface; if provided, appears above the input and output components.
         article (str): an expanded article explaining the interface; if provided, appears below the input and output components. Accepts Markdown and HTML content.
         thumbnail (str): path to image or src to use as display picture for models listed in gradio.app/hub
-        theme (str): Theme to use - one of "dark", "default", or "huggingface".
+        theme (str): Theme to use - one of "default", "compact" or "huggingface".
         css (str): custom css or path to custom css file to use with interface.
         server_port (int): will start gradio app on this port (if available) 
         server_name (str): to make app accessible on local network set to "0.0.0.0".
@@ -99,28 +99,6 @@ class Interface:
         flagging_dir (str): what to name the dir where flagged data is stored.
         show_tips (bool): if True, will occasionally show tips about new Gradio features
         """
-        def get_input_instance(iface):
-            if isinstance(iface, str):
-                shortcut = InputComponent.get_all_shortcut_implementations()[iface]
-                return shortcut[0](**shortcut[1])
-            elif isinstance(iface, InputComponent):
-                return iface
-            else:
-                raise ValueError("Input interface must be of type `str` or "
-                                 "`InputComponent` but is {}".format(iface))
-
-        def get_output_instance(iface):
-            if isinstance(iface, str):
-                shortcut = OutputComponent.get_all_shortcut_implementations()[iface]
-                return shortcut[0](**shortcut[1])
-            elif isinstance(iface, OutputComponent):
-                return iface
-            else:
-                raise ValueError(
-                    "Output interface must be of type `str` or "
-                    "`OutputComponent`"
-                )
-
         if not isinstance(fn, list):
             fn = [fn]
         if isinstance(inputs, list):
@@ -269,7 +247,7 @@ class Interface:
                 function_index = i // outputs_per_function
                 component_index = i - function_index * outputs_per_function
                 ret_name = "Output " + str(component_index + 1) if outputs_per_function > 1 else "Output"
-                if not iface["label"]:
+                if iface["label"] is None:
                     iface["label"] = ret_name
                 if len(self.predict) > 1:
                     iface["label"] = self.function_names[function_index].replace("_", " ") + ": " + iface["label"]
@@ -339,7 +317,7 @@ class Interface:
                            for i, input_component in enumerate(self.input_components)]
         predictions, durations = self.run_prediction(processed_input, return_duration=True)
         processed_output = [output_component.postprocess(
-            predictions[i]) for i, output_component in enumerate(self.output_components)]
+            predictions[i]) if predictions[i] is not None else None for i, output_component in enumerate(self.output_components)]
         return processed_output, durations
     
     def embed(self, processed_input):
@@ -442,7 +420,7 @@ class Interface:
         inbrowser (bool): whether to automatically launch the interface in a new tab on the default browser.
         share (bool): whether to create a publicly shareable link from your computer for the interface.
         debug (bool): if True, and the interface was launched from Google Colab, prints the errors in the cell output.
-        auth (Union[Tuple[str, str], List[Tuple[str, str]]]): If provided, username and password (or list of username-password tuples) required to access interface.
+        auth (Callable, Union[Tuple[str, str], List[Tuple[str, str]]]): If provided, username and password (or list of username-password tuples) required to access interface. Can also provide function that takes username and password and return True if valid login.
         auth_message (str): If provided, HTML message provided on login page.
         Returns:
         app (flask.Flask): Flask app object
@@ -455,7 +433,7 @@ class Interface:
         # Set up local flask server
         config = self.get_config_file()
         self.config = config
-        if auth and not isinstance(auth[0], tuple) and not isinstance(auth[0], list):
+        if auth and not callable(auth) and not isinstance(auth[0], tuple) and not isinstance(auth[0], list):
             auth = [auth]
         self.auth = auth
         self.auth_message = auth_message

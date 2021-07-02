@@ -40,7 +40,8 @@ STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "frontend/")
 STATIC_PATH_LIB = pkg_resources.resource_filename("gradio", "frontend/static")
 VERSION_FILE = pkg_resources.resource_filename("gradio", "version.txt")
 with open(VERSION_FILE) as version_file:
-    GRADIO_STATIC_ROOT = "https://gradio.s3-us-west-2.amazonaws.com/" + version_file.read().strip() + "/static/"
+    GRADIO_STATIC_ROOT = "https://gradio.s3-us-west-2.amazonaws.com/" + \
+        version_file.read().strip() + "/static/"
 
 app = Flask(__name__,
             template_folder=STATIC_TEMPLATE_LIB,
@@ -128,12 +129,14 @@ def get_first_available_port(initial, final):
 def main():
     return render_template("index.html", config=app.interface.config)
 
+
 @app.route("/static/<path:path>", methods=["GET"])
 def static_resource(path):
     if app.interface.share or os.getenv("GRADIO_TEST_MODE"):
         return redirect(GRADIO_STATIC_ROOT + path)
     else:
         return send_file(os.path.join(STATIC_PATH_LIB, path))
+
 
 @app.route('/login', methods=["GET", "POST"])
 def login():
@@ -143,7 +146,8 @@ def login():
     elif request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
-        if username in app.auth and app.auth[username] == password:
+        if ((not callable(app.auth) and username in app.auth and app.auth[username] == password)
+                or (callable(app.auth) and app.auth.__call__(username, password))):
             login_user(User(username))
             return redirect("/")
         else:
@@ -156,6 +160,7 @@ def get_config():
         return jsonify(app.interface.config)
     else:
         return {"auth_required": True, "auth_message": app.interface.auth_message}
+
 
 @app.route("/enable_sharing/<path:path>", methods=["GET"])
 @login_check
@@ -357,7 +362,10 @@ def start_server(interface, server_name, server_port=None, auth=None, ssl=None):
         server_port, server_port + TRY_NUM_PORTS
     )
     if auth is not None:
-        app.auth = {account[0]: account[1] for account in auth}
+        if not callable(auth):
+            app.auth = {account[0]: account[1] for account in auth}
+        else:
+            app.auth = auth
     else:
         app.auth = None
     app.interface = interface
