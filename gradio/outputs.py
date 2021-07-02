@@ -497,3 +497,55 @@ class Dataframe(OutputComponent):
 
     def restore_flagged(self, data):
         return json.loads(data)
+
+
+class Carousel(OutputComponent):
+    """
+    Component displays a set of output components that can be scrolled through.
+    Output type: List[List[Any]]
+    """
+
+    def __init__(self, components, label=None):
+        '''
+        Parameters:
+        components (Union[List[OutputComponent], OutputComponent]): Classes of component(s) that will be scrolled through.
+        label (str): component name in interface.
+        '''
+        if not isinstance(components, list):
+            components = [components]
+        self.components = [get_output_instance(component) for component in components]
+        super().__init__(label)
+
+
+    def get_template_context(self):
+        return {
+            "components": [component.get_template_context() for component in self.components],
+            **super().get_template_context()
+        }
+
+    def postprocess(self, y):
+        if isinstance(y, list):
+            if len(y) != 0 and not isinstance(y[0], list):
+                y = [[z] for z in y]
+            output = []
+            for row in y:
+                output_row = []
+                for i, cell in enumerate(row):
+                    output_row.append(self.components[i].postprocess(cell))
+                output.append(output_row)
+            return output
+        else:
+            raise ValueError("Unknown type. Please provide a list for the Carousel.")
+
+
+def get_output_instance(iface):
+    if isinstance(iface, str):
+        shortcut = OutputComponent.get_all_shortcut_implementations()[iface]
+        return shortcut[0](**shortcut[1])
+    elif isinstance(iface, OutputComponent):
+        return iface
+    else:
+        raise ValueError(
+            "Output interface must be of type `str` or "
+            "`OutputComponent`"
+        )
