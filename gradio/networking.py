@@ -12,6 +12,7 @@ from flask_cors import CORS
 import threading
 import pkg_resources
 from distutils import dir_util
+import datetime
 import time
 import json
 import urllib.request
@@ -278,6 +279,7 @@ def flag_data(input_data, output_data, flag_option=None):
     flag_path = os.path.join(app.cwd, app.interface.flagging_dir)
     csv_data = []
     encryption_key = app.interface.encryption_key if app.interface.encrypt else None
+    csv_data.append(str(datetime.datetime.now()))
     for i, interface in enumerate(app.interface.input_components):
         csv_data.append(interface.save_flagged(
             flag_path, app.interface.config["input_components"][i]["label"], input_data[i], encryption_key))
@@ -287,7 +289,9 @@ def flag_data(input_data, output_data, flag_option=None):
     if flag_option:
         csv_data.append(flag_option)
 
-    headers = [interface["label"]
+    headers = []
+    headers += ["Timestamp"]
+    headers += [interface["label"]
                for interface in app.interface.config["input_components"]]
     headers += [interface["label"]
                 for interface in app.interface.config["output_components"]]
