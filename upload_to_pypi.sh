@@ -7,7 +7,7 @@ echo "Current version is $old_version. New version?"
 read new_version
 sed -i "s/version='$old_version'/version='$new_version'/g" setup.py
 
-read -p "npm build? " -n 1 -r
+read -p "npm build? " -r
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
     cd frontend
@@ -15,7 +15,7 @@ then
     cd ..
 fi
 
-read -p "frontend updates? " -n 1 -r
+read -p "frontend updates? " -r
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
     aws s3 cp gradio/frontend s3://gradio/$new_version/ --recursive 
