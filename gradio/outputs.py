@@ -537,6 +537,14 @@ class Carousel(OutputComponent):
         else:
             raise ValueError("Unknown type. Please provide a list for the Carousel.")
 
+    def save_flagged(self, dir, label, data, encryption_key):
+        return json.dumps([
+            [
+                component.save_flagged(dir, f"{label}_{j}", data[i][j], encryption_key)
+                for j, component in enumerate(self.components)
+            ] for i, sample in enumerate(data)])
+
+
 
 def get_output_instance(iface):
     if isinstance(iface, str):

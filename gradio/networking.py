@@ -291,7 +291,7 @@ def flag_data(input_data, output_data, flag_option=None, flag_index=None, userna
                 flag_path, app.interface.config["input_components"][i]["label"], input_data[i], encryption_key))
         for i, interface in enumerate(app.interface.output_components):
             csv_data.append(interface.save_flagged(
-                flag_path, app.interface.config["output_components"][i]["label"], output_data[i], encryption_key))
+                flag_path, app.interface.config["output_components"][i]["label"], output_data[i], encryption_key) if output_data[i] is not None else "")
         if flag_option is not None:
             csv_data.append(flag_option)
         if username is not None:
