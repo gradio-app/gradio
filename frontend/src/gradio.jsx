@@ -41,6 +41,7 @@ export class GradioInterface extends React.Component {
     state["just_flagged"] = false;
     state["has_changed"] = false;
     state["example_id"] = null;
+    state["flag_index"] = null;
     return state;
   }
   clear() {
@@ -54,13 +55,19 @@ export class GradioInterface extends React.Component {
       }
       input_state[i] = this.state[i];
     }
-    this.setState({ "submitting": true, "has_changed": false, "error": false });
+    this.setState({ "submitting": true, "has_changed": false, "error": false, "flag_index": null });
     this.props.fn(input_state, "predict").then(output => {
       let index_start = this.props.input_components.length;
+      let new_state = {};
       for (let [i, value] of output["data"].entries()) {
-        this.setState({ [index_start + i]: value });
+        new_state[index_start + i] = value;
       }
-      this.setState({ "submitting": false, "complete": true });
+      if (output["flag_index"] !== null) {
+        new_state["flag_index"] = output["flag_index"];
+      }
+      new_state["submitting"] = false
+      new_state["complete"] = true
+      this.setState(new_state)
       if (this.props.live && this.state.has_changed) {
         this.submit();
       }
@@ -77,11 +84,15 @@ export class GradioInterface extends React.Component {
       return;
     }
     let component_state = { "input_data": [], "output_data": [] };
-    for (let i = 0; i < this.props.input_components.length; i++) {
-      component_state["input_data"].push(this.state[i]);
-    }
-    for (let i = 0; i < this.props.output_components.length; i++) {
-      component_state["output_data"].push(this.state[this.props.input_components.length + i]);
+    if (this.state.flag_index !== undefined) {
+      component_state["flag_index"] = this.state.flag_index;
+    } else {
+      for (let i = 0; i < this.props.input_components.length; i++) {
+        component_state["input_data"].push(this.state[i]);
+      }
+      for (let i = 0; i < this.props.output_components.length; i++) {
+        component_state["output_data"].push(this.state[this.props.input_components.length + i]);
+      }  
     }
     this.setState({ "just_flagged": true });
     window.setTimeout(() => {
