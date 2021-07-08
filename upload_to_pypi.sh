@@ -24,8 +24,8 @@ fi
 
 rm -r dist/*
 rm -r build/*
-python setup.py sdist bdist_wheel
-python -m twine upload dist/*
+python3 setup.py sdist bdist_wheel
+python3 -m twine upload dist/*
 git add -A
 git commit -m "updated PyPi version"
 git push origin master
