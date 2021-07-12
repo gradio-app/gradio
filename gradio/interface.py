@@ -7,7 +7,7 @@ import gradio
 from gradio.inputs import InputComponent, get_input_instance
 from gradio.outputs import OutputComponent, get_output_instance
 from gradio import networking, strings, utils
-from gradio.interpretation import quantify_difference_in_label
+from gradio.interpretation import quantify_difference_in_label, get_regression_or_classification_value
 from gradio.external import load_interface
 from gradio import encryptor
 import pkg_resources
@@ -66,8 +66,8 @@ class Interface:
     def __init__(self, fn, inputs=None, outputs=None, verbose=False, examples=None,
                  examples_per_page=10, live=False,
                  layout="horizontal", show_input=True, show_output=True,
-                 capture_session=False, interpretation=None, theme=None, repeat_outputs_per_model=True,
-                 title=None, description=None, article=None, thumbnail=None, 
+                 capture_session=False, interpretation=None, num_shap=2.0, theme=None, repeat_outputs_per_model=True,
+                 title=None, description=None, article=None, thumbnail=None,  
                  css=None, server_port=None, server_name=networking.LOCALHOST_NAME, height=500, width=900,
                  allow_screenshot=True, allow_flagging=True, flagging_options=None, encrypt=False,
                  show_tips=False, embedding=None, flagging_dir="flagged", analytics_enabled=True):
@@ -84,6 +84,7 @@ class Interface:
         layout (str): Layout of input and output panels. "horizontal" arranges them as two columns of equal height, "unaligned" arranges them as two columns of unequal height, and "vertical" arranges them vertically.
         capture_session (bool): if True, captures the default graph and session (needed for Tensorflow 1.x)
         interpretation (Union[Callable, str]): function that provides interpretation explaining prediction output. Pass "default" to use built-in interpreter. 
+        num_shap (float): a multiplier that determines how many examples are computed for shap-based interpretation. Increasing this value will increase shap runtime, but improve results.
         title (str): a title for the interface; if provided, appears above the input and output components.
         description (str): a description for the interface; if provided, appears above the input and output components.
         article (str): an expanded article explaining the interface; if provided, appears below the input and output components. Accepts Markdown and HTML content.
@@ -145,6 +146,7 @@ class Interface:
             self.examples = examples
         else:
             raise ValueError("Examples argument must either be a directory or a nested list, where each sublist represents a set of inputs.")
+        self.num_shap = num_shap
         self.examples_per_page = examples_per_page
         self.server_port = server_port
         self.simple_server = None
@@ -334,7 +336,7 @@ class Interface:
         interpretation for a certain set of UI component types, as well as the custom interpretation case.
         :param raw_input: a list of raw inputs to apply the interpretation(s) on.
         """
-        if self.interpretation == "default":
+        if self.interpretation.lower() == "default":
             processed_input = [input_component.preprocess(raw_input[i])
                             for i, input_component in enumerate(self.input_components)]
             original_output = self.run_prediction(processed_input)
@@ -342,26 +344,75 @@ class Interface:
             for i, x in enumerate(raw_input):
                 input_component = self.input_components[i]
                 neighbor_raw_input = list(raw_input)
-                neighbor_values, interpret_kwargs, interpret_by_removal = input_component.get_interpretation_neighbors(x)
-                interface_scores = []
-                alternative_output = []
-                for neighbor_input in neighbor_values:
-                    neighbor_raw_input[i] = neighbor_input
-                    processed_neighbor_input = [input_component.preprocess(neighbor_raw_input[i])
-                                    for i, input_component in enumerate(self.input_components)]
-                    neighbor_output = self.run_prediction(processed_neighbor_input)
-                    processed_neighbor_output = [output_component.postprocess(
-                        neighbor_output[i]) for i, output_component in enumerate(self.output_components)]
+                if input_component.interpret_by_tokens:
+                    tokens, neighbor_values, masks =  input_component.tokenize(x)
+                    interface_scores = []
+                    alternative_output = []
+                    for neighbor_input in neighbor_values:
+                        neighbor_raw_input[i] = neighbor_input
+                        processed_neighbor_input = [input_component.preprocess(neighbor_raw_input[i])
+                                        for i, input_component in enumerate(self.input_components)]
+                        neighbor_output = self.run_prediction(processed_neighbor_input)
+                        processed_neighbor_output = [output_component.postprocess(
+                            neighbor_output[i]) for i, output_component in enumerate(self.output_components)]
 
-                    alternative_output.append(processed_neighbor_output)
-                    interface_scores.append(quantify_difference_in_label(self, original_output, neighbor_output))
-                alternative_outputs.append(alternative_output)
-                if not interpret_by_removal:
+                        alternative_output.append(processed_neighbor_output)
+                        interface_scores.append(quantify_difference_in_label(self, original_output, neighbor_output))
+                    alternative_outputs.append(alternative_output)
+                    scores.append(
+                        input_component.get_interpretation_scores(
+                            raw_input[i], neighbor_values, interface_scores, masks=masks, tokens=tokens))                
+                else:
+                    neighbor_values, interpret_kwargs = input_component.get_interpretation_neighbors(x)
+                    interface_scores = []
+                    alternative_output = []
+                    for neighbor_input in neighbor_values:
+                        neighbor_raw_input[i] = neighbor_input
+                        processed_neighbor_input = [input_component.preprocess(neighbor_raw_input[i])
+                                        for i, input_component in enumerate(self.input_components)]
+                        neighbor_output = self.run_prediction(processed_neighbor_input)
+                        processed_neighbor_output = [output_component.postprocess(
+                            neighbor_output[i]) for i, output_component in enumerate(self.output_components)]
+
+                        alternative_output.append(processed_neighbor_output)
+                        interface_scores.append(quantify_difference_in_label(self, original_output, neighbor_output))
+                    alternative_outputs.append(alternative_output)
                     interface_scores = [-score for score in interface_scores]
-                scores.append(
-                    input_component.get_interpretation_scores(
-                        raw_input[i], neighbor_values, interface_scores, **interpret_kwargs))
-            return scores, alternative_outputs
+                    scores.append(
+                        input_component.get_interpretation_scores(
+                            raw_input[i], neighbor_values, interface_scores, **interpret_kwargs))
+                return scores, alternative_outputs
+        elif self.interpretation.lower() == "shap":
+            scores = []
+            try:
+                import shap
+            except (ImportError, ModuleNotFoundError):
+                raise ValueError("The package `shap` is required for this interpretation method. Try: `pip install shap`")
+
+            processed_input = [input_component.preprocess(raw_input[i])
+                            for i, input_component in enumerate(self.input_components)]
+            original_output = self.run_prediction(processed_input)
+
+            for i, x in enumerate(raw_input): # iterate over reach interface
+                input_component = self.input_components[i]
+                tokens, _, masks = input_component.tokenize(x)
+                
+                def get_masked_prediction(binary_mask):  # construct a masked version of the input
+                    masked_xs = input_component.get_masked_inputs(tokens, binary_mask)  
+                    preds = []
+                    for masked_x in masked_xs:
+                        processed_masked_input = copy.deepcopy(processed_input) 
+                        processed_masked_input[i] = input_component.preprocess(masked_x) 
+                        new_output = self.run_prediction(processed_masked_input)
+                        pred = get_regression_or_classification_value(self, original_output, new_output)
+                        preds.append(pred)
+                    return np.array(preds)
+
+                num_total_segments = len(tokens) 
+                explainer = shap.KernelExplainer(get_masked_prediction, np.zeros((1, num_total_segments)))
+                shap_values = explainer.shap_values(np.ones((1, num_total_segments)), nsamples=int(self.num_shap*num_total_segments), silent=True)
+                scores.append(input_component.get_interpretation_scores(raw_input[i], None, shap_values[0], masks=masks, tokens=tokens))
+            return scores, []
         else:
             processed_input = [input_component.preprocess(raw_input[i])
                                for i, input_component in enumerate(self.input_components)]
