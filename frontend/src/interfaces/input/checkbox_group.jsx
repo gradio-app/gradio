@@ -9,7 +9,7 @@ class CheckboxGroupInput extends React.Component {
     this.handleChange = this.handleChange.bind(this);
   }
   handleChange(selected_item) {
-    let all_selected = this.props.value;
+    let all_selected = [...this.props.value];
     if (all_selected.includes(selected_item)) {
       all_selected = all_selected.filter(item => item !== selected_item);
     } else {
