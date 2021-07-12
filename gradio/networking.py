@@ -12,6 +12,7 @@ from flask_cors import CORS
 import threading
 import pkg_resources
 from distutils import dir_util
+import datetime
 import time
 import json
 import urllib.request
@@ -179,8 +180,12 @@ def predict():
     output = {"data": prediction, "durations": durations}
     if app.interface.allow_flagging == "auto":
         try:
-            flag_data(raw_input, prediction)
-        except:
+            flag_index = flag_data(raw_input, prediction, 
+                flag_option=(None if app.interface.flagging_options is None else ""), 
+                username=current_user.id if current_user.is_authenticated else None)
+            output["flag_index"] = flag_index
+        except Exception as e:
+            print(str(e))
             pass
     return jsonify(output)
 
@@ -274,28 +279,46 @@ def predict_examples():
     return jsonify(output)
 
 
-def flag_data(input_data, output_data, flag_option=None):
+def flag_data(input_data, output_data, flag_option=None, flag_index=None, username=None):
     flag_path = os.path.join(app.cwd, app.interface.flagging_dir)
-    csv_data = []
-    encryption_key = app.interface.encryption_key if app.interface.encrypt else None
-    for i, interface in enumerate(app.interface.input_components):
-        csv_data.append(interface.save_flagged(
-            flag_path, app.interface.config["input_components"][i]["label"], input_data[i], encryption_key))
-    for i, interface in enumerate(app.interface.output_components):
-        csv_data.append(interface.save_flagged(
-            flag_path, app.interface.config["output_components"][i]["label"], output_data[i], encryption_key))
-    if flag_option:
-        csv_data.append(flag_option)
-
-    headers = [interface["label"]
-               for interface in app.interface.config["input_components"]]
-    headers += [interface["label"]
-                for interface in app.interface.config["output_components"]]
-    if app.interface.flagging_options is not None:
-        headers.append("flag")
-
     log_fp = "{}/log.csv".format(flag_path)
+    encryption_key = app.interface.encryption_key if app.interface.encrypt else None
     is_new = not os.path.exists(log_fp)
+
+    if flag_index is None:
+        csv_data = []
+        for i, interface in enumerate(app.interface.input_components):
+            csv_data.append(interface.save_flagged(
+                flag_path, app.interface.config["input_components"][i]["label"], input_data[i], encryption_key))
+        for i, interface in enumerate(app.interface.output_components):
+            csv_data.append(interface.save_flagged(
+                flag_path, app.interface.config["output_components"][i]["label"], output_data[i], encryption_key) if output_data[i] is not None else "")
+        if flag_option is not None:
+            csv_data.append(flag_option)
+        if username is not None:
+            csv_data.append(username)
+        csv_data.append(str(datetime.datetime.now()))
+        if is_new:
+            headers = [interface["label"]
+                    for interface in app.interface.config["input_components"]]
+            headers += [interface["label"]
+                        for interface in app.interface.config["output_components"]]
+            if app.interface.flagging_options is not None:
+                headers.append("flag")
+            if username is not None:
+                headers.append("username")
+            headers.append("timestamp")
+
+    def replace_flag_at_index(file_content):
+        file_content = io.StringIO(file_content)
+        content = list(csv.reader(file_content))
+        header = content[0]
+        flag_col_index = header.index("flag")
+        content[flag_index][flag_col_index] = flag_option
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerows(content)
+        return output.getvalue()
 
     if app.interface.encrypt:
         output = io.StringIO()
@@ -304,28 +327,42 @@ def flag_data(input_data, output_data, flag_option=None):
                 encrypted_csv = csvfile.read()
                 decrypted_csv = encryptor.decrypt(
                     app.interface.encryption_key, encrypted_csv)
-                output.write(decrypted_csv.decode())
+                file_content = decrypted_csv.decode()
+                if flag_index is not None:
+                    file_content = replace_flag_at_index(file_content)
+                output.write(file_content)
         writer = csv.writer(output)
-        if is_new:
-            writer.writerow(headers)
-        writer.writerow(csv_data)
+        if flag_index is None:
+            if is_new:
+                writer.writerow(headers)
+            writer.writerow(csv_data)
         with open(log_fp, "wb") as csvfile:
             csvfile.write(encryptor.encrypt(
                 app.interface.encryption_key, output.getvalue().encode()))
     else:
-        with open(log_fp, "a") as csvfile:
-            writer = csv.writer(csvfile)
-            if is_new:
-                writer.writerow(headers)
-            writer.writerow(csv_data)
-
+        if flag_index is None:
+            with open(log_fp, "a") as csvfile:
+                writer = csv.writer(csvfile)
+                if is_new:
+                    writer.writerow(headers)
+                writer.writerow(csv_data)
+        else:
+            with open(log_fp) as csvfile:
+                file_content = csvfile.read()
+                file_content = replace_flag_at_index(file_content)
+            with open(log_fp, "w") as csvfile:
+                csvfile.write(file_content)
+    with open(log_fp, "r") as csvfile:
+        line_count = len([None for row in csv.reader(csvfile)]) - 1
+    return line_count
 
 @app.route("/api/flag/", methods=["POST"])
 @login_check
 def flag():
     log_feature_analytics('flag')
     data = request.json['data']
-    flag_data(data['input_data'], data['output_data'], data.get("flag_option"))
+    flag_data(data['input_data'], data['output_data'], data.get("flag_option"), data.get("flag_index"), 
+        current_user.id if current_user.is_authenticated else None)
     return jsonify(success=True)
 
 
