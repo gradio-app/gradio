@@ -734,9 +734,14 @@ class Image(InputComponent):
             from skimage.segmentation import slic
         except (ImportError, ModuleNotFoundError):
             raise ValueError("Error: running this interpretation for images requires scikit-image, please install it first.")
-        segments_slic = slic(
-            resized_and_cropped_image, self.interpretation_segments, compactness=10, 
-            sigma=1, start_label=0)
+        try:
+            segments_slic = slic(
+                resized_and_cropped_image, self.interpretation_segments, compactness=10, 
+                sigma=1, start_label=1)
+        except TypeError:  # For skimage 0.16 and older
+            segments_slic = slic(
+                resized_and_cropped_image, self.interpretation_segments, compactness=10, 
+                sigma=1)
         return segments_slic, resized_and_cropped_image
 
     def tokenize(self, x):
