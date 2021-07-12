@@ -1,3 +1,4 @@
+LICENSE
 MANIFEST.in
 README.md
 setup.py
