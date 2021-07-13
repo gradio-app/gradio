@@ -1,3 +1,4 @@
+LICENSE
 MANIFEST.in
 README.md
 setup.py
@@ -26,6 +27,14 @@ gradio.egg-info/requires.txt
 gradio.egg-info/top_level.txt
 gradio/frontend/asset-manifest.json
 gradio/frontend/index.html
+gradio/frontend/static/bundle.css
+gradio/frontend/static/bundle.css.map
+gradio/frontend/static/bundle.js
+gradio/frontend/static/bundle.js.LICENSE.txt
+gradio/frontend/static/bundle.js.map
+gradio/frontend/static/css/main.bc3b604e.css
+gradio/frontend/static/css/main.bc3b604e.css.map
+gradio/frontend/static/media/logo_loading.e93acd82.jpg
 test/test_demos.py
 test/test_inputs.py
 test/test_interfaces.py
