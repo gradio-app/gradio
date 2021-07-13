@@ -12,6 +12,7 @@ from flask_cors import CORS
 import threading
 import pkg_resources
 from distutils import dir_util
+import datetime
 import time
 import json
 import urllib.request
@@ -296,6 +297,7 @@ def flag_data(input_data, output_data, flag_option=None, flag_index=None, userna
             csv_data.append(flag_option)
         if username is not None:
             csv_data.append(username)
+        csv_data.append(str(datetime.datetime.now()))
         if is_new:
             headers = [interface["label"]
                     for interface in app.interface.config["input_components"]]
@@ -305,6 +307,7 @@ def flag_data(input_data, output_data, flag_option=None, flag_index=None, userna
                 headers.append("flag")
             if username is not None:
                 headers.append("username")
+            headers.append("timestamp")
 
     def replace_flag_at_index(file_content):
         file_content = io.StringIO(file_content)
