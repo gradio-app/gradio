@@ -18,7 +18,7 @@ GOLDEN_PATH = "test/golden/{}/{}.png"
 TOLERANCE = 0.1
 TIMEOUT = 10
 
-GAP_TO_SCREENSHOT = 5
+GAP_TO_SCREENSHOT = 1
 
 def wait_for_url(url):
     for i in range(TIMEOUT):
