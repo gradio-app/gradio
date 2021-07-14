@@ -50,7 +50,7 @@
   "devDependencies": {
     "autoprefixer": "^9.8.6",
     "mini-css-extract-plugin": "^0.11.3",
-    "postcss": "^7.0.35",
+    "postcss": "^7.0.36",
     "tailwindcss": "npm:@tailwindcss/postcss7-compat@^2.1.2"
   }
 }
