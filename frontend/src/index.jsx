@@ -28,6 +28,12 @@ get_config().then(config => {
   if (config.auth_required) {
     ReactDOM.render(<Login {...config} />, document.getElementById('root'))
   } else {
+    if (config.css !== null) {
+      var head = document.head || document.getElementsByTagName('head')[0],
+        style = document.createElement('style');
+      head.appendChild(style);
+      style.appendChild(document.createTextNode(config.css));
+    }
     ReactDOM.render(
       <div class="gradio_page">
         {config.title ? <h1 className="title">{config.title}</h1> : false}

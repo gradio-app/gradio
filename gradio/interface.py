@@ -239,6 +239,7 @@ class Interface:
             "description": self.description,
             "article": self.article,
             "theme": self.theme,
+            "css": self.css,
             "thumbnail": self.thumbnail,
             "allow_screenshot": self.allow_screenshot,
             "allow_flagging": self.allow_flagging,
