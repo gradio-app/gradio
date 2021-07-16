@@ -441,21 +441,30 @@ class Dataframe(OutputComponent):
     Output type: Union[pandas.DataFrame, numpy.array, List[Union[str, float]], List[List[Union[str, float]]]]
     """
 
-    def __init__(self, headers=None, type="auto", label=None):
+    def __init__(self, headers=None, max_rows=20, max_cols=None, overflow_row_behaviour="paginate", type="auto", label=None):
         '''
         Parameters:
-        headers (List[str]): Header names to dataframe.
+        headers (List[str]): Header names to dataframe. Only applicable if type is "numpy" or "array".
+        max_rows (int): Maximum number of rows to display at once. Set to None for infinite. 
+        max_cols (int): Maximum number of columns to display at once. Set to None for infinite.
+        overflow_row_behaviour (str): If set to "paginate", will create pages for overflow rows. If set to "show_ends", will show initial and final rows and truncate middle rows. 
         type (str): Type of value to be passed to component. "pandas" for pandas dataframe, "numpy" for numpy array, or "array" for Python array, "auto" detects return type.
         label (str): component name in interface.
         '''
-        self.type = type
         self.headers = headers
+        self.max_rows = max_rows
+        self.max_cols = max_cols
+        self.overflow_row_behaviour = overflow_row_behaviour
+        self.type = type
         super().__init__(label)
 
 
     def get_template_context(self):
         return {
             "headers": self.headers,
+            "max_rows": self.max_rows,
+            "max_cols": self.max_cols,
+            "overflow_row_behaviour": self.overflow_row_behaviour,
             **super().get_template_context()
         }
 
