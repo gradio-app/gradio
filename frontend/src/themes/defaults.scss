@@ -472,6 +472,31 @@
             @apply text-2xl p-2;
         }
     }
+    .output_dataframe {
+        table {
+            thead {
+                @apply font-bold border-gray-200 border-b-2;
+            }
+            th {
+                @apply transition cursor-pointer;
+            }
+            th:hover {
+                @apply bg-gray-200;
+            }
+            td, th {
+                @apply px-4;
+            }
+        }
+        .pages {
+            @apply flex gap-1 items-center;
+        }
+        .page {
+            @apply px-2 py-1 bg-gray-200;
+        }
+        .page.selected {
+            @apply bg-gray-300;
+        }
+    }
     .output_carousel {
         @apply flex flex-col gap-2;
         .carousel_control {
