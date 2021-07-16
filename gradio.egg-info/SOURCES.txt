@@ -32,6 +32,8 @@ gradio/frontend/static/bundle.css.map
 gradio/frontend/static/bundle.js
 gradio/frontend/static/bundle.js.LICENSE.txt
 gradio/frontend/static/bundle.js.map
+gradio/frontend/static/css/main.347bef8c.css
+gradio/frontend/static/css/main.347bef8c.css.map
 gradio/frontend/static/css/main.bc3b604e.css
 gradio/frontend/static/css/main.bc3b604e.css.map
 gradio/frontend/static/media/logo_loading.e93acd82.jpg
