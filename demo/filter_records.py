@@ -1,8 +1,6 @@
 # Demo: (Dataframe, Dropdown) -> (Dataframe)
 
 import gradio as gr
-import numpy as np
-import random
 
 def filter_records(records, gender):
     return records[records['gender'] == gender]
