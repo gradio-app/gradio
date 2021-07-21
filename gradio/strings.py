@@ -21,6 +21,7 @@ en = {
                       "To turn off, set debug=False in launch().",
     "COLAB_DEBUG_FALSE": "Colab notebook detected. To show errors in colab notebook, set debug=True in launch()",
     "SHARE_LINK_MESSAGE": "This share link will expire in 24 hours. If you need a permanent link, visit: https://gradio.app/introducing-hosted (NEW!)",
+    "PRIVATE_LINK_MESSAGE": "Since this is a private endpoint, this share link will never expire.",
     "SHARE_LINK_DISPLAY": "Running on External URL: {}",
     "INLINE_DISPLAY_BELOW": "Interface loading below...",
     "MEDIA_PERMISSIONS_IN_COLAB": "Your interface requires microphone or webcam permissions - this may cause issues in Colab. Use the External URL in case of issues.",
