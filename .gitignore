@@ -27,3 +27,4 @@ test.txt
 build/
 gradio/launches.json
 gradio/frontend/static
+workspace.code-workspace
