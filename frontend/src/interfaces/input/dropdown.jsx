@@ -15,8 +15,8 @@ class DropdownInput extends React.Component {
     return (<div className="input_dropdown">
       {this.props.interpretation === null ?
         <div className="dropdown inline-block relative">
-          <button className="selector ">
-            <span className="current">{this.props.value}</span>
+          <button className="selector">
+            {this.props.value}
             <svg className="caret" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /> </svg>
           </button>
           <ul className="dropdown_menu">
