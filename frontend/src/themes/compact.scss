@@ -20,7 +20,7 @@ html {
         @apply flex-1;
     }
     .component_set {
-        @apply bg-gray-50 p-2 rounded flex flex-col gap-2;
+        @apply bg-gray-50 p-2 rounded flex flex-col flex-1 gap-2;
     }
     .panel_header {
         @apply mb-1 uppercase text-sm font-semibold;
@@ -269,11 +269,8 @@ html {
         .selector {
             @apply bg-gray-200 text-gray-700 py-2 px-4 font-semibold rounded inline-flex items-center;
         }
-        .current {
-            @apply mr-1;
-        }
         .caret {
-            @apply fill-current h-4 w-4;
+            @apply ml-1 fill-current h-4 w-4;
         }
         .dropdown_menu {
             @apply absolute hidden text-gray-700 pt-1 max-h-80 overflow-y-auto z-10;

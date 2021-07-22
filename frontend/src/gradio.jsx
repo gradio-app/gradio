@@ -92,7 +92,7 @@ export class GradioInterface extends React.Component {
       }
       for (let i = 0; i < this.props.output_components.length; i++) {
         component_state["output_data"].push(this.state[this.props.input_components.length + i]);
-      }  
+      }
     }
     this.setState({ "just_flagged": true });
     window.setTimeout(() => {
@@ -127,7 +127,7 @@ export class GradioInterface extends React.Component {
     this.setState({ "interpretation": null });
   }
   takeScreenshot() {
-    html2canvas(ReactDOM.findDOMNode(this)).then(canvas => {
+    html2canvas(ReactDOM.findDOMNode(this).parentNode).then(canvas => {
       saveAs(canvas.toDataURL(), 'screenshot.png');
     });
   }
@@ -167,7 +167,10 @@ export class GradioInterface extends React.Component {
           "items-stretch": this.props.layout !== "unaligned",
           "flex-col": this.props.layout === "vertical",
         })}>
-          <div className="panel">
+          <div className={classNames("panel", {
+            "flex": this.props.layout === "horizontal",
+            "flex-col": this.props.layout === "horizontal",
+          })}>
             <div className="component_set">
               {this.props.input_components.map((component, index) => {
                 const Component = input_component_map[component.name][0];
@@ -185,7 +188,10 @@ export class GradioInterface extends React.Component {
               }
             </div>
           </div>
-          <div className="panel">
+          <div className={classNames("panel", {
+            "flex": this.props.layout === "horizontal",
+            "flex-col": this.props.layout === "horizontal",
+          })}>
             <div className={classNames("component_set", "relative",
               { "opacity-50": status && !this.props.live })}>
               {status}

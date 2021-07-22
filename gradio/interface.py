@@ -65,7 +65,7 @@ class Interface:
 
     def __init__(self, fn, inputs=None, outputs=None, verbose=False, examples=None,
                  examples_per_page=10, live=False,
-                 layout="horizontal", show_input=True, show_output=True,
+                 layout="unaligned", show_input=True, show_output=True,
                  capture_session=False, interpretation=None, num_shap=2.0, theme=None, repeat_outputs_per_model=True,
                  title=None, description=None, article=None, thumbnail=None,  
                  css=None, server_port=None, server_name=networking.LOCALHOST_NAME, height=500, width=900,
