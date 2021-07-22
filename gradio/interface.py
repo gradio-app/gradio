@@ -536,7 +536,9 @@ class Interface:
         self.share = share
 
         if share:
-            if not private_endpoint:
+            if private_endpoint:
+                print(strings.en["PRIVATE_LINK_MESSAGE"])
+            else:
                 print(strings.en["SHARE_LINK_MESSAGE"])
             try:
                 share_url = networking.setup_tunnel(server_port, private_endpoint)

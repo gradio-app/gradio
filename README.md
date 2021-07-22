@@ -34,10 +34,11 @@ pip install gradio
 import gradio as gr
 
 def greet(name):
-  return "Hello " + name + "!"
+  return "Hello " + name + "!!"
 
 iface = gr.Interface(fn=greet, inputs="text", outputs="text")
 iface.launch()
+
 ```
 
 <span>3.</span> The interface below will appear automatically within the Python notebook, or pop in a browser on  [http://localhost:7860](http://localhost:7860/)  if running from a script.
@@ -130,6 +131,7 @@ import gradio as gr
 import random
 
 def calculator(num1, operation, num2):
+    print(num1, operation, num2)
     if operation == "add":
         return num1 + num2
     elif operation == "subtract":
@@ -148,6 +150,9 @@ iface = gr.Interface(calculator,
         [-4, "multiply", 2.5],
         [0, "subtract", 1.2],
     ],
+    title="test calculator",
+    description="heres a sample toy calculator. enjoy!",
+    flagging_options=["this", "or", "that"]
 )
 
 iface.launch()
@@ -209,9 +214,9 @@ gr.Interface(classify_image, "image", "label").launch(share=True)
 
 This generates a public, shareable link that you can send to anybody! When you send this link, the user on the other side can try out the model in their browser. Because the processing happens on your device (as long as your device stays on!), you don't have to worry about any dependencies. If you're working out of colab notebook, a share link is always automatically created. It usually looks something like this:  **XXXXX.gradio.app**. Although the link is served through a gradio link, we are only a proxy for your local server, and do not store any data sent through the interfaces.
 
-Keep in mind, however, that these links are publicly accessible, meaning that anyone can use your model for prediction! Therefore, make sure not to expose any sensitive information through the functions you write, or allow any critical changes to occur on your device. If you set `share=False` (the default), only a local link is created, which can be shared by  [port-forwarding](https://www.ssh.com/ssh/tunneling/example)  with specific users.
+Keep in mind, however, that these links are publicly accessible, meaning that anyone can use your model for prediction! Therefore, make sure not to expose any sensitive information through the functions you write, or allow any critical changes to occur on your device. If you set `share=False` (the default), only a local link is created, which can be shared by  [port-forwarding](https://www.ssh.com/ssh/tunneling/example)  with specific users. 
 
-Share links expire after 6 hours.
+Share links expire after 72 hours. For permanent hosting, see below.
 
 ![Sharing diagram](demo/images/sharing.svg)
 
