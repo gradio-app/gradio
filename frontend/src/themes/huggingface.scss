@@ -29,7 +29,7 @@
         @apply flex-1;
     }
     .component_set {
-        @apply border border-gray-100 p-4 rounded-lg flex flex-col gap-3 bg-gradient-to-br from-gray-50 to-white;
+        @apply border border-gray-100 p-4 rounded-lg flex flex-col flex-1 gap-3 bg-gradient-to-br from-gray-50 to-white;
     }
     .panel_header {
         @apply flex items-center text-sm text-gray-700 mb-1.5;
@@ -272,11 +272,8 @@
         .selector {
             @apply border bg-gradient-to-t from-gray-100 to-gray-50 text-gray-600 py-1.5 px-3 hover:to-gray-100 font-semibold rounded inline-flex items-center;
         }
-        .current {
-            @apply mr-1;
-        }
         .caret {
-            @apply fill-current h-4 w-4;
+            @apply ml-1 fill-current h-4 w-4;
         }
         .dropdown_menu {
             @apply absolute hidden text-gray-700 pt-1 max-h-80 overflow-y-auto z-10;
