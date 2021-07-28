@@ -107,3 +107,31 @@ export function array_compare(a1, a2) {
     }
     return true;
 }
+
+export function CSVToArray(strData, strDelimiter) {
+    strDelimiter = (strDelimiter || ",");
+    let objPattern = new RegExp(
+        (
+            "(\\" + strDelimiter + "|\\r?\\n|\\r|^)" +
+            "(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
+            "([^\"\\" + strDelimiter + "\\r\\n]*))"
+        ),
+        "gi"
+    );
+    let arrData = [[]];
+    let arrMatches = null;
+    while (arrMatches = objPattern.exec(strData)) {
+        let strMatchedDelimiter = arrMatches[1];
+        let strMatchedValue = [];
+        if (strMatchedDelimiter.length && (strMatchedDelimiter != strDelimiter)) {
+            arrData.push([]);
+        }
+        if (arrMatches[2]) {
+            strMatchedValue = arrMatches[2].replace(new RegExp("\"\"", "g"), "\"");
+        } else {
+            strMatchedValue = arrMatches[3];
+        }
+        arrData[arrData.length - 1].push(strMatchedValue);
+    }
+    return (arrData);
+}

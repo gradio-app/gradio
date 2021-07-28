@@ -388,6 +388,18 @@
             @apply text-2xl p-2;
         }
     }
+    .input_timeseries {
+        @apply w-full h-96;
+        .upload_zone {
+            @apply border-8 border-gray-300 border-dashed w-full h-full flex justify-center items-center text-3xl text-gray-400 text-center cursor-pointer leading-10;
+        }
+        .file_preview_holder {
+            @apply w-full h-full flex flex-col justify-center items-center relative inline-block;
+        }
+        .js-plotly-plot, .plotly.js-plotly-plot * {
+            position: static !important;
+        } 
+    }
     /* Output Components */
     .output_text {
         word-break: break-word;

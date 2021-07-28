@@ -1143,35 +1143,55 @@ class Dataframe(InputComponent):
         else:
             raise ValueError("Unknown type: " + str(self.type) + ". Please choose from: 'pandas', 'numpy', 'array'.")
 
-    # def set_interpret_parameters(self):
-    #     """
-    #     Calculates interpretation score of each cell in the Dataframe by using a "leave one out" method to calculate the score of each cell by removing the cell and measuring the delta of the output value.
-    #     """
-    #     return self
 
-    # def get_interpretation_neighbors(self, x):
-    #     x = pd.DataFrame(x)
-    #     leave_one_out_sets = []
-    #     shape = x.shape
-    #     for i in range(shape[0]):
-    #         for j in range(shape[1]):
-    #             scalar = x.iloc[i, j]
-    #             leave_one_out_df = x.copy()
-    #             if is_bool_dtype(scalar):
-    #                 leave_one_out_df.iloc[i, j] = not scalar
-    #             elif is_numeric_dtype(scalar):
-    #                 leave_one_out_df.iloc[i, j] = 0
-    #             elif is_string_dtype(scalar):
-    #                 leave_one_out_df.iloc[i, j] = ""
-    #             leave_one_out_sets.append(leave_one_out_df.values.tolist())
-    #     return leave_one_out_sets, {"shape": x.shape}
+    def embed(self, x):
+        raise NotImplementedError("DataFrame doesn't currently support embeddings")
 
-    # def get_interpretation_scores(self, x, neighbors, scores, shape):
-    #     """
-    #     Returns:
-    #     (List[List[float]]): A 2D array where each value corrseponds to the interpretation score of each cell.
-    #     """
-    #     return np.array(scores).reshape((shape)).tolist()
+    def save_flagged(self, dir, label, data, encryption_key):
+        """
+        Returns: (List[List[Union[str, float]]]) 2D array
+        """
+        return json.dumps(data)
+
+    def restore_flagged(self, data):
+        return json.loads(data)
+
+
+class Timeseries(InputComponent):
+    """
+    Component accepts pandas.DataFrame uploaded as a timeseries csv file.
+    Input type: pandas.DataFrame
+    """
+
+    def __init__(self, x=None, y=None, label=None):
+        """
+        Parameters:
+        x (str): Column name of x (time) series. None if csv has no headers, in which case first column is x series.
+        y (Union[str, List[str]]): Column name of y series, or list of column names if multiple series. None if csv has no headers, in which case every column after first is a y series.
+        label (str): component name in interface.
+        """
+        self.x = x
+        if isinstance(y, str):
+            y = [y]
+        self.y = y
+        super().__init__(label)
+
+    def get_template_context(self):
+        return {
+            "x": self.x,
+            "y": self.y,
+            **super().get_template_context()
+        }
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "timeseries": {},
+        }
+
+    def preprocess(self, x):
+            return pd.DataFrame(data=x["data"], columns=x["headers"])
+
 
     def embed(self, x):
         raise NotImplementedError("DataFrame doesn't currently support embeddings")
