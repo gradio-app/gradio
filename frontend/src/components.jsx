@@ -9,6 +9,7 @@ import { NumberInput, NumberInputExample } from './interfaces/input/number';
 import { RadioInput, RadioInputExample } from './interfaces/input/radio';
 import { SliderInput, SliderInputExample } from './interfaces/input/slider';
 import { TextboxInput, TextboxInputExample } from './interfaces/input/textbox';
+import { TimeseriesInput, TimeseriesInputExample } from './interfaces/input/timeseries';
 import { VideoInput, VideoInputExample } from './interfaces/input/video';
 
 import { AudioOutput, AudioOutputExample } from './interfaces/output/audio';
@@ -36,6 +37,7 @@ let input_component_map = {
   "radio": [RadioInput, RadioInputExample],
   "slider": [SliderInput, SliderInputExample],
   "textbox": [TextboxInput, TextboxInputExample],
+  "timeseries": [TimeseriesInput, TimeseriesInputExample],
   "video": [VideoInput, VideoInputExample],
 }
 let output_component_map = {
