@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 .gradio_page {
-    @apply container mx-auto my-4;
+    @apply container h-full mx-auto pt-4 px-4 flex flex-col box-border;
     .title {
         @apply text-center p-4 text-4xl;
     }
@@ -11,7 +11,16 @@
         @apply pb-4;
     }
     .article {
-        @apply pt-8 pb-4 max-w-none;        
+        @apply pt-8 pb-4 max-w-none;
+    }
+    .content {
+        @apply flex-grow flex-shrink-0;
+    }
+    .footer {
+        @apply flex-shrink-0 flex gap-1 items-center text-gray-400 justify-center py-2;
+    }
+    .logo {
+        @apply h-6;
     }
 }
 
@@ -134,13 +143,13 @@
         }
         input {
             @apply w-full bg-white border-gray-400 rounded box-border p-1;
-        }        
+        }
         .interpretation {
             .interpretation_box {
                 @apply inline-block whitespace-pre-wrap;
             }
-        }    
-    } 
+        }
+    }
     .input_number {
         input {
             @apply w-full bg-white border-gray-400 rounded box-border p-1;
@@ -248,7 +257,7 @@
             .interpret_check line {
                 stroke: gray;
                 stroke-width: 4;
-                stroke-linecap: round;    
+                stroke-linecap: round;
             }
         }
     }
@@ -288,7 +297,7 @@
             .interpret_check line {
                 stroke: gray;
                 stroke-width: 4;
-                stroke-linecap: round;    
+                stroke-linecap: round;
             }
         }
     }
@@ -480,7 +489,8 @@
             th:hover {
                 @apply bg-gray-200;
             }
-            td, th {
+            td,
+            th {
                 @apply px-4;
             }
         }
