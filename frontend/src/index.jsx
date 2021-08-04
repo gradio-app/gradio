@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import GradioInterface from './gradio';
+import { GradioPage } from './gradio';
 import Login from './login';
 
 let fn = async (data, action) => {
@@ -35,12 +35,7 @@ get_config().then(config => {
       style.appendChild(document.createTextNode(config.css));
     }
     ReactDOM.render(
-      <div class="gradio_page">
-        {config.title ? <h1 className="title">{config.title}</h1> : false}
-        {config.description ? <p className="description">{config.description}</p> : false}
-        <GradioInterface {...config} fn={fn} />
-        {config.article ? <p className="article prose" dangerouslySetInnerHTML={{ "__html": config.article }} /> : false}
-      </div>,
+        <GradioPage {...config} fn={fn} />,
       document.getElementById('root')
     );
   }
