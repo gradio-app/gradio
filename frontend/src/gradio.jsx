@@ -7,9 +7,27 @@ import classNames from "classnames";
 
 import logo_loading from './static/img/logo_loading.jpg'
 import logo_error from './static/img/logo_error.png'
+import logo from './static/img/logo.svg'
 import('./themes/defaults.scss');
 import('./themes/huggingface.scss');
 import('./themes/compact.scss');
+
+export class GradioPage extends React.Component {
+  render() {
+    return (<div class="gradio_page">
+      <div class="content">
+        {this.props.title ? <h1 className="title">{this.props.title}</h1> : false}
+        {this.props.description ? <p className="description">{this.props.description}</p> : false}
+        <GradioInterface {...this.props} />
+        {this.props.article ? <p className="article prose" dangerouslySetInnerHTML={{ "__html": this.props.article }} /> : false}
+      </div>
+      <a href="https://gradio.app" target="_blank" className="footer">
+        <span>built with</span>
+        <img className="logo" src={logo} />
+      </a>
+    </div>)
+  }
+}
 
 export class GradioInterface extends React.Component {
   constructor(props) {
@@ -277,6 +295,3 @@ class GradioInterfaceExamples extends React.Component {
     </div>
   }
 }
-
-
-export default GradioInterface;
