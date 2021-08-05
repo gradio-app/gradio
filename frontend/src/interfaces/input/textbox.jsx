@@ -22,13 +22,15 @@ class TextboxInput extends React.Component {
     } else if (this.props.lines > 1) {
       return (
         <div className="input_text">
-          <textarea value={this.props.value || ""} rows={this.props.lines} onChange={this.handleChange}>
+          <textarea value={this.props.value || ""} rows={this.props.lines} 
+            onChange={this.handleChange} placeholder={this.props.placeholder || ""}>
           </textarea>
         </div>
       )
     } else {
       return (<div className="input_text">
-        <input type="text" onChange={this.handleChange} value={this.props.value || ""}></input>
+        <input type="text" onChange={this.handleChange} value={this.props.value || ""}
+          placeholder={this.props.placeholder || ""}></input>
       </div>)
     }
   }
