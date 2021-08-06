@@ -1,10 +1,11 @@
-import React from 'react';
+import React from "react";
+import BaseComponent from "./base_component";
 
-export default class ComponentExample extends React.Component {
+export default class ComponentExample extends BaseComponent {
   render() {
-    return <div>{this.props.value}</div>
+    return <div>{this.props.value}</div>;
   }
-  static async preprocess(x, examples_dir) {
+  static async preprocess(x) {
     return x;
   }
 }
@@ -25,9 +26,13 @@ export class DataURLComponentExample extends ComponentExample {
     let blob = await response.blob();
     return new Promise((resolve, reject) => {
       var reader = new FileReader();
-      reader.addEventListener("load", function () {
-        resolve(reader.result);
-      }, false);
+      reader.addEventListener(
+        "load",
+        function () {
+          resolve(reader.result);
+        },
+        false
+      );
 
       reader.onerror = () => {
         return reject(this);
