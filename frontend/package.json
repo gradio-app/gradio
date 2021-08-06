@@ -11,24 +11,34 @@
     "@toast-ui/react-image-editor": "^3.14.2",
     "audio-react-recorder": "^1.0.4",
     "classnames": "^2.3.1",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^3.4.0",
     "fabric": "^4.5.0",
     "html2canvas-objectfit-fix": "^1.2.0",
     "jspreadsheet-ce": "^4.7.3",
+    "pre-commit": "^1.2.2",
+    "prettier-eslint": "^13.0.0",
+    "prettier-eslint-cli": "^5.0.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-json-tree": "^0.15.0",
     "react-scripts": "4.0.3",
     "react-webcam": "^5.2.3",
     "sass": "^1.32.8",
+    "source-map-explorer": "^2.5.2",
     "web-vitals": "^1.1.1",
     "webpack": "^4.44.2"
   },
   "scripts": {
     "start": "REACT_APP_BACKEND_URL='http://localhost:7860/' craco start",
+    "format": "prettier-eslint --eslint-config-path ./.eslintrc.js --write '**/*.js*'",
     "build": "REACT_APP_BACKEND_URL='' craco build",
-    "test": "craco test",
+    "test": "echo \"Error: I SHOULD FAIL LOLOLOLOLOL \" && exit 1",
     "eject": "react-scripts eject"
   },
+  "pre-commit": [
+    "test"
+  ],
   "eslintConfig": {
     "extends": [
       "react-app",
@@ -49,8 +59,10 @@
   },
   "devDependencies": {
     "autoprefixer": "^9.8.6",
+    "eslint": "^7.32.0",
     "mini-css-extract-plugin": "^0.11.3",
     "postcss": "^7.0.36",
+    "prettier": "^2.3.2",
     "tailwindcss": "npm:@tailwindcss/postcss7-compat@^2.1.2"
   }
 }
