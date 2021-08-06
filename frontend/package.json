@@ -32,7 +32,6 @@
     "start": "REACT_APP_BACKEND_URL='http://localhost:7860/' craco start",
     "format": "prettier-eslint --eslint-config-path ./.eslintrc.js --write '**/*.js*'",
     "build": "REACT_APP_BACKEND_URL='' craco build",
-    "test": "echo \"Error: I SHOULD FAIL LOLOLOLOLOL \" && exit 1",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {

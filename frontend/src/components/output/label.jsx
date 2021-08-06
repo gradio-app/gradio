@@ -21,7 +21,7 @@ class LabelOutput extends BaseComponent {
             className="confidence"
             title={confidence}
             style={{
-              minWidth: "calc(" + confidence + " - 12px)"
+              minWidth: "calc(" + confidence + " - 12px)",
             }}
           >
             {confidence}

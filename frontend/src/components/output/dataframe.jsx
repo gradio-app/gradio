@@ -13,7 +13,7 @@ class DataframeOutput extends BaseComponent {
     return {
       page: 0,
       sort_by: null,
-      sort_descending: false
+      sort_descending: false,
     };
   }
   static getDerivedStateFromProps(nextProps, prevState) {
@@ -91,7 +91,7 @@ class DataframeOutput extends BaseComponent {
     if (this.props.max_cols !== null && col_count > this.props.max_cols) {
       let [hidden_col_start, hidden_col_end] = [
         Math.ceil(this.props.max_cols / 2),
-        col_count - Math.floor(this.props.max_cols / 2) - 1
+        col_count - Math.floor(this.props.max_cols / 2) - 1,
       ];
       headers =
         headers.slice(0, hidden_col_start) +
@@ -142,7 +142,7 @@ class DataframeOutput extends BaseComponent {
               ) : (
                 <button
                   className={classNames("page", {
-                    selected: page === this.state.page
+                    selected: page === this.state.page,
                   })}
                   key={page}
                   onClick={this.set_page.bind(this, page)}

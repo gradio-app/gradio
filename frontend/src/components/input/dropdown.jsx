@@ -28,7 +28,7 @@ class DropdownInput extends BaseComponent {
                 return (
                   <li
                     className={classNames("dropdown_item", {
-                      selected: item === this.props.value
+                      selected: item === this.props.value,
                     })}
                     onClick={this.handleChange.bind(this, item)}
                     key={index}
