@@ -20,7 +20,7 @@ class RadioInput extends BaseComponent {
             <div key={index}>
               <div
                 className={classNames("radio_item", {
-                  selected: item === this.props.value
+                  selected: item === this.props.value,
                 })}
                 onClick={this.handleChange.bind(this, item)}
               >
@@ -32,7 +32,7 @@ class RadioInput extends BaseComponent {
                     style={{
                       backgroundColor: getSaliencyColor(
                         this.props.interpretation[index]
-                      )
+                      ),
                     }}
                   ></div>
                 )}
