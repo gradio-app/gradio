@@ -25,7 +25,7 @@ class JSONOutput extends BaseComponent {
             base0C: "#DDD",
             base0D: "#EEE",
             base0E: "#EFEFEF",
-            base0F: "#FFF"
+            base0F: "#FFF",
           }}
           invertTheme={true}
         />

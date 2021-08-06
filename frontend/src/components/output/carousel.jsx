@@ -14,14 +14,14 @@ class CarouselOutput extends BaseComponent {
     this.setState({
       carousel_index:
         (this.state.carousel_index - 1 + this.props.value.length) %
-        this.props.value.length
+        this.props.value.length,
     });
   }
   next() {
     this.setState({
       carousel_index:
         (this.state.carousel_index + 1 + this.props.value.length) %
-        this.props.value.length
+        this.props.value.length,
     });
   }
   render() {
