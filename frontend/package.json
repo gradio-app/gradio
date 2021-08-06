@@ -16,7 +16,6 @@
     "fabric": "^4.5.0",
     "html2canvas-objectfit-fix": "^1.2.0",
     "jspreadsheet-ce": "^4.7.3",
-    "pre-commit": "^1.2.2",
     "prettier-eslint": "^13.0.0",
     "prettier-eslint-cli": "^5.0.1",
     "react": "^17.0.2",
@@ -36,9 +35,6 @@
     "test": "echo \"Error: I SHOULD FAIL LOLOLOLOLOL \" && exit 1",
     "eject": "react-scripts eject"
   },
-  "pre-commit": [
-    "test"
-  ],
   "eslintConfig": {
     "extends": [
       "react-app",
