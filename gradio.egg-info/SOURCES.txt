@@ -36,6 +36,8 @@ gradio/frontend/static/css/main.1c7a53e3.css
 gradio/frontend/static/css/main.1c7a53e3.css.map
 gradio/frontend/static/css/main.2ed025e4.css
 gradio/frontend/static/css/main.2ed025e4.css.map
+gradio/frontend/static/css/main.b74df5ce.css
+gradio/frontend/static/css/main.b74df5ce.css.map
 gradio/frontend/static/media/logo.411acfd1.svg
 gradio/frontend/static/media/logo_loading.e93acd82.jpg
 test/test_demos.py

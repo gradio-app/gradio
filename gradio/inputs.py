@@ -1086,13 +1086,14 @@ class Dataframe(InputComponent):
     Input type: Union[pandas.DataFrame, numpy.array, List[Union[str, float]], List[List[Union[str, float]]]]
     """
 
-    def __init__(self, headers=None, row_count=3, col_count=3, datatype="str", default=None, type="pandas", label=None):
+    def __init__(self, headers=None, row_count=3, col_count=3, datatype="str", col_width=None, default=None, type="pandas", label=None):
         """
         Parameters:
         headers (List[str]): Header names to dataframe.
         row_count (int): Limit number of rows for input.
         col_count (int): Limit number of columns for input. If equal to 1, return data will be one-dimensional. Ignored if `headers` is provided.
         datatype (Union[str, List[str]]): Datatype of values in sheet. Can be provided per column as a list of strings, or for the entire sheet as a single string. Valid datatypes are "str", "number", "bool", and "date".
+        col_width (Union[int, List[int]]): Width of columns in pixels. Can be provided as single value or list of values per column.
         default (List[List[Any]]): Default value
         type (str): Type of value to be returned by component. "pandas" for pandas dataframe, "numpy" for numpy array, or "array" for a Python array.
         label (str): component name in interface.
@@ -1101,6 +1102,7 @@ class Dataframe(InputComponent):
         self.datatype = datatype
         self.row_count = row_count
         self.col_count = len(headers) if headers else col_count
+        self.col_width = col_width
         self.type = type
         self.default = default if default is not None else [[None for _ in range(self.col_count)] for _ in range(self.row_count)]
         sample_values = {"str": "abc", "number": 786, "bool": True, "date": "02/08/1993"}
@@ -1115,6 +1117,7 @@ class Dataframe(InputComponent):
             "datatype": self.datatype,
             "row_count": self.row_count,
             "col_count": self.col_count,
+            "col_width": self.col_width,
             "default": self.default,
             **super().get_template_context()
         }
