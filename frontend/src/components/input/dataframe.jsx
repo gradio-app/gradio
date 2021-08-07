@@ -22,9 +22,13 @@ class DataframeInput extends BaseComponent {
         let column = {};
         if (this.props.datatype) {
           let datatype =
-            typeof this.props.datatype === "string"
-              ? this.props.datatype
-              : this.props.datatype[i];
+            this.props.datatype instanceof Array
+              ? this.props.datatype[i]
+              : this.props.datatype;
+          let col_width =
+            this.props.col_width instanceof Array
+              ? this.props.col_width[i]
+              : this.props.col_width;
           let datatype_map = {
             str: "text",
             bool: "checkbox",
@@ -32,6 +36,7 @@ class DataframeInput extends BaseComponent {
             date: "calendar"
           };
           column.type = datatype_map[datatype];
+          column.width = col_width;
         }
         if (this.props.headers) {
           column.title = this.props.headers[i];
