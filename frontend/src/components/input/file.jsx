@@ -98,7 +98,7 @@ class FileInput extends BaseComponent {
       name: file.name,
       size: file.size,
       data: reader.result,
-      is_local_example: false,
+      is_local_example: false
     });
     if (this.file_data.length === file_count) {
       this.handleChange(this.file_data);

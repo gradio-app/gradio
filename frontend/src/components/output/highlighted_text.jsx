@@ -20,7 +20,7 @@ class HighlightedTextOutput extends BaseComponent {
       "khaki",
       "cyan",
       "moccasin",
-      "lightgray",
+      "lightgray"
     ];
     for (let category in category_map) {
       if (category in this.color_map) {

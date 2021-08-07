@@ -10,8 +10,8 @@ let fn = async (data, action) => {
       method: "POST",
       body: JSON.stringify({ data: data }),
       headers: {
-        "Content-Type": "application/json",
-      },
+        "Content-Type": "application/json"
+      }
     }
   );
   return await output.json();
