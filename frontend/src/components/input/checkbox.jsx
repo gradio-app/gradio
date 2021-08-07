@@ -17,7 +17,7 @@ class CheckboxInput extends BaseComponent {
       <div className="input_checkbox">
         <div
           className={classNames("checkbox_item", {
-            selected: this.props.value,
+            selected: this.props.value
           })}
           onClick={this.handleChange}
         >
@@ -35,7 +35,7 @@ class CheckboxInput extends BaseComponent {
                 style={{
                   backgroundColor: getSaliencyColor(
                     this.props.interpretation[0]
-                  ),
+                  )
                 }}
               ></div>
               <div
@@ -43,7 +43,7 @@ class CheckboxInput extends BaseComponent {
                 style={{
                   backgroundColor: getSaliencyColor(
                     this.props.interpretation[1]
-                  ),
+                  )
                 }}
               >
                 <svg className="interpret_check" viewBox="-10 -10 20 20">

@@ -8,7 +8,7 @@ class AudioInput extends BaseComponent {
   constructor(props) {
     super(props);
     this.state = {
-      recordState: RecordState.STOP,
+      recordState: RecordState.STOP
     };
     this.src = null;
     this.key = 0; // needed to prevent audio caching
@@ -17,12 +17,12 @@ class AudioInput extends BaseComponent {
   }
   start = () => {
     this.setState({
-      recordState: RecordState.START,
+      recordState: RecordState.START
     });
   };
   stop = () => {
     this.setState({
-      recordState: RecordState.STOP,
+      recordState: RecordState.STOP
     });
   };
   onStop = (audioData) => {
