@@ -99,7 +99,7 @@ export class GradioInterface extends React.Component {
       submitting: true,
       has_changed: false,
       error: false,
-      flag_index: null,
+      flag_index: null
     });
     this.props
       .fn(input_state, "predict")
@@ -123,7 +123,7 @@ export class GradioInterface extends React.Component {
         console.error(e);
         this.setState({
           error: true,
-          submitting: false,
+          submitting: false
         });
       });
   };
@@ -168,14 +168,14 @@ export class GradioInterface extends React.Component {
       .then((output) => {
         this.setState({
           interpretation: output["interpretation_scores"],
-          submitting: false,
+          submitting: false
         });
       })
       .catch((e) => {
         console.error(e);
         this.setState({
           error: true,
-          submitting: false,
+          submitting: false
         });
       });
   };
@@ -236,13 +236,13 @@ export class GradioInterface extends React.Component {
           className={classNames("panels", {
             "items-start": this.props.layout === "unaligned",
             "items-stretch": this.props.layout !== "unaligned",
-            "flex-col": this.props.layout === "vertical",
+            "flex-col": this.props.layout === "vertical"
           })}
         >
           <div
             className={classNames("panel", {
               flex: this.props.layout === "horizontal",
-              "flex-col": this.props.layout === "horizontal",
+              "flex-col": this.props.layout === "horizontal"
             })}
           >
             <div className="component_set">
@@ -282,12 +282,12 @@ export class GradioInterface extends React.Component {
           <div
             className={classNames("panel", {
               flex: this.props.layout === "horizontal",
-              "flex-col": this.props.layout === "horizontal",
+              "flex-col": this.props.layout === "horizontal"
             })}
           >
             <div
               className={classNames("component_set", "relative", {
-                "opacity-50": status && !this.props.live,
+                "opacity-50": status && !this.props.live
               })}
             >
               {status}
@@ -313,7 +313,7 @@ export class GradioInterface extends React.Component {
                 this.state.interpretation === null ? (
                   <button
                     className={classNames("panel_button", {
-                      disabled: this.state.complete === false,
+                      disabled: this.state.complete === false
                     })}
                     onClick={this.interpret}
                   >
@@ -341,7 +341,7 @@ export class GradioInterface extends React.Component {
                 this.props.flagging_options === null ? (
                   <button
                     className={classNames("panel_button", "flag", {
-                      disabled: this.state.complete === false,
+                      disabled: this.state.complete === false
                     })}
                     onClick={this.flag.bind(this, null)}
                   >
@@ -350,7 +350,7 @@ export class GradioInterface extends React.Component {
                 ) : (
                   <button
                     className={classNames("panel_button", "flag", {
-                      disabled: this.state.complete === false,
+                      disabled: this.state.complete === false
                     })}
                   >
                     {this.state.just_flagged ? "Flagged" : "Flag ▼"}
@@ -443,7 +443,7 @@ class GradioInterfaceExamples extends React.Component {
                 <tr
                   key={i}
                   className={classNames({
-                    selected: i === this.props.example_id,
+                    selected: i === this.props.example_id
                   })}
                   onClick={() => this.props.handleExampleChange(i)}
                 >

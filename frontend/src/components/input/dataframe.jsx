@@ -29,7 +29,7 @@ class DataframeInput extends BaseComponent {
             str: "text",
             bool: "checkbox",
             number: "numeric",
-            date: "calendar",
+            date: "calendar"
           };
           column.type = datatype_map[datatype];
         }

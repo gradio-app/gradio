@@ -55,8 +55,8 @@ class ImageInput extends BaseComponent {
     this.setState({
       dimensions: {
         height: img.offsetHeight,
-        width: img.offsetWidth,
-      },
+        width: img.offsetWidth
+      }
     });
   }
   openEditor() {
@@ -119,9 +119,9 @@ class ImageInput extends BaseComponent {
                     loadImage: { path: this.props.value, name: "value" },
                     uiSize: {
                       width: "800px",
-                      height: "600px",
+                      height: "600px"
                     },
-                    menuBarPosition: "left",
+                    menuBarPosition: "left"
                   }}
                   cssMaxHeight={500}
                   cssMaxWidth={700}

@@ -24,7 +24,7 @@ class CheckboxGroupInput extends BaseComponent {
           return (
             <div
               className={classNames("checkbox_item", {
-                selected: this.props.value.includes(item),
+                selected: this.props.value.includes(item)
               })}
               onClick={this.handleChange.bind(this, item)}
               key={index}
@@ -43,7 +43,7 @@ class CheckboxGroupInput extends BaseComponent {
                     style={{
                       backgroundColor: getSaliencyColor(
                         this.props.interpretation[index][0]
-                      ),
+                      )
                     }}
                   ></div>
                   <div
@@ -51,7 +51,7 @@ class CheckboxGroupInput extends BaseComponent {
                     style={{
                       backgroundColor: getSaliencyColor(
                         this.props.interpretation[index][1]
-                      ),
+                      )
                     }}
                   >
                     <svg className="interpret_check" viewBox="-10 -10 20 20">

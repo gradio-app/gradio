@@ -7,30 +7,30 @@ module.exports = {
         DEFAULT: {
           css: {
             h1: {
-              fontWeight: "semibold",
+              fontWeight: "semibold"
             },
             h2: {
-              fontWeight: "semibold",
+              fontWeight: "semibold"
             },
             h3: {
-              fontWeight: "semibold",
+              fontWeight: "semibold"
             },
             h4: {
-              fontWeight: "semibold",
+              fontWeight: "semibold"
             },
             h5: {
-              fontWeight: "semibold",
+              fontWeight: "semibold"
             },
             h6: {
-              fontWeight: "semibold",
-            },
-          },
-        },
-      },
-    },
+              fontWeight: "semibold"
+            }
+          }
+        }
+      }
+    }
   },
   variants: {
-    extend: {},
+    extend: {}
   },
-  plugins: [require("@tailwindcss/typography")],
+  plugins: [require("@tailwindcss/typography")]
 };

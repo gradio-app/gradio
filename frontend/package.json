@@ -30,14 +30,13 @@
   },
   "scripts": {
     "start": "REACT_APP_BACKEND_URL='http://localhost:7860/' craco start",
-    "format": "prettier-eslint --eslint-config-path ./.eslintrc.js --write '**/*.js*'",
+    "format": "prettier-eslint --write '**/*.js*'",
     "build": "REACT_APP_BACKEND_URL='' craco build",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
     "extends": [
-      "react-app",
-      "react-app/jest"
+      "prettier"
     ]
   },
   "browserslist": {
