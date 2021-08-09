@@ -566,3 +566,53 @@ def get_output_instance(iface):
             "Output interface must be of type `str` or "
             "`OutputComponent`"
         )
+
+class Timeseries(OutputComponent):
+    """
+    Component accepts pandas.DataFrame.
+    Output type: pandas.DataFrame
+    """
+
+    def __init__(self, x=None, y=None, label=None):
+        """
+        Parameters:
+        x (str): Column name of x (time) series. None if csv has no headers, in which case first column is x series.
+        y (Union[str, List[str]]): Column name of y series, or list of column names if multiple series. None if csv has no headers, in which case every column after first is a y series.
+        label (str): component name in interface.
+        """
+        self.x = x
+        if isinstance(y, str):
+            y = [y]
+        self.y = y
+        super().__init__(label)
+
+    def get_template_context(self):
+        return {
+            "x": self.x,
+            "y": self.y,
+            **super().get_template_context()
+        }
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "timeseries": {},
+        }
+
+    def postprocess(self, y):
+        return {
+            "headers": y.columns.values.tolist(),
+            "data": y.values.tolist()
+
+        }
+
+
+    def save_flagged(self, dir, label, data, encryption_key):
+        """
+        Returns: (List[List[Union[str, float]]]) 2D array
+        """
+        return json.dumps(data)
+
+    def restore_flagged(self, data):
+        return json.loads(data)
+
