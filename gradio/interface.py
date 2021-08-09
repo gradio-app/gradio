@@ -78,7 +78,7 @@ class Interface:
         inputs (Union[str, List[Union[str, InputComponent]]]): a single Gradio input component, or list of Gradio input components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of input components should match the number of parameters in fn.
         outputs (Union[str, List[Union[str, OutputComponent]]]): a single Gradio output component, or list of Gradio output components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of output components should match the number of values returned by fn.
         verbose (bool): whether to print detailed information during launch.
-        examples (Union[List[List[Any]], str]): sample inputs for the function; if provided, appears below the UI components and can be used to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided. If there are multiple input components, a log.csv file must be present in the directory to link corresponding inputs.
+        examples (Union[List[List[Any]], str]): sample inputs for the function; if provided, appears below the UI components and can be used to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided. If there are multiple input components and a directory is provided, a log.csv file must be present in the directory to link corresponding inputs.
         examples_per_page (int): If examples are provided, how many to display per page.
         live (bool): whether the interface should automatically reload on change.
         layout (str): Layout of input and output panels. "horizontal" arranges them as two columns of equal height, "unaligned" arranges them as two columns of unequal height, and "vertical" arranges them vertically.
@@ -482,7 +482,7 @@ class Interface:
         inbrowser (bool): whether to automatically launch the interface in a new tab on the default browser.
         share (bool): whether to create a publicly shareable link from your computer for the interface.
         debug (bool): if True, and the interface was launched from Google Colab, prints the errors in the cell output.
-        auth (Callable, Union[Tuple[str, str], List[Tuple[str, str]]]): If provided, username and password (or list of username-password tuples) required to access interface. Can also provide function that takes username and password and return True if valid login.
+        auth (Callable, Union[Tuple[str, str], List[Tuple[str, str]]]): If provided, username and password (or list of username-password tuples) required to access interface. Can also provide function that takes username and password and returns True if valid login.
         auth_message (str): If provided, HTML message provided on login page.
         Returns:
         app (flask.Flask): Flask app object
@@ -593,11 +593,10 @@ class Interface:
         return app, path_to_local_server, share_url
 
 
-    def integrate(self, comet_ml=None, wandb=None):
+    def integrate(self, comet_ml=None, wandb=None, mlflow=None):
         if comet_ml is not None:
             comet_ml.log_other("Created from", "Gradio")
             if self.share_url is not None:
-                print("")
                 comet_ml.log_text("gradio: " + self.share_url)
                 comet_ml.end()
             else:
@@ -608,6 +607,13 @@ class Interface:
                 wandb.log({"Gradio panel": wandb.Html('<iframe src="' + self.share_url + '" width="' + str(self.width) + '" height="' + str(self.height) + '" frameBorder="0"></iframe>')})
             else:
                 print("The WandB integration requires you to `launch(share=True)` first.")
+        if mlflow is not None:
+            if self.share_url is not None:
+                mlflow.log_param("Gradio Interface Share Link",
+                                 self.share_url)
+            else:
+                mlflow.log_param("Gradio Interface Local Link",
+                                 self.local_url)
 
     
 

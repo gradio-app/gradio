@@ -1,4 +1,7 @@
 venv
+dist/
+.eggs/
+*.egg-info/
 *.pyc
 staticfiles
 .env
@@ -17,7 +20,6 @@ __pycache__/
 *.py[cod]
 *$py.class
 demo/models/*
-dist/*
 *.h5
 docs.json
 *.bak
