@@ -1,3 +1,5 @@
+# Demo: (Timeseries, CheckboxGroup, Slider) -> (Timeseries, Dataframe, Label)
+
 import gradio as gr
 import pandas as pd
 import random
