@@ -182,6 +182,8 @@ class Interface:
                 'embedding': embedding,
                 'allow_flagging': allow_flagging,
                 'allow_screenshot': allow_screenshot,
+                'custom_css': self.css is not None,
+                'theme': self.theme
                 }
 
         if self.capture_session:
@@ -594,7 +596,9 @@ class Interface:
 
 
     def integrate(self, comet_ml=None, wandb=None, mlflow=None):
+        analytics_integration = ""
         if comet_ml is not None:
+            analytics_integration = "CometML"
             comet_ml.log_other("Created from", "Gradio")
             if self.share_url is not None:
                 comet_ml.log_text("gradio: " + self.share_url)
@@ -603,19 +607,29 @@ class Interface:
                 comet_ml.log_text("gradio: " + self.local_url)
                 comet_ml.end()
         if wandb is not None:
+            analytics_integration = "WandB"
             if self.share_url is not None:
                 wandb.log({"Gradio panel": wandb.Html('<iframe src="' + self.share_url + '" width="' + str(self.width) + '" height="' + str(self.height) + '" frameBorder="0"></iframe>')})
             else:
                 print("The WandB integration requires you to `launch(share=True)` first.")
         if mlflow is not None:
+            analytics_integration = "MLFlow"
             if self.share_url is not None:
                 mlflow.log_param("Gradio Interface Share Link",
                                  self.share_url)
             else:
                 mlflow.log_param("Gradio Interface Local Link",
                                  self.local_url)
-
-    
+        if self.analytics_enabled:
+            if not analytics_integration:
+                data = {'Integration': analytics_integration}
+                try:
+                    requests.post(analytics_url +
+                                  'gradio-integration-analytics/',
+                                  data=data, timeout=3)
+                except (
+                requests.ConnectionError, requests.exceptions.ReadTimeout):
+                    pass  # do not push analytics if no network
 
 def show_tip(io):
     if not(io.show_tips) or random.random() < 0.5:  # Only show tip every other use.
