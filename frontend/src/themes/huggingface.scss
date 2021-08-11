@@ -12,6 +12,15 @@
     .panels {
         @apply flex flex-wrap justify-center gap-4;
     }
+    .panels.unaligned {
+        @apply flex-col sm:flex-row items-stretch sm:items-start
+    }
+    .panels.horizontal {
+        @apply flex-col sm:flex-row items-stretch;
+    }
+    .panels.vertical {
+        @apply flex-col items-stretch;
+    }
     .panel {
         @apply flex-1;
     }

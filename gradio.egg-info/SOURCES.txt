@@ -34,6 +34,7 @@ gradio/frontend/static/bundle.js.LICENSE.txt
 gradio/frontend/static/bundle.js.map
 gradio/frontend/static/css/main.1c7a53e3.css
 gradio/frontend/static/css/main.1c7a53e3.css.map
+gradio/frontend/static/css/main.22c25130.css
 gradio/frontend/static/css/main.2ed025e4.css
 gradio/frontend/static/css/main.2ed025e4.css.map
 gradio/frontend/static/css/main.b74df5ce.css
