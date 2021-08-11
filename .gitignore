@@ -1,7 +1,7 @@
 venv
 dist/
 .eggs/
-*.egg-info/
+*.egg-info
 *.pyc
 staticfiles
 .env
