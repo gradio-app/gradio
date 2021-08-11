@@ -6,15 +6,13 @@ jobs:
     steps:
       - checkout
       - run: mkdir test-reports
-      - restore_cache:
-          key: deps1-{{ .Branch }}-{{ checksum "gradio.egg-info/requires.txt" }}
       - run:
           name: Install Python deps in a venv
           command: |
             python3 -m venv venv
             . venv/bin/activate
             pip install --upgrade pip
-            python3 gradio/setup.py install
+            python3 setup.py install
             pip install selenium==4.0.0a6.post2
       - run:
           command: |
