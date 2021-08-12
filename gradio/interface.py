@@ -622,7 +622,7 @@ class Interface:
                                  self.local_url)
         if self.analytics_enabled:
             if not analytics_integration:
-                data = {'Integration': analytics_integration}
+                data = {'integration': analytics_integration}
                 try:
                     requests.post(analytics_url +
                                   'gradio-integration-analytics/',
