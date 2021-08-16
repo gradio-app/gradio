@@ -48,7 +48,7 @@
         @apply absolute right-1;
     }
     .loading img {
-        @apply h-5;
+        @apply h-5 ml-2 inline-block;
     }
     .panels {
         @apply flex flex-wrap justify-center gap-4;
@@ -67,6 +67,7 @@
     }
     .component_set {
         @apply bg-gray-50 p-2 rounded flex flex-col flex-1 gap-2;
+        min-height: 36px;
     }
     .panel_header {
         @apply mb-1 uppercase text-sm font-semibold;

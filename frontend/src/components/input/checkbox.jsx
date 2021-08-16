@@ -12,7 +12,6 @@ class CheckboxInput extends BaseComponent {
     this.props.handleChange(this.props.value !== true);
   };
   render() {
-    console.log("render checkbox");
     return (
       <div className="input_checkbox">
         <div
