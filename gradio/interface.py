@@ -4,13 +4,12 @@ interface using the input and output types.
 """
 
 import gradio
-from gradio.inputs import InputComponent, get_input_instance
-from gradio.outputs import OutputComponent, get_output_instance
+from gradio.inputs import get_input_instance
+from gradio.outputs import get_output_instance
 from gradio import networking, strings, utils
 from gradio.interpretation import quantify_difference_in_label, get_regression_or_classification_value
 from gradio.external import load_interface
 from gradio import encryptor
-import pkg_resources
 import requests
 import random
 import time
@@ -70,7 +69,7 @@ class Interface:
                  title=None, description=None, article=None, thumbnail=None,  
                  css=None, server_port=None, server_name=networking.LOCALHOST_NAME, height=500, width=900,
                  allow_screenshot=True, allow_flagging=True, flagging_options=None, encrypt=False,
-                 show_tips=False, embedding=None, flagging_dir="flagged", analytics_enabled=True):
+                 show_tips=False, embedding=None, flagging_dir="flagged", analytics_enabled=True, enable_queue=False):
 
         """
         Parameters:
@@ -99,6 +98,7 @@ class Interface:
         encrypt (bool): If True, flagged data will be encrypted by key provided by creator at launch
         flagging_dir (str): what to name the dir where flagged data is stored.
         show_tips (bool): if True, will occasionally show tips about new Gradio features
+        enable_queue (bool): if True, inference requests will be served through a queue instead of with parallel threads. Required for longer inference times (> 1min) to prevent timeout.  
         """
         if not isinstance(fn, list):
             fn = [fn]
@@ -171,6 +171,7 @@ class Interface:
         self.embedding = embedding
         self.show_tips = show_tips
         self.requires_permissions = any([component.requires_permissions for component in self.input_components])
+        self.enable_queue = enable_queue
 
         data = {'fn': fn,
                 'inputs': inputs,
@@ -246,6 +247,7 @@ class Interface:
             "flagging_options": self.flagging_options,
             "allow_interpretation": self.interpretation is not None,
             "allow_embedding": self.embedding is not None,
+            "queue": self.enable_queue
         }
         try:
             param_names = inspect.getfullargspec(self.predict[0])[0]
@@ -505,9 +507,8 @@ class Interface:
             self.encryption_key = encryptor.get_key(getpass("Enter key for encryption: "))
 
         # Launch local flask server
-        server_port, app, thread = networking.start_server(
+        server_port, path_to_local_server, app, thread = networking.start_server(
             self, self.server_name, self.server_port, self.auth)
-        path_to_local_server = "http://{}:{}/".format(self.server_name, server_port)
         self.local_url = path_to_local_server
         self.server_port = server_port
         self.status = "RUNNING"

@@ -12,7 +12,6 @@ class TextboxInput extends BaseComponent {
     this.props.handleChange(evt.target.value);
   }
   render() {
-    console.log("render text");
     if (this.props.interpretation !== null) {
       return (
         <div className="input_text">

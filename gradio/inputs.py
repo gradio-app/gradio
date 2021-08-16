@@ -4,14 +4,9 @@ This module defines various classes that can serve as the `input` to an interfac
 automatically added to a registry, which allows them to be easily referenced in other parts of the code.
 """
 
-import datetime
 import json
-import os
-import shutil
-import time
 import warnings
 from gradio.component import Component
-import base64
 import numpy as np
 import PIL
 import scipy.io.wavfile
@@ -20,7 +15,6 @@ import pandas as pd
 from ffmpy import FFmpeg
 import math
 import tempfile
-from pandas.api.types import is_bool_dtype, is_numeric_dtype, is_string_dtype
 from pathlib import Path
 
 

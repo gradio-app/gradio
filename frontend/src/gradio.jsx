@@ -82,6 +82,7 @@ export class GradioInterface extends React.Component {
     state["has_changed"] = false;
     state["example_id"] = null;
     state["flag_index"] = null;
+    state["queue_index"] = null;
     return state;
   };
   clear = () => {
@@ -102,7 +103,7 @@ export class GradioInterface extends React.Component {
       flag_index: null
     });
     this.props
-      .fn(input_state, "predict")
+      .fn(input_state, "predict", this.queueCallback)
       .then((output) => {
         let index_start = this.props.input_components.length;
         let new_state = {};
@@ -182,6 +183,9 @@ export class GradioInterface extends React.Component {
   removeInterpret = () => {
     this.setState({ interpretation: null });
   };
+  queueCallback = (queue_index) => {
+    this.setState({"queue_index": queue_index});
+  }
   takeScreenshot = () => {
     html2canvas(ReactDOM.findDOMNode(this).parentNode).then((canvas) => {
       saveAs(canvas.toDataURL(), "screenshot.png");
@@ -220,6 +224,7 @@ export class GradioInterface extends React.Component {
     if (this.state.submitting) {
       status = (
         <div className="loading">
+          {this.state.queue_index !== null ? "queued @ " + this.state.queue_index : false}
           <img alt="loading" src={logo_loading} />
         </div>
       );

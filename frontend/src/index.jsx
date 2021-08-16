@@ -3,18 +3,57 @@ import ReactDOM from "react-dom";
 import { GradioPage } from "./gradio";
 import Login from "./login";
 
-let fn = async (data, action) => {
+function delay(n) {
+  return new Promise(function(resolve){
+      setTimeout(resolve,n*1000);
+  });
+}
+
+let postData = async (url, body) => {
   const output = await fetch(
-    process.env.REACT_APP_BACKEND_URL + "api/" + action + "/",
+    process.env.REACT_APP_BACKEND_URL + url,
     {
       method: "POST",
-      body: JSON.stringify({ data: data }),
-      headers: {
-        "Content-Type": "application/json"
-      }
+      body: JSON.stringify(body),
+      headers: {"Content-Type": "application/json"}
     }
   );
-  return await output.json();
+  return output;
+}
+
+let fn = async (queue, data, action, queue_callback) => {
+  if (queue && action == "predict") {
+    const output = await postData(
+      "api/queue/push/", { data: data },
+    );
+    let hash = await output.text();
+    let status = "UNKNOWN";
+    while (status != "COMPLETE" && status != "FAILED") {
+      if (status != "UNKNOWN") {
+        await delay(1);
+      }
+      const status_response = await postData(
+        "api/queue/status/", { hash: hash },
+      );
+      var status_obj = await status_response.json();
+      status = status_obj["status"];
+      if (status === "QUEUED") {
+        queue_callback(status_obj["data"]);
+      } else if (status === "PENDING") {
+        queue_callback(null);
+      }
+    }
+    if (status == "FAILED") {
+      throw new Error(status);
+    } else {
+      return status_obj["data"];
+    }
+  } else {
+    const output = await postData(
+      "api/" + action + "/", { data: data },
+    );
+    return await output.json();  
+  }
 };
 
 async function get_config() {
@@ -39,7 +78,7 @@ get_config().then((config) => {
       style.appendChild(document.createTextNode(config.css));
     }
     ReactDOM.render(
-      <GradioPage {...config} fn={fn} />,
+      <GradioPage {...config} fn={fn.bind(null, config.queue)} />,
       document.getElementById("root")
     );
   }

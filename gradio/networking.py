@@ -25,6 +25,7 @@ import gradio as gr
 from gradio.embeddings import calculate_similarity, fit_pca_to_embeddings, transform_with_pca
 from gradio.tunneling import create_tunnel
 from gradio import encryptor
+from gradio import queue
 from functools import wraps
 import io
 
@@ -392,12 +393,41 @@ def file(path):
         return send_file(os.path.join(app.cwd, path))
 
 
+@app.route("/api/queue/push/", methods=["POST"])
+@login_check
+def queue_push():
+    data = request.json
+    job_hash = queue.push(data)
+    return job_hash
+
+@app.route("/api/queue/status/", methods=["POST"])
+@login_check
+def queue_status():
+    hash = request.json['hash']
+    status, data = queue.get_status(hash)
+    return {"status": status, "data": data}
+
+def queue_thread(path_to_local_server):
+    while True:
+        next_job = queue.pop()
+        if next_job is not None:
+            _, hash, input_data = next_job
+            queue.start_job(hash)
+            response = requests.post(path_to_local_server + "/api/predict/", json=input_data)
+            if response.status_code == 200:
+                queue.pass_job(hash, response.json())
+            else:
+                queue.fail_job(hash, response.text)
+        else:
+            time.sleep(1)
+
 def start_server(interface, server_name, server_port=None, auth=None, ssl=None):
     if server_port is None:
         server_port = INITIAL_PORT_VALUE
     port = get_first_available_port(
         server_port, server_port + TRY_NUM_PORTS
     )
+    path_to_local_server = "http://{}:{}/".format(server_name, port)
     if auth is not None:
         if not callable(auth):
             app.auth = {account[0]: account[1] for account in auth}
@@ -409,6 +439,10 @@ def start_server(interface, server_name, server_port=None, auth=None, ssl=None):
     app.cwd = os.getcwd()
     log = logging.getLogger('werkzeug')
     log.setLevel(logging.ERROR)
+    if app.interface.enable_queue:
+        queue.init()
+        app.queue_thread = threading.Thread(target=queue_thread, args=(path_to_local_server,))
+        app.queue_thread.start()
     if interface.save_to is not None:
         interface.save_to["port"] = port
     app_kwargs = {"port": port, "host": server_name}
@@ -420,7 +454,7 @@ def start_server(interface, server_name, server_port=None, auth=None, ssl=None):
                               daemon=True)
     thread.start()
 
-    return port, app, thread
+    return port, path_to_local_server, app, thread
 
 
 def close_server(process):
