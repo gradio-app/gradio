@@ -6,18 +6,24 @@ jobs:
     steps:
       - checkout
       - run: mkdir test-reports
+      - restore_cache:
+          key: deps1-{{ .Branch }}-{{ checksum "gradio.egg-info/requires.txt" }}
       - run:
           name: Install Python deps in a venv
           command: |
             python3 -m venv venv
             . venv/bin/activate
-            venv/bin/pip3 install --upgrade pip
-            venv/bin/python3 setup.py install
-            venv/bin/pip3 install selenium==4.0.0a6.post2
+            pip install --upgrade pip
+            pip install -r gradio.egg-info/requires.txt
+            pip install selenium==4.0.0a6.post2
       - run:
           command: |
             chromedriver --version
           name: Check chrome driver install
+      - save_cache:
+          key: deps1-{{ .Branch }}-{{ checksum "gradio.egg-info/requires.txt" }}
+          paths:
+            - "venv"
       - run:
           command: |
             mkdir screenshots
