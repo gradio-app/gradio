@@ -1,7 +1,8 @@
 venv
 dist/
 .eggs/
-*.egg-info
+gradio.egg-info/*
+!gradio.egg-info/requires.txt
 *.pyc
 staticfiles
 .env
