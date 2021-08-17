@@ -24,6 +24,6 @@ def interpret_gender(sentence):
 
 iface = gr.Interface(
   fn=gender_of_sentence, inputs=gr.inputs.Textbox(default="She went to his house to get her keys."),
-  outputs="label", interpretation=interpret_gender)
+  outputs="label", interpretation=interpret_gender, enable_queue=True)
 if __name__ == "__main__":
     iface.launch()

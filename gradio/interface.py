@@ -10,6 +10,7 @@ from gradio import networking, strings, utils
 from gradio.interpretation import quantify_difference_in_label, get_regression_or_classification_value
 from gradio.external import load_interface
 from gradio import encryptor
+from gradio import queue
 import requests
 import random
 import time
@@ -462,6 +463,8 @@ class Interface:
             print("Keyboard interruption in main thread... closing server.")
             thread.keep_running = False
             networking.url_ok(path_to_local_server)  # Hit the server one more time to close it
+            if self.enable_queue:
+                queue.close()
 
     def test_launch(self):
         for predict_fn in self.predict:
