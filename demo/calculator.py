@@ -4,7 +4,6 @@ import time
 
 def calculator(num1, operation, num2):
     print(num1, operation, num2)
-    time.sleep(10)
     if operation == "add":
         return num1 + num2
     elif operation == "subtract":
@@ -26,8 +25,7 @@ iface = gr.Interface(calculator,
     title="test calculator",
     description="heres a sample toy calculator. enjoy!",
     flagging_options=["this", "or", "that"],
-    enable_queue=True
 )
 
 if __name__ == "__main__":
-    iface.launch(share=True)
+    iface.launch()
