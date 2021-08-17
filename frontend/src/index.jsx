@@ -22,9 +22,9 @@ let postData = async (url, body) => {
 }
 
 let fn = async (queue, data, action, queue_callback) => {
-  if (queue && action == "predict") {
+  if (queue && ["predict", "interpret"].includes(action)) {
     const output = await postData(
-      "api/queue/push/", { data: data },
+      "api/queue/push/", { data: data, action:action },
     );
     let hash = await output.text();
     let status = "UNKNOWN";

@@ -165,7 +165,7 @@ export class GradioInterface extends React.Component {
     }
     this.setState({ submitting: true, has_changed: false, error: false });
     this.props
-      .fn(input_state, "interpret")
+      .fn(input_state, "interpret", this.queueCallback)
       .then((output) => {
         this.setState({
           interpretation: output["interpretation_scores"],
