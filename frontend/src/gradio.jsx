@@ -60,8 +60,8 @@ export class GradioInterface extends React.Component {
       process.env.REACT_APP_BACKEND_URL +
       (this.props.examples_dir === null
         ? "file" +
-        this.props.examples_dir +
-        (this.props.examples_dir.endswith("/") ? "" : "/")
+          this.props.examples_dir +
+          (this.props.examples_dir.endswith("/") ? "" : "/")
         : "file");
   }
   get_default_state = () => {
@@ -184,8 +184,8 @@ export class GradioInterface extends React.Component {
     this.setState({ interpretation: null });
   };
   queueCallback = (queue_index) => {
-    this.setState({"queue_index": queue_index});
-  }
+    this.setState({ queue_index: queue_index });
+  };
   takeScreenshot = () => {
     html2canvas(ReactDOM.findDOMNode(this).parentNode).then((canvas) => {
       saveAs(canvas.toDataURL(), "screenshot.png");
@@ -207,10 +207,10 @@ export class GradioInterface extends React.Component {
         i < this.props.input_components.length
           ? input_component_map[this.props.input_components[i].name][1]
           : output_component_map[
-          this.props.output_components[
-            i - this.props.input_components.length
-          ].name
-          ][1];
+              this.props.output_components[
+                i - this.props.input_components.length
+              ].name
+            ][1];
       state_change[i] = ExampleComponent.preprocess(
         item,
         this.examples_dir
@@ -224,7 +224,9 @@ export class GradioInterface extends React.Component {
     if (this.state.submitting) {
       status = (
         <div className="loading">
-          {this.state.queue_index !== null ? "queued @ " + this.state.queue_index : false}
+          {this.state.queue_index !== null
+            ? "queued @ " + this.state.queue_index
+            : false}
           <img alt="loading" src={logo_loading} />
         </div>
       );
@@ -425,14 +427,14 @@ class GradioInterfaceExamples extends React.Component {
                 return <th key={i}>{component.label}</th>;
               })}
               {this.props.examples[0].length >
-                this.props.input_components.length
+              this.props.input_components.length
                 ? this.props.output_components.map((component, i) => {
-                  return (
-                    <th key={i + this.props.input_components.length}>
-                      {component.label}
-                    </th>
-                  );
-                })
+                    return (
+                      <th key={i + this.props.input_components.length}>
+                        {component.label}
+                      </th>
+                    );
+                  })
                 : false}
             </tr>
           </thead>
@@ -449,7 +451,7 @@ class GradioInterfaceExamples extends React.Component {
                   {example_row.map((example_data, j) => {
                     let ExampleComponent =
                       input_component_map[
-                      this.props.input_components[j].name
+                        this.props.input_components[j].name
                       ][1];
                     return (
                       <td>
