@@ -1,9 +1,6 @@
 import gradio as gr
-import random
-import time
 
 def calculator(num1, operation, num2):
-    print(num1, operation, num2)
     if operation == "add":
         return num1 + num2
     elif operation == "subtract":
