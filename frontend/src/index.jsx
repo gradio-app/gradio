@@ -18,9 +18,9 @@ let postData = async (url, body) => {
   return output;
 };
 
-let fn = async (queue, data, action, queue_callback) => {
+let fn = async (endpoint, queue, data, action, queue_callback) => {
   if (queue && ["predict", "interpret"].includes(action)) {
-    const output = await postData("api/queue/push/", {
+    const output = await postData(endpoint + "queue/push/", {
       data: data,
       action: action
     });
@@ -30,7 +30,7 @@ let fn = async (queue, data, action, queue_callback) => {
       if (status != "UNKNOWN") {
         await delay(1);
       }
-      const status_response = await postData("api/queue/status/", {
+      const status_response = await postData(endpoint + "queue/status/", {
         hash: hash
       });
       var status_obj = await status_response.json();
@@ -47,7 +47,7 @@ let fn = async (queue, data, action, queue_callback) => {
       return status_obj["data"];
     }
   } else {
-    const output = await postData("api/" + action + "/", { data: data });
+    const output = await postData(endpoint + action + "/", { data: data });
     return await output.json();
   }
 };
@@ -63,9 +63,12 @@ async function get_config() {
   }
 }
 
-get_config().then((config) => {
+function load_config(config) {
   if (config.auth_required) {
-    ReactDOM.render(<Login {...config} />, document.getElementById("root"));
+    ReactDOM.render(
+      <Login {...config} />,
+      document.getElementById(config.target || "root")
+    );
   } else {
     if (config.css !== null) {
       var head = document.head || document.getElementsByTagName("head")[0],
@@ -74,8 +77,21 @@ get_config().then((config) => {
       style.appendChild(document.createTextNode(config.css));
     }
     ReactDOM.render(
-      <GradioPage {...config} fn={fn.bind(null, config.queue)} />,
-      document.getElementById("root")
+      <GradioPage
+        {...config}
+        fn={fn.bind(null, config.endpoint || "api/", config.queue)}
+      />,
+      document.getElementById(config.target || "root")
     );
+  }
+}
+
+get_config().then((config) => {
+  if (config instanceof Array) {
+    for (let single_config of config) {
+      load_config(single_config);
+    }
+  } else {
+    load_config(config);
   }
 });
