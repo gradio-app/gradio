@@ -122,16 +122,56 @@ iface.launch()
 
 Additionally, our  `Image`  input interface comes with an 'edit' button which opens tools for cropping, flipping, rotating, drawing over, and applying filters to images. We've found that manipulating images in this way will often reveal hidden flaws in a model.
 
-### Example Data
+In addition to images, Gradio supports other media input types, such as audio or video uploads. Read about these in the [Docs](https://gradio.app/docs).
+
+### Working with Data
+
+You can use Gradio to support inputs and outputs from your typical data libraries, such as numpy arrays, pandas dataframes, and plotly graphs. Take a look at the demo below (ignore the complicated data manipulation in the function!)
+
+```python
+import gradio as gr
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+def sales_projections(employee_data):
+    sales_data = employee_data.iloc[:, 1:4].astype("int").to_numpy()
+    regression_values = np.apply_along_axis(lambda row: 
+        np.array(np.poly1d(np.polyfit([0,1,2], row, 2))), 0, sales_data)
+    projected_months = np.repeat(np.expand_dims(
+        np.arange(3,12), 0), len(sales_data), axis=0)
+    projected_values = np.array([
+        month * month * regression[0] + month * regression[1] + regression[2]
+        for month, regression in zip(projected_months, regression_values)])
+    plt.plot(projected_values.T)
+    plt.legend(employee_data["Name"])
+    return employee_data, plt.gcf(), regression_values
+
+iface = gr.Interface(sales_projections, 
+    gr.inputs.Dataframe(
+        headers=["Name", "Jan Sales", "Feb Sales", "Mar Sales"],
+        default=[["Jon", 12, 14, 18], ["Alice", 14, 17, 2], ["Sana", 8, 9.5, 12]]
+    ),
+    [
+        "dataframe",
+        "plot",
+        "numpy"
+    ],
+    description="Enter sales figures for employees to predict sales trajectory over year."
+)
+iface.launch()
+
+```
+![sales_projections interface](demo/screenshots/sales_projections/1.gif)
+
+### Example Inputs
 
 You can provide example data that a user can easily load into the model. This can be helpful to demonstrate the types of inputs the model expects, as well as to provide a way to explore your dataset in conjunction with your model. To load example data, you provide a **nested list** to the  `examples=`  keyword argument of the Interface constructor. Each sublist within the outer list represents a data sample, and each element within the sublist represents an input for each input component. The format of example data for each component is specified in the  [Docs](https://gradio.app/docs).
 
 ```python
 import gradio as gr
-import random
 
 def calculator(num1, operation, num2):
-    print(num1, operation, num2)
     if operation == "add":
         return num1 + num2
     elif operation == "subtract":
@@ -152,7 +192,7 @@ iface = gr.Interface(calculator,
     ],
     title="test calculator",
     description="heres a sample toy calculator. enjoy!",
-    flagging_options=["this", "or", "that"]
+    flagging_options=["this", "or", "that"],
 )
 
 iface.launch()
@@ -161,6 +201,36 @@ iface.launch()
 ![calculator interface](demo/screenshots/calculator/1.gif)
 
 You can load a large dataset into the examples to browse and interact with the dataset through Gradio. The examples will be automatically paginated (you can configure this through the `examples_per_page` argument of Interface) and you can use CTRL + arrow keys to navigate through the examples quickly.
+
+### Live Interfaces
+
+You can make interfaces automatically responsive by setting `live=True` in the interface. Now the interface will recalculate as soon as the user input.
+
+```python
+import gradio as gr
+
+def calculator(num1, operation, num2):
+    if operation == "add":
+        return num1 + num2
+    elif operation == "subtract":
+        return num1 - num2
+    elif operation == "multiply":
+        return num1 * num2
+    elif operation == "divide":
+        return num1 / num2
+
+iface = gr.Interface(calculator, 
+    ["number", gr.inputs.Radio(["add", "subtract", "multiply", "divide"]), "number"],
+    "number",
+    live=True
+)
+
+iface.launch()
+
+```
+![calculator_live interface](demo/screenshots/calculator_live/1.gif)
+
+Note there is no submit button, because the interface resubmits automatically on change,
 
 ### Flagging
 
@@ -219,6 +289,10 @@ Keep in mind, however, that these links are publicly accessible, meaning that an
 Share links expire after 72 hours. For permanent hosting, see below.
 
 ![Sharing diagram](demo/images/sharing.svg)
+
+### Authentication
+
+You may wish to put an authentication page in front of your interface to limit access. With the `auth=` keyword argument in the `launch()` method, you can pass a list of acceptable username/password tuples; or, for custom authentication handling, pass a function that takes a username and password as arguments, and returns True to allow authentication, False otherwise.
 
 ### Permanent Hosting
 
@@ -280,7 +354,7 @@ def interpret_gender(sentence):
 
 iface = gr.Interface(
   fn=gender_of_sentence, inputs=gr.inputs.Textbox(default="She went to his house to get her keys."),
-  outputs="label", interpretation=interpret_gender)
+  outputs="label", interpretation=interpret_gender, enable_queue=True)
 iface.launch()
 ```
 ![gender_sentence_custom_interpretation interface](demo/screenshots/gender_sentence_custom_interpretation/1.gif)
