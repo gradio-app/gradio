@@ -73,7 +73,16 @@ $demo_sepia_filter
 
 Additionally, our  `Image`  input interface comes with an 'edit' button which opens tools for cropping, flipping, rotating, drawing over, and applying filters to images. We've found that manipulating images in this way will often reveal hidden flaws in a model.
 
-### Example Data
+In addition to images, Gradio supports other media input types, such as audio or video uploads. Read about these in the [Docs](https://gradio.app/docs).
+
+### Working with Data
+
+You can use Gradio to support inputs and outputs from your typical data libraries, such as numpy arrays, pandas dataframes, and plotly graphs. Take a look at the demo below (ignore the complicated data manipulation in the function!)
+
+$code_sales_projections
+$demo_sales_projections
+
+### Example Inputs
 
 You can provide example data that a user can easily load into the model. This can be helpful to demonstrate the types of inputs the model expects, as well as to provide a way to explore your dataset in conjunction with your model. To load example data, you provide a **nested list** to the  `examples=`  keyword argument of the Interface constructor. Each sublist within the outer list represents a data sample, and each element within the sublist represents an input for each input component. The format of example data for each component is specified in the  [Docs](https://gradio.app/docs).
 
@@ -81,6 +90,15 @@ $code_calculator
 $demo_calculator
 
 You can load a large dataset into the examples to browse and interact with the dataset through Gradio. The examples will be automatically paginated (you can configure this through the `examples_per_page` argument of Interface) and you can use CTRL + arrow keys to navigate through the examples quickly.
+
+### Live Interfaces
+
+You can make interfaces automatically responsive by setting `live=True` in the interface. Now the interface will recalculate as soon as the user input.
+
+$code_calculator_live
+$demo_calculator_live
+
+Note there is no submit button, because the interface resubmits automatically on change,
 
 ### Flagging
 
@@ -139,6 +157,10 @@ Keep in mind, however, that these links are publicly accessible, meaning that an
 Share links expire after 72 hours. For permanent hosting, see below.
 
 ![Sharing diagram](demo/images/sharing.svg)
+
+### Authentication
+
+You may wish to put an authentication page in front of your interface to limit access. With the `auth=` keyword argument in the `launch()` method, you can pass a list of acceptable username/password tuples; or, for custom authentication handling, pass a function that takes a username and password as arguments, and returns True to allow authentication, False otherwise.
 
 ### Permanent Hosting
 

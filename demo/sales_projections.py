@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 
 def sales_projections(employee_data):
     sales_data = employee_data.iloc[:, 1:4].astype("int").to_numpy()
-    regression_values = sales_data.apply_along_axis(lambda row: 
-        np.array(np.poly1d(np.polyfit([0,1,2], row, 2))))
+    regression_values = np.apply_along_axis(lambda row: 
+        np.array(np.poly1d(np.polyfit([0,1,2], row, 2))), 0, sales_data)
     projected_months = np.repeat(np.expand_dims(
         np.arange(3,12), 0), len(sales_data), axis=0)
     projected_values = np.array([
@@ -23,7 +23,7 @@ iface = gr.Interface(sales_projections,
     ),
     [
         "dataframe",
-        "figure",
+        "plot",
         "numpy"
     ],
     description="Enter sales figures for employees to predict sales trajectory over year."
