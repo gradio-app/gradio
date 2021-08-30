@@ -91,7 +91,7 @@ export class GradioInterface extends React.Component {
   submit = () => {
     let input_state = [];
     for (let i = 0; i < this.props.input_components.length; i++) {
-      if (this.state[i] === null) {
+      if (this.state[i] === null && this.props.input_components[i].optional !== true) {
         return;
       }
       input_state[i] = this.state[i];
@@ -390,37 +390,10 @@ class GradioInterfaceExamples extends React.Component {
     return (
       <div className="examples">
         <h4>Examples</h4>
-        <div className="examples_control">
-          <button className="load_prev examples-content">
-            Load Previous{" "}
-            <div className="shortcut">
-              CTRL +{" "}
-              <span
-                style={{ display: "inline-block", transform: "scale(-1, 1)" }}
-              >
-                &#10140;
-              </span>
-            </div>
-          </button>
-          <button className="load_next examples-content">
-            Load Next <div className="shortcut">CTRL + &#10140;</div>
-          </button>
-          <button className="table_examples">
-            <svg width="40" height="24">
-              <rect x="0" y="0" width="40" height="6"></rect>
-              <rect x="0" y="9" width="40" height="6"></rect>
-              <rect x="0" y="18" width="40" height="6"></rect>
-            </svg>
-          </button>
-          <button className="gallery_examples current">
-            <svg width="40" height="24">
-              <rect x="0" y="0" width="18" height="40"></rect>
-              <rect x="22" y="0" width="18" height="40"></rect>
-            </svg>
-          </button>
-        </div>
         <div className="pages hidden">Page:</div>
-        <table className="examples_table">
+        <table className={classNames("examples_table", {
+          "gallery": this.props.input_components.length === 1
+        })}>
           <thead>
             <tr>
               {this.props.input_components.map((component, i) => {

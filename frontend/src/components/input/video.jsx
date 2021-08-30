@@ -90,11 +90,9 @@ class VideoInput extends BaseComponent {
 class VideoInputExample extends ComponentExample {
   render() {
     return (
-      <video
-        className="input_radio_example"
-        src={this.props.value}
-        controls
-      ></video>
+      <span className="input_video_example">
+        {this.props.value}
+      </span>
     );
   }
 }

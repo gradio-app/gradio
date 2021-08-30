@@ -642,7 +642,7 @@ class Image(InputComponent):
     Input type: Union[numpy.array, PIL.Image, file-object]
     """
 
-    def __init__(self, shape=None, image_mode='RGB', invert_colors=False, source="upload", tool="editor", labeled_segments=False, type="numpy", label=None):
+    def __init__(self, shape=None, image_mode='RGB', invert_colors=False, source="upload", tool="editor", type="numpy", label=None, optional=False):
         '''
         Parameters:
         shape (Tuple[int, int]): (width, height) shape to crop and resize image to; if None, matches input image size.
@@ -652,6 +652,7 @@ class Image(InputComponent):
         tool (str): Tools used for editing. "editor" allows a full screen editor, "select" provides a cropping and zoom tool.
         type (str): Type of value to be returned by component. "numpy" returns a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" returns a PIL image object, "file" returns a temporary file object whose path can be retrieved by file_obj.name.
         label (str): component name in interface.
+        optional (bool): If True, the interface can be submitted with no uploaded image, in which case the input value is None.
         '''
         self.shape = shape
         self.image_mode = image_mode
@@ -659,6 +660,7 @@ class Image(InputComponent):
         requires_permissions = source == "webcam" 
         self.tool = tool
         self.type = type
+        self.optional = optional
         self.invert_colors = invert_colors
         self.test_input = test_data.BASE64_IMAGE
         self.interpret_by_tokens = True
@@ -678,10 +680,13 @@ class Image(InputComponent):
             "shape": self.shape,
             "source": self.source,
             "tool": self.tool,
+            "optional": self.optional,
             **super().get_template_context()
         }
 
     def preprocess(self, x):
+        if x is None:
+            return x
         im = processing_utils.decode_base64_to_image(x)
         fmt = im.format
         with warnings.catch_warnings():
@@ -817,13 +822,15 @@ class Video(InputComponent):
     Input type: filepath
     """
 
-    def __init__(self, type="avi", label=None):
+    def __init__(self, type="avi", label=None, optional=False):
         '''
         Parameters:
         type (str): Type of video format to be returned by component, such as 'avi' or 'mp4'. If set to None, video will keep uploaded format.
         label (str): component name in interface.
+        optional (bool): If True, the interface can be submitted with no uploaded video, in which case the input value is None.
         '''
         self.type = type
+        self.optional = optional
         super().__init__(label)
 
     @classmethod
@@ -834,10 +841,13 @@ class Video(InputComponent):
 
     def get_template_context(self):
         return {
+            "optional": self.optional,
             **super().get_template_context()
         }
 
     def preprocess(self, x):
+        if x is None:
+            return x
         file = processing_utils.decode_base64_to_file(x)
         file_name = file.name
         uploaded_format = file_name.split(".")[-1].lower()
@@ -865,16 +875,18 @@ class Audio(InputComponent):
     Input type: Union[Tuple[int, numpy.array], file-object, numpy.array]
     """
 
-    def __init__(self, source="upload", type="numpy", label=None):
+    def __init__(self, source="upload", type="numpy", label=None, optional=False):
         """
         Parameters:
         source (str): Source of audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input.
         type (str): Type of value to be returned by component. "numpy" returns a 2-set tuple with an integer sample_rate and the data numpy.array of shape (samples, 2), "file" returns a temporary file object whose path can be retrieved by file_obj.name, "mfcc" returns the mfcc coefficients of the input audio.
         label (str): component name in interface.
+        optional (bool): If True, the interface can be submitted with no uploaded audio, in which case the input value is None.
         """
         self.source = source
         requires_permissions = source == "microphone" 
         self.type = type
+        self.optional = optional
         self.test_input = test_data.BASE64_AUDIO
         self.interpret_by_tokens = True
         super().__init__(label, requires_permissions)
@@ -882,6 +894,7 @@ class Audio(InputComponent):
     def get_template_context(self):
         return {
             "source": self.source,
+            "optional": self.optional,
             **super().get_template_context()
         }
 
@@ -896,6 +909,8 @@ class Audio(InputComponent):
         """
         By default, no pre-processing is applied to a microphone input file
         """
+        if x is None:
+            return x
         file_obj = processing_utils.decode_base64_to_file(x)
         if self.type == "file":
             return file_obj
@@ -1009,23 +1024,26 @@ class File(InputComponent):
     Input type: Union[file-object, bytes, List[Union[file-object, bytes]]]
     """
 
-    def __init__(self, file_count="single", type="file", label=None, keep_filename=True):
+    def __init__(self, file_count="single", type="file", label=None, keep_filename=True, optional=False):
         '''
         Parameters:
         file_count (str): if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
         type (str): Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name, "binary" returns an bytes object.
-        keep_filename (bool): whether to keep the original filename in the f.name field upon upload. If true, will place 'originalfilename' + a '_' before the unique temporary safe filename string and extension
         label (str): component name in interface.
+        keep_filename (bool): whether to keep the original filename in the f.name field upon upload. If true, will place 'originalfilename' + a '_' before the unique temporary safe filename string and extension
+        optional (bool): If True, the interface can be submitted with no uploaded image, in which case the input value is None.
         '''
         self.file_count = file_count
         self.type = type
         self.test_input = None
         self.keep_filename = keep_filename
+        self.optional = optional
         super().__init__(label)
 
     def get_template_context(self):
         return {
             "file_count": self.file_count,
+            "optional": self.optional,
             **super().get_template_context()
         }
 
@@ -1037,6 +1055,8 @@ class File(InputComponent):
         }
 
     def preprocess(self, x):
+        if x is None:
+            return None
         def process_single_file(f):
             name, data, is_local_example = f["name"], f["data"], f["is_local_example"]            
             if self.type == "file":
