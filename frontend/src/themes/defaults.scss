@@ -114,9 +114,6 @@
         h4 {
             @apply text-lg font-semibold my-2;
         }
-        .examples_control {
-            @apply hidden flex hidden gap-2;
-        }
         .examples_control_left {
             @apply flex gap-2;
         }
@@ -126,7 +123,7 @@
         .examples_control button {
             @apply bg-gray-100 hover:bg-gray-200 p-2;
         }
-        .examples_table {
+        .examples_table:not(.gallery) {
             @apply table-auto p-2 bg-gray-100 mt-4 rounded;
             tbody tr {
                 @apply cursor-pointer;
@@ -143,6 +140,24 @@
             td,
             th {
                 @apply py-2 px-4;
+            }
+        }
+        .examples_table.gallery {
+            @apply block;
+            tbody {
+                @apply flex gap-2 flex-wrap ;
+            }
+            thead {
+                @apply hidden;
+            }
+            tbody td:hover {
+                @apply bg-yellow-500 text-white;
+            }
+            tbody tr.selected {
+                @apply font-bold;
+            }
+            td {
+                @apply cursor-pointer p-2 rounded bg-gray-100;
             }
         }
     }
