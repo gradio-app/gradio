@@ -97,7 +97,7 @@ class TestDemo(unittest.TestCase):
         elem.click()
         elem = WebDriverWait(driver, TIMEOUT).until(
             EC.presence_of_element_located((By.CSS_SELECTOR,
-                                            ".panel:nth-child(2) .component:nth-child(1) .output_text"))
+                                            ".panel:nth-child(2) .component:nth-child(2) .output_text"))
         )
 
         total_sleep = 0
@@ -136,7 +136,7 @@ class TestDemo(unittest.TestCase):
         elem.click()
         WebDriverWait(driver, TIMEOUT).until(
             EC.visibility_of_element_located(
-                (By.CSS_SELECTOR, ".panel:nth-child(2) .component:nth-child(1) .output_image"))
+                (By.CSS_SELECTOR, ".panel:nth-child(2) .component:nth-child(2) .output_image"))
         )
 
         time.sleep(GAP_TO_SCREENSHOT)
@@ -159,7 +159,7 @@ class TestDemo(unittest.TestCase):
         )
         elem.click()
         elem = WebDriverWait(driver, TIMEOUT).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, ".panel:nth-child(2) .component:nth-child(1) .output_class"))
+            EC.presence_of_element_located((By.CSS_SELECTOR, ".panel:nth-child(2) .component:nth-child(2) .output_class"))
         )
 
         total_sleep = 0
@@ -185,7 +185,7 @@ class TestDemo(unittest.TestCase):
         )
         elem.click()
         elem = WebDriverWait(driver, TIMEOUT).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, ".panel:nth-child(2) .component:nth-child(1) .output_text"))
+            EC.presence_of_element_located((By.CSS_SELECTOR, ".panel:nth-child(2) .component:nth-child(2) .output_text"))
         )
 
         total_sleep = 0
