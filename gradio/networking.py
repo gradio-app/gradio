@@ -178,7 +178,14 @@ def enable_sharing(path):
 def predict():
     raw_input = request.json["data"]
     prediction, durations = app.interface.process(raw_input)
-    output = {"data": prediction, "durations": durations}
+    avg_durations = []
+    for i, duration in enumerate(durations):
+        app.interface.predict_durations[i][0] += duration
+        app.interface.predict_durations[i][1] += 1
+        avg_durations.append(app.interface.predict_durations[i][0] 
+            / app.interface.predict_durations[i][1])
+    app.interface.config["avg_durations"] = avg_durations
+    output = {"data": prediction, "durations": durations, "avg_durations": avg_durations}
     if app.interface.allow_flagging == "auto":
         try:
             flag_index = flag_data(raw_input, prediction, 
@@ -398,8 +405,8 @@ def file(path):
 def queue_push():
     data = request.json["data"]
     action = request.json["action"]
-    job_hash = queue.push({"data": data}, action)
-    return job_hash
+    job_hash, queue_position = queue.push({"data": data}, action)
+    return {"hash": job_hash, "queue_position": queue_position}
 
 @app.route("/api/queue/status/", methods=["POST"])
 @login_check

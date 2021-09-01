@@ -4,7 +4,7 @@
 
 .gradio_interface[theme="huggingface"] {
     .loading {
-        @apply absolute right-1;
+        @apply absolute right-2 flex items-center gap-2 text-sm text-gray-700;
     }
     .loading img {
         @apply h-5;
@@ -26,6 +26,7 @@
     }
     .component_set {
         @apply border border-gray-100 p-4 rounded-lg flex flex-col flex-1 gap-3 bg-gradient-to-br from-gray-50 to-white;
+        min-height: 36px;
     }
     .panel_header {
         @apply flex items-center text-sm text-gray-700 mb-1.5;
@@ -56,12 +57,6 @@
     .screenshot_set {
         @apply hidden flex hidden flex-grow;
     }
-    .panel_button.left_panel_button {
-        @apply rounded-tr-none rounded-br-none;
-    }
-    .panel_button.right_panel_button {
-        @apply rounded-tl-none rounded-bl-none bg-gray-100 hover:bg-gray-300;
-    }
     .examples {
         h4 {
             @apply text-lg font-semibold my-2;
@@ -75,16 +70,13 @@
         .shortcut {
             @apply block text-xs;
         }
-        .examples_control button {
-            @apply bg-gray-100 hover:bg-gray-200 p-2;
-        }
         .examples_table:not(.gallery) {
-            @apply table-auto p-2 bg-gray-100 mt-4 rounded;
+            @apply table-auto p-2 bg-gray-50 mt-4 rounded border border-gray-100;
             tbody tr {
                 @apply cursor-pointer;
             }
             thead {
-                @apply border-b-2 border-gray-300;
+                @apply border-b-2 border-gray-100;
             }
             tbody tr:hover {
                 @apply bg-indigo-500 text-white;
@@ -112,9 +104,18 @@
                 @apply font-bold;
             }
             td {
-                @apply cursor-pointer p-2 rounded bg-gray-100;
+                @apply cursor-pointer p-2 rounded bg-gray-50 ;
             }
         }
+        .pages {
+            @apply flex gap-1 items-center mt-2;
+        }
+        .page {
+            @apply px-2 py-1 bg-gray-100 rounded;
+        }
+        .page.selected {
+            @apply bg-gray-300;
+        }    
     }
     /* Input Components */
     .input_text {
