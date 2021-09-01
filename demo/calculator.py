@@ -1,10 +1,6 @@
 import gradio as gr
-import time
-import random
 
 def calculator(num1, operation, num2):
-    print("->", num1, operation, num2)
-    time.sleep(10 + 2 * random.random())
     if operation == "add":
         return num1 + num2
     elif operation == "subtract":
@@ -26,7 +22,6 @@ iface = gr.Interface(calculator,
     title="test calculator",
     description="heres a sample toy calculator. enjoy!",
     flagging_options=["this", "or", "that"],
-    enable_queue=True
 )
 
 if __name__ == "__main__":
