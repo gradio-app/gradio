@@ -123,6 +123,7 @@ class Interface:
             raise ValueError("Invalid value for parameter: interpretation")         
             
         self.predict = fn
+        self.predict_durations = [[0, 0]] * len(fn)
         self.function_names = [func.__name__ for func in fn]
         self.__name__ = ", ".join(self.function_names)
         self.verbose = verbose
@@ -335,14 +336,6 @@ class Interface:
             predictions[i]) if predictions[i] is not None else None for i, output_component in enumerate(self.output_components)]
         return processed_output, durations
     
-    def embed(self, processed_input):
-        if self.embedding == "default":
-            embeddings = np.concatenate([input_component.embed(processed_input[i])
-                            for i, input_component in enumerate(self.input_components)])
-        else:
-            embeddings = self.embedding(*processed_input)
-        return embeddings
-
     def interpret(self, raw_input):
         """
         Runs the interpretation command for the machine learning model. Handles both the "default" out-of-the-box

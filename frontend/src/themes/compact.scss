@@ -107,6 +107,15 @@ html {
                 @apply py-2 px-4;
             }
         }
+        .pages {
+            @apply flex gap-1 items-center mt-2;
+        }
+        .page {
+            @apply px-2 py-1 bg-gray-100 rounded;
+        }
+        .page.selected {
+            @apply bg-gray-300;
+        }    
     }
     /* Input Components */
     .input_text {

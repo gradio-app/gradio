@@ -89,11 +89,7 @@ class VideoInput extends BaseComponent {
 
 class VideoInputExample extends ComponentExample {
   render() {
-    return (
-      <span className="input_video_example">
-        {this.props.value}
-      </span>
-    );
+    return <span className="input_video_example">{this.props.value}</span>;
   }
 }
 

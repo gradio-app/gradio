@@ -7,16 +7,16 @@ DB_FILE = "gradio_queue.db"
 
 def generate_hash():
     generate = True
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
     while generate:
         hash = uuid.uuid4().hex
-        conn = sqlite3.connect(DB_FILE)
-        c = conn.cursor()
         c.execute("""
             SELECT hash FROM queue
             WHERE hash = ?;
         """, (hash,))
-        conn.commit()
         generate = c.fetchone() is not None
+    conn.commit()
     return hash
 
 def init():
@@ -24,7 +24,6 @@ def init():
         os.remove(DB_FILE)
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
-    c.execute("BEGIN EXCLUSIVE")
     c.execute("""CREATE TABLE queue (
             queue_index integer PRIMARY KEY,
             hash text,
@@ -71,22 +70,38 @@ def push(input_data, action):
     hash = generate_hash()
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
-    c.execute("BEGIN EXCLUSIVE")
     c.execute("""
         INSERT INTO queue (hash, input_data, action)
         VALUES (?, ?, ?);
-    """, (hash, input_data, action))
+    """, (hash, input_data, action))    
+    queue_index = c.lastrowid
+    c.execute("""
+        SELECT COUNT(*) FROM queue WHERE queue_index < ? and popped = 0;
+    """, (queue_index,))
+    queue_position = c.fetchone()[0]
+    if queue_position is None:
+        conn.commit()
+        raise ValueError("Hash not found.")
+    elif queue_position == 0:
+        c.execute("""
+            SELECT COUNT(*) FROM jobs WHERE status = "PENDING";
+        """)
+        result = c.fetchone()
+        if result[0] == 0:
+            queue_position -= 1
     conn.commit()
-    return hash
+    return hash, queue_position
 
 def get_status(hash):
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
-    c.execute("BEGIN EXCLUSIVE")
     c.execute("""
         SELECT queue_index, popped FROM queue WHERE hash = ?;
     """, (hash,))
     result = c.fetchone()
+    if result is None:
+        conn.commit()
+        raise ValueError("Hash not found.")
     if result[1] == 1: # in jobs
         c.execute("""
             SELECT status, output_data, error_message FROM jobs WHERE hash = ?;
@@ -110,14 +125,22 @@ def get_status(hash):
                 conn.commit()
                 output_data = json.loads(output_data)
                 return "COMPLETE", output_data
-    else:
+    else: # in queue
         queue_index = result[0]
         c.execute("""
             SELECT COUNT(*) FROM queue WHERE queue_index < ? and popped = 0;
         """, (queue_index,))
         result = c.fetchone()
+        queue_position = result[0]
+        if queue_position == 0:
+            c.execute("""
+                SELECT COUNT(*) FROM jobs WHERE status = "PENDING";
+            """)
+            result = c.fetchone()
+            if result[0] == 0:
+                queue_position -= 1
         conn.commit()
-        return "QUEUED", result[0]
+        return "QUEUED", queue_position
 
 def start_job(hash):
     conn = sqlite3.connect(DB_FILE)
@@ -134,7 +157,6 @@ def start_job(hash):
 def fail_job(hash, error_message):
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
-    c.execute("BEGIN EXCLUSIVE")
     c.execute("""
         UPDATE jobs SET status = 'FAILED', error_message = ? WHERE hash = ?;
     """, (error_message, hash,))
@@ -144,7 +166,6 @@ def pass_job(hash, output_data):
     output_data = json.dumps(output_data)
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
-    c.execute("BEGIN EXCLUSIVE")
     c.execute("""
         UPDATE jobs SET status = 'COMPLETE', output_data = ? WHERE hash = ?;
     """, (output_data, hash,))

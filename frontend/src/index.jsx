@@ -24,7 +24,12 @@ let fn = async (endpoint, queue, data, action, queue_callback) => {
       data: data,
       action: action
     });
-    let hash = await output.text();
+    const output_json = await output.json();
+    let [hash, queue_position] = [
+      output_json["hash"],
+      output_json["queue_position"]
+    ];
+    queue_callback(queue_position, /*is_initial=*/ true);
     let status = "UNKNOWN";
     while (status != "COMPLETE" && status != "FAILED") {
       if (status != "UNKNOWN") {

@@ -55,7 +55,11 @@ export class GradioInterface extends React.Component {
   constructor(props) {
     super(props);
     this.state = this.get_default_state();
+    this.pending_response = false;
     this.state["examples_page"] = 0;
+    this.state["avg_duration"] = Array.isArray(this.props.avg_durations)
+      ? this.props.avg_durations[0]
+      : null;
     this.examples_dir =
       process.env.REACT_APP_BACKEND_URL +
       (this.props.examples_dir === null
@@ -77,21 +81,31 @@ export class GradioInterface extends React.Component {
     state["submitting"] = false;
     state["error"] = false;
     state["complete"] = false;
+    state["last_duration"] = null;
     state["interpretation"] = null;
     state["just_flagged"] = false;
     state["has_changed"] = false;
     state["example_id"] = null;
     state["flag_index"] = null;
     state["queue_index"] = null;
+    state["initial_queue_index"] = null;
     return state;
   };
   clear = () => {
+    this.pending_response = false;
     this.setState(this.get_default_state());
   };
   submit = () => {
+    if (this.pending_response) {
+      return;
+    }
+    this.pending_response = true;
     let input_state = [];
     for (let i = 0; i < this.props.input_components.length; i++) {
-      if (this.state[i] === null && this.props.input_components[i].optional !== true) {
+      if (
+        this.state[i] === null &&
+        this.props.input_components[i].optional !== true
+      ) {
         return;
       }
       input_state[i] = this.state[i];
@@ -105,8 +119,14 @@ export class GradioInterface extends React.Component {
     this.props
       .fn(input_state, "predict", this.queueCallback)
       .then((output) => {
+        if (!this.pending_response) {
+          return;
+        }
+        this.pending_response = false;
         let index_start = this.props.input_components.length;
         let new_state = {};
+        new_state["last_duration"] = output["durations"][0];
+        new_state["avg_duration"] = output["avg_durations"][0];
         for (let [i, value] of output["data"].entries()) {
           new_state[index_start + i] = value;
         }
@@ -122,6 +142,7 @@ export class GradioInterface extends React.Component {
       })
       .catch((e) => {
         console.error(e);
+        this.pending_response = false;
         this.setState({
           error: true,
           submitting: false
@@ -153,9 +174,10 @@ export class GradioInterface extends React.Component {
     this.props.fn(component_state, "flag");
   };
   interpret = () => {
-    if (!this.state.complete) {
+    if (this.pending_response) {
       return;
     }
+    this.pending_response = true;
     let input_state = [];
     for (let i = 0; i < this.props.input_components.length; i++) {
       if (this.state[i] === null) {
@@ -167,6 +189,10 @@ export class GradioInterface extends React.Component {
     this.props
       .fn(input_state, "interpret", this.queueCallback)
       .then((output) => {
+        if (!this.pending_response) {
+          return;
+        }
+        this.pending_response = false;
         this.setState({
           interpretation: output["interpretation_scores"],
           submitting: false
@@ -174,6 +200,7 @@ export class GradioInterface extends React.Component {
       })
       .catch((e) => {
         console.error(e);
+        this.pending_response = false;
         this.setState({
           error: true,
           submitting: false
@@ -183,8 +210,13 @@ export class GradioInterface extends React.Component {
   removeInterpret = () => {
     this.setState({ interpretation: null });
   };
-  queueCallback = (queue_index) => {
-    this.setState({ queue_index: queue_index });
+  queueCallback = (queue_index, is_initial) => {
+    let new_state = {};
+    if (is_initial === true) {
+      new_state["initial_queue_index"] = queue_index;
+    }
+    new_state["queue_index"] = queue_index;
+    this.setState(new_state);
   };
   takeScreenshot = () => {
     html2canvas(ReactDOM.findDOMNode(this).parentNode).then((canvas) => {
@@ -222,9 +254,14 @@ export class GradioInterface extends React.Component {
   render() {
     let status = false;
     if (this.state.submitting) {
+      let expected_duration = this.state.avg_duration;
+      if (this.state.initial_queue_index && this.state.avg_duration !== null) {
+        expected_duration *= this.state.initial_queue_index + 2;
+      }
       status = (
         <div className="loading">
-          {this.state.queue_index !== null
+          <MemoizedGradioTimer expected_duration={expected_duration} />
+          {this.state.queue_index !== null && this.state.queue_index >= 0
             ? "queued @ " + this.state.queue_index
             : false}
           <img alt="loading" src={logo_loading} />
@@ -234,6 +271,12 @@ export class GradioInterface extends React.Component {
       status = (
         <div className="loading">
           <img className="loading_failed" alt="error" src={logo_error} />
+        </div>
+      );
+    } else if (this.state.complete && this.state.last_duration !== null) {
+      status = (
+        <div className="loading">
+          {this.state.last_duration.toFixed(2) + "s"}
         </div>
       );
     }
@@ -288,7 +331,7 @@ export class GradioInterface extends React.Component {
           >
             <div
               className={classNames("component_set", "relative", {
-                "opacity-50": status && !this.props.live
+                "opacity-50": this.pending_response && !this.props.live
               })}
             >
               {status}
@@ -369,10 +412,11 @@ export class GradioInterface extends React.Component {
           </div>
         </div>
         {this.props.examples ? (
-          <GradioInterfaceExamples
+          <MemoizedGradioInterfaceExamples
             examples={this.props.examples}
             examples_dir={this.examples_dir}
             example_id={this.state.example_id}
+            examples_per_page={this.props.examples_per_page}
             input_components={this.props.input_components}
             output_components={this.props.output_components}
             handleExampleChange={this.handleExampleChange}
@@ -386,14 +430,47 @@ export class GradioInterface extends React.Component {
 }
 
 class GradioInterfaceExamples extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { page: 0 };
+  }
+  set_page(page) {
+    this.setState({ page: page });
+  }
   render() {
+    let selected_examples = this.props.examples.slice();
+    let examples_count = this.props.examples.length;
+    let paginate = examples_count > this.props.examples_per_page;
+    let page_count = 1;
+    let visible_pages = [];
+    if (paginate) {
+      selected_examples = selected_examples.slice(
+        this.state.page * this.props.examples_per_page,
+        (this.state.page + 1) * this.props.examples_per_page
+      );
+      page_count = Math.ceil(examples_count / this.props.examples_per_page);
+      [0, this.state.page, page_count - 1].forEach((anchor) => {
+        for (let i = anchor - 2; i <= anchor + 2; i++) {
+          if (i >= 0 && i < page_count && !visible_pages.includes(i)) {
+            if (
+              visible_pages.length > 0 &&
+              i - visible_pages[visible_pages.length - 1] > 1
+            ) {
+              visible_pages.push(null);
+            }
+            visible_pages.push(i);
+          }
+        }
+      });
+    }
     return (
       <div className="examples">
         <h4>Examples</h4>
-        <div className="pages hidden">Page:</div>
-        <table className={classNames("examples_table", {
-          "gallery": this.props.input_components.length === 1
-        })}>
+        <table
+          className={classNames("examples_table", {
+            gallery: this.props.input_components.length === 1
+          })}
+        >
           <thead>
             <tr>
               {this.props.input_components.map((component, i) => {
@@ -412,7 +489,8 @@ class GradioInterfaceExamples extends React.Component {
             </tr>
           </thead>
           <tbody>
-            {this.props.examples.map((example_row, i) => {
+            {selected_examples.map((example_row, page_i) => {
+              let i = page_i + this.state.page * this.props.examples_per_page;
               return (
                 <tr
                   key={i}
@@ -441,7 +519,70 @@ class GradioInterfaceExamples extends React.Component {
             })}
           </tbody>
         </table>
+        {paginate ? (
+          <div class="pages">
+            Pages:
+            {visible_pages.map((page) =>
+              page === null ? (
+                <div>...</div>
+              ) : (
+                <button
+                  className={classNames("page", {
+                    selected: page === this.state.page
+                  })}
+                  key={page}
+                  onClick={this.set_page.bind(this, page)}
+                >
+                  {page + 1}
+                </button>
+              )
+            )}
+          </div>
+        ) : (
+          false
+        )}
       </div>
     );
   }
 }
+
+class GradioTimer extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { time: new Date(), start_time: new Date() };
+  }
+
+  componentDidMount() {
+    this.timerID = setInterval(() => this.tick(), 1000);
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.timerID);
+  }
+
+  tick() {
+    this.setState({
+      time: new Date()
+    });
+  }
+
+  render() {
+    return (
+      <div>
+        {Math.round(
+          (this.state.time.getTime() - this.state.start_time.getTime()) / 1000
+        )}
+        .0
+        {this.props.expected_duration !== null ? (
+          <>/{this.props.expected_duration.toFixed(1)}</>
+        ) : (
+          false
+        )}
+        s
+      </div>
+    );
+  }
+}
+
+const MemoizedGradioInterfaceExamples = React.memo(GradioInterfaceExamples);
+const MemoizedGradioTimer = React.memo(GradioTimer);
