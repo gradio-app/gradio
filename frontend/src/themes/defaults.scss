@@ -45,7 +45,7 @@
 
 .gradio_interface[theme="default"] {
     .loading {
-        @apply absolute right-1;
+        @apply absolute right-2 flex items-center gap-2;
     }
     .loading img {
         @apply h-5 ml-2 inline-block;
@@ -160,6 +160,15 @@
                 @apply cursor-pointer p-2 rounded bg-gray-100;
             }
         }
+        .pages {
+            @apply flex gap-1 items-center mt-2;
+        }
+        .page {
+            @apply px-2 py-1 bg-gray-100 rounded;
+        }
+        .page.selected {
+            @apply bg-gray-300;
+        }    
     }
     /* Input Components */
     .input_text {
