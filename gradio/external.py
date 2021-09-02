@@ -85,7 +85,27 @@ def get_huggingface_interface(model_name, api_key, alias):
             'preprocess': lambda i: i,
             'postprocess': lambda r: {i["label"].split(", ")[0]: i["score"] for
                                       i in r}
-        }
+        },
+        'feature-extraction': {
+            # example model: hf.co/julien-c/distilbert-feature-extraction
+            'inputs': inputs.Textbox(label="Input"),
+            'outputs': outputs.Dataframe(label="Output"),
+            'preprocess': lambda x: {"inputs": x},
+            'postprocess': lambda r: r[0],
+        },
+        'sentence-similarity': {
+            # example model: hf.co/sentence-transformers/xlm-r-100langs-bert-base-nli-stsb-mean-tokens
+            'inputs': [
+                inputs.Textbox(label="Source Sentence", default="That is a happy person"),
+                inputs.Textbox(lines=7, label="Sentences to compare to", placeholder="Separate each sentence by a newline"),
+            ],
+            'outputs': outputs.Label(label="Classification"),
+            'preprocess': lambda src, sentences: {"inputs": {
+                "source_sentence": src,
+                "sentences": [s for s in sentences.splitlines() if s != ""],
+            }},
+            'postprocess': lambda r: { f"sentence {i}": v for i, v in enumerate(r) },
+        },
     }
 
     if p is None or not(p in pipelines):
