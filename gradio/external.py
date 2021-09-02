@@ -1,4 +1,5 @@
 import json
+import tempfile
 import requests
 from gradio import inputs, outputs
 
@@ -14,6 +15,11 @@ def get_huggingface_interface(model_name, api_key, alias):
     response = requests.request("GET", api_url,  headers=headers)
     assert response.status_code == 200, "Invalid model name or src"
     p = response.json().get('pipeline_tag')
+
+    def post_process_binary_body(r: requests.Response):
+        with tempfile.NamedTemporaryFile(delete=False) as fp:
+            fp.write(r.content)
+            return fp.name
 
     pipelines = {
         'question-answering': {
@@ -85,7 +91,41 @@ def get_huggingface_interface(model_name, api_key, alias):
             'preprocess': lambda i: i,
             'postprocess': lambda r: {i["label"].split(", ")[0]: i["score"] for
                                       i in r}
-        }
+        },
+        'feature-extraction': {
+            # example model: hf.co/julien-c/distilbert-feature-extraction
+            'inputs': inputs.Textbox(label="Input"),
+            'outputs': outputs.Dataframe(label="Output"),
+            'preprocess': lambda x: {"inputs": x},
+            'postprocess': lambda r: r[0],
+        },
+        'sentence-similarity': {
+            # example model: hf.co/sentence-transformers/distilbert-base-nli-stsb-mean-tokens
+            'inputs': [
+                inputs.Textbox(label="Source Sentence", default="That is a happy person"),
+                inputs.Textbox(lines=7, label="Sentences to compare to", placeholder="Separate each sentence by a newline"),
+            ],
+            'outputs': outputs.Label(label="Classification"),
+            'preprocess': lambda src, sentences: {"inputs": {
+                "source_sentence": src,
+                "sentences": [s for s in sentences.splitlines() if s != ""],
+            }},
+            'postprocess': lambda r: { f"sentence {i}": v for i, v in enumerate(r) },
+        },
+        'text-to-speech': {
+            # example model: hf.co/julien-c/ljspeech_tts_train_tacotron2_raw_phn_tacotron_g2p_en_no_space_train
+            'inputs': inputs.Textbox(label="Input"),
+            'outputs': outputs.Audio(label="Audio"),
+            'preprocess': lambda x: {"inputs": x},
+            'postprocess': post_process_binary_body,
+        },
+        'text-to-image': {
+            # example model: hf.co/osanseviero/BigGAN-deep-128
+            'inputs': inputs.Textbox(label="Input"),
+            'outputs': outputs.Image(label="Output"),
+            'preprocess': lambda x: {"inputs": x},
+            'postprocess': post_process_binary_body,
+        },
     }
 
     if p is None or not(p in pipelines):
@@ -103,8 +143,11 @@ def get_huggingface_interface(model_name, api_key, alias):
             data = json.dumps(payload)
         response = requests.request("POST", api_url, headers=headers, data=data)
         if response.status_code == 200:
-            result = json.loads(response.content.decode("utf-8"))
-            output = pipeline['postprocess'](result)
+            if p == 'text-to-speech' or p == 'text-to-image':
+                output = pipeline['postprocess'](response)
+            else:
+                result = response.json()
+                output = pipeline['postprocess'](result)
         else:
             raise ValueError("Could not complete request to HuggingFace API, Error {}".format(response.status_code))
         return output

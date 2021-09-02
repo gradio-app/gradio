@@ -42,12 +42,11 @@ iface = gr.Interface(
         gr.inputs.CheckboxGroup(label="CheckboxGroup", choices=CHOICES),
         gr.inputs.Radio(label="Radio", choices=CHOICES),
         gr.inputs.Dropdown(label="Dropdown", choices=CHOICES),
-        gr.inputs.Image(label="Image"),
-        # TODO(Uncomment those when supported by the React version)
-        # gr.inputs.Video(),
-        # gr.inputs.Audio(),
-        # gr.inputs.File(),
-        # gr.inputs.Dataframe(),
+        gr.inputs.Image(label="Image", optional=True),
+        gr.inputs.Video(label="Video", optional=True),
+        gr.inputs.Audio(label="Audio", optional=True),
+        gr.inputs.File(label="File", optional=True),
+        gr.inputs.Dataframe(),
     ],
     outputs=[
         gr.outputs.Textbox(),
