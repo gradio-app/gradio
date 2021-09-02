@@ -454,7 +454,7 @@ def start_server(interface, server_name, server_port=None, auth=None, ssl=None):
     log.setLevel(logging.ERROR)
     if app.interface.enable_queue:
         if auth is not None or app.interface.encrypt:
-            raise ValueError("Cannot queue with encryption or authenitcation enabled.")
+            raise ValueError("Cannot queue with encryption or authentication enabled.")
         queue.init()
         app.queue_thread = threading.Thread(target=queue_thread, args=(path_to_local_server,))
         app.queue_thread.start()
