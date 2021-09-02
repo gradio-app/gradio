@@ -103,7 +103,7 @@ def get_huggingface_interface(model_name, api_key, alias):
             data = json.dumps(payload)
         response = requests.request("POST", api_url, headers=headers, data=data)
         if response.status_code == 200:
-            result = json.loads(response.content.decode("utf-8"))
+            result = response.json()
             output = pipeline['postprocess'](result)
         else:
             raise ValueError("Could not complete request to HuggingFace API, Error {}".format(response.status_code))
