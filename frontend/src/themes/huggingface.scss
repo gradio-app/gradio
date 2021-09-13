@@ -2,9 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-.gradio_interface[theme="huggingface"] {
+.gradio_page[theme="huggingface"] .gradio_interface {
     .loading {
-        @apply absolute right-2 flex items-center gap-2 text-sm text-gray-700;
+        @apply text-gray-700 dark:text-gray-50 absolute right-2 flex items-center gap-2 text-sm;
     }
     .loading img {
         @apply h-5;
@@ -25,14 +25,14 @@
         @apply flex-1;
     }
     .component_set {
-        @apply border border-gray-100 p-4 rounded-lg flex flex-col flex-1 gap-3 bg-gradient-to-br from-gray-50 to-white;
+        @apply border border-gray-100 dark:border-none bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg flex flex-col flex-1 gap-3 ;
         min-height: 36px;
     }
     .panel_header {
-        @apply flex items-center text-sm text-gray-700 mb-1.5;
+        @apply flex items-center text-sm dark:text-gray-50 text-gray-700 mb-1.5;
     }
     .panel_button {
-        @apply shadow-sm font-semibold border flex-grow p-3 rounded-lg transition bg-gradient-to-b from-gray-50 hover:from-gray-100 to-gray-100 focus:ring-offset-indigo-300;
+        @apply from-gray-50 hover:from-gray-100 to-gray-100 focus:ring-offset-indigo-300 dark:text-gray-50 dark:from-gray-700 dark:hover:from-gray-800 dark:to-gray-800 dark:focus:ring-offset-indigo-700 dark:border-none shadow-sm font-semibold border flex-grow p-3 rounded-lg transition bg-gradient-to-b;
     }
     .panel_buttons {
         @apply flex gap-4 my-4;
@@ -40,12 +40,12 @@
     .flag {
         @apply relative;
         .dropcontent {
-            @apply hidden absolute top-8 left-0 bg-white border-gray-200 border-2 w-full;
+            @apply bg-white border-gray-200 dark:bg-gray-500 dark:border-none dark:text-gray-50 hidden absolute top-8 left-0 border-2 w-full;
             div {
                 @apply p-2;
             }
             div:hover {
-                @apply bg-gray-100;
+                @apply bg-gray-100 dark:bg-gray-600;
             }
         }
     }
@@ -71,15 +71,15 @@
             @apply block text-xs;
         }
         .examples_table:not(.gallery) {
-            @apply table-auto p-2 bg-gray-50 mt-4 rounded border border-gray-100;
+            @apply bg-gray-50 border-gray-100 dark:bg-gray-700 dark:text-gray-50 dark:border-none table-auto p-2 mt-4 rounded border;
             tbody tr {
                 @apply cursor-pointer;
             }
             thead {
-                @apply border-b-2 border-gray-100;
+                @apply border-gray-100 dark:border-gray-800 border-b-2;
             }
             tbody tr:hover {
-                @apply bg-indigo-500 text-white;
+                @apply bg-indigo-500 dark:bg-indigo-900 text-white;
             }
             tbody tr.selected {
                 @apply font-bold;
@@ -98,32 +98,32 @@
                 @apply hidden;
             }
             tbody td:hover {
-                @apply bg-indigo-500 text-white;
+                @apply bg-indigo-500 dark:bg-indigo-900 text-white;
             }
             tbody tr.selected {
                 @apply font-bold;
             }
             td {
-                @apply cursor-pointer p-2 rounded bg-gray-50 ;
+                @apply bg-gray-50 dark:bg-gray-700 cursor-pointer p-2 rounded;
             }
         }
         .pages {
             @apply flex gap-1 items-center mt-2;
         }
         .page {
-            @apply px-2 py-1 bg-gray-100 rounded;
+            @apply bg-gray-100 dark:bg-gray-700 dark:text-gray-50 px-2 py-1 rounded;
         }
         .page.selected {
-            @apply bg-gray-300;
+            @apply bg-gray-300 dark:bg-gray-800;
         }    
     }
     /* Input Components */
     .input_text {
         textarea {
-            @apply w-full p-3 border rounded-lg shadow-inner outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-200 focus:shadow-inner placeholder-gray-400;
+            @apply w-full p-3 border rounded-lg shadow-inner outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-200 focus:shadow-inner placeholder-gray-400 dark:bg-gray-600 dark:placeholder-gray-100 dark:text-gray-50 dark:border-none;
         }
         input {
-            @apply w-full p-3 border rounded-lg shadow-inner outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-200 focus:shadow-inner placeholder-gray-400;
+            @apply w-full p-3 border rounded-lg shadow-inner outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-200 focus:shadow-inner placeholder-gray-400 dark:bg-gray-600 dark:placeholder-gray-100 dark:text-gray-50 dark:border-none;
         }
         .interpretation {
             .interpretation_box {
@@ -133,7 +133,7 @@
     }
     .input_number {
         input {
-            @apply w-full p-3 border rounded-lg shadow-inner outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-200 focus:shadow-inner placeholder-gray-400;
+            @apply w-full p-3 border rounded-lg shadow-inner outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-200 focus:shadow-inner placeholder-gray-400 dark:bg-gray-600 dark:placeholder-gray-100 dark:text-gray-50 dark:border-none;
         }
         .interpretation {
             @apply flex h-6;
@@ -145,10 +145,10 @@
     .input_image {
         @apply w-full h-80 relative;
         .upload_zone {
-            @apply border-8 border-gray-300 border-dashed w-full h-full flex justify-center items-center text-3xl text-gray-400 text-center cursor-pointer leading-10;
+            @apply border-8 border-gray-300 border-dashed w-full h-full flex justify-center items-center text-3xl text-gray-400 dark:border-gray-500 dark:text-gray-50 text-center cursor-pointer leading-10;
         }
         .image_preview_holder {
-            @apply w-full h-full flex justify-center items-center bg-gray-300 relative inline-block;
+            @apply w-full h-full flex justify-center items-center bg-gray-300 dark:bg-gray-400 relative;
         }
         .edit_button {
             @apply absolute top-1 right-1 bg-indigo-500 text-white px-2 py-1;
@@ -190,34 +190,34 @@
     .input_radio {
         @apply flex flex-wrap gap-2;
         .radio_item {
-            @apply border bg-gradient-to-t from-gray-100 to-gray-50 text-gray-600 py-1.5 px-3 hover:to-gray-100 font-semibold rounded cursor-pointer flex items-center gap-1;
+            @apply border bg-gradient-to-t from-gray-100 to-gray-50 text-gray-600 py-1.5 px-3 hover:to-gray-100 dark:from-gray-600 dark:to-gray-500 dark:hover:to-gray-600 dark:text-gray-50 dark:border-none font-semibold rounded cursor-pointer flex items-center gap-1;
         }
         .radio_item.selected {
-            @apply text-indigo-500;
+            @apply text-indigo-500 dark:text-white dark:from-indigo-600 dark:to-indigo-500;
         }
         .radio_circle {
-            @apply w-4 h-4 bg-white rounded-full box-border;
+            @apply w-4 h-4 bg-white dark:bg-gray-400 rounded-full box-border;
         }
         .selected .radio_circle {
-            @apply border-4 border-indigo-600;
+            @apply border-4 border-indigo-600 dark:border-indigo-400 dark:bg-white;
         }
     }
     .input_checkbox_group {
         @apply flex flex-wrap gap-2;
         .checkbox_item {
-            @apply border bg-gradient-to-t from-gray-100 to-gray-50 text-gray-600 py-1.5 px-3 hover:to-gray-100 font-semibold rounded cursor-pointer flex items-center gap-1;
+            @apply border bg-gradient-to-t from-gray-100 to-gray-50 hover:to-gray-100 text-gray-600 dark:from-gray-600 dark:to-gray-500 dark:hover:to-gray-600 dark:text-gray-50 dark:border-none py-1.5 px-3 font-semibold rounded cursor-pointer flex items-center gap-1;
         }
         .checkbox_item.selected {
-            @apply text-indigo-500;
+            @apply text-indigo-500 dark:text-white dark:from-indigo-600 dark:to-indigo-500;
         }
         .checkbox {
-            @apply w-4 h-4 bg-white rounded p-1;
+            @apply w-4 h-4 bg-white dark:bg-gray-400 rounded p-1;
             .check {
                 @apply hidden;
             }
         }
         .selected .checkbox {
-            @apply bg-indigo-600;
+            @apply bg-indigo-600 dark:bg-indigo-400;
             .check {
                 @apply block;
             }
@@ -245,19 +245,19 @@
     .input_checkbox {
         @apply flex flex-wrap gap-2;
         .checkbox_item {
-            @apply border bg-gradient-to-t from-gray-100 to-gray-50 text-gray-600 py-1.5 px-3 hover:to-gray-100 font-semibold rounded cursor-pointer flex items-center gap-1;
+            @apply border bg-gradient-to-t from-gray-100 to-gray-50 text-gray-600 dark:from-gray-600 dark:to-gray-500 dark:hover:to-gray-600 dark:text-gray-50 dark:border-none py-1.5 px-3 hover:to-gray-100 font-semibold rounded cursor-pointer flex items-center gap-1;
         }
         .checkbox_item.selected {
-            @apply text-indigo-500;
+            @apply text-indigo-500 dark:text-white dark:from-indigo-600 dark:to-indigo-500;
         }
         .checkbox {
-            @apply w-4 h-4 bg-white rounded p-1;
+            @apply w-4 h-4 bg-white dark:bg-gray-400 rounded p-1;
             .check {
                 @apply hidden;
             }
         }
         .selected .checkbox {
-            @apply bg-indigo-600;
+            @apply bg-indigo-600 dark:bg-indigo-400;
             .check {
                 @apply block;
             }
@@ -285,19 +285,19 @@
     .input_dropdown {
         @apply inline-block relative;
         .selector {
-            @apply border bg-gradient-to-t from-gray-100 to-gray-50 text-gray-600 py-1.5 px-3 hover:to-gray-100 font-semibold rounded inline-flex items-center;
+            @apply border bg-gradient-to-t from-gray-100 to-gray-50 text-gray-600 dark:from-gray-600 dark:to-gray-500 dark:hover:to-gray-600 dark:text-gray-50 dark:border-none py-1.5 px-3 hover:to-gray-100 font-semibold rounded inline-flex items-center;
         }
         .caret {
             @apply ml-1 fill-current h-4 w-4;
         }
         .dropdown_menu {
-            @apply absolute hidden text-gray-700 pt-1 max-h-80 overflow-y-auto z-10;
+            @apply absolute hidden text-gray-700 dark:text-gray-50 pt-1 max-h-80 overflow-y-auto z-10;
         }
         .dropdown_item:first-child {
             @apply rounded-t;
         }
         .dropdown_item {
-            @apply bg-gray-50 hover:bg-gray-400 hover:text-gray-50 py-2 px-4 block whitespace-nowrap cursor-pointer;
+            @apply bg-gray-50 dark:bg-gray-500 hover:bg-gray-400 hover:text-gray-50 dark:hover:bg-indigo-600 py-2 px-4 block whitespace-nowrap cursor-pointer;
         }
         .dropdown_item:last-child {
             @apply rounded-b;
@@ -312,17 +312,17 @@
     .input_slider {
         @apply text-center;
         .range {
-            @apply w-full appearance-none bg-gray-100 hover:bg-gray-100 transition rounded-full h-4 border;
+            @apply w-full appearance-none bg-gray-100 hover:bg-gray-100 transition rounded-full h-4 border dark:bg-gray-600 dark:hover:bg-gray-500 dark:text-gray-50 dark:border-none;
         }
         .range::-webkit-slider-thumb {
             -webkit-appearance: none;
-            @apply appearance-none w-5 h-5 bg-indigo-500 rounded-full cursor-pointer shadow;
+            @apply appearance-none w-5 h-5 border dark:bg-white rounded-full cursor-pointer shadow;
         }
         .range::-moz-range-thumb {
-            @apply appearance-none w-5 h-5 bg-indigo-500 rounded-full cursor-pointer shadow;
+            @apply appearance-none w-5 h-5 border dark:bg-white rounded-full cursor-pointer shadow;
         }
         .value {
-            @apply inline-block mx-auto mt-1 px-2 py-0.5 bg-gray-100 text-gray-700 rounded shadow-inner;
+            @apply inline-block mx-auto mt-1 px-2 py-0.5 bg-gray-100 text-gray-700 dark:bg-gray-600 dark:placeholder-gray-100 dark:text-gray-50 dark:border-none rounded shadow-inner;
         }
         .interpret_range {
             @apply flex h-6;
@@ -354,7 +354,7 @@
     .input_video {
         @apply w-full h-80;
         .upload_zone {
-            @apply border-8 border-gray-300 border-dashed w-full h-full flex justify-center items-center text-3xl text-gray-400 text-center cursor-pointer leading-10;
+            @apply border-8 border-gray-300 border-dashed w-full h-full flex justify-center items-center text-3xl text-gray-400 dark:border-gray-500 dark:text-gray-50 text-center cursor-pointer leading-10;
         }
         .video_preview_holder {
             @apply w-full h-full flex justify-center items-center bg-gray-200;
@@ -366,16 +366,16 @@
     .input_file {
         @apply w-full h-80;
         .upload_zone {
-            @apply border-8 border-gray-300 border-dashed w-full h-full flex justify-center items-center text-3xl text-gray-400 text-center cursor-pointer leading-10;
+            @apply border-8 border-gray-300 border-dashed w-full h-full flex justify-center items-center text-3xl text-gray-400 dark:border-gray-500 dark:text-gray-50 text-center cursor-pointer leading-10;
         }
         .file_preview_holder {
             @apply w-full h-full flex flex-col justify-center items-center relative inline-block;
         }
         .file_name {
-            @apply text-6xl p-6;
+            @apply text-6xl p-6 dark:text-gray-50;
         }
         .file_size {
-            @apply text-2xl p-2;
+            @apply text-2xl p-2 dark:text-gray-50;
         }
     }
     .input_timeseries {
@@ -390,10 +390,13 @@
             position: static !important;
         } 
     }
+    .input_dataframe {
+        @apply text-black;
+    }
     /* Output Components */
     .output_text {
         word-break: break-word;
-        @apply w-full p-3 border rounded-lg shadow-inner outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-200 focus:shadow-inner whitespace-pre-wrap;
+        @apply w-full p-3 border rounded-lg shadow-inner outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-200 focus:shadow-inner whitespace-pre-wrap dark:bg-gray-600 dark:text-gray-50 dark:border-none;
     }
     .output_label {
         .output_class {
@@ -409,17 +412,17 @@
             @apply flex flex-grow flex-col items-baseline;
         }
         .label {
-            @apply overflow-hidden whitespace-nowrap h-7 mb-1 overflow-ellipsis text-right;
+            @apply overflow-hidden whitespace-nowrap h-7 mb-1 overflow-ellipsis text-right dark:text-gray-50;
         }
         .confidence {
-            @apply bg-gradient-to-r from-indigo-200 to-indigo-500 rounded text-white flex justify-end overflow-hidden whitespace-nowrap h-7 mb-1 px-1;
+            @apply bg-gradient-to-r from-indigo-200 to-indigo-500 dark:from-indigo-500 dark:to-indigo-700 rounded text-white flex justify-end overflow-hidden whitespace-nowrap h-7 mb-1 px-1;
             color: transparent;
         }
     }
     .output_image {
         @apply w-full h-80;
         .image_preview_holder {
-            @apply w-full h-full flex justify-center items-center bg-gray-200 relative inline-block;
+            @apply w-full h-full flex justify-center items-center bg-gray-200 dark:bg-gray-400 relative inline-block;
         }
         .image_preview,
         video {
@@ -428,7 +431,7 @@
     }
     .output_audio {
         audio {
-            @apply w-full border-2 border-gray-300 rounded;
+            @apply w-full border-2 border-gray-300 dark:border-none rounded;
         }
     }
     .output_highlightedtext {
@@ -461,7 +464,7 @@
         }
     }
     .output_file {
-        @apply w-full h-80;
+        @apply w-full h-80 dark:text-gray-50;
         .file_display {
             @apply w-full h-full flex flex-col justify-center items-center relative inline-block;
         }

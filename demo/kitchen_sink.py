@@ -54,7 +54,7 @@ iface = gr.Interface(
         gr.outputs.Audio(type="numpy"),
         gr.outputs.Image(type="numpy"),
     ],
-    theme="huggingface",
+    theme="darkhuggingface"
 )
 
 if __name__ == "__main__":
