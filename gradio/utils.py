@@ -3,6 +3,9 @@ import json.decoder
 import requests
 import pkg_resources
 from distutils.version import StrictVersion
+from socket import gaierror
+from urllib3.exceptions import MaxRetryError
+
 analytics_url = 'https://api.gradio.app/'
 PKG_VERSION_URL = "https://api.gradio.app/pkg-version"
 
@@ -17,15 +20,14 @@ def version_check():
                     "is available, please upgrade.".format(
                 current_pkg_version, latest_pkg_version))
             print('--------')
-
     except pkg_resources.DistributionNotFound:
         raise RuntimeError("gradio is not setup or installed properly. Unable to get version info.")
     except json.decoder.JSONDecodeError:
-        raise RuntimeWarning("Unable to parse version details from package URL.")
+        print("Warning: unable to parse version details from package URL.")
     except KeyError:
-        raise RuntimeWarning("Package URL does not contain version info.")
-    except ConnectionError:
-        raise RuntimeWarning("Unable to connect with package URL to collect version info.")
+        print("Warning: Package URL does not contain version info.")
+    except:
+        print("Warning: unable to connect with package URL to collect version info.")
 
 
 def error_analytics(type):
