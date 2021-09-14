@@ -1,5 +1,5 @@
 import json.decoder
-
+import warnings
 import requests
 import pkg_resources
 from distutils.version import StrictVersion
@@ -21,13 +21,14 @@ def version_check():
                 current_pkg_version, latest_pkg_version))
             print('--------')
     except pkg_resources.DistributionNotFound:
-        raise RuntimeError("gradio is not setup or installed properly. Unable to get version info.")
+        warnings.warn("gradio is not setup or installed properly. Unable to get version info.")
     except json.decoder.JSONDecodeError:
-        print("Warning: unable to parse version details from package URL.")
+        warnings.warn("unable to parse version details from package URL.")
     except KeyError:
-        print("Warning: Package URL does not contain version info.")
+        warnings.warn("package URL does not contain version info.")
     except:
-        print("Warning: unable to connect with package URL to collect version info.")
+        warnings.warn("unable to connect with package URL to collect version info.")
+        
 
 
 def error_analytics(type):
