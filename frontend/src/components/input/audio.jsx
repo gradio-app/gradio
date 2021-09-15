@@ -1,36 +1,49 @@
 import React from "react";
 import BaseComponent from "../base_component";
 import { DataURLComponentExample } from "../component_example";
-import AudioReactRecorder, { RecordState } from "audio-react-recorder";
+import Recorder from "recorder-js";
 import { getSaliencyColor } from "../../utils";
 
 class AudioInput extends BaseComponent {
   constructor(props) {
     super(props);
     this.state = {
-      recordState: RecordState.STOP
+      recording: false
     };
     this.src = null;
     this.key = 0; // needed to prevent audio caching
 
     this.uploader = React.createRef();
+    this.started = false;
   }
   start = () => {
+    if (!this.started) {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      this.recorder = new Recorder(audioContext);
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+          this.recorder.init(stream);
+          this.recorder.start();
+        });
+      this.started = true;
+    } else {
+      this.recorder.start();
+    }
     this.setState({
-      recordState: RecordState.START
+      recording: true
     });
   };
   stop = () => {
+    this.recorder.stop().then(({ blob, buffer }) => {
+      let reader = new FileReader();
+      reader.onload = function (e) {
+        this.props.handleChange(e.target.result);
+      }.bind(this);
+      reader.readAsDataURL(blob);
+    })
     this.setState({
-      recordState: RecordState.STOP
+      recording: false
     });
-  };
-  onStop = (audioData) => {
-    let reader = new FileReader();
-    reader.onload = function (e) {
-      this.props.handleChange(e.target.result);
-    }.bind(this);
-    reader.readAsDataURL(audioData.blob);
   };
   openFileUpload = () => {
     this.uploader.current.click();
@@ -63,17 +76,13 @@ class AudioInput extends BaseComponent {
       if (this.props.source === "microphone") {
         return (
           <div className="input_audio">
-            <AudioReactRecorder
-              state={this.state.recordState}
-              onStop={this.onStop}
-            />
-            {this.state.recordState === RecordState.STOP ? (
-              <button className="start" onClick={this.start}>
-                Record
-              </button>
-            ) : (
+            {this.state.recording ? (
               <button className="stop" onClick={this.stop}>
                 Recording...
+              </button>
+            ) : (
+              <button className="start" onClick={this.start}>
+                Record
               </button>
             )}
           </div>
