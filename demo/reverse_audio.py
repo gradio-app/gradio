@@ -1,5 +1,3 @@
-# Demo: (Audio) -> (Audio)
-
 import gradio as gr
 import numpy as np
 

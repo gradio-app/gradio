@@ -1,5 +1,3 @@
-# Demo: (Video) -> (Image)
-
 import gradio as gr
 
 

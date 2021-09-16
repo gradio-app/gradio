@@ -1,5 +1,3 @@
-# Demo: (Image) -> (Label)
-
 import gradio as gr
 import tensorflow as tf
 import numpy as np

@@ -1,5 +1,3 @@
-# Demo: (Dataframe) -> (Dataframe)
-
 import gradio as gr
 import numpy as np
 
