@@ -75,7 +75,7 @@ iface = gr.Interface(
         "checkbox",
         gr.inputs.Slider(0, 80),
         gr.inputs.CheckboxGroup(["Sibling", "Child"], label="Travelling with (select all)"),
-        gr.inputs.Number().interpret(delta_type="absolute", delta=5),
+        gr.inputs.Number(),
         gr.inputs.Radio(["S", "C", "Q"], type="index"),
     ],
     "label",
