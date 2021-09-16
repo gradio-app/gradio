@@ -1,5 +1,3 @@
-# Demo: (File) -> (JSON)
-
 import gradio as gr
 from zipfile import ZipFile
 

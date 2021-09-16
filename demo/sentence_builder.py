@@ -1,5 +1,3 @@
-# Demo: (Slider, Dropdown, Radio, CheckboxGroup, Checkbox) -> (Textbox)
-
 import gradio as gr
 
 def sentence_builder(quantity, animal, place, activity_list, morning):

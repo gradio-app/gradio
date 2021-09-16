@@ -1,5 +1,3 @@
-# Demo: (Dropdown, Slider, Textbox) -> (Audio)
-
 import gradio as gr
 import numpy as np
 

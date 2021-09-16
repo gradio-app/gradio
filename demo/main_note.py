@@ -1,5 +1,3 @@
-# Demo: (Audio) -> (Label)
-
 import gradio as gr
 import numpy as np
 from scipy.fftpack import fft

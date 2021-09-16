@@ -1,5 +1,3 @@
-# Demo: (Number, Radio, Dataframe) -> (Textbox)
-
 import gradio as gr
 
 def tax_calculator(income, marital_status, assets):

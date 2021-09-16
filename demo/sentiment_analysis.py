@@ -1,5 +1,3 @@
-# Demo: (Textbox) -> (Label)
-
 import gradio as gr
 import nltk
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
