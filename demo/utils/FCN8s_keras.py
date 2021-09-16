@@ -22,12 +22,12 @@ def FCN(num_output=21, input_shape=(500, 500, 3)):
     
     def _crop(target_layer, offset=(None, None), name=None):
         """Crop the bottom such that it has the same shape as target_layer."""
-        """ Use _keras_shape to prevent undefined output shape in Conv2DTranspose"""
+        """ Use shape to prevent undefined output shape in Conv2DTranspose"""
         def f(x):
-            width = x._keras_shape[ROW_AXIS]
-            height = x._keras_shape[COL_AXIS]
-            target_width = target_layer._keras_shape[ROW_AXIS]
-            target_height = target_layer._keras_shape[COL_AXIS]
+            width = x.shape[ROW_AXIS]
+            height = x.shape[COL_AXIS]
+            target_width = target_layer.shape[ROW_AXIS]
+            target_height = target_layer.shape[COL_AXIS]
             cropped = Cropping2D(cropping=((offset[0], width - offset[0] - target_width), (offset[1], height - offset[1] - target_height)), name='{}'.format(name))(x)
             return cropped
         return f

@@ -1,5 +1,3 @@
-# Demo: (Image) -> (Image)
-
 import gradio as gr
 
 def detect(image):
