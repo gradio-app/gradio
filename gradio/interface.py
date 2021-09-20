@@ -140,7 +140,7 @@ class Interface:
         self.description = description
         if article is not None:
             article = utils.readme_to_html(article)
-            article = markdown2.markdown(article)
+            article = markdown2.markdown(article, extras=["fenced-code-blocks"])
         self.article = article
         self.thumbnail = thumbnail
         self.theme = theme if theme is not None else os.getenv("GRADIO_THEME", "default")
