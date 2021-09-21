@@ -107,15 +107,16 @@ Let's try an image to image function. When using the  `Image`  component, your f
 import gradio as gr
 import numpy as np
 
-def sepia(img):
+def sepia(input_img):
   sepia_filter = np.array([[.393, .769, .189],
                            [.349, .686, .168],
                            [.272, .534, .131]])
-  sepia_img = img.dot(sepia_filter.T)
+  sepia_img = input_img.dot(sepia_filter.T)
   sepia_img /= sepia_img.max()                          
   return sepia_img
 
 iface = gr.Interface(sepia, gr.inputs.Image(shape=(200, 200)), "image")
+
 iface.launch()
 ```
 ![sepia_filter interface](demo/screenshots/sepia_filter/1.gif)
@@ -230,7 +231,48 @@ iface.launch()
 ```
 ![calculator_live interface](demo/screenshots/calculator_live/1.gif)
 
-Note there is no submit button, because the interface resubmits automatically on change,
+Note there is no submit button, because the interface resubmits automatically on change.
+
+### Using State
+
+Your function may use data that persists beyond a single function call. If the data is something accessible to all function calls, you can create a global variable outside the function call and access it inside the function. For example, you may load a large model outside the function and use it inside the function so that every function call does not need to reload the model.
+
+Another type of data persistence Gradio supports is session state, where data persists across multiple submits within a page load. To store data with this permanence, use `gr.get_state` and `gr.set_state` methods.
+
+```python
+import gradio as gr
+import random
+
+def chat(message):
+    history = gr.get_state() or []
+    if message.startswith("How many"):
+        response = random.randint(1,10)
+    elif message.startswith("How"):
+        response = random.choice(["Great", "Good", "Okay", "Bad"])
+    elif message.startswith("Where"):
+        response = random.choice(["Here", "There", "Somewhere"])
+    else:
+        response = "I don't know"
+    history.append((message, response))
+    gr.set_state(history)
+    html = "<div class='chatbot'>"
+    for user_msg, resp_msg in history:
+        html += f"<div class='user_msg'>{user_msg}</div>"
+        html += f"<div class='resp_msg'>{resp_msg}</div>"
+    html += "</div>"
+    return html
+
+iface = gr.Interface(chat, "text", "html", css="""
+    .chatbox {display:flex;flex-direction:column}
+    .user_msg, .resp_msg {padding:4px;margin-bottom:4px;border-radius:4px;width:80%}
+    .user_msg {background-color:cornflowerblue;color:white;align-self:start}
+    .resp_msg {background-color:lightgray;align-self:self-end}
+""", allow_screenshot=False, allow_flagging=False)
+iface.launch()
+```
+![chatbot interface](demo/screenshots/chatbot/1.gif)
+
+Notice how the state persists across submits within each page, but the state is not shared between the two pages.
 
 ### Flagging
 
