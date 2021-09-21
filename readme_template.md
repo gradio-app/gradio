@@ -98,7 +98,18 @@ You can make interfaces automatically responsive by setting `live=True` in the i
 $code_calculator_live
 $demo_calculator_live
 
-Note there is no submit button, because the interface resubmits automatically on change,
+Note there is no submit button, because the interface resubmits automatically on change.
+
+### Using State
+
+Your function may use data that persists beyond a single function call. If the data is something accessible to all function calls, you can create a global variable outside the function call and access it inside the function. For example, you may load a large model outside the function and use it inside the function so that every function call does not need to reload the model.
+
+Another type of data persistence Gradio supports is session state, where data persists across multiple submits within a page load. To store data with this permanence, use `gr.get_state` and `gr.set_state` methods.
+
+$code_chatbot
+$demo_chatbot
+
+Notice how the state persists across submits within each page, but the state is not shared between the two pages.
 
 ### Flagging
 
