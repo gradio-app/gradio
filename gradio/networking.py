@@ -5,13 +5,12 @@ Defines helper methods useful for setting up ports, launching servers, and handl
 import os
 import socket
 import threading
-from flask import Flask, request, jsonify, abort, send_file, render_template, redirect
+from flask import Flask, request, session, jsonify, abort, send_file, render_template, redirect
 from flask_cachebuster import CacheBuster
-from flask_login import LoginManager, login_user, logout_user, current_user, login_required
+from flask_login import LoginManager, login_user, current_user, login_required
 from flask_cors import CORS
 import threading
 import pkg_resources
-from distutils import dir_util
 import datetime
 import time
 import json
@@ -21,7 +20,6 @@ import requests
 import sys
 import csv
 import logging
-import gradio as gr
 from gradio.embeddings import calculate_similarity, fit_pca_to_embeddings, transform_with_pca
 from gradio.tunneling import create_tunnel
 from gradio import encryptor
@@ -129,6 +127,8 @@ def get_first_available_port(initial, final):
 @app.route("/", methods=["GET"])
 @login_check
 def main():
+    session.clear()
+    session["state"] = None
     return render_template("index.html", config=app.interface.config)
 
 
@@ -462,7 +462,6 @@ def start_server(interface, server_name, server_port=None, auth=None, ssl=None):
         interface.save_to["port"] = port
     app_kwargs = {"port": port, "host": server_name}
     if ssl:
-        print(ssl)
         app_kwargs["ssl_context"] = ssl
     thread = threading.Thread(target=app.run,
                               kwargs=app_kwargs,
@@ -471,6 +470,11 @@ def start_server(interface, server_name, server_port=None, auth=None, ssl=None):
 
     return port, path_to_local_server, app, thread
 
+def get_state():
+    return session.get("state")
+
+def set_state(value):
+    session["state"] = value
 
 def close_server(process):
     process.terminate()
