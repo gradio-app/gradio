@@ -1,5 +1,3 @@
-# Demo: (Dataframe, Dropdown) -> (Dataframe)
-
 import gradio as gr
 
 def filter_records(records, gender):

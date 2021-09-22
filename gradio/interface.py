@@ -35,7 +35,7 @@ JSON_PATH = os.path.join(os.path.dirname(gradio.__file__), "launches.json")
 
 class Interface:
     """
-    Interfaces are created with Gradio using the `gradio.Interface()` function.
+    Interfaces are created with Gradio by constructing a `gradio.Interface()` object.
     """
     instances = weakref.WeakSet()
 
@@ -50,14 +50,14 @@ class Interface:
     @classmethod
     def load(cls, name, src=None, api_key=None, alias=None, **kwargs):
         """
-        Loads a model and Interface from an external source repo
+        Class method to construct an Interface from an external source repository, such as huggingface.
         Parameters: 
         name (str): the name of the model (e.g. "gpt2"), can include the `src` as prefix (e.g. "huggingface/gpt2")
         src (str): the source of the model: `huggingface` or `gradio` (or empty if source is provided as a prefix in `name`)
         api_key (str): optional api key for use with Hugging Face Model Hub
         alias (str): optional, used as the name of the loaded model instead of the default name
         Returns:
-        (Interface): an Interface object for the given model
+        (gradio.Interface): a Gradio Interface object for the given model
         """
         interface_info = load_interface(name, src, api_key, alias)
         interface_info.update(kwargs)
@@ -140,7 +140,7 @@ class Interface:
         self.description = description
         if article is not None:
             article = utils.readme_to_html(article)
-            article = markdown2.markdown(article)
+            article = markdown2.markdown(article, extras=["fenced-code-blocks"])
         self.article = article
         self.thumbnail = thumbnail
         theme = theme if theme is not None else os.getenv("GRADIO_THEME", "default")
@@ -480,6 +480,7 @@ class Interface:
 
     def launch(self, inline=None, inbrowser=None, share=False, debug=False, auth=None, auth_message=None, private_endpoint=None, prevent_thread_lock=False):
         """
+        Launches the webserver that serves the UI for the interface.
         Parameters:
         inline (bool): whether to display in the interface inline on python notebooks.
         inbrowser (bool): whether to automatically launch the interface in a new tab on the default browser.
