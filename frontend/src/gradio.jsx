@@ -15,37 +15,43 @@ import("./themes/compact.scss");
 export class GradioPage extends React.Component {
   render() {
     return (
-      <div class="gradio_page">
-        <div class="content">
-          {this.props.title ? (
-            <h1 className="title">{this.props.title}</h1>
-          ) : (
-            false
-          )}
-          {this.props.description ? (
-            <p className="description">{this.props.description}</p>
-          ) : (
-            false
-          )}
-          <GradioInterface {...this.props} />
-          {this.props.article ? (
-            <p
-              className="article prose"
-              dangerouslySetInnerHTML={{ __html: this.props.article }}
-            />
-          ) : (
-            false
-          )}
+      <div class={classNames("gradio_bg", { dark: this.props.theme.startsWith("dark") })}>
+        <div class="gradio_page" theme={
+          this.props.theme.startsWith("dark")
+            ? this.props.theme.substring(4)
+            : this.props.theme
+        }>
+          <div class="content">
+            {this.props.title ? (
+              <h1 className="title">{this.props.title}</h1>
+            ) : (
+              false
+            )}
+            {this.props.description ? (
+              <p className="description">{this.props.description}</p>
+            ) : (
+              false
+            )}
+            <GradioInterface {...this.props} />
+            {this.props.article ? (
+              <p
+                className="article prose"
+                dangerouslySetInnerHTML={{ __html: this.props.article }}
+              />
+            ) : (
+              false
+            )}
+          </div>
+          <a
+            href="https://gradio.app"
+            target="_blank"
+            className="footer"
+            rel="noreferrer"
+          >
+            <span>built with</span>
+            <img className="logo" src={logo} alt="logo" />
+          </a>
         </div>
-        <a
-          href="https://gradio.app"
-          target="_blank"
-          className="footer"
-          rel="noreferrer"
-        >
-          <span>built with</span>
-          <img className="logo" src={logo} alt="logo" />
-        </a>
       </div>
     );
   }
@@ -64,8 +70,8 @@ export class GradioInterface extends React.Component {
       process.env.REACT_APP_BACKEND_URL +
       (this.props.examples_dir === null
         ? "file" +
-          this.props.examples_dir +
-          (this.props.examples_dir.endswith("/") ? "" : "/")
+        this.props.examples_dir +
+        (this.props.examples_dir.endswith("/") ? "" : "/")
         : "file");
   }
   get_default_state = () => {
@@ -239,10 +245,10 @@ export class GradioInterface extends React.Component {
         i < this.props.input_components.length
           ? input_component_map[this.props.input_components[i].name][1]
           : output_component_map[
-              this.props.output_components[
-                i - this.props.input_components.length
-              ].name
-            ][1];
+          this.props.output_components[
+            i - this.props.input_components.length
+          ].name
+          ][1];
       state_change[i] = ExampleComponent.preprocess(
         item,
         this.examples_dir
@@ -281,7 +287,7 @@ export class GradioInterface extends React.Component {
       );
     }
     return (
-      <div className="gradio_interface" theme={this.props.theme}>
+      <div className="gradio_interface">
         <div className={classNames("panels", this.props.layout)}>
           <div
             className={classNames("panel", {
@@ -477,14 +483,14 @@ class GradioInterfaceExamples extends React.Component {
                 return <th key={i}>{component.label}</th>;
               })}
               {this.props.examples[0].length >
-              this.props.input_components.length
+                this.props.input_components.length
                 ? this.props.output_components.map((component, i) => {
-                    return (
-                      <th key={i + this.props.input_components.length}>
-                        {component.label}
-                      </th>
-                    );
-                  })
+                  return (
+                    <th key={i + this.props.input_components.length}>
+                      {component.label}
+                    </th>
+                  );
+                })
                 : false}
             </tr>
           </thead>
@@ -502,7 +508,7 @@ class GradioInterfaceExamples extends React.Component {
                   {example_row.map((example_data, j) => {
                     let ExampleComponent =
                       input_component_map[
-                        this.props.input_components[j].name
+                      this.props.input_components[j].name
                       ][1];
                     return (
                       <td>
