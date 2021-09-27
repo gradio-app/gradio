@@ -6,7 +6,7 @@ html {
     font-size: 14px;
 }
 
-.gradio_interface[theme="compact"] {
+.gradio_page[theme="compact"] .gradio_interface {
     .loading {
         @apply absolute right-1;
     }
