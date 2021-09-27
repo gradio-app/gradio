@@ -316,10 +316,10 @@
         }
         .range::-webkit-slider-thumb {
             -webkit-appearance: none;
-            @apply appearance-none w-5 h-5 border dark:bg-white rounded-full cursor-pointer shadow;
+            @apply appearance-none w-5 h-5 border dark:bg-white bg-indigo-500 rounded-full cursor-pointer shadow;
         }
         .range::-moz-range-thumb {
-            @apply appearance-none w-5 h-5 border dark:bg-white rounded-full cursor-pointer shadow;
+            @apply appearance-none w-5 h-5 border dark:bg-white bg-indigo-500 rounded-full cursor-pointer shadow;
         }
         .value {
             @apply inline-block mx-auto mt-1 px-2 py-0.5 bg-gray-100 text-gray-700 dark:bg-gray-600 dark:placeholder-gray-100 dark:text-gray-50 dark:border-none rounded shadow-inner;

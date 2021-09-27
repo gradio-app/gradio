@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 .gradio_page {
-    @apply container h-full mx-auto pt-4 px-4 flex flex-col box-border;
+    @apply container h-full mx-auto pt-4 px-4 flex flex-col box-border flex-grow;
     .title {
         @apply text-center p-4 text-4xl;
     }
@@ -22,6 +22,10 @@
     .logo {
         @apply h-6;
     }
+}
+
+.gradio_bg {
+    @apply min-h-full flex flex-col;
 }
 
 .gradio_bg.dark {
