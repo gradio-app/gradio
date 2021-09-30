@@ -10,17 +10,14 @@ import logo_error from "./static/img/logo_error.png";
 import logo from "./static/img/logo.svg";
 import("./themes/defaults.scss");
 import("./themes/huggingface.scss");
-import("./themes/compact.scss");
+import("./themes/grass.scss");
+import("./themes/peach.scss");
 
 export class GradioPage extends React.Component {
   render() {
     return (
-      <div class={classNames("gradio_bg", { dark: this.props.theme.startsWith("dark") })}>
-        <div class="gradio_page" theme={
-          this.props.theme.startsWith("dark")
-            ? this.props.theme.substring(4)
-            : this.props.theme
-        }>
+      <div class={"gradio_bg"} theme={this.props.theme}>
+        <div class="gradio_page">
           <div class="content">
             {this.props.title ? (
               <h1 className="title">{this.props.title}</h1>

@@ -81,12 +81,17 @@ function load_config(config) {
       head.appendChild(style);
       style.appendChild(document.createTextNode(config.css));
     }
+    let target = document.getElementById(config.target || "root");
+    if (config.theme !== null && config.theme.startsWith("dark")) {
+      target.classList.add("dark");
+      config.theme = config.theme.substring(4);
+    }
     ReactDOM.render(
       <GradioPage
         {...config}
         fn={fn.bind(null, config.endpoint || "api/", config.queue)}
       />,
-      document.getElementById(config.target || "root")
+      target
     );
   }
 }
