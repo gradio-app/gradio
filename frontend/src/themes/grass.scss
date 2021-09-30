@@ -6,9 +6,13 @@ html {
     font-size: 14px;
 }
 
-.gradio_page[theme="compact"] .gradio_interface {
+.gradio_bg[theme="grass"] {
+    @apply dark:bg-gray-600 dark:text-gray-50;
+}
+
+.gradio_bg[theme="grass"] .gradio_interface {
     .loading {
-        @apply absolute right-1;
+        @apply absolute dark:text-gray-50 right-2 flex items-center gap-2 text-xs;
     }
     .loading img {
         @apply h-5;
@@ -29,13 +33,17 @@ html {
         @apply flex-1;
     }
     .component_set {
-        @apply bg-gray-50 p-2 rounded flex flex-col flex-1 gap-2;
+        @apply bg-gray-50 dark:bg-gray-800 p-2 flex flex-col flex-1 gap-2;
+        min-height: 36px;
     }
     .panel_header {
-        @apply mb-1 uppercase text-sm font-semibold;
+        @apply mb-1 uppercase text-xs text-gray-600 dark:text-gray-200 font-semibold;
+    }
+    .component:hover .panel_header {
+        @apply text-green-600 dark:text-green-500;
     }
     .panel_button {
-        @apply flex-1 p-3 rounded bg-gray-50 hover:bg-gray-100 transition font-semibold focus:outline-none;
+        @apply flex-1 p-3 bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-50 transition font-semibold focus:outline-none;
     }
     .panel_button.disabled {
         @apply text-gray-400 cursor-not-allowed;
@@ -49,12 +57,12 @@ html {
     .flag {
         @apply relative;
         .dropcontent {
-            @apply hidden absolute top-8 left-0 bg-white border-gray-200 border-2 w-full;
+            @apply hidden absolute top-8 left-0 bg-white border-gray-200 dark:bg-gray-500 dark:text-gray-50 border-2 w-full;
             div {
                 @apply p-2;
             }
             div:hover {
-                @apply bg-gray-100;
+                @apply bg-gray-100 dark:bg-gray-700;
             }
         }
     }
@@ -65,12 +73,6 @@ html {
     }
     .screenshot_set {
         @apply hidden flex hidden flex-grow;
-    }
-    .panel_button.left_panel_button {
-        @apply rounded-tr-none rounded-br-none;
-    }
-    .panel_button.right_panel_button {
-        @apply rounded-tl-none rounded-bl-none bg-gray-200 hover:bg-gray-200;
     }
     .examples {
         h4 {
@@ -85,19 +87,16 @@ html {
         .shortcut {
             @apply block text-xs;
         }
-        .examples_control button {
-            @apply bg-gray-100 hover:bg-gray-200 p-2;
-        }
-        .examples_table {
-            @apply table-auto p-2 bg-gray-100 mt-4 rounded;
+        .examples_table:not(.gallery) {
+            @apply bg-gray-50 border-gray-100 dark:bg-gray-700 dark:text-gray-50 dark:border-none table-auto p-2 mt-4 rounded border;
             tbody tr {
                 @apply cursor-pointer;
             }
             thead {
-                @apply border-b-2 border-gray-300;
+                @apply border-gray-100 dark:border-gray-800 border-b-2;
             }
             tbody tr:hover {
-                @apply bg-green-500 text-white;
+                @apply bg-indigo-500 dark:bg-indigo-900 text-white;
             }
             tbody tr.selected {
                 @apply font-bold;
@@ -107,23 +106,41 @@ html {
                 @apply py-2 px-4;
             }
         }
+        .examples_table.gallery {
+            @apply block;
+            tbody {
+                @apply flex gap-2 flex-wrap ;
+            }
+            thead {
+                @apply hidden;
+            }
+            tbody td:hover {
+                @apply bg-indigo-500 dark:bg-indigo-900 text-white;
+            }
+            tbody tr.selected {
+                @apply font-bold;
+            }
+            td {
+                @apply bg-gray-50 dark:bg-gray-700 cursor-pointer p-2 rounded;
+            }
+        }
         .pages {
             @apply flex gap-1 items-center mt-2;
         }
         .page {
-            @apply px-2 py-1 bg-gray-100 rounded;
+            @apply bg-gray-100 dark:bg-gray-700 dark:text-gray-50 px-2 py-1 rounded;
         }
         .page.selected {
-            @apply bg-gray-300;
+            @apply bg-gray-300 dark:bg-gray-800;
         }    
     }
     /* Input Components */
     .input_text {
         textarea {
-            @apply w-full bg-white border-gray-400 rounded box-border p-1 resize-none;
+            @apply w-full bg-white dark:bg-gray-200 dark:text-blue-900 dark:font-semibold focus:ring-2 focus:ring-inset focus:ring-green-500 outline-none box-border p-1 resize-none;
         }
         input {
-            @apply w-full bg-white border-gray-400 rounded box-border p-1;
+            @apply w-full bg-white dark:bg-gray-200 dark:text-blue-900 dark:font-semibold focus:ring-2 focus:ring-inset focus:ring-green-500 outline-none box-border p-1;
         }        
         .interpretation {
             .interpretation_box {
@@ -133,7 +150,7 @@ html {
     } 
     .input_number {
         input {
-            @apply w-full bg-white border-gray-400 rounded box-border p-1;
+            @apply w-full bg-white bg-white dark:bg-gray-200 dark:text-blue-900 dark:font-semibold focus:ring-2 focus:ring-inset focus:ring-green-500 outline-none box-border p-1;
         }
         .interpretation {
             @apply flex h-6;
@@ -143,9 +160,9 @@ html {
         }
     }
     .input_image {
-        @apply w-full h-80 relative;
+        @apply w-full h-48 relative;
         .upload_zone {
-            @apply border-8 border-gray-300 border-dashed w-full h-full flex justify-center items-center text-3xl text-gray-400 text-center cursor-pointer leading-10;
+            @apply bg-gray-200 hover:bg-gray-100 dark:bg-gray-500 dark:hover:bg-gray-400 text-gray-600 dark:text-gray-50 transition w-full h-full flex justify-center items-center text-xl text-center cursor-pointer leading-10;
         }
         .image_preview_holder {
             @apply w-full h-full flex justify-center items-center bg-gray-200 relative inline-block;
@@ -159,7 +176,7 @@ html {
                 width: 800px;
                 @apply flex justify-end gap-1;
                 button {
-                    @apply px-2 py-1 text-xl bg-black text-white font-semibold rounded-t;
+                    @apply px-2 py-1 text-xl bg-black text-white font-semibold;
                 }
             }
             .tui-image-editor-header-buttons {
@@ -190,28 +207,25 @@ html {
     .input_radio {
         @apply flex flex-wrap gap-2;
         .radio_item {
-            @apply bg-gray-200 text-gray-700 py-2 px-4 font-semibold rounded cursor-pointer flex items-center gap-1;
+            @apply bg-gray-200 text-gray-700 p-1.5 font-semibold cursor-pointer flex items-center gap-1;
         }
         .radio_item.selected {
             @apply bg-green-500 text-white;
         }
         .radio_circle {
-            @apply w-4 h-4 bg-white rounded-full box-border;
-        }
-        .selected .radio_circle {
-            @apply border-4 border-green-600;
+            @apply hidden;
         }
     }
     .input_checkbox_group {
         @apply flex flex-wrap gap-2;
         .checkbox_item {
-            @apply bg-gray-200 text-gray-700 py-2 px-4 font-semibold rounded cursor-pointer flex items-center gap-1;
+            @apply bg-gray-200 text-gray-700 p-1.5 font-semibold cursor-pointer flex items-center gap-1;
         }
         .checkbox_item.selected {
             @apply bg-green-500 text-white;
         }
         .checkbox {
-            @apply w-4 h-4 bg-white;
+            @apply hidden;
             .check {
                 @apply hidden;
             }
@@ -245,7 +259,7 @@ html {
     .input_checkbox {
         @apply flex flex-wrap gap-2;
         .checkbox_item {
-            @apply bg-gray-200 text-gray-700 py-2 px-4 font-semibold rounded cursor-pointer flex items-center gap-1;
+            @apply bg-gray-200 text-gray-700 p-1.5 font-semibold cursor-pointer flex items-center gap-1;
         }
         .checkbox_item.selected {
             @apply bg-green-500 text-white;
@@ -285,7 +299,7 @@ html {
     .input_dropdown {
         @apply inline-block relative;
         .selector {
-            @apply bg-gray-200 text-gray-700 py-2 px-4 font-semibold rounded inline-flex items-center;
+            @apply bg-gray-200 text-gray-700 p-1.5 font-semibold inline-flex items-center;
         }
         .caret {
             @apply ml-1 fill-current h-4 w-4;
@@ -294,13 +308,13 @@ html {
             @apply absolute hidden text-gray-700 pt-1 max-h-80 overflow-y-auto z-10;
         }
         .dropdown_item:first-child {
-            @apply rounded-t;
+            @apply-t;
         }
         .dropdown_item {
             @apply bg-gray-200 hover:bg-gray-400 hover:text-gray-50 py-2 px-4 block whitespace-nowrap cursor-pointer;
         }
         .dropdown_item:last-child {
-            @apply rounded-b;
+            @apply-b;
         }
         :hover .dropdown_menu {
             @apply block;
@@ -312,17 +326,17 @@ html {
     .input_slider {
         @apply text-center;
         .range {
-            @apply w-full appearance-none bg-gray-200 hover:bg-gray-200 transition rounded h-4;
+            @apply dark:bg-gray-200 focus:border-2 focus:border-green-400 box-border w-full appearance-none h-4;
         }
         .range::-webkit-slider-thumb {
             -webkit-appearance: none;
-            @apply appearance-none w-5 h-5 bg-green-500 rounded cursor-pointer;
+            @apply appearance-none w-5 h-5 bg-green-500 cursor-pointer;
         }
         .range::-moz-range-thumb {
-            @apply appearance-none w-5 h-5 bg-green-500 rounded cursor-pointer;
+            @apply appearance-none w-5 h-5 bg-green-500 cursor-pointer;
         }
         .value {
-            @apply inline-block mx-auto mt-1 px-2 py-0.5 bg-gray-200 rounded text-gray-700;
+            @apply inline-block mx-auto mt-0.5 px-2 text-sm;
         }
         .interpret_range {
             @apply flex h-6;
@@ -336,13 +350,13 @@ html {
             @apply hidden;
         }
         .start {
-            @apply bg-gray-200 p-2 rounded font-semibold;
+            @apply bg-gray-200 dark:bg-gray-500 dark:text-gray-50 p-1.5 font-semibold;
         }
         .stop {
-            @apply bg-red-200 text-red-500 p-2 rounded font-semibold;
+            @apply bg-red-200 text-red-500 p-1.5 font-semibold;
         }
         audio {
-            @apply w-full border-2 border-gray-300 rounded;
+            @apply w-full;
         }
         .interpret_range {
             @apply flex h-4;
@@ -352,9 +366,9 @@ html {
         }
     }
     .input_video {
-        @apply w-full h-80;
+        @apply w-full h-48;
         .upload_zone {
-            @apply border-8 border-gray-300 border-dashed w-full h-full flex justify-center items-center text-3xl text-gray-400 text-center cursor-pointer leading-10;
+            @apply bg-gray-200 hover:bg-gray-100 dark:bg-gray-500 dark:hover:bg-gray-400 text-gray-600 dark:text-gray-50 transition w-full h-full flex justify-center items-center text-xl text-center cursor-pointer leading-10;
         }
         .video_preview_holder {
             @apply w-full h-full flex justify-center items-center bg-gray-200;
@@ -364,9 +378,9 @@ html {
         }
     }
     .input_file {
-        @apply w-full h-80;
+        @apply w-full h-48;
         .upload_zone {
-            @apply border-8 border-gray-300 border-dashed w-full h-full flex justify-center items-center text-3xl text-gray-400 text-center cursor-pointer leading-10;
+            @apply bg-gray-200 hover:bg-gray-100 dark:bg-gray-500 dark:hover:bg-gray-400 text-gray-600 dark:text-gray-50 transition w-full h-full flex justify-center items-center text-xl text-center cursor-pointer leading-10;
         }
         .file_preview_holder {
             @apply w-full h-full flex flex-col justify-center items-center relative inline-block;
@@ -375,17 +389,29 @@ html {
             @apply text-6xl p-6;
         }
         .file_size {
-            @apply text-2xl p-2;
+            @apply text-2xl p-1.5;
         }
+    }
+    .input_timeseries {
+        @apply w-full h-60;
+        .upload_zone {
+            @apply bg-gray-200 hover:bg-gray-100 dark:bg-gray-500 dark:hover:bg-gray-400 text-gray-600 dark:text-gray-50 transition w-full h-full flex justify-center items-center text-xl text-center cursor-pointer leading-10;
+        }
+        .file_preview_holder {
+            @apply w-full h-full flex flex-col justify-center items-center relative inline-block;
+        }
+        .js-plotly-plot, .plotly.js-plotly-plot * {
+            position: static !important;
+        } 
     }
     /* Output Components */
     .output_text {
         word-break: break-word;
-        @apply w-full bg-white border-gray-400 rounded box-border p-1 whitespace-pre-wrap;
+        @apply w-full bg-white dark:text-blue-900 dark:font-semibold dark:bg-gray-200 border-gray-400 box-border p-1 whitespace-pre-wrap;
     }
     .output_label {
         .output_class {
-            @apply font-bold text-2xl py-8 px-4 flex-grow flex items-center justify-center;
+            @apply font-bold text-xl py-6 px-4 flex-grow flex items-center justify-center;
         }
         .confidence_intervals {
             @apply flex text-xl;
@@ -397,14 +423,14 @@ html {
             @apply flex flex-grow flex-col items-baseline;
         }
         .label {
-            @apply overflow-hidden whitespace-nowrap h-7 mb-1 overflow-ellipsis text-right;
+            @apply overflow-hidden whitespace-nowrap h-5 mb-1 overflow-ellipsis text-right text-sm;
         }
         .confidence {
-            @apply bg-gray-400 text-white flex justify-end overflow-hidden whitespace-nowrap h-7 mb-1 px-1;
+            @apply bg-green-500 text-white font-semibold flex justify-end overflow-hidden whitespace-nowrap h-5 mb-1 px-1 text-sm;
         }
     }
     .output_image {
-        @apply w-full h-80;
+        @apply w-full h-48;
         .image_preview_holder {
             @apply w-full h-full flex justify-center items-center bg-gray-200 relative inline-block;
         }
@@ -415,7 +441,7 @@ html {
     }
     .output_audio {
         audio {
-            @apply w-full border-2 border-gray-300 rounded;
+            @apply w-full;
         }
     }
     .output_highlightedtext {
@@ -431,37 +457,67 @@ html {
     }
     .output_keyvalues {
         table {
-            @apply bg-white;
+            @apply bg-white dark:bg-gray-200 dark:text-blue-900;
             thead {
                 @apply font-bold;
             }
             td,
             th {
-                @apply p-2;
+                @apply p-1.5;
             }
         }
     }
     .output_video {
-        @apply w-full h-80 object-contain flex justify-center;
+        @apply w-full h-48 object-contain flex justify-center;
         video {
             @apply h-full;
         }
     }
     .output_file {
-        @apply bg-gray-200 hover:bg-gray-100 transition inline-block rounded;
+        @apply bg-gray-200 hover:bg-gray-100 text-gray-600 transition inline-block;
         .file_name {
-            @apply text-lg p-2;
+            @apply text-lg p-1.5;
         }
         .file_size {
             @apply hidden;
         }
     }
+    .output_dataframe {
+        table {
+            thead {
+                @apply font-bold border-gray-200 border-b-2;
+            }
+            th {
+                @apply transition cursor-pointer;
+            }
+            th:hover {
+                @apply bg-gray-200;
+            }
+            td,
+            th {
+                @apply px-4;
+            }
+        }
+        .pages {
+            @apply flex gap-1 items-center;
+        }
+        .page {
+            @apply px-2 py-1 bg-gray-200;
+        }
+        .page.selected {
+            @apply bg-gray-300;
+        }
+    }
     .output_carousel {
         @apply flex flex-col gap-2;
         .carousel_control {
-            @apply flex gap-4 justify-center items-center mt-4;
+            @apply flex gap-4 justify-center items-center my-1;
             .carousel_index {
-                @apply text-2xl font-semibold;
+                min-width: 60px;
+                @apply text-xl text-center font-semibold;
+            }
+            button img {
+                @apply h-3 mt-0.5 dark:invert;
             }
         }
     }
