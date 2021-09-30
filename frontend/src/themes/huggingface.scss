@@ -2,7 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-.gradio_page[theme="huggingface"] .gradio_interface {
+.gradio_bg[theme="huggingface"] {
+    @apply dark:bg-gray-600 dark:text-gray-50;
+}
+
+.gradio_bg[theme="huggingface"] .gradio_interface {
     .loading {
         @apply text-gray-700 dark:text-gray-50 absolute right-2 flex items-center gap-2 text-sm;
     }
@@ -431,7 +435,7 @@
     }
     .output_audio {
         audio {
-            @apply w-full border-2 border-gray-300 dark:border-none rounded;
+            @apply w-full;
         }
     }
     .output_highlightedtext {
@@ -503,9 +507,13 @@
     .output_carousel {
         @apply flex flex-col gap-2;
         .carousel_control {
-            @apply flex gap-4 justify-center items-center mt-4;
+            @apply flex gap-4 justify-center items-center my-1;
             .carousel_index {
-                @apply text-2xl font-semibold;
+                min-width: 60px;
+                @apply text-xl text-center font-semibold;
+            }
+            button img {
+                @apply h-3 mt-0.5 dark:invert;
             }
         }
     }    

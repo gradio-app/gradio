@@ -89,7 +89,7 @@ class Interface:
         description (str): a description for the interface; if provided, appears above the input and output components.
         article (str): an expanded article explaining the interface; if provided, appears below the input and output components. Accepts Markdown and HTML content.
         thumbnail (str): path to image or src to use as display picture for models listed in gradio.app/hub
-        theme (str): Theme to use - one of "default", "compact", "huggingface", or "darkhuggingface".
+        theme (str): Theme to use - one of "default", "huggingface", "grass", "peach". Add "dark" prefix, e.g. "darkpeach" or "darkdefault" for darktheme.
         css (str): custom css or path to custom css file to use with interface.
         server_port (int): will start gradio app on this port (if available) 
         server_name (str): to make app accessible on local network set to "0.0.0.0".
@@ -144,7 +144,7 @@ class Interface:
         self.article = article
         self.thumbnail = thumbnail
         theme = theme if theme is not None else os.getenv("GRADIO_THEME", "default")
-        if theme not in ("default", "compact", "huggingface", "darkhuggingface"):
+        if theme not in ("default", "huggingface", "grass", "peach", "darkdefault", "darkhuggingface", "darkgrass", "darkpeach"):
             raise ValueError("Invalid theme name.")
         self.theme = theme
         self.height = height

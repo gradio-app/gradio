@@ -1193,23 +1193,26 @@ class Timeseries(InputComponent):
     Demos: fraud_detector.py
     """
 
-    def __init__(self, x=None, y=None, label=None):
+    def __init__(self, x=None, y=None, label=None, optional=False):
         """
         Parameters:
         x (str): Column name of x (time) series. None if csv has no headers, in which case first column is x series.
         y (Union[str, List[str]]): Column name of y series, or list of column names if multiple series. None if csv has no headers, in which case every column after first is a y series.
         label (str): component name in interface.
+        optional (bool): If True, the interface can be submitted with no uploaded csv file, in which case the input value is None.
         """
         self.x = x
         if isinstance(y, str):
             y = [y]
         self.y = y
+        self.optional = optional
         super().__init__(label)
 
     def get_template_context(self):
         return {
             "x": self.x,
             "y": self.y,
+            "optional": self.optional,
             **super().get_template_context()
         }
 
@@ -1220,6 +1223,8 @@ class Timeseries(InputComponent):
         }
 
     def preprocess(self, x):
+        if x is None:
+            return x
         dataframe = pd.DataFrame(data=x["data"], columns=x["headers"])
         if x["range"] is not None:
             dataframe = dataframe.loc[dataframe[self.x or 0] >= x["range"][0]]

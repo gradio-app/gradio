@@ -2,6 +2,8 @@ import React from "react";
 import BaseComponent from "../base_component";
 import ComponentExample from "../component_example";
 import { output_component_map } from "../../components";
+import arrowRight from "../../static/img/arrow-right.svg";
+import arrowLeft from "../../static/img/arrow-left.svg";
 
 class CarouselOutput extends BaseComponent {
   constructor(props) {
@@ -52,27 +54,13 @@ class CarouselOutput extends BaseComponent {
           })}
           <div className="carousel_control">
             <button onClick={this.previous}>
-              <svg width="30" height="30">
-                <path
-                  transform="translate(2,2) rotate(270, 15, 15)"
-                  stroke="none"
-                  fill="black"
-                  d="M12.401923788647 5.0096189432334a3 3 0 0 1 5.1961524227066 0l9.8038475772934 16.980762113533a3 3 0 0 1 -2.5980762113533 4.5l-19.607695154587 0a3 3 0 0 1 -2.5980762113533 -4.5"
-                ></path>
-              </svg>
+              <img src={arrowLeft} />
             </button>
             <div className="carousel_index">
               {this.state.carousel_index + 1} / {this.props.value.length}
             </div>
             <button onClick={this.next}>
-              <svg width="30" height="30">
-                <path
-                  transform="translate(2,2) rotate(90, 15, 15)"
-                  stroke="none"
-                  fill="black"
-                  d="M12.401923788647 5.0096189432334a3 3 0 0 1 5.1961524227066 0l9.8038475772934 16.980762113533a3 3 0 0 1 -2.5980762113533 4.5l-19.607695154587 0a3 3 0 0 1 -2.5980762113533 -4.5"
-                ></path>
-              </svg>
+              <img src={arrowRight} />
             </button>
           </div>
         </div>
