@@ -161,3 +161,13 @@ export function CSVToArray(strData, strDelimiter) {
   }
   return arrData;
 }
+
+export function isPlayable(data_type, mime_type) {
+  if (data_type == "audio") {
+    let audio_element = new Audio();
+    return audio_element.canPlayType(mime_type) != "";
+  } else {
+    let video_element = document.createElement("video");
+    return video_element.canPlayType(mime_type) != "";
+  }
+}

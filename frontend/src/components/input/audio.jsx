@@ -10,7 +10,7 @@ class AudioInput extends BaseComponent {
     this.state = {
       recording: false
     };
-    this.src = null;
+    this.src = {};
     this.key = 0; // needed to prevent audio caching
 
     this.uploader = React.createRef();
@@ -37,7 +37,10 @@ class AudioInput extends BaseComponent {
     this.recorder.stop().then(({ blob, buffer }) => {
       let reader = new FileReader();
       reader.onload = function (e) {
-        this.props.handleChange(e.target.result);
+        this.props.handleChange({
+          "name": "sample.wav",
+          "data": e.target.result
+        });
       }.bind(this);
       reader.readAsDataURL(blob);
     })
@@ -50,14 +53,18 @@ class AudioInput extends BaseComponent {
   };
   render() {
     if (this.props.value !== null) {
-      if (this.props.value !== this.src) {
+      if (this.props.value["name"] != this.src["name"] ||
+        this.props.value["data"] !== this.src["data"]) {
         this.key += 1;
-        this.src = this.props.value;
+        this.src = {
+          "name": this.props.value["name"],
+          "data": this.props.value["data"]
+        };
       }
       return (
         <div className="input_audio">
           <audio controls key={this.key}>
-            <source src={this.props.value}></source>
+            <source src={this.props.value["data"]}></source>
           </audio>
           {this.props.interpretation === null ? (
             false
@@ -137,9 +144,10 @@ class AudioInput extends BaseComponent {
     }
     var component = this;
     var ReaderObj = new FileReader();
-    ReaderObj.readAsDataURL(files[0]);
+    let file = files[0];
+    ReaderObj.readAsDataURL(file);
     ReaderObj.onloadend = function () {
-      component.props.handleChange(this.result);
+      component.props.handleChange({ "name": file.name, "data": this.result });
     };
   };
 }
