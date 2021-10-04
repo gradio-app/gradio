@@ -1,6 +1,7 @@
 import React from "react";
 import BaseComponent from "../base_component";
 import ComponentExample from "../component_example";
+import { isPlayable } from "../../utils";
 
 class VideoInput extends BaseComponent {
   constructor(props) {
@@ -24,17 +25,26 @@ class VideoInput extends BaseComponent {
       evt.stopPropagation();
     };
     if (this.props.value != null) {
-      return (
-        <div className="input_video">
-          <div className="video_preview_holder">
-            <video
-              className="video_preview"
-              controls
-              src={this.props.value}
-            ></video>
+      if (isPlayable("video", this.props.value["data"].substring(
+        5, this.props.value["data"].indexOf(";")))) {
+        return (
+          <div className="input_video">
+            <div className="video_preview_holder">
+              <video
+                className="video_preview"
+                controls
+                src={this.props.value["data"]}
+              ></video>
+            </div>
+          </div>
+        );
+      } else {
+        return <div className="input_video">
+          <div className="video_file_holder">
+            {this.props.value["name"]}
           </div>
         </div>
-      );
+      }
     } else {
       return (
         <div
@@ -80,9 +90,10 @@ class VideoInput extends BaseComponent {
     }
     var component = this;
     var ReaderObj = new FileReader();
-    ReaderObj.readAsDataURL(files[0]);
+    let file = files[0];
+    ReaderObj.readAsDataURL(file);
     ReaderObj.onloadend = function () {
-      component.props.handleChange(this.result);
+      component.props.handleChange({ "name": file.name, "data": this.result });
     };
   }
 }

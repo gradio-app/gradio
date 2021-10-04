@@ -373,6 +373,9 @@ html {
         .video_preview_holder {
             @apply w-full h-full flex justify-center items-center bg-gray-200;
         }
+        .video_file_holder {
+            @apply dark:text-gray-50 w-full h-full flex justify-center items-center text-6xl p-6 break-all;
+        }
         .video_preview {
             @apply w-full h-full object-contain;
         }
@@ -386,7 +389,7 @@ html {
             @apply w-full h-full flex flex-col justify-center items-center relative inline-block;
         }
         .file_name {
-            @apply text-6xl p-6;
+            @apply text-6xl p-6 break-all;
         }
         .file_size {
             @apply text-2xl p-1.5;
@@ -471,6 +474,9 @@ html {
         @apply w-full h-48 object-contain flex justify-center;
         video {
             @apply h-full;
+        }
+        .video_file_holder {
+            @apply dark:text-gray-50 w-full h-full flex justify-center items-center text-6xl p-6 break-all;
         }
     }
     .output_file {

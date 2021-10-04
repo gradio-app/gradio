@@ -1,16 +1,30 @@
 import React from "react";
 import BaseComponent from "../base_component";
 import ComponentExample from "../component_example";
+import { isPlayable } from "../../utils";
 
 class VideoOutput extends BaseComponent {
   render() {
-    return this.props.value ? (
-      <div className="output_video">
-        <video controls src={this.props.value}></video>
-      </div>
-    ) : (
-      false
-    );
+    if (this.props.value) {
+      if (isPlayable("video", this.props.value["data"].substring(
+        5, this.props.value["data"].indexOf(";")))) {
+        return <div className="output_video">
+          <video controls src={this.props.value["data"]}></video>
+        </div>
+      } else {
+        return <div className="output_video">
+          <a
+            href={this.props.value["data"]}
+            download={this.props.value["name"]}
+            className="video_file_holder"
+          >
+            {this.props.value["name"]}
+          </a>
+        </div>
+      }
+    } else {
+      return false
+    }
   }
 }
 

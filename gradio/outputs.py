@@ -4,11 +4,11 @@ This module defines various classes that can serve as the `output` to an interfa
 automatically added to a registry, which allows them to be easily referenced in other parts of the code.
 """
 
+from posixpath import basename
 from gradio.component import Component
 import numpy as np
 import json
 from gradio import processing_utils
-import datetime
 import operator
 from numbers import Number
 import warnings
@@ -18,6 +18,7 @@ import os
 import pandas as pd
 import PIL
 from types import ModuleType
+from ffmpy import FFmpeg
 
 class OutputComponent(Component):
     """
@@ -29,7 +30,6 @@ class OutputComponent(Component):
         Any postprocessing needed to be performed on function output.
         """
         return y
-
 
 
 class Textbox(OutputComponent):
@@ -67,7 +67,8 @@ class Textbox(OutputComponent):
         elif self.type == "number":
             return y
         else:
-            raise ValueError("Unknown type: " + self.type + ". Please choose from: 'str', 'number'")
+            raise ValueError("Unknown type: " + self.type +
+                             ". Please choose from: 'str', 'number'")
 
 
 class Label(OutputComponent):
@@ -128,13 +129,14 @@ class Label(OutputComponent):
             return json.dumps({example["label"]: example["confidence"] for example in data["confidences"]})
         else:
             return data["label"]
-    
+
     def restore_flagged(self, data):
         try:
             data = json.loads(data)
             return data
         except:
             return data
+
 
 class Image(OutputComponent):
     '''
@@ -153,7 +155,8 @@ class Image(OutputComponent):
         '''
         self.labeled_segments = labeled_segments
         if plot:
-            warnings.warn("The 'plot' parameter has been deprecated. Set parameter 'type' to 'plot' instead.", DeprecationWarning)
+            warnings.warn(
+                "The 'plot' parameter has been deprecated. Set parameter 'type' to 'plot' instead.", DeprecationWarning)
             self.type = "plot"
         else:
             self.type = type
@@ -183,7 +186,8 @@ class Image(OutputComponent):
             elif isinstance(y, ModuleType):
                 dtype = "plot"
             else:
-                raise ValueError("Unknown type. Please choose from: 'numpy', 'pil', 'file', 'plot'.")
+                raise ValueError(
+                    "Unknown type. Please choose from: 'numpy', 'pil', 'file', 'plot'.")
         else:
             dtype = self.type
         if dtype in ["numpy", "pil"]:
@@ -195,7 +199,8 @@ class Image(OutputComponent):
         elif dtype == "plot":
             out_y = processing_utils.encode_plot_to_base64(y)
         else:
-            raise ValueError("Unknown type: " + dtype + ". Please choose from: 'numpy', 'pil', 'file', 'plot'.")
+            raise ValueError("Unknown type: " + dtype +
+                             ". Please choose from: 'numpy', 'pil', 'file', 'plot'.")
         return out_y, coordinates
 
     def save_flagged(self, dir, label, data, encryption_key):
@@ -212,21 +217,37 @@ class Video(OutputComponent):
     Demos: video_flip.py
     '''
 
-    def __init__(self, label=None):
+    def __init__(self, type=None, label=None):
         '''
         Parameters:
+        type (str): Type of video format to be passed to component, such as 'avi' or 'mp4'. Use 'mp4' to ensure browser playability. If set to None, video will keep returned format.
         label (str): component name in interface.
         '''
+        self.type = type
         super().__init__(label)
 
     @classmethod
     def get_shortcut_implementations(cls):
         return {
             "video": {},
+            "playable_video": {"type": "mp4"}
         }
 
     def postprocess(self, y):
-        return processing_utils.encode_file_to_base64(y, type="video")
+        returned_format = y.split(".")[-1].lower()
+        if self.type is not None and returned_format != self.type:
+            output_file_name = y[0: y.rindex(
+                    ".") + 1] + self.type
+            ff = FFmpeg(
+                inputs={y: None},
+                outputs={output_file_name: None}
+            )
+            ff.run()
+            y = output_file_name
+        return {
+            "name": os.path.basename(y),
+            "data": processing_utils.encode_file_to_base64(y, type="video")
+        }
 
     def save_flagged(self, dir, label, data, encryption_key):
         """
@@ -263,7 +284,7 @@ class KeyValues(OutputComponent):
         return {
             "key_values": {},
         }
-    
+
     def save_flagged(self, dir, label, data, encryption_key):
         return json.dumps(data)
 
@@ -341,11 +362,12 @@ class Audio(OutputComponent):
         if self.type in ["numpy", "file", "auto"]:
             if self.type == "numpy" or (self.type == "auto" and isinstance(y, tuple)):
                 file = tempfile.NamedTemporaryFile(delete=False)
-                scipy.io.wavfile.write(file, y[0], y[1])                
+                scipy.io.wavfile.write(file, y[0], y[1])
                 y = file.name
             return processing_utils.encode_file_to_base64(y, type="audio", ext="wav")
         else:
-            raise ValueError("Unknown type: " + self.type + ". Please choose from: 'numpy', 'file'.")
+            raise ValueError("Unknown type: " + self.type +
+                             ". Please choose from: 'numpy', 'file'.")
 
     def save_flagged(self, dir, label, data, encryption_key):
         """
@@ -374,7 +396,6 @@ class JSON(OutputComponent):
         else:
             return y
 
-
     @classmethod
     def get_shortcut_implementations(cls):
         return {
@@ -402,7 +423,6 @@ class HTML(OutputComponent):
         '''
         super().__init__(label)
 
-
     @classmethod
     def get_shortcut_implementations(cls):
         return {
@@ -424,7 +444,6 @@ class File(OutputComponent):
         '''
         super().__init__(label)
 
-
     @classmethod
     def get_shortcut_implementations(cls):
         return {
@@ -434,7 +453,7 @@ class File(OutputComponent):
     def postprocess(self, y):
         return {
             "name": os.path.basename(y),
-            "size": os.path.getsize(y), 
+            "size": os.path.getsize(y),
             "data": processing_utils.encode_file_to_base64(y, header=False)
         }
 
@@ -468,7 +487,6 @@ class Dataframe(OutputComponent):
         self.overflow_row_behaviour = overflow_row_behaviour
         self.type = type
         super().__init__(label)
-
 
     def get_template_context(self):
         return {
@@ -505,9 +523,10 @@ class Dataframe(OutputComponent):
                 y = y.tolist()
             if len(y) == 0 or not isinstance(y[0], list):
                 y = [y]
-            return {"data": y} 
+            return {"data": y}
         else:
-            raise ValueError("Unknown type: " + self.type + ". Please choose from: 'pandas', 'numpy', 'array'.")
+            raise ValueError("Unknown type: " + self.type +
+                             ". Please choose from: 'pandas', 'numpy', 'array'.")
 
     def save_flagged(self, dir, label, data, encryption_key):
         """
@@ -534,9 +553,9 @@ class Carousel(OutputComponent):
         '''
         if not isinstance(components, list):
             components = [components]
-        self.components = [get_output_instance(component) for component in components]
+        self.components = [get_output_instance(
+            component) for component in components]
         super().__init__(label)
-
 
     def get_template_context(self):
         return {
@@ -556,15 +575,16 @@ class Carousel(OutputComponent):
                 output.append(output_row)
             return output
         else:
-            raise ValueError("Unknown type. Please provide a list for the Carousel.")
+            raise ValueError(
+                "Unknown type. Please provide a list for the Carousel.")
 
     def save_flagged(self, dir, label, data, encryption_key):
         return json.dumps([
             [
-                component.save_flagged(dir, f"{label}_{j}", data[i][j], encryption_key)
+                component.save_flagged(
+                    dir, f"{label}_{j}", data[i][j], encryption_key)
                 for j, component in enumerate(self.components)
             ] for i, sample in enumerate(data)])
-
 
 
 def get_output_instance(iface):
@@ -578,6 +598,7 @@ def get_output_instance(iface):
             "Output interface must be of type `str` or "
             "`OutputComponent`"
         )
+
 
 class Timeseries(OutputComponent):
     """
@@ -619,7 +640,6 @@ class Timeseries(OutputComponent):
 
         }
 
-
     def save_flagged(self, dir, label, data, encryption_key):
         """
         Returns: (List[List[Union[str, float]]]) 2D array
@@ -628,4 +648,3 @@ class Timeseries(OutputComponent):
 
     def restore_flagged(self, data):
         return json.loads(data)
-
