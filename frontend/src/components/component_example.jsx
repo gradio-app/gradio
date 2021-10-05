@@ -12,7 +12,11 @@ export default class ComponentExample extends React.Component {
 
 export class FileComponentExample extends ComponentExample {
   static async preprocess(x, examples_dir) {
-    return examples_dir + "/" + x;
+    return {
+      "name": x,
+      "data": examples_dir + "/" + x,
+      "is_example": true
+    }
   }
 }
 

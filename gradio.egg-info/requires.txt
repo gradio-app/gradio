@@ -11,5 +11,5 @@ pandas
 paramiko
 pillow
 pycryptodome
+pydub
 requests
-scipy
