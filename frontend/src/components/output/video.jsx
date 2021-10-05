@@ -6,8 +6,7 @@ import { isPlayable } from "../../utils";
 class VideoOutput extends BaseComponent {
   render() {
     if (this.props.value) {
-      if (isPlayable("video", this.props.value["data"].substring(
-        5, this.props.value["data"].indexOf(";")))) {
+      if (isPlayable("video", this.props.value["name"])) {
         return <div className="output_video">
           <video controls src={this.props.value["data"]}></video>
         </div>

@@ -2,7 +2,7 @@ import unittest
 import gradio as gr
 import PIL
 import numpy as np
-import scipy
+from pydub import AudioSegment
 import os
 
 class TestTextbox(unittest.TestCase):
@@ -97,7 +97,8 @@ class TestAudio(unittest.TestCase):
     def test_in_interface(self):
         x_wav = gr.test_data.BASE64_AUDIO
         def max_amplitude_from_wav_file(wav_file):
-            _, data = scipy.io.wavfile.read(wav_file.name)
+            audio_segment = AudioSegment.from_file(wav_file.name)
+            data = np.array(audio_segment.get_array_of_samples())
             return np.max(data)
 
         iface = gr.Interface(
@@ -111,7 +112,7 @@ class TestFile(unittest.TestCase):
         x_file = {
             "name": "audio.wav",
             "data": gr.test_data.BASE64_AUDIO,
-            "is_local_example": False
+            "is_example": False
         }
         def get_size_of_file(file_obj):
             return os.path.getsize(file_obj.name)

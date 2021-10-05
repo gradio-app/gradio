@@ -15,6 +15,7 @@
     "fabric": "^4.5.0",
     "html2canvas-objectfit-fix": "^1.2.0",
     "jspreadsheet-ce": "^4.7.3",
+    "mime-types": "^2.1.33",
     "plotly.js": "^2.3.1",
     "prettier-eslint": "^13.0.0",
     "prettier-eslint-cli": "^5.0.1",
