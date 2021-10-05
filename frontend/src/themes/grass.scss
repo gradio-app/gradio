@@ -380,6 +380,14 @@ html {
             @apply w-full h-full object-contain;
         }
     }
+    .input_video_example {
+        .video_holder {
+            @apply h-36 object-contain flex justify-center;
+        }
+        .video_preview {
+            @apply w-full;            
+        }
+    }
     .input_file {
         @apply w-full h-48;
         .upload_zone {

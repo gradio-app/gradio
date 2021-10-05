@@ -1,3 +1,5 @@
+var mime = require('mime-types')
+
 export function prettyBytes(bytes) {
   let units = ["B", "KB", "MB", "GB", "PB"];
   let i = 0;
@@ -162,12 +164,14 @@ export function CSVToArray(strData, strDelimiter) {
   return arrData;
 }
 
-export function isPlayable(data_type, mime_type) {
+export function isPlayable(data_type, file_name) {
   if (data_type == "audio") {
     let audio_element = new Audio();
+    let mime_type = mime.lookup(file_name)
     return audio_element.canPlayType(mime_type) != "";
   } else {
     let video_element = document.createElement("video");
+    let mime_type = mime.lookup(file_name)
     return video_element.canPlayType(mime_type) != "";
   }
 }

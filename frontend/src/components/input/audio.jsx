@@ -1,6 +1,6 @@
 import React from "react";
 import BaseComponent from "../base_component";
-import { DataURLComponentExample } from "../component_example";
+import { FileComponentExample } from "../component_example";
 import Recorder from "recorder-js";
 import { getSaliencyColor } from "../../utils";
 
@@ -147,12 +147,12 @@ class AudioInput extends BaseComponent {
     let file = files[0];
     ReaderObj.readAsDataURL(file);
     ReaderObj.onloadend = function () {
-      component.props.handleChange({ "name": file.name, "data": this.result });
+      component.props.handleChange({ "name": file.name, "data": this.result, "is_example": false });
     };
   };
 }
 
-class AudioInputExample extends DataURLComponentExample {
+class AudioInputExample extends FileComponentExample {
   render() {
     return <div className="input_audio_example">{this.props.value}</div>;
   }

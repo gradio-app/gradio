@@ -9,7 +9,7 @@ import warnings
 from gradio.component import Component
 import numpy as np
 import PIL
-import scipy.io.wavfile
+from pydub import AudioSegment
 from gradio import processing_utils, test_data
 import pandas as pd
 from ffmpy import FFmpeg
@@ -877,9 +877,12 @@ class Video(InputComponent):
     def preprocess(self, x):
         if x is None:
             return x
-        file_name, file_data = x["name"], x["data"]
-        file = processing_utils.decode_base64_to_file(
-            file_data, filename=file_name)
+        file_name, file_data, is_example = x["name"], x["data"], x["is_example"]
+        if is_example:
+            file = processing_utils.create_tmp_copy_of_file(file_name)
+        else:
+            file = processing_utils.decode_base64_to_file(
+                file_data, file_path=file_name)
         file_name = file.name
         uploaded_format = file_name.split(".")[-1].lower()
         if self.type is not None and uploaded_format != self.type:
@@ -915,7 +918,7 @@ class Audio(InputComponent):
         """
         Parameters:
         source (str): Source of audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input.
-        type (str): Type of value to be returned by component. "numpy" returns a 2-set tuple with an integer sample_rate and the data numpy.array of shape (samples, 2), "file" returns a temporary file object whose path can be retrieved by file_obj.name, "mfcc" returns the mfcc coefficients of the input audio.
+        type (str): Type of value to be returned by component. "numpy" returns a 2-set tuple with an integer sample_rate and the data numpy.array of shape (samples, 2), "file" returns a temporary file object whose path can be retrieved by file_obj.name.
         label (str): component name in interface.
         optional (bool): If True, the interface can be submitted with no uploaded audio, in which case the input value is None.
         """
@@ -923,7 +926,8 @@ class Audio(InputComponent):
         requires_permissions = source == "microphone"
         self.type = type
         self.optional = optional
-        self.test_input = {"name": "sample.wav", "data": test_data.BASE64_AUDIO}
+        self.test_input = {"name": "sample.wav",
+                           "data": test_data.BASE64_AUDIO, "is_example": False}
         self.interpret_by_tokens = True
         super().__init__(label, requires_permissions)
 
@@ -947,14 +951,17 @@ class Audio(InputComponent):
         """
         if x is None:
             return x
-        file_name, file_data = x["name"], x["data"]
-        file_obj = processing_utils.decode_base64_to_file(file_data, filename=file_name)
+        file_name, file_data, is_example = x["name"], x["data"], x["is_example"]
+        if is_example:
+            file_obj = processing_utils.create_tmp_copy_of_file(file_name)
+        else:
+            file_obj = processing_utils.decode_base64_to_file(
+                file_data, file_path=file_name)
         if self.type == "file":
             return file_obj
         elif self.type == "numpy":
-            return scipy.io.wavfile.read(file_obj.name)
-        elif self.type == "mfcc":
-            return processing_utils.generate_mfcc_features_from_audio_file(file_obj.name)
+            audio_segment = AudioSegment.from_file(file_obj.name)
+            return audio_segment.frame_rate, np.array(audio_segment.get_array_of_samples())
 
     def preprocess_example(self, x):
         return processing_utils.encode_file_to_base64(x, type="audio")
@@ -970,8 +977,8 @@ class Audio(InputComponent):
 
     def tokenize(self, x):
         file_obj = processing_utils.decode_base64_to_file(x)
-        x = scipy.io.wavfile.read(file_obj.name)
-        sample_rate, data = x
+        x = AudioSegment.from_file(file_obj.name)
+        sample_rate, data = x.frame_rate, np.array(x.get_array_of_samples())
         leave_one_out_sets = []
         tokens = []
         masks = []
@@ -986,7 +993,12 @@ class Audio(InputComponent):
             leave_one_out_data = np.copy(data)
             leave_one_out_data[start:stop] = 0
             file = tempfile.NamedTemporaryFile(delete=False)
-            scipy.io.wavfile.write(file, sample_rate, leave_one_out_data)
+            audio_segment = AudioSegment(
+                leave_one_out_data.tobytes(), 
+                frame_rate=sample_rate, 
+                sample_width=leave_one_out_data.dtype.itemsize, 
+                channels=len(leave_one_out_data.shape))
+            audio_segment.export(file.name)
             out_data = processing_utils.encode_file_to_base64(
                 file.name, type="audio", ext="wav")
             leave_one_out_sets.append(out_data)
@@ -995,7 +1007,12 @@ class Audio(InputComponent):
             token[0:start] = 0
             token[stop:] = 0
             file = tempfile.NamedTemporaryFile(delete=False)
-            scipy.io.wavfile.write(file, sample_rate, token)
+            audio_segment = AudioSegment(
+                token.tobytes(), 
+                frame_rate=sample_rate, 
+                sample_width=token.dtype.itemsize, 
+                channels=len(token.shape))
+            audio_segment.export(file.name)
             token_data = processing_utils.encode_file_to_base64(
                 file.name, type="audio", ext="wav")
             tokens.append(token_data)
@@ -1005,13 +1022,15 @@ class Audio(InputComponent):
         # create a "zero input" vector and get sample rate
         x = tokens[0]
         file_obj = processing_utils.decode_base64_to_file(x)
-        sample_rate, data = scipy.io.wavfile.read(file_obj.name)
+        audio_segment = AudioSegment.from_file(file_obj.name)
+        sample_rate, data = audio_segment.frame_rate, np.array(audio_segment.get_array_of_samples())
         zero_input = np.zeros_like(data, dtype=int)
         # decode all of the tokens
         token_data = []
         for token in tokens:
             file_obj = processing_utils.decode_base64_to_file(token)
-            _, data = scipy.io.wavfile.read(file_obj.name)
+            audio_segment = AudioSegment.from_file(file_obj.name)
+            data = np.array(audio_segment.get_array_of_samples())
             token_data.append(data)
         # construct the masked version
         masked_inputs = []
@@ -1020,7 +1039,12 @@ class Audio(InputComponent):
             for t, b in zip(token_data, binary_mask_vector):
                 masked_input = masked_input + t*int(b)
             file = tempfile.NamedTemporaryFile(delete=False)
-            scipy.io.wavfile.write(file, sample_rate, masked_input)
+            audio_segment = AudioSegment(
+                masked_input.tobytes(), 
+                frame_rate=sample_rate, 
+                sample_width=masked_input.dtype.itemsize, 
+                channels=len(masked_input.shape))
+            audio_segment.export(file.name)
             masked_data = processing_utils.encode_file_to_base64(
                 file.name, type="audio", ext="wav")
             masked_inputs.append(masked_data)
@@ -1033,27 +1057,6 @@ class Audio(InputComponent):
         """
         return list(scores)
 
-    def embed(self, x):
-        """
-        Resamples each audio signal to be 1,000 frames and then returns the flattened vectors
-        """
-        num_frames = 1000
-        if self.type == "file":
-            file_name = x.name
-            mfcc = processing_utils.generate_mfcc_features_from_audio_file(
-                file_name, downsample_to=num_frames)
-            return mfcc.flatten()
-        elif self.type == "numpy":
-            sample_rate, signal = x
-            mfcc = processing_utils.generate_mfcc_features_from_audio_file(
-                wav_filename=None, sample_rate=sample_rate, signal=signal, downsample_to=num_frames)
-            return mfcc.flatten()
-        elif self.type == "mfcc":
-            mfcc = scipy.signal.resample(x, num_frames, axis=1)
-            return mfcc.flatten()
-        else:
-            raise ValueError("Unknown type: " + str(self.type) +
-                             ". Please choose from: 'numpy', 'mfcc', 'file'.")
 
     def save_flagged(self, dir, label, data, encryption_key):
         """
@@ -1103,14 +1106,14 @@ class File(InputComponent):
             return None
 
         def process_single_file(f):
-            file_name, data, is_local_example = f["name"], f["data"], f["is_local_example"]
+            file_name, data, is_example = f["name"], f["data"], f["is_example"]
             if self.type == "file":
-                if is_local_example:
-                    return open(file_name)
+                if is_example:
+                    return processing_utils.create_tmp_copy_of_file(file_name)
                 else:
-                    return processing_utils.decode_base64_to_file(data, file_name=file_name)
+                    return processing_utils.decode_base64_to_file(data, file_path=file_name)
             elif self.type == "bytes":
-                if is_local_example:
+                if is_example:
                     with open(file_name, "rb") as file_data:
                         return file_data.read()
                 return processing_utils.decode_base64_to_binary(data)[0]

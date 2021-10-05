@@ -5,7 +5,7 @@ except ImportError:
 
 setup(
     name='gradio',
-    version='2.3.7b',
+    version='2.3.7b1',
     include_package_data=True,
     description='Python library for easily interacting with trained machine learning models',
     author='Abubakar Abid',
@@ -16,7 +16,7 @@ setup(
     keywords=['machine learning', 'visualization', 'reproducibility'],
     install_requires=[
         'numpy',
-        'scipy',
+        'pydub',
         'matplotlib',
         'pandas',
         'pillow',
