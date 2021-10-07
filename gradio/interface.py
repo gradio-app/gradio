@@ -503,6 +503,7 @@ class Interface:
             auth = [auth]
         self.auth = auth
         self.auth_message = auth_message
+        self.debug = debug or int(os.getenv('GRADIO_DEBUG', 0))==1
 
         # Request key for encryption
         if self.encrypt:
@@ -584,7 +585,7 @@ class Interface:
         show_tip(self)
 
         # Run server perpetually under certain circumstances
-        if debug or int(os.getenv('GRADIO_DEBUG', 0))==1:
+        if self.debug:
             while True:
                 sys.stdout.flush()
                 time.sleep(0.1)
