@@ -2,10 +2,7 @@ import json
 import tempfile
 import requests
 from gradio import inputs, outputs
-<<<<<<< HEAD
 import re
-=======
->>>>>>> e2384b777c6b805bc6e295a8dc003b0a3d0f80c8
 
 
 def get_huggingface_interface(model_name, api_key, alias):
