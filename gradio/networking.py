@@ -26,7 +26,6 @@ from gradio import encryptor
 from gradio import queue
 from functools import wraps
 import io
-import traceback
 
 INITIAL_PORT_VALUE = int(os.getenv(
     'GRADIO_SERVER_PORT', "7860"))  # The http server will try to open on port 7860. If not available, 7861, 7862, etc.
@@ -178,16 +177,7 @@ def enable_sharing(path):
 @login_check
 def predict():
     raw_input = request.json["data"]
-    # If in debug mode, capture any errors made and pipe to front end
-    if app.interface.debug:
-        try:
-            prediction, durations = app.interface.process(raw_input)
-        except BaseException as error:
-            traceback.print_exc()
-            return jsonify({"error": traceback.format_exc()})
-    else:
-        prediction, durations = app.interface.process(raw_input)
-    # Get running average of prediction times
+    prediction, durations = app.interface.process(raw_input)
     avg_durations = []
     for i, duration in enumerate(durations):
         app.interface.predict_durations[i][0] += duration
