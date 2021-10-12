@@ -361,7 +361,7 @@ class Audio(OutputComponent):
         if self.type in ["numpy", "file", "auto"]:
             if self.type == "numpy" or (self.type == "auto" and isinstance(y, tuple)):
                 sample_rate, data = y
-                file = tempfile.NamedTemporaryFile(delete=False)
+                file = tempfile.NamedTemporaryFile(prefix="sample", suffix=".wav", delete=False)
                 processing_utils.audio_to_file(sample_rate, data, file.name)
                 y = file.name
             return processing_utils.encode_file_to_base64(y, type="audio", ext="wav")
