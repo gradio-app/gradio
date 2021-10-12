@@ -84,7 +84,7 @@ def audio_to_file(sample_rate, data, filename):
         sample_width=data.dtype.itemsize, 
         channels=(1 if len(data.shape) == 1 else data.shape[1])
     )
-    audio.export(filename)
+    audio.export(filename, format="wav")
 
 ##################
 # OUTPUT
