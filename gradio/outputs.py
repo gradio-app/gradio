@@ -563,6 +563,13 @@ class Carousel(OutputComponent):
             **super().get_template_context()
         }
 
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "carousel": {},
+        }
+
+
     def postprocess(self, y):
         if isinstance(y, list):
             if len(y) != 0 and not isinstance(y[0], list):
@@ -591,12 +598,17 @@ def get_output_instance(iface):
     if isinstance(iface, str):
         shortcut = OutputComponent.get_all_shortcut_implementations()[iface]
         return shortcut[0](**shortcut[1])
+    elif isinstance(iface, dict):  # a dict with `name` as the output component type and other keys as parameters
+        name = iface.pop('name')
+        component, params = OutputComponent.get_all_shortcut_implementations()[name]
+        params.update(**iface)
+        return component(**params)
     elif isinstance(iface, OutputComponent):
         return iface
     else:
         raise ValueError(
-            "Output interface must be of type `str` or "
-            "`OutputComponent`"
+            "Output interface must be of type `str` or `dict` or"
+            "`OutputComponent` but is {}".format(iface)
         )
 
 
