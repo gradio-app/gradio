@@ -13,7 +13,6 @@ import operator
 from numbers import Number
 import warnings
 import tempfile
-from pydub import AudioSegment
 import os
 import pandas as pd
 import PIL
@@ -363,12 +362,7 @@ class Audio(OutputComponent):
             if self.type == "numpy" or (self.type == "auto" and isinstance(y, tuple)):
                 sample_rate, data = y
                 file = tempfile.NamedTemporaryFile(delete=False)
-                audio_segment = AudioSegment(
-                    data.tobytes(), 
-                    frame_rate=sample_rate, 
-                    sample_width=data.dtype.itemsize, 
-                    channels=len(data.shape))
-                audio_segment.export(file.name)
+                processing_utils.audio_to_file(sample_rate, data, file.name)
                 y = file.name
             return processing_utils.encode_file_to_base64(y, type="audio", ext="wav")
         else:

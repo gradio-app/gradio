@@ -67,8 +67,8 @@ export class GradioInterface extends React.Component {
       process.env.REACT_APP_BACKEND_URL +
       (this.props.examples_dir === null
         ? "file" +
-        this.props.examples_dir +
-        (this.props.examples_dir.endswith("/") ? "" : "/")
+          this.props.examples_dir +
+          (this.props.examples_dir.endswith("/") ? "" : "/")
         : "file");
   }
   get_default_state = () => {
@@ -235,21 +235,17 @@ export class GradioInterface extends React.Component {
     }
   };
   handleExampleChange = (example_id) => {
-    let state_change = {};
     this.setState({ example_id: example_id });
     for (let [i, item] of this.props.examples[example_id].entries()) {
       let ExampleComponent =
         i < this.props.input_components.length
           ? input_component_map[this.props.input_components[i].name][1]
           : output_component_map[
-          this.props.output_components[
-            i - this.props.input_components.length
-          ].name
-          ][1];
-      state_change[i] = ExampleComponent.preprocess(
-        item,
-        this.examples_dir
-      ).then((data) => {
+              this.props.output_components[
+                i - this.props.input_components.length
+              ].name
+            ][1];
+      ExampleComponent.preprocess(item, this.examples_dir).then((data) => {
         this.handleChange(i, data);
       });
     }
@@ -480,14 +476,14 @@ class GradioInterfaceExamples extends React.Component {
                 return <th key={i}>{component.label}</th>;
               })}
               {this.props.examples[0].length >
-                this.props.input_components.length
+              this.props.input_components.length
                 ? this.props.output_components.map((component, i) => {
-                  return (
-                    <th key={i + this.props.input_components.length}>
-                      {component.label}
-                    </th>
-                  );
-                })
+                    return (
+                      <th key={i + this.props.input_components.length}>
+                        {component.label}
+                      </th>
+                    );
+                  })
                 : false}
             </tr>
           </thead>
@@ -505,7 +501,7 @@ class GradioInterfaceExamples extends React.Component {
                   {example_row.map((example_data, j) => {
                     let ExampleComponent =
                       input_component_map[
-                      this.props.input_components[j].name
+                        this.props.input_components[j].name
                       ][1];
                     return (
                       <td>

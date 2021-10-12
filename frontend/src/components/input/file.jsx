@@ -1,6 +1,6 @@
 import React from "react";
 import BaseComponent from "../base_component";
-import ComponentExample from "../component_example";
+import { FileComponentExample } from "../component_example";
 import { prettyBytes } from "../../utils";
 
 class FileInput extends BaseComponent {
@@ -27,13 +27,18 @@ class FileInput extends BaseComponent {
     let file_name, file_size;
     if (this.props.value !== null) {
       if (this.props.file_count === "single") {
-        let file = this.props.value[0];
+        let file = Array.isArray(this.props.value)
+          ? this.props.value[0]
+          : this.props.value;
         file_name = file.name;
         file_size = file.size;
       } else {
         file_name = this.props.value.length + " files.";
         file_size = 0;
-        for (let file of this.props.value) {
+        let fileset = Array.isArray(this.props.value)
+          ? this.props.value
+          : [this.props.value];
+        for (let file of fileset) {
           if (file.size === null) {
             file_size = null;
             break;
@@ -47,7 +52,9 @@ class FileInput extends BaseComponent {
           <div className="file_preview_holder">
             <div className="file_name">{file_name}</div>
             <div className="file_size">
-              {file_size === null ? "" : prettyBytes(file_size)}
+              {file_size === null || file_size === undefined
+                ? ""
+                : prettyBytes(file_size)}
             </div>
           </div>
         </div>
@@ -122,7 +129,7 @@ class FileInput extends BaseComponent {
   }
 }
 
-class FileInputExample extends ComponentExample {
+class FileInputExample extends FileComponentExample {
   render() {
     return <div className="input_file_example">{this.props.value}</div>;
   }

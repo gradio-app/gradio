@@ -18,13 +18,13 @@ class AudioInput extends BaseComponent {
   }
   start = () => {
     if (!this.started) {
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const audioContext = new (window.AudioContext ||
+        window.webkitAudioContext)();
       this.recorder = new Recorder(audioContext);
-      navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(stream => {
-          this.recorder.init(stream);
-          this.recorder.start();
-        });
+      navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+        this.recorder.init(stream);
+        this.recorder.start();
+      });
       this.started = true;
     } else {
       this.recorder.start();
@@ -38,12 +38,13 @@ class AudioInput extends BaseComponent {
       let reader = new FileReader();
       reader.onload = function (e) {
         this.props.handleChange({
-          "name": "sample.wav",
-          "data": e.target.result
+          name: "sample.wav",
+          data: e.target.result,
+          is_example: false
         });
       }.bind(this);
       reader.readAsDataURL(blob);
-    })
+    });
     this.setState({
       recording: false
     });
@@ -53,12 +54,14 @@ class AudioInput extends BaseComponent {
   };
   render() {
     if (this.props.value !== null) {
-      if (this.props.value["name"] != this.src["name"] ||
-        this.props.value["data"] !== this.src["data"]) {
+      if (
+        this.props.value["name"] != this.src["name"] ||
+        this.props.value["data"] !== this.src["data"]
+      ) {
         this.key += 1;
         this.src = {
-          "name": this.props.value["name"],
-          "data": this.props.value["data"]
+          name: this.props.value["name"],
+          data: this.props.value["data"]
         };
       }
       return (
@@ -147,7 +150,11 @@ class AudioInput extends BaseComponent {
     let file = files[0];
     ReaderObj.readAsDataURL(file);
     ReaderObj.onloadend = function () {
-      component.props.handleChange({ "name": file.name, "data": this.result, "is_example": false });
+      component.props.handleChange({
+        name: file.name,
+        data: this.result,
+        is_example: false
+      });
     };
   };
 }

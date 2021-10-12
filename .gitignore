@@ -33,3 +33,5 @@ gradio/launches.json
 gradio/frontend/static
 workspace.code-workspace
 *.db
+demo/files/*.avi
+demo/files/*.mp4

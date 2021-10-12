@@ -16,6 +16,5 @@ def zip_to_json(file_obj):
 
 iface = gr.Interface(zip_to_json, "file", "json")
 
-iface.test_launch()
 if __name__ == "__main__":
     iface.launch()
