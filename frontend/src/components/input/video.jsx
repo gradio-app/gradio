@@ -39,11 +39,11 @@ class VideoInput extends BaseComponent {
           </div>
         );
       } else {
-        return <div className="input_video">
-          <div className="video_file_holder">
-            {this.props.value["name"]}
+        return (
+          <div className="input_video">
+            <div className="video_file_holder">{this.props.value["name"]}</div>
           </div>
-        </div>
+        );
       }
     } else {
       return (
@@ -93,7 +93,11 @@ class VideoInput extends BaseComponent {
     let file = files[0];
     ReaderObj.readAsDataURL(file);
     ReaderObj.onloadend = function () {
-      component.props.handleChange({ "name": file.name, "data": this.result, "is_example": false });
+      component.props.handleChange({
+        name: file.name,
+        data: this.result,
+        is_example: false
+      });
     };
   }
 }
@@ -105,24 +109,31 @@ class VideoInputExample extends FileComponentExample {
   }
   render() {
     if (isPlayable("video", this.props.value)) {
-      return <div className="input_video_example">
-        <div className="video_holder">
-          <video
-            ref={this.video}
-            className="video_preview"
-            onMouseOver={() => { this.video.current.play() }}
-            onMouseOut={() => { this.video.current.pause() }}
-            preload="metadata"
-          >
-            <source src={this.props.examples_dir + "/" + this.props.value}></source>
-          </video>
+      return (
+        <div className="input_video_example">
+          <div className="video_holder">
+            <video
+              ref={this.video}
+              className="video_preview"
+              onMouseOver={() => {
+                this.video.current.play();
+              }}
+              onMouseOut={() => {
+                this.video.current.pause();
+              }}
+              preload="metadata"
+            >
+              <source
+                src={this.props.examples_dir + "/" + this.props.value}
+              ></source>
+            </video>
+          </div>
         </div>
-      </div>
+      );
     } else {
-      return <div className="input_video_example">{this.props.value}</div>
+      return <div className="input_video_example">{this.props.value}</div>;
     }
   }
 }
-
 
 export { VideoInput, VideoInputExample };

@@ -9,7 +9,6 @@ import warnings
 from gradio.component import Component
 import numpy as np
 import PIL
-from pydub import AudioSegment
 from gradio import processing_utils, test_data
 import pandas as pd
 from ffmpy import FFmpeg
@@ -960,8 +959,7 @@ class Audio(InputComponent):
         if self.type == "file":
             return file_obj
         elif self.type == "numpy":
-            audio_segment = AudioSegment.from_file(file_obj.name)
-            return audio_segment.frame_rate, np.array(audio_segment.get_array_of_samples())
+            return processing_utils.audio_from_file(file_obj.name)
 
     def preprocess_example(self, x):
         return processing_utils.encode_file_to_base64(x, type="audio")
@@ -977,8 +975,7 @@ class Audio(InputComponent):
 
     def tokenize(self, x):
         file_obj = processing_utils.decode_base64_to_file(x)
-        x = AudioSegment.from_file(file_obj.name)
-        sample_rate, data = x.frame_rate, np.array(x.get_array_of_samples())
+        sample_rate, data = processing_utils.audio_from_file(x)
         leave_one_out_sets = []
         tokens = []
         masks = []
@@ -993,12 +990,7 @@ class Audio(InputComponent):
             leave_one_out_data = np.copy(data)
             leave_one_out_data[start:stop] = 0
             file = tempfile.NamedTemporaryFile(delete=False)
-            audio_segment = AudioSegment(
-                leave_one_out_data.tobytes(), 
-                frame_rate=sample_rate, 
-                sample_width=leave_one_out_data.dtype.itemsize, 
-                channels=len(leave_one_out_data.shape))
-            audio_segment.export(file.name)
+            processing_utils.audio_to_file(sample_rate, leave_one_out_data, file.name)
             out_data = processing_utils.encode_file_to_base64(
                 file.name, type="audio", ext="wav")
             leave_one_out_sets.append(out_data)
@@ -1007,12 +999,7 @@ class Audio(InputComponent):
             token[0:start] = 0
             token[stop:] = 0
             file = tempfile.NamedTemporaryFile(delete=False)
-            audio_segment = AudioSegment(
-                token.tobytes(), 
-                frame_rate=sample_rate, 
-                sample_width=token.dtype.itemsize, 
-                channels=len(token.shape))
-            audio_segment.export(file.name)
+            processing_utils.audio_to_file(sample_rate, token, file.name)
             token_data = processing_utils.encode_file_to_base64(
                 file.name, type="audio", ext="wav")
             tokens.append(token_data)
@@ -1022,15 +1009,13 @@ class Audio(InputComponent):
         # create a "zero input" vector and get sample rate
         x = tokens[0]
         file_obj = processing_utils.decode_base64_to_file(x)
-        audio_segment = AudioSegment.from_file(file_obj.name)
-        sample_rate, data = audio_segment.frame_rate, np.array(audio_segment.get_array_of_samples())
+        sample_rate, data = processing_utils.audio_from_file(file_obj.name)
         zero_input = np.zeros_like(data, dtype=int)
         # decode all of the tokens
         token_data = []
         for token in tokens:
             file_obj = processing_utils.decode_base64_to_file(token)
-            audio_segment = AudioSegment.from_file(file_obj.name)
-            data = np.array(audio_segment.get_array_of_samples())
+            _, data = processing_utils.audio_from_file(file_obj.name)
             token_data.append(data)
         # construct the masked version
         masked_inputs = []
@@ -1039,12 +1024,7 @@ class Audio(InputComponent):
             for t, b in zip(token_data, binary_mask_vector):
                 masked_input = masked_input + t*int(b)
             file = tempfile.NamedTemporaryFile(delete=False)
-            audio_segment = AudioSegment(
-                masked_input.tobytes(), 
-                frame_rate=sample_rate, 
-                sample_width=masked_input.dtype.itemsize, 
-                channels=len(masked_input.shape))
-            audio_segment.export(file.name)
+            processing_utils.audio_to_file(sample_rate, masked_input, file_obj.name)
             masked_data = processing_utils.encode_file_to_base64(
                 file.name, type="audio", ext="wav")
             masked_inputs.append(masked_data)

@@ -33,6 +33,7 @@ ip_address = networking.get_local_ip_address()
 
 JSON_PATH = os.path.join(os.path.dirname(gradio.__file__), "launches.json")
 
+
 class Interface:
     """
     Interfaces are created with Gradio by constructing a `gradio.Interface()` object.
@@ -67,11 +68,10 @@ class Interface:
                  examples_per_page=10, live=False,
                  layout="unaligned", show_input=True, show_output=True,
                  capture_session=False, interpretation=None, num_shap=2.0, theme=None, repeat_outputs_per_model=True,
-                 title=None, description=None, article=None, thumbnail=None,  
+                 title=None, description=None, article=None, thumbnail=None,
                  css=None, server_port=None, server_name=networking.LOCALHOST_NAME, height=500, width=900,
                  allow_screenshot=True, allow_flagging=True, flagging_options=None, encrypt=False,
                  show_tips=False, embedding=None, flagging_dir="flagged", analytics_enabled=True, enable_queue=False):
-
         """
         Parameters:
         fn (Callable): the function to wrap an interface around.
@@ -116,12 +116,13 @@ class Interface:
             self.output_components *= len(fn)
 
         if interpretation is None or isinstance(interpretation, list) or callable(interpretation):
-            self.interpretation = interpretation 
+            self.interpretation = interpretation
         elif isinstance(interpretation, str):
-            self.interpretation = [interpretation.lower() for _ in self.input_components]
+            self.interpretation = [interpretation.lower()
+                                   for _ in self.input_components]
         else:
-            raise ValueError("Invalid value for parameter: interpretation")         
-            
+            raise ValueError("Invalid value for parameter: interpretation")
+
         self.predict = fn
         self.predict_durations = [[0, 0]] * len(fn)
         self.function_names = [func.__name__ for func in fn]
@@ -140,10 +141,12 @@ class Interface:
         self.description = description
         if article is not None:
             article = utils.readme_to_html(article)
-            article = markdown2.markdown(article, extras=["fenced-code-blocks"])
+            article = markdown2.markdown(
+                article, extras=["fenced-code-blocks"])
         self.article = article
         self.thumbnail = thumbnail
-        theme = theme if theme is not None else os.getenv("GRADIO_THEME", "default")
+        theme = theme if theme is not None else os.getenv(
+            "GRADIO_THEME", "default")
         if theme not in ("default", "huggingface", "grass", "peach", "darkdefault", "darkhuggingface", "darkgrass", "darkpeach"):
             raise ValueError("Invalid theme name.")
         self.theme = theme
@@ -157,25 +160,27 @@ class Interface:
         if examples is None or isinstance(examples, str) or (isinstance(examples, list) and (len(examples) == 0 or isinstance(examples[0], list))):
             self.examples = examples
         else:
-            raise ValueError("Examples argument must either be a directory or a nested list, where each sublist represents a set of inputs.")
+            raise ValueError(
+                "Examples argument must either be a directory or a nested list, where each sublist represents a set of inputs.")
         self.num_shap = num_shap
         self.examples_per_page = examples_per_page
         self.server_port = server_port
         self.simple_server = None
         self.allow_screenshot = allow_screenshot
         self.allow_flagging = os.getenv("GRADIO_FLAGGING") or allow_flagging
-        self.flagging_options = flagging_options 
+        self.flagging_options = flagging_options
         self.flagging_dir = flagging_dir
         self.encrypt = encrypt
         Interface.instances.add(self)
-        self.analytics_enabled=analytics_enabled
+        self.analytics_enabled = analytics_enabled
         self.save_to = None
         self.share = None
         self.share_url = None
         self.local_url = None
         self.embedding = embedding
         self.show_tips = show_tips
-        self.requires_permissions = any([component.requires_permissions for component in self.input_components])
+        self.requires_permissions = any(
+            [component.requires_permissions for component in self.input_components])
         self.enable_queue = enable_queue
 
         data = {'fn': fn,
@@ -196,7 +201,7 @@ class Interface:
             try:
                 import tensorflow as tf
                 self.session = tf.get_default_graph(), \
-                               tf.keras.backend.get_session()
+                    tf.keras.backend.get_session()
             except (ImportError, AttributeError):
                 # If they are using TF >= 2.0 or don't have TF,
                 # just ignore this.
@@ -219,16 +224,17 @@ class Interface:
         return self.__repr__()
 
     def __repr__(self):
-        repr = "Gradio Interface for: {}".format(", ".join(fn.__name__ for fn in self.predict))
+        repr = "Gradio Interface for: {}".format(
+            ", ".join(fn.__name__ for fn in self.predict))
         repr += "\n" + "-"*len(repr)
         repr += "\ninputs:"
         for component in self.input_components:
             repr += "\n|-{}".format(str(component))
         repr += "\noutputs:"
         for component in self.output_components:
-            repr+= "\n|-{}".format(str(component))
+            repr += "\n|-{}".format(str(component))
         return repr
-        
+
     def get_config_file(self):
         config = {
             "input_components": [
@@ -262,31 +268,37 @@ class Interface:
                 if not iface["label"]:
                     iface["label"] = param.replace("_", " ")
             for i, iface in enumerate(config["output_components"]):
-                outputs_per_function = int(len(self.output_components) / len(self.predict))
+                outputs_per_function = int(
+                    len(self.output_components) / len(self.predict))
                 function_index = i // outputs_per_function
                 component_index = i - function_index * outputs_per_function
-                ret_name = "Output " + str(component_index + 1) if outputs_per_function > 1 else "Output"
+                ret_name = "Output " + \
+                    str(component_index + 1) if outputs_per_function > 1 else "Output"
                 if iface["label"] is None:
                     iface["label"] = ret_name
                 if len(self.predict) > 1:
-                    iface["label"] = self.function_names[function_index].replace("_", " ") + ": " + iface["label"]
-                    
+                    iface["label"] = self.function_names[function_index].replace(
+                        "_", " ") + ": " + iface["label"]
+
         except ValueError:
             pass
         if self.examples is not None:
             if isinstance(self.examples, str):
                 if not os.path.exists(self.examples):
-                    raise FileNotFoundError("Could not find examples directory: " + self.examples)
+                    raise FileNotFoundError(
+                        "Could not find examples directory: " + self.examples)
                 log_file = os.path.join(self.examples, "log.csv")
                 if not os.path.exists(log_file):
                     if len(self.input_components) == 1:
-                        examples = [[item] for item in os.listdir(self.examples)]
+                        examples = [[os.path.join(self.examples, item)]
+                                    for item in os.listdir(self.examples)]
                     else:
-                        raise FileNotFoundError("Could not find log file (required for multiple inputs): " + log_file)
+                        raise FileNotFoundError(
+                            "Could not find log file (required for multiple inputs): " + log_file)
                 else:
                     with open(log_file) as logs:
-                        examples = list(csv.reader(logs)) 
-                        examples = examples[1:] #remove header
+                        examples = list(csv.reader(logs))
+                        examples = examples[1:]  # remove header
                 for i, example in enumerate(examples):
                     for j, (interface, cell) in enumerate(zip(self.input_components + self.output_components, example)):
                         examples[i][j] = interface.restore_flagged(cell)
@@ -317,10 +329,10 @@ class Interface:
 
             if len(self.output_components) == len(self.predict):
                 prediction = [prediction]
-            
+
             durations.append(duration)
             predictions.extend(prediction)
-        
+
         if return_duration:
             return predictions, durations
         else:
@@ -334,11 +346,12 @@ class Interface:
         """
         processed_input = [input_component.preprocess(raw_input[i])
                            for i, input_component in enumerate(self.input_components)]
-        predictions, durations = self.run_prediction(processed_input, return_duration=True)
+        predictions, durations = self.run_prediction(
+            processed_input, return_duration=True)
         processed_output = [output_component.postprocess(
             predictions[i]) if predictions[i] is not None else None for i, output_component in enumerate(self.output_components)]
         return processed_output, durations
-    
+
     def interpret(self, raw_input):
         """
         Runs the interpretation command for the machine learning model. Handles both the "default" out-of-the-box
@@ -347,46 +360,53 @@ class Interface:
         """
         if isinstance(self.interpretation, list):  # Either "default" or "shap"
             processed_input = [input_component.preprocess(raw_input[i])
-                            for i, input_component in enumerate(self.input_components)]
+                               for i, input_component in enumerate(self.input_components)]
             original_output = self.run_prediction(processed_input)
             scores, alternative_outputs = [], []
             for i, (x, interp) in enumerate(zip(raw_input, self.interpretation)):
-                print(i, interp)
-                if interp=="default":
+                if interp == "default":
                     input_component = self.input_components[i]
                     neighbor_raw_input = list(raw_input)
                     if input_component.interpret_by_tokens:
-                        tokens, neighbor_values, masks =  input_component.tokenize(x)
+                        tokens, neighbor_values, masks = input_component.tokenize(
+                            x)
                         interface_scores = []
                         alternative_output = []
                         for neighbor_input in neighbor_values:
                             neighbor_raw_input[i] = neighbor_input
                             processed_neighbor_input = [input_component.preprocess(neighbor_raw_input[i])
-                                            for i, input_component in enumerate(self.input_components)]
-                            neighbor_output = self.run_prediction(processed_neighbor_input)
+                                                        for i, input_component in enumerate(self.input_components)]
+                            neighbor_output = self.run_prediction(
+                                processed_neighbor_input)
                             processed_neighbor_output = [output_component.postprocess(
                                 neighbor_output[i]) for i, output_component in enumerate(self.output_components)]
 
-                            alternative_output.append(processed_neighbor_output)
-                            interface_scores.append(quantify_difference_in_label(self, original_output, neighbor_output))
+                            alternative_output.append(
+                                processed_neighbor_output)
+                            interface_scores.append(quantify_difference_in_label(
+                                self, original_output, neighbor_output))
                         alternative_outputs.append(alternative_output)
                         scores.append(
                             input_component.get_interpretation_scores(
-                                raw_input[i], neighbor_values, interface_scores, masks=masks, tokens=tokens))                
+                                raw_input[i], neighbor_values, interface_scores, masks=masks, tokens=tokens))
                     else:
-                        neighbor_values, interpret_kwargs = input_component.get_interpretation_neighbors(x)
+                        neighbor_values, interpret_kwargs = input_component.get_interpretation_neighbors(
+                            x)
                         interface_scores = []
                         alternative_output = []
                         for neighbor_input in neighbor_values:
                             neighbor_raw_input[i] = neighbor_input
                             processed_neighbor_input = [input_component.preprocess(neighbor_raw_input[i])
-                                            for i, input_component in enumerate(self.input_components)]
-                            neighbor_output = self.run_prediction(processed_neighbor_input)
+                                                        for i, input_component in enumerate(self.input_components)]
+                            neighbor_output = self.run_prediction(
+                                processed_neighbor_input)
                             processed_neighbor_output = [output_component.postprocess(
                                 neighbor_output[i]) for i, output_component in enumerate(self.output_components)]
 
-                            alternative_output.append(processed_neighbor_output)
-                            interface_scores.append(quantify_difference_in_label(self, original_output, neighbor_output))
+                            alternative_output.append(
+                                processed_neighbor_output)
+                            interface_scores.append(quantify_difference_in_label(
+                                self, original_output, neighbor_output))
                         alternative_outputs.append(alternative_output)
                         interface_scores = [-score for score in interface_scores]
                         scores.append(
@@ -396,34 +416,46 @@ class Interface:
                     try:
                         import shap
                     except (ImportError, ModuleNotFoundError):
-                        raise ValueError("The package `shap` is required for this interpretation method. Try: `pip install shap`")
+                        raise ValueError(
+                            "The package `shap` is required for this interpretation method. Try: `pip install shap`")
                     input_component = self.input_components[i]
                     if not(input_component.interpret_by_tokens):
-                        raise ValueError("Input component {} does not support `shap` interpretation".format(input_component))
-                    
+                        raise ValueError(
+                            "Input component {} does not support `shap` interpretation".format(input_component))
+
                     tokens, _, masks = input_component.tokenize(x)
-                    
-                    def get_masked_prediction(binary_mask):  # construct a masked version of the input
-                        masked_xs = input_component.get_masked_inputs(tokens, binary_mask)  
+
+                    # construct a masked version of the input
+                    def get_masked_prediction(binary_mask):
+                        masked_xs = input_component.get_masked_inputs(
+                            tokens, binary_mask)
                         preds = []
                         for masked_x in masked_xs:
-                            processed_masked_input = copy.deepcopy(processed_input) 
-                            processed_masked_input[i] = input_component.preprocess(masked_x) 
-                            new_output = self.run_prediction(processed_masked_input)
-                            pred = get_regression_or_classification_value(self, original_output, new_output)
+                            processed_masked_input = copy.deepcopy(
+                                processed_input)
+                            processed_masked_input[i] = input_component.preprocess(
+                                masked_x)
+                            new_output = self.run_prediction(
+                                processed_masked_input)
+                            pred = get_regression_or_classification_value(
+                                self, original_output, new_output)
                             preds.append(pred)
                         return np.array(preds)
 
-                    num_total_segments = len(tokens) 
-                    explainer = shap.KernelExplainer(get_masked_prediction, np.zeros((1, num_total_segments)))
-                    shap_values = explainer.shap_values(np.ones((1, num_total_segments)), nsamples=int(self.num_shap*num_total_segments), silent=True)
-                    scores.append(input_component.get_interpretation_scores(raw_input[i], None, shap_values[0], masks=masks, tokens=tokens))
+                    num_total_segments = len(tokens)
+                    explainer = shap.KernelExplainer(
+                        get_masked_prediction, np.zeros((1, num_total_segments)))
+                    shap_values = explainer.shap_values(np.ones((1, num_total_segments)), nsamples=int(
+                        self.num_shap*num_total_segments), silent=True)
+                    scores.append(input_component.get_interpretation_scores(
+                        raw_input[i], None, shap_values[0], masks=masks, tokens=tokens))
                     alternative_outputs.append([])
                 elif interp is None:
                     scores.append(None)
                     alternative_outputs.append([])
                 else:
-                    raise ValueError("Uknown intepretation method: {}".format(interp))
+                    raise ValueError(
+                        "Uknown intepretation method: {}".format(interp))
             return scores, alternative_outputs
         else:  # custom interpretation function
             processed_input = [input_component.preprocess(raw_input[i])
@@ -447,7 +479,8 @@ class Interface:
             return interpretation, []
 
     def close(self):
-        if self.simple_server and not (self.simple_server.fileno() == -1):  # checks to see if server is running
+        # checks to see if server is running
+        if self.simple_server and not (self.simple_server.fileno() == -1):
             print("Closing Gradio server on port {}...".format(self.server_port))
             networking.close_server(self.simple_server)
 
@@ -458,7 +491,8 @@ class Interface:
         except (KeyboardInterrupt, OSError):
             print("Keyboard interruption in main thread... closing server.")
             thread.keep_running = False
-            networking.url_ok(path_to_local_server)  # Hit the server one more time to close it
+            # Hit the server one more time to close it
+            networking.url_ok(path_to_local_server)
             if self.enable_queue:
                 queue.close()
 
@@ -506,7 +540,8 @@ class Interface:
 
         # Request key for encryption
         if self.encrypt:
-            self.encryption_key = encryptor.get_key(getpass("Enter key for encryption: "))
+            self.encryption_key = encryptor.get_key(
+                getpass("Enter key for encryption: "))
 
         # Launch local flask server
         server_port, path_to_local_server, app, thread = networking.start_server(
@@ -519,9 +554,9 @@ class Interface:
         # Count number of launches
         launch_counter()
 
-        # If running in a colab or not able to access localhost, automatically create a shareable link        
+        # If running in a colab or not able to access localhost, automatically create a shareable link
         is_colab = utils.colab_check()
-        if is_colab or not(networking.url_ok(path_to_local_server)):  
+        if is_colab or not(networking.url_ok(path_to_local_server)):
             share = True
             if is_colab:
                 if debug:
@@ -535,7 +570,7 @@ class Interface:
 
         if private_endpoint is not None:
             share = True
-        # Set up shareable link 
+        # Set up shareable link
         self.share = share
 
         if share:
@@ -544,7 +579,8 @@ class Interface:
             else:
                 print(strings.en["SHARE_LINK_MESSAGE"])
             try:
-                share_url = networking.setup_tunnel(server_port, private_endpoint)
+                share_url = networking.setup_tunnel(
+                    server_port, private_endpoint)
                 self.share_url = share_url
                 print(strings.en["SHARE_LINK_DISPLAY"].format(share_url))
             except RuntimeError:
@@ -555,17 +591,17 @@ class Interface:
             share_url = None
 
         # Open a browser tab with the interface.
-        if inbrowser: 
+        if inbrowser:
             if share:
-                webbrowser.open(share_url) 
+                webbrowser.open(share_url)
             else:
-                webbrowser.open(path_to_local_server) 
-                
+                webbrowser.open(path_to_local_server)
+
         # Check if running in a Python notebook in which case, display inline
         if inline is None:
             inline = utils.ipython_check()
         if inline:
-            try:                
+            try:
                 from IPython.display import IFrame, display
                 # Embed the remote interface page if on google colab; otherwise, embed the local page.
                 print(strings.en["INLINE_DISPLAY_BELOW"])
@@ -574,27 +610,27 @@ class Interface:
                         time.sleep(1)
                     display(IFrame(share_url, width=self.width, height=self.height))
                 else:
-                    display(IFrame(path_to_local_server, width=self.width, height=self.height))
+                    display(IFrame(path_to_local_server,
+                            width=self.width, height=self.height))
             except ImportError:
                 pass  # IPython is not available so does not print inline.
 
-        send_launch_analytics(analytics_enabled=self.analytics_enabled, inbrowser=inbrowser, is_colab=is_colab, 
+        send_launch_analytics(analytics_enabled=self.analytics_enabled, inbrowser=inbrowser, is_colab=is_colab,
                               share=share, share_url=share_url)
 
         show_tip(self)
 
         # Run server perpetually under certain circumstances
-        if debug or int(os.getenv('GRADIO_DEBUG', 0))==1:
+        if debug or int(os.getenv('GRADIO_DEBUG', 0)) == 1:
             while True:
                 sys.stdout.flush()
                 time.sleep(0.1)
-        is_in_interactive_mode = bool(getattr(sys, 'ps1', sys.flags.interactive))
+        is_in_interactive_mode = bool(
+            getattr(sys, 'ps1', sys.flags.interactive))
         if not prevent_thread_lock and not is_in_interactive_mode:
             self.run_until_interrupted(thread, path_to_local_server)
 
-
         return app, path_to_local_server, share_url
-
 
     def integrate(self, comet_ml=None, wandb=None, mlflow=None):
         analytics_integration = ""
@@ -610,9 +646,11 @@ class Interface:
         if wandb is not None:
             analytics_integration = "WandB"
             if self.share_url is not None:
-                wandb.log({"Gradio panel": wandb.Html('<iframe src="' + self.share_url + '" width="' + str(self.width) + '" height="' + str(self.height) + '" frameBorder="0"></iframe>')})
+                wandb.log({"Gradio panel": wandb.Html('<iframe src="' + self.share_url + '" width="' +
+                          str(self.width) + '" height="' + str(self.height) + '" frameBorder="0"></iframe>')})
             else:
-                print("The WandB integration requires you to `launch(share=True)` first.")
+                print(
+                    "The WandB integration requires you to `launch(share=True)` first.")
         if mlflow is not None:
             analytics_integration = "MLFlow"
             if self.share_url is not None:
@@ -629,13 +667,16 @@ class Interface:
                                   'gradio-integration-analytics/',
                                   data=data, timeout=3)
                 except (
-                requests.ConnectionError, requests.exceptions.ReadTimeout):
+                        requests.ConnectionError, requests.exceptions.ReadTimeout):
                     pass  # do not push analytics if no network
 
+
 def show_tip(io):
-    if not(io.show_tips) or random.random() < 0.5:  # Only show tip every other use.
+    # Only show tip every other use.
+    if not(io.show_tips) or random.random() < 0.5:
         return
     print(random.choice(strings.en.TIPS))
+
 
 def launch_counter():
     try:
@@ -654,14 +695,16 @@ def launch_counter():
     except:
         pass
 
+
 def send_error_analytics(analytics_enabled):
     data = {'error': 'RuntimeError in launch method'}
     if analytics_enabled:
         try:
             requests.post(analytics_url + 'gradio-error-analytics/',
-                            data=data, timeout=3)
+                          data=data, timeout=3)
         except (requests.ConnectionError, requests.exceptions.ReadTimeout):
             pass  # do not push analytics if no network
+
 
 def send_launch_analytics(analytics_enabled, inbrowser, is_colab, share, share_url):
     launch_method = 'browser' if inbrowser else 'inline'
@@ -675,7 +718,7 @@ def send_launch_analytics(analytics_enabled, inbrowser, is_colab, share, share_u
         }
         try:
             requests.post(analytics_url + 'gradio-launched-analytics/',
-                            data=data, timeout=3)
+                          data=data, timeout=3)
         except (requests.ConnectionError, requests.exceptions.ReadTimeout):
             pass  # do not push analytics if no network
 

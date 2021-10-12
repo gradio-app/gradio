@@ -6,6 +6,10 @@ import shutil
 import os
 import numpy as np
 from gradio import encryptor
+import warnings
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore") # Ignore pydub warning if ffmpeg is not installed
+    from pydub import AudioSegment
 
 #########################
 # IMAGE PRE-PROCESSING
@@ -61,6 +65,26 @@ def resize_and_crop(img, size, crop_type='center'):
     else:
         raise ValueError
     return ImageOps.fit(img, size, centering=center) 
+
+##################
+# Audio
+##################
+
+def audio_from_file(filename):
+    audio = AudioSegment.from_file(filename)
+    data = np.array(audio.get_array_of_samples())
+    if (audio.channels > 1):
+        data = data.reshape(-1, audio.channels)
+    return audio.frame_rate, data
+
+def audio_to_file(sample_rate, data, filename):
+    audio = AudioSegment(
+        data.tobytes(), 
+        frame_rate=sample_rate,
+        sample_width=data.dtype.itemsize, 
+        channels=(1 if len(data.shape) == 1 else data.shape[1])
+    )
+    audio.export(filename)
 
 ##################
 # OUTPUT
