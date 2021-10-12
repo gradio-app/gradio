@@ -569,6 +569,13 @@ class Carousel(OutputComponent):
             **super().get_template_context()
         }
 
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "carousel": {},
+        }
+
+
     def postprocess(self, y):
         if isinstance(y, list):
             if len(y) != 0 and not isinstance(y[0], list):
