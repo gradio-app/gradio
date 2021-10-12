@@ -42,8 +42,7 @@ class Series(Interface):
     def __init__(self, *interfaces, **options):
         fns = [io.predict for io in interfaces]
     
-        def connected_fn(data):  # Run each function with the appropriate preprocessing and postprocessing 
-            data = [data] # put it in a list before it gets unraveled
+        def connected_fn(*data):  # Run each function with the appropriate preprocessing and postprocessing 
             for idx, io in enumerate(interfaces):
                 # skip preprocessing for first interface since the compound interface will include it
                 if idx > 0:

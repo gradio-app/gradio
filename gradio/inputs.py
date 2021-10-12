@@ -504,6 +504,12 @@ class CheckboxGroup(InputComponent):
             final_scores.append(score_set)
         return final_scores
 
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "checkboxgroup": {},
+        }
+
     def embed(self, x):
         if self.type == "value":
             return [float(choice in x) for choice in self.choices]
@@ -580,6 +586,12 @@ class Radio(InputComponent):
         scores.insert(self.choices.index(x), None)
         return scores
 
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "radio": {},
+        }
+
     def embed(self, x):
         if self.type == "value":
             return [float(choice == x) for choice in self.choices]
@@ -646,6 +658,12 @@ class Dropdown(InputComponent):
         """
         scores.insert(self.choices.index(x), None)
         return scores
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "dropdown": {},
+        }
 
     def embed(self, x):
         if self.type == "value":
@@ -941,7 +959,8 @@ class Audio(InputComponent):
     def get_shortcut_implementations(cls):
         return {
             "audio": {},
-            "microphone": {"source": "microphone"}
+            "microphone": {"source": "microphone"},
+            "mic": {"source": "microphone"}
         }
 
     def preprocess(self, x):
@@ -1268,8 +1287,13 @@ def get_input_instance(iface):
         shortcut = InputComponent.get_all_shortcut_implementations()[
             iface]
         return shortcut[0](**shortcut[1])
+    elif isinstance(iface, dict):  # a dict with `name` as the input component type and other keys as parameters
+        name = iface.pop('name')
+        component, params = InputComponent.get_all_shortcut_implementations()[name]
+        params.update(**iface)
+        return component(**params)
     elif isinstance(iface, InputComponent):
         return iface
     else:
-        raise ValueError("Input interface must be of type `str` or "
+        raise ValueError("Input interface must be of type `str` or `dict` or "
                          "`InputComponent` but is {}".format(iface))
