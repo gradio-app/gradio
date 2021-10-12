@@ -2,8 +2,6 @@ import unittest
 import gradio as gr
 import numpy as np
 import pandas as pd
-import tempfile
-
 
 class TestTextbox(unittest.TestCase):
     def test_in_interface(self):
@@ -116,7 +114,7 @@ class TestAudio(unittest.TestCase):
 
     def test_in_interface(self):
         def generate_noise(duration):
-            return 48000, np.random.randint(-256, 256, (duration, 3))
+            return 48000, np.random.randint(-256, 256, (duration, 3)).astype(np.int16)
 
         iface = gr.Interface(generate_noise, "slider", "audio")
         self.assertTrue(iface.process([100])[0][0].startswith("data:audio/wav;base64"))
