@@ -228,9 +228,14 @@ def load_interface(name, src=None, api_key=None, alias=None):
     return interface_info
 
 def interface_params_from_config(config_dict):
-    ## instantiate input component and output component TODO(@abidlabs): add component arguments
+    ## instantiate input component and output component
     config_dict["inputs"] = [inputs.get_input_instance(component) for component in config_dict["input_components"]]
-    config_dict["outputs"] = [component['name'] for component in config_dict["output_components"]]
+    config_dict["outputs"] = [outputs.get_output_instance(component) for component in config_dict["output_components"]]
+    # remove preprocessing and postprocessing (since they'll be performed remotely)
+    for component in config_dict["inputs"]:
+        component.preprocess = lambda x:x
+    for component in config_dict["outputs"]:
+        component.postprocess = lambda x:x        
     # Remove keys that are not parameters to Interface() class
     not_parameters = ("allow_embedding", "allow_interpretation", "avg_durations", "function_count",
                       "queue", "input_components", "output_components", "examples")
