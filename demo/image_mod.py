@@ -8,7 +8,7 @@ def image_mod(image):
 
 
 iface = gr.Interface(image_mod, 
-             gr.inputs.Image(type="pil", optional=True, tool="select"), 
+             gr.inputs.Image(type="pil", optional=True), 
              "image", 
              examples=[
                  ["images/cheetah1.jpg"],
