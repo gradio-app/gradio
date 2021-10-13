@@ -18,6 +18,7 @@ import pandas as pd
 import PIL
 from types import ModuleType
 from ffmpy import FFmpeg
+import requests
 
 class OutputComponent(Component):
     """
@@ -147,7 +148,7 @@ class Image(OutputComponent):
     def __init__(self, type="auto", labeled_segments=False, plot=False, label=None):
         '''
         Parameters:
-        type (str): Type of value to be passed to component. "numpy" expects a numpy array with shape (width, height, 3), "pil" expects a PIL image object, "file" expects a file path to the saved image, "plot" expects a matplotlib.pyplot object, "auto" detects return type.
+        type (str): Type of value to be passed to component. "numpy" expects a numpy array with shape (width, height, 3), "pil" expects a PIL image object, "file" expects a file path to the saved image or a remote URL, "plot" expects a matplotlib.pyplot object, "auto" detects return type.
         labeled_segments (bool): If True, expects a two-element tuple to be returned. The first element of the tuple is the image of format specified by type. The second element is a list of tuples, where each tuple represents a labeled segment within the image. The first element of the tuple is the string label of the segment, followed by 4 floats that represent the left-x, top-y, right-x, and bottom-y coordinates of the bounding box.
         plot (bool): DEPRECATED. Whether to expect a plot to be returned by the function.
         label (str): component name in interface.
@@ -194,7 +195,11 @@ class Image(OutputComponent):
                 y = np.array(y)
             out_y = processing_utils.encode_array_to_base64(y)
         elif dtype == "file":
-            out_y = processing_utils.encode_file_to_base64(y)
+            try:
+                requests.get(y)
+                out_y = processing_utils.encode_url_to_base64(y)
+            except requests.exceptions.MissingSchema:
+                out_y = processing_utils.encode_file_to_base64(y)
         elif dtype == "plot":
             out_y = processing_utils.encode_plot_to_base64(y)
         else:
