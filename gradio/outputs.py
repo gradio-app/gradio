@@ -568,13 +568,6 @@ class Carousel(OutputComponent):
             **super().get_template_context()
         }
 
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "carousel": {},
-        }
-
-
     def postprocess(self, y):
         if isinstance(y, list):
             if len(y) != 0 and not isinstance(y[0], list):
@@ -605,9 +598,12 @@ def get_output_instance(iface):
         return shortcut[0](**shortcut[1])
     elif isinstance(iface, dict):  # a dict with `name` as the output component type and other keys as parameters
         name = iface.pop('name')
-        component, params = OutputComponent.get_all_shortcut_implementations()[name]
-        params.update(**iface)
-        return component(**params)
+        for component in OutputComponent.__subclasses__():
+            if component.__name__.lower() == name:
+                break
+        else:
+            raise ValueError("No such OutputComponent: {}".format(name))
+        return component(**iface)
     elif isinstance(iface, OutputComponent):
         return iface
     else:
