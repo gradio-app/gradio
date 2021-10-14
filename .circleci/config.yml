@@ -34,7 +34,7 @@ jobs:
             . venv/bin/activate
             coverage run -m unittest
       - codecov/upload:
-          file: "".coverage"                    
+          file: '.coverage'                    
       - store_artifacts:
           path: /home/circleci/project/test/tmp
           destination: screenshots
