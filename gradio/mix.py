@@ -68,3 +68,36 @@ class Series(gradio.Interface):
         kwargs.update(options)
         super().__init__(**kwargs) 
 
+
+class DAG(gradio.Interface):
+    """
+    Defines a DAG-based structure that allows for connecting Interfaces together in various ways
+    TODO(abidlabs):
+    1. Handle empty DAG in launch()
+    2. Handle killing outputs
+    3. Setting inputs to constant values
+    """
+
+    def connect(input, output):
+        """
+        input: Interface, or (Interface, index), or Constant
+        output: Interface, or (Interface, index), or Null
+        TODO(abidlabs): Implement this
+        - Should check to make sure types are valid, or raise an error (but 
+        some collapsing might be okay. For example Label --> Text)
+        """
+        pass
+
+    def expose(output):
+        """
+        output: Interface, or (Interface, index)
+        TODO(abidlabs): Implement this
+        """
+
+class Constant():
+    def __init__(self, value):
+        self.value = value
+
+class Null():
+    def __init__(self):
+        pass
