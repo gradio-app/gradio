@@ -18,7 +18,7 @@ jobs:
     - name: Generate Report
       run: |
         pip install .
-        pip install coverage
+        pip install selenium coverage
         coverage run -m unittest
     - name: Upload Coverage to Codecov
       uses: codecov/codecov-action@v2
