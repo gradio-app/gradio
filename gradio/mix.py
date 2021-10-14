@@ -78,21 +78,29 @@ class DAG(gradio.Interface):
     3. Setting inputs to constant values
     """
 
-    def connect(input, output):
+    def connect(out, inp):
         """
-        input: Interface, or (Interface, index), or Constant
-        output: Interface, or (Interface, index), or Null
+        out: Interface, or (Interface, index), or Constant
+        in: Interface, or (Interface, index), or Null
         TODO(abidlabs): Implement this
         - Should check to make sure types are valid, or raise an error (but 
         some collapsing might be okay. For example Label --> Text)
         """
         pass
 
-    def expose(output):
+    def expose(out):
         """
-        output: Interface, or (Interface, index)
+        out: Interface, or (Interface, index)
         TODO(abidlabs): Implement this
         """
+        pass
+
+    def visualize():
+        """
+        Draw a matplotlib rendering of the graph (can assume relatively small dag)
+        TODO: low priority
+        """
+        pass
 
 class Constant():
     def __init__(self, value):
