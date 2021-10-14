@@ -7,7 +7,7 @@ jobs:
       OS: ubuntu-latest
       PYTHON: '3.9'
     steps:
-    - uses: checkout@v2
+    - uses: actions/checkout@master
       with:
         fetch-depth: ‘2’
 
@@ -20,5 +20,5 @@ jobs:
         pip install coverage
         coverage run -m unittest
     - name: Upload Coverage to Codecov
-      uses: codecov/codecov-action@v1
+      uses: codecov/codecov-action@v2
       with:
