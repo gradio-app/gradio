@@ -71,7 +71,7 @@ class Interface:
                  title=None, description=None, article=None, thumbnail=None,
                  css=None, server_port=None, server_name=networking.LOCALHOST_NAME, height=500, width=900,
                  allow_screenshot=True, allow_flagging=True, flagging_options=None, encrypt=False,
-                 show_tips=False, embedding=None, flagging_dir="flagged", analytics_enabled=True, enable_queue=False):
+                 show_tips=False, flagging_dir="flagged", analytics_enabled=True, enable_queue=False):
         """
         Parameters:
         fn (Callable): the function to wrap an interface around.
@@ -177,7 +177,6 @@ class Interface:
         self.share = None
         self.share_url = None
         self.local_url = None
-        self.embedding = embedding
         self.show_tips = show_tips
         self.requires_permissions = any(
             [component.requires_permissions for component in self.input_components])
@@ -190,7 +189,6 @@ class Interface:
                 'capture_session': capture_session,
                 'ip_address': ip_address,
                 'interpretation': interpretation,
-                'embedding': embedding,
                 'allow_flagging': allow_flagging,
                 'allow_screenshot': allow_screenshot,
                 'custom_css': self.css is not None,
@@ -259,7 +257,6 @@ class Interface:
             "allow_flagging": self.allow_flagging,
             "flagging_options": self.flagging_options,
             "allow_interpretation": self.interpretation is not None,
-            "allow_embedding": self.embedding is not None,
             "queue": self.enable_queue
         }
         try:
