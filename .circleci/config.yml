@@ -33,8 +33,9 @@ jobs:
           command: |
             . venv/bin/activate
             coverage run -m unittest
+            coverage xml
       - codecov/upload:
-          file: '.coverage'                    
+          file: 'coverage.xml'                    
       - store_artifacts:
           path: /home/circleci/project/test/tmp
           destination: screenshots
