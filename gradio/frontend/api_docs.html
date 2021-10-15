@@ -108,6 +108,16 @@
             padding: 20px;
         }
 
+        input {
+            color: #eb9f59;
+        }
+
+        .syntax {
+            display: inline-block;
+            vertical-align: top;
+            margin-block: 0;
+        }
+
     </style>
 
     <meta property="og:url" content="https://gradio.app/" />
@@ -195,7 +205,19 @@
             <p>&emsp;&emsp;&emsp;&emsp;"avg_durations": [ float ]</p>
             <p>&emsp;&emsp;}</p>
         </div>
-
+        <h4 id="try-it">Try it: </h4>
+            <div class="json">
+                <p>&emsp;&emsp;{</p>
+                <p>&emsp;&emsp;&emsp;&emsp;"data": [{%for i in range(0, len_inputs)%} <input id="input_{{i}}" placeholder="{{ input_types[i] }}">{% if i != len_inputs - 1 %},{% endif %}{%endfor%} ]</p>
+                <p>&emsp;&emsp;}</p>
+            </div>
+            <p></p>
+            <div class="json">
+                <p class="syntax">&emsp;&emsp;requests.post(url='</p><p  class="syntax" id="syntax_url"></p><p class="syntax">',</p><p class="syntax"> &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;json={"data": [</p> {%for i in range(0, len_inputs)%} <p class="syntax" id="input_syntax_{{i}}"></p>{% if i != len_inputs - 1 %}<p class="syntax">,</p>{% endif %}{%endfor%}<p class="syntax">]})</p>
+            </div>
+            <center>
+            <button id="copy_syntax" onclick="copySyntax()">COPY</button></p>
+            </center>
       </div>
   </main>
 
@@ -205,6 +227,7 @@
 
     var url = window.location.href;
     $('#api_url').html(url.concat("predict/"));
+    $('#syntax_url').html(url.concat("predict/"));
     $('#stripped_url').html(url.replace(/(^\w+:|^)\/\//, '').slice(0, -5));
 
     function copyToClipboard(element) {
@@ -218,15 +241,29 @@
     }
 
     function copySyntax(element) {
+      var to_copy = "requests.post(url='" + url + "predict/', json={'data': ["
+      for (let i = 0; i < {{len_inputs}}; i++) {
+        to_copy += "'" + $('#input_'+i).val() + "'"
+        if (i !== {{len_inputs}} - 1) {
+            to_copy += ","
+        }
+      }
+      to_copy += "]})"
+
       var $temp = $("<input>");
       $("body").append($temp);
-      $temp.val($(element).text()).select();
+      $temp.val(to_copy).select();
       document.execCommand("copy");
       $temp.remove();
       $('#copy_syntax').html("COPIED!");
       setTimeout(() => {$('#copy_syntax').html("COPY"); }, 1500);
     }
 
+    for (let i = 0; i < {{len_inputs}}; i++) {
+        $('#input_'+i).keyup(function () {
+            $('#input_syntax_'+i).html("'" + $(this).val() + "'");
+        });
+    };
 </script>
 </body>
 
