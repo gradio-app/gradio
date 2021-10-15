@@ -71,9 +71,9 @@
     <div id="docs-content">
         <h2>
             <img src="https://i.ibb.co/6DVLqmf/noun-tools-2220412.png" style="width: 6%;vertical-align: middle;">
-            Predict API Docs for: <span>XXXXX.gradio.app</span></h2>
+            Predict API Docs for: <span id="stripped_url"></span></h2>
         <p>This interface takes in <span><strong>{{ len_inputs }}</strong></span> input(s) and returns <span> <strong>{{ len_outputs }}</strong></span> output(s).</p>
-        <p>The URL endpoint is: <span id="api_url">{{ api_url }}</span>
+        <p>The URL endpoint is: <span id="api_url"></span>
         <button id="copy-button" onclick="copyToClipboard('#api_url')">COPY</button></p>
 
         <h3 id="inputs">Input(s): <span>[{%for i in range(0, len_inputs)%} <a href="https://gradio.app/docs#i_{{ inputs_lower[i] }}">{{inputs[i]}}</a>{% if i != len_inputs - 1 %},{% endif %}{%endfor%} ]</span></h3>
@@ -118,6 +118,10 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 
 <script>
+
+    var url = window.location.href;
+    $('#api_url').html(url.concat("predict/"));
+    $('#stripped_url').html(url.replace(/(^\w+:|^)\/\//, '').slice(0, -5));
     function copyToClipboard(element) {
       var $temp = $("<input>");
       $("body").append($temp);
