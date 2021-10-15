@@ -95,7 +95,7 @@
             background: #c0e8c5;
             padding: 5px;
         }
-        #copy-button, #copy_syntax {
+        #copy-button, #copy_syntax, #post-button {
             background: none;
             border: none;
             font: inherit;
@@ -163,7 +163,7 @@
 
         <a href="#payload"><h4>Payload</h4></a>
         <a href="#response"><h4>Response</h4></a>
-
+        <a href="#try-it"><h4>Try It</h4></a>
     </div>
 
     <div id="docs-content">
@@ -216,8 +216,12 @@
                 <p class="syntax">&emsp;&emsp;requests.post(url='</p><p  class="syntax" id="syntax_url"></p><p class="syntax">',</p><p class="syntax"> &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;json={"data": [</p> {%for i in range(0, len_inputs)%} <p class="syntax" id="input_syntax_{{i}}"></p>{% if i != len_inputs - 1 %}<p class="syntax">,</p>{% endif %}{%endfor%}<p class="syntax">]})</p>
             </div>
             <center>
-            <button id="copy_syntax" onclick="copySyntax()">COPY</button></p>
+            <button id="post-button" onclick="postRequest()">POST</button>
+            <button id="copy_syntax" onclick="copySyntax()">COPY</button>
             </center>
+            <div class="json">
+                <p id="post-response"></p>
+            </div>
       </div>
   </main>
 
@@ -264,6 +268,27 @@
             $('#input_syntax_'+i).html("'" + $(this).val() + "'");
         });
     };
+
+    function postRequest() {
+     let input_arr = [];
+        for (let i = 0; i < {{len_inputs}}; i++) {
+            input_arr.push($('#input_'+i).val());
+        };
+
+
+    let data = {"data": input_arr};
+    fetch(url + 'predict/', {
+      method: "POST",
+      body: JSON.stringify(data),
+      headers: { "Content-Type": "application/json" }
+    }).then(res => {
+      console.log(res.json());
+<!--      $('#post-response').html(res.json());-->
+    });
+
+    $('#post-button').html("POSTED!");
+      setTimeout(() => {$('#post-button').html("POST"); }, 1500);
+}
 </script>
 </body>
 
