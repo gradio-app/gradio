@@ -198,12 +198,12 @@ def predict():
     return jsonify(output)
 
 
-def get_types(cls_set):
+def get_types(cls_set, component):
     docset = []
     for cls in cls_set:
         doc = inspect.getdoc(cls)
         doc_lines = doc.split("\n")
-        docset.append(doc_lines[-2].split("type: ")[-1])
+        docset.append(doc_lines[-2].split(f"Raw {component}: ")[-1])
     return docset
 
 
@@ -211,7 +211,7 @@ def get_types(cls_set):
 def api_docs():
     inputs = [type(inp) for inp in app.interface.input_components]
     outputs = [type(out) for out in app.interface.output_components]
-    input_types, output_types = get_types(inputs), get_types(outputs)
+    input_types, output_types = get_types(inputs, "input"), get_types(outputs, "output")
     input_names = [type(inp).__name__ for inp in app.interface.input_components]
     output_names = [type(out).__name__ for out in app.interface.output_components]
     docs = {

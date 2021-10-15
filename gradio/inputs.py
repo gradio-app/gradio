@@ -73,6 +73,7 @@ class Textbox(InputComponent):
     """
     Component creates a textbox for user to enter input. Provides a string as an argument to the wrapped function.
     Input type: str
+    Raw input: str
     Demos: hello_world.py, diff_texts.py
     """
 
@@ -189,8 +190,9 @@ class Textbox(InputComponent):
 
 class Number(InputComponent):
     """
-    Component creates a field for user to enter numeric input. Provides a nuber as an argument to the wrapped function.
+    Component creates a field for user to enter numeric input. Provides a number as an argument to the wrapped function.
     Input type: float
+    Raw input: float
     Demos: tax_calculator.py, titanic_survival.py
     """
 
@@ -271,6 +273,7 @@ class Slider(InputComponent):
     """
     Component creates a slider that ranges from `minimum` to `maximum`. Provides a number as an argument to the wrapped function.
     Input type: float
+    Raw input: float
     Demos: sentence_builder.py, generate_tone.py, titanic_survival.py
     """
 
@@ -341,6 +344,7 @@ class Checkbox(InputComponent):
     """
     Component creates a checkbox that can be set to `True` or `False`. Provides a boolean as an argument to the wrapped function.
     Input type: bool
+    Raw input: bool
     Demos: sentence_builder.py, titanic_survival.py
     """
 
@@ -398,6 +402,7 @@ class CheckboxGroup(InputComponent):
     """
     Component creates a set of checkboxes of which a subset can be selected. Provides a list of strings representing the selected choices as an argument to the wrapped function.
     Input type: Union[List[str], List[int]]
+    Raw input: Union[List[str], List[int]]
     Demos: sentence_builder.py, titanic_survival.py, fraud_detector.py
     """
 
@@ -477,6 +482,7 @@ class Radio(InputComponent):
     """
     Component creates a set of radio buttons of which only one can be selected. Provides string representing selected choice as an argument to the wrapped function.
     Input type: Union[str, int]
+    Raw input: Union[str, int]
     Demos: sentence_builder.py, tax_calculator.py, titanic_survival.py
     """
 
@@ -535,6 +541,7 @@ class Dropdown(InputComponent):
     """
     Component creates a dropdown of which only one can be selected. Provides string representing selected choice as an argument to the wrapped function.
     Input type: Union[str, int]
+    Raw input: Union[str, int]
     Demos: sentence_builder.py, filter_records.py, titanic_survival.py
     """
 
@@ -592,6 +599,7 @@ class Image(InputComponent):
     """
     Component creates an image upload box with editing capabilities. 
     Input type: Union[numpy.array, PIL.Image, file-object]
+    Raw input: Base64 str
     Demos: image_classifier.py, image_mod.py, webcam.py, digit_classifier.py
     """
 
@@ -764,6 +772,7 @@ class Video(InputComponent):
     """
     Component creates a video file upload that is converted to a file path.
     Input type: filepath
+    Raw input: filepath
     Demos: video_flip.py
     """
 
@@ -827,6 +836,7 @@ class Audio(InputComponent):
     """
     Component accepts audio input files. 
     Input type: Union[Tuple[int, numpy.array], file-object, numpy.array]
+    Raw input: filepath
     Demos: main_note.py, reverse_audio.py, spectogram.py
     """
 
@@ -967,6 +977,7 @@ class File(InputComponent):
     """
     Component accepts generic file uploads.
     Input type: Union[file-object, bytes, List[Union[file-object, bytes]]]
+    Raw input: file-object
     Demos: zip_to_json.py, zip_two_files.py
     """
 
@@ -1037,6 +1048,7 @@ class Dataframe(InputComponent):
     """
     Component accepts 2D input through a spreadsheet interface.
     Input type: Union[pandas.DataFrame, numpy.array, List[Union[str, float]], List[List[Union[str, float]]]]
+    Raw input: List
     Demos: filter_records.py, matrix_transpose.py, tax_calculator.py
     """
 
@@ -1119,6 +1131,7 @@ class Timeseries(InputComponent):
     """
     Component accepts pandas.DataFrame uploaded as a timeseries csv file.
     Input type: pandas.DataFrame
+    Raw input: List
     Demos: fraud_detector.py
     """
 

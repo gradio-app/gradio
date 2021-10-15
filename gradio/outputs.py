@@ -36,6 +36,7 @@ class Textbox(OutputComponent):
     '''
     Component creates a textbox to render output text or number.
     Output type: Union[str, float, int]
+    Raw output: Union[str, float, int]
     Demos: hello_world.py, sentence_builder.py
     '''
 
@@ -75,6 +76,7 @@ class Label(OutputComponent):
     '''
     Component outputs a classification label, along with confidence scores of top categories if provided. Confidence scores are represented as a dictionary mapping labels to scores between 0 and 1.
     Output type: Union[Dict[str, float], str, int, float]
+    Raw output: Union[Dict[str, float], str, int, float]
     Demos: image_classifier.py, main_note.py, titanic_survival.py
     '''
 
@@ -142,6 +144,7 @@ class Image(OutputComponent):
     '''
     Component displays an output image. 
     Output type: Union[numpy.array, PIL.Image, str, matplotlib.pyplot, Tuple[Union[numpy.array, PIL.Image, str], List[Tuple[str, float, float, float, float]]]]
+    Raw output: Base64 str
     Demos: image_mod.py, webcam.py
     '''
 
@@ -218,6 +221,7 @@ class Video(OutputComponent):
     '''
     Used for video output.     
     Output type: filepath
+    Raw output: file-obj
     Demos: video_flip.py
     '''
 
@@ -264,6 +268,7 @@ class KeyValues(OutputComponent):
     '''
     Component displays a table representing values for multiple fields. 
     Output type: Union[Dict, List[Tuple[str, Union[str, int, float]]]]
+    Raw output: Union[Dict, List[Tuple[str, Union[str, int, float]]]]
     Demos: text_analysis.py
     '''
 
@@ -301,6 +306,7 @@ class HighlightedText(OutputComponent):
     Component creates text that contains spans that are highlighted by category or numerical value.
     Output is represent as a list of Tuple pairs, where the first element represents the span of text represented by the tuple, and the second element represents the category or value of the text.
     Output type: List[Tuple[str, Union[float, str]]]
+    Raw output: List[Tuple[str, Union[float, str]]]
     Demos: diff_texts.py, text_analysis.py
     '''
 
@@ -339,6 +345,7 @@ class Audio(OutputComponent):
     '''
     Creates an audio player that plays the output audio.
     Output type: Union[Tuple[int, numpy.array], str]
+    Raw output: file-object
     Demos: generate_tone.py, reverse_audio.py
     '''
 
@@ -385,6 +392,7 @@ class JSON(OutputComponent):
     '''
     Used for JSON output. Expects a JSON string or a Python object that is JSON serializable. 
     Output type: Union[str, Any]
+    Raw output: Union[str, Any]
     Demos: zip_to_json.py
     '''
 
@@ -418,6 +426,7 @@ class HTML(OutputComponent):
     '''
     Used for HTML output. Expects an HTML valid string. 
     Output type: str
+    Raw output: str
     Demos: text_analysis.py
     '''
 
@@ -473,6 +482,7 @@ class Dataframe(OutputComponent):
     """
     Component displays 2D output through a spreadsheet interface.
     Output type: Union[pandas.DataFrame, numpy.array, List[Union[str, float]], List[List[Union[str, float]]]]
+    Raw output: file-object
     Demos: filter_records.py, matrix_transpose.py, fraud_detector.py
     """
 
@@ -547,6 +557,7 @@ class Carousel(OutputComponent):
     """
     Component displays a set of output components that can be scrolled through.
     Output type: List[List[Any]]
+    Raw output: List[List[Any]]
     Demos: disease_report.py
     """
 
@@ -617,6 +628,7 @@ class Timeseries(OutputComponent):
     """
     Component accepts pandas.DataFrame.
     Output type: pandas.DataFrame
+    Raw output: pandas.DataFrame
     Demos: fraud_detector.py
     """
 
