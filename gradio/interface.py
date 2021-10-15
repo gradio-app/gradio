@@ -215,8 +215,11 @@ class Interface:
             except (requests.ConnectionError, requests.exceptions.ReadTimeout):
                 pass  # do not push analytics if no network
 
-    def __call__(self, params_per_function):
-        return self.predict[0](params_per_function)
+    def __call__(self, *params):
+        output = [p(*params) for p in self.predict]
+        if len(output) == 1:
+            return output.pop()  # if there's only one output, then don't return as list
+        return output
 
     def __str__(self):
         return self.__repr__()
@@ -601,7 +604,6 @@ class Interface:
             try:
                 from IPython.display import IFrame, display
                 # Embed the remote interface page if on google colab; otherwise, embed the local page.
-                print(strings.en["INLINE_DISPLAY_BELOW"])
                 if share:
                     while not networking.url_ok(share_url):
                         time.sleep(1)
