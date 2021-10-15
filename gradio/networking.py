@@ -25,6 +25,7 @@ from gradio import encryptor
 from gradio import queue
 from functools import wraps
 import io
+import inspect
 
 INITIAL_PORT_VALUE = int(os.getenv(
     'GRADIO_SERVER_PORT', "7860"))  # The http server will try to open on port 7860. If not available, 7861, 7862, etc.
@@ -195,6 +196,35 @@ def predict():
             print(str(e))
             pass
     return jsonify(output)
+
+
+def get_types(cls_set):
+    docset = []
+    for cls in cls_set:
+        doc = inspect.getdoc(cls)
+        doc_lines = doc.split("\n")
+        docset.append(doc_lines[-2].split("type: ")[-1])
+    return docset
+
+
+@app.route("/api/", methods=["GET"])
+def api_docs():
+    inputs = [type(inp) for inp in app.interface.input_components]
+    outputs = [type(out) for out in app.interface.output_components]
+    input_types, output_types = get_types(inputs), get_types(outputs)
+    input_names = [type(inp).__name__ for inp in app.interface.input_components]
+    output_names = [type(out).__name__ for out in app.interface.output_components]
+    docs = {
+        "inputs": input_names,
+        "outputs": output_names,
+        "len_inputs": len(inputs),
+        "len_outputs": len(outputs),
+        "inputs_lower": [name.lower() for name in input_names],
+        "outputs_lower": [name.lower() for name in output_names],
+        "input_types": input_types,
+        "output_types": output_types,
+    }
+    return render_template("api_docs.html", **docs)
 
 
 def log_feature_analytics(feature):
