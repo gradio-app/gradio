@@ -168,55 +168,6 @@ def get_huggingface_interface(model_name, api_key, alias):
 
     return interface_info
 
-def get_gradio_interface(model_name, api_key, alias):
-    model_info = requests.get("https://gradio.app/get_config/{}".format(model_name)).json()
-    config_info = json.loads(model_info["config"])
-    api_url = "{}/api/predict/".format(model_info["url"])
-
-    headers = {
-        'authority': model_info["url"],
-        'sec-ch-ua': '" Not A;Brand";v="99", "Chromium";v="90", "Microsoft Edge";v="90"',
-        'accept': 'application/json, text/javascript, */*; q=0.01',
-        'sec-ch-ua-mobile': '?1',
-        'user-agent': 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Mobile Safari/537.36 Edg/90.0.818.56',
-        'content-type': 'application/json; charset=UTF-8',
-        'origin': 'https://gradio.app',
-        'sec-fetch-site': 'cross-site',
-        'sec-fetch-mode': 'cors',
-        'sec-fetch-dest': 'empty',
-        'referer': 'https://gradio.app/',
-        'accept-language': 'en-US,en;q=0.9',
-    }
-
-    def query_gradio_api(*input):
-        payload = pipeline['preprocess'](*input)
-        data = json.dumps(payload)
-        response = requests.post(api_url, headers=headers, data=data)
-        result = json.loads(response.content.decode("utf-8"))
-        output = pipeline['postprocess'](result)
-        return output
-
-    if alias is None:
-        query_gradio_api.__name__ = model_name
-    else:
-        query_gradio_api.__name__ = alias
-
-    pipeline = {
-        'inputs': [inp[0] for inp in config_info["input_components"]],
-        'outputs': [out[0] for out in config_info["output_components"]],
-        'preprocess': lambda x: {"data": [x]},
-        'postprocess': lambda r: r["data"][0],
-    }
-
-    interface_info = {
-        'fn': query_gradio_api, 
-        'inputs': pipeline['inputs'],
-        'outputs': pipeline['outputs'],
-        'title': model_name,
-    }
-
-    return interface_info
-
 def load_interface(name, src=None, api_key=None, alias=None):
     if src is None:
         tokens = name.split("/")
@@ -244,7 +195,6 @@ def interface_params_from_config(config_dict):
             del config_dict[key]
     return config_dict
 
-
 def get_spaces_interface(model_name, api_key, alias):
     iframe_url = "https://huggingface.co/gradioiframe/{}/+".format(model_name)
     api_url = "https://huggingface.co/gradioiframe/{}/api/predict/".format(model_name)
@@ -264,16 +214,18 @@ def get_spaces_interface(model_name, api_key, alias):
         if len(interface_info["outputs"])==1:  # if the fn is supposed to return a single value, pop it
             output = output[0]
         return output
-    interface_info["fn"] = fn
      
-    if alias is not None:
-        interface_info["title"] = alias
+    if alias is None:
+        fn.__name__ = model_name
+    else:
+        fn.__name__ = alias
+    interface_info["fn"] = fn
+
     return interface_info
 
 repos = {
     # for each repo, we have a method that returns the Interface given the model name & optionally an api_key
     "huggingface": get_huggingface_interface,
-    "gradio": get_gradio_interface,
     "spaces": get_spaces_interface,
 }
 
