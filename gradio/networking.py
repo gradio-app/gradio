@@ -179,7 +179,7 @@ def enable_sharing(path):
 def predict():
     raw_input = request.json["data"]
     # If in debug mode, capture any errors made and pipe to front end
-    if app.interface.debug:
+    if app.interface.show_error:
         try:
             prediction, durations = app.interface.process(raw_input)
         except BaseException as error:
