@@ -188,6 +188,11 @@ class TestDataframe(unittest.TestCase):
             iface.process([[2, 3, 4]])[0][0], 
             {"data": [[True, False, True]]})
 
+class TestNames(unittest.TestCase):
+    def test_no_duplicate_uncased_names(self):  # this ensures that get_input_instance() works correctly when instantiating from components
+        subclasses = gr.outputs.OutputComponent.__subclasses__()
+        unique_subclasses_uncased = set([s.__name__.lower() for s in subclasses])
+        self.assertEqual(len(subclasses), len(unique_subclasses_uncased))
 
 if __name__ == '__main__':
     unittest.main()

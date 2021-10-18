@@ -71,7 +71,7 @@ class Interface:
                  title=None, description=None, article=None, thumbnail=None,
                  css=None, server_port=None, server_name=networking.LOCALHOST_NAME, height=500, width=900,
                  allow_screenshot=True, allow_flagging=True, flagging_options=None, encrypt=False,
-                 show_tips=False, embedding=None, flagging_dir="flagged", analytics_enabled=True, enable_queue=False):
+                 show_tips=False, flagging_dir="flagged", analytics_enabled=True, enable_queue=False):
         """
         Parameters:
         fn (Callable): the function to wrap an interface around.
@@ -177,7 +177,6 @@ class Interface:
         self.share = None
         self.share_url = None
         self.local_url = None
-        self.embedding = embedding
         self.show_tips = show_tips
         self.requires_permissions = any(
             [component.requires_permissions for component in self.input_components])
@@ -190,7 +189,6 @@ class Interface:
                 'capture_session': capture_session,
                 'ip_address': ip_address,
                 'interpretation': interpretation,
-                'embedding': embedding,
                 'allow_flagging': allow_flagging,
                 'allow_screenshot': allow_screenshot,
                 'custom_css': self.css is not None,
@@ -217,8 +215,11 @@ class Interface:
             except (requests.ConnectionError, requests.exceptions.ReadTimeout):
                 pass  # do not push analytics if no network
 
-    def __call__(self, params_per_function):
-        return self.predict[0](params_per_function)
+    def __call__(self, *params):
+        output = [p(*params) for p in self.predict]
+        if len(output) == 1:
+            return output.pop()  # if there's only one output, then don't return as list
+        return output
 
     def __str__(self):
         return self.__repr__()
@@ -259,7 +260,6 @@ class Interface:
             "allow_flagging": self.allow_flagging,
             "flagging_options": self.flagging_options,
             "allow_interpretation": self.interpretation is not None,
-            "allow_embedding": self.embedding is not None,
             "queue": self.enable_queue
         }
         try:
@@ -604,7 +604,6 @@ class Interface:
             try:
                 from IPython.display import IFrame, display
                 # Embed the remote interface page if on google colab; otherwise, embed the local page.
-                print(strings.en["INLINE_DISPLAY_BELOW"])
                 if share:
                     while not networking.url_ok(share_url):
                         time.sleep(1)
