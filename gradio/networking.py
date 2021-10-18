@@ -127,7 +127,6 @@ def get_first_available_port(initial, final):
 @app.route("/", methods=["GET"])
 @login_check
 def main():
-    session.clear()
     session["state"] = None
     return render_template("index.html", config=app.interface.config)
 
