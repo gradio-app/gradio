@@ -184,7 +184,7 @@ def predict():
             prediction, durations = app.interface.process(raw_input)
         except BaseException as error:
             traceback.print_exc()
-            return jsonify({"error": traceback.format_exc()})
+            return jsonify({"error": traceback.format_exc()}), 500
     else:
         prediction, durations = app.interface.process(raw_input)
     # Get running average of prediction times
