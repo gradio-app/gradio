@@ -210,7 +210,7 @@ class Image(OutputComponent):
         return out_y, coordinates
 
     def deserialize(self, x):
-        raise processing_utils.decode_base64_to_file(x).name
+        return processing_utils.decode_base64_to_file(x).name
 
     def save_flagged(self, dir, label, data, encryption_key):
         """
@@ -259,7 +259,7 @@ class Video(OutputComponent):
         }
 
     def deserialize(self, x):
-        raise processing_utils.decode_base64_to_file(x).name
+        return processing_utils.decode_base64_to_file(x).name
 
     def save_flagged(self, dir, label, data, encryption_key):
         """
@@ -383,7 +383,7 @@ class Audio(OutputComponent):
                              ". Please choose from: 'numpy', 'file'.")
 
     def deserialize(self, x):
-        raise processing_utils.decode_base64_to_file(x).name
+        return processing_utils.decode_base64_to_file(x).name
 
     def save_flagged(self, dir, label, data, encryption_key):
         """

@@ -219,7 +219,7 @@ class Interface:
 
     def __call__(self, *params):
         if self.api_mode:  # skip the preprocessing/postprocessing if sending to a remote API
-            output = self.run_prediction(params)
+            output = self.run_prediction(params, called_directly=True)
         else:
             output, _ = self.process(params) 
         return output[0] if len(output) == 1 else output
@@ -311,9 +311,9 @@ class Interface:
                 config["examples"] = self.examples
         return config
 
-    def run_prediction(self, processed_input, return_duration=False):
+    def run_prediction(self, processed_input, return_duration=False, called_directly=False):
         if self.api_mode:  # Serialize the input
-            processed_input = [input_component.serialize(processed_input[i])
+            processed_input = [input_component.serialize(processed_input[i], called_directly)
                             for i, input_component in enumerate(self.input_components)]
         predictions = []
         durations = []
@@ -336,12 +336,12 @@ class Interface:
             if len(self.output_components) == len(self.predict):
                 prediction = [prediction]
 
+            if self.api_mode:  # Serialize the input
+                prediction = [output_component.deserialize(prediction[o])
+                                for o, output_component in enumerate(self.output_components)]
+
             durations.append(duration)
             predictions.extend(prediction)
-
-        if self.api_mode:  # Serialize the input
-            predictions = [output_component.deserialize(predictions[o])
-                            for o, output_component in enumerate(self.output_components)]
 
         if return_duration:
             return predictions, durations
