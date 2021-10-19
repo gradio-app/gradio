@@ -209,6 +209,9 @@ class Image(OutputComponent):
                              ". Please choose from: 'numpy', 'pil', 'file', 'plot'.")
         return out_y, coordinates
 
+    def deserialize(self, x):
+        raise processing_utils.decode_base64_to_file(x).name
+
     def save_flagged(self, dir, label, data, encryption_key):
         """
         Returns: (str) path to image file
@@ -254,6 +257,9 @@ class Video(OutputComponent):
             "name": os.path.basename(y),
             "data": processing_utils.encode_file_to_base64(y, type="video")
         }
+
+    def deserialize(self, x):
+        raise processing_utils.decode_base64_to_file(x).name
 
     def save_flagged(self, dir, label, data, encryption_key):
         """
@@ -375,6 +381,9 @@ class Audio(OutputComponent):
         else:
             raise ValueError("Unknown type: " + self.type +
                              ". Please choose from: 'numpy', 'file'.")
+
+    def deserialize(self, x):
+        raise processing_utils.decode_base64_to_file(x).name
 
     def save_flagged(self, dir, label, data, encryption_key):
         """
