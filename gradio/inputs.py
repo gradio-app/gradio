@@ -32,9 +32,9 @@ class InputComponent(Component):
         """
         return x
 
-    def serialize(self, x):
+    def serialize(self, x, called_directly):
         """
-        Convert from a human-readable version of the input (path of an image, URL of a video, etc.) used to call() the interface to a serialized version (e.g. base64) to pass into an API
+        Convert from a human-readable version of the input (path of an image, URL of a video, etc.) used to call() the interface to a serialized version (e.g. base64) to pass into an API. May do different things if the interface is called() vs. used via GUI.
         """
         return x
 
@@ -674,8 +674,9 @@ class Image(InputComponent):
     def preprocess_example(self, x):
         return processing_utils.encode_file_to_base64(x)
 
-    def serialize(self, x):
-        if self.type == "filepath":
+    def serialize(self, x, called_directly=False):
+        # if called directly, can assume it's a URL or filepath
+        if self.type == "filepath" or called_directly:
             return processing_utils.encode_url_or_file_to_base64(x)
         elif self.type == "file":
             return processing_utils.encode_url_or_file_to_base64(x.name)
@@ -839,7 +840,7 @@ class Video(InputComponent):
         else:
             return file_name
 
-    def serialize(self, x):
+    def serialize(self, x, called_directly):
         raise NotImplementedError()
 
     def preprocess_example(self, x):
@@ -913,8 +914,8 @@ class Audio(InputComponent):
     def preprocess_example(self, x):
         return processing_utils.encode_file_to_base64(x, type="audio")
 
-    def serialize(self, x):
-        if self.type == "filepath":
+    def serialize(self, x, called_directly):
+        if self.type == "filepath" or called_directly:
             name = x
         elif self.type == "file":
             name = x.name

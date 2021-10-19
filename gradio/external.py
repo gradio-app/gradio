@@ -119,14 +119,14 @@ def get_huggingface_interface(model_name, api_key, alias):
             'inputs': inputs.Textbox(label="Input"),
             'outputs': outputs.Audio(label="Audio"),
             'preprocess': lambda x: {"inputs": x},
-            'postprocess': lambda x: base64.b64encode(x),
+            'postprocess': lambda x: base64.b64encode(x.content).decode('utf-8'),
         },
         'text-to-image': {
             # example model: hf.co/osanseviero/BigGAN-deep-128
             'inputs': inputs.Textbox(label="Input"),
             'outputs': outputs.Image(label="Output"),
             'preprocess': lambda x: {"inputs": x},
-            'postprocess': lambda x: base64.b64encode(x),
+            'postprocess': lambda x: base64.b64encode(x.content).decode('utf-8'),
         },
     }
 
@@ -201,13 +201,14 @@ def get_spaces_interface(model_name, api_key, alias):
         output = result["data"]
         if len(interface_info["outputs"])==1:  # if the fn is supposed to return a single value, pop it
             output = output[0]
+        if len(interface_info["outputs"])==1 and isinstance(output, list):  # not sure why this is needed but it fixes the bug
+            output = output[0]
         return output
      
     fn.__name__ = alias if alias else model_name
     interface_info["fn"] = fn
     interface_info["api_mode"] = True
     
-    print(interface_info)
     return interface_info
 
 repos = {
