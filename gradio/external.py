@@ -3,6 +3,7 @@ import tempfile
 import requests
 from gradio import inputs, outputs
 import re
+import base64
 
 
 def get_huggingface_interface(model_name, api_key, alias):
@@ -27,46 +28,46 @@ def get_huggingface_interface(model_name, api_key, alias):
             'inputs': [inputs.Textbox(label="Context", lines=7), inputs.Textbox(label="Question")],
             'outputs': [outputs.Textbox(label="Answer"), outputs.Label(label="Score")],
             'preprocess': lambda c, q: {"inputs": {"context": c, "question": q}},
-            'postprocess': lambda r: (r["answer"], r["score"]),
+            'postprocess': lambda r: (r.json()["answer"], r.json()["score"]),
             # 'examples': [['My name is Sarah and I live in London', 'Where do I live?']]
         },
         'text-generation': {
             'inputs': inputs.Textbox(label="Input"),
             'outputs': outputs.Textbox(label="Output"),
             'preprocess': lambda x: {"inputs": x},
-            'postprocess': lambda r: r[0]["generated_text"],
+            'postprocess': lambda r: r.json()[0]["generated_text"],
             # 'examples': [['My name is Clara and I am']]
         },
         'summarization': {
             'inputs': inputs.Textbox(label="Input"),
             'outputs': outputs.Textbox(label="Summary"),
             'preprocess': lambda x: {"inputs": x},
-            'postprocess': lambda r: r[0]["summary_text"]
+            'postprocess': lambda r: r.json()[0]["summary_text"]
         },
         'translation': {
             'inputs': inputs.Textbox(label="Input"),
             'outputs': outputs.Textbox(label="Translation"),
             'preprocess': lambda x: {"inputs": x},
-            'postprocess': lambda r: r[0]["translation_text"]
+            'postprocess': lambda r: r.json()[0]["translation_text"]
         },
         'text2text-generation': {
             'inputs': inputs.Textbox(label="Input"),
             'outputs': outputs.Textbox(label="Generated Text"),
             'preprocess': lambda x: {"inputs": x},
-            'postprocess': lambda r: r[0]["generated_text"]
+            'postprocess': lambda r: r.json()[0]["generated_text"]
         },
         'text-classification': {
             'inputs': inputs.Textbox(label="Input"),
             'outputs': outputs.Label(label="Classification"),
             'preprocess': lambda x: {"inputs": x},
-            'postprocess': lambda r: {'Negative': r[0][0]["score"],
-                                      'Positive': r[0][1]["score"]}
+            'postprocess': lambda r: {'Negative': r.json()[0][0]["score"],
+                                      'Positive': r.json()[0][1]["score"]}
         },
         'fill-mask': {
             'inputs': inputs.Textbox(label="Input"),
             'outputs': "label",
             'preprocess': lambda x: {"inputs": x},
-            'postprocess': lambda r: {i["token_str"]: i["score"] for i in r}
+            'postprocess': lambda r: {i["token_str"]: i["score"] for i in r.json()}
         },
         'zero-shot-classification': {
             'inputs': [inputs.Textbox(label="Input"),
@@ -76,29 +77,28 @@ def get_huggingface_interface(model_name, api_key, alias):
             'outputs': "label",
             'preprocess': lambda i, c, m: {"inputs": i, "parameters":
             {"candidate_labels": c, "multi_class": m}},
-            'postprocess': lambda r: {r["labels"][i]: r["scores"][i] for i in
-                                      range(len(r["labels"]))}
+            'postprocess': lambda r: {r.json()["labels"][i]: r.json()["scores"][i] for i in
+                                      range(len(r.json()["labels"]))}
         },
         'automatic-speech-recognition': {
             'inputs': inputs.Audio(label="Input", source="upload",
-                                   type="file"),
+                                   type="filepath"),
             'outputs': outputs.Textbox(label="Output"),
             'preprocess': lambda i: {"inputs": i},
-            'postprocess': lambda r: r["text"]
+            'postprocess': lambda r: r.json()["text"]
         },
         'image-classification': {
-            'inputs': inputs.Image(label="Input Image", type="file"),
+            'inputs': inputs.Image(label="Input Image", type="filepath"),
             'outputs': outputs.Label(label="Classification"),
-            'preprocess': lambda i: i,
-            'postprocess': lambda r: {i["label"].split(", ")[0]: i["score"] for
-                                      i in r}
+            'preprocess': lambda i: base64.b64decode(i.split(",")[1]),  # convert the base64 representation to binary
+            'postprocess': lambda r: {i["label"].split(", ")[0]: i["score"] for i in r.json()}
         },
         'feature-extraction': {
             # example model: hf.co/julien-c/distilbert-feature-extraction
             'inputs': inputs.Textbox(label="Input"),
             'outputs': outputs.Dataframe(label="Output"),
             'preprocess': lambda x: {"inputs": x},
-            'postprocess': lambda r: r[0],
+            'postprocess': lambda r: r.json()[0],
         },
         'sentence-similarity': {
             # example model: hf.co/sentence-transformers/distilbert-base-nli-stsb-mean-tokens
@@ -111,7 +111,7 @@ def get_huggingface_interface(model_name, api_key, alias):
                 "source_sentence": src,
                 "sentences": [s for s in sentences.splitlines() if s != ""],
             }},
-            'postprocess': lambda r: { f"sentence {i}": v for i, v in enumerate(r) },
+            'postprocess': lambda r: { f"sentence {i}": v for i, v in enumerate(r.json()) },
         },
         'text-to-speech': {
             # example model: hf.co/julien-c/ljspeech_tts_train_tacotron2_raw_phn_tacotron_g2p_en_no_space_train
@@ -134,23 +134,16 @@ def get_huggingface_interface(model_name, api_key, alias):
     
     pipeline = pipelines[p]
 
-    def query_huggingface_api(*input):
-        payload = pipeline['preprocess'](*input)
-        if p == 'automatic-speech-recognition' or p == 'image-classification':
-            with open(input[0].name, "rb") as f:
-                data = f.read()
-        else:
-            payload.update({'options': {'wait_for_model': True}})
-            data = json.dumps(payload)
-        response = requests.request("POST", api_url, headers=headers, data=data)
-        if response.status_code == 200:
-            if p == 'text-to-speech' or p == 'text-to-image':
-                output = pipeline['postprocess'](response)
-            else:
-                result = response.json()
-                output = pipeline['postprocess'](result)
-        else:
+    def query_huggingface_api(*params):
+        # Convert to a list of input components
+        data = pipeline['preprocess'](*params)
+        if isinstance(data, dict):  # HF doesn't allow additional parameters for binary files (e.g. images or audio files)
+            data.update({'options': {'wait_for_model': True}})
+            data = json.dumps(data)
+        response = requests.request("POST", api_url, headers=headers, data=data)        
+        if not(response.status_code == 200):
             raise ValueError("Could not complete request to HuggingFace API, Error {}".format(response.status_code))
+        output = pipeline['postprocess'](response)
         return output
     
     if alias is None:
@@ -163,14 +156,14 @@ def get_huggingface_interface(model_name, api_key, alias):
         'inputs': pipeline['inputs'],
         'outputs': pipeline['outputs'],
         'title': model_name,
-        # 'examples': pipeline['examples'],
+        'api_mode': True,
     }
 
     return interface_info
 
 def load_interface(name, src=None, api_key=None, alias=None):
     if src is None:
-        tokens = name.split("/")
+        tokens = name.split("/")  # Separate the source (e.g. "huggingface") from the repo name (e.g. "google/vit-base-patch16-224")
         assert len(tokens) > 1, "Either `src` parameter must be provided, or `name` must be formatted as \{src\}/\{repo name\}"
         src = tokens[0]
         name = "/".join(tokens[1:])
@@ -182,11 +175,12 @@ def interface_params_from_config(config_dict):
     ## instantiate input component and output component
     config_dict["inputs"] = [inputs.get_input_instance(component) for component in config_dict["input_components"]]
     config_dict["outputs"] = [outputs.get_output_instance(component) for component in config_dict["output_components"]]
-    # remove preprocessing and postprocessing (since they'll be performed remotely)
-    for component in config_dict["inputs"]:
-        component.preprocess = lambda x:x
-    for component in config_dict["outputs"]:
-        component.postprocess = lambda x:x        
+    print(config_dict["outputs"])
+    # # remove preprocessing and postprocessing (since they'll be performed remotely)
+    # for component in config_dict["inputs"]:
+    #     component.preprocess = lambda x:x
+    # for component in config_dict["outputs"]:
+    #     component.postprocess = lambda x:x        
     # Remove keys that are not parameters to Interface() class
     not_parameters = ("allow_embedding", "allow_interpretation", "avg_durations", "function_count",
                       "queue", "input_components", "output_components", "examples")
@@ -215,17 +209,17 @@ def get_spaces_interface(model_name, api_key, alias):
             output = output[0]
         return output
      
-    if alias is None:
-        fn.__name__ = model_name
-    else:
-        fn.__name__ = alias
+    fn.__name__ = alias if alias else model_name
     interface_info["fn"] = fn
-
+    interface_info["api_mode"] = True
+    
+    print(interface_info)
     return interface_info
 
 repos = {
     # for each repo, we have a method that returns the Interface given the model name & optionally an api_key
     "huggingface": get_huggingface_interface,
+    "models": get_huggingface_interface,
     "spaces": get_spaces_interface,
 }
 

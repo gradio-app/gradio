@@ -1,6 +1,10 @@
 import unittest
 import gradio as gr
 
+"""
+WARNING: These tests have an external dependency: namely that Hugging Face's Hub and Space APIs do not change, and they keep their most famous models up.
+"""
+
 class TestHuggingFaceModels(unittest.TestCase):
     def test_gpt2(self):
         interface_info = gr.external.get_huggingface_interface("gpt2", api_key=None, alias=None)
@@ -32,6 +36,11 @@ class TestLoadInterface(unittest.TestCase):
         self.assertIsInstance(interface_info["inputs"], gr.inputs.Textbox)
         self.assertIsInstance(interface_info["outputs"], gr.outputs.Label)
 
+    def test_models_src(self):
+        interface_info = gr.external.load_interface("models/distilbert-base-uncased-finetuned-sst-2-english", alias="sentiment_classifier")
+        self.assertEqual(interface_info["fn"].__name__, "sentiment_classifier")
+        self.assertIsInstance(interface_info["inputs"], gr.inputs.Textbox)
+        self.assertIsInstance(interface_info["outputs"], gr.outputs.Label)
 
 
 if __name__ == '__main__':
