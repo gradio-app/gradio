@@ -31,6 +31,12 @@ class OutputComponent(Component):
         """
         return y
 
+    def deserialize(self, x):
+        """
+        Convert from serialized output (e.g. base64 representation) from a call() to the interface to a human-readable version of the output (path of an image, etc.) 
+        """
+        return x
+
 
 class Textbox(OutputComponent):
     '''
@@ -195,11 +201,7 @@ class Image(OutputComponent):
                 y = np.array(y)
             out_y = processing_utils.encode_array_to_base64(y)
         elif dtype == "file":
-            try:
-                requests.get(y)
-                out_y = processing_utils.encode_url_to_base64(y)
-            except requests.exceptions.MissingSchema:
-                out_y = processing_utils.encode_file_to_base64(y)
+            out_y = processing_utils.encode_url_or_file_to_base64(y)
         elif dtype == "plot":
             out_y = processing_utils.encode_plot_to_base64(y)
         else:
@@ -369,7 +371,7 @@ class Audio(OutputComponent):
                 file = tempfile.NamedTemporaryFile(prefix="sample", suffix=".wav", delete=False)
                 processing_utils.audio_to_file(sample_rate, data, file.name)
                 y = file.name
-            return processing_utils.encode_file_to_base64(y, type="audio", ext="wav")
+            return processing_utils.encode_url_or_file_to_base64(y, type="audio", ext="wav")
         else:
             raise ValueError("Unknown type: " + self.type +
                              ". Please choose from: 'numpy', 'file'.")

@@ -70,7 +70,7 @@ class Interface:
                  capture_session=False, interpretation=None, num_shap=2.0, theme=None, repeat_outputs_per_model=True,
                  title=None, description=None, article=None, thumbnail=None,
                  css=None, server_port=None, server_name=networking.LOCALHOST_NAME, height=500, width=900,
-                 allow_screenshot=True, allow_flagging=True, flagging_options=None, encrypt=False,
+                 allow_screenshot=True, allow_flagging=True, flagging_options=None, encrypt=False, api_mode=False,
                  show_tips=False, flagging_dir="flagged", analytics_enabled=True, enable_queue=False):
         """
         Parameters:
@@ -97,6 +97,7 @@ class Interface:
         allow_flagging (bool): if False, users will not see a button to flag an input and output.
         flagging_options (List[str]): if not None, provides options a user must select when flagging.
         encrypt (bool): If True, flagged data will be encrypted by key provided by creator at launch
+        api_mode (bool): If True, will skip preprocessing steps when the Interface is called() as a function (should remain False unless the Interface is loaded from an external repo)
         flagging_dir (str): what to name the dir where flagged data is stored.
         show_tips (bool): if True, will occasionally show tips about new Gradio features
         enable_queue (bool): if True, inference requests will be served through a queue instead of with parallel threads. Required for longer inference times (> 1min) to prevent timeout.  
@@ -181,6 +182,7 @@ class Interface:
         self.requires_permissions = any(
             [component.requires_permissions for component in self.input_components])
         self.enable_queue = enable_queue
+        self.api_mode = api_mode
 
         data = {'fn': fn,
                 'inputs': inputs,
@@ -216,10 +218,11 @@ class Interface:
                 pass  # do not push analytics if no network
 
     def __call__(self, *params):
-        output = [p(*params) for p in self.predict]
-        if len(output) == 1:
-            return output.pop()  # if there's only one output, then don't return as list
-        return output
+        if self.api_mode:  # skip the preprocessing/postprocessing if sending to a remote API
+            output = self.run_prediction(params)
+        else:
+            output, _ = self.process(params) 
+        return output[0] if len(output) == 1 else output
 
     def __str__(self):
         return self.__repr__()
@@ -309,6 +312,9 @@ class Interface:
         return config
 
     def run_prediction(self, processed_input, return_duration=False):
+        if self.api_mode:  # Serialize the input
+            processed_input = [input_component.serialize(processed_input[i])
+                            for i, input_component in enumerate(self.input_components)]
         predictions = []
         durations = []
         for predict_fn in self.predict:
@@ -333,6 +339,10 @@ class Interface:
             durations.append(duration)
             predictions.extend(prediction)
 
+        if self.api_mode:  # Serialize the input
+            predictions = [output_component.deserialize(predictions[o])
+                            for o, output_component in enumerate(self.output_components)]
+
         if return_duration:
             return predictions, durations
         else:
@@ -348,8 +358,8 @@ class Interface:
                            for i, input_component in enumerate(self.input_components)]
         predictions, durations = self.run_prediction(
             processed_input, return_duration=True)
-        processed_output = [output_component.postprocess(
-            predictions[i]) if predictions[i] is not None else None for i, output_component in enumerate(self.output_components)]
+        processed_output = [output_component.postprocess(predictions[i]) if predictions[i] is not None else None 
+                            for i, output_component in enumerate(self.output_components)]
         return processed_output, durations
 
     def interpret(self, raw_input):
