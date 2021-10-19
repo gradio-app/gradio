@@ -18,6 +18,7 @@ def get_huggingface_interface(model_name, api_key, alias):
     assert response.status_code == 200, "Invalid model name or src"
     p = response.json().get('pipeline_tag')
 
+    # convert from binary to base64
     def post_process_binary_body(r: requests.Response):
         with tempfile.NamedTemporaryFile(delete=False) as fp:
             fp.write(r.content)
@@ -118,14 +119,14 @@ def get_huggingface_interface(model_name, api_key, alias):
             'inputs': inputs.Textbox(label="Input"),
             'outputs': outputs.Audio(label="Audio"),
             'preprocess': lambda x: {"inputs": x},
-            'postprocess': post_process_binary_body,
+            'postprocess': lambda x: base64.b64encode(x),
         },
         'text-to-image': {
             # example model: hf.co/osanseviero/BigGAN-deep-128
             'inputs': inputs.Textbox(label="Input"),
             'outputs': outputs.Image(label="Output"),
             'preprocess': lambda x: {"inputs": x},
-            'postprocess': post_process_binary_body,
+            'postprocess': lambda x: base64.b64encode(x),
         },
     }
 
@@ -175,13 +176,6 @@ def interface_params_from_config(config_dict):
     ## instantiate input component and output component
     config_dict["inputs"] = [inputs.get_input_instance(component) for component in config_dict["input_components"]]
     config_dict["outputs"] = [outputs.get_output_instance(component) for component in config_dict["output_components"]]
-    print(config_dict["outputs"])
-    # # remove preprocessing and postprocessing (since they'll be performed remotely)
-    # for component in config_dict["inputs"]:
-    #     component.preprocess = lambda x:x
-    # for component in config_dict["outputs"]:
-    #     component.postprocess = lambda x:x        
-    # Remove keys that are not parameters to Interface() class
     not_parameters = ("allow_embedding", "allow_interpretation", "avg_durations", "function_count",
                       "queue", "input_components", "output_components", "examples")
     for key in not_parameters:
