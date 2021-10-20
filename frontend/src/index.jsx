@@ -81,10 +81,14 @@ function load_config(config) {
       head.appendChild(style);
       style.appendChild(document.createTextNode(config.css));
     }
+    let url = new URL(window.location.toString());
     let target = document.getElementById(config.target || "root");
     if (config.theme !== null && config.theme.startsWith("dark")) {
       target.classList.add("dark");
       config.theme = config.theme.substring(4);
+    }
+    else if (url.searchParams.get("__dark-theme") === "true") {
+      target.classList.add("dark");
     }
     ReactDOM.render(
       <GradioPage

@@ -5,13 +5,13 @@
 .gradio_page {
     @apply container h-full mx-auto pt-4 px-4 flex flex-col box-border flex-grow;
     .title {
-        @apply text-center p-4 text-4xl;
+        @apply text-center p-4 text-4xl dark:text-gray-50;
     }
     .description {
-        @apply pb-4;
+        @apply pb-4 dark:text-gray-50;
     }
     .article {
-        @apply pt-8 pb-4 max-w-none;
+        @apply pt-8 pb-4 max-w-none dark:text-gray-50;
     }
     .content {
         @apply flex-grow flex-shrink-0;
