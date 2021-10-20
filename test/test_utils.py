@@ -3,6 +3,7 @@ import unittest
 import pkg_resources
 import unittest.mock as mock
 import warnings
+import requests
 
 
 class TestUtils(unittest.TestCase):
@@ -29,7 +30,7 @@ class TestUtils(unittest.TestCase):
     @mock.patch("requests.get")
     def test_should_warn_with_connection_error(self, mock_get):
 
-        mock_get.side_effect = ConnectionError()
+        mock_get.side_effect = requests.ConnectionError()
 
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
@@ -50,8 +51,40 @@ class TestUtils(unittest.TestCase):
     @mock.patch("requests.post")
     def test_error_analytics_doesnt_crash_on_connection_error(self, mock_post):
 
-        mock_post.side_effect = ConnectionError()
-        error_analytics()
+        mock_post.side_effect = requests.ConnectionError()
+        error_analytics("placeholder")
+        
+            
+    @mock.patch("IPython.get_ipython")
+    @mock.patch("gradio.utils.error_analytics")
+    def test_colab_check_sends_analytics_on_import_fail(self, mock_error_analytics, mock_get_ipython):
+
+        mock_get_ipython.side_effect = ImportError()
+        colab_check()
+        mock_error_analytics.assert_called_with("NameError")
+        
+    @mock.patch("IPython.get_ipython")
+    def test_colab_check_no_ipython(self, mock_get_ipython):
+        mock_get_ipython.return_value = None
+        assert colab_check() is False
+        
+    @mock.patch("IPython.get_ipython")
+    def test_ipython_check_import_fail(self, mock_get_ipython):
+        mock_get_ipython.side_effect = ImportError()
+        assert ipython_check() is False
+    
+    # currently, this test fails because ipython_check() returns True
+    # even if we are not in IPython! ipython_check() should presumably
+    # return False if get_ipython returns None
+    @mock.patch("IPython.get_ipython")
+    def test_ipython_check_no_ipython(self, mock_get_ipython):
+        mock_get_ipython.return_value = None
+        assert ipython_check() is False
+        
+    @mock.patch("requests.get")
+    def test_readme_to_html_doesnt_crah_on_connection_error(self, mock_get):
+        mock_get.side_effect = requests.ConnectionError()
+        readme_to_html("placeholder")
 
 
 if __name__ == '__main__':
