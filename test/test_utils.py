@@ -45,6 +45,13 @@ class TestUtils(unittest.TestCase):
             warnings.simplefilter("always")
             version_check()
             self.assertEqual(str(w[-1].message), "package URL does not contain version info.")
+            
+            
+    @mock.patch("requests.post")
+    def test_error_analytics_doesnt_crash_on_connection_error(self, mock_post):
+
+        mock_post.side_effect = ConnectionError()
+        error_analytics()
 
 
 if __name__ == '__main__':
