@@ -3,6 +3,9 @@ import BaseComponent from "../base_component";
 import { FileComponentExample } from "../component_example";
 import Recorder from "recorder-js";
 import { getSaliencyColor } from "../../utils";
+import edit_icon from "../../static/img/edit.svg";
+import clear_icon from "../../static/img/clear.svg";
+import { Slider, Handles, Tracks } from 'react-compound-slider'
 
 class AudioInput extends BaseComponent {
   constructor(props) {
@@ -66,6 +69,14 @@ class AudioInput extends BaseComponent {
       }
       return (
         <div className="input_audio">
+          <div className="edit_buttons">
+            <button className="edit_button">
+              <img src={edit_icon} />
+            </button>
+            <button className="clear_button" onClick={this.props.handleChange.bind(this, null)}>
+              <img src={clear_icon} />
+            </button>
+          </div>
           <audio controls key={this.key}>
             <source src={this.props.value["data"]}></source>
           </audio>
@@ -80,6 +91,12 @@ class AudioInput extends BaseComponent {
               ))}
             </div>
           )}
+          <Slider
+            domain={[0, 100]}
+            values={[10, 50]}
+          >
+            <div style={{backgroundColor: "red", height: "20px"}} />
+          </Slider>
         </div>
       );
     } else {
