@@ -1,7 +1,7 @@
 import React from "react";
 import BaseComponent from "../base_component";
 import ComponentExample from "../component_example";
-import { output_component_map } from "../../components";
+import { output_component_set } from "../../components";
 import arrowRight from "../../static/img/arrow-right.svg";
 import arrowLeft from "../../static/img/arrow-left.svg";
 
@@ -36,7 +36,9 @@ class CarouselOutput extends BaseComponent {
       return (
         <div className="output_carousel">
           {this.props.components.map((config, index) => {
-            let Component = output_component_map[config.name][0];
+            let Component = output_component_set.find(
+              (c) => c.name === config.name
+            ).memoized_component;
             return (
               <div className="component" key={index}>
                 {config.label ? (

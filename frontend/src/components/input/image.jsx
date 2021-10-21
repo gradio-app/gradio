@@ -6,6 +6,8 @@ import { SketchField, Tools } from "../../vendor/ReactSketch";
 import { getObjectFitSize, paintSaliency } from "../../utils";
 import "tui-image-editor/dist/tui-image-editor.css";
 import ImageEditor from "@toast-ui/react-image-editor";
+import Cropper from "react-cropper";
+import "cropperjs/dist/cropper.css";
 
 class ImageInput extends BaseComponent {
   constructor(props) {
@@ -26,9 +28,21 @@ class ImageInput extends BaseComponent {
     this.webcamRef = React.createRef();
     this.sketchRef = React.createRef();
     this.editorRef = React.createRef();
+    this.cropperRef = React.createRef();
     this.sketchKey = 0;
     this.state = { editorMode: false };
   }
+  static memo = (a, b) => {
+    if (a.interpretation != b.interpretation) {
+      return false;
+    } else if (a.value === null && b.value === null) {
+      return true;
+    } else if (a.value === null || b.value === null) {
+      return false;
+    } else {
+      return a.value.src === b.value.src;
+    }
+  };
   handleChange(data) {
     this.props.handleChange(data);
   }
@@ -37,18 +51,18 @@ class ImageInput extends BaseComponent {
   }
   snapshot() {
     let imageSrc = this.webcamRef.current.getScreenshot();
-    this.handleChange(imageSrc);
+    this.handleChange({ src: imageSrc, crop: null });
   }
   getSketch() {
     let imageSrc = this.sketchRef.current.toDataURL();
-    this.handleChange(imageSrc);
+    this.handleChange({ src: imageSrc, crop: null });
   }
   cancelEditor() {
     this.setState({ editorMode: false });
   }
   saveEditor() {
     const editorInstance = this.editorRef.current.getInstance();
-    this.handleChange(editorInstance.toDataURL());
+    this.handleChange({ src: editorInstance.toDataURL(), crop: null });
     this.setState({ editorMode: false });
   }
   onImgLoad({ target: img }) {
@@ -62,6 +76,10 @@ class ImageInput extends BaseComponent {
   openEditor() {
     this.setState({ editorMode: true });
   }
+  onCrop = () => {
+    const crop = this.cropperRef.current.cropper.getCroppedCanvas().toDataURL();
+    this.handleChange({ src: this.props.value.src, crop: crop });
+  };
   render() {
     let no_action = (evt) => {
       evt.preventDefault();
@@ -107,39 +125,53 @@ class ImageInput extends BaseComponent {
       return (
         <div className="input_image">
           <div className="image_preview_holder">
-            {this.state.editorMode ? (
-              <div className="image_editor">
-                <div className="image_editor_buttons">
-                  <button onClick={this.saveEditor}>Save</button>
-                  <button onClick={this.cancelEditor}>Cancel</button>
+            {this.props.tool === "editor" ? (
+              this.state.editorMode ? (
+                <div className="image_editor">
+                  <div className="image_editor_buttons">
+                    <button onClick={this.saveEditor}>Save</button>
+                    <button onClick={this.cancelEditor}>Cancel</button>
+                  </div>
+                  <ImageEditor
+                    ref={this.editorRef}
+                    includeUI={{
+                      loadImage: { path: this.props.value.src, name: "value" },
+                      uiSize: {
+                        width: "800px",
+                        height: "600px"
+                      },
+                      menuBarPosition: "left"
+                    }}
+                    cssMaxHeight={500}
+                    cssMaxWidth={700}
+                    usageStatistics={false}
+                  />
                 </div>
-                <ImageEditor
-                  ref={this.editorRef}
-                  includeUI={{
-                    loadImage: { path: this.props.value, name: "value" },
-                    uiSize: {
-                      width: "800px",
-                      height: "600px"
-                    },
-                    menuBarPosition: "left"
-                  }}
-                  cssMaxHeight={500}
-                  cssMaxWidth={700}
-                  usageStatistics={false}
-                />
-              </div>
+              ) : (
+                <button className="edit_button" onClick={this.openEditor}>
+                  Edit
+                </button>
+              )
             ) : (
-              <button className="edit_button" onClick={this.openEditor}>
-                Edit
-              </button>
+              false
             )}
-            <img
-              ref={this.imgRef}
-              onLoad={this.onImgLoad}
-              className="image_preview"
-              alt=""
-              src={this.props.value}
-            />
+            {this.props.tool === "select" ? (
+              <Cropper
+                src={this.props.value.src}
+                style={{ height: "100%", width: "100%" }}
+                ref={this.cropperRef}
+                crop={this.onCrop}
+                autoCropArea={1}
+              />
+            ) : (
+              <img
+                ref={this.imgRef}
+                onLoad={this.onImgLoad}
+                className="image_preview"
+                alt=""
+                src={this.props.value.src}
+              />
+            )}
           </div>
           {interpretation}
         </div>
@@ -229,12 +261,19 @@ class ImageInput extends BaseComponent {
     var ReaderObj = new FileReader();
     ReaderObj.readAsDataURL(files[0]);
     ReaderObj.onloadend = function () {
-      component.props.handleChange(this.result);
+      component.props.handleChange({ src: this.result, crop: null });
     };
   }
+  static postprocess = (y) => {
+    return y.crop === null ? y.src : y.crop;
+  };
 }
 
 class ImageInputExample extends DataURLComponentExample {
+  static async preprocess(x, examples_dir) {
+    let src = await DataURLComponentExample.preprocess(x, examples_dir);
+    return { src: src, crop: null };
+  }
   render() {
     return (
       <img

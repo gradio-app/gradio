@@ -7,6 +7,8 @@ gradio.egg-info/*
 *.pyc
 staticfiles
 .env
+.coverage
+coverage.xml
 *.sqlite3
 .idea/*
 *.ipynb
@@ -33,3 +35,5 @@ gradio/launches.json
 gradio/frontend/static
 workspace.code-workspace
 *.db
+demo/files/*.avi
+demo/files/*.mp4

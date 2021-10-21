@@ -73,7 +73,10 @@ iface = gr.Interface(
         gr.outputs.Carousel("image"),
         gr.outputs.Timeseries(x="time", y="value")
     ],
-    theme="huggingface"
+    theme="huggingface",
+    title="Kitchen Sink",
+    description="Try out all the components!",
+    article="Learn more about [Gradio](http://gradio.app)"
 )
 
 if __name__ == "__main__":

@@ -20,13 +20,11 @@ import requests
 import sys
 import csv
 import logging
-from gradio.embeddings import calculate_similarity, fit_pca_to_embeddings, transform_with_pca
 from gradio.tunneling import create_tunnel
 from gradio import encryptor
 from gradio import queue
 from functools import wraps
 import io
-import traceback
 
 INITIAL_PORT_VALUE = int(os.getenv(
     'GRADIO_SERVER_PORT', "7860"))  # The http server will try to open on port 7860. If not available, 7861, 7862, etc.
@@ -128,7 +126,6 @@ def get_first_available_port(initial, final):
 @app.route("/", methods=["GET"])
 @login_check
 def main():
-    session.clear()
     session["state"] = None
     return render_template("index.html", config=app.interface.config)
 
@@ -187,7 +184,6 @@ def predict():
             return jsonify({"error": traceback.format_exc()}), 500
     else:
         prediction, durations = app.interface.process(raw_input)
-    # Get running average of prediction times
     avg_durations = []
     for i, duration in enumerate(durations):
         app.interface.predict_durations[i][0] += duration
@@ -217,66 +213,6 @@ def log_feature_analytics(feature):
                               'feature': feature}, timeout=3)
         except (requests.ConnectionError, requests.exceptions.ReadTimeout):
             pass  # do not push analytics if no network
-
-
-@app.route("/api/score_similarity/", methods=["POST"])
-@login_check
-def score_similarity():
-    raw_input = request.json["data"]
-
-    preprocessed_input = [input_interface.preprocess(raw_input[i])
-                          for i, input_interface in enumerate(app.interface.input_components)]
-    input_embedding = app.interface.embed(preprocessed_input)
-    scores = list()
-
-    for example in app.interface.examples:
-        preprocessed_example = [iface.preprocess(iface.preprocess_example(example))
-                                for iface, example in zip(app.interface.input_components, example)]
-        example_embedding = app.interface.embed(preprocessed_example)
-        scores.append(calculate_similarity(input_embedding, example_embedding))
-    log_feature_analytics('score_similarity')
-    return jsonify({"data": scores})
-
-
-@app.route("/api/view_embeddings/", methods=["POST"])
-@login_check
-def view_embeddings():
-    sample_embedding = []
-    if "data" in request.json:
-        raw_input = request.json["data"]
-        preprocessed_input = [input_interface.preprocess(raw_input[i])
-                              for i, input_interface in enumerate(app.interface.input_components)]
-        sample_embedding.append(app.interface.embed(preprocessed_input))
-
-    example_embeddings = []
-    for example in app.interface.examples:
-        preprocessed_example = [iface.preprocess(iface.preprocess_example(example))
-                                for iface, example in zip(app.interface.input_components, example)]
-        example_embedding = app.interface.embed(preprocessed_example)
-        example_embeddings.append(example_embedding)
-
-    pca_model, embeddings_2d = fit_pca_to_embeddings(
-        sample_embedding + example_embeddings)
-    sample_embedding_2d = embeddings_2d[:len(sample_embedding)]
-    example_embeddings_2d = embeddings_2d[len(sample_embedding):]
-    app.pca_model = pca_model
-    log_feature_analytics('view_embeddings')
-    return jsonify({"sample_embedding_2d": sample_embedding_2d, "example_embeddings_2d": example_embeddings_2d})
-
-
-@app.route("/api/update_embeddings/", methods=["POST"])
-@login_check
-def update_embeddings():
-    sample_embedding, sample_embedding_2d = [], []
-    if "data" in request.json:
-        raw_input = request.json["data"]
-        preprocessed_input = [input_interface.preprocess(raw_input[i])
-                              for i, input_interface in enumerate(app.interface.input_components)]
-        sample_embedding.append(app.interface.embed(preprocessed_input))
-        sample_embedding_2d = transform_with_pca(
-            app.pca_model, sample_embedding)
-
-    return jsonify({"sample_embedding_2d": sample_embedding_2d})
 
 
 def flag_data(input_data, output_data, flag_option=None, flag_index=None, username=None):

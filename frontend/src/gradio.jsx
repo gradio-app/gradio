@@ -1,6 +1,6 @@
 import React from "react";
 import html2canvas from "html2canvas-objectfit-fix";
-import { input_component_map, output_component_map } from "./components";
+import { input_component_set, output_component_set } from "./components";
 import { saveAs } from "./utils";
 import ReactDOM from "react-dom";
 import classNames from "classnames";
@@ -67,8 +67,8 @@ export class GradioInterface extends React.Component {
       process.env.REACT_APP_BACKEND_URL +
       (this.props.examples_dir === null
         ? "file" +
-        this.props.examples_dir +
-        (this.props.examples_dir.endswith("/") ? "" : "/")
+          this.props.examples_dir +
+          (this.props.examples_dir.endswith("/") ? "" : "/")
         : "file");
   }
   get_default_state = () => {
@@ -104,14 +104,17 @@ export class GradioInterface extends React.Component {
     }
     this.pending_response = true;
     let input_state = [];
-    for (let i = 0; i < this.props.input_components.length; i++) {
+    for (let [i, input_component] of this.props.input_components.entries()) {
       if (
         this.state[i] === null &&
         this.props.input_components[i].optional !== true
       ) {
         return;
       }
-      input_state[i] = this.state[i];
+      let InputComponentClass = input_component_set.find(
+        (c) => c.name === input_component.name
+      ).component;
+      input_state[i] = InputComponentClass.postprocess(this.state[i]);
     }
     this.setState({
       submitting: true,
@@ -235,21 +238,25 @@ export class GradioInterface extends React.Component {
     }
   };
   handleExampleChange = (example_id) => {
-    let state_change = {};
     this.setState({ example_id: example_id });
     for (let [i, item] of this.props.examples[example_id].entries()) {
-      let ExampleComponent =
-        i < this.props.input_components.length
-          ? input_component_map[this.props.input_components[i].name][1]
-          : output_component_map[
-          this.props.output_components[
-            i - this.props.input_components.length
-          ].name
-          ][1];
-      state_change[i] = ExampleComponent.preprocess(
-        item,
-        this.examples_dir
-      ).then((data) => {
+      let ExampleComponent;
+      if (i < this.props.input_components.length) {
+        let component_name = this.props.input_components[i].name;
+        let component_data = input_component_set.find(
+          (c) => c.name === component_name
+        );
+        ExampleComponent = component_data.example_component;
+      } else {
+        let component_name =
+          this.props.output_components[i - this.props.input_components.length]
+            .name;
+        let component_data = output_component_set.find(
+          (c) => c.name === component_name
+        );
+        ExampleComponent = component_data.example_component;
+      }
+      ExampleComponent.preprocess(item, this.examples_dir).then((data) => {
         this.handleChange(i, data);
       });
     }
@@ -294,7 +301,9 @@ export class GradioInterface extends React.Component {
           >
             <div className="component_set">
               {this.props.input_components.map((component, index) => {
-                const Component = input_component_map[component.name][0];
+                const Component = input_component_set.find(
+                  (c) => c.name === component.name
+                ).memoized_component;
                 return (
                   <div className="component" key={index}>
                     <div className="panel_header">{component.label}</div>
@@ -339,7 +348,9 @@ export class GradioInterface extends React.Component {
             >
               {status}
               {this.props.output_components.map((component, index) => {
-                const Component = output_component_map[component.name][0];
+                const Component = output_component_set.find(
+                  (c) => c.name === component.name
+                ).memoized_component;
                 const key = this.props.input_components.length + index;
                 return this.state[key] === null ? (
                   false
@@ -480,14 +491,14 @@ class GradioInterfaceExamples extends React.Component {
                 return <th key={i}>{component.label}</th>;
               })}
               {this.props.examples[0].length >
-                this.props.input_components.length
+              this.props.input_components.length
                 ? this.props.output_components.map((component, i) => {
-                  return (
-                    <th key={i + this.props.input_components.length}>
-                      {component.label}
-                    </th>
-                  );
-                })
+                    return (
+                      <th key={i + this.props.input_components.length}>
+                        {component.label}
+                      </th>
+                    );
+                  })
                 : false}
             </tr>
           </thead>
@@ -503,10 +514,9 @@ class GradioInterfaceExamples extends React.Component {
                   onClick={() => this.props.handleExampleChange(i)}
                 >
                   {example_row.map((example_data, j) => {
-                    let ExampleComponent =
-                      input_component_map[
-                      this.props.input_components[j].name
-                      ][1];
+                    let ExampleComponent = input_component_set.find(
+                      (c) => c.name === this.props.input_components[j].name
+                    ).example_component;
                     return (
                       <td>
                         <ExampleComponent

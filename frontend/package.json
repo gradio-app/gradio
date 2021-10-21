@@ -20,6 +20,7 @@
     "prettier-eslint": "^13.0.0",
     "prettier-eslint-cli": "^5.0.1",
     "react": "^17.0.2",
+    "react-cropper": "^2.1.8",
     "react-dom": "^17.0.2",
     "react-json-tree": "^0.15.0",
     "react-plotly.js": "^2.5.1",

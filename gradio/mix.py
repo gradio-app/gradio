@@ -1,9 +1,9 @@
 """
 Ways to transform interfaces to produce new interfaces
 """
-from gradio.interface import Interface
+import gradio
 
-class Parallel(Interface):
+class Parallel(gradio.Interface):
     """
     Creates a new Interface consisting of multiple models in parallel
     Parameters: 
@@ -30,7 +30,7 @@ class Parallel(Interface):
         super().__init__(**kwargs) 
 
 
-class Series(Interface):
+class Series(gradio.Interface):
     """
     Creates a new Interface from multiple models in series (the output of one is fed as the input to the next)
     Parameters: 
@@ -42,8 +42,7 @@ class Series(Interface):
     def __init__(self, *interfaces, **options):
         fns = [io.predict for io in interfaces]
     
-        def connected_fn(data):  # Run each function with the appropriate preprocessing and postprocessing 
-            data = [data] # put it in a list before it gets unraveled
+        def connected_fn(*data):  # Run each function with the appropriate preprocessing and postprocessing 
             for idx, io in enumerate(interfaces):
                 # skip preprocessing for first interface since the compound interface will include it
                 if idx > 0:

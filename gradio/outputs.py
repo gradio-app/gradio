@@ -13,12 +13,12 @@ import operator
 from numbers import Number
 import warnings
 import tempfile
-from pydub import AudioSegment
 import os
 import pandas as pd
 import PIL
 from types import ModuleType
 from ffmpy import FFmpeg
+import requests
 
 class OutputComponent(Component):
     """
@@ -148,7 +148,7 @@ class Image(OutputComponent):
     def __init__(self, type="auto", labeled_segments=False, plot=False, label=None):
         '''
         Parameters:
-        type (str): Type of value to be passed to component. "numpy" expects a numpy array with shape (width, height, 3), "pil" expects a PIL image object, "file" expects a file path to the saved image, "plot" expects a matplotlib.pyplot object, "auto" detects return type.
+        type (str): Type of value to be passed to component. "numpy" expects a numpy array with shape (width, height, 3), "pil" expects a PIL image object, "file" expects a file path to the saved image or a remote URL, "plot" expects a matplotlib.pyplot object, "auto" detects return type.
         labeled_segments (bool): If True, expects a two-element tuple to be returned. The first element of the tuple is the image of format specified by type. The second element is a list of tuples, where each tuple represents a labeled segment within the image. The first element of the tuple is the string label of the segment, followed by 4 floats that represent the left-x, top-y, right-x, and bottom-y coordinates of the bounding box.
         plot (bool): DEPRECATED. Whether to expect a plot to be returned by the function.
         label (str): component name in interface.
@@ -195,7 +195,11 @@ class Image(OutputComponent):
                 y = np.array(y)
             out_y = processing_utils.encode_array_to_base64(y)
         elif dtype == "file":
-            out_y = processing_utils.encode_file_to_base64(y)
+            try:
+                requests.get(y)
+                out_y = processing_utils.encode_url_to_base64(y)
+            except requests.exceptions.MissingSchema:
+                out_y = processing_utils.encode_file_to_base64(y)
         elif dtype == "plot":
             out_y = processing_utils.encode_plot_to_base64(y)
         else:
@@ -362,13 +366,8 @@ class Audio(OutputComponent):
         if self.type in ["numpy", "file", "auto"]:
             if self.type == "numpy" or (self.type == "auto" and isinstance(y, tuple)):
                 sample_rate, data = y
-                file = tempfile.NamedTemporaryFile(delete=False)
-                audio_segment = AudioSegment(
-                    data.tobytes(), 
-                    frame_rate=sample_rate, 
-                    sample_width=data.dtype.itemsize, 
-                    channels=len(data.shape))
-                audio_segment.export(file.name)
+                file = tempfile.NamedTemporaryFile(prefix="sample", suffix=".wav", delete=False)
+                processing_utils.audio_to_file(sample_rate, data, file.name)
                 y = file.name
             return processing_utils.encode_file_to_base64(y, type="audio", ext="wav")
         else:
@@ -597,12 +596,20 @@ def get_output_instance(iface):
     if isinstance(iface, str):
         shortcut = OutputComponent.get_all_shortcut_implementations()[iface]
         return shortcut[0](**shortcut[1])
+    elif isinstance(iface, dict):  # a dict with `name` as the output component type and other keys as parameters
+        name = iface.pop('name')
+        for component in OutputComponent.__subclasses__():
+            if component.__name__.lower() == name:
+                break
+        else:
+            raise ValueError("No such OutputComponent: {}".format(name))
+        return component(**iface)
     elif isinstance(iface, OutputComponent):
         return iface
     else:
         raise ValueError(
-            "Output interface must be of type `str` or "
-            "`OutputComponent`"
+            "Output interface must be of type `str` or `dict` or"
+            "`OutputComponent` but is {}".format(iface)
         )
 
 
