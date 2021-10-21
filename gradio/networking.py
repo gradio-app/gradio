@@ -175,7 +175,15 @@ def enable_sharing(path):
 @login_check
 def predict():
     raw_input = request.json["data"]
-    prediction, durations = app.interface.process(raw_input)
+    # If in debug mode, capture any errors made and pipe to front end
+    if app.interface.show_error:
+        try:
+            prediction, durations = app.interface.process(raw_input)
+        except BaseException as error:
+            traceback.print_exc()
+            return jsonify({"error": traceback.format_exc()}), 500
+    else:
+        prediction, durations = app.interface.process(raw_input)
     avg_durations = []
     for i, duration in enumerate(durations):
         app.interface.predict_durations[i][0] += duration
