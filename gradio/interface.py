@@ -512,7 +512,9 @@ class Interface:
                 print("PASSED")
                 continue
 
-    def launch(self, inline=None, inbrowser=None, share=False, debug=False, auth=None, auth_message=None, private_endpoint=None, prevent_thread_lock=False):
+    def launch(self, inline=None, inbrowser=None, share=False, debug=False,
+               auth=None, auth_message=None, private_endpoint=None,
+               prevent_thread_lock=False, show_error=True):
         """
         Launches the webserver that serves the UI for the interface.
         Parameters:
@@ -526,6 +528,7 @@ class Interface:
         app (flask.Flask): Flask app object
         path_to_local_server (str): Locally accessible link
         share_url (str): Publicly accessible link (if share=True)
+        show_error (bool): show prediction errors in console
         """
         # Alert user if a more recent version of the library exists
         utils.version_check()
@@ -550,6 +553,7 @@ class Interface:
         self.server_port = server_port
         self.status = "RUNNING"
         self.server = app
+        self.show_error = show_error
 
         # Count number of launches
         launch_counter()
