@@ -332,8 +332,13 @@ export class GradioInterface extends React.Component {
                 <button className="panel_button submit" onClick={this.submit}>
                   Submit
                 </button>
+
               )}
             </div>
+            <a href="/api/" target="_blank" class="api" rel="noreferrer">
+                <span>view the api </span>
+                <img class="logo" src="https://i.ibb.co/6DVLqmf/noun-tools-2220412.png" alt="logo" />
+            </a>
           </div>
           <div
             className={classNames("panel", {
