@@ -53,6 +53,10 @@ class TestUtils(unittest.TestCase):
 
         mock_post.side_effect = requests.ConnectionError()
         error_analytics("placeholder")
+     
+    @mock.patch("requests.post")   
+    def test_error_analytics_successful(self, mock_post):
+        error_analytics("placeholder")
         
             
     @mock.patch("IPython.get_ipython")
@@ -85,7 +89,9 @@ class TestUtils(unittest.TestCase):
     def test_readme_to_html_doesnt_crah_on_connection_error(self, mock_get):
         mock_get.side_effect = requests.ConnectionError()
         readme_to_html("placeholder")
-
-
+        
+    def test_readme_to_html_correct_parse(self):
+        readme_to_html("https://github.com/gradio-app/gradio/blob/master/README.md")
+        
 if __name__ == '__main__':
     unittest.main()
