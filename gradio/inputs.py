@@ -9,7 +9,6 @@ import warnings
 from gradio.component import Component
 import numpy as np
 import PIL
-from pydub import AudioSegment
 from gradio import processing_utils, test_data
 import pandas as pd
 from ffmpy import FFmpeg
@@ -69,16 +68,6 @@ class InputComponent(Component):
         (List[Any]): Arrangement of interpretation scores for interfaces to render.
         '''
         pass
-
-    def embed(self, x):
-        """
-        Return a default embedding for the *preprocessed* input to the interface. Used to compute similar inputs.
-        x (Any): Input to interface
-        Returns:
-        (List[Float]): An embedding vector as a list or numpy array of floats
-        """
-        pass
-
 
 class Textbox(InputComponent):
     """
@@ -197,28 +186,6 @@ class Textbox(InputComponent):
             result.append((self.interpretation_separator, 0))
         return result
 
-    def _embed_text(self, text):
-        """
-        Figures out a "reasonable" embedding for any particular text. Did it this way to avoid loading any 
-        external machine learning models, which would be slow and require additional dependencies.
-        """
-        top_english_words = ['find', 'new', 'work', 'part', 'take', 'get', 'place', 'made', 'live', 'where', 'after', 'back', 'little', 'only', 'round', 'man', 'year', 'came', 'show', 'every', 'good', 'me', 'give', 'our', 'under', 'name', 'very', 'through', 'just', 'form', 'sentence', 'great', 'think', 'say', 'help', 'low', 'line', 'differ', 'turn', 'cause', 'much', 'mean', 'before', 'move', 'right', 'boy', 'old', 'too', 'same', 'tell', 'does', 'set', 'three', 'want', 'air', 'well', 'also', 'play', 'small', 'end', 'put', 'home', 'read', 'hand', 'port', 'large', 'spell', 'add', 'even', 'land', 'here', 'must', 'big', 'high', 'such', 'follow', 'act', 'why', 'ask', 'men', 'change', 'went', 'light', 'kind', 'off', 'need', 'house', 'picture', 'try', 'us', 'again', 'animal', 'point', 'mother', 'world', 'near', 'build', 'self', 'earth', 'father', 'head', 'stand', 'own', 'page', 'should', 'country', 'found', 'answer', 'school', 'grow', 'study', 'still', 'learn', 'plant', 'cover', 'food', 'sun', 'four', 'between', 'state', 'keep', 'eye', 'never', 'last', 'let', 'thought', 'city', 'tree', 'cross', 'farm', 'hard', 'start', 'might', 'story', 'saw', 'far', 'sea', 'draw', 'left', 'late', 'run', 'don\'t', 'while', 'press', 'close', 'night', 'real', 'life', 'few', 'north', 'open', 'seem', 'together', 'next', 'white', 'children', 'begin', 'got', 'walk', 'example', 'ease', 'paper', 'group', 'always', 'music', 'those', 'both', 'mark', 'often', 'letter', 'until', 'mile', 'river', 'car', 'feet', 'care', 'second', 'book', 'carry', 'took', 'science', 'eat', 'room', 'friend', 'began', 'idea', 'fish', 'mountain', 'stop', 'once', 'base', 'hear', 'horse', 'cut', 'sure', 'watch', 'color', 'face', 'wood', 'main', 'enough', 'plain', 'girl', 'usual', 'young', 'ready', 'above', 'ever', 'red', 'list', 'though', 'feel', 'talk', 'bird', 'soon', 'body', 'dog', 'family', 'direct', 'pose', 'leave', 'song', 'measure', 'door', 'product', 'black', 'short', 'numeral', 'class', 'wind', 'question', 'happen', 'complete', 'ship', 'area', 'half', 'rock', 'order', 'fire', 'south', 'problem', 'piece', 'told', 'knew', 'pass', 'since', 'top', 'whole', 'king', 'space', 'heard', 'best', 'hour', 'better', 'true', 'during', 'hundred', 'five', 'remember', 'step', 'early', 'hold', 'west', 'ground', 'interest', 'reach', 'fast', 'verb', 'sing', 'listen', 'six', 'table', 'travel', 'less', 'morning', 'ten', 'simple', 'several', 'vowel', 'toward', 'war', 'lay', 'against', 'pattern', 'slow', 'center', 'love', 'person', 'money', 'serve', 'appear', 'road', 'map', 'rain', 'rule', 'govern', 'pull', 'cold', 'notice', 'voice', 'unit', 'power', 'town', 'fine', 'certain', 'fly', 'fall', 'lead', 'cry', 'dark', 'machine', 'note', 'wait', 'plan', 'figure', 'star', 'box', 'noun', 'field', 'rest', 'correct', 'able', 'pound', 'done', 'beauty', 'drive', 'stood', 'contain', 'front', 'teach', 'week', 'final', 'gave', 'green', 'oh', 'quick', 'develop', 'ocean', 'warm', 'free', 'minute', 'strong', 'special', 'mind', 'behind', 'clear', 'tail', 'produce', 'fact', 'street', 'inch', 'multiply', 'nothing', 'course', 'stay', 'wheel', 'full', 'force', 'blue', 'object', 'decide', 'surface', 'deep', 'moon', 'island', 'foot', 'system', 'busy', 'test', 'record', 'boat', 'common', 'gold', 'possible', 'plane', 'stead', 'dry', 'wonder', 'laugh', 'thousand', 'ago', 'ran', 'check', 'game', 'shape', 'equate', 'hot', 'miss', 'brought', 'heat', 'snow', 'tire', 'bring', 'yes', 'distant', 'fill', 'east', 'paint', 'language', 'among', 'grand', 'ball', 'yet', 'wave', 'drop', 'heart', 'am', 'present', 'heavy', 'dance', 'engine', 'position', 'arm', 'wide', 'sail', 'material', 'size', 'vary', 'settle', 'speak', 'weight', 'general', 'ice', 'matter', 'circle', 'pair', 'include', 'divide', 'syllable', 'felt', 'perhaps', 'pick', 'sudden', 'count', 'square', 'reason', 'length', 'represent', 'art', 'subject', 'region', 'energy', 'hunt', 'probable', 'bed', 'brother', 'egg', 'ride', 'cell', 'believe', 'fraction', 'forest', 'sit', 'race', 'window', 'store', 'summer', 'train', 'sleep', 'prove', 'lone', 'leg',
-                             'exercise', 'wall', 'catch', 'mount', 'wish', 'sky', 'board', 'joy', 'winter', 'sat', 'written', 'wild', 'instrument', 'kept', 'glass', 'grass', 'cow', 'job', 'edge', 'sign', 'visit', 'past', 'soft', 'fun', 'bright', 'gas', 'weather', 'month', 'million', 'bear', 'finish', 'happy', 'hope', 'flower', 'clothe', 'strange', 'gone', 'jump', 'baby', 'eight', 'village', 'meet', 'root', 'buy', 'raise', 'solve', 'metal', 'whether', 'push', 'seven', 'paragraph', 'third', 'shall', 'held', 'hair', 'describe', 'cook', 'floor', 'either', 'result', 'burn', 'hill', 'safe', 'cat', 'century', 'consider', 'type', 'law', 'bit', 'coast', 'copy', 'phrase', 'silent', 'tall', 'sand', 'soil', 'roll', 'temperature', 'finger', 'industry', 'value', 'fight', 'lie', 'beat', 'excite', 'natural', 'view', 'sense', 'ear', 'else', 'quite', 'broke', 'case', 'middle', 'kill', 'son', 'lake', 'moment', 'scale', 'loud', 'spring', 'observe', 'child', 'straight', 'consonant', 'nation', 'dictionary', 'milk', 'speed', 'method', 'organ', 'pay', 'age', 'section', 'dress', 'cloud', 'surprise', 'quiet', 'stone', 'tiny', 'climb', 'cool', 'design', 'poor', 'lot', 'experiment', 'bottom', 'key', 'iron', 'single', 'stick', 'flat', 'twenty', 'skin', 'smile', 'crease', 'hole', 'trade', 'melody', 'trip', 'office', 'receive', 'row', 'mouth', 'exact', 'symbol', 'die', 'least', 'trouble', 'shout', 'except', 'wrote', 'seed', 'tone', 'join', 'suggest', 'clean', 'break', 'lady', 'yard', 'rise', 'bad', 'blow', 'oil', 'blood', 'touch', 'grew', 'cent', 'mix', 'team', 'wire', 'cost', 'lost', 'brown', 'wear', 'garden', 'equal', 'sent', 'choose', 'fell', 'fit', 'flow', 'fair', 'bank', 'collect', 'save', 'control', 'decimal', 'gentle', 'woman', 'captain', 'practice', 'separate', 'difficult', 'doctor', 'please', 'protect', 'noon', 'whose', 'locate', 'ring', 'character', 'insect', 'caught', 'period', 'indicate', 'radio', 'spoke', 'atom', 'human', 'history', 'effect', 'electric', 'expect', 'crop', 'modern', 'element', 'hit', 'student', 'corner', 'party', 'supply', 'bone', 'rail', 'imagine', 'provide', 'agree', 'thus', 'capital', 'won\'t', 'chair', 'danger', 'fruit', 'rich', 'thick', 'soldier', 'process', 'operate', 'guess', 'necessary', 'sharp', 'wing', 'create', 'neighbor', 'wash', 'bat', 'rather', 'crowd', 'corn', 'compare', 'poem', 'string', 'bell', 'depend', 'meat', 'rub', 'tube', 'famous', 'dollar', 'stream', 'fear', 'sight', 'thin', 'triangle', 'planet', 'hurry', 'chief', 'colony', 'clock', 'mine', 'tie', 'enter', 'major', 'fresh', 'search', 'send', 'yellow', 'gun', 'allow', 'print', 'dead', 'spot', 'desert', 'suit', 'current', 'lift', 'rose', 'continue', 'block', 'chart', 'hat', 'sell', 'success', 'company', 'subtract', 'event', 'particular', 'deal', 'swim', 'term', 'opposite', 'wife', 'shoe', 'shoulder', 'spread', 'arrange', 'camp', 'invent', 'cotton', 'born', 'determine', 'quart', 'nine', 'truck', 'noise', 'level', 'chance', 'gather', 'shop', 'stretch', 'throw', 'shine', 'property', 'column', 'molecule', 'select', 'wrong', 'gray', 'repeat', 'require', 'broad', 'prepare', 'salt', 'nose', 'plural', 'anger', 'claim', 'continent', 'oxygen', 'sugar', 'death', 'pretty', 'skill', 'women', 'season', 'solution', 'magnet', 'silver', 'thank', 'branch', 'match', 'suffix', 'especially', 'fig', 'afraid', 'huge', 'sister', 'steel', 'discuss', 'forward', 'similar', 'guide', 'experience', 'score', 'apple', 'bought', 'led', 'pitch', 'coat', 'mass', 'card', 'band', 'rope', 'slip', 'win', 'dream', 'evening', 'condition', 'feed', 'tool', 'total', 'basic', 'smell', 'valley', 'nor', 'double', 'seat', 'arrive', 'master', 'track', 'parent', 'shore', 'division', 'sheet', 'substance', 'favor', 'connect', 'post', 'spend', 'chord', 'fat', 'glad', 'original', 'share', 'station', 'dad', 'bread', 'charge', 'proper', 'bar', 'offer', 'segment', 'slave', 'duck', 'instant', 'market', 'degree', 'populate', 'chick', 'dear', 'enemy', 'reply', 'drink', 'occur', 'support', 'speech', 'nature', 'range', 'steam', 'motion', 'path', 'liquid', 'log', 'meant', 'quotient', 'teeth', 'shell', 'neck']
-        words = text.split(' ')
-        return np.array([w in words for w in top_english_words])
-
-    def embed(self, x):
-        """
-        Embeds an arbitrary text based on word frequency
-        """
-        if self.type == "str":
-            return self._embed_text(x)
-        elif self.type == "number":
-            return [float(x)]
-        else:
-            raise ValueError("Unknown type: " + str(self.type) +
-                             ". Please choose from: 'str', 'number'.")
-
 
 class Number(InputComponent):
     """
@@ -299,9 +266,6 @@ class Number(InputComponent):
         interpretation.insert(int(len(interpretation) / 2), [x, None])
         return interpretation
 
-    def embed(self, x):
-        return [float(x)]
-
 
 class Slider(InputComponent):
     """
@@ -372,9 +336,6 @@ class Slider(InputComponent):
         """
         return scores
 
-    def embed(self, x):
-        return [float(x)]
-
 
 class Checkbox(InputComponent):
     """
@@ -431,9 +392,6 @@ class Checkbox(InputComponent):
             return scores[0], None
         else:
             return None, scores[0]
-
-    def embed(self, x):
-        return [float(x)]
 
 
 class CheckboxGroup(InputComponent):
@@ -505,15 +463,6 @@ class CheckboxGroup(InputComponent):
             final_scores.append(score_set)
         return final_scores
 
-    def embed(self, x):
-        if self.type == "value":
-            return [float(choice in x) for choice in self.choices]
-        elif self.type == "index":
-            return [float(index in x) for index in range(len(self.choices))]
-        else:
-            raise ValueError("Unknown type: " + str(self.type) +
-                             ". Please choose from: 'value', 'index'.")
-
     def save_flagged(self, dir, label, data, encryption_key):
         """
         Returns: (List[str]])
@@ -581,15 +530,6 @@ class Radio(InputComponent):
         scores.insert(self.choices.index(x), None)
         return scores
 
-    def embed(self, x):
-        if self.type == "value":
-            return [float(choice == x) for choice in self.choices]
-        elif self.type == "index":
-            return [float(index == x) for index in range(len(self.choices))]
-        else:
-            raise ValueError("Unknown type: " + str(self.type) +
-                             ". Please choose from: 'value', 'index'.")
-
 
 class Dropdown(InputComponent):
     """
@@ -648,16 +588,6 @@ class Dropdown(InputComponent):
         scores.insert(self.choices.index(x), None)
         return scores
 
-    def embed(self, x):
-        if self.type == "value":
-            return [float(choice == x) for choice in self.choices]
-        elif self.type == "index":
-            return [float(index == x) for index in range(len(self.choices))]
-        else:
-            raise ValueError("Unknown type: " + str(self.type) +
-                             ". Please choose from: 'value', 'index'.")
-
-
 class Image(InputComponent):
     """
     Component creates an image upload box with editing capabilities. 
@@ -673,7 +603,7 @@ class Image(InputComponent):
         invert_colors (bool): whether to invert the image as a preprocessing step.
         source (str): Source of image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "canvas" defaults to a white image that can be edited and drawn upon with tools.
         tool (str): Tools used for editing. "editor" allows a full screen editor, "select" provides a cropping and zoom tool.
-        type (str): Type of value to be returned by component. "numpy" returns a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" returns a PIL image object, "file" returns a temporary file object whose path can be retrieved by file_obj.name.
+        type (str): Type of value to be returned by component. "numpy" returns a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" returns a PIL image object, "file" returns a temporary file object whose path can be retrieved by file_obj.name, "base64" leaves as a base64 string.
         label (str): component name in interface.
         optional (bool): If True, the interface can be submitted with no uploaded image, in which case the input value is None.
         '''
@@ -708,7 +638,7 @@ class Image(InputComponent):
         }
 
     def preprocess(self, x):
-        if x is None:
+        if x is None or self.type == "base64":
             return x
         im = processing_utils.decode_base64_to_image(x)
         fmt = im.format
@@ -823,20 +753,6 @@ class Image(InputComponent):
             output_scores = (output_scores - min_val) / (max_val - min_val)
         return output_scores.tolist()
 
-    def embed(self, x):
-        shape = (100, 100) if self.shape is None else self.shape
-        if self.type == "pil":
-            im = x
-        elif self.type == "numpy":
-            im = PIL.Image.fromarray(x)
-        elif self.type == "file":
-            im = PIL.Image.open(x)
-        else:
-            raise ValueError("Unknown type: " + str(self.type) +
-                             ". Please choose from: 'numpy', 'pil', 'file'.")
-        im = processing_utils.resize_and_crop(im, (shape[0], shape[1]))
-        return np.asarray(im).flatten()
-
     def save_flagged(self, dir, label, data, encryption_key):
         """
         Returns: (str) path to image file
@@ -942,7 +858,8 @@ class Audio(InputComponent):
     def get_shortcut_implementations(cls):
         return {
             "audio": {},
-            "microphone": {"source": "microphone"}
+            "microphone": {"source": "microphone"},
+            "mic": {"source": "microphone"}
         }
 
     def preprocess(self, x):
@@ -960,8 +877,7 @@ class Audio(InputComponent):
         if self.type == "file":
             return file_obj
         elif self.type == "numpy":
-            audio_segment = AudioSegment.from_file(file_obj.name)
-            return audio_segment.frame_rate, np.array(audio_segment.get_array_of_samples())
+            return processing_utils.audio_from_file(file_obj.name)
 
     def preprocess_example(self, x):
         return processing_utils.encode_file_to_base64(x, type="audio")
@@ -977,8 +893,7 @@ class Audio(InputComponent):
 
     def tokenize(self, x):
         file_obj = processing_utils.decode_base64_to_file(x)
-        x = AudioSegment.from_file(file_obj.name)
-        sample_rate, data = x.frame_rate, np.array(x.get_array_of_samples())
+        sample_rate, data = processing_utils.audio_from_file(x)
         leave_one_out_sets = []
         tokens = []
         masks = []
@@ -993,12 +908,7 @@ class Audio(InputComponent):
             leave_one_out_data = np.copy(data)
             leave_one_out_data[start:stop] = 0
             file = tempfile.NamedTemporaryFile(delete=False)
-            audio_segment = AudioSegment(
-                leave_one_out_data.tobytes(), 
-                frame_rate=sample_rate, 
-                sample_width=leave_one_out_data.dtype.itemsize, 
-                channels=len(leave_one_out_data.shape))
-            audio_segment.export(file.name)
+            processing_utils.audio_to_file(sample_rate, leave_one_out_data, file.name)
             out_data = processing_utils.encode_file_to_base64(
                 file.name, type="audio", ext="wav")
             leave_one_out_sets.append(out_data)
@@ -1007,12 +917,7 @@ class Audio(InputComponent):
             token[0:start] = 0
             token[stop:] = 0
             file = tempfile.NamedTemporaryFile(delete=False)
-            audio_segment = AudioSegment(
-                token.tobytes(), 
-                frame_rate=sample_rate, 
-                sample_width=token.dtype.itemsize, 
-                channels=len(token.shape))
-            audio_segment.export(file.name)
+            processing_utils.audio_to_file(sample_rate, token, file.name)
             token_data = processing_utils.encode_file_to_base64(
                 file.name, type="audio", ext="wav")
             tokens.append(token_data)
@@ -1022,15 +927,13 @@ class Audio(InputComponent):
         # create a "zero input" vector and get sample rate
         x = tokens[0]
         file_obj = processing_utils.decode_base64_to_file(x)
-        audio_segment = AudioSegment.from_file(file_obj.name)
-        sample_rate, data = audio_segment.frame_rate, np.array(audio_segment.get_array_of_samples())
+        sample_rate, data = processing_utils.audio_from_file(file_obj.name)
         zero_input = np.zeros_like(data, dtype=int)
         # decode all of the tokens
         token_data = []
         for token in tokens:
             file_obj = processing_utils.decode_base64_to_file(token)
-            audio_segment = AudioSegment.from_file(file_obj.name)
-            data = np.array(audio_segment.get_array_of_samples())
+            _, data = processing_utils.audio_from_file(file_obj.name)
             token_data.append(data)
         # construct the masked version
         masked_inputs = []
@@ -1039,12 +942,7 @@ class Audio(InputComponent):
             for t, b in zip(token_data, binary_mask_vector):
                 masked_input = masked_input + t*int(b)
             file = tempfile.NamedTemporaryFile(delete=False)
-            audio_segment = AudioSegment(
-                masked_input.tobytes(), 
-                frame_rate=sample_rate, 
-                sample_width=masked_input.dtype.itemsize, 
-                channels=len(masked_input.shape))
-            audio_segment.export(file.name)
+            processing_utils.audio_to_file(sample_rate, masked_input, file_obj.name)
             masked_data = processing_utils.encode_file_to_base64(
                 file.name, type="audio", ext="wav")
             masked_inputs.append(masked_data)
@@ -1128,9 +1026,6 @@ class File(InputComponent):
         else:
             return [process_single_file(f) for f in x]
 
-    def embed(self, x):
-        raise NotImplementedError("File doesn't currently support embeddings")
-
     def save_flagged(self, dir, label, data, encryption_key):
         """
         Returns: (str) path to file
@@ -1210,10 +1105,6 @@ class Dataframe(InputComponent):
             raise ValueError("Unknown type: " + str(self.type) +
                              ". Please choose from: 'pandas', 'numpy', 'array'.")
 
-    def embed(self, x):
-        raise NotImplementedError(
-            "DataFrame doesn't currently support embeddings")
-
     def save_flagged(self, dir, label, data, encryption_key):
         """
         Returns: (List[List[Union[str, float]]]) 2D array
@@ -1269,10 +1160,6 @@ class Timeseries(InputComponent):
             dataframe = dataframe.loc[dataframe[self.x or 0] <= x["range"][1]]
         return dataframe
 
-    def embed(self, x):
-        raise NotImplementedError(
-            "DataFrame doesn't currently support embeddings")
-
     def save_flagged(self, dir, label, data, encryption_key):
         """
         Returns: (List[List[Union[str, float]]]) 2D array
@@ -1288,8 +1175,16 @@ def get_input_instance(iface):
         shortcut = InputComponent.get_all_shortcut_implementations()[
             iface]
         return shortcut[0](**shortcut[1])
+    elif isinstance(iface, dict):  # a dict with `name` as the input component type and other keys as parameters
+        name = iface.pop('name')
+        for component in InputComponent.__subclasses__():
+            if component.__name__.lower() == name:
+                break
+        else:
+            raise ValueError("No such InputComponent: {}".format(name))
+        return component(**iface)
     elif isinstance(iface, InputComponent):
         return iface
     else:
-        raise ValueError("Input interface must be of type `str` or "
+        raise ValueError("Input interface must be of type `str` or `dict` or "
                          "`InputComponent` but is {}".format(iface))

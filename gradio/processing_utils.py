@@ -1,11 +1,16 @@
 from PIL import Image, ImageOps
 from io import BytesIO
 import base64
+import requests
 import tempfile
 import shutil
 import os
 import numpy as np
 from gradio import encryptor
+import warnings
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore") # Ignore pydub warning if ffmpeg is not installed
+    from pydub import AudioSegment
 
 #########################
 # IMAGE PRE-PROCESSING
@@ -25,6 +30,16 @@ def encode_file_to_base64(f, type="image", ext=None, header=True):
         if ext is None:
             ext = f.split(".")[-1]
         return "data:" + type + "/" + ext + ";base64," + base64_str
+
+
+def encode_url_to_base64(url, type="image", ext=None, header=True):
+    encoded_string = base64.b64encode(requests.get(url).content)
+    base64_str = str(encoded_string, 'utf-8')
+    if not header:
+        return base64_str
+    if ext is None:
+        ext = url.split(".")[-1]
+    return "data:" + type + "/" + ext + ";base64," + base64_str
 
 
 def encode_plot_to_base64(plt):
@@ -61,6 +76,26 @@ def resize_and_crop(img, size, crop_type='center'):
     else:
         raise ValueError
     return ImageOps.fit(img, size, centering=center) 
+
+##################
+# Audio
+##################
+
+def audio_from_file(filename):
+    audio = AudioSegment.from_file(filename)
+    data = np.array(audio.get_array_of_samples())
+    if (audio.channels > 1):
+        data = data.reshape(-1, audio.channels)
+    return audio.frame_rate, data
+
+def audio_to_file(sample_rate, data, filename):
+    audio = AudioSegment(
+        data.tobytes(), 
+        frame_rate=sample_rate,
+        sample_width=data.dtype.itemsize, 
+        channels=(1 if len(data.shape) == 1 else data.shape[1])
+    )
+    audio.export(filename, format="wav")
 
 ##################
 # OUTPUT
