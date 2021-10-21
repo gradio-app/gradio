@@ -65,12 +65,13 @@ def ipython_check():
     Check if interface is launching from iPython (not colab)
     :return is_ipython (bool): True or False
     """
+    is_ipython = False
     try:  # Check if running interactively using ipython.
         from IPython import get_ipython
-        get_ipython()
-        is_ipython = True
+        if get_ipython() is not None:
+            is_ipython = True
     except (ImportError, NameError):
-        is_ipython = False
+        pass
     return is_ipython
 
 
