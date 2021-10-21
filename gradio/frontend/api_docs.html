@@ -52,7 +52,11 @@
             justify-content: flex-end;
         }
         span {
+            font-family: monospace;
             color: #eb9f59;
+        }
+        header span {
+            font-family: inherit;
         }
         nav a, nav div {
             margin-left: 48px;
@@ -68,29 +72,13 @@
             display: flex;
             position: relative;
         }
-        #sidebar {
-            background-color: whitesmoke;
-            flex: 0 0 240px;
-            overflow-y: auto;
-            padding: 16px;
-            position: sticky;
-            top: 0;
-            margin-top: 10px;
-            height: 100vh;
-            box-sizing: border-box;
-        }
-        #sidebar a {
-            display: block;
-            padding: 2px 0;
-            font-weight: normal;
-            font-size: 14px;
-        }
+
         #docs-content {
+            width: inherit;
             padding: 16px;
-            font-family: monospace;
-            max-width: 788px;
             line-height: 1.7em;
         }
+
         .highlight-green {
             background: #c0e8c5;
             padding: 5px;
@@ -108,10 +96,14 @@
             font-weight: bolder;
             color: eb9f59;
         }
+        center {
+            padding-bottom: 20px;
+        }
         .json {
             background: whitesmoke;
-            padding: 20px;
+            padding-left: 10px;
             overflow: scroll;
+            font-family: monospace;
         }
 
         input {
@@ -157,24 +149,6 @@
 
   <main id="docs" class="container">
 
-    <div id=sidebar>
-        <a href="#inputs"><h4>Input(s)</h4></a>
-
-        {%for i in range(0, len_inputs)%}
-            <a href="#inputs">{{inputs[i]}}</a>
-        {%endfor%}
-
-        <a href="#outputs"><h4>Output(s)</h4></a>
-
-        {%for i in range(0, len_outputs)%}
-            <a href="#outputs">{{outputs[i]}}</a>
-        {%endfor%}
-
-        <a href="#payload"><h4>Payload</h4></a>
-        <a href="#response"><h4>Response</h4></a>
-        <a href="#try-it"><h4>Try It</h4></a>
-    </div>
-
     <div id="docs-content">
         <h2>
             <img src="https://i.ibb.co/6DVLqmf/noun-tools-2220412.png" style="width: 6%;vertical-align: middle;">
@@ -183,7 +157,7 @@
         <p>The URL endpoint is: <span class ="highlight-green" id="api_url"></span>
         <button id="copy-button" onclick="copyToClipboard('#api_url')">COPY</button></p>
 
-        <h3 id="inputs">Input(s): [{%for i in range(0, len_inputs)%} <span><a href="https://gradio.app/docs#i_{{ inputs_lower[i] }}">{{inputs[i]}}</a></span>{% if i != len_inputs - 1 %},{% endif %}{%endfor%} ]</h3>
+        <h3 id="inputs">Input(s): [{%for i in range(0, len_inputs)%} <span><a href="https://gradio.app/docs#i_{{ inputs_lower[i] }}">{{inputs[i]}}</a></span>{% if i != len_inputs - 1 %} ,{% endif %}{%endfor%} ]</h3>
             <ul>
 
                 {%for i in range(0, len_inputs)%}
@@ -191,7 +165,7 @@
                 {%endfor%}
 
             </ul>
-        <h3 id="outputs">Output(s): [{%for i in range(0, len_outputs)%} <span><a href="https://gradio.app/docs#o_{{ outputs_lower[i] }}">{{outputs[i]}}</a></span>{% if i != len_outputs - 1 %},{% endif %}{%endfor%} ]</h3>
+        <h3 id="outputs">Output(s): [{%for i in range(0, len_outputs)%} <span><a href="https://gradio.app/docs#o_{{ outputs_lower[i] }}">{{outputs[i]}}</a></span>{% if i != len_outputs - 1 %} ,{% endif %}{%endfor%} ]</h3>
             <ul>
 
                 {%for i in range(0, len_outputs)%}
@@ -203,13 +177,13 @@
         <h4 id="payload">Payload: </h4>
         <div class="json">
             <p>&emsp;&emsp;{</p>
-            <p>&emsp;&emsp;&emsp;&emsp;"data": [{%for i in range(0, len_inputs)%} <span>{{ input_types[i] }}</span>{% if i != len_inputs - 1 %},{% endif %}{%endfor%} ]</p>
+            <p>&emsp;&emsp;&emsp;&emsp;"data": [{%for i in range(0, len_inputs)%} <span>{{ input_types[i] }}</span>{% if i != len_inputs - 1 %} ,{% endif %}{%endfor%} ]</p>
             <p>&emsp;&emsp;}</p>
         </div>
         <h4 id="response">Response: </h4>
          <div class="json">
             <p>&emsp;&emsp;{</p>
-            <p>&emsp;&emsp;&emsp;&emsp;"data": [{%for i in range(0, len_outputs)%} <span>{{ output_types[i] }}</span>{% if i != len_outputs - 1 %},{% endif %}{%endfor%} ],</p>
+            <p>&emsp;&emsp;&emsp;&emsp;"data": [{%for i in range(0, len_outputs)%} <span>{{ output_types[i] }}</span>{% if i != len_outputs - 1 %} ,{% endif %}{%endfor%} ],</p>
             <p>&emsp;&emsp;&emsp;&emsp;"durations": [ float ],</p>
             <p>&emsp;&emsp;&emsp;&emsp;"avg_durations": [ float ]</p>
             <p>&emsp;&emsp;}</p>
@@ -222,7 +196,7 @@
             </div>
             <p></p>
             <div class="json">
-                <p class="syntax">&emsp;&emsp;requests.post(url='</p><p  class="syntax" id="syntax_url"></p><p class="syntax">',</p><p class="syntax"> &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;json={"data": [</p> {%for i in range(0, len_inputs)%} <p class="syntax" id="input_syntax_{{i}}"></p>{% if i != len_inputs - 1 %}<p class="syntax">,</p>{% endif %}{%endfor%}<p class="syntax">]})</p>
+                <p class="syntax">&emsp;&emsp;requests.post(url='</p><span  class="syntax" id="syntax_url"></span><p class="syntax">',</p><p class="syntax"> json={"data": [</p> {%for i in range(0, len_inputs)%} <span class="syntax" id="input_syntax_{{i}}"></span>{% if i != len_inputs - 1 %}<p class="syntax">,</p>{% endif %}{%endfor%}<p class="syntax">]})</p>
             </div>
             <center>
             <button id="post-button" onclick="postRequest()">POST</button>
