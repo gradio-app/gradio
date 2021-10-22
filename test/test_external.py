@@ -3,7 +3,7 @@ import pathlib
 import gradio as gr
 
 """
-WARNING: These tests have an external dependency: namely that Hugging Face's Hub and Space APIs do not change, and they keep their most famous models up.
+WARNING: These tests have an external dependency: namely that Hugging Face's Hub and Space APIs do not change, and they keep their most famous models up. So if, e.g. Spaces is down, then these test will not pass.
 """
 
 class TestHuggingFaceModelAPI(unittest.TestCase):
@@ -67,7 +67,7 @@ class TestCallingLoadInterface(unittest.TestCase):
             if not pathlib.Path(path).resolve().is_file():
                 raise AssertionError("File does not exist: %s" % str(path))
 
-        interface_info = gr.external.load_interface("spaces/akhaliq/Car_Keypoints")
+        interface_info = gr.external.load_interface("spaces/akhaliq/Face_Mesh")
         io = gr.Interface(**interface_info)
         output = io("images/lion.jpg")
         assertIsFile(output)

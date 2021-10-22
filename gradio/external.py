@@ -176,11 +176,11 @@ def interface_params_from_config(config_dict):
     ## instantiate input component and output component
     config_dict["inputs"] = [inputs.get_input_instance(component) for component in config_dict["input_components"]]
     config_dict["outputs"] = [outputs.get_output_instance(component) for component in config_dict["output_components"]]
-    not_parameters = ("allow_embedding", "allow_interpretation", "avg_durations", "function_count",
-                      "queue", "input_components", "output_components", "examples")
-    for key in not_parameters:
-        if key in config_dict:
-            del config_dict[key]
+    parameters = {
+        "allow_flagging", "allow_screenshot", "article", "description", "flagging_options", "inputs", "outputs",
+        "show_input", "show_output", "theme", "title"
+    }
+    config_dict = {k: config_dict[k] for k in parameters}
     return config_dict
 
 def get_spaces_interface(model_name, api_key, alias):
@@ -201,7 +201,7 @@ def get_spaces_interface(model_name, api_key, alias):
         output = result["data"]
         if len(interface_info["outputs"])==1:  # if the fn is supposed to return a single value, pop it
             output = output[0]
-        if len(interface_info["outputs"])==1 and isinstance(output, list):  # not sure why this is needed but it fixes the bug
+        if len(interface_info["outputs"])==1 and isinstance(output, list):  # Needed to support Output.Image() returning bounding boxes as well (TODO: handle different versions of gradio since they have slightly different APIs)
             output = output[0]
         return output
      
