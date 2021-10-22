@@ -1,6 +1,6 @@
 {
   "files": {
-    "main.css": "/static/css/main.e82c4b43.css",
+    "main.css": "/static/css/main.ac4c682c.css",
     "main.js": "/static/bundle.js",
     "index.html": "/index.html",
     "static/bundle.js.LICENSE.txt": "/static/bundle.js.LICENSE.txt",
@@ -11,7 +11,7 @@
   },
   "entrypoints": [
     "static/bundle.css",
-    "static/css/main.e82c4b43.css",
+    "static/css/main.ac4c682c.css",
     "static/bundle.js"
   ]
 }
