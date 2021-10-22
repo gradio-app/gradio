@@ -7,7 +7,10 @@ import base64
 
 
 def get_huggingface_interface(model_name, api_key, alias):
+    model_url = "https://huggingface.co/{}".format(model_name)
     api_url = "https://api-inference.huggingface.co/models/{}".format(model_name)
+    print("Fetching model from: {}".format(model_url))
+
     if api_key is not None:
         headers = {"Authorization": f"Bearer {api_key}"}
     else:
@@ -59,7 +62,7 @@ def get_huggingface_interface(model_name, api_key, alias):
         },
         'text-classification': {
             'inputs': inputs.Textbox(label="Input"),
-            'outputs': outputs.Label(label="Classification"),
+            'outputs': outputs.Label(label="Classification", type="confidences"),
             'preprocess': lambda x: {"inputs": x},
             'postprocess': lambda r: {'Negative': r.json()[0][0]["score"],
                                       'Positive': r.json()[0][1]["score"]}
@@ -75,7 +78,7 @@ def get_huggingface_interface(model_name, api_key, alias):
                        inputs.Textbox(label="Possible class names ("
                                             "comma-separated)"),
                        inputs.Checkbox(label="Allow multiple true classes")],
-            'outputs': "label",
+            'outputs': outputs.Label(label="Classification", type="confidences"),
             'preprocess': lambda i, c, m: {"inputs": i, "parameters":
             {"candidate_labels": c, "multi_class": m}},
             'postprocess': lambda r: {r.json()["labels"][i]: r.json()["scores"][i] for i in
@@ -90,7 +93,7 @@ def get_huggingface_interface(model_name, api_key, alias):
         },
         'image-classification': {
             'inputs': inputs.Image(label="Input Image", type="filepath"),
-            'outputs': outputs.Label(label="Classification"),
+            'outputs': outputs.Label(label="Classification", type="confidences"),
             'preprocess': lambda i: base64.b64decode(i.split(",")[1]),  # convert the base64 representation to binary
             'postprocess': lambda r: {i["label"].split(", ")[0]: i["score"] for i in r.json()}
         },
@@ -107,7 +110,7 @@ def get_huggingface_interface(model_name, api_key, alias):
                 inputs.Textbox(label="Source Sentence", default="That is a happy person"),
                 inputs.Textbox(lines=7, label="Sentences to compare to", placeholder="Separate each sentence by a newline"),
             ],
-            'outputs': outputs.Label(label="Classification"),
+            'outputs': outputs.Label(label="Classification", type="confidences"),
             'preprocess': lambda src, sentences: {"inputs": {
                 "source_sentence": src,
                 "sentences": [s for s in sentences.splitlines() if s != ""],
@@ -184,6 +187,8 @@ def interface_params_from_config(config_dict):
     return config_dict
 
 def get_spaces_interface(model_name, api_key, alias):
+    space_url = "https://huggingface.co/spaces/{}".format(model_name)
+    print("Fetching interface from: {}".format(space_url))
     iframe_url = "https://huggingface.co/gradioiframe/{}/+".format(model_name)
     api_url = "https://huggingface.co/gradioiframe/{}/api/predict/".format(model_name)
     headers = {'Content-Type': 'application/json'}
@@ -205,7 +210,7 @@ def get_spaces_interface(model_name, api_key, alias):
             output = output[0]
         return output
      
-    fn.__name__ = alias if alias else model_name
+    fn.__name__ = alias if (alias is not None) else model_name
     interface_info["fn"] = fn
     interface_info["api_mode"] = True
     

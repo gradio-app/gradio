@@ -62,12 +62,18 @@ class TestCallingLoadInterface(unittest.TestCase):
         output = io("My name is Sarah and I live in London")
         self.assertEquals(output, 'Mein Name ist Sarah und ich lebe in London')
 
+    def test_numerical_to_label_space(self):
+        interface_info = gr.external.load_interface("spaces/abidlabs/titanic-survival")
+        io = gr.Interface(**interface_info)
+        output = io("male", 77, 10)
+        self.assertLess(output['Survives'], 0.5)
+
     def test_image_to_image_space(self):
         def assertIsFile(path):
             if not pathlib.Path(path).resolve().is_file():
                 raise AssertionError("File does not exist: %s" % str(path))
 
-        interface_info = gr.external.load_interface("spaces/akhaliq/Face_Mesh")
+        interface_info = gr.external.load_interface("spaces/abidlabs/image-identity")
         io = gr.Interface(**interface_info)
         output = io("images/lion.jpg")
         assertIsFile(output)

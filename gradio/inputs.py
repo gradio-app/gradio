@@ -34,7 +34,10 @@ class InputComponent(Component):
 
     def serialize(self, x, called_directly):
         """
-        Convert from a human-readable version of the input (path of an image, URL of a video, etc.) used to call() the interface to a serialized version (e.g. base64) to pass into an API. May do different things if the interface is called() vs. used via GUI.
+        Convert from a human-readable version of the input (path of an image, URL of a video, etc.) into the interface to a serialized version (e.g. base64) to pass into an API. May do different things if the interface is called() vs. used via GUI.
+        Parameters:
+        x (Any): Input to interface
+        called_directly (bool): if true, the interface was called(), otherwise, it is being used via the GUI
         """
         return x
 
@@ -664,12 +667,14 @@ class Image(InputComponent):
                 "."+fmt.lower() if fmt is not None else ".png"))
             im.save(file_obj.name)
             if self.type == "file":
+                warnings.warn(
+                    "The 'file' type has been deprecated. Set parameter 'type' to 'filepath' instead.", DeprecationWarning)
                 return file_obj
             else:
                 return file_obj.name
         else:
             raise ValueError("Unknown type: " + str(self.type) +
-                             ". Please choose from: 'numpy', 'pil', 'file', 'filepath'.")
+                             ". Please choose from: 'numpy', 'pil', 'filepath'.")
 
     def preprocess_example(self, x):
         return processing_utils.encode_file_to_base64(x)
@@ -690,7 +695,7 @@ class Image(InputComponent):
             return processing_utils.encode_url_or_file_to_base64(file_obj.name)
         else:
             raise ValueError("Unknown type: " + str(self.type) +
-                             ". Please choose from: 'numpy', 'pil', 'file', 'filepath'.")
+                             ". Please choose from: 'numpy', 'pil', 'filepath'.")
 
     def set_interpret_parameters(self, segments=16):
         """
@@ -902,6 +907,8 @@ class Audio(InputComponent):
             file_obj = processing_utils.decode_base64_to_file(
                 file_data, file_path=file_name)
         if self.type == "file":
+            warnings.warn(
+                "The 'file' type has been deprecated. Set parameter 'type' to 'filepath' instead.", DeprecationWarning)
             return file_obj
         elif self.type == "filepath":
             return file_obj.name
@@ -909,7 +916,7 @@ class Audio(InputComponent):
             return processing_utils.audio_from_file(file_obj.name)
         else:
             raise ValueError("Unknown type: " + str(self.type) +
-                             ". Please choose from: 'numpy', 'file', 'filepath'.")
+                             ". Please choose from: 'numpy', 'filepath'.")
 
     def preprocess_example(self, x):
         return processing_utils.encode_file_to_base64(x, type="audio")
@@ -918,6 +925,8 @@ class Audio(InputComponent):
         if self.type == "filepath" or called_directly:
             name = x
         elif self.type == "file":
+            warnings.warn(
+                "The 'file' type has been deprecated. Set parameter 'type' to 'filepath' instead.", DeprecationWarning)
             name = x.name
         elif self.type == "numpy":
             file = tempfile.NamedTemporaryFile(delete=False)
@@ -925,7 +934,7 @@ class Audio(InputComponent):
             processing_utils.audio_to_file(x[0], x[1], name)
         else:
             raise ValueError("Unknown type: " + str(self.type) +
-                             ". Please choose from: 'numpy', 'file', 'filepath'.")
+                             ". Please choose from: 'numpy', 'filepath'.")
         
         file_data = processing_utils.encode_url_or_file_to_base64(name, type="audio")
         return {"name": name, "data": file_data, "is_example": False}

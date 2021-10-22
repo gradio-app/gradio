@@ -121,6 +121,21 @@ class Label(OutputComponent):
             raise ValueError("The `Label` output interface expects one of: a string label, or an int label, a "
                              "float label, or a dictionary whose keys are labels and values are confidences.")
 
+    def deserialize(self, y):
+        # 4 cases: (1): {'label': 'lion'}, {'label': 'lion', 'confidences':...}, {'lion': 0.46, ...}, 'lion'
+        if self.type == "label" or (self.type == "auto" and (isinstance(y, str) or ('label' in y and not('confidences' in y.keys())))):
+            if isinstance(y, str):
+                return y
+            else:
+                return y['label']
+        elif self.type == "confidences" or self.type == "auto":
+            if 'confidences' in y.keys() and isinstance(y['confidences'], list):
+                return {k['label']:k['confidence'] for k in y['confidences']}            
+            else:
+                return y
+        raise ValueError("Unable to deserialize output: {}".format(y))
+        
+
     @classmethod
     def get_shortcut_implementations(cls):
         return {
@@ -203,7 +218,8 @@ class Image(OutputComponent):
         return out_y
 
     def deserialize(self, x):
-        return processing_utils.decode_base64_to_file(x).name
+        y = processing_utils.decode_base64_to_file(x).name
+        return y
 
     def save_flagged(self, dir, label, data, encryption_key):
         """
