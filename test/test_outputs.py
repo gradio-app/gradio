@@ -62,15 +62,15 @@ class TestImage(unittest.TestCase):
     def test_as_component(self):
         y_img = gr.processing_utils.decode_base64_to_image(gr.test_data.BASE64_IMAGE)
         image_output = gr.outputs.Image()
-        self.assertTrue(image_output.postprocess(y_img)[0].startswith("data:image/png;base64,iVBORw0KGgoAAA"))
-        self.assertTrue(image_output.postprocess(np.array(y_img))[0].startswith("data:image/png;base64,iVBORw0KGgoAAA"))
+        self.assertTrue(image_output.postprocess(y_img).startswith("data:image/png;base64,iVBORw0KGgoAAA"))
+        self.assertTrue(image_output.postprocess(np.array(y_img)).startswith("data:image/png;base64,iVBORw0KGgoAAA"))
 
     def test_in_interface(self):
         def generate_noise(width, height):
             return np.random.randint(0, 256, (width, height, 3))
 
         iface = gr.Interface(generate_noise, ["slider", "slider"], "image")
-        self.assertTrue(iface.process([10, 20])[0][0][0].startswith("data:image/png;base64"))
+        self.assertTrue(iface.process([10, 20])[0][0].startswith("data:image/png;base64"))
 
 class TestKeyValues(unittest.TestCase):
     def test_in_interface(self):
