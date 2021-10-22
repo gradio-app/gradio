@@ -151,15 +151,13 @@ class Image(OutputComponent):
     Demos: image_mod.py, webcam.py
     '''
 
-    def __init__(self, type="auto", labeled_segments=False, plot=False, label=None):
+    def __init__(self, type="auto", plot=False, label=None):
         '''
         Parameters:
         type (str): Type of value to be passed to component. "numpy" expects a numpy array with shape (width, height, 3), "pil" expects a PIL image object, "file" expects a file path to the saved image or a remote URL, "plot" expects a matplotlib.pyplot object, "auto" detects return type.
-        labeled_segments (bool): If True, expects a two-element tuple to be returned. The first element of the tuple is the image of format specified by type. The second element is a list of tuples, where each tuple represents a labeled segment within the image. The first element of the tuple is the string label of the segment, followed by 4 floats that represent the left-x, top-y, right-x, and bottom-y coordinates of the bounding box.
         plot (bool): DEPRECATED. Whether to expect a plot to be returned by the function.
         label (str): component name in interface.
         '''
-        self.labeled_segments = labeled_segments
         if plot:
             warnings.warn(
                 "The 'plot' parameter has been deprecated. Set parameter 'type' to 'plot' instead.", DeprecationWarning)
@@ -172,16 +170,11 @@ class Image(OutputComponent):
     def get_shortcut_implementations(cls):
         return {
             "image": {},
-            "segmented_image": {"labeled_segments": True},
             "plot": {"type": "plot"},
             "pil": {"type": "pil"}
         }
 
     def postprocess(self, y):
-        if self.labeled_segments:
-            y, coordinates = y
-        else:
-            coordinates = []
         if self.type == "auto":
             if isinstance(y, np.ndarray):
                 dtype = "numpy"
@@ -207,7 +200,7 @@ class Image(OutputComponent):
         else:
             raise ValueError("Unknown type: " + dtype +
                              ". Please choose from: 'numpy', 'pil', 'file', 'plot'.")
-        return out_y, coordinates
+        return out_y
 
     def deserialize(self, x):
         return processing_utils.decode_base64_to_file(x).name
