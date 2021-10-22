@@ -70,8 +70,8 @@ class Interface:
                  capture_session=False, interpretation=None, num_shap=2.0, theme=None, repeat_outputs_per_model=True,
                  title=None, description=None, article=None, thumbnail=None,
                  css=None, server_port=None, server_name=networking.LOCALHOST_NAME, height=500, width=900,
-                 allow_screenshot=True, allow_flagging=True, flagging_options=None, encrypt=False, api_mode=False,
-                 show_tips=False, flagging_dir="flagged", analytics_enabled=True, enable_queue=False):
+                 allow_screenshot=True, allow_flagging=True, flagging_options=None, encrypt=False,
+                 show_tips=False, flagging_dir="flagged", analytics_enabled=True, enable_queue=False, api_mode=False):
         """
         Parameters:
         fn (Callable): the function to wrap an interface around.
@@ -97,10 +97,10 @@ class Interface:
         allow_flagging (bool): if False, users will not see a button to flag an input and output.
         flagging_options (List[str]): if not None, provides options a user must select when flagging.
         encrypt (bool): If True, flagged data will be encrypted by key provided by creator at launch
-        api_mode (bool): If True, will skip preprocessing steps when the Interface is called() as a function (should remain False unless the Interface is loaded from an external repo)
         flagging_dir (str): what to name the dir where flagged data is stored.
         show_tips (bool): if True, will occasionally show tips about new Gradio features
         enable_queue (bool): if True, inference requests will be served through a queue instead of with parallel threads. Required for longer inference times (> 1min) to prevent timeout.  
+        api_mode (bool): If True, will skip preprocessing steps when the Interface is called() as a function (should remain False unless the Interface is loaded from an external repo)
         """
         if not isinstance(fn, list):
             fn = [fn]
