@@ -77,9 +77,6 @@ class TestUtils(unittest.TestCase):
         mock_get_ipython.side_effect = ImportError()
         assert ipython_check() is False
     
-    # currently, this test fails because ipython_check() returns True
-    # even if we are not in IPython! ipython_check() should presumably
-    # return False if get_ipython returns None
     @mock.patch("IPython.get_ipython")
     def test_ipython_check_no_ipython(self, mock_get_ipython):
         mock_get_ipython.return_value = None
