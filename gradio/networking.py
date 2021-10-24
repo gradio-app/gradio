@@ -25,6 +25,8 @@ from gradio import encryptor
 from gradio import queue
 from functools import wraps
 import io
+import traceback
+
 
 INITIAL_PORT_VALUE = int(os.getenv(
     'GRADIO_SERVER_PORT', "7860"))  # The http server will try to open on port 7860. If not available, 7861, 7862, etc.
