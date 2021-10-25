@@ -25,6 +25,8 @@ from gradio import encryptor
 from gradio import queue
 from functools import wraps
 import io
+import traceback
+
 
 INITIAL_PORT_VALUE = int(os.getenv(
     'GRADIO_SERVER_PORT', "7860"))  # The http server will try to open on port 7860. If not available, 7861, 7862, etc.
@@ -138,6 +140,7 @@ def static_resource(path):
         return send_file(os.path.join(STATIC_PATH_LIB, path))
 
 
+# TODO(@aliabid94): this throws a 500 error if app.auth is None (should probalbly just redirect to '/')
 @app.route('/login', methods=["GET", "POST"])
 def login():
     if request.method == "GET":
