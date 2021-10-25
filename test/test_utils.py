@@ -53,10 +53,12 @@ class TestUtils(unittest.TestCase):
 
         mock_post.side_effect = requests.ConnectionError()
         error_analytics("placeholder")
+        mock_post.assert_called()
      
     @mock.patch("requests.post")   
     def test_error_analytics_successful(self, mock_post):
         error_analytics("placeholder")
+        mock_post.assert_called()
         
             
     @mock.patch("IPython.get_ipython")
