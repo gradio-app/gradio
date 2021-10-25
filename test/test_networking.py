@@ -50,20 +50,50 @@ class TestPort(unittest.TestCase):
         except OSError:
             warnings.warn("Unable to test, no ports available")
 
+
 class TestFlaskRoutes(unittest.TestCase):
     def setUp(self) -> None:
-        self.io =gr.Interface(lambda x: x, "text", "text") 
+        self.io = gr.Interface(lambda x: x, "text", "text") 
         self.app, _, _ = self.io.launch(prevent_thread_lock=True)
         self.client = self.app.test_client()
 
-    def test_get_routes(self):
-        response = self.client.get('/')
-        self.assertEqual(response.status_code, 200)
+    def test_get_main_route(self):
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
 
+    def test_get_config_route(self):
+        response = self.client.get('/config/')
+        self.assertEqual(response.status_code, 200)
+
+    def test_get_static_route(self):
+        response = self.client.get('/static/bundle.css')
+        self.assertEqual(response.status_code, 302)  # This should redirect to static files.
+
     def tearDown(self) -> None:
         self.io.close()
+        gr.reset_all()
+
+
+class TestAuthenticatedFlaskRoutes(unittest.TestCase):
+    def setUp(self) -> None:
+        self.io = gr.Interface(lambda x: x, "text", "text") 
+        self.app, _, _ = self.io.launch(auth=("test", "correct_password"), prevent_thread_lock=True)
+        self.client = self.app.test_client()
+
+    def test_get_login_route(self):
+        response = self.client.get('/login')  
+        self.assertEqual(response.status_code, 200)
+
+    def test_post_login(self):
+        response = self.client.post('/login', data=dict(username="test", password="correct_password"))
+        self.assertEqual(response.status_code, 302)
+        response = self.client.post('/login', data=dict(username="test", password="incorrect_password"))
+        self.assertEqual(response.status_code, 401) 
+
+    def tearDown(self) -> None:
+        self.io.close()
+        gr.reset_all()
+
 
 if __name__ == '__main__':
     unittest.main()

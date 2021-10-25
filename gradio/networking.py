@@ -140,6 +140,7 @@ def static_resource(path):
         return send_file(os.path.join(STATIC_PATH_LIB, path))
 
 
+# TODO(@aliabid94): this throws a 500 error if app.auth is None (should probalbly just redirect to '/')
 @app.route('/login', methods=["GET", "POST"])
 def login():
     if request.method == "GET":
