@@ -1,6 +1,7 @@
 version: 2.1
 orbs:
   codecov: codecov/codecov@3.1.1
+  node: circleci/node@1.0.1  
 jobs:
   build:
     docker:
@@ -26,6 +27,14 @@ jobs:
           key: deps1-{{ .Branch }}-{{ checksum "gradio.egg-info/requires.txt" }}
           paths:
             - "venv"
+      - node/install
+      - node/install-npm
+      - run:
+          name: Build frontend
+          command: |
+            cd frontend
+            npm install
+            npm run build
       - run:
           command: |
             mkdir screenshots
