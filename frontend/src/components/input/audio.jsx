@@ -5,7 +5,7 @@ import Recorder from "recorder-js";
 import { getSaliencyColor } from "../../utils";
 import edit_icon from "../../static/img/edit.svg";
 import clear_icon from "../../static/img/clear.svg";
-import { Slider, Handles, Tracks } from 'react-compound-slider'
+import MultiRangeSlider from "./../../vendor/MultiRangeSlider/MultiRangeSlider";
 
 class AudioInput extends BaseComponent {
   constructor(props) {
@@ -91,12 +91,7 @@ class AudioInput extends BaseComponent {
               ))}
             </div>
           )}
-          <Slider
-            domain={[0, 100]}
-            values={[10, 50]}
-          >
-            <div style={{backgroundColor: "red", height: "20px"}} />
-          </Slider>
+          <MultiRangeSlider min={0} max={100} onChange={({ min, max }) => console.log(`min = ${min}, max = ${max}`)} />
         </div>
       );
     } else {
