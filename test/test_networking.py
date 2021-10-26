@@ -67,7 +67,7 @@ class TestFlaskRoutes(unittest.TestCase):
 
     def test_get_static_route(self):
         response = self.client.get('/static/bundle.css')
-        self.assertEqual(response.status_code, 302)  # This should redirect to static files.
+        self.assertEqual(response.status_code, 200)
 
     def tearDown(self) -> None:
         self.io.close()
