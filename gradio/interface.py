@@ -25,6 +25,7 @@ import copy
 import markdown2
 import json
 import csv
+import pkg_resources
 from getpass import getpass
 
 analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
@@ -71,7 +72,7 @@ class Interface:
                  title=None, description=None, article=None, thumbnail=None,
                  css=None, server_port=None, server_name=networking.LOCALHOST_NAME, height=500, width=900,
                  allow_screenshot=True, allow_flagging=True, flagging_options=None, encrypt=False,
-                 show_tips=False, flagging_dir="flagged", analytics_enabled=True, enable_queue=False):
+                 show_tips=False, flagging_dir="flagged", analytics_enabled=True, enable_queue=False, api_mode=False):
         """
         Parameters:
         fn (Callable): the function to wrap an interface around.
@@ -100,6 +101,7 @@ class Interface:
         flagging_dir (str): what to name the dir where flagged data is stored.
         show_tips (bool): if True, will occasionally show tips about new Gradio features
         enable_queue (bool): if True, inference requests will be served through a queue instead of with parallel threads. Required for longer inference times (> 1min) to prevent timeout.  
+        api_mode (bool): If True, will skip preprocessing steps when the Interface is called() as a function (should remain False unless the Interface is loaded from an external repo)
         """
         if not isinstance(fn, list):
             fn = [fn]
@@ -181,6 +183,7 @@ class Interface:
         self.requires_permissions = any(
             [component.requires_permissions for component in self.input_components])
         self.enable_queue = enable_queue
+        self.api_mode = api_mode
 
         data = {'fn': fn,
                 'inputs': inputs,
@@ -215,8 +218,12 @@ class Interface:
             except (requests.ConnectionError, requests.exceptions.ReadTimeout):
                 pass  # do not push analytics if no network
 
-    def __call__(self, params_per_function):
-        return self.predict[0](params_per_function)
+    def __call__(self, *params):
+        if self.api_mode:  # skip the preprocessing/postprocessing if sending to a remote API
+            output = self.run_prediction(params, called_directly=True)
+        else:
+            output, _ = self.process(params) 
+        return output[0] if len(output) == 1 else output
 
     def __str__(self):
         return self.__repr__()
@@ -257,7 +264,8 @@ class Interface:
             "allow_flagging": self.allow_flagging,
             "flagging_options": self.flagging_options,
             "allow_interpretation": self.interpretation is not None,
-            "queue": self.enable_queue
+            "queue": self.enable_queue,
+            "version": pkg_resources.require("gradio")[0].version
         }
         try:
             param_names = inspect.getfullargspec(self.predict[0])[0]
@@ -305,7 +313,10 @@ class Interface:
                 config["examples"] = self.examples
         return config
 
-    def run_prediction(self, processed_input, return_duration=False):
+    def run_prediction(self, processed_input, return_duration=False, called_directly=False):
+        if self.api_mode:  # Serialize the input
+            processed_input = [input_component.serialize(processed_input[i], called_directly)
+                            for i, input_component in enumerate(self.input_components)]
         predictions = []
         durations = []
         for predict_fn in self.predict:
@@ -327,6 +338,10 @@ class Interface:
             if len(self.output_components) == len(self.predict):
                 prediction = [prediction]
 
+            if self.api_mode:  # Serialize the input
+                prediction = [output_component.deserialize(prediction[o])
+                                for o, output_component in enumerate(self.output_components)]
+
             durations.append(duration)
             predictions.extend(prediction)
 
@@ -345,8 +360,8 @@ class Interface:
                            for i, input_component in enumerate(self.input_components)]
         predictions, durations = self.run_prediction(
             processed_input, return_duration=True)
-        processed_output = [output_component.postprocess(
-            predictions[i]) if predictions[i] is not None else None for i, output_component in enumerate(self.output_components)]
+        processed_output = [output_component.postprocess(predictions[i]) if predictions[i] is not None else None 
+                            for i, output_component in enumerate(self.output_components)]
         return processed_output, durations
 
     def interpret(self, raw_input):
@@ -509,7 +524,9 @@ class Interface:
                 print("PASSED")
                 continue
 
-    def launch(self, inline=None, inbrowser=None, share=False, debug=False, auth=None, auth_message=None, private_endpoint=None, prevent_thread_lock=False):
+    def launch(self, inline=None, inbrowser=None, share=False, debug=False,
+               auth=None, auth_message=None, private_endpoint=None,
+               prevent_thread_lock=False, show_error=True):
         """
         Launches the webserver that serves the UI for the interface.
         Parameters:
@@ -523,6 +540,7 @@ class Interface:
         app (flask.Flask): Flask app object
         path_to_local_server (str): Locally accessible link
         share_url (str): Publicly accessible link (if share=True)
+        show_error (bool): show prediction errors in console
         """
         # Alert user if a more recent version of the library exists
         utils.version_check()
@@ -547,6 +565,7 @@ class Interface:
         self.server_port = server_port
         self.status = "RUNNING"
         self.server = app
+        self.show_error = show_error
 
         # Count number of launches
         launch_counter()
@@ -601,7 +620,6 @@ class Interface:
             try:
                 from IPython.display import IFrame, display
                 # Embed the remote interface page if on google colab; otherwise, embed the local page.
-                print(strings.en["INLINE_DISPLAY_BELOW"])
                 if share:
                     while not networking.url_ok(share_url):
                         time.sleep(1)

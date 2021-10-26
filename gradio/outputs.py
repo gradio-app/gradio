@@ -31,6 +31,12 @@ class OutputComponent(Component):
         """
         return y
 
+    def deserialize(self, x):
+        """
+        Convert from serialized output (e.g. base64 representation) from a call() to the interface to a human-readable version of the output (path of an image, etc.) 
+        """
+        return x
+
 
 class Textbox(OutputComponent):
     '''
@@ -127,6 +133,21 @@ class Label(OutputComponent):
             raise ValueError("The `Label` output interface expects one of: a string label, or an int label, a "
                              "float label, or a dictionary whose keys are labels and values are confidences.")
 
+    def deserialize(self, y):
+        # 4 cases: (1): {'label': 'lion'}, {'label': 'lion', 'confidences':...}, {'lion': 0.46, ...}, 'lion'
+        if self.type == "label" or (self.type == "auto" and (isinstance(y, str) or ('label' in y and not('confidences' in y.keys())))):
+            if isinstance(y, str):
+                return y
+            else:
+                return y['label']
+        elif self.type == "confidences" or self.type == "auto":
+            if 'confidences' in y.keys() and isinstance(y['confidences'], list):
+                return {k['label']:k['confidence'] for k in y['confidences']}            
+            else:
+                return y
+        raise ValueError("Unable to deserialize output: {}".format(y))
+        
+
     @classmethod
     def get_shortcut_implementations(cls):
         return {
@@ -157,15 +178,13 @@ class Image(OutputComponent):
     Demos: image_mod.py, webcam.py
     '''
 
-    def __init__(self, type="auto", labeled_segments=False, plot=False, label=None):
+    def __init__(self, type="auto", plot=False, label=None):
         '''
         Parameters:
         type (str): Type of value to be passed to component. "numpy" expects a numpy array with shape (width, height, 3), "pil" expects a PIL image object, "file" expects a file path to the saved image or a remote URL, "plot" expects a matplotlib.pyplot object, "auto" detects return type.
-        labeled_segments (bool): If True, expects a two-element tuple to be returned. The first element of the tuple is the image of format specified by type. The second element is a list of tuples, where each tuple represents a labeled segment within the image. The first element of the tuple is the string label of the segment, followed by 4 floats that represent the left-x, top-y, right-x, and bottom-y coordinates of the bounding box.
         plot (bool): DEPRECATED. Whether to expect a plot to be returned by the function.
         label (str): component name in interface.
         '''
-        self.labeled_segments = labeled_segments
         if plot:
             warnings.warn(
                 "The 'plot' parameter has been deprecated. Set parameter 'type' to 'plot' instead.", DeprecationWarning)
@@ -178,7 +197,6 @@ class Image(OutputComponent):
     def get_shortcut_implementations(cls):
         return {
             "image": {},
-            "segmented_image": {"labeled_segments": True},
             "plot": {"type": "plot"},
             "pil": {"type": "pil"}
         }
@@ -188,7 +206,7 @@ class Image(OutputComponent):
         Parameters:
         y (Union[numpy.array, PIL.Image, str, matplotlib.pyplot, Tuple[Union[numpy.array, PIL.Image, str], List[Tuple[str, float, float, float, float]]]]): image in specified format 
         Returns:
-        (str): base64 url of image
+        (str): base64 url data
         """
         if self.type == "auto":
             if isinstance(y, np.ndarray):
@@ -209,17 +227,17 @@ class Image(OutputComponent):
                 y = np.array(y)
             out_y = processing_utils.encode_array_to_base64(y)
         elif dtype == "file":
-            try:
-                requests.get(y)
-                out_y = processing_utils.encode_url_to_base64(y)
-            except requests.exceptions.MissingSchema:
-                out_y = processing_utils.encode_file_to_base64(y)
+            out_y = processing_utils.encode_url_or_file_to_base64(y)
         elif dtype == "plot":
             out_y = processing_utils.encode_plot_to_base64(y)
         else:
             raise ValueError("Unknown type: " + dtype +
                              ". Please choose from: 'numpy', 'pil', 'file', 'plot'.")
         return out_y
+
+    def deserialize(self, x):
+        y = processing_utils.decode_base64_to_file(x).name
+        return y
 
     def save_flagged(self, dir, label, data, encryption_key):
         """
@@ -256,7 +274,7 @@ class Video(OutputComponent):
         Parameters:
         y (str): path to video 
         Returns:
-        (str): base64 url of video
+        (str): base64 url data
         """
         returned_format = y.split(".")[-1].lower()
         if self.type is not None and returned_format != self.type:
@@ -272,6 +290,9 @@ class Video(OutputComponent):
             "name": os.path.basename(y),
             "data": processing_utils.encode_file_to_base64(y, type="video")
         }
+
+    def deserialize(self, x):
+        return processing_utils.decode_base64_to_file(x).name
 
     def save_flagged(self, dir, label, data, encryption_key):
         """
@@ -400,7 +421,7 @@ class Audio(OutputComponent):
         Parameters:
         y (Union[Tuple[int, numpy.array], str]): audio data in requested format
         Returns:
-        (str): base64 url of audio
+        (str): base64 url data
         """
         if self.type in ["numpy", "file", "auto"]:
             if self.type == "numpy" or (self.type == "auto" and isinstance(y, tuple)):
@@ -408,10 +429,13 @@ class Audio(OutputComponent):
                 file = tempfile.NamedTemporaryFile(prefix="sample", suffix=".wav", delete=False)
                 processing_utils.audio_to_file(sample_rate, data, file.name)
                 y = file.name
-            return processing_utils.encode_file_to_base64(y, type="audio", ext="wav")
+            return processing_utils.encode_url_or_file_to_base64(y, type="audio", ext="wav")
         else:
             raise ValueError("Unknown type: " + self.type +
                              ". Please choose from: 'numpy', 'file'.")
+
+    def deserialize(self, x):
+        return processing_utils.decode_base64_to_file(x).name
 
     def save_flagged(self, dir, label, data, encryption_key):
         """

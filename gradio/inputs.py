@@ -15,7 +15,6 @@ from ffmpy import FFmpeg
 import math
 import tempfile
 from pathlib import Path
-from gradio import test_data
 
 
 class InputComponent(Component):
@@ -30,6 +29,15 @@ class InputComponent(Component):
     def preprocess(self, x):
         """
         Any preprocessing needed to be performed on function input.
+        """
+        return x
+
+    def serialize(self, x, called_directly):
+        """
+        Convert from a human-readable version of the input (path of an image, URL of a video, etc.) into the interface to a serialized version (e.g. base64) to pass into an API. May do different things if the interface is called() vs. used via GUI.
+        Parameters:
+        x (Any): Input to interface
+        called_directly (bool): if true, the interface was called(), otherwise, it is being used via the GUI
         """
         return x
 
@@ -673,7 +681,7 @@ class Image(InputComponent):
         invert_colors (bool): whether to invert the image as a preprocessing step.
         source (str): Source of image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "canvas" defaults to a white image that can be edited and drawn upon with tools.
         tool (str): Tools used for editing. "editor" allows a full screen editor, "select" provides a cropping and zoom tool.
-        type (str): Type of value to be returned by component. "numpy" returns a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" returns a PIL image object, "file" returns a temporary file object whose path can be retrieved by file_obj.name.
+        type (str): Type of value to be returned by component. "numpy" returns a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" returns a PIL image object, "file" returns a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
         label (str): component name in interface.
         optional (bool): If True, the interface can be submitted with no uploaded image, in which case the input value is None.
         '''
@@ -729,17 +737,40 @@ class Image(InputComponent):
             return im
         elif self.type == "numpy":
             return np.array(im)
-        elif self.type == "file":
+        elif self.type == "file" or self.type == "filepath":
             file_obj = tempfile.NamedTemporaryFile(delete=False, suffix=(
                 "."+fmt.lower() if fmt is not None else ".png"))
             im.save(file_obj.name)
-            return file_obj
+            if self.type == "file":
+                warnings.warn(
+                    "The 'file' type has been deprecated. Set parameter 'type' to 'filepath' instead.", DeprecationWarning)
+                return file_obj
+            else:
+                return file_obj.name
         else:
             raise ValueError("Unknown type: " + str(self.type) +
-                             ". Please choose from: 'numpy', 'pil', 'file'.")
+                             ". Please choose from: 'numpy', 'pil', 'filepath'.")
 
     def preprocess_example(self, x):
         return processing_utils.encode_file_to_base64(x)
+
+    def serialize(self, x, called_directly=False):
+        # if called directly, can assume it's a URL or filepath
+        if self.type == "filepath" or called_directly:
+            return processing_utils.encode_url_or_file_to_base64(x)
+        elif self.type == "file":
+            return processing_utils.encode_url_or_file_to_base64(x.name)
+        elif self.type == "numpy" or "pil":
+            if self.type == "numpy":
+                x = PIL.Image.fromarray(np.uint8(x)).convert('RGB')
+            fmt = x.format
+            file_obj = tempfile.NamedTemporaryFile(delete=False, suffix=(
+                "."+fmt.lower() if fmt is not None else ".png"))
+            x.save(file_obj.name)
+            return processing_utils.encode_url_or_file_to_base64(file_obj.name)
+        else:
+            raise ValueError("Unknown type: " + str(self.type) +
+                             ". Please choose from: 'numpy', 'pil', 'filepath'.")
 
     def set_interpret_parameters(self, segments=16):
         """
@@ -898,6 +929,9 @@ class Video(InputComponent):
         else:
             return file_name
 
+    def serialize(self, x, called_directly):
+        raise NotImplementedError()
+
     def preprocess_example(self, x):
         return processing_utils.encode_file_to_base64(x)
 
@@ -922,7 +956,7 @@ class Audio(InputComponent):
         """
         Parameters:
         source (str): Source of audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input.
-        type (str): Type of value to be returned by component. "numpy" returns a 2-set tuple with an integer sample_rate and the data numpy.array of shape (samples, 2), "file" returns a temporary file object whose path can be retrieved by file_obj.name.
+        type (str): Type of value to be returned by component. "numpy" returns a 2-set tuple with an integer sample_rate and the data numpy.array of shape (samples, 2), "file" returns a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
         label (str): component name in interface.
         optional (bool): If True, the interface can be submitted with no uploaded audio, in which case the input value is None.
         """
@@ -966,12 +1000,37 @@ class Audio(InputComponent):
             file_obj = processing_utils.decode_base64_to_file(
                 file_data, file_path=file_name)
         if self.type == "file":
+            warnings.warn(
+                "The 'file' type has been deprecated. Set parameter 'type' to 'filepath' instead.", DeprecationWarning)
             return file_obj
+        elif self.type == "filepath":
+            return file_obj.name
         elif self.type == "numpy":
             return processing_utils.audio_from_file(file_obj.name)
+        else:
+            raise ValueError("Unknown type: " + str(self.type) +
+                             ". Please choose from: 'numpy', 'filepath'.")
 
     def preprocess_example(self, x):
         return processing_utils.encode_file_to_base64(x, type="audio")
+
+    def serialize(self, x, called_directly):
+        if self.type == "filepath" or called_directly:
+            name = x
+        elif self.type == "file":
+            warnings.warn(
+                "The 'file' type has been deprecated. Set parameter 'type' to 'filepath' instead.", DeprecationWarning)
+            name = x.name
+        elif self.type == "numpy":
+            file = tempfile.NamedTemporaryFile(delete=False)
+            name = file.name
+            processing_utils.audio_to_file(x[0], x[1], name)
+        else:
+            raise ValueError("Unknown type: " + str(self.type) +
+                             ". Please choose from: 'numpy', 'filepath'.")
+        
+        file_data = processing_utils.encode_url_or_file_to_base64(name, type="audio")
+        return {"name": name, "data": file_data, "is_example": False}
 
     def set_interpret_parameters(self, segments=8):
         """

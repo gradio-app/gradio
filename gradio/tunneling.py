@@ -11,8 +11,6 @@ from io import StringIO
 import warnings
 import paramiko
 
-DEBUG_MODE = False
-
 
 def handler(chan, host, port):
     sock = socket.socket()
@@ -55,8 +53,8 @@ def reverse_forward_tunnel(server_port, remote_host, remote_port, transport):
         thr.start()
 
 
-def verbose(s):
-    if DEBUG_MODE:
+def verbose(s, debug_mode=False):
+    if debug_mode:
         print(s)
 
 
