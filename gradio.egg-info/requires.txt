@@ -14,3 +14,4 @@ Flask-Cors>=3.0.8
 flask-cachebuster
 Flask-Login
 IPython
+shap
