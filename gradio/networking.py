@@ -134,7 +134,7 @@ def main():
 
 @app.route("/static/<path:path>", methods=["GET"])
 def static_resource(path):
-    if app.interface.share or os.getenv("GRADIO_TEST_MODE"):
+    if app.interface.share:
         return redirect(GRADIO_STATIC_ROOT + path)
     else:
         return send_file(os.path.join(STATIC_PATH_LIB, path))
@@ -218,8 +218,9 @@ def log_feature_analytics(feature):
             pass  # do not push analytics if no network
 
 
-def flag_data(input_data, output_data, flag_option=None, flag_index=None, username=None):
-    flag_path = os.path.join(app.cwd, app.interface.flagging_dir)
+def flag_data(input_data, output_data, flag_option=None, flag_index=None, username=None, flag_path=None):
+    if flag_path is None:
+        flag_path = os.path.join(app.cwd, app.interface.flagging_dir)
     log_fp = "{}/log.csv".format(flag_path)
     encryption_key = app.interface.encryption_key if app.interface.encrypt else None
     is_new = not os.path.exists(log_fp)
@@ -280,7 +281,7 @@ def flag_data(input_data, output_data, flag_option=None, flag_index=None, userna
                 app.interface.encryption_key, output.getvalue().encode()))
     else:
         if flag_index is None:
-            with open(log_fp, "a") as csvfile:
+            with open(log_fp, "a", newline="") as csvfile:
                 writer = csv.writer(csvfile)
                 if is_new:
                     writer.writerow(headers)
@@ -289,7 +290,7 @@ def flag_data(input_data, output_data, flag_option=None, flag_index=None, userna
             with open(log_fp) as csvfile:
                 file_content = csvfile.read()
                 file_content = replace_flag_at_index(file_content)
-            with open(log_fp, "w") as csvfile:
+            with open(log_fp, "w", newline="") as csvfile:  # newline parameter needed for Windows
                 csvfile.write(file_content)
     with open(log_fp, "r") as csvfile:
         line_count = len([None for row in csv.reader(csvfile)]) - 1
@@ -310,6 +311,7 @@ def flag():
 def interpret():
     log_feature_analytics('interpret')
     raw_input = request.json["data"]
+    print(raw_input)
     interpretation_scores, alternative_outputs = app.interface.interpret(
         raw_input)
     return jsonify({

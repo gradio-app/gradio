@@ -83,12 +83,13 @@ class TestUtils(unittest.TestCase):
         assert ipython_check() is False
         
     @mock.patch("requests.get")
-    def test_readme_to_html_doesnt_crah_on_connection_error(self, mock_get):
+    def test_readme_to_html_doesnt_crash_on_connection_error(self, mock_get):
         mock_get.side_effect = requests.ConnectionError()
         readme_to_html("placeholder")
         
     def test_readme_to_html_correct_parse(self):
         readme_to_html("https://github.com/gradio-app/gradio/blob/master/README.md")
-        
+
+
 if __name__ == '__main__':
     unittest.main()
