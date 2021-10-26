@@ -17,23 +17,25 @@ module.exports = {
       enable: true /* (default value) */,
       mode: "extends" /* (default value) */ || "file"
     },
-    configure: {
-      optimization: {
+    configure: (webpackConfig, { env, paths }) => {
+      webpackConfig.optimization = {
         splitChunks: {
           cacheGroups: {
             default: false
           }
         },
         runtimeChunk: false
-      },
-      entry: "./src/index",
-      output: {
+      };
+      webpackConfig.entry = "./src/index";
+      webpackConfig.output = {
         publicPath: "",
         path: path.resolve(__dirname, "../gradio/frontend"),
         filename: "static/bundle.js",
         chunkFilename: "static/js/[name].chunk.js"
-      }
-    }
+      };
+      paths.appBuild = webpackConfig.output.path;
+      return webpackConfig;
+    },
   },
   style: {
     postcss: {
