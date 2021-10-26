@@ -200,24 +200,28 @@ def predict():
 
 def get_types(cls_set, component):
     docset = []
+    types = []
     if component == "input":
         for cls in cls_set:
             doc = inspect.getdoc(cls.preprocess)
             doc_lines = doc.split("\n")
-            docset.append(doc_lines[0].strip("(").strip(")"))
+            docset.append(doc_lines[1].split(":")[-1])
+            types.append(doc_lines[1].split(")")[0].split("(")[-1])
     else:
         for cls in cls_set:
             doc = inspect.getdoc(cls.postprocess)
             doc_lines = doc.split("\n")
-            docset.append(doc_lines[1].strip("(").strip(")"))
-    return docset
+            docset.append(doc_lines[-1].split(":")[-1])
+            types.append(doc_lines[-1].split(")")[0].split("(")[-1])
+    return docset, types
 
 
 @app.route("/api/", methods=["GET"])
 def api_docs():
     inputs = [type(inp) for inp in app.interface.input_components]
     outputs = [type(out) for out in app.interface.output_components]
-    input_types, output_types = get_types(inputs, "input"), get_types(outputs, "output")
+    input_types_doc, input_types = get_types(inputs, "input")
+    output_types_doc, output_types = get_types(outputs, "output")
     input_names = [type(inp).__name__ for inp in app.interface.input_components]
     output_names = [type(out).__name__ for out in app.interface.output_components]
     docs = {
@@ -229,6 +233,8 @@ def api_docs():
         "outputs_lower": [name.lower() for name in output_names],
         "input_types": input_types,
         "output_types": output_types,
+        "input_types_doc": input_types_doc,
+        "output_types_doc": output_types_doc
     }
     return render_template("api_docs.html", **docs)
 

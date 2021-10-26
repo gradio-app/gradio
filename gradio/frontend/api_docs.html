@@ -257,7 +257,7 @@
       <ul>
 
         {%for i in range(0, len_inputs)%}
-        <li><strong>{{inputs[i]}}</strong> accepts types <span><em> {{ input_types[i]}}</em></span></li>
+        <li><strong>{{inputs[i]}}</strong> accepts the <span><em> {{ input_types_doc[i]}}</em></span> in type <span><em>{{ input_types[i] }}</em></span></li>
         {%endfor%}
 
       </ul>
@@ -267,7 +267,7 @@
       <ul>
 
         {%for i in range(0, len_outputs)%}
-        <li><strong>{{outputs[i]}}</strong> returns types <span><em> {{ output_types[i]}}</em></span></li>
+        <li><strong>{{outputs[i]}}</strong> returns the <span><em> {{ output_types_doc[i]}}</em></span> as type <span><em> {{ output_types[i]}}</em></span></li>
         {%endfor%}
 
       </ul>
