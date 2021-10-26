@@ -123,6 +123,69 @@
             font-weight: bolder;
         }
 
+        #demo-nav {
+            display: flex;
+        }
+
+        .demo-link {
+            font-size: 1rem;
+            padding: 8px 16px 12px;
+            flex-grow: 1;
+        }
+
+        .demo-link.selected {
+            border: solid 1px lightgray;
+            border-bottom: none;
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+            font-weight: bold;
+        }
+
+        .demo-link:not(.selected) {
+            border-bottom: solid 1px lightgray;
+        }
+
+        .selected {
+            border-bottom: none !important;
+            color: #ed9013;
+        }
+
+        .demo-window {
+            padding: 16px;
+            border: solid 1px lightgray;
+            border-top: none;
+            box-shadow: 0px 12px 28px -21px black;
+            margin-bottom: 20px;
+        }
+
+        .demo-window:not([demo="1"]) {
+            display: none;
+        }
+
+        .demo {
+            border: solid 1px lightgray;
+            padding: 12px;
+            border-radius: 4px;
+            margin-right: 40px;
+        }
+        nav a:hover,
+        button[demo]:hover {
+            color: #ed9013;
+        }
+
+        #demos button {
+            border: solid 1px lightgray;
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+            background: none;
+            font: inherit;
+            cursor: pointer;
+        }
+
+        .demo-window .json {
+            padding: inherit;
+        }
+
     </style>
 
     <meta property="og:url" content="https://gradio.app/" />
@@ -199,12 +262,45 @@
                 <p>&emsp;&emsp;}</p>
             </div>
             <p></p>
-            <div class="json">
-                <p class="syntax">&emsp;&emsp;requests.post(url='</p><span  class="syntax" id="syntax_url"></span><p class="syntax">',</p><p class="syntax"> json={"data": [</p> {%for i in range(0, len_inputs)%} <span class="syntax" id="input_syntax_{{i}}"></span>{% if i != len_inputs - 1 %}<p class="syntax">,</p>{% endif %}{%endfor%}<p class="syntax">]})</p>
+
+            <div id="demos" class="container">
+                <div id="demo-nav">
+                <button id="python" demo="1" class="selected demo-link">
+                  <div class="demo-long">Python</div>
+                </button>
+                <button id="curl" demo="2" class="demo-link">
+                  <div class="demo-long">cURL</div>
+                </button>
+                <button id="js" demo="3" class="demo-link">
+                  <div class="demo-long">Javascript</div>
+                </button>
+
+              </div>
+
+                <div class="demo-window" demo="1">
+                    <div class="json">
+                        <p class="syntax">import requests</p>
+                        <br>
+                        <p class="syntax">r = requests.post(url='<span  class="syntax" id="py_syntax_url"></span><p class="syntax">',</p><p class="syntax"> json={"data": [</p> {%for i in range(0, len_inputs)%} <span class="syntax" id="py_input_syntax_{{i}}"></span>{% if i != len_inputs - 1 %}<p class="syntax">,</p>{% endif %}{%endfor%}<p class="syntax">]})</p></p>
+                        <p>r.json()</p>
+                    </div>
+
+                </div>
+                <div class="demo-window" demo="2">
+                    <div class="json">
+                        <p class="syntax">curl -X POST&nbsp;</p><span  class="syntax" id="curl_syntax_url"></span>&nbsp;-H 'Content-Type: application/json' -d '{"data": [ {%for i in range(0, len_inputs)%} <span class="syntax" id="curl_input_syntax_{{i}}"></span>{% if i != len_inputs - 1 %}<p class="syntax">,</p>{% endif %}{%endfor%}<p class="syntax">]}' </p>
+                    </div>
+
+                </div>
+                <div class="demo-window" demo="3">
+                    <div class="json">
+                    <p class="syntax">fetch('<span  class="syntax" id="js_syntax_url"></span>', { method: "POST", body: JSON.stringify({"data":[{%for i in range(0, len_inputs)%} <span class="syntax" id="js_input_syntax_{{i}}"></span>{% if i != len_inputs - 1 %},{% endif %}{%endfor%}<p class="syntax">]}), headers: { "Content-Type": "application/json" } }).then(function(response) { return response.json(); }).then(function(json_response){ console.log(json_response) })</p></p>
+                    </div>
+                </div>
             </div>
             <center>
-            <button id="post-button" onclick="postRequest()">POST</button>
-            <button id="copy_syntax" onclick="copySyntax()">COPY</button>
+                <button id="post-button" onclick="postRequest()">POST</button>
+                <button id="copy_syntax" onclick="copySyntax()">COPY</button>
             </center>
             <div class="json">
                 <p><span id="response_status"></span>&emsp;<span id="response_text"></span></p>
@@ -225,7 +321,10 @@
 
     var url = window.location.href;
     $('#api_url').html(url.concat("predict/"));
-    $('#syntax_url').html(url.concat("predict/"));
+    $('#py_syntax_url').html(url.concat("predict/"));
+    $('#curl_syntax_url').html(url.concat("predict/"));
+    $('#js_syntax_url').html(url.concat("predict/"));
+
     $('#stripped_url').html(url.replace(/(^\w+:|^)\/\//, '').slice(0, -5));
 
     function copyToClipboard(element) {
@@ -239,15 +338,37 @@
     }
 
     function copySyntax(element) {
-      var to_copy = "requests.post(url='" + url + "predict/', json={'data': ["
+
+    if ($("#python").hasClass("selected")) {
+      var to_copy = "import requests; r = requests.post(url='" + url + "predict/', json={'data': ["
       for (let i = 0; i < {{len_inputs}}; i++) {
         to_copy += "'" + $('#input_'+i).val() + "'"
         if (i !== {{len_inputs}} - 1) {
             to_copy += ","
         }
       }
-      to_copy += "]})"
-
+      to_copy += "]}); r.json()"
+    } else if ($("#curl").hasClass("selected")) {
+<!--curl -X POST http://localhost:7860/api/predict/ -H 'Content-Type: application/json' -d '{"data": [ "123", "add", "343"]}'      -->
+     var to_copy = "curl -X POST " + url + "predict/ -H 'Content-Type: application/json' -d '{\"data\": [ "
+     for (let i = 0; i < {{len_inputs}}; i++) {
+        to_copy += '"' + $('#input_'+i).val() + '"'
+        if (i !== {{len_inputs}} - 1) {
+            to_copy += ","
+        }
+      }
+      to_copy += "]}'"
+    } else if ($("#js").hasClass("selected")) {
+<!--fetch('http://localhost:7860/api/predict/', { method: "POST", body: JSON.stringify({"data":[ '123', 'add', '343']}), headers: { "Content-Type": "application/json" } }).then(function(response) { return response.json(); }).then(function(json_response){ console.log(json_response) })-->
+    var to_copy = "fetch('" + url + "predict/', { method: \"POST\", body: JSON.stringify({\"data\":[ "
+    for (let i = 0; i < {{len_inputs}}; i++) {
+        to_copy += "'" + $('#input_'+i).val() + "'"
+        if (i !== {{len_inputs}} - 1) {
+            to_copy += ","
+        }
+      }
+    to_copy += "]}), headers: { \"Content-Type\": \"application/json\" } }).then(function(response) { return response.json(); }).then(function(json_response){ console.log(json_response) })"
+    }
       var $temp = $("<input>");
       $("body").append($temp);
       $temp.val(to_copy).select();
@@ -259,7 +380,9 @@
 
     for (let i = 0; i < {{len_inputs}}; i++) {
         $('#input_'+i).keyup(function () {
-            $('#input_syntax_'+i).html("'" + $(this).val() + "'");
+            $('#py_input_syntax_'+i).html("'" + $(this).val() + "'");
+            $('#curl_input_syntax_'+i).html('"' + $(this).val() + '"');
+            $('#js_input_syntax_'+i).html("'" + $(this).val() + "'");
         });
     };
 
@@ -311,11 +434,22 @@
         let samples = {{ example|safe }};
         for (let i = 0; i < {{len_inputs}}; i++) {
             $('#input_'+i).val(samples[i]);
-            $('#input_syntax_'+i).html("'" + samples[i] + "'");
+            $('#py_input_syntax_'+i).html("'" + samples[i] + "'");
+            $('#curl_input_syntax_'+i).html('"' + samples[i] + '"');
+            $('#js_input_syntax_'+i).html("'" + samples[i] + "'");
         };
     }
 
     fillExample();
+
+    $(".demo-link").click(function () {
+      let demo_num = $(this).attr("demo");
+      $(".demo-link").removeClass("selected");
+      $(this).addClass("selected");
+      $(".demo-window").hide();
+      $(`.demo-window[demo="${demo_num}"]`).show();
+    })
+
 
     var friendlyHttpStatus = {
         '200': 'OK',
