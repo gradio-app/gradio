@@ -424,7 +424,7 @@ class Interface:
                         scores.append(
                             input_component.get_interpretation_scores(
                                 raw_input[i], neighbor_values, interface_scores, **interpret_kwargs))
-                elif interp == "shap":
+                elif interp == "shap" or interp == "shapley":
                     try:
                         import shap
                     except (ImportError, ModuleNotFoundError):
