@@ -178,11 +178,11 @@ def enable_sharing(path):
 @login_check
 def predict():
     raw_input = request.json["data"]
-    # If in debug mode, capture any errors made and pipe to front end
+    # Capture any errors made and pipe to front end
     if app.interface.show_error:
         try:
             prediction, durations = app.interface.process(raw_input)
-        except BaseException as error:
+        except BaseException:
             traceback.print_exc()
             return jsonify({"error": traceback.format_exc()}), 500
     else:
