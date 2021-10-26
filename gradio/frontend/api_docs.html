@@ -88,7 +88,7 @@
             padding: 5px;
             color: white;
         }
-        #copy-button, #copy_syntax, #post-button, #get_random {
+        #copy-button, #copy_syntax, #post-button {
             background: none;
             border: none;
             font: inherit;
@@ -195,7 +195,7 @@
         <h4 id="try-it">Try it (live demo): </h4>
             <div class="json">
                 <p>&emsp;&emsp;{</p>
-                <p>&emsp;&emsp;&emsp;&emsp;"data": [{%for i in range(0, len_inputs)%} <input id="input_{{i}}" placeholder="{{ input_types[i] }}">{% if i != len_inputs - 1 %},{% endif %}{%endfor%} ]&emsp;&emsp;<button id="get_random" onclick="getRandom()">GET RANDOM</button></p>
+                <p>&emsp;&emsp;&emsp;&emsp;"data": [{%for i in range(0, len_inputs)%} <input id="input_{{i}}" placeholder="{{ input_types[i] }}">{% if i != len_inputs - 1 %},{% endif %}{%endfor%} ]&emsp;&emsp;</p>
                 <p>&emsp;&emsp;}</p>
             </div>
             <p></p>
@@ -307,19 +307,15 @@
       setTimeout(() => {$('#post-button').html("POST"); }, 1500);
     }
 
-    function isRandomSupported(type) {
-      return (type in randomInput);
-    }
-    function getRandom() {
-        let samples = [];
-        for (let i = 0; i < {{len_inputs}}; i++) {
-            samples.push(randomInput[{{ input_types|safe }}[i]]);
-        };
+    function fillExample() {
+        let samples = {{ example|safe }};
         for (let i = 0; i < {{len_inputs}}; i++) {
             $('#input_'+i).val(samples[i]);
             $('#input_syntax_'+i).html("'" + samples[i] + "'");
         };
     }
+
+    fillExample();
 
     var friendlyHttpStatus = {
         '200': 'OK',
