@@ -119,6 +119,10 @@
             display: none;
         }
 
+        #api_url {
+            font-weight: bolder;
+        }
+
     </style>
 
     <meta property="og:url" content="https://gradio.app/" />
@@ -154,7 +158,7 @@
             <img src="https://i.ibb.co/6DVLqmf/noun-tools-2220412.png" style="width: 6%;vertical-align: middle;">
             Predict API Docs for: <span id="stripped_url"></span></h2>
         <p>This interface takes in <span><strong>{{ len_inputs }}</strong></span> input(s) and returns <span> <strong>{{ len_outputs }}</strong></span> output(s).</p>
-        <p>The URL endpoint is: <span class ="highlight-green" id="api_url"></span>
+        <p>The URL endpoint is: <span id="api_url"></span>
         <button id="copy-button" onclick="copyToClipboard('#api_url')">COPY</button></p>
 
         <h3 id="inputs">Input(s): [{%for i in range(0, len_inputs)%} <span><a href="https://gradio.app/docs#i_{{ inputs_lower[i] }}">{{inputs[i]}}</a></span>{% if i != len_inputs - 1 %} ,{% endif %}{%endfor%} ]</h3>
@@ -188,7 +192,7 @@
             <p>&emsp;&emsp;&emsp;&emsp;"avg_durations": [ float ]</p>
             <p>&emsp;&emsp;}</p>
         </div>
-        <h4 id="try-it">Try it: </h4>
+        <h4 id="try-it">Try it (live demo): </h4>
             <div class="json">
                 <p>&emsp;&emsp;{</p>
                 <p>&emsp;&emsp;&emsp;&emsp;"data": [{%for i in range(0, len_inputs)%} <input id="input_{{i}}" placeholder="{{ input_types[i] }}">{% if i != len_inputs - 1 %},{% endif %}{%endfor%} ]&emsp;&emsp;<button id="get_random" onclick="getRandom()">GET RANDOM</button></p>
