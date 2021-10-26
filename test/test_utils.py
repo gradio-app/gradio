@@ -4,10 +4,6 @@ import pkg_resources
 import unittest.mock as mock
 import warnings
 import requests
-try:
-    import IPython
-except ImportError:
-    IPython = None
 
 
 class TestUtils(unittest.TestCase):
