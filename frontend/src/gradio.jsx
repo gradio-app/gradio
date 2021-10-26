@@ -125,6 +125,9 @@ export class GradioInterface extends React.Component {
     this.props
       .fn(input_state, "predict", this.queueCallback)
       .then((output) => {
+        if (output["error"] != null) {
+          console.error("Error:", output["error"]);
+        }
         if (!this.pending_response) {
           return;
         }
