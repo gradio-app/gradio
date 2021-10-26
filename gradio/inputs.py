@@ -73,7 +73,6 @@ class Textbox(InputComponent):
     """
     Component creates a textbox for user to enter input. Provides a string as an argument to the wrapped function.
     Input type: str
-    Raw input: str
     Demos: hello_world.py, diff_texts.py
     """
 
@@ -122,6 +121,9 @@ class Textbox(InputComponent):
         }
 
     def preprocess(self, x):
+        """
+        (str)
+        """
         if self.type == "str":
             return x
         elif self.type == "number":
@@ -192,7 +194,6 @@ class Number(InputComponent):
     """
     Component creates a field for user to enter numeric input. Provides a number as an argument to the wrapped function.
     Input type: float
-    Raw input: float
     Demos: tax_calculator.py, titanic_survival.py
     """
 
@@ -221,6 +222,7 @@ class Number(InputComponent):
 
     def preprocess(self, x):
         """
+        (str)
         Returns:
         (float): Number representing function input
         """
@@ -273,7 +275,6 @@ class Slider(InputComponent):
     """
     Component creates a slider that ranges from `minimum` to `maximum`. Provides a number as an argument to the wrapped function.
     Input type: float
-    Raw input: float
     Demos: sentence_builder.py, generate_tone.py, titanic_survival.py
     """
 
@@ -313,6 +314,12 @@ class Slider(InputComponent):
             "slider": {},
         }
 
+    def preprocess(self, x):
+        """
+        (float)
+        """
+        return x
+
     def preprocess_example(self, x):
         """
         Returns:
@@ -344,7 +351,6 @@ class Checkbox(InputComponent):
     """
     Component creates a checkbox that can be set to `True` or `False`. Provides a boolean as an argument to the wrapped function.
     Input type: bool
-    Raw input: bool
     Demos: sentence_builder.py, titanic_survival.py
     """
 
@@ -370,6 +376,12 @@ class Checkbox(InputComponent):
         return {
             "checkbox": {},
         }
+
+    def preprocess(self, x):
+        """
+        (bool)
+        """
+        return x
 
     def preprocess_example(self, x):
         """
@@ -402,7 +414,6 @@ class CheckboxGroup(InputComponent):
     """
     Component creates a set of checkboxes of which a subset can be selected. Provides a list of strings representing the selected choices as an argument to the wrapped function.
     Input type: Union[List[str], List[int]]
-    Raw input: Union[List[str], List[int]]
     Demos: sentence_builder.py, titanic_survival.py, fraud_detector.py
     """
 
@@ -429,6 +440,9 @@ class CheckboxGroup(InputComponent):
         }
 
     def preprocess(self, x):
+        """
+        (List[str])
+        """
         if self.type == "value":
             return x
         elif self.type == "index":
@@ -482,7 +496,6 @@ class Radio(InputComponent):
     """
     Component creates a set of radio buttons of which only one can be selected. Provides string representing selected choice as an argument to the wrapped function.
     Input type: Union[str, int]
-    Raw input: Union[str, int]
     Demos: sentence_builder.py, tax_calculator.py, titanic_survival.py
     """
 
@@ -509,6 +522,9 @@ class Radio(InputComponent):
         }
 
     def preprocess(self, x):
+        """
+        (str)
+        """
         if self.type == "value":
             return x
         elif self.type == "index":
@@ -541,7 +557,6 @@ class Dropdown(InputComponent):
     """
     Component creates a dropdown of which only one can be selected. Provides string representing selected choice as an argument to the wrapped function.
     Input type: Union[str, int]
-    Raw input: Union[str, int]
     Demos: sentence_builder.py, filter_records.py, titanic_survival.py
     """
 
@@ -568,6 +583,9 @@ class Dropdown(InputComponent):
         }
 
     def preprocess(self, x):
+        """
+        (str)
+        """
         if self.type == "value":
             return x
         elif self.type == "index":
@@ -599,7 +617,6 @@ class Image(InputComponent):
     """
     Component creates an image upload box with editing capabilities. 
     Input type: Union[numpy.array, PIL.Image, file-object]
-    Raw input: Base64 str
     Demos: image_classifier.py, image_mod.py, webcam.py, digit_classifier.py
     """
 
@@ -646,6 +663,9 @@ class Image(InputComponent):
         }
 
     def preprocess(self, x):
+        """
+        (base64 data url)
+        """
         if x is None:
             return x
         im = processing_utils.decode_base64_to_image(x)
@@ -772,7 +792,6 @@ class Video(InputComponent):
     """
     Component creates a video file upload that is converted to a file path.
     Input type: filepath
-    Raw input: filepath
     Demos: video_flip.py
     """
 
@@ -800,6 +819,9 @@ class Video(InputComponent):
         }
 
     def preprocess(self, x):
+        """
+        (filepath)
+        """
         if x is None:
             return x
         file_name, file_data, is_example = x["name"], x["data"], x["is_example"]
@@ -836,7 +858,6 @@ class Audio(InputComponent):
     """
     Component accepts audio input files. 
     Input type: Union[Tuple[int, numpy.array], file-object, numpy.array]
-    Raw input: filepath
     Demos: main_note.py, reverse_audio.py, spectogram.py
     """
 
@@ -874,6 +895,7 @@ class Audio(InputComponent):
 
     def preprocess(self, x):
         """
+        (filepath)
         By default, no pre-processing is applied to a microphone input file
         """
         if x is None:
@@ -977,8 +999,7 @@ class File(InputComponent):
     """
     Component accepts generic file uploads.
     Input type: Union[file-object, bytes, List[Union[file-object, bytes]]]
-    Raw input: file-object
-    Demos: zip_to_json.py, zip_two_files.py
+    Demos: zisp_to_json.py, zip_two_files.py
     """
 
     def __init__(self, file_count="single", type="file", label=None, keep_filename=True, optional=False):
@@ -1011,6 +1032,9 @@ class File(InputComponent):
         }
 
     def preprocess(self, x):
+        """
+        (filepath)
+        """
         if x is None:
             return None
 
@@ -1048,7 +1072,6 @@ class Dataframe(InputComponent):
     """
     Component accepts 2D input through a spreadsheet interface.
     Input type: Union[pandas.DataFrame, numpy.array, List[Union[str, float]], List[List[Union[str, float]]]]
-    Raw input: List
     Demos: filter_records.py, matrix_transpose.py, tax_calculator.py
     """
 
@@ -1102,6 +1125,9 @@ class Dataframe(InputComponent):
         }
 
     def preprocess(self, x):
+        """
+        (List)
+        """
         if self.type == "pandas":
             if self.headers:
                 return pd.DataFrame(x, columns=self.headers)
@@ -1131,7 +1157,6 @@ class Timeseries(InputComponent):
     """
     Component accepts pandas.DataFrame uploaded as a timeseries csv file.
     Input type: pandas.DataFrame
-    Raw input: List
     Demos: fraud_detector.py
     """
 
@@ -1165,6 +1190,9 @@ class Timeseries(InputComponent):
         }
 
     def preprocess(self, x):
+        """
+        dict
+        """
         if x is None:
             return x
         dataframe = pd.DataFrame(data=x["data"], columns=x["headers"])

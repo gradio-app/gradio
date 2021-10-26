@@ -36,7 +36,6 @@ class Textbox(OutputComponent):
     '''
     Component creates a textbox to render output text or number.
     Output type: Union[str, float, int]
-    Raw output: Union[str, float, int]
     Demos: hello_world.py, sentence_builder.py
     '''
 
@@ -63,6 +62,10 @@ class Textbox(OutputComponent):
         }
 
     def postprocess(self, y):
+        """
+        Returns:
+        (Union[str, int, float])
+        """
         if self.type == "str" or self.type == "auto":
             return str(y)
         elif self.type == "number":
@@ -76,7 +79,6 @@ class Label(OutputComponent):
     '''
     Component outputs a classification label, along with confidence scores of top categories if provided. Confidence scores are represented as a dictionary mapping labels to scores between 0 and 1.
     Output type: Union[Dict[str, float], str, int, float]
-    Raw output: Union[Dict[str, float], str, int, float]
     Demos: image_classifier.py, main_note.py, titanic_survival.py
     '''
 
@@ -94,6 +96,10 @@ class Label(OutputComponent):
         super().__init__(label)
 
     def postprocess(self, y):
+        """
+        Returns:
+        (Union[Dict[str, float], str, int, float])
+        """
         if self.type == "label" or (self.type == "auto" and (isinstance(y, str) or isinstance(y, Number))):
             return {"label": str(y)}
         elif self.type == "confidences" or (self.type == "auto" and isinstance(y, dict)):
@@ -144,7 +150,6 @@ class Image(OutputComponent):
     '''
     Component displays an output image. 
     Output type: Union[numpy.array, PIL.Image, str, matplotlib.pyplot, Tuple[Union[numpy.array, PIL.Image, str], List[Tuple[str, float, float, float, float]]]]
-    Raw output: Base64 str
     Demos: image_mod.py, webcam.py
     '''
 
@@ -175,6 +180,10 @@ class Image(OutputComponent):
         }
 
     def postprocess(self, y):
+        """
+        Returns:
+        (base64 data url)
+        """
         if self.labeled_segments:
             y, coordinates = y
         else:
@@ -221,7 +230,6 @@ class Video(OutputComponent):
     '''
     Used for video output.     
     Output type: filepath
-    Raw output: file-obj
     Demos: video_flip.py
     '''
 
@@ -242,6 +250,10 @@ class Video(OutputComponent):
         }
 
     def postprocess(self, y):
+        """
+        Returns:
+        (base64 data url)
+        """
         returned_format = y.split(".")[-1].lower()
         if self.type is not None and returned_format != self.type:
             output_file_name = y[0: y.rindex(
@@ -268,7 +280,6 @@ class KeyValues(OutputComponent):
     '''
     Component displays a table representing values for multiple fields. 
     Output type: Union[Dict, List[Tuple[str, Union[str, int, float]]]]
-    Raw output: Union[Dict, List[Tuple[str, Union[str, int, float]]]]
     Demos: text_analysis.py
     '''
 
@@ -280,6 +291,10 @@ class KeyValues(OutputComponent):
         super().__init__(label)
 
     def postprocess(self, y):
+        """
+        Returns:
+        (Union[Dict, List[Tuple[str, Union[str, int, float]]]])
+        """
         if isinstance(y, dict):
             return list(y.items())
         elif isinstance(y, list):
@@ -306,7 +321,6 @@ class HighlightedText(OutputComponent):
     Component creates text that contains spans that are highlighted by category or numerical value.
     Output is represent as a list of Tuple pairs, where the first element represents the span of text represented by the tuple, and the second element represents the category or value of the text.
     Output type: List[Tuple[str, Union[float, str]]]
-    Raw output: List[Tuple[str, Union[float, str]]]
     Demos: diff_texts.py, text_analysis.py
     '''
 
@@ -332,6 +346,10 @@ class HighlightedText(OutputComponent):
         }
 
     def postprocess(self, y):
+        """
+        Returns:
+        List[Tuple[str, Union[float, str]]]
+        """
         return y
 
     def save_flagged(self, dir, label, data, encryption_key):
@@ -345,7 +363,6 @@ class Audio(OutputComponent):
     '''
     Creates an audio player that plays the output audio.
     Output type: Union[Tuple[int, numpy.array], str]
-    Raw output: file-object
     Demos: generate_tone.py, reverse_audio.py
     '''
 
@@ -370,6 +387,10 @@ class Audio(OutputComponent):
         }
 
     def postprocess(self, y):
+        """
+        Returns:
+        (base64 data url)
+        """
         if self.type in ["numpy", "file", "auto"]:
             if self.type == "numpy" or (self.type == "auto" and isinstance(y, tuple)):
                 sample_rate, data = y
@@ -392,7 +413,6 @@ class JSON(OutputComponent):
     '''
     Used for JSON output. Expects a JSON string or a Python object that is JSON serializable. 
     Output type: Union[str, Any]
-    Raw output: Union[str, Any]
     Demos: zip_to_json.py
     '''
 
@@ -404,6 +424,10 @@ class JSON(OutputComponent):
         super().__init__(label)
 
     def postprocess(self, y):
+        """
+        Returns:
+        (json)
+        """
         if isinstance(y, str):
             return json.dumps(y)
         else:
@@ -426,7 +450,6 @@ class HTML(OutputComponent):
     '''
     Used for HTML output. Expects an HTML valid string. 
     Output type: str
-    Raw output: str
     Demos: text_analysis.py
     '''
 
@@ -437,6 +460,12 @@ class HTML(OutputComponent):
         '''
         super().__init__(label)
 
+    def postprocess(self, x):
+        """
+        Returns:
+        (str)
+        """
+        return x
     @classmethod
     def get_shortcut_implementations(cls):
         return {
@@ -465,6 +494,10 @@ class File(OutputComponent):
         }
 
     def postprocess(self, y):
+        """
+        Returns:
+        (Union[file-like, str])
+        """
         return {
             "name": os.path.basename(y),
             "size": os.path.getsize(y),
@@ -482,7 +515,6 @@ class Dataframe(OutputComponent):
     """
     Component displays 2D output through a spreadsheet interface.
     Output type: Union[pandas.DataFrame, numpy.array, List[Union[str, float]], List[List[Union[str, float]]]]
-    Raw output: file-object
     Demos: filter_records.py, matrix_transpose.py, fraud_detector.py
     """
 
@@ -522,6 +554,10 @@ class Dataframe(OutputComponent):
         }
 
     def postprocess(self, y):
+        """
+        Returns:
+        (Dict[str, list])
+        """
         if self.type == "auto":
             if isinstance(y, pd.core.frame.DataFrame):
                 dtype = "pandas"
@@ -557,7 +593,6 @@ class Carousel(OutputComponent):
     """
     Component displays a set of output components that can be scrolled through.
     Output type: List[List[Any]]
-    Raw output: List[List[Any]]
     Demos: disease_report.py
     """
 
@@ -580,6 +615,10 @@ class Carousel(OutputComponent):
         }
 
     def postprocess(self, y):
+        """
+        Returns:
+        (List[List[Any]])
+        """
         if isinstance(y, list):
             if len(y) != 0 and not isinstance(y[0], list):
                 y = [[z] for z in y]
@@ -628,7 +667,6 @@ class Timeseries(OutputComponent):
     """
     Component accepts pandas.DataFrame.
     Output type: pandas.DataFrame
-    Raw output: pandas.DataFrame
     Demos: fraud_detector.py
     """
 
@@ -659,6 +697,10 @@ class Timeseries(OutputComponent):
         }
 
     def postprocess(self, y):
+        """
+        Returns:
+        (Dict[str, List])s
+        """
         return {
             "headers": y.columns.values.tolist(),
             "data": y.values.tolist()

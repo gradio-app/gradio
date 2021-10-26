@@ -200,10 +200,16 @@ def predict():
 
 def get_types(cls_set, component):
     docset = []
-    for cls in cls_set:
-        doc = inspect.getdoc(cls)
-        doc_lines = doc.split("\n")
-        docset.append(doc_lines[-2].split(f"Raw {component}: ")[-1])
+    if component == "input":
+        for cls in cls_set:
+            doc = inspect.getdoc(cls.preprocess)
+            doc_lines = doc.split("\n")
+            docset.append(doc_lines[0].strip("(").strip(")"))
+    else:
+        for cls in cls_set:
+            doc = inspect.getdoc(cls.postprocess)
+            doc_lines = doc.split("\n")
+            docset.append(doc_lines[1].strip("(").strip(")"))
     return docset
 
 
