@@ -5,7 +5,8 @@ import unittest.mock as mock
 import ipaddress
 import requests
 import warnings
-import json
+import tempfile
+from unittest.mock import ANY
 
 
 class TestUser(unittest.TestCase):
@@ -119,16 +120,55 @@ class TestInterfaceCustomParameters(unittest.TestCase):
         self.assertTrue("error" in response.get_json())
         io.close()
 
-    @mock.patch("requests.post")
-    def test_feature_analytics(self, mock_post):
+    def test_feature_logging(self):
         io = gr.Interface(lambda x: 1/x, "number", "number")
         io.launch(show_error=True, prevent_thread_lock=True)
-        networking.log_feature_analytics("test_feature")
-        mock_post.assert_called_once_with(networking.GRADIO_FEATURE_ANALYTICS_URL)
+        with mock.patch('requests.post') as mock_post:
+            networking.log_feature_analytics("test_feature")
+            mock_post.assert_called_once_with(networking.GRADIO_FEATURE_ANALYTICS_URL, data=ANY, timeout=ANY)
         io = gr.Interface(lambda x: 1/x, "number", "number", analytics_enabled=False)
         io.launch(show_error=True, prevent_thread_lock=True)
-        networking.log_feature_analytics("test_feature")
-        mock_post.assert_called_once_with(networking.GRADIO_FEATURE_ANALYTICS_URL)
+        with mock.patch('requests.post') as mock_post:
+            networking.log_feature_analytics("test_feature")
+            mock_post.assert_not_called()
+        io.close()
+
+class TestFlagging(unittest.TestCase):
+    def test_num_rows_written(self):
+        io = gr.Interface(lambda x: x, "text", "text")
+        io.launch(prevent_thread_lock=True)
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            row_count = networking.flag_data(["test"], ["test"], flag_path=tmpdirname)
+            self.assertEquals(row_count, 1)  # 2 rows written including header
+            row_count = networking.flag_data("test", "test", flag_path=tmpdirname)
+            self.assertEquals(row_count, 2)  # 3 rows written including header
+        io.close()
+
+    def test_flagging_analytics(self):
+        io = gr.Interface(lambda x: x, "text", "text")
+        app, _, _ = io.launch(show_error=True, prevent_thread_lock=True)
+        client = app.test_client()
+        with mock.patch('requests.post') as mock_post:
+            with mock.patch('gradio.networking.flag_data') as mock_flag:
+                response = client.post('/api/flag/', json={"data": {"input_data": ["test"], "output_data": ["test"]}})
+                mock_post.assert_called_once()
+                mock_flag.assert_called_once()
+        self.assertEqual(response.status_code, 200)
+        io.close()
+
+# class TestInterpretation(unittest.TestCase):
+#     def test_interpretation(self):
+#         io = gr.Interface(lambda x: len(x), "text", "label", interpretation="default")
+#         app, _, _ = io.launch(prevent_thread_lock=True)
+#         client = app.test_client()
+#         with mock.patch('requests.post') as mock_post:
+#             with mock.patch('gradio.Interface.interpret') as mock_interpret:
+#                 response = client.post('/api/interpret/', json={"data": ["hi test"]})
+#                 mock_post.assert_called_once()
+#                 mock_interpret.assert_called_once()
+#         self.assertEqual(response.status_code, 200)
+#         io.close()
+
 
 
 if __name__ == '__main__':
