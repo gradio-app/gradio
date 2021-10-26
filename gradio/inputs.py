@@ -15,6 +15,7 @@ from ffmpy import FFmpeg
 import math
 import tempfile
 from pathlib import Path
+from gradio import test_data
 
 
 class InputComponent(Component):
@@ -68,6 +69,13 @@ class InputComponent(Component):
         (List[Any]): Arrangement of interpretation scores for interfaces to render.
         '''
         pass
+
+    def generate_sample(self):
+        """
+        Returns a sample value of the input that would be accepted by the api. Used for api documentation.
+        """
+        pass
+
 
 class Textbox(InputComponent):
     """
@@ -190,6 +198,9 @@ class Textbox(InputComponent):
             result.append((self.interpretation_separator, 0))
         return result
 
+    def generate_sample(self):
+        return "Hello World"
+
 
 class Number(InputComponent):
     """
@@ -272,6 +283,9 @@ class Number(InputComponent):
         interpretation.insert(int(len(interpretation) / 2), [x, None])
         return interpretation
 
+    def generate_sample(self):
+        return 1
+
 
 class Slider(InputComponent):
     """
@@ -351,6 +365,9 @@ class Slider(InputComponent):
         """
         return scores
 
+    def generate_sample(self):
+        return self.maximum
+
 
 class Checkbox(InputComponent):
     """
@@ -417,6 +434,8 @@ class Checkbox(InputComponent):
         else:
             return None, scores[0]
 
+    def generate_sample(self):
+        return True
 
 class CheckboxGroup(InputComponent):
     """
@@ -502,6 +521,8 @@ class CheckboxGroup(InputComponent):
     def restore_flagged(self, data):
         return json.loads(data)
 
+    def generate_sample(self):
+        return self.choices
 
 class Radio(InputComponent):
     """
@@ -535,7 +556,7 @@ class Radio(InputComponent):
     def preprocess(self, x):
         """
         Parameters:
-        x (str): the selected choice
+        x (str): selected choice
         Returns:
         (Union[str, int]): selected choice as string or index within choice list
         """
@@ -565,6 +586,9 @@ class Radio(InputComponent):
         """
         scores.insert(self.choices.index(x), None)
         return scores
+
+    def generate_sample(self):
+        return self.choices[0]
 
 
 class Dropdown(InputComponent):
@@ -599,7 +623,7 @@ class Dropdown(InputComponent):
     def preprocess(self, x):
         """
         Parameters:
-        x (str): the selected choice
+        x (str): selected choice
         Returns:
         (Union[str, int]): selected choice as string or index within choice list
         """
@@ -629,6 +653,10 @@ class Dropdown(InputComponent):
         """
         scores.insert(self.choices.index(x), None)
         return scores
+
+    def generate_sample(self):
+        return self.choices[0]
+
 
 class Image(InputComponent):
     """
@@ -682,7 +710,7 @@ class Image(InputComponent):
     def preprocess(self, x):
         """
         Parameters:
-        x (str): the base64 url data
+        x (str): base64 url data
         Returns:
         (Union[numpy.array, PIL.Image, file-object]): image in requested format
         """
@@ -807,6 +835,9 @@ class Image(InputComponent):
         """
         return self.save_flagged_file(dir, label, data, encryption_key)
 
+    def generate_sample(self):
+        return test_data.BASE64_IMAGE
+
 
 class Video(InputComponent):
     """
@@ -875,6 +906,9 @@ class Video(InputComponent):
         Returns: (str) path to video file
         """
         return self.save_flagged_file(dir, label, data, encryption_key)
+
+    def generate_sample(self):
+        return test_data.BASE64_VIDEO
 
 
 class Audio(InputComponent):
@@ -1019,6 +1053,9 @@ class Audio(InputComponent):
         """
         return self.save_flagged_file(dir, label, data, encryption_key)
 
+    def generate_sample(self):
+        return test_data.BASE64_AUDIO
+
 
 class File(InputComponent):
     """
@@ -1094,6 +1131,9 @@ class File(InputComponent):
         Returns: (str) path to file
         """
         return self.save_flagged_file(dir, label, data["data"], encryption_key)
+
+    def generate_sample(self):
+        return test_data.BASE64_FILE
 
 
 class Dataframe(InputComponent):
@@ -1183,6 +1223,9 @@ class Dataframe(InputComponent):
     def restore_flagged(self, data):
         return json.loads(data)
 
+    def generate_sample(self):
+        return [[1, 2, 3], [4, 5, 6]]
+
 
 class Timeseries(InputComponent):
     """
@@ -1243,6 +1286,11 @@ class Timeseries(InputComponent):
 
     def restore_flagged(self, data):
         return json.loads(data)
+
+    def generate_sample(self):
+        return [[1, 2, 3], [4, 5, 6]]
+
+
 
 
 def get_input_instance(iface):

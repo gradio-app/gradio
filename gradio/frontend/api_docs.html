@@ -257,7 +257,7 @@
       <ul>
 
         {%for i in range(0, len_inputs)%}
-        <li><strong>{{inputs[i]}}</strong> accepts the <span><em> {{ input_types_doc[i]}}</em></span> in type <span><em>{{ input_types[i] }}</em></span></li>
+        <li><strong>{{inputs[i]}}</strong> accepts the <span><em> {{ input_types_doc[i]}}</em></span> as type <span><em>{{ input_types[i] }}</em></span></li>
         {%endfor%}
 
       </ul>
@@ -289,14 +289,6 @@
         <p>&emsp;&emsp;}</p>
       </div>
       <h4 id="try-it">Try it (live demo): </h4>
-      <div class="json">
-        <p>&emsp;&emsp;{</p>
-        <p>&emsp;&emsp;&emsp;&emsp;"data": [{%for i in range(0, len_inputs)%} <input id="input_{{i}}"
-            placeholder="{{ input_types[i] }}">{% if i != len_inputs - 1 %},{% endif %}{%endfor%}
-          ]&emsp;&emsp;</p>
-        <p>&emsp;&emsp;}</p>
-      </div>
-      <p></p>
 
       <div id="demos" class="container">
         <div id="demo-nav">
@@ -319,7 +311,7 @@
             <p class="syntax">r = requests.post(url='<span class="syntax" id="py_syntax_url"></span>
             <p class="syntax">',</p>
             <p class="syntax"> json={"data":</p> [{% for i in range(0, len_inputs) %}<span class="syntax"
-              id="py_input_syntax_{{i}}"></span>{% if i != len_inputs - 1 %}<p class="syntax">,</p>{%
+              id="py_input_syntax_{{i}}">{{ sample_inputs[i]|tojson }}</span>{% if i != len_inputs - 1 %}<p class="syntax">,</p>{%
             endif %}{%endfor%}<p class="syntax">]})</p>
             </p>
             <p>r.json()</p>
@@ -330,7 +322,7 @@
           <div class="json">
             <p class="syntax">curl -X POST&nbsp;</p><span class="syntax" id="curl_syntax_url"></span>&nbsp;-H
             'Content-Type: application/json' -d '{"data": [{%for i
-            in range(0, len_inputs)%}<span class="syntax" id="curl_input_syntax_{{i}}"></span>{% if i !=
+            in range(0, len_inputs)%}<span class="syntax" id="curl_input_syntax_{{i}}">{{ sample_inputs[i]|tojson }}</span>{% if i !=
             len_inputs - 1 %}<p class="syntax">,</p>{% endif %}{%endfor%}<p class="syntax">]}' </p>
           </div>
 
@@ -339,7 +331,7 @@
           <div class="json">
             <p class="syntax">fetch('<span class="syntax" id="js_syntax_url"></span>', { method: "POST",
               body: JSON.stringify({"data":[{%for i in range(0, len_inputs)%} <span class="syntax"
-                id="js_input_syntax_{{i}}"></span>{% if i != len_inputs - 1 %},{% endif %}{%endfor%}
+                id="js_input_syntax_{{i}}">{{ sample_inputs[i]|tojson }}</span>{% if i != len_inputs - 1 %},{% endif %}{%endfor%}
             <p class="syntax">]}), headers: { "Content-Type": "application/json" }
               }).then(function(response) { return response.json(); }).then(function(json_response){
               console.log(json_response) })</p>
@@ -349,7 +341,6 @@
       </div>
       <center>
         <button id="post-button" onclick="postRequest()">POST</button>
-        <button id="copy_syntax" onclick="copySyntax()">COPY</button>
       </center>
       <div class="json">
         <p><span id="response_status"></span>&emsp;<span id="response_text"></span></p>
@@ -388,60 +379,11 @@
       setTimeout(() => { $('#copy-button').html("COPY"); }, 1500);
     }
 
-    function copySyntax(element) {
-      if ($("#python").hasClass("selected")) {
-        var to_copy = "import requests; r = requests.post(url='" + url + "predict/', json={'data': ["
-        for (let i = 0; i < len_inputs; i++) {
-          to_copy += "'" + $('#input_' + i).val() + "'"
-          if (i !== len_inputs - 1) {
-            to_copy += ","
-          }
-        }
-        to_copy += "]}); r.json()"
-      } else if ($("#curl").hasClass("selected")) {
-        var to_copy = "curl -X POST " + url + "predict/ -H 'Content-Type: application/json' -d '{\"data\": ["
-        for (let i = 0; i < len_inputs; i++) {
-          to_copy += '"' + $('#input_' + i).val() + '"'
-          if (i !== len_inputs - 1) {
-            to_copy += ","
-          }
-        }
-        to_copy += "]}'"
-      } else if ($("#js").hasClass("selected")) {
-        var to_copy = "fetch('" + url + "predict/', { method: \"POST\", body: JSON.stringify({\"data\": ["
-        for (let i = 0; i < len_inputs; i++) {
-          to_copy += "'" + $('#input_' + i).val() + "'"
-          if (i !== len_inputs - 1) {
-            to_copy += ","
-          }
-        }
-        to_copy += "]}), headers: { \"Content-Type\": \"application/json\" } }).then(function(response) { return response.json(); }).then(function(json_response){ console.log(json_response) })"
-      }
-      var $temp = $("<input>");
-      $("body").append($temp);
-      $temp.val(to_copy).select();
-      document.execCommand("copy");
-      $temp.remove();
-      $('#copy_syntax').html("COPIED!");
-      setTimeout(() => { $('#copy_syntax').html("COPY"); }, 1500);
-    }
-
-    for (let i = 0; i < len_inputs; i++) {
-      $('#input_' + i).keyup(function () {
-        $('#py_input_syntax_' + i).html("'" + $(this).val() + "'");
-        $('#curl_input_syntax_' + i).html('"' + $(this).val() + '"');
-        $('#js_input_syntax_' + i).html("'" + $(this).val() + "'");
-      });
-    };
 
 
     function postRequest() {
-      let input_arr = [];
-      for (let i = 0; i < len_inputs; i++) {
-        input_arr.push($('#input_' + i).val());
-      };
-
-      let data = { "data": input_arr };
+      var sample_inputs = {{ sample_inputs|tojson }}
+      let data = { "data": sample_inputs };
       fetch(url + 'predict/', {
         method: "POST",
         body: JSON.stringify(data),

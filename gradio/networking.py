@@ -224,6 +224,7 @@ def api_docs():
     output_types_doc, output_types = get_types(outputs, "output")
     input_names = [type(inp).__name__ for inp in app.interface.input_components]
     output_names = [type(out).__name__ for out in app.interface.output_components]
+    sample_inputs = [inp.generate_sample() for inp in app.interface.input_components]
     docs = {
         "inputs": input_names,
         "outputs": output_names,
@@ -234,7 +235,8 @@ def api_docs():
         "input_types": input_types,
         "output_types": output_types,
         "input_types_doc": input_types_doc,
-        "output_types_doc": output_types_doc
+        "output_types_doc": output_types_doc,
+        "sample_inputs": sample_inputs
     }
     return render_template("api_docs.html", **docs)
 
