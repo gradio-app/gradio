@@ -5,6 +5,7 @@ import unittest.mock as mock
 import ipaddress
 import requests
 import warnings
+import json
 
 
 class TestUser(unittest.TestCase):
@@ -69,6 +70,20 @@ class TestFlaskRoutes(unittest.TestCase):
         response = self.client.get('/static/bundle.css')
         self.assertEqual(response.status_code, 302)  # This should redirect to static files.
 
+    def test_enable_sharing_route(self):
+        path = "www.gradio.app"
+        response = self.client.get('/enable_sharing/www.gradio.app')
+        self.assertEqual(response.status_code, 200)  
+        self.assertEqual(self.io.config["share_url"], path) 
+
+    def test_predict_route(self):
+        response = self.client.post('/api/predict/', json={"data": ["test"]})
+        self.assertEqual(response.status_code, 200)  
+        output = dict(response.get_json())
+        self.assertEqual(output["data"], ["test"]) 
+        self.assertTrue("durations" in output) 
+        self.assertTrue("avg_durations" in output) 
+
     def tearDown(self) -> None:
         self.io.close()
         gr.reset_all()
@@ -93,6 +108,27 @@ class TestAuthenticatedFlaskRoutes(unittest.TestCase):
     def tearDown(self) -> None:
         self.io.close()
         gr.reset_all()
+
+class TestInterfaceCustomParameters(unittest.TestCase):
+    def test_show_error(self):
+        io = gr.Interface(lambda x: 1/x, "number", "number")
+        app, _, _ = io.launch(show_error=True, prevent_thread_lock=True)
+        client = app.test_client()
+        response = client.post('/api/predict/', json={"data": [0]})
+        self.assertEqual(response.status_code, 500)
+        self.assertTrue("error" in response.get_json())
+        io.close()
+
+    @mock.patch("requests.post")
+    def test_feature_analytics(self, mock_post):
+        io = gr.Interface(lambda x: 1/x, "number", "number")
+        io.launch(show_error=True, prevent_thread_lock=True)
+        networking.log_feature_analytics("test_feature")
+        mock_post.assert_called_once_with(networking.GRADIO_FEATURE_ANALYTICS_URL)
+        io = gr.Interface(lambda x: 1/x, "number", "number", analytics_enabled=False)
+        io.launch(show_error=True, prevent_thread_lock=True)
+        networking.log_feature_analytics("test_feature")
+        mock_post.assert_called_once_with(networking.GRADIO_FEATURE_ANALYTICS_URL)
 
 
 if __name__ == '__main__':
