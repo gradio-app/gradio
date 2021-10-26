@@ -102,7 +102,7 @@
         .json {
             background: whitesmoke;
             padding-left: 10px;
-            overflow: scroll;
+            overflow: auto;
             font-family: monospace;
         }
 
@@ -349,7 +349,6 @@
       }
       to_copy += "]}); r.json()"
     } else if ($("#curl").hasClass("selected")) {
-<!--curl -X POST http://localhost:7860/api/predict/ -H 'Content-Type: application/json' -d '{"data": [ "123", "add", "343"]}'      -->
      var to_copy = "curl -X POST " + url + "predict/ -H 'Content-Type: application/json' -d '{\"data\": [ "
      for (let i = 0; i < {{len_inputs}}; i++) {
         to_copy += '"' + $('#input_'+i).val() + '"'
@@ -359,7 +358,6 @@
       }
       to_copy += "]}'"
     } else if ($("#js").hasClass("selected")) {
-<!--fetch('http://localhost:7860/api/predict/', { method: "POST", body: JSON.stringify({"data":[ '123', 'add', '343']}), headers: { "Content-Type": "application/json" } }).then(function(response) { return response.json(); }).then(function(json_response){ console.log(json_response) })-->
     var to_copy = "fetch('" + url + "predict/', { method: \"POST\", body: JSON.stringify({\"data\":[ "
     for (let i = 0; i < {{len_inputs}}; i++) {
         to_copy += "'" + $('#input_'+i).val() + "'"
