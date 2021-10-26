@@ -85,6 +85,12 @@ class TestFlaskRoutes(unittest.TestCase):
         self.assertTrue("durations" in output) 
         self.assertTrue("avg_durations" in output) 
 
+    def test_queue_push_route(self):
+        networking.queue.push = mock.MagicMock(return_value=(None, None))
+        response = self.client.post('/api/queue/push/', json={"data": "test", "action": "test"})
+        self.assertEqual(response.status_code, 200)  
+
+
     def tearDown(self) -> None:
         self.io.close()
         gr.reset_all()
@@ -156,18 +162,29 @@ class TestFlagging(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         io.close()
 
-# class TestInterpretation(unittest.TestCase):
-#     def test_interpretation(self):
-#         io = gr.Interface(lambda x: len(x), "text", "label", interpretation="default")
-#         app, _, _ = io.launch(prevent_thread_lock=True)
-#         client = app.test_client()
-#         with mock.patch('requests.post') as mock_post:
-#             with mock.patch('gradio.Interface.interpret') as mock_interpret:
-#                 response = client.post('/api/interpret/', json={"data": ["hi test"]})
-#                 mock_post.assert_called_once()
-#                 mock_interpret.assert_called_once()
-#         self.assertEqual(response.status_code, 200)
-#         io.close()
+class TestInterpretation(unittest.TestCase):
+    def test_interpretation(self):
+        io = gr.Interface(lambda x: len(x), "text", "label", interpretation="default")
+        app, _, _ = io.launch(prevent_thread_lock=True)
+        client = app.test_client()
+        io.interpret = mock.MagicMock(return_value=(None, None))
+        with mock.patch('requests.post') as mock_post:
+            response = client.post('/api/interpret/', json={"data": ["test test"]})
+            mock_post.assert_called_once()
+        self.assertEqual(response.status_code, 200)
+        io.close()
+
+class TestInterpretation(unittest.TestCase):
+    def test_interpretation(self):
+        io = gr.Interface(lambda x: len(x), "text", "label", interpretation="default")
+        app, _, _ = io.launch(prevent_thread_lock=True)
+        client = app.test_client()
+        io.interpret = mock.MagicMock(return_value=(None, None))
+        with mock.patch('requests.post') as mock_post:
+            response = client.post('/api/interpret/', json={"data": ["test test"]})
+            mock_post.assert_called_once()
+        self.assertEqual(response.status_code, 200)
+        io.close()        
 
 
 

@@ -311,7 +311,6 @@ def flag():
 def interpret():
     log_feature_analytics('interpret')
     raw_input = request.json["data"]
-    print(raw_input)
     interpretation_scores, alternative_outputs = app.interface.interpret(
         raw_input)
     return jsonify({
