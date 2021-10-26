@@ -25,6 +25,7 @@ import copy
 import markdown2
 import json
 import csv
+import pkg_resources
 from getpass import getpass
 
 analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
@@ -263,7 +264,8 @@ class Interface:
             "allow_flagging": self.allow_flagging,
             "flagging_options": self.flagging_options,
             "allow_interpretation": self.interpretation is not None,
-            "queue": self.enable_queue
+            "queue": self.enable_queue,
+            "version": pkg_resources.require("gradio")[0].version
         }
         try:
             param_names = inspect.getfullargspec(self.predict[0])[0]
