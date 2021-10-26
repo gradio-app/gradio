@@ -220,9 +220,6 @@ def api_docs():
     input_types, output_types = get_types(inputs, "input"), get_types(outputs, "output")
     input_names = [type(inp).__name__ for inp in app.interface.input_components]
     output_names = [type(out).__name__ for out in app.interface.output_components]
-    example = None
-    if "examples" in app.interface.config:
-        example = app.interface.config["examples"][0]
     docs = {
         "inputs": input_names,
         "outputs": output_names,
@@ -232,7 +229,6 @@ def api_docs():
         "outputs_lower": [name.lower() for name in output_names],
         "input_types": input_types,
         "output_types": output_types,
-        "example": example
     }
     return render_template("api_docs.html", **docs)
 
