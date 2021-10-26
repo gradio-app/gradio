@@ -64,6 +64,21 @@ class TestUtils(unittest.TestCase):
         interface.close = mock.MagicMock()
         reset_all()
         interface.close.assert_called_with()
+        
+    def test_examples_invalid_input(self):
+        with self.assertRaises(ValueError):
+            Interface(lambda input: None, examples=1234)
+        
+    def test_examples_not_valid_path(self):
+        with self.assertRaises(FileNotFoundError):
+            interface = Interface(lambda input: None, "textbox", "label", examples='wrong-path')
+            interface.launch()
+
+    def test_interpretation_shap_not_installed(self):
+        with self.assertRaises(ValueError):
+            interface = Interface(lambda input: None, "textbox", "label", interpretation='shap')
+            interface.interpret('raw_input')
+
 
 if __name__ == '__main__':
     unittest.main()
