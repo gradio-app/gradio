@@ -122,7 +122,8 @@ class Textbox(InputComponent):
 
     def preprocess(self, x):
         """
-        (str)
+        Parameters:
+        x (str): text input
         """
         if self.type == "str":
             return x
@@ -222,9 +223,10 @@ class Number(InputComponent):
 
     def preprocess(self, x):
         """
-        (str)
+        Parameters:
+        x (number): numeric input
         Returns:
-        (float): Number representing function input
+        (float): number representing function input
         """
         return float(x)
 
@@ -316,7 +318,10 @@ class Slider(InputComponent):
 
     def preprocess(self, x):
         """
-        (float)
+        Parameters:
+        x (number): numeric input
+        Returns:
+        (number): numeric input
         """
         return x
 
@@ -379,7 +384,10 @@ class Checkbox(InputComponent):
 
     def preprocess(self, x):
         """
-        (bool)
+        Parameters:
+        x (bool): boolean input
+        Returns:
+        (bool): boolean input
         """
         return x
 
@@ -441,7 +449,10 @@ class CheckboxGroup(InputComponent):
 
     def preprocess(self, x):
         """
-        (List[str])
+        Parameters:
+        x (List[str]): list of selected choices
+        Returns:
+        (Union[List[str], List[int]]): list of selected choices as strings or indices within choice list
         """
         if self.type == "value":
             return x
@@ -523,7 +534,10 @@ class Radio(InputComponent):
 
     def preprocess(self, x):
         """
-        (str)
+        Parameters:
+        x (str): the selected choice
+        Returns:
+        (Union[str, int]): selected choice as string or index within choice list
         """
         if self.type == "value":
             return x
@@ -584,7 +598,10 @@ class Dropdown(InputComponent):
 
     def preprocess(self, x):
         """
-        (str)
+        Parameters:
+        x (str): the selected choice
+        Returns:
+        (Union[str, int]): selected choice as string or index within choice list
         """
         if self.type == "value":
             return x
@@ -664,7 +681,10 @@ class Image(InputComponent):
 
     def preprocess(self, x):
         """
-        (base64 data url)
+        Parameters:
+        x (str): the base64 url data
+        Returns:
+        (Union[numpy.array, PIL.Image, file-object]): image in requested format
         """
         if x is None:
             return x
@@ -820,11 +840,14 @@ class Video(InputComponent):
 
     def preprocess(self, x):
         """
-        (filepath)
+        Parameters:
+        x (Dict[name: str, data: str]): JSON object with filename as 'name' property and base64 data as 'data' property  
+        Returns:
+        (str): file path to video
         """
         if x is None:
             return x
-        file_name, file_data, is_example = x["name"], x["data"], x["is_example"]
+        file_name, file_data, is_example = x["name"], x["data"], x.get("is_example", False)
         if is_example:
             file = processing_utils.create_tmp_copy_of_file(file_name)
         else:
@@ -895,12 +918,14 @@ class Audio(InputComponent):
 
     def preprocess(self, x):
         """
-        (filepath)
-        By default, no pre-processing is applied to a microphone input file
+        Parameters:
+        x (Dict[name: str, data: str]): JSON object with filename as 'name' property and base64 data as 'data' property  
+        Returns:
+        (Union[Tuple[int, numpy.array], file-object, numpy.array]): audio in requested format
         """
         if x is None:
             return x
-        file_name, file_data, is_example = x["name"], x["data"], x["is_example"]
+        file_name, file_data, is_example = x["name"], x["data"], x.get("is_example", False)
         if is_example:
             file_obj = processing_utils.create_tmp_copy_of_file(file_name)
         else:
@@ -1033,13 +1058,16 @@ class File(InputComponent):
 
     def preprocess(self, x):
         """
-        (filepath)
+        Parameters:
+        x (List[Dict[name: str, data: str]]): List of JSON objects with filename as 'name' property and base64 data as 'data' property
+        Returns:
+        (Union[file-object, bytes, List[Union[file-object, bytes]]]): File objects in requested format
         """
         if x is None:
             return None
 
         def process_single_file(f):
-            file_name, data, is_example = f["name"], f["data"], f["is_example"]
+            file_name, data, is_example = f["name"], f["data"], f.get("is_example", False)
             if self.type == "file":
                 if is_example:
                     return processing_utils.create_tmp_copy_of_file(file_name)
@@ -1126,7 +1154,10 @@ class Dataframe(InputComponent):
 
     def preprocess(self, x):
         """
-        (List)
+        Parameters:
+        x (List[List[Union[str, number, bool]]]): 2D array of str, numeric, or bool data
+        Returns:
+        (Union[pandas.DataFrame, numpy.array, List[Union[str, float]], List[List[Union[str, float]]]]): Dataframe in requested format
         """
         if self.type == "pandas":
             if self.headers:
@@ -1191,7 +1222,10 @@ class Timeseries(InputComponent):
 
     def preprocess(self, x):
         """
-        dict
+        Parameters:
+        x (List[List[Union[str, number, bool]]]): 2D array of str, numeric, or bool data
+        Returns:
+        (pandas.DataFrame): Dataframe of timeseries data
         """
         if x is None:
             return x
