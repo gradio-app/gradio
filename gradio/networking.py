@@ -134,7 +134,7 @@ def main():
 
 @app.route("/static/<path:path>", methods=["GET"])
 def static_resource(path):
-    if app.interface.share or os.getenv("GRADIO_TEST_MODE"):
+    if app.interface.share:
         return redirect(GRADIO_STATIC_ROOT + path)
     else:
         return send_file(os.path.join(STATIC_PATH_LIB, path))
