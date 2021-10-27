@@ -1325,7 +1325,7 @@ class Timeseries(InputComponent):
     def preprocess(self, x):
         """
         Parameters:
-        x (List[List[Union[str, number, bool]]]): 2D array of str, numeric, or bool data
+        x (Dict[data: List[List[Union[str, number, bool]]], headers: List[str], range: List[number]]): Dict with keys 'data': 2D array of str, numeric, or bool data, 'headers': list of strings for header names, 'range': optional two element list designating start of end of subrange.
         Returns:
         (pandas.DataFrame): Dataframe of timeseries data
         """
