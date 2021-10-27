@@ -1332,7 +1332,7 @@ class Timeseries(InputComponent):
         if x is None:
             return x
         dataframe = pd.DataFrame(data=x["data"], columns=x["headers"])
-        if x["range"] is not None:
+        if x.get("range") is not None:
             dataframe = dataframe.loc[dataframe[self.x or 0] >= x["range"][0]]
             dataframe = dataframe.loc[dataframe[self.x or 0] <= x["range"][1]]
         return dataframe
