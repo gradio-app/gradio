@@ -7,7 +7,7 @@ class ImageOutput extends BaseComponent {
     return this.props.value ? (
       <div className="output_image">
         <div class="image_preview_holder">
-          <img class="image_preview" alt="" src={this.props.value[0]}></img>
+          <img class="image_preview" alt="" src={this.props.value}></img>
         </div>
       </div>
     ) : (
