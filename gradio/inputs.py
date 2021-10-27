@@ -994,10 +994,7 @@ class Audio(InputComponent):
         if x is None:
             return x
         file_name, file_data, is_example = x["name"], x["data"], x.get("is_example", False)
-<<<<<<< HEAD
-=======
         crop_min, crop_max = x.get("crop_min", 0), x.get("crop_max", 100)
->>>>>>> master
         if is_example:
             file_obj = processing_utils.create_tmp_copy_of_file(file_name)
         else:
