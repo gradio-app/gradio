@@ -1347,7 +1347,7 @@ class Timeseries(InputComponent):
         return json.loads(data)
 
     def generate_sample(self):
-        return [[1, 2, 3], [4, 5, 6]]
+        return {"data": [[1] + [2] * len(self.y)] * 4, "headers": [self.x] + self.y} 
 
 
 
