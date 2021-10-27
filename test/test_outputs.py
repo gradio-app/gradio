@@ -108,7 +108,7 @@ class TestHighlightedText(unittest.TestCase):
 
 class TestAudio(unittest.TestCase):
     def test_as_component(self):
-        y_audio = gr.processing_utils.decode_base64_to_file(gr.test_data.BASE64_AUDIO)
+        y_audio = gr.processing_utils.decode_base64_to_file(gr.test_data.BASE64_AUDIO["data"])
         audio_output = gr.outputs.Audio(type="file")
         self.assertTrue(audio_output.postprocess(y_audio.name).startswith("data:audio/wav;base64,UklGRuI/AABXQVZFZm10IBAAA"))
 
