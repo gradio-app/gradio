@@ -68,6 +68,12 @@ class Textbox(OutputComponent):
         }
 
     def postprocess(self, y):
+        """
+        Parameters:
+        y (str): text output
+        Returns:
+        (Union[str, number]): output value
+        """
         if self.type == "str" or self.type == "auto":
             return str(y)
         elif self.type == "number":
@@ -98,6 +104,12 @@ class Label(OutputComponent):
         super().__init__(label)
 
     def postprocess(self, y):
+        """
+        Parameters:
+        y (Dict[str, float]): dictionary mapping label to confidence value 
+        Returns:
+        (Dict[label: str, confidences: List[Dict[label: str, confidence: number]]]): Object with key 'label' representing primary label, and key 'confidences' representing a list of label-confidence pairs
+        """
         if self.type == "label" or (self.type == "auto" and (isinstance(y, str) or isinstance(y, Number))):
             return {"label": str(y)}
         elif self.type == "confidences" or (self.type == "auto" and isinstance(y, dict)):
@@ -190,6 +202,12 @@ class Image(OutputComponent):
         }
 
     def postprocess(self, y):
+        """
+        Parameters:
+        y (Union[numpy.array, PIL.Image, str, matplotlib.pyplot, Tuple[Union[numpy.array, PIL.Image, str], List[Tuple[str, float, float, float, float]]]]): image in specified format 
+        Returns:
+        (str): base64 url data
+        """
         if self.type == "auto":
             if isinstance(y, np.ndarray):
                 dtype = "numpy"
@@ -252,6 +270,12 @@ class Video(OutputComponent):
         }
 
     def postprocess(self, y):
+        """
+        Parameters:
+        y (str): path to video 
+        Returns:
+        (str): base64 url data
+        """
         returned_format = y.split(".")[-1].lower()
         if self.type is not None and returned_format != self.type:
             output_file_name = y[0: y.rindex(
@@ -292,6 +316,12 @@ class KeyValues(OutputComponent):
         super().__init__(label)
 
     def postprocess(self, y):
+        """
+        Parameters:
+        y (Union[Dict, List[Tuple[str, Union[str, int, float]]]]): dictionary or tuple list representing key value pairs 
+        Returns:
+        (List[Tuple[str, Union[str, number]]]): list of key value pairs
+        """
         if isinstance(y, dict):
             return list(y.items())
         elif isinstance(y, list):
@@ -343,6 +373,13 @@ class HighlightedText(OutputComponent):
         }
 
     def postprocess(self, y):
+        """
+        Parameters:
+        y (Union[Dict, List[Tuple[str, Union[str, int, float]]]]): dictionary or tuple list representing key value pairs 
+        Returns:
+        (List[Tuple[str, Union[str, number]]]): list of key value pairs
+
+        """
         return y
 
     def save_flagged(self, dir, label, data, encryption_key):
@@ -380,6 +417,12 @@ class Audio(OutputComponent):
         }
 
     def postprocess(self, y):
+        """
+        Parameters:
+        y (Union[Tuple[int, numpy.array], str]): audio data in requested format
+        Returns:
+        (str): base64 url data
+        """
         if self.type in ["numpy", "file", "auto"]:
             if self.type == "numpy" or (self.type == "auto" and isinstance(y, tuple)):
                 sample_rate, data = y
@@ -416,6 +459,12 @@ class JSON(OutputComponent):
         super().__init__(label)
 
     def postprocess(self, y):
+        """
+        Parameters:
+        y (Union[Dict, List, str]): JSON output
+        Returns:
+        (Union[Dict, List]): JSON output
+        """
         if isinstance(y, str):
             return json.dumps(y)
         else:
@@ -448,6 +497,15 @@ class HTML(OutputComponent):
         '''
         super().__init__(label)
 
+    def postprocess(self, x):
+        """
+        Parameters:
+        y (str): HTML output
+        Returns:
+        (str): HTML output
+        """
+        return x
+
     @classmethod
     def get_shortcut_implementations(cls):
         return {
@@ -476,6 +534,12 @@ class File(OutputComponent):
         }
 
     def postprocess(self, y):
+        """
+        Parameters:
+        y (str): file path
+        Returns:
+        (Dict[name: str, size: number, data: str]): JSON object with key 'name' for filename, 'data' for base64 url, and 'size' for filesize in bytes 
+        """
         return {
             "name": os.path.basename(y),
             "size": os.path.getsize(y),
@@ -532,6 +596,12 @@ class Dataframe(OutputComponent):
         }
 
     def postprocess(self, y):
+        """
+        Parameters:
+        y (Union[pandas.DataFrame, numpy.array, List[Union[str, float]], List[List[Union[str, float]]]]): dataframe in given format
+        Returns:
+        (Dict[headers: List[str], data: List[List[Union[str, number]]]]): JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
+        """
         if self.type == "auto":
             if isinstance(y, pd.core.frame.DataFrame):
                 dtype = "pandas"
@@ -589,6 +659,12 @@ class Carousel(OutputComponent):
         }
 
     def postprocess(self, y):
+        """
+        Parameters:
+        y (List[List[Any]]): carousel output
+        Returns:
+        (List[List[Any]]): 2D array, where each sublist represents one set of outputs or 'slide' in the carousel
+        """
         if isinstance(y, list):
             if len(y) != 0 and not isinstance(y[0], list):
                 y = [[z] for z in y]
@@ -667,6 +743,12 @@ class Timeseries(OutputComponent):
         }
 
     def postprocess(self, y):
+        """
+        Parameters:
+        y (pandas.DataFrame): timeseries data
+        Returns:
+        (Dict[headers: List[str], data: List[List[Union[str, number]]]]): JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
+        """
         return {
             "headers": y.columns.values.tolist(),
             "data": y.values.tolist()
