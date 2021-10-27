@@ -1,17 +1,30 @@
 import io
 import sys
+import json
 import unittest
 import unittest.mock as mock
-from gradio import tunneling
+from gradio import tunneling, networking, Interface
+import threading
+import paramiko
 
 
-# class TestTunneling(unittest.TestCase):
-    # pass
-    # @mock.patch("pkg_resources.require")
-    # def test_should_fail_with_distribution_not_found(self, mock_require):
+class TestTunneling(unittest.TestCase):
+    def test_create_tunnel(self):
+        response = networking.url_request(networking.GRADIO_API_SERVER)
+        payload = json.loads(response.read().decode("utf-8"))[0]
+        io = Interface(lambda x: x, "text", "text")
+        _, path_to_local_server, _ = io.launch(prevent_thread_lock=True, share=False)
+        _, localhost, port = path_to_local_server.split(":")
+        threading.Thread.start = mock.MagicMock(return_value=None)
+        paramiko.SSHClient.connect = mock.MagicMock(return_value=None)
+        tunneling.create_tunnel(payload, localhost, port)
+        threading.Thread.start.assert_called_once()
+        paramiko.SSHClient.connect.assert_called_once()
+        io.close()
+
 
 class TestVerbose(unittest.TestCase):   
-    """Unncessary tests but just including them for the sake of completion.""" 
+    """Not absolutely needed but just including them for the sake of completion.""" 
     
     def setUp(self):
         self.message = "print test"
