@@ -13,3 +13,5 @@ pillow
 pycryptodome
 pydub
 requests
+IPython
+shap

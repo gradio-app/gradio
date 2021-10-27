@@ -49,7 +49,7 @@ def get_regression_or_classification_value(interface, original_output, perturbed
                 return 0
             return perturbed_output[0][original_label]
         else:
-            score = diff(perturbed_label, original_label)  # Intentionall inverted order of arguments.
+            score = diff(perturbed_label, original_label)  # Intentionally inverted order of arguments.
         return score
 
     else:

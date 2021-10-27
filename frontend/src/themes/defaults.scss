@@ -215,8 +215,17 @@
         .image_preview_holder {
             @apply w-full h-full flex justify-center items-center bg-gray-200 relative inline-block;
         }
+        .edit_buttons {
+            @apply absolute top-0 right-0;
+            img {
+                @apply h-4;
+            }
+        }
         .edit_button {
-            @apply absolute top-1 right-1 bg-yellow-500 text-white px-2 py-1;
+            @apply bg-yellow-500 bg-opacity-30 hover:bg-opacity-100 transition p-1;
+        }
+        .clear_button {
+            @apply bg-gray-400 bg-opacity-30 hover:bg-opacity-100 transition p-1;
         }
         .image_editor {
             @apply fixed w-screen h-screen top-0 left-0 bg-black bg-opacity-50 z-40 flex flex-col justify-center items-center;
@@ -409,6 +418,18 @@
         audio {
             @apply w-full;
         }
+        .edit_buttons {
+            @apply flex justify-end;
+            img {
+                @apply h-4;
+            }
+        }
+        .edit_button {
+            @apply bg-yellow-500 bg-opacity-0 hover:bg-opacity-100 transition p-1;
+        }
+        .clear_button {
+            @apply bg-gray-400 bg-opacity-0 hover:bg-opacity-100 transition p-1;
+        }
         .interpret_range {
             @apply flex h-4;
             div {
@@ -417,7 +438,7 @@
         }
     }
     .input_video {
-        @apply w-full h-80;
+        @apply w-full h-80 relative;
         .upload_zone {
             @apply border-gray-300 text-gray-400 dark:border-gray-500 border-8 border-dashed w-full h-full flex justify-center items-center text-3xl text-center cursor-pointer leading-10;
         }
@@ -429,6 +450,18 @@
         }
         .video_preview {
             @apply w-full h-full object-contain;
+        }
+        .edit_buttons {
+            @apply z-10 absolute top-0 right-0;
+            img {
+                @apply h-4;
+            }
+        }
+        .edit_button {
+            @apply bg-yellow-500 bg-opacity-30 hover:bg-opacity-100 transition p-1;
+        }
+        .clear_button {
+            @apply bg-gray-400 bg-opacity-30 hover:bg-opacity-100 transition p-1;
         }
     }
     .input_video_example {
@@ -452,6 +485,12 @@
         }
         .file_size {
             @apply text-2xl p-2;
+        }
+        .clear_button {
+            @apply absolute top-0 right-0 bg-gray-400 bg-opacity-0 hover:bg-opacity-100 transition p-1;
+            img {
+                @apply h-4;
+            }
         }
     }
     .input_timeseries {
