@@ -533,7 +533,7 @@ class File(OutputComponent):
             "file": {},
         }
 
-    def postprocess(self, x):
+    def postprocess(self, y):
         """
         Parameters:
         y (str): file path
