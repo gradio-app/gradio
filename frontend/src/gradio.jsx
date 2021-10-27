@@ -69,7 +69,7 @@ export class GradioInterface extends React.Component {
         ? "file" +
           this.props.examples_dir +
           (this.props.examples_dir.endswith("/") ? "" : "/")
-        : "file");
+        : "file");    
   }
   get_default_state = () => {
     let state = {};
