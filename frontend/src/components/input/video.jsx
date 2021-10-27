@@ -29,9 +29,6 @@ class VideoInput extends BaseComponent {
     if (this.props.value != null) {
       return <div className="input_video">
         <div className="edit_buttons">
-          <button className="edit_button">
-            <img src={edit_icon} />
-          </button>
           <button className="clear_button" onClick={this.props.handleChange.bind(this, null)}>
             <img src={clear_icon} />
           </button>

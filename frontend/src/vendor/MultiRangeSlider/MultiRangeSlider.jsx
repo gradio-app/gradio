@@ -5,6 +5,7 @@ import "./multiRangeSlider.css";
 const MultiRangeSlider = ({ min, max, onChange }) => {
   const [minVal, setMinVal] = useState(min);
   const [maxVal, setMaxVal] = useState(max);
+  const [lastChange, setLastChange] = useState("min");
   const minValRef = useRef(min);
   const maxValRef = useRef(max);
   const range = useRef(null);
@@ -38,8 +39,8 @@ const MultiRangeSlider = ({ min, max, onChange }) => {
 
   // Get min and max values when their state changes
   useEffect(() => {
-    onChange({ min: minVal, max: maxVal });
-  }, [minVal, maxVal, onChange]);
+    onChange({ min: minVal, max: maxVal, lastChange: lastChange });
+  }, [minVal, maxVal, onChange, lastChange]);
 
   return (
     <div className="slider_container">
@@ -50,6 +51,7 @@ const MultiRangeSlider = ({ min, max, onChange }) => {
         value={minVal}
         onChange={(event) => {
           const value = Math.min(Number(event.target.value), maxVal - 1);
+          setLastChange("min");
           setMinVal(value);
           minValRef.current = value;
         }}
@@ -63,6 +65,7 @@ const MultiRangeSlider = ({ min, max, onChange }) => {
         value={maxVal}
         onChange={(event) => {
           const value = Math.max(Number(event.target.value), minVal + 1);
+          setLastChange("max");
           setMaxVal(value);
           maxValRef.current = value;
         }}
