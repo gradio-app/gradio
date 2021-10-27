@@ -18,7 +18,7 @@ fi
 read -p "frontend updates? " -r
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
-    aws s3 cp gradio/frontend s3://gradio/$new_version/ --recursive 
+    aws s3 cp gradio/templates/frontend s3://gradio/$new_version/ --recursive 
     echo $new_version > gradio/version.txt
 fi
 

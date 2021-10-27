@@ -37,8 +37,8 @@ LOCALHOST_NAME = os.getenv(
 GRADIO_API_SERVER = "https://api.gradio.app/v1/tunnel-request"
 GRADIO_FEATURE_ANALYTICS_URL = "https://api.gradio.app/gradio-feature-analytics/"
 
-STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "frontend/")
-STATIC_PATH_LIB = pkg_resources.resource_filename("gradio", "frontend/static")
+STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "templates/")
+STATIC_PATH_LIB = pkg_resources.resource_filename("gradio", "templates/frontend/static")
 VERSION_FILE = pkg_resources.resource_filename("gradio", "version.txt")
 with open(VERSION_FILE) as version_file:
     GRADIO_STATIC_ROOT = "https://gradio.s3-us-west-2.amazonaws.com/" + \
@@ -129,7 +129,7 @@ def get_first_available_port(initial, final):
 @login_check
 def main():
     session["state"] = None
-    return render_template("index.html", config=app.interface.config)
+    return render_template("frontend/index.html", config=app.interface.config)
 
 
 @app.route("/static/<path:path>", methods=["GET"])
