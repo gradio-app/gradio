@@ -964,8 +964,7 @@ class Audio(InputComponent):
         requires_permissions = source == "microphone"
         self.type = type
         self.optional = optional
-        self.test_input = {"name": "sample.wav",
-                           "data": test_data.BASE64_AUDIO, "is_example": False}
+        self.test_input = test_data.BASE64_AUDIO
         self.interpret_by_tokens = True
         super().__init__(label, requires_permissions)
 

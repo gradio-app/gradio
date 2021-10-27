@@ -145,7 +145,7 @@ def static_resource(path):
 def login():
     if request.method == "GET":
         config = get_config()
-        return render_template("index.html", config=config)
+        return render_template("frontend/index.html", config=config)
     elif request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
