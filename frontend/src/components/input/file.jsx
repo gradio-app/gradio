@@ -2,6 +2,7 @@ import React from "react";
 import BaseComponent from "../base_component";
 import { FileComponentExample } from "../component_example";
 import { prettyBytes } from "../../utils";
+import clear_icon from "../../static/img/clear.svg";
 
 class FileInput extends BaseComponent {
   constructor(props) {
@@ -50,6 +51,9 @@ class FileInput extends BaseComponent {
       return (
         <div className="input_file">
           <div className="file_preview_holder">
+            <button className="clear_button" onClick={this.handleChange.bind(this, null)}>
+              <img src={clear_icon} />
+            </button>
             <div className="file_name">{file_name}</div>
             <div className="file_size">
               {file_size === null || file_size === undefined

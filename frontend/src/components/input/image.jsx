@@ -8,6 +8,8 @@ import "tui-image-editor/dist/tui-image-editor.css";
 import ImageEditor from "@toast-ui/react-image-editor";
 import Cropper from "react-cropper";
 import "cropperjs/dist/cropper.css";
+import edit_icon from "../../static/img/edit.svg";
+import clear_icon from "../../static/img/clear.svg";
 
 class ImageInput extends BaseComponent {
   constructor(props) {
@@ -148,9 +150,14 @@ class ImageInput extends BaseComponent {
                   />
                 </div>
               ) : (
-                <button className="edit_button" onClick={this.openEditor}>
-                  Edit
-                </button>
+                <div className="edit_buttons">
+                  <button className="edit_button" onClick={this.openEditor}>
+                    <img src={edit_icon} />
+                  </button>
+                  <button className="clear_button" onClick={this.handleChange.bind(this, null)}>
+                  <img src={clear_icon} />
+                  </button>
+                </div>
               )
             ) : (
               false
@@ -265,7 +272,7 @@ class ImageInput extends BaseComponent {
     };
   }
   static postprocess = (y) => {
-    return y.crop === null ? y.src : y.crop;
+    return y === null ? null : y.crop === null ? y.src : y.crop;
   };
 }
 
