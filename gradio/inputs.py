@@ -78,6 +78,13 @@ class InputComponent(Component):
         '''
         pass
 
+    def generate_sample(self):
+        """
+        Returns a sample value of the input that would be accepted by the api. Used for api documentation.
+        """
+        pass
+
+
 class Textbox(InputComponent):
     """
     Component creates a textbox for user to enter input. Provides a string as an argument to the wrapped function.
@@ -130,6 +137,10 @@ class Textbox(InputComponent):
         }
 
     def preprocess(self, x):
+        """
+        Parameters:
+        x (str): text input
+        """
         if self.type == "str":
             return x
         elif self.type == "number":
@@ -195,10 +206,13 @@ class Textbox(InputComponent):
             result.append((self.interpretation_separator, 0))
         return result
 
+    def generate_sample(self):
+        return "Hello World"
+
 
 class Number(InputComponent):
     """
-    Component creates a field for user to enter numeric input. Provides a nuber as an argument to the wrapped function.
+    Component creates a field for user to enter numeric input. Provides a number as an argument to the wrapped function.
     Input type: float
     Demos: tax_calculator.py, titanic_survival.py
     """
@@ -228,8 +242,10 @@ class Number(InputComponent):
 
     def preprocess(self, x):
         """
+        Parameters:
+        x (number): numeric input
         Returns:
-        (float): Number representing function input
+        (float): number representing function input
         """
         return float(x)
 
@@ -275,6 +291,9 @@ class Number(InputComponent):
         interpretation.insert(int(len(interpretation) / 2), [x, None])
         return interpretation
 
+    def generate_sample(self):
+        return 1
+
 
 class Slider(InputComponent):
     """
@@ -319,6 +338,15 @@ class Slider(InputComponent):
             "slider": {},
         }
 
+    def preprocess(self, x):
+        """
+        Parameters:
+        x (number): numeric input
+        Returns:
+        (number): numeric input
+        """
+        return x
+
     def preprocess_example(self, x):
         """
         Returns:
@@ -344,6 +372,9 @@ class Slider(InputComponent):
         (List[float]): Each value represents the score corresponding to an evenly spaced range of inputs between the minimum and maximum slider values.
         """
         return scores
+
+    def generate_sample(self):
+        return self.maximum
 
 
 class Checkbox(InputComponent):
@@ -376,6 +407,15 @@ class Checkbox(InputComponent):
             "checkbox": {},
         }
 
+    def preprocess(self, x):
+        """
+        Parameters:
+        x (bool): boolean input
+        Returns:
+        (bool): boolean input
+        """
+        return x
+
     def preprocess_example(self, x):
         """
         Returns:
@@ -402,6 +442,8 @@ class Checkbox(InputComponent):
         else:
             return None, scores[0]
 
+    def generate_sample(self):
+        return True
 
 class CheckboxGroup(InputComponent):
     """
@@ -433,6 +475,12 @@ class CheckboxGroup(InputComponent):
         }
 
     def preprocess(self, x):
+        """
+        Parameters:
+        x (List[str]): list of selected choices
+        Returns:
+        (Union[List[str], List[int]]): list of selected choices as strings or indices within choice list
+        """
         if self.type == "value":
             return x
         elif self.type == "index":
@@ -481,6 +529,8 @@ class CheckboxGroup(InputComponent):
     def restore_flagged(self, data):
         return json.loads(data)
 
+    def generate_sample(self):
+        return self.choices
 
 class Radio(InputComponent):
     """
@@ -512,6 +562,12 @@ class Radio(InputComponent):
         }
 
     def preprocess(self, x):
+        """
+        Parameters:
+        x (str): selected choice
+        Returns:
+        (Union[str, int]): selected choice as string or index within choice list
+        """
         if self.type == "value":
             return x
         elif self.type == "index":
@@ -538,6 +594,9 @@ class Radio(InputComponent):
         """
         scores.insert(self.choices.index(x), None)
         return scores
+
+    def generate_sample(self):
+        return self.choices[0]
 
 
 class Dropdown(InputComponent):
@@ -570,6 +629,12 @@ class Dropdown(InputComponent):
         }
 
     def preprocess(self, x):
+        """
+        Parameters:
+        x (str): selected choice
+        Returns:
+        (Union[str, int]): selected choice as string or index within choice list
+        """
         if self.type == "value":
             return x
         elif self.type == "index":
@@ -596,6 +661,10 @@ class Dropdown(InputComponent):
         """
         scores.insert(self.choices.index(x), None)
         return scores
+
+    def generate_sample(self):
+        return self.choices[0]
+
 
 class Image(InputComponent):
     """
@@ -647,6 +716,12 @@ class Image(InputComponent):
         }
 
     def preprocess(self, x):
+        """
+        Parameters:
+        x (str): base64 url data
+        Returns:
+        (Union[numpy.array, PIL.Image, file-object]): image in requested format
+        """
         if x is None:
             return x
         im = processing_utils.decode_base64_to_image(x)
@@ -791,6 +866,9 @@ class Image(InputComponent):
         """
         return self.save_flagged_file(dir, label, data, encryption_key)
 
+    def generate_sample(self):
+        return test_data.BASE64_IMAGE
+
 
 class Video(InputComponent):
     """
@@ -823,9 +901,15 @@ class Video(InputComponent):
         }
 
     def preprocess(self, x):
+        """
+        Parameters:
+        x (Dict[name: str, data: str]): JSON object with filename as 'name' property and base64 data as 'data' property  
+        Returns:
+        (str): file path to video
+        """
         if x is None:
             return x
-        file_name, file_data, is_example = x["name"], x["data"], x["is_example"]
+        file_name, file_data, is_example = x["name"], x["data"], x.get("is_example", False)
         if is_example:
             file = processing_utils.create_tmp_copy_of_file(file_name)
         else:
@@ -857,6 +941,9 @@ class Video(InputComponent):
         """
         return self.save_flagged_file(dir, label, data, encryption_key)
 
+    def generate_sample(self):
+        return test_data.BASE64_VIDEO
+
 
 class Audio(InputComponent):
     """
@@ -877,8 +964,7 @@ class Audio(InputComponent):
         requires_permissions = source == "microphone"
         self.type = type
         self.optional = optional
-        self.test_input = {"name": "sample.wav",
-                           "data": test_data.BASE64_AUDIO, "is_example": False}
+        self.test_input = test_data.BASE64_AUDIO
         self.interpret_by_tokens = True
         super().__init__(label, requires_permissions)
 
@@ -898,6 +984,12 @@ class Audio(InputComponent):
         }
 
     def preprocess(self, x):
+        """
+        Parameters:
+        x (Dict[name: str, data: str]): JSON object with filename as 'name' property and base64 data as 'data' property  
+        Returns:
+        (Union[Tuple[int, numpy.array], file-object, numpy.array]): audio in requested format
+        """
         if x is None:
             return x
         file_name, file_data, is_example = x["name"], x["data"], x.get("is_example", False)
@@ -1023,12 +1115,15 @@ class Audio(InputComponent):
         """
         return self.save_flagged_file(dir, label, data, encryption_key)
 
+    def generate_sample(self):
+        return test_data.BASE64_AUDIO
+
 
 class File(InputComponent):
     """
     Component accepts generic file uploads.
     Input type: Union[file-object, bytes, List[Union[file-object, bytes]]]
-    Demos: zip_to_json.py, zip_two_files.py
+    Demos: zisp_to_json.py, zip_two_files.py
     """
 
     def __init__(self, file_count="single", type="file", label=None, keep_filename=True, optional=False):
@@ -1061,11 +1156,17 @@ class File(InputComponent):
         }
 
     def preprocess(self, x):
+        """
+        Parameters:
+        x (List[Dict[name: str, data: str]]): List of JSON objects with filename as 'name' property and base64 data as 'data' property
+        Returns:
+        (Union[file-object, bytes, List[Union[file-object, bytes]]]): File objects in requested format
+        """
         if x is None:
             return None
 
         def process_single_file(f):
-            file_name, data, is_example = f["name"], f["data"], f["is_example"]
+            file_name, data, is_example = f["name"], f["data"], f.get("is_example", False)
             if self.type == "file":
                 if is_example:
                     return processing_utils.create_tmp_copy_of_file(file_name)
@@ -1092,6 +1193,9 @@ class File(InputComponent):
         Returns: (str) path to file
         """
         return self.save_flagged_file(dir, label, data["data"], encryption_key)
+
+    def generate_sample(self):
+        return test_data.BASE64_FILE
 
 
 class Dataframe(InputComponent):
@@ -1151,6 +1255,12 @@ class Dataframe(InputComponent):
         }
 
     def preprocess(self, x):
+        """
+        Parameters:
+        x (List[List[Union[str, number, bool]]]): 2D array of str, numeric, or bool data
+        Returns:
+        (Union[pandas.DataFrame, numpy.array, List[Union[str, float]], List[List[Union[str, float]]]]): Dataframe in requested format
+        """
         if self.type == "pandas":
             if self.headers:
                 return pd.DataFrame(x, columns=self.headers)
@@ -1174,6 +1284,9 @@ class Dataframe(InputComponent):
 
     def restore_flagged(self, data):
         return json.loads(data)
+
+    def generate_sample(self):
+        return [[1, 2, 3], [4, 5, 6]]
 
 
 class Timeseries(InputComponent):
@@ -1213,10 +1326,16 @@ class Timeseries(InputComponent):
         }
 
     def preprocess(self, x):
+        """
+        Parameters:
+        x (Dict[data: List[List[Union[str, number, bool]]], headers: List[str], range: List[number]]): Dict with keys 'data': 2D array of str, numeric, or bool data, 'headers': list of strings for header names, 'range': optional two element list designating start of end of subrange.
+        Returns:
+        (pandas.DataFrame): Dataframe of timeseries data
+        """
         if x is None:
             return x
         dataframe = pd.DataFrame(data=x["data"], columns=x["headers"])
-        if x["range"] is not None:
+        if x.get("range") is not None:
             dataframe = dataframe.loc[dataframe[self.x or 0] >= x["range"][0]]
             dataframe = dataframe.loc[dataframe[self.x or 0] <= x["range"][1]]
         return dataframe
@@ -1229,6 +1348,11 @@ class Timeseries(InputComponent):
 
     def restore_flagged(self, data):
         return json.loads(data)
+
+    def generate_sample(self):
+        return {"data": [[1] + [2] * len(self.y)] * 4, "headers": [self.x] + self.y} 
+
+
 
 
 def get_input_instance(iface):
