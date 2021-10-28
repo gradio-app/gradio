@@ -1,4 +1,6 @@
 import gradio as gr
+import os 
+
 
 class FlaggingHandler():
     """
@@ -38,10 +40,23 @@ class DefaultFlaggingHandler(FlaggingHandler):
 
 class HuggingFaceFlaggingHandler(FlaggingHandler):
     def flag(self, input_data, output_data, flag_option=None, flag_index=None, username=None, path=None):
+        try:
+            import huggingface_hub
+        except (ImportError, ModuleNotFoundError):
+            print("Package `huggingface_hub` not found. Please install it with 'pip install huggingface_hub'.")
+
+        HF_TOKEN = os.environ.get("HF_TOKEN")
+        dataset_repo_url = ""
         pass # TODO(abidlabs): implement this as follows
         # check if a repo exists with username/spacename (if path is None; otherwise, use path)
         # if not, create a repo with username/spacename
         # clone the repo and append to a log csv file
+        repo = huggingface_hub.Repository(
+            local_dir="data", clone_from=dataset_repo_url, use_auth_token=HF_TOKEN
+        )
+        dataset_file = ""
+        # logic of writing to flagging log file            
         # push the repo 
+        commit_url = repo.push_to_hub()
         # write tests
 
