@@ -24,8 +24,8 @@ from gradio.tunneling import create_tunnel
 from gradio import encryptor, queue, flagging
 from functools import wraps
 import io
+import inspect
 import traceback
-
 
 INITIAL_PORT_VALUE = int(os.getenv(
     'GRADIO_SERVER_PORT', "7860"))  # The http server will try to open on port 7860. If not available, 7861, 7862, etc.
@@ -36,8 +36,8 @@ LOCALHOST_NAME = os.getenv(
 GRADIO_API_SERVER = "https://api.gradio.app/v1/tunnel-request"
 GRADIO_FEATURE_ANALYTICS_URL = "https://api.gradio.app/gradio-feature-analytics/"
 
-STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "frontend/")
-STATIC_PATH_LIB = pkg_resources.resource_filename("gradio", "frontend/static")
+STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "templates/")
+STATIC_PATH_LIB = pkg_resources.resource_filename("gradio", "templates/frontend/static")
 VERSION_FILE = pkg_resources.resource_filename("gradio", "version.txt")
 with open(VERSION_FILE) as version_file:
     GRADIO_STATIC_ROOT = "https://gradio.s3-us-west-2.amazonaws.com/" + \
@@ -128,7 +128,7 @@ def get_first_available_port(initial, final):
 @login_check
 def main():
     session["state"] = None
-    return render_template("index.html", config=app.interface.config)
+    return render_template("frontend/index.html", config=app.interface.config)
 
 
 @app.route("/static/<path:path>", methods=["GET"])
@@ -144,7 +144,7 @@ def static_resource(path):
 def login():
     if request.method == "GET":
         config = get_config()
-        return render_template("index.html", config=config)
+        return render_template("frontend/index.html", config=config)
     elif request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
@@ -205,6 +205,49 @@ def predict():
             print(str(e))
             pass
     return jsonify(output)
+
+
+def get_types(cls_set, component):
+    docset = []
+    types = []
+    if component == "input":
+        for cls in cls_set:
+            doc = inspect.getdoc(cls.preprocess)
+            doc_lines = doc.split("\n")
+            docset.append(doc_lines[1].split(":")[-1])
+            types.append(doc_lines[1].split(")")[0].split("(")[-1])
+    else:
+        for cls in cls_set:
+            doc = inspect.getdoc(cls.postprocess)
+            doc_lines = doc.split("\n")
+            docset.append(doc_lines[-1].split(":")[-1])
+            types.append(doc_lines[-1].split(")")[0].split("(")[-1])
+    return docset, types
+
+
+@app.route("/api/", methods=["GET"])
+def api_docs():
+    inputs = [type(inp) for inp in app.interface.input_components]
+    outputs = [type(out) for out in app.interface.output_components]
+    input_types_doc, input_types = get_types(inputs, "input")
+    output_types_doc, output_types = get_types(outputs, "output")
+    input_names = [type(inp).__name__ for inp in app.interface.input_components]
+    output_names = [type(out).__name__ for out in app.interface.output_components]
+    sample_inputs = [inp.generate_sample() for inp in app.interface.input_components]
+    docs = {
+        "inputs": input_names,
+        "outputs": output_names,
+        "len_inputs": len(inputs),
+        "len_outputs": len(outputs),
+        "inputs_lower": [name.lower() for name in input_names],
+        "outputs_lower": [name.lower() for name in output_names],
+        "input_types": input_types,
+        "output_types": output_types,
+        "input_types_doc": input_types_doc,
+        "output_types_doc": output_types_doc,
+        "sample_inputs": sample_inputs
+    }
+    return render_template("api_docs.html", **docs)
 
 
 def log_feature_analytics(feature):
