@@ -298,7 +298,7 @@ class Video(OutputComponent):
         """
         Returns: (str) path to image file
         """
-        return self.save_flagged_file(dir, label, data, encryption_key)
+        return self.save_flagged_file(dir, label, data['data'], encryption_key)
 
 
 class KeyValues(OutputComponent):
