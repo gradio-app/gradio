@@ -32,7 +32,7 @@ demo/flagged
 test.txt
 build/
 gradio/launches.json
-gradio/frontend/static
+gradio/templates/frontend/static
 workspace.code-workspace
 *.db
 demo/files/*.avi

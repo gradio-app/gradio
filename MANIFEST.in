@@ -1,2 +1,2 @@
-recursive-include gradio/frontend *
+recursive-include gradio/templates *
 include gradio/version.txt

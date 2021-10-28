@@ -39,14 +39,18 @@ export class GradioPage extends React.Component {
               false
             )}
           </div>
+          <a href="/api/" target="_blank" class="footer" rel="noreferrer">
+            <span>view the api </span><img class="logo" src="https://i.ibb.co/6DVLqmf/noun-tools-2220412.png" alt="logo"/>
+          <span> |</span>
           <a
             href="https://gradio.app"
             target="_blank"
             className="footer"
             rel="noreferrer"
           >
-            <span>built with</span>
+            <span> built with</span>
             <img className="logo" src={logo} alt="logo" />
+          </a>
           </a>
         </div>
       </div>
@@ -335,6 +339,7 @@ export class GradioInterface extends React.Component {
                 <button className="panel_button submit" onClick={this.submit}>
                   Submit
                 </button>
+
               )}
             </div>
           </div>

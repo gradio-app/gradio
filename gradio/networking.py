@@ -21,12 +21,11 @@ import sys
 import csv
 import logging
 from gradio.tunneling import create_tunnel
-from gradio import encryptor
-from gradio import queue
+from gradio import encryptor, queue, flagging
 from functools import wraps
 import io
+import inspect
 import traceback
-
 
 INITIAL_PORT_VALUE = int(os.getenv(
     'GRADIO_SERVER_PORT', "7860"))  # The http server will try to open on port 7860. If not available, 7861, 7862, etc.
@@ -37,8 +36,8 @@ LOCALHOST_NAME = os.getenv(
 GRADIO_API_SERVER = "https://api.gradio.app/v1/tunnel-request"
 GRADIO_FEATURE_ANALYTICS_URL = "https://api.gradio.app/gradio-feature-analytics/"
 
-STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "frontend/")
-STATIC_PATH_LIB = pkg_resources.resource_filename("gradio", "frontend/static")
+STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "templates/")
+STATIC_PATH_LIB = pkg_resources.resource_filename("gradio", "templates/frontend/static")
 VERSION_FILE = pkg_resources.resource_filename("gradio", "version.txt")
 with open(VERSION_FILE) as version_file:
     GRADIO_STATIC_ROOT = "https://gradio.s3-us-west-2.amazonaws.com/" + \
@@ -129,7 +128,7 @@ def get_first_available_port(initial, final):
 @login_check
 def main():
     session["state"] = None
-    return render_template("index.html", config=app.interface.config)
+    return render_template("frontend/index.html", config=app.interface.config)
 
 
 @app.route("/static/<path:path>", methods=["GET"])
@@ -145,7 +144,7 @@ def static_resource(path):
 def login():
     if request.method == "GET":
         config = get_config()
-        return render_template("index.html", config=config)
+        return render_template("frontend/index.html", config=config)
     elif request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
@@ -197,7 +196,8 @@ def predict():
     output = {"data": prediction, "durations": durations, "avg_durations": avg_durations}
     if app.interface.allow_flagging == "auto":
         try:
-            flag_index = flag_data(raw_input, prediction, 
+            handler = flagging.DefaultFlaggingHandler(app)
+            flag_index = handler.flag(raw_input, prediction,
                 flag_option=(None if app.interface.flagging_options is None else ""), 
                 username=current_user.id if current_user.is_authenticated else None)
             output["flag_index"] = flag_index
@@ -205,6 +205,49 @@ def predict():
             print(str(e))
             pass
     return jsonify(output)
+
+
+def get_types(cls_set, component):
+    docset = []
+    types = []
+    if component == "input":
+        for cls in cls_set:
+            doc = inspect.getdoc(cls.preprocess)
+            doc_lines = doc.split("\n")
+            docset.append(doc_lines[1].split(":")[-1])
+            types.append(doc_lines[1].split(")")[0].split("(")[-1])
+    else:
+        for cls in cls_set:
+            doc = inspect.getdoc(cls.postprocess)
+            doc_lines = doc.split("\n")
+            docset.append(doc_lines[-1].split(":")[-1])
+            types.append(doc_lines[-1].split(")")[0].split("(")[-1])
+    return docset, types
+
+
+@app.route("/api/", methods=["GET"])
+def api_docs():
+    inputs = [type(inp) for inp in app.interface.input_components]
+    outputs = [type(out) for out in app.interface.output_components]
+    input_types_doc, input_types = get_types(inputs, "input")
+    output_types_doc, output_types = get_types(outputs, "output")
+    input_names = [type(inp).__name__ for inp in app.interface.input_components]
+    output_names = [type(out).__name__ for out in app.interface.output_components]
+    sample_inputs = [inp.generate_sample() for inp in app.interface.input_components]
+    docs = {
+        "inputs": input_names,
+        "outputs": output_names,
+        "len_inputs": len(inputs),
+        "len_outputs": len(outputs),
+        "inputs_lower": [name.lower() for name in input_names],
+        "outputs_lower": [name.lower() for name in output_names],
+        "input_types": input_types,
+        "output_types": output_types,
+        "input_types_doc": input_types_doc,
+        "output_types_doc": output_types_doc,
+        "sample_inputs": sample_inputs
+    }
+    return render_template("api_docs.html", **docs)
 
 
 def log_feature_analytics(feature):
@@ -218,90 +261,13 @@ def log_feature_analytics(feature):
             pass  # do not push analytics if no network
 
 
-def flag_data(input_data, output_data, flag_option=None, flag_index=None, username=None, flag_path=None):
-    if flag_path is None:
-        flag_path = os.path.join(app.cwd, app.interface.flagging_dir)
-    log_fp = "{}/log.csv".format(flag_path)
-    encryption_key = app.interface.encryption_key if app.interface.encrypt else None
-    is_new = not os.path.exists(log_fp)
-
-    if flag_index is None:
-        csv_data = []
-        for i, interface in enumerate(app.interface.input_components):
-            csv_data.append(interface.save_flagged(
-                flag_path, app.interface.config["input_components"][i]["label"], input_data[i], encryption_key))
-        for i, interface in enumerate(app.interface.output_components):
-            csv_data.append(interface.save_flagged(
-                flag_path, app.interface.config["output_components"][i]["label"], output_data[i], encryption_key) if output_data[i] is not None else "")
-        if flag_option is not None:
-            csv_data.append(flag_option)
-        if username is not None:
-            csv_data.append(username)
-        csv_data.append(str(datetime.datetime.now()))
-        if is_new:
-            headers = [interface["label"]
-                    for interface in app.interface.config["input_components"]]
-            headers += [interface["label"]
-                        for interface in app.interface.config["output_components"]]
-            if app.interface.flagging_options is not None:
-                headers.append("flag")
-            if username is not None:
-                headers.append("username")
-            headers.append("timestamp")
-
-    def replace_flag_at_index(file_content):
-        file_content = io.StringIO(file_content)
-        content = list(csv.reader(file_content))
-        header = content[0]
-        flag_col_index = header.index("flag")
-        content[flag_index][flag_col_index] = flag_option
-        output = io.StringIO()
-        writer = csv.writer(output)
-        writer.writerows(content)
-        return output.getvalue()
-
-    if app.interface.encrypt:
-        output = io.StringIO()
-        if not is_new:
-            with open(log_fp, "rb") as csvfile:
-                encrypted_csv = csvfile.read()
-                decrypted_csv = encryptor.decrypt(
-                    app.interface.encryption_key, encrypted_csv)
-                file_content = decrypted_csv.decode()
-                if flag_index is not None:
-                    file_content = replace_flag_at_index(file_content)
-                output.write(file_content)
-        writer = csv.writer(output)
-        if flag_index is None:
-            if is_new:
-                writer.writerow(headers)
-            writer.writerow(csv_data)
-        with open(log_fp, "wb") as csvfile:
-            csvfile.write(encryptor.encrypt(
-                app.interface.encryption_key, output.getvalue().encode()))
-    else:
-        if flag_index is None:
-            with open(log_fp, "a", newline="") as csvfile:
-                writer = csv.writer(csvfile)
-                if is_new:
-                    writer.writerow(headers)
-                writer.writerow(csv_data)
-        else:
-            with open(log_fp) as csvfile:
-                file_content = csvfile.read()
-                file_content = replace_flag_at_index(file_content)
-            with open(log_fp, "w", newline="") as csvfile:  # newline parameter needed for Windows
-                csvfile.write(file_content)
-    with open(log_fp, "r") as csvfile:
-        line_count = len([None for row in csv.reader(csvfile)]) - 1
-    return line_count
-
 @app.route("/api/flag/", methods=["POST"])
 @login_check
 def flag():
     log_feature_analytics('flag')
     data = request.json['data']
-    flag_data(data['input_data'], data['output_data'], data.get("flag_option"), data.get("flag_index"), 
+    handler = flagging.DefaultFlaggingHandler(app)
+    handler.flag(data['input_data'], data['output_data'], data.get("flag_option"), data.get("flag_index"),
         current_user.id if current_user.is_authenticated else None)
     return jsonify(success=True)
 

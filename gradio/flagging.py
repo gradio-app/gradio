@@ -1,17 +1,21 @@
 import gradio as gr
-import os 
+import os
+import datetime
+from gradio import encryptor
+import csv
+import io
 
 
 class FlaggingHandler():
     """
     A class for defining the methods that any FlaggingHandler should have.
     """
-    def __init__(self, interface, **kwargs):
+    def __init__(self, app, **kwargs):
         """
         Parameters:
-        interface (gradio.Interface): The interface object that is calling the flag method.
+        app: Flask app running the interface (in gradio.networking)
         """
-        self.interface = interface
+        self.app = app
         self.kwargs = kwargs
 
     def flag(self, input_data, output_data, flag_option=None, flag_index=None, username=None, path=None):
@@ -29,14 +33,90 @@ class FlaggingHandler():
 
 
 class DefaultFlaggingHandler(FlaggingHandler):
-    def flag():
-        pass
-        # TODO(aliabd): bring the code from networking.flag() here and tweak it so it works.
+    def flag(self, input_data, output_data, flag_option=None, flag_index=None, username=None, flag_path=None):
+        if flag_path is None:
+            flag_path = os.path.join(self.app.cwd, self.app.interface.flagging_dir)
+        log_fp = "{}/log.csv".format(flag_path)
+        encryption_key = self.app.interface.encryption_key if self.app.interface.encrypt else None
+        is_new = not os.path.exists(log_fp)
+
+        if flag_index is None:
+            csv_data = []
+            for i, interface in enumerate(self.app.interface.input_components):
+                csv_data.append(interface.save_flagged(
+                    flag_path, self.app.interface.config["input_components"][i]["label"], input_data[i], encryption_key))
+            for i, interface in enumerate(self.app.interface.output_components):
+                csv_data.append(interface.save_flagged(
+                    flag_path, self.app.interface.config["output_components"][i]["label"], output_data[i], encryption_key) if
+                                output_data[i] is not None else "")
+            if flag_option is not None:
+                csv_data.append(flag_option)
+            if username is not None:
+                csv_data.append(username)
+            csv_data.append(str(datetime.datetime.now()))
+            if is_new:
+                headers = [interface["label"]
+                           for interface in self.app.interface.config["input_components"]]
+                headers += [interface["label"]
+                            for interface in self.app.interface.config["output_components"]]
+                if self.app.interface.flagging_options is not None:
+                    headers.append("flag")
+                if username is not None:
+                    headers.append("username")
+                headers.append("timestamp")
+
+        def replace_flag_at_index(file_content):
+            file_content = io.StringIO(file_content)
+            content = list(csv.reader(file_content))
+            header = content[0]
+            flag_col_index = header.index("flag")
+            content[flag_index][flag_col_index] = flag_option
+            output = io.StringIO()
+            writer = csv.writer(output)
+            writer.writerows(content)
+            return output.getvalue()
+
+        if self.app.interface.encrypt:
+            output = io.StringIO()
+            if not is_new:
+                with open(log_fp, "rb") as csvfile:
+                    encrypted_csv = csvfile.read()
+                    decrypted_csv = encryptor.decrypt(
+                        self.app.interface.encryption_key, encrypted_csv)
+                    file_content = decrypted_csv.decode()
+                    if flag_index is not None:
+                        file_content = replace_flag_at_index(file_content)
+                    output.write(file_content)
+            writer = csv.writer(output)
+            if flag_index is None:
+                if is_new:
+                    writer.writerow(headers)
+                writer.writerow(csv_data)
+            with open(log_fp, "wb") as csvfile:
+                csvfile.write(encryptor.encrypt(
+                    self.app.interface.encryption_key, output.getvalue().encode()))
+        else:
+            if flag_index is None:
+                with open(log_fp, "a", newline="") as csvfile:
+                    writer = csv.writer(csvfile)
+                    if is_new:
+                        writer.writerow(headers)
+                    writer.writerow(csv_data)
+            else:
+                with open(log_fp) as csvfile:
+                    file_content = csvfile.read()
+                    file_content = replace_flag_at_index(file_content)
+                with open(log_fp, "w", newline="") as csvfile:  # newline parameter needed for Windows
+                    csvfile.write(file_content)
+        with open(log_fp, "r") as csvfile:
+            line_count = len([None for row in csv.reader(csvfile)]) - 1
+        return line_count
 
 # TODO(aliabd): in the Interface class, add a parameter called flagging_handler, which takes a subclass FlaggingHandler and instantiates with the interface object.
 # If the interface is a Spaces demo, then it should use HuggingFaceFlaggingHandler, otherwise it should use DefaultFlaggingHandler.
 # Also we should add a tooltip under the FLAG button that explains what will happen when they click on it (and a disclaimer saying that they should make sure no copyrighted material gets added to their dataset)
 # Can you add a parameter called "flagging_disclaimer=" to Interface() and do the frontend?
+
 
 class HuggingFaceFlaggingHandler(FlaggingHandler):
     def flag(self, input_data, output_data, flag_option=None, flag_index=None, username=None, path=None):
@@ -59,4 +139,3 @@ class HuggingFaceFlaggingHandler(FlaggingHandler):
         # push the repo 
         commit_url = repo.push_to_hub()
         # write tests
-
