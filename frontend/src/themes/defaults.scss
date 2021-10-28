@@ -19,6 +19,9 @@
     .footer {
         @apply flex-shrink-0 flex gap-1 items-center text-gray-400 dark:text-gray-50 justify-center py-2;
     }
+    .api {
+        @apply flex-shrink-0 flex gap-1 items-center text-gray-400 dark:text-gray-50 justify-end py-2;
+    }
     .logo {
         @apply h-6;
     }
@@ -418,7 +421,7 @@
         .edit_buttons {
             @apply flex justify-end;
             img {
-                @apply h-4;
+                @apply h-4 dark:invert;
             }
         }
         .edit_button {
@@ -475,7 +478,7 @@
             @apply border-gray-300 text-gray-400 dark:border-gray-500 border-8 border-dashed w-full h-full flex justify-center items-center text-3xl text-center cursor-pointer leading-10;
         }
         .file_preview_holder {
-            @apply w-full h-full flex flex-col justify-center items-center relative inline-block;
+            @apply dark:text-gray-50 w-full h-full flex flex-col justify-center items-center relative inline-block;
         }
         .file_name {
             @apply text-6xl p-6 break-all;
@@ -486,7 +489,7 @@
         .clear_button {
             @apply absolute top-0 right-0 bg-gray-400 bg-opacity-0 hover:bg-opacity-100 transition p-1;
             img {
-                @apply h-4;
+                @apply h-4 dark:invert;
             }
         }
     }

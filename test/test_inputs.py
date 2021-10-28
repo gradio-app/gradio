@@ -89,14 +89,14 @@ class TestImage(unittest.TestCase):
 
 class TestAudio(unittest.TestCase):
     def test_as_component(self):
-        x_wav = {"name": "sample.wav", "data": gr.test_data.BASE64_AUDIO, "is_example": False}
+        x_wav = gr.test_data.BASE64_AUDIO
         audio_input = gr.inputs.Audio()
         output = audio_input.preprocess(x_wav)
         self.assertEqual(output[0], 8000)
         self.assertEqual(output[1].shape, (8046,))
 
     def test_in_interface(self):
-        x_wav = {"name": "sample.wav", "data": gr.test_data.BASE64_AUDIO, "is_example": False}
+        x_wav = gr.test_data.BASE64_AUDIO
         def max_amplitude_from_wav_file(wav_file):
             audio_segment = AudioSegment.from_file(wav_file.name)
             data = np.array(audio_segment.get_array_of_samples())
@@ -110,11 +110,7 @@ class TestAudio(unittest.TestCase):
 
 class TestFile(unittest.TestCase):
     def test_in_interface(self):
-        x_file = {
-            "name": "audio.wav",
-            "data": gr.test_data.BASE64_AUDIO,
-            "is_example": False
-        }
+        x_file =  gr.test_data.BASE64_AUDIO
         def get_size_of_file(file_obj):
             return os.path.getsize(file_obj.name)
 
