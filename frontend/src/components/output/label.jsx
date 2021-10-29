@@ -28,16 +28,21 @@ class LabelOutput extends BaseComponent {
           </div>
         );
       }
+      return (
+        <div className="output_label">
+          <div className="output_class">{this.props.value["label"]}</div>
+          <div className="confidence_intervals">
+            <div className="labels" style={{ maxWidth: "120px" }}>
+              {labels}
+            </div>
+            <div className="confidences">{confidences}</div>
+          </div>
+        </div>
+      );        
     }
     return (
-      <div className="output_label">
+      <div className="output_label_without_confidences">
         <div className="output_class">{this.props.value["label"]}</div>
-        <div className="confidence_intervals">
-          <div className="labels" style={{ maxWidth: "120px" }}>
-            {labels}
-          </div>
-          <div className="confidences">{confidences}</div>
-        </div>
       </div>
     );
   }
