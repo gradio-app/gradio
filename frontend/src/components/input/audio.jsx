@@ -77,16 +77,16 @@ class AudioInput extends BaseComponent {
       data: this.props.value["data"],
       is_example: this.props.value["is_example"],
       crop_min: crop_min,
-      crop_max: crop_max,
+      crop_max: crop_max
     });
-    this.setState({ editorMode: !this.state.editorMode })
-  }
+    this.setState({ editorMode: !this.state.editorMode });
+  };
   crop = (min, max, lastChange) => {
     if (this.state.duration) {
       if (lastChange === "min") {
-        this.audioRef.current.currentTime = (min / 100.) * this.state.duration;
+        this.audioRef.current.currentTime = (min / 100) * this.state.duration;
       } else {
-        this.audioRef.current.currentTime = (max / 100.) * this.state.duration;
+        this.audioRef.current.currentTime = (max / 100) * this.state.duration;
       }
     }
     this.props.handleChange({
@@ -94,20 +94,24 @@ class AudioInput extends BaseComponent {
       data: this.props.value["data"],
       is_example: this.props.value["is_example"],
       crop_min: min,
-      crop_max: max,
-    })
-  }
+      crop_max: max
+    });
+  };
   reset_playback_within_crop = () => {
-    let position_ratio = this.audioRef.current.currentTime / this.state.duration;
+    let position_ratio =
+      this.audioRef.current.currentTime / this.state.duration;
     let min_ratio = this.props.value.crop_min / 100;
     let max_ratio = this.props.value.crop_max / 100;
-    if ((position_ratio > max_ratio - 0.00001) || (position_ratio < min_ratio - 0.00001)) {
+    if (
+      position_ratio > max_ratio - 0.00001 ||
+      position_ratio < min_ratio - 0.00001
+    ) {
       this.audioRef.current.currentTime = this.state.duration * min_ratio;
       return true;
     } else {
       return false;
     }
-  }
+  };
   render() {
     if (this.props.value !== null) {
       if (
@@ -124,17 +128,27 @@ class AudioInput extends BaseComponent {
         <div className="input_audio">
           <div className="edit_buttons">
             <button
-              className={classNames("edit_button", { "active": this.state.editorMode })}
+              className={classNames("edit_button", {
+                active: this.state.editorMode
+              })}
               onClick={this.toggleEditor}
             >
               <img src={edit_icon} />
             </button>
-            <button className="clear_button" onClick={this.props.handleChange.bind(this, null)}>
+            <button
+              className="clear_button"
+              onClick={this.props.handleChange.bind(this, null)}
+            >
               <img src={clear_icon} />
             </button>
           </div>
-          <audio controls key={this.key} ref={this.audioRef}
-            onLoadedMetadata={e => this.setState({ duration: e.nativeEvent.target.duration })}
+          <audio
+            controls
+            key={this.key}
+            ref={this.audioRef}
+            onLoadedMetadata={(e) =>
+              this.setState({ duration: e.nativeEvent.target.duration })
+            }
             onPlay={() => {
               this.reset_playback_within_crop();
               this.audioRef.current.play();
@@ -162,9 +176,17 @@ class AudioInput extends BaseComponent {
               ))}
             </div>
           )}
-          {this.state.editorMode ?
-            <MultiRangeSlider min={0} max={100} onChange={({ min, max, lastChange }) => this.crop(min, max, lastChange)} />
-            : false}
+          {this.state.editorMode ? (
+            <MultiRangeSlider
+              min={0}
+              max={100}
+              onChange={({ min, max, lastChange }) =>
+                this.crop(min, max, lastChange)
+              }
+            />
+          ) : (
+            false
+          )}
         </div>
       );
     } else {
