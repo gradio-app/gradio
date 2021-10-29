@@ -6,10 +6,31 @@ import numpy as np
 from pydub import AudioSegment
 import os
 
+
 class TestTextbox(unittest.TestCase):
+    def test_as_component(self):
+        text_input = gr.inputs.Textbox()
+        self.assertEqual(text_input.preprocess("Hello World!"), "Hello World!")
+        self.assertEqual(text_input.preprocess_example("Hello World!"), "Hello World!")
+        self.assertEqual(text_input.serialize("Hello World!", True), "Hello World!")
+        to_save = text_input.save_flagged("flagged", "text_input", "Hello World!", None)
+        self.assertEqual(to_save, "Hello World!")
+        restored = text_input.restore_flagged("Hello World!")
+        self.assertEqual(restored, "Hello World!")
+        self.assertIsInstance(text_input.generate_sample(), str)
+
     def test_in_interface(self):
         iface = gr.Interface(lambda x: x[::-1], "textbox", "textbox")
         self.assertEqual(iface.process(["Hello"])[0], ["olleH"])
+        iface = gr.Interface(lambda sentence: max([len(word) for word in sentence.split()]), gr.inputs.Textbox(),
+                             gr.outputs.Textbox(), interpretation="default")
+        scores, alternative_outputs = iface.interpret(["Return the length of the longest word in this sentence"])
+        self.assertEqual(scores, [[('Return', 0.0), (' ', 0), ('the', 0.0), (' ', 0), ('length', 0.0), (' ', 0),
+                                   ('of', 0.0), (' ', 0), ('the', 0.0), (' ', 0), ('longest', 0.0), (' ', 0),
+                                   ('word', 0.0), (' ', 0), ('in', 0.0), (' ', 0), ('this', 0.0), (' ', 0),
+                                   ('sentence', 1.0), (' ', 0)]], )
+        self.assertEqual(alternative_outputs, [[['8'], ['8'], ['8'], ['8'], ['8'], ['8'], ['8'], ['8'], ['8'], ['7']]])
+
 
 class TestNumber(unittest.TestCase):
     def test_in_interface(self):
