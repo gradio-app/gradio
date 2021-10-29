@@ -510,6 +510,12 @@
         word-break: break-word;
         @apply w-full bg-white border-gray-400 rounded box-border p-1 whitespace-pre-wrap;
     }
+    .output_label_without_confidences {
+        @apply dark:text-gray-50;
+        .output_class{
+            @apply font-bold text-2xl py-8 px-4 flex-grow flex items-center justify-center;
+        }
+    }
     .output_label {
         @apply dark:text-gray-50;
         .output_class {

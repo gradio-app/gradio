@@ -459,6 +459,12 @@ html {
         word-break: break-word;
         @apply w-full bg-white dark:text-blue-900 dark:font-semibold dark:bg-gray-200 border-gray-400 box-border p-1 whitespace-pre-wrap;
     }
+    .output_label_without_confidences {
+        @apply dark:text-gray-50;
+        .output_class{
+            @apply font-bold text-xl py-6 px-4 flex-grow flex items-center justify-center;
+        }
+    }    
     .output_label {
         .output_class {
             @apply font-bold text-xl py-6 px-4 flex-grow flex items-center justify-center;
