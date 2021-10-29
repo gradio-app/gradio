@@ -292,7 +292,7 @@ class Number(InputComponent):
         return interpretation
 
     def generate_sample(self):
-        return 1
+        return 1.0
 
 
 class Slider(InputComponent):

@@ -28,16 +28,33 @@ class TestTextbox(unittest.TestCase):
         self.assertEqual(scores, [[('Return', 0.0), (' ', 0), ('the', 0.0), (' ', 0), ('length', 0.0), (' ', 0),
                                    ('of', 0.0), (' ', 0), ('the', 0.0), (' ', 0), ('longest', 0.0), (' ', 0),
                                    ('word', 0.0), (' ', 0), ('in', 0.0), (' ', 0), ('this', 0.0), (' ', 0),
-                                   ('sentence', 1.0), (' ', 0)]], )
+                                   ('sentence', 1.0), (' ', 0)]])
         self.assertEqual(alternative_outputs, [[['8'], ['8'], ['8'], ['8'], ['8'], ['8'], ['8'], ['8'], ['8'], ['7']]])
 
 
 class TestNumber(unittest.TestCase):
+    def test_as_component(self):
+        numeric_input = gr.inputs.Number()
+        self.assertEqual(numeric_input.preprocess(3), 3.0)
+        self.assertEqual(numeric_input.preprocess_example(3), 3)
+        self.assertEqual(numeric_input.serialize(3, True), 3)
+        to_save = numeric_input.save_flagged("flagged", "text_input", 3, None)
+        self.assertEqual(to_save, 3)
+        restored = numeric_input.restore_flagged(3)
+        self.assertEqual(restored, 3)
+        self.assertIsInstance(numeric_input.generate_sample(), float)
+
     def test_in_interface(self):
-        iface = gr.Interface(lambda x: x[::-1], "textbox", "textbox")
-        self.assertEqual(iface.process(["Hello"])[0], ["olleH"])
-        iface = gr.Interface(lambda x: x*x, "number", "number")
-        self.assertEqual(iface.process([5])[0], [25])
+        iface = gr.Interface(lambda x: x**2, "number", "textbox")
+        self.assertEqual(iface.process([2])[0], ['4.0'])
+        iface = gr.Interface(lambda x: x**2, "number", "textbox", interpretation="default")
+        scores, alternative_outputs = iface.interpret([2])
+        self.assertEqual(scores, [[(1.94, -0.23640000000000017), (1.96, -0.15840000000000032),
+                                    (1.98, -0.07960000000000012), [2, None], (2.02, 0.08040000000000003),
+                                    (2.04, 0.16159999999999997), (2.06, 0.24359999999999982)]])
+        self.assertEqual(alternative_outputs, [[['3.7636'], ['3.8415999999999997'], ['3.9204'], ['4.0804'], ['4.1616'],
+                                                ['4.2436']]])
+
 
 class TestSlider(unittest.TestCase):
     def test_in_interface(self):
