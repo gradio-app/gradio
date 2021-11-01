@@ -170,6 +170,9 @@ class Interface:
         self.simple_server = None
         self.allow_screenshot = allow_screenshot
         self.allow_flagging = os.getenv("GRADIO_FLAGGING") or allow_flagging
+        if self.allow_flagging:
+            # TODO(abidlabs): If inside a HuggingSpace, then instantiate a HuggingFaceFlaggingHandler() instead
+            self.flagging_handler = gradio.flagging.DefaultFlaggingHandler(self)
         self.flagging_options = flagging_options
         self.flagging_dir = flagging_dir
         self.encrypt = encrypt

@@ -10,12 +10,12 @@ class FlaggingHandler():
     """
     A class for defining the methods that any FlaggingHandler should have.
     """
-    def __init__(self, app, **kwargs):
+    def __init__(self, interface, **kwargs):
         """
         Parameters:
-        app: Flask app running the interface (in gradio.networking)
+        interface: The interface object that the FlaggingHandler is being used with.
         """
-        self.app = app
+        self.interface = interface
         self.kwargs = kwargs
 
     def flag(self, input_data, output_data, flag_option=None, flag_index=None, username=None, path=None):
@@ -34,20 +34,18 @@ class FlaggingHandler():
 
 class DefaultFlaggingHandler(FlaggingHandler):
     def flag(self, input_data, output_data, flag_option=None, flag_index=None, username=None, flag_path=None):
-        if flag_path is None:
-            flag_path = os.path.join(self.app.cwd, self.app.interface.flagging_dir)
         log_fp = "{}/log.csv".format(flag_path)
-        encryption_key = self.app.interface.encryption_key if self.app.interface.encrypt else None
+        encryption_key = self.interface.encryption_key if self.interface.encrypt else None
         is_new = not os.path.exists(log_fp)
 
         if flag_index is None:
             csv_data = []
-            for i, interface in enumerate(self.app.interface.input_components):
+            for i, interface in enumerate(self.interface.input_components):
                 csv_data.append(interface.save_flagged(
-                    flag_path, self.app.interface.config["input_components"][i]["label"], input_data[i], encryption_key))
-            for i, interface in enumerate(self.app.interface.output_components):
+                    flag_path, self.interface.config["input_components"][i]["label"], input_data[i], encryption_key))
+            for i, interface in enumerate(self.interface.output_components):
                 csv_data.append(interface.save_flagged(
-                    flag_path, self.app.interface.config["output_components"][i]["label"], output_data[i], encryption_key) if
+                    flag_path, self.interface.config["output_components"][i]["label"], output_data[i], encryption_key) if
                                 output_data[i] is not None else "")
             if flag_option is not None:
                 csv_data.append(flag_option)
@@ -56,10 +54,10 @@ class DefaultFlaggingHandler(FlaggingHandler):
             csv_data.append(str(datetime.datetime.now()))
             if is_new:
                 headers = [interface["label"]
-                           for interface in self.app.interface.config["input_components"]]
+                           for interface in self.interface.config["input_components"]]
                 headers += [interface["label"]
-                            for interface in self.app.interface.config["output_components"]]
-                if self.app.interface.flagging_options is not None:
+                            for interface in self.interface.config["output_components"]]
+                if self.interface.flagging_options is not None:
                     headers.append("flag")
                 if username is not None:
                     headers.append("username")
@@ -76,13 +74,13 @@ class DefaultFlaggingHandler(FlaggingHandler):
             writer.writerows(content)
             return output.getvalue()
 
-        if self.app.interface.encrypt:
+        if self.interface.encrypt:
             output = io.StringIO()
             if not is_new:
                 with open(log_fp, "rb") as csvfile:
                     encrypted_csv = csvfile.read()
                     decrypted_csv = encryptor.decrypt(
-                        self.app.interface.encryption_key, encrypted_csv)
+                        self.interface.encryption_key, encrypted_csv)
                     file_content = decrypted_csv.decode()
                     if flag_index is not None:
                         file_content = replace_flag_at_index(file_content)
@@ -94,7 +92,7 @@ class DefaultFlaggingHandler(FlaggingHandler):
                 writer.writerow(csv_data)
             with open(log_fp, "wb") as csvfile:
                 csvfile.write(encryptor.encrypt(
-                    self.app.interface.encryption_key, output.getvalue().encode()))
+                    self.interface.encryption_key, output.getvalue().encode()))
         else:
             if flag_index is None:
                 with open(log_fp, "a", newline="") as csvfile:
