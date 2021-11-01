@@ -5,7 +5,6 @@ import unittest.mock as mock
 import ipaddress
 import requests
 import warnings
-import tempfile
 from unittest.mock import ANY
 import urllib.request
 
@@ -96,6 +95,14 @@ class TestFlaskRoutes(unittest.TestCase):
         response = self.client.post('/api/queue/status/', json={"hash": "test"})
         self.assertEqual(response.status_code, 200)  
 
+    def test_flagging_analytics(self):
+        with mock.patch('requests.post') as mock_post:
+            with mock.patch('gradio.networking.flag_data') as mock_flag:
+                response = self.client.post('/api/flag/', json={"data": {"input_data": ["test"], "output_data": ["test"]}})
+                mock_post.assert_called_once()
+                mock_flag.assert_called_once()
+        self.assertEqual(response.status_code, 200)
+
     def tearDown(self) -> None:
         self.io.close()
         gr.reset_all()
@@ -144,28 +151,6 @@ class TestInterfaceCustomParameters(unittest.TestCase):
             mock_post.assert_not_called()
         io.close()
 
-class TestFlagging(unittest.TestCase):
-    def test_num_rows_written(self):
-        io = gr.Interface(lambda x: x, "text", "text")
-        io.launch(prevent_thread_lock=True)
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            row_count = networking.flag_data(["test"], ["test"], flag_path=tmpdirname)
-            self.assertEquals(row_count, 1)  # 2 rows written including header
-            row_count = networking.flag_data("test", "test", flag_path=tmpdirname)
-            self.assertEquals(row_count, 2)  # 3 rows written including header
-        io.close()
-
-    def test_flagging_analytics(self):
-        io = gr.Interface(lambda x: x, "text", "text")
-        app, _, _ = io.launch(show_error=True, prevent_thread_lock=True)
-        client = app.test_client()
-        with mock.patch('requests.post') as mock_post:
-            with mock.patch('gradio.networking.flag_data') as mock_flag:
-                response = client.post('/api/flag/', json={"data": {"input_data": ["test"], "output_data": ["test"]}})
-                mock_post.assert_called_once()
-                mock_flag.assert_called_once()
-        self.assertEqual(response.status_code, 200)
-        io.close()
 
 class TestInterpretation(unittest.TestCase):
     def test_interpretation(self):
