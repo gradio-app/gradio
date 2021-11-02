@@ -452,15 +452,12 @@
         word-break: break-word;
         @apply w-full p-3 border rounded-lg shadow-inner outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-200 focus:shadow-inner whitespace-pre-wrap dark:bg-gray-600 dark:text-gray-50 dark:border-none;
     }
-    .output_label_without_confidences {
-        @apply dark:text-gray-50;
-        .output_class{
-            @apply font-bold text-2xl py-8 px-4 flex-grow flex items-center justify-center;
-        }
-    }
     .output_label {
         .output_class {
             @apply hidden;
+        }
+        .output_class_without_confidences{
+            @apply font-bold text-2xl py-8 px-4 flex-grow flex items-center justify-center dark:text-gray-50;
         }
         .confidence_intervals {
             @apply flex text-xl;
