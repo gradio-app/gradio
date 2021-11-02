@@ -1,0 +1,16 @@
+{
+  "name": "gradio-website",
+  "scripts": {
+    "build": "html-minifier --input-dir src --output-dir dist --file-ext html --remove-comments --collapse-whitespace --minify-js true && postcss src/style.css -o dist/style.css && cp -R src/static/. dist/static/",
+    "watch": "watch 'npm run build' ./src"
+  },
+  "dependencies": {
+    "@fullhuman/postcss-purgecss": "^4.0.3",
+    "autoprefixer": "^10.4.0",
+    "cssnano": "^5.0.8",
+    "html-minifier": "^4.0.0",
+    "postcss-cli": "^9.0.1",
+    "tailwindcss": "^2.2.19",
+    "watch": "^1.0.2"
+  }
+}
