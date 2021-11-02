@@ -284,8 +284,8 @@
         <p>&emsp;&emsp;{</p>
         <p>&emsp;&emsp;&emsp;&emsp;"data": [{%for i in range(0, len_outputs)%} <span>{{ output_types[i]
             }}</span>{% if i != len_outputs - 1 %} ,{% endif %}{%endfor%} ],</p>
-        <p>&emsp;&emsp;&emsp;&emsp;"durations": [ float ],</p>
-        <p>&emsp;&emsp;&emsp;&emsp;"avg_durations": [ float ]</p>
+        <p>&emsp;&emsp;&emsp;&emsp;"durations": [ float ],   // the time taken for the prediction to complete</p>
+        <p>&emsp;&emsp;&emsp;&emsp;"avg_durations": [ float ]    // the average time taken for all predictions so far (used to estimate the runtime)</p>
         <p>&emsp;&emsp;}</p>
       </div>
       <h4 id="try-it">Try it (live demo): </h4>
