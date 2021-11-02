@@ -933,7 +933,7 @@ class Video(InputComponent):
         raise NotImplementedError()
 
     def preprocess_example(self, x):
-        return processing_utils.encode_file_to_base64(x)
+        return processing_utils.encode_file_to_base64(x, type="video")
 
     def save_flagged(self, dir, label, data, encryption_key):
         """
