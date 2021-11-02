@@ -46,7 +46,10 @@ class Component():
         return data
 
     def save_flagged_file(self, dir, label, data, encryption_key):
+        if data is None:
+            return None
         file = processing_utils.decode_base64_to_file(data, encryption_key)
+        label = "".join([char for char in label if char.isalnum() or char in "._- "])
         old_file_name = file.name
         output_dir = os.path.join(dir, label)
         if os.path.exists(output_dir):
