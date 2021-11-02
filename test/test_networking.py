@@ -68,10 +68,6 @@ class TestFlaskRoutes(unittest.TestCase):
         response = self.client.get('/config/')
         self.assertEqual(response.status_code, 200)
 
-    def test_get_static_route(self):
-        response = self.client.get('/static/bundle.css')
-        self.assertEqual(response.status_code, 200)
-
     def test_enable_sharing_route(self):
         path = "www.gradio.app"
         response = self.client.get('/enable_sharing/www.gradio.app')
