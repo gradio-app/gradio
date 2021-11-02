@@ -13,12 +13,12 @@ class ImagePreprocessing(unittest.TestCase):
 
     def test_encode_url_or_file_to_base64(self):
         output_base64 = gr.processing_utils.encode_url_or_file_to_base64(
-            "images/lion.jpg")
+            "test/images/lion.jpg")
         self.assertEquals(output_base64, base_64_test_img)
 
     def test_encode_file_to_base64(self):
         output_base64 = gr.processing_utils.encode_file_to_base64(
-            "images/lion.jpg")
+            "test/images/lion.jpg")
         self.assertEquals(output_base64, base_64_test_img)
 
     def test_encode_url_to_base64(self):
