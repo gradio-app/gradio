@@ -76,7 +76,7 @@ export class GradioInterface extends React.Component {
         ? "file" +
           this.props.examples_dir +
           (this.props.examples_dir.endswith("/") ? "" : "/")
-        : "file");    
+        : "file");
   }
   get_default_state = () => {
     let state = {};
@@ -173,8 +173,13 @@ export class GradioInterface extends React.Component {
     if (this.state.flag_index !== undefined) {
       component_state["flag_index"] = this.state.flag_index;
     } else {
-      for (let i = 0; i < this.props.input_components.length; i++) {
-        component_state["input_data"].push(this.state[i]);
+      for (let [i, input_component] of this.props.input_components.entries()) {
+        let InputComponentClass = input_component_set.find(
+          (c) => c.name === input_component.name
+        ).component;
+        component_state["input_data"].push(
+          InputComponentClass.postprocess(this.state[i])
+        );
       }
       for (let i = 0; i < this.props.output_components.length; i++) {
         component_state["output_data"].push(
@@ -342,7 +347,6 @@ export class GradioInterface extends React.Component {
                 <button className="panel_button submit" onClick={this.submit}>
                   Submit
                 </button>
-
               )}
             </div>
           </div>

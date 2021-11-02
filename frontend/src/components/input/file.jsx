@@ -51,7 +51,10 @@ class FileInput extends BaseComponent {
       return (
         <div className="input_file">
           <div className="file_preview_holder">
-            <button className="clear_button" onClick={this.handleChange.bind(this, null)}>
+            <button
+              className="clear_button"
+              onClick={this.handleChange.bind(this, null)}
+            >
               <img src={clear_icon} />
             </button>
             <div className="file_name">{file_name}</div>
