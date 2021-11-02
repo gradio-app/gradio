@@ -27,20 +27,29 @@ class VideoInput extends BaseComponent {
       evt.stopPropagation();
     };
     if (this.props.value != null) {
-      return <div className="input_video">
-        <div className="edit_buttons">
-          <button className="clear_button" onClick={this.props.handleChange.bind(this, null)}>
-            <img src={clear_icon} />
-          </button>
+      return (
+        <div className="input_video">
+          <div className="edit_buttons">
+            <button
+              className="clear_button"
+              onClick={this.props.handleChange.bind(this, null)}
+            >
+              <img src={clear_icon} />
+            </button>
+          </div>
+          {isPlayable("video", this.props.value["name"]) ? (
+            <div className="video_preview_holder">
+              <video
+                className="video_preview"
+                controls
+                src={this.props.value["data"]}
+              ></video>
+            </div>
+          ) : (
+            <div className="video_file_holder">{this.props.value["name"]}</div>
+          )}
         </div>
-        {isPlayable("video", this.props.value["name"]) ? <div className="video_preview_holder">
-          <video
-            className="video_preview"
-            controls
-            src={this.props.value["data"]}
-          ></video>
-        </div> : <div className="video_file_holder">{this.props.value["name"]}</div>}
-      </div>
+      );
     } else {
       return (
         <div

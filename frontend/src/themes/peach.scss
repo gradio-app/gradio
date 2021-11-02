@@ -464,7 +464,8 @@
     }
     .output_label {
         @apply dark:text-gray-50;
-        .output_class {
+        .output_class,
+        .output_class_without_confidences {
             @apply font-bold text-2xl py-8 px-4 flex-grow flex items-center justify-center;
         }
         .confidence_intervals {

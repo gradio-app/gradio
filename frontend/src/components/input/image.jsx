@@ -154,8 +154,11 @@ class ImageInput extends BaseComponent {
                   <button className="edit_button" onClick={this.openEditor}>
                     <img src={edit_icon} />
                   </button>
-                  <button className="clear_button" onClick={this.handleChange.bind(this, null)}>
-                  <img src={clear_icon} />
+                  <button
+                    className="clear_button"
+                    onClick={this.handleChange.bind(this, null)}
+                  >
+                    <img src={clear_icon} />
                   </button>
                 </div>
               )
