@@ -200,11 +200,17 @@ export class GradioInterface extends React.Component {
     }
     this.pending_response = true;
     let input_state = [];
-    for (let i = 0; i < this.props.input_components.length; i++) {
-      if (this.state[i] === null) {
+    for (let [i, input_component] of this.props.input_components.entries()) {
+      if (
+        this.state[i] === null &&
+        this.props.input_components[i].optional !== true
+      ) {
         return;
       }
-      input_state[i] = this.state[i];
+      let InputComponentClass = input_component_set.find(
+        (c) => c.name === input_component.name
+      ).component;
+      input_state[i] = InputComponentClass.postprocess(this.state[i]);
     }
     this.setState({ submitting: true, has_changed: false, error: false });
     this.props
