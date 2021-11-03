@@ -4,7 +4,7 @@ import unittest.mock as mock
 import requests
 
 
-class TestUtils(unittest.TestCase):
+class TestInterface(unittest.TestCase):
     
     
     
@@ -63,7 +63,7 @@ class TestUtils(unittest.TestCase):
         interface = Interface(lambda input: None, "textbox", "label")
         interface.close = mock.MagicMock()
         reset_all()
-        interface.close.assert_called_with()
+        interface.close.assert_called()
         
     def test_examples_invalid_input(self):
         with self.assertRaises(ValueError):
@@ -73,11 +73,6 @@ class TestUtils(unittest.TestCase):
         with self.assertRaises(FileNotFoundError):
             interface = Interface(lambda input: None, "textbox", "label", examples='wrong-path')
             interface.launch()
-
-    def test_interpretation_shap_not_installed(self):
-        with self.assertRaises(ValueError):
-            interface = Interface(lambda input: None, "textbox", "label", interpretation='shap')
-            interface.interpret('raw_input')
 
 
 if __name__ == '__main__':
