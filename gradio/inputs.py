@@ -115,7 +115,7 @@ class Textbox(InputComponent):
             self.test_input = {
                 "str": "the quick brown fox jumped over the lazy dog",
                 "number": 786.92,
-            }[type]
+            }.get(type)
         else:
             self.test_input = default
         self.interpret_by_tokens = True
