@@ -490,12 +490,6 @@ class Interface:
                 interpretation = [interpretation]
             return interpretation, []
 
-    def close(self):
-        # checks to see if server is running
-        if self.simple_server and not (self.simple_server.fileno() == -1):
-            print("Closing Gradio server on port {}...".format(self.server_port))
-            networking.close_server(self.simple_server)
-
     def run_until_interrupted(self, thread, path_to_local_server):
         try:
             while True:
@@ -565,6 +559,7 @@ class Interface:
         self.server_port = server_port
         self.status = "RUNNING"
         self.server = app
+        self.server_thread = thread
         self.show_error = show_error
 
         # Count number of launches
@@ -646,6 +641,16 @@ class Interface:
             self.run_until_interrupted(thread, path_to_local_server)
 
         return app, path_to_local_server, share_url
+
+    def close(self):
+        # checks to see if server is running
+        if self.server_thread:
+            print("Closing Gradio server on port {}...".format(self.server_port))
+            if self.share_url:
+                requests.get("{}/shutdown".format(self.share_url))
+            else:
+                requests.get("{}shutdown".format(self.local_url))
+                
 
     def integrate(self, comet_ml=None, wandb=None, mlflow=None):
         analytics_integration = ""
@@ -738,6 +743,6 @@ def send_launch_analytics(analytics_enabled, inbrowser, is_colab, share, share_u
             pass  # do not push analytics if no network
 
 
-def reset_all():
+def close_all():
     for io in Interface.get_instances():
         io.close()

@@ -174,6 +174,15 @@ def enable_sharing(path):
     return jsonify(success=True)
 
 
+@app.route("/shutdown", methods=['GET'])
+def shutdown():
+    shutdown_func = request.environ.get('werkzeug.server.shutdown')
+    if shutdown_func is None:
+        raise RuntimeError('Not running werkzeug')
+    shutdown_func()
+    return "Shutting down..."
+
+
 @app.route("/api/predict/", methods=["POST"])
 @login_check
 def predict():
@@ -383,12 +392,14 @@ def queue_push():
     job_hash, queue_position = queue.push({"data": data}, action)
     return {"hash": job_hash, "queue_position": queue_position}
 
+
 @app.route("/api/queue/status/", methods=["POST"])
 @login_check
 def queue_status():
     hash = request.json['hash']
     status, data = queue.get_status(hash)
     return {"status": status, "data": data}
+
 
 def queue_thread(path_to_local_server):
     while True:
