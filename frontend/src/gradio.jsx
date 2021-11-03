@@ -39,15 +39,22 @@ export class GradioPage extends React.Component {
               false
             )}
           </div>
-          <a
+          <div className="footer">
+            <a 
+            href="/api/" 
+            target="_blank" 
+            className="footer" 
+            rel="noreferrer">
+            view the api <img className="logo" src="https://i.ibb.co/6DVLqmf/noun-tools-2220412.png" alt="api"/>
+          </a> | <a
             href="https://gradio.app"
             target="_blank"
             className="footer"
             rel="noreferrer"
-          >
-            <span>built with</span>
+          > built with
             <img className="logo" src={logo} alt="logo" />
           </a>
+          </div>
         </div>
       </div>
     );
@@ -166,8 +173,13 @@ export class GradioInterface extends React.Component {
     if (this.state.flag_index !== undefined) {
       component_state["flag_index"] = this.state.flag_index;
     } else {
-      for (let i = 0; i < this.props.input_components.length; i++) {
-        component_state["input_data"].push(this.state[i]);
+      for (let [i, input_component] of this.props.input_components.entries()) {
+        let InputComponentClass = input_component_set.find(
+          (c) => c.name === input_component.name
+        ).component;
+        component_state["input_data"].push(
+          InputComponentClass.postprocess(this.state[i])
+        );
       }
       for (let i = 0; i < this.props.output_components.length; i++) {
         component_state["output_data"].push(
@@ -188,11 +200,17 @@ export class GradioInterface extends React.Component {
     }
     this.pending_response = true;
     let input_state = [];
-    for (let i = 0; i < this.props.input_components.length; i++) {
-      if (this.state[i] === null) {
+    for (let [i, input_component] of this.props.input_components.entries()) {
+      if (
+        this.state[i] === null &&
+        this.props.input_components[i].optional !== true
+      ) {
         return;
       }
-      input_state[i] = this.state[i];
+      let InputComponentClass = input_component_set.find(
+        (c) => c.name === input_component.name
+      ).component;
+      input_state[i] = InputComponentClass.postprocess(this.state[i]);
     }
     this.setState({ submitting: true, has_changed: false, error: false });
     this.props

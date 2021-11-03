@@ -29,13 +29,13 @@ module.exports = {
       webpackConfig.entry = "./src/index";
       webpackConfig.output = {
         publicPath: "",
-        path: path.resolve(__dirname, "../gradio/frontend"),
+        path: path.resolve(__dirname, "../gradio/templates/frontend"),
         filename: "static/bundle.js",
         chunkFilename: "static/js/[name].chunk.js"
       };
       paths.appBuild = webpackConfig.output.path;
       return webpackConfig;
-    },
+    }
   },
   style: {
     postcss: {

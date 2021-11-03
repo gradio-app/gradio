@@ -1,8 +1,9 @@
 import React from "react";
 import BaseComponent from "../base_component";
 import { FileComponentExample } from "../component_example";
-import ComponentExample from "../component_example";
 import { isPlayable } from "../../utils";
+import edit_icon from "../../static/img/edit.svg";
+import clear_icon from "../../static/img/clear.svg";
 
 class VideoInput extends BaseComponent {
   constructor(props) {
@@ -26,9 +27,17 @@ class VideoInput extends BaseComponent {
       evt.stopPropagation();
     };
     if (this.props.value != null) {
-      if (isPlayable("video", this.props.value["name"])) {
-        return (
-          <div className="input_video">
+      return (
+        <div className="input_video">
+          <div className="edit_buttons">
+            <button
+              className="clear_button"
+              onClick={this.props.handleChange.bind(this, null)}
+            >
+              <img src={clear_icon} />
+            </button>
+          </div>
+          {isPlayable("video", this.props.value["name"]) ? (
             <div className="video_preview_holder">
               <video
                 className="video_preview"
@@ -36,15 +45,11 @@ class VideoInput extends BaseComponent {
                 src={this.props.value["data"]}
               ></video>
             </div>
-          </div>
-        );
-      } else {
-        return (
-          <div className="input_video">
+          ) : (
             <div className="video_file_holder">{this.props.value["name"]}</div>
-          </div>
-        );
-      }
+          )}
+        </div>
+      );
     } else {
       return (
         <div
