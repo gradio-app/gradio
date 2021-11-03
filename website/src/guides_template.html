@@ -1,0 +1,78 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Gradio</title>
+  <meta name="description" content="Demos for your ML Models.">
+  <meta name="author" content="SitePoint">
+
+  <meta property="og:title" content="Gradio">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://gradio.app/">
+  <meta property="og:description" content="Demos for your ML Models.">
+
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/static/prism.css">
+  <style>
+    .prose img {
+        margin: 0 auto;
+    }    
+  </style>
+</head>
+
+<body class="bg-white text-gray-900">
+  <header class="container mx-auto p-4 flex justify-between items-center">
+    <a href="/">
+      <img src="/static/img/logo.svg" class="h-8">
+    </a>
+    <nav class="flex gap-16">
+      <div class="group relative cursor-pointer font-semibold flex items-center gap-1">
+        Guides
+        <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+          <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+        </svg>
+        <div class="hidden group-hover:flex flex-col absolute top-6 right-0 bg-white shadow w-52">
+          <a class="link px-4 py-2 inline-block hover:bg-gray-100" href="/getting_started">Getting Started</a>
+          <a class="link px-4 py-2 inline-block hover:bg-gray-100" href="/working_with_ml">Working with ML</a>
+          <a class="link px-4 py-2 inline-block hover:bg-gray-100" href="/hosting_on_spaces">Hosting on Spaces</a>
+        </div>
+      </div>
+      <a class="link" href="/docs">Docs</a>
+      <div class="group relative cursor-pointer font-semibold flex items-center gap-1">
+        Help
+        <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+          <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+        </svg>
+        <div class="hidden group-hover:flex flex-col absolute top-6 right-0 bg-white shadow w-52">
+          <a class="link px-4 py-2 inline-block hover:bg-gray-100"
+            href="https://github.com/gradio-app/gradio/issues/new">File an Issue</a>
+          <a class="link px-4 py-2 inline-block hover:bg-gray-100"
+            href="https://github.com/gradio-app/gradio/discussions">Discussions</a>
+        </div>
+      </div>
+    </nav>
+  </header>
+  <div class="container mx-auto p-4">
+    <div class="prose max-w-none">
+      {{ template_html }}
+    </div>      
+  </div>
+  <footer class="container mx-auto p-4 flex justify-between items-center">
+    <img src="/static/img/logo.svg" class="h-8">
+    <div class="flex gap-4">
+      <a href="https://twitter.com/Gradio">
+        <img src="/static/img/twitter.svg" class="h-6">
+      </a>
+      <a href="https://github.com/gradio-app/gradio">
+        <img src="/static/img/github.svg" class="h-6">
+      </a>
+    </div>
+  </footer>
+  <script src="/static/prism.js"></script>
+</body>
+
+</html>

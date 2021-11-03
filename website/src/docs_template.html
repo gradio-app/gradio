@@ -1,0 +1,296 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Gradio Docs</title>
+  <meta name="description" content="Demos for your ML Models.">
+  <meta name="author" content="SitePoint">
+
+  <meta property="og:title" content="Gradio">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://gradio.app/">
+  <meta property="og:description" content="Demos for your ML Models.">
+
+  <link rel="stylesheet" href="/style.css">
+</head>
+
+<body class="bg-white text-gray-900">
+  <header class="container mx-auto p-4 flex justify-between items-center">
+    <a href="/">
+      <img src="/static/img/logo.svg" class="h-8">
+    </a>
+    <nav class="flex gap-16">
+      <div class="group relative cursor-pointer font-semibold flex items-center gap-1">
+        Guides
+        <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+          <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+        </svg>
+        <div class="hidden group-hover:flex flex-col absolute top-6 right-0 bg-white shadow w-52">
+          <a class="link px-4 py-2 inline-block hover:bg-gray-100" href="/getting_started">Getting Started</a>
+          <a class="link px-4 py-2 inline-block hover:bg-gray-100" href="/working_with_ml">Working with ML</a>
+          <a class="link px-4 py-2 inline-block hover:bg-gray-100" href="/hosting_on_spaces">Hosting on Spaces</a>
+        </div>
+      </div>
+      <a class="link" href="/docs">Docs</a>
+      <div class="group relative cursor-pointer font-semibold flex items-center gap-1">
+        Help
+        <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+          <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+        </svg>
+        <div class="hidden group-hover:flex flex-col absolute top-6 right-0 bg-white shadow w-52">
+          <a class="link px-4 py-2 inline-block hover:bg-gray-100"
+            href="https://github.com/gradio-app/gradio/issues/new">File an Issue</a>
+          <a class="link px-4 py-2 inline-block hover:bg-gray-100"
+            href="https://github.com/gradio-app/gradio/discussions">Discussions</a>
+        </div>
+      </div>
+    </nav>
+  </header>
+  <div class="container mx-auto p-4">
+    <main class="container flex gap-4">
+      <div class="h-screen sticky top-0 bg-gray-50 p-4 text-sm" style="width: 40rem">
+        <h4 class="font-semibold mb-2 block">Creating Interfaces</h4>
+        <a class="block" href="#interface">Interfaces</a>
+        <a class="block" href="#launch">Launching</a>
+        <a class="block" href="#load">Loading</a>
+        <h4 class="font-semibold my-2">Input Components</h4>
+        {% for input in docs["inputs"] %}
+        <a class="block" href="#i_{{ input["name"].lower() }}">{{ input["name"] }}</a>
+        {% endfor %}
+        <h4 class="font-semibold my-2 block">Output Components</h4>
+        {% for output in docs["outputs"] %}
+        <a class="block" href="#o_{{ output["name"].lower() }}">{{ output["name"] }}</a>
+        {% endfor %}
+      </div>
+      <div id="docs-content">
+        <h2 class="text-xl font-semibold mb-4">Creating an Interface</h2>
+        <div class="func">
+          <h3 id="interface">gradio.<span>Interface(</span><!--
+       -->{% for param in docs.interface["params"] %}<!--
+         -->{% if param|length == 1 %}<!--
+           -->{{ param[0] }}<!--
+         -->{% else %}<!--
+           -->{{ param[0] }}={{ param[1] }}<!--
+         -->{% endif %}<!--
+         -->{% if not loop.last %}, {% endif %}<!--
+       -->{% endfor %}<span>)</span>
+          </h3>
+          <p>{{ docs.interface["doc"] }}</p>
+          <h4>Parameters</h4>
+          <ul>
+            {% for param in docs.interface["params_doc"] %}
+            <li><strong>{{ param[0] }}</strong> <em>({{ param[1] }})</em> - {{ param[2] }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="func">
+          <h3 id="launch">gradio.Interface().<span>launch(</span><!--
+          -->{% for param in docs.launch["params"] %}<!--
+            -->{% if param|length == 1 %}<!--
+              -->{{ param[0] }}<!--
+            -->{% else %}<!--
+              -->{{ param[0] }}={{ param[1] }}<!--
+            -->{% endif %}<!--
+            -->{% if not loop.last %}, {% endif %}<!--
+          -->{% endfor %}<span>)</span>
+          </h3>
+          <p>Launches the webserver that serves the UI for the interface.</p>
+          <h4>Parameters</h4>
+          <ul>
+            {% for param in docs.launch["params_doc"] %}
+            <li><strong>{{ param[0] }}</strong> <em>({{ param[1] }})</em> - {{ param[2] }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="func">
+          <h3 id="load">gradio.Interface.<span>load(</span><!--
+          -->{% for param in docs.load["params"] %}<!--
+            -->{% if param|length == 1 %}<!--
+              -->{{ param[0] }}<!--
+            -->{% else %}<!--
+              -->{{ param[0] }}={{ param[1] }}<!--
+            -->{% endif %}<!--
+            -->{% if not loop.last %}, {% endif %}<!--
+          -->{% endfor %}<span>)</span>
+          </h3>
+          <p>Class method to construct an Interface from an external source repository, such as huggingface.</p>
+          <h4>Parameters</h4>
+          <ul>
+            {% for param in docs.load["params_doc"] %}
+            <li><strong>{{ param[0] }}</strong> <em>({{ param[1] }})</em> - {{ param[2] }}</li>
+            {% endfor %}
+          </ul>
+          <h4>Returns</h4>
+          <ul>
+          {% for ret in docs.load["return_doc"] %}
+          <li><em>({{ ret[0] }})</em> - {{ ret[1] }}</li>
+          {% endfor %}
+          </ul>
+        </div>
+        <h2 class="text-xl font-semibold mb-4">Input Components</h2>
+        {% for func in docs["inputs"] %}
+        <div class="func">
+          <h3 id="i_{{ func["name"].lower() }}">gradio.inputs.<span>{{ func["name"] }}(</span><!--
+          -->{% for param in func["params"] %}<!--
+            -->{% if param|length == 1 %}<!--
+              -->{{ param[0] }}<!--
+            -->{% else %}<!--
+              -->{{ param[0] }}={{ param[1] }}<!--
+            -->{% endif %}<!--
+            -->{% if not loop.last %}, {% endif %}<!--
+          -->{% endfor %}<span>)</span>
+          </h3>
+          <p>{{ func["doc"] }}</p>
+          <p>Input type: <strong>{{ func["type"] }}</strong></p>
+          <h4>Parameters</h4>
+          <ul>
+            {% for param in func["params_doc"] %}
+            <li><strong>{{ param[0] }}</strong> <em>({{ param[1] }})</em> - {{ param[2] }}</li>
+            {% endfor %}
+          </ul>
+          {% if func["shortcuts"]|length %}
+          <h4>String Shortcuts</h4>
+          <ul>
+            {% for param in func["shortcuts"] %}
+            <li>"{{ param[0] }}" -
+              {% if param[1]|length == 0 %}
+              Uses defaults implementation.
+              {% else %}
+              Sets <code>
+                              {% for pair in param[1].items() %}
+                                {{pair[0]}}={{pair[1]}}<!--
+                               -->{% if not loop.last %},{% endif %}
+                              {% endfor %}
+                              </code>
+              {% endif %}
+            </li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+          {% if func["interpret_params"] %}
+          <strong>Default Interpretation:</strong> {{ func["interpret"] }}
+          <p>gradio.inputs.{{ func["name"] }}.interpret(</span><!--
+        -->{% for param in func["interpret_params"] %}<!--
+          -->{% if param|length == 1 %}<!--
+            -->{{ param[0] }}<!--
+          -->{% else %}<!--
+            -->{{ param[0] }}={{ param[1] }}<!--
+          -->{% endif %}<!--
+          -->{% if not loop.last %}, {% endif %}<!--
+        -->{% endfor %}<span>)</span>
+          </p>
+          <ul>
+            {% for param in func["interpret_params_doc"] %}
+            <li><strong>{{ param[0] }}</strong> <em>({{ param[1] }})</em> - {{ param[2] }}</li>
+            {% endfor %}
+          </ul>
+          <strong>Custom Interpretation:</strong> Return the following in the interpretation function.
+          <ul>
+            {% for ret in func["interpret_returns_doc"] %}
+            <li><em>({{ ret[0] }})</em> - {{ ret[1] }}</li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+          <h4>Demos</h4>
+          <div class="all_demo_screenshots">
+            {% for demo in func["demos"] %}
+            <div class="demo">
+              <strong>{{ demo }}:</strong>
+              <a class="demo_code" target="_blank"
+                href="https://github.com/gradio-app/gradio/blob/master/demo/{{ demo }}">
+                View Code
+              </a> | 
+              <a class="demo_code" target="_blank"
+                href="/demo/{{ demo[:-3] }}">
+                Run Demo
+              </a>
+              <div class="demo_screenshots">
+              <img
+                src="https://github.com/gradio-app/gradio/blob/master/demo/screenshots/{{ demo[:-3] }}/1.png?raw=true">
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+        <h2 class="text-xl font-semibold mb-4">Output Components</h2>
+        {% for func in docs["outputs"] %}
+        <div class="func">
+          <h3 class="font-mono" id="o_{{ func["name"].lower() }}">gradio.outputs.<span>{{ func["name"] }}(</span><!--
+        -->{% for param in func["params"] %}<!--
+          -->{% if param|length == 1 %}<!--
+            -->{{ param[0] }}<!--
+          -->{% else %}<!--
+            -->{{ param[0] }}={{ param[1] }}<!--
+          -->{% endif %}<!--
+          -->{% if not loop.last %}, {% endif %}<!--
+        -->{% endfor %}<span>)</span>
+          </h3>
+          <p>{{ func["doc"] }}</p>
+          <p>Output type: <strong>{{ func["type"] }}</strong></p>
+          <h4 class="my-2 font-semibold">Parameters</h4>
+          <ul>
+            {% for param in func["params_doc"] %}
+            <li><strong>{{ param[0] }}</strong> <em>({{ param[1] }})</em> - {{ param[2] }}</li>
+            {% endfor %}
+          </ul>
+          <h4>String Shortcuts</h4>
+          {% if func["shortcuts"]|length %}
+          <ul>
+            {% for param in func["shortcuts"] %}
+            <li>"{{ param[0] }}" -
+              {% if param[1]|length == 0 %}
+              Uses defaults implementation.
+              {% else %}
+              Sets <code>
+                              {% for pair in param[1].items() %}
+                                {{pair[0]}}={{pair[1]}}<!--
+                               -->{% if not loop.last %},{% endif %}
+                              {% endfor %}
+                              </code>
+              {% endif %}
+            </li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <em>None.</em>
+          {% endif %}
+          <h4>Demos</h4>
+          <div class="all_demo_screenshots">
+            {% for demo in func["demos"] %}
+            <div class="demo">
+              <strong>{{ demo }}:</strong>
+              <a class="demo_code" target="_blank"
+                href="https://github.com/gradio-app/gradio/blob/master/demo/{{ demo }}">
+                Link to Code
+              </a>
+              <div class="demo_screenshots">
+              <img
+                src="https://github.com/gradio-app/gradio/blob/master/demo/screenshots/{{ demo[:-3] }}/1.png?raw=true">
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </main>    
+  </div>
+  <footer class="container mx-auto p-4 flex justify-between items-center">
+    <img src="/static/img/logo.svg" class="h-8">
+    <div class="flex gap-4">
+      <a href="https://twitter.com/Gradio">
+        <img src="/static/img/twitter.svg" class="h-6">
+      </a>
+      <a href="https://github.com/gradio-app/gradio">
+        <img src="/static/img/github.svg" class="h-6">
+      </a>
+    </div>
+  </footer>
+</body>
+
+</html>

@@ -45,8 +45,8 @@
 }
 .twitter-heart {
     @apply w-4 h-4 bg-contain;
-    background-image: url("static/twitter/heart.svg");
+    background-image: url("static/img/twitter/heart.svg");
 }
 .twitter-like:hover .twitter-heart {
-    background-image: url("static/twitter/redheart.svg");
+    background-image: url("static/img/twitter/redheart.svg");
 }
