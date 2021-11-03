@@ -174,6 +174,15 @@ def enable_sharing(path):
     return jsonify(success=True)
 
 
+@app.route("/shutdown", methods=['GET'])
+def shutdown():
+    shutdown_func = request.environ.get('werkzeug.server.shutdown')
+    if shutdown_func is None:
+        raise RuntimeError('Not running werkzeug')
+    shutdown_func()
+    return "Shutting down..."
+
+
 @app.route("/api/predict/", methods=["POST"])
 @login_check
 def predict():
@@ -383,6 +392,7 @@ def queue_push():
     job_hash, queue_position = queue.push({"data": data}, action)
     return {"hash": job_hash, "queue_position": queue_position}
 
+
 @app.route("/api/queue/status/", methods=["POST"])
 @login_check
 def queue_status():
@@ -390,15 +400,19 @@ def queue_status():
     status, data = queue.get_status(hash)
     return {"status": status, "data": data}
 
-def queue_thread(path_to_local_server):
+
+def queue_thread(path_to_local_server, test_mode=False):
     while True:
         try:
             next_job = queue.pop()
+            print(next_job)
             if next_job is not None:
                 _, hash, input_data, task_type = next_job
+                print(hash)
                 queue.start_job(hash)
                 response = requests.post(
                     path_to_local_server + "/api/" + task_type + "/", json=input_data)
+                print('response', response)
                 if response.status_code == 200:
                     queue.pass_job(hash, response.json())
                 else:
@@ -408,6 +422,9 @@ def queue_thread(path_to_local_server):
         except Exception as e:
             time.sleep(1)
             pass
+        if test_mode:
+            break
+
 
 def start_server(interface, server_name, server_port=None, auth=None, ssl=None):
     if server_port is None:
