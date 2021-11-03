@@ -154,8 +154,17 @@
         .image_preview_holder {
             @apply w-full h-full flex justify-center items-center bg-gray-300 dark:bg-gray-400 relative;
         }
+        .edit_buttons {
+            @apply absolute top-0 right-0;
+            img {
+                @apply h-4;
+            }
+        }
         .edit_button {
-            @apply absolute top-1 right-1 bg-indigo-500 text-white px-2 py-1;
+            @apply bg-indigo-500 bg-opacity-30 hover:bg-opacity-100 transition p-1;
+        }
+        .clear_button {
+            @apply bg-gray-400 bg-opacity-30 hover:bg-opacity-100 transition p-1;
         }
         .image_editor {
             @apply fixed w-screen h-screen top-0 left-0 bg-black bg-opacity-50 z-40 flex flex-col justify-center items-center;
@@ -354,9 +363,21 @@
                 }
             }
         }
+        .edit_buttons {
+            @apply flex justify-end;
+            img {
+                @apply h-4 dark:invert;
+            }
+        }
+        .edit_button {
+            @apply bg-indigo-500 bg-opacity-0 hover:bg-opacity-100 transition p-1;
+        }
+        .clear_button {
+            @apply bg-gray-400 bg-opacity-0 hover:bg-opacity-100 transition p-1;
+        }
     }
     .input_video {
-        @apply w-full h-80;
+        @apply w-full h-80 relative;
         .upload_zone {
             @apply border-8 border-gray-300 border-dashed w-full h-full flex justify-center items-center text-3xl text-gray-400 dark:border-gray-500 dark:text-gray-50 text-center cursor-pointer leading-10;
         }
@@ -369,6 +390,18 @@
         .video_preview {
             @apply w-full h-full object-contain;
         }
+        .edit_buttons {
+            @apply z-10 absolute top-0 right-0;
+            img {
+                @apply h-4;
+            }
+        }
+        .edit_button {
+            @apply bg-yellow-500 bg-opacity-30 hover:bg-opacity-100 transition p-1;
+        }
+        .clear_button {
+            @apply bg-gray-400 bg-opacity-30 hover:bg-opacity-100 transition p-1;
+        }        
     }
     .input_video_example {
         .video_holder {
@@ -391,6 +424,12 @@
         }
         .file_size {
             @apply text-2xl p-2 dark:text-gray-50;
+        }
+        .clear_button {
+            @apply absolute top-0 right-0 bg-gray-400 bg-opacity-0 hover:bg-opacity-100 transition p-1;
+            img {
+                @apply h-4 dark:invert;
+            }
         }
     }
     .input_timeseries {
@@ -416,6 +455,9 @@
     .output_label {
         .output_class {
             @apply hidden;
+        }
+        .output_class_without_confidences{
+            @apply font-bold text-2xl py-8 px-4 flex-grow flex items-center justify-center dark:text-gray-50;
         }
         .confidence_intervals {
             @apply flex text-xl;

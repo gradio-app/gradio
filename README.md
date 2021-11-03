@@ -4,7 +4,7 @@
 
 #  Welcome to Gradio
 
-Quickly create customizable UI components around your models. Gradio makes it easy for you to "play around" with your model in your browser by dragging-and-dropping in your own images, pasting your own text, recording your own voice, etc. and seeing what the model outputs.  
+Quickly create a GUI around your machine learning model, API, or function. Gradio makes it easy for you to "play around" with your model in your browser by dragging-and-dropping in your own images, pasting your own text, recording your own voice, etc. and seeing what the model outputs.  
 
 ![Interface montage](demo/screenshots/montage.gif)
 
@@ -12,7 +12,7 @@ Gradio is useful for:
 
 * Creating demos of your machine learning code for clients / collaborators / users
 
-* Getting feedback on model performance from users
+* Getting feedback on model performance from testers
 
 * Debugging your model interactively during development
 

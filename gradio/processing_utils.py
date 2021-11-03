@@ -97,8 +97,12 @@ def resize_and_crop(img, size, crop_type='center'):
 # Audio
 ##################
 
-def audio_from_file(filename):
+def audio_from_file(filename, crop_min=0, crop_max=100):
     audio = AudioSegment.from_file(filename)
+    if crop_min != 0 or crop_max != 100:
+        audio_start = len(audio) * crop_min / 100
+        audio_end = len(audio) * crop_max / 100
+        audio = audio[audio_start : audio_end]
     data = np.array(audio.get_array_of_samples())
     if (audio.channels > 1):
         data = data.reshape(-1, audio.channels)
