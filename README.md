@@ -330,13 +330,13 @@ Keep in mind, however, that these links are publicly accessible, meaning that an
 
 Share links expire after 72 hours. For permanent hosting, see Hosting on Spaces below.
 
-![Sharing diagram](website/src/static/img/sharing.svg)
+![Sharing diagram](website/src/static2/img/sharing.svg)
 
 ### Hosting on Spaces
 
 Huggingface provides the infrastructure to permanently host your Gradio model on the internet, for free! You can either drag and drop a folder containing your Gradio model and all related files, or you can point HF Spaces to your Git repository and HP Spaces will pull the Gradio interface from there. See [Huggingface Spaces](http://huggingface.co/spaces/) for more information. 
 
-![Hosting Demo](website/src/static/img/hf_demo.gif)
+![Hosting Demo](website/src/static2/img/hf_demo.gif)
 
 ### Authentication
 
@@ -439,10 +439,6 @@ iface.launch()
 
 ```
 ![image_classifier interface](demo/screenshots/image_classifier/1.gif)
-
-## Hosting on Spaces
-
-![Hosting Demo](website/src/static/img/hf_demo.gif)
 
 ##  Contributing:
 

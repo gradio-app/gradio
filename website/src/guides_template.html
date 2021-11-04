@@ -16,7 +16,7 @@
   <meta property="og:description" content="Demos for your ML Models.">
 
   <link rel="stylesheet" href="/style.css">
-  <link href="http://gradio.app/static/2.2/bundle.css" rel="stylesheet">
+  <link href="/static/2.2/bundle.css" rel="stylesheet">
   <link rel="stylesheet" href="/static2/prism.css">
   <style>
     .prose img {
@@ -28,11 +28,15 @@
     .gradio_page .footer {
       display: none !important;
     }
+    .prose .code, .prose pre {
+      background-color: whitesmoke;
+      color: black;
+    }
   </style>
 </head>
 
 <body class="bg-white text-gray-900">
-  <header class="container mx-auto p-4 flex justify-between items-center">
+  <header class="container mx-auto p-4 flex justify-between items-center gap-4 sm:flex-row flex-col">
     <a href="/">
       <img src="/static2/img/logo.svg" class="h-8">
     </a>
@@ -42,7 +46,7 @@
         <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
           <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
         </svg>
-        <div class="hidden group-hover:flex flex-col absolute top-6 right-0 bg-white shadow w-52">
+        <div class="hidden group-hover:flex flex-col absolute top-6 left-0 bg-white shadow w-52">
           <a class="link px-4 py-2 inline-block hover:bg-gray-100" href="/getting_started">Getting Started</a>
           <a class="link px-4 py-2 inline-block hover:bg-gray-100" href="/advanced_features">Working with ML</a>
         </div>
@@ -53,7 +57,7 @@
         <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
           <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
         </svg>
-        <div class="hidden group-hover:flex flex-col absolute top-6 right-0 bg-white shadow w-52">
+        <div class="hidden group-hover:flex group-focus:flex flex-col absolute top-6 right-0 bg-white shadow w-52">
           <a class="link px-4 py-2 inline-block hover:bg-gray-100"
             href="https://github.com/gradio-app/gradio/issues/new">File an Issue</a>
           <a class="link px-4 py-2 inline-block hover:bg-gray-100"
@@ -93,7 +97,7 @@
       return iface_config;
     })
   </script>
-  <script src="http://gradio.app/static/2.2/bundle.js"></script>
+  <script src="/static/2.2/bundle.js"></script>
 
 </body>
 

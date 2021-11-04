@@ -8,6 +8,7 @@ module.exports = {
           css: {
             code: {
               fontWeight: 'normal',
+              backgroundColor: 'whitesmoke',
               '&:before': {
                 content: "none !important",
               },
@@ -21,7 +22,7 @@ module.exports = {
     },
   },
   variants: {
-    display: ["group-hover"],
+    display: ["group-hover", "group-focus"],
     extend: {},
   },
   plugins: [require("@tailwindcss/typography")]
