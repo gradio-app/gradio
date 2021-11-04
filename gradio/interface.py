@@ -161,6 +161,8 @@ class Interface:
             self.css = css
         if examples is None or isinstance(examples, str) or (isinstance(examples, list) and (len(examples) == 0 or isinstance(examples[0], list))):
             self.examples = examples
+        elif isinstance(examples, list) and len(self.input_components) == 1:  # If there is only one input component, examples can be provided as a regular list instead of a list of lists 
+            self.examples = [[e] for e in examples]
         else:
             raise ValueError(
                 "Examples argument must either be a directory or a nested list, where each sublist represents a set of inputs.")
