@@ -405,14 +405,11 @@ def queue_thread(path_to_local_server, test_mode=False):
     while True:
         try:
             next_job = queue.pop()
-            print(next_job)
             if next_job is not None:
                 _, hash, input_data, task_type = next_job
-                print(hash)
                 queue.start_job(hash)
                 response = requests.post(
                     path_to_local_server + "/api/" + task_type + "/", json=input_data)
-                print('response', response)
                 if response.status_code == 200:
                     queue.pass_job(hash, response.json())
                 else:
