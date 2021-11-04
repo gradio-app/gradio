@@ -134,9 +134,9 @@ class Label(OutputComponent):
                              "float label, or a dictionary whose keys are labels and values are confidences.")
 
     def deserialize(self, y):
-        # 4 cases: (1): {'label': 'lion'}, {'label': 'lion', 'confidences':...}, {'lion': 0.46, ...}, 'lion'
-        if self.type == "label" or (self.type == "auto" and (isinstance(y, str) or ('label' in y and not('confidences' in y.keys())))):
-            if isinstance(y, str):
+        # 5 cases: (1): {'label': 'lion'}, {'label': 'lion', 'confidences':...}, {'lion': 0.46, ...}, 'lion', '0.46'
+        if self.type == "label" or (self.type == "auto" and (isinstance(y, str) or isinstance(y, int) or isinstance(y, float) or ('label' in y and not('confidences' in y.keys())))):
+            if isinstance(y, str) or isinstance(y, int) or isinstance(y, float):
                 return y
             else:
                 return y['label']
