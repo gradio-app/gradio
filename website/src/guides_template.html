@@ -16,18 +16,25 @@
   <meta property="og:description" content="Demos for your ML Models.">
 
   <link rel="stylesheet" href="/style.css">
-  <link rel="stylesheet" href="/static/prism.css">
+  <link href="http://gradio.app/static/2.2/bundle.css" rel="stylesheet">
+  <link rel="stylesheet" href="/static2/prism.css">
   <style>
     .prose img {
         margin: 0 auto;
-    }    
+    }
+    .prose {
+      max-width: none !important;
+    }
+    .gradio_page .footer {
+      display: none !important;
+    }
   </style>
 </head>
 
 <body class="bg-white text-gray-900">
   <header class="container mx-auto p-4 flex justify-between items-center">
     <a href="/">
-      <img src="/static/img/logo.svg" class="h-8">
+      <img src="/static2/img/logo.svg" class="h-8">
     </a>
     <nav class="flex gap-16">
       <div class="group relative cursor-pointer font-semibold flex items-center gap-1">
@@ -53,6 +60,7 @@
             href="https://github.com/gradio-app/gradio/discussions">Discussions</a>
         </div>
       </div>
+      <a class="link" href="/hosted">Account</a>
     </nav>
   </header>
   <div class="container mx-auto px-4">
@@ -61,17 +69,32 @@
     </div>      
   </div>
   <footer class="container mx-auto p-4 flex justify-between items-center">
-    <img src="/static/img/logo.svg" class="h-8">
+    <img src="/static2/img/logo.svg" class="h-8">
     <div class="flex gap-4">
       <a href="https://twitter.com/Gradio">
-        <img src="/static/img/twitter.svg" class="h-6">
+        <img src="/static2/img/twitter.svg" class="h-6">
       </a>
       <a href="https://github.com/gradio-app/gradio">
-        <img src="/static/img/github.svg" class="h-6">
+        <img src="/static2/img/github.svg" class="h-6">
       </a>
     </div>
   </footer>
-  <script src="/static/prism.js"></script>
+  <script src="/static2/prism.js"></script>
+  <script>
+    var demos = [{"config": {"allow_flagging": true, "allow_interpretation": false, "allow_screenshot": true, "article": null, "css": null, "description": null, "examples_per_page": 10, "flagging_options": null, "function_count": 1, "input_components": [["textbox", {"default": "", "label": "name", "lines": 1, "name": "textbox", "placeholder": null}]], "input_interfaces": [["textbox", {"default": "", "label": "name", "lines": 1, "name": "textbox", "placeholder": null}]], "layout": "unaligned", "live": false, "output_components": [["textbox", {"label": "Output", "name": "textbox"}]], "output_interfaces": [["textbox", {"label": "Output", "name": "textbox"}]], "queue": false, "show_input": true, "show_output": true, "theme": "default", "thumbnail": null, "title": null}, "model_name": "hello_world"}, {"config": {"allow_flagging": true, "allow_interpretation": false, "allow_screenshot": true, "article": null, "css": null, "description": null, "examples_per_page": 10, "flagging_options": null, "function_count": 1, "input_components": [["textbox", {"default": "", "label": "name", "lines": 2, "name": "textbox", "placeholder": "Name Here..."}]], "input_interfaces": [["textbox", {"default": "", "label": "name", "lines": 2, "name": "textbox", "placeholder": "Name Here..."}]], "layout": "unaligned", "live": false, "output_components": [["textbox", {"label": "Output", "name": "textbox"}]], "output_interfaces": [["textbox", {"label": "Output", "name": "textbox"}]], "queue": false, "show_input": true, "show_output": true, "theme": "default", "thumbnail": null, "title": null}, "model_name": "hello_world_2"}, {"config": {"allow_flagging": true, "allow_interpretation": false, "allow_screenshot": true, "article": null, "css": null, "description": null, "examples_per_page": 10, "flagging_options": null, "function_count": 1, "input_components": [["textbox", {"default": "", "label": "name", "lines": 1, "name": "textbox", "placeholder": null}], ["checkbox", {"default": false, "label": "is morning", "name": "checkbox"}], ["slider", {"default": 0, "label": "temperature", "maximum": 100, "minimum": 0, "name": "slider", "step": 1}]], "input_interfaces": [["textbox", {"default": "", "label": "name", "lines": 1, "name": "textbox", "placeholder": null}], ["checkbox", {"default": false, "label": "is morning", "name": "checkbox"}], ["slider", {"default": 0, "label": "temperature", "maximum": 100, "minimum": 0, "name": "slider", "step": 1}]], "layout": "unaligned", "live": false, "output_components": [["textbox", {"label": "Output 1", "name": "textbox"}], ["textbox", {"label": "Output 2", "name": "textbox"}]], "output_interfaces": [["textbox", {"label": "Output 1", "name": "textbox"}], ["textbox", {"label": "Output 2", "name": "textbox"}]], "queue": false, "show_input": true, "show_output": true, "theme": "default", "thumbnail": null, "title": null}, "model_name": "hello_world_3"}, {"config": {"allow_flagging": true, "allow_interpretation": false, "allow_screenshot": true, "article": null, "css": null, "description": null, "examples_per_page": 10, "flagging_options": null, "function_count": 1, "input_components": [["image", {"image_mode": "RGB", "label": "input img", "name": "image", "optional": false, "shape": [200, 200], "source": "upload", "tool": "editor"}]], "input_interfaces": [["image", {"image_mode": "RGB", "label": "input img", "name": "image", "optional": false, "shape": [200, 200], "source": "upload", "tool": "editor"}]], "layout": "unaligned", "live": false, "output_components": [["image", {"label": "Output", "name": "image"}]], "output_interfaces": [["image", {"label": "Output", "name": "image"}]], "queue": false, "show_input": true, "show_output": true, "theme": "default", "thumbnail": null, "title": null}, "model_name": "sepia_filter"}, {"config": {"allow_flagging": true, "allow_interpretation": false, "allow_screenshot": true, "article": null, "css": null, "description": "Enter sales figures for employees to predict sales trajectory over year.", "examples_per_page": 10, "flagging_options": null, "function_count": 1, "input_components": [["dataframe", {"col_count": 4, "col_width": null, "datatype": "str", "default": [["Jon", 12, 14, 18], ["Alice", 14, 17, 2], ["Sana", 8, 9.5, 12]], "headers": ["Name", "Jan Sales", "Feb Sales", "Mar Sales"], "label": "employee data", "name": "dataframe", "row_count": 3}]], "input_interfaces": [["dataframe", {"col_count": 4, "col_width": null, "datatype": "str", "default": [["Jon", 12, 14, 18], ["Alice", 14, 17, 2], ["Sana", 8, 9.5, 12]], "headers": ["Name", "Jan Sales", "Feb Sales", "Mar Sales"], "label": "employee data", "name": "dataframe", "row_count": 3}]], "layout": "unaligned", "live": false, "output_components": [["dataframe", {"headers": null, "label": "Output 1", "max_cols": null, "max_rows": 20, "name": "dataframe", "overflow_row_behaviour": "paginate"}], ["image", {"label": "Output 2", "name": "image"}], ["dataframe", {"headers": null, "label": "Output 3", "max_cols": null, "max_rows": 20, "name": "dataframe", "overflow_row_behaviour": "paginate"}]], "output_interfaces": [["dataframe", {"headers": null, "label": "Output 1", "max_cols": null, "max_rows": 20, "name": "dataframe", "overflow_row_behaviour": "paginate"}], ["image", {"label": "Output 2", "name": "image"}], ["dataframe", {"headers": null, "label": "Output 3", "max_cols": null, "max_rows": 20, "name": "dataframe", "overflow_row_behaviour": "paginate"}]], "queue": false, "show_input": true, "show_output": true, "theme": "default", "thumbnail": null, "title": null}, "model_name": "sales_projections"}, {"config": {"allow_flagging": true, "allow_interpretation": false, "allow_screenshot": true, "article": null, "css": null, "description": "heres a sample toy calculator. enjoy!", "examples": [[5, "add", 3], [4, "divide", 2], [-4, "multiply", 2.5], [0, "subtract", 1.2]], "examples_per_page": 10, "flagging_options": ["this", "or", "that"], "function_count": 1, "input_components": [["number", {"default": null, "label": "num1", "name": "number"}], ["radio", {"choices": ["add", "subtract", "multiply", "divide"], "default": "add", "label": "operation", "name": "radio"}], ["number", {"default": null, "label": "num2", "name": "number"}]], "input_interfaces": [["number", {"default": null, "label": "num1", "name": "number"}], ["radio", {"choices": ["add", "subtract", "multiply", "divide"], "default": "add", "label": "operation", "name": "radio"}], ["number", {"default": null, "label": "num2", "name": "number"}]], "layout": "unaligned", "live": false, "output_components": [["textbox", {"label": "Output", "name": "textbox"}]], "output_interfaces": [["textbox", {"label": "Output", "name": "textbox"}]], "queue": false, "show_input": true, "show_output": true, "theme": "default", "thumbnail": null, "title": "test calculator"}, "model_name": "calculator"}, {"config": {"allow_flagging": true, "allow_interpretation": false, "allow_screenshot": true, "article": null, "css": null, "description": null, "examples_per_page": 10, "flagging_options": null, "function_count": 1, "input_components": [["number", {"default": null, "label": "num1", "name": "number"}], ["radio", {"choices": ["add", "subtract", "multiply", "divide"], "default": "add", "label": "operation", "name": "radio"}], ["number", {"default": null, "label": "num2", "name": "number"}]], "input_interfaces": [["number", {"default": null, "label": "num1", "name": "number"}], ["radio", {"choices": ["add", "subtract", "multiply", "divide"], "default": "add", "label": "operation", "name": "radio"}], ["number", {"default": null, "label": "num2", "name": "number"}]], "layout": "unaligned", "live": true, "output_components": [["textbox", {"label": "Output", "name": "textbox"}]], "output_interfaces": [["textbox", {"label": "Output", "name": "textbox"}]], "queue": false, "show_input": true, "show_output": true, "theme": "default", "thumbnail": null, "title": null}, "model_name": "calculator_live"}, {"config": {"allow_flagging": false, "allow_interpretation": false, "allow_screenshot": false, "article": null, "css": "\n    .chatbox {display:flex;flex-direction:column}\n    .user_msg, .resp_msg {padding:4px;margin-bottom:4px;border-radius:4px;width:80%}\n    .user_msg {background-color:cornflowerblue;color:white;align-self:start}\n    .resp_msg {background-color:lightgray;align-self:self-end}\n", "description": null, "examples_per_page": 10, "flagging_options": null, "function_count": 1, "input_components": [["textbox", {"default": "", "label": "message", "lines": 1, "name": "textbox", "placeholder": null}]], "input_interfaces": [["textbox", {"default": "", "label": "message", "lines": 1, "name": "textbox", "placeholder": null}]], "layout": "unaligned", "live": false, "output_components": [["html", {"label": "Output", "name": "html"}]], "output_interfaces": [["html", {"label": "Output", "name": "html"}]], "queue": false, "show_input": true, "show_output": true, "theme": "default", "thumbnail": null, "title": null}, "model_name": "chatbot"}, {"config": {"allow_flagging": true, "allow_interpretation": true, "allow_screenshot": true, "article": null, "css": null, "description": null, "examples_per_page": 10, "flagging_options": null, "function_count": 1, "input_components": [["textbox", {"default": "She went to his house to get her keys.", "label": "sentence", "lines": 1, "name": "textbox", "placeholder": null}]], "input_interfaces": [["textbox", {"default": "She went to his house to get her keys.", "label": "sentence", "lines": 1, "name": "textbox", "placeholder": null}]], "layout": "unaligned", "live": false, "output_components": [["label", {"label": "Output", "name": "label"}]], "output_interfaces": [["label", {"label": "Output", "name": "label"}]], "queue": false, "show_input": true, "show_output": true, "theme": "default", "thumbnail": null, "title": null}, "model_name": "gender_sentence_default_interpretation"}, {"config": {"allow_flagging": true, "allow_interpretation": true, "allow_screenshot": true, "article": null, "css": null, "description": null, "examples_per_page": 10, "flagging_options": null, "function_count": 1, "input_components": [["textbox", {"default": "She went to his house to get her keys.", "label": "sentence", "lines": 1, "name": "textbox", "placeholder": null}]], "input_interfaces": [["textbox", {"default": "She went to his house to get her keys.", "label": "sentence", "lines": 1, "name": "textbox", "placeholder": null}]], "layout": "unaligned", "live": false, "output_components": [["label", {"label": "Output", "name": "label"}]], "output_interfaces": [["label", {"label": "Output", "name": "label"}]], "queue": true, "show_input": true, "show_output": true, "theme": "default", "thumbnail": null, "title": null}, "model_name": "gender_sentence_custom_interpretation"}, {"config": {"allow_flagging": true, "allow_interpretation": true, "allow_screenshot": true, "article": null, "css": null, "description": null, "examples": [["images/cheetah1.jpg"], ["images/lion.jpg"]], "examples_per_page": 10, "flagging_options": null, "function_count": 1, "input_components": [["image", {"image_mode": "RGB", "label": "im", "name": "image", "optional": false, "shape": [224, 224], "source": "upload", "tool": "editor"}]], "input_interfaces": [["image", {"image_mode": "RGB", "label": "im", "name": "image", "optional": false, "shape": [224, 224], "source": "upload", "tool": "editor"}]], "layout": "unaligned", "live": false, "output_components": [["label", {"label": "Output", "name": "label"}]], "output_interfaces": [["label", {"label": "Output", "name": "label"}]], "queue": false, "show_input": true, "show_output": true, "theme": "default", "thumbnail": null, "title": null}, "model_name": "image_classifier"}];
+    var demo_endpoint = "/demo_model";
+    window.config = demos.map((demo, i) => {
+      let iface_config = demo["config"];
+      let model_name = demo["model_name"];
+      iface_config.target = "interface_" + i;
+      iface_config.input_components = iface_config.input_components.map(item => item[1]);
+      iface_config.output_components = iface_config.output_components.map(item => item[1]);;
+      iface_config.endpoint = demo_endpoint + "/" + model_name + "/";
+      return iface_config;
+    })
+  </script>
+  <script src="http://gradio.app/static/2.2/bundle.js"></script>
+
 </body>
 
 </html>

@@ -11,7 +11,7 @@ def generate():
         readme = readme_file.read()
     codes = re.findall(r'\$code_([^\s]*)', readme)
     demos = re.findall(r'\$demo_([^\s]*)', readme)
-    readme = readme.replace("website/src/static", "/static")
+    readme = readme.replace("website/src/static2", "/static2")
     readme = readme.replace("```python\n", "<pre><code class='lang-python'>").replace("```bash\n", "<pre><code class='lang-bash'>").replace("```directory\n", "<pre><code class='lang-bash'>").replace("```csv\n", "<pre><code class='lang-bash'>").replace("```", "</code></pre>")
     template_dict = {}
     for code_src in codes:

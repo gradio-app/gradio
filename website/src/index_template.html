@@ -16,13 +16,13 @@
   <meta property="og:description" content="Demos for your ML Models.">
 
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="/static/prism.css">
+  <link rel="stylesheet" href="/static2/prism.css">
 </head>
 
 <body class="bg-white text-gray-900">
   <header class="container mx-auto p-4 flex justify-between items-center">
     <a href="/">
-      <img src="/static/img/logo.svg" class="h-8">
+      <img src="/static2/img/logo.svg" class="h-8">
     </a>
     <nav class="flex gap-16">
       <div class="group relative cursor-pointer font-semibold flex items-center gap-1">
@@ -48,11 +48,12 @@
             href="https://github.com/gradio-app/gradio/discussions">Discussions</a>
         </div>
       </div>
+      <a class="link" href="/hosted">Account</a>
     </nav>
   </header>
   <section
     class="h-72 flex flex-col gap-8 font-semibold items-center justify-center p-4 bg-opacity-20 bg-cover bg-center"
-    style="background-image: url('/static/img/gallery.png');">
+    style="background-image: url('/static2/img/gallery.png');">
     <div class="container mx-auto p-2 text-center text-4xl">
       Build &amp; share machine learning apps delightfully
     </div>
@@ -155,21 +156,21 @@ iface <span class="token operator">=</span> gr<span class="token punctuation">.<
     <div class="container mx-auto mb-2 text-center text-gray-600">
       Used by machine learning teams at
       <div class="mt-8 grid grid-cols-5 gap-x-3 gap-y-6 justify-center justify-items-center">
-        <img class="h-4" src="/static/img/logos/google.svg">
-        <img class="h-4" src="/static/img/logos/amazon.svg">
-        <img class="h-4" src="/static/img/logos/fb.svg">
-        <img class="h-4" src="/static/img/logos/cisco.svg">
-        <img class="h-4" src="/static/img/logos/twitter.svg">
-        <img class="h-4" src="/static/img/logos/vmware.svg">
-        <img class="h-4" src="/static/img/logos/huggingface.svg">
-        <img class="h-4" src="/static/img/logos/siemens.svg">
-        <img class="h-4" src="/static/img/logos/mit-svg-50.png">
-        <img class="h-4" src="/static/img/logos/stanford.svg">
-        <img class="h-4" src="/static/img/logos/uipath.svg">
-        <img class="h-4" src="/static/img/logos/unifyid.svg">
-        <img class="h-4" src="/static/img/logos/humaniseai.svg">
-        <img class="h-4" src="/static/img/logos/factmata.svg">
-        <img class="h-4" src="/static/img/logos/wns.png">
+        <img class="h-4" src="/static2/img/logos/google.svg">
+        <img class="h-4" src="/static2/img/logos/amazon.svg">
+        <img class="h-4" src="/static2/img/logos/fb.svg">
+        <img class="h-4" src="/static2/img/logos/cisco.svg">
+        <img class="h-4" src="/static2/img/logos/twitter.svg">
+        <img class="h-4" src="/static2/img/logos/vmware.svg">
+        <img class="h-4" src="/static2/img/logos/huggingface.svg">
+        <img class="h-4" src="/static2/img/logos/siemens.svg">
+        <img class="h-4" src="/static2/img/logos/mit-svg-50.png">
+        <img class="h-4" src="/static2/img/logos/stanford.svg">
+        <img class="h-4" src="/static2/img/logos/uipath.svg">
+        <img class="h-4" src="/static2/img/logos/unifyid.svg">
+        <img class="h-4" src="/static2/img/logos/humaniseai.svg">
+        <img class="h-4" src="/static2/img/logos/factmata.svg">
+        <img class="h-4" src="/static2/img/logos/wns.png">
       </div>
     </div>
   </section>
@@ -198,14 +199,14 @@ iface <span class="token operator">=</span> gr<span class="token punctuation">.<
             <a class="twitter-profile" href="https://twitter.com/{{ tweet['handle'] }}" target="_blank"
               rel="noopener noreferrer">
               <img class="" alt="{{ tweet['name'] }}" aria-hidden="true" role="presentation"
-                src="/static/img/twitter/{{ tweet['profile_pic'] }}">
+                src="/static2/img/twitter/{{ tweet['profile_pic'] }}">
               <div>
                 <div title="{{ tweet['name'] }}">{{ tweet['name'] }}</div>
                 <div class="twitter-handle" title="@{{ tweet['handle'] }}">@{{ tweet['handle'] }}</div>
               </div>
             </a>
             <a href="{{ tweet['link'] }}" target="_blank" rel="noopener noreferrer">
-              <img class="twitter-logo" title="View on Twitter" src="/static/img/twitter/logo.svg">
+              <img class="twitter-logo" title="View on Twitter" src="/static2/img/twitter/logo.svg">
             </a>
           </div>
           <div class="twitter-content">
@@ -218,7 +219,7 @@ iface <span class="token operator">=</span> gr<span class="token punctuation">.<
                 <a class="twitter-profile" href="https://twitter.com/{{ tweet['reply_to']['handle'] }}" target="_blank"
                   rel="noopener noreferrer">
                   <img class="" alt="{{ tweet['reply_to']['name'] }}" aria-hidden="true" role="presentation"
-                    src="/static/img/twitter/{{ tweet['reply_to']['profile_pic'] }}">
+                    src="/static2/img/twitter/{{ tweet['reply_to']['profile_pic'] }}">
                   <div>
                     <div title="{{ tweet['reply_to']['name'] }}">{{ tweet['reply_to']['name'] }}</div>
                     <div class="twitter-handle" title="@{{ tweet['reply_to']['handle'] }}">@{{
@@ -226,7 +227,7 @@ iface <span class="token operator">=</span> gr<span class="token punctuation">.<
                   </div>
                 </a>
                 <a href="{{ tweet['reply_to']['link'] }}" target="_blank" rel="noopener noreferrer">
-                  <img class="twitter-logo" title="View on Twitter" src="/static/img/twitter/logo.svg">
+                  <img class="twitter-logo" title="View on Twitter" src="/static2/img/twitter/logo.svg">
                 </a>
               </div>
               <div class="twitter-content">
@@ -262,13 +263,13 @@ iface <span class="token operator">=</span> gr<span class="token punctuation">.<
     </div>
   </section>
   <footer class="container mx-auto p-4 flex justify-between items-center">
-    <img src="/static/img/logo.svg" class="h-8">
+    <img src="/static2/img/logo.svg" class="h-8">
     <div class="flex gap-4">
       <a href="https://twitter.com/Gradio">
-        <img src="/static/img/twitter.svg" class="h-6">
+        <img src="/static2/img/twitter.svg" class="h-6">
       </a>
       <a href="https://github.com/gradio-app/gradio">
-        <img src="/static/img/github.svg" class="h-6">
+        <img src="/static2/img/github.svg" class="h-6">
       </a>
     </div>
   </footer>
