@@ -51,11 +51,11 @@ class TestInterface(unittest.TestCase):
         
     def test_examples_invalid_input(self):
         with self.assertRaises(ValueError):
-            Interface(lambda input: None, examples=1234)
+            Interface(lambda x: x, examples=1234)
         
     def test_examples_not_valid_path(self):
         with self.assertRaises(FileNotFoundError):
-            interface = Interface(lambda input: None, "textbox", "label", examples='wrong-path')
+            interface = Interface(lambda x: x, "textbox", "label", examples='invalid-path')
             interface.launch()
 
 
