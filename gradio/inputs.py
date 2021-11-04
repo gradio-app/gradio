@@ -939,7 +939,7 @@ class Video(InputComponent):
         """
         Returns: (str) path to video file
         """
-        return self.save_flagged_file(dir, label, data, encryption_key)
+        return self.save_flagged_file(dir, label, None if data is None else data["data"], encryption_key)
 
     def generate_sample(self):
         return test_data.BASE64_VIDEO
@@ -1113,7 +1113,7 @@ class Audio(InputComponent):
         """
         Returns: (str) path to audio file
         """
-        return self.save_flagged_file(dir, label, data, encryption_key)
+        return self.save_flagged_file(dir, label, None if data is None else data["data"], encryption_key)
 
     def generate_sample(self):
         return test_data.BASE64_AUDIO
@@ -1192,7 +1192,7 @@ class File(InputComponent):
         """
         Returns: (str) path to file
         """
-        return self.save_flagged_file(dir, label, data["data"], encryption_key)
+        return self.save_flagged_file(dir, label, None if data is None else data[0]["data"], encryption_key)
 
     def generate_sample(self):
         return test_data.BASE64_FILE

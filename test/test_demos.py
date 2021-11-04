@@ -158,7 +158,7 @@ class TestDemo(unittest.TestCase):
         )
         elem.click()
         elem = WebDriverWait(driver, TIMEOUT).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, ".panel:nth-child(2) .component:nth-child(2) .output_class"))
+            EC.presence_of_element_located((By.CSS_SELECTOR, ".panel:nth-child(2) .component:nth-child(2) .output_class_without_confidences"))
         )
 
         total_sleep = 0
