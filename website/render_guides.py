@@ -11,7 +11,7 @@ def generate():
         readme = readme_file.read()
     codes = re.findall(r'\$code_([^\s]*)', readme)
     demos = re.findall(r'\$demo_([^\s]*)', readme)
-    readme = re.sub(r'\!\[(.*)\]\(demo.*\/([^\/\.]+\.[^)]+)\)', r'![\1](static/img/\2)', readme)
+    readme = readme.replace("website/src/static", "/static")
     readme = readme.replace("```python\n", "<pre><code class='lang-python'>").replace("```bash\n", "<pre><code class='lang-bash'>").replace("```directory\n", "<pre><code class='lang-bash'>").replace("```csv\n", "<pre><code class='lang-bash'>").replace("```", "</code></pre>")
     template_dict = {}
     for code_src in codes:
@@ -37,6 +37,8 @@ def generate():
         output_lines = readme_lines[start_index: end_index]
         output_markdown = "\n".join(output_lines)
         output_html = markdown2.markdown(output_markdown)
+        for match in re.findall(r'<h3>(.*)<\/h3>', output_html):
+            output_html = output_html.replace(f"<h3>{match}</h3>", f"<h3 id={match.lower().replace(' ', '_')}>{match}</h3>")
         os.makedirs(os.path.join("generated", generated_folder), exist_ok=True)
         with open(os.path.join("generated", generated_folder, "index.html"), "w") as generated_template:
             output_html = template.replace("{{ template_html }}", output_html)

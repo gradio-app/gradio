@@ -16,6 +16,18 @@
   <meta property="og:description" content="Demos for your ML Models.">
 
   <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/static/prism.css">
+  <style>
+    pre {
+      overflow-x: hidden !important;
+      border: solid 1px black;
+    }
+
+    code {
+      white-space: pre-wrap !important;
+    }
+  </style>
+
 </head>
 
 <body class="bg-white text-gray-900">
@@ -31,8 +43,7 @@
         </svg>
         <div class="hidden group-hover:flex flex-col absolute top-6 right-0 bg-white shadow w-52">
           <a class="link px-4 py-2 inline-block hover:bg-gray-100" href="/getting_started">Getting Started</a>
-          <a class="link px-4 py-2 inline-block hover:bg-gray-100" href="/working_with_ml">Working with ML</a>
-          <a class="link px-4 py-2 inline-block hover:bg-gray-100" href="/hosting_on_spaces">Hosting on Spaces</a>
+          <a class="link px-4 py-2 inline-block hover:bg-gray-100" href="/advanced_features">Working with ML</a>
         </div>
       </div>
       <a class="link" href="/docs">Docs</a>
@@ -50,91 +61,82 @@
       </div>
     </nav>
   </header>
-  <div class="container mx-auto p-4">
+  <div class="container mx-auto px-4">
     <main class="container flex gap-4">
-      <div class="h-screen sticky top-0 bg-gray-50 p-4 text-sm" style="width: 40rem">
+      <div class="h-screen leading-6 sticky top-0 bg-gray-50 p-4 text-sm overflow-y-auto" style="width: 56rem">
         <h4 class="font-semibold mb-2 block">Creating Interfaces</h4>
-        <a class="block" href="#interface">Interfaces</a>
-        <a class="block" href="#launch">Launching</a>
-        <a class="block" href="#load">Loading</a>
+        <a class="block thin-link" href="#interface">Interfaces</a>
+        <a class="block thin-link" href="#launch">Launching</a>
+        <a class="block thin-link" href="#load">Loading</a>
         <h4 class="font-semibold my-2">Input Components</h4>
         {% for input in docs["inputs"] %}
-        <a class="block" href="#i_{{ input["name"].lower() }}">{{ input["name"] }}</a>
+        <a class="block thin-link" href="#i_{{ input["name"].lower() }}">{{ input["name"] }}</a>
         {% endfor %}
         <h4 class="font-semibold my-2 block">Output Components</h4>
         {% for output in docs["outputs"] %}
-        <a class="block" href="#o_{{ output["name"].lower() }}">{{ output["name"] }}</a>
+        <a class="block thin-link" href="#o_{{ output["name"].lower() }}">{{ output["name"] }}</a>
         {% endfor %}
       </div>
-      <div id="docs-content">
-        <h2 class="text-xl font-semibold mb-4">Creating an Interface</h2>
-        <div class="func">
-          <h3 id="interface">gradio.<span>Interface(</span><!--
-       -->{% for param in docs.interface["params"] %}<!--
-         -->{% if param|length == 1 %}<!--
-           -->{{ param[0] }}<!--
-         -->{% else %}<!--
-           -->{{ param[0] }}={{ param[1] }}<!--
-         -->{% endif %}<!--
-         -->{% if not loop.last %}, {% endif %}<!--
-       -->{% endfor %}<span>)</span>
-          </h3>
-          <p>{{ docs.interface["doc"] }}</p>
-          <h4>Parameters</h4>
-          <ul>
-            {% for param in docs.interface["params_doc"] %}
-            <li><strong>{{ param[0] }}</strong> <em>({{ param[1] }})</em> - {{ param[2] }}</li>
-            {% endfor %}
-          </ul>
-        </div>
-        <div class="func">
-          <h3 id="launch">gradio.Interface().<span>launch(</span><!--
-          -->{% for param in docs.launch["params"] %}<!--
-            -->{% if param|length == 1 %}<!--
-              -->{{ param[0] }}<!--
-            -->{% else %}<!--
-              -->{{ param[0] }}={{ param[1] }}<!--
-            -->{% endif %}<!--
-            -->{% if not loop.last %}, {% endif %}<!--
-          -->{% endfor %}<span>)</span>
-          </h3>
-          <p>Launches the webserver that serves the UI for the interface.</p>
-          <h4>Parameters</h4>
-          <ul>
-            {% for param in docs.launch["params_doc"] %}
-            <li><strong>{{ param[0] }}</strong> <em>({{ param[1] }})</em> - {{ param[2] }}</li>
-            {% endfor %}
-          </ul>
-        </div>
-        <div class="func">
-          <h3 id="load">gradio.Interface.<span>load(</span><!--
-          -->{% for param in docs.load["params"] %}<!--
-            -->{% if param|length == 1 %}<!--
-              -->{{ param[0] }}<!--
-            -->{% else %}<!--
-              -->{{ param[0] }}={{ param[1] }}<!--
-            -->{% endif %}<!--
-            -->{% if not loop.last %}, {% endif %}<!--
-          -->{% endfor %}<span>)</span>
-          </h3>
-          <p>Class method to construct an Interface from an external source repository, such as huggingface.</p>
-          <h4>Parameters</h4>
-          <ul>
-            {% for param in docs.load["params_doc"] %}
-            <li><strong>{{ param[0] }}</strong> <em>({{ param[1] }})</em> - {{ param[2] }}</li>
-            {% endfor %}
-          </ul>
-          <h4>Returns</h4>
-          <ul>
+      <div class="leading-7">
+        <h2 class="text-xl font-semibold mb-4">Creating Interfaces</h2>
+        <pre><code class='lang-python'>gradio.Interface(<!--
+      -->{% for param in docs.interface["params"] %}<!--
+        -->{% if param|length == 1 %}<!--
+          -->{{ param[0] }}<!--
+        -->{% else %}<!--
+          -->{{ param[0] }}={{ param[1] }}<!--
+        -->{% endif %}<!--
+        -->{% if not loop.last %}, {% endif %}<!--
+      -->{% endfor %})</code></pre>
+        <p class="mb-2">{{ docs.interface["doc"] }}</p>
+        <h4 class="font-semibold mb-2">Parameters</h4>
+        <ul class="list-disc list-inside">
+          {% for param in docs.interface["params_doc"] %}
+          <li><span class="font-semibold">{{ param[0] }}</span> <em>({{ param[1] }})</em> - {{ param[2] }}</li>
+          {% endfor %}
+        </ul>
+        <pre><code class='lang-python'>gradio.Interface().launch(<!--
+        -->{% for param in docs.launch["params"] %}<!--
+          -->{% if param|length == 1 %}<!--
+            -->{{ param[0] }}<!--
+          -->{% else %}<!--
+            -->{{ param[0] }}={{ param[1] }}<!--
+          -->{% endif %}<!--
+          -->{% if not loop.last %}, {% endif %}<!--
+        -->{% endfor %})</code></pre>
+        <p class="mb-2">Launches the webserver that serves the UI for the interface.</p>
+        <h4 class="font-semibold mb-2">Parameters</h4>
+        <ul class="list-disc list-inside">
+          {% for param in docs.launch["params_doc"] %}
+          <li><span class="font-semibold">{{ param[0] }}</span> <em>({{ param[1] }})</em> - {{ param[2] }}</li>
+          {% endfor %}
+        </ul>
+        <pre><code class='lang-python'>gradio.Interface.load(<!--
+        -->{% for param in docs.load["params"] %}<!--
+          -->{% if param|length == 1 %}<!--
+            -->{{ param[0] }}<!--
+          -->{% else %}<!--
+            -->{{ param[0] }}={{ param[1] }}<!--
+          -->{% endif %}<!--
+          -->{% if not loop.last %}, {% endif %}<!--
+        -->{% endfor %})</code></pre>
+        <p class="mb-2">Class method to construct an Interface from an external source repository, such as huggingface.</p>
+        <h4 class="font-semibold mb-2">Parameters</h4>
+        <ul class="list-disc list-inside">
+          {% for param in docs.load["params_doc"] %}
+          <li><span class="font-semibold">{{ param[0] }}</span> <em>({{ param[1] }})</em> - {{ param[2] }}</li>
+          {% endfor %}
+        </ul>
+        <h4 class="font-semibold mb-2">Returns</h4>
+        <ul class="list-disc list-inside">
           {% for ret in docs.load["return_doc"] %}
           <li><em>({{ ret[0] }})</em> - {{ ret[1] }}</li>
           {% endfor %}
-          </ul>
-        </div>
-        <h2 class="text-xl font-semibold mb-4">Input Components</h2>
+        </ul>
+        <h2 class="text-xl font-semibold my-4">Input Components</h2>
         {% for func in docs["inputs"] %}
         <div class="func">
-          <h3 id="i_{{ func["name"].lower() }}">gradio.inputs.<span>{{ func["name"] }}(</span><!--
+          <pre id="i_{{ func["name"].lower() }}"><code class="lang-python">gradio.inputs.<span>{{ func["name"] }}(</span><!--
           -->{% for param in func["params"] %}<!--
             -->{% if param|length == 1 %}<!--
               -->{{ param[0] }}<!--
@@ -142,19 +144,18 @@
               -->{{ param[0] }}={{ param[1] }}<!--
             -->{% endif %}<!--
             -->{% if not loop.last %}, {% endif %}<!--
-          -->{% endfor %}<span>)</span>
-          </h3>
+          -->{% endfor %}<span>)</span></code></pre>
           <p>{{ func["doc"] }}</p>
-          <p>Input type: <strong>{{ func["type"] }}</strong></p>
-          <h4>Parameters</h4>
-          <ul>
+          <p>Input type: <span class="font-semibold">{{ func["type"] }}</span></p>
+          <h4 class="font-semibold mb-2">Parameters</h4>
+          <ul class="list-disc list-inside">
             {% for param in func["params_doc"] %}
-            <li><strong>{{ param[0] }}</strong> <em>({{ param[1] }})</em> - {{ param[2] }}</li>
+            <li><span class="font-semibold">{{ param[0] }}</span> <em>({{ param[1] }})</em> - {{ param[2] }}</li>
             {% endfor %}
           </ul>
           {% if func["shortcuts"]|length %}
-          <h4>String Shortcuts</h4>
-          <ul>
+          <h4 class="my-2 font-semibold">String Shortcuts</h4>
+          <ul class="list-disc list-inside">
             {% for param in func["shortcuts"] %}
             <li>"{{ param[0] }}" -
               {% if param[1]|length == 0 %}
@@ -172,7 +173,7 @@
           </ul>
           {% endif %}
           {% if func["interpret_params"] %}
-          <strong>Default Interpretation:</strong> {{ func["interpret"] }}
+          <span class="font-semibold">Default Interpretation:</span> {{ func["interpret"] }}
           <p>gradio.inputs.{{ func["name"] }}.interpret(</span><!--
         -->{% for param in func["interpret_params"] %}<!--
           -->{% if param|length == 1 %}<!--
@@ -183,44 +184,40 @@
           -->{% if not loop.last %}, {% endif %}<!--
         -->{% endfor %}<span>)</span>
           </p>
-          <ul>
+          <ul class="list-disc list-inside">
             {% for param in func["interpret_params_doc"] %}
-            <li><strong>{{ param[0] }}</strong> <em>({{ param[1] }})</em> - {{ param[2] }}</li>
+            <li><span class="font-semibold">{{ param[0] }}</span> <em>({{ param[1] }})</em> - {{ param[2] }}</li>
             {% endfor %}
           </ul>
-          <strong>Custom Interpretation:</strong> Return the following in the interpretation function.
-          <ul>
+          <span class="font-semibold">Custom Interpretation:</span> Return the following in the interpretation function.
+          <ul class="list-disc list-inside">
             {% for ret in func["interpret_returns_doc"] %}
             <li><em>({{ ret[0] }})</em> - {{ ret[1] }}</li>
             {% endfor %}
           </ul>
           {% endif %}
           <h4>Demos</h4>
-          <div class="all_demo_screenshots">
+          <div class="flex gap-4 overflow-x-auto">
             {% for demo in func["demos"] %}
-            <div class="demo">
-              <strong>{{ demo }}:</strong>
-              <a class="demo_code" target="_blank"
-                href="https://github.com/gradio-app/gradio/blob/master/demo/{{ demo }}">
-                View Code
-              </a> | 
-              <a class="demo_code" target="_blank"
-                href="/demo/{{ demo[:-3] }}">
-                Run Demo
-              </a>
-              <div class="demo_screenshots">
-              <img
-                src="https://github.com/gradio-app/gradio/blob/master/demo/screenshots/{{ demo[:-3] }}/1.png?raw=true">
+            <div>
+              <div class="mb-2">
+                <span class="font-semibold">{{ demo }}:</span>
+                <a class="demo_code" target="_blank"
+                  href="https://github.com/gradio-app/gradio/blob/master/demo/{{ demo }}">
+                  View Code
+                </a>
               </div>
+              <img style="width:420px"
+                src="https://github.com/gradio-app/gradio/blob/master/demo/screenshots/{{ demo[:-3] }}/1.png?raw=true">
             </div>
             {% endfor %}
           </div>
         </div>
         {% endfor %}
-        <h2 class="text-xl font-semibold mb-4">Output Components</h2>
+        <h2 class="text-xl font-semibold my-4">Output Components</h2>
         {% for func in docs["outputs"] %}
         <div class="func">
-          <h3 class="font-mono" id="o_{{ func["name"].lower() }}">gradio.outputs.<span>{{ func["name"] }}(</span><!--
+          <pre id="o_{{ func["name"].lower() }}"><code class='lang-python'>gradio.outputs.{{ func["name"] }}(<!--
         -->{% for param in func["params"] %}<!--
           -->{% if param|length == 1 %}<!--
             -->{{ param[0] }}<!--
@@ -228,19 +225,18 @@
             -->{{ param[0] }}={{ param[1] }}<!--
           -->{% endif %}<!--
           -->{% if not loop.last %}, {% endif %}<!--
-        -->{% endfor %}<span>)</span>
-          </h3>
+        -->{% endfor %}<span>)</span></code></pre>
           <p>{{ func["doc"] }}</p>
-          <p>Output type: <strong>{{ func["type"] }}</strong></p>
+          <p>Output type: <span class="font-semibold">{{ func["type"] }}</span></p>
           <h4 class="my-2 font-semibold">Parameters</h4>
-          <ul>
+          <ul class="list-disc list-inside">
             {% for param in func["params_doc"] %}
-            <li><strong>{{ param[0] }}</strong> <em>({{ param[1] }})</em> - {{ param[2] }}</li>
+            <li><span class="font-semibold">{{ param[0] }}</span> <em>({{ param[1] }})</em> - {{ param[2] }}</li>
             {% endfor %}
           </ul>
-          <h4>String Shortcuts</h4>
+          <h4 class="my-2 font-semibold">String Shortcuts</h4>
           {% if func["shortcuts"]|length %}
-          <ul>
+          <ul class="list-disc list-inside">
             {% for param in func["shortcuts"] %}
             <li>"{{ param[0] }}" -
               {% if param[1]|length == 0 %}
@@ -262,15 +258,17 @@
           <h4>Demos</h4>
           <div class="all_demo_screenshots">
             {% for demo in func["demos"] %}
-            <div class="demo">
-              <strong>{{ demo }}:</strong>
-              <a class="demo_code" target="_blank"
-                href="https://github.com/gradio-app/gradio/blob/master/demo/{{ demo }}">
-                Link to Code
-              </a>
-              <div class="demo_screenshots">
-              <img
-                src="https://github.com/gradio-app/gradio/blob/master/demo/screenshots/{{ demo[:-3] }}/1.png?raw=true">
+            <div>
+              <div class="mb-2">
+                <span class="font-semibold">{{ demo }}:</span>
+                <a class="demo_code" target="_blank"
+                  href="https://github.com/gradio-app/gradio/blob/master/demo/{{ demo }}">
+                  View Code
+                </a>
+              </div>
+              <div>
+                <img style="width:420px"
+                  src="https://github.com/gradio-app/gradio/blob/master/demo/screenshots/{{ demo[:-3] }}/1.png?raw=true">
               </div>
             </div>
             {% endfor %}
@@ -278,7 +276,7 @@
         </div>
         {% endfor %}
       </div>
-    </main>    
+    </main>
   </div>
   <footer class="container mx-auto p-4 flex justify-between items-center">
     <img src="/static/img/logo.svg" class="h-8">
@@ -291,6 +289,7 @@
       </a>
     </div>
   </footer>
+  <script src="/static/prism.js"></script>
 </body>
 
 </html>

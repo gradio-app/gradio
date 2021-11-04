@@ -153,7 +153,7 @@ im/1.png,Output/1.png
 
 You can review these flagged inputs by manually exploring the flagging directory, or load them into the examples of the Gradio interface by pointing the  `examples=`  argument to the flagged directory. If you wish for the user to provide a reason for flagging, you can pass a list of strings to the `flagging_options` argument of Interface. Users will have to select one of the strings when flagging, which will be saved as an additional column to the CSV.
 
-### Sharing Interfaces Publicly & Privacy
+### Sharing Interfaces Publicly
 
 Interfaces can be easily shared publicly by setting `share=True` in the `launch()` method. Like this:
 
@@ -165,17 +165,19 @@ This generates a public, shareable link that you can send to anybody! When you s
 
 Keep in mind, however, that these links are publicly accessible, meaning that anyone can use your model for prediction! Therefore, make sure not to expose any sensitive information through the functions you write, or allow any critical changes to occur on your device. If you set `share=False` (the default), only a local link is created, which can be shared by  [port-forwarding](https://www.ssh.com/ssh/tunneling/example)  with specific users. 
 
-Share links expire after 72 hours. For permanent hosting, see below.
+Share links expire after 72 hours. For permanent hosting, see Hosting on Spaces below.
 
-![Sharing diagram](demo/images/sharing.svg)
+![Sharing diagram](website/src/static/img/sharing.svg)
+
+### Hosting on Spaces
+
+Huggingface provides the infrastructure to permanently host your Gradio model on the internet, for free! You can either drag and drop a folder containing your Gradio model and all related files, or you can point HF Spaces to your Git repository and HP Spaces will pull the Gradio interface from there. See [Huggingface Spaces](http://huggingface.co/spaces/) for more information. 
+
+![Hosting Demo](website/src/static/img/hf_demo.gif)
 
 ### Authentication
 
 You may wish to put an authentication page in front of your interface to limit access. With the `auth=` keyword argument in the `launch()` method, you can pass a list of acceptable username/password tuples; or, for custom authentication handling, pass a function that takes a username and password as arguments, and returns True to allow authentication, False otherwise.
-
-### Permanent Hosting
-
-You can share your interface publicly and permanently by hosting on Gradio's infrastructure. You will need to create a Gradio premium account. First, log into Gradio on [gradio.app](https://gradio.app) and click Sign In at the top. Once you've logged in with your Github account, you can specify which repositories from your Github profile you'd like to have hosted by Gradio. You must also specify the file within the repository that runs the Gradio `launch()` command. Once you've taken these steps, Gradio will launch your interface and provide a public link you can share.
 
 ## Advanced Features
 
@@ -197,6 +199,10 @@ If you use Gradio's default interpretation, the output component must be a label
 
 $code_image_classifier
 $demo_image_classifier
+
+## Hosting on Spaces
+
+![Hosting Demo](website/src/static/img/hf_demo.gif)
 
 ##  Contributing:
 

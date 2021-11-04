@@ -1,7 +1,7 @@
 {
   "name": "gradio-website",
   "scripts": {
-    "build": "mkdir -p dist generated && python3 render_guides.py && python3 render_docs.py && cp src/index.html generated/index.html && postcss src/style.css -o dist/style.css && python3 replace_style_names.py && html-minifier --input-dir generated --output-dir dist --file-ext html --remove-comments --collapse-whitespace --minify-js true && cp -R src/static/. dist/static/",
+    "build": "mkdir -p dist generated && python3 render_index.py && python3 render_guides.py && python3 render_docs.py && postcss src/style.css -o dist/style.css && python3 replace_style_names.py && html-minifier --input-dir generated --output-dir dist --file-ext html --remove-comments --collapse-whitespace --minify-js true && cp -R src/static/. dist/static/",
     "watch": "watch 'npm run build' ./src"
   },
   "dependencies": {

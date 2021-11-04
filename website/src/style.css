@@ -5,6 +5,9 @@
 .link {
     @apply font-semibold hover:text-blue-500 transition-colors;
 }
+.thin-link {
+    @apply hover:text-blue-500 transition-colors;
+}
 
 /* index.html */
 .demotab.selected {
@@ -33,6 +36,18 @@
 }
 .twitter-content {
     @apply my-2;
+}
+.twitter-text {
+    @apply my-2;
+}
+.twitter-text a {
+    @apply link;
+}
+.twitter-text s {
+    text-decoration: none !important;
+}
+.twitter-text img {
+    @apply h-4 inline-block;
 }
 .twitter-reply-card {
     @apply my-4;
