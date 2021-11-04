@@ -10,11 +10,9 @@ Quickly create a GUI around your machine learning model, API, or function. Gradi
 
 Gradio is useful for:
 
-* Creating demos of your machine learning code for clients / collaborators / users
-
-* Getting feedback on model performance from testers
-
-* Debugging your model interactively during development
+* **Demoing** your machine learning models for clients / collaborators / users / students
+* **Deploying** your models quickly with automatic shareable links and getting feedback on model performance
+* **Debugging** your model interactively during development using built-in interpretation visualizations for any model
 
 
 ## Getting Started
