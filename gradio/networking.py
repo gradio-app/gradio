@@ -401,15 +401,18 @@ def queue_status():
     return {"status": status, "data": data}
 
 
-def queue_thread(path_to_local_server):
+def queue_thread(path_to_local_server, test_mode=False):
     while True:
         try:
             next_job = queue.pop()
+            print(next_job)
             if next_job is not None:
                 _, hash, input_data, task_type = next_job
+                print(hash)
                 queue.start_job(hash)
                 response = requests.post(
                     path_to_local_server + "/api/" + task_type + "/", json=input_data)
+                print('response', response)
                 if response.status_code == 200:
                     queue.pass_job(hash, response.json())
                 else:
@@ -419,6 +422,9 @@ def queue_thread(path_to_local_server):
         except Exception as e:
             time.sleep(1)
             pass
+        if test_mode:
+            break
+
 
 def start_server(interface, server_name, server_port=None, auth=None, ssl=None):
     if server_port is None:

@@ -584,15 +584,15 @@ class Interface:
         self.share = share
 
         if share:
-            if private_endpoint:
-                print(strings.en["PRIVATE_LINK_MESSAGE"])
-            else:
-                print(strings.en["SHARE_LINK_MESSAGE"])
             try:
                 share_url = networking.setup_tunnel(
                     server_port, private_endpoint)
                 self.share_url = share_url
                 print(strings.en["SHARE_LINK_DISPLAY"].format(share_url))
+                if private_endpoint:
+                    print(strings.en["PRIVATE_LINK_MESSAGE"])
+                else:
+                    print(strings.en["SHARE_LINK_MESSAGE"])
             except RuntimeError:
                 send_error_analytics(self.analytics_enabled)
                 share_url = None
