@@ -43,19 +43,6 @@ class TestInterface(unittest.TestCase):
 	                              share="share", share_url="share_url")
         mock_post.assert_not_called()
      
-    @mock.patch("requests.post")   
-    def test_launch_analytics_successful(self, mock_post):
-        send_launch_analytics(analytics_enabled=True,
-                              inbrowser=True, is_colab="is_colab",
-	                              share="share", share_url="share_url")
-        assert mock_post.call_args.kwargs["data"] == {
-	            'launch_method': 'browser',
-	            'is_google_colab': "is_colab",
-	            'is_sharing_on': "share",
-	            'share_url': "share_url",
-	            'ip_address': ip_address
-	        }
-
     def test_reset_all(self):
         interface = Interface(lambda input: None, "textbox", "label")
         interface.close = mock.MagicMock()
