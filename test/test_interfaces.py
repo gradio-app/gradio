@@ -2,6 +2,20 @@ from gradio.interface import *
 import unittest
 import unittest.mock as mock
 import requests
+import sys
+from contextlib import contextmanager
+import io
+import threading
+
+@contextmanager
+def captured_output():
+    new_out, new_err = io.StringIO(), io.StringIO()
+    old_out, old_err = sys.stdout, sys.stderr
+    try:
+        sys.stdout, sys.stderr = new_out, new_err
+        yield sys.stdout, sys.stderr
+    finally:
+        sys.stdout, sys.stderr = old_out, old_err
 
 
 class TestInterface(unittest.TestCase):
@@ -57,7 +71,28 @@ class TestInterface(unittest.TestCase):
         with self.assertRaises(FileNotFoundError):
             interface = Interface(lambda x: x, "textbox", "label", examples='invalid-path')
             interface.launch()
-
+            
+    def test_test_launch(self):
+        with captured_output() as (out, err):
+            prediction_fn = lambda x: x
+            prediction_fn.__name__ = "prediction_fn"
+            interface = Interface(prediction_fn, "textbox", "label")
+            interface.test_launch()
+            output = out.getvalue().strip()
+            self.assertEqual(output, 'Test launch: prediction_fn()... PASSED')
+            
+    @mock.patch("time.sleep")
+    def test_run_until_interupted(self, mock_sleep):
+        with self.assertRaises(KeyboardInterrupt):
+            with captured_output() as (out, err):
+                mock_sleep.side_effect = KeyboardInterrupt()
+                interface = Interface(lambda x: x, "textbox", "label")
+                interface.enable_queue = False
+                thread = threading.Thread()
+                thread.keep_running = mock.MagicMock()
+                interface.run_until_interrupted(thread, None)
+                output = out.getvalue().strip()
+                self.assertEqual(output, 'Keyboard interruption in main thread... closing server.')
 
 if __name__ == '__main__':
     unittest.main()
