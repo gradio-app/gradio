@@ -6,8 +6,6 @@ import requests
 
 class TestInterface(unittest.TestCase):
     
-    
-    
     # send_error_analytics should probably actually be a method of Interface
     # (so it doesn't have to take the 'enabled' argument)
     # and since it's specific to the launch method, it should probably be
@@ -28,8 +26,7 @@ class TestInterface(unittest.TestCase):
     def test_error_analytics_successful(self, mock_post):
         send_error_analytics(True)
         mock_post.assert_called()
-        
-        
+                
     # as above, send_launch_analytics should probably be a method of Interface
     @mock.patch("requests.post")
     def test_launch_analytics_doesnt_crash_on_connection_error(self, mock_post):
