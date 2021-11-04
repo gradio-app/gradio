@@ -141,7 +141,7 @@ class Label(OutputComponent):
             else:
                 return y['label']
         elif self.type == "confidences" or self.type == "auto":
-            if 'confidences' in y.keys() and isinstance(y['confidences'], list):
+            if ('confidences' in y.keys()) and isinstance(y['confidences'], list):
                 return {k['label']:k['confidence'] for k in y['confidences']}            
             else:
                 return y
