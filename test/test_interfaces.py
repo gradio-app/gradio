@@ -94,5 +94,52 @@ class TestInterface(unittest.TestCase):
                 output = out.getvalue().strip()
                 self.assertEqual(output, 'Keyboard interruption in main thread... closing server.')
 
+
+    @mock.patch('gradio.utils.colab_check')
+    def test_launch_colab_share(self, mock_colab_check):
+        mock_colab_check.return_value = True
+        interface = Interface(lambda x: x, "textbox", "label")
+        _, _, share_url = interface.launch(prevent_thread_lock=True)
+        self.assertIsNotNone(share_url)
+    
+    
+    @mock.patch('gradio.utils.colab_check')
+    @mock.patch('gradio.networking.setup_tunnel')
+    def test_launch_colab_share_error(self, mock_setup_tunnel, mock_colab_check):
+        mock_setup_tunnel.side_effect = RuntimeError()
+        mock_colab_check.return_value = True
+        interface = Interface(lambda x: x, "textbox", "label")
+        _, _, share_url = interface.launch(prevent_thread_lock=True)
+        self.assertIsNone(share_url)
+        
+    
+    def test_interface_representation(self):
+        prediction_fn = lambda x: x
+        prediction_fn.__name__ = "prediction_fn"
+        repr = str(Interface(prediction_fn, "textbox", "label")).split('\n')
+        self.assertTrue(prediction_fn.__name__ in repr[0])
+        self.assertEqual(len(repr[0]), len(repr[1]))
+        
+    def test_interface_load(self):
+        io = Interface.load("models/distilbert-base-uncased-finetuned-sst-2-english", alias="sentiment_classifier")
+        output = io("I am happy, I love you.")
+        self.assertGreater(output['Positive'], 0.5)
+        
+    def test_interface_none_interp(self):
+            interface = Interface(lambda x: x, "textbox", "label", interpretation=[None])
+            scores, alternative_outputs = interface.interpret(["quickest brown fox"])
+            self.assertIsNone(scores[0])
+    
+    @mock.patch('webbrowser.open')
+    def test_interface_browser(self, mock_browser):
+        with self.assertRaises(ValueError):
+            mock_browser.side_effect = ValueError()
+            interface = Interface(lambda x: x, "textbox", "label")
+            interface.launch(inbrowser=True)
+        
+    # example attribute of Interface can be a list or string. When it is a string, it is a filepath.
+    # The content of this filepath will determine the examples. Do we have any sample of this example file?
+    # This will help writing a test for lines 297 to 313 of interface.py. We need the log.csv example file 
+
 if __name__ == '__main__':
     unittest.main()
