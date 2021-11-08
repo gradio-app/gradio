@@ -105,6 +105,7 @@
 iface <span class="token operator">=</span> gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>sketch_recognition<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token string">"image"</span><span class="token punctuation">,</span> outputs<span class="token operator">=</span><span class="token string">"label"</span><span class="token punctuation">).</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
       </div>
+      <iframe src="https://huggingface.co/gradioiframe/abidlabs/Gradio-MNIST-Realtime/+" frameborder="0" class="w-full" style="height: 32rem"></iframe>
     </div>
     <div class="demo mb-16 p-4 border border-gray-300 border-t-0 shadow-lg hidden" demo="2">
       <div class="relative">
@@ -120,6 +121,7 @@ iface <span class="token operator">=</span> gr<span class="token punctuation">.<
 iface <span class="token operator">=</span> gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>question_answer<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">"textbox"</span><span class="token punctuation">,</span> <span class="token string">"text"</span><span class="token punctuation">],</span> outputs<span class="token operator">=</span><span class="token string">"text"</span><span class="token punctuation">).</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
       </div>
+      <iframe src="https://huggingface.co/gradioiframe/abidlabs/question-answering/+" frameborder="0" class="w-full" style="height: 32rem"></iframe>
     </div>
     <div class="demo mb-16 p-4 border border-gray-300 border-t-0 shadow-lg hidden" demo="3">
       <div class="relative">
@@ -128,13 +130,14 @@ iface <span class="token operator">=</span> gr<span class="token punctuation">.<
           full code</a>
         <pre class="language-python"><code class="language-python"><span class="token keyword">import</span> gradio <span class="token keyword">as</span> gr
 
-<span class="token keyword">def</span> <span class="token function">speech_to_text</span><span class="token punctuation">(</span>audio<span class="token punctuation">)</span><span class="token punctuation">:</span>
-  <span class="token comment"># Implement transcription model here...</span>
-  <span class="token comment"># Return transcription as string</span>
+<span class="token keyword">def</span> <span class="token function">image_classifier</span><span class="token punctuation">(</span>image<span class="token punctuation">)</span><span class="token punctuation">:</span>
+  <span class="token comment"># Implement image classification model here...</span>
+  <span class="token comment"># Return label of confidences</span>
 
-iface <span class="token operator">=</span> gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>speech_to_text<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token string">"audio"</span><span class="token punctuation">,</span> outputs<span class="token operator">=</span><span class="token string">"text"</span><span class="token punctuation">).</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span>
+iface <span class="token operator">=</span> gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>image_classifier<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token string">"image"</span><span class="token punctuation">,</span> outputs<span class="token operator">=</span><span class="token string">"text"</span><span class="token punctuation">).</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
       </div>
+      <iframe src="https://huggingface.co/gradioiframe/abidlabs/vision-transformer/+" frameborder="0"  class="w-full" style="height: 32rem"></iframe>
     </div>
     <div class="demo mb-16 p-4 border border-gray-300 border-t-0 shadow-lg hidden" demo="4">
       <div class="relative">
@@ -143,13 +146,14 @@ iface <span class="token operator">=</span> gr<span class="token punctuation">.<
           full code</a>
         <pre class="language-python"><code class="language-python"><span class="token keyword">import</span> gradio <span class="token keyword">as</span> gr
 
-<span class="token keyword">def</span> <span class="token function">face_segment</span><span class="token punctuation">(</span>image<span class="token punctuation">)</span><span class="token punctuation">:</span>
+<span class="token keyword">def</span> <span class="token function">bg_remove</span><span class="token punctuation">(</span>image<span class="token punctuation">)</span><span class="token punctuation">:</span>
   <span class="token comment"># Implement segmentation model here...</span>
   <span class="token comment"># Return segmentation image</span>
 
-iface <span class="token operator">=</span> gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>face_segment<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token string">"image"</span><span class="token punctuation">,</span> outputs<span class="token operator">=</span><span class="token string">"image"</span><span class="token punctuation">).</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span>
+iface <span class="token operator">=</span> gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>bg_remove<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token string">"image"</span><span class="token punctuation">,</span> outputs<span class="token operator">=</span><span class="token string">"image"</span><span class="token punctuation">).</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
       </div>
+      <iframe src="https://huggingface.co/gradioiframe/abidlabs/Webcam-background-remover/+" frameborder="0" class="w-full" style="height: 32rem"></iframe>
     </div>
   </div>
   <section class="w-full py-8 mb-12 bg-gradient-to-tr from-gray-50 to-gray-200 shadow-inner">
