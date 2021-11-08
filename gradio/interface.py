@@ -139,7 +139,7 @@ class Interface:
         self.capture_session = capture_session
         self.session = None
         self.server_name = server_name
-        self.title = title
+        self.title = "Test " + title
         self.description = description
         if article is not None:
             article = utils.readme_to_html(article)
