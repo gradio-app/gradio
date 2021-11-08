@@ -23,11 +23,11 @@ class ImagePreprocessing(unittest.TestCase):
             "test/test_data/test_image.png")
         self.assertEquals(output_base64, gr.test_data.BASE64_IMAGE)
 
-    # def test_encode_url_to_base64(self):
-    #     output_base64 = gr.processing_utils.encode_url_to_base64(
-    #         "https://raw.githubusercontent.com/gradio-app/gradio/master/test"
-    #         "/test_data/test_image.png")
-    #     self.assertEqual(output_base64, gr.test_data.BASE64_IMAGE)
+    def test_encode_url_to_base64(self):
+        output_base64 = gr.processing_utils.encode_url_to_base64(
+            "https://raw.githubusercontent.com/gradio-app/gradio/master/test"
+            "/test_data/test_image.png")
+        self.assertEqual(output_base64, gr.test_data.BASE64_IMAGE)
 
     # def test_encode_plot_to_base64(self):  # Commented out because this is throwing errors on Windows. Possibly due to different matplotlib behavior on Windows?
     #     plt.plot([1, 2, 3, 4])
