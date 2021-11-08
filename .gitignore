@@ -31,6 +31,7 @@ demo/tmp.zip
 demo/flagged
 test.txt
 build/
+flagged/
 gradio/launches.json
 gradio/templates/frontend/static
 workspace.code-workspace
