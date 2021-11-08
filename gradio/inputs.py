@@ -115,7 +115,7 @@ class Textbox(InputComponent):
             self.test_input = {
                 "str": "the quick brown fox jumped over the lazy dog",
                 "number": 786.92,
-            }[type]
+            }.get(type)
         else:
             self.test_input = default
         self.interpret_by_tokens = True
@@ -292,7 +292,7 @@ class Number(InputComponent):
         return interpretation
 
     def generate_sample(self):
-        return 1
+        return 1.0
 
 
 class Slider(InputComponent):
@@ -933,7 +933,7 @@ class Video(InputComponent):
         raise NotImplementedError()
 
     def preprocess_example(self, x):
-        return processing_utils.encode_file_to_base64(x)
+        return processing_utils.encode_file_to_base64(x, type="video")
 
     def save_flagged(self, dir, label, data, encryption_key):
         """
