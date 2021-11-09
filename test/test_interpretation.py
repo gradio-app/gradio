@@ -6,7 +6,7 @@ from gradio import Interface
 import numpy as np
 import os
 
-os.environ["GRADIO_ANALYTICS_ENABLED"] = ""  # Disables analytics
+os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 class TestDefault(unittest.TestCase):
     def test_default_text(self):

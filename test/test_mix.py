@@ -4,7 +4,7 @@ from gradio import mix
 import os
 
 
-os.environ["GRADIO_ANALYTICS_ENABLED"] = ""  # Disables analytics
+os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
 class TestSeries(unittest.TestCase):
