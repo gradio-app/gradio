@@ -1,6 +1,11 @@
 import unittest
 import gradio as gr
 from gradio import mix
+import os
+
+
+os.environ["GRADIO_ANALYTICS_ENABLED"] = ""  # Disables analytics
+
 
 class TestSeries(unittest.TestCase):
     def test_in_interface(self):

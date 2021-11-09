@@ -72,7 +72,7 @@ class Interface:
                  title=None, description=None, article=None, thumbnail=None,
                  css=None, server_port=None, server_name=networking.LOCALHOST_NAME, height=500, width=900,
                  allow_screenshot=True, allow_flagging=True, flagging_options=None, encrypt=False,
-                 show_tips=False, flagging_dir="flagged", analytics_enabled=True, enable_queue=False, api_mode=False):
+                 show_tips=False, flagging_dir="flagged", analytics_enabled=None, enable_queue=False, api_mode=False):
         """
         Parameters:
         fn (Callable): the function to wrap an interface around.
@@ -139,7 +139,7 @@ class Interface:
         self.capture_session = capture_session
         self.session = None
         self.server_name = server_name
-        self.title = "Test " + title
+        self.title = title
         self.description = description
         if article is not None:
             article = utils.readme_to_html(article)
@@ -171,12 +171,20 @@ class Interface:
         self.server_port = server_port
         self.simple_server = None
         self.allow_screenshot = allow_screenshot
-        self.allow_flagging = os.getenv("GRADIO_FLAGGING") or allow_flagging
+        # If parameter is provided, use that; otherwise, environmet variable; otherwise, True
+        if allow_flagging is None:
+            self.allow_flagging = bool(os.getenv("GRADIO_FLAGGING") or True)
+        else:
+            self.allow_flagging = allow_flagging
         self.flagging_options = flagging_options
         self.flagging_dir = flagging_dir
         self.encrypt = encrypt
         Interface.instances.add(self)
-        self.analytics_enabled = analytics_enabled
+        # If parameter is provided, use that; otherwise, environmet variable; otherwise, True
+        if analytics_enabled is None:
+            self.analytics_enabled = bool(os.getenv("GRADIO_ANALYTICS") or True)
+        else: 
+            self.analytics_enabled = analytics_enabled
         self.save_to = None
         self.share = None
         self.share_url = None
