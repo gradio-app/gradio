@@ -137,6 +137,26 @@ class TestInterface(unittest.TestCase):
             interface = Interface(lambda x: x, "textbox", "label")
             interface.launch(inbrowser=True)
         
+    def test_examples_list(self):
+        examples = ['test1', 'test2']
+        interface = Interface(lambda x: x, "textbox", "label", examples=examples)
+        interface.launch(prevent_thread_lock=True)
+        self.assertEqual(len(interface.examples), 2)
+        self.assertEqual(len(interface.examples[0]), 1)
+        
+    
+    @mock.patch('gradio.interface.JSON_PATH', JSON_PATH + 'test')
+    def test_launch_counter_json_not_exists(self):
+        interface = Interface(lambda x: x, "textbox", "label")
+        if os.path.exists(JSON_PATH + 'test'):
+            os.remove(JSON_PATH + 'test')
+        interface.launch(prevent_thread_lock=True)
+        interface.launch(prevent_thread_lock=True)
+        with open(JSON_PATH + 'test') as f:
+            data = json.load(f)
+            self.assertEqual(data['launches'], 2)
+        os.remove(JSON_PATH + 'test')
+            
     # example attribute of Interface can be a list or string. When it is a string, it is a filepath.
     # The content of this filepath will determine the examples. Do we have any sample of this example file?
     # This will help writing a test for lines 297 to 313 of interface.py. We need the log.csv example file 
