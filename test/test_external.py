@@ -153,7 +153,7 @@ class TestLoadInterface(unittest.TestCase):
     def test_image_classification_model(self):
         interface_info = gr.external.load_interface("models/google/vit-base-patch16-224")
         io = gr.Interface(**interface_info)
-        output = io("test/images/lion.jpg")
+        output = io("test/test_data/lion.jpg")
         self.assertGreater(output['lion'], 0.5)
 
     def test_translation_model(self):
@@ -175,7 +175,7 @@ class TestLoadInterface(unittest.TestCase):
 
         interface_info = gr.external.load_interface("spaces/abidlabs/image-identity")
         io = gr.Interface(**interface_info)
-        output = io("test/images/lion.jpg")
+        output = io("test/test_data/lion.jpg")
         assertIsFile(output)
 
 if __name__ == '__main__':
