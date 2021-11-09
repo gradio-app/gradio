@@ -362,10 +362,11 @@
     var len_outputs = {{ len_outputs }};
 
     var url = window.location.href;
-    $('#api_url').html(url.concat("predict/"));
-    $('#py_syntax_url').html(url.concat("predict/"));
-    $('#curl_syntax_url').html(url.concat("predict/"));
-    $('#js_syntax_url').html(url.concat("predict/"));
+    var api_url = new URL('/predict', url).href
+    $('#api_url').html(api_url);
+    $('#py_syntax_url').html(api_url);
+    $('#curl_syntax_url').html(api_url);
+    $('#js_syntax_url').html(api_url);
 
     $('#stripped_url').html(url.replace(/(^\w+:|^)\/\//, '').slice(0, -5));
 
