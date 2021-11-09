@@ -57,10 +57,10 @@ class TestTextbox(unittest.TestCase):
         self.assertIsInstance(text_input.generate_sample(), str)
 
     def test_in_interface(self):
-        iface = gr.Interface(lambda x: x[::-1], "textbox", "textbox", analytics_enabled=False)
+        iface = gr.Interface(lambda x: x[::-1], "textbox", "textbox")
         self.assertEqual(iface.process(["Hello"])[0], ["olleH"])
         iface = gr.Interface(lambda sentence: max([len(word) for word in sentence.split()]), gr.inputs.Textbox(),
-                             gr.outputs.Textbox(), interpretation="default", analytics_enabled=False)
+                             gr.outputs.Textbox(), interpretation="default")
         scores, alternative_outputs = iface.interpret(["Return the length of the longest word in this sentence"])
         self.assertEqual(scores, [[('Return', 0.0), (' ', 0), ('the', 0.0), (' ', 0), ('length', 0.0), (' ', 0),
                                    ('of', 0.0), (' ', 0), ('the', 0.0), (' ', 0), ('longest', 0.0), (' ', 0),
@@ -87,9 +87,9 @@ class TestNumber(unittest.TestCase):
         self.assertEqual(numeric_input.get_interpretation_neighbors(1), ([0.97, 0.98, 0.99, 1.01, 1.02, 1.03], {}))
 
     def test_in_interface(self):
-        iface = gr.Interface(lambda x: x**2, "number", "textbox", analytics_enabled=False)
+        iface = gr.Interface(lambda x: x**2, "number", "textbox")
         self.assertEqual(iface.process([2])[0], ['4.0'])
-        iface = gr.Interface(lambda x: x**2, "number", "textbox", interpretation="default", analytics_enabled=False)
+        iface = gr.Interface(lambda x: x**2, "number", "textbox", interpretation="default")
         scores, alternative_outputs = iface.interpret([2])
         self.assertEqual(scores, [[(1.94, -0.23640000000000017), (1.96, -0.15840000000000032),
                                     (1.98, -0.07960000000000012), [2, None], (2.02, 0.08040000000000003),
@@ -122,9 +122,9 @@ class TestSlider(unittest.TestCase):
         })
 
     def test_in_interface(self):
-        iface = gr.Interface(lambda x: x**2, "slider", "textbox", analytics_enabled=False)
+        iface = gr.Interface(lambda x: x**2, "slider", "textbox")
         self.assertEqual(iface.process([2])[0], ['4'])
-        iface = gr.Interface(lambda x: x**2, "slider", "textbox", interpretation="default", analytics_enabled=False)
+        iface = gr.Interface(lambda x: x**2, "slider", "textbox", interpretation="default")
         scores, alternative_outputs = iface.interpret([2])
         self.assertEqual(scores, [[-4.0, 200.08163265306123, 812.3265306122449, 1832.7346938775513, 3261.3061224489797,
                                    5098.040816326531, 7342.938775510205, 9996.0]])

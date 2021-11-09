@@ -19,7 +19,7 @@ TIMEOUT = 10
 
 GAP_TO_SCREENSHOT = 2
 
-os.environ["GRADIO_ANALYTICS_ENABLED"] = ""  # Disables analytics
+os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
 def wait_for_url(url):
