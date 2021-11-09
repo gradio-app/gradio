@@ -1,10 +1,14 @@
 import unittest
 import pathlib
 import gradio as gr
+import os
 
 """
 WARNING: These tests have an external dependency: namely that Hugging Face's Hub and Space APIs do not change, and they keep their most famous models up. So if, e.g. Spaces is down, then these test will not pass.
 """
+
+os.environ["GRADIO_ANALYTICS_ENABLED"] = ""  # Disables analytics
+
 
 class TestHuggingFaceModelAPI(unittest.TestCase):
     def test_question_answering(self):
@@ -146,25 +150,25 @@ class TestLoadInterface(unittest.TestCase):
 
     def test_sentiment_model(self):
         interface_info = gr.external.load_interface("models/distilbert-base-uncased-finetuned-sst-2-english", alias="sentiment_classifier")
-        io = gr.Interface(**interface_info)
+        io = gr.Interface(**interface_info, analytics_enabled=False)
         output = io("I am happy, I love you.")
         self.assertGreater(output['Positive'], 0.5)
 
     def test_image_classification_model(self):
         interface_info = gr.external.load_interface("models/google/vit-base-patch16-224")
-        io = gr.Interface(**interface_info)
+        io = gr.Interface(**interface_info, analytics_enabled=False)
         output = io("test/test_data/lion.jpg")
         self.assertGreater(output['lion'], 0.5)
 
     def test_translation_model(self):
         interface_info = gr.external.load_interface("models/t5-base")
-        io = gr.Interface(**interface_info)
+        io = gr.Interface(**interface_info, analytics_enabled=False)
         output = io("My name is Sarah and I live in London")
         self.assertEquals(output, 'Mein Name ist Sarah und ich lebe in London')
 
     def test_numerical_to_label_space(self):
         interface_info = gr.external.load_interface("spaces/abidlabs/titanic-survival")
-        io = gr.Interface(**interface_info)
+        io = gr.Interface(**interface_info, analytics_enabled=False)
         output = io("male", 77, 10)
         self.assertLess(output['Survives'], 0.5)
 
@@ -174,7 +178,7 @@ class TestLoadInterface(unittest.TestCase):
                 raise AssertionError("File does not exist: %s" % str(path))
 
         interface_info = gr.external.load_interface("spaces/abidlabs/image-identity")
-        io = gr.Interface(**interface_info)
+        io = gr.Interface(**interface_info, analytics_enabled=False)
         output = io("test/test_data/lion.jpg")
         assertIsFile(output)
 

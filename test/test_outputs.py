@@ -4,6 +4,10 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import tempfile
+import os
+
+
+os.environ["GRADIO_ANALYTICS_ENABLED"] = ""  # Disables analytics
 
 
 class OutputComponent(unittest.TestCase):
