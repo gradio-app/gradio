@@ -8,7 +8,7 @@ import os
 import tempfile
 
 
-os.environ["GRADIO_ANALYTICS_ENABLED"] = ""  # Disables analytics
+os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
 class ImagePreprocessing(unittest.TestCase):

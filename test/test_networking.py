@@ -10,7 +10,7 @@ from unittest.mock import ANY
 import urllib.request
 import os
 
-os.environ["GRADIO_ANALYTICS_ENABLED"] = "True"  # Enables analytics
+os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
 class TestUser(unittest.TestCase):
@@ -59,7 +59,7 @@ class TestPort(unittest.TestCase):
 
 class TestFlaskRoutes(unittest.TestCase):
     def setUp(self) -> None:
-        self.io = gr.Interface(lambda x: x, "text", "text", analytics_enabled=False) 
+        self.io = gr.Interface(lambda x: x, "text", "text") 
         self.app, _, _ = self.io.launch(prevent_thread_lock=True)
         self.client = self.app.test_client()
 
@@ -106,7 +106,7 @@ class TestFlaskRoutes(unittest.TestCase):
 
 class TestAuthenticatedFlaskRoutes(unittest.TestCase):
     def setUp(self) -> None:
-        self.io = gr.Interface(lambda x: x, "text", "text", analytics_enabled=False) 
+        self.io = gr.Interface(lambda x: x, "text", "text") 
         self.app, _, _ = self.io.launch(auth=("test", "correct_password"), prevent_thread_lock=True)
         self.client = self.app.test_client()
 
@@ -126,7 +126,7 @@ class TestAuthenticatedFlaskRoutes(unittest.TestCase):
 
 class TestInterfaceCustomParameters(unittest.TestCase):
     def test_show_error(self):
-        io = gr.Interface(lambda x: 1/x, "number", "number", analytics_enabled=False)
+        io = gr.Interface(lambda x: 1/x, "number", "number")
         app, _, _ = io.launch(show_error=True, prevent_thread_lock=True)
         client = app.test_client()
         response = client.post('/api/predict/', json={"data": [0]})
@@ -136,13 +136,13 @@ class TestInterfaceCustomParameters(unittest.TestCase):
 
     def test_feature_logging(self):
         with mock.patch('requests.post') as mock_post:
-            io = gr.Interface(lambda x: 1/x, "number", "number")
+            io = gr.Interface(lambda x: 1/x, "number", "number", analytics_enabled=True)
             io.launch(show_error=True, prevent_thread_lock=True)
             networking.log_feature_analytics("test_feature")
             mock_post.assert_called_with(networking.GRADIO_FEATURE_ANALYTICS_URL, data=ANY, timeout=ANY)
         io.close()
 
-        io = gr.Interface(lambda x: 1/x, "number", "number", analytics_enabled=False)
+        io = gr.Interface(lambda x: 1/x, "number", "number")
         print(io.analytics_enabled)
         io.launch(show_error=True, prevent_thread_lock=True)
         with mock.patch('requests.post') as mock_post:
@@ -152,7 +152,7 @@ class TestInterfaceCustomParameters(unittest.TestCase):
 
 class TestFlagging(unittest.TestCase):
     def test_num_rows_written(self):
-        io = gr.Interface(lambda x: x, "text", "text", analytics_enabled=False)
+        io = gr.Interface(lambda x: x, "text", "text")
         io.launch(prevent_thread_lock=True)
         with tempfile.TemporaryDirectory() as tmpdirname:
             row_count = networking.flag_data(["test"], ["test"], flag_path=tmpdirname)
@@ -164,7 +164,7 @@ class TestFlagging(unittest.TestCase):
     @mock.patch("requests.post")
     @mock.patch("gradio.networking.flag_data")
     def test_flagging_analytics(self, mock_flag, mock_post):
-        io = gr.Interface(lambda x: x, "text", "text")
+        io = gr.Interface(lambda x: x, "text", "text", analytics_enabled=True)
         app, _, _ = io.launch(show_error=True, prevent_thread_lock=True)
         client = app.test_client()
         response = client.post('/api/flag/', json={"data": {"input_data": ["test"], "output_data": ["test"]}})
@@ -176,7 +176,7 @@ class TestFlagging(unittest.TestCase):
 @mock.patch("requests.post")
 class TestInterpretation(unittest.TestCase):
     def test_interpretation(self, mock_post):
-        io = gr.Interface(lambda x: len(x), "text", "label", interpretation="default")
+        io = gr.Interface(lambda x: len(x), "text", "label", interpretation="default", analytics_enabled=True)
         app, _, _ = io.launch(prevent_thread_lock=True)
         client = app.test_client()
         io.interpret = mock.MagicMock(return_value=(None, None))
@@ -187,13 +187,13 @@ class TestInterpretation(unittest.TestCase):
 
 class TestState(unittest.TestCase):
     def test_state_initialization(self):
-        io = gr.Interface(lambda x: len(x), "text", "label", analytics_enabled=False)
+        io = gr.Interface(lambda x: len(x), "text", "label")
         app, _, _ = io.launch(prevent_thread_lock=True)
         with app.test_request_context():
             self.assertIsNone(networking.get_state())
 
     def test_state_value(self):
-        io = gr.Interface(lambda x: len(x), "text", "label", analytics_enabled=False)
+        io = gr.Interface(lambda x: len(x), "text", "label")
         io.launch(prevent_thread_lock=True)
         app, _, _ = io.launch(prevent_thread_lock=True)
         with app.test_request_context():
@@ -220,7 +220,7 @@ class TestURLs(unittest.TestCase):
 
 class TestQueuing(unittest.TestCase):
     def test_queueing(self):
-        io = gr.Interface(lambda x: x, "text", "text", analytics_enabled=False) 
+        io = gr.Interface(lambda x: x, "text", "text") 
         app, _, _ = io.launch(prevent_thread_lock=True)
         client = app.test_client()
         # mock queue methods and post method
