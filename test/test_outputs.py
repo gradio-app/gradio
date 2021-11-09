@@ -3,7 +3,7 @@ import gradio as gr
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import shutil
+import tempfile
 
 
 class OutputComponent(unittest.TestCase):
@@ -34,13 +34,14 @@ class TestLabel(unittest.TestCase):
         self.assertDictEqual(label, {"label": "happy"})
         self.assertEqual(label_output.deserialize(y), y)
         self.assertEqual(label_output.deserialize(label), y)
-        to_save = label_output.save_flagged("flagged", "label_output", label, None)
-        self.assertEqual(to_save, y)
-        y = {
-            3: 0.7,
-            1: 0.2,
-            0: 0.1
-        }
+        with tempfile.TemporaryDirectory() as tmpdir:
+            to_save = label_output.save_flagged(tmpdir, "label_output", label, None)
+            self.assertEqual(to_save, y)
+            y = {
+                3: 0.7,
+                1: 0.2,
+                0: 0.1
+            }
         label_output = gr.outputs.Label()
         label = label_output.postprocess(y)
         self.assertDictEqual(label, {
@@ -63,9 +64,10 @@ class TestLabel(unittest.TestCase):
         with self.assertRaises(ValueError):
             label_output.postprocess([1, 2, 3])
 
-        to_save = label_output.save_flagged("flagged", "label_output", label, None)
-        self.assertEqual(to_save, '{"3": 0.7, "1": 0.2}')
-        self.assertEqual(label_output.restore_flagged(to_save), {"3": 0.7, "1": 0.2})
+        with tempfile.TemporaryDirectory() as tmpdir:
+            to_save = label_output.save_flagged(tmpdir, "label_output", label, None)
+            self.assertEqual(to_save, '{"3": 0.7, "1": 0.2}')
+            self.assertEqual(label_output.restore_flagged(to_save), {"3": 0.7, "1": 0.2})
         with self.assertRaises(ValueError):
             label_output = gr.outputs.Label(type="unknown")
             label_output.deserialize([1, 2, 3])
@@ -113,11 +115,11 @@ class TestImage(unittest.TestCase):
             image_output.postprocess([1, 2, 3])
         image_output = gr.outputs.Image(type="numpy")
         self.assertTrue(image_output.postprocess(y_img).startswith("data:image/png;base64,"))
-        to_save = image_output.save_flagged("flagged", "image_output", gr.test_data.BASE64_IMAGE, None)
-        self.assertEqual("image_output/0.png", to_save)
-        to_save = image_output.save_flagged("flagged", "image_output", gr.test_data.BASE64_IMAGE, None)
-        self.assertEqual("image_output/1.png", to_save)
-        shutil.rmtree('flagged')
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            to_save = image_output.save_flagged(tmpdirname, "image_output", gr.test_data.BASE64_IMAGE, None)
+            self.assertEqual("image_output/0.png", to_save)
+            to_save = image_output.save_flagged(tmpdirname, "image_output", gr.test_data.BASE64_IMAGE, None)
+            self.assertEqual("image_output/1.png", to_save)
 
     def test_in_interface(self):
         def generate_noise(width, height):
@@ -133,11 +135,11 @@ class TestVideo(unittest.TestCase):
         video_output = gr.outputs.Video()
         self.assertTrue(video_output.postprocess(y_vid)["data"].startswith("data:video/mp4;base64,"))
         self.assertTrue(video_output.deserialize(gr.test_data.BASE64_VIDEO["data"]).endswith(".mp4"))
-        to_save = video_output.save_flagged("flagged", "video_output", gr.test_data.BASE64_VIDEO, None)
-        self.assertEqual("video_output/0.mp4", to_save)
-        to_save = video_output.save_flagged("flagged", "video_output", gr.test_data.BASE64_VIDEO, None)
-        self.assertEqual("video_output/1.mp4", to_save)
-        shutil.rmtree('flagged')
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            to_save = video_output.save_flagged(tmpdirname, "video_output", gr.test_data.BASE64_VIDEO, None)
+            self.assertEqual("video_output/0.mp4", to_save)
+            to_save = video_output.save_flagged(tmpdirname, "video_output", gr.test_data.BASE64_VIDEO, None)
+            self.assertEqual("video_output/1.mp4", to_save)
 
 
 class TestKeyValues(unittest.TestCase):
@@ -149,9 +151,10 @@ class TestKeyValues(unittest.TestCase):
         self.assertEqual(kv_output.postprocess(kv_list), kv_list)
         with self.assertRaises(ValueError):
             kv_output.postprocess(0)
-        to_save = kv_output.save_flagged("flagged", "kv_output", kv_list, None)
-        self.assertEqual(to_save, '[["a", 1], ["b", 2]]')
-        self.assertEqual(kv_output.restore_flagged(to_save), [["a", 1], ["b", 2]])
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            to_save = kv_output.save_flagged(tmpdirname, "kv_output", kv_list, None)
+            self.assertEqual(to_save, '[["a", 1], ["b", 2]]')
+            self.assertEqual(kv_output.restore_flagged(to_save), [["a", 1], ["b", 2]])
 
     def test_in_interface(self):
         def letter_distribution(word):
@@ -177,9 +180,10 @@ class TestHighlightedText(unittest.TestCase):
             "pos": "Hello ",
             "neg": "World"
         }
-        to_save = ht_output.save_flagged("flagged", "ht_output", ht, None)
-        self.assertEqual(to_save, '{"pos": "Hello ", "neg": "World"}')
-        self.assertEqual(ht_output.restore_flagged(to_save), {"pos": "Hello ", "neg": "World"})
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            to_save = ht_output.save_flagged(tmpdirname, "ht_output", ht, None)
+            self.assertEqual(to_save, '{"pos": "Hello ", "neg": "World"}')
+            self.assertEqual(ht_output.restore_flagged(to_save), {"pos": "Hello ", "neg": "World"})
 
     def test_in_interface(self):
         def highlight_vowels(sentence):
@@ -215,11 +219,11 @@ class TestAudio(unittest.TestCase):
             wrong_type = gr.outputs.Audio(type="unknown")
             wrong_type.postprocess(y_audio.name)
         self.assertTrue(audio_output.deserialize(gr.test_data.BASE64_AUDIO["data"]).endswith(".wav"))
-        to_save = audio_output.save_flagged("flagged", "audio_output", gr.test_data.BASE64_AUDIO["data"], None)
-        self.assertEqual("audio_output/0.wav", to_save)
-        to_save = audio_output.save_flagged("flagged", "audio_output", gr.test_data.BASE64_AUDIO["data"], None)
-        self.assertEqual("audio_output/1.wav", to_save)
-        shutil.rmtree('flagged')
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            to_save = audio_output.save_flagged(tmpdirname, "audio_output", gr.test_data.BASE64_AUDIO["data"], None)
+            self.assertEqual("audio_output/0.wav", to_save)
+            to_save = audio_output.save_flagged(tmpdirname, "audio_output", gr.test_data.BASE64_AUDIO["data"], None)
+            self.assertEqual("audio_output/1.wav", to_save)
 
     def test_in_interface(self):
         def generate_noise(duration):
@@ -237,9 +241,10 @@ class TestJSON(unittest.TestCase):
             "pos": "Hello ",
             "neg": "World"
         }
-        to_save = js_output.save_flagged("flagged", "js_output", js, None)
-        self.assertEqual(to_save, '{"pos": "Hello ", "neg": "World"}')
-        self.assertEqual(js_output.restore_flagged(to_save), {"pos": "Hello ", "neg": "World"})
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            to_save = js_output.save_flagged(tmpdirname, "js_output", js, None)
+            self.assertEqual(to_save, '{"pos": "Hello ", "neg": "World"}')
+            self.assertEqual(js_output.restore_flagged(to_save), {"pos": "Hello ", "neg": "World"})
         
     def test_in_interface(self):
         def get_avg_age_per_gender(data):
@@ -286,11 +291,11 @@ class TestFile(unittest.TestCase):
             'name': 'test.txt', 'size': 11, 'data': 'aGVsbG8gd29ybGQ='
         })
         file_output = gr.outputs.File()
-        to_save = file_output.save_flagged("flagged", "file_output", gr.test_data.BASE64_FILE, None)
-        self.assertEqual("file_output/0.pdf", to_save)
-        to_save = file_output.save_flagged("flagged", "file_output", gr.test_data.BASE64_FILE, None)
-        self.assertEqual("file_output/1.pdf", to_save)
-        shutil.rmtree('flagged')
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            to_save = file_output.save_flagged(tmpdirname, "file_output", gr.test_data.BASE64_FILE, None)
+            self.assertEqual("file_output/0.pdf", to_save)
+            to_save = file_output.save_flagged(tmpdirname, "file_output", gr.test_data.BASE64_FILE, None)
+            self.assertEqual("file_output/1.pdf", to_save)
 
 
 class TestDataframe(unittest.TestCase):
@@ -315,9 +320,10 @@ class TestDataframe(unittest.TestCase):
         with self.assertRaises(ValueError):
             wrong_type = gr.outputs.Dataframe(type="unknown")
             wrong_type.postprocess(0)
-        to_save = dataframe_output.save_flagged("flagged", "dataframe_output", output, None)
-        self.assertEqual(to_save,  '[[2, true], [3, true], [4, false]]')
-        self.assertEqual(dataframe_output.restore_flagged(to_save), [[2, True], [3, True], [4, False]])
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            to_save = dataframe_output.save_flagged(tmpdirname, "dataframe_output", output, None)
+            self.assertEqual(to_save,  '[[2, true], [3, true], [4, false]]')
+            self.assertEqual(dataframe_output.restore_flagged(to_save), [[2, True], [3, True], [4, False]])
 
     def test_in_interface(self):
         def check_odd(array):
@@ -349,8 +355,9 @@ class TestCarousel(unittest.TestCase):
         self.assertEqual(output, [['Hello World'], ['Bye World']])
         with self.assertRaises(ValueError):
             carousel_output.postprocess('Hello World!')
-        to_save = carousel_output.save_flagged("flagged", "carousel_output", output, None)
-        self.assertEqual(to_save, '[["Hello World"], ["Bye World"]]')
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            to_save = carousel_output.save_flagged(tmpdirname, "carousel_output", output, None)
+            self.assertEqual(to_save, '[["Hello World"], ["Bye World"]]')
 
     def test_in_interface(self):
         carousel_output = gr.outputs.Carousel(["text", "image"], label="Disease")
@@ -389,12 +396,13 @@ class TestTimeseries(unittest.TestCase):
                                                             'data': [['Tom', 20], ['nick', 21], ['krish', 19],
                                                                      ['jack', 18]]})
 
-        to_save = timeseries_output.save_flagged("flagged", "timeseries_output", output, None)
-        self.assertEqual(to_save, '{"headers": ["Name", "Age"], "data": [["Tom", 20], ["nick", 21], ["krish", 19], '
-                                  '["jack", 18]]}')
-        self.assertEqual(timeseries_output.restore_flagged(to_save), {"headers": ["Name", "Age"],
-                                                                      "data": [["Tom", 20], ["nick", 21],
-                                                                               ["krish", 19], ["jack", 18]]})
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            to_save = timeseries_output.save_flagged(tmpdirname, "timeseries_output", output, None)
+            self.assertEqual(to_save, '{"headers": ["Name", "Age"], "data": [["Tom", 20], ["nick", 21], ["krish", 19], '
+                                    '["jack", 18]]}')
+            self.assertEqual(timeseries_output.restore_flagged(to_save), {"headers": ["Name", "Age"],
+                                                                        "data": [["Tom", 20], ["nick", 21],
+                                                                                ["krish", 19], ["jack", 18]]})
 
 
 class TestNames(unittest.TestCase):

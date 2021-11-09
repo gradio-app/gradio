@@ -61,6 +61,7 @@ class Component():
         if "." in old_file_name:
             uploaded_format = old_file_name.split(".")[-1].lower()
             new_file_name +=  "." + uploaded_format
+        file.close()
         shutil.move(old_file_name, os.path.join(dir, label, new_file_name))
         return label + "/" + new_file_name
 
