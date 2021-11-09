@@ -48,7 +48,6 @@ app = Flask(__name__,
             template_folder=STATIC_TEMPLATE_LIB,
             static_folder="",
             static_url_path="/none/")
-# app.url_map.strict_slashes = False            
 CORS(app)
 cache_buster = CacheBuster(
     config={'extensions': ['.js', '.css'], 'hash_size': 5})

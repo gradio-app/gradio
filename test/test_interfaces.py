@@ -2,6 +2,10 @@ from gradio.interface import *
 import unittest
 import unittest.mock as mock
 import requests
+import os
+
+
+os.environ["GRADIO_ANALYTICS_ENABLED"] = ""  # Disables analytics
 
 
 class TestInterface(unittest.TestCase):
