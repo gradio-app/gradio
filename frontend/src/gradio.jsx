@@ -41,11 +41,7 @@ export class GradioPage extends React.Component {
           </div>
           <div className="footer">
             <a 
-<<<<<<< HEAD
             href="api" 
-=======
-            href="/api" 
->>>>>>> c3e3957cd3451a6562377bc2c3c6ad9cc6d4a9cd
             target="_blank" 
             className="footer" 
             rel="noreferrer">
