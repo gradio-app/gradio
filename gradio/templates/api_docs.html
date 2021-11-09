@@ -234,7 +234,7 @@
       </div>
     </a>
     <nav>
-      <a href="/"><span>Go To Interface</span></a>
+      <a id="go-to-interface-url" href="/"><span>Go To Interface</span></a>
     </nav>
   </header>
 
@@ -362,13 +362,21 @@
     var len_outputs = {{ len_outputs }};
 
     var url = window.location.href;
-    var api_url = new URL('/predict', url).href
+    const stripTrailingSlash = (str) => {
+    return str.endsWith('/') ?
+        str.slice(0, -1) :
+        str;
+    };
+    url = stripTrailingSlash(url);
+    var api_url = url + '/predict'
+    var interface_url = url.replace(/(api$)/, '')
     $('#api_url').html(api_url);
     $('#py_syntax_url').html(api_url);
     $('#curl_syntax_url').html(api_url);
     $('#js_syntax_url').html(api_url);
 
-    $('#stripped_url').html(url.replace(/(^\w+:|^)\/\//, '').slice(0, -5));
+    $('#stripped_url').html(interface_url);
+    $('#go-to-interface-url').attr('href', interface_url);
 
     function copyToClipboard(element) {
       var $temp = $("<input>");
@@ -385,7 +393,7 @@
     function postRequest() {
       var sample_inputs = {{ sample_inputs|tojson }}
       let data = { "data": sample_inputs };
-      fetch(url + 'predict/', {
+      fetch(api_url, {
         method: "POST",
         body: JSON.stringify(data),
         headers: { "Content-Type": "application/json" }
