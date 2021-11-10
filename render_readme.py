@@ -1,27 +1,43 @@
 import re
-import os
-from string import Template
+from os.path import join, exists, getmtime
+from jinja2 import Environment, BaseLoader, TemplateNotFound
 
-with open("readme_template.md") as readme_file:
-    readme = readme_file.read()
+README_TEMPLATE = "readme_template.md"
+GETTING_STARTED_TEMPLATE = "getting_started.md"
 
-codes = re.findall(r'\$code_([^\s]*)', readme)
-demos = re.findall(r'\$demo_([^\s]*)', readme)
-template_dict = {}
+with open(join("guides", GETTING_STARTED_TEMPLATE)) as getting_started_file:
+    getting_started = getting_started_file.read()
 
-for code_src in codes:
-    with open(os.path.join("demo", code_src + ".py")) as code_file:
+code_tags = re.findall(r'\{\{ code\["([^\s]*)"\] \}\}', getting_started)
+demo_tags = re.findall(r'\{\{ demos\["([^\s]*)"\] \}\}', getting_started)
+code, demos = {}, {}
+
+for code_src in code_tags:
+    with open(join("demo", code_src + ".py")) as code_file:
         python_code = code_file.read()
         python_code = python_code.replace('if __name__ == "__main__":\n    iface.launch()', "iface.launch()")
         if python_code.startswith("# Demo"):
             python_code = "\n".join(python_code.split("\n")[2:])
-        template_dict["code_" + code_src] = "```python\n" + python_code + "\n```"
+        code[code_src] = "```python\n" + python_code + "\n```"
 
-for demo_src in demos:
-    template_dict["demo_" + demo_src] = "![" + demo_src + " interface](demo/screenshots/" + demo_src + "/1.gif)"
+for demo_src in demo_tags:
+    demos[demo_src] = "![" + demo_src + " interface](demo/screenshots/" + demo_src + "/1.gif)"
 
-readme_template = Template(readme)
-output_readme = readme_template.substitute(template_dict)
+class GuidesLoader(BaseLoader):
+    def __init__(self, path):
+        self.path = path
+
+    def get_source(self, environment, template):
+        path = join(self.path, template)
+        if not exists(path):
+            raise TemplateNotFound(template)
+        mtime = getmtime(path)
+        with open(path) as f:
+            source = f.read()
+        return source, path, lambda: mtime == getmtime(path)
+
+readme_template = Environment(loader=GuidesLoader("guides")).get_template(README_TEMPLATE)
+output_readme = readme_template.render(code=code, demos=demos)
 
 with open("README.md", "w") as readme_md:
     readme_md.write(output_readme)

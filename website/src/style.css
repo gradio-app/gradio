@@ -10,35 +10,14 @@
 }
 
 /* index.html */
+.preloaded-star-count {
+    @apply text-gray-400;
+}
 .demotab.selected {
     @apply border border-b-0 rounded-t-lg font-semibold;
 }
 .demotab:not(.selected) {
     @apply border-b;
-}
-.twitter-card {
-    @apply border border-gray-300 bg-white rounded p-4 text-sm;
-}
-.twitter-header {
-    @apply flex justify-between;
-}
-.twitter-profile {
-    @apply flex items-center gap-2;
-}
-.twitter-profile img {
-    @apply h-10 w-10 rounded-full;    
-}
-.twitter-handle {
-    @apply text-gray-500;
-}
-.twitter-logo {
-    @apply h-6;
-}
-.twitter-content {
-    @apply my-2;
-}
-.twitter-text {
-    @apply my-2;
 }
 .twitter-text a {
     @apply link;
@@ -49,19 +28,9 @@
 .twitter-text img {
     @apply h-4 inline-block;
 }
-.twitter-reply-card {
-    @apply my-4;
-}
-.twitter-footer {
-    @apply flex items-center gap-2 text-gray-500;
-}
-.twitter-like {
-    @apply hover:text-red-600 flex items-center;
-}
 .twitter-heart {
-    @apply w-4 h-4 bg-contain;
-    background-image: url("static2/img/twitter/heart.svg");
+    background-image: url("assets/img/twitter/heart.svg");
 }
 .twitter-like:hover .twitter-heart {
-    background-image: url("static2/img/twitter/redheart.svg");
+    background-image: url("assets/img/twitter/redheart.svg");
 }

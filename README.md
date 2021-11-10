@@ -14,9 +14,10 @@ Gradio is useful for:
 
 * Debugging your model interactively during development
 
+**You can find an interactive version of the following Getting Started at [https://gradio.app/getting_started](https://gradio.app/getting_started).**
+
 
 ## Getting Started
-You can find an interactive version of this README at [https://gradio.app/getting_started](https://gradio.app/getting_started).
 
 ### Quick Start
 
@@ -330,115 +331,18 @@ Keep in mind, however, that these links are publicly accessible, meaning that an
 
 Share links expire after 72 hours. For permanent hosting, see Hosting on Spaces below.
 
-![Sharing diagram](website/src/static2/img/sharing.svg)
+![Sharing diagram](website/src/assets/img/sharing.svg)
 
 ### Hosting on Spaces
 
 Huggingface provides the infrastructure to permanently host your Gradio model on the internet, for free! You can either drag and drop a folder containing your Gradio model and all related files, or you can point HF Spaces to your Git repository and HP Spaces will pull the Gradio interface from there. See [Huggingface Spaces](http://huggingface.co/spaces/) for more information. 
 
-![Hosting Demo](website/src/static2/img/hf_demo.gif)
+![Hosting Demo](website/src/assets/img/hf_demo.gif)
 
 ### Authentication
 
 You may wish to put an authentication page in front of your interface to limit access. With the `auth=` keyword argument in the `launch()` method, you can pass a list of acceptable username/password tuples; or, for custom authentication handling, pass a function that takes a username and password as arguments, and returns True to allow authentication, False otherwise.
 
-## Advanced Features
-
-### Interpretation
-
-Most models are black boxes such that the internal logic of the function is hidden from the end user. To encourage transparency, we've added the ability for interpretation so that users can understand what parts of the input are responsible for the output. Take a look at the simple interface below:
-
-```python
-import gradio as gr
-import re
-
-male_words, female_words = ["he", "his", "him"], ["she", "her"]
-def gender_of_sentence(sentence):
-  male_count = len([word for word in sentence.split() if word.lower() in male_words])
-  female_count = len([word for word in sentence.split() if word.lower() in female_words])
-  total = max(male_count + female_count, 1)
-  return {"male": male_count / total, "female": female_count / total}
-
-iface = gr.Interface(
-  fn=gender_of_sentence, inputs=gr.inputs.Textbox(default="She went to his house to get her keys."),
-  outputs="label", interpretation="default")
-iface.launch()
-
-```
-![gender_sentence_default_interpretation interface](demo/screenshots/gender_sentence_default_interpretation/1.gif)
-
-Notice the  `interpretation`  keyword argument. We're going to use Gradio's default interpreter here. After you submit and click Interpret, you'll see the interface automatically highlights the parts of the text that contributed to the final output orange! The parts that conflict with the output are highlight blue.
-
-You can also write your own interpretation function. The demo below adds custom interpretation to the previous demo. This function will take the same inputs as the main wrapped function. The output of this interpretation function will be used to highlight the input of each input interface - therefore the number of outputs here corresponds to the number of input interfaces. To see the format for interpretation for each input interface, check the [Docs](https://gradio.app/docs).
-
-```python
-import gradio as gr
-import re
-
-male_words, female_words = ["he", "his", "him"], ["she", "her"]
-def gender_of_sentence(sentence):
-  male_count = len([word for word in sentence.split() if word.lower() in male_words])
-  female_count = len([word for word in sentence.split() if word.lower() in female_words])
-  total = max(male_count + female_count, 1)
-  return {"male": male_count / total, "female": female_count / total}
-
-def interpret_gender(sentence):
-  result = gender_of_sentence(sentence)
-  is_male = result["male"] > result["female"]
-  interpretation = []
-  for word in re.split('( )', sentence):
-    score = 0
-    token = word.lower()
-    if (is_male and token in male_words) or (not is_male and token in female_words):
-      score = 1
-    elif (is_male and token in female_words) or (not is_male and token in male_words):
-      score = -1
-    interpretation.append((word, score))
-  return interpretation
-
-iface = gr.Interface(
-  fn=gender_of_sentence, inputs=gr.inputs.Textbox(default="She went to his house to get her keys."),
-  outputs="label", interpretation=interpret_gender, enable_queue=True)
-iface.launch()
-```
-![gender_sentence_custom_interpretation interface](demo/screenshots/gender_sentence_custom_interpretation/1.gif)
-
-If you use Gradio's default interpretation, the output component must be a label or a number. All input components are supported for default interpretation. Below is an example with image input.
-
-```python
-import gradio as gr
-import tensorflow as tf
-import numpy as np
-import json
-from os.path import dirname, realpath, join
-
-# Load human-readable labels for ImageNet.
-current_dir = dirname(realpath(__file__))
-with open(join(current_dir, "files/imagenet_labels.json")) as labels_file:
-    labels = json.load(labels_file)
-
-mobile_net = tf.keras.applications.MobileNetV2()
-def image_classifier(im):
-    arr = np.expand_dims(im, axis=0)
-    arr = tf.keras.applications.mobilenet.preprocess_input(arr)
-    prediction = mobile_net.predict(arr).flatten()
-    return {labels[i]: float(prediction[i]) for i in range(1000)}
-
-iface = gr.Interface(
-    image_classifier, 
-    gr.inputs.Image(shape=(224, 224)), 
-    gr.outputs.Label(num_top_classes=3),
-    capture_session=True,
-    interpretation="default",
-    examples=[
-        ["images/cheetah1.jpg"],
-        ["images/lion.jpg"]
-    ])
-
-iface.launch()
-
-```
-![image_classifier interface](demo/screenshots/image_classifier/1.gif)
 
 ##  Contributing:
 

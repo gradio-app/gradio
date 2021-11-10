@@ -1123,7 +1123,7 @@ class File(InputComponent):
     """
     Component accepts generic file uploads.
     Input type: Union[file-object, bytes, List[Union[file-object, bytes]]]
-    Demos: zisp_to_json.py, zip_two_files.py
+    Demos: zip_to_json.py, zip_two_files.py
     """
 
     def __init__(self, file_count="single", type="file", label=None, keep_filename=True, optional=False):

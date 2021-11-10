@@ -91,8 +91,8 @@ def generate():
         "return_doc": load_params[3],
     }
     docs = {
-        "inputs": inputs,
-        "outputs": outputs,
+        "input": inputs,
+        "output": outputs,
         "interface": interface,        
         "launch": launch,
         "load": load,
