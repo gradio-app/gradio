@@ -1,3 +1,4 @@
+import tempfile
 from gradio.interface import *
 import unittest
 import unittest.mock as mock
@@ -148,18 +149,15 @@ class TestInterface(unittest.TestCase):
         self.assertEqual(len(interface.examples[0]), 1)
         interface.close()
 
-    '''    
-    @mock.patch('gradio.interface.JSON_PATH', JSON_PATH + 'test')
-    def test_launch_counter_json_not_exists(self):
-        interface = Interface(lambda x: x, "textbox", "label")
-        if os.path.exists(JSON_PATH + 'test'):
-            os.remove(JSON_PATH + 'test')
-        interface.launch(prevent_thread_lock=True)
-        interface.launch(prevent_thread_lock=True)
-        with open(JSON_PATH + 'test') as f:
-            data = json.load(f)
-            self.assertEqual(data['launches'], 2)
-        os.remove(JSON_PATH + 'test')
+    # def test_launch_counter(self):
+    #     with tempfile.TemporaryFile(suffix=".json", mode="r+") as tmp:
+    #         with mock.patch('gradio.interface.JSON_PATH', tmp.name):
+    #             launches = {"launches": 1}
+    #             json.dump(launches, tmp)
+    #             print(">>>>", tmp.name, json.load(tmp.name))
+    #             interface = Interface(lambda x: x, "textbox", "label")
+    #             interface.launch(prevent_thread_lock=True)
+    #             interface.launch(prevent_thread_lock=True)
             
     # example attribute of Interface can be a list or string. When it is a string, it is a filepath.
     # The content of this filepath will determine the examples. Do we have any sample of this example file?
