@@ -42,16 +42,14 @@ export class GradioPage extends React.Component {
           <div className="footer">
             <a 
             href="api" 
-            target="_blank" 
-            className="footer" 
+            target="_blank"
             rel="noreferrer">
             view the api <img className="logo" src="https://i.ibb.co/6DVLqmf/noun-tools-2220412.png" alt="api"/>
           </a> | <a
             href="https://gradio.app"
             target="_blank"
-            className="footer"
             rel="noreferrer"
-          > built with
+          > built with 
             <img className="logo" src={logo} alt="logo" />
           </a>
           </div>

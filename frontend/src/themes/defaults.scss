@@ -23,7 +23,7 @@
         @apply flex-shrink-0 inline-flex gap-1 items-center text-gray-400 dark:text-gray-50 justify-end py-2;
     }
     .logo {
-        @apply h-6;
+        @apply h-6 inline;
     }
 }
 
