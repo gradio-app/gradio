@@ -62,8 +62,10 @@ class Interface:
         (gradio.Interface): a Gradio Interface object for the given model
         """
         interface_info = load_interface(name, src, api_key, alias)
-        interface_info.update(kwargs)
-        return cls(**interface_info)
+         # create a dictionary of kwargs without overwriting the original interface_info dict because it is mutable
+         # and that can cause some issues since the internal prediction function may rely on the original interface_info dict  
+        kwargs = dict(interface_info, **kwargs) 
+        return cls(**kwargs)
 
     def __init__(self, fn, inputs=None, outputs=None, verbose=False, examples=None,
                  examples_per_page=10, live=False,
@@ -322,6 +324,8 @@ class Interface:
                             for i, input_component in enumerate(self.input_components)]
         predictions = []
         durations = []
+        output_component_counter = 0
+
         for predict_fn in self.predict:
             start = time.time()
             if self.capture_session and self.session is not None:
@@ -342,8 +346,11 @@ class Interface:
                 prediction = [prediction]
 
             if self.api_mode:  # Serialize the input
-                prediction = [output_component.deserialize(prediction[o])
-                                for o, output_component in enumerate(self.output_components)]
+                prediction_ = copy.deepcopy(prediction)
+                prediction = []
+                for pred in prediction_:
+                    prediction.append(self.output_components[output_component_counter].deserialize(pred))
+                    output_component_counter += 1
 
             durations.append(duration)
             predictions.extend(prediction)
