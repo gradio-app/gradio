@@ -72,6 +72,7 @@ class TestInterface(unittest.TestCase):
         with self.assertRaises(FileNotFoundError):
             interface = Interface(lambda x: x, "textbox", "label", examples='invalid-path')
             interface.launch()
+            interface.close()
             
     def test_test_launch(self):
         with captured_output() as (out, err):
@@ -102,6 +103,7 @@ class TestInterface(unittest.TestCase):
         interface = Interface(lambda x: x, "textbox", "label")
         _, _, share_url = interface.launch(prevent_thread_lock=True)
         self.assertIsNotNone(share_url)
+        interface.close()
     
     
     @mock.patch('gradio.utils.colab_check')
@@ -112,7 +114,7 @@ class TestInterface(unittest.TestCase):
         interface = Interface(lambda x: x, "textbox", "label")
         _, _, share_url = interface.launch(prevent_thread_lock=True)
         self.assertIsNone(share_url)
-        
+        interface.close()
     
     def test_interface_representation(self):
         prediction_fn = lambda x: x
@@ -127,25 +129,26 @@ class TestInterface(unittest.TestCase):
         self.assertGreater(output['Positive'], 0.5)
         
     def test_interface_none_interp(self):
-            interface = Interface(lambda x: x, "textbox", "label", interpretation=[None])
-            scores, alternative_outputs = interface.interpret(["quickest brown fox"])
-            self.assertIsNone(scores[0])
+        interface = Interface(lambda x: x, "textbox", "label", interpretation=[None])
+        scores, alternative_outputs = interface.interpret(["quickest brown fox"])
+        self.assertIsNone(scores[0])
     
     @mock.patch('webbrowser.open')
     def test_interface_browser(self, mock_browser):
-        with self.assertRaises(ValueError):
-            mock_browser.side_effect = ValueError()
-            interface = Interface(lambda x: x, "textbox", "label")
-            interface.launch(inbrowser=True)
-        
+        interface = Interface(lambda x: x, "textbox", "label")
+        interface.launch(inbrowser=True, prevent_thread_lock=True)
+        mock_browser.assert_called_once()
+        interface.close()
+            
     def test_examples_list(self):
         examples = ['test1', 'test2']
         interface = Interface(lambda x: x, "textbox", "label", examples=examples)
         interface.launch(prevent_thread_lock=True)
         self.assertEqual(len(interface.examples), 2)
         self.assertEqual(len(interface.examples[0]), 1)
-        
-    
+        interface.close()
+
+    '''    
     @mock.patch('gradio.interface.JSON_PATH', JSON_PATH + 'test')
     def test_launch_counter_json_not_exists(self):
         interface = Interface(lambda x: x, "textbox", "label")
