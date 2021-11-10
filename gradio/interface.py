@@ -348,7 +348,7 @@ class Interface:
             if self.api_mode:  # Serialize the input
                 prediction_ = copy.deepcopy(prediction)
                 prediction = []
-                for pred in prediction_:
+                for pred in prediction_:  # Done this way to handle both single interfaces with multiple outputs and Parallel() interfaces
                     prediction.append(self.output_components[output_component_counter].deserialize(pred))
                     output_component_counter += 1
 
