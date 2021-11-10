@@ -4,6 +4,10 @@ import pkg_resources
 import unittest.mock as mock
 import warnings
 import requests
+import os
+
+
+os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
 class TestUtils(unittest.TestCase):

@@ -8,6 +8,9 @@ import warnings
 import tempfile
 from unittest.mock import ANY
 import urllib.request
+import os
+
+os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
 class TestUser(unittest.TestCase):
@@ -132,12 +135,15 @@ class TestInterfaceCustomParameters(unittest.TestCase):
         io.close()
 
     def test_feature_logging(self):
-        io = gr.Interface(lambda x: 1/x, "number", "number")
-        io.launch(show_error=True, prevent_thread_lock=True)
         with mock.patch('requests.post') as mock_post:
+            io = gr.Interface(lambda x: 1/x, "number", "number", analytics_enabled=True)
+            io.launch(show_error=True, prevent_thread_lock=True)
             networking.log_feature_analytics("test_feature")
-            mock_post.assert_called_once_with(networking.GRADIO_FEATURE_ANALYTICS_URL, data=ANY, timeout=ANY)
-        io = gr.Interface(lambda x: 1/x, "number", "number", analytics_enabled=False)
+            mock_post.assert_called_with(networking.GRADIO_FEATURE_ANALYTICS_URL, data=ANY, timeout=ANY)
+        io.close()
+
+        io = gr.Interface(lambda x: 1/x, "number", "number")
+        print(io.analytics_enabled)
         io.launch(show_error=True, prevent_thread_lock=True)
         with mock.patch('requests.post') as mock_post:
             networking.log_feature_analytics("test_feature")
@@ -155,27 +161,27 @@ class TestFlagging(unittest.TestCase):
             self.assertEquals(row_count, 2)  # 3 rows written including header
         io.close()
 
-    def test_flagging_analytics(self):
-        io = gr.Interface(lambda x: x, "text", "text")
+    @mock.patch("requests.post")
+    @mock.patch("gradio.networking.flag_data")
+    def test_flagging_analytics(self, mock_flag, mock_post):
+        io = gr.Interface(lambda x: x, "text", "text", analytics_enabled=True)
         app, _, _ = io.launch(show_error=True, prevent_thread_lock=True)
         client = app.test_client()
-        with mock.patch('requests.post') as mock_post:
-            with mock.patch('gradio.networking.flag_data') as mock_flag:
-                response = client.post('/api/flag/', json={"data": {"input_data": ["test"], "output_data": ["test"]}})
-                mock_post.assert_called_once()
-                mock_flag.assert_called_once()
+        response = client.post('/api/flag/', json={"data": {"input_data": ["test"], "output_data": ["test"]}})
+        mock_post.assert_any_call(networking.GRADIO_FEATURE_ANALYTICS_URL, data=ANY, timeout=ANY)
+        mock_flag.assert_called_once()
         self.assertEqual(response.status_code, 200)
         io.close()
 
+@mock.patch("requests.post")
 class TestInterpretation(unittest.TestCase):
-    def test_interpretation(self):
-        io = gr.Interface(lambda x: len(x), "text", "label", interpretation="default")
+    def test_interpretation(self, mock_post):
+        io = gr.Interface(lambda x: len(x), "text", "label", interpretation="default", analytics_enabled=True)
         app, _, _ = io.launch(prevent_thread_lock=True)
         client = app.test_client()
         io.interpret = mock.MagicMock(return_value=(None, None))
-        with mock.patch('requests.post') as mock_post:
-            response = client.post('/api/interpret/', json={"data": ["test test"]})
-            mock_post.assert_called_once()
+        response = client.post('/api/interpret/', json={"data": ["test test"]})
+        mock_post.assert_any_call(networking.GRADIO_FEATURE_ANALYTICS_URL, data=ANY, timeout=ANY)
         self.assertEqual(response.status_code, 200)
         io.close()
 
