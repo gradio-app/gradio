@@ -8,7 +8,9 @@ from pydub import AudioSegment
 import os
 import tempfile
 import json
-import shutil
+
+
+os.environ["GRADIO_ANALYTICS_ENABLED"] = ""  # Disables analytics
 
 
 class InputComponent(unittest.TestCase):

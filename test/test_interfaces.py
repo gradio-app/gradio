@@ -7,6 +7,8 @@ from contextlib import contextmanager
 import io
 import threading
 
+os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
+
 @contextmanager
 def captured_output():
     new_out, new_err = io.StringIO(), io.StringIO()
@@ -16,7 +18,6 @@ def captured_output():
         yield sys.stdout, sys.stderr
     finally:
         sys.stdout, sys.stderr = old_out, old_err
-
 
 class TestInterface(unittest.TestCase):
     

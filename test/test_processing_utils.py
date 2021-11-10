@@ -7,6 +7,10 @@ import numpy as np
 import os
 import tempfile
 
+
+os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
+
+
 class ImagePreprocessing(unittest.TestCase):
     def test_decode_base64_to_image(self):
         output_image = gr.processing_utils.decode_base64_to_image(

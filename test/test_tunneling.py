@@ -6,6 +6,10 @@ import unittest.mock as mock
 from gradio import tunneling, networking, Interface
 import threading
 import paramiko
+import os
+
+
+os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
 class TestTunneling(unittest.TestCase):
