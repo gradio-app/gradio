@@ -8,6 +8,16 @@
 .thin-link {
     @apply hover:text-blue-500 transition-colors;
 }
+@media (min-width: 640px) { /* for some reason, sm:block not working */
+    .sm\:block {
+        @apply block;
+    }
+}
+@media (min-width: 768px) { /* for some reason, md:block not working */
+    .md\:block {
+        @apply block;
+    }
+}
 
 /* index.html */
 .preloaded-star-count {
@@ -32,7 +42,7 @@
         @apply border-b;
     }    
     .demotab.selected {
-        @apply border-t rounded-t-lg font-semibold;
+        @apply border border-b-0 rounded-t-lg font-semibold;
     }
 }
 .twitter-text a {
@@ -49,11 +59,4 @@
 }
 .twitter-like:hover .twitter-heart {
     background-image: url("assets/img/twitter/redheart.svg");
-}
-
-/* docs.html */
-@media (min-width: 768px) { /* for some reason, sm:block not working */
-    .docs-sidebar {
-        @apply block;
-    }
 }
