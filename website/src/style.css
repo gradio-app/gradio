@@ -8,6 +8,12 @@
 .thin-link {
     @apply hover:text-blue-500 transition-colors;
 }
+.group:hover .group-hover\:flex { /* for some reason, group-hover:flex not working on mobile */
+    display: flex;
+}
+.group:active .group-active\:flex { /* for some reason, group-active:flex not working on mobile */
+    display: flex;
+}
 @media (min-width: 640px) { /* for some reason, sm:block not working */
     .sm\:block {
         @apply block;

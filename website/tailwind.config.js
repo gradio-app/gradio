@@ -22,7 +22,6 @@ module.exports = {
     },
   },
   variants: {
-    display: ["group-hover", "group-focus"],
     extend: {},
   },
   plugins: [require("@tailwindcss/typography")]
