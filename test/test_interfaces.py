@@ -21,7 +21,6 @@ def captured_output():
         sys.stdout, sys.stderr = old_out, old_err
 
 class TestInterface(unittest.TestCase):
-    
     # send_error_analytics should probably actually be a method of Interface
     # (so it doesn't have to take the 'enabled' argument)
     # and since it's specific to the launch method, it should probably be
@@ -68,11 +67,20 @@ class TestInterface(unittest.TestCase):
     def test_examples_invalid_input(self):
         with self.assertRaises(ValueError):
             Interface(lambda x: x, examples=1234)
+            
+    def test_examples_valid_path(self):
+        path = os.path.join(os.path.dirname(__file__), 'test_data/flagged_with_log')
+        interface = Interface(lambda x: 3 * x, "number", "number", examples=path)
+        self.assertEqual(len(interface.get_config_file()['examples']), 2)
+        
+        path = os.path.join(os.path.dirname(__file__), 'test_data/flagged_no_log')
+        interface = Interface(lambda x: 3 * x, "number", "number", examples=path)
+        self.assertEqual(len(interface.get_config_file()['examples']), 3)
         
     def test_examples_not_valid_path(self):
         with self.assertRaises(FileNotFoundError):
             interface = Interface(lambda x: x, "textbox", "label", examples='invalid-path')
-            interface.launch()
+            interface.launch(prevent_thread_lock=True)
             interface.close()
             
     def test_test_launch(self):
@@ -149,19 +157,27 @@ class TestInterface(unittest.TestCase):
         self.assertEqual(len(interface.examples[0]), 1)
         interface.close()
 
-    # def test_launch_counter(self):
-    #     with tempfile.TemporaryFile(suffix=".json", mode="r+") as tmp:
-    #         with mock.patch('gradio.interface.JSON_PATH', tmp.name):
-    #             launches = {"launches": 1}
-    #             json.dump(launches, tmp)
-    #             print(">>>>", tmp.name, json.load(tmp.name))
-    #             interface = Interface(lambda x: x, "textbox", "label")
-    #             interface.launch(prevent_thread_lock=True)
-    #             interface.launch(prevent_thread_lock=True)
-            
-    # example attribute of Interface can be a list or string. When it is a string, it is a filepath.
-    # The content of this filepath will determine the examples. Do we have any sample of this example file?
-    # This will help writing a test for lines 297 to 313 of interface.py. We need the log.csv example file 
-
+    def test_launch_counter(self):
+        with tempfile.NamedTemporaryFile() as tmp:
+            with mock.patch('gradio.interface.JSON_PATH', tmp.name):
+                interface = Interface(lambda x: x, "textbox", "label")
+                os.remove(tmp.name)
+                interface.launch(prevent_thread_lock=True)
+                with open(tmp.name) as j:
+                    self.assertEqual(json.load(j)['launches'], 1)
+                interface.launch(prevent_thread_lock=True)
+                with open(tmp.name) as j:
+                    self.assertEqual(json.load(j)['launches'], 2)
+                interface.close()
+    
+    @mock.patch('IPython.display.display')
+    def test_inline_display(self, mock_display):
+        interface = Interface(lambda x: x, "textbox", "label")
+        interface.launch(inline=True, prevent_thread_lock=True)
+        mock_display.assert_called_once()
+        interface.launch(inline=True, share=True, prevent_thread_lock=True)
+        self.assertEqual(mock_display.call_count, 2)
+        interface.close()
+    
 if __name__ == '__main__':
     unittest.main()
