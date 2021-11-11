@@ -13,11 +13,19 @@
 .preloaded-star-count {
     @apply text-gray-400;
 }
+.demotab:not(.selected) {
+    @apply border-b;
+}
 .demotab.selected {
     @apply border border-b-0 rounded-t-lg font-semibold;
 }
-.demotab:not(.selected) {
-    @apply border-b;
+@media (min-width: 640px) {
+    .demotab:not(.selected) {
+        @apply border-t rounded-t-lg font-semibold;
+    }    
+    .demotab.selected {
+        @apply font-semibold;
+    }
 }
 .twitter-text a {
     @apply link;
