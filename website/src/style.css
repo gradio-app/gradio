@@ -13,18 +13,26 @@
 .preloaded-star-count {
     @apply text-gray-400;
 }
-.demotab:not(.selected) {
-    @apply border-b;
-}
-.demotab.selected {
-    @apply border border-b-0 rounded-t-lg font-semibold;
+@media (max-width: 639px) {
+    .demotab {
+        @apply border border-b-0;
+    }
+    .demotab:last-child {
+        @apply border-b;
+    }
+    .demotab.selected {
+        @apply font-semibold;
+    }
+    .demotab:not(.selected) {
+        @apply text-gray-500;
+    }    
 }
 @media (min-width: 640px) {
     .demotab:not(.selected) {
-        @apply border-t rounded-t-lg font-semibold;
+        @apply border-b;
     }    
     .demotab.selected {
-        @apply font-semibold;
+        @apply border-t rounded-t-lg font-semibold;
     }
 }
 .twitter-text a {
@@ -41,4 +49,11 @@
 }
 .twitter-like:hover .twitter-heart {
     background-image: url("assets/img/twitter/redheart.svg");
+}
+
+/* docs.html */
+@media (min-width: 768px) { /* for some reason, sm:block not working */
+    .docs-sidebar {
+        @apply block;
+    }
 }

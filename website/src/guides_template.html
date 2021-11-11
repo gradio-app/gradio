@@ -33,7 +33,7 @@
     .prose p > img {
         margin: 0 auto;
         width: 600px;
-        max-width: 75%;
+        max-width: 100%;
     }
     .prose {
       max-width: none !important;
@@ -55,12 +55,12 @@
   </style>
 </head>
 
-<body class="bg-white text-gray-900 text-lg">
-  <header class="container mx-auto p-4 flex justify-between items-center gap-4 flex-row">
+<body class="bg-white text-gray-900 text-md sm:text-lg">
+  <header class="container mx-auto p-4 flex justify-between items-center gap-4 flex-col sm:flex-row">
     <a href="/">
       <img src="/assets/img/logo.svg" class="h-10">
     </a>
-    <nav class="flex gap-16">
+    <nav class="flex gap-12 sm:gap-16">
       <div class="group relative cursor-pointer font-semibold flex items-center gap-1">
         Guides
         <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
@@ -84,7 +84,7 @@
             href="https://github.com/gradio-app/gradio/discussions">Discussions</a>
         </div>
       </div>
-      <a class="link" href="/hosted">Account</a>
+      <a class="link hidden sm:block" href="/hosted">Account</a>
     </nav>
   </header>
   <div class="container mx-auto px-4 mb-12">
