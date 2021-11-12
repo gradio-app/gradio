@@ -46,18 +46,22 @@ class Component():
         return data
 
     def save_flagged_file(self, dir, label, data, encryption_key):
+        if data is None:
+            return None
         file = processing_utils.decode_base64_to_file(data, encryption_key)
+        label = "".join([char for char in label if char.isalnum() or char in "._- "])
         old_file_name = file.name
         output_dir = os.path.join(dir, label)
         if os.path.exists(output_dir):
             file_index = len(os.listdir(output_dir))
         else:
-            os.mkdir(output_dir)
+            os.makedirs(output_dir)
             file_index = 0
         new_file_name = str(file_index)
         if "." in old_file_name:
             uploaded_format = old_file_name.split(".")[-1].lower()
             new_file_name +=  "." + uploaded_format
+        file.close()
         shutil.move(old_file_name, os.path.join(dir, label, new_file_name))
         return label + "/" + new_file_name
 

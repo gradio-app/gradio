@@ -86,8 +86,7 @@ function load_config(config) {
     if (config.theme !== null && config.theme.startsWith("dark")) {
       target.classList.add("dark");
       config.theme = config.theme.substring(4);
-    }
-    else if (url.searchParams.get("__dark-theme") === "true") {
+    } else if (url.searchParams.get("__dark-theme") === "true") {
       target.classList.add("dark");
     }
     ReactDOM.render(
