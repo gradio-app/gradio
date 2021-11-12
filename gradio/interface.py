@@ -692,7 +692,7 @@ class Interface:
                 mlflow.log_param("Gradio Interface Local Link",
                                  self.local_url)
         if self.analytics_enabled:
-            if not analytics_integration:
+            if analytics_integration:
                 data = {'integration': analytics_integration}
                 try:
                     requests.post(analytics_url +
