@@ -7,6 +7,9 @@ import sys
 from contextlib import contextmanager
 import io
 import threading
+from comet_ml import Experiment
+import mlflow
+import wandb
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -178,6 +181,56 @@ class TestInterface(unittest.TestCase):
         interface.launch(inline=True, share=True, prevent_thread_lock=True)
         self.assertEqual(mock_display.call_count, 2)
         interface.close()
+        
+    @mock.patch('comet_ml.Experiment')
+    def test_integration_comet(self, mock_experiment):
+        experiment = mock_experiment()
+        experiment.log_text = mock.MagicMock()
+        experiment.log_other = mock.MagicMock()
+        interface = Interface(lambda x: x, "textbox", "label")
+        interface.launch(prevent_thread_lock=True)
+        interface.integrate(comet_ml=experiment)
+        experiment.log_text.assert_called_with('gradio: ' + interface.local_url)
+        interface.share_url = 'tmp' # used to avoid creating real share links.
+        interface.integrate(comet_ml=experiment)
+        experiment.log_text.assert_called_with('gradio: ' + interface.share_url)
+        self.assertEqual(experiment.log_other.call_count, 2)
+        interface.share_url = None
+        interface.close()
+        
+    def test_integration_mlflow(self):
+        mlflow.log_param = mock.MagicMock()
+        interface = Interface(lambda x: x, "textbox", "label")
+        interface.launch(prevent_thread_lock=True)
+        interface.integrate(mlflow=mlflow)
+        mlflow.log_param.assert_called_with("Gradio Interface Local Link", interface.local_url)
+        interface.share_url = 'tmp' # used to avoid creating real share links.
+        interface.integrate(mlflow=mlflow)
+        mlflow.log_param.assert_called_with("Gradio Interface Share Link", interface.share_url)
+        interface.share_url = None
+        interface.close()
     
+    def test_integration_wandb(self):
+        with captured_output() as (out, err):
+            wandb.log = mock.MagicMock()
+            wandb.Html = mock.MagicMock()
+            interface = Interface(lambda x: x, "textbox", "label")
+            interface.integrate(wandb=wandb)
+            self.assertEqual(out.getvalue().strip(),  "The WandB integration requires you to `launch(share=True)` first.")
+            interface.share_url = 'tmp'
+            interface.integrate(wandb=wandb)
+            wandb.log.assert_called_once()
+            
+    @mock.patch('requests.post')
+    def test_integration_analytics(self, mock_post):
+        mlflow.log_param = mock.MagicMock()
+        interface = Interface(lambda x: x, "textbox", "label")
+        interface.analytics_enabled = True
+        interface.integrate(mlflow=mlflow)
+        mock_post.assert_called_once()
+        
+            
+
+        
 if __name__ == '__main__':
     unittest.main()
