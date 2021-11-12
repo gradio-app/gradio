@@ -207,6 +207,10 @@
     .demo-window .json {
       padding: inherit;
     }
+    .disabled {
+      color: grey !important;
+      pointer-events: none;
+    }
   </style>
 
   <meta property="og:url" content="https://gradio.app/" />
@@ -279,6 +283,9 @@
             }}</span>{% if i != len_inputs - 1 %} ,{% endif %}{%endfor%} ]</p>
         <p>&emsp;&emsp;}</p>
       </div>
+      {% if auth is not none %}
+      <p>Note: This interface requires authentication. This means you will have to first post to the login api before you can post to the predict endpoint. See below for more info </p>
+      {%  endif %}
       <h4 id="response">Response: </h4>
       <div class="json">
         <p>&emsp;&emsp;{</p>
@@ -305,7 +312,37 @@
         </div>
 
         <div class="demo-window" demo="1">
+
+
+
+
           <div class="json">
+            {% if auth is not none %}
+<!--              import requests-->
+
+<!--              sess = requests.session()-->
+<!--              sess.post(url='INTERFACE_URL/login', data={"username": "USERNAME", "password":"PASSWORD"})-->
+<!--              r = sess.post(url='INTERFACE_URL/api/predict/',json={"data":[INPUT]}, )-->
+<!--              -->
+<!--              print(r.json())-->
+
+            <p class="syntax">import requests</p>
+            <br>
+            <p class="syntax">sess = requests.session()</p>
+            <br>
+            <p class="syntax">sess.post(url='<span class="syntax" id="py_syntax_url_login"></span><p class="syntax">',</p> data={"username": "USERNAME", "password":"PASSWORD"})
+            <br>
+            <p class="syntax">r = sess.post(url='<span class="syntax" id="py_syntax_url"></span>
+            <p class="syntax">',</p>
+            <p class="syntax"> json={"data":</p> [{% for i in range(0, len_inputs) %}<span class="syntax"
+              id="py_input_syntax_{{i}}">{{ sample_inputs[i]|tojson }}</span>{% if i != len_inputs - 1 %}<p class="syntax">,</p>{%
+            endif %}{%endfor%}<p class="syntax">]})</p>
+            </p>
+            <p>r.json()</p>
+
+
+            {%  else %}
+
             <p class="syntax">import requests</p>
             <br>
             <p class="syntax">r = requests.post(url='<span class="syntax" id="py_syntax_url"></span>
@@ -315,20 +352,50 @@
             endif %}{%endfor%}<p class="syntax">]})</p>
             </p>
             <p>r.json()</p>
+
+            {%  endif %}
           </div>
 
         </div>
         <div class="demo-window" demo="2">
           <div class="json">
+            {% if auth is not none %}
+            <p class="syntax">curl -X POST&nbsp;-F 'username=USERNAME' -F 'password=PASSWORD' <span class="syntax" id="curl_syntax_url_login"></span>&nbsp;-c cookies.txt </p>
+
+            <p class="syntax">curl -X POST&nbsp;</p><span class="syntax" id="curl_syntax_url"></span>&nbsp;-H
+            'Content-Type: application/json' -d '{"data": [{%for i
+            in range(0, len_inputs)%}<span class="syntax" id="curl_input_syntax_{{i}}">{{ sample_inputs[i]|tojson }}</span>{% if i !=
+            len_inputs - 1 %}<p class="syntax">,</p>{% endif %}{%endfor%}<p class="syntax">]}'  -b cookies.txt </p>
+
+
+            {%  else %}
+
             <p class="syntax">curl -X POST&nbsp;</p><span class="syntax" id="curl_syntax_url"></span>&nbsp;-H
             'Content-Type: application/json' -d '{"data": [{%for i
             in range(0, len_inputs)%}<span class="syntax" id="curl_input_syntax_{{i}}">{{ sample_inputs[i]|tojson }}</span>{% if i !=
             len_inputs - 1 %}<p class="syntax">,</p>{% endif %}{%endfor%}<p class="syntax">]}' </p>
+
+            {%  endif %}
           </div>
 
         </div>
         <div class="demo-window" demo="3">
           <div class="json">
+            {% if auth is not none %}
+            <p class="syntax">fetch('<span class="syntax" id="js_syntax_url_login"></span>', { method: "POST",
+              body: "username=USERNAME&password=PASSWORD"
+            <p class="syntax">, credentials: 'same-origin', headers: { "Content-Type": "application/x-www-form-urlencoded" }
+              })</p>
+            </p>
+            <br>
+            <p class="syntax">fetch('<span class="syntax" id="js_syntax_url"></span>', { method: "POST",
+              body: JSON.stringify({"data":[{%for i in range(0, len_inputs)%} <span class="syntax"
+                id="js_input_syntax_{{i}}">{{ sample_inputs[i]|tojson }}</span>{% if i != len_inputs - 1 %},{% endif %}{%endfor%}
+            <p class="syntax">]}), credentials: 'same-origin', headers: { "Content-Type": "application/json" }
+              }).then(function(response) { return response.json(); }).then(function(json_response){
+              console.log(json_response) })</p>
+            </p>
+            {%  else %}
             <p class="syntax">fetch('<span class="syntax" id="js_syntax_url"></span>', { method: "POST",
               body: JSON.stringify({"data":[{%for i in range(0, len_inputs)%} <span class="syntax"
                 id="js_input_syntax_{{i}}">{{ sample_inputs[i]|tojson }}</span>{% if i != len_inputs - 1 %},{% endif %}{%endfor%}
@@ -336,13 +403,20 @@
               }).then(function(response) { return response.json(); }).then(function(json_response){
               console.log(json_response) })</p>
             </p>
+            {%  endif %}
           </div>
         </div>
       </div>
+      {% if auth is not none %}
+      <center>
+        <p>Live POST is turned off for interfaces that require authentication.</p>
+      </center>
+      {%  endif %}
       <center>
         <button id="post-button" onclick="postRequest()">POST</button>
       </center>
-      <div class="json">
+
+      <div class="json" id="response-holder">
         <p><span id="response_status"></span>&emsp;<span id="response_text"></span></p>
         <div class="hidden" id="post_response">
           <p>&emsp;&emsp;{</p>
@@ -369,11 +443,19 @@
     };
     url = stripTrailingSlash(url);
     var api_url = url + '/predict'
+    var login_url = url.slice(0, -4) + '/login'
     var interface_url = url.replace(/(api$)/, '')
     $('#api_url').html(api_url);
     $('#py_syntax_url').html(api_url);
     $('#curl_syntax_url').html(api_url);
     $('#js_syntax_url').html(api_url);
+    {% if auth is not none %}
+      $('#py_syntax_url_login').html(login_url);
+      $('#curl_syntax_url_login').html(login_url);
+      $('#js_syntax_url_login').html(login_url);
+      $('#post-button').addClass('disabled');
+      $('#response-holder').addClass('hidden');
+    {% endif %}
 
     $('#stripped_url').html(interface_url);
     $('#go-to-interface-url').attr('href', interface_url);

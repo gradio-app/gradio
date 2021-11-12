@@ -256,7 +256,8 @@ def api_docs():
         "output_types": output_types,
         "input_types_doc": input_types_doc,
         "output_types_doc": output_types_doc,
-        "sample_inputs": sample_inputs
+        "sample_inputs": sample_inputs,
+        "auth": app.interface.auth
     }
     return render_template("api_docs.html", **docs)
 
