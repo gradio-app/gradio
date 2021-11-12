@@ -35,7 +35,7 @@ module.exports = {
       };
       paths.appBuild = webpackConfig.output.path;
       return webpackConfig;
-    },
+    }
   },
   style: {
     postcss: {

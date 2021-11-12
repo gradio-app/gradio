@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 .gradio_bg[theme="huggingface"] {
-    @apply dark:bg-gray-600 dark:text-gray-50;
+    @apply dark:bg-[#0b0f19] dark:text-gray-50;
 }
 
 .gradio_bg[theme="huggingface"] .gradio_interface {
@@ -455,6 +455,9 @@
     .output_label {
         .output_class {
             @apply hidden;
+        }
+        .output_class_without_confidences{
+            @apply font-bold text-2xl py-8 px-4 flex-grow flex items-center justify-center dark:text-gray-50;
         }
         .confidence_intervals {
             @apply flex text-xl;

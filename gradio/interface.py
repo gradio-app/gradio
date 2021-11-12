@@ -62,8 +62,10 @@ class Interface:
         (gradio.Interface): a Gradio Interface object for the given model
         """
         interface_info = load_interface(name, src, api_key, alias)
-        interface_info.update(kwargs)
-        return cls(**interface_info)
+         # create a dictionary of kwargs without overwriting the original interface_info dict because it is mutable
+         # and that can cause some issues since the internal prediction function may rely on the original interface_info dict  
+        kwargs = dict(interface_info, **kwargs) 
+        return cls(**kwargs)
 
     def __init__(self, fn, inputs=None, outputs=None, verbose=False, examples=None,
                  examples_per_page=10, live=False,
@@ -71,8 +73,8 @@ class Interface:
                  capture_session=False, interpretation=None, num_shap=2.0, theme=None, repeat_outputs_per_model=True,
                  title=None, description=None, article=None, thumbnail=None,
                  css=None, server_port=None, server_name=networking.LOCALHOST_NAME, height=500, width=900,
-                 allow_screenshot=True, allow_flagging=True, flagging_options=None, encrypt=False,
-                 show_tips=False, flagging_dir="flagged", analytics_enabled=True, enable_queue=False, api_mode=False):
+                 allow_screenshot=True, allow_flagging=None, flagging_options=None, encrypt=False,
+                 show_tips=False, flagging_dir="flagged", analytics_enabled=None, enable_queue=False, api_mode=False):
         """
         Parameters:
         fn (Callable): the function to wrap an interface around.
@@ -161,6 +163,8 @@ class Interface:
             self.css = css
         if examples is None or isinstance(examples, str) or (isinstance(examples, list) and (len(examples) == 0 or isinstance(examples[0], list))):
             self.examples = examples
+        elif isinstance(examples, list) and len(self.input_components) == 1:  # If there is only one input component, examples can be provided as a regular list instead of a list of lists 
+            self.examples = [[e] for e in examples]
         else:
             raise ValueError(
                 "Examples argument must either be a directory or a nested list, where each sublist represents a set of inputs.")
@@ -169,15 +173,19 @@ class Interface:
         self.server_port = server_port
         self.simple_server = None
         self.allow_screenshot = allow_screenshot
-        self.allow_flagging = os.getenv("GRADIO_FLAGGING") or allow_flagging
-        if self.allow_flagging:
-            # TODO(abidlabs): If inside a HuggingSpace, then instantiate a HuggingFaceFlaggingHandler() instead
-            self.flagging_handler = gradio.flagging.DefaultFlaggingHandler(self)
+        # For allow_flagging and analytics_enabled: (1) first check for parameter, (2) check for environment variable, (3) default to True
+        self.allow_flagging = allow_flagging if allow_flagging is not None else os.getenv("GRADIO_ALLOW_FLAGGING", "True")=="True"
+        self.analytics_enabled = analytics_enabled if analytics_enabled is not None else os.getenv("GRADIO_ANALYTICS_ENABLED", "True")=="True"
+        
+        
         self.flagging_options = flagging_options
         self.flagging_dir = flagging_dir
+        if self.allow_flagging:
+            # TODO(abidlabs): Combine all this, and if inside a HuggingSpace, then instantiate a HuggingFaceFlaggingHandler() instead
+            self.flagging_handler = gradio.flagging.DefaultFlaggingHandler(self)
+
         self.encrypt = encrypt
         Interface.instances.add(self)
-        self.analytics_enabled = analytics_enabled
         self.save_to = None
         self.share = None
         self.share_url = None
@@ -322,6 +330,8 @@ class Interface:
                             for i, input_component in enumerate(self.input_components)]
         predictions = []
         durations = []
+        output_component_counter = 0
+
         for predict_fn in self.predict:
             start = time.time()
             if self.capture_session and self.session is not None:
@@ -342,8 +352,11 @@ class Interface:
                 prediction = [prediction]
 
             if self.api_mode:  # Serialize the input
-                prediction = [output_component.deserialize(prediction[o])
-                                for o, output_component in enumerate(self.output_components)]
+                prediction_ = copy.deepcopy(prediction)
+                prediction = []
+                for pred in prediction_:  # Done this way to handle both single interfaces with multiple outputs and Parallel() interfaces
+                    prediction.append(self.output_components[output_component_counter].deserialize(pred))
+                    output_component_counter += 1
 
             durations.append(duration)
             predictions.extend(prediction)
@@ -493,12 +506,6 @@ class Interface:
                 interpretation = [interpretation]
             return interpretation, []
 
-    def close(self):
-        # checks to see if server is running
-        if self.simple_server and not (self.simple_server.fileno() == -1):
-            print("Closing Gradio server on port {}...".format(self.server_port))
-            networking.close_server(self.simple_server)
-
     def run_until_interrupted(self, thread, path_to_local_server):
         try:
             while True:
@@ -593,15 +600,15 @@ class Interface:
         self.share = share
 
         if share:
-            if private_endpoint:
-                print(strings.en["PRIVATE_LINK_MESSAGE"])
-            else:
-                print(strings.en["SHARE_LINK_MESSAGE"])
             try:
                 share_url = networking.setup_tunnel(
                     server_port, private_endpoint)
                 self.share_url = share_url
                 print(strings.en["SHARE_LINK_DISPLAY"].format(share_url))
+                if private_endpoint:
+                    print(strings.en["PRIVATE_LINK_MESSAGE"])
+                else:
+                    print(strings.en["SHARE_LINK_MESSAGE"])
             except RuntimeError:
                 send_error_analytics(self.analytics_enabled)
                 share_url = None
@@ -650,6 +657,19 @@ class Interface:
 
         return app, path_to_local_server, share_url
 
+    def close(self):
+        try:
+            if self.share_url:
+                requests.get("{}/shutdown".format(self.share_url))
+                print("Closing Gradio server on port {}...".format(self.server_port))
+            elif self.local_url:
+                requests.get("{}shutdown".format(self.local_url))
+                print("Closing Gradio server on port {}...".format(self.server_port))
+            else:
+                pass # server not running
+        except (requests.ConnectionError, ConnectionResetError):
+            pass  # server is already closed
+
     def integrate(self, comet_ml=None, wandb=None, mlflow=None):
         analytics_integration = ""
         if comet_ml is not None:
@@ -678,7 +698,7 @@ class Interface:
                 mlflow.log_param("Gradio Interface Local Link",
                                  self.local_url)
         if self.analytics_enabled:
-            if not analytics_integration:
+            if analytics_integration:
                 data = {'integration': analytics_integration}
                 try:
                     requests.post(analytics_url +
@@ -741,6 +761,8 @@ def send_launch_analytics(analytics_enabled, inbrowser, is_colab, share, share_u
             pass  # do not push analytics if no network
 
 
-def reset_all():
+def close_all():
     for io in Interface.get_instances():
         io.close()
+
+reset_all = close_all  # for backwards compatibility

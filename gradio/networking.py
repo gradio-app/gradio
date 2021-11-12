@@ -47,6 +47,8 @@ app = Flask(__name__,
             template_folder=STATIC_TEMPLATE_LIB,
             static_folder="",
             static_url_path="/none/")
+app.url_map.strict_slashes = False
+
 CORS(app)
 cache_buster = CacheBuster(
     config={'extensions': ['.js', '.css'], 'hash_size': 5})
@@ -171,6 +173,15 @@ def enable_sharing(path):
         path = None
     app.interface.config["share_url"] = path
     return jsonify(success=True)
+
+
+@app.route("/shutdown", methods=['GET'])
+def shutdown():
+    shutdown_func = request.environ.get('werkzeug.server.shutdown')
+    if shutdown_func is None:
+        raise RuntimeError('Not running werkzeug')
+    shutdown_func()
+    return "Shutting down..."
 
 
 @app.route("/api/predict/", methods=["POST"])
@@ -306,6 +317,7 @@ def queue_push():
     job_hash, queue_position = queue.push({"data": data}, action)
     return {"hash": job_hash, "queue_position": queue_position}
 
+
 @app.route("/api/queue/status/", methods=["POST"])
 @login_check
 def queue_status():
@@ -313,7 +325,8 @@ def queue_status():
     status, data = queue.get_status(hash)
     return {"status": status, "data": data}
 
-def queue_thread(path_to_local_server):
+
+def queue_thread(path_to_local_server, test_mode=False):
     while True:
         try:
             next_job = queue.pop()
@@ -331,6 +344,9 @@ def queue_thread(path_to_local_server):
         except Exception as e:
             time.sleep(1)
             pass
+        if test_mode:
+            break
+
 
 def start_server(interface, server_name, server_port=None, auth=None, ssl=None):
     if server_port is None:

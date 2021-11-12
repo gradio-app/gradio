@@ -115,7 +115,7 @@ class Textbox(InputComponent):
             self.test_input = {
                 "str": "the quick brown fox jumped over the lazy dog",
                 "number": 786.92,
-            }[type]
+            }.get(type)
         else:
             self.test_input = default
         self.interpret_by_tokens = True
@@ -292,7 +292,7 @@ class Number(InputComponent):
         return interpretation
 
     def generate_sample(self):
-        return 1
+        return 1.0
 
 
 class Slider(InputComponent):
@@ -933,13 +933,13 @@ class Video(InputComponent):
         raise NotImplementedError()
 
     def preprocess_example(self, x):
-        return processing_utils.encode_file_to_base64(x)
+        return processing_utils.encode_file_to_base64(x, type="video")
 
     def save_flagged(self, dir, label, data, encryption_key):
         """
         Returns: (str) path to video file
         """
-        return self.save_flagged_file(dir, label, data, encryption_key)
+        return self.save_flagged_file(dir, label, None if data is None else data["data"], encryption_key)
 
     def generate_sample(self):
         return test_data.BASE64_VIDEO
@@ -1113,7 +1113,7 @@ class Audio(InputComponent):
         """
         Returns: (str) path to audio file
         """
-        return self.save_flagged_file(dir, label, data, encryption_key)
+        return self.save_flagged_file(dir, label, None if data is None else data["data"], encryption_key)
 
     def generate_sample(self):
         return test_data.BASE64_AUDIO
@@ -1192,7 +1192,7 @@ class File(InputComponent):
         """
         Returns: (str) path to file
         """
-        return self.save_flagged_file(dir, label, data["data"], encryption_key)
+        return self.save_flagged_file(dir, label, None if data is None else data[0]["data"], encryption_key)
 
     def generate_sample(self):
         return test_data.BASE64_FILE

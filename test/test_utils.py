@@ -4,6 +4,10 @@ import pkg_resources
 import unittest.mock as mock
 import warnings
 import requests
+import os
+
+
+os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
 class TestUtils(unittest.TestCase):
@@ -53,10 +57,12 @@ class TestUtils(unittest.TestCase):
 
         mock_post.side_effect = requests.ConnectionError()
         error_analytics("placeholder")
+        mock_post.assert_called()
      
     @mock.patch("requests.post")   
     def test_error_analytics_successful(self, mock_post):
         error_analytics("placeholder")
+        mock_post.assert_called()
         
             
     @mock.patch("IPython.get_ipython")

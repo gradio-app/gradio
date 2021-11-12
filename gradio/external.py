@@ -69,7 +69,7 @@ def get_huggingface_interface(model_name, api_key, alias):
         },
         'fill-mask': {
             'inputs': inputs.Textbox(label="Input"),
-            'outputs': "label",
+            'outputs': outputs.Label(label="Classification", type="confidences"),
             'preprocess': lambda x: {"inputs": x},
             'postprocess': lambda r: {i["token_str"]: i["score"] for i in r.json()}
         },
