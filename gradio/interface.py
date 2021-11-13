@@ -179,10 +179,9 @@ class Interface:
         self.allow_flagging = allow_flagging if allow_flagging is not None else os.getenv("GRADIO_ALLOW_FLAGGING", "True")=="True"
         self.analytics_enabled = analytics_enabled if analytics_enabled is not None else os.getenv("GRADIO_ANALYTICS_ENABLED", "True")=="True"
         
-        if self.allow_flagging:
-            self.flagging_options = flagging_options
-            self.flagging_handler: FlaggingHandler = flagging_handler
-            self.flagging_handler.update_kwargs(interface=self, flagging_dir=flagging_dir)
+        self.flagging_options = flagging_options
+        self.flagging_handler: FlaggingHandler = flagging_handler
+        self.flagging_handler.update_kwargs(interface=self, flagging_dir=flagging_dir)
 
         self.encrypt = encrypt
         Interface.instances.add(self)
