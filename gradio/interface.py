@@ -176,8 +176,8 @@ class Interface:
         self.simple_server = None
         self.allow_screenshot = allow_screenshot
         # For allow_flagging and analytics_enabled: (1) first check for parameter, (2) check for environment variable, (3) default to True
-        self.allow_flagging = allow_flagging if allow_flagging is not None else os.getenv("GRADIO_ALLOW_FLAGGING", "True")=="True"
         self.analytics_enabled = analytics_enabled if analytics_enabled is not None else os.getenv("GRADIO_ANALYTICS_ENABLED", "True")=="True"
+        self.allow_flagging = allow_flagging if allow_flagging is not None else os.getenv("GRADIO_ALLOW_FLAGGING", "True")=="True"
         
         self.flagging_options = flagging_options
         self.flagging_handler: FlaggingHandler = flagging_handler
