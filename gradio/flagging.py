@@ -28,8 +28,8 @@ class FlaggingHandler(ABC):
     @abstractmethod
     def setup(self):
         """
-        This method should be overridden and ensure that everything is set up correctly for the flagging.
-        This method gets called at the beginning of the Interface.launch() method.
+        This method should be overridden and ensure that everything is set up correctly for flag().
+        This method gets called once at the beginning of the Interface.launch() method.
         """
         pass
 
