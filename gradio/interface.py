@@ -4,6 +4,7 @@ interface using the input and output types.
 """
 
 import gradio
+from gradio.flagging import FlaggingHandler, CSVLogger
 from gradio.inputs import get_input_instance
 from gradio.outputs import get_output_instance
 from gradio import networking, strings, utils
@@ -74,7 +75,8 @@ class Interface:
                  title=None, description=None, article=None, thumbnail=None,
                  css=None, server_port=None, server_name=networking.LOCALHOST_NAME, height=500, width=900,
                  allow_screenshot=True, allow_flagging=None, flagging_options=None, encrypt=False,
-                 show_tips=False, flagging_dir="flagged", analytics_enabled=None, enable_queue=False, api_mode=False):
+                 show_tips=False, flagging_dir="flagged", analytics_enabled=None, enable_queue=False, api_mode=False,
+                 flagging_handler=CSVLogger()):
         """
         Parameters:
         fn (Callable): the function to wrap an interface around.
@@ -177,12 +179,10 @@ class Interface:
         self.allow_flagging = allow_flagging if allow_flagging is not None else os.getenv("GRADIO_ALLOW_FLAGGING", "True")=="True"
         self.analytics_enabled = analytics_enabled if analytics_enabled is not None else os.getenv("GRADIO_ANALYTICS_ENABLED", "True")=="True"
         
-        
-        self.flagging_options = flagging_options
-        self.flagging_dir = flagging_dir
         if self.allow_flagging:
-            # TODO(abidlabs): Combine all this, and if inside a HuggingSpace, then instantiate a HuggingFaceFlaggingHandler() instead
-            self.flagging_handler = gradio.flagging.DefaultFlaggingHandler(self)
+            self.flagging_options = flagging_options
+            self.flagging_handler: FlaggingHandler = flagging_handler
+            self.flagging_handler.update_kwargs(interface=self, flagging_dir=flagging_dir)
 
         self.encrypt = encrypt
         Interface.instances.add(self)
@@ -218,9 +218,6 @@ class Interface:
                 # If they are using TF >= 2.0 or don't have TF,
                 # just ignore this.
                 pass
-
-        if self.allow_flagging:
-            os.makedirs(self.flagging_dir, exist_ok=True)
 
         if self.analytics_enabled:
             try:
@@ -567,6 +564,10 @@ class Interface:
         if self.encrypt:
             self.encryption_key = encryptor.get_key(
                 getpass("Enter key for encryption: "))
+
+        # Setup flagging
+        if self.allow_flagging:
+            self.flagging_handler.setup()
 
         # Launch local flask server
         server_port, path_to_local_server, app, thread = networking.start_server(
