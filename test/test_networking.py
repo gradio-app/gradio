@@ -8,6 +8,8 @@ import warnings
 from unittest.mock import ANY
 import urllib.request
 import os
+import tempfile
+
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -98,14 +100,6 @@ class TestFlaskRoutes(unittest.TestCase):
         response = self.client.post('/api/queue/status/', json={"hash": "test"})
         self.assertEqual(response.status_code, 200)  
 
-    def test_flagging_analytics(self):
-        with mock.patch('requests.post') as mock_post:
-            with mock.patch('gradio.networking.flag_data') as mock_flag:
-                response = self.client.post('/api/flag/', json={"data": {"input_data": ["test"], "output_data": ["test"]}})
-                mock_post.assert_called_once()
-                mock_flag.assert_called_once()
-        self.assertEqual(response.status_code, 200)
-
     def tearDown(self) -> None:
         self.io.close()
         gr.reset_all()
@@ -160,18 +154,8 @@ class TestInterfaceCustomParameters(unittest.TestCase):
 
 
 class TestFlagging(unittest.TestCase):
-    def test_num_rows_written(self):
-        io = gr.Interface(lambda x: x, "text", "text")
-        io.launch(prevent_thread_lock=True)
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            row_count = networking.flag_data(["test"], ["test"], flag_path=tmpdirname)
-            self.assertEquals(row_count, 1)  # 2 rows written including header
-            row_count = networking.flag_data("test", "test", flag_path=tmpdirname)
-            self.assertEquals(row_count, 2)  # 3 rows written including header
-        io.close()
-
     @mock.patch("requests.post")
-    @mock.patch("gradio.networking.flag_data")
+    @mock.patch("gradio.flagging.CSVLogger.flag")
     def test_flagging_analytics(self, mock_flag, mock_post):
         io = gr.Interface(lambda x: x, "text", "text", analytics_enabled=True)
         app, _, _ = io.launch(show_error=True, prevent_thread_lock=True)
@@ -210,18 +194,18 @@ class TestState(unittest.TestCase):
             networking.set_state("test")
             client = app.test_client()
             client.post('/api/predict/', json={"data": [0]})
-            self.assertEquals(networking.get_state(), "test")
+            self.assertEqual(networking.get_state(), "test")
 
 class TestURLs(unittest.TestCase):
     def test_url_ok(self):
         urllib.request.urlopen = mock.MagicMock(return_value="test")
         res = networking.url_request("http://www.gradio.app")
-        self.assertEquals(res, "test")
+        self.assertEqual(res, "test")
 
     def test_setup_tunnel(self):
         networking.create_tunnel = mock.MagicMock(return_value="test")
         res = networking.setup_tunnel(None, None)
-        self.assertEquals(res, "test")
+        self.assertEqual(res, "test")
 
     def test_url_ok(self):
         res = networking.url_ok("https://www.gradio.app")

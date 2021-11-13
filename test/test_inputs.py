@@ -10,7 +10,7 @@ import tempfile
 import json
 
 
-os.environ["GRADIO_ANALYTICS_ENABLED"] = ""  # Disables analytics
+os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
 class InputComponent(unittest.TestCase):
