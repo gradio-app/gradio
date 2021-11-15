@@ -760,7 +760,7 @@ class Image(InputComponent):
             return processing_utils.encode_url_or_file_to_base64(x)
         elif self.type == "file":
             return processing_utils.encode_url_or_file_to_base64(x.name)
-        elif self.type == "numpy" or "pil":
+        elif self.type in ("numpy", "pil"):
             if self.type == "numpy":
                 x = PIL.Image.fromarray(np.uint8(x)).convert('RGB')
             fmt = x.format
