@@ -315,6 +315,8 @@ class TestImage(unittest.TestCase):
         with self.assertRaises(ValueError):
             wrong_type = gr.inputs.Image(type="unknown")
             wrong_type.preprocess(img)
+        with self.assertRaises(ValueError):
+            wrong_type = gr.inputs.Image(type="unknown")
             wrong_type.serialize("test/test_files/bus.png", False)
         img_pil = PIL.Image.open('test/test_files/bus.png')
         image_input = gr.inputs.Image(type="numpy")
