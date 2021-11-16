@@ -4,7 +4,7 @@ interface using the input and output types.
 """
 
 import gradio
-from gradio.flagging import FlaggingHandler, CSVLogger
+from gradio.flagging import FlaggingCallback, CSVLogger
 from gradio.inputs import get_input_instance
 from gradio.outputs import get_output_instance
 from gradio import networking, strings, utils
@@ -76,7 +76,7 @@ class Interface:
                  css=None, server_port=None, server_name=networking.LOCALHOST_NAME, height=500, width=900,
                  allow_screenshot=True, allow_flagging=None, flagging_options=None, encrypt=False,
                  show_tips=False, flagging_dir="flagged", analytics_enabled=None, enable_queue=False, api_mode=False,
-                 flagging_handler=CSVLogger()):
+                 flagging_callback=CSVLogger()):
         """
         Parameters:
         fn (Callable): the function to wrap an interface around.
@@ -180,8 +180,8 @@ class Interface:
         self.allow_flagging = allow_flagging if allow_flagging is not None else os.getenv("GRADIO_ALLOW_FLAGGING", "True")=="True"
         
         self.flagging_options = flagging_options
-        self.flagging_handler: FlaggingHandler = flagging_handler
-        self.flagging_handler.update_kwargs(interface=self, flagging_dir=flagging_dir)
+        self.flagging_callback: FlaggingCallback = flagging_callback
+        self.flagging_dir = flagging_dir
 
         self.encrypt = encrypt
         Interface.instances.add(self)
@@ -566,7 +566,7 @@ class Interface:
 
         # Setup flagging
         if self.allow_flagging:
-            self.flagging_handler.setup()
+            self.flagging_callback.setup(self.flagging_dir)
 
         # Launch local flask server
         server_port, path_to_local_server, app, thread = networking.start_server(
