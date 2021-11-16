@@ -10,9 +10,9 @@ class TestFlagging(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdirname:
             io = gr.Interface(lambda x: x, "text", "text", flagging_dir=tmpdirname)
             io.launch(prevent_thread_lock=True)
-            row_count = io.flagging_handler.flag(["test"], ["test"])
+            row_count = io.flagging_handler.flag(io, ["test"], ["test"])
             self.assertEqual(row_count, 1)  # 2 rows written including header
-            row_count = io.flagging_handler.flag(["test"], ["test"])
+            row_count = io.flagging_handler.flag(io, ["test"], ["test"])
             self.assertEqual(row_count, 2)  # 3 rows written including header
         io.close()
 
@@ -20,9 +20,9 @@ class TestFlagging(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdirname:
             io = gr.Interface(lambda x: x, "text", "text", flagging_dir=tmpdirname, flagging_handler=flagging.SimpleCSVLogger())
             io.launch(prevent_thread_lock=True)
-            row_count = io.flagging_handler.flag(["test"], ["test"])
+            row_count = io.flagging_handler.flag(io, ["test"], ["test"])
             self.assertEqual(row_count, 1)  # 2 rows written including header
-            row_count = io.flagging_handler.flag(["test"], ["test"])
+            row_count = io.flagging_handler.flag(io, ["test"], ["test"])
             self.assertEqual(row_count, 2)  # 3 rows written including header
         io.close()
 

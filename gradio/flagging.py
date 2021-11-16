@@ -7,38 +7,28 @@ import io
 from abc import ABC, abstractmethod
 
 
-class FlaggingHandler(ABC):
+class FlaggingCallback(ABC):
     """
-    An abstract class for defining the methods that any FlaggingHandler should have.
+    An abstract class for defining the methods that any FlaggingCallback should have.
     """
-    def __init__(self, **kwargs):
-        """
-        Parameters:
-        kwargs: any arguments that should be passed to the constructor of the class.
-        """
-        self.kwargs = kwargs
-
-    def update_kwargs(self, **kwargs):
-        """
-        Parameters:
-        kwargs: any arguments that should be passed to the constructor of the class.
-        """
-        self.kwargs.update(kwargs)
 
     @abstractmethod
-    def setup(self):
+    def setup(self, flagging_dir):
         """
         This method should be overridden and ensure that everything is set up correctly for flag().
         This method gets called once at the beginning of the Interface.launch() method.
+        Parameters:
+        flagging_dir: A string, typically containing the path to the directory where the flagging file should be storied (provided as an argument to Interface.__init__()).
         """
         pass
 
     @abstractmethod
-    def flag(self, input_data, output_data, flag_option, flag_index, username):
+    def flag(self, interface, input_data, output_data, flag_option=None, flag_index=None, username=None):
         """
         This method should be overridden by the FlaggingHandler subclass and may contain optional additional arguments.
         This gets called every time the <flag> button is pressed.
         Parameters:
+        interface: The Interface object that is being used to launch the flagging interface.
         input_data: The input data to be flagged.
         output_data: The output data to be flagged.        
         flag_option (optional): In the case that flagging_options are provided, the flag option that is being used.
@@ -50,20 +40,17 @@ class FlaggingHandler(ABC):
         pass
 
 
-class SimpleCSVLogger(FlaggingHandler):
+class SimpleCSVLogger(FlaggingCallback):
     """
     A simple example implementation of the FlaggingHandler abstract class provided for illustrative purposes
     """
-    def setup(self):
-        assert self.kwargs['interface'] is not None, "self.kwargs['interface'] must be defined before calling flag()"
-        assert self.kwargs['flagging_dir'] is not None, "self.kwargs['flagging_dir'] must be defined before calling flag()"
-        os.makedirs(self.kwargs['flagging_dir'], exist_ok=True)
+    def setup(self, flagging_dir):
+        self.flagging_dir = flagging_dir
+        os.makedirs(flagging_dir, exist_ok=True)
 
-    def flag(self, input_data, output_data, flag_option=None, flag_index=None, username=None):
-        interface = self.kwargs['interface']
-        flagging_dir = self.kwargs['flagging_dir']
+    def flag(self, interface, input_data, output_data, flag_option=None, flag_index=None, username=None):
+        flagging_dir = self.flagging_dir
         log_filepath = "{}/log.csv".format(flagging_dir)
-        is_new = not os.path.exists(log_filepath)
 
         csv_data = []
         for i, input in enumerate(interface.input_components):
@@ -76,12 +63,6 @@ class SimpleCSVLogger(FlaggingHandler):
         
         with open(log_filepath, "a", newline="") as csvfile:
             writer = csv.writer(csvfile)
-            if is_new:
-                headers = [interface["label"]
-                            for interface in interface.config["input_components"]]
-                headers += [interface["label"]
-                            for interface in interface.config["output_components"]]
-                writer.writerow(headers)
             writer.writerow(csv_data)
         
         with open(log_filepath, "r") as csvfile:
@@ -89,18 +70,17 @@ class SimpleCSVLogger(FlaggingHandler):
         return line_count
 
 
-class CSVLogger(FlaggingHandler):
+class CSVLogger(FlaggingCallback):
     """
     The default implementation of the FlaggingHandler abstract class. Logs the input and output data to a CSV file.
     """
-    def setup(self):
-        assert self.kwargs['interface'] is not None, "self.kwargs['interface'] must be defined before calling flag()"
-        assert self.kwargs['flagging_dir'] is not None, "self.kwargs['flagging_dir'] must be defined before calling flag()"
-        os.makedirs(self.kwargs['flagging_dir'], exist_ok=True)
+    def setup(self, flagging_dir):
+        self.flagging_dir = flagging_dir
+        os.makedirs(flagging_dir, exist_ok=True)
 
-    def flag(self, input_data, output_data, flag_option=None, flag_index=None, username=None):
-        interface = self.kwargs['interface']
-        flagging_dir = self.kwargs['flagging_dir']
+    def flag(self, interface, input_data, output_data, flag_option=None, flag_index=None, username=None):
+        flagging_dir = self.flagging_dir
+        log_filepath = "{}/log.csv".format(flagging_dir)
 
         log_fp = "{}/log.csv".format(flagging_dir)
         encryption_key = interface.encryption_key if interface.encrypt else None
@@ -179,14 +159,14 @@ class CSVLogger(FlaggingHandler):
         return line_count
 
 
-class HuggingFaceDatasetSaver(FlaggingHandler):
+class HuggingFaceDatasetSaver(FlaggingCallback):
     """
     An alternative implementation of the FlaggingHandler abstract class that saves the data to a HuggingFace dataset.
     """
     def __init__(self, hf_foken, dataset_name):
         super().__init__(hf_foken=hf_foken, dataset_name=dataset_name)
     
-    def setup(self):
+    def setup(self, flagging_dir):
         try:
             import huggingface_hub 
         except (ImportError, ModuleNotFoundError):
@@ -195,7 +175,7 @@ class HuggingFaceDatasetSaver(FlaggingHandler):
         assert self.kwargs['dataset_name'] is not None, "self.kwargs['dataset_name'] needed before calling flag()"
 
 
-    def flag(self, input_data, output_data, flag_option=None, flag_index=None, username=None, path=None):
+    def flag(self, interface, input_data, output_data, flag_option=None, flag_index=None, username=None, path=None):
         # import huggingface_hub
         # dataset_repo_url = ""
         # pass # TODO(abidlabs): implement this as follows
