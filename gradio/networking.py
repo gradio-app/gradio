@@ -257,7 +257,9 @@ def api_docs():
         "input_types_doc": input_types_doc,
         "output_types_doc": output_types_doc,
         "sample_inputs": sample_inputs,
-        "auth": app.interface.auth
+        "auth": app.interface.auth,
+        "local_login_url": app.interface.local_url + "login",
+        "local_api_url": app.interface.local_url + "api/predict"
     }
     return render_template("api_docs.html", **docs)
 
