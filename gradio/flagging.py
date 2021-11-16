@@ -80,8 +80,6 @@ class CSVLogger(FlaggingCallback):
 
     def flag(self, interface, input_data, output_data, flag_option=None, flag_index=None, username=None):
         flagging_dir = self.flagging_dir
-        log_filepath = "{}/log.csv".format(flagging_dir)
-
         log_fp = "{}/log.csv".format(flagging_dir)
         encryption_key = interface.encryption_key if interface.encrypt else None
         is_new = not os.path.exists(log_fp)
