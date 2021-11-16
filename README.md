@@ -127,7 +127,7 @@ In addition to images, Gradio supports other media input types, such as audio or
 
 ### Working with Data
 
-You can use Gradio to support inputs and outputs from your typical data libraries, such as numpy arrays, pandas dataframes, and plotly graphs. Take a look at the demo below (ignore the complicated data manipulation in the function!)
+You can use Gradio to support inputs and outputs from your typical data libraries, such as numpy arrays, pandas dataframes, and Matplotlib plots. Take a look at the demo below (ignore the complicated data manipulation in the function!)
 
 ```python
 import gradio as gr
