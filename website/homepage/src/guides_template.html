@@ -24,6 +24,7 @@
 
   <link rel="icon" type="image/png" href="/assets/img/logo.png">
   <link href="/static/2.2/bundle.css" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/assets/prism.css">
   <link rel="stylesheet" href="/style.css">
   <style>
@@ -64,7 +65,7 @@
       <img src="/assets/img/logo.svg" class="h-10">
     </a>
     <nav class="flex gap-12 sm:gap-16">
-      <div class="group relative cursor-pointer font-semibold flex items-center gap-1">
+      <div class="group relative cursor-pointer font-semibold flex items-center gap-1" onClick="document.querySelector('.guide-menu').classList.toggle('flex'); document.querySelector('.guide-menu').classList.toggle('hidden');">
         Guides
         <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
           <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
@@ -75,7 +76,7 @@
         </div>
       </div>
       <a class="link" href="/docs">Docs</a>
-      <div class="group relative cursor-pointer font-semibold flex items-center gap-1">
+      <div class="group relative cursor-pointer font-semibold flex items-center gap-1" onClick="document.querySelector('.help-menu').classList.toggle('flex'); document.querySelector('.help-menu').classList.toggle('hidden');">
         Help
         <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
           <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
