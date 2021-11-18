@@ -4,9 +4,16 @@ from gradio.interface import Interface
 import inspect
 import os
 from jinja2 import Template
+import json
 
 GRADIO_DIR = os.path.join(os.pardir, "gradio")
- 
+if os.path.exists("generated/colab_links.json"):
+    with open("generated/colab_links.json") as demo_links_file:
+        demo_links = json.load(demo_links_file)
+else:  # Docs will be missing demo links
+    demo_links = {}
+
+
 def get_ins_and_outs(func):
     doc_str = inspect.getdoc(func)
     func_doc, params_doc, return_doc = [], [], []
@@ -22,13 +29,14 @@ def get_ins_and_outs(func):
         if "DEPRECATED" in line:
             continue
         if mode == "pre":
-            func_doc.append(line)            
+            func_doc.append(line)
         elif mode == "in":
             space_index = line.index(" ")
             colon_index = line.index(":")
             name = line[:space_index]
             documented_params.add(name)
-            params_doc.append((name, line[space_index+2:colon_index-1], line[colon_index+2:]))
+            params_doc.append(
+                (name, line[space_index+2:colon_index-1], line[colon_index+2:]))
         elif mode == "out":
             colon_index = line.index(":")
             return_doc.append((line[1:colon_index-1], line[colon_index+2:]))
@@ -49,6 +57,7 @@ def get_ins_and_outs(func):
             param_set.insert(0, (params.args[neg_index],))
     return "\n".join(func_doc), param_set, params_doc, return_doc
 
+
 def document(cls_set):
     docset = []
     for cls in cls_set:
@@ -57,20 +66,23 @@ def document(cls_set):
         doc = inspect.getdoc(cls)
         if doc.startswith("DEPRECATED"):
             continue
-        doc_lines = doc.split("\n")        
+        doc_lines = doc.split("\n")
         inp["doc"] = "\n".join(doc_lines[:-2])
         inp["type"] = doc_lines[-2].split("type: ")[-1]
         inp["demos"] = doc_lines[-1][7:].split(", ")
         _, inp["params"], inp["params_doc"], _ = get_ins_and_outs(cls.__init__)
         inp["shortcuts"] = list(cls.get_shortcut_implementations().items())
         if "interpret" in cls.__dict__:
-            inp["interpret"], inp["interpret_params"], inp["interpret_params_doc"], _ = get_ins_and_outs(cls.interpret)
-            _, _, _, inp["interpret_returns_doc"] = get_ins_and_outs(cls.get_interpretation_scores)
+            inp["interpret"], inp["interpret_params"], inp["interpret_params_doc"], _ = get_ins_and_outs(
+                cls.interpret)
+            _, _, _, inp["interpret_returns_doc"] = get_ins_and_outs(
+                cls.get_interpretation_scores)
 
         docset.append(inp)
     return docset
 
-def generate():
+
+def run():
     inputs = document(InputComponent.__subclasses__())
     outputs = document(OutputComponent.__subclasses__())
     interface_params = get_ins_and_outs(Interface.__init__)
@@ -93,17 +105,18 @@ def generate():
     docs = {
         "input": inputs,
         "output": outputs,
-        "interface": interface,        
+        "interface": interface,
         "launch": launch,
         "load": load,
     }
     os.makedirs("generated", exist_ok=True)
     with open("src/docs_template.html") as template_file:
         template = Template(template_file.read())
-        output_html = template.render(docs=docs)
+        output_html = template.render(docs=docs, demo_links=demo_links)
     os.makedirs(os.path.join("generated", "docs"), exist_ok=True)
     with open(os.path.join("generated", "docs", "index.html"), "w") as generated_template:
         generated_template.write(output_html)
 
+
 if __name__ == "__main__":
-    generate()
+    run()

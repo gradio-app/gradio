@@ -4,12 +4,12 @@ import markdown2
 from jinja2 import Template
 import re
 
-GRADIO_DIR = os.pardir
+GRADIO_DIR = "../../"
 GRADIO_GUIDES_DIR = os.path.join(GRADIO_DIR, "guides")
 GRADIO_DEMO_DIR = os.path.join(GRADIO_DIR, "demo")
 
 
-def generate():
+def run():
     guides = []
     for guide in os.listdir(GRADIO_GUIDES_DIR):
         if "template" in guide:
@@ -52,4 +52,4 @@ def generate():
             generated_template.write(output_html)
 
 if __name__ == "__main__":
-    generate()
+    run()

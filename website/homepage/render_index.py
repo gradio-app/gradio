@@ -3,7 +3,7 @@ import json
 from jinja2 import Template
 import requests
 
-def generate():
+def run():
     os.makedirs("generated", exist_ok=True)
     with open("src/tweets.json") as tweets_file:
         tweets = json.load(tweets_file)
@@ -16,4 +16,4 @@ def generate():
         generated_template.write(output_html)
 
 if __name__ == "__main__":
-    generate()
+    run()

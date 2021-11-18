@@ -1,0 +1,11 @@
+version: "3.7"
+services:
+  homepage:
+    build:
+      context: ../
+      dockerfile: ./website/homepage/Dockerfile
+      args: 
+        GOOGLE_CLIENT_SECRETS: $GOOGLE_CLIENT_SECRETS
+    container_name: homepage
+    ports:
+      - "8080:80"

@@ -228,14 +228,15 @@
                 <div class="mb-2">
                   <span class="italic">{{ demo }}:</span>
                   <a class="demo_code link" target="_blank"
-                    href="https://github.com/gradio-app/gradio/blob/master/demo/{{ demo }}">
-                    View Code
+                    href="{{ demo_links[demo] if demo in demo_links else '#'  }}"
+                    target="_blank">
+                    Run in Colab
                   </a>
                 </div>
                 <div class="relative cursor-pointer flex-grow">
-                  <div class="absolute w-full h-full bg-gray-400 bg-opacity-10 hover:bg-opacity-0 group transition flex items-center justify-center">
+                  <a href="{{ demo_links[demo] }}" target="_blank" class="absolute w-full h-full bg-gray-400 bg-opacity-10 hover:bg-opacity-0 group transition flex items-center justify-center">
                     <img src="/assets/img/play.svg" class="opacity-60 group-hover:opacity-80 transition h-12">
-                  </div>
+                  </a>
                   <img style="width:420px"
                     src="https://github.com/gradio-app/gradio/blob/master/demo/screenshots/{{ demo[:-3] }}/1.png?raw=true">
                 </div>                    
