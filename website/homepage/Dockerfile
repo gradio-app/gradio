@@ -6,14 +6,12 @@ RUN apt-get --assume-yes install npm nginx
 RUN mkdir gradio
 WORKDIR /gradio
 COPY ./ ./
-
-# WORKDIR /gradio/frontend
-# RUN npm run build
-# WORKDIR /gradio
-# RUN pip install pandas matplotlib
-# RUN python setup.py install
-RUN pip install gradio
-
+WORKDIR /gradio/frontend
+RUN npm install
+RUN npm run build
+WORKDIR /gradio
+RUN pip install pandas matplotlib
+RUN python setup.py install
 WORKDIR /gradio/website/homepage
 RUN pip install -r requirements.txt
 RUN export GOOGLE_CLIENT_SECRETS=$GOOGLE_CLIENT_SECRETS

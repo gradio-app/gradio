@@ -14,14 +14,11 @@ def run():
     with open("client_secrets.json", "w") as client_secrets:
         client_secrets.write(CLIENT_SECRET)
     gauth = GoogleAuth()
-    gauth.LoadCredentialsFile("mycreds.txt")
-    if gauth.credentials is None:
-        gauth.LocalWebserverAuth()
-    elif gauth.access_token_expired:
+    gauth.LoadCredentialsFile("google_credentials.json")
+    if gauth.access_token_expired:
         gauth.Refresh()
     else:
         gauth.Authorize()
-    gauth.SaveCredentialsFile("mycreds.txt")
     drive = GoogleDrive(gauth)
     os.remove("client_secrets.json")
 
