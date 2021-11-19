@@ -25,7 +25,7 @@ class FlaggingCallback(ABC):
     @abstractmethod
     def flag(self, interface, input_data, output_data, flag_option=None, flag_index=None, username=None):
         """
-        This method should be overridden by the FlaggingHandler subclass and may contain optional additional arguments.
+        This method should be overridden by the FlaggingCallback subclass and may contain optional additional arguments.
         This gets called every time the <flag> button is pressed.
         Parameters:
         interface: The Interface object that is being used to launch the flagging interface.
@@ -42,7 +42,7 @@ class FlaggingCallback(ABC):
 
 class SimpleCSVLogger(FlaggingCallback):
     """
-    A simple example implementation of the FlaggingHandler abstract class provided for illustrative purposes
+    A simple example implementation of the FlaggingCallback abstract class provided for illustrative purposes
     """
     def setup(self, flagging_dir):
         self.flagging_dir = flagging_dir
@@ -72,7 +72,7 @@ class SimpleCSVLogger(FlaggingCallback):
 
 class CSVLogger(FlaggingCallback):
     """
-    The default implementation of the FlaggingHandler abstract class. Logs the input and output data to a CSV file.
+    The default implementation of the FlaggingCallback abstract class. Logs the input and output data to a CSV file.
     """
     def setup(self, flagging_dir):
         self.flagging_dir = flagging_dir
@@ -159,7 +159,7 @@ class CSVLogger(FlaggingCallback):
 
 class HuggingFaceDatasetSaver(FlaggingCallback):
     """
-    An alternative implementation of the FlaggingHandler abstract class that saves the data to a HuggingFace dataset.
+    An alternative FlaggingCallback that saves the data to a HuggingFace dataset.
     """
     def __init__(self, hf_foken, dataset_name):
         super().__init__(hf_foken=hf_foken, dataset_name=dataset_name)
