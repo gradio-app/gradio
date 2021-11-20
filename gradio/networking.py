@@ -277,7 +277,7 @@ def log_feature_analytics(feature):
 def flag():
     log_feature_analytics('flag')
     data = request.json['data']
-    app.interface.flagging_handler.flag(app.interface, data['input_data'], data['output_data'], data.get("flag_option"), data.get("flag_index"),
+    app.interface.flagging_callback.flag(app.interface, data['input_data'], data['output_data'], data.get("flag_option"), data.get("flag_index"),
         current_user.id if current_user.is_authenticated else None)
     return jsonify(success=True)
 
