@@ -161,31 +161,71 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
     """
     An alternative FlaggingCallback that saves the data to a HuggingFace dataset.
     """
-    def __init__(self, hf_foken, dataset_name):
-        super().__init__(hf_foken=hf_foken, dataset_name=dataset_name)
-    
+    def __init__(self, hf_foken, dataset_name, organization=None, private=False):
+        """
+        Params:
+        hf_token (str): The token to use to access the huggingface API.
+        dataset_name (str): The name of the dataset to save the data to, e.g. "abidlabs/image-classifier-1"
+        organization (str): The name of the organization to which to attach the datasets
+        private (optional): If the dataset does not already exist, whether it should be created as a private dataset or public. 
+            Private datasets may require paid huggingface.co accounts
+
+        """
+        self.hf_foken = hf_foken
+        self.dataset_name = dataset_name
+        self.organization_name = organization
+        self.dataset_private = private
+
     def setup(self, flagging_dir):
+        """
+        Params:
+        flagging_dir (str): local directory where the dataset is cloned, updated, and pushed from
+        """
         try:
             import huggingface_hub 
         except (ImportError, ModuleNotFoundError):
-            print("Package `huggingface_hub` not found is needed for HuggingFaceDatasetSaver. Try 'pip install huggingface_hub'.")
-        assert self.kwargs['hf_token'] is not None, "self.kwargs['hf_token'] needed before calling flag()"
-        assert self.kwargs['dataset_name'] is not None, "self.kwargs['dataset_name'] needed before calling flag()"
+            raise ImportError("Package `huggingface_hub` not found is needed for HuggingFaceDatasetSaver. Try 'pip install huggingface_hub'.")
+        huggingface_hub.create_repo(name=self.dataset_name, token=self.hf_foken, private=self.dataset_private, repo_type="dataset", exist_ok=True)
+        dataset_repo_url = "https://huggingface.co/datasets/{}".format(self.dataset_name)
+        self.flagging_dir = flagging_dir
+        self.repo = huggingface_hub.Repository(local_dir=flagging_dir, clone_from=dataset_repo_url, use_auth_token=self.hf_foken)
+        self.log_file = os.path.join(flagging_dir, "data.csv")  # TODO(abidlabs): should filename be user-specified?
 
 
     def flag(self, interface, input_data, output_data, flag_option=None, flag_index=None, username=None, path=None):
-        # import huggingface_hub
-        # dataset_repo_url = ""
-        # pass # TODO(abidlabs): implement this as follows
-        # # check if a repo exists with username/spacename (if path is None; otherwise, use path)
-        # # if not, create a repo with username/spacename
-        # # clone the repo and append to a log csv file
-        # repo = huggingface_hub.Repository(
-        #     local_dir="data", clone_from=dataset_repo_url, use_auth_token=HF_TOKEN
-        # )
-        # dataset_file = ""
-        # # logic of writing to flagging log file            
-        # # push the repo 
-        # commit_url = repo.push_to_hub()
-        # # write tests
-        pass
+        import huggingface_hub
+        
+        is_new = not os.path.exists(self.log_file)
+        with open(self.log_file, "a", newline="") as csvfile:
+            writer = csv.writer(csvfile)
+            
+            # Generate the headers
+            headers = [interface["label"] for interface in interface.config["input_components"]]
+            headers += [interface["label"] for interface in interface.config["output_components"]]
+            if interface.flagging_options is not None:
+                headers.append("flag")
+            
+            # Generate the row corresponding to the flagged sample
+            csv_data = []
+            for i, input in enumerate(interface.input_components):
+                csv_data.append(input.save_flagged(self.flagging_dir, interface.config["input_components"][i]["label"], input_data[i], None))
+            for i, output in enumerate(interface.output_components):
+                csv_data.append(output.save_flagged(self.flagging_dir, interface.config["output_components"][i]["label"], output_data[i], None) if
+                    output_data[i] is not None else "")
+            if flag_option is not None:
+                csv_data.append(flag_option)
+            
+            # Write the rows
+            if is_new:
+                writer.writerow(headers)
+            writer.writerow(csv_data)
+        
+        # push the repo 
+        self.repo.push_to_hub()
+
+        # return number of samples in dataset
+        with open(self.log_file, "r") as csvfile:
+            line_count = len([None for row in csv.reader(csvfile)]) - 1
+        
+        return line_count
+
