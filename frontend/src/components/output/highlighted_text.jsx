@@ -1,7 +1,7 @@
 import React from "react";
 import BaseComponent from "../base_component";
 import ComponentExample from "../component_example";
-import { randInt } from "../../utils";
+import { getNextColor } from "../../utils";
 
 class HighlightedTextOutput extends BaseComponent {
   constructor(props) {
@@ -10,37 +10,14 @@ class HighlightedTextOutput extends BaseComponent {
     this.new_category_index = 0;
   }
   generate_category_legend(category_map) {
-    let default_colors = [
-      "pink",
-      "lightblue",
-      "gold",
-      "plum",
-      "lightskyblue",
-      "greenyellow",
-      "khaki",
-      "cyan",
-      "moccasin",
-      "lightgray"
-    ];
     for (let category in category_map) {
       if (category in this.color_map) {
         continue;
       }
       let color = category_map[category];
       if (!color) {
-        if (this.new_category_index < default_colors.length) {
-          color = default_colors[this.new_category_index];
-          this.new_category_index++;
-        } else {
-          color =
-            "rgb(" +
-            randInt(128, 240) +
-            ", " +
-            randInt(128, 240) +
-            ", " +
-            randInt(128, 240) +
-            ")";
-        }
+        color = getNextColor(this.new_category_index)
+        this.new_category_index++;
       }
       this.color_map[category] = color;
     }
