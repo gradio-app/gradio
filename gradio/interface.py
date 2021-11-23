@@ -75,7 +75,7 @@ class Interface:
                  css=None, server_port=None, server_name=networking.LOCALHOST_NAME, height=500, width=900,
                  allow_screenshot=True, allow_flagging=None, flagging_options=None, encrypt=False,
                  show_tips=False, flagging_dir="flagged", analytics_enabled=None, enable_queue=False, api_mode=False,
-                 tab_title="Gradio"):
+                 tab_title="Gradio", favicon=None):
         """
         Parameters:
         fn (Callable): the function to wrap an interface around.
@@ -144,6 +144,7 @@ class Interface:
         self.server_name = server_name
         self.title = title
         self.tab_title = tab_title
+        self.favicon = favicon
         self.description = description
         if article is not None:
             article = utils.readme_to_html(article)
@@ -263,6 +264,7 @@ class Interface:
             "show_output": self.show_output,
             "title": self.title,
             "tab_title": self.tab_title,
+            "favicon": self.favicon,
             "description": self.description,
             "article": self.article,
             "theme": self.theme,
