@@ -13,15 +13,13 @@ demo_tags = re.findall(r'\{\{ demos\["([^\s]*)"\] \}\}', getting_started)
 code, demos = {}, {}
 
 for code_src in code_tags:
-    with open(join("demo", code_src + ".py")) as code_file:
+    with open(join("demo", code_src, "run.py")) as code_file:
         python_code = code_file.read()
         python_code = python_code.replace('if __name__ == "__main__":\n    iface.launch()', "iface.launch()")
-        if python_code.startswith("# Demo"):
-            python_code = "\n".join(python_code.split("\n")[2:])
         code[code_src] = "```python\n" + python_code + "\n```"
 
 for demo_src in demo_tags:
-    demos[demo_src] = "![" + demo_src + " interface](demo/screenshots/" + demo_src + "/1.gif)"
+    demos[demo_src] = "![" + demo_src + " interface](demo/" + demo_src + "/screenshot.gif)"
 
 class GuidesLoader(BaseLoader):
     def __init__(self, path):
