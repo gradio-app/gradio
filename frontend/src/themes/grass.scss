@@ -388,6 +388,18 @@ html {
     }
     .input_video {
         @apply w-full h-48;
+        .video_recorder {
+            @apply w-full h-full bg-black;
+        }
+        .record_holder {
+            @apply absolute left-1/2 bottom-4 -translate-x-1/2 -translate-y-1/2 text-center;
+        }
+        .record_message {
+            @apply text-white font-bold mb-4;
+        }
+        .record {
+            @apply w-12 h-12 rounded-full bg-red-500 hover:bg-red-600 border-4 border-red-600;
+        }
         .upload_zone {
             @apply bg-gray-200 hover:bg-gray-100 dark:bg-gray-500 dark:hover:bg-gray-400 text-gray-600 dark:text-gray-50 transition w-full h-full flex justify-center items-center text-xl text-center cursor-pointer leading-10;
         }
