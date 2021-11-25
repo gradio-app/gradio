@@ -33,7 +33,7 @@ test.txt
 build/
 flagged/
 gradio/launches.json
-gradio/templates/frontend/static
+# gradio/templates/frontend/static
 workspace.code-workspace
 *.db
 demo/files/*.avi
