@@ -4,7 +4,7 @@
 
 Quickly create customizable UI components around your models. Gradio makes it easy for you to "play around" with your model in your browser by dragging-and-dropping in your own images, pasting your own text, recording your own voice, etc. and seeing what the model outputs.  
 
-![Interface montage](demo/screenshots/montage.gif)
+![Interface montage](website/homepage/src/assets/img/montage.gif)
 
 Gradio is useful for:
 
@@ -44,7 +44,7 @@ iface.launch()
 
 <span>3.</span> The interface below will appear automatically within the Python notebook, or pop in a browser on  [http://localhost:7860](http://localhost:7860/)  if running from a script.
 
-![hello_world interface](demo/screenshots/hello_world/1.gif)
+![hello_world interface](demo/hello_world/screenshot.gif)
 
 ### The Interface
 
@@ -74,7 +74,7 @@ iface = gr.Interface(
   outputs="text")
 iface.launch()
 ```
-![hello_world_2 interface](demo/screenshots/hello_world_2/1.gif)
+![hello_world_2 interface](demo/hello_world_2/screenshot.gif)
 
 ### Multiple Inputs and Outputs
 
@@ -96,7 +96,7 @@ iface = gr.Interface(
   outputs=["text", "number"])
 iface.launch()
 ```
-![hello_world_3 interface](demo/screenshots/hello_world_3/1.gif)
+![hello_world_3 interface](demo/hello_world_3/screenshot.gif)
 
 We simply wrap the components in a list. Furthermore, if we wanted to compare multiple functions that have the same input and return types, we can even pass a list of functions for quick comparison.
 
@@ -120,7 +120,7 @@ iface = gr.Interface(sepia, gr.inputs.Image(shape=(200, 200)), "image")
 
 iface.launch()
 ```
-![sepia_filter interface](demo/screenshots/sepia_filter/1.gif)
+![sepia_filter interface](demo/sepia_filter/screenshot.gif)
 
 Additionally, our  `Image`  input interface comes with an 'edit' button which opens tools for cropping, flipping, rotating, drawing over, and applying filters to images. We've found that manipulating images in this way will often reveal hidden flaws in a model.
 
@@ -164,7 +164,7 @@ iface = gr.Interface(sales_projections,
 iface.launch()
 
 ```
-![sales_projections interface](demo/screenshots/sales_projections/1.gif)
+![sales_projections interface](demo/sales_projections/screenshot.gif)
 
 ### Example Inputs
 
@@ -200,7 +200,7 @@ iface = gr.Interface(calculator,
 iface.launch()
 
 ```
-![calculator interface](demo/screenshots/calculator/1.gif)
+![calculator interface](demo/calculator/screenshot.gif)
 
 You can load a large dataset into the examples to browse and interact with the dataset through Gradio. The examples will be automatically paginated (you can configure this through the `examples_per_page` argument of Interface) and you can use CTRL + arrow keys to navigate through the examples quickly.
 
@@ -230,7 +230,7 @@ iface = gr.Interface(calculator,
 iface.launch()
 
 ```
-![calculator_live interface](demo/screenshots/calculator_live/1.gif)
+![calculator_live interface](demo/calculator_live/screenshot.gif)
 
 Note there is no submit button, because the interface resubmits automatically on change.
 
@@ -271,7 +271,7 @@ iface = gr.Interface(chat, "text", "html", css="""
 """, allow_screenshot=False, allow_flagging=False)
 iface.launch()
 ```
-![chatbot interface](demo/screenshots/chatbot/1.gif)
+![chatbot interface](demo/chatbot/screenshot.gif)
 
 Notice how the state persists across submits within each page, but the state is not shared between the two pages.
 
@@ -331,13 +331,13 @@ Keep in mind, however, that these links are publicly accessible, meaning that an
 
 Share links expire after 72 hours. For permanent hosting, see Hosting on Spaces below.
 
-![Sharing diagram](website/src/assets/img/sharing.svg)
+![Sharing diagram](website/homepage/src/assets/img/sharing.svg)
 
 ### Hosting on Spaces
 
 Huggingface provides the infrastructure to permanently host your Gradio model on the internet, for free! You can either drag and drop a folder containing your Gradio model and all related files, or you can point HF Spaces to your Git repository and HP Spaces will pull the Gradio interface from there. See [Huggingface Spaces](http://huggingface.co/spaces/) for more information. 
 
-![Hosting Demo](website/src/assets/img/hf_demo.gif)
+![Hosting Demo](website/homepage/src/assets/img/hf_demo.gif)
 
 ### Authentication
 

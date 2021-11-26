@@ -6,6 +6,17 @@ services:
       dockerfile: ./website/homepage/Dockerfile
       args: 
         GOOGLE_CLIENT_SECRETS: $GOOGLE_CLIENT_SECRETS
+        GOOGLE_CLIENT_CREDENTIALS: $GOOGLE_CLIENT_CREDENTIALS
     container_name: homepage
     ports:
       - "8080:80"
+  demos:
+    build:
+      context: ../
+      dockerfile: ./website/demos/Dockerfile
+      args: 
+        GOOGLE_CLIENT_SECRETS: $GOOGLE_CLIENT_SECRETS
+        GOOGLE_CLIENT_CREDENTIALS: $GOOGLE_CLIENT_CREDENTIALS
+    container_name: demos
+    ports:
+      - "8070:80"

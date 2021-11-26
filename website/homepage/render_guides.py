@@ -27,7 +27,7 @@ def run():
             "```csv\n", "<pre><code class='lang-bash'>").replace(
             "```", "</code></pre>")
         for code_src in code_tags:
-            with open(os.path.join(GRADIO_DEMO_DIR, code_src + ".py")) as code_file:
+            with open(os.path.join(GRADIO_DEMO_DIR, code_src, "run.py")) as code_file:
                 python_code = code_file.read().replace(
                     'if __name__ == "__main__":\n    iface.launch()', "iface.launch()")
                 code[code_src] = "<pre><code class='lang-python'>" + \

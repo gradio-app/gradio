@@ -4,7 +4,7 @@
 
 Quickly create customizable UI components around your models. Gradio makes it easy for you to "play around" with your model in your browser by dragging-and-dropping in your own images, pasting your own text, recording your own voice, etc. and seeing what the model outputs.  
 
-![Interface montage](demo/screenshots/montage.gif)
+![Interface montage](website/homepage/src/assets/img/montage.gif)
 
 Gradio is useful for:
 

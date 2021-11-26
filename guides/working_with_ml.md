@@ -36,11 +36,11 @@ This code will produce the interface below.
 
 Let's wrap a `Text` to `Text` interface around GPT-2, a text generation model that works on provided starter text. [Click here to learn more about GPT-2](https://openai.com/blog/better-language-models/) and similar language models.
 
-{{ code["gpt2"] }}
+{{ code["hello_world"] }}
 
 This code will produce the interface below. That's all that's needed!
 
-{{ demos["gpt2"] }}
+{{ demos["hello_world"] }}
 
 ### Answering Questions with BERT-QA [![Colab link](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1RuiMJz_7jDXpi59jDgW02NsBnlz1aY1S?usp=sharing)
 

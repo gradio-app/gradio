@@ -3,16 +3,24 @@ from gradio.outputs import OutputComponent
 from gradio.interface import Interface
 import inspect
 import os
+import shutil
 from jinja2 import Template
 import json
 
-GRADIO_DIR = os.path.join(os.pardir, "gradio")
+GRADIO_DIR = "../../"
+GRADIO_DEMO_DIR = os.path.join(GRADIO_DIR, "demo")
 if os.path.exists("generated/colab_links.json"):
     with open("generated/colab_links.json") as demo_links_file:
         demo_links = json.load(demo_links_file)
 else:  # Docs will be missing demo links
     demo_links = {}
+SCREENSHOT_FOLDER = "dist/assets/demo_screenshots"
+os.makedirs(SCREENSHOT_FOLDER, exist_ok=True)
 
+for demo_folder in os.listdir(GRADIO_DEMO_DIR):
+    screenshot = os.path.join(GRADIO_DEMO_DIR, demo_folder, "screenshot.png")
+    if os.path.exists(screenshot):
+        shutil.copyfile(screenshot, os.path.join(SCREENSHOT_FOLDER, demo_folder + ".png"))
 
 def get_ins_and_outs(func):
     doc_str = inspect.getdoc(func)

@@ -6,24 +6,16 @@ from pydrive.drive import GoogleDrive
 GRADIO_DEMO_DIR = "../../demo/"
 NOTEBOOK_TYPE = "application/vnd.google.colaboratory"
 GOOGLE_FOLDER_TYPE = "application/vnd.google-apps.folder"
-CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRETS")
 
 def run():
-    if CLIENT_SECRET is None:
-        raise ValueError("Client secret not found.")
-    with open("client_secrets.json", "w") as client_secrets:
-        client_secrets.write(CLIENT_SECRET)
     gauth = GoogleAuth()
-    gauth.LoadCredentialsFile("mycreds.txt")
-    if gauth.credentials is None:
-        gauth.LocalWebserverAuth()
-    elif gauth.access_token_expired:
+    gauth.LoadCredentialsFile("google_credentials.json")
+    print("!", gauth.credentials)
+    if gauth.access_token_expired:
         gauth.Refresh()
     else:
         gauth.Authorize()
-    gauth.SaveCredentialsFile("mycreds.txt")
     drive = GoogleDrive(gauth)
-    os.remove("client_secrets.json")
 
     demo_links = {}
     with open("colab_template.ipynb") as notebook_template_file:
@@ -35,13 +27,10 @@ def run():
         demo_folder_file = drive.CreateFile({'title' : "Demos", 'mimeType' : GOOGLE_FOLDER_TYPE})
         demo_folder_file.Upload()
         demo_folder = demo_folder_file.metadata["id"]
-    for demo_filename in os.listdir(GRADIO_DEMO_DIR):
-        if not demo_filename.endswith(".py"):
-            continue
-        demo_name = demo_filename[:-3]
+    for demo_name in os.listdir(GRADIO_DEMO_DIR):
         notebook_title = demo_name + ".ipynb"
         print("--- " + demo_name + " ---")
-        with open(os.path.join(GRADIO_DEMO_DIR, demo_filename)) as demo_file:
+        with open(os.path.join(GRADIO_DEMO_DIR, demo_name, "run.py")) as demo_file:
             demo_content = demo_file.read()
             demo_content = demo_content.replace('if __name__ == "__main__":\n    iface.launch()', "iface.launch()")
             lines = demo_content.split("/n")
@@ -63,7 +52,7 @@ def run():
                             'type': 'anyone',
                             'value': 'anyone',
                             'role': 'reader'})
-        demo_links[demo_filename] = drive_file['alternateLink']
+        demo_links[demo_name] = drive_file['alternateLink']
     os.makedirs("generated", exist_ok=True)
     with open("generated/colab_links.json", "w") as demo_links_file:
         json.dump(demo_links, demo_links_file)

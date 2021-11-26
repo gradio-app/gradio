@@ -2,4 +2,4 @@
 /dist
 /generated
 client_secrets.json
-mycreds.txt
+google_credentials.json
