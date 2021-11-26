@@ -39,24 +39,22 @@ export class GradioPage extends React.Component {
               false
             )}
           </div>
-          <a href="/api/" target="_blank" class="footer" rel="noreferrer">
-            <span>view the api </span>
-            <img
-              class="logo"
-              src="https://i.ibb.co/6DVLqmf/noun-tools-2220412.png"
-              alt="logo"
-            />
-            <span> |</span>
-            <a
-              href="https://gradio.app"
-              target="_blank"
-              className="footer"
-              rel="noreferrer"
-            >
-              <span> built with</span>
-              <img className="logo" src={logo} alt="logo" />
-            </a>
+          <div className="footer">
+            <a 
+            href="api" 
+            target="_blank" 
+            className="footer" 
+            rel="noreferrer">
+            view the api <img className="logo" src="https://i.ibb.co/6DVLqmf/noun-tools-2220412.png" alt="api"/>
+          </a> | <a
+            href="https://gradio.app"
+            target="_blank"
+            className="footer"
+            rel="noreferrer"
+          > built with
+            <img className="logo" src={logo} alt="logo" />
           </a>
+          </div>
         </div>
       </div>
     );
@@ -202,11 +200,17 @@ export class GradioInterface extends React.Component {
     }
     this.pending_response = true;
     let input_state = [];
-    for (let i = 0; i < this.props.input_components.length; i++) {
-      if (this.state[i] === null) {
+    for (let [i, input_component] of this.props.input_components.entries()) {
+      if (
+        this.state[i] === null &&
+        this.props.input_components[i].optional !== true
+      ) {
         return;
       }
-      input_state[i] = this.state[i];
+      let InputComponentClass = input_component_set.find(
+        (c) => c.name === input_component.name
+      ).component;
+      input_state[i] = InputComponentClass.postprocess(this.state[i]);
     }
     this.setState({ submitting: true, has_changed: false, error: false });
     this.props

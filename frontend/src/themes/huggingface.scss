@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 .gradio_bg[theme="huggingface"] {
-    @apply dark:bg-gray-600 dark:text-gray-50;
+    @apply dark:bg-[#0b0f19] dark:text-gray-50;
 }
 
 .gradio_bg[theme="huggingface"] .gradio_interface {
@@ -378,6 +378,18 @@
     }
     .input_video {
         @apply w-full h-80 relative;
+        .video_recorder {
+            @apply w-full h-full bg-black;
+        }
+        .record_holder {
+            @apply absolute left-1/2 bottom-4 -translate-x-1/2 -translate-y-1/2 text-center;
+        }
+        .record_message {
+            @apply text-white font-bold mb-4;
+        }
+        .record {
+            @apply w-12 h-12 rounded-full bg-red-500 hover:bg-red-600 border-4 border-red-600;
+        }
         .upload_zone {
             @apply border-8 border-gray-300 border-dashed w-full h-full flex justify-center items-center text-3xl text-gray-400 dark:border-gray-500 dark:text-gray-50 text-center cursor-pointer leading-10;
         }
@@ -455,6 +467,9 @@
     .output_label {
         .output_class {
             @apply hidden;
+        }
+        .output_class_without_confidences{
+            @apply font-bold text-2xl py-8 px-4 flex-grow flex items-center justify-center dark:text-gray-50;
         }
         .confidence_intervals {
             @apply flex text-xl;

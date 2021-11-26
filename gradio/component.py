@@ -55,12 +55,13 @@ class Component():
         if os.path.exists(output_dir):
             file_index = len(os.listdir(output_dir))
         else:
-            os.mkdir(output_dir)
+            os.makedirs(output_dir)
             file_index = 0
         new_file_name = str(file_index)
         if "." in old_file_name:
             uploaded_format = old_file_name.split(".")[-1].lower()
             new_file_name +=  "." + uploaded_format
+        file.close()
         shutil.move(old_file_name, os.path.join(dir, label, new_file_name))
         return label + "/" + new_file_name
 

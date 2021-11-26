@@ -8,11 +8,11 @@ Quickly create customizable UI components around your models. Gradio makes it ea
 
 Gradio is useful for:
 
-* Creating demos of your machine learning code for clients / collaborators / users
+* **Demoing** your machine learning models for clients / collaborators / users / students
 
-* Getting feedback on model performance from users
+* **Deploying** your models quickly with automatic shareable links and getting feedback on model performance
 
-* Debugging your model interactively during development
+* **Debugging** your model interactively during development using built-in interpretation visualizations for any model
 
 **You can find an interactive version of the following Getting Started at [https://gradio.app/getting_started](https://gradio.app/getting_started).**
 

@@ -115,7 +115,7 @@ class Textbox(InputComponent):
             self.test_input = {
                 "str": "the quick brown fox jumped over the lazy dog",
                 "number": 786.92,
-            }[type]
+            }.get(type)
         else:
             self.test_input = default
         self.interpret_by_tokens = True
@@ -292,7 +292,7 @@ class Number(InputComponent):
         return interpretation
 
     def generate_sample(self):
-        return 1
+        return 1.0
 
 
 class Slider(InputComponent):
@@ -760,7 +760,7 @@ class Image(InputComponent):
             return processing_utils.encode_url_or_file_to_base64(x)
         elif self.type == "file":
             return processing_utils.encode_url_or_file_to_base64(x.name)
-        elif self.type == "numpy" or "pil":
+        elif self.type in ("numpy", "pil"):
             if self.type == "numpy":
                 x = PIL.Image.fromarray(np.uint8(x)).convert('RGB')
             fmt = x.format
@@ -877,14 +877,16 @@ class Video(InputComponent):
     Demos: video_flip
     """
 
-    def __init__(self, type=None, label=None, optional=False):
+    def __init__(self, type=None, source="upload", label=None, optional=False):
         '''
         Parameters:
         type (str): Type of video format to be returned by component, such as 'avi' or 'mp4'. If set to None, video will keep uploaded format.
+        source (str): Source of video. "upload" creates a box where user can drop an video file, "webcam" allows user to record a video from their webcam.
         label (str): component name in interface.
         optional (bool): If True, the interface can be submitted with no uploaded video, in which case the input value is None.
         '''
         self.type = type
+        self.source = source
         self.optional = optional
         super().__init__(label)
 
@@ -896,6 +898,7 @@ class Video(InputComponent):
 
     def get_template_context(self):
         return {
+            "source": self.source,
             "optional": self.optional,
             **super().get_template_context()
         }
@@ -933,7 +936,7 @@ class Video(InputComponent):
         raise NotImplementedError()
 
     def preprocess_example(self, x):
-        return processing_utils.encode_file_to_base64(x)
+        return processing_utils.encode_file_to_base64(x, type="video")
 
     def save_flagged(self, dir, label, data, encryption_key):
         """
