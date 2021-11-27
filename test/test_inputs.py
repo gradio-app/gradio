@@ -518,6 +518,7 @@ class TestVideo(unittest.TestCase):
         self.assertIsInstance(video_input.generate_sample(), dict)
         video_input = gr.inputs.Video(label="Upload Your Video")
         self.assertEqual(video_input.get_template_context(), {
+            'source': 'upload',
             'optional': False,
             'name': 'video',
             'label': 'Upload Your Video'

@@ -877,14 +877,16 @@ class Video(InputComponent):
     Demos: video_flip.py
     """
 
-    def __init__(self, type=None, label=None, optional=False):
+    def __init__(self, type=None, source="upload", label=None, optional=False):
         '''
         Parameters:
         type (str): Type of video format to be returned by component, such as 'avi' or 'mp4'. If set to None, video will keep uploaded format.
+        source (str): Source of video. "upload" creates a box where user can drop an video file, "webcam" allows user to record a video from their webcam.
         label (str): component name in interface.
         optional (bool): If True, the interface can be submitted with no uploaded video, in which case the input value is None.
         '''
         self.type = type
+        self.source = source
         self.optional = optional
         super().__init__(label)
 
@@ -896,6 +898,7 @@ class Video(InputComponent):
 
     def get_template_context(self):
         return {
+            "source": self.source,
             "optional": self.optional,
             **super().get_template_context()
         }
