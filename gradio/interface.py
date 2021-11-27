@@ -74,8 +74,7 @@ class Interface:
                  title=None, description=None, article=None, thumbnail=None,
                  css=None, server_port=None, server_name=networking.LOCALHOST_NAME, height=500, width=900,
                  allow_screenshot=True, allow_flagging=None, flagging_options=None, encrypt=False,
-                 show_tips=False, flagging_dir="flagged", analytics_enabled=None, enable_queue=False, api_mode=False,
-                 tab_title="Gradio"):
+                 show_tips=False, flagging_dir="flagged", analytics_enabled=None, enable_queue=False, api_mode=False):
         """
         Parameters:
         fn (Callable): the function to wrap an interface around.
@@ -143,7 +142,6 @@ class Interface:
         self.session = None
         self.server_name = server_name
         self.title = title
-        self.tab_title = tab_title
         self.description = description
         if article is not None:
             article = utils.readme_to_html(article)
@@ -262,7 +260,6 @@ class Interface:
             "show_input": self.show_input,
             "show_output": self.show_output,
             "title": self.title,
-            "tab_title": self.tab_title,
             "description": self.description,
             "article": self.article,
             "theme": self.theme,
