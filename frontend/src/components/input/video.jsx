@@ -76,6 +76,7 @@ class VideoInput extends BaseComponent {
               <video
                 className="video_preview"
                 controls
+                playsInline
                 src={this.props.value["data"]}
               ></video>
             </div>
