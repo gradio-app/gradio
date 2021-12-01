@@ -46,7 +46,7 @@ class VideoInput extends BaseComponent {
       this.camera_stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
       this.videoRecorder.current.srcObject = this.camera_stream;
       this.videoRecorder.current.volume = 0;
-      this.media_recorder = new MediaRecorder(this.camera_stream, { mimeType: 'video/webm' });
+      this.media_recorder = new MediaRecorder(this.camera_stream, { mimeType: 'video/mp4' });
       this.media_recorder.addEventListener('dataavailable', (function (e) {
         this.blobs_recorded.push(e.data);
       }).bind(this));
