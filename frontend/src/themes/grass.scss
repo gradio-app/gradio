@@ -391,6 +391,9 @@ html {
         .video_recorder {
             @apply w-full h-full bg-black;
         }
+        .video_recorder::-webkit-media-controls {
+            @apply hidden;
+        }
         .record_holder {
             @apply absolute left-1/2 bottom-4 -translate-x-1/2 -translate-y-1/2 text-center;
         }
