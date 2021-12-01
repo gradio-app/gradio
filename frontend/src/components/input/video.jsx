@@ -90,6 +90,7 @@ class VideoInput extends BaseComponent {
                 className="video_preview"
                 controls
                 playsInline
+                preload
                 src={this.props.value["data"]}
               ></video>
             </div>
@@ -132,7 +133,7 @@ class VideoInput extends BaseComponent {
     } else if (this.props.source == "webcam") {
       return (
         <div className="input_video">
-          <video ref={this.videoRecorder} class="video_recorder" autoplay></video>
+          <video ref={this.videoRecorder} class="video_recorder" autoPlay playsInline></video>
           <div class="record_holder">
             <div class="record_message">
               {this.state.recording ? <>Stop Recording</> : <>Click to Record</>}
