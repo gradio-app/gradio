@@ -32,7 +32,7 @@ class VideoInput extends BaseComponent {
       var ReaderObj = new FileReader();
       ReaderObj.onload = (function(e) {
         this.props.handleChange({
-          name: "sample.webm",
+          name: "sample.mp4",
           data: e.target.result,
           is_example: false
         });
