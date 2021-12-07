@@ -1,4 +1,4 @@
-## Working With ML
+## Working With Machine Learning
 
 We'll take a look at a few examples that dive into how Gradio models can be built specifically to work with your ML models.
 
