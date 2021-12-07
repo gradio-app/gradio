@@ -10,8 +10,6 @@ We'll start with the Inception Net image classifier, which we'll load using Tens
 
 This code will produce the interface below. The interface gives you a way to test Inception Net by dragging and dropping images, and also allows you to use naturally modify the input image using image editing tools that appear when you click the edit button. Notice here we provided actual `gradio.inputs` and `gradio.outputs` objects to the Interface function instead of using string shortcuts. This lets us use built-in preprocessing (e.g. image resizing) and postprocessing (e.g. choosing the number of labels to display) provided by these interfaces. Finally, we use `capture_session=True` to ensure compatibility with TF 1.x.
 
-{{ demos["image_classifier"] }}
-
 Try it out in your device or run it in a [colab notebook](https://colab.research.google.com/drive/1NWE_SDgQPI6GIpnhtWeEOHCPejC2FaZc?usp=sharing)!
 
 
@@ -28,9 +26,6 @@ Let's now wrap a very similar model, ResNet, except this time in Pytorch. We'll 
 
 {{ code["image_classifier_2"] }}
 
-This code will produce the interface below.
-
-{{ demos["image_classifier_2"] }}
 
 ### Text Generation with Transformers (GPT-2) [![Colab link](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1o_-QIR8yVphfnbNZGYemyEr111CHHxSv?usp=sharing)
 
@@ -38,16 +33,11 @@ Let's wrap a `Text` to `Text` interface around GPT-2, a text generation model th
 
 {{ code["hello_world"] }}
 
-This code will produce the interface below. That's all that's needed!
-
-{{ demos["hello_world"] }}
-
 ### Answering Questions with BERT-QA [![Colab link](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1RuiMJz_7jDXpi59jDgW02NsBnlz1aY1S?usp=sharing)
 
 What if our model takes more than one input? Let's wrap a 2-input to 1-output interface around BERT-QA, a model that can [answer general questions](https://arxiv.org/abs/1909.05017).
 
 {{ code["question_answer"] }}
-{{ demos["question_answer"] }}
 
 As shown in the code, Gradio can wrap functions with multiple inputs or outputs, simply by taking the list ofcomponents needed. The number of input components should match the number of parameters taken by `fn`. The number of output components should match the number of values returned by `fn`. Similarly, if a model returns multiple outputs, you can pass in a list of output interfaces.
 
@@ -57,6 +47,3 @@ Many models have numeric or categorical inputs, which we support with a variety 
 
 {{ code["titanic_survival"] }}
 
-This code will produce the interface below. 
-
-{{ demos["titanic_survival"] }}
