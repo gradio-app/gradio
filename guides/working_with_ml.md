@@ -1,6 +1,6 @@
 ## Working With Machine Learning
 
-We'll take a look at a few examples that dive into how Gradio models can be built specifically to work with your ML models.
+We'll take a look at a few examples that dive into how Gradio applications can be built specifically for machine learning models. To run the code for any of these examples, simply click the "open in Colab" button next to the example.
 
 ### Image Classification in Tensorflow / Keras [![Colab link](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1NWE_SDgQPI6GIpnhtWeEOHCPejC2FaZc?usp=sharing)
 
