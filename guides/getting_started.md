@@ -187,11 +187,18 @@ You can also write your own interpretation function. The demo below adds custom 
 
 ### Themes and Custom Styling
 
+*Coming soon*
+
 ### Flagging Options
+
+*Coming soon*
 
 ### Loading Hugging Face Models and Spaces
 
+*Coming soon*
+
 ### Putting Interfaces in Parallel and Series
 
+*Coming soon*
 
 
