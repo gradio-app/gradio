@@ -14,7 +14,7 @@ def run():
     for guide in os.listdir(GRADIO_GUIDES_DIR):
         if "template" in guide:
             continue
-        with open(os.path.join(GRADIO_GUIDES_DIR, guide)) as guide_file:
+        with open(os.path.join(GRADIO_GUIDES_DIR, guide), encoding='utf-8') as guide_file:
             guide_text = guide_file.read()
         code_tags = re.findall(r'\{\{ code\["([^\s]*)"\] \}\}', guide_text)
         demo_tags = re.findall(r'\{\{ demos\["([^\s]*)"\] \}\}', guide_text)
@@ -45,9 +45,9 @@ def run():
         guide = guide[:-3] # remove .md
         os.makedirs(os.path.join(
             "generated", guide), exist_ok=True)
-        with open("src/guides_template.html") as general_template_file:
+        with open("src/guides_template.html", encoding='utf-8') as general_template_file:
             general_template = Template(general_template_file.read())
-        with open(os.path.join("generated", guide, "index.html"), "w") as generated_template:
+        with open(os.path.join("generated", guide, "index.html"), "w", encoding='utf-8') as generated_template:
             output_html = general_template.render(template_html=output_html)
             generated_template.write(output_html)
 
