@@ -20,7 +20,7 @@ pip install gradio
 
 ### The Interface
 
-Gradio can wrap almost any Python function with an easy to use interface. That function could be anything from a simple tax calculator to a pretrained model.
+Gradio can wrap almost any Python function with an easy-to-use user interface. That function could be anything from a simple tax calculator to a pretrained machine learning model.
 
 The core  `Interface`  class is initialized with three parameters:
 
@@ -32,7 +32,7 @@ With these three arguments, we can quickly create interfaces and  `launch()`  th
 
 ### Customizable Components
 
-What if we wanted to customize the input text field - for example, we wanted it to be larger and have a text hint? If we use the actual input class for  `Textbox`  instead of using the string shortcut, we have access to much more customizability. To see a list of all the components we support and how you can customize them, check out the [Docs](https://gradio.app/docs)
+Let's say we want to customize the input text field - for example, we wanted it to be larger and have a text hint. If we use the actual input class for  `Textbox`  instead of using the string shortcut, we have access to much more customizability. To see a list of all the components we support and how you can customize them, check out the [Docs](https://gradio.app/docs).
 
 {{ code["hello_world_2"] }}
 {{ demos["hello_world_2"] }}
@@ -44,20 +44,20 @@ Let's say we had a much more complex function, with multiple inputs and outputs.
 {{ code["hello_world_3"] }}
 {{ demos["hello_world_3"] }}
 
-We simply wrap the components in a list. Furthermore, if we wanted to compare multiple functions that have the same input and return types, we can even pass a list of functions for quick comparison.
+We simply wrap the components in a list. Each component in the `inputs` list corresponds to one of the parameters of the function, in order. Each component in the `outputs` list corresponds to one of the values returned by the function, again in order. 
 
 ### Working with Images
 
-Let's try an image to image function. When using the  `Image`  component, your function will receive a numpy array of your specified size, with the shape  `(width, height, 3)`, where the last dimension represents the RGB values. We'll return an image as well in the form of a numpy array.
+Let's try an image-to-image function. When using the  `Image`  component, your function will receive a numpy array of your specified size, with the shape  `(width, height, 3)`, where the last dimension represents the RGB values. We'll return an image as well in the form of a numpy array.
 
 {{ code["sepia_filter"] }}
 {{ demos["sepia_filter"] }}
 
 Additionally, our  `Image`  input interface comes with an 'edit' button which opens tools for cropping, flipping, rotating, drawing over, and applying filters to images. We've found that manipulating images in this way will often reveal hidden flaws in a model.
 
-In addition to images, Gradio supports other media input types, such as audio or video uploads. Read about these in the [Docs](https://gradio.app/docs).
+In addition to images, Gradio supports other media input types, such as audio or video uploads, as well as many output components. Read about these in the [Docs](https://gradio.app/docs).
 
-### Working with Data
+### Working with DataFrames and Graphs
 
 You can use Gradio to support inputs and outputs from your typical data libraries, such as numpy arrays, pandas dataframes, and plotly graphs. Take a look at the demo below (ignore the complicated data manipulation in the function!)
 
@@ -75,7 +75,7 @@ You can load a large dataset into the examples to browse and interact with the d
 
 ### Live Interfaces
 
-You can make interfaces automatically responsive by setting `live=True` in the interface. Now the interface will recalculate as soon as the user input.
+You can make interfaces automatically refresh by setting `live=True` in the interface. Now the interface will recalculate as soon as the user input changes.
 
 {{ code["calculator_live"] }}
 {{ demos["calculator_live"] }}
@@ -143,20 +143,62 @@ Interfaces can be easily shared publicly by setting `share=True` in the `launch(
 gr.Interface(classify_image, "image", "label").launch(share=True)
 ```
 
-This generates a public, shareable link that you can send to anybody! When you send this link, the user on the other side can try out the model in their browser. Because the processing happens on your device (as long as your device stays on!), you don't have to worry about any dependencies. If you're working out of colab notebook, a share link is always automatically created. It usually looks something like this:  **XXXXX.gradio.app**. Although the link is served through a gradio link, we are only a proxy for your local server, and do not store any data sent through the interfaces.
+This generates a public, shareable link that you can send to anybody! When you send this link, the user on the other side can try out the model in their browser. Because the processing happens on your device (as long as your device stays on!), you don't have to worry about any packaging any dependencies. If you're working out of colab notebook, a share link is always automatically created. It usually looks something like this:  **XXXXX.gradio.app**. Although the link is served through a gradio link, we are only a proxy for your local server, and do not store any data sent through the interfaces.
 
 Keep in mind, however, that these links are publicly accessible, meaning that anyone can use your model for prediction! Therefore, make sure not to expose any sensitive information through the functions you write, or allow any critical changes to occur on your device. If you set `share=False` (the default), only a local link is created, which can be shared by  [port-forwarding](https://www.ssh.com/ssh/tunneling/example)  with specific users. 
 
-Share links expire after 72 hours. For permanent hosting, see Hosting on Spaces below.
+Share links expire after 72 hours. For permanent hosting, see Hosting Gradio Apps on Spaces below.
 
-![Sharing diagram](website/homepage/src/assets/img/sharing.svg)
+![Sharing diagram](/assets/img/sharing.svg)
 
-### Hosting on Spaces
+### Hosting Gradio Apps on Spaces
 
 Huggingface provides the infrastructure to permanently host your Gradio model on the internet, for free! You can either drag and drop a folder containing your Gradio model and all related files, or you can point HF Spaces to your Git repository and HP Spaces will pull the Gradio interface from there. See [Huggingface Spaces](http://huggingface.co/spaces/) for more information. 
 
-![Hosting Demo](website/homepage/src/assets/img/hf_demo.gif)
+![Hosting Demo](/assets/img/hf_demo.gif)
+
+## Advanced Features
+<span id="advanced-features"></span>
+
+Here, we go through several advanced features that your Gradio application can include out of the box.
 
 ### Authentication
 
-You may wish to put an authentication page in front of your interface to limit access. With the `auth=` keyword argument in the `launch()` method, you can pass a list of acceptable username/password tuples; or, for custom authentication handling, pass a function that takes a username and password as arguments, and returns True to allow authentication, False otherwise.
+You may wish to put an authentication page in front of your interface to limit access. With the `auth=` keyword argument in the `launch()` method, you can pass a list of acceptable username/password tuples; or, for more complex authentication handling, you can even pass a function that takes a username and password as arguments, and returns True to allow authentication, False otherwise.
+
+### Interpretation
+
+Most models are black boxes such that the internal logic of the function is hidden from the end user. To encourage transparency, we've made it very easy to add interpretation to your model by  simply setting the `interpretation` keyword in the `Interface` class to `default`. This allows your users to understand what parts of the input are responsible for the output. Take a look at the simple interface below:
+
+{{ code["image_classifier"] }}
+{{ demos["image_classifier"] }}
+
+This will work for any function, even if internally, the model is a complex neural network or some other black box. If you use Gradio's default interpretation, the output component must be a label or a number. All common input components are supported for default interpretation. Here is an example with text input.
+
+{{ code["gender_sentence_default_interpretation"] }}
+{{ demos["gender_sentence_default_interpretation"] }}
+
+So what is happening behind the hood? We're using Gradio's `default` interpreter here, which runs the prediction multiple times with modified versions of the input. Based on the results, you'll see that the interface automatically highlights the parts of the text (or image, etc.) that contributed increased the likelihood of the class as red. The intensity of color corresponds to the importance of that part of the input. The parts that decrease the class confidence are highlighted blue. 
+
+You can also write your own interpretation function. The demo below adds custom interpretation to the previous demo. This function will take the same inputs as the main wrapped function. The output of this interpretation function will be used to highlight the input of each input interface - therefore the number of outputs here corresponds to the number of input interfaces. To see the format for interpretation for each input interface, check the Docs.
+
+{{ code["gender_sentence_custom_interpretation"] }}
+{{ demos["gender_sentence_custom_interpretation"] }}
+
+### Themes and Custom Styling
+
+*Coming soon*
+
+### Flagging Options
+
+*Coming soon*
+
+### Loading Hugging Face Models and Spaces
+
+*Coming soon*
+
+### Putting Interfaces in Parallel and Series
+
+*Coming soon*
+
+

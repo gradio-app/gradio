@@ -38,7 +38,7 @@
         </svg>
         <div class="guide-menu hidden group-hover:flex group-active:flex flex-col absolute top-6 left-0 bg-white shadow w-52">
           <a class="link px-4 py-2 inline-block hover:bg-gray-100" href="/getting_started">Getting Started</a>
-          <a class="link px-4 py-2 inline-block hover:bg-gray-100" href="/working_with_ml">Working with ML</a>
+          <a class="link px-4 py-2 inline-block hover:bg-gray-100" href="/working_with_ml">ML Examples</a>
         </div>
       </div>
       <a class="link" href="/docs">Docs</a>
@@ -90,10 +90,8 @@
         onclick="load_demo(1)">Sketch Recognition</div>
       <div class="flex-1 text-center px-2 py-3 cursor-pointer border-gray-300 demotab" demo="2" onclick="load_demo(2)">
         Question Answer</div>
-      <div class="flex-1 text-center px-2 py-3 cursor-pointer border-gray-300 demotab" demo="3" onclick="load_demo(3)">Speech
-        to Text</div>
-      <div class="flex-1 text-center px-2 py-3 cursor-pointer border-gray-300 demotab" demo="4" onclick="load_demo(4)">Face
-        Segment</div>
+      <div class="flex-1 text-center px-2 py-3 cursor-pointer border-gray-300 demotab" demo="3" onclick="load_demo(3)">Image Classification</div>
+      <div class="flex-1 text-center px-2 py-3 cursor-pointer border-gray-300 demotab" demo="4" onclick="load_demo(4)">Face Segment</div>
     </div>
     <div class="demo mb-16 p-4 border border-gray-300 border-t-0 shadow-lg" demo="1">
       <div class="relative">
@@ -106,7 +104,7 @@
   <span class="token comment"># Implement sketch recognition model here...</span>
   <span class="token comment"># Return labels and confidences as dictionary</span>
 
-iface <span class="token operator">=</span> gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>sketch_recognition<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token string">"image"</span><span class="token punctuation">,</span> outputs<span class="token operator">=</span><span class="token string">"label"</span><span class="token punctuation">).</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span>
+iface <span class="token operator">=</span> gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>sketch_recognition<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token string">"sketchpad"</span><span class="token punctuation">,</span> outputs<span class="token operator">=</span><span class="token string">"label"</span><span class="token punctuation">).</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
       </div>
       <iframe src="https://huggingface.co/gradioiframe/abidlabs/Gradio-MNIST-Realtime/+" frameborder="0" class="w-full" style="height: 32rem"></iframe>
@@ -138,7 +136,7 @@ iface <span class="token operator">=</span> gr<span class="token punctuation">.<
   <span class="token comment"># Implement image classification model here...</span>
   <span class="token comment"># Return label of confidences</span>
 
-iface <span class="token operator">=</span> gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>image_classifier<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token string">"image"</span><span class="token punctuation">,</span> outputs<span class="token operator">=</span><span class="token string">"text"</span><span class="token punctuation">).</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span>
+iface <span class="token operator">=</span> gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>image_classifier<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token string">"webcam"</span><span class="token punctuation">,</span> outputs<span class="token operator">=</span><span class="token string">"label"</span><span class="token punctuation">).</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
       </div>
       <iframe src="https://huggingface.co/gradioiframe/abidlabs/vision-transformer/+" frameborder="0"  class="w-full" style="height: 32rem"></iframe>
