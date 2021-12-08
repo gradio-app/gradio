@@ -20,7 +20,7 @@ pip install gradio
 
 ### The Interface
 
-Gradio can wrap almost any Python function with an easy-to-use user interface. That function could be anything from a simple tax calculator to a pretrained model.
+Gradio can wrap almost any Python function with an easy-to-use user interface. That function could be anything from a simple tax calculator to a pretrained machine learning model.
 
 The core  `Interface`  class is initialized with three parameters:
 
@@ -149,26 +149,49 @@ Keep in mind, however, that these links are publicly accessible, meaning that an
 
 Share links expire after 72 hours. For permanent hosting, see Hosting Gradio Apps on Spaces below.
 
-![Sharing diagram](assets/img/sharing.svg)
+![Sharing diagram](/assets/img/sharing.svg)
 
 ### Hosting Gradio Apps on Spaces
 
 Huggingface provides the infrastructure to permanently host your Gradio model on the internet, for free! You can either drag and drop a folder containing your Gradio model and all related files, or you can point HF Spaces to your Git repository and HP Spaces will pull the Gradio interface from there. See [Huggingface Spaces](http://huggingface.co/spaces/) for more information. 
 
-![Hosting Demo](assets/img/hf_demo.gif)
+![Hosting Demo](/assets/img/hf_demo.gif)
 
 ## Advanced Features
+<span id="advanced-features"></span>
 
-Here, we go through several advanced features that Gradio applications support out of the box.
+Here, we go through several advanced features that your Gradio application can include out of the box.
 
 ### Authentication
 
-You may wish to put an authentication page in front of your interface to limit access. With the `auth=` keyword argument in the `launch()` method, you can pass a list of acceptable username/password tuples; or, for custom authentication handling, pass a function that takes a username and password as arguments, and returns True to allow authentication, False otherwise.
+You may wish to put an authentication page in front of your interface to limit access. With the `auth=` keyword argument in the `launch()` method, you can pass a list of acceptable username/password tuples; or, for more complex authentication handling, you can even pass a function that takes a username and password as arguments, and returns True to allow authentication, False otherwise.
 
 ### Interpretation
+
+Most models are black boxes such that the internal logic of the function is hidden from the end user. To encourage transparency, we've made it very easy to add interpretation to your model by  simply setting the `interpretation` keyword in the `Interface` class to `default`. This allows your users to understand what parts of the input are responsible for the output. Take a look at the simple interface below:
+
+{{ code["image_classifier"] }}
+{{ demos["image_classifier"] }}
+
+This will work for any function, even if internally, the model is a complex neural network or some other black box. If you use Gradio's default interpretation, the output component must be a label or a number. All common input components are supported for default interpretation. Here is an example with text input.
+
+{{ code["gender_sentence_default_interpretation"] }}
+{{ demos["gender_sentence_default_interpretation"] }}
+
+So what is happening behind the hood? We're using Gradio's `default` interpreter here, which runs the prediction multiple times with modified versions of the input. Based on the results, you'll see that the interface automatically highlights the parts of the text (or image, etc.) that contributed increased the likelihood of the class as red. The intensity of color corresponds to the importance of that part of the input. The parts that decrease the class confidence are highlighted blue. 
+
+You can also write your own interpretation function. The demo below adds custom interpretation to the previous demo. This function will take the same inputs as the main wrapped function. The output of this interpretation function will be used to highlight the input of each input interface - therefore the number of outputs here corresponds to the number of input interfaces. To see the format for interpretation for each input interface, check the Docs.
+
+{{ code["gender_sentence_custom_interpretation"] }}
+{{ demos["gender_sentence_custom_interpretation"] }}
 
 ### Themes and Custom Styling
 
 ### Flagging Options
+
+### Loading Hugging Face Models and Spaces
+
+### Putting Interfaces in Parallel and Series
+
 
 
