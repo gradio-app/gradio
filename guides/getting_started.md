@@ -164,41 +164,114 @@ Here, we go through several advanced features that your Gradio application can i
 
 ### Authentication
 
-You may wish to put an authentication page in front of your interface to limit access. With the `auth=` keyword argument in the `launch()` method, you can pass a list of acceptable username/password tuples; or, for more complex authentication handling, you can even pass a function that takes a username and password as arguments, and returns True to allow authentication, False otherwise.
+You may wish to put an authentication page in front of your interface to limit who can open your interface. With the `auth=` keyword argument in the `launch()` method, you can pass a list of acceptable username/password tuples; or, for more complex authentication handling, you can even pass a function that takes a username and password as arguments, and returns True to allow authentication, False otherwise.
 
-### Interpretation
+### Interpreting your Predictions
 
-Most models are black boxes such that the internal logic of the function is hidden from the end user. To encourage transparency, we've made it very easy to add interpretation to your model by  simply setting the `interpretation` keyword in the `Interface` class to `default`. This allows your users to understand what parts of the input are responsible for the output. Take a look at the simple interface below:
+Most models are black boxes such that the internal logic of the function is hidden from the end user. To encourage transparency, we've made it very easy to add interpretation to your model by  simply setting the `interpretation` keyword in the `Interface` class to `default`. This allows your users to understand what parts of the input are responsible for the output. Take a look at the simple interface below which shows an image classifier that also includes interpretation:
 
-{{ code["image_classifier"] }}
-{{ demos["image_classifier"] }}
+{{ code["image_classifier_interpretation"] }}
 
-This will work for any function, even if internally, the model is a complex neural network or some other black box. If you use Gradio's default interpretation, the output component must be a label or a number. All common input components are supported for default interpretation. Here is an example with text input.
+
+In addition to `default`, Gradio also includes [Shapley-based interpretation](https://christophm.github.io/interpretable-ml-book/shap.html), which provide more accurate interpretations, albeit usually with a slower runtime. To use this, simply set the `interpretation` parameter to `"shap"` (note: also make sure the python package `shap` is installed). Optionally, you can modify the the `num_shap` parameter, which controls the tradeoff between accuracy as runtime. Here is an example:
+
+```python
+gr.Interface(fn=classify_image, inputs=image, outputs=label, interpretation="shap", num_shap=5).launch()
+```
+
+This will work for any function, even if internally, the model is a complex neural network or some other black box. If you use Gradio's `default` or `shap` interpretation, the output component must be a `Label`. All common input components are supported. Here is an example with text input.
 
 {{ code["gender_sentence_default_interpretation"] }}
-{{ demos["gender_sentence_default_interpretation"] }}
 
-So what is happening behind the hood? We're using Gradio's `default` interpreter here, which runs the prediction multiple times with modified versions of the input. Based on the results, you'll see that the interface automatically highlights the parts of the text (or image, etc.) that contributed increased the likelihood of the class as red. The intensity of color corresponds to the importance of that part of the input. The parts that decrease the class confidence are highlighted blue. 
+So what is happening behind the hood? With these interpretation methods, Gradio runs the prediction multiple times with modified versions of the input. Based on the results, you'll see that the interface automatically highlights the parts of the text (or image, etc.) that contributed increased the likelihood of the class as red. The intensity of color corresponds to the importance of that part of the input. The parts that decrease the class confidence are highlighted blue.
 
 You can also write your own interpretation function. The demo below adds custom interpretation to the previous demo. This function will take the same inputs as the main wrapped function. The output of this interpretation function will be used to highlight the input of each input interface - therefore the number of outputs here corresponds to the number of input interfaces. To see the format for interpretation for each input interface, check the Docs.
 
 {{ code["gender_sentence_custom_interpretation"] }}
-{{ demos["gender_sentence_custom_interpretation"] }}
 
 ### Themes and Custom Styling
 
-*Coming soon*
+If you'd like to change how your interface looks, you can select a different theme by simply passing in one parameter, like so:
 
-### Flagging Options
+```python
+gr.Interface(fn=classify_image, inputs=image, outputs=label, theme="huggingface").launch()
+```
 
-*Coming soon*
+Here are the themes we currently support: `"default"`, `"huggingface"`, `"grass"`, `"peach"`, and the dark themes corresponding to each of these: `"darkdefault"`, `"darkhuggingface"`, `"darkgrass"`, `"darkpeach"`.
+
+If you'd like to have more fine-grained control over any aspect of the app, you can also write your own css or pass in a css file, with the `css` parameter of the `Interface` class.
+
+### Custom Flagging Options
+
+In some cases, you might like to provide your users or testers with *more* than just a binary option to flag a sample. You can provide `flagging_options` that they select from a dropdown each time they click the flag button. This lets them provide additional feedback every time they flag a sample.
+
+Here's an example:
+
+```python
+gr.Interface(fn=classify_image, inputs=image, outputs=label, flagging_options=["incorrect", "ambiguous", "offensive", "other"]).launch()
+```
 
 ### Loading Hugging Face Models and Spaces
 
-*Coming soon*
+Gradio integrates nicely with the Hugging Face Hub, allowing you to load models and Spaces with just one line of code. To use this, simply use the `load()` method in the `Interface` class. So:
+
+- To load any model from the Hugging Face Hub and create an interface around it, you pass "model/" or "huggingface/" followed by the model name, like these examples:
+
+```python
+gr.Interface.load("huggingface/gpt-2").launch();
+```
+
+```python
+gr.Interface.load("huggingface/EleutherAI/gpt-j-6B", 
+    inputs=gr.inputs.Textbox(lines=5, label="Input Text")
+).launch()
+```
+
+- To load any Space from the Hugging Face Hub and recreate it locally (so that you can customize the inputs and outputs for example), you pass "space/" followed by the model name:
+
+```python
+gr.Interface.load("spaces/eugenesiow/remove-bg", inputs="webcam", title="Remove your webcam background!").launch()
+```
+
+One of the great things about loading Hugging Face models or spaces using Gradio is that you can then immediately use the resulting `Interface` object just like function in your Python code (this works for every type of model/space: text, images, audio, video):
+
+```python
+io = gr.Interface.load("models/EleutherAI/gpt-neo-2.7B")
+io("It was the best of times")
+```
 
 ### Putting Interfaces in Parallel and Series
 
-*Coming soon*
+Gradio also lets you mix interfaces very easily using the `Parallel` and `Series` classes. `Parallel` lets you put two similar models (if they have the same input type) in parallel to compare model predictions:
+
+```python
+generator1 = gr.Interface.load("huggingface/gpt2")
+generator2 = gr.Interface.load("huggingface/EleutherAI/gpt-neo-2.7B")
+generator3 = gr.Interface.load("huggingface/EleutherAI/gpt-j-6B")
+
+Parallel(generator1, generator2, generator3).launch()
+```
+
+`Series` lets you put models and spaces in series making
+
+```python
+generator = gr.Interface.load("huggingface/gpt2")
+translator = gr.Interface.load("huggingface/t5-small")
+
+Series(generator, translator).launch()  # this demo generates text, then translates it to German
+```
+
+And of course, you can also mix `Parallel` and `Series` together whenever that makes sense!
+
+### Queuing to Manage Long Inference Times
+
+If many people are using your interface or if the inference time of your function is long (> 1min), simply set the `enable_queue` parameter in the `Interface` class to `True` to prevent timeouts.
+
+```python
+gr.Interface(fn=classify_image, inputs=image, outputs=label, enable_queue=True).launch()
+```
+
+This sets up a queue of workers to handle the predictions and return the response to the front end. This is strongly recommended if you are planning on uploading your demo to Hugging Face Spaces (as described above) so that you can manage a large number of users simultaneously using your demo.
+
 
 
