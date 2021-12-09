@@ -4,11 +4,11 @@ We'll take a look at a few examples that dive into how Gradio applications can b
 
 ### Image Classification in Tensorflow / Keras [![Colab link](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1NWE_SDgQPI6GIpnhtWeEOHCPejC2FaZc?usp=sharing)
 
-We'll start with the Inception Net image classifier, which we'll load using Tensorflow! Since this is an image classification model, we will use the `Image` input interface. We'll output a dictionary of labels and their corresponding confidence scores with the `Label` output interface. (The original Inception Net architecture [can be found here](https://arxiv.org/abs/1409.4842))
+We'll start with the MobileNetV2 image classifier, which we'll load using Tensorflow! Since this is an image classification model, we will use the `Image` input interface. We'll output a dictionary of labels and their corresponding confidence scores with the `Label` output interface.
 
 {{ code["image_classifier"] }}
 
-This code will produce the interface below. The interface gives you a way to test Inception Net by dragging and dropping images, and also allows you to use naturally modify the input image using image editing tools that appear when you click the edit button. Notice here we provided actual `gradio.inputs` and `gradio.outputs` objects to the Interface function instead of using string shortcuts. This lets us use built-in preprocessing (e.g. image resizing) and postprocessing (e.g. choosing the number of labels to display) provided by these interfaces. Finally, we use `capture_session=True` to ensure compatibility with TF 1.x.
+This code will produce the interface below. The interface gives you a way to test MobileNetV2 by dragging and dropping images, and also allows you to use naturally modify the input image using image editing tools that appear when you click the edit button. Notice here we provided actual `gradio.inputs` and `gradio.outputs` objects to the Interface function instead of using string shortcuts. This lets us use built-in preprocessing (e.g. image resizing) and postprocessing (e.g. choosing the number of labels to display) provided by these interfaces.
 
 Try it out in your device or run it in a [colab notebook](https://colab.research.google.com/drive/1NWE_SDgQPI6GIpnhtWeEOHCPejC2FaZc?usp=sharing)!
 
