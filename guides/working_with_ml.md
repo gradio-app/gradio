@@ -15,9 +15,11 @@ Try it out in your device or run it in a [colab notebook](https://colab.research
 
 #### Add Interpretation
 
-The above code also shows how you can add interpretation to your interface. You can use our out of the box functions for text and image interpretation or use your own interpretation functions. To use the out of the box functions just specify “default” for the interpretation parameter (Note: this only works for text/image input and label outputs).
+The above code also shows how you can add interpretation to your interface. You can use our out of the box functions for text and image interpretation or use your own interpretation functions. To use the out of the box functions just specify “default” for the interpretation parameter.
 
-`gr.Interface(classify_image, image, label, capture_session=True, interpretation="default").launch();`
+```python
+gr.Interface(classify_image, image, label, interpretation="default").launch();
+```
 
 ### Image Classification in Pytorch [![Colab link](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1S6seNoJuU7_-hBX5KbXQV4Fb_bbqdPBk?usp=sharing)
 
@@ -27,9 +29,9 @@ Let's now wrap a very similar model, ResNet, except this time in Pytorch. We'll 
 {{ code["image_classifier_2"] }}
 
 
-### Text Generation with Transformers (GPT-2) [![Colab link](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1o_-QIR8yVphfnbNZGYemyEr111CHHxSv?usp=sharing)
+### Text Generation with Hugging Face Transformers (GPT-J) [![Colab link](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1o_-QIR8yVphfnbNZGYemyEr111CHHxSv?usp=sharing)
 
-Let's wrap a `Text` to `Text` interface around GPT-2, a text generation model that works on provided starter text. [Click here to learn more about GPT-2](https://openai.com/blog/better-language-models/) and similar language models.
+Let's wrap a `Text` to `Text` interface around GPT-J, a text generation model that works on provided starter text. [Click here to learn more about GPT-J](https://towardsdatascience.com/how-you-can-use-gpt-j-9c4299dd8526) and similar language models. We're loading the model directly from the Hugging Face model repo, and providing a few example prompts.
 
 {{ code["hello_world"] }}
 
