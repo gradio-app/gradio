@@ -1,27 +1,20 @@
 import gradio as gr
-import torch
-from torchvision import transforms
-from PIL import Image
-import json
-from os.path import dirname, realpath, join
+import tensorflow as tf
+import requests
 
-# Load human-readable labels for Resnet.
-current_dir = dirname(realpath(__file__))
-with open(join(current_dir, "files/imagenet_labels.json")) as labels_file:
-    labels = json.load(labels_file)
+inception_net = tf.keras.applications.MobileNetV2() # load the model
 
-model = torch.hub.load('pytorch/vision:v0.6.0', 'resnet18', pretrained=True).eval()
+# Download human-readable labels for ImageNet.
+response = requests.get("https://git.io/JJkYN")
+labels = response.text.split("\n")
 
-def predict(inp):
-  inp = Image.fromarray(inp.astype('uint8'), 'RGB')
-  inp = transforms.ToTensor()(inp).unsqueeze(0)
-  with torch.no_grad():
-    prediction = torch.nn.functional.softmax(model(inp)[0], dim=0)
+def classify_image(inp):
+  inp = inp.reshape((-1, 224, 224, 3))
+  inp = tf.keras.applications.mobilenet_v2.preprocess_input(inp)
+  prediction = inception_net.predict(inp).flatten()
   return {labels[i]: float(prediction[i]) for i in range(1000)}
 
-inputs = gr.inputs.Image()
-outputs = gr.outputs.Label(num_top_classes=3)
-iface = gr.Interface(fn=predict, inputs=inputs, outputs=outputs)
+image = gr.inputs.Image(shape=(224, 224))
+label = gr.outputs.Label(num_top_classes=3)
 
-if __name__ == "__main__":
-    iface.launch()
+gr.Interface(fn=classify_image, inputs=image, outputs=label).launch()
