@@ -37,15 +37,38 @@ Let's wrap a `Text` to `Text` interface around GPT-J, a text generation model th
 
 ### Answering Questions with BERT-QA [![Colab link](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1RuiMJz_7jDXpi59jDgW02NsBnlz1aY1S?usp=sharing)
 
-What if our model takes more than one input? Let's wrap a 2-input to 1-output interface around BERT-QA, a model that can [answer general questions](https://arxiv.org/abs/1909.05017).
+What if our model takes more than one input? Let's wrap a 2-input to 1-output interface around Roberta-base, a model that can [answer general questions](https://arxiv.org/abs/1909.05017). Like previously, we will load the model from Hugging Face model hub, but this time, we will override the default inputs and outputs so that we can customize the interface (e.g. put placeholder text).
 
 {{ code["question_answer"] }}
 
-As shown in the code, Gradio can wrap functions with multiple inputs or outputs, simply by taking the list ofcomponents needed. The number of input components should match the number of parameters taken by `fn`. The number of output components should match the number of values returned by `fn`. Similarly, if a model returns multiple outputs, you can pass in a list of output interfaces.
+As shown in the code, Gradio can wrap functions with multiple inputs or outputs, simply by taking the list ofcomponents needed. The number of input components should match the number of parameters taken by the function or API (in this case 2: the context and question). The number of output components should match the number of values returned by the function (in this case, also 2: the answer and the probability it is correct). 
 
-### Numerical Interfaces: Titanic Survival Model [![Colab link](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1xOU3sDHs7yZjuBosbQ8Zb2oc4BegfSFX?usp=sharing)
 
-Many models have numeric or categorical inputs, which we support with a variety of interfaces. Let's wrap multiple input to label interface around a [Titanic survival model](https://www.kaggle.com/c/titanic).
+### A Multilingual Speech Recognition Demo [![Colab link](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1RWmRgoHklrv7r0NqDefX8aFryIojJPT7?usp=sharing)
+
+Gradio can do more than just images, videos, and text. The Audio input component is popular for speech-to-text applications (and the analogous Audio output component is useful for text-to-speech applications).  Click "open in Colab" button to see a complete example of the code needed for a complete speech recognition demo in mutiple languages. The Gradio-relevant part of the code is extracted below. 
+
+```python
+import gradio as gr
+    
+iface = gr.Interface(
+    fn=transcribe, 
+    inputs=[
+        gr.inputs.Audio(source="microphone", type='filepath'),
+        gr.inputs.Dropdown(target_language),
+    ],
+    outputs="text",
+    layout="horizontal",
+    theme="huggingface",
+    title="XLS-R 300M EN-to-15 Speech Translation",
+)
+
+iface.launch()
+```
+
+### Numerical Interfaces: Titanic Survival Model with Scikit-Learn [![Colab link](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1xOU3sDHs7yZjuBosbQ8Zb2oc4BegfSFX?usp=sharing)
+
+Many models have numeric or categorical inputs, which we support with a variety of interfaces. Let's wrap multiple input to label interface around a [Titanic survival model](https://www.kaggle.com/c/titanic). See the full code include the training step by clicking on "open in Colab" button.
 
 {{ code["titanic_survival"] }}
 
