@@ -1,0 +1,129 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Gradio</title>
+  <meta name="description" content="Demos for your ML Models.">
+  <meta name="author" content="SitePoint">
+
+  <meta name="description" content="Build & share machine learning apps delightfully.">
+  <meta name="author" content="SitePoint">
+  <meta property="og:title" content="Gradio">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://gradio.app/">
+  <meta property="og:description" content="Build & share machine learning apps delightfully.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:creator" content="@teamGradio">
+  <meta name="twitter:title" content="Gradio">
+  <meta name="twitter:description" content="Build & share machine learning apps delightfully.">
+  <meta name="twitter:image" content="https://gradio.app/static/home/img/social-cheetah.jpg">  
+
+  <link rel="icon" type="image/png" href="/assets/img/logo.png">
+  <link href="/gradio_static/bundle.css" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/assets/prism.css">
+  <style>
+    html {
+      font-size: 16px !important;
+    }
+    header {
+      flex
+    }
+    .prose p > img {
+        margin: 0 auto;
+        width: 600px;
+        max-width: 100%;
+    }
+    .prose {
+      max-width: none !important;
+    }
+    .gradio_page .footer {
+      display: none !important;
+    }
+    .prose .code, .prose pre {
+      background-color: whitesmoke;
+      color: black;
+    }
+    h3 a {
+      display: inline-block;
+    }
+    h3 a img {
+      height: 14px;
+      margin: 0 4px !important;
+    }
+  </style>
+</head>
+
+<body class="bg-white text-gray-900 text-md sm:text-lg">
+  <header class="container mx-auto p-4 flex justify-between items-center gap-4 flex-col sm:flex-row">
+    <a href="/">
+      <img src="/assets/img/logo.svg" class="h-10">
+    </a>
+    <nav class="flex gap-12 sm:gap-16">
+      <div class="group relative cursor-pointer font-semibold flex items-center gap-1" onClick="document.querySelector('.guide-menu').classList.toggle('flex'); document.querySelector('.guide-menu').classList.toggle('hidden');">
+        Guides
+        <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+          <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+        </svg>
+        <div class="hidden group-hover:flex flex-col absolute top-6 left-0 bg-white shadow w-52">
+          {% for guide_name, pretty_guide_name in guide_names %}
+          <a class="link px-4 py-2 inline-block hover:bg-gray-100" href="/{{ guide_name }}">{{ pretty_guide_name }}</a>
+          {% endfor %}
+        </div>
+      </div>
+      <a class="link" href="/docs">Docs</a>
+      <div class="group relative cursor-pointer font-semibold flex items-center gap-1" onClick="document.querySelector('.help-menu').classList.toggle('flex'); document.querySelector('.help-menu').classList.toggle('hidden');">
+        Help
+        <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+          <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+        </svg>
+        <div class="hidden group-hover:flex group-active:flex flex-col absolute top-6 right-0 bg-white shadow w-52">
+          <a class="link px-4 py-2 inline-block hover:bg-gray-100"
+            href="https://github.com/gradio-app/gradio/issues/new">File an Issue</a>
+          <a class="link px-4 py-2 inline-block hover:bg-gray-100"
+            href="https://github.com/gradio-app/gradio/discussions">Discussions</a>
+        </div>
+      </div>
+      <a class="link hidden sm:block" href="/hosted">Account</a>
+    </nav>
+  </header>
+  <div class="container mx-auto px-4 mb-12">
+    <div class="prose prose-lg max-w-none">
+      {{ template_html|safe }}
+    </div>      
+  </div>
+  <footer class="container mx-auto p-4 flex justify-between items-center">
+    <img src="/assets/img/logo.svg" class="h-10">
+    <div class="flex gap-4">
+      <a class="hover:opacity-75 transition" href="https://twitter.com/Gradio">
+        <img src="/assets/img/twitter.svg" class="h-8">
+      </a>
+      <a class="hover:opacity-75 transition" href="https://github.com/gradio-app/gradio">
+        <img src="/assets/img/github.svg" class="h-8">
+      </a>
+    </div>
+  </footer>
+  <script src="/assets/prism.js"></script>
+  <script>
+    var demo_endpoint = "/demo";
+    var demo_names = {{ demo_names|tojson }};
+    window.config = [];
+    demo_names.forEach((demo_name, i) => {
+      fetch('/demo/' + demo_name + '/config')
+        .then(response => response.json())
+        .then(demo => {
+          demo.target = "interface_" + demo_name;
+          demo.endpoint = demo_endpoint + "/" + demo_name + "/api/";
+          window.config[i] = demo;
+        });
+    });
+  </script>
+  <script async src="/gradio_static/bundle.js"></script>
+
+</body>
+
+</html>

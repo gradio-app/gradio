@@ -89,7 +89,7 @@ class Textbox(InputComponent):
     """
     Component creates a textbox for user to enter input. Provides a string as an argument to the wrapped function.
     Input type: str
-    Demos: hello_world.py, diff_texts.py
+    Demos: hello_world, diff_texts
     """
 
     def __init__(self, lines=1, placeholder=None, default="", numeric=False, type="str", label=None):
@@ -214,7 +214,7 @@ class Number(InputComponent):
     """
     Component creates a field for user to enter numeric input. Provides a number as an argument to the wrapped function.
     Input type: float
-    Demos: tax_calculator.py, titanic_survival.py
+    Demos: tax_calculator, titanic_survival
     """
 
     def __init__(self, default=None, label=None):
@@ -299,7 +299,7 @@ class Slider(InputComponent):
     """
     Component creates a slider that ranges from `minimum` to `maximum`. Provides a number as an argument to the wrapped function.
     Input type: float
-    Demos: sentence_builder.py, generate_tone.py, titanic_survival.py
+    Demos: sentence_builder, generate_tone, titanic_survival
     """
 
     def __init__(self, minimum=0, maximum=100, step=None, default=None, label=None):
@@ -381,7 +381,7 @@ class Checkbox(InputComponent):
     """
     Component creates a checkbox that can be set to `True` or `False`. Provides a boolean as an argument to the wrapped function.
     Input type: bool
-    Demos: sentence_builder.py, titanic_survival.py
+    Demos: sentence_builder, titanic_survival
     """
 
     def __init__(self, default=False, label=None):
@@ -449,7 +449,7 @@ class CheckboxGroup(InputComponent):
     """
     Component creates a set of checkboxes of which a subset can be selected. Provides a list of strings representing the selected choices as an argument to the wrapped function.
     Input type: Union[List[str], List[int]]
-    Demos: sentence_builder.py, titanic_survival.py, fraud_detector.py
+    Demos: sentence_builder, titanic_survival, fraud_detector
     """
 
     def __init__(self, choices, default=[], type="value", label=None):
@@ -536,7 +536,7 @@ class Radio(InputComponent):
     """
     Component creates a set of radio buttons of which only one can be selected. Provides string representing selected choice as an argument to the wrapped function.
     Input type: Union[str, int]
-    Demos: sentence_builder.py, tax_calculator.py, titanic_survival.py
+    Demos: sentence_builder, tax_calculator, titanic_survival
     """
 
     def __init__(self, choices, type="value", default=None, label=None):
@@ -603,7 +603,7 @@ class Dropdown(InputComponent):
     """
     Component creates a dropdown of which only one can be selected. Provides string representing selected choice as an argument to the wrapped function.
     Input type: Union[str, int]
-    Demos: sentence_builder.py, filter_records.py, titanic_survival.py
+    Demos: sentence_builder, filter_records, titanic_survival
     """
 
     def __init__(self, choices, type="value", default=None, label=None):
@@ -670,7 +670,7 @@ class Image(InputComponent):
     """
     Component creates an image upload box with editing capabilities. 
     Input type: Union[numpy.array, PIL.Image, file-object]
-    Demos: image_classifier.py, image_mod.py, webcam.py, digit_classifier.py
+    Demos: image_classifier, image_mod, webcam, digit_classifier
     """
 
     def __init__(self, shape=None, image_mode='RGB', invert_colors=False, source="upload", tool="editor", type="numpy", label=None, optional=False):
@@ -874,7 +874,7 @@ class Video(InputComponent):
     """
     Component creates a video file upload that is converted to a file path.
     Input type: filepath
-    Demos: video_flip.py
+    Demos: video_flip
     """
 
     def __init__(self, type=None, source="upload", label=None, optional=False):
@@ -952,7 +952,7 @@ class Audio(InputComponent):
     """
     Component accepts audio input files. 
     Input type: Union[Tuple[int, numpy.array], file-object, numpy.array]
-    Demos: main_note.py, reverse_audio.py, spectogram.py
+    Demos: main_note, reverse_audio, spectogram
     """
 
     def __init__(self, source="upload", type="numpy", label=None, optional=False):
@@ -1126,7 +1126,7 @@ class File(InputComponent):
     """
     Component accepts generic file uploads.
     Input type: Union[file-object, bytes, List[Union[file-object, bytes]]]
-    Demos: zisp_to_json.py, zip_two_files.py
+    Demos: zip_to_json, zip_two_files
     """
 
     def __init__(self, file_count="single", type="file", label=None, keep_filename=True, optional=False):
@@ -1205,7 +1205,7 @@ class Dataframe(InputComponent):
     """
     Component accepts 2D input through a spreadsheet interface.
     Input type: Union[pandas.DataFrame, numpy.array, List[Union[str, float]], List[List[Union[str, float]]]]
-    Demos: filter_records.py, matrix_transpose.py, tax_calculator.py
+    Demos: filter_records, matrix_transpose, tax_calculator
     """
 
     def __init__(self, headers=None, row_count=3, col_count=3, datatype="str", col_width=None, default=None, type="pandas", label=None):
@@ -1296,7 +1296,7 @@ class Timeseries(InputComponent):
     """
     Component accepts pandas.DataFrame uploaded as a timeseries csv file.
     Input type: pandas.DataFrame
-    Demos: fraud_detector.py
+    Demos: fraud_detector
     """
 
     def __init__(self, x=None, y=None, label=None, optional=False):
