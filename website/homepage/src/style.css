@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.link {
+    @apply font-semibold hover:text-blue-500 transition-colors;
+}
+.thin-link {
+    @apply hover:text-blue-500 transition-colors;
+}
+.group:hover .group-hover\:flex { /* for some reason, group-hover:flex not working on mobile */
+    display: flex;
+}
+.group:active .group-active\:flex { /* for some reason, group-active:flex not working on mobile */
+    display: flex;
+}
+@media (min-width: 640px) { /* for some reason, sm:block not working */
+    .sm\:block {
+        @apply block;
+    }
+}
+@media (min-width: 768px) { /* for some reason, md:block not working */
+    .md\:block {
+        @apply block;
+    }
+}
+
+/* index.html */
+.preloaded-star-count {
+    @apply text-gray-400;
+}
+@media (max-width: 639px) {
+    .demotab {
+        @apply border border-b-0;
+    }
+    .demotab:last-child {
+        @apply border-b;
+    }
+    .demotab.selected {
+        @apply font-semibold;
+    }
+    .demotab:not(.selected) {
+        @apply text-gray-500;
+    }    
+}
+@media (min-width: 640px) {
+    .demotab:not(.selected) {
+        @apply border-b;
+    }    
+    .demotab.selected {
+        @apply border border-b-0 rounded-t-lg font-semibold;
+    }
+}
+.twitter-text a {
+    @apply link;
+}
+.twitter-text s {
+    text-decoration: none !important;
+}
+.twitter-text img {
+    @apply h-4 inline-block;
+}
+.twitter-heart {
+    background-image: url("assets/img/twitter/heart.svg");
+}
+.twitter-like:hover .twitter-heart {
+    background-image: url("assets/img/twitter/redheart.svg");
+}
