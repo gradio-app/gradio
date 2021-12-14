@@ -3,6 +3,7 @@ This is the core file in the `gradio` package, and defines the Interface class, 
 interface using the input and output types.
 """
 
+from re import S
 import gradio
 from gradio.inputs import get_input_instance
 from gradio.outputs import get_output_instance
@@ -72,7 +73,7 @@ class Interface:
                  layout="unaligned", show_input=True, show_output=True,
                  capture_session=False, interpretation=None, num_shap=2.0, theme=None, repeat_outputs_per_model=True,
                  title=None, description=None, article=None, thumbnail=None,
-                 css=None, server_port=None, server_name=networking.LOCALHOST_NAME, height=500, width=900,
+                 css=None, server_port=None, server_name=None, height=500, width=900,
                  allow_screenshot=True, allow_flagging=None, flagging_options=None, encrypt=False,
                  show_tips=False, flagging_dir="flagged", analytics_enabled=None, enable_queue=False, api_mode=False):
         """
@@ -94,8 +95,6 @@ class Interface:
         thumbnail (str): path to image or src to use as display picture for models listed in gradio.app/hub
         theme (str): Theme to use - one of "default", "huggingface", "grass", "peach". Add "dark" prefix, e.g. "darkpeach" or "darkdefault" for darktheme.
         css (str): custom css or path to custom css file to use with interface.
-        server_port (int): will start gradio app on this port (if available) 
-        server_name (str): to make app accessible on local network set to "0.0.0.0".
         allow_screenshot (bool): if False, users will not see a button to take a screenshot of the interface.
         allow_flagging (bool): if False, users will not see a button to flag an input and output.
         flagging_options (List[str]): if not None, provides options a user must select when flagging.
@@ -140,7 +139,6 @@ class Interface:
         self.flag_hash = random.getrandbits(32)
         self.capture_session = capture_session
         self.session = None
-        self.server_name = server_name
         self.title = title
         self.description = description
         if article is not None:
@@ -170,7 +168,12 @@ class Interface:
                 "Examples argument must either be a directory or a nested list, where each sublist represents a set of inputs.")
         self.num_shap = num_shap
         self.examples_per_page = examples_per_page
+        
+        self.server_name = server_name
         self.server_port = server_port
+        if server_name is not None or server_port is not None:
+            raise DeprecationWarning("The server_name and server_port parameters in the `Interface` class will be deprecated. Please provide them in the `launch()` method instead.")
+
         self.simple_server = None
         self.allow_screenshot = allow_screenshot
         # For allow_flagging and analytics_enabled: (1) first check for parameter, (2) check for environment variable, (3) default to True
@@ -530,7 +533,8 @@ class Interface:
 
     def launch(self, inline=None, inbrowser=None, share=False, debug=False,
                auth=None, auth_message=None, private_endpoint=None,
-               prevent_thread_lock=False, show_error=True):
+               prevent_thread_lock=False, show_error=True, server_name=None,
+               server_port=None):
         """
         Launches the webserver that serves the UI for the interface.
         Parameters:
@@ -540,6 +544,11 @@ class Interface:
         debug (bool): if True, and the interface was launched from Google Colab, prints the errors in the cell output.
         auth (Callable, Union[Tuple[str, str], List[Tuple[str, str]]]): If provided, username and password (or list of username-password tuples) required to access interface. Can also provide function that takes username and password and returns True if valid login.
         auth_message (str): If provided, HTML message provided on login page.
+        private_endpoint (str): If provided, the public URL of the interface will be this endpoint (should generally be unchanged).
+        prevent_thread_lock (bool): If True, the interface will block the main thread while the server is running.
+        show_error (bool): If True, any errors in the interface will be printed in the browser console log
+        server_port (int): will start gradio app on this port (if available) 
+        server_name (str): to make app accessible on local network, set this to "0.0.0.0".
         Returns:
         app (flask.Flask): Flask app object
         path_to_local_server (str): Locally accessible link
@@ -562,9 +571,12 @@ class Interface:
             self.encryption_key = encryptor.get_key(
                 getpass("Enter key for encryption: "))
 
+        server_name = server_name or self.server_name or networking.LOCALHOST_NAME
+        server_port = server_port or self.server_port or networking.INITIAL_PORT_VALUE
+
         # Launch local flask server
         server_port, path_to_local_server, app, thread = networking.start_server(
-            self, self.server_name, self.server_port, self.auth)
+            self, server_name, server_port, self.auth)
         self.local_url = path_to_local_server
         self.server_port = server_port
         self.status = "RUNNING"
