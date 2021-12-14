@@ -7,7 +7,7 @@ The Gradio website ([https://gradio.app](https://gradio.app)) is built from the 
 - The guide pages are loaded from the `gradio/guides` folder
 - The documentation is loaded from the docstrings in the library itself.
 
-The website is launched through the `docker-compose.yml` file in this repository. 
+The website is launched through the `docker-compose.yml` file in this directory. 
 
 ## The `homepage` docker
 
