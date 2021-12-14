@@ -400,7 +400,7 @@
             @apply dark:text-gray-50 w-full h-full flex justify-center items-center text-6xl p-6 break-all;
         }
         .video_preview {
-            @apply w-full h-full object-contain;
+            @apply w-full h-full object-contain bg-black;
         }
         .edit_buttons {
             @apply z-10 absolute top-0 right-0;

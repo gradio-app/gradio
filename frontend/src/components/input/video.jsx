@@ -28,25 +28,38 @@ class VideoInput extends BaseComponent {
   record = async () => {
     if (this.state.recording) {
       this.media_recorder.stop();
-      let video_blob = new Blob(this.blobs_recorded, { type: 'video/webm' });
+      let video_blob = new Blob(this.blobs_recorded, { type: this.mimeType });
       var ReaderObj = new FileReader();
       ReaderObj.onload = (function(e) {
+        let file_name = "sample." + this.mimeType.substring(6);
         this.props.handleChange({
-          name: "sample.webm",
+          name: file_name,
           data: e.target.result,
           is_example: false
         });
       }).bind(this);
 
       ReaderObj.readAsDataURL(video_blob);
-
       this.setState({ recording: false });
     } else {
       this.blobs_recorded = [];
       this.camera_stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
       this.videoRecorder.current.srcObject = this.camera_stream;
       this.videoRecorder.current.volume = 0;
-      this.media_recorder = new MediaRecorder(this.camera_stream, { mimeType: 'video/webm' });
+      let selectedMimeType = null;
+      let validMimeTypes = ["video/webm", "video/mp4"];
+      for (let mimeType of validMimeTypes) {
+        if (MediaRecorder.isTypeSupported(mimeType)) {
+          selectedMimeType = mimeType;
+          break;
+        }  
+      }
+      if (selectedMimeType === null) {
+        console.error("No supported MediaRecorder mimeType");
+        return;
+      }
+      this.media_recorder = new MediaRecorder(this.camera_stream, {mimeType: selectedMimeType});
+      this.mimeType = selectedMimeType;
       this.media_recorder.addEventListener('dataavailable', (function (e) {
         this.blobs_recorded.push(e.data);
       }).bind(this));
@@ -76,6 +89,8 @@ class VideoInput extends BaseComponent {
               <video
                 className="video_preview"
                 controls
+                playsInline
+                preload
                 src={this.props.value["data"]}
               ></video>
             </div>
@@ -118,7 +133,7 @@ class VideoInput extends BaseComponent {
     } else if (this.props.source == "webcam") {
       return (
         <div className="input_video">
-          <video ref={this.videoRecorder} class="video_recorder" autoplay></video>
+          <video ref={this.videoRecorder} class="video_recorder" autoPlay playsInline muted></video>
           <div class="record_holder">
             <div class="record_message">
               {this.state.recording ? <>Stop Recording</> : <>Click to Record</>}
