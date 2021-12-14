@@ -125,7 +125,7 @@ class TestDemo(unittest.TestCase):
                 (By.CSS_SELECTOR, ".panel:nth-child(1) .component:nth-child(1) .hidden_upload"))
         )
         cwd = os.getcwd()
-        rel = "demo/images/cheetah1.jpg"
+        rel = "test/test_files/cheetah1.jpg"
         elem.send_keys(os.path.join(cwd, rel))
         golden_img = os.path.join(current_dir, GOLDEN_PATH.format(
             "image_mod", "cheetah1"))
