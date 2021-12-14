@@ -27,7 +27,7 @@ from functools import wraps
 import io
 import inspect
 import traceback
-from werkzeug.utils import secure_filename
+from werkzeug.security import safe_join
 
 INITIAL_PORT_VALUE = int(os.getenv(
     'GRADIO_SERVER_PORT', "7860"))  # The http server will try to open on port 7860. If not available, 7861, 7862, etc.
@@ -137,11 +137,10 @@ def main():
 
 @app.route("/static/<path:path>", methods=["GET"])
 def static_resource(path):
-    path = secure_filename(path)
     if app.interface.share:
         return redirect(GRADIO_STATIC_ROOT + path)
     else:
-        return send_file(os.path.join(STATIC_PATH_LIB, path))
+        return send_file(safe_join(STATIC_PATH_LIB, path))
 
 
 # TODO(@aliabid94): this throws a 500 error if app.auth is None (should probalbly just redirect to '/')
@@ -428,9 +427,7 @@ def queue_thread(path_to_local_server, test_mode=False):
             break
 
 
-def start_server(interface, server_name, server_port=None, auth=None, ssl=None):
-    if server_port is None:
-        server_port = INITIAL_PORT_VALUE
+def start_server(interface, server_name, server_port, auth=None, ssl=None):
     port = get_first_available_port(
         server_port, server_port + TRY_NUM_PORTS
     )
