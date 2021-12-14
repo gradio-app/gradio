@@ -377,15 +377,14 @@ def interpret():
 @app.route("/file/<path:path>", methods=["GET"])
 @login_check
 def file(path):
-    path = secure_filename(path)
     if app.interface.encrypt and isinstance(app.interface.examples, str) and path.startswith(app.interface.examples):
-        with open(os.path.join(app.cwd, path), "rb") as encrypted_file:
+        with open(safe_join(app.cwd, path), "rb") as encrypted_file:
             encrypted_data = encrypted_file.read()
         file_data = encryptor.decrypt(
             app.interface.encryption_key, encrypted_data)
         return send_file(io.BytesIO(file_data), attachment_filename=os.path.basename(path))
     else:
-        return send_file(os.path.join(app.cwd, path))
+        return send_file(safe_join(app.cwd, path))
 
 
 @app.route("/api/queue/push/", methods=["POST"])
