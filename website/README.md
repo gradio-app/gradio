@@ -2,7 +2,7 @@
 
 The Gradio website ([https://gradio.app](https://gradio.app)) is built from the contents of this folder. The website is tightly coupled with the rest of the repository through several ways:
 
-- The gradio library used for the demos throughout the website use the gradio library built from this repository
+- The gradio library used to run the demos throughout the website is built from the library in the gradio folder of this repository
 - The demos are loaded from the `gradio/demo` folder
 - The guide pages are loaded from the `gradio/guides` folder
 - The documentation is loaded from the docstrings in the library itself.
