@@ -27,6 +27,7 @@ from functools import wraps
 import io
 import inspect
 import traceback
+from werkzeug.utils import secure_filename
 
 INITIAL_PORT_VALUE = int(os.getenv(
     'GRADIO_SERVER_PORT', "7860"))  # The http server will try to open on port 7860. If not available, 7861, 7862, etc.
@@ -136,6 +137,7 @@ def main():
 
 @app.route("/static/<path:path>", methods=["GET"])
 def static_resource(path):
+    path = secure_filename(path)
     if app.interface.share:
         return redirect(GRADIO_STATIC_ROOT + path)
     else:
@@ -376,6 +378,7 @@ def interpret():
 @app.route("/file/<path:path>", methods=["GET"])
 @login_check
 def file(path):
+    path = secure_filename(path)
     if app.interface.encrypt and isinstance(app.interface.examples, str) and path.startswith(app.interface.examples):
         with open(os.path.join(app.cwd, path), "rb") as encrypted_file:
             encrypted_data = encrypted_file.read()
