@@ -35,26 +35,26 @@ def wait_for_url(url):
 
 
 def diff_texts_thread(return_dict):
-    from demo.diff_texts import iface
+    from demo.diff_texts.run import iface
     iface.save_to = return_dict
     iface.launch()
 
 
 def image_mod_thread(return_dict):
-    from demo.image_mod import iface
+    from demo.image_mod.run import iface
     iface.examples = None
     iface.save_to = return_dict
     iface.launch()
 
 
 def longest_word_thread(return_dict):
-    from demo.longest_word import iface
+    from demo.longest_word.run import iface
     iface.save_to = return_dict
     iface.launch()
 
 
 def sentence_builder_thread(return_dict):
-    from demo.sentence_builder import iface
+    from demo.sentence_builder.run import iface
     iface.save_to = return_dict
     iface.launch()
 
