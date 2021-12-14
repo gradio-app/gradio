@@ -7,7 +7,7 @@ import sys
 import threading
 import subprocess
 
-LAUNCH_PERIOD = 30
+LAUNCH_PERIOD = 60
 GRADIO_DEMO_DIR = "../../demo"
 sys.path.insert(0, GRADIO_DEMO_DIR)
 
@@ -22,6 +22,7 @@ def launch_demo(demo_name, port):
     filedata = filedata.replace(
         f'if __name__ == "__main__":', 
         f'if __name__ == "__main__":\n    iface.server_port={port}')
+    print(filedata)
     with open('run.py', 'w') as file:
         file.write(filedata)
     subprocess.call(f"python run.py", shell=True)

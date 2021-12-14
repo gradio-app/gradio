@@ -37,8 +37,9 @@
           <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
         </svg>
         <div class="guide-menu hidden group-hover:flex group-active:flex flex-col absolute top-6 left-0 bg-white shadow w-52">
-          <a class="link px-4 py-2 inline-block hover:bg-gray-100" href="/getting_started">Getting Started</a>
-          <a class="link px-4 py-2 inline-block hover:bg-gray-100" href="/working_with_ml">ML Examples</a>
+          {% for guide_name, pretty_guide_name in guide_names %}
+          <a class="link px-4 py-2 inline-block hover:bg-gray-100" href="/{{ guide_name }}">{{ pretty_guide_name }}</a>
+          {% endfor %}
         </div>
       </div>
       <a class="link" href="/docs">Docs</a>
