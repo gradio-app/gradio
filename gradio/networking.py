@@ -427,7 +427,9 @@ def queue_thread(path_to_local_server, test_mode=False):
             break
 
 
-def start_server(interface, server_name, server_port, auth=None, ssl=None):
+def start_server(interface, server_name, server_port=None, auth=None, ssl=None):
+    if server_port is None:
+        server_port = INITIAL_PORT_VALUE
     port = get_first_available_port(
         server_port, server_port + TRY_NUM_PORTS
     )
