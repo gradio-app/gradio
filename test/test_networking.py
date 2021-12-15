@@ -71,6 +71,11 @@ class TestFlaskRoutes(unittest.TestCase):
         response = self.client.get('/api/')
         self.assertEqual(response.status_code, 200)
 
+    def test_static_files_served_safely(self):
+        # Make sure things outside the static folder are not accessible
+        response = self.client.get(r'/static/..%2f..%2fapi_docs.html')
+        self.assertEqual(response.status_code, 500)
+
     def test_get_config_route(self):
         response = self.client.get('/config/')
         self.assertEqual(response.status_code, 200)
