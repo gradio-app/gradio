@@ -120,8 +120,7 @@ class Interface:
         if interpretation is None or isinstance(interpretation, list) or callable(interpretation):
             self.interpretation = interpretation
         elif isinstance(interpretation, str):
-            self.interpretation = [interpretation.lower()
-                                   for _ in self.input_components]
+            self.interpretation = [interpretation.lower() for _ in self.input_components]
         else:
             raise ValueError("Invalid value for parameter: interpretation")
 
@@ -146,8 +145,7 @@ class Interface:
                 article, extras=["fenced-code-blocks"])
         self.article = article
         self.thumbnail = thumbnail
-        theme = theme if theme is not None else os.getenv(
-            "GRADIO_THEME", "default")
+        theme = theme if theme is not None else os.getenv("GRADIO_THEME", "default")
         if theme not in ("default", "huggingface", "grass", "peach", "darkdefault", "darkhuggingface", "darkgrass", "darkpeach"):
             raise ValueError("Invalid theme name.")
         self.theme = theme
@@ -224,6 +222,9 @@ class Interface:
                               data=data, timeout=3)
             except (requests.ConnectionError, requests.exceptions.ReadTimeout):
                 pass  # do not push analytics if no network
+
+        # Alert user if a more recent version of the library exists
+        utils.version_check()
 
     def __call__(self, *params):
         if self.api_mode:  # skip the preprocessing/postprocessing if sending to a remote API
@@ -321,6 +322,16 @@ class Interface:
         return config
 
     def run_prediction(self, processed_input, return_duration=False, called_directly=False):
+        """
+        This is the method that actually runs the prediction function with the given (processed) inputs.
+        Parameters:
+        processed_input (list): A list of processed inputs.
+        return_duration (bool): Whether to return the duration of the prediction.
+        called_directly (bool): Whether the prediction is being called directly (i.e. as a function, not through the GUI).
+        Returns:
+        predictions (list): A list of predictions (not post-processed).
+        durations (list): A list of durations for each prediction (only if `return_duration` is True).
+        """
         if self.api_mode:  # Serialize the input
             processed_input = [input_component.serialize(processed_input[i], called_directly)
                             for i, input_component in enumerate(self.input_components)]
@@ -364,7 +375,9 @@ class Interface:
 
     def process(self, raw_input):
         """
-        :param raw_input: a list of raw inputs to process and apply the prediction(s) on.
+        Parameters:
+        raw_input: a list of raw inputs to process and apply the prediction(s) on.
+        Returns:
         processed output: a list of processed  outputs to return as the prediction(s).
         duration: a list of time deltas measuring inference time for each prediction fn.
         """
@@ -380,7 +393,8 @@ class Interface:
         """
         Runs the interpretation command for the machine learning model. Handles both the "default" out-of-the-box
         interpretation for a certain set of UI component types, as well as the custom interpretation case.
-        :param raw_input: a list of raw inputs to apply the interpretation(s) on.
+        Parameters:
+        raw_input: a list of raw inputs to apply the interpretation(s) on.
         """
         if isinstance(self.interpretation, list):  # Either "default" or "shap"
             processed_input = [input_component.preprocess(raw_input[i])
@@ -554,8 +568,6 @@ class Interface:
         share_url (str): Publicly accessible link (if share=True)
         show_error (bool): show prediction errors in console
         """
-        # Alert user if a more recent version of the library exists
-        utils.version_check()
 
         # Set up local flask server
         config = self.get_config_file()
@@ -663,6 +675,9 @@ class Interface:
         return app, path_to_local_server, share_url
 
     def close(self):
+        """
+        Closes the Interface that was launched. This will close the server and free the port.
+        """
         try:
             if self.share_url:
                 requests.get("{}/shutdown".format(self.share_url))
@@ -676,6 +691,13 @@ class Interface:
             pass  # server is already closed
 
     def integrate(self, comet_ml=None, wandb=None, mlflow=None):
+        """
+        A catch-all method for integrating with other libraries. Should be run after launch()
+        Parameters:
+            comet_ml (Experiment): If a comet_ml Experiment object is provided, will integrate with the experiment and appear on Comet dashboard
+            wandb (module): If the wandb module is provided, will integrate with it and appear on WandB dashboard
+            mlflow (module): If the mlflow module  is provided, will integrate with the experiment and appear on ML Flow dashboard
+        """
         analytics_integration = ""
         if comet_ml is not None:
             analytics_integration = "CometML"
