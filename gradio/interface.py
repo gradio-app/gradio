@@ -70,7 +70,7 @@ class Interface:
     def __init__(self, fn, inputs=None, outputs=None, verbose=False, examples=None,
                  examples_per_page=10, live=False,
                  layout="unaligned", show_input=True, show_output=True,
-                 capture_session=False, interpretation=None, num_shap=2.0, theme=None, repeat_outputs_per_model=True,
+                 capture_session=None, interpretation=None, num_shap=2.0, theme=None, repeat_outputs_per_model=True,
                  title=None, description=None, article=None, thumbnail=None,
                  css=None, server_port=None, server_name=None, height=500, width=900,
                  allow_screenshot=True, allow_flagging=None, flagging_options=None, encrypt=False,
@@ -136,6 +136,10 @@ class Interface:
         self.show_output = show_output
         self.flag_hash = random.getrandbits(32)
         self.capture_session = capture_session
+        
+        if capture_session is not None:
+            warnings.warn("The `capture_session` parameter in the `Interface` will be deprecated in the near future.")
+
         self.session = None
         self.title = title
         self.description = description
