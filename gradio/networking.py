@@ -426,13 +426,12 @@ def queue_thread(path_to_local_server, test_mode=False):
             break
 
 
-def start_server(interface, server_name, server_port=None, auth=None, ssl=None):
-    if server_port is None:
-        server_port = INITIAL_PORT_VALUE
+def start_server(interface, server_name, server_port, auth=None, ssl=None):
     port = get_first_available_port(
         server_port, server_port + TRY_NUM_PORTS
     )
-    path_to_local_server = "http://{}:{}/".format(server_name, port)
+    url_host_name = "localhost" if server_name == "0.0.0.0" else server_name
+    path_to_local_server = "http://{}:{}/".format(url_host_name, port)
     if auth is not None:
         if not callable(auth):
             app.auth = {account[0]: account[1] for account in auth}
