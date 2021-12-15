@@ -3,7 +3,6 @@ This is the core file in the `gradio` package, and defines the Interface class, 
 interface using the input and output types.
 """
 
-from re import S
 import gradio
 from gradio.inputs import get_input_instance
 from gradio.outputs import get_output_instance
@@ -12,22 +11,23 @@ from gradio.interpretation import quantify_difference_in_label, get_regression_o
 from gradio.external import load_interface
 from gradio import encryptor
 from gradio import queue
-import requests
-import random
-import time
-import webbrowser
-import inspect
-import sys
-import weakref
 import analytics
+import copy
+import csv
+import getpass
+import inspect
+import json
+import markdown2
 import numpy as np
 import os
-import copy
-import markdown2
-import json
-import csv
 import pkg_resources
-from getpass import getpass
+import requests
+import random
+import sys
+import time
+import warnings
+import webbrowser
+import weakref
 
 analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
 analytics_url = 'https://api.gradio.app/'
@@ -169,7 +169,7 @@ class Interface:
         self.server_name = server_name
         self.server_port = server_port
         if server_name is not None or server_port is not None:
-            raise DeprecationWarning("The server_name and server_port parameters in the `Interface` class will be deprecated. Please provide them in the `launch()` method instead.")
+            warnings.warn("The server_name and server_port parameters in the `Interface` class will be deprecated. Please provide them in the `launch()` method instead.")
 
         self.simple_server = None
         self.allow_screenshot = allow_screenshot
@@ -580,7 +580,7 @@ class Interface:
         # Request key for encryption
         if self.encrypt:
             self.encryption_key = encryptor.get_key(
-                getpass("Enter key for encryption: "))
+                getpass.getpass("Enter key for encryption: "))
 
         server_name = server_name or self.server_name or networking.LOCALHOST_NAME
         server_port = server_port or self.server_port or networking.INITIAL_PORT_VALUE
