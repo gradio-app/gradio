@@ -38,7 +38,7 @@ JSON_PATH = os.path.join(os.path.dirname(gradio.__file__), "launches.json")
 
 class Interface:
     """
-    Interfaces are created with Gradio by constructing a `gradio.Interface()` object.
+    Interfaces are created with Gradio by constructing a `gradio.Interface()` object or by calling `gradio.Interface.load()`.
     """
     instances = weakref.WeakSet()
 
@@ -47,8 +47,7 @@ class Interface:
         """
         :return: list of all current instances.
         """
-        return list(
-            Interface.instances)
+        return list(Interface.instances)
 
     @classmethod
     def load(cls, name, src=None, api_key=None, alias=None, **kwargs):
