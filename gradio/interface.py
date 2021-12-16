@@ -3,17 +3,15 @@ This is the core file in the `gradio` package, and defines the Interface class, 
 interface using the input and output types.
 """
 
-import gradio
+from gradio import networking, strings, utils, encryptor, queue
 from gradio.inputs import get_input_instance
 from gradio.outputs import get_output_instance
-from gradio import networking, strings, utils, encryptor, queue
 from gradio.interpretation import quantify_difference_in_label, get_regression_or_classification_value
 from gradio.external import load_interface
 import copy
 import csv
 import getpass
 import inspect
-import json
 import markdown2
 import numpy as np
 import os
@@ -28,7 +26,6 @@ import weakref
 
 
 ip_address = networking.get_local_ip_address()
-JSON_PATH = os.path.join(os.path.dirname(gradio.__file__), "launches.json")
 
 
 class Interface:
@@ -144,6 +141,7 @@ class Interface:
             article = utils.readme_to_html(article)
             article = markdown2.markdown(
                 article, extras=["fenced-code-blocks"])
+
         self.article = article
         self.thumbnail = thumbnail
         theme = theme if theme is not None else os.getenv("GRADIO_THEME", "default")
@@ -180,7 +178,6 @@ class Interface:
         self.flagging_options = flagging_options
         self.flagging_dir = flagging_dir
         self.encrypt = encrypt
-        Interface.instances.add(self)
         self.save_to = None
         self.share = None
         self.share_url = None
@@ -231,6 +228,7 @@ class Interface:
 
         # Alert user if a more recent version of the library exists
         utils.version_check()
+        Interface.instances.add(self)
 
     def __call__(self, *params):
         if self.api_mode:  # skip the preprocessing/postprocessing if sending to a remote API
@@ -606,7 +604,7 @@ class Interface:
         self.show_error = show_error
 
         # Count number of launches
-        launch_counter()
+        utils.launch_counter()
 
         # If running in a colab or not able to access localhost, automatically create a shareable link
         is_colab = utils.colab_check()
@@ -684,7 +682,7 @@ class Interface:
         if self.analytics_enabled:
             utils.launch_analytics(data)
 
-        show_tip(self)
+        utils.show_tip(self)
 
         # Run server perpetually under certain circumstances
         if debug or int(os.getenv('GRADIO_DEBUG', 0)) == 1:
@@ -753,31 +751,11 @@ class Interface:
                 utils.integration_analytics(data)
 
 
-def show_tip(io):
-    # Only show tip every other use.
-    if io.show_tips and random.random() < 0.5:
-        print(random.choice(strings.en.TIPS))
-
-
-def launch_counter():
-    try:
-        if not os.path.exists(JSON_PATH):
-            launches = {"launches": 1}
-            with open(JSON_PATH, "w+") as j:
-                json.dump(launches, j)
-        else:
-            with open(JSON_PATH) as j:
-                launches = json.load(j)
-            launches["launches"] += 1
-            if launches["launches"] in [25, 50]:
-                print(strings.en["BETA_INVITE"])
-            with open(JSON_PATH, "w") as j:
-                j.write(json.dumps(launches))
-    except:
-        pass
-
-
 def close_all():
     for io in Interface.get_instances():
         io.close()
 
+
+def reset_all():
+    warnings.warn("The `reset_all()` method has been renamed to `close_all()`. Please use `close_all()` instead.")
+    close_all()
