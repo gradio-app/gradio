@@ -222,7 +222,7 @@ Gradio integrates nicely with the Hugging Face Hub, allowing you to load models 
 - To load any model from the Hugging Face Hub and create an interface around it, you pass `"model/"` or `"huggingface/"` followed by the model name, like these examples:
 
 ```python
-gr.Interface.load("huggingface/gpt-2").launch();
+gr.Interface.load("huggingface/gpt2").launch();
 ```
 
 ```python
