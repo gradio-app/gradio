@@ -7,6 +7,7 @@ tests and receive approval from a member of the Gradio development team before t
 It's helpful to know the overall structure of the repository so that you can focus on the part of the source code you'd like to contribute to
 
 * `/gradio`: contains the source code for the actual Python library
+   * `/gradio/interface.py`: contains the source code for the core `Interface` class 
 * `/test`: contains unit tests for the Python library
 
 * `/website`: contains the code for the Gradio website (www.gradio.app). See the README in the `/website` folder for more details
