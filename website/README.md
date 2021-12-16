@@ -25,3 +25,7 @@ The demos folder launches all the demos embedded inside the website. The demos a
 ## The `upload_notebooks` folder
 
 The upload_notebooks folder runs a script that uploads the demos within `gradio/demo` to Google Colab. The links generated from uploading these files are then stored in the docker env file, which is then used by the `homepage` docker container to link to the Colab notebooks from the documentation.
+
+## Auto-Reloading
+
+The website is built from the master branch and automatically reloads on commits to master.
