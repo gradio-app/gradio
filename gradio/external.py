@@ -160,7 +160,6 @@ def get_huggingface_interface(model_name, api_key, alias):
         'inputs': pipeline['inputs'],
         'outputs': pipeline['outputs'],
         'title': model_name,
-        'api_mode': True,
     }
 
     return interface_info
@@ -212,7 +211,6 @@ def get_spaces_interface(model_name, api_key, alias):
      
     fn.__name__ = alias if (alias is not None) else model_name
     interface_info["fn"] = fn
-    interface_info["api_mode"] = True
     
     return interface_info
 
