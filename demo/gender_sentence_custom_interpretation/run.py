@@ -1,7 +1,7 @@
 import gradio as gr
 import re
 
-male_words, female_words = ["he", "his", "him"], ["she", "her"]
+male_words, female_words = ["he", "his", "him"], ["she", "hers", "her"]
 def gender_of_sentence(sentence):
   male_count = len([word for word in sentence.split() if word.lower() in male_words])
   female_count = len([word for word in sentence.split() if word.lower() in female_words])
