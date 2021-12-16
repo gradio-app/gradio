@@ -25,14 +25,12 @@ from gradio.interpretation import quantify_difference_in_label, get_regression_o
 from gradio.external import load_interface
 
 
-ip_address = networking.get_local_ip_address()
-
-
 class Interface:
     """
     Interfaces are created with Gradio by constructing a `gradio.Interface()` object or by calling `gradio.Interface.load()`.
     """
-    instances = weakref.WeakSet()
+
+    instances = weakref.WeakSet()  # stores all currently existing Interface instances
 
     @classmethod
     def get_instances(cls):
@@ -182,6 +180,7 @@ class Interface:
         self.share = None
         self.share_url = None
         self.local_url = None
+        self.ip_address = networking.get_local_ip_address()
         
         if show_tips is not None:
             warnings.warn("The `show_tips` parameter in the `Interface` is deprecated. Please use the `show_tips` parameter in `launch()` instead")
@@ -215,7 +214,7 @@ class Interface:
                 'outputs': outputs,
                 'live': live,
                 'capture_session': capture_session,
-                'ip_address': ip_address,
+                'ip_address': self.ip_address,
                 'interpretation': interpretation,
                 'allow_flagging': allow_flagging,
                 'allow_screenshot': allow_screenshot,
@@ -672,7 +671,7 @@ class Interface:
             'is_google_colab': is_colab,
             'is_sharing_on': share,
             'share_url': share_url,
-            'ip_address': ip_address,
+            'ip_address': self.ip_address,
             'enable_queue': self.enable_queue,
             'show_tips': self.show_tips,
             'api_mode': self.api_mode,
