@@ -25,10 +25,10 @@ class Parallel(gradio.Interface):
             "inputs": interfaces[0].input_components,
             "outputs": outputs,
             "repeat_outputs_per_model": False,
-            "api_mode": interfaces[0].api_mode,  # TODO(abidlabs): make api_mode a per-function attribute
         }
         kwargs.update(options)
         super().__init__(**kwargs) 
+        self.api_mode = interfaces[0].api_mode,  # TODO(abidlabs): make api_mode a per-function attribute
 
 
 class Series(gradio.Interface):
@@ -67,8 +67,8 @@ class Series(gradio.Interface):
             "fn": connected_fn,
             "inputs": interfaces[0].input_components,
             "outputs": interfaces[-1].output_components,
-            "api_mode": interfaces[0].api_mode,  # TODO(abidlabs): allow mixing api_mode and non-api_mode interfaces
         }
         kwargs.update(options)
         super().__init__(**kwargs) 
+        self.api_mode = interfaces[0].api_mode,  # TODO(abidlabs): make api_mode a per-function attribute
 
