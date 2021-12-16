@@ -1,13 +1,21 @@
-import json.decoder
-import warnings
+import gradio
+import analytics
 import requests
-import pkg_resources
 from distutils.version import StrictVersion
+import json
+import json.decoder
+import os
+import pkg_resources
+import warnings
+import random
 from socket import gaierror
 from urllib3.exceptions import MaxRetryError
 
+
 analytics_url = 'https://api.gradio.app/'
 PKG_VERSION_URL = "https://api.gradio.app/pkg-version"
+analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
+JSON_PATH = os.path.join(os.path.dirname(gradio.__file__), "launches.json")
 
 
 def version_check():
@@ -28,7 +36,31 @@ def version_check():
         warnings.warn("package URL does not contain version info.")
     except:
         warnings.warn("unable to connect with package URL to collect version info.")
-        
+
+
+def initiated_analytics(data):
+    try:
+        requests.post(analytics_url + 'gradio-initiated-analytics/',
+                        data=data, timeout=3)
+    except (requests.ConnectionError, requests.exceptions.ReadTimeout):
+        pass  # do not push analytics if no network
+
+
+def launch_analytics(data):
+    try:
+        requests.post(analytics_url + 'gradio-launched-analytics/',
+                        data=data, timeout=3)
+    except (requests.ConnectionError, requests.exceptions.ReadTimeout):
+        pass  # do not push analytics if no network
+
+
+def integration_analytics(data):
+    try:
+        requests.post(analytics_url + 'gradio-integration-analytics/',
+                        data=data, timeout=3)
+    except (
+            requests.ConnectionError, requests.exceptions.ReadTimeout):
+        pass  # do not push analytics if no network
 
 
 def error_analytics(type):
@@ -83,3 +115,29 @@ def readme_to_html(article):
     except requests.exceptions.RequestException:
         pass
     return article
+
+
+def show_tip(io):
+    # Only show tip every other use.
+    if io.show_tips and random.random() < 0.5:
+        print(random.choice(gradio.strings.en.TIPS))
+
+
+def launch_counter():
+    try:
+        if not os.path.exists(JSON_PATH):
+            launches = {"launches": 1}
+            with open(JSON_PATH, "w+") as j:
+                json.dump(launches, j)
+        else:
+            with open(JSON_PATH) as j:
+                launches = json.load(j)
+            launches["launches"] += 1
+            if launches["launches"] in [25, 50]:
+                print(gradio.strings.en["BETA_INVITE"])
+            with open(JSON_PATH, "w") as j:
+                j.write(json.dumps(launches))
+    except:
+        pass
+
+
