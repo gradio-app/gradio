@@ -588,6 +588,7 @@ class Interface:
             self.encryption_key = encryptor.get_key(
                 getpass.getpass("Enter key for encryption: "))
 
+        # Store parameters
         server_name = server_name or self.server_name or networking.LOCALHOST_NAME
         server_port = server_port or self.server_port or networking.INITIAL_PORT_VALUE
         if self.enable_queue is None:
