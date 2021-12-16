@@ -1,3 +1,4 @@
+import analytics
 import json.decoder
 import warnings
 import requests
@@ -6,8 +7,10 @@ from distutils.version import StrictVersion
 from socket import gaierror
 from urllib3.exceptions import MaxRetryError
 
+
 analytics_url = 'https://api.gradio.app/'
 PKG_VERSION_URL = "https://api.gradio.app/pkg-version"
+analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
 
 
 def version_check():
@@ -28,7 +31,31 @@ def version_check():
         warnings.warn("package URL does not contain version info.")
     except:
         warnings.warn("unable to connect with package URL to collect version info.")
-        
+
+
+def initiated_analytics(data):
+    try:
+        requests.post(analytics_url + 'gradio-initiated-analytics/',
+                        data=data, timeout=3)
+    except (requests.ConnectionError, requests.exceptions.ReadTimeout):
+        pass  # do not push analytics if no network
+
+
+def launch_analytics(data):
+    try:
+        requests.post(analytics_url + 'gradio-launched-analytics/',
+                        data=data, timeout=3)
+    except (requests.ConnectionError, requests.exceptions.ReadTimeout):
+        pass  # do not push analytics if no network
+
+
+def integration_analytics(data):
+    try:
+        requests.post(analytics_url + 'gradio-integration-analytics/',
+                        data=data, timeout=3)
+    except (
+            requests.ConnectionError, requests.exceptions.ReadTimeout):
+        pass  # do not push analytics if no network
 
 
 def error_analytics(type):
