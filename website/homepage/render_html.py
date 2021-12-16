@@ -1,5 +1,4 @@
 import os
-import sys
 import json
 from jinja2 import Template
 import requests
@@ -9,7 +8,6 @@ from gradio.inputs import InputComponent
 from gradio.outputs import OutputComponent
 from gradio.interface import Interface
 import inspect
-import shutil
 
 GRADIO_DIR = "../../"
 GRADIO_GUIDES_DIR = os.path.join(GRADIO_DIR, "guides")
@@ -182,7 +180,21 @@ def render_docs():
     with open(os.path.join("generated", "docs", "index.html"), "w") as generated_template:
         generated_template.write(output_html)
 
+def render_other():
+    os.makedirs("generated", exist_ok=True)
+    for template_filename in os.listdir("src/other_templates"):
+        with open(os.path.join("src/other_templates", template_filename)) as template_file:
+            template = Template(template_file.read())
+            output_html = template.render(guide_names=guide_names)
+        folder_name = template_filename[:-14]
+        os.makedirs(os.path.join("generated", folder_name), exist_ok=True)
+        with open(os.path.join("generated", folder_name, "index.html"), "w", encoding='utf-8') as generated_template:
+            generated_template.write(output_html)
+
+
+
 if __name__ == "__main__":
     render_index()
     render_guides()
     render_docs()
+    render_other()
