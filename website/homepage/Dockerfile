@@ -1,19 +1,28 @@
 FROM python:latest
 
-ARG COLAB_NOTEBOOK_LINKS
 RUN apt-get update
 RUN apt-get --assume-yes install npm nginx
+RUN pip install pandas matplotlib
 RUN mkdir gradio
 WORKDIR /gradio
-COPY ./ ./
+COPY ./frontend ./frontend
 WORKDIR /gradio/frontend
 RUN npm install
 RUN npm run build
 WORKDIR /gradio
-RUN pip install pandas matplotlib
+COPY ./gradio ./gradio
+COPY ./setup.py ./setup.py
+COPY ./MANIFEST.in ./MANIFEST.in
 RUN python setup.py install
+WORKDIR /gradio
+COPY ./website ./website
 WORKDIR /gradio/website/homepage
 RUN pip install -r requirements.txt
+WORKDIR /gradio
+COPY ./guides ./guides
+COPY ./demo ./demo
+WORKDIR /gradio/website/homepage
+ARG COLAB_NOTEBOOK_LINKS
 RUN echo $COLAB_NOTEBOOK_LINKS > generated/colab_links.json
 RUN npm install
 RUN npm run build
