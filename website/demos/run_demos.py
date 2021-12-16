@@ -13,6 +13,7 @@ sys.path.insert(0, GRADIO_DEMO_DIR)
 
 with open("demos.json") as demos_file:
     demo_port_sets = json.load(demos_file)
+print(demo_port_sets)
 
 def launch_demo(demo_name, port):
     demo_folder = os.path.join(GRADIO_DEMO_DIR, demo_name)

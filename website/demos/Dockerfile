@@ -5,8 +5,14 @@ RUN apt-get --assume-yes install nginx
 RUN mkdir gradio
 RUN pip install numpy matplotlib
 WORKDIR /gradio
-COPY ./ ./
+COPY ./gradio ./gradio
+COPY ./setup.py ./setup.py
+COPY ./MANIFEST.in ./MANIFEST.in
 RUN python setup.py install
+WORKDIR /gradio
+COPY ./website ./website
+COPY ./demo ./demo
+COPY ./guides ./guides
 WORKDIR /gradio/website/demos
 RUN pip install -r requirements.txt
 RUN python map_demos.py
