@@ -63,9 +63,8 @@ class Interface:
                  examples_per_page=10, live=False, layout="unaligned", show_input=True, show_output=True,
                  capture_session=None, interpretation=None, num_shap=2.0, theme=None, repeat_outputs_per_model=True,
                  title=None, description=None, article=None, thumbnail=None,
-                 css=None, server_port=None, server_name=None, height=500, width=900,
-                 allow_screenshot=True, allow_flagging=None, flagging_options=None, encrypt=False,
-                 show_tips=None, flagging_dir="flagged", analytics_enabled=None, enable_queue=None, api_mode=None):
+                 css=None, height=500, width=900, allow_screenshot=True, allow_flagging=None, flagging_options=None, 
+                 encrypt=False, show_tips=None, flagging_dir="flagged", analytics_enabled=None, enable_queue=None, api_mode=None):
         """
         Parameters:
         fn (Callable): the function to wrap an interface around.
@@ -162,12 +161,7 @@ class Interface:
                 "Examples argument must either be a directory or a nested list, where each sublist represents a set of inputs.")
         self.num_shap = num_shap
         self.examples_per_page = examples_per_page
-        
-        self.server_name = server_name
-        self.server_port = server_port
-        if server_name is not None or server_port is not None:
-            warnings.warn("The server_name and server_port parameters in the `Interface` class will be deprecated. Please provide them in the `launch()` method instead.")
-        
+                
         self.simple_server = None
         self.allow_screenshot = allow_screenshot
         # For allow_flagging and analytics_enabled: (1) first check for parameter, (2) check for environment variable, (3) default to True
@@ -573,7 +567,6 @@ class Interface:
         path_to_local_server (str): Locally accessible link
         share_url (str): Publicly accessible link (if share=True)
         """
-
         # Set up local flask server
         config = self.get_config_file()
         self.config = config
@@ -589,8 +582,8 @@ class Interface:
                 getpass.getpass("Enter key for encryption: "))
 
         # Store parameters
-        server_name = server_name or self.server_name or networking.LOCALHOST_NAME
-        server_port = server_port or self.server_port or networking.INITIAL_PORT_VALUE
+        server_name = server_name or networking.LOCALHOST_NAME
+        server_port = server_port
         if self.enable_queue is None:
             self.enable_queue = enable_queue
 
@@ -696,17 +689,19 @@ class Interface:
 
         return app, path_to_local_server, share_url
 
-    def close(self):
+    def close(self, verbose=True):
         """
         Closes the Interface that was launched. This will close the server and free the port.
         """
         try:
             if self.share_url:
                 requests.get("{}/shutdown".format(self.share_url))
-                print("Closing Gradio server on port {}...".format(self.server_port))
+                if verbose:
+                    print("Closing Gradio server on port {}...".format(self.server_port))
             elif self.local_url:
                 requests.get("{}shutdown".format(self.local_url))
-                print("Closing Gradio server on port {}...".format(self.server_port))
+                if verbose:
+                    print("Closing Gradio server on port {}...".format(self.server_port))
             else:
                 pass # server not running
         except (requests.ConnectionError, ConnectionResetError):
@@ -751,9 +746,9 @@ class Interface:
                 utils.integration_analytics(data)
 
 
-def close_all():
+def close_all(verbose=True):
     for io in Interface.get_instances():
-        io.close()
+        io.close(verbose)
 
 
 def reset_all():
