@@ -32,7 +32,7 @@ from werkzeug.security import safe_join
 INITIAL_PORT_VALUE = int(os.getenv(
     'GRADIO_SERVER_PORT', "7860"))  # The http server will try to open on port 7860. If not available, 7861, 7862, etc.
 TRY_NUM_PORTS = int(os.getenv(
-    'GRADIO_NUM_PORTS', "100"))  # Number of ports to try before giving up and throwing an exception.
+    'GRADIO_NUM_PORTS', "1000"))  # Number of ports to try before giving up and throwing an exception.
 LOCALHOST_NAME = os.getenv(
     'GRADIO_SERVER_NAME', "127.0.0.1")
 GRADIO_API_SERVER = "https://api.gradio.app/v1/tunnel-request"
@@ -426,10 +426,20 @@ def queue_thread(path_to_local_server, test_mode=False):
             break
 
 
-def start_server(interface, server_name, server_port, auth=None, ssl=None):
-    port = get_first_available_port(
-        server_port, server_port + TRY_NUM_PORTS
-    )
+def start_server(interface, server_name, server_port=None, auth=None, ssl=None):
+    if server_port is None:  # if port is not specified, start at 7860 and search for first available port        
+        port = get_first_available_port(
+            INITIAL_PORT_VALUE, INITIAL_PORT_VALUE + TRY_NUM_PORTS
+        )
+    else:
+        try:
+            s = socket.socket()  # create a socket object
+            s.bind((LOCALHOST_NAME, server_port))  # Bind to the port to see if it's available (otherwise, raise OSError)
+            s.close()
+        except OSError:
+            raise OSError("Port {} is in use. If a gradio.Interface is running on the port, you can close() it or gradio.close_all().".format(server_port))
+        port = server_port
+
     url_host_name = "localhost" if server_name == "0.0.0.0" else server_name
     path_to_local_server = "http://{}:{}/".format(url_host_name, port)
     if auth is not None:

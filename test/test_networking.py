@@ -199,7 +199,6 @@ class TestState(unittest.TestCase):
 
     def test_state_value(self):
         io = gr.Interface(lambda x: len(x), "text", "label")
-        io.launch(prevent_thread_lock=True)
         app, _, _ = io.launch(prevent_thread_lock=True)
         with app.test_request_context():
             networking.set_state("test")
