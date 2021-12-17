@@ -14,8 +14,8 @@ def fn(text1, text2, num, slider1, slider2, single_checkbox,
             "negative": slider1 / (num + slider1 + slider2),
             "neutral": slider2 / (num + slider1 + slider2),
         },  # Label
-        (audio1[0], np.flipud(audio1[1])) if audio1 is not None else "audio/cantina.wav",  # Audio
-        np.flipud(im1) if im1 is not None else "images/2.jpg",  # Image
+        (audio1[0], np.flipud(audio1[1])) if audio1 is not None else "files/cantina.wav",  # Audio
+        np.flipud(im1) if im1 is not None else "files/cheetah1.jpg",  # Image
         video,  # Video
         [("Height", 70), ("Weight", 150), ("BMI", "22"), (dropdown, 42)],  # KeyValues
         [("The", "art"), (" ", None), ("quick", "adj"), (" ", None),
@@ -24,7 +24,7 @@ def fn(text1, text2, num, slider1, slider2, single_checkbox,
         "<button style='background-color: red'>Click Me: " + radio + "</button>",  # HTML
         "files/titanic.csv",
         np.ones((4, 3)),  # Dataframe
-        [im for im in [im1, im2, im3, im4, "images/1.jpg"] if im is not None],  # Carousel
+        [im for im in [im1, im2, im3, im4, "files/cheetah1.jpg"] if im is not None],  # Carousel
         df2  # Timeseries
     )
 

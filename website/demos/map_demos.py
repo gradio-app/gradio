@@ -11,7 +11,7 @@ sys.path.insert(0, GRADIO_DEMO_DIR)
 port = 7860
 
 DEMO_PATTERN = r'demos\["([A-Za-z0-9_]+)"]'
-demos_to_run = []
+demos_to_run = ["kitchen_sink"]
 for guide_filename in os.listdir(GRADIO_GUIDES_DIR):
     with open(os.path.join(GRADIO_GUIDES_DIR, guide_filename)) as guide_file:
         guide_content = guide_file.read()
