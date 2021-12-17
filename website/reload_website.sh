@@ -1,4 +1,6 @@
 #!/bin/sh
+. /home/ubuntu/.bashrc
+export PATH="/usr/local/bin:/usr/bin:/bin"
 
 git pull > /tmp/git_changes.txt
 
