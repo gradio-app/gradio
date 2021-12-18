@@ -16,7 +16,7 @@ class ModelOutput extends BaseComponent {
         let url = URL.createObjectURL(blob);
         BABYLON.SceneLoader.Append("", url, scene, function () {
             scene.createDefaultCamera(true, true, true);
-        }, undefined, undefined, ".glb");
+        }, undefined, undefined, this.props.value["extension"]);
 
         engine.runRenderLoop(function () {
             scene.render();

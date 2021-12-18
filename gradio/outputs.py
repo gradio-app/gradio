@@ -326,11 +326,14 @@ class Model(OutputComponent):
         Parameters:
         y (str): path to the model
         Returns:
+        (str): file name
+        (str): file extension
         (str): base64 url data
         """
         return {
             "name": os.path.basename(y),
-            "data": processing_utils.encode_file_to_base64(y, type="model")
+            "extension": os.path.splitext(y)[1],
+            "data": processing_utils.encode_file_to_base64(y, type="model"),
         }
 
     def deserialize(self, x):
