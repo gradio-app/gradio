@@ -54,6 +54,7 @@ class ModelOutput extends BaseComponent {
             return (
                 <div className="output_model">
                     <canvas id="renderCanvas"></canvas>
+                    <a href={this.props.value["data"]} download={this.props.value["name"]} className="download_link">Download {this.props.value["name"]}</a>
                 </div>
             )
         } else {
