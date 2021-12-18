@@ -15,6 +15,9 @@ class ModelOutput extends BaseComponent {
         this.scene = new BABYLON.Scene(engine);
         this.scene.createDefaultCameraOrLight();
 
+        const clearColor = this.props.value["clearColor"]
+        this.scene.clearColor  = new BABYLON.Color3(clearColor[0], clearColor[1], clearColor[2]);
+
         this.addNewModel();
 
         engine.runRenderLoop(() => {

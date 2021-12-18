@@ -308,12 +308,13 @@ class Model(OutputComponent):
     Demos: hello_model
     '''
 
-    def __init__(self, label=None):
+    def __init__(self, clear_color=None, label=None):
         '''
         Parameters:
         label (str): component name in interface.
         '''
         super().__init__(label)
+        self.clear_color = clear_color
 
     @classmethod
     def get_shortcut_implementations(cls):
@@ -330,9 +331,14 @@ class Model(OutputComponent):
         (str): file extension
         (str): base64 url data
         """
+
+        if self.clear_color is None:
+            self.clear_color = [0.3, 0.3, 0.3]
+
         return {
             "name": os.path.basename(y),
             "extension": os.path.splitext(y)[1],
+            "clearColor": self.clear_color,
             "data": processing_utils.encode_file_to_base64(y, type="model"),
         }
 

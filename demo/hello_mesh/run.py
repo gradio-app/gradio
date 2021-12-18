@@ -16,6 +16,9 @@ iface = gr.Interface(
     ],
     outputs=[
         "model"
+
+        # to specify options use the object initializer
+        # gr.outputs.Model(clear_color=[1.0, 1.0, 1.0], label="3D Model")
     ]
 )
 
