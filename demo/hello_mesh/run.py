@@ -12,7 +12,7 @@ def load_mesh(mesh_file_name):
 iface = gr.Interface(
     load_mesh,
     inputs=[
-        gr.inputs.Dropdown(["Duck.glb"], type="value", default="Duck.glb", label="Mesh File")
+        gr.inputs.Dropdown(["Duck.glb", "Bunny.obj", "Fox.gltf"], type="value", default="Duck.glb", label="Mesh File")
     ],
     outputs=[
         "model"
