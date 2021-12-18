@@ -60,6 +60,7 @@ import {
   TimeseriesOutputExample
 } from "./components/output/timeseries";
 import { VideoOutput, VideoOutputExample } from "./components/output/video";
+import {ModelOutput, ModelOutputExample} from "./components/output/model";
 
 let input_component_set = [
   {
@@ -214,6 +215,12 @@ let output_component_set = [
     component: VideoOutput,
     memoized_component: null,
     example_component: VideoOutputExample
+  },
+  {
+    name: "model",
+    component: ModelOutput,
+    memoized_component: null,
+    example_component: ModelOutputExample
   }
 ];
 

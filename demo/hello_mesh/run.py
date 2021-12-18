@@ -15,7 +15,7 @@ iface = gr.Interface(
         gr.inputs.Dropdown(["Duck.glb"], type="value", default="Duck.glb", label="Mesh File")
     ],
     outputs=[
-        "file"
+        "model"
     ]
 )
 

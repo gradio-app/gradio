@@ -301,6 +301,48 @@ class Video(OutputComponent):
         return self.save_flagged_file(dir, label, data['data'], encryption_key)
 
 
+class Model(OutputComponent):
+    '''
+    Used for 3d model output.
+    Output type: filepath
+    Demos: hello_model
+    '''
+
+    def __init__(self, label=None):
+        '''
+        Parameters:
+        label (str): component name in interface.
+        '''
+        super().__init__(label)
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "model": {},
+        }
+
+    def postprocess(self, y):
+        """
+        Parameters:
+        y (str): path to the model
+        Returns:
+        (str): base64 url data
+        """
+        return {
+            "name": os.path.basename(y),
+            "data": processing_utils.encode_file_to_base64(y, type="model")
+        }
+
+    def deserialize(self, x):
+        return processing_utils.decode_base64_to_file(x).name
+
+    def save_flagged(self, dir, label, data, encryption_key):
+        """
+        Returns: (str) path to model file
+        """
+        return self.save_flagged_file(dir, label, data['data'], encryption_key)
+
+
 class KeyValues(OutputComponent):
     '''
     Component displays a table representing values for multiple fields. 
