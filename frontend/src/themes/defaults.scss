@@ -591,6 +591,11 @@
             @apply w-full h-full flex justify-center items-center text-6xl p-6 break-all;
         }
     }
+    .output_model #renderCanvas {
+                width: 100%;
+                height: 100%;
+                touch-action: none;
+    }
     .output_file {
         @apply w-full h-80 dark:text-gray-50;
         .file_display {
