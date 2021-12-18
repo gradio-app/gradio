@@ -333,7 +333,7 @@ class Model(OutputComponent):
         """
 
         if self.clear_color is None:
-            self.clear_color = [0.3, 0.3, 0.3]
+            self.clear_color = [0.2, 0.2, 0.2]
 
         return {
             "name": os.path.basename(y),
