@@ -155,7 +155,7 @@ class TestLoadInterface(unittest.TestCase):
         io = gr.Interface(**interface_info)
         io.api_mode = True
         output = io("I am happy, I love you.")
-        self.assertGreater(output['Positive'], 0.5)
+        self.assertGreater(output['POSITIVE'], 0.5)
 
     def test_image_classification_model(self):
         interface_info = gr.external.load_interface("models/google/vit-base-patch16-224")
