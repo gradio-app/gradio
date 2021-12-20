@@ -28,6 +28,22 @@ def get_huggingface_interface(model_name, api_key, alias):
             return fp.name
 
     pipelines = {
+        'audio-classification': {
+            # example model: https://hf.co/ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition
+            'inputs': inputs.Audio(label="Input", source="upload",
+                                   type="filepath"),
+            'outputs': outputs.Label(label="Class", type="confidences"),
+            'preprocess': lambda i: base64.b64decode(i['data'].split(",")[1]),  # convert the base64 representation to binary
+            'postprocess': lambda r: {i["label"].split(", ")[0]: i["score"] for i in r.json()}
+        },
+        'automatic-speech-recognition': {
+            # example model: https://hf.co/jonatasgrosman/wav2vec2-large-xlsr-53-english
+            'inputs': inputs.Audio(label="Input", source="upload",
+                                   type="filepath"),
+            'outputs': outputs.Textbox(label="Output"),
+            'preprocess': lambda i: base64.b64decode(i['data'].split(",")[1]),  # convert the base64 representation to binary
+            'postprocess': lambda r: r.json()["text"]
+        },
         'question-answering': {
             'inputs': [inputs.Textbox(label="Context", lines=7), inputs.Textbox(label="Question")],
             'outputs': [outputs.Textbox(label="Answer"), outputs.Label(label="Score")],
@@ -83,13 +99,6 @@ def get_huggingface_interface(model_name, api_key, alias):
             {"candidate_labels": c, "multi_class": m}},
             'postprocess': lambda r: {r.json()["labels"][i]: r.json()["scores"][i] for i in
                                       range(len(r.json()["labels"]))}
-        },
-        'automatic-speech-recognition': {
-            'inputs': inputs.Audio(label="Input", source="upload",
-                                   type="filepath"),
-            'outputs': outputs.Textbox(label="Output"),
-            'preprocess': lambda i: {"inputs": i},
-            'postprocess': lambda r: r.json()["text"]
         },
         'image-classification': {
             'inputs': inputs.Image(label="Input Image", type="filepath"),
@@ -234,13 +243,15 @@ def load_from_pipeline(pipeline):
         raise ImportError("transformers not installed. Please try `pip install transformers`")
     if not isinstance(pipeline, transformers.Pipeline):
         raise ValueError("pipeline must be a transformers.Pipeline")
-        
-    if isinstance(pipeline, transformers.AudioClassificationPipeline):
+    
+    # Handle the different pipelines. The has_attr() checks to make sure the pipeline exists in the
+    # version of the transformers library that the user has installed.
+    if hasattr(transformers, 'AudioClassificationPipeline') and isinstance(pipeline, transformers.AudioClassificationPipeline):
         pass
-    elif isinstance(pipeline, transformers.AutomaticSpeechRecognitionPipeline):
+    elif hasattr(transformers, 'AutomaticSpeechRecognitionPipeline') and isinstance(pipeline, transformers.AutomaticSpeechRecognitionPipeline):
         pass
-    elif isinstance(pipeline, transformers.QuestionAnsweringPipeline):
-        interface_info = {
+    elif hasattr(transformers, 'QuestionAnsweringPipeline') and isinstance(pipeline, transformers.QuestionAnsweringPipeline):
+        pipeline_info = {
             'inputs': [inputs.Textbox(label="Context", lines=7), inputs.Textbox(label="Question")],
             'outputs': [outputs.Textbox(label="Answer"), outputs.Label(label="Score")],
             'preprocess': lambda c, q: {"context": c, "question": q},
@@ -251,17 +262,18 @@ def load_from_pipeline(pipeline):
     
     # define the function that will be called by the Interface
     def fn(*params):
-        data = interface_info["preprocess"](*params)
+        data = pipeline_info["preprocess"](*params)
         data = pipeline(**data)
-        output = interface_info["postprocess"](data)
+        output = pipeline_info["postprocess"](data)
         return output
     
+    interface_info = pipeline_info.copy()
     interface_info["fn"] = fn
     del interface_info["preprocess"]
     del interface_info["postprocess"]
     
     # define the title/description of the Interface
-    interface_info["title"] = pipeline.model.__name__
+    interface_info["title"] = pipeline.model.__class__.__name__
 
     return interface_info
 
