@@ -2,6 +2,8 @@ import unittest
 import pathlib
 import gradio as gr
 import os
+import transformers
+
 
 """
 WARNING: These tests have an external dependency: namely that Hugging Face's Hub and Space APIs do not change, and they keep their most famous models up. So if, e.g. Spaces is down, then these test will not pass.
@@ -176,6 +178,13 @@ class TestLoadInterface(unittest.TestCase):
         output = io("male", 77, 10)
         self.assertLess(output['Survives'], 0.5)
 
+    def test_speech_recognition_model(self):
+        interface_info = gr.external.load_interface("models/jonatasgrosman/wav2vec2-large-xlsr-53-english")
+        io = gr.Interface(**interface_info)
+        io.api_mode = True
+        output = io("test/test_data/test_audio.wav")
+        self.assertIsNotNone(output)
+
     def test_image_to_image_space(self):
         def assertIsFile(path):
             if not pathlib.Path(path).resolve().is_file():
@@ -186,6 +195,14 @@ class TestLoadInterface(unittest.TestCase):
         io.api_mode = True
         output = io("test/test_data/lion.jpg")
         assertIsFile(output)
+
+class TestLoadFromPipeline(unittest.TestCase):
+    def test_question_answering(self):
+        p = transformers.pipeline("question-answering")   
+        io = gr.Interface.from_pipeline(p)
+        output = io("My name is Sylvain and I work at Hugging Face in Brooklyn", "Where do I work?")
+        self.assertIsNotNone(output)
+
 
 if __name__ == '__main__':
     unittest.main()

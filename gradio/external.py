@@ -44,6 +44,35 @@ def get_huggingface_interface(model_name, api_key, alias):
             'preprocess': lambda i: base64.b64decode(i['data'].split(",")[1]),  # convert the base64 representation to binary
             'postprocess': lambda r: r.json()["text"]
         },
+        'feature-extraction': {
+            # example model: hf.co/julien-c/distilbert-feature-extraction
+            'inputs': inputs.Textbox(label="Input"),
+            'outputs': outputs.Dataframe(label="Output"),
+            'preprocess': lambda x: {"inputs": x},
+            'postprocess': lambda r: r.json()[0],
+        },
+        'fill-mask': {
+            'inputs': inputs.Textbox(label="Input"),
+            'outputs': outputs.Label(label="Classification", type="confidences"),
+            'preprocess': lambda x: {"inputs": x},
+            'postprocess': lambda r: {i["token_str"]: i["score"] for i in r.json()}
+        },
+        'image-classification': {
+            # Example: https://huggingface.co/google/vit-base-patch16-224
+            'inputs': inputs.Image(label="Input Image", type="filepath"),
+            'outputs': outputs.Label(label="Classification", type="confidences"),
+            'preprocess': lambda i: base64.b64decode(i.split(",")[1]),  # convert the base64 representation to binary
+            'postprocess': lambda r: {i["label"].split(", ")[0]: i["score"] for i in r.json()}
+        },
+        # TODO: support image segmentation pipeline -- should we add a new output component type?
+        # 'image-segmentation': {
+        #     # Example: https://hf.co/facebook/detr-resnet-50-panoptic
+        #     'inputs': inputs.Image(label="Input Image", type="filepath"),
+        #     'outputs': outputs.Image(label="Segmentation"),
+        #     'preprocess': lambda i: base64.b64decode(i.split(",")[1]),  # convert the base64 representation to binary
+        #     'postprocess': lambda x: base64.b64encode(x.json()[0]["mask"]).decode('utf-8'),
+        # },        
+        # TODO: also: support NER pipeline, object detection, table question answering
         'question-answering': {
             'inputs': [inputs.Textbox(label="Context", lines=7), inputs.Textbox(label="Question")],
             'outputs': [outputs.Textbox(label="Answer"), outputs.Label(label="Score")],
@@ -51,30 +80,11 @@ def get_huggingface_interface(model_name, api_key, alias):
             'postprocess': lambda r: (r.json()["answer"], r.json()["score"]),
             # 'examples': [['My name is Sarah and I live in London', 'Where do I live?']]
         },
-        'text-generation': {
-            'inputs': inputs.Textbox(label="Input"),
-            'outputs': outputs.Textbox(label="Output"),
-            'preprocess': lambda x: {"inputs": x},
-            'postprocess': lambda r: r.json()[0]["generated_text"],
-            # 'examples': [['My name is Clara and I am']]
-        },
         'summarization': {
             'inputs': inputs.Textbox(label="Input"),
             'outputs': outputs.Textbox(label="Summary"),
             'preprocess': lambda x: {"inputs": x},
             'postprocess': lambda r: r.json()[0]["summary_text"]
-        },
-        'translation': {
-            'inputs': inputs.Textbox(label="Input"),
-            'outputs': outputs.Textbox(label="Translation"),
-            'preprocess': lambda x: {"inputs": x},
-            'postprocess': lambda r: r.json()[0]["translation_text"]
-        },
-        'text2text-generation': {
-            'inputs': inputs.Textbox(label="Input"),
-            'outputs': outputs.Textbox(label="Generated Text"),
-            'preprocess': lambda x: {"inputs": x},
-            'postprocess': lambda r: r.json()[0]["generated_text"]
         },
         'text-classification': {
             'inputs': inputs.Textbox(label="Input"),
@@ -83,11 +93,24 @@ def get_huggingface_interface(model_name, api_key, alias):
             'postprocess': lambda r: {'Negative': r.json()[0][0]["score"],
                                       'Positive': r.json()[0][1]["score"]}
         },
-        'fill-mask': {
+        'text2text-generation': {
             'inputs': inputs.Textbox(label="Input"),
-            'outputs': outputs.Label(label="Classification", type="confidences"),
+            'outputs': outputs.Textbox(label="Generated Text"),
             'preprocess': lambda x: {"inputs": x},
-            'postprocess': lambda r: {i["token_str"]: i["score"] for i in r.json()}
+            'postprocess': lambda r: r.json()[0]["generated_text"]
+        },
+        'text-generation': {
+            'inputs': inputs.Textbox(label="Input"),
+            'outputs': outputs.Textbox(label="Output"),
+            'preprocess': lambda x: {"inputs": x},
+            'postprocess': lambda r: r.json()[0]["generated_text"],
+            # 'examples': [['My name is Clara and I am']]
+        },
+        'translation': {
+            'inputs': inputs.Textbox(label="Input"),
+            'outputs': outputs.Textbox(label="Translation"),
+            'preprocess': lambda x: {"inputs": x},
+            'postprocess': lambda r: r.json()[0]["translation_text"]
         },
         'zero-shot-classification': {
             'inputs': [inputs.Textbox(label="Input"),
@@ -99,19 +122,6 @@ def get_huggingface_interface(model_name, api_key, alias):
             {"candidate_labels": c, "multi_class": m}},
             'postprocess': lambda r: {r.json()["labels"][i]: r.json()["scores"][i] for i in
                                       range(len(r.json()["labels"]))}
-        },
-        'image-classification': {
-            'inputs': inputs.Image(label="Input Image", type="filepath"),
-            'outputs': outputs.Label(label="Classification", type="confidences"),
-            'preprocess': lambda i: base64.b64decode(i.split(",")[1]),  # convert the base64 representation to binary
-            'postprocess': lambda r: {i["label"].split(", ")[0]: i["score"] for i in r.json()}
-        },
-        'feature-extraction': {
-            # example model: hf.co/julien-c/distilbert-feature-extraction
-            'inputs': inputs.Textbox(label="Input"),
-            'outputs': outputs.Dataframe(label="Output"),
-            'preprocess': lambda x: {"inputs": x},
-            'postprocess': lambda r: r.json()[0],
         },
         'sentence-similarity': {
             # example model: hf.co/sentence-transformers/distilbert-base-nli-stsb-mean-tokens
@@ -156,7 +166,9 @@ def get_huggingface_interface(model_name, api_key, alias):
         response = requests.request("POST", api_url, headers=headers, data=data)        
         if not(response.status_code == 200):
             raise ValueError("Could not complete request to HuggingFace API, Error {}".format(response.status_code))
+        print("response>>>>>>", response.json())
         output = pipeline['postprocess'](response)
+        print("output>>>>>>", output)
         return output
     
     if alias is None:
@@ -247,9 +259,45 @@ def load_from_pipeline(pipeline):
     # Handle the different pipelines. The has_attr() checks to make sure the pipeline exists in the
     # version of the transformers library that the user has installed.
     if hasattr(transformers, 'AudioClassificationPipeline') and isinstance(pipeline, transformers.AudioClassificationPipeline):
-        pass
+        pipeline_info = {
+            'inputs': inputs.Audio(label="Input", source="microphone",
+                                   type="filepath"),
+            'outputs': outputs.Label(label="Class", type="confidences"),
+            'preprocess': lambda i: {"inputs": i},
+            'postprocess': lambda r: {i["label"].split(", ")[0]: i["score"] for i in r}
+        }
     elif hasattr(transformers, 'AutomaticSpeechRecognitionPipeline') and isinstance(pipeline, transformers.AutomaticSpeechRecognitionPipeline):
-        pass
+        pipeline_info = {
+            'inputs': inputs.Audio(label="Input", source="microphone",
+                                   type="filepath"),
+            'outputs': outputs.Textbox(label="Output"),
+            'preprocess': lambda i: {"inputs": i},
+            'postprocess': lambda r: r["text"]
+        }
+    elif hasattr(transformers, 'FeatureExtractionPipeline') and isinstance(pipeline, transformers.FeatureExtractionPipeline):
+        pipeline_info = {
+            'inputs': inputs.Textbox(label="Input"),
+            'outputs': outputs.Dataframe(label="Output"),
+            'preprocess': lambda x: {"inputs": x},
+            'postprocess': lambda r: r[0],
+        }
+    elif hasattr(transformers, 'FillMaskPipeline') and isinstance(pipeline, transformers.FillMaskPipeline):
+        pipeline_info = {
+            'inputs': inputs.Textbox(label="Input"),
+            'outputs': outputs.Label(label="Classification", type="confidences"),
+            'preprocess': lambda x: {"inputs": x},
+            'postprocess': lambda r: {i["token_str"]: i["score"] for i in r}
+        }
+    elif hasattr(transformers, 'ImageClassificationPipeline') and isinstance(pipeline, transformers.ImageClassificationPipeline):
+        pipeline_info = {
+            'inputs': inputs.Image(label="Input Image", type="filepath"),
+            'outputs': outputs.Label(label="Classification", type="confidences"),
+            'preprocess': lambda i: {"images": i},
+            'postprocess': lambda r: {i["label"].split(", ")[0]: i["score"] for i in r}
+        }
+    elif hasattr(transformers, 'AutomaticSpeechRecognitionPipeline') and isinstance(pipeline, transformers.AutomaticSpeechRecognitionPipeline):
+        pipeline_info = {
+        }
     elif hasattr(transformers, 'QuestionAnsweringPipeline') and isinstance(pipeline, transformers.QuestionAnsweringPipeline):
         pipeline_info = {
             'inputs': [inputs.Textbox(label="Context", lines=7), inputs.Textbox(label="Question")],
@@ -264,6 +312,7 @@ def load_from_pipeline(pipeline):
     def fn(*params):
         data = pipeline_info["preprocess"](*params)
         data = pipeline(**data)
+        # print("Before postprocessing", data)
         output = pipeline_info["postprocess"](data)
         return output
     
