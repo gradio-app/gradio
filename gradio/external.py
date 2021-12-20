@@ -134,7 +134,7 @@ def get_huggingface_interface(model_name, api_key, alias):
     }
 
     if p is None or not(p in pipelines):
-        print("Warning: no interface information found")
+        raise ValueError("Unsupported pipeline type: {}".format(type(p)))
     
     pipeline = pipelines[p]
 
@@ -220,4 +220,49 @@ repos = {
     "models": get_huggingface_interface,
     "spaces": get_spaces_interface,
 }
+
+def load_from_pipeline(pipeline):
+    """
+    Gets the appropriate Interface kwargs for a given Hugging Face transformers.Pipeline.
+    pipeline (transformers.Pipeline): the transformers.Pipeline from which to create an interface
+    Returns:
+    (dict): a dictionary of kwargs that can be used to construct an Interface object
+    """
+    try:
+        import transformers
+    except ImportError:
+        raise ImportError("transformers not installed. Please try `pip install transformers`")
+    if not isinstance(pipeline, transformers.Pipeline):
+        raise ValueError("pipeline must be a transformers.Pipeline")
+        
+    if isinstance(pipeline, transformers.AudioClassificationPipeline):
+        pass
+    elif isinstance(pipeline, transformers.AutomaticSpeechRecognitionPipeline):
+        pass
+    elif isinstance(pipeline, transformers.QuestionAnsweringPipeline):
+        interface_info = {
+            'inputs': [inputs.Textbox(label="Context", lines=7), inputs.Textbox(label="Question")],
+            'outputs': [outputs.Textbox(label="Answer"), outputs.Label(label="Score")],
+            'preprocess': lambda c, q: {"context": c, "question": q},
+            'postprocess': lambda r: (r["answer"], r["score"]),
+        }
+    else:
+        raise ValueError("Unsupported pipeline type: {}".format(type(pipeline)))
+    
+    # define the function that will be called by the Interface
+    def fn(*params):
+        data = interface_info["preprocess"](*params)
+        data = pipeline(**data)
+        output = interface_info["postprocess"](data)
+        return output
+    
+    interface_info["fn"] = fn
+    del interface_info["preprocess"]
+    del interface_info["postprocess"]
+    
+    # define the title/description of the Interface
+    interface_info["title"] = pipeline.model.__name__
+
+    return interface_info
+
 
