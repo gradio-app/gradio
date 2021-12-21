@@ -27,15 +27,13 @@ def captured_output():
 class TestInterface(unittest.TestCase):
     def test_close(self):
         io = Interface(lambda input: None, "textbox", "label")
-        io.launch(prevent_thread_lock=True)
-        server_port = io.server_port
+        _, local_url, _ = io.launch(prevent_thread_lock=True)
+        response = requests.get(local_url)
+        self.assertEqual(response.status_code, 200)
         io.close()
-        time.sleep(1)
-        # check if port is free (if not, raises OSError)
-        s = socket.socket()  # create a socket object
-        s.bind((networking.LOCALHOST_NAME, server_port))  
-        s.close()
-
+        with self.assertRaises(Exception):
+            response = requests.get(local_url)
+        
     def test_close_all(self):
         interface = Interface(lambda input: None, "textbox", "label")
         interface.close = mock.MagicMock()
