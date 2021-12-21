@@ -10,6 +10,7 @@ import threading
 from comet_ml import Experiment
 import mlflow
 import wandb
+import socket
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -27,12 +28,13 @@ class TestInterface(unittest.TestCase):
     def test_close(self):
         io = Interface(lambda input: None, "textbox", "label")
         io.launch(prevent_thread_lock=True)
-        port1 = io.server_port
+        server_port = io.server_port
         io.close()
-        io = Interface(lambda input: None, "textbox", "label")
-        io.launch(prevent_thread_lock=True)
-        port2 = io.server_port
-        self.assertEquals(port1, port2)
+        time.sleep(1)
+        # check if port is free (if not, raises OSError)
+        s = socket.socket()  # create a socket object
+        s.bind((networking.LOCALHOST_NAME, server_port))  
+        s.close()
 
     def test_close_all(self):
         interface = Interface(lambda input: None, "textbox", "label")
