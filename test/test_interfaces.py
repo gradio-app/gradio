@@ -24,10 +24,20 @@ def captured_output():
         sys.stdout, sys.stderr = old_out, old_err
 
 class TestInterface(unittest.TestCase):
-    def test_reset_all(self):
+    def test_close(self):
+        io = Interface(lambda input: None, "textbox", "label")
+        io.launch(prevent_thread_lock=True)
+        port1 = io.server_port
+        io.close()
+        io = Interface(lambda input: None, "textbox", "label")
+        io.launch(prevent_thread_lock=True)
+        port2 = io.server_port
+        self.assertEquals(port1, port2)
+
+    def test_close_all(self):
         interface = Interface(lambda input: None, "textbox", "label")
         interface.close = mock.MagicMock()
-        reset_all()
+        close_all()
         interface.close.assert_called()
         
     def test_examples_invalid_input(self):

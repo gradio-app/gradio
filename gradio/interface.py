@@ -30,7 +30,7 @@ class Interface:
     Interfaces are created with Gradio by constructing a `gradio.Interface()` object or by calling `gradio.Interface.load()`.
     """
 
-    instances = weakref.WeakSet()  # stores all currently existing Interface instances
+    instances = weakref.WeakSet()  # stores references to all currently existing Interface instances
 
     @classmethod
     def get_instances(cls):
@@ -595,8 +595,6 @@ class Interface:
                 getpass.getpass("Enter key for encryption: "))
 
         # Store parameters
-        server_name = server_name or networking.LOCALHOST_NAME
-        server_port = server_port
         if self.enable_queue is None:
             self.enable_queue = enable_queue
 
@@ -760,10 +758,12 @@ class Interface:
 
 
 def close_all(verbose=True):
+    # Tries to close all running interfaces, but method is a little flaky.
     for io in Interface.get_instances():
         io.close(verbose)
 
 
 def reset_all():
-    warnings.warn("The `reset_all()` method has been renamed to `close_all()`. Please use `close_all()` instead.")
+    warnings.warn("The `reset_all()` method has been renamed to `close_all()` " 
+    "and will be deprecated. Please use `close_all()` instead.")
     close_all()
