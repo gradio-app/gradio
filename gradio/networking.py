@@ -464,15 +464,24 @@ def start_server(interface, server_name=None, server_port=None, auth=None, ssl=N
         app.queue_thread.start()
     if interface.save_to is not None:
         interface.save_to["port"] = port
-    app_kwargs = {"port": port, "host": server_name}
+    # app_kwargs = {"port": port, "host": server_name}
+    # if ssl:
+    #     app_kwargs["ssl_context"] = ssl
+    # thread = threading.Thread(target=app.run,
+    #                           kwargs=app_kwargs,
+    #                           daemon=True)
+    # thread.start()
+
+    app_kwargs = {"app": app, "port": port, "host": server_name}
     if ssl:
         app_kwargs["ssl_context"] = ssl
-    thread = threading.Thread(target=app.run,
-                              kwargs=app_kwargs,
-                              daemon=True)
+    server = make_server(**app_kwargs)
+    def run_forever():
+        server.serve_forever()
+    thread = threading.Thread(target=run_forever, daemon=True)
     thread.start()
-
-    return port, path_to_local_server, app, thread
+    return port, path_to_local_server, app, thread, server
+    # return port, path_to_local_server, app, thread
 
 def get_state():
     return session.get("state")
