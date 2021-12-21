@@ -29,18 +29,19 @@ import inspect
 import traceback
 from werkzeug.security import safe_join
 
-INITIAL_PORT_VALUE = int(os.getenv(
-    'GRADIO_SERVER_PORT', "7860"))  # The http server will try to open on port 7860. If not available, 7861, 7862, etc.
-TRY_NUM_PORTS = int(os.getenv(
-    'GRADIO_NUM_PORTS', "1000"))  # Number of ports to try before giving up and throwing an exception.
-LOCALHOST_NAME = os.getenv(
-    'GRADIO_SERVER_NAME', "127.0.0.1")
+
+# By default, the http server will try to open on port 7860. If not available, 7861, 7862, etc.
+INITIAL_PORT_VALUE = int(os.getenv('GRADIO_SERVER_PORT', "7860"))  
+# Number of ports to try before giving up and throwing an exception.
+TRY_NUM_PORTS = int(os.getenv('GRADIO_NUM_PORTS', "100"))  
+LOCALHOST_NAME = os.getenv('GRADIO_SERVER_NAME', "127.0.0.1")
 GRADIO_API_SERVER = "https://api.gradio.app/v1/tunnel-request"
 GRADIO_FEATURE_ANALYTICS_URL = "https://api.gradio.app/gradio-feature-analytics/"
 
 STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "templates/")
 STATIC_PATH_LIB = pkg_resources.resource_filename("gradio", "templates/frontend/static")
 VERSION_FILE = pkg_resources.resource_filename("gradio", "version.txt")
+
 with open(VERSION_FILE) as version_file:
     GRADIO_STATIC_ROOT = "https://gradio.s3-us-west-2.amazonaws.com/" + \
         version_file.read().strip() + "/static/"
@@ -426,7 +427,9 @@ def queue_thread(path_to_local_server, test_mode=False):
             break
 
 
-def start_server(interface, server_name, server_port=None, auth=None, ssl=None):
+def start_server(interface, server_name=None, server_port=None, auth=None, ssl=None):
+    if server_name is None:
+        server_name = LOCALHOST_NAME
     if server_port is None:  # if port is not specified, start at 7860 and search for first available port        
         port = get_first_available_port(
             INITIAL_PORT_VALUE, INITIAL_PORT_VALUE + TRY_NUM_PORTS
