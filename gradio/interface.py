@@ -22,7 +22,7 @@ from gradio import networking, strings, utils, encryptor, queue
 from gradio.inputs import get_input_instance
 from gradio.outputs import get_output_instance
 from gradio.interpretation import quantify_difference_in_label, get_regression_or_classification_value
-from gradio.external import load_interface
+from gradio.external import load_interface, load_from_pipeline
 
 
 class Interface:
@@ -57,6 +57,19 @@ class Interface:
         kwargs = dict(interface_info, **kwargs) 
         interface = cls(**kwargs)
         interface.api_mode = True  # set api mode to true so that the interface will not preprocess/postprocess
+        return interface
+
+    @classmethod
+    def from_pipeline(cls, pipeline, **kwargs):
+        """
+        Class method to construct an Interface from a Hugging Face transformers.Pipeline.
+        pipeline (transformers.Pipeline): 
+        Returns:
+        (gradio.Interface): a Gradio Interface object from the given Pipeline
+        """
+        interface_info = load_from_pipeline(pipeline)
+        kwargs = dict(interface_info, **kwargs) 
+        interface = cls(**kwargs)
         return interface
 
     def __init__(self, fn, inputs=None, outputs=None, verbose=None, examples=None,
