@@ -572,7 +572,6 @@ class Interface:
         show_error (bool): If True, any errors in the interface will be printed in the browser console log
         server_port (int): will start gradio app on this port (if available) 
         server_name (str): to make app accessible on local network, set this to "0.0.0.0".
-        show_error (bool): show prediction errors in console
         show_tips (bool): if True, will occasionally show tips about new Gradio features
         enable_queue (bool): if True, inference requests will be served through a queue instead of with parallel threads. Required for longer inference times (> 1min) to prevent timeout.  
         Returns:
