@@ -588,6 +588,7 @@ class Interface:
         self.auth = auth
         self.auth_message = auth_message
         self.show_tips = show_tips
+        self.show_error = show_error
 
         # Request key for encryption
         if self.encrypt:
@@ -599,13 +600,14 @@ class Interface:
             self.enable_queue = enable_queue
 
         # Launch local flask server
-        server_port, path_to_local_server, app, thread = networking.start_server(
+        server_port, path_to_local_server, app, thread, server = networking.start_server(
             self, server_name, server_port, self.auth)
         self.local_url = path_to_local_server
         self.server_port = server_port
         self.status = "RUNNING"
-        self.server = app
-        self.show_error = show_error
+        self.server = server
+        self.server_app = app
+        self.server_thread = thread
 
         # Count number of launches
         utils.launch_counter()
@@ -705,18 +707,13 @@ class Interface:
         Closes the Interface that was launched. This will close the server and free the port.
         """
         try:
-            if self.share_url:
-                requests.get("{}/shutdown".format(self.share_url))
-                if verbose:
-                    print("Closing Gradio server on port {}...".format(self.server_port))
-            elif self.local_url:
-                requests.get("{}shutdown".format(self.local_url))
-                if verbose:
-                    print("Closing Gradio server on port {}...".format(self.server_port))
-            else:
-                pass # server not running
-        except (requests.ConnectionError, ConnectionResetError):
-            pass  # server is already closed
+            self.server.shutdown()
+            self.server_thread.join()
+            print("Closing server running on port: {}".format(self.server_port))
+        except AttributeError: # can't close if not running
+            pass
+        except OSError: # sometimes OSError is thrown when shutting down
+            pass
 
     def integrate(self, comet_ml=None, wandb=None, mlflow=None):
         """
