@@ -25,9 +25,9 @@
     gtag('js', new Date());
     gtag('config', 'UA-156449732-1');
     try {
-      window.config = {{ config|tojson }};
+      window.gradio_config = JSON.parse("{{ config|tojson }}");
     } catch (e) {
-      window.config = {};
+      window.gradio_config = {"mode": "dev"};
     }
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.1/iframeResizer.contentWindow.min.js"></script>
