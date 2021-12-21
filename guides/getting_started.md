@@ -269,10 +269,10 @@ And of course, you can also mix `Parallel` and `Series` together whenever that m
 
 ### Queuing to Manage Long Inference Times
 
-If many people are using your interface or if the inference time of your function is long (> 1min), simply set the `enable_queue` parameter in the `Interface` class to `True` to prevent timeouts.
+If many people are using your interface or if the inference time of your function is long (> 1min), simply set the `enable_queue` parameter in the `launch` method to `True` to prevent timeouts.
 
 ```python
-gr.Interface(fn=classify_image, inputs=image, outputs=label, enable_queue=True).launch()
+gr.Interface(fn=classify_image, inputs=image, outputs=label).launch(enable_queue=True)
 ```
 
 This sets up a queue of workers to handle the predictions and return the response to the front end. This is strongly recommended if you are planning on uploading your demo to Hugging Face Spaces (as described above) so that you can manage a large number of users simultaneously using your demo.
