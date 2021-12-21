@@ -57,18 +57,7 @@ let fn = async (endpoint, queue, data, action, queue_callback) => {
   }
 };
 
-async function get_config() {
-  if (process.env.REACT_APP_BACKEND_URL) {
-    // dev mode
-    let config = await fetch(process.env.REACT_APP_BACKEND_URL + "config");
-    config = await config.json();
-    return config;
-  } else {
-    return window.config;
-  }
-}
-
-function load_config(config) {
+window.launchGradio = config => {
   if (config.auth_required) {
     ReactDOM.render(
       <Login {...config} />,
@@ -99,12 +88,18 @@ function load_config(config) {
   }
 }
 
-get_config().then((config) => {
-  if (config instanceof Array) {
-    for (let single_config of config) {
-      load_config(single_config);
-    }
+async function get_config() {
+  if (process.env.REACT_APP_BACKEND_URL) {
+    // dev mode
+    let config = await fetch(process.env.REACT_APP_BACKEND_URL + "config");
+    config = await config.json();
+    return config;
   } else {
-    load_config(config);
+    return window.gradio_config;
   }
-});
+}
+if (window.gradio_config) {
+  get_config().then(config => {
+    launchGradio(config);
+  });
+}

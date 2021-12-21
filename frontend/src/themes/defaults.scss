@@ -1,6 +1,10 @@
-@tailwind base;
+@import "custom_preflight.scss";
 @tailwind components;
-@tailwind utilities;
+@tailwind utilities;    
+
+.gradio_bg {
+    @apply min-h-full flex flex-col;
+}
 
 .gradio_page {
     @apply container h-full mx-auto pt-4 px-4 flex flex-col box-border flex-grow;
@@ -25,10 +29,6 @@
     .logo {
         @apply h-6;
     }
-}
-
-.gradio_bg {
-    @apply min-h-full flex flex-col;
 }
 
 .login {
