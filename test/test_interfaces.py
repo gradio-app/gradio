@@ -101,7 +101,7 @@ class TestInterface(unittest.TestCase):
     def test_interface_load(self):
         io = Interface.load("models/distilbert-base-uncased-finetuned-sst-2-english", alias="sentiment_classifier")
         output = io("I am happy, I love you.")
-        self.assertGreater(output['Positive'], 0.5)
+        self.assertGreater(output['POSITIVE'], 0.5)
         
     def test_interface_none_interp(self):
         interface = Interface(lambda x: x, "textbox", "label", interpretation=[None])
