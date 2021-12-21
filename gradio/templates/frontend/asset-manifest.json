@@ -1,6 +1,6 @@
 {
   "files": {
-    "main.css": "/static/css/main.35cf54e7.css",
+    "main.css": "/static/css/main.1e7ec45e.css",
     "main.js": "/static/bundle.js",
     "index.html": "/index.html",
     "static/media/arrow-left.e497f657.svg": "/static/media/arrow-left.e497f657.svg",
@@ -12,7 +12,7 @@
   },
   "entrypoints": [
     "static/bundle.css",
-    "static/css/main.35cf54e7.css",
+    "static/css/main.1e7ec45e.css",
     "static/bundle.js"
   ]
 }
