@@ -14,11 +14,12 @@ sys.path.insert(0, GRADIO_DEMO_DIR)
 with open("demos.json") as demos_file:
     demo_port_sets = json.load(demos_file)
 
-def launch_demo(demo_file):
-    subprocess.call(f"python {demo_file}", shell=True)
+def launch_demo(demo_folder):
+    subprocess.call(f"cd {demo_folder} && python run.py", shell=True)
 
 for demo_name, port in demo_port_sets:
-    demo_file = os.path.join(GRADIO_DEMO_DIR, demo_name, "run.py")
+    demo_folder = os.path.join(GRADIO_DEMO_DIR, demo_name)
+    demo_file = os.path.join(demo_folder, "run.py")
     with open(demo_file, 'r') as file:
         filedata = file.read()
     filedata = filedata.replace(
@@ -26,7 +27,7 @@ for demo_name, port in demo_port_sets:
         f'if __name__ == "__main__":\n    iface.server_port={port}')
     with open(demo_file, 'w') as file:
         file.write(filedata)
-    demo_thread = threading.Thread(target=launch_demo, args=(demo_file,))
+    demo_thread = threading.Thread(target=launch_demo, args=(demo_folder,))
     demo_thread.start()
 
 start_time = time.time()
