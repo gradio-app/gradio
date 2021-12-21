@@ -2,33 +2,31 @@
 Defines helper methods useful for setting up ports, launching servers, and handling `ngrok`
 """
 
-import os
-import socket
-import threading
+import csv
+import datetime
 from flask import Flask, request, session, jsonify, abort, send_file, render_template, redirect
 from flask_cachebuster import CacheBuster
 from flask_login import LoginManager, login_user, current_user, login_required
 from flask_cors import CORS
-import threading
-import pkg_resources
-import datetime
-import time
+from functools import wraps
+import inspect
+import io
 import json
-import urllib.request
-from shutil import copyfile
-import requests
-import sys
-import csv
 import logging
-from gradio.tunneling import create_tunnel
+import os
+import pkg_resources
+import requests
+import socket
+import sys
+import threading
+import time
+import traceback
+import urllib.request
+from werkzeug.security import safe_join
+from werkzeug.serving import make_server
 from gradio import encryptor
 from gradio import queue
-from functools import wraps
-import io
-import inspect
-import traceback
-from werkzeug.security import safe_join
-
+from gradio.tunneling import create_tunnel
 
 # By default, the http server will try to open on port 7860. If not available, 7861, 7862, etc.
 INITIAL_PORT_VALUE = int(os.getenv('GRADIO_SERVER_PORT', "7860"))  
@@ -464,24 +462,13 @@ def start_server(interface, server_name=None, server_port=None, auth=None, ssl=N
         app.queue_thread.start()
     if interface.save_to is not None:
         interface.save_to["port"] = port
-    # app_kwargs = {"port": port, "host": server_name}
-    # if ssl:
-    #     app_kwargs["ssl_context"] = ssl
-    # thread = threading.Thread(target=app.run,
-    #                           kwargs=app_kwargs,
-    #                           daemon=True)
-    # thread.start()
-
     app_kwargs = {"app": app, "port": port, "host": server_name}
     if ssl:
         app_kwargs["ssl_context"] = ssl
     server = make_server(**app_kwargs)
-    def run_forever():
-        server.serve_forever()
-    thread = threading.Thread(target=run_forever, daemon=True)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     return port, path_to_local_server, app, thread, server
-    # return port, path_to_local_server, app, thread
 
 def get_state():
     return session.get("state")
