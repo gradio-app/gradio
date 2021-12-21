@@ -1021,6 +1021,8 @@ class Audio(InputComponent):
         return processing_utils.encode_file_to_base64(x, type="audio")
 
     def serialize(self, x, called_directly):
+        if x is None:
+            return None
         if self.type == "filepath" or called_directly:
             name = x
         elif self.type == "file":
