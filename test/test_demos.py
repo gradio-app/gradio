@@ -35,26 +35,26 @@ def wait_for_url(url):
 
 
 def diff_texts_thread(return_dict):
-    from demo.diff_texts import iface
+    from demo.diff_texts.run import iface
     iface.save_to = return_dict
     iface.launch()
 
 
 def image_mod_thread(return_dict):
-    from demo.image_mod import iface
+    from demo.image_mod.run import iface
     iface.examples = None
     iface.save_to = return_dict
     iface.launch()
 
 
 def longest_word_thread(return_dict):
-    from demo.longest_word import iface
+    from demo.longest_word.run import iface
     iface.save_to = return_dict
     iface.launch()
 
 
 def sentence_builder_thread(return_dict):
-    from demo.sentence_builder import iface
+    from demo.sentence_builder.run import iface
     iface.save_to = return_dict
     iface.launch()
 
@@ -125,7 +125,7 @@ class TestDemo(unittest.TestCase):
                 (By.CSS_SELECTOR, ".panel:nth-child(1) .component:nth-child(1) .hidden_upload"))
         )
         cwd = os.getcwd()
-        rel = "demo/images/cheetah1.jpg"
+        rel = "test/test_files/cheetah1.jpg"
         elem.send_keys(os.path.join(cwd, rel))
         golden_img = os.path.join(current_dir, GOLDEN_PATH.format(
             "image_mod", "cheetah1"))

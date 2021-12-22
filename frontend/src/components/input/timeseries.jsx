@@ -2,7 +2,8 @@ import React from "react";
 import BaseComponent from "../base_component";
 import ComponentExample from "../component_example";
 import { CSVToArray } from "../../utils";
-import Plot from "react-plotly.js";
+import { Scatter } from 'react-chartjs-2';
+import { getNextColor } from "../../utils";
 
 class TimeseriesInput extends BaseComponent {
   constructor(props) {
@@ -26,41 +27,25 @@ class TimeseriesInput extends BaseComponent {
       evt.stopPropagation();
     };
     if (this.props.value !== null) {
-      let file = this.props.value[0];
       return (
         <div className="input_timeseries">
-          <Plot
-            data={this.state.y_indices.map((y_index, i) => {
+          <Scatter data={{
+            "datasets": this.state.y_indices.map((y_index, i) => {
               return {
-                x: this.props.value["data"].map(
-                  (row) => row[this.state.x_index]
-                ),
-                y: this.props.value["data"].map((row) => row[y_index]),
-                type: "line",
-                name: this.props.y[i]
-              };
-            })}
-            layout={{
-              autosize: true
-            }}
-            useResizeHandler={true}
-            style={{ width: "100%", height: "100%" }}
-            onRelayout={(figure) => {
-              if ("xaxis.range[0]" in figure) {
-                this.props.handleChange(
-                  Object.assign({}, this.props.value, {
-                    range: [figure["xaxis.range[0]"], figure["xaxis.range[1]"]]
-                  })
-                );
-              } else {
-                this.props.handleChange(
-                  Object.assign({}, this.props.value, {
-                    range: null
-                  })
-                );
+                label: this.props.y[i],
+                borderColor: getNextColor(i),
+                showLine: true,
+                fill: true,
+                backgroundColor: getNextColor(i, 0.25),
+                data: this.props.value["data"].map((row) => {
+                  return {
+                    x: row[this.state.x_index],
+                    y: row[y_index]
+                  }
+                })
               }
-            }}
-          />
+            })
+          }} />
         </div>
       );
     } else {

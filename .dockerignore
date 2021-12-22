@@ -1,0 +1,39 @@
+# Python build
+.eggs/
+gradio.egg-info/*
+!gradio.egg-info/requires.txt
+!gradio.egg-info/PKG-INFO
+dist/
+*.pyc
+__pycache__/
+*.py[cod]
+*$py.class
+build/
+
+# JS build
+gradio/templates/frontend/static
+
+# Secrets
+.env
+
+# Gradio run artifacts
+*.db
+*.sqlite3
+gradio/launches.json
+
+# Tests
+.coverage
+coverage.xml
+test.txt
+
+# Demos
+demo/tmp.zip
+demo/flagged
+demo/files/*.avi
+demo/files/*.mp4
+
+# Etc
+.idea/*
+.DS_Store
+*.bak
+workspace.code-workspace

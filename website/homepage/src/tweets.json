@@ -1,0 +1,56 @@
+[
+    {
+        "name": "Vinay Prabhu",
+        "handle": "vinayprabhu",
+        "link": "https://twitter.com/vinayprabhu/status/1324409497641652225",
+        "content": "Dear <a href=\"https:\/\/twitter.com\/hashtag\/MachineLearning?src=hash\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"https:\/\/twitter.com\/hashtag\/MachineLearning?src=hash\" class=\"static-tweet-twitter-link\">#MachineLearning<\/a> twitter,<br>If you haven't typed: <br>$ pip install gradio<br>yet, now would be a damn good time.<br>Especially if you are working              in computer vision &amp; deploying models in the real world. <a href=\"https:\/\/twitter.com\/abidlabs\/status\/1324074291525230601\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"https:\/\/twitter.com\/abidlabs\/status\/1324074291525230601\" class=\"static-tweet-anchor\">twitter.com\/abidlabs\/statu...<\/a>",
+        "likes": 19,
+        "timestamp": "12:53 PM - Nov 5, 2020",
+        "profile_pic": "1013607349943058433.jpg"
+    },
+    {
+        "name": "David Ouyang, MD",
+        "handle": "David_Ouyang",
+        "link": "https://twitter.com/David_Ouyang/status/1338734957070454785",
+        "content": "Having <a href=\"https:\/\/twitter.com\/GradioML\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"https:\/\/twitter.com\/GradioML\" class=\"static-tweet-twitter-link\">@GradioML<\/a> deploy your model is like a test-of-time award,              except it\u2019s test-of-now. Open implementation, clear code, and actionable dataset has to skew towards              better papers. <a href=\"https:\/\/twitter.com\/GradioML\/status\/1338554494678872072\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"https:\/\/twitter.com\/GradioML\/status\/1338554494678872072\" class=\"static-tweet-anchor\">twitter.com\/GradioML\/statu...<\/a>",
+        "likes": 13,
+        "timestamp": "1:37 AM - Dec 15, 2020",
+        "profile_pic": "889312280092999680.jpg"
+    },
+    {
+        "name": "Aniket Maurya",
+        "handle": "aniketmaurya",
+        "link": "https://twitter.com/aniketmaurya/status/1453598427669884932",
+        "content": "Build prototype UI for any kind of Machine Learning model with a single line of code, powered by <a href=\"https:\/\/twitter.com\/Gradio\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"https:\/\/twitter.com\/Gradio\" class=\"static-tweet-twitter-link\">@Gradio<\/a> <br><br>🎉 It is framework agnostic - use <br><a href=\"https:\/\/twitter.com\/PyTorch\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"https:\/\/twitter.com\/PyTorch\" class=\"static-tweet-twitter-link\">@PyTorch<\/a> <br><a href=\"https:\/\/twitter.com\/Tensorflow\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"https:\/\/twitter.com\/Tensorflow\" class=\"static-tweet-twitter-link\">@Tensorflow<\/a> <br><a href=\"https:\/\/twitter.com\/scikit_learn\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"https:\/\/twitter.com\/scikit_learn\" class=\"static-tweet-twitter-link\">@scikit_learn<\/a><br>or any of your fav. ML framework. <br><br>👉 Get started with a single line of code.",
+        "likes": 74,
+        "timestamp": "10:44 PM - Oct 27 2021",
+        "profile_pic": "d8qFeBSq_x96.png"
+    },
+    {
+        "name": "Charly Wargnier",
+        "handle": "DataChaz",
+        "link": "https://twitter.com/DataChaz/status/1351290055894179842",
+        "content": "Pretty neat that <a href=\"https:\/\/twitter.com\/GradioML\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"https:\/\/twitter.com\/GradioML\" class=\"static-tweet-twitter-link\">@GradioML<\/a>! <img class=\"static-tweet-emoji\" src=\"https:\/\/abs.twimg.com\/emoji\/v2\/72x72\/1f40d.png\" alt=\"\uD83D\uDC0D\"><img class=\"static-tweet-emoji\" src=\"https:\/\/abs.twimg.com\/emoji\/v2\/72x72\/1f525.png\" alt=\"\uD83D\uDD25\"><br><br>+ Generate an easy-to-use UI for your <a href=\"https:\/\/twitter.com\/hashtag\/ML?src=hash\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"https:\/\/twitter.com\/hashtag\/ML?src=hash\" class=\"static-tweet-twitter-link\">#ML<\/a> model, function, or <a href=\"https:\/\/twitter.com\/hashtag\/API?src=hash\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"https:\/\/twitter.com\/hashtag\/API?src=hash\" class=\"static-tweet-twitter-link\">#API<\/a> with only a few lines of code!<br>+ Integrate directly into your <a href=\"https:\/\/twitter.com\/ProjectJupyter\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"https:\/\/twitter.com\/ProjectJupyter\" class=\"static-tweet-twitter-link\">@ProjectJupyter<\/a> notebook<br>+ or share a link with anyone<br><br>h\/t <a href=\"https:\/\/twitter.com\/VincentTerrasi\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"https:\/\/twitter.com\/VincentTerrasi\" class=\"static-tweet-twitter-link\">@VincentTerrasi<\/a> <br><a href=\"https:\/\/twitter.com\/hashtag\/MachineLearning?src=hash\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"https:\/\/twitter.com\/hashtag\/MachineLearning?src=hash\" class=\"static-tweet-twitter-link\">#MachineLearning<\/a> <br><a href=\"https:\/\/www.gradio.app\/\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"https:\/\/www.gradio.app\/\" class=\"static-tweet-anchor\">www.gradio.app<\/a>",
+        "likes": 18,
+        "timestamp": "5:07 PM - Jan 18, 2021",
+        "profile_pic": "1362781887098454025.jpg"
+    },
+    {
+        "name": "Chua Chin Hon",
+        "handle": "chinhon",
+        "link": "https://twitter.com/chinhon/status/1452510073452859392",
+        "content": "What's exciting about ML in 2021 is how the building blocks r coming together. Built this headline writer using: <br>- AutoNLP to finetune Bart<br>- <a href=\"https:\/\/twitter.com\/Gradio\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"https:\/\/twitter.com\/Gradio\" class=\"static-tweet-twitter-link\">@Gradio<\/a> for the UI<br>- <a href=\"https:\/\/twitter.com\/huggingface\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"https:\/\/twitter.com\/huggingface\" class=\"static-tweet-twitter-link\">@huggingface<\/a>'s Spaces for hosting and compute <br>Try it here: <a href='https://huggingface.co/spaces/chinhon/headline_writer'>https://huggingface.co/spa...</a><br>",
+        "likes": 61,
+        "timestamp": "10:39 PM - Oct 24, 2021",
+        "profile_pic": "R1gj6nb3_x96.jpg"
+    },
+    {
+        "name": "Roxana Daneshjou MD/PhD",
+        "handle": "RoxanaDaneshjou",
+        "link": "https://twitter.com/RoxanaDaneshjou/status/1418399829944721415",
+        "content": "Honestly, without <a href=\"https:\/\/twitter.com\/Gradio\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"https:\/\/twitter.com\/Gradio\" class=\"static-tweet-twitter-link\">@Gradio<\/a>, we would not be doing a real time AI trial.  We have many other ideas for algorithms we want to test through clinical trials, and we know it's possible thanks to <a href=\"https:\/\/twitter.com\/Gradio\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"https:\/\/twitter.com\/Gradio\" class=\"static-tweet-twitter-link\">@Gradio<\/a>.",
+        "likes": 15,
+        "timestamp": "7:37 PM - Jul 22, 2021",
+        "profile_pic": "ITFspAMm_x96.jpg"
+    }
+]

@@ -1,10 +1,12 @@
-from gradio.utils import *
-import unittest
+import os
 import pkg_resources
+import requests
+import tempfile
+import unittest
 import unittest.mock as mock
 import warnings
-import requests
-import os
+import gradio
+from gradio.utils import *
 
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
@@ -63,8 +65,13 @@ class TestUtils(unittest.TestCase):
     def test_error_analytics_successful(self, mock_post):
         error_analytics("placeholder")
         mock_post.assert_called()
-        
-            
+
+    @mock.patch("requests.post")
+    def test_launch_analytics_doesnt_crash_on_connection_error(self, mock_post):
+        mock_post.side_effect = requests.ConnectionError()
+        launch_analytics(data={})
+        mock_post.assert_called()
+                                 
     @mock.patch("IPython.get_ipython")
     @mock.patch("gradio.utils.error_analytics")
     def test_colab_check_sends_analytics_on_import_fail(self, mock_error_analytics, mock_get_ipython):
@@ -94,7 +101,7 @@ class TestUtils(unittest.TestCase):
         readme_to_html("placeholder")
         
     def test_readme_to_html_correct_parse(self):
-        readme_to_html("https://github.com/gradio-app/gradio/blob/master/README.md")
+        readme_to_html("https://github.com/gradio-app/gradio/blob/master/README.md")    
 
 
 if __name__ == '__main__':

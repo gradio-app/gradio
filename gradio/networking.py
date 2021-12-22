@@ -2,43 +2,44 @@
 Defines helper methods useful for setting up ports, launching servers, and handling `ngrok`
 """
 
-import os
-import socket
-import threading
+import csv
+import datetime
 from flask import Flask, request, session, jsonify, abort, send_file, render_template, redirect
 from flask_cachebuster import CacheBuster
 from flask_login import LoginManager, login_user, current_user, login_required
 from flask_cors import CORS
-import threading
-import pkg_resources
-import datetime
-import time
-import json
-import urllib.request
-from shutil import copyfile
-import requests
-import sys
-import csv
-import logging
-from gradio.tunneling import create_tunnel
-from gradio import encryptor, queue, flagging
 from functools import wraps
-import io
 import inspect
+import io
+import json
+import logging
+import os
+import pkg_resources
+import requests
+import socket
+import sys
+import threading
+import time
 import traceback
+import urllib.request
+from werkzeug.security import safe_join
+from werkzeug.serving import make_server
 
-INITIAL_PORT_VALUE = int(os.getenv(
-    'GRADIO_SERVER_PORT', "7860"))  # The http server will try to open on port 7860. If not available, 7861, 7862, etc.
-TRY_NUM_PORTS = int(os.getenv(
-    'GRADIO_NUM_PORTS', "100"))  # Number of ports to try before giving up and throwing an exception.
-LOCALHOST_NAME = os.getenv(
-    'GRADIO_SERVER_NAME', "127.0.0.1")
+from gradio import encryptor, queue
+from gradio.tunneling import create_tunnel
+
+# By default, the http server will try to open on port 7860. If not available, 7861, 7862, etc.
+INITIAL_PORT_VALUE = int(os.getenv('GRADIO_SERVER_PORT', "7860"))  
+# Number of ports to try before giving up and throwing an exception.
+TRY_NUM_PORTS = int(os.getenv('GRADIO_NUM_PORTS', "100"))  
+LOCALHOST_NAME = os.getenv('GRADIO_SERVER_NAME', "127.0.0.1")
 GRADIO_API_SERVER = "https://api.gradio.app/v1/tunnel-request"
 GRADIO_FEATURE_ANALYTICS_URL = "https://api.gradio.app/gradio-feature-analytics/"
 
 STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "templates/")
 STATIC_PATH_LIB = pkg_resources.resource_filename("gradio", "templates/frontend/static")
 VERSION_FILE = pkg_resources.resource_filename("gradio", "version.txt")
+
 with open(VERSION_FILE) as version_file:
     GRADIO_STATIC_ROOT = "https://gradio.s3-us-west-2.amazonaws.com/" + \
         version_file.read().strip() + "/static/"
@@ -138,7 +139,7 @@ def static_resource(path):
     if app.interface.share:
         return redirect(GRADIO_STATIC_ROOT + path)
     else:
-        return send_file(os.path.join(STATIC_PATH_LIB, path))
+        return send_file(safe_join(STATIC_PATH_LIB, path))
 
 
 # TODO(@aliabid94): this throws a 500 error if app.auth is None (should probalbly just redirect to '/')
@@ -299,13 +300,13 @@ def interpret():
 @login_check
 def file(path):
     if app.interface.encrypt and isinstance(app.interface.examples, str) and path.startswith(app.interface.examples):
-        with open(os.path.join(app.cwd, path), "rb") as encrypted_file:
+        with open(safe_join(app.cwd, path), "rb") as encrypted_file:
             encrypted_data = encrypted_file.read()
         file_data = encryptor.decrypt(
             app.interface.encryption_key, encrypted_data)
         return send_file(io.BytesIO(file_data), attachment_filename=os.path.basename(path))
     else:
-        return send_file(os.path.join(app.cwd, path))
+        return send_file(safe_join(app.cwd, path))
 
 
 @app.route("/api/queue/push/", methods=["POST"])
@@ -347,13 +348,24 @@ def queue_thread(path_to_local_server, test_mode=False):
             break
 
 
-def start_server(interface, server_name, server_port=None, auth=None, ssl=None):
-    if server_port is None:
-        server_port = INITIAL_PORT_VALUE
-    port = get_first_available_port(
-        server_port, server_port + TRY_NUM_PORTS
-    )
-    path_to_local_server = "http://{}:{}/".format(server_name, port)
+def start_server(interface, server_name=None, server_port=None, auth=None, ssl=None):
+    if server_name is None:
+        server_name = LOCALHOST_NAME
+    if server_port is None:  # if port is not specified, start at 7860 and search for first available port        
+        port = get_first_available_port(
+            INITIAL_PORT_VALUE, INITIAL_PORT_VALUE + TRY_NUM_PORTS
+        )
+    else:
+        try:
+            s = socket.socket()  # create a socket object
+            s.bind((LOCALHOST_NAME, server_port))  # Bind to the port to see if it's available (otherwise, raise OSError)
+            s.close()
+        except OSError:
+            raise OSError("Port {} is in use. If a gradio.Interface is running on the port, you can close() it or gradio.close_all().".format(server_port))
+        port = server_port
+
+    url_host_name = "localhost" if server_name == "0.0.0.0" else server_name
+    path_to_local_server = "http://{}:{}/".format(url_host_name, port)
     if auth is not None:
         if not callable(auth):
             app.auth = {account[0]: account[1] for account in auth}
@@ -373,15 +385,13 @@ def start_server(interface, server_name, server_port=None, auth=None, ssl=None):
         app.queue_thread.start()
     if interface.save_to is not None:
         interface.save_to["port"] = port
-    app_kwargs = {"port": port, "host": server_name}
+    app_kwargs = {"app": app, "port": port, "host": server_name}
     if ssl:
         app_kwargs["ssl_context"] = ssl
-    thread = threading.Thread(target=app.run,
-                              kwargs=app_kwargs,
-                              daemon=True)
+    server = make_server(**app_kwargs)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
-
-    return port, path_to_local_server, app, thread
+    return port, path_to_local_server, app, thread, server
 
 def get_state():
     return session.get("state")

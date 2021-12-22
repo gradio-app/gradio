@@ -1,7 +1,8 @@
 import React from "react";
 import BaseComponent from "../base_component";
 import ComponentExample from "../component_example";
-import Plot from "react-plotly.js";
+import { Scatter } from 'react-chartjs-2';
+import { getNextColor } from "../../utils";
 
 class TimeseriesOutput extends BaseComponent {
   constructor(props) {
@@ -15,21 +16,23 @@ class TimeseriesOutput extends BaseComponent {
       let x_index = this.props.value.headers.indexOf(this.props.x);
       return (
         <div className="output_timeseries">
-          <Plot
-            data={y_indices.map((y_index, i) => {
+          <Scatter data={{
+            "datasets": y_indices.map((y_index, i) => {
               return {
-                x: this.props.value["data"].map((row) => row[x_index]),
-                y: this.props.value["data"].map((row) => row[y_index]),
-                type: "line",
-                name: this.props.y[i]
-              };
-            })}
-            layout={{
-              autosize: true
-            }}
-            useResizeHandler={true}
-            style={{ width: "100%", height: "100%" }}
-          />
+                label: this.props.value.headers[y_index],
+                borderColor: getNextColor(i),
+                showLine: true,
+                fill: true,
+                backgroundColor: getNextColor(i, 0.25),
+                data: this.props.value["data"].map((row) => {
+                  return {
+                    x: row[x_index],
+                    y: row[y_index]
+                  }
+                })
+              }
+            })
+          }} />
         </div>
       );
     } else {
