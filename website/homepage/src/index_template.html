@@ -95,7 +95,7 @@
         onclick="load_demo(1)">Sketch Recognition</div>
       <div class="flex-1 text-center px-2 py-3 cursor-pointer border-gray-300 demotab" demo="2" onclick="load_demo(2)">
         Question Answer</div>
-      <div class="flex-1 text-center px-2 py-3 cursor-pointer border-gray-300 demotab" demo="3" onclick="load_demo(3)">Image Classification</div>
+      <div class="flex-1 text-center px-2 py-3 cursor-pointer border-gray-300 demotab" demo="3" onclick="load_demo(3)">Image Segmentation</div>
       <div class="flex-1 text-center px-2 py-3 cursor-pointer border-gray-300 demotab" demo="4" onclick="load_demo(4)">AnimeGAN</div>
     </div>
     <div class="demo mb-16 p-4 border border-gray-300 border-t-0 shadow-lg" demo="1">
@@ -137,11 +137,11 @@ iface <span class="token operator">=</span> gr<span class="token punctuation">.<
           full code</a>
         <pre class="language-python"><code class="language-python"><span class="token keyword">import</span> gradio <span class="token keyword">as</span> gr
 
-<span class="token keyword">def</span> <span class="token function">image_classifier</span><span class="token punctuation">(</span>image<span class="token punctuation">)</span><span class="token punctuation">:</span>
-  <span class="token comment"># Implement image classification model here...</span>
-  <span class="token comment"># Return label of confidences</span>
+<span class="token keyword">def</span> <span class="token function">segment</span><span class="token punctuation">(</span>image<span class="token punctuation">)</span><span class="token punctuation">:</span>
+  <span class="token comment"># Implement image segmentation model here...</span>
+  <span class="token comment"># Return segmented image</span>
 
-iface <span class="token operator">=</span> gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>image_classifier<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token string">"webcam"</span><span class="token punctuation">,</span> outputs<span class="token operator">=</span><span class="token string">"label"</span><span class="token punctuation">).</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span>
+iface <span class="token operator">=</span> gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>segment<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token string">"image"</span><span class="token punctuation">,</span> outputs<span class="token operator">=</span><span class="token string">"image"</span><span class="token punctuation">).</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
       </div>
       <div id="demo_image_classifier" class="w-full"></div>
@@ -319,7 +319,7 @@ iface <span class="token operator">=</span> gr<span class="token punctuation">.<
     document.querySelector("#gradio-library").addEventListener('load', function () {
       launchGradioFromSpaces("abidlabs/Gradio-MNIST-Realtime", "#demo_mnist");
       launchGradioFromSpaces("abidlabs/question-answering", "#demo_qa");
-      launchGradioFromSpaces("abidlabs/vision-transformer", "#demo_image_classifier");
+      launchGradioFromSpaces("abidlabs/Echocardiogram-Segmentation", "#demo_image_classifier");
       launchGradioFromSpaces("akhaliq/AnimeGANv2", "#demo_anime");
     });
   </script>
