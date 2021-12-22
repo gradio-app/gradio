@@ -17,4 +17,5 @@ def classify_image(inp):
 image = gr.inputs.Image(shape=(224, 224))
 label = gr.outputs.Label(num_top_classes=3)
 
-gr.Interface(fn=classify_image, inputs=image, outputs=label).launch()
+gr.Interface(fn=classify_image, inputs=image, outputs=label, examples=[
+  ["images/cheetah1.jpg"], ["images/lion.jpg"]]).launch()
