@@ -101,20 +101,8 @@ class TestUtils(unittest.TestCase):
         readme_to_html("placeholder")
         
     def test_readme_to_html_correct_parse(self):
-        readme_to_html("https://github.com/gradio-app/gradio/blob/master/README.md")
+        readme_to_html("https://github.com/gradio-app/gradio/blob/master/README.md")    
 
-    def test_launch_counter(self):
-        with tempfile.NamedTemporaryFile() as tmp:
-            with mock.patch('gradio.utils.JSON_PATH', tmp.name):
-                interface = gradio.Interface(lambda x: x, "textbox", "label")
-                os.remove(tmp.name)
-                interface.launch(prevent_thread_lock=True)
-                with open(tmp.name) as j:
-                    self.assertEqual(json.load(j)['launches'], 1)
-                interface.launch(prevent_thread_lock=True)
-                with open(tmp.name) as j:
-                    self.assertEqual(json.load(j)['launches'], 2)
-    
 
 if __name__ == '__main__':
     unittest.main()
