@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" style="height: 100%;">
+<html lang="en" style="height: 100%; margin: 0; padding: 0;">
 
 <head>
   <meta charset="utf-8" />
@@ -25,7 +25,7 @@
     gtag('js', new Date());
     gtag('config', 'UA-156449732-1');
     try {
-      window.gradio_config = JSON.parse("{{ config|tojson }}");
+      window.gradio_config = {{ config|tojson }};
     } catch (e) {
       window.gradio_config = {"mode": "dev"};
     }
@@ -35,7 +35,7 @@
   <title>Gradio</title>
 </head>
 
-<body style="height: 100%">
+<body style="height: 100%; margin: 0; padding: 0;">
   <div id="root" style="height: 100%"></div>
 </body>
 

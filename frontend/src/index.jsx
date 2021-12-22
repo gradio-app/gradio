@@ -10,7 +10,7 @@ function delay(n) {
 }
 
 let postData = async (url, body) => {
-  const output = await fetch(process.env.REACT_APP_BACKEND_URL + url, {
+  const output = await fetch(url, {
     method: "POST",
     body: JSON.stringify(body),
     headers: { "Content-Type": "application/json" }
@@ -18,9 +18,9 @@ let postData = async (url, body) => {
   return output;
 };
 
-let fn = async (endpoint, queue, data, action, queue_callback) => {
+let fn = async (api_endpoint, queue, data, action, queue_callback) => {
   if (queue && ["predict", "interpret"].includes(action)) {
-    const output = await postData(endpoint + "queue/push/", {
+    const output = await postData(api_endpoint + "queue/push/", {
       data: data,
       action: action
     });
@@ -35,7 +35,7 @@ let fn = async (endpoint, queue, data, action, queue_callback) => {
       if (status != "UNKNOWN") {
         await delay(1);
       }
-      const status_response = await postData(endpoint + "queue/status/", {
+      const status_response = await postData(api_endpoint + "queue/status/", {
         hash: hash
       });
       var status_obj = await status_response.json();
@@ -52,16 +52,16 @@ let fn = async (endpoint, queue, data, action, queue_callback) => {
       return status_obj["data"];
     }
   } else {
-    const output = await postData(endpoint + action + "/", { data: data });
+    const output = await postData(api_endpoint + action + "/", { data: data });
     return await output.json();
   }
 };
 
-window.launchGradio = config => {
+window.launchGradio = (config, element_query, space) => {
+  let target = document.querySelector(element_query);
   if (config.auth_required) {
     ReactDOM.render(
-      <Login {...config} />,
-      document.getElementById(config.target || "root")
+      <Login {...config} />, target
     );
   } else {
     if (config.css !== null) {
@@ -71,21 +71,33 @@ window.launchGradio = config => {
       style.appendChild(document.createTextNode(config.css));
     }
     let url = new URL(window.location.toString());
-    let target = document.getElementById(config.target || "root");
     if (config.theme !== null && config.theme.startsWith("dark")) {
       target.classList.add("dark");
       config.theme = config.theme.substring(4);
     } else if (url.searchParams.get("__dark-theme") === "true") {
       target.classList.add("dark");
     }
+    if (!config.root) {
+      config.root = process.env.REACT_APP_BACKEND_URL;
+    }
     ReactDOM.render(
       <GradioPage
         {...config}
-        fn={fn.bind(null, config.endpoint || "api/", config.queue)}
+        space={space}
+        fn={fn.bind(null, config.root + "api/", config.queue)}
       />,
       target
     );
   }
+}
+
+window.launchGradioFromSpaces = async (space, target) => {
+  const space_url = `https://huggingface.co/gradioiframe/${space}/+/`
+  let config = await fetch(space_url + "config");
+  config = await config.json();
+  delete config.css;
+  config.root = space_url;
+  launchGradio(config, target, space);
 }
 
 async function get_config() {
@@ -100,6 +112,6 @@ async function get_config() {
 }
 if (window.gradio_config) {
   get_config().then(config => {
-    launchGradio(config);
+    launchGradio(config, "#root");
   });
 }
