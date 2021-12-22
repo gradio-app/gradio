@@ -10,6 +10,7 @@ import threading
 from comet_ml import Experiment
 import mlflow
 import wandb
+import socket
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -24,10 +25,19 @@ def captured_output():
         sys.stdout, sys.stderr = old_out, old_err
 
 class TestInterface(unittest.TestCase):
-    def test_reset_all(self):
+    def test_close(self):
+        io = Interface(lambda input: None, "textbox", "label")
+        _, local_url, _ = io.launch(prevent_thread_lock=True)
+        response = requests.get(local_url)
+        self.assertEqual(response.status_code, 200)
+        io.close()
+        with self.assertRaises(Exception):
+            response = requests.get(local_url)
+        
+    def test_close_all(self):
         interface = Interface(lambda input: None, "textbox", "label")
         interface.close = mock.MagicMock()
-        reset_all()
+        close_all()
         interface.close.assert_called()
         
     def test_examples_invalid_input(self):
