@@ -439,6 +439,18 @@
     }
     .input_video {
         @apply w-full h-80 relative;
+        .video_recorder {
+            @apply w-full h-full bg-black;
+        }
+        .record_holder {
+            @apply absolute left-1/2 bottom-4 -translate-x-1/2 -translate-y-1/2 text-center;
+        }
+        .record_message {
+            @apply text-white font-bold mb-4;
+        }
+        .record {
+            @apply w-12 h-12 rounded-full bg-red-500 hover:bg-red-600 border-4 border-red-600;
+        }
         .upload_zone {
             @apply border-gray-300 text-gray-400 dark:border-gray-500 border-8 border-dashed w-full h-full flex justify-center items-center text-3xl text-center cursor-pointer leading-10;
         }
@@ -449,7 +461,7 @@
             @apply w-full h-full flex justify-center items-center text-6xl p-6 break-all;
         }
         .video_preview {
-            @apply w-full h-full object-contain;
+            @apply w-full h-full object-contain bg-black;
         }
         .edit_buttons {
             @apply z-10 absolute top-0 right-0;

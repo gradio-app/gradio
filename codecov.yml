@@ -2,3 +2,4 @@ coverage:
   range: 0..100
   round: down
   precision: 2
+comment: false
