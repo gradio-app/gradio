@@ -447,6 +447,11 @@
     var len_outputs = {{ len_outputs }};
 
     var url = window.location.href;
+    // workaround for spaces issue
+    if (url.includes("hf.space")) {
+      url = url.slice(0,-3) + "+/api"
+    }
+
     const stripTrailingSlash = (str) => {
     return str.endsWith('/') ?
         str.slice(0, -1) :
