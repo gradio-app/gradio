@@ -61,7 +61,7 @@ export class GradioPage extends React.Component {
               :
               <>
                 <a href="api" target="_blank" rel="noreferrer">
-                  view the api <img className="logo" src="https://i.ibb.co/6DVLqmf/noun-tools-2220412.png" alt="api" />
+                  view the api <img className="api-logo" src={api_logo} alt="api"/>
                 </a>
                 &bull;
                 <a href="https://gradio.app" target="_blank" rel="noreferrer">
