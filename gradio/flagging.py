@@ -209,38 +209,40 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         self.log_file = os.path.join(self.dataset_dir, "data.csv")  
 
     def flag(self, interface, input_data, output_data, flag_option=None, 
-             flag_index=None, username=None, path=None):        
+             flag_index=None, username=None, path=None):
+        # Note flag_index, username, path are not currently used 
         is_new = not os.path.exists(self.log_file)
         with open(self.log_file, "a", newline="") as csvfile:
             writer = csv.writer(csvfile)
             
             # Generate the headers
-            headers = [interface["label"] for interface in interface.config["input_components"]]
-            headers += [interface["label"] for interface in interface.config["output_components"]]
-            if interface.flagging_options is not None:
-                headers.append("flag")
+            if is_new:
+                headers = [interface["label"] for interface in interface.config["input_components"]]
+                headers += [interface["label"] for interface in interface.config["output_components"]]
+                if interface.flagging_options is not None:
+                    headers.append("flag")
+                writer.writerow(headers)
             
             # Generate the row corresponding to the flagged sample
             csv_data = []
             for i, input in enumerate(interface.input_components):
-                csv_data.append(input.save_flagged(self.flagging_dir, interface.config["input_components"][i]["label"], input_data[i], None))
+                csv_data.append(input.save_flagged(self.dataset_dir, interface.config["input_components"][i]["label"], input_data[i], None))
             for i, output in enumerate(interface.output_components):
-                csv_data.append(output.save_flagged(self.flagging_dir, interface.config["output_components"][i]["label"], output_data[i], None) if
+                csv_data.append(output.save_flagged(self.dataset_dir, interface.config["output_components"][i]["label"], output_data[i], None) if
                     output_data[i] is not None else "")
             if flag_option is not None:
                 csv_data.append(flag_option)
             
             # Write the rows
-            if is_new:
-                writer.writerow(headers)
             writer.writerow(csv_data)
-        
-        # push the repo 
-        self.repo.push_to_hub()
 
         # return number of samples in dataset
         with open(self.log_file, "r") as csvfile:
             line_count = len([None for row in csv.reader(csvfile)]) - 1
+
+        # push the repo 
+        self.repo.push_to_hub(
+            commit_message="Flagged sample #{}".format(line_count))
         
         return line_count
 
