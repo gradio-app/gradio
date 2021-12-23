@@ -21,6 +21,7 @@ import sys
 import threading
 import time
 import traceback
+import urllib.parse
 import urllib.request
 from werkzeug.security import safe_join
 from werkzeug.serving import make_server
@@ -261,8 +262,10 @@ def api_docs():
         "output_types_doc": output_types_doc,
         "sample_inputs": sample_inputs,
         "auth": app.interface.auth,
-        "local_login_url": app.interface.local_url + "login",
-        "local_api_url": app.interface.local_url + "api/predict"
+        "local_login_url": urllib.parse.urljoin(
+            app.interface.local_url, "login"),
+        "local_api_url": urllib.parse.urljoin(
+            app.interface.local_url, "api/predict")
     }
     return render_template("api_docs.html", **docs)
 
