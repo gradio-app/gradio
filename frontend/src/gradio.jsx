@@ -8,6 +8,7 @@ import classNames from "classnames";
 import logo_loading from "./static/img/logo_loading.jpg";
 import logo_error from "./static/img/logo_error.png";
 import logo from "./static/img/logo.svg";
+import api_logo from "./static/img/api-logo.svg";
 import("./themes/defaults.scss");
 import("./themes/huggingface.scss");
 import("./themes/grass.scss");
@@ -60,7 +61,7 @@ export class GradioPage extends React.Component {
               :
               <>
                 <a href="api" target="_blank" rel="noreferrer">
-                  view the api <img className="logo" src="https://i.ibb.co/6DVLqmf/noun-tools-2220412.png" alt="api" />
+                  view the api <img className="api-logo" src={api_logo} alt="api"/>
                 </a>
                 &bull;
                 <a href="https://gradio.app" target="_blank" rel="noreferrer">
