@@ -42,7 +42,8 @@ class FlaggingCallback(ABC):
 
 class SimpleCSVLogger(FlaggingCallback):
     """
-    A simple example implementation of the FlaggingCallback abstract class provided for illustrative purposes
+    A simple example implementation of the FlaggingCallback abstract class 
+    provided for illustrative purposes.
     """
     def setup(self, flagging_dir):
         self.flagging_dir = flagging_dir
@@ -72,7 +73,8 @@ class SimpleCSVLogger(FlaggingCallback):
 
 class CSVLogger(FlaggingCallback):
     """
-    The default implementation of the FlaggingCallback abstract class. Logs the input and output data to a CSV file.
+    The default implementation of the FlaggingCallback abstract class. 
+    Logs the input and output data to a CSV file.
     """
     def setup(self, flagging_dir):
         self.flagging_dir = flagging_dir
@@ -159,42 +161,55 @@ class CSVLogger(FlaggingCallback):
 
 class HuggingFaceDatasetSaver(FlaggingCallback):
     """
-    An alternative FlaggingCallback that saves the data to a HuggingFace dataset.
+    A FlaggingCallback that saves flagged data to a HuggingFace dataset.
     """
-    def __init__(self, hf_foken, dataset_name, organization=None, private=False):
+    def __init__(self, hf_foken, dataset_name, organization=None, 
+                 private=False, verbose=True):
         """
         Params:
         hf_token (str): The token to use to access the huggingface API.
-        dataset_name (str): The name of the dataset to save the data to, e.g. "abidlabs/image-classifier-1"
-        organization (str): The name of the organization to which to attach the datasets
-        private (optional): If the dataset does not already exist, whether it should be created as a private dataset or public. 
-            Private datasets may require paid huggingface.co accounts
-
+        dataset_name (str): The name of the dataset to save the data to, e.g. 
+            "image-classifier-1"
+        organization (str): The name of the organization to which to attach 
+            the datasets. If None, the dataset attaches to the user only.
+        private (bool): If the dataset does not already exist, whether it 
+            should be created as a private dataset or public. Private datasets 
+            may require paid huggingface.co accounts
+        verbose (bool): Whether to print out the status of the dataset 
+            creation.
         """
         self.hf_foken = hf_foken
         self.dataset_name = dataset_name
         self.organization_name = organization
         self.dataset_private = private
+        self.verbose = verbose
 
     def setup(self, flagging_dir):
         """
         Params:
-        flagging_dir (str): local directory where the dataset is cloned, updated, and pushed from
+        flagging_dir (str): local directory where the dataset is cloned, 
+        updated, and pushed from.
         """
         try:
             import huggingface_hub 
         except (ImportError, ModuleNotFoundError):
-            raise ImportError("Package `huggingface_hub` not found is needed for HuggingFaceDatasetSaver. Try 'pip install huggingface_hub'.")
-        huggingface_hub.create_repo(name=self.dataset_name, token=self.hf_foken, private=self.dataset_private, repo_type="dataset", exist_ok=True)
-        dataset_repo_url = "https://huggingface.co/datasets/{}".format(self.dataset_name)
+            raise ImportError("Package `huggingface_hub` not found is needed "
+            "for HuggingFaceDatasetSaver. Try 'pip install huggingface_hub'.")
+        path_to_dataset_repo = huggingface_hub.create_repo(
+            name=self.dataset_name, token=self.hf_foken, 
+            private=self.dataset_private, repo_type="dataset", exist_ok=True)
         self.flagging_dir = flagging_dir
-        self.repo = huggingface_hub.Repository(local_dir=flagging_dir, clone_from=dataset_repo_url, use_auth_token=self.hf_foken)
-        self.log_file = os.path.join(flagging_dir, "data.csv")  # TODO(abidlabs): should filename be user-specified?
-
-
-    def flag(self, interface, input_data, output_data, flag_option=None, flag_index=None, username=None, path=None):
-        import huggingface_hub
+        self.dataset_dir = os.path.join(flagging_dir, self.dataset_name)
+        self.repo = huggingface_hub.Repository(
+            local_dir=self.dataset_dir, clone_from=path_to_dataset_repo, 
+            use_auth_token=self.hf_foken)
+        self.repo.git_pull()
         
+        #Should filename be user-specified?
+        self.log_file = os.path.join(self.dataset_dir, "data.csv")  
+
+    def flag(self, interface, input_data, output_data, flag_option=None, 
+             flag_index=None, username=None, path=None):        
         is_new = not os.path.exists(self.log_file)
         with open(self.log_file, "a", newline="") as csvfile:
             writer = csv.writer(csvfile)
