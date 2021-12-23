@@ -2,6 +2,8 @@ import unittest
 import pathlib
 import gradio as gr
 import os
+import transformers
+
 
 """
 WARNING: These tests have an external dependency: namely that Hugging Face's Hub and Space APIs do not change, and they keep their most famous models up. So if, e.g. Spaces is down, then these test will not pass.
@@ -151,26 +153,37 @@ class TestLoadInterface(unittest.TestCase):
     def test_sentiment_model(self):
         interface_info = gr.external.load_interface("models/distilbert-base-uncased-finetuned-sst-2-english", alias="sentiment_classifier")
         io = gr.Interface(**interface_info)
+        io.api_mode = True
         output = io("I am happy, I love you.")
-        self.assertGreater(output['Positive'], 0.5)
+        self.assertGreater(output['POSITIVE'], 0.5)
 
     def test_image_classification_model(self):
         interface_info = gr.external.load_interface("models/google/vit-base-patch16-224")
         io = gr.Interface(**interface_info)
+        io.api_mode = True
         output = io("test/test_data/lion.jpg")
         self.assertGreater(output['lion'], 0.5)
 
     def test_translation_model(self):
         interface_info = gr.external.load_interface("models/t5-base")
         io = gr.Interface(**interface_info)
+        io.api_mode = True
         output = io("My name is Sarah and I live in London")
         self.assertEquals(output, 'Mein Name ist Sarah und ich lebe in London')
 
     def test_numerical_to_label_space(self):
         interface_info = gr.external.load_interface("spaces/abidlabs/titanic-survival")
         io = gr.Interface(**interface_info)
+        io.api_mode = True
         output = io("male", 77, 10)
         self.assertLess(output['Survives'], 0.5)
+
+    def test_speech_recognition_model(self):
+        interface_info = gr.external.load_interface("models/jonatasgrosman/wav2vec2-large-xlsr-53-english")
+        io = gr.Interface(**interface_info)
+        io.api_mode = True
+        output = io("test/test_data/test_audio.wav")
+        self.assertIsNotNone(output)
 
     def test_image_to_image_space(self):
         def assertIsFile(path):
@@ -179,8 +192,17 @@ class TestLoadInterface(unittest.TestCase):
 
         interface_info = gr.external.load_interface("spaces/abidlabs/image-identity")
         io = gr.Interface(**interface_info)
+        io.api_mode = True
         output = io("test/test_data/lion.jpg")
         assertIsFile(output)
+
+class TestLoadFromPipeline(unittest.TestCase):
+    def test_question_answering(self):
+        p = transformers.pipeline("question-answering")   
+        io = gr.Interface.from_pipeline(p)
+        output = io("My name is Sylvain and I work at Hugging Face in Brooklyn", "Where do I work?")
+        self.assertIsNotNone(output)
+
 
 if __name__ == '__main__':
     unittest.main()

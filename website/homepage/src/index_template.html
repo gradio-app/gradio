@@ -1,0 +1,337 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Gradio</title>
+  <meta name="description" content="Build & share machine learning apps delightfully.">
+  <meta name="author" content="Gradio team">
+  <meta property="og:title" content="Gradio">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://gradio.app/">
+  <meta property="og:description" content="Build & share machine learning apps delightfully.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:creator" content="@teamGradio">
+  <meta name="twitter:title" content="Gradio">
+  <meta name="twitter:description" content="Build & share machine learning apps delightfully.">
+  <meta name="twitter:image" content="https://gradio.app/static/home/img/social-cheetah.jpg">  
+
+  <link rel="icon" type="image/png" href="/assets/img/logo.png">
+  <link href="/gradio_static/bundle.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="/assets/prism.css">
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag('js', new Date());
+      gtag('config', 'UA-156449732-1');
+    </script>
+</head>
+
+<body class="bg-white text-gray-900 text-md sm:text-lg">
+  <div class="w-full bg-yellow-200 text-center p-3">
+    🎉 We are joining Hugging Face!
+    <a class="font-semibold underline" href="/joining-huggingface/">Read our announcement here.</a> 🤗
+  </div>
+  <header class="container mx-auto p-4 flex justify-between items-center gap-4 flex-col sm:flex-row">
+    <a href="/">
+      <img src="/assets/img/logo.svg" class="h-10">
+    </a>
+    <nav class="flex gap-12 sm:gap-16">
+      <div class="group relative cursor-pointer font-semibold flex items-center gap-1" onClick="document.querySelector('.guide-menu').classList.toggle('flex'); document.querySelector('.guide-menu').classList.toggle('hidden');">
+        Guides
+        <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+          <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+        </svg>
+        <div class="guide-menu hidden group-hover:flex group-active:flex flex-col absolute top-6 left-0 bg-white shadow w-52">
+          {% for guide_name, pretty_guide_name in guide_names %}
+          <a class="link px-4 py-2 inline-block hover:bg-gray-100" href="/{{ guide_name }}">{{ pretty_guide_name }}</a>
+          {% endfor %}
+        </div>
+      </div>
+      <a class="link" href="/docs">Docs</a>
+      <div class="group relative cursor-pointer font-semibold flex items-center gap-1" onClick="document.querySelector('.help-menu').classList.toggle('flex'); document.querySelector('.help-menu').classList.toggle('hidden');">
+        Help
+        <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+          <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+        </svg>
+        <div class="help-menu hidden group-hover:flex flex-col absolute top-6 right-0 bg-white shadow w-52">
+          <a class="link px-4 py-2 inline-block hover:bg-gray-100"
+            href="https://github.com/gradio-app/gradio/issues/new/choose">File an Issue</a>
+          <a class="link px-4 py-2 inline-block hover:bg-gray-100"
+            href="https://github.com/gradio-app/gradio/discussions">Discussions</a>
+        </div>
+      </div>
+      <a class="link hidden sm:block" href="/hosted">Account</a>
+    </nav>
+  </header>
+  <section
+    class="flex flex-col gap-8 items-center justify-center p-4 bg-opacity-20 bg-cover bg-center"
+    style="background-image: url('/assets/img/gallery.png');">
+    <div class="max-w-3xl mx-auto p-2 text-center text-4xl leading-snug md:text-6xl md:leading-snug font-semibold">
+      Build &amp; share delightful machine learning apps
+    </div>
+    <p class="font-semibold text-center text-2xl leading-relaxed max-w-3xl text-gray-500">Gradio is the fastest way to demo your machine learning model with a friendly web interface so that anyone can use it, anywhere! </p>
+    <div class="flex justify-center ">
+      <a class="border shadow border-gray-300 bg-gradient-to-b from-gray-50 to-gray-100 hover:to-gray-200 transition rounded inline-flex gap-2 items-center justify-center px-3 py-2 rounded-r-none"
+        href="https://github.com/gradio-app/gradio-UI" target="_blank"
+        aria-label="Star gradio-app/gradio-UI on GitHub">
+        <svg version="1.1" class="h-6" viewBox="0 0 14 16" class="inline" aria-hidden="true">
+          <path fill-rule="evenodd"
+            d="M14 6l-4.9-.64L7 1 4.9 5.36 0 6l3.6 3.26L2.67 14 7 11.67 11.33 14l-.93-4.74L14 6z"></path>
+        </svg>
+        <span class="text-md">Star</span>
+      </a>
+      <a class="font-semibold border shadow bg-white border-gray-300 hover:border-gray-400 transition hover:text-blue-600 rounded px-3 py-2 rounded-l-none border-l-0"
+        href="https://github.com/gradio-app/gradio/stargazers" target="_blank" aria-label="3902 stargazers on GitHub">
+        <span id="star-count" class="transition preloaded-star-count">{{ star_count }}</span>
+      </a>
+    </div>
+    <div class="text-xl text-center">
+      <a class="font-semibold transition hover:text-blue-600" href="/getting_started">Get Started</a>
+       with 5 lines of pure Python
+    </div>
+  </section>
+  <div class="container mx-auto p-4">
+    <div class="flex flex-col sm:flex-row mt-16">
+      <div class="flex-1 text-center px-2 py-3 cursor-pointer border-gray-300 demotab selected" demo="1"
+        onclick="load_demo(1)">Sketch Recognition</div>
+      <div class="flex-1 text-center px-2 py-3 cursor-pointer border-gray-300 demotab" demo="2" onclick="load_demo(2)">
+        Question Answer</div>
+      <div class="flex-1 text-center px-2 py-3 cursor-pointer border-gray-300 demotab" demo="3" onclick="load_demo(3)">Image Segmentation</div>
+      <div class="flex-1 text-center px-2 py-3 cursor-pointer border-gray-300 demotab" demo="4" onclick="load_demo(4)">Speech Verification</div>
+    </div>
+    <div class="demo mb-16 p-4 border border-gray-300 border-t-0 shadow-lg" demo="1">
+      <div class="relative">
+        <a
+          class="absolute font-sans top-2 right-2 uppercase text-sm bg-gray-200 px-2 py-1 cursor-pointer font-semibold hidden">View
+          full code</a>
+        <pre class="language-python"><code class="language-python"><span class="token keyword">import</span> gradio <span class="token keyword">as</span> gr
+
+<span class="token keyword">def</span> <span class="token function">sketch_recognition</span><span class="token punctuation">(</span>img<span class="token punctuation">)</span><span class="token punctuation">:</span>
+  <span class="token comment"># Implement sketch recognition model here...</span>
+  <span class="token comment"># Return labels and confidences as dictionary</span>
+
+iface <span class="token operator">=</span> gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>sketch_recognition<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token string">"sketchpad"</span><span class="token punctuation">,</span> outputs<span class="token operator">=</span><span class="token string">"label"</span><span class="token punctuation">).</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+      </div>
+      <div id="demo_mnist" class="w-full"></div>
+    </div>
+    <div class="demo mb-16 p-4 border border-gray-300 border-t-0 shadow-lg hidden" demo="2">
+      <div class="relative">
+        <a
+          class="absolute font-sans top-2 right-2 uppercase text-sm bg-gray-200 px-2 py-1 cursor-pointer font-semibold hidden">View
+          full code</a>
+        <pre class="language-python"><code class="language-python"><span class="token keyword">import</span> gradio <span class="token keyword">as</span> gr
+
+<span class="token keyword">def</span> <span class="token function">question_answer</span><span class="token punctuation">(</span>context<span class="token punctuation">,</span> question<span class="token punctuation">)</span><span class="token punctuation">:</span>
+  <span class="token comment"># Implement Q&amp;A model here...</span>
+<span class="token comment"># Return a tuple consisting of two strings: (answer, confidence) </span>
+
+iface <span class="token operator">=</span> gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>question_answer<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">"text"</span><span class="token punctuation">,</span> <span class="token string">"text"</span><span class="token punctuation">],</span> outputs<span class="token operator">=</span>[</span><span class="token string">"textbox"</span><span class="token punctuation">,</span> <span class="token string">"text"</span><span class="token punctuation">]).</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+      </div>
+      <div id="demo_qa" class="w-full"></div>
+      </div>
+    <div class="demo mb-16 p-4 border border-gray-300 border-t-0 shadow-lg hidden" demo="3">
+      <div class="relative">
+        <a
+          class="absolute font-sans top-2 right-2 uppercase text-sm bg-gray-200 px-2 py-1 cursor-pointer font-semibold hidden">View
+          full code</a>
+        <pre class="language-python"><code class="language-python"><span class="token keyword">import</span> gradio <span class="token keyword">as</span> gr
+
+<span class="token keyword">def</span> <span class="token function">segment</span><span class="token punctuation">(</span>image<span class="token punctuation">)</span><span class="token punctuation">:</span>
+  <span class="token comment"># Implement image segmentation model here...</span>
+  <span class="token comment"># Return segmented image</span>
+
+iface <span class="token operator">=</span> gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>segment<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token string">"image"</span><span class="token punctuation">,</span> outputs<span class="token operator">=</span><span class="token string">"image"</span><span class="token punctuation">).</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre>
+      </div>
+      <div id="demo_image_classifier" class="w-full"></div>
+      </div>
+    <div class="demo mb-16 p-4 border border-gray-300 border-t-0 shadow-lg hidden" demo="4">
+      <div class="relative">
+        <a
+          class="absolute font-sans top-2 right-2 uppercase text-sm bg-gray-200 px-2 py-1 cursor-pointer font-semibold hidden">View
+          full code</a>
+        <pre class="language-python"><code class="language-python"><span class="token keyword">import</span> gradio <span class="token keyword">as</span> gr
+
+<span class="token keyword">def</span> <span class="token function">same_or_different</span><span class="token punctuation">(</span>audio1<span class="token punctuation">,</span> audio2<span class="token punctuation">)</span><span class="token punctuation">:</span>
+  <span class="token comment"># Run model to see if spoken by same person or not</span>
+  <span class="token comment"># Return the result as a custom HTML snippet</span>
+
+iface <span class="token operator">=</span> gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>
+  fn<span class="token operator">=</span>same_or_different<span class="token punctuation">,</span>
+  inputs<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">"audio"</span><span class="token punctuation">,</span> <span class="token string">"audio"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  outputs<span class="token operator">=</span><span class="token string">"html"</span>
+<span class="token punctuation">)</span><span class="token punctuation">.</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span></code></pre>
+      </div>
+      <div id="demo_anime" class="w-full"></div>
+    </div>
+  </div>
+  <section class="w-full py-8 mb-12 bg-gradient-to-tr from-gray-50 to-gray-200 shadow-inner">
+    <div class="container mx-auto mb-2 text-center text-gray-600">
+      Used by machine learning teams big and small
+      <div class="mt-8 grid grid-cols-3 md:grid-cols-5 gap-x-3 sm:gap-x-4 gap-y-8 justify-center justify-items-center">
+        <img class="sm:h-5 h-4" src="/assets/img/logos/google.svg">
+        <img class="sm:h-5 h-4" src="/assets/img/logos/amazon.svg">
+        <img class="sm:h-5 h-4" src="/assets/img/logos/fb.svg">
+        <img class="sm:h-5 h-4" src="/assets/img/logos/cisco.svg">
+        <img class="sm:h-5 h-4" src="/assets/img/logos/twitter.svg">
+        <img class="sm:h-5 h-4" src="/assets/img/logos/vmware.svg">
+        <img class="sm:h-5 h-4" src="/assets/img/logos/huggingface.svg">
+        <img class="sm:h-5 h-4" src="/assets/img/logos/siemens.svg">
+        <img class="sm:h-5 h-4" src="/assets/img/logos/mit-svg-50.png">
+        <img class="sm:h-5 h-4" src="/assets/img/logos/stanford.svg">
+        <img class="sm:h-5 h-4" src="/assets/img/logos/uipath.svg">
+        <img class="sm:h-5 h-4" src="/assets/img/logos/unifyid.svg">
+        <img class="sm:h-5 h-4" src="/assets/img/logos/humaniseai.svg">
+        <img class="sm:h-5 h-4" src="/assets/img/logos/factmata.svg">
+        <img class="sm:h-5 h-4" src="/assets/img/logos/wns.png">
+      </div>
+    </div>
+  </section>
+  <section class="container mx-auto mb-12 p-4">
+    <h2 class="text-2xl font-semibold mt-8 mb-2">Fast, easy setup</h2>
+    <p class="mb-2">Gradio can be installed directly through pip. Creating a Gradio interface only requires adding a
+      couple lines of code to your project. You can choose from a variety of interface types to interface your function.
+    </p>
+    <p class="mb-2"><a class="link italic text-gray-500" href="/getting_started">Read more on Getting Started...</a></p>
+    <h2 class="text-2xl font-semibold mt-12 mb-2">Present and share</h2>
+    <p class="mb-2">Gradio can be embedded in Python notebooks or presented as a webpage. A Gradio interface can
+      automatically generate a public link you can share with colleagues that lets them interact with the model on your
+      computer remotely from their own devices.</p>
+    <p class="mb-2"><a class="link italic text-gray-500" href="/getting_started#sharing_interfaces_publicly">Read more on Sharing...</a></p>
+    <h2 class="text-2xl font-semibold mt-12 mb-2">Permanent hosting</h2>
+    <p class="mb-2">Once you've created an interface, you can permanently host your interface on Huggingface Spaces.
+      Huggingface Spaces will host the interface on its servers and provide you with a link you can share.</p>
+    <p class="mb-2"><a class="link italic text-gray-500" href="/getting_started#hosting_on_spaces">Read more on Hosting...</a></p>
+  </section>
+  <section class="w-full py-8 bg-gradient-to-tr from-gray-50 to-gray-200 shadow-inner mb-8">
+    <div class="container mx-auto mb-2 text-center text-gray-600">
+      <div>Integrates with all your favorite Python libraries</div>
+      <div class="mt-8 inline-grid lg:grid-cols-6 grid-cols-3 gap-6 sm:gap-10 justify-center justify-items-center items-center">
+        <img class="sm:h-6 h-4 object-contain" src="/assets/img/logos/huggingface.svg">
+        <img class="sm:h-6 h-4 object-contain" src="/assets/img/logos/jupyter.svg">
+        <img class="sm:h-6 h-4 object-contain" src="/assets/img/logos/matplotlib.svg">
+        <img class="sm:h-6 h-4 object-contain" src="/assets/img/logos/numpy.svg">
+        <img class="sm:h-6 h-4 object-contain" src="/assets/img/logos/pytorch.svg">
+        <img class="sm:h-6 h-4 object-contain" src="/assets/img/logos/scikit.svg">
+      </div>
+    </div>
+  </section>
+  <section class="w-full py-8 px-4 container mx-auto mb-2 flex flex-col sm:flex-row gap-8">
+    <div class="sm:flex-grow sm:w-0 relative">
+      <img class="z-0 h-6 absolute opacity-80" src="/assets/img/quote.png">
+      <div class="z-10 relative">
+        <blockquote class="mb-4" style="text-indent: 1rem;">Gradio is now an essential part of our ML demos. All it takes is a few minutes to make a demo come to life.</blockquote>
+        <div class="italic">
+          - <a class="link" href="https://www.linkedin.com/in/elgeish">Mohamed El-Geish</a>, Director of AI at Cisco
+        </div>
+      </div>
+    </div>
+    <div class="sm:flex-grow sm:w-0 relative">
+      <img class="z-0 h-6 absolute opacity-80" src="/assets/img/quote.png">
+      <div class="z-10 relative">
+        <blockquote class="mb-4" style="text-indent: 1rem;">Gradio accelerated our efforts to build and demo interdisciplinary models by
+          quickly letting clinicians interact with machine learning models without writing any code. It's a huge
+          time-saver!</blockquote>
+        <div class="italic">
+          - <a class="link" href="https://www.linkedin.com/in/davidouyang">David Ouyang</a>, Cardiologist at Stanford Medicine
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="w-full py-8 px-4">
+    <div class="container mx-auto mb-2 text-gray-600">
+      <div class="grid gap-4 grid-cols-1 md:grid-cols-3">
+        {% for tweet in tweets %}
+        <div class="border border-gray-300 bg-white rounded p-4 text-md flex flex-col">
+          <div class="flex justify-between">
+            <a class="flex items-center gap-2" href="https://twitter.com/{{ tweet['handle'] }}" target="_blank"
+              rel="noopener noreferrer">
+              <img class="h-10 w-10 rounded-full" alt="{{ tweet['name'] }}" aria-hidden="true" role="presentation"
+                src="/assets/img/twitter/{{ tweet['profile_pic'] }}">
+              <div>
+                <div title="{{ tweet['name'] }}">{{ tweet['name'] }}</div>
+                <div class="text-gray-500" title="@{{ tweet['handle'] }}">@{{ tweet['handle'] }}</div>
+              </div>
+            </a>
+            <a href="{{ tweet['link'] }}" target="_blank" rel="noopener noreferrer">
+              <img class="h-6" title="View on Twitter" src="/assets/img/twitter/logo.svg">
+            </a>
+          </div>
+          <div class="twitter-text my-2">
+            {{ tweet['content']|safe }}
+          </div>
+          <div class="flex-1"></div>
+          <div class="flex items-center gap-2 text-gray-500">
+            <a class="hover:text-red-600 flex items-center" href="#" title="Like" target="_blank" rel="noopener noreferrer">
+              <div class="twitter-heart w-4 h-4 bg-contain"></div>
+              <span>{{ tweet['likes'] }}</span>
+            </a>
+            <a class="/static-tweet-time" href="{{ tweet['link'] }}" target="_blank" rel="noopener noreferrer">
+              <time>{{ tweet['timestamp'] }}</time>
+            </a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  <footer class="container mx-auto p-4 flex justify-between items-center">
+    <img src="/assets/img/logo.svg" class="h-10">
+    <div class="flex gap-4">
+      <a class="hover:opacity-75 transition" href="https://twitter.com/Gradio">
+        <img src="/assets/img/twitter.svg" class="h-8">
+      </a>
+      <a class="hover:opacity-75 transition" href="https://github.com/gradio-app/gradio">
+        <img src="/assets/img/github.svg" class="h-8">
+      </a>
+    </div>
+  </footer>
+  <script>
+    let xhr = new XMLHttpRequest;
+    xhr.open('GET', 'https://api.github.com/repos/gradio-app/gradio', true)
+    xhr.onload = function()
+        {
+            if (this.status === 200)
+                {
+                    var stars = JSON.parse(this.responseText)["stargazers_count"];
+        stars = stars.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        document.getElementById('star-count').innerHTML = stars;
+        document.getElementById('star-count').classList.remove("preloaded-star-count");
+      }
+    }
+    xhr.send();
+  </script>
+  <script>
+    let load_demo = demo_id => {
+      document.querySelectorAll(".demotab").forEach(demotab => {
+        demotab.classList.remove("selected");
+      })
+      document.querySelectorAll(".demo").forEach(demo => {
+        demo.classList.add("hidden");
+      })
+      document.querySelector(`.demotab[demo='${demo_id}']`).classList.add("selected");
+      document.querySelector(`.demo[demo='${demo_id}']`).classList.remove("hidden");
+    }
+  </script>
+  <script defer id='gradio-library' src="/gradio_static/bundle.js"></script>
+  <script>
+    document.querySelector("#gradio-library").addEventListener('load', function () {
+      launchGradioFromSpaces("abidlabs/Draw", "#demo_mnist");
+      launchGradioFromSpaces("abidlabs/question-answering", "#demo_qa");
+      launchGradioFromSpaces("abidlabs/Echocardiogram-Segmentation", "#demo_image_classifier");
+      launchGradioFromSpaces("abidlabs/same-person-or-different", "#demo_anime");
+    });
+  </script>
+</body>
+
+</html>

@@ -315,6 +315,8 @@ class TestImage(unittest.TestCase):
         with self.assertRaises(ValueError):
             wrong_type = gr.inputs.Image(type="unknown")
             wrong_type.preprocess(img)
+        with self.assertRaises(ValueError):
+            wrong_type = gr.inputs.Image(type="unknown")
             wrong_type.serialize("test/test_files/bus.png", False)
         img_pil = PIL.Image.open('test/test_files/bus.png')
         image_input = gr.inputs.Image(type="numpy")
@@ -516,6 +518,7 @@ class TestVideo(unittest.TestCase):
         self.assertIsInstance(video_input.generate_sample(), dict)
         video_input = gr.inputs.Video(label="Upload Your Video")
         self.assertEqual(video_input.get_template_context(), {
+            'source': 'upload',
             'optional': False,
             'name': 'video',
             'label': 'Upload Your Video'

@@ -1,8 +1,8 @@
 import unittest
+import matplotlib.pyplot as plt
 import gradio as gr
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 import tempfile
 import os
 

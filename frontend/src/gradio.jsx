@@ -16,8 +16,15 @@ import("./themes/peach.scss");
 
 export class GradioPage extends React.Component {
   render() {
+    let is_embedded = this.props.space !== undefined;
+    let space_name = this.props.space;
+    if (is_embedded) {
+      let slash_index = space_name.indexOf("/");
+      space_name = space_name[slash_index + 1].toUpperCase() + space_name.substring(
+        slash_index + 2);
+    }
     return (
-      <div class={"gradio_bg"} theme={this.props.theme}>
+      <div class={"gradio_bg"} theme={this.props.theme} is_embedded={is_embedded.toString()}>
         <div class="gradio_page">
           <div class="content">
             {this.props.title ? (
@@ -41,17 +48,27 @@ export class GradioPage extends React.Component {
             )}
           </div>
           <div className="footer">
-            <a 
-            href="api" 
-            target="_blank"
-            rel="noreferrer">
-            view the api <img className="api-logo" src={api_logo} alt="api"/>
-          </a> | <a
-            href="https://gradio.app"
-            target="_blank"
-            rel="noreferrer"
-          > built with <img className="logo" src={logo} alt="logo" />
-          </a>
+            {is_embedded ?
+              <>
+                <a href={"https://huggingface.co/spaces/" + this.props.space}>
+                  {space_name}
+                </a> built with&nbsp;
+                <a href="https://gradio.app">
+                  Gradio
+                </a>, hosted on&nbsp;
+                <a href="https://huggingface.co/spaces">Hugging Face Spaces</a>.
+              </>
+              :
+              <>
+                <a href="api" target="_blank" rel="noreferrer">
+                  view the api <img className="logo" src="https://i.ibb.co/6DVLqmf/noun-tools-2220412.png" alt="api" />
+                </a>
+                &bull;
+                <a href="https://gradio.app" target="_blank" rel="noreferrer">
+                  built with <img className="logo" src={logo} alt="logo" />
+                </a>
+              </>
+            }
           </div>
         </div>
       </div>
@@ -69,11 +86,11 @@ export class GradioInterface extends React.Component {
       ? this.props.avg_durations[0]
       : null;
     this.examples_dir =
-      process.env.REACT_APP_BACKEND_URL +
+      this.props.root +
       (this.props.examples_dir === null
         ? "file" +
-          this.props.examples_dir +
-          (this.props.examples_dir.endswith("/") ? "" : "/")
+        this.props.examples_dir +
+        (this.props.examples_dir.endswith("/") ? "" : "/")
         : "file");
   }
   get_default_state = () => {
@@ -510,14 +527,14 @@ class GradioInterfaceExamples extends React.Component {
                 return <th key={i}>{component.label}</th>;
               })}
               {this.props.examples[0].length >
-              this.props.input_components.length
+                this.props.input_components.length
                 ? this.props.output_components.map((component, i) => {
-                    return (
-                      <th key={i + this.props.input_components.length}>
-                        {component.label}
-                      </th>
-                    );
-                  })
+                  return (
+                    <th key={i + this.props.input_components.length}>
+                      {component.label}
+                    </th>
+                  );
+                })
                 : false}
             </tr>
           </thead>
