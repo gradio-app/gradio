@@ -20,8 +20,18 @@
   <meta name="twitter:image" content="https://gradio.app/static/home/img/social-cheetah.jpg">  
 
   <link rel="icon" type="image/png" href="/assets/img/logo.png">
+  <link href="/gradio_static/bundle.css" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="/assets/prism.css">
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag('js', new Date());
+      gtag('config', 'UA-156449732-1');
+    </script>
 </head>
 
 <body class="bg-white text-gray-900 text-md sm:text-lg">
@@ -94,8 +104,8 @@
         onclick="load_demo(1)">Sketch Recognition</div>
       <div class="flex-1 text-center px-2 py-3 cursor-pointer border-gray-300 demotab" demo="2" onclick="load_demo(2)">
         Question Answer</div>
-      <div class="flex-1 text-center px-2 py-3 cursor-pointer border-gray-300 demotab" demo="3" onclick="load_demo(3)">Image Classification</div>
-      <div class="flex-1 text-center px-2 py-3 cursor-pointer border-gray-300 demotab" demo="4" onclick="load_demo(4)">Face Segment</div>
+      <div class="flex-1 text-center px-2 py-3 cursor-pointer border-gray-300 demotab" demo="3" onclick="load_demo(3)">Image Segmentation</div>
+      <div class="flex-1 text-center px-2 py-3 cursor-pointer border-gray-300 demotab" demo="4" onclick="load_demo(4)">Speech Verification</div>
     </div>
     <div class="demo mb-16 p-4 border border-gray-300 border-t-0 shadow-lg" demo="1">
       <div class="relative">
@@ -111,7 +121,7 @@
 iface <span class="token operator">=</span> gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>sketch_recognition<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token string">"sketchpad"</span><span class="token punctuation">,</span> outputs<span class="token operator">=</span><span class="token string">"label"</span><span class="token punctuation">).</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
       </div>
-      <iframe src="https://huggingface.co/gradioiframe/abidlabs/Gradio-MNIST-Realtime/+" frameborder="0" class="w-full" style="height: 32rem"></iframe>
+      <div id="demo_mnist" class="w-full"></div>
     </div>
     <div class="demo mb-16 p-4 border border-gray-300 border-t-0 shadow-lg hidden" demo="2">
       <div class="relative">
@@ -127,8 +137,8 @@ iface <span class="token operator">=</span> gr<span class="token punctuation">.<
 iface <span class="token operator">=</span> gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>question_answer<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">"textbox"</span><span class="token punctuation">,</span> <span class="token string">"text"</span><span class="token punctuation">],</span> outputs<span class="token operator">=</span><span class="token string">"text"</span><span class="token punctuation">).</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
       </div>
-      <iframe src="https://huggingface.co/gradioiframe/abidlabs/question-answering/+" frameborder="0" class="w-full" style="height: 32rem"></iframe>
-    </div>
+      <div id="demo_qa" class="w-full"></div>
+      </div>
     <div class="demo mb-16 p-4 border border-gray-300 border-t-0 shadow-lg hidden" demo="3">
       <div class="relative">
         <a
@@ -136,15 +146,15 @@ iface <span class="token operator">=</span> gr<span class="token punctuation">.<
           full code</a>
         <pre class="language-python"><code class="language-python"><span class="token keyword">import</span> gradio <span class="token keyword">as</span> gr
 
-<span class="token keyword">def</span> <span class="token function">image_classifier</span><span class="token punctuation">(</span>image<span class="token punctuation">)</span><span class="token punctuation">:</span>
-  <span class="token comment"># Implement image classification model here...</span>
-  <span class="token comment"># Return label of confidences</span>
+<span class="token keyword">def</span> <span class="token function">segment</span><span class="token punctuation">(</span>image<span class="token punctuation">)</span><span class="token punctuation">:</span>
+  <span class="token comment"># Implement image segmentation model here...</span>
+  <span class="token comment"># Return segmented image</span>
 
-iface <span class="token operator">=</span> gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>image_classifier<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token string">"webcam"</span><span class="token punctuation">,</span> outputs<span class="token operator">=</span><span class="token string">"label"</span><span class="token punctuation">).</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span>
+iface <span class="token operator">=</span> gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>segment<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token string">"image"</span><span class="token punctuation">,</span> outputs<span class="token operator">=</span><span class="token string">"image"</span><span class="token punctuation">).</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
       </div>
-      <iframe src="https://huggingface.co/gradioiframe/abidlabs/vision-transformer/+" frameborder="0"  class="w-full" style="height: 32rem"></iframe>
-    </div>
+      <div id="demo_image_classifier" class="w-full"></div>
+      </div>
     <div class="demo mb-16 p-4 border border-gray-300 border-t-0 shadow-lg hidden" demo="4">
       <div class="relative">
         <a
@@ -152,14 +162,17 @@ iface <span class="token operator">=</span> gr<span class="token punctuation">.<
           full code</a>
         <pre class="language-python"><code class="language-python"><span class="token keyword">import</span> gradio <span class="token keyword">as</span> gr
 
-<span class="token keyword">def</span> <span class="token function">bg_remove</span><span class="token punctuation">(</span>image<span class="token punctuation">)</span><span class="token punctuation">:</span>
-  <span class="token comment"># Implement segmentation model here...</span>
-  <span class="token comment"># Return segmentation image</span>
+<span class="token keyword">def</span> <span class="token function">same_or_different</span><span class="token punctuation">(</span>audio1<span class="token punctuation">,</span> audio2<span class="token punctuation">)</span><span class="token punctuation">:</span>
+  <span class="token comment"># Run model to see if spoken by same person or not</span>
+  <span class="token comment"># Return the result as a custom HTML snippet</span>
 
-iface <span class="token operator">=</span> gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>bg_remove<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token string">"image"</span><span class="token punctuation">,</span> outputs<span class="token operator">=</span><span class="token string">"image"</span><span class="token punctuation">).</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span>
-</code></pre>
+iface <span class="token operator">=</span> gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>
+  fn<span class="token operator">=</span>same_or_different<span class="token punctuation">,</span>
+  inputs<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">"audio"</span><span class="token punctuation">,</span> <span class="token string">"audio"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  outputs<span class="token operator">=</span><span class="token string">"html"</span>
+<span class="token punctuation">)</span><span class="token punctuation">.</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span></code></pre>
       </div>
-      <iframe src="https://huggingface.co/gradioiframe/abidlabs/Webcam-background-remover/+" frameborder="0" class="w-full" style="height: 32rem"></iframe>
+      <div id="demo_anime" class="w-full"></div>
     </div>
   </div>
   <section class="w-full py-8 mb-12 bg-gradient-to-tr from-gray-50 to-gray-200 shadow-inner">
@@ -309,6 +322,15 @@ iface <span class="token operator">=</span> gr<span class="token punctuation">.<
       document.querySelector(`.demotab[demo='${demo_id}']`).classList.add("selected");
       document.querySelector(`.demo[demo='${demo_id}']`).classList.remove("hidden");
     }
+  </script>
+  <script defer id='gradio-library' src="/gradio_static/bundle.js"></script>
+  <script>
+    document.querySelector("#gradio-library").addEventListener('load', function () {
+      launchGradioFromSpaces("abidlabs/Draw", "#demo_mnist");
+      launchGradioFromSpaces("abidlabs/question-answering", "#demo_qa");
+      launchGradioFromSpaces("abidlabs/Echocardiogram-Segmentation", "#demo_image_classifier");
+      launchGradioFromSpaces("abidlabs/same-person-or-different", "#demo_anime");
+    });
   </script>
 </body>
 

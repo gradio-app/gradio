@@ -1,9 +1,17 @@
-@tailwind base;
+@import "custom_preflight.scss";
 @tailwind components;
-@tailwind utilities;
+@tailwind utilities;    
+
+.gradio_bg {
+    @apply flex flex-col;
+}
+
+.gradio_bg[is_embedded="false"] {
+    @apply min-h-full;
+}
 
 .gradio_page {
-    @apply container h-full mx-auto pt-4 px-4 flex flex-col box-border flex-grow;
+    @apply container mx-auto flex flex-col box-border flex-grow;
     .title {
         @apply text-center p-4 text-4xl dark:text-gray-50;
     }
@@ -14,21 +22,32 @@
         @apply pt-8 pb-4 max-w-none dark:text-gray-50;
     }
     .content {
-        @apply flex-grow flex-shrink-0;
-    }
-    .footer {
-        @apply flex-shrink-0 inline-flex gap-1 items-center text-gray-400 dark:text-gray-50 justify-center py-2;
+        @apply pt-4 px-4 mb-4;
     }
     .api {
         @apply flex-shrink-0 inline-flex gap-1 items-center text-gray-400 dark:text-gray-50 justify-end py-2;
     }
     .logo {
-        @apply h-6;
+        @apply h-6 inline-block;
     }
 }
-
-.gradio_bg {
-    @apply min-h-full flex flex-col;
+.gradio_bg[is_embedded="true"] .gradio_page {
+    @apply rounded border-2 border-gray-100 shadow-lg;
+    .footer {
+        @apply bg-gray-100 p-4 rounded-b text-gray-700;
+        a {
+            @apply font-semibold;
+        }
+    }
+}
+.gradio_bg[is_embedded="false"] .gradio_page {
+    @apply h-full;
+    .content {
+        @apply flex-grow flex-shrink-0 pt-4 px-4;
+    }
+    .footer {
+        @apply flex-shrink-0 inline-flex gap-2.5 items-center text-gray-400 dark:text-gray-50 justify-center py-2;
+    }
 }
 
 .login {
