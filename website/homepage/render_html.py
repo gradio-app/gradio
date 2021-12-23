@@ -79,7 +79,10 @@ def render_guides():
 def render_docs():
     if os.path.exists("generated/colab_links.json"):
         with open("generated/colab_links.json") as demo_links_file:
-            demo_links = json.load(demo_links_file)
+            try:
+                demo_links = json.load(demo_links_file)
+            except ValueError:
+                demo_links = {}
     else:  # docs will be missing demo links
         demo_links = {}
     SCREENSHOT_FOLDER = "dist/assets/demo_screenshots"

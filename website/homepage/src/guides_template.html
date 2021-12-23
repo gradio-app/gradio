@@ -45,6 +45,9 @@
       background-color: whitesmoke;
       color: black;
     }
+    .prose table {
+      width: auto;
+    }
     h3 a {
       display: inline-block;
     }
@@ -53,6 +56,15 @@
       margin: 0 4px !important;
     }
   </style>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag('js', new Date());
+      gtag('config', 'UA-156449732-1');
+    </script>
 </head>
 
 <body class="bg-white text-gray-900 text-md sm:text-lg">
@@ -109,21 +121,21 @@
     </div>
   </footer>
   <script src="/assets/prism.js"></script>
+  <script defer id='gradio-library' src="/gradio_static/bundle.js"></script>
   <script>
     var demo_endpoint = "/demo";
     var demo_names = {{ demo_names|tojson }};
-    window.config = [];
-    demo_names.forEach((demo_name, i) => {
+    document.querySelector("#gradio-library").addEventListener('load', function () {
+      demo_names.forEach((demo_name, i) => {
       fetch('/demo/' + demo_name + '/config')
         .then(response => response.json())
         .then(demo => {
-          demo.target = "interface_" + demo_name;
-          demo.endpoint = demo_endpoint + "/" + demo_name + "/api/";
-          window.config[i] = demo;
+          demo.root = demo_endpoint + "/" + demo_name + "/";
+          launchGradio(demo, "#interface_" + demo_name);
         });
+      });
     });
   </script>
-  <script async src="/gradio_static/bundle.js"></script>
 
 </body>
 

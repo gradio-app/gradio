@@ -1,7 +1,3 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 .gradio_bg[theme="huggingface"] {
     @apply dark:bg-[#0b0f19] dark:text-gray-50;
 }
