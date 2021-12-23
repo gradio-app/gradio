@@ -30,6 +30,9 @@
     .logo {
         @apply h-6 inline-block;
     }
+    .api-logo {
+        @apply h-5 inline;
+    };
 }
 .gradio_bg[is_embedded="true"] .gradio_page {
     @apply rounded border-2 border-gray-100 shadow-lg;
