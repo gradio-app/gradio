@@ -29,10 +29,13 @@ from gradio.outputs import get_output_instance
 
 class Interface:
     """
-    Interfaces are created with Gradio by constructing a `gradio.Interface()` object or by calling `gradio.Interface.load()`.
+    Gradio interfaces are created by constructing a `Interface` object
+    with a locally-defined function, or with `Interface.load()` with the path 
+    to a repo or by `Interface.from_pipeline()` with a Transformers Pipeline.
     """
 
-    instances = weakref.WeakSet()  # stores references to all currently existing Interface instances
+    # stores references to all currently existing Interface instances
+    instances = weakref.WeakSet()  
 
     @classmethod
     def get_instances(cls):
