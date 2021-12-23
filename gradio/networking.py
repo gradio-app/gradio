@@ -21,6 +21,7 @@ import sys
 import threading
 import time
 import traceback
+import urllib.parse
 import urllib.request
 from werkzeug.security import safe_join
 from werkzeug.serving import make_server
@@ -245,7 +246,10 @@ def api_docs():
     output_types_doc, output_types = get_types(outputs, "output")
     input_names = [type(inp).__name__ for inp in app.interface.input_components]
     output_names = [type(out).__name__ for out in app.interface.output_components]
-    sample_inputs = [inp.generate_sample() for inp in app.interface.input_components]
+    if app.interface.examples is not None:
+        sample_inputs = app.interface.examples[0]
+    else:
+        sample_inputs = [inp.generate_sample() for inp in app.interface.input_components]
     docs = {
         "inputs": input_names,
         "outputs": output_names,
@@ -257,7 +261,12 @@ def api_docs():
         "output_types": output_types,
         "input_types_doc": input_types_doc,
         "output_types_doc": output_types_doc,
-        "sample_inputs": sample_inputs
+        "sample_inputs": sample_inputs,
+        "auth": app.interface.auth,
+        "local_login_url": urllib.parse.urljoin(
+            app.interface.local_url, "login"),
+        "local_api_url": urllib.parse.urljoin(
+            app.interface.local_url, "api/predict")
     }
     return render_template("api_docs.html", **docs)
 
