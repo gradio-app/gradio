@@ -25,10 +25,10 @@ class Parallel(gradio.Interface):
             "inputs": interfaces[0].input_components,
             "outputs": outputs,
             "repeat_outputs_per_model": False,
-            "api_mode": interfaces[0].api_mode,  # TODO(abidlabs): make api_mode a per-function attribute
         }
         kwargs.update(options)
         super().__init__(**kwargs) 
+        self.api_mode = interfaces[0].api_mode,  # TODO(abidlabs): make api_mode a per-function attribute
 
 
 class Series(gradio.Interface):
@@ -45,18 +45,20 @@ class Series(gradio.Interface):
     
         def connected_fn(*data):  # Run each function with the appropriate preprocessing and postprocessing 
             for idx, io in enumerate(interfaces):
-                # skip preprocessing for first interface since the compound interface will include it
-                if idx > 0:
-                    data = [input_interface.preprocess(data[i]) for i, input_interface in enumerate(io.input_components)]
+                # skip preprocessing for first interface since the Series interface will include it
+                if idx > 0 and not(io.api_mode):
+                    data = [input_component.preprocess(data[i]) for i, input_component in enumerate(io.input_components)]
+
                 # run all of predictions sequentially
                 predictions = []
                 for predict_fn in io.predict:
                     prediction = predict_fn(*data)
                     predictions.append(prediction)
                 data = predictions
-                # skip postprocessing for final interface since the compound interface will include it
-                if idx < len(interfaces) - 1:
-                    data = [output_interface.postprocess(data[i]) for i, output_interface in enumerate(io.output_components)]
+                # skip postprocessing for final interface since the Series interface will include it
+                if idx < len(interfaces) - 1 and not(io.api_mode):
+                    data = [output_component.postprocess(data[i]) for i, output_component in enumerate(io.output_components)]
+
             return data[0]
     
         connected_fn.__name__ = " => ".join([f[0].__name__ for f in fns])
@@ -68,4 +70,5 @@ class Series(gradio.Interface):
         }
         kwargs.update(options)
         super().__init__(**kwargs) 
+        self.api_mode = interfaces[0].api_mode,  # TODO(abidlabs): make api_mode a per-function attribute
 

@@ -18,7 +18,7 @@ jobs:
             . venv/bin/activate
             pip install --upgrade pip
             pip install -r gradio.egg-info/requires.txt
-            pip install shap IPython
+            pip install shap IPython comet_ml wandb mlflow tensorflow transformers
             pip install selenium==4.0.0a6.post2 coverage scikit-image
       - run:
           command: |
