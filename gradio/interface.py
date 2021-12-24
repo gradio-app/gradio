@@ -18,19 +18,24 @@ import time
 import warnings
 import webbrowser
 import weakref
+
 from gradio import networking, strings, utils, encryptor, queue
-from gradio.inputs import get_input_instance
-from gradio.outputs import get_output_instance
-from gradio.interpretation import quantify_difference_in_label, get_regression_or_classification_value
 from gradio.external import load_interface, load_from_pipeline
+from gradio.flagging import FlaggingCallback, CSVLogger
+from gradio.inputs import get_input_instance
+from gradio.interpretation import quantify_difference_in_label, get_regression_or_classification_value
+from gradio.outputs import get_output_instance
 
 
 class Interface:
     """
-    Interfaces are created with Gradio by constructing a `gradio.Interface()` object or by calling `gradio.Interface.load()`.
+    Gradio interfaces are created by constructing a `Interface` object
+    with a locally-defined function, or with `Interface.load()` with the path 
+    to a repo or by `Interface.from_pipeline()` with a Transformers Pipeline.
     """
 
-    instances = weakref.WeakSet()  # stores references to all currently existing Interface instances
+    # stores references to all currently existing Interface instances
+    instances = weakref.WeakSet()  
 
     @classmethod
     def get_instances(cls):
@@ -77,7 +82,8 @@ class Interface:
                  capture_session=None, interpretation=None, num_shap=2.0, theme=None, repeat_outputs_per_model=True,
                  title=None, description=None, article=None, thumbnail=None,
                  css=None, height=500, width=900, allow_screenshot=True, allow_flagging=None, flagging_options=None, 
-                 encrypt=False, show_tips=None, flagging_dir="flagged", analytics_enabled=None, enable_queue=None, api_mode=None):
+                 encrypt=False, show_tips=None, flagging_dir="flagged", analytics_enabled=None, enable_queue=None, api_mode=None,
+                 flagging_callback=CSVLogger()):
         """
         Parameters:
         fn (Callable): the function to wrap an interface around.
@@ -178,10 +184,13 @@ class Interface:
         self.simple_server = None
         self.allow_screenshot = allow_screenshot
         # For allow_flagging and analytics_enabled: (1) first check for parameter, (2) check for environment variable, (3) default to True
-        self.allow_flagging = allow_flagging if allow_flagging is not None else os.getenv("GRADIO_ALLOW_FLAGGING", "True")=="True"
         self.analytics_enabled = analytics_enabled if analytics_enabled is not None else os.getenv("GRADIO_ANALYTICS_ENABLED", "True")=="True"
+        self.allow_flagging = allow_flagging if allow_flagging is not None else os.getenv("GRADIO_ALLOW_FLAGGING", "True")=="True"
+        
         self.flagging_options = flagging_options
+        self.flagging_callback: FlaggingCallback = flagging_callback
         self.flagging_dir = flagging_dir
+
         self.encrypt = encrypt
         self.save_to = None
         self.share = None
@@ -212,9 +221,6 @@ class Interface:
                 # If they are using TF >= 2.0 or don't have TF,
                 # just ignore this.
                 pass
-
-        if self.allow_flagging:
-            os.makedirs(self.flagging_dir, exist_ok=True)
 
         data = {'fn': fn,
                 'inputs': inputs,
@@ -597,6 +603,10 @@ class Interface:
         # Store parameters
         if self.enable_queue is None:
             self.enable_queue = enable_queue
+
+        # Setup flagging
+        if self.allow_flagging:
+            self.flagging_callback.setup(self.flagging_dir)
 
         # Launch local flask server
         server_port, path_to_local_server, app, thread, server = networking.start_server(
