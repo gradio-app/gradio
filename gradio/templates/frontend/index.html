@@ -1,0 +1,11 @@
+<!doctype html><html lang="en" style="height:100%;margin:0;padding:0"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no"><title>{{ config['title'] or 'Gradio' }}</title><meta property="og:url" content="https://gradio.app/"/><meta property="og:type" content="website"/><meta property="og:image" content="{{ config['thumbnail'] or '' }}"/><meta property="og:title" content="{{ config['title'] or '' }}"/><meta property="og:description" content="{{ config['description'] or '' }}"/><meta name="twitter:card" content="summary_large_image"><meta name="twitter:creator" content="@teamGradio"><meta name="twitter:title" content="{{ config['title'] or '' }}"><meta name="twitter:description" content="{{ config['description'] or '' }}"><meta name="twitter:image" content="{{ config['thumbnail'] or '' }}"><script async src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script><script>window.dataLayer = window.dataLayer || [];
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+    gtag('js', new Date());
+    gtag('config', 'UA-156449732-1');
+    window.gradio_mode = "app";
+    try {
+      window.gradio_config = {{ config|tojson }};
+    } catch (e) {
+    }</script><script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.1/iframeResizer.contentWindow.min.js"></script><title>Gradio</title><link href="static/bundle.css" rel="stylesheet"><link href="static/css/main.bd8d8c8b.css" rel="stylesheet"></head><body style="height:100%;margin:0;padding:0"><div id="root" style="height:100%"></div><script src="static/bundle.js"></script></body></html>
