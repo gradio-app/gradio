@@ -1,3 +1,4 @@
+import "./public-path";
 import React from "react";
 import ReactDOM from "react-dom";
 import { GradioPage } from "./gradio";
@@ -59,6 +60,7 @@ let fn = async (api_endpoint, queue, data, action, queue_callback) => {
 
 window.launchGradio = (config, element_query, space) => {
   let target = document.querySelector(element_query);
+  target.classList.add("gradio_app");
   if (config.auth_required) {
     ReactDOM.render(
       <Login {...config} />, target
@@ -110,7 +112,7 @@ async function get_config() {
     return window.gradio_config;
   }
 }
-if (window.gradio_config) {
+if (window.gradio_mode == "app") {
   get_config().then(config => {
     launchGradio(config, "#root");
   });
