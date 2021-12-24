@@ -24,10 +24,10 @@
     }
     gtag('js', new Date());
     gtag('config', 'UA-156449732-1');
+    window.gradio_mode = "app";
     try {
       window.gradio_config = {{ config|tojson }};
     } catch (e) {
-      window.gradio_config = {"mode": "dev"};
     }
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.1/iframeResizer.contentWindow.min.js"></script>

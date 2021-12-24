@@ -17,6 +17,7 @@
     "html2canvas-objectfit-fix": "^1.2.0",
     "jspreadsheet-ce": "^4.7.3",
     "mime-types": "^2.1.33",
+    "postcss-prefixwrap": "^1.26.0",
     "prettier-eslint": "^13.0.0",
     "prettier-eslint-cli": "^5.0.1",
     "react": "^17.0.2",
@@ -24,7 +25,6 @@
     "react-cropper": "^2.1.8",
     "react-dom": "^17.0.2",
     "react-json-tree": "^0.15.0",
-    "react-plotly.js": "^2.5.1",
     "react-scripts": "4.0.3",
     "react-webcam": "^5.2.3",
     "recorder-js": "^1.0.7",
@@ -36,7 +36,7 @@
   "scripts": {
     "start": "cross-env REACT_APP_BACKEND_URL='http://localhost:7860/' craco start",
     "format": "prettier-eslint --write '**/*.js*'",
-    "build": "cross-env REACT_APP_BACKEND_URL='' GENERATE_SOURCEMAP=false craco build",
+    "build": "cross-env REACT_APP_BACKEND_URL='' REACT_APP_VERSION=$(cat ../gradio/version.txt) GENERATE_SOURCEMAP=false craco build",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {

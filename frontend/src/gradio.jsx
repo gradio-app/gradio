@@ -5,8 +5,7 @@ import { saveAs } from "./utils";
 import ReactDOM from "react-dom";
 import classNames from "classnames";
 
-import logo_loading from "./static/img/logo_loading.jpg";
-import logo_error from "./static/img/logo_error.png";
+import logo_error from "./static/img/logo_error.svg";
 import logo from "./static/img/logo.svg";
 import api_logo from "./static/img/api-logo.svg";
 import("./themes/defaults.scss");
@@ -305,23 +304,23 @@ export class GradioInterface extends React.Component {
         expected_duration *= this.state.initial_queue_index + 2;
       }
       status = (
-        <div className="loading">
+        <div className="load_status">
           <MemoizedGradioTimer expected_duration={expected_duration} />
           {this.state.queue_index !== null && this.state.queue_index >= 0
             ? "queued @ " + this.state.queue_index
             : false}
-          <img alt="loading" src={logo_loading} />
+          <img class="loading" alt="loading" src={logo} />
         </div>
       );
     } else if (this.state.error) {
       status = (
-        <div className="loading">
-          <img className="loading_failed" alt="error" src={logo_error} />
+        <div className="load_status">
+          <img className="error" alt="error" src={logo_error} />
         </div>
       );
     } else if (this.state.complete && this.state.last_duration !== null) {
       status = (
-        <div className="loading">
+        <div className="load_status">
           {this.state.last_duration.toFixed(2) + "s"}
         </div>
       );
@@ -379,7 +378,7 @@ export class GradioInterface extends React.Component {
           >
             <div
               className={classNames("component_set", "relative", {
-                "opacity-50": this.pending_response && !this.props.live
+                "opacity-50": (this.pending_response && !this.props.live) || this.state.error
               })}
             >
               {status}
