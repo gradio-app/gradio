@@ -43,7 +43,7 @@ VERSION_FILE = pkg_resources.resource_filename("gradio", "version.txt")
 
 with open(VERSION_FILE) as version_file:
     GRADIO_STATIC_ROOT = "https://gradio.s3-us-west-2.amazonaws.com/" + \
-        version_file.read().strip() + "/static/"
+        version_file.read() + "/static/"
 
 app = Flask(__name__,
             template_folder=STATIC_TEMPLATE_LIB,
