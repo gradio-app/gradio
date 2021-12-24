@@ -1,0 +1,1 @@
+__webpack_public_path__ = window.resourceBasePath || "https://gradio.s3-us-west-2.amazonaws.com/" + process.env.REACT_APP_VERSION + "/"

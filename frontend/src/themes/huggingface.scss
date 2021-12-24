@@ -3,10 +3,10 @@
 }
 
 .gradio_bg[theme="huggingface"] .gradio_interface {
-    .loading {
+    .load_status {
         @apply text-gray-700 dark:text-gray-50 absolute right-2 flex items-center gap-2 text-sm;
     }
-    .loading img {
+    .load_status img {
         @apply h-5;
     }
     .panels {

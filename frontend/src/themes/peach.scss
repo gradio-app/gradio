@@ -4,10 +4,10 @@
 
 
 .gradio_bg[theme="peach"] .gradio_interface {
-    .loading {
+    .load_status {
         @apply dark:text-gray-50 absolute right-2 flex items-center gap-2;
     }
-    .loading img {
+    .load_status img {
         @apply h-5 ml-2 inline-block;
     }
     .panels {
