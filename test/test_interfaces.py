@@ -188,16 +188,6 @@ class TestInterface(unittest.TestCase):
         interface.analytics_enabled = True
         interface.integrate(mlflow=mlflow)
         mock_post.assert_called_once()
-        
-    def test_capture_session(self):
-        interface = Interface(lambda x: x, "textbox", "label", capture_session=True, interpretation=lambda x: 0)
-        interface.session = (mock.MagicMock(), mock.MagicMock())
-        interface.interpret(["quickest brown fox"])
-        interface.session[0].as_default.assert_called_once()
-        interface.session[1].as_default.assert_called_once()
-        interface.run_prediction(["quickest brown fox"])
-        self.assertEqual(interface.session[0].as_default.call_count, 2)
-        self.assertEqual(interface.session[1].as_default.call_count, 2)
-                      
+                              
 if __name__ == '__main__':
     unittest.main()
