@@ -11,26 +11,30 @@ import markdown2
 import numpy as np
 import os
 import pkg_resources
-import requests
 import random
 import sys
 import time
 import warnings
 import webbrowser
 import weakref
+
 from gradio import networking, strings, utils, encryptor, queue
-from gradio.inputs import get_input_instance
-from gradio.outputs import get_output_instance
-from gradio.interpretation import quantify_difference_in_label, get_regression_or_classification_value
 from gradio.external import load_interface, load_from_pipeline
+from gradio.flagging import FlaggingCallback, CSVLogger
+from gradio.inputs import get_input_instance
+from gradio.interpretation import quantify_difference_in_label, get_regression_or_classification_value
+from gradio.outputs import get_output_instance
 
 
 class Interface:
     """
-    Interfaces are created with Gradio by constructing a `gradio.Interface()` object or by calling `gradio.Interface.load()`.
+    Gradio interfaces are created by constructing a `Interface` object
+    with a locally-defined function, or with `Interface.load()` with the path 
+    to a repo or by `Interface.from_pipeline()` with a Transformers Pipeline.
     """
 
-    instances = weakref.WeakSet()  # stores references to all currently existing Interface instances
+    # stores references to all currently existing Interface instances
+    instances = weakref.WeakSet()  
 
     @classmethod
     def get_instances(cls):
@@ -76,8 +80,9 @@ class Interface:
                  examples_per_page=10, live=False, layout="unaligned", show_input=True, show_output=True,
                  capture_session=None, interpretation=None, num_shap=2.0, theme=None, repeat_outputs_per_model=True,
                  title=None, description=None, article=None, thumbnail=None,
-                 css=None, height=500, width=900, allow_screenshot=True, allow_flagging=None, flagging_options=None,
-                 encrypt=False, show_tips=None, flagging_dir="flagged", analytics_enabled=None, enable_queue=None, api_mode=None):
+                 css=None, height=None, width=None, allow_screenshot=True, allow_flagging=None, flagging_options=None, 
+                 encrypt=None, show_tips=None, flagging_dir="flagged", analytics_enabled=None, enable_queue=None, api_mode=None,
+                 flagging_callback=CSVLogger()):
         """
         Parameters:
         fn (Callable): the function to wrap an interface around.
@@ -100,7 +105,7 @@ class Interface:
         allow_screenshot (bool): if False, users will not see a button to take a screenshot of the interface.
         allow_flagging (bool): if False, users will not see a button to flag an input and output.
         flagging_options (List[str]): if not None, provides options a user must select when flagging.
-        encrypt (bool): If True, flagged data will be encrypted by key provided by creator at launch
+        encrypt (bool): DEPRECATED. If True, flagged data will be encrypted by key provided by creator at launch
         flagging_dir (str): what to name the dir where flagged data is stored.
         show_tips (bool): DEPRECATED. if True, will occasionally show tips about new Gradio features
         enable_queue (bool): DEPRECATED. if True, inference requests will be served through a queue instead of with parallel threads. Required for longer inference times (> 1min) to prevent timeout.  
@@ -142,7 +147,7 @@ class Interface:
         self.capture_session = capture_session
 
         if capture_session is not None:
-            warnings.warn("The `capture_session` parameter in the `Interface` will be deprecated in the near future.")
+            warnings.warn("The `capture_session` parameter in the `Interface` is deprecated and has no effect.")
 
         self.session = None
         self.title = title
@@ -177,12 +182,14 @@ class Interface:
 
         self.simple_server = None
         self.allow_screenshot = allow_screenshot
+        
         # For allow_flagging and analytics_enabled: (1) first check for parameter, (2) check for environment variable, (3) default to True
-        self.allow_flagging = allow_flagging if allow_flagging is not None else os.getenv("GRADIO_ALLOW_FLAGGING", "True") == "True"
-        self.analytics_enabled = analytics_enabled if analytics_enabled is not None else os.getenv("GRADIO_ANALYTICS_ENABLED", "True") == "True"
+        self.analytics_enabled = analytics_enabled if analytics_enabled is not None else os.getenv("GRADIO_ANALYTICS_ENABLED", "True")=="True"
+        self.allow_flagging = allow_flagging if allow_flagging is not None else os.getenv("GRADIO_ALLOW_FLAGGING", "True")=="True"
         self.flagging_options = flagging_options
+        self.flagging_callback: FlaggingCallback = flagging_callback
         self.flagging_dir = flagging_dir
-        self.encrypt = encrypt
+
         self.save_to = None
         self.share = None
         self.share_url = None
@@ -197,24 +204,29 @@ class Interface:
 
         self.enable_queue = enable_queue
         if self.enable_queue is not None:
-            warnings.warn("The `enable_queue` parameter in the `Interface` will be deprecated. Please use the `enable_queue` parameter in `launch()` instead")
+            warnings.warn("The `enable_queue` parameter in the `Interface`" 
+                          "will be deprecated and may not work properly. "
+                          "Please use the `enable_queue` parameter in "
+                          "`launch()` instead")
 
+        self.height = height
+        self.width = width
+        if self.height is not None or self.width is not None:
+            warnings.warn(
+                "The `width` and `height` parameters in the `Interface` class"
+                "will be deprecated. Please provide these parameters"
+                "in `launch()` instead")
+
+        self.encrypt = encrypt
+        if self.encrypt is not None:
+            warnings.warn(
+                "The `encrypt` parameter in the `Interface` class"
+                "will be deprecated. Please provide this parameter"
+                "in `launch()` instead")
+        
         if api_mode is not None:
             warnings.warn("The `api_mode` parameter in the `Interface` is deprecated.")
         self.api_mode = False
-
-        if self.capture_session:
-            try:
-                import tensorflow as tf
-                self.session = tf.get_default_graph(), \
-                               tf.keras.backend.get_session()
-            except (ImportError, AttributeError):
-                # If they are using TF >= 2.0 or don't have TF,
-                # just ignore this.
-                pass
-
-        if self.allow_flagging:
-            os.makedirs(self.flagging_dir, exist_ok=True)
 
         data = {'fn': fn,
                 'inputs': inputs,
@@ -351,18 +363,7 @@ class Interface:
 
         for predict_fn in self.predict:
             start = time.time()
-            if self.capture_session and self.session is not None:
-                graph, sess = self.session
-                with graph.as_default(), sess.as_default():
-                    prediction = predict_fn(*processed_input)
-            else:
-                try:
-                    prediction = predict_fn(*processed_input)
-                except ValueError as exception:
-                    if str(exception).endswith("is not an element of this graph."):
-                        raise ValueError(strings.en["TF1_ERROR"])
-                    else:
-                        raise exception
+            prediction = predict_fn(*processed_input)
             duration = time.time() - start
 
             if len(self.output_components) == len(self.predict):
@@ -509,19 +510,7 @@ class Interface:
             processed_input = [input_component.preprocess(raw_input[i])
                                for i, input_component in enumerate(self.input_components)]
             interpreter = self.interpretation
-
-            if self.capture_session and self.session is not None:
-                graph, sess = self.session
-                with graph.as_default(), sess.as_default():
-                    interpretation = interpreter(*processed_input)
-            else:
-                try:
-                    interpretation = interpreter(*processed_input)
-                except ValueError as exception:
-                    if str(exception).endswith("is not an element of this graph."):
-                        raise ValueError(strings.en["TF1_ERROR"])
-                    else:
-                        raise exception
+            interpretation = interpreter(*processed_input)
             if len(raw_input) == 1:
                 interpretation = [interpretation]
             return interpretation, []
@@ -557,7 +546,8 @@ class Interface:
     def launch(self, inline=None, inbrowser=None, share=False, debug=False,
                auth=None, auth_message=None, private_endpoint=None,
                prevent_thread_lock=False, show_error=True, server_name=None,
-               server_port=None, show_tips=False, enable_queue=False):
+               server_port=None, show_tips=False, enable_queue=False,
+               height=500, width=900, encrypt=False):
         """
         Launches the webserver that serves the UI for the interface.
         Parameters:
@@ -578,6 +568,9 @@ class Interface:
         app (flask.Flask): Flask app object
         path_to_local_server (str): Locally accessible link
         share_url (str): Publicly accessible link (if share=True)
+        width (bool): The width of the <iframe> element containing the interface (used if inline=True)
+        height (bool): The height of the <iframe> element containing the interface (used if inline=True)
+        encrypt (bool): If True, flagged data will be encrypted by key provided by creator at launch
         """
         # Set up local flask server
         config = self.get_config_file()
@@ -588,6 +581,10 @@ class Interface:
         self.auth_message = auth_message
         self.show_tips = show_tips
         self.show_error = show_error
+        self.height = self.height or height  # if height is not set in constructor, use the one provided here
+        self.width = self.width or width  # if width is not set in constructor, use the one provided here
+        if self.encrypt is None:
+            self.encrypt = encrypt  # if encrypt is not set in constructor, use the one provided here
 
         # Request key for encryption
         if self.encrypt:
@@ -597,6 +594,10 @@ class Interface:
         # Store parameters
         if self.enable_queue is None:
             self.enable_queue = enable_queue
+
+        # Setup flagging
+        if self.allow_flagging:
+            self.flagging_callback.setup(self.flagging_dir)
 
         # Launch local flask server
         server_port, path_to_local_server, app, thread, server = networking.start_server(
