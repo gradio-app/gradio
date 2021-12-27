@@ -457,7 +457,6 @@ class Interface:
         path_to_local_server (str): Locally accessible link
         share_url (str): Publicly accessible link (if share=True)
         """
-        # Set up local flask server
         config = self.get_config_file()
         self.config = config
         if auth and not callable(auth) and not isinstance(auth[0], tuple) and not isinstance(auth[0], list):
@@ -468,19 +467,15 @@ class Interface:
         self.show_error = show_error
         self.height = self.height or height  # if height is not set in constructor, use the one provided here
         self.width = self.width or width  # if width is not set in constructor, use the one provided here
+        
         if self.encrypt is None:
-            self.encrypt = encrypt  # if encrypt is not set in constructor, use the one provided here
-
-        # Request key for encryption
+            self.encrypt = encrypt  
         if self.encrypt:
             self.encryption_key = encryptor.get_key(
                 getpass.getpass("Enter key for encryption: "))
 
-        # Store parameters
         if self.enable_queue is None:
             self.enable_queue = enable_queue
-
-        # Setup flagging
         if self.allow_flagging:
             self.flagging_callback.setup(self.flagging_dir)
 
@@ -494,10 +489,10 @@ class Interface:
         self.server_app = app
         self.server_thread = thread
 
-        # Count number of launches
         utils.launch_counter()
 
-        # If running in a colab or not able to access localhost, automatically create a shareable link
+        # If running in a colab or not able to access localhost, 
+        # automatically create a shareable link.
         is_colab = utils.colab_check()
         if is_colab or not (networking.url_ok(path_to_local_server)):
             share = True
@@ -513,7 +508,6 @@ class Interface:
 
         if private_endpoint is not None:
             share = True
-        # Set up shareable link
         self.share = share
 
         if share:
@@ -545,7 +539,6 @@ class Interface:
         if inline:
             try:
                 from IPython.display import IFrame, display  # type: ignore
-                # Embed the remote interface page if on google colab; otherwise, embed the local page.
                 if share:
                     while not networking.url_ok(share_url):
                         time.sleep(1)
