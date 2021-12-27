@@ -1,15 +1,16 @@
-import gradio
 import analytics
-import requests
+import csv
 from distutils.version import StrictVersion
+import inspect
 import json
 import json.decoder
 import os
 import pkg_resources
-import warnings
 import random
-from socket import gaierror
-from urllib3.exceptions import MaxRetryError
+import requests
+import warnings
+
+import gradio
 
 
 analytics_url = 'https://api.gradio.app/'
@@ -141,3 +142,75 @@ def launch_counter():
         pass
 
 
+def get_config_file(interface):
+    config = {
+        "input_components": [
+            iface.get_template_context()
+            for iface in interface.input_components],
+        "output_components": [
+            iface.get_template_context()
+            for iface in interface.output_components],
+        "function_count": len(interface.predict),
+        "live": interface.live,
+        "examples_per_page": interface.examples_per_page,
+        "layout": interface.layout,
+        "show_input": interface.show_input,
+        "show_output": interface.show_output,
+        "title": interface.title,
+        "description": interface.description,
+        "article": interface.article,
+        "theme": interface.theme,
+        "css": interface.css,
+        "thumbnail": interface.thumbnail,
+        "allow_screenshot": interface.allow_screenshot,
+        "allow_flagging": interface.allow_flagging,
+        "flagging_options": interface.flagging_options,
+        "allow_interpretation": interface.interpretation is not None,
+        "queue": interface.enable_queue,
+        "version": pkg_resources.require("gradio")[0].version
+    }
+    try:
+        param_names = inspect.getfullargspec(interface.predict[0])[0]
+        for iface, param in zip(config["input_components"], param_names):
+            if not iface["label"]:
+                iface["label"] = param.replace("_", " ")
+        for i, iface in enumerate(config["output_components"]):
+            outputs_per_function = int(
+                len(interface.output_components) / len(interface.predict))
+            function_index = i // outputs_per_function
+            component_index = i - function_index * outputs_per_function
+            ret_name = "Output " + \
+                        str(component_index + 1) if outputs_per_function > 1 else "Output"
+            if iface["label"] is None:
+                iface["label"] = ret_name
+            if len(interface.predict) > 1:
+                iface["label"] = interface.function_names[function_index].replace(
+                    "_", " ") + ": " + iface["label"]
+
+    except ValueError:
+        pass
+    if interface.examples is not None:
+        if isinstance(interface.examples, str):
+            if not os.path.exists(interface.examples):
+                raise FileNotFoundError(
+                    "Could not find examples directory: " + interface.examples)
+            log_file = os.path.join(interface.examples, "log.csv")
+            if not os.path.exists(log_file):
+                if len(interface.input_components) == 1:
+                    examples = [[os.path.join(interface.examples, item)]
+                                for item in os.listdir(interface.examples)]
+                else:
+                    raise FileNotFoundError(
+                        "Could not find log file (required for multiple inputs): " + log_file)
+            else:
+                with open(log_file) as logs:
+                    examples = list(csv.reader(logs))
+                    examples = examples[1:]  # remove header
+            for i, example in enumerate(examples):
+                for j, (component, cell) in enumerate(zip(interface.input_components + interface.output_components, example)):
+                    examples[i][j] = component.restore_flagged(cell)
+            config["examples"] = examples
+            config["examples_dir"] = interface.examples
+        else:
+            config["examples"] = interface.examples
+    return config

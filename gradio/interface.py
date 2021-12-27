@@ -5,31 +5,26 @@ interface using the input and output types.
 
 from __future__ import annotations
 import copy
-import csv
 import getpass
-import inspect
-import threading
-from typing import Callable
-import markdown2
-import numpy as np
+import markdown2  # type: ignore
 import os
-import pkg_resources
 import random
 import sys
+import threading
 import time
-from typing import Union, Any, List, Optional, Tuple, TYPE_CHECKING
+from typing import Callable, Any, List, Optional, Tuple, TYPE_CHECKING
 import warnings
 import webbrowser
 import weakref
 
-from gradio import networking, strings, utils, encryptor, queue
-from gradio.external import load_interface, load_from_pipeline
-from gradio.flagging import FlaggingCallback, CSVLogger
-from gradio.inputs import get_input_instance, InputComponent
-from gradio.interpretation import quantify_difference_in_label, get_regression_or_classification_value
-from gradio.outputs import get_output_instance, OutputComponent
+from gradio import encryptor, networking, queue, strings, utils  # type: ignore
+from gradio.external import load_interface, load_from_pipeline  # type: ignore
+from gradio.flagging import FlaggingCallback, CSVLogger  # type: ignore
+from gradio.inputs import get_input_instance, InputComponent  # type: ignore
+from gradio.interpretation import run_interpret  # type: ignore
+from gradio.outputs import get_output_instance, OutputComponent  # type: ignore
 
-if TYPE_CHECKING:  # Only import for type checking (always False at runtime).
+if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     import transformers
     import flask
     
@@ -42,7 +37,7 @@ class Interface:
     """
 
     # stores references to all currently existing Interface instances
-    instances = weakref.WeakSet()  
+    instances: weakref.WeakSet = weakref.WeakSet()  
 
     @classmethod
     def get_instances(cls):
@@ -94,19 +89,19 @@ class Interface:
 
     def __init__(
         self, 
-        fn: Callable, 
+        fn: Callable | List[Callable], 
         inputs: str | InputComponent | List[str | InputComponent] = None, 
         outputs: str | OutputComponent | List[str | OutputComponent] = None, 
         verbose: bool = None, 
-        examples: Union[List[List[Any]], str] = None,
+        examples: Optional[List[Any] | List[List[Any]] | str] = None,
         examples_per_page: int = 10, 
         live: bool = False, 
         layout: str = "unaligned", 
         show_input: bool = True, 
         show_output: bool = True,
         capture_session: Optional[bool] = None, 
-        interpretation: Optional[bool] = None, 
-        num_shap: int = 2.0, 
+        interpretation: Optional[Callable | str] = None, 
+        num_shap: float = 2.0, 
         theme: Optional[str] = None, 
         repeat_outputs_per_model: bool = True,
         title: Optional[str] = None, 
@@ -129,7 +124,7 @@ class Interface:
     ):
         """
         Parameters:
-        fn (Callable): the function to wrap an interface around.
+        fn (Union[Callable, List[Callable]]): the function to wrap an interface around.
         inputs (Union[str, InputComponent, List[Union[str, InputComponent]]]): a single Gradio input component, or list of Gradio input components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of input components should match the number of parameters in fn.
         outputs (Union[str, OutputComponent, List[Union[str, OutputComponent]]]): a single Gradio output component, or list of Gradio output components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of output components should match the number of values returned by fn.
         verbose (bool): DEPRECATED. Whether to print detailed information during launch.
@@ -315,78 +310,8 @@ class Interface:
         return repr
 
     def get_config_file(self):
-        config = {
-            "input_components": [
-                iface.get_template_context()
-                for iface in self.input_components],
-            "output_components": [
-                iface.get_template_context()
-                for iface in self.output_components],
-            "function_count": len(self.predict),
-            "live": self.live,
-            "examples_per_page": self.examples_per_page,
-            "layout": self.layout,
-            "show_input": self.show_input,
-            "show_output": self.show_output,
-            "title": self.title,
-            "description": self.description,
-            "article": self.article,
-            "theme": self.theme,
-            "css": self.css,
-            "thumbnail": self.thumbnail,
-            "allow_screenshot": self.allow_screenshot,
-            "allow_flagging": self.allow_flagging,
-            "flagging_options": self.flagging_options,
-            "allow_interpretation": self.interpretation is not None,
-            "queue": self.enable_queue,
-            "version": pkg_resources.require("gradio")[0].version
-        }
-        try:
-            param_names = inspect.getfullargspec(self.predict[0])[0]
-            for iface, param in zip(config["input_components"], param_names):
-                if not iface["label"]:
-                    iface["label"] = param.replace("_", " ")
-            for i, iface in enumerate(config["output_components"]):
-                outputs_per_function = int(
-                    len(self.output_components) / len(self.predict))
-                function_index = i // outputs_per_function
-                component_index = i - function_index * outputs_per_function
-                ret_name = "Output " + \
-                           str(component_index + 1) if outputs_per_function > 1 else "Output"
-                if iface["label"] is None:
-                    iface["label"] = ret_name
-                if len(self.predict) > 1:
-                    iface["label"] = self.function_names[function_index].replace(
-                        "_", " ") + ": " + iface["label"]
-
-        except ValueError:
-            pass
-        if self.examples is not None:
-            if isinstance(self.examples, str):
-                if not os.path.exists(self.examples):
-                    raise FileNotFoundError(
-                        "Could not find examples directory: " + self.examples)
-                log_file = os.path.join(self.examples, "log.csv")
-                if not os.path.exists(log_file):
-                    if len(self.input_components) == 1:
-                        examples = [[os.path.join(self.examples, item)]
-                                    for item in os.listdir(self.examples)]
-                    else:
-                        raise FileNotFoundError(
-                            "Could not find log file (required for multiple inputs): " + log_file)
-                else:
-                    with open(log_file) as logs:
-                        examples = list(csv.reader(logs))
-                        examples = examples[1:]  # remove header
-                for i, example in enumerate(examples):
-                    for j, (interface, cell) in enumerate(zip(self.input_components + self.output_components, example)):
-                        examples[i][j] = interface.restore_flagged(cell)
-                config["examples"] = examples
-                config["examples_dir"] = self.examples
-            else:
-                config["examples"] = self.examples
-        return config
-
+        return utils.get_config_file(self)
+    
     def run_prediction(
         self, 
         processed_input: List[Any], 
@@ -451,124 +376,12 @@ class Interface:
         processed_output = [output_component.postprocess(predictions[i]) if predictions[i] is not None else None
                             for i, output_component in enumerate(self.output_components)]
         return processed_output, durations
-
+    
     def interpret(
         self, 
         raw_input: List[Any]
     ) -> List[Any]:
-        """
-        Runs the interpretation command for the machine learning model. Handles both the "default" out-of-the-box
-        interpretation for a certain set of UI component types, as well as the custom interpretation case.
-        Parameters:
-        raw_input: a list of raw inputs to apply the interpretation(s) on.
-        """
-        if isinstance(self.interpretation, list):  # Either "default" or "shap"
-            processed_input = [input_component.preprocess(raw_input[i])
-                               for i, input_component in enumerate(self.input_components)]
-            original_output = self.run_prediction(processed_input)
-            scores, alternative_outputs = [], []
-            for i, (x, interp) in enumerate(zip(raw_input, self.interpretation)):
-                if interp == "default":
-                    input_component = self.input_components[i]
-                    neighbor_raw_input = list(raw_input)
-                    if input_component.interpret_by_tokens:
-                        tokens, neighbor_values, masks = input_component.tokenize(
-                            x)
-                        interface_scores = []
-                        alternative_output = []
-                        for neighbor_input in neighbor_values:
-                            neighbor_raw_input[i] = neighbor_input
-                            processed_neighbor_input = [input_component.preprocess(neighbor_raw_input[i])
-                                                        for i, input_component in enumerate(self.input_components)]
-                            neighbor_output = self.run_prediction(
-                                processed_neighbor_input)
-                            processed_neighbor_output = [output_component.postprocess(
-                                neighbor_output[i]) for i, output_component in enumerate(self.output_components)]
-
-                            alternative_output.append(
-                                processed_neighbor_output)
-                            interface_scores.append(quantify_difference_in_label(
-                                self, original_output, neighbor_output))
-                        alternative_outputs.append(alternative_output)
-                        scores.append(
-                            input_component.get_interpretation_scores(
-                                raw_input[i], neighbor_values, interface_scores, masks=masks, tokens=tokens))
-                    else:
-                        neighbor_values, interpret_kwargs = input_component.get_interpretation_neighbors(
-                            x)
-                        interface_scores = []
-                        alternative_output = []
-                        for neighbor_input in neighbor_values:
-                            neighbor_raw_input[i] = neighbor_input
-                            processed_neighbor_input = [input_component.preprocess(neighbor_raw_input[i])
-                                                        for i, input_component in enumerate(self.input_components)]
-                            neighbor_output = self.run_prediction(
-                                processed_neighbor_input)
-                            processed_neighbor_output = [output_component.postprocess(
-                                neighbor_output[i]) for i, output_component in enumerate(self.output_components)]
-
-                            alternative_output.append(
-                                processed_neighbor_output)
-                            interface_scores.append(quantify_difference_in_label(
-                                self, original_output, neighbor_output))
-                        alternative_outputs.append(alternative_output)
-                        interface_scores = [-score for score in interface_scores]
-                        scores.append(
-                            input_component.get_interpretation_scores(
-                                raw_input[i], neighbor_values, interface_scores, **interpret_kwargs))
-                elif interp == "shap" or interp == "shapley":
-                    try:
-                        import shap
-                    except (ImportError, ModuleNotFoundError):
-                        raise ValueError(
-                            "The package `shap` is required for this interpretation method. Try: `pip install shap`")
-                    input_component = self.input_components[i]
-                    if not (input_component.interpret_by_tokens):
-                        raise ValueError(
-                            "Input component {} does not support `shap` interpretation".format(input_component))
-
-                    tokens, _, masks = input_component.tokenize(x)
-
-                    # construct a masked version of the input
-                    def get_masked_prediction(binary_mask):
-                        masked_xs = input_component.get_masked_inputs(
-                            tokens, binary_mask)
-                        preds = []
-                        for masked_x in masked_xs:
-                            processed_masked_input = copy.deepcopy(
-                                processed_input)
-                            processed_masked_input[i] = input_component.preprocess(
-                                masked_x)
-                            new_output = self.run_prediction(
-                                processed_masked_input)
-                            pred = get_regression_or_classification_value(
-                                self, original_output, new_output)
-                            preds.append(pred)
-                        return np.array(preds)
-
-                    num_total_segments = len(tokens)
-                    explainer = shap.KernelExplainer(
-                        get_masked_prediction, np.zeros((1, num_total_segments)))
-                    shap_values = explainer.shap_values(np.ones((1, num_total_segments)), nsamples=int(
-                        self.num_shap * num_total_segments), silent=True)
-                    scores.append(input_component.get_interpretation_scores(
-                        raw_input[i], None, shap_values[0], masks=masks, tokens=tokens))
-                    alternative_outputs.append([])
-                elif interp is None:
-                    scores.append(None)
-                    alternative_outputs.append([])
-                else:
-                    raise ValueError(
-                        "Uknown intepretation method: {}".format(interp))
-            return scores, alternative_outputs
-        else:  # custom interpretation function
-            processed_input = [input_component.preprocess(raw_input[i])
-                               for i, input_component in enumerate(self.input_components)]
-            interpreter = self.interpretation
-            interpretation = interpreter(*processed_input)
-            if len(raw_input) == 1:
-                interpretation = [interpretation]
-            return interpretation, []
+        return run_interpret(self, raw_input)
 
     def run_until_interrupted(
         self, 
@@ -734,7 +547,7 @@ class Interface:
             inline = utils.ipython_check()
         if inline:
             try:
-                from IPython.display import IFrame, display
+                from IPython.display import IFrame, display  # type: ignore
                 # Embed the remote interface page if on google colab; otherwise, embed the local page.
                 if share:
                     while not networking.url_ok(share_url):
