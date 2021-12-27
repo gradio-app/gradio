@@ -463,7 +463,8 @@ class Interface:
         """
         config = self.get_config_file()
         self.config = config
-        if auth and not callable(auth) and not isinstance(auth[0], tuple) and not isinstance(auth[0], list):
+        if auth and not callable(auth) and not isinstance(
+            auth[0], tuple) and not isinstance(auth[0], list):
             auth = [auth]
         self.auth = auth
         self.auth_message = auth_message
@@ -585,13 +586,14 @@ class Interface:
         verbose: bool = True
     ) -> None:
         """
-        Closes the Interface that was launched. This will close the server and free the port.
+        Closes the Interface that was launched and frees the port.
         """
         try:
             self.server.shutdown()
             self.server_thread.join()
             if verbose:
-                print("Closing server running on port: {}".format(self.server_port))
+                print("Closing server running on port: {}".format(
+                    self.server_port))
         except (AttributeError, OSError):  # can't close if not running
             pass
 
@@ -602,11 +604,15 @@ class Interface:
         mlflow=None
     ) -> None:
         """
-        A catch-all method for integrating with other libraries. Should be run after launch()
+        A catch-all method for integrating with other libraries. 
+        Should be run after launch()
         Parameters:
-            comet_ml (Experiment): If a comet_ml Experiment object is provided, will integrate with the experiment and appear on Comet dashboard
-            wandb (module): If the wandb module is provided, will integrate with it and appear on WandB dashboard
-            mlflow (module): If the mlflow module  is provided, will integrate with the experiment and appear on ML Flow dashboard
+            comet_ml (Experiment): If a comet_ml Experiment object is provided, 
+            will integrate with the experiment and appear on Comet dashboard
+            wandb (module): If the wandb module is provided, will integrate 
+            with it and appear on WandB dashboard
+            mlflow (module): If the mlflow module  is provided, will integrate 
+            with the experiment and appear on ML Flow dashboard
         """
         analytics_integration = ""
         if comet_ml is not None:
@@ -621,11 +627,14 @@ class Interface:
         if wandb is not None:
             analytics_integration = "WandB"
             if self.share_url is not None:
-                wandb.log({"Gradio panel": wandb.Html('<iframe src="' + self.share_url + '" width="' +
-                                                      str(self.width) + '" height="' + str(self.height) + '" frameBorder="0"></iframe>')})
+                wandb.log({"Gradio panel": wandb.Html(
+                    '<iframe src="' + self.share_url + '" width="' +
+                    str(self.width) + '" height="' + str(self.height) + 
+                    '" frameBorder="0"></iframe>')})
             else:
                 print(
-                    "The WandB integration requires you to `launch(share=True)` first.")
+                    "The WandB integration requires you to "
+                    "`launch(share=True)` first.")
         if mlflow is not None:
             analytics_integration = "MLFlow"
             if self.share_url is not None:
