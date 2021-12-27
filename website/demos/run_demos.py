@@ -23,8 +23,8 @@ for demo_name, port in demo_port_sets:
     with open(demo_file, 'r') as file:
         filedata = file.read()
     filedata = filedata.replace(
-        f'if __name__ == "__main__":', 
-        f'if __name__ == "__main__":\n    iface.server_port={port}')
+        f'iface.launch()', 
+        f'iface.launch(server_port={port})')
     with open(demo_file, 'w') as file:
         file.write(filedata)
     demo_thread = threading.Thread(target=launch_demo, args=(demo_folder,))
