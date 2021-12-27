@@ -1,6 +1,12 @@
 # Contributing to Gradio
-You can start by forking or cloning the repo (https://github.com/gradio-app/gradio.git) and creating your own branch to work from. All PRs must pass the continuous integration 
-tests and receive approval from a member of the Gradio development team before they will be merged.
+You can start by forking or cloning the repo (https://github.com/gradio-app/gradio.git) and creating your own branch to work from.
+
+Next, to install the local development version of Gradio:
+  * Navigate to the `/gradio` subfolder and run `pip install -e .`.
+
+When installing locally, you may also need to build the front end:
+  * Navigate to the `/frontend` subfolder and run `npm install`.
+  * Then run `npm run build`.
 
 ### Structure of the Repository
 
@@ -14,7 +20,7 @@ It's helpful to know the overall structure of the repository so that you can foc
  
 
 ### Continuous Integration and Testing
-All PRs must pass the continuous integration tests before merging. To test locally, you can run `python3 -m unittest`.
+All PRs must pass the continuous integration tests before merging. To test locally, you can run `python -m unittest` from the `/gradio` subfolder.
 
 ### Submitting PRs
 
