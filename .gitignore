@@ -20,7 +20,7 @@ gradio/templates/frontend/static
 *.db
 *.sqlite3
 gradio/launches.json
-flagged/*
+flagged/
 
 # Tests
 .coverage
