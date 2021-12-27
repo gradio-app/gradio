@@ -20,7 +20,7 @@
   <meta name="twitter:image" content="https://gradio.app/static/home/img/social-cheetah.jpg">  
 
   <link rel="icon" type="image/png" href="/assets/img/logo.png">
-  <link href="/gradio_static/bundle.css" rel="stylesheet">
+  <link href="/gradio_static/static/bundle.css" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="/assets/prism.css">
   <script async src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
@@ -310,8 +310,7 @@ iface <span class="token operator">=</span> gr<span class="token punctuation">.<
       }
     }
     xhr.send();
-  </script>
-  <script>
+
     let load_demo = demo_id => {
       document.querySelectorAll(".demotab").forEach(demotab => {
         demotab.classList.remove("selected");
@@ -322,8 +321,10 @@ iface <span class="token operator">=</span> gr<span class="token punctuation">.<
       document.querySelector(`.demotab[demo='${demo_id}']`).classList.add("selected");
       document.querySelector(`.demo[demo='${demo_id}']`).classList.remove("hidden");
     }
+
+    window.gradio_mode = "website";
   </script>
-  <script defer id='gradio-library' src="/gradio_static/bundle.js"></script>
+  <script defer id='gradio-library' src="/gradio_static/static/bundle.js"></script>
   <script>
     document.querySelector("#gradio-library").addEventListener('load', function () {
       launchGradioFromSpaces("abidlabs/Draw", "#demo_mnist");
