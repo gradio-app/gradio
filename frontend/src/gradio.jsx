@@ -430,7 +430,7 @@ export class GradioInterface extends React.Component {
               ) : (
                 false
               )}
-              {this.props.allow_flagging ? (
+              {this.props.allow_flagging === "manual" ? (
                 this.props.flagging_options === null ? (
                   <button
                     className={classNames("panel_button", "flag", {
