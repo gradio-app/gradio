@@ -1,11 +1,9 @@
 """
-Defines helper methods useful for setting up ports, launching servers, and handling `ngrok`
+Defines helper methods useful for setting up ports, launching servers, and
+creating tunnels.
 """
-
-from fastapi import FastAPI, Form, Request
-from fastapi.responses import PlainTextResponse, HTMLResponse, FileResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
+from __future__ import annotations
+import fastapi
 from flask import Flask, request, session, jsonify, abort, send_file, render_template, redirect
 from flask_cachebuster import CacheBuster
 from flask_login import LoginManager, login_user, current_user, login_required
@@ -24,39 +22,36 @@ import sys
 import threading
 import time
 import traceback
+from typing import Callable, Any, List, Optional, Tuple, TYPE_CHECKING
 import urllib.parse
 import urllib.request
 import uvicorn
 from werkzeug.security import safe_join
 from werkzeug.serving import make_server
 
-from gradio import encryptor, queue
+from gradio import encryptor, queueing
 from gradio.tunneling import create_tunnel
+from gradio.app import app
 
-# By default, the http server will try to open on port 7860. If not available, 7861, 7862, etc.
+if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
+    from gradio import Interface
+
+
+# By default, the http server will try to open on port 7860. 
+# If not available, 7861, 7862, ... 7959.
 INITIAL_PORT_VALUE = int(os.getenv('GRADIO_SERVER_PORT', "7860"))  
-# Number of ports to try before giving up and throwing an exception.
 TRY_NUM_PORTS = int(os.getenv('GRADIO_NUM_PORTS', "100"))  
 LOCALHOST_NAME = os.getenv('GRADIO_SERVER_NAME', "127.0.0.1")
 GRADIO_API_SERVER = "https://api.gradio.app/v1/tunnel-request"
 GRADIO_FEATURE_ANALYTICS_URL = "https://api.gradio.app/gradio-feature-analytics/"
 
-STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "templates/")
-STATIC_PATH_LIB = pkg_resources.resource_filename("gradio", "templates/frontend/static")
-VERSION_FILE = pkg_resources.resource_filename("gradio", "version.txt")
-
-with open(VERSION_FILE) as version_file:
-    GRADIO_STATIC_ROOT = "https://gradio.s3-us-west-2.amazonaws.com/" + \
-        version_file.read() + "/static/"
-
-app = FastAPI()
+# # TODO: all of this needs to be migrated
 # app = Flask(__name__,
 #             template_folder=STATIC_TEMPLATE_LIB,
 #             static_folder="",
 #             static_url_path="/none/")
 # app.url_map.strict_slashes = False  # TODO
 
-# TODO: all of this needs to be migrated
 # CORS(app)
 # cache_buster = CacheBuster(
 #     config={'extensions': ['.js', '.css'], 'hash_size': 5})
@@ -71,34 +66,34 @@ app = FastAPI()
 # cli.show_server_banner = lambda *x: None
 
 
-class User:
-    def __init__(self, id):
-        self.is_authenticated = True
-        self.is_active = True
-        self.is_anonymous = False
-        self.id = id
+# class User:
+#     def __init__(self, id):
+#         self.is_authenticated = True
+#         self.is_active = True
+#         self.is_anonymous = False
+#         self.id = id
 
-    def get_id(self):
-        return self.id
-
-
-@login_manager.user_loader
-def load_user(_id):
-    return User(_id)
+#     def get_id(self):
+#         return self.id
 
 
-def login_check(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        if app.auth:
-            @login_required
-            def func2(*args, **kwargs):
-                return func(*args, **kwargs)
+# @login_manager.user_loader
+# def load_user(_id):
+#     return User(_id)
 
-            return func2(*args, **kwargs)
-        else:
-            return func(*args, **kwargs)
-    return wrapper
+
+# def login_check(func):
+#     @wraps(func)
+#     def wrapper(*args, **kwargs):
+#         if app.auth:
+#             @login_required
+#             def func2(*args, **kwargs):
+#                 return func(*args, **kwargs)
+
+#             return func2(*args, **kwargs)
+#         else:
+#             return func(*args, **kwargs)
+#     return wrapper
 
 
 def get_local_ip_address():
@@ -112,12 +107,16 @@ def get_local_ip_address():
 IP_ADDRESS = get_local_ip_address()
 
 
-def get_first_available_port(initial, final):
+def get_first_available_port(
+    initial: int, 
+    final: int) -> int:
     """
     Gets the first open port in a specified range of port numbers
-    :param initial: the initial value in the range of port numbers
-    :param final: final (exclusive) value in the range of port numbers, should be greater than `initial`
-    :return:
+    Parameters:
+    initial: the initial value in the range of port numbers
+    final: final (exclusive) value in the range of port numbers, should be greater than `initial`
+    Returns:
+    port: the first open port in the range
     """
     for port in range(initial, final):
         try:
@@ -133,20 +132,6 @@ def get_first_available_port(initial, final):
         )
     )
 
-
-@app.route("/", methods=["GET"])
-@login_check
-def main():
-    session["state"] = None
-    return render_template("frontend/index.html", config=app.interface.config)
-
-
-@app.route("/static/<path:path>", methods=["GET"])
-def static_resource(path):
-    if app.interface.share:
-        return redirect(GRADIO_STATIC_ROOT + path)
-    else:
-        return send_file(safe_join(STATIC_PATH_LIB, path))
 
 
 # TODO(@aliabid94): this throws a 500 error if app.auth is None (should probalbly just redirect to '/')
@@ -208,7 +193,7 @@ def get_config():
 
 
 @app.route("/enable_sharing/<path:path>", methods=["GET"])
-@login_check
+#@login_check
 def enable_sharing(path):
     if path == "None":
         path = None
@@ -226,7 +211,7 @@ def shutdown():
 
 
 @app.route("/api/predict/", methods=["POST"])
-@login_check
+#@login_check
 def predict():
     raw_input = request.json["data"]
     # Capture any errors made and pipe to front end
@@ -256,7 +241,7 @@ def predict():
 
 
 @app.route("/api/flag/", methods=["POST"])
-@login_check
+#@login_check
 def flag():
     log_feature_analytics('flag')
     data = request.json['data']
@@ -268,7 +253,7 @@ def flag():
 
 
 @app.route("/api/interpret/", methods=["POST"])
-@login_check
+#@login_check
 def interpret():
     log_feature_analytics('interpret')
     raw_input = request.json["data"]
@@ -281,7 +266,7 @@ def interpret():
 
 
 @app.route("/file/<path:path>", methods=["GET"])
-@login_check
+#@login_check
 def file(path):
     if app.interface.encrypt and isinstance(app.interface.examples, str) and path.startswith(app.interface.examples):
         with open(safe_join(app.cwd, path), "rb") as encrypted_file:
@@ -294,35 +279,35 @@ def file(path):
 
 
 @app.route("/api/queue/push/", methods=["POST"])
-@login_check
+#@login_check
 def queue_push():
     data = request.json["data"]
     action = request.json["action"]
-    job_hash, queue_position = queue.push({"data": data}, action)
+    job_hash, queue_position = queueing.push({"data": data}, action)
     return {"hash": job_hash, "queue_position": queue_position}
 
 
 @app.route("/api/queue/status/", methods=["POST"])
-@login_check
+#@login_check
 def queue_status():
     hash = request.json['hash']
-    status, data = queue.get_status(hash)
+    status, data = queueing.get_status(hash)
     return {"status": status, "data": data}
 
 
 def queue_thread(path_to_local_server, test_mode=False):
     while True:
         try:
-            next_job = queue.pop()
+            next_job = queueing.pop()
             if next_job is not None:
                 _, hash, input_data, task_type = next_job
-                queue.start_job(hash)
+                queueing.start_job(hash)
                 response = requests.post(
                     path_to_local_server + "/api/" + task_type + "/", json=input_data)
                 if response.status_code == 200:
-                    queue.pass_job(hash, response.json())
+                    queueing.pass_job(hash, response.json())
                 else:
-                    queue.fail_job(hash, response.text)
+                    queueing.fail_job(hash, response.text)
             else:
                 time.sleep(1)
         except Exception as e:
@@ -332,17 +317,28 @@ def queue_thread(path_to_local_server, test_mode=False):
             break
 
 
-def start_server(interface, server_name=None, server_port=None, auth=None, ssl=None):
-    if server_name is None:
-        server_name = LOCALHOST_NAME
-    if server_port is None:  # if port is not specified, start at 7860 and search for first available port        
+def start_server(
+    interface: Interface, 
+    server_name: Optional[str] = None, 
+    server_port: Optional[int] = None, 
+    auth: Optional[Callable | Tuple[str, str] | List[Tuple[str, str]]] = None, 
+    ssl=None) -> Tuple[int, str, fastapi.FastAPI, threading.Thread, None]:
+    """Launches a local server running the provided Interface
+    Parameters:
+    interface: The interface object to run on the server
+    server_name: to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME.
+    server_port: will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT.
+    auth: If provided, username and password (or list of username-password tuples) required to access interface. Can also provide function that takes username and password and returns True if valid login.
+    """    
+    server_name = server_name or LOCALHOST_NAME
+    if server_port is None:  # if port is not specified, search for first available port        
         port = get_first_available_port(
             INITIAL_PORT_VALUE, INITIAL_PORT_VALUE + TRY_NUM_PORTS
         )
     else:
         try:
-            s = socket.socket()  # create a socket object
-            s.bind((LOCALHOST_NAME, server_port))  # Bind to the port to see if it's available (otherwise, raise OSError)
+            s = socket.socket()
+            s.bind((LOCALHOST_NAME, server_port)) 
             s.close()
         except OSError:
             raise OSError("Port {} is in use. If a gradio.Interface is running on the port, you can close() it or gradio.close_all().".format(server_port))
@@ -350,32 +346,28 @@ def start_server(interface, server_name=None, server_port=None, auth=None, ssl=N
 
     url_host_name = "localhost" if server_name == "0.0.0.0" else server_name
     path_to_local_server = "http://{}:{}/".format(url_host_name, port)
-    if auth is not None:
-        if not callable(auth):
-            app.auth = {account[0]: account[1] for account in auth}
-        else:
-            app.auth = auth
-    else:
-        app.auth = None
+    # if auth is not None:
+    #     if not callable(auth):
+    #         app.auth = {account[0]: account[1] for account in auth}
+    #     else:
+    #         app.auth = auth
+    # else:
+    #     app.auth = None
     app.interface = interface
-    app.cwd = os.getcwd()
-    log = logging.getLogger('werkzeug')
-    log.setLevel(logging.ERROR)
-    if app.interface.enable_queue:
-        if auth is not None or app.interface.encrypt:
-            raise ValueError("Cannot queue with encryption or authentication enabled.")
-        queue.init()
-        app.queue_thread = threading.Thread(target=queue_thread, args=(path_to_local_server,))
-        app.queue_thread.start()
-    if interface.save_to is not None:
-        interface.save_to["port"] = port
-    app_kwargs = {"app": app, "port": port, "host": server_name}
-    if ssl:
-        app_kwargs["ssl_context"] = ssl
-    server = make_server(**app_kwargs)
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    # app.cwd = os.getcwd()
+    # if app.interface.enable_queue:
+    #     if auth is not None or app.interface.encrypt:
+    #         raise ValueError("Cannot queue with encryption or authentication enabled.")
+    #     queueing.init()
+    #     app.queue_thread = threading.Thread(target=queue_thread, args=(path_to_local_server,))
+    #     app.queue_thread.start()
+    # if interface.save_to is not None:
+    #     interface.save_to["port"] = port
+    app_kwargs = {"app": app, "port": port, "host": server_name, 
+                  "log_level": "warning"}
+    thread = threading.Thread(target=uvicorn.run, kwargs=app_kwargs)
     thread.start()
-    return port, path_to_local_server, app, thread, server
+    return port, path_to_local_server, app, thread, None
 
 def get_state():
     return session.get("state")
