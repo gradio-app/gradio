@@ -2,8 +2,10 @@
 Defines helper methods useful for setting up ports, launching servers, and handling `ngrok`
 """
 
-import csv
-import datetime
+from fastapi import FastAPI, Form, Request
+from fastapi.responses import PlainTextResponse, HTMLResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from flask import Flask, request, session, jsonify, abort, send_file, render_template, redirect
 from flask_cachebuster import CacheBuster
 from flask_login import LoginManager, login_user, current_user, login_required
@@ -15,6 +17,7 @@ import json
 import logging
 import os
 import pkg_resources
+from pydantic import BaseModel
 import requests
 import socket
 import sys
@@ -23,6 +26,7 @@ import time
 import traceback
 import urllib.parse
 import urllib.request
+import uvicorn
 from werkzeug.security import safe_join
 from werkzeug.serving import make_server
 
@@ -45,24 +49,26 @@ with open(VERSION_FILE) as version_file:
     GRADIO_STATIC_ROOT = "https://gradio.s3-us-west-2.amazonaws.com/" + \
         version_file.read() + "/static/"
 
-app = Flask(__name__,
-            template_folder=STATIC_TEMPLATE_LIB,
-            static_folder="",
-            static_url_path="/none/")
-app.url_map.strict_slashes = False
+app = FastAPI()
+# app = Flask(__name__,
+#             template_folder=STATIC_TEMPLATE_LIB,
+#             static_folder="",
+#             static_url_path="/none/")
+# app.url_map.strict_slashes = False  # TODO
 
-CORS(app)
-cache_buster = CacheBuster(
-    config={'extensions': ['.js', '.css'], 'hash_size': 5})
-cache_buster.init_app(app)
-app.secret_key = os.getenv("GRADIO_KEY", "secret")
-login_manager = LoginManager()
-login_manager.login_view = 'login'
-login_manager.init_app(app)
+# TODO: all of this needs to be migrated
+# CORS(app)
+# cache_buster = CacheBuster(
+#     config={'extensions': ['.js', '.css'], 'hash_size': 5})
+# cache_buster.init_app(app)
+# app.secret_key = os.getenv("GRADIO_KEY", "secret")
+# login_manager = LoginManager()
+# login_manager.login_view = 'login'
+# login_manager.init_app(app)
 
-# Hide Flask default message
-cli = sys.modules['flask.cli']
-cli.show_server_banner = lambda *x: None
+# # Hide Flask default message
+# cli = sys.modules['flask.cli']
+# cli.show_server_banner = lambda *x: None
 
 
 class User:
