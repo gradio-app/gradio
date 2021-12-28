@@ -32,4 +32,4 @@ to merge into master. By convention, the Gradio maintainers will review PRs when
 We ask that you make sure initial CI checks are passing before requesting a review.
 One of the Gradio maintainers will merge the PR when all the checks are passing.
 
-*Could these guidelines be clearer? Feel free to open a PR to help us faciltiate open-source contributions!"
+*Could these guidelines be clearer? Feel free to open a PR to help us faciltiate open-source contributions!*
