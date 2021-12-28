@@ -39,6 +39,14 @@ def version_check():
         warnings.warn("unable to connect with package URL to collect version info.")
 
 
+def get_local_ip_address() -> str:
+    try:
+        ip_address = requests.get('https://api.ipify.org', timeout=3).text
+    except (requests.ConnectionError, requests.exceptions.ReadTimeout):
+        ip_address = "No internet connection"
+    return ip_address
+
+
 def initiated_analytics(data):
     try:
         requests.post(analytics_url + 'gradio-initiated-analytics/',
@@ -75,6 +83,15 @@ def error_analytics(type):
                       data=data, timeout=3)
     except (requests.ConnectionError, requests.exceptions.ReadTimeout):
         pass  # do not push analytics if no network
+
+
+def log_feature_analytics(ip_address, feature):
+        data={'ip_address': ip_address, 'feature': feature}    
+        try:
+            requests.post(analytics_url + 'gradio-feature-analytics/',
+                          data=data, timeout=3)
+        except (requests.ConnectionError, requests.exceptions.ReadTimeout):
+            pass  # do not push analytics if no network
 
 
 def colab_check():
