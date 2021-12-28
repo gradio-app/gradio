@@ -209,7 +209,7 @@ def predict():
     output = {"data": prediction, "durations": durations, "avg_durations": avg_durations}
     if app.interface.allow_flagging == "auto":
         try:
-            flag_index = app.interface.flagging_handler.flag(raw_input, prediction,
+            flag_index = app.interface.flagging_callback.flag(raw_input, prediction,
                 flag_option=(None if app.interface.flagging_options is None else ""), 
                 username=current_user.id if current_user.is_authenticated else None,
                 flag_path=os.path.join(app.cwd, app.interface.flagging_dir))
