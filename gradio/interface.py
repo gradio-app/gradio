@@ -1,6 +1,6 @@
 """
-This is the core file in the `gradio` package, and defines the Interface class, including methods for constructing the
-interface using the input and output types.
+This is the core file in the `gradio` package, and defines the Interface class, 
+including various methods for constructing an interface and then launching it.
 """
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ import warnings
 import webbrowser
 import weakref
 
-from gradio import encryptor, interpretation, networking, queue, strings, utils  # type: ignore
+from gradio import encryptor, interpretation, networking, queueing, strings, utils  # type: ignore
 from gradio.external import load_interface, load_from_pipeline  # type: ignore
 from gradio.flagging import FlaggingCallback, CSVLogger  # type: ignore
 from gradio.inputs import get_input_instance, InputComponent  # type: ignore
@@ -426,7 +426,7 @@ class Interface:
             # Hit the server one more time to close it
             networking.url_ok(path_to_local_server)
             if self.enable_queue:
-                queue.close()
+                queueing.close()
 
     def test_launch(self) -> None:
         for predict_fn in self.predict:
@@ -486,8 +486,7 @@ class Interface:
         path_to_local_server (str): Locally accessible link
         share_url (str): Publicly accessible link (if share=True)
         """
-        config = self.get_config_file()
-        self.config = config
+        self.config = self.get_config_file()
         if auth and not callable(auth) and not isinstance(
             auth[0], tuple) and not isinstance(auth[0], list):
             auth = [auth]
@@ -511,6 +510,7 @@ class Interface:
 
         server_port, path_to_local_server, app, thread, server = networking.start_server(
             self, server_name, server_port, self.auth)
+        
         self.local_url = path_to_local_server
         self.server_port = server_port
         self.status = "RUNNING"
@@ -538,7 +538,7 @@ class Interface:
         if private_endpoint is not None:
             share = True
         self.share = share
-
+        
         if share:
             try:
                 share_url = networking.setup_tunnel(
