@@ -135,20 +135,20 @@ def get_first_available_port(
 
 
 # TODO(@aliabid94): this throws a 500 error if app.auth is None (should probalbly just redirect to '/')
-@app.route('/login', methods=["GET", "POST"])
-def login():
-    if request.method == "GET":
-        config = get_config()
-        return render_template("frontend/index.html", config=config)
-    elif request.method == "POST":
-        username = request.form.get("username")
-        password = request.form.get("password")
-        if ((not callable(app.auth) and username in app.auth and app.auth[username] == password)
-                or (callable(app.auth) and app.auth.__call__(username, password))):
-            login_user(User(username))
-            return redirect("/")
-        else:
-            return abort(401)
+# @app.route('/login', methods=["GET", "POST"])
+# def login():
+#     if request.method == "GET":
+#         config = get_config()
+#         return render_template("frontend/index.html", config=config)
+#     elif request.method == "POST":
+#         username = request.form.get("username")
+#         password = request.form.get("password")
+#         if ((not callable(app.auth) and username in app.auth and app.auth[username] == password)
+#                 or (callable(app.auth) and app.auth.__call__(username, password))):
+#             login_user(User(username))
+#             return redirect("/")
+#         else:
+#             return abort(401)
 
 
 @app.route("/api/", methods=["GET"])

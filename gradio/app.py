@@ -1,3 +1,4 @@
+from __future__ import annotations
 from fastapi import FastAPI, Form, Request, HTTPException
 from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -38,7 +39,7 @@ def main(request: Request):
 
 
 @app.get("/static/{path:path}")
-def static_resource(path):
+def static_resource(path: str):
     # if app.interface.share:
         # return redirect(GRADIO_STATIC_ROOT + path)
     # else:
