@@ -10,6 +10,8 @@ import traceback
 from typing import Callable, Any, List, Optional, Tuple, TYPE_CHECKING
 import uvicorn
 
+from gradio import utils
+
 STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "templates/")
 STATIC_PATH_LIB = pkg_resources.resource_filename(
     "gradio", "templates/frontend/static")
@@ -49,6 +51,14 @@ def static_resource(path: str):
     raise HTTPException(status_code=404, detail="Static file not found")
 
 
+@app.get("/config/")
+def get_config():
+    #if app.interface.auth is None or current_user.is_authenticated:
+    return app.interface.config
+    # else:
+    #     return {"auth_required": True, "auth_message": app.interface.auth_message}
+
+
 @app.post("/api/predict/")
 # @login_check
 async def predict(request: Request):
@@ -81,6 +91,21 @@ async def predict(request: Request):
     return output
 
 
+@app.post("/api/flag/")
+#@login_check
+async def flag(request: Request):
+    if app.interface.analytics_enabled:
+        utils.log_feature_analytics(app.ip_address, 'flag')
+    body = await request.json()
+    data = body['data']
+    app.interface.flagging_callback.flag(
+        app.interface, data['input_data'], data['output_data'], 
+        data.get("flag_option"), data.get("flag_index"),
+        None)
+        # current_user.id if current_user.is_authenticated else None)
+    return {'success': True}
+
+
 ########
 # Helper functions
 ########
@@ -106,9 +131,12 @@ def safe_join(directory: str, path: str) -> Optional[str]:
 
     return posixpath.join(directory, filename)    
     
-
 if __name__ == '__main__':
+    """Run directly from the terminal for debugging: python app.py"""
     from gradio import Interface
-    app.interface = Interface(lambda x: "Hello, " + x, "text", "text")
+    app.interface = Interface(lambda x: "Hello, " + x, "text", "text",
+                              analytics_enabled=False)
     app.interface.config = app.interface.get_config_file()
+    app.interface.show_error = True
+    app.interface.flagging_callback.setup(app.interface.flagging_dir)
     uvicorn.run(app)

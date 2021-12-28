@@ -37,20 +37,19 @@ if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
     from gradio import Interface
 
 
-# By default, the http server will try to open on port 7860. 
-# If not available, 7861, 7862, ... 7959.
+# By default, the local server will try to open on localhost, port 7860. 
+# If that is not available, then it will try 7861, 7862, ... 7959.
 INITIAL_PORT_VALUE = int(os.getenv('GRADIO_SERVER_PORT', "7860"))  
 TRY_NUM_PORTS = int(os.getenv('GRADIO_NUM_PORTS', "100"))  
 LOCALHOST_NAME = os.getenv('GRADIO_SERVER_NAME', "127.0.0.1")
 GRADIO_API_SERVER = "https://api.gradio.app/v1/tunnel-request"
-GRADIO_FEATURE_ANALYTICS_URL = "https://api.gradio.app/gradio-feature-analytics/"
 
 # # TODO: all of this needs to be migrated
 # app = Flask(__name__,
 #             template_folder=STATIC_TEMPLATE_LIB,
 #             static_folder="",
 #             static_url_path="/none/")
-# app.url_map.strict_slashes = False  # TODO
+# app.url_map.strict_slashes = False  # TODO: go back to discussion with Charles
 
 # CORS(app)
 # cache_buster = CacheBuster(
@@ -94,18 +93,6 @@ GRADIO_FEATURE_ANALYTICS_URL = "https://api.gradio.app/gradio-feature-analytics/
 #         else:
 #             return func(*args, **kwargs)
 #     return wrapper
-
-
-def get_local_ip_address():
-    try:
-        ip_address = requests.get('https://api.ipify.org', timeout=3).text
-    except (requests.ConnectionError, requests.exceptions.ReadTimeout):
-        ip_address = "No internet connection"
-    return ip_address
-
-
-IP_ADDRESS = get_local_ip_address()
-
 
 def get_first_available_port(
     initial: int, 
@@ -184,14 +171,6 @@ def api_docs():
     return render_template("api_docs.html", **docs)
 
 
-@app.route("/config/", methods=["GET"])
-def get_config():
-    if app.interface.auth is None or current_user.is_authenticated:
-        return jsonify(app.interface.config)
-    else:
-        return {"auth_required": True, "auth_message": app.interface.auth_message}
-
-
 @app.route("/enable_sharing/<path:path>", methods=["GET"])
 #@login_check
 def enable_sharing(path):
@@ -210,46 +189,6 @@ def shutdown():
     return "Shutting down..."
 
 
-@app.route("/api/predict/", methods=["POST"])
-#@login_check
-def predict():
-    raw_input = request.json["data"]
-    # Capture any errors made and pipe to front end
-    if app.interface.show_error:
-        try:
-            prediction, durations = app.interface.process(raw_input)
-        except BaseException as error:
-            traceback.print_exc()
-            return jsonify({"error": str(error)}), 500
-    else:
-        prediction, durations = app.interface.process(raw_input)
-    avg_durations = []
-    for i, duration in enumerate(durations):
-        app.interface.predict_durations[i][0] += duration
-        app.interface.predict_durations[i][1] += 1
-        avg_durations.append(app.interface.predict_durations[i][0] 
-            / app.interface.predict_durations[i][1])
-    app.interface.config["avg_durations"] = avg_durations
-    output = {"data": prediction, "durations": durations, "avg_durations": avg_durations}
-    if app.interface.allow_flagging == "auto":
-        flag_index = app.interface.flagging_callback.flag(
-            app.interface, raw_input, prediction,
-            flag_option=(None if app.interface.flagging_options is None else ""), 
-            username=current_user.id if current_user.is_authenticated else None)
-        output["flag_index"] = flag_index
-    return jsonify(output)
-
-
-@app.route("/api/flag/", methods=["POST"])
-#@login_check
-def flag():
-    log_feature_analytics('flag')
-    data = request.json['data']
-    app.interface.flagging_callback.flag(
-        app.interface, data['input_data'], data['output_data'], 
-        data.get("flag_option"), data.get("flag_index"),
-        current_user.id if current_user.is_authenticated else None)
-    return jsonify(success=True)
 
 
 @app.route("/api/interpret/", methods=["POST"])
@@ -346,13 +285,13 @@ def start_server(
 
     url_host_name = "localhost" if server_name == "0.0.0.0" else server_name
     path_to_local_server = "http://{}:{}/".format(url_host_name, port)
-    # if auth is not None:
-    #     if not callable(auth):
-    #         app.auth = {account[0]: account[1] for account in auth}
-    #     else:
-    #         app.auth = auth
-    # else:
-    #     app.auth = None
+    if auth is not None:
+        if not callable(auth):
+            app.auth = {account[0]: account[1] for account in auth}
+        else:
+            app.auth = auth
+    else:
+        app.auth = None
     app.interface = interface
     # app.cwd = os.getcwd()
     # if app.interface.enable_queue:
@@ -433,14 +372,5 @@ def get_types(cls_set, component):
     return docset, types
 
 
-def log_feature_analytics(feature):
-    if app.interface.analytics_enabled:
-        try:
-            requests.post(GRADIO_FEATURE_ANALYTICS_URL,
-                          data={
-                              'ip_address': IP_ADDRESS,
-                              'feature': feature}, timeout=3)
-        except (requests.ConnectionError, requests.exceptions.ReadTimeout):
-            pass  # do not push analytics if no network
 
 

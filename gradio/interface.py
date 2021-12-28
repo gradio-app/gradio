@@ -256,7 +256,7 @@ class Interface:
         self.share = None
         self.share_url = None
         self.local_url = None
-        self.ip_address = networking.get_local_ip_address()
+        self.ip_address = utils.get_local_ip_address()
 
         if show_tips is not None:
             warnings.warn("The `show_tips` parameter in the `Interface` is deprecated. Please use the `show_tips` parameter in `launch()` instead")
