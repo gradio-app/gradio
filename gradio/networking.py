@@ -9,19 +9,14 @@ from flask_cachebuster import CacheBuster
 from flask_login import LoginManager, login_user, current_user, login_required
 from flask_cors import CORS
 from functools import wraps
-import inspect
+import http
 import io
 import json
-import logging
 import os
-import pkg_resources
-from pydantic import BaseModel
 import requests
 import socket
-import sys
 import threading
 import time
-import traceback
 from typing import Callable, Any, List, Optional, Tuple, TYPE_CHECKING
 import urllib.parse
 import urllib.request
@@ -35,7 +30,6 @@ from gradio.app import app
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
     from gradio import Interface
-
 
 # By default, the local server will try to open on localhost, port 7860. 
 # If that is not available, then it will try 7861, 7862, ... 7959.
@@ -119,8 +113,6 @@ def get_first_available_port(
         )
     )
 
-
-
 # TODO(@aliabid94): this throws a 500 error if app.auth is None (should probalbly just redirect to '/')
 # @app.route('/login', methods=["GET", "POST"])
 # def login():
@@ -138,48 +130,6 @@ def get_first_available_port(
 #             return abort(401)
 
 
-@app.route("/api/", methods=["GET"])
-def api_docs():
-    inputs = [type(inp) for inp in app.interface.input_components]
-    outputs = [type(out) for out in app.interface.output_components]
-    input_types_doc, input_types = get_types(inputs, "input")
-    output_types_doc, output_types = get_types(outputs, "output")
-    input_names = [type(inp).__name__ for inp in app.interface.input_components]
-    output_names = [type(out).__name__ for out in app.interface.output_components]
-    if app.interface.examples is not None:
-        sample_inputs = app.interface.examples[0]
-    else:
-        sample_inputs = [inp.generate_sample() for inp in app.interface.input_components]
-    docs = {
-        "inputs": input_names,
-        "outputs": output_names,
-        "len_inputs": len(inputs),
-        "len_outputs": len(outputs),
-        "inputs_lower": [name.lower() for name in input_names],
-        "outputs_lower": [name.lower() for name in output_names],
-        "input_types": input_types,
-        "output_types": output_types,
-        "input_types_doc": input_types_doc,
-        "output_types_doc": output_types_doc,
-        "sample_inputs": sample_inputs,
-        "auth": app.interface.auth,
-        "local_login_url": urllib.parse.urljoin(
-            app.interface.local_url, "login"),
-        "local_api_url": urllib.parse.urljoin(
-            app.interface.local_url, "api/predict")
-    }
-    return render_template("api_docs.html", **docs)
-
-
-@app.route("/enable_sharing/<path:path>", methods=["GET"])
-#@login_check
-def enable_sharing(path):
-    if path == "None":
-        path = None
-    app.interface.config["share_url"] = path
-    return jsonify(success=True)
-
-
 @app.route("/shutdown", methods=['GET'])
 def shutdown():
     shutdown_func = request.environ.get('werkzeug.server.shutdown')
@@ -187,19 +137,6 @@ def shutdown():
         raise RuntimeError('Not running werkzeug')
     shutdown_func()
     return "Shutting down..."
-
-
-@app.route("/file/<path:path>", methods=["GET"])
-#@login_check
-def file(path):
-    if app.interface.encrypt and isinstance(app.interface.examples, str) and path.startswith(app.interface.examples):
-        with open(safe_join(app.cwd, path), "rb") as encrypted_file:
-            encrypted_data = encrypted_file.read()
-        file_data = encryptor.decrypt(
-            app.interface.encryption_key, encrypted_data)
-        return send_file(io.BytesIO(file_data), attachment_filename=os.path.basename(path))
-    else:
-        return send_file(safe_join(app.cwd, path))
 
 
 @app.route("/api/queue/push/", methods=["POST"])
@@ -293,18 +230,27 @@ def start_server(
     thread.start()
     return port, path_to_local_server, app, thread, None
 
+
 def get_state():
     return session.get("state")
+
 
 def set_state(value):
     session["state"] = value
 
-def close_server(process):
-    process.terminate()
-    process.join()
+
+def setup_tunnel(local_server_port: int, endpoint: str) -> str:
+    response = url_request(
+        endpoint + '/v1/tunnel-request' if endpoint is not None else GRADIO_API_SERVER)
+    if response and response.code == 200:
+        try:
+            payload = json.loads(response.read().decode("utf-8"))[0]
+            return create_tunnel(payload, LOCALHOST_NAME, local_server_port)
+        except Exception as e:
+            raise RuntimeError(str(e))
 
 
-def url_request(url):
+def url_request(url: str) -> Optional[http.client.HTTPResponse]:
     try:
         req = urllib.request.Request(
             url=url, headers={"content-type": "application/json"}
@@ -315,19 +261,7 @@ def url_request(url):
         raise RuntimeError(str(e))
 
 
-def setup_tunnel(local_server_port, endpoint):
-    response = url_request(
-        endpoint + '/v1/tunnel-request' if endpoint is not None else GRADIO_API_SERVER)
-    if response and response.code == 200:
-        try:
-            payload = json.loads(response.read().decode("utf-8"))[0]
-            return create_tunnel(payload, LOCALHOST_NAME, local_server_port)
-
-        except Exception as e:
-            raise RuntimeError(str(e))
-
-
-def url_ok(url):
+def url_ok(url: str) -> bool:
     try:
         for _ in range(5):
             time.sleep(.500)
@@ -339,22 +273,6 @@ def url_ok(url):
     
 
 
-def get_types(cls_set, component):
-    docset = []
-    types = []
-    if component == "input":
-        for cls in cls_set:
-            doc = inspect.getdoc(cls.preprocess)
-            doc_lines = doc.split("\n")
-            docset.append(doc_lines[1].split(":")[-1])
-            types.append(doc_lines[1].split(")")[0].split("(")[-1])
-    else:
-        for cls in cls_set:
-            doc = inspect.getdoc(cls.postprocess)
-            doc_lines = doc.split("\n")
-            docset.append(doc_lines[-1].split(":")[-1])
-            types.append(doc_lines[-1].split(")")[0].split("(")[-1])
-    return docset, types
 
 
 
