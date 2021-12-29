@@ -13,10 +13,11 @@ When installing locally, you may also need to build the front end:
 
 It's helpful to know the overall structure of the repository so that you can focus on the part of the source code you'd like to contribute to
 
-* `/gradio`: contains the source code for the actual Python library
-   * `/gradio/interface.py`: contains the source code for the core `Interface` class 
-* `/test`: contains unit tests for the Python library
-
+* `/gradio`: contains the Python source code for the library
+   * `/gradio/interface.py`: contains the Python source code for the core `Interface` class 
+* `/frontend`: contains the HTML/JS/CSS source code for the library
+* `/test`: contains Python unit tests for the library
+* `/demo`: contains demos that are used in the documentation as well as for integration tests
 * `/website`: contains the code for the Gradio website (www.gradio.app). See the README in the `/website` folder for more details
  
 
