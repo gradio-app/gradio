@@ -110,7 +110,7 @@ class Interface:
         height=None, 
         width=None, 
         allow_screenshot: bool = True, 
-        allow_flagging: bool = None, 
+        allow_flagging: Optional[str] = None, 
         flagging_options: List[str]=None, 
         encrypt=None, 
         show_tips=None, 
@@ -139,8 +139,8 @@ class Interface:
         theme (str): Theme to use - one of "default", "huggingface", "grass", "peach". Add "dark" prefix, e.g. "darkpeach" or "darkdefault" for darktheme.
         css (str): custom css or path to custom css file to use with interface.
         allow_screenshot (bool): if False, users will not see a button to take a screenshot of the interface.
-        allow_flagging (bool): if False, users will not see a button to flag an input and output.
-        flagging_options (List[str]): if not None, provides options a user must select when flagging.
+        allow_flagging (str): one of "never", "auto", or "manual". If "never" or "auto", users will not see a button to flag an input and output. If "manual", users will see a button to flag. If "auto", every prediction will be automatically flagged. If "manual", samples are flagged when the user clicks flag button. Can be set with environmental variable GRADIO_ALLOW_FLAGGING.
+        flagging_options (List[str]): if provided, allows user to select from the list of options when flagging. Only applies if allow_flagging is "manual".
         encrypt (bool): DEPRECATED. If True, flagged data will be encrypted by key provided by creator at launch
         flagging_dir (str): what to name the dir where flagged data is stored.
         show_tips (bool): DEPRECATED. if True, will occasionally show tips about new Gradio features
@@ -201,6 +201,10 @@ class Interface:
         self.theme = theme
         self.height = height
         self.width = width
+        if self.height is not None or self.width is not None:
+            warnings.warn("The `height` and `width` parameters in `Interface` "
+                          "are deprecated and should be passed into launch().")
+
         if css is not None and os.path.exists(css):
             with open(css) as css_file:
                 self.css = css_file.read()
@@ -219,12 +223,33 @@ class Interface:
         self.simple_server = None
         self.allow_screenshot = allow_screenshot
         
-        # For allow_flagging and analytics_enabled: (1) first check for 
-        # parameter, (2) check for environment variable, (3) default to True
+        # For analytics_enabled and allow_flagging: (1) first check for 
+        # parameter, (2) check for env variable, (3) default to True/"manual"
         self.analytics_enabled = analytics_enabled if analytics_enabled is not None else os.getenv("GRADIO_ANALYTICS_ENABLED", "True")=="True"
-        self.allow_flagging = allow_flagging if allow_flagging is not None else os.getenv("GRADIO_ALLOW_FLAGGING", "True")=="True"
+        if allow_flagging is None:
+            allow_flagging = os.getenv("GRADIO_ALLOW_FLAGGING", "manual")
+        if allow_flagging==True:
+            warnings.warn("The `allow_flagging` parameter in `Interface` now"
+                          "takes a string value ('auto', 'manual', or 'never')"
+                          ", not a boolean. Setting parameter to: 'manual'.")             
+            self.allow_flagging = "manual"
+        elif allow_flagging=="manual":
+            self.allow_flagging = "manual"
+        elif allow_flagging==False:
+            warnings.warn("The `allow_flagging` parameter in `Interface` now"
+                          "takes a string value ('auto', 'manual', or 'never')"
+                          ", not a boolean. Setting parameter to: 'never'.")             
+            self.allow_flagging = "never"
+        elif allow_flagging=="never":
+            self.allow_flagging = "never"
+        elif allow_flagging=="auto":
+            self.allow_flagging = "auto"
+        else:
+            raise ValueError("Invalid value for `allow_flagging` parameter."
+                             "Must be: 'auto', 'manual', or 'never'.")        
+
         self.flagging_options = flagging_options
-        self.flagging_callback: FlaggingCallback = flagging_callback
+        self.flagging_callback = flagging_callback
         self.flagging_dir = flagging_dir
 
         self.save_to = None
@@ -449,8 +474,8 @@ class Interface:
         private_endpoint (str): If provided, the public URL of the interface will be this endpoint (should generally be unchanged).
         prevent_thread_lock (bool): If True, the interface will block the main thread while the server is running.
         show_error (bool): If True, any errors in the interface will be printed in the browser console log
-        server_port (int): will start gradio app on this port (if available) 
-        server_name (str): to make app accessible on local network, set this to "0.0.0.0".
+        server_port (int): will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT.
+        server_name (str): to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME.
         show_tips (bool): if True, will occasionally show tips about new Gradio features
         enable_queue (bool): if True, inference requests will be served through a queue instead of with parallel threads. Required for longer inference times (> 1min) to prevent timeout.  
         width (int): The width in pixels of the <iframe> element containing the interface (used if inline=True)
