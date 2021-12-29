@@ -26,7 +26,8 @@
     gtag('config', 'UA-156449732-1');
     window.gradio_mode = "app";
     try {
-      window.gradio_config = {{ config|tojson }};
+      let s = "";
+      window.gradio_config = JSON.parse(`{{ config|tojson }}${s}`);
     } catch (e) {
     }
   </script>
