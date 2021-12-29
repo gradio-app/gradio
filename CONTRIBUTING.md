@@ -7,6 +7,7 @@ Next, to install the local development version of Gradio:
 When installing locally, you may also need to build the front end:
   * Navigate to the `/frontend` subfolder and run `npm install`.
   * Then run `npm run build`.
+  * Then you can run `npm run start` to start a local development server (on port 3000) that responds to any changes in the frontend
 
 ### Structure of the Repository
 
