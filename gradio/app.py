@@ -1,15 +1,16 @@
 """Implements a FastAPI server to run the gradio interface."""
 
 from __future__ import annotations
-from fastapi import FastAPI, Form, Request, HTTPException
+from fastapi import FastAPI, Form, Request, Depends, HTTPException, status
 from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
-from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
 import inspect
 import os
 import posixpath
 import pkg_resources
+from secrets import compare_digest
 import traceback
 from typing import Callable, Any, List, Optional, Tuple, TYPE_CHECKING
 import urllib
@@ -34,6 +35,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+secure = HTTPBasic()
 templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 
 
@@ -42,8 +44,23 @@ templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 ###############
 
 
+def get_current_username(credentials: HTTPBasicCredentials = Depends(secure)):
+    username, password = credentials.username, credentials.password
+    if app.auth is None:
+        return None
+    elif ((not callable(app.auth) and username in app.auth 
+           and compare_digest(app.auth[username], password))
+           or (callable(app.auth) and app.auth.__call__(username, password))):
+        return username
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Incorrect username or password",
+    )
+
+
 @app.head('/', response_class=HTMLResponse)
-@app.get('/', response_class=HTMLResponse)
+@app.get('/', response_class=HTMLResponse, 
+              dependencies=[Depends(get_current_username)])
 # @login_check # TODO
 def main(request: Request):
     # session["state"] = None  # TODO
@@ -66,10 +83,10 @@ def static_resource(path: str):
 
 @app.get("/config/")
 def get_config():
-    #if app.interface.auth is None or current_user.is_authenticated:
-    return app.interface.config
-    # else:
-    #     return {"auth_required": True, "auth_message": app.interface.auth_message}
+    if app.interface.auth is None or current_user.is_authenticated:
+        return app.interface.config
+    else:
+        return {"auth_required": True, "auth_message": app.interface.auth_message}
 
 
 @app.get("/api/", response_class=HTMLResponse)
