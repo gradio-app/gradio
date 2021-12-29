@@ -1,8 +1,11 @@
+"""Implements a FastAPI server to run the gradio interface."""
+
 from __future__ import annotations
 from fastapi import FastAPI, Form, Request, HTTPException
 from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi.middleware.cors import CORSMiddleware
 import inspect
 import os
 import posixpath
@@ -14,6 +17,7 @@ import uvicorn
 
 from gradio import utils
 
+
 STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "templates/")
 STATIC_PATH_LIB = pkg_resources.resource_filename(
     "gradio", "templates/frontend/static")
@@ -23,6 +27,13 @@ with open(VERSION_FILE) as version_file:
 GRADIO_STATIC_ROOT = "https://gradio.s3-us-west-2.amazonaws.com/{}/static/".format(version)
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 
 
@@ -159,6 +170,34 @@ async def interpret(request: Request):
     }
 
 
+# @app.route("/shutdown", methods=['GET'])
+# def shutdown():
+#     shutdown_func = request.environ.get('werkzeug.server.shutdown')
+#     if shutdown_func is None:
+#         raise RuntimeError('Not running werkzeug')
+#     shutdown_func()
+#     return "Shutting down..."
+
+
+# @app.route("/api/queue/push/", methods=["POST"])
+# #@login_check
+# def queue_push():
+#     data = request.json["data"]
+#     action = request.json["action"]
+#     job_hash, queue_position = queueing.push({"data": data}, action)
+#     return {"hash": job_hash, "queue_position": queue_position}
+
+
+# @app.route("/api/queue/status/", methods=["POST"])
+# #@login_check
+# def queue_status():
+#     hash = request.json['hash']
+#     status, data = queueing.get_status(hash)
+#     return {"status": status, "data": data}
+
+
+
+
 
 ########
 # Helper functions
@@ -202,6 +241,16 @@ def get_types(cls_set, component):
             docset.append(doc_lines[-1].split(":")[-1])
             types.append(doc_lines[-1].split(")")[0].split("(")[-1])
     return docset, types
+
+
+def get_state():
+    pass
+    # return session.get("state")
+
+
+def set_state(value):
+    pass
+#     session["state"] = value
 
     
 if __name__ == '__main__': # Run directly for debugging: python app.py
