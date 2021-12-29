@@ -95,7 +95,7 @@ async def predict(request: Request):
 #@login_check
 async def flag(request: Request):
     if app.interface.analytics_enabled:
-        utils.log_feature_analytics(app.ip_address, 'flag')
+        utils.log_feature_analytics(app.interface.ip_address, 'flag')
     body = await request.json()
     data = body['data']
     app.interface.flagging_callback.flag(
@@ -106,17 +106,19 @@ async def flag(request: Request):
     return {'success': True}
 
 
-# @app.route("/api/interpret/", methods=["POST"])
-# #@login_check
-# def interpret():
-#     log_feature_analytics('interpret')
-#     raw_input = request.json["data"]
-#     interpretation_scores, alternative_outputs = app.interface.interpret(
-#         raw_input)
-#     return jsonify({
-#         "interpretation_scores": interpretation_scores,
-#         "alternative_outputs": alternative_outputs
-#     })
+@app.post("/api/interpret/")
+#@login_check
+async def interpret(request: Request):
+    if app.interface.analytics_enabled:
+        utils.log_feature_analytics(app.interface.ip_address, 'interpret')
+    body = await request.json()
+    raw_input = body["data"]
+    interpretation_scores, alternative_outputs = app.interface.interpret(
+        raw_input)
+    return {
+        "interpretation_scores": interpretation_scores,
+        "alternative_outputs": alternative_outputs
+    }
 
 
 
@@ -145,9 +147,8 @@ def safe_join(directory: str, path: str) -> Optional[str]:
 
     return posixpath.join(directory, filename)    
     
-if __name__ == '__main__':
-    """Run directly from the terminal for debugging: python app.py"""
-    from gradio import Interface
+if __name__ == '__main__': # Run directly for debugging: python app.py
+    from gradio import Interface    
     app.interface = Interface(lambda x: "Hello, " + x, "text", "text",
                               analytics_enabled=False)
     app.interface.config = app.interface.get_config_file()

@@ -246,7 +246,7 @@ def start_server(
     server_name: Optional[str] = None, 
     server_port: Optional[int] = None, 
     auth: Optional[Callable | Tuple[str, str] | List[Tuple[str, str]]] = None, 
-    ssl=None) -> Tuple[int, str, fastapi.FastAPI, threading.Thread, None]:
+) -> Tuple[int, str, fastapi.FastAPI, threading.Thread, None]:
     """Launches a local server running the provided Interface
     Parameters:
     interface: The interface object to run on the server
