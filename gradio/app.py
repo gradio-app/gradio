@@ -3,11 +3,13 @@ from fastapi import FastAPI, Form, Request, HTTPException
 from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+import inspect
 import os
 import posixpath
 import pkg_resources
 import traceback
 from typing import Callable, Any, List, Optional, Tuple, TYPE_CHECKING
+import urllib
 import uvicorn
 
 from gradio import utils
@@ -57,6 +59,42 @@ def get_config():
     return app.interface.config
     # else:
     #     return {"auth_required": True, "auth_message": app.interface.auth_message}
+
+
+@app.get("/api/", response_class=HTMLResponse)
+def api_docs(request: Request):
+    inputs = [type(inp) for inp in app.interface.input_components]
+    outputs = [type(out) for out in app.interface.output_components]
+    input_types_doc, input_types = get_types(inputs, "input")
+    output_types_doc, output_types = get_types(outputs, "output")
+    input_names = [type(inp).__name__ for inp in app.interface.input_components]
+    output_names = [type(out).__name__ for out in app.interface.output_components]
+    if app.interface.examples is not None:
+        sample_inputs = app.interface.examples[0]
+    else:
+        sample_inputs = [inp.generate_sample() for inp in app.interface.input_components]
+    docs = {
+        "inputs": input_names,
+        "outputs": output_names,
+        "len_inputs": len(inputs),
+        "len_outputs": len(outputs),
+        "inputs_lower": [name.lower() for name in input_names],
+        "outputs_lower": [name.lower() for name in output_names],
+        "input_types": input_types,
+        "output_types": output_types,
+        "input_types_doc": input_types_doc,
+        "output_types_doc": output_types_doc,
+        "sample_inputs": sample_inputs,
+        "auth": app.interface.auth,
+        "local_login_url": urllib.parse.urljoin(
+            app.interface.local_url, "login"),
+        "local_api_url": urllib.parse.urljoin(
+            app.interface.local_url, "api/predict")
+    }
+    return templates.TemplateResponse(
+        "api_docs.html", 
+        {"request": request, **docs}
+    )
 
 
 @app.post("/api/predict/")
@@ -146,6 +184,25 @@ def safe_join(directory: str, path: str) -> Optional[str]:
         return None
 
     return posixpath.join(directory, filename)    
+
+
+def get_types(cls_set, component):
+    docset = []
+    types = []
+    if component == "input":
+        for cls in cls_set:
+            doc = inspect.getdoc(cls.preprocess)
+            doc_lines = doc.split("\n")
+            docset.append(doc_lines[1].split(":")[-1])
+            types.append(doc_lines[1].split(")")[0].split("(")[-1])
+    else:
+        for cls in cls_set:
+            doc = inspect.getdoc(cls.postprocess)
+            doc_lines = doc.split("\n")
+            docset.append(doc_lines[-1].split(":")[-1])
+            types.append(doc_lines[-1].split(")")[0].split("(")[-1])
+    return docset, types
+
     
 if __name__ == '__main__': # Run directly for debugging: python app.py
     from gradio import Interface    
