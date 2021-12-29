@@ -5,12 +5,9 @@ creating tunnels.
 from __future__ import annotations
 import fastapi
 from flask import Flask, request, session, jsonify, abort, send_file, render_template, redirect
-from flask_cachebuster import CacheBuster
 from flask_login import LoginManager, login_user, current_user, login_required
-from flask_cors import CORS
 from functools import wraps
 import http
-import io
 import json
 import os
 import requests
@@ -39,24 +36,11 @@ LOCALHOST_NAME = os.getenv('GRADIO_SERVER_NAME', "127.0.0.1")
 GRADIO_API_SERVER = "https://api.gradio.app/v1/tunnel-request"
 
 # # TODO: all of this needs to be migrated
-# app = Flask(__name__,
-#             template_folder=STATIC_TEMPLATE_LIB,
-#             static_folder="",
-#             static_url_path="/none/")
 # app.url_map.strict_slashes = False  # TODO: go back to discussion with Charles
 
-# CORS(app)
-# cache_buster = CacheBuster(
-#     config={'extensions': ['.js', '.css'], 'hash_size': 5})
-# cache_buster.init_app(app)
-# app.secret_key = os.getenv("GRADIO_KEY", "secret")
 # login_manager = LoginManager()
 # login_manager.login_view = 'login'
 # login_manager.init_app(app)
-
-# # Hide Flask default message
-# cli = sys.modules['flask.cli']
-# cli.show_server_banner = lambda *x: None
 
 
 # class User:
@@ -130,32 +114,6 @@ def get_first_available_port(
 #             return abort(401)
 
 
-@app.route("/shutdown", methods=['GET'])
-def shutdown():
-    shutdown_func = request.environ.get('werkzeug.server.shutdown')
-    if shutdown_func is None:
-        raise RuntimeError('Not running werkzeug')
-    shutdown_func()
-    return "Shutting down..."
-
-
-@app.route("/api/queue/push/", methods=["POST"])
-#@login_check
-def queue_push():
-    data = request.json["data"]
-    action = request.json["action"]
-    job_hash, queue_position = queueing.push({"data": data}, action)
-    return {"hash": job_hash, "queue_position": queue_position}
-
-
-@app.route("/api/queue/status/", methods=["POST"])
-#@login_check
-def queue_status():
-    hash = request.json['hash']
-    status, data = queueing.get_status(hash)
-    return {"status": status, "data": data}
-
-
 def queue_thread(path_to_local_server, test_mode=False):
     while True:
         try:
@@ -215,28 +173,18 @@ def start_server(
     else:
         app.auth = None
     app.interface = interface
-    # app.cwd = os.getcwd()
+    app.cwd = os.getcwd()
     # if app.interface.enable_queue:
     #     if auth is not None or app.interface.encrypt:
     #         raise ValueError("Cannot queue with encryption or authentication enabled.")
     #     queueing.init()
     #     app.queue_thread = threading.Thread(target=queue_thread, args=(path_to_local_server,))
     #     app.queue_thread.start()
-    # if interface.save_to is not None:
-    #     interface.save_to["port"] = port
     app_kwargs = {"app": app, "port": port, "host": server_name, 
                   "log_level": "warning"}
     thread = threading.Thread(target=uvicorn.run, kwargs=app_kwargs)
     thread.start()
     return port, path_to_local_server, app, thread, None
-
-
-def get_state():
-    return session.get("state")
-
-
-def set_state(value):
-    session["state"] = value
 
 
 def setup_tunnel(local_server_port: int, endpoint: str) -> str:
