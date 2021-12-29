@@ -189,21 +189,6 @@ def shutdown():
     return "Shutting down..."
 
 
-
-
-@app.route("/api/interpret/", methods=["POST"])
-#@login_check
-def interpret():
-    log_feature_analytics('interpret')
-    raw_input = request.json["data"]
-    interpretation_scores, alternative_outputs = app.interface.interpret(
-        raw_input)
-    return jsonify({
-        "interpretation_scores": interpretation_scores,
-        "alternative_outputs": alternative_outputs
-    })
-
-
 @app.route("/file/<path:path>", methods=["GET"])
 #@login_check
 def file(path):
