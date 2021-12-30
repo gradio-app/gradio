@@ -167,7 +167,7 @@ def get_config_file(interface):
         "flagging_options": interface.flagging_options,
         "allow_interpretation": interface.interpretation is not None,
         "queue": interface.enable_queue,
-        "cached_examples": interface.cache_examples,
+        "cached_examples": interface.cache_examples if hasattr(interface, "cache_examples") else False,
         "version": pkg_resources.require("gradio")[0].version
     }
     try:

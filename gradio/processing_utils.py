@@ -47,6 +47,8 @@ def get_extension(encoding):
     encoding = encoding.replace("audio/wav", "audio/x-wav")
     extension = mimetypes.guess_extension(mimetypes.guess_type(
         encoding)[0])
+    if extension is not None and extension.startswith("."):
+        extension = extension[1:]
     return extension
 
 def encode_file_to_base64(f, encryption_key=None):
