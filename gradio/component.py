@@ -39,7 +39,7 @@ class Component():
         """
         return data
 
-    def restore_flagged(self, data):
+    def restore_flagged(self, dir, data, encryption_key):
         """
         Restores flagged data from logs
         """
@@ -64,6 +64,10 @@ class Component():
         file.close()
         shutil.move(old_file_name, os.path.join(dir, label, new_file_name))
         return label + "/" + new_file_name
+
+    def restore_flagged_file(self, dir, file, encryption_key):
+        data = processing_utils.encode_file_to_base64(os.path.join(dir, file), encryption_key=encryption_key)
+        return {"name": file, "data": data}
 
     @classmethod
     def get_all_shortcut_implementations(cls):

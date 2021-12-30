@@ -38,11 +38,13 @@ class LabelOutput extends BaseComponent {
             <div className="confidences">{confidences}</div>
           </div>
         </div>
-      );        
+      );
     }
     return (
       <div className="output_label">
-        <div className="output_class_without_confidences">{this.props.value["label"]}</div>
+        <div className="output_class_without_confidences">
+          {this.props.value["label"]}
+        </div>
       </div>
     );
   }

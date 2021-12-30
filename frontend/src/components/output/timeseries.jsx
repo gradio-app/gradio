@@ -1,7 +1,7 @@
 import React from "react";
 import BaseComponent from "../base_component";
 import ComponentExample from "../component_example";
-import { Scatter } from 'react-chartjs-2';
+import { Scatter } from "react-chartjs-2";
 import { getNextColor } from "../../utils";
 
 class TimeseriesOutput extends BaseComponent {
@@ -16,23 +16,25 @@ class TimeseriesOutput extends BaseComponent {
       let x_index = this.props.value.headers.indexOf(this.props.x);
       return (
         <div className="output_timeseries">
-          <Scatter data={{
-            "datasets": y_indices.map((y_index, i) => {
-              return {
-                label: this.props.value.headers[y_index],
-                borderColor: getNextColor(i),
-                showLine: true,
-                fill: true,
-                backgroundColor: getNextColor(i, 0.25),
-                data: this.props.value["data"].map((row) => {
-                  return {
-                    x: row[x_index],
-                    y: row[y_index]
-                  }
-                })
-              }
-            })
-          }} />
+          <Scatter
+            data={{
+              datasets: y_indices.map((y_index, i) => {
+                return {
+                  label: this.props.value.headers[y_index],
+                  borderColor: getNextColor(i),
+                  showLine: true,
+                  fill: true,
+                  backgroundColor: getNextColor(i, 0.25),
+                  data: this.props.value["data"].map((row) => {
+                    return {
+                      x: row[x_index],
+                      y: row[y_index]
+                    };
+                  })
+                };
+              })
+            }}
+          />
         </div>
       );
     } else {

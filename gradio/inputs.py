@@ -14,8 +14,7 @@ import pandas as pd
 from ffmpy import FFmpeg
 import math
 import tempfile
-from pathlib import Path
-
+import csv
 
 class InputComponent(Component):
     """
@@ -526,7 +525,7 @@ class CheckboxGroup(InputComponent):
         """
         return json.dumps(data)
 
-    def restore_flagged(self, data):
+    def restore_flagged(self, dir, data, encryption_key):
         return json.loads(data)
 
     def generate_sample(self):
@@ -902,6 +901,9 @@ class Video(InputComponent):
             "optional": self.optional,
             **super().get_template_context()
         }
+    
+    def preprocess_example(self, x):
+        return {"name": x, "data": None, "is_example": True}
 
     def preprocess(self, x):
         """
@@ -934,9 +936,6 @@ class Video(InputComponent):
 
     def serialize(self, x, called_directly):
         raise NotImplementedError()
-
-    def preprocess_example(self, x):
-        return processing_utils.encode_file_to_base64(x, type="video")
 
     def save_flagged(self, dir, label, data, encryption_key):
         """
@@ -986,6 +985,9 @@ class Audio(InputComponent):
             "mic": {"source": "microphone"}
         }
 
+    def preprocess_example(self, x):
+        return {"name": x, "data": None, "is_example": True}
+
     def preprocess(self, x):
         """
         Parameters:
@@ -1017,9 +1019,6 @@ class Audio(InputComponent):
             raise ValueError("Unknown type: " + str(self.type) +
                              ". Please choose from: 'numpy', 'filepath'.")
 
-    def preprocess_example(self, x):
-        return processing_utils.encode_file_to_base64(x, type="audio")
-
     def serialize(self, x, called_directly):
         if x is None:
             return None
@@ -1037,7 +1036,7 @@ class Audio(InputComponent):
             raise ValueError("Unknown type: " + str(self.type) +
                              ". Please choose from: 'numpy', 'filepath'.")
         
-        file_data = processing_utils.encode_url_or_file_to_base64(name, type="audio")
+        file_data = processing_utils.encode_url_or_file_to_base64(name)
         return {"name": name, "data": file_data, "is_example": False}
 
     def set_interpret_parameters(self, segments=8):
@@ -1067,8 +1066,7 @@ class Audio(InputComponent):
             leave_one_out_data[start:stop] = 0
             file = tempfile.NamedTemporaryFile(delete=False)
             processing_utils.audio_to_file(sample_rate, leave_one_out_data, file.name)
-            out_data = processing_utils.encode_file_to_base64(
-                file.name, type="audio", ext="wav")
+            out_data = processing_utils.encode_file_to_base64(file.name)
             leave_one_out_sets.append(out_data)
             # Handle the tokens
             token = np.copy(data)
@@ -1076,8 +1074,7 @@ class Audio(InputComponent):
             token[stop:] = 0
             file = tempfile.NamedTemporaryFile(delete=False)
             processing_utils.audio_to_file(sample_rate, token, file.name)
-            token_data = processing_utils.encode_file_to_base64(
-                file.name, type="audio", ext="wav")
+            token_data = processing_utils.encode_file_to_base64(file.name)
             tokens.append(token_data)
         return tokens, leave_one_out_sets, masks
 
@@ -1101,8 +1098,7 @@ class Audio(InputComponent):
                 masked_input = masked_input + t*int(b)
             file = tempfile.NamedTemporaryFile(delete=False)
             processing_utils.audio_to_file(sample_rate, masked_input, file_obj.name)
-            masked_data = processing_utils.encode_file_to_base64(
-                file.name, type="audio", ext="wav")
+            masked_data = processing_utils.encode_file_to_base64(file.name)
             masked_inputs.append(masked_data)
         return masked_inputs
 
@@ -1159,6 +1155,9 @@ class File(InputComponent):
             "file": {},
             "files": {"file_count": "multiple"},
         }
+
+    def preprocess_example(self, x):
+        return {"name": x, "data": None, "is_example": True}
 
     def preprocess(self, x):
         """
@@ -1287,7 +1286,7 @@ class Dataframe(InputComponent):
         """
         return json.dumps(data)
 
-    def restore_flagged(self, data):
+    def restore_flagged(self, dir, data, encryption_key):
         return json.loads(data)
 
     def generate_sample(self):
@@ -1330,6 +1329,9 @@ class Timeseries(InputComponent):
             "timeseries": {},
         }
 
+    def preprocess_example(self, x):
+        return {"name": x, "is_example": True}
+
     def preprocess(self, x):
         """
         Parameters:
@@ -1339,7 +1341,10 @@ class Timeseries(InputComponent):
         """
         if x is None:
             return x
-        dataframe = pd.DataFrame(data=x["data"], columns=x["headers"])
+        elif x.get("is_example"):
+            dataframe = pd.read_csv(x["name"])
+        else:
+            dataframe = pd.DataFrame(data=x["data"], columns=x["headers"])
         if x.get("range") is not None:
             dataframe = dataframe.loc[dataframe[self.x or 0] >= x["range"][0]]
             dataframe = dataframe.loc[dataframe[self.x or 0] <= x["range"][1]]
@@ -1351,7 +1356,7 @@ class Timeseries(InputComponent):
         """
         return json.dumps(data)
 
-    def restore_flagged(self, data):
+    def restore_flagged(self, dir, data, encryption_key):
         return json.loads(data)
 
     def generate_sample(self):

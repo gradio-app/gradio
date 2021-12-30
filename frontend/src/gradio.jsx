@@ -19,11 +19,16 @@ export class GradioPage extends React.Component {
     let space_name = this.props.space;
     if (is_embedded) {
       let slash_index = space_name.indexOf("/");
-      space_name = space_name[slash_index + 1].toUpperCase() + space_name.substring(
-        slash_index + 2);
+      space_name =
+        space_name[slash_index + 1].toUpperCase() +
+        space_name.substring(slash_index + 2);
     }
     return (
-      <div class={"gradio_bg"} theme={this.props.theme} is_embedded={is_embedded.toString()}>
+      <div
+        class={"gradio_bg"}
+        theme={this.props.theme}
+        is_embedded={is_embedded.toString()}
+      >
         <div class="gradio_page">
           <div class="content">
             {this.props.title ? (
@@ -47,27 +52,27 @@ export class GradioPage extends React.Component {
             )}
           </div>
           <div className="footer">
-            {is_embedded ?
+            {is_embedded ? (
               <>
                 <a href={"https://huggingface.co/spaces/" + this.props.space}>
                   {space_name}
-                </a> built with&nbsp;
-                <a href="https://gradio.app">
-                  Gradio
-                </a>, hosted on&nbsp;
+                </a>{" "}
+                built with&nbsp;
+                <a href="https://gradio.app">Gradio</a>, hosted on&nbsp;
                 <a href="https://huggingface.co/spaces">Hugging Face Spaces</a>.
               </>
-              :
+            ) : (
               <>
                 <a href="api" target="_blank" rel="noreferrer">
-                  view the api <img className="api-logo" src={api_logo} alt="api"/>
+                  view the api{" "}
+                  <img className="api-logo" src={api_logo} alt="api" />
                 </a>
                 &bull;
                 <a href="https://gradio.app" target="_blank" rel="noreferrer">
                   built with <img className="logo" src={logo} alt="logo" />
                 </a>
               </>
-            }
+            )}
           </div>
         </div>
       </div>
@@ -88,8 +93,8 @@ export class GradioInterface extends React.Component {
       this.props.root +
       (this.props.examples_dir === null
         ? "file" +
-        this.props.examples_dir +
-        (this.props.examples_dir.endswith("/") ? "" : "/")
+          this.props.examples_dir +
+          (this.props.examples_dir.endswith("/") ? "" : "/")
         : "file");
   }
   get_default_state = () => {
@@ -124,18 +129,25 @@ export class GradioInterface extends React.Component {
       return;
     }
     this.pending_response = true;
-    let input_state = [];
-    for (let [i, input_component] of this.props.input_components.entries()) {
-      if (
-        this.state[i] === null &&
-        this.props.input_components[i].optional !== true
-      ) {
-        return;
+    if (this.state.example_id === null) {
+      let input_state = [];
+      for (let [i, input_component] of this.props.input_components.entries()) {
+        if (
+          this.state[i] === null &&
+          this.props.input_components[i].optional !== true
+        ) {
+          return;
+        }
+        let InputComponentClass = input_component_set.find(
+          (c) => c.name === input_component.name
+        ).component;
+        input_state[i] = InputComponentClass.postprocess(this.state[i]);
       }
-      let InputComponentClass = input_component_set.find(
-        (c) => c.name === input_component.name
-      ).component;
-      input_state[i] = InputComponentClass.postprocess(this.state[i]);
+      var data = { data: input_state };
+      var queue = this.props.queue;
+    } else {
+      var data = { example_id: this.state.example_id };
+      var queue = this.props.queue && !this.props.cached_examples;
     }
     this.setState({
       submitting: true,
@@ -144,7 +156,7 @@ export class GradioInterface extends React.Component {
       flag_index: null
     });
     this.props
-      .fn(input_state, "predict", this.queueCallback)
+      .fn(data, "predict", queue, this.queueCallback)
       .then((output) => {
         if (output["error"] != null) {
           console.error("Error:", output["error"]);
@@ -155,8 +167,14 @@ export class GradioInterface extends React.Component {
         this.pending_response = false;
         let index_start = this.props.input_components.length;
         let new_state = {};
-        new_state["last_duration"] = output["durations"][0];
-        new_state["avg_duration"] = output["avg_durations"][0];
+        if (output["durations"]) {
+          new_state["last_duration"] = output["durations"][0];
+        } else {
+          new_state["last_duration"] = null;
+        }
+        if (output["avg_duration"]) {
+          new_state["avg_duration"] = output["avg_durations"][0];
+        }
         for (let [i, value] of output["data"].entries()) {
           new_state[index_start + i] = value;
         }
@@ -206,7 +224,7 @@ export class GradioInterface extends React.Component {
       this.setState({ just_flagged: false });
     }, 1000);
     component_state["flag_option"] = flag_option;
-    this.props.fn(component_state, "flag");
+    this.props.fn({ data: component_state }, "flag");
   };
   interpret = () => {
     if (this.pending_response) {
@@ -228,7 +246,12 @@ export class GradioInterface extends React.Component {
     }
     this.setState({ submitting: true, has_changed: false, error: false });
     this.props
-      .fn(input_state, "interpret", this.queueCallback)
+      .fn(
+        { data: input_state },
+        "interpret",
+        this.props.queue,
+        this.queueCallback
+      )
       .then((output) => {
         if (!this.pending_response) {
           return;
@@ -264,8 +287,12 @@ export class GradioInterface extends React.Component {
       saveAs(canvas.toDataURL(), "screenshot.png");
     });
   };
-  handleChange = (_id, value) => {
-    let state_change = { [_id]: value, has_changed: true };
+  handleChange = (_id, value, example_id) => {
+    let state_change = {
+      [_id]: value,
+      has_changed: true,
+      example_id: example_id === undefined ? null : example_id
+    };
     if (this.props.live && !this.state.submitting) {
       this.setState(state_change, this.submit);
     } else {
@@ -281,18 +308,23 @@ export class GradioInterface extends React.Component {
         let component_data = input_component_set.find(
           (c) => c.name === component_name
         );
+        var component_config = this.props.input_components[i];
         ExampleComponent = component_data.example_component;
       } else {
-        let component_name =
-          this.props.output_components[i - this.props.input_components.length]
-            .name;
+        let component_index = i - this.props.input_components.length;
+        let component_name = this.props.output_components[component_index].name;
         let component_data = output_component_set.find(
           (c) => c.name === component_name
         );
+        var component_config = this.props.input_components[component_index];
         ExampleComponent = component_data.example_component;
       }
-      ExampleComponent.preprocess(item, this.examples_dir).then((data) => {
-        this.handleChange(i, data);
+      ExampleComponent.preprocess(
+        item,
+        this.examples_dir,
+        component_config
+      ).then((data) => {
+        this.handleChange(i, data, example_id);
       });
     }
   };
@@ -378,7 +410,9 @@ export class GradioInterface extends React.Component {
           >
             <div
               className={classNames("component_set", "relative", {
-                "opacity-50": (this.pending_response && !this.props.live) || this.state.error
+                "opacity-50":
+                  (this.pending_response && !this.props.live) ||
+                  this.state.error
               })}
             >
               {status}
@@ -526,14 +560,14 @@ class GradioInterfaceExamples extends React.Component {
                 return <th key={i}>{component.label}</th>;
               })}
               {this.props.examples[0].length >
-                this.props.input_components.length
+              this.props.input_components.length
                 ? this.props.output_components.map((component, i) => {
-                  return (
-                    <th key={i + this.props.input_components.length}>
-                      {component.label}
-                    </th>
-                  );
-                })
+                    return (
+                      <th key={i + this.props.input_components.length}>
+                        {component.label}
+                      </th>
+                    );
+                  })
                 : false}
             </tr>
           </thead>

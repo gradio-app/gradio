@@ -21,6 +21,7 @@ gradio/templates/frontend/static
 *.sqlite3
 gradio/launches.json
 flagged/
+gradio_cached_examples/
 
 # Tests
 .coverage

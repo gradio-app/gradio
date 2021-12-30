@@ -1,27 +1,22 @@
 import React from "react";
 import BaseComponent from "../base_component";
-import ComponentExample from "../component_example";
+import FileComponentExample from "../component_example";
 import { CSVToArray } from "../../utils";
-import { Scatter } from 'react-chartjs-2';
+import { Scatter } from "react-chartjs-2";
 import { getNextColor } from "../../utils";
 
 class TimeseriesInput extends BaseComponent {
   constructor(props) {
     super(props);
-    this.handleChange = this.handleChange.bind(this);
     this.uploader = React.createRef();
-    this.openFileUpload = this.openFileUpload.bind(this);
-    this.load_preview_from_files = this.load_preview_from_files.bind(this);
-    this.load_preview_from_upload = this.load_preview_from_upload.bind(this);
-    this.load_preview_from_drop = this.load_preview_from_drop.bind(this);
   }
-  handleChange(data) {
+  handleChange = (data) => {
     this.props.handleChange(data);
-  }
-  openFileUpload() {
+  };
+  openFileUpload = () => {
     this.uploader.current.click();
-  }
-  render() {
+  };
+  render = () => {
     let no_action = (evt) => {
       evt.preventDefault();
       evt.stopPropagation();
@@ -29,23 +24,25 @@ class TimeseriesInput extends BaseComponent {
     if (this.props.value !== null) {
       return (
         <div className="input_timeseries">
-          <Scatter data={{
-            "datasets": this.state.y_indices.map((y_index, i) => {
-              return {
-                label: this.props.y[i],
-                borderColor: getNextColor(i),
-                showLine: true,
-                fill: true,
-                backgroundColor: getNextColor(i, 0.25),
-                data: this.props.value["data"].map((row) => {
-                  return {
-                    x: row[this.state.x_index],
-                    y: row[y_index]
-                  }
-                })
-              }
-            })
-          }} />
+          <Scatter
+            data={{
+              datasets: this.props.y.map((header, i) => {
+                return {
+                  label: header,
+                  borderColor: getNextColor(i),
+                  showLine: true,
+                  fill: true,
+                  backgroundColor: getNextColor(i, 0.25),
+                  data: this.props.value["data"].map((row) => {
+                    return {
+                      x: row[0],
+                      y: row[i + 1]
+                    };
+                  })
+                };
+              })
+            }}
+          />
         </div>
       );
     } else {
@@ -88,46 +85,18 @@ class TimeseriesInput extends BaseComponent {
         </div>
       );
     }
-  }
-  load_preview_from_drop(evt) {
+  };
+  load_preview_from_drop = (evt) => {
     this.load_preview_from_files(evt.dataTransfer.files);
-  }
-  load_preview_from_upload(evt) {
+  };
+  load_preview_from_upload = (evt) => {
     this.load_preview_from_files(evt.target.files);
-  }
-  load_file(reader) {
+  };
+  load_file = (reader) => {
     let lines = reader.result;
-    let headers = null;
-    let data = null;
-    if (lines && lines.length > 0) {
-      let line_array = CSVToArray(lines);
-      if (line_array.length === 0) {
-        return;
-      }
-      if (this.props.x === null) {
-        this.setState({ x_index: 0, y_indices: [1] });
-        data = line_array;
-      } else {
-        let x_index = line_array[0].indexOf(this.props.x);
-        let y_indices = this.props.y.map((y_col) =>
-          line_array[0].indexOf(y_col)
-        );
-        if (x_index === -1) {
-          alert("Missing x column: " + this.props.x);
-          return;
-        }
-        if (y_indices.includes(-1)) {
-          alert("Missing y column: " + this.props.y[y_indices.indexOf(-1)]);
-          return;
-        }
-        this.setState({ x_index: x_index, y_indices: y_indices });
-        headers = line_array[0];
-        data = line_array.slice(1);
-      }
-      this.handleChange({ headers: headers, data: data, range: null });
-    }
-  }
-  load_preview_from_files(files) {
+    this.handleChange(load_data(lines, this.props.x, this.props.y));
+  };
+  load_preview_from_files = (files) => {
     if (!files.length || !window.FileReader) {
       return;
     }
@@ -137,7 +106,7 @@ class TimeseriesInput extends BaseComponent {
       ReaderObj.readAsBinaryString(file);
       ReaderObj.onloadend = this.load_file.bind(this, ReaderObj);
     }
-  }
+  };
   static memo = (a, b) => {
     if (a.value instanceof Object && b.value instanceof Object) {
       return (
@@ -150,10 +119,45 @@ class TimeseriesInput extends BaseComponent {
   };
 }
 
-class TimeseriesInputExample extends ComponentExample {
+class TimeseriesInputExample extends FileComponentExample {
+  static async preprocess(x, examples_dir, component_config) {
+    let file_url = examples_dir + "/" + x;
+    let response = await fetch(file_url);
+    response = await response.text();
+    return load_data(response, component_config.x, component_config.y);
+  }
   render() {
     return <div className="input_file_example">{this.props.value}</div>;
   }
 }
+
+var load_data = (lines, x, y) => {
+  let headers = null;
+  let data = null;
+  let line_array = CSVToArray(lines);
+  if (line_array.length === 0) {
+    return;
+  }
+  if (x === null) {
+    data = line_array;
+  } else {
+    let x_index = line_array[0].indexOf(x);
+    let y_indices = y.map((y_col) => line_array[0].indexOf(y_col));
+    if (x_index === -1) {
+      alert("Missing x column: " + x);
+      return;
+    }
+    if (y_indices.includes(-1)) {
+      alert("Missing y column: " + y[y_indices.indexOf(-1)]);
+      return;
+    }
+    line_array = line_array.map((line) =>
+      [line[x_index]].concat(y_indices.map((y_index) => line[y_index]))
+    );
+    headers = line_array[0];
+    data = line_array.slice(1);
+  }
+  return { headers: headers, data: data, range: null };
+};
 
 export { TimeseriesInput, TimeseriesInputExample };
