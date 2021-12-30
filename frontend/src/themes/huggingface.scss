@@ -7,7 +7,20 @@
         @apply text-gray-700 dark:text-gray-50 absolute right-2 flex items-center gap-2 text-sm;
     }
     .load_status img {
-        @apply h-5;
+        @apply h-5 ml-2 inline-block;
+    }
+    .load_status .loading {
+        @keyframes ld-breath{
+            0%{
+                animation-timing-function:cubic-bezier(0.9647,0.2413,-0.0705,0.7911);
+                transform:scale(0.9)
+            }
+            51%{animation-timing-function:cubic-bezier(0.9226,0.2631,-0.0308,0.7628);
+                transform:scale(1.2)
+            }
+            100%{transform:scale(0.9)}
+        }
+        animation:ld-breath 0.75s infinite linear;
     }
     .panels {
         @apply flex flex-wrap justify-center gap-4;
@@ -58,6 +71,7 @@
         @apply hidden flex hidden flex-grow;
     }
     .examples {
+        @apply max-w-full overflow-x-auto;
         h4 {
             @apply text-lg font-semibold my-2;
         }
@@ -194,7 +208,7 @@
         }
     }
     .input_image_example {
-        @apply h-24;
+        @apply h-24 max-w-none;
     }
     .input_radio {
         @apply flex flex-wrap gap-2;
@@ -416,7 +430,7 @@
             @apply h-36 object-contain flex justify-center;
         }
         .video_preview {
-            @apply w-full;            
+            @apply max-w-none;
         }
     }
     .input_file {

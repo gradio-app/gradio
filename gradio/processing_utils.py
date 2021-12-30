@@ -8,6 +8,7 @@ import os
 import numpy as np
 from gradio import encryptor
 import warnings
+import mimetypes
 with warnings.catch_warnings():
     warnings.simplefilter("ignore") # Ignore pydub warning if ffmpeg is not installed
     from pydub import AudioSegment
@@ -29,33 +30,40 @@ def get_url_or_file_as_bytes(path):
             return f.read()
 
 
-def encode_url_or_file_to_base64(path, type="image", ext=None, header=True):
+def encode_url_or_file_to_base64(path):
     try:
         requests.get(path)
-        return encode_url_to_base64(path, type, ext, header)
+        return encode_url_to_base64(path)
     except (requests.exceptions.MissingSchema, requests.exceptions.InvalidSchema):
-        return encode_file_to_base64(path, type, ext, header)
+        return encode_file_to_base64(path)
 
+def get_mimetype(filename):
+    mimetype = mimetypes.guess_type(filename)[0]
+    if mimetype is not None:
+        mimetype = mimetype.replace("x-wav", "wav")
+    return mimetype
 
-def encode_file_to_base64(f, type="image", ext=None, header=True):
+def get_extension(encoding):
+    encoding = encoding.replace("audio/wav", "audio/x-wav")
+    extension = mimetypes.guess_extension(mimetypes.guess_type(
+        encoding)[0])
+    return extension
+
+def encode_file_to_base64(f, encryption_key=None):
     with open(f, "rb") as file:
         encoded_string = base64.b64encode(file.read())
+        if encryption_key:
+            encoded_string = encryptor.decrypt(encryption_key, encoded_string)
         base64_str = str(encoded_string, 'utf-8')
-        if not header:
-            return base64_str
-        if ext is None:
-            ext = f.split(".")[-1]
-        return "data:" + type + "/" + ext + ";base64," + base64_str
+        mimetype = get_mimetype(f)
+        return "data:" + (mimetype if mimetype is not None else "") + ";base64," + base64_str
 
 
-def encode_url_to_base64(url, type="image", ext=None, header=True):
+def encode_url_to_base64(url):
     encoded_string = base64.b64encode(requests.get(url).content)
     base64_str = str(encoded_string, 'utf-8')
-    if not header:
-        return base64_str
-    if ext is None:
-        ext = url.split(".")[-1]
-    return "data:" + type + "/" + ext + ";base64," + base64_str
+    mimetype = get_mimetype(url)
+    return "data:" + (mimetype if mimetype is not None else "") + ";base64," + base64_str
 
 
 def encode_plot_to_base64(plt):
@@ -121,30 +129,21 @@ def audio_to_file(sample_rate, data, filename):
 # OUTPUT
 ##################
 
+
 def decode_base64_to_binary(encoding):
-    extension = None
-    if "," in encoding:
-        header, data = encoding.split(",")
-        header = header[5:]
-        if ";base64" in header:
-            header = header[0:header.index(";base64")]
-        if "/" in header:
-            extension = header[header.index("/") + 1:]
-    else:
-        data = encoding
-    return base64.b64decode(data), extension
+    extension = get_extension(encoding)
+    data = encoding.split(",")[1]
+    return base64.b64decode(data), extension 
 
 def decode_base64_to_file(encoding, encryption_key=None, file_path=None):
-    data, mime_extension = decode_base64_to_binary(encoding)
-    prefix, extension = None, None
+    data, extension = decode_base64_to_binary(encoding)
+    prefix = None
     if file_path is not None:
         filename = os.path.basename(file_path)
         prefix = filename
         if "." in filename:
             prefix = filename[0: filename.index(".")]
             extension = filename[filename.index(".") + 1:]
-    if extension is None:
-        extension = mime_extension
     if extension is None:
         file_obj = tempfile.NamedTemporaryFile(delete=False, prefix=prefix)
     else:

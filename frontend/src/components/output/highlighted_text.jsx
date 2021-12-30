@@ -16,7 +16,7 @@ class HighlightedTextOutput extends BaseComponent {
       }
       let color = category_map[category];
       if (!color) {
-        color = getNextColor(this.new_category_index)
+        color = getNextColor(this.new_category_index);
         this.new_category_index++;
       }
       this.color_map[category] = color;

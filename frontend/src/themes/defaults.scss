@@ -171,7 +171,7 @@
             @apply bg-gray-100 hover:bg-gray-200 p-2;
         }
         .examples_table:not(.gallery) {
-            @apply table-auto p-2 bg-gray-100 mt-4 rounded;
+            @apply table-auto p-2 bg-gray-100 mt-4 rounded max-w-full;
             tbody tr {
                 @apply cursor-pointer;
             }

@@ -5,13 +5,13 @@ export default class ComponentExample extends React.Component {
   render() {
     return <div>{this.props.value}</div>;
   }
-  static async preprocess(x) {
+  static async preprocess(x, examples_dir, component_config) {
     return x;
   }
 }
 
 export class FileComponentExample extends ComponentExample {
-  static async preprocess(x, examples_dir) {
+  static async preprocess(x, examples_dir, component_config) {
     return {
       name: x,
       data: examples_dir + "/" + x,
@@ -21,7 +21,7 @@ export class FileComponentExample extends ComponentExample {
 }
 
 export class DataURLComponentExample extends ComponentExample {
-  static async preprocess(x, examples_dir) {
+  static async preprocess(x, examples_dir, component_config) {
     let file_url = examples_dir + "/" + x;
     let response = await fetch(file_url);
     if (!response.ok) {

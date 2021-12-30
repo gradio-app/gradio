@@ -131,12 +131,12 @@ export function CSVToArray(strData, strDelimiter) {
   strDelimiter = strDelimiter || ",";
   let objPattern = new RegExp(
     "(\\" +
-    strDelimiter +
-    "|\\r?\\n|\\r|^)" +
-    '(?:"([^"]*(?:""[^"]*)*)"|' +
-    '([^"\\' +
-    strDelimiter +
-    "\\r\\n]*))",
+      strDelimiter +
+      "|\\r?\\n|\\r|^)" +
+      '(?:"([^"]*(?:""[^"]*)*)"|' +
+      '([^"\\' +
+      strDelimiter +
+      "\\r\\n]*))",
     "gi"
   );
   let arrData = [[]];
@@ -189,9 +189,10 @@ export function getNextColor(index, alpha) {
   if (index < default_colors.length) {
     var color_set = default_colors[index];
   } else {
-    var color_set = [randInt(128, 240), randInt(128, 240), randInt(128, 240)]
+    var color_set = [randInt(128, 240), randInt(128, 240), randInt(128, 240)];
   }
-  return "rgba(" +
+  return (
+    "rgba(" +
     color_set[0] +
     ", " +
     color_set[1] +
@@ -199,5 +200,6 @@ export function getNextColor(index, alpha) {
     color_set[2] +
     ", " +
     alpha +
-    ")";
+    ")"
+  );
 }

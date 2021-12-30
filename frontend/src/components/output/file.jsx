@@ -9,12 +9,12 @@ class FileOutput extends BaseComponent {
       <div className="output_file">
         <a
           className="file_display"
-          href={"data:;base64," + this.props.value.data}
+          href={this.props.value.data}
           download={this.props.value.name}
         >
           <div className="file_name">{this.props.value.name}</div>
           <div className="file_size">
-            {this.props.value.size === null
+            {isNaN(this.props.value.size)
               ? ""
               : prettyBytes(this.props.value.size)}
           </div>

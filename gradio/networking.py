@@ -2,8 +2,6 @@
 Defines helper methods useful for setting up ports, launching servers, and handling `ngrok`
 """
 
-import csv
-import datetime
 from flask import Flask, request, session, jsonify, abort, send_file, render_template, redirect
 from flask_cachebuster import CacheBuster
 from flask_login import LoginManager, login_user, current_user, login_required
@@ -28,6 +26,7 @@ from werkzeug.serving import make_server
 
 from gradio import encryptor, queue
 from gradio.tunneling import create_tunnel
+from gradio.process_examples import load_from_cache, process_example
 
 # By default, the http server will try to open on port 7860. If not available, 7861, 7862, etc.
 INITIAL_PORT_VALUE = int(os.getenv('GRADIO_SERVER_PORT', "7860"))  
@@ -189,35 +188,37 @@ def shutdown():
 @app.route("/api/predict/", methods=["POST"])
 @login_check
 def predict():
-    raw_input = request.json["data"]
-    # Capture any errors made and pipe to front end
-    if app.interface.show_error:
-        try:
-            prediction, durations = app.interface.process(raw_input)
-        except BaseException as error:
-            traceback.print_exc()
-            return jsonify({"error": str(error)}), 500
+    request_data = request.get_json()
+    flag_index = None
+    if request_data.get("example_id") != None:
+        example_id = request_data["example_id"]
+        if app.interface.cache_examples:
+            prediction = load_from_cache(app.interface, example_id)
+            durations = None
+        else:
+            prediction, durations = process_example(app.interface, example_id)
     else:
-        prediction, durations = app.interface.process(raw_input)
-    avg_durations = []
-    for i, duration in enumerate(durations):
-        app.interface.predict_durations[i][0] += duration
-        app.interface.predict_durations[i][1] += 1
-        avg_durations.append(app.interface.predict_durations[i][0] 
-            / app.interface.predict_durations[i][1])
-    app.interface.config["avg_durations"] = avg_durations
-    output = {"data": prediction, "durations": durations, "avg_durations": avg_durations}
-    if app.interface.allow_flagging == "auto":
-        try:
-            flag_index = app.interface.flagging_handler.flag(raw_input, prediction,
+        raw_input = request_data["data"]
+        if app.interface.show_error:
+            try:
+                prediction, durations = app.interface.process(raw_input)
+            except BaseException as error:
+                traceback.print_exc()
+                return jsonify({"error": str(error)}), 500
+        else:
+            prediction, durations = app.interface.process(raw_input)
+        if app.interface.allow_flagging == "auto":
+            flag_index = app.interface.flagging_callback.flag(app.interface, raw_input, prediction,
                 flag_option=(None if app.interface.flagging_options is None else ""), 
                 username=current_user.id if current_user.is_authenticated else None,
                 flag_path=os.path.join(app.cwd, app.interface.flagging_dir))
-            output["flag_index"] = flag_index
-        except Exception as e:
-            print(str(e))
-            pass
-    return jsonify(output)
+    output = {
+        "data": prediction, 
+        "durations": durations, 
+        "avg_durations": app.interface.config.get("avg_durations"),
+        "flag_index": flag_index
+    }
+    return output
 
 
 def get_types(cls_set, component):
@@ -321,9 +322,9 @@ def file(path):
 @app.route("/api/queue/push/", methods=["POST"])
 @login_check
 def queue_push():
-    data = request.json["data"]
-    action = request.json["action"]
-    job_hash, queue_position = queue.push({"data": data}, action)
+    data = request.get_json()
+    action = data["action"]
+    job_hash, queue_position = queue.push(data, action)
     return {"hash": job_hash, "queue_position": queue_position}
 
 

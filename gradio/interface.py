@@ -22,6 +22,7 @@ from gradio.external import load_interface, load_from_pipeline  # type: ignore
 from gradio.flagging import FlaggingCallback, CSVLogger  # type: ignore
 from gradio.inputs import get_input_instance, InputComponent  # type: ignore
 from gradio.outputs import get_output_instance, OutputComponent  # type: ignore
+from gradio.process_examples import cache_interface_examples
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     import transformers
@@ -374,6 +375,15 @@ class Interface:
             processed_input, return_duration=True)
         processed_output = [output_component.postprocess(predictions[i]) if predictions[i] is not None else None
                             for i, output_component in enumerate(self.output_components)]
+
+        avg_durations = []
+        for i, duration in enumerate(durations):
+            self.predict_durations[i][0] += duration
+            self.predict_durations[i][1] += 1
+            avg_durations.append(self.predict_durations[i][0] 
+                / self.predict_durations[i][1])
+        self.config["avg_durations"] = avg_durations
+        
         return processed_output, durations
     
     def interpret(
@@ -431,7 +441,8 @@ class Interface:
         enable_queue: bool = False,
         height: int = 500, 
         width: int = 900, 
-        encrypt: bool = False
+        encrypt: bool = False,
+        cache_examples: bool = False
     ) -> Tuple[flask.Flask, str, str]:
         """
         Launches the webserver that serves the UI for the interface.
@@ -452,14 +463,14 @@ class Interface:
         width (int): The width in pixels of the <iframe> element containing the interface (used if inline=True)
         height (int): The height in pixels of the <iframe> element containing the interface (used if inline=True)
         encrypt (bool): If True, flagged data will be encrypted by key provided by creator at launch
+        cache_examples (bool): If True, examples outputs will be processed and cached in a folder, and will be used if a user uses an example input.
         Returns:
         app (flask.Flask): Flask app object
         path_to_local_server (str): Locally accessible link
         share_url (str): Publicly accessible link (if share=True)
         """
         # Set up local flask server
-        config = self.get_config_file()
-        self.config = config
+        self.cache_examples = cache_examples
         if auth and not callable(auth) and not isinstance(auth[0], tuple) and not isinstance(auth[0], list):
             auth = [auth]
         self.auth = auth
@@ -470,19 +481,19 @@ class Interface:
         self.width = self.width or width  # if width is not set in constructor, use the one provided here
         if self.encrypt is None:
             self.encrypt = encrypt  # if encrypt is not set in constructor, use the one provided here
-
-        # Request key for encryption
         if self.encrypt:
             self.encryption_key = encryptor.get_key(
                 getpass.getpass("Enter key for encryption: "))
-
-        # Store parameters
         if self.enable_queue is None:
             self.enable_queue = enable_queue
-
-        # Setup flagging
         if self.allow_flagging:
             self.flagging_callback.setup(self.flagging_dir)
+
+        config = self.get_config_file()
+        self.config = config
+
+        if self.cache_examples:
+            cache_interface_examples(self)
 
         # Launch local flask server
         server_port, path_to_local_server, app, thread, server = networking.start_server(

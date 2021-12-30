@@ -19,12 +19,10 @@ let postData = async (url, body) => {
   return output;
 };
 
-let fn = async (api_endpoint, queue, data, action, queue_callback) => {
+let fn = async (api_endpoint, data, action, queue, queue_callback) => {
   if (queue && ["predict", "interpret"].includes(action)) {
-    const output = await postData(api_endpoint + "queue/push/", {
-      data: data,
-      action: action
-    });
+    data["action"] = action;
+    const output = await postData(api_endpoint + "queue/push/", data);
     const output_json = await output.json();
     let [hash, queue_position] = [
       output_json["hash"],
@@ -53,7 +51,7 @@ let fn = async (api_endpoint, queue, data, action, queue_callback) => {
       return status_obj["data"];
     }
   } else {
-    const output = await postData(api_endpoint + action + "/", { data: data });
+    const output = await postData(api_endpoint + action + "/", data);
     return await output.json();
   }
 };
@@ -62,9 +60,7 @@ window.launchGradio = (config, element_query, space) => {
   let target = document.querySelector(element_query);
   target.classList.add("gradio_app");
   if (config.auth_required) {
-    ReactDOM.render(
-      <Login {...config} />, target
-    );
+    ReactDOM.render(<Login {...config} />, target);
   } else {
     if (config.css !== null) {
       var head = document.head || document.getElementsByTagName("head")[0],
@@ -86,21 +82,21 @@ window.launchGradio = (config, element_query, space) => {
       <GradioPage
         {...config}
         space={space}
-        fn={fn.bind(null, config.root + "api/", config.queue)}
+        fn={fn.bind(null, config.root + "api/")}
       />,
       target
     );
   }
-}
+};
 
 window.launchGradioFromSpaces = async (space, target) => {
-  const space_url = `https://huggingface.co/gradioiframe/${space}/+/`
+  const space_url = `https://huggingface.co/gradioiframe/${space}/+/`;
   let config = await fetch(space_url + "config");
   config = await config.json();
   delete config.css;
   config.root = space_url;
   launchGradio(config, target, space);
-}
+};
 
 async function get_config() {
   if (process.env.REACT_APP_BACKEND_URL) {
@@ -113,7 +109,7 @@ async function get_config() {
   }
 }
 if (window.gradio_mode == "app") {
-  get_config().then(config => {
+  get_config().then((config) => {
     launchGradio(config, "#root");
   });
 }
