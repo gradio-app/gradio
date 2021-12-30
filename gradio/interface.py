@@ -91,7 +91,7 @@ class Interface:
         fn: Callable | List[Callable], 
         inputs: str | InputComponent | List[str | InputComponent] = None, 
         outputs: str | OutputComponent | List[str | OutputComponent] = None, 
-        verbose: bool = None, 
+        verbose: bool = False, 
         examples: Optional[List[Any] | List[List[Any]] | str] = None,
         examples_per_page: int = 10, 
         live: bool = False, 
@@ -172,8 +172,9 @@ class Interface:
         self.function_names = [func.__name__ for func in fn]
         self.__name__ = ", ".join(self.function_names)
 
-        if verbose is not None:
-            warnings.warn("The `verbose` parameter in the `Interface` is deprecated and has no effect.")
+        if verbose:
+            warnings.warn("The `verbose` parameter in the `Interface`"
+                          "is deprecated and has no effect.")
 
         self.status = "OFF"
         self.live = live
@@ -184,7 +185,8 @@ class Interface:
         self.capture_session = capture_session
 
         if capture_session is not None:
-            warnings.warn("The `capture_session` parameter in the `Interface` is deprecated and has no effect.")
+            warnings.warn("The `capture_session` parameter in the `Interface`"
+                          " is deprecated and has no effect.")
 
         self.session = None
         self.title = title
@@ -197,7 +199,9 @@ class Interface:
         self.article = article
         self.thumbnail = thumbnail
         theme = theme if theme is not None else os.getenv("GRADIO_THEME", "default")
-        if theme not in ("default", "huggingface", "grass", "peach", "darkdefault", "darkhuggingface", "darkgrass", "darkpeach"):
+        if theme not in (
+            "default", "huggingface", "grass", "peach", "darkdefault", 
+            "darkhuggingface", "darkgrass", "darkpeach"):
             raise ValueError("Invalid theme name.")
         self.theme = theme
         self.height = height
@@ -211,13 +215,16 @@ class Interface:
                 self.css = css_file.read()
         else:
             self.css = css
-        if examples is None or isinstance(examples, str) or (isinstance(examples, list) and (len(examples) == 0 or isinstance(examples[0], list))):
+        if examples is None or isinstance(examples, str) or (isinstance(
+            examples, list) and (len(examples) == 0 or isinstance(
+                examples[0], list))):
             self.examples = examples
         elif isinstance(examples, list) and len(self.input_components) == 1:  # If there is only one input component, examples can be provided as a regular list instead of a list of lists 
             self.examples = [[e] for e in examples]
         else:
             raise ValueError(
-                "Examples argument must either be a directory or a nested list, where each sublist represents a set of inputs.")
+                "Examples argument must either be a directory or a nested "
+                "list, where each sublist represents a set of inputs.")
         self.num_shap = num_shap
         self.examples_per_page = examples_per_page
 

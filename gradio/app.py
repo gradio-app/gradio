@@ -12,7 +12,7 @@ import posixpath
 import pkg_resources
 import secrets
 import traceback
-from typing import Callable, Any, List, Optional, Tuple, TYPE_CHECKING
+from typing import Callable, Any, List, Optional, Tuple, TYPE_CHECKING, Type
 import urllib
 import uvicorn
 
@@ -37,12 +37,14 @@ app.add_middleware(
 )
 
 templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login", auto_error=False)
-
 
 ###########
 # Auth 
 ###########
+
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login", auto_error=False)
+
 
 def get_current_user(token: str = Depends(oauth2_scheme)) -> Optional[str]:
     if token in app.tokens:
@@ -51,6 +53,12 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> Optional[str]:
 
 def is_authenticated(token: str = Depends(oauth2_scheme)) -> bool:
     return get_current_user(token) is not None     
+
+
+def login_check(is_authenticated: bool = Depends(is_authenticated)):
+    if app.auth is not None and not(is_authenticated):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, 
+                            detail="Not authenticated")
 
 
 @app.get('/token')
@@ -72,16 +80,16 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
 
 
 ###############
-# Routes
+# Main Routes
 ###############
 
 
 @app.head('/', response_class=HTMLResponse)
 @app.get('/', response_class=HTMLResponse)
-def main(request: Request, is_authenticated=Depends(is_authenticated)):
-    print('app.tokens', app.tokens)
-    print('is_authenticated', is_authenticated)
-    print('token>>>', request.headers.get("Authorization", "missing"))
+def main(
+    request: Request, 
+    is_authenticated: bool = Depends(is_authenticated)
+):
     if app.auth is None or is_authenticated:
         config = app.interface.config
     else:
@@ -94,7 +102,7 @@ def main(request: Request, is_authenticated=Depends(is_authenticated)):
     )
 
 
-@app.get("/static/{path:path}")
+@app.get("/static/{path:path}", dependencies=[Depends(login_check)])
 def static_resource(path: str):
     # if app.interface.share:
         # return redirect(GRADIO_STATIC_ROOT + path)
@@ -148,11 +156,14 @@ def api_docs(request: Request):
     )
 
 
-@app.post("/api/predict/")
-# @login_check
-async def predict(request: Request, username:str = Depends(get_current_user)):
+@app.post("/api/predict/", dependencies=[Depends(login_check)])
+async def predict(
+    request: Request, 
+    username: str = Depends(get_current_user)
+):
     body = await request.json()
     flag_index = None
+    
     if body.get("example_id") != None:
         example_id = body["example_id"]
         if app.interface.cache_examples:
@@ -167,13 +178,14 @@ async def predict(request: Request, username:str = Depends(get_current_user)):
                 prediction, durations = app.interface.process(raw_input)
             except BaseException as error:
                 traceback.print_exc()
-                return JSONResponse(content={"error": str(error)}, status_code=500)
+                return JSONResponse(content={"error": str(error)}, 
+                                    status_code=500)
         else:
             prediction, durations = app.interface.process(raw_input)
         if app.interface.allow_flagging == "auto":
             flag_index = app.interface.flagging_callback.flag(
                 app.interface, raw_input, prediction,
-                flag_option=(None if app.interface.flagging_options is None else ""), 
+                flag_option="" if app.interface.flagging_options else None, 
                 username=username)
     output = {
         "data": prediction, 
@@ -184,23 +196,23 @@ async def predict(request: Request, username:str = Depends(get_current_user)):
     return output
 
 
-@app.post("/api/flag/")
-#@login_check
-async def flag(request: Request):
+@app.post("/api/flag/", dependencies=[Depends(login_check)])
+async def flag(
+    request: Request, 
+    username: str = Depends(get_current_user)
+):
     if app.interface.analytics_enabled:
         utils.log_feature_analytics(app.interface.ip_address, 'flag')
     body = await request.json()
     data = body['data']
     app.interface.flagging_callback.flag(
         app.interface, data['input_data'], data['output_data'], 
-        data.get("flag_option"), data.get("flag_index"),
-        None)
-        # current_user.id if current_user.is_authenticated else None)
+        flag_option=data.get("flag_option"), flag_index=data.get("flag_index"),
+        username=username)
     return {'success': True}
 
 
-@app.post("/api/interpret/")
-#@login_check
+@app.post("/api/interpret/", dependencies=[Depends(login_check)])
 async def interpret(request: Request):
     if app.interface.analytics_enabled:
         utils.log_feature_analytics(app.interface.ip_address, 'interpret')
@@ -269,7 +281,7 @@ def safe_join(directory: str, path: str) -> Optional[str]:
     return posixpath.join(directory, filename)    
 
 
-def get_types(cls_set, component):
+def get_types(cls_set: List[Type], component: str):
     docset = []
     types = []
     if component == "input":
@@ -288,13 +300,17 @@ def get_types(cls_set, component):
 
 
 def get_state():
-    pass
-    # return session.get("state")
+    raise DeprecationWarning(
+        "This function is deprecated. To create stateful demos, pass 'state'"
+        "as both an input and output component. Please see the getting started"
+        "guide for more information.")
 
 
-def set_state(value):
-    pass
-#     session["state"] = value
+def set_state(*args):
+    raise DeprecationWarning(
+        "This function is deprecated. To create stateful demos, pass 'state'"
+        "as both an input and output component. Please see the getting started"
+        "guide for more information.")
 
     
 if __name__ == '__main__': # Run directly for debugging: python app.py
@@ -304,9 +320,12 @@ if __name__ == '__main__': # Run directly for debugging: python app.py
     app.interface.config = app.interface.get_config_file()
     app.interface.show_error = True
     app.interface.flagging_callback.setup(app.interface.flagging_dir)
-    # app.auth = None
-    app.interface.auth = ("a", "b")
-    app.auth = {"a": "b"}
-    app.interface.auth_message = None
+    auth = False
+    if auth:
+        app.interface.auth = ("a", "b")
+        app.auth = {"a": "b"}
+        app.interface.auth_message = None
+    else:
+        app.auth = None
     app.tokens = {}
     uvicorn.run(app)
