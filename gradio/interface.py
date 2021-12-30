@@ -64,11 +64,9 @@ class Interface:
         (gradio.Interface): a Gradio Interface object for the given model
         """
         interface_info = load_interface(name, src, api_key, alias)
-        # create a dictionary of kwargs without overwriting the original interface_info dict because it is mutable
-        # and that can cause some issues since the internal prediction function may rely on the original interface_info dict
         kwargs = dict(interface_info, **kwargs)
         interface = cls(**kwargs)
-        interface.api_mode = True  # set api mode to true so that the interface will not preprocess/postprocess
+        interface.api_mode = True  # So interface doesn't run pre/postprocess.
         return interface
 
     @classmethod
@@ -77,7 +75,8 @@ class Interface:
         pipeline: transformers.Pipeline, 
         **kwargs) -> Interface:
         """
-        Class method to construct an Interface from a Hugging Face transformers.Pipeline.
+        Construct an Interface from a Hugging Face transformers.Pipeline.
+        Parameters: 
         pipeline (transformers.Pipeline): 
         Returns:
         (gradio.Interface): a Gradio Interface object from the given Pipeline
@@ -112,7 +111,7 @@ class Interface:
         height=None, 
         width=None, 
         allow_screenshot: bool = True, 
-        allow_flagging: bool = None, 
+        allow_flagging: Optional[str] = None, 
         flagging_options: List[str]=None, 
         encrypt=None, 
         show_tips=None, 
@@ -120,8 +119,7 @@ class Interface:
         analytics_enabled: Optional[bool] = None, 
         enable_queue=None, 
         api_mode=None,
-        flagging_callback: FlaggingCallback = CSVLogger()
-    ):
+        flagging_callback: FlaggingCallback = CSVLogger()):
         """
         Parameters:
         fn (Union[Callable, List[Callable]]): the function to wrap an interface around.
@@ -142,8 +140,8 @@ class Interface:
         theme (str): Theme to use - one of "default", "huggingface", "grass", "peach". Add "dark" prefix, e.g. "darkpeach" or "darkdefault" for darktheme.
         css (str): custom css or path to custom css file to use with interface.
         allow_screenshot (bool): if False, users will not see a button to take a screenshot of the interface.
-        allow_flagging (bool): if False, users will not see a button to flag an input and output.
-        flagging_options (List[str]): if not None, provides options a user must select when flagging.
+        allow_flagging (str): one of "never", "auto", or "manual". If "never" or "auto", users will not see a button to flag an input and output. If "manual", users will see a button to flag. If "auto", every prediction will be automatically flagged. If "manual", samples are flagged when the user clicks flag button. Can be set with environmental variable GRADIO_ALLOW_FLAGGING.
+        flagging_options (List[str]): if provided, allows user to select from the list of options when flagging. Only applies if allow_flagging is "manual".
         encrypt (bool): DEPRECATED. If True, flagged data will be encrypted by key provided by creator at launch
         flagging_dir (str): what to name the dir where flagged data is stored.
         show_tips (bool): DEPRECATED. if True, will occasionally show tips about new Gradio features
@@ -204,6 +202,10 @@ class Interface:
         self.theme = theme
         self.height = height
         self.width = width
+        if self.height is not None or self.width is not None:
+            warnings.warn("The `height` and `width` parameters in `Interface` "
+                          "are deprecated and should be passed into launch().")
+
         if css is not None and os.path.exists(css):
             with open(css) as css_file:
                 self.css = css_file.read()
@@ -222,11 +224,33 @@ class Interface:
         self.simple_server = None
         self.allow_screenshot = allow_screenshot
         
-        # For allow_flagging and analytics_enabled: (1) first check for parameter, (2) check for environment variable, (3) default to True
+        # For analytics_enabled and allow_flagging: (1) first check for 
+        # parameter, (2) check for env variable, (3) default to True/"manual"
         self.analytics_enabled = analytics_enabled if analytics_enabled is not None else os.getenv("GRADIO_ANALYTICS_ENABLED", "True")=="True"
-        self.allow_flagging = allow_flagging if allow_flagging is not None else os.getenv("GRADIO_ALLOW_FLAGGING", "True")=="True"
+        if allow_flagging is None:
+            allow_flagging = os.getenv("GRADIO_ALLOW_FLAGGING", "manual")
+        if allow_flagging==True:
+            warnings.warn("The `allow_flagging` parameter in `Interface` now"
+                          "takes a string value ('auto', 'manual', or 'never')"
+                          ", not a boolean. Setting parameter to: 'manual'.")             
+            self.allow_flagging = "manual"
+        elif allow_flagging=="manual":
+            self.allow_flagging = "manual"
+        elif allow_flagging==False:
+            warnings.warn("The `allow_flagging` parameter in `Interface` now"
+                          "takes a string value ('auto', 'manual', or 'never')"
+                          ", not a boolean. Setting parameter to: 'never'.")             
+            self.allow_flagging = "never"
+        elif allow_flagging=="never":
+            self.allow_flagging = "never"
+        elif allow_flagging=="auto":
+            self.allow_flagging = "auto"
+        else:
+            raise ValueError("Invalid value for `allow_flagging` parameter."
+                             "Must be: 'auto', 'manual', or 'never'.")        
+
         self.flagging_options = flagging_options
-        self.flagging_callback: FlaggingCallback = flagging_callback
+        self.flagging_callback = flagging_callback
         self.flagging_dir = flagging_dir
 
         self.save_to = None
@@ -319,14 +343,16 @@ class Interface:
         called_directly: bool = False
     ) -> List[Any] | Tuple[List[Any], List[float]]:
         """
-        This is the method that actually runs the prediction function with the given (processed) inputs.
+        Runs the prediction function with the given (already processed) inputs.
         Parameters:
         processed_input (list): A list of processed inputs.
         return_duration (bool): Whether to return the duration of the prediction.
-        called_directly (bool): Whether the prediction is being called directly (i.e. as a function, not through the GUI).
+        called_directly (bool): Whether the prediction is being called 
+            directly (i.e. as a function, not through the GUI).
         Returns:
         predictions (list): A list of predictions (not post-processed).
-        durations (list): A list of durations for each prediction (only if `return_duration` is True).
+        durations (list): A list of durations for each prediction 
+            (only returned if `return_duration` is True).
         """
         if self.api_mode:  # Serialize the input
             processed_input = [input_component.serialize(processed_input[i], called_directly)
@@ -363,6 +389,8 @@ class Interface:
         raw_input: List[Any]
     ) -> Tuple[List[Any], List[float]]:
         """
+        First preprocesses the input, then runs prediction using 
+        self.run_prediction(), then postprocesses the output.
         Parameters:
         raw_input: a list of raw inputs to process and apply the prediction(s) on.
         Returns:
@@ -370,7 +398,8 @@ class Interface:
         duration: a list of time deltas measuring inference time for each prediction fn.
         """
         processed_input = [input_component.preprocess(raw_input[i])
-                           for i, input_component in enumerate(self.input_components)]
+                           for i, input_component in enumerate(
+                               self.input_components)]
         predictions, durations = self.run_prediction(
             processed_input, return_duration=True)
         processed_output = [output_component.postprocess(predictions[i]) if predictions[i] is not None else None
@@ -411,13 +440,12 @@ class Interface:
     def test_launch(self) -> None:
         for predict_fn in self.predict:
             print("Test launch: {}()...".format(predict_fn.__name__), end=' ')
-
             raw_input = []
             for input_component in self.input_components:
-                if input_component.test_input is None:  # If no test input is defined for that input interface
+                if input_component.test_input is None: 
                     print("SKIPPED")
                     break
-                else:  # If a test input is defined for each interface object
+                else:
                     raw_input.append(input_component.test_input)
             else:
                 self.process(raw_input)
@@ -456,8 +484,8 @@ class Interface:
         private_endpoint (str): If provided, the public URL of the interface will be this endpoint (should generally be unchanged).
         prevent_thread_lock (bool): If True, the interface will block the main thread while the server is running.
         show_error (bool): If True, any errors in the interface will be printed in the browser console log
-        server_port (int): will start gradio app on this port (if available) 
-        server_name (str): to make app accessible on local network, set this to "0.0.0.0".
+        server_port (int): will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT.
+        server_name (str): to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME.
         show_tips (bool): if True, will occasionally show tips about new Gradio features
         enable_queue (bool): if True, inference requests will be served through a queue instead of with parallel threads. Required for longer inference times (> 1min) to prevent timeout.  
         width (int): The width in pixels of the <iframe> element containing the interface (used if inline=True)
@@ -469,7 +497,6 @@ class Interface:
         path_to_local_server (str): Locally accessible link
         share_url (str): Publicly accessible link (if share=True)
         """
-        # Set up local flask server
         self.cache_examples = cache_examples
         if auth and not callable(auth) and not isinstance(auth[0], tuple) and not isinstance(auth[0], list):
             auth = [auth]
@@ -477,13 +504,15 @@ class Interface:
         self.auth_message = auth_message
         self.show_tips = show_tips
         self.show_error = show_error
-        self.height = self.height or height  # if height is not set in constructor, use the one provided here
-        self.width = self.width or width  # if width is not set in constructor, use the one provided here
+        self.height = self.height or height
+        self.width = self.width or width  
+        
         if self.encrypt is None:
-            self.encrypt = encrypt  # if encrypt is not set in constructor, use the one provided here
+            self.encrypt = encrypt  
         if self.encrypt:
             self.encryption_key = encryptor.get_key(
                 getpass.getpass("Enter key for encryption: "))
+
         if self.enable_queue is None:
             self.enable_queue = enable_queue
         if self.allow_flagging:
@@ -495,7 +524,6 @@ class Interface:
         if self.cache_examples:
             cache_interface_examples(self)
 
-        # Launch local flask server
         server_port, path_to_local_server, app, thread, server = networking.start_server(
             self, server_name, server_port, self.auth)
         self.local_url = path_to_local_server
@@ -505,10 +533,10 @@ class Interface:
         self.server_app = app
         self.server_thread = thread
 
-        # Count number of launches
         utils.launch_counter()
 
-        # If running in a colab or not able to access localhost, automatically create a shareable link
+        # If running in a colab or not able to access localhost, 
+        # automatically create a shareable link.
         is_colab = utils.colab_check()
         if is_colab or not (networking.url_ok(path_to_local_server)):
             share = True
@@ -524,7 +552,6 @@ class Interface:
 
         if private_endpoint is not None:
             share = True
-        # Set up shareable link
         self.share = share
 
         if share:
@@ -545,7 +572,6 @@ class Interface:
             print(strings.en["PUBLIC_SHARE_TRUE"])
             share_url = None
 
-        # Open a browser tab with the interface.
         if inbrowser:
             link = share_url if share else path_to_local_server
             webbrowser.open(link)
@@ -556,7 +582,6 @@ class Interface:
         if inline:
             try:
                 from IPython.display import IFrame, display  # type: ignore
-                # Embed the remote interface page if on google colab; otherwise, embed the local page.
                 if share:
                     while not networking.url_ok(share_url):
                         time.sleep(1)
@@ -565,7 +590,7 @@ class Interface:
                     display(IFrame(path_to_local_server,
                                    width=self.width, height=self.height))
             except ImportError:
-                pass  # IPython is not available so does not print inline.
+                pass
 
         data = {
             'launch_method': 'browser' if inbrowser else 'inline',
@@ -608,9 +633,7 @@ class Interface:
             self.server_thread.join()
             if verbose:
                 print("Closing server running on port: {}".format(self.server_port))
-        except AttributeError:  # can't close if not running
-            pass
-        except OSError:  # sometimes OSError is thrown when shutting down
+        except (AttributeError, OSError):  # can't close if not running
             pass
 
     def integrate(
@@ -658,7 +681,6 @@ class Interface:
 
 
 def close_all(verbose: bool = True) -> None:
-    # Tries to close all running interfaces, but method is a little flaky.
     for io in Interface.get_instances():
         io.close(verbose)
 
