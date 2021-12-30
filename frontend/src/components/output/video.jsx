@@ -9,7 +9,12 @@ class VideoOutput extends BaseComponent {
       if (isPlayable("video", this.props.value["name"])) {
         return (
           <div className="output_video">
-            <video controls playsInline preload src={this.props.value["data"]}></video>
+            <video
+              controls
+              playsInline
+              preload
+              src={this.props.value["data"]}
+            ></video>
           </div>
         );
       } else {

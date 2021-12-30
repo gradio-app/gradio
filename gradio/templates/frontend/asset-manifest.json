@@ -1,6 +1,6 @@
 {
   "files": {
-    "main.css": "/static/css/main.9666dfea.css",
+    "main.css": "/static/css/main.40f2070f.css",
     "main.js": "/static/bundle.js",
     "index.html": "/index.html",
     "static/media/api-logo.93f17adb.svg": "/static/media/api-logo.93f17adb.svg",
@@ -13,7 +13,7 @@
   },
   "entrypoints": [
     "static/bundle.css",
-    "static/css/main.9666dfea.css",
+    "static/css/main.40f2070f.css",
     "static/bundle.js"
   ]
 }

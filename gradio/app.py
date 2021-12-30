@@ -17,6 +17,7 @@ import urllib
 import uvicorn
 
 from gradio import utils
+from gradio.process_examples import load_from_cache, process_example
 
 
 STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "templates/")
@@ -43,15 +44,13 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login", auto_error=False)
 # Auth 
 ###########
 
-def get_username_from_token(token: str = Depends(oauth2_scheme)):
-    print('token2', token)
+def get_current_user(token: str = Depends(oauth2_scheme)) -> Optional[str]:
     if token in app.tokens:
         return app.tokens[token]
 
 
-def is_authenticated(token: str = Depends(oauth2_scheme)):
-    print('token', token)
-    return get_username_from_token(token) is not None     
+def is_authenticated(token: str = Depends(oauth2_scheme)) -> bool:
+    return get_current_user(token) is not None     
 
 
 @app.get('/token')
@@ -151,33 +150,37 @@ def api_docs(request: Request):
 
 @app.post("/api/predict/")
 # @login_check
-async def predict(request: Request):
+async def predict(request: Request, username:str = Depends(get_current_user)):
     body = await request.json()
-    raw_input = body["data"]
-    # Capture any errors made and pipe to the browser console
-    if app.interface.show_error:
-        try:
-            prediction, durations = app.interface.process(raw_input)
-        except BaseException as error:
-            traceback.print_exc()
-            return JSONResponse(content={"error": str(error)}, status_code=500)
+    flag_index = None
+    if body.get("example_id") != None:
+        example_id = body["example_id"]
+        if app.interface.cache_examples:
+            prediction = load_from_cache(app.interface, example_id)
+            durations = None
+        else:
+            prediction, durations = process_example(app.interface, example_id)
     else:
-        prediction, durations = app.interface.process(raw_input)
-    avg_durations = []
-    for i, duration in enumerate(durations):
-        app.interface.predict_durations[i][0] += duration
-        app.interface.predict_durations[i][1] += 1
-        avg_durations.append(app.interface.predict_durations[i][0] 
-            / app.interface.predict_durations[i][1])
-    app.interface.config["avg_durations"] = avg_durations
-    output = {"data": prediction, "durations": durations, 
-              "avg_durations": avg_durations}
-    # if app.interface.allow_flagging == "auto":
-    #     flag_index = app.interface.flagging_callback.flag(
-    #         app.interface, raw_input, prediction,
-    #         flag_option=(None if app.interface.flagging_options is None else ""), 
-    #         username=current_user.id if current_user.is_authenticated else None)
-    #     output["flag_index"] = flag_index
+        raw_input = body["data"]
+        if app.interface.show_error:
+            try:
+                prediction, durations = app.interface.process(raw_input)
+            except BaseException as error:
+                traceback.print_exc()
+                return JSONResponse(content={"error": str(error)}, status_code=500)
+        else:
+            prediction, durations = app.interface.process(raw_input)
+        if app.interface.allow_flagging == "auto":
+            flag_index = app.interface.flagging_callback.flag(
+                app.interface, raw_input, prediction,
+                flag_option=(None if app.interface.flagging_options is None else ""), 
+                username=username)
+    output = {
+        "data": prediction, 
+        "durations": durations, 
+        "avg_durations": app.interface.config.get("avg_durations"),
+        "flag_index": flag_index
+    }    
     return output
 
 

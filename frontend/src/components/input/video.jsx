@@ -16,7 +16,7 @@ class VideoInput extends BaseComponent {
     this.load_preview_from_drop = this.load_preview_from_drop.bind(this);
     this.camera_stream = null;
     this.state = {
-      recording: false,
+      recording: false
     };
   }
   handleChange(evt) {
@@ -30,20 +30,23 @@ class VideoInput extends BaseComponent {
       this.media_recorder.stop();
       let video_blob = new Blob(this.blobs_recorded, { type: this.mimeType });
       var ReaderObj = new FileReader();
-      ReaderObj.onload = (function(e) {
+      ReaderObj.onload = function (e) {
         let file_name = "sample." + this.mimeType.substring(6);
         this.props.handleChange({
           name: file_name,
           data: e.target.result,
           is_example: false
         });
-      }).bind(this);
+      }.bind(this);
 
       ReaderObj.readAsDataURL(video_blob);
       this.setState({ recording: false });
     } else {
       this.blobs_recorded = [];
-      this.camera_stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      this.camera_stream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true
+      });
       this.videoRecorder.current.srcObject = this.camera_stream;
       this.videoRecorder.current.volume = 0;
       let selectedMimeType = null;
@@ -52,22 +55,27 @@ class VideoInput extends BaseComponent {
         if (MediaRecorder.isTypeSupported(mimeType)) {
           selectedMimeType = mimeType;
           break;
-        }  
+        }
       }
       if (selectedMimeType === null) {
         console.error("No supported MediaRecorder mimeType");
         return;
       }
-      this.media_recorder = new MediaRecorder(this.camera_stream, {mimeType: selectedMimeType});
+      this.media_recorder = new MediaRecorder(this.camera_stream, {
+        mimeType: selectedMimeType
+      });
       this.mimeType = selectedMimeType;
-      this.media_recorder.addEventListener('dataavailable', (function (e) {
-        this.blobs_recorded.push(e.data);
-      }).bind(this));
+      this.media_recorder.addEventListener(
+        "dataavailable",
+        function (e) {
+          this.blobs_recorded.push(e.data);
+        }.bind(this)
+      );
       this.media_recorder.start(200);
       this.videoRecorder.current.play();
       this.setState({ recording: true });
     }
-  }
+  };
   render() {
     let no_action = (evt) => {
       evt.preventDefault();
@@ -133,10 +141,20 @@ class VideoInput extends BaseComponent {
     } else if (this.props.source == "webcam") {
       return (
         <div className="input_video">
-          <video ref={this.videoRecorder} class="video_recorder" autoPlay playsInline muted></video>
+          <video
+            ref={this.videoRecorder}
+            class="video_recorder"
+            autoPlay
+            playsInline
+            muted
+          ></video>
           <div class="record_holder">
             <div class="record_message">
-              {this.state.recording ? <>Stop Recording</> : <>Click to Record</>}
+              {this.state.recording ? (
+                <>Stop Recording</>
+              ) : (
+                <>Click to Record</>
+              )}
             </div>
             <button class="record" onClick={this.record}></button>
           </div>

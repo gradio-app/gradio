@@ -85,31 +85,37 @@ class CSVLogger(FlaggingCallback):
         log_fp = "{}/log.csv".format(flagging_dir)
         encryption_key = interface.encryption_key if interface.encrypt else None
         is_new = not os.path.exists(log_fp)
+        output_only_mode = input_data is None
 
         if flag_index is None:
             csv_data = []
-            for i, input in enumerate(interface.input_components):
-                csv_data.append(input.save_flagged(
-                    flagging_dir, interface.config["input_components"][i]["label"], input_data[i], encryption_key))
+            if not output_only_mode:
+                for i, input in enumerate(interface.input_components):
+                    csv_data.append(input.save_flagged(
+                        flagging_dir, interface.config["input_components"][i]["label"], input_data[i], encryption_key))
             for i, output in enumerate(interface.output_components):
                 csv_data.append(output.save_flagged(
                     flagging_dir, interface.config["output_components"][i]["label"], output_data[i], encryption_key) if
                                 output_data[i] is not None else "")
-            if flag_option is not None:
-                csv_data.append(flag_option)
-            if username is not None:
-                csv_data.append(username)
-            csv_data.append(str(datetime.datetime.now()))
+            if not output_only_mode:
+                if flag_option is not None:
+                    csv_data.append(flag_option)
+                if username is not None:
+                    csv_data.append(username)
+                csv_data.append(str(datetime.datetime.now()))
             if is_new:
-                headers = [interface["label"]
-                           for interface in interface.config["input_components"]]
+                headers = []
+                if not output_only_mode:
+                    headers += [interface["label"]
+                            for interface in interface.config["input_components"]]
                 headers += [interface["label"]
                             for interface in interface.config["output_components"]]
-                if interface.flagging_options is not None:
-                    headers.append("flag")
-                if username is not None:
-                    headers.append("username")
-                headers.append("timestamp")
+                if not output_only_mode:
+                    if interface.flagging_options is not None:
+                        headers.append("flag")
+                    if username is not None:
+                        headers.append("username")
+                    headers.append("timestamp")
 
         def replace_flag_at_index(file_content):
             file_content = io.StringIO(file_content)
