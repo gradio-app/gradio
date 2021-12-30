@@ -44,23 +44,8 @@ templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 ###############
 
 
-def get_current_username(credentials: HTTPBasicCredentials = Depends(secure)):
-    username, password = credentials.username, credentials.password
-    if app.auth is None:
-        return None
-    elif ((not callable(app.auth) and username in app.auth 
-           and compare_digest(app.auth[username], password))
-           or (callable(app.auth) and app.auth.__call__(username, password))):
-        return username
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Incorrect username or password",
-    )
-
-
 @app.head('/', response_class=HTMLResponse)
-@app.get('/', response_class=HTMLResponse, 
-              dependencies=[Depends(get_current_username)])
+@app.get('/', response_class=HTMLResponse)
 # @login_check # TODO
 def main(request: Request):
     # session["state"] = None  # TODO
@@ -83,10 +68,10 @@ def static_resource(path: str):
 
 @app.get("/config/")
 def get_config():
-    if app.interface.auth is None or current_user.is_authenticated:
-        return app.interface.config
-    else:
-        return {"auth_required": True, "auth_message": app.interface.auth_message}
+    # if app.interface.auth is None or current_user.is_authenticated:
+    return app.interface.config
+    # else:
+        # return {"auth_required": True, "auth_message": app.interface.auth_message}
 
 
 @app.get("/api/", response_class=HTMLResponse)
