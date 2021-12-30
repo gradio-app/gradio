@@ -5,12 +5,12 @@ from fastapi import FastAPI, Form, Request, Depends, HTTPException, status
 from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 import inspect
 import os
 import posixpath
 import pkg_resources
-from secrets import compare_digest
+import secrets
 import traceback
 from typing import Callable, Any, List, Optional, Tuple, TYPE_CHECKING
 import urllib
@@ -35,8 +35,34 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-secure = HTTPBasic()
 templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login", auto_error=False)
+
+
+########
+# Auth 
+########
+
+def get_username_from_token(token: str = Depends(oauth2_scheme)):
+    print('token2', token)
+    if token in app.tokens:
+        return app.tokens[token]
+
+def is_authenticated(token: str = Depends(oauth2_scheme)):
+    print('token', token)
+    return get_username_from_token(token) is not None     
+
+@app.post('/login')
+def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    username, password = form_data.username, form_data.password
+    if ((not callable(app.auth) and username in app.auth 
+        and app.auth[username] == password)
+        or (callable(app.auth) and app.auth.__call__(username, password))):
+        token = secrets.token_urlsafe(16)
+        app.tokens[token] = username
+        return {"access_token": token, "token_type": "bearer"}
+    else:
+        raise HTTPException(status_code=400, detail="Incorrect credentials.")
 
 
 ###############
@@ -46,12 +72,19 @@ templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 
 @app.head('/', response_class=HTMLResponse)
 @app.get('/', response_class=HTMLResponse)
-# @login_check # TODO
-def main(request: Request):
-    # session["state"] = None  # TODO
+def main(request: Request, is_authenticated=Depends(is_authenticated)):
+    print('app.tokens', app.tokens)
+    print('is_authenticated', is_authenticated)
+    print('token>>>', request.headers.get("Authorization", "missing"))
+    if app.auth is None or is_authenticated:
+        config = app.interface.config
+    else:
+        config = {"auth_required": True, 
+                  "auth_message": app.interface.auth_message}
+    
     return templates.TemplateResponse(
         "frontend/index.html", 
-        {"request": request, "config": app.interface.config}
+        {"request": request, "config": config}
     )
 
 
@@ -66,7 +99,6 @@ def static_resource(path: str):
     raise HTTPException(status_code=404, detail="Static file not found")
 
 
-@app.get("/config/")
 def get_config():
     # if app.interface.auth is None or current_user.is_authenticated:
     return app.interface.config
@@ -172,6 +204,7 @@ async def interpret(request: Request):
     }
 
 
+
 # @app.route("/shutdown", methods=['GET'])
 # def shutdown():
 #     shutdown_func = request.environ.get('werkzeug.server.shutdown')
@@ -198,8 +231,7 @@ async def interpret(request: Request):
 #     return {"status": status, "data": data}
 
 
-
-
+# def get_current_user(token: str = Depends(oauth2_scheme))
 
 ########
 # Helper functions
@@ -262,4 +294,9 @@ if __name__ == '__main__': # Run directly for debugging: python app.py
     app.interface.config = app.interface.get_config_file()
     app.interface.show_error = True
     app.interface.flagging_callback.setup(app.interface.flagging_dir)
+    # app.auth = None
+    app.interface.auth = ("a", "b")
+    app.auth = {"a": "b"}
+    app.interface.auth_message = None
+    app.tokens = {}
     uvicorn.run(app)

@@ -25,8 +25,8 @@ setup(
         'paramiko',
         'pillow',
         'pycryptodome',
+        'python-multipart',
         'pydub',
         'requests',
-        # python-multipart
     ],
 )
