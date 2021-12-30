@@ -411,7 +411,8 @@ class Interface:
             self.predict_durations[i][1] += 1
             avg_durations.append(self.predict_durations[i][0] 
                 / self.predict_durations[i][1])
-        self.config["avg_durations"] = avg_durations
+        if hasattr(self, "config"):
+            self.config["avg_durations"] = avg_durations
         
         return processed_output, durations
     

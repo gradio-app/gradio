@@ -71,7 +71,7 @@ class TestLabel(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             to_save = label_output.save_flagged(tmpdir, "label_output", label, None)
             self.assertEqual(to_save, '{"3": 0.7, "1": 0.2}')
-            self.assertEqual(label_output.restore_flagged(to_save), {"3": 0.7, "1": 0.2})
+            self.assertEqual(label_output.restore_flagged(to_save, None), {"3": 0.7, "1": 0.2})
         with self.assertRaises(ValueError):
             label_output = gr.outputs.Label(type="unknown")
             label_output.deserialize([1, 2, 3])
@@ -158,7 +158,7 @@ class TestKeyValues(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = kv_output.save_flagged(tmpdirname, "kv_output", kv_list, None)
             self.assertEqual(to_save, '[["a", 1], ["b", 2]]')
-            self.assertEqual(kv_output.restore_flagged(to_save), [["a", 1], ["b", 2]])
+            self.assertEqual(kv_output.restore_flagged(to_save, None), [["a", 1], ["b", 2]])
 
     def test_in_interface(self):
         def letter_distribution(word):
@@ -187,7 +187,7 @@ class TestHighlightedText(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = ht_output.save_flagged(tmpdirname, "ht_output", ht, None)
             self.assertEqual(to_save, '{"pos": "Hello ", "neg": "World"}')
-            self.assertEqual(ht_output.restore_flagged(to_save), {"pos": "Hello ", "neg": "World"})
+            self.assertEqual(ht_output.restore_flagged(to_save, None), {"pos": "Hello ", "neg": "World"})
 
     def test_in_interface(self):
         def highlight_vowels(sentence):
@@ -248,7 +248,7 @@ class TestJSON(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = js_output.save_flagged(tmpdirname, "js_output", js, None)
             self.assertEqual(to_save, '{"pos": "Hello ", "neg": "World"}')
-            self.assertEqual(js_output.restore_flagged(to_save), {"pos": "Hello ", "neg": "World"})
+            self.assertEqual(js_output.restore_flagged(to_save, None), {"pos": "Hello ", "neg": "World"})
         
     def test_in_interface(self):
         def get_avg_age_per_gender(data):
@@ -327,7 +327,7 @@ class TestDataframe(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = dataframe_output.save_flagged(tmpdirname, "dataframe_output", output, None)
             self.assertEqual(to_save,  '[[2, true], [3, true], [4, false]]')
-            self.assertEqual(dataframe_output.restore_flagged(to_save), [[2, True], [3, True], [4, False]])
+            self.assertEqual(dataframe_output.restore_flagged(to_save, None), [[2, True], [3, True], [4, False]])
 
     def test_in_interface(self):
         def check_odd(array):
@@ -404,7 +404,7 @@ class TestTimeseries(unittest.TestCase):
             to_save = timeseries_output.save_flagged(tmpdirname, "timeseries_output", output, None)
             self.assertEqual(to_save, '{"headers": ["Name", "Age"], "data": [["Tom", 20], ["nick", 21], ["krish", 19], '
                                     '["jack", 18]]}')
-            self.assertEqual(timeseries_output.restore_flagged(to_save), {"headers": ["Name", "Age"],
+            self.assertEqual(timeseries_output.restore_flagged(to_save, None), {"headers": ["Name", "Age"],
                                                                         "data": [["Tom", 20], ["nick", 21],
                                                                                 ["krish", 19], ["jack", 18]]})
 
