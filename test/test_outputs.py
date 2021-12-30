@@ -71,7 +71,7 @@ class TestLabel(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             to_save = label_output.save_flagged(tmpdir, "label_output", label, None)
             self.assertEqual(to_save, '{"3": 0.7, "1": 0.2}')
-            self.assertEqual(label_output.restore_flagged(tmpdirname, to_save, None), {"3": 0.7, "1": 0.2})
+            self.assertEqual(label_output.restore_flagged(tmpdir, to_save, None), {"3": 0.7, "1": 0.2})
         with self.assertRaises(ValueError):
             label_output = gr.outputs.Label(type="unknown")
             label_output.deserialize([1, 2, 3])
@@ -297,9 +297,9 @@ class TestFile(unittest.TestCase):
         file_output = gr.outputs.File()
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = file_output.save_flagged(tmpdirname, "file_output", gr.test_data.BASE64_FILE, None)
-            self.assertEqual("file_output/0.pdf", to_save)
+            self.assertEqual("file_output/0", to_save)
             to_save = file_output.save_flagged(tmpdirname, "file_output", gr.test_data.BASE64_FILE, None)
-            self.assertEqual("file_output/1.pdf", to_save)
+            self.assertEqual("file_output/1", to_save)
 
 
 class TestDataframe(unittest.TestCase):
@@ -327,7 +327,7 @@ class TestDataframe(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = dataframe_output.save_flagged(tmpdirname, "dataframe_output", output, None)
             self.assertEqual(to_save,  '[[2, true], [3, true], [4, false]]')
-            self.assertEqual(dataframe_output.restore_flagged(tmpdirname, to_save, None), [[2, True], [3, True], [4, False]])
+            self.assertEqual(dataframe_output.restore_flagged(tmpdirname, to_save, None), {"data": [[2, True], [3, True], [4, False]]})
 
     def test_in_interface(self):
         def check_odd(array):
