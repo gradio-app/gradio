@@ -20,6 +20,7 @@ from types import ModuleType
 from ffmpy import FFmpeg
 import requests
 
+
 class OutputComponent(Component):
     """
     Output Component. All output components subclass this.
@@ -142,11 +143,10 @@ class Label(OutputComponent):
                 return y['label']
         elif self.type == "confidences" or self.type == "auto":
             if ('confidences' in y.keys()) and isinstance(y['confidences'], list):
-                return {k['label']:k['confidence'] for k in y['confidences']}            
+                return {k['label']: k['confidence'] for k in y['confidences']}
             else:
                 return y
         raise ValueError("Unable to deserialize output: {}".format(y))
-        
 
     @classmethod
     def get_shortcut_implementations(cls):
@@ -163,11 +163,11 @@ class Label(OutputComponent):
         else:
             return data["label"]
 
-    def restore_flagged(self, data):
+    def restore_flagged(self, dir, data, encryption_key):
         try:
             data = json.loads(data)
-            return data
-        except:
+            return self.postprocess(data)
+        except ValueError:
             return data
 
 
@@ -240,10 +240,10 @@ class Image(OutputComponent):
         return y
 
     def save_flagged(self, dir, label, data, encryption_key):
-        """
-        Returns: (str) path to image file
-        """
         return self.save_flagged_file(dir, label, data, encryption_key)
+
+    def restore_flagged(self, dir, data, encryption_key):
+        return self.restore_flagged_file(dir, data, encryption_key)["data"]
 
 
 class Video(OutputComponent):
@@ -279,7 +279,7 @@ class Video(OutputComponent):
         returned_format = y.split(".")[-1].lower()
         if self.type is not None and returned_format != self.type:
             output_file_name = y[0: y.rindex(
-                    ".") + 1] + self.type
+                ".") + 1] + self.type
             ff = FFmpeg(
                 inputs={y: None},
                 outputs={output_file_name: None}
@@ -288,17 +288,17 @@ class Video(OutputComponent):
             y = output_file_name
         return {
             "name": os.path.basename(y),
-            "data": processing_utils.encode_file_to_base64(y, type="video")
+            "data": processing_utils.encode_file_to_base64(y)
         }
 
     def deserialize(self, x):
         return processing_utils.decode_base64_to_file(x).name
 
     def save_flagged(self, dir, label, data, encryption_key):
-        """
-        Returns: (str) path to image file
-        """
         return self.save_flagged_file(dir, label, data['data'], encryption_key)
+
+    def restore_flagged(self, dir, data, encryption_key):
+        return self.restore_flagged_file(dir, data, encryption_key)
 
 
 class KeyValues(OutputComponent):
@@ -339,7 +339,7 @@ class KeyValues(OutputComponent):
     def save_flagged(self, dir, label, data, encryption_key):
         return json.dumps(data)
 
-    def restore_flagged(self, data):
+    def restore_flagged(self, dir, data, encryption_key):
         return json.loads(data)
 
 
@@ -385,7 +385,7 @@ class HighlightedText(OutputComponent):
     def save_flagged(self, dir, label, data, encryption_key):
         return json.dumps(data)
 
-    def restore_flagged(self, data):
+    def restore_flagged(self, dir, data, encryption_key):
         return json.loads(data)
 
 
@@ -426,10 +426,11 @@ class Audio(OutputComponent):
         if self.type in ["numpy", "file", "auto"]:
             if self.type == "numpy" or (self.type == "auto" and isinstance(y, tuple)):
                 sample_rate, data = y
-                file = tempfile.NamedTemporaryFile(prefix="sample", suffix=".wav", delete=False)
+                file = tempfile.NamedTemporaryFile(
+                    prefix="sample", suffix=".wav", delete=False)
                 processing_utils.audio_to_file(sample_rate, data, file.name)
                 y = file.name
-            return processing_utils.encode_url_or_file_to_base64(y, type="audio", ext="wav")
+            return processing_utils.encode_url_or_file_to_base64(y)
         else:
             raise ValueError("Unknown type: " + self.type +
                              ". Please choose from: 'numpy', 'file'.")
@@ -438,10 +439,10 @@ class Audio(OutputComponent):
         return processing_utils.decode_base64_to_file(x).name
 
     def save_flagged(self, dir, label, data, encryption_key):
-        """
-        Returns: (str) path to audio file
-        """
         return self.save_flagged_file(dir, label, data, encryption_key)
+
+    def restore_flagged(self, dir, data, encryption_key):
+        return self.restore_flagged_file(dir, data, encryption_key)["data"]
 
 
 class JSON(OutputComponent):
@@ -479,7 +480,7 @@ class JSON(OutputComponent):
     def save_flagged(self, dir, label, data, encryption_key):
         return json.dumps(data)
 
-    def restore_flagged(self, data):
+    def restore_flagged(self, dir, data, encryption_key):
         return json.loads(data)
 
 
@@ -543,14 +544,14 @@ class File(OutputComponent):
         return {
             "name": os.path.basename(y),
             "size": os.path.getsize(y),
-            "data": processing_utils.encode_file_to_base64(y, header=False)
+            "data": processing_utils.encode_file_to_base64(y)
         }
 
     def save_flagged(self, dir, label, data, encryption_key):
-        """
-        Returns: (str) path to image file
-        """
         return self.save_flagged_file(dir, label, data["data"], encryption_key)
+
+    def restore_flagged(self, dir, data, encryption_key):
+        return self.restore_flagged_file(dir, data, encryption_key)
 
 
 class Dataframe(OutputComponent):
@@ -624,13 +625,10 @@ class Dataframe(OutputComponent):
                              ". Please choose from: 'pandas', 'numpy', 'array'.")
 
     def save_flagged(self, dir, label, data, encryption_key):
-        """
-        Returns: (List[List[Union[str, float]]]) 2D array
-        """
         return json.dumps(data["data"])
 
-    def restore_flagged(self, data):
-        return json.loads(data)
+    def restore_flagged(self, dir, data, encryption_key):
+        return {"data": json.loads(data)}
 
 
 class Carousel(OutputComponent):
@@ -685,14 +683,22 @@ class Carousel(OutputComponent):
                 component.save_flagged(
                     dir, f"{label}_{j}", data[i][j], encryption_key)
                 for j, component in enumerate(self.components)
-            ] for i, sample in enumerate(data)])
+            ] for i, _ in enumerate(data)])
+
+    def restore_flagged(self, dir, data, encryption_key):
+        return [
+            [
+                component.restore_flagged(dir, sample, encryption_key)
+                for component, sample in zip(self.components, sample_set)
+            ] for sample_set in json.loads(data)]
 
 
 def get_output_instance(iface):
     if isinstance(iface, str):
         shortcut = OutputComponent.get_all_shortcut_implementations()[iface]
         return shortcut[0](**shortcut[1])
-    elif isinstance(iface, dict):  # a dict with `name` as the output component type and other keys as parameters
+    # a dict with `name` as the output component type and other keys as parameters
+    elif isinstance(iface, dict):
         name = iface.pop('name')
         for component in OutputComponent.__subclasses__():
             if component.__name__.lower() == name:
@@ -761,5 +767,5 @@ class Timeseries(OutputComponent):
         """
         return json.dumps(data)
 
-    def restore_flagged(self, data):
+    def restore_flagged(self, dir, data, encryption_key):
         return json.loads(data)

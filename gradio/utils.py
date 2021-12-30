@@ -184,6 +184,7 @@ def get_config_file(interface):
         "flagging_options": interface.flagging_options,
         "allow_interpretation": interface.interpretation is not None,
         "queue": interface.enable_queue,
+        "cached_examples": interface.cache_examples if hasattr(interface, "cache_examples") else False,
         "version": pkg_resources.require("gradio")[0].version
     }
     try:
@@ -225,7 +226,8 @@ def get_config_file(interface):
                     examples = examples[1:]  # remove header
             for i, example in enumerate(examples):
                 for j, (component, cell) in enumerate(zip(interface.input_components + interface.output_components, example)):
-                    examples[i][j] = component.restore_flagged(cell)
+                    examples[i][j] = component.restore_flagged(
+                        interface.flagging_dir, cell, interface.encryption_key if interface.encrypt else None)
             config["examples"] = examples
             config["examples_dir"] = interface.examples
         else:

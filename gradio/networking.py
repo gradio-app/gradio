@@ -26,6 +26,7 @@ from gradio.app import app
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
     from gradio import Interface
 
+
 # By default, the local server will try to open on localhost, port 7860. 
 # If that is not available, then it will try 7861, 7862, ... 7959.
 INITIAL_PORT_VALUE = int(os.getenv('GRADIO_SERVER_PORT', "7860"))  
@@ -33,7 +34,7 @@ TRY_NUM_PORTS = int(os.getenv('GRADIO_NUM_PORTS', "100"))
 LOCALHOST_NAME = os.getenv('GRADIO_SERVER_NAME', "127.0.0.1")
 GRADIO_API_SERVER = "https://api.gradio.app/v1/tunnel-request"
 
-# # TODO: all of this needs to be migrated
+
 # app.url_map.strict_slashes = False  # TODO: go back to discussion with Charles
 
 
