@@ -202,7 +202,7 @@ export class GradioInterface extends React.Component {
       return;
     }
     let component_state = { input_data: [], output_data: [] };
-    if (this.state.flag_index !== undefined) {
+    if (typeof this.state.flag_index === "number") {
       component_state["flag_index"] = this.state.flag_index;
     } else {
       for (let [i, input_component] of this.props.input_components.entries()) {

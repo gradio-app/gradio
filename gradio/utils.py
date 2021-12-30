@@ -210,7 +210,7 @@ def get_config_file(interface):
             for i, example in enumerate(examples):
                 for j, (component, cell) in enumerate(zip(interface.input_components + interface.output_components, example)):
                     examples[i][j] = component.restore_flagged(
-                        interface, interface.flagging_dir, cell, interface.encryption_key if interface.encrypt else None)
+                        interface.flagging_dir, cell, interface.encryption_key if interface.encrypt else None)
             config["examples"] = examples
             config["examples_dir"] = interface.examples
         else:

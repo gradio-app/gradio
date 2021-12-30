@@ -34,7 +34,7 @@ class TestTextbox(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = text_input.save_flagged(tmpdirname, "text_input", "Hello World!", None)
             self.assertEqual(to_save, "Hello World!")
-            restored = text_input.restore_flagged(to_save, None)
+            restored = text_input.restore_flagged(tmpdirname, to_save, None)
             self.assertEqual(restored, "Hello World!")
 
         with self.assertWarns(DeprecationWarning):
@@ -78,7 +78,7 @@ class TestNumber(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = numeric_input.save_flagged(tmpdirname, "numeric_input", 3, None)
             self.assertEqual(to_save, 3)
-            restored = numeric_input.restore_flagged(to_save, None)
+            restored = numeric_input.restore_flagged(tmpdirname, to_save, None)
             self.assertEqual(restored, 3)
         self.assertIsInstance(numeric_input.generate_sample(), float)
         numeric_input.set_interpret_parameters(steps=3, delta=1, delta_type="absolute")
@@ -107,7 +107,7 @@ class TestSlider(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = slider_input.save_flagged(tmpdirname, "slider_input", 3, None)
             self.assertEqual(to_save, 3)
-            restored = slider_input.restore_flagged(to_save, None)
+            restored = slider_input.restore_flagged(tmpdirname, to_save, None)
             self.assertEqual(restored, 3)
 
         self.assertIsInstance(slider_input.generate_sample(), int)
@@ -142,7 +142,7 @@ class TestCheckbox(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = bool_input.save_flagged(tmpdirname, "bool_input", True, None)
             self.assertEqual(to_save, True)
-            restored = bool_input.restore_flagged(to_save, None)
+            restored = bool_input.restore_flagged(tmpdirname, to_save, None)
             self.assertEqual(restored, True)
         self.assertIsInstance(bool_input.generate_sample(), bool)
         bool_input = gr.inputs.Checkbox(default=True, label="Check Your Input")
@@ -173,7 +173,7 @@ class TestCheckboxGroup(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = checkboxes_input.save_flagged(tmpdirname, "checkboxes_input", ["a", "c"], None)
             self.assertEqual(to_save, '["a", "c"]')
-            restored = checkboxes_input.restore_flagged(to_save, None)
+            restored = checkboxes_input.restore_flagged(tmpdirname, to_save, None)
             self.assertEqual(restored, ["a", "c"])
         self.assertIsInstance(checkboxes_input.generate_sample(), list)
         checkboxes_input = gr.inputs.CheckboxGroup(choices=["a", "b", "c"], default=["a", "c"],
@@ -210,7 +210,7 @@ class TestRadio(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = radio_input.save_flagged(tmpdirname, "radio_input", "a", None)
             self.assertEqual(to_save, 'a')
-            restored = radio_input.restore_flagged(to_save, None)
+            restored = radio_input.restore_flagged(tmpdirname, to_save, None)
             self.assertEqual(restored, "a")
         self.assertIsInstance(radio_input.generate_sample(), str)
         radio_input = gr.inputs.Radio(choices=["a", "b", "c"], default="a",
@@ -246,7 +246,7 @@ class TestDropdown(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = dropdown_input.save_flagged(tmpdirname, "dropdown_input", "a", None)
             self.assertEqual(to_save, 'a')
-            restored = dropdown_input.restore_flagged(to_save, None)
+            restored = dropdown_input.restore_flagged(tmpdirname, to_save, None)
             self.assertEqual(restored, "a")
         self.assertIsInstance(dropdown_input.generate_sample(), str)
         dropdown_input = gr.inputs.Dropdown(choices=["a", "b", "c"], default="a",
@@ -289,7 +289,7 @@ class TestImage(unittest.TestCase):
             self.assertEqual("image_input/0.png", to_save)
             to_save = image_input.save_flagged(tmpdirname, "image_input", img, None)
             self.assertEqual("image_input/1.png", to_save)
-            restored = image_input.restore_flagged(to_save, None)
+            restored = image_input.restore_flagged(tmpdirname, to_save, None)
             self.assertEqual(restored, "image_input/1.png")
 
         self.assertIsInstance(image_input.generate_sample(), str)
@@ -364,7 +364,7 @@ class TestAudio(unittest.TestCase):
             self.assertEqual("audio_input/0.wav", to_save)
             to_save = audio_input.save_flagged(tmpdirname, "audio_input", x_wav, None)
             self.assertEqual("audio_input/1.wav", to_save)
-            restored = audio_input.restore_flagged(to_save, None)
+            restored = audio_input.restore_flagged(tmpdirname, to_save, None)
             self.assertEqual(restored, "audio_input/1.wav")
 
         self.assertIsInstance(audio_input.generate_sample(), dict)
@@ -422,11 +422,11 @@ class TestFile(unittest.TestCase):
         
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = file_input.save_flagged(tmpdirname, "file_input", [x_file], None)
-            self.assertEqual("file_input/0.pdf", to_save)
+            self.assertEqual("file_input/0", to_save)
             to_save = file_input.save_flagged(tmpdirname, "file_input", [x_file], None)
-            self.assertEqual("file_input/1.pdf", to_save)
-            restored = file_input.restore_flagged(to_save, None)
-            self.assertEqual(restored, "file_input/1.pdf")
+            self.assertEqual("file_input/1", to_save)
+            restored = file_input.restore_flagged(tmpdirname, to_save, None)
+            self.assertEqual(restored, "file_input/1")
 
         self.assertIsInstance(file_input.generate_sample(), dict)
         file_input = gr.inputs.File(label="Upload Your File")
@@ -463,7 +463,7 @@ class TestDataframe(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = dataframe_input.save_flagged(tmpdirname, "dataframe_input", x_data, None)
             self.assertEqual(json.dumps(x_data), to_save)
-            restored = dataframe_input.restore_flagged(to_save, None)
+            restored = dataframe_input.restore_flagged(tmpdirname, to_save, None)
             self.assertEqual(x_data, restored)
 
         self.assertIsInstance(dataframe_input.generate_sample(), list)
@@ -509,7 +509,7 @@ class TestVideo(unittest.TestCase):
             self.assertEqual("video_input/0.mp4", to_save)
             to_save = video_input.save_flagged(tmpdirname, "video_input", x_video, None)
             self.assertEqual("video_input/1.mp4", to_save)
-            restored = video_input.restore_flagged(to_save, None)
+            restored = video_input.restore_flagged(tmpdirname, to_save, None)
             self.assertEqual(restored, "video_input/1.mp4")
         
         self.assertIsInstance(video_input.generate_sample(), dict)
@@ -552,7 +552,7 @@ class TestTimeseries(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = timeseries_input.save_flagged(tmpdirname, "video_input", x_timeseries, None)
             self.assertEqual(json.dumps(x_timeseries), to_save)
-            restored = timeseries_input.restore_flagged(to_save, None)
+            restored = timeseries_input.restore_flagged(tmpdirname, to_save, None)
             self.assertEqual(x_timeseries, restored)
 
         self.assertIsInstance(timeseries_input.generate_sample(), dict)
