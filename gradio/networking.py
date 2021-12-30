@@ -159,6 +159,39 @@ def login():
             return abort(401)
 
 
+@app.route("/api/", methods=["GET"])
+def api_docs():
+    inputs = [type(inp) for inp in app.interface.input_components]
+    outputs = [type(out) for out in app.interface.output_components]
+    input_types_doc, input_types = get_types(inputs, "input")
+    output_types_doc, output_types = get_types(outputs, "output")
+    input_names = [type(inp).__name__ for inp in app.interface.input_components]
+    output_names = [type(out).__name__ for out in app.interface.output_components]
+    if app.interface.examples is not None:
+        sample_inputs = app.interface.examples[0]
+    else:
+        sample_inputs = [inp.generate_sample() for inp in app.interface.input_components]
+    docs = {
+        "inputs": input_names,
+        "outputs": output_names,
+        "len_inputs": len(inputs),
+        "len_outputs": len(outputs),
+        "inputs_lower": [name.lower() for name in input_names],
+        "outputs_lower": [name.lower() for name in output_names],
+        "input_types": input_types,
+        "output_types": output_types,
+        "input_types_doc": input_types_doc,
+        "output_types_doc": output_types_doc,
+        "sample_inputs": sample_inputs,
+        "auth": app.interface.auth,
+        "local_login_url": urllib.parse.urljoin(
+            app.interface.local_url, "login"),
+        "local_api_url": urllib.parse.urljoin(
+            app.interface.local_url, "api/predict")
+    }
+    return render_template("api_docs.html", **docs)
+
+
 @app.route("/config/", methods=["GET"])
 def get_config():
     if app.interface.auth is None or current_user.is_authenticated:
@@ -210,8 +243,7 @@ def predict():
         if app.interface.allow_flagging == "auto":
             flag_index = app.interface.flagging_callback.flag(app.interface, raw_input, prediction,
                 flag_option=(None if app.interface.flagging_options is None else ""), 
-                username=current_user.id if current_user.is_authenticated else None,
-                flag_path=os.path.join(app.cwd, app.interface.flagging_dir))
+                username=current_user.id if current_user.is_authenticated else None)
     output = {
         "data": prediction, 
         "durations": durations, 
@@ -221,74 +253,14 @@ def predict():
     return output
 
 
-def get_types(cls_set, component):
-    docset = []
-    types = []
-    if component == "input":
-        for cls in cls_set:
-            doc = inspect.getdoc(cls.preprocess)
-            doc_lines = doc.split("\n")
-            docset.append(doc_lines[1].split(":")[-1])
-            types.append(doc_lines[1].split(")")[0].split("(")[-1])
-    else:
-        for cls in cls_set:
-            doc = inspect.getdoc(cls.postprocess)
-            doc_lines = doc.split("\n")
-            docset.append(doc_lines[-1].split(":")[-1])
-            types.append(doc_lines[-1].split(")")[0].split("(")[-1])
-    return docset, types
-
-
-@app.route("/api/", methods=["GET"])
-def api_docs():
-    inputs = [type(inp) for inp in app.interface.input_components]
-    outputs = [type(out) for out in app.interface.output_components]
-    input_types_doc, input_types = get_types(inputs, "input")
-    output_types_doc, output_types = get_types(outputs, "output")
-    input_names = [type(inp).__name__ for inp in app.interface.input_components]
-    output_names = [type(out).__name__ for out in app.interface.output_components]
-    if app.interface.examples is not None:
-        sample_inputs = app.interface.examples[0]
-    else:
-        sample_inputs = [inp.generate_sample() for inp in app.interface.input_components]
-    docs = {
-        "inputs": input_names,
-        "outputs": output_names,
-        "len_inputs": len(inputs),
-        "len_outputs": len(outputs),
-        "inputs_lower": [name.lower() for name in input_names],
-        "outputs_lower": [name.lower() for name in output_names],
-        "input_types": input_types,
-        "output_types": output_types,
-        "input_types_doc": input_types_doc,
-        "output_types_doc": output_types_doc,
-        "sample_inputs": sample_inputs,
-        "auth": app.interface.auth,
-        "local_login_url": urllib.parse.urljoin(
-            app.interface.local_url, "login"),
-        "local_api_url": urllib.parse.urljoin(
-            app.interface.local_url, "api/predict")
-    }
-    return render_template("api_docs.html", **docs)
-
-
-def log_feature_analytics(feature):
-    if app.interface.analytics_enabled:
-        try:
-            requests.post(GRADIO_FEATURE_ANALYTICS_URL,
-                          data={
-                              'ip_address': IP_ADDRESS,
-                              'feature': feature}, timeout=3)
-        except (requests.ConnectionError, requests.exceptions.ReadTimeout):
-            pass  # do not push analytics if no network
-
-
 @app.route("/api/flag/", methods=["POST"])
 @login_check
 def flag():
     log_feature_analytics('flag')
     data = request.json['data']
-    app.interface.flagging_callback.flag(app.interface, data['input_data'], data['output_data'], data.get("flag_option"), data.get("flag_index"),
+    app.interface.flagging_callback.flag(
+        app.interface, data['input_data'], data['output_data'], 
+        data.get("flag_option"), data.get("flag_index"),
         current_user.id if current_user.is_authenticated else None)
     return jsonify(success=True)
 
@@ -446,3 +418,35 @@ def url_ok(url):
                 return True
     except (ConnectionError, requests.exceptions.ConnectionError):
         return False
+    
+
+
+def get_types(cls_set, component):
+    docset = []
+    types = []
+    if component == "input":
+        for cls in cls_set:
+            doc = inspect.getdoc(cls.preprocess)
+            doc_lines = doc.split("\n")
+            docset.append(doc_lines[1].split(":")[-1])
+            types.append(doc_lines[1].split(")")[0].split("(")[-1])
+    else:
+        for cls in cls_set:
+            doc = inspect.getdoc(cls.postprocess)
+            doc_lines = doc.split("\n")
+            docset.append(doc_lines[-1].split(":")[-1])
+            types.append(doc_lines[-1].split(")")[0].split("(")[-1])
+    return docset, types
+
+
+def log_feature_analytics(feature):
+    if app.interface.analytics_enabled:
+        try:
+            requests.post(GRADIO_FEATURE_ANALYTICS_URL,
+                          data={
+                              'ip_address': IP_ADDRESS,
+                              'feature': feature}, timeout=3)
+        except (requests.ConnectionError, requests.exceptions.ReadTimeout):
+            pass  # do not push analytics if no network
+
+
