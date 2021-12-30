@@ -39,18 +39,25 @@ templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login", auto_error=False)
 
 
-########
+###########
 # Auth 
-########
+###########
 
 def get_username_from_token(token: str = Depends(oauth2_scheme)):
     print('token2', token)
     if token in app.tokens:
         return app.tokens[token]
 
+
 def is_authenticated(token: str = Depends(oauth2_scheme)):
     print('token', token)
     return get_username_from_token(token) is not None     
+
+
+@app.get('/token')
+def get_token(token: str = Depends(oauth2_scheme)):
+    return {"token": token}
+
 
 @app.post('/login')
 def login(form_data: OAuth2PasswordRequestForm = Depends()):
