@@ -71,7 +71,8 @@ class TestLabel(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             to_save = label_output.save_flagged(tmpdir, "label_output", label, None)
             self.assertEqual(to_save, '{"3": 0.7, "1": 0.2}')
-            self.assertEqual(label_output.restore_flagged(tmpdir, to_save, None), {"3": 0.7, "1": 0.2})
+            self.assertEqual(label_output.restore_flagged(tmpdir, to_save, None), 
+                {'label': '3', 'confidences': [{"label": "3", "confidence": 0.7}, {"label": "1", "confidence": 0.2}]})
         with self.assertRaises(ValueError):
             label_output = gr.outputs.Label(type="unknown")
             label_output.deserialize([1, 2, 3])
