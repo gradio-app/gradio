@@ -4,8 +4,6 @@ creating tunnels.
 """
 from __future__ import annotations
 import fastapi
-from flask import Flask, request, session, jsonify, abort, send_file, render_template, redirect
-from flask_login import LoginManager, login_user, current_user, login_required
 from functools import wraps
 import http
 import json
@@ -38,39 +36,6 @@ GRADIO_API_SERVER = "https://api.gradio.app/v1/tunnel-request"
 # # TODO: all of this needs to be migrated
 # app.url_map.strict_slashes = False  # TODO: go back to discussion with Charles
 
-# login_manager = LoginManager()
-# login_manager.login_view = 'login'
-# login_manager.init_app(app)
-
-
-# class User:
-#     def __init__(self, id):
-#         self.is_authenticated = True
-#         self.is_active = True
-#         self.is_anonymous = False
-#         self.id = id
-
-#     def get_id(self):
-#         return self.id
-
-
-# @login_manager.user_loader
-# def load_user(_id):
-#     return User(_id)
-
-
-# def login_check(func):
-#     @wraps(func)
-#     def wrapper(*args, **kwargs):
-#         if app.auth:
-#             @login_required
-#             def func2(*args, **kwargs):
-#                 return func(*args, **kwargs)
-
-#             return func2(*args, **kwargs)
-#         else:
-#             return func(*args, **kwargs)
-#     return wrapper
 
 def get_first_available_port(
     initial: int, 
@@ -96,22 +61,6 @@ def get_first_available_port(
             initial, final
         )
     )
-
-# TODO(@aliabid94): this throws a 500 error if app.auth is None (should probalbly just redirect to '/')
-# @app.route('/login', methods=["GET", "POST"])
-# def login():
-#     if request.method == "GET":
-#         config = get_config()
-#         return render_template("frontend/index.html", config=config)
-#     elif request.method == "POST":
-#         username = request.form.get("username")
-#         password = request.form.get("password")
-#         if ((not callable(app.auth) and username in app.auth and app.auth[username] == password)
-#                 or (callable(app.auth) and app.auth.__call__(username, password))):
-#             login_user(User(username))
-#             return redirect("/")
-#         else:
-#             return abort(401)
 
 
 def queue_thread(path_to_local_server, test_mode=False):
@@ -219,10 +168,3 @@ def url_ok(url: str) -> bool:
                 return True
     except (ConnectionError, requests.exceptions.ConnectionError):
         return False
-    
-
-
-
-
-
-
