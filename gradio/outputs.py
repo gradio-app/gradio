@@ -780,5 +780,3 @@ def get_output_instance(iface):
             "Output interface must be of type `str` or `dict` or"
             "`OutputComponent` but is {}".format(iface)
         )
-
-
