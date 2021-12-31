@@ -25,25 +25,28 @@ class InputComponent(Component):
     Input Component. All input components subclass this.
     """
 
-    def __init__(self, 
-                 label: str, 
-                 requires_permissions: bool = False):
+    def __init__(
+        self, 
+        label: str, 
+        requires_permissions: bool = False):
         """
         Constructs an input component.
         """
         self.set_interpret_parameters()
         super().__init__(label, requires_permissions)
 
-    def preprocess(self, 
-                   x: Any) -> Any:
+    def preprocess(
+        self, 
+        x: Any) -> Any:
         """
         Any preprocessing needed to be performed on function input.
         """
         return x
 
-    def serialize(self, 
-                  x: Any, 
-                  called_directly: bool) -> Any:
+    def serialize(
+        self, 
+        x: Any, 
+        called_directly: bool) -> Any:
         """
         Convert from a human-readable version of the input (path of an image, URL of a video, etc.) into the interface to a serialized version (e.g. base64) to pass into an API. May do different things if the interface is called() vs. used via GUI.
         Parameters:
@@ -52,8 +55,9 @@ class InputComponent(Component):
         """
         return x
 
-    def preprocess_example(self, 
-                           x: Any) -> Any:
+    def preprocess_example(
+        self, 
+        x: Any) -> Any:
         """
         Any preprocessing needed to be performed on an example before being passed to the main function.
         """
@@ -65,9 +69,9 @@ class InputComponent(Component):
         '''
         return self
 
-    def get_interpretation_neighbors(self, 
-                                     x: Any
-    ) -> Tuple[List[Any], Dict[Any], bool]:
+    def get_interpretation_neighbors(
+        self, 
+        x: Any) -> Tuple[List[Any], Dict[Any], bool]:
         '''
         Generates values similar to input to be used to interpret the significance of the input in the final output.
         Parameters:
@@ -79,10 +83,11 @@ class InputComponent(Component):
         '''
         pass
 
-    def get_interpretation_scores(self, 
-                                  x: Any, 
-                                  neighbors: List[Any], 
-                                  scores: List[float], **kwargs) -> List[Any]:
+    def get_interpretation_scores(
+        self, 
+        x: Any, 
+        neighbors: List[Any], 
+        scores: List[float], **kwargs) -> List[Any]:
         '''
         Arrange the output values from the neighbors into interpretation scores for the interface to render.
         Parameters:
@@ -109,13 +114,14 @@ class Textbox(InputComponent):
     Demos: hello_world, diff_texts
     """
 
-    def __init__(self, 
-                 lines: int = 1, 
-                 placeholder: Optional[str] = None, 
-                 default: str = "", 
-                 numeric: Optional[bool] = False, 
-                 type: Optional[str] = "str", 
-                 label: Optional[str] = None):
+    def __init__(
+        self, 
+        lines: int = 1, 
+        placeholder: Optional[str] = None, 
+        default: str = "", 
+        numeric: Optional[bool] = False, 
+        type: Optional[str] = "str", 
+        label: Optional[str] = None):
         """
         Parameters:
         lines (int): number of line rows to provide in textarea.
@@ -172,17 +178,19 @@ class Textbox(InputComponent):
             raise ValueError("Unknown type: " + str(self.type) +
                              ". Please choose from: 'str', 'number'.")
 
-    def preprocess_example(self, 
-                           x: str) -> str:
+    def preprocess_example(
+        self, 
+        x: str) -> str:
         """
         Returns:
         (str): Text representing function input
         """
         return x
 
-    def set_interpret_parameters(self, 
-                                 separator: str = " ", 
-                                 replacement: Optional[str] = None):
+    def set_interpret_parameters(
+        self, 
+        separator: str = " ", 
+        replacement: Optional[str] = None):
         """
         Calculates interpretation score of characters in input by splitting input into tokens, then using a "leave one out" method to calculate the score of each token by removing each token and measuring the delta of the output value.
         Parameters:
@@ -193,9 +201,9 @@ class Textbox(InputComponent):
         self.interpretation_replacement = replacement
         return self
 
-    def tokenize(self, 
-                 x: str
-    ) -> Tuple[List[str], List[str], None]:
+    def tokenize(
+        self, 
+        x: str) -> Tuple[List[str], List[str], None]:
         """
         Tokenizes an input string by dividing into "words" delimited by self.interpretation_separator
         """
@@ -214,8 +222,7 @@ class Textbox(InputComponent):
     def get_masked_inputs(
         self, 
         tokens: List[str], 
-        binary_mask_matrix: List[List[int]]
-    ) -> List[str]:
+        binary_mask_matrix: List[List[int]]) -> List[str]:
         """
         Constructs partially-masked sentences for SHAP interpretation
         """
@@ -255,9 +262,10 @@ class Number(InputComponent):
     Demos: tax_calculator, titanic_survival
     """
 
-    def __init__(self, 
-                 default: Optional[float] = None, 
-                 label: Optional[str] = None):
+    def __init__(
+        self, 
+        default: Optional[float] = None, 
+        label: Optional[str] = None):
         '''
         Parameters:
         default (float): default value.
@@ -296,10 +304,11 @@ class Number(InputComponent):
         """
         return x
 
-    def set_interpret_parameters(self, 
-                                 steps: int = 3, 
-                                 delta: float = 1, 
-                                 delta_type: str = "percent"):
+    def set_interpret_parameters(
+        self, 
+        steps: int = 3, 
+        delta: float = 1, 
+        delta_type: str = "percent"):
         """
         Calculates interpretation scores of numeric values close to the input number.
         Parameters:
@@ -312,9 +321,9 @@ class Number(InputComponent):
         self.interpretation_delta_type = delta_type
         return self
 
-    def get_interpretation_neighbors(self, 
-                                     x: Number
-    ) -> Tuple[List[float], Dict]:
+    def get_interpretation_neighbors(
+        self, 
+        x: Number) -> Tuple[List[float], Dict]:
         x = float(x)
         if self.interpretation_delta_type == "percent":
             delta = 1.0 * self.interpretation_delta * x / 100
@@ -413,7 +422,9 @@ class Slider(InputComponent):
         """
         return x
 
-    def set_interpret_parameters(self, steps=8):
+    def set_interpret_parameters(
+        self, 
+        steps: int=8) -> None:
         """
         Calculates interpretation scores of numeric values ranging between the minimum and maximum values of the slider.
         Parameters:
@@ -422,17 +433,23 @@ class Slider(InputComponent):
         self.interpretation_steps = steps
         return self
 
-    def get_interpretation_neighbors(self, x):
+    def get_interpretation_neighbors(
+        self, 
+        x) -> List[float]:
         return np.linspace(self.minimum, self.maximum, self.interpretation_steps).tolist(), {}
 
-    def get_interpretation_scores(self, x, neighbors, scores):
+    def get_interpretation_scores(
+        self, 
+        x, 
+        neighbors, 
+        scores: List[float]) -> List[float]:
         """
         Returns:
         (List[float]): Each value represents the score corresponding to an evenly spaced range of inputs between the minimum and maximum slider values.
         """
         return scores
 
-    def generate_sample(self):
+    def generate_sample(self) -> float:
         return self.maximum
 
 
