@@ -11,6 +11,7 @@ import os
 import posixpath
 import pkg_resources
 import secrets
+from starlette.responses import RedirectResponse
 import traceback
 from typing import List, Optional, Type, TYPE_CHECKING
 import urllib
@@ -104,10 +105,10 @@ def main(
 
 @app.get("/static/{path:path}", dependencies=[Depends(login_check)])
 def static_resource(path: str):
-    # if app.interface.share:
-        # return redirect(GRADIO_STATIC_ROOT + path)
-    # else:
-    static_file = safe_join(STATIC_PATH_LIB, path)
+    if app.interface.share:
+        return RedirectResponse(GRADIO_STATIC_ROOT + path)
+    else:
+        static_file = safe_join(STATIC_PATH_LIB, path)
     if static_file is not None:
         return FileResponse(static_file)
     raise HTTPException(status_code=404, detail="Static file not found")
@@ -252,8 +253,6 @@ async def interpret(request: Request):
 #     status, data = queueing.get_status(hash)
 #     return {"status": status, "data": data}
 
-
-# def get_current_user(token: str = Depends(oauth2_scheme))
 
 ########
 # Helper functions
