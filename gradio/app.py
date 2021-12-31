@@ -12,7 +12,7 @@ import posixpath
 import pkg_resources
 import secrets
 import traceback
-from typing import Callable, Any, List, Optional, Tuple, TYPE_CHECKING, Type
+from typing import List, Optional, Type, TYPE_CHECKING
 import urllib
 import uvicorn
 
@@ -25,8 +25,8 @@ STATIC_PATH_LIB = pkg_resources.resource_filename(
     "gradio", "templates/frontend/static")
 VERSION_FILE = pkg_resources.resource_filename("gradio", "version.txt")
 with open(VERSION_FILE) as version_file:
-    version = version_file.read()
-GRADIO_STATIC_ROOT = "https://gradio.s3-us-west-2.amazonaws.com/{}/static/".format(version)
+    VERSION = version_file.read()
+GRADIO_STATIC_ROOT = "https://gradio.s3-us-west-2.amazonaws.com/{}/static/".format(VERSION)
 
 app = FastAPI()
 app.add_middleware(
