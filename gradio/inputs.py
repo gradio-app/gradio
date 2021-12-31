@@ -4,34 +4,46 @@ This module defines various classes that can serve as the `input` to an interfac
 automatically added to a registry, which allows them to be easily referenced in other parts of the code.
 """
 
-import json
-import warnings
-from gradio.component import Component
-import numpy as np
-import PIL
-from gradio import processing_utils, test_data
-import pandas as pd
+from __future__ import annotations
 from ffmpy import FFmpeg
+import json
 import math
+from numbers import Number
+import numpy as np
+import pandas as pd
+import PIL
 import tempfile
-import csv
+from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
+import warnings
+
+from gradio import processing_utils, test_data
+from gradio.component import Component
+
 
 class InputComponent(Component):
     """
     Input Component. All input components subclass this.
     """
 
-    def __init__(self, label, requires_permissions=False):
+    def __init__(self, 
+                 label: str, 
+                 requires_permissions: bool = False):
+        """
+        Constructs an input component.
+        """
         self.set_interpret_parameters()
         super().__init__(label, requires_permissions)
 
-    def preprocess(self, x):
+    def preprocess(self, 
+                   x: Any) -> Any:
         """
         Any preprocessing needed to be performed on function input.
         """
         return x
 
-    def serialize(self, x, called_directly):
+    def serialize(self, 
+                  x: Any, 
+                  called_directly: bool) -> Any:
         """
         Convert from a human-readable version of the input (path of an image, URL of a video, etc.) into the interface to a serialized version (e.g. base64) to pass into an API. May do different things if the interface is called() vs. used via GUI.
         Parameters:
@@ -40,7 +52,8 @@ class InputComponent(Component):
         """
         return x
 
-    def preprocess_example(self, x):
+    def preprocess_example(self, 
+                           x: Any) -> Any:
         """
         Any preprocessing needed to be performed on an example before being passed to the main function.
         """
@@ -52,7 +65,9 @@ class InputComponent(Component):
         '''
         return self
 
-    def get_interpretation_neighbors(self, x):
+    def get_interpretation_neighbors(self, 
+                                     x: Any
+    ) -> Tuple[List[Any], Dict[Any], bool]:
         '''
         Generates values similar to input to be used to interpret the significance of the input in the final output.
         Parameters:
@@ -64,7 +79,10 @@ class InputComponent(Component):
         '''
         pass
 
-    def get_interpretation_scores(self, x, neighbors, scores, **kwargs):
+    def get_interpretation_scores(self, 
+                                  x: Any, 
+                                  neighbors: List[Any], 
+                                  scores: List[float], **kwargs) -> List[Any]:
         '''
         Arrange the output values from the neighbors into interpretation scores for the interface to render.
         Parameters:
@@ -77,7 +95,7 @@ class InputComponent(Component):
         '''
         pass
 
-    def generate_sample(self):
+    def generate_sample(self) -> Any:
         """
         Returns a sample value of the input that would be accepted by the api. Used for api documentation.
         """
@@ -91,7 +109,13 @@ class Textbox(InputComponent):
     Demos: hello_world, diff_texts
     """
 
-    def __init__(self, lines=1, placeholder=None, default="", numeric=False, type="str", label=None):
+    def __init__(self, 
+                 lines: int = 1, 
+                 placeholder: Optional[str] = None, 
+                 default: str = "", 
+                 numeric: Optional[bool] = False, 
+                 type: Optional[str] = "str", 
+                 label: Optional[str] = None):
         """
         Parameters:
         lines (int): number of line rows to provide in textarea.
@@ -135,7 +159,7 @@ class Textbox(InputComponent):
             "textbox": {"lines": 7},
         }
 
-    def preprocess(self, x):
+    def preprocess(self, x: str) -> str | float:
         """
         Parameters:
         x (str): text input
@@ -148,25 +172,30 @@ class Textbox(InputComponent):
             raise ValueError("Unknown type: " + str(self.type) +
                              ". Please choose from: 'str', 'number'.")
 
-    def preprocess_example(self, x):
+    def preprocess_example(self, 
+                           x: str) -> str:
         """
         Returns:
         (str): Text representing function input
         """
         return x
 
-    def set_interpret_parameters(self, separator=" ", replacement=None):
+    def set_interpret_parameters(self, 
+                                 separator: str = " ", 
+                                 replacement: Optional[str] = None):
         """
         Calculates interpretation score of characters in input by splitting input into tokens, then using a "leave one out" method to calculate the score of each token by removing each token and measuring the delta of the output value.
         Parameters:
         separator (str): Separator to use to split input into tokens.
-        replacement (str): In the "leave one out" step, the text that the token should be replaced with.
+        replacement (str): In the "leave one out" step, the text that the token should be replaced with. If None, the token is removed altogether.
         """
         self.interpretation_separator = separator
         self.interpretation_replacement = replacement
         return self
 
-    def tokenize(self, x):
+    def tokenize(self, 
+                 x: str
+    ) -> Tuple[List[str], List[str], None]:
         """
         Tokenizes an input string by dividing into "words" delimited by self.interpretation_separator
         """
@@ -182,7 +211,11 @@ class Textbox(InputComponent):
                 self.interpretation_separator.join(leave_one_out_set))
         return tokens, leave_one_out_strings, None
 
-    def get_masked_inputs(self, tokens, binary_mask_matrix):
+    def get_masked_inputs(
+        self, 
+        tokens: List[str], 
+        binary_mask_matrix: List[List[int]]
+    ) -> List[str]:
         """
         Constructs partially-masked sentences for SHAP interpretation
         """
@@ -194,7 +227,13 @@ class Textbox(InputComponent):
                 self.interpretation_separator.join(masked_input))
         return masked_inputs
 
-    def get_interpretation_scores(self, x, neighbors, scores, tokens, masks=None):
+    def get_interpretation_scores(
+        self, 
+        x, 
+        neighbors, 
+        scores: List[float], 
+        tokens: List[str], 
+        masks=None) -> List[Tuple[str, float]]:
         """
         Returns:
         (List[Tuple[str, float]]): Each tuple set represents a set of characters and their corresponding interpretation score.
@@ -205,7 +244,7 @@ class Textbox(InputComponent):
             result.append((self.interpretation_separator, 0))
         return result
 
-    def generate_sample(self):
+    def generate_sample(self) -> str:
         return "Hello World"
 
 
@@ -216,7 +255,9 @@ class Number(InputComponent):
     Demos: tax_calculator, titanic_survival
     """
 
-    def __init__(self, default=None, label=None):
+    def __init__(self, 
+                 default: Optional[float] = None, 
+                 label: Optional[str] = None):
         '''
         Parameters:
         default (float): default value.
@@ -239,7 +280,7 @@ class Number(InputComponent):
             "number": {},
         }
 
-    def preprocess(self, x):
+    def preprocess(self, x: Number) -> float:
         """
         Parameters:
         x (number): numeric input
@@ -248,14 +289,17 @@ class Number(InputComponent):
         """
         return float(x)
 
-    def preprocess_example(self, x):
+    def preprocess_example(self, x: float) -> float:
         """
         Returns:
         (float): Number representing function input
         """
         return x
 
-    def set_interpret_parameters(self, steps=3, delta=1, delta_type="percent"):
+    def set_interpret_parameters(self, 
+                                 steps: int = 3, 
+                                 delta: float = 1, 
+                                 delta_type: str = "percent"):
         """
         Calculates interpretation scores of numeric values close to the input number.
         Parameters:
@@ -268,9 +312,10 @@ class Number(InputComponent):
         self.interpretation_delta_type = delta_type
         return self
 
-    def get_interpretation_neighbors(self, x):
+    def get_interpretation_neighbors(self, 
+                                     x: Number
+    ) -> Tuple[List[float], Dict]:
         x = float(x)
-        neighbors = []
         if self.interpretation_delta_type == "percent":
             delta = 1.0 * self.interpretation_delta * x / 100
         elif self.interpretation_delta_type == "absolute":
@@ -281,7 +326,12 @@ class Number(InputComponent):
                      * delta).tolist()
         return negatives + positives, {}
 
-    def get_interpretation_scores(self, x, neighbors, scores):
+    def get_interpretation_scores(
+        self, 
+        x: Number, 
+        neighbors: List[float], 
+        scores: List[float]
+        ) -> List[Tuple[float, float]]:
         """
         Returns:
         (List[Tuple[float, float]]): Each tuple set represents a numeric value near the input and its corresponding interpretation score.
@@ -290,7 +340,7 @@ class Number(InputComponent):
         interpretation.insert(int(len(interpretation) / 2), [x, None])
         return interpretation
 
-    def generate_sample(self):
+    def generate_sample(self) -> float:
         return 1.0
 
 
@@ -301,7 +351,13 @@ class Slider(InputComponent):
     Demos: sentence_builder, generate_tone, titanic_survival
     """
 
-    def __init__(self, minimum=0, maximum=100, step=None, default=None, label=None):
+    def __init__(
+        self, 
+        minimum: float = 0, 
+        maximum: float = 100, 
+        step: Optional[float] = None, 
+        default: Optional[float] = None, 
+        label: Optional[str] = None):
         '''
         Parameters:
         minimum (float): minimum value for slider.
@@ -337,7 +393,9 @@ class Slider(InputComponent):
             "slider": {},
         }
 
-    def preprocess(self, x):
+    def preprocess(
+        self, 
+        x: Number) -> Number:
         """
         Parameters:
         x (number): numeric input
@@ -346,7 +404,9 @@ class Slider(InputComponent):
         """
         return x
 
-    def preprocess_example(self, x):
+    def preprocess_example(
+        self, 
+        x: Number) -> Number:
         """
         Returns:
         (float): Number representing function input
@@ -443,6 +503,7 @@ class Checkbox(InputComponent):
 
     def generate_sample(self):
         return True
+
 
 class CheckboxGroup(InputComponent):
     """
@@ -1363,7 +1424,16 @@ class Timeseries(InputComponent):
         return {"data": [[1] + [2] * len(self.y)] * 4, "headers": [self.x] + self.y} 
 
 
-
+class State(InputComponent):
+    def __init__(self, label=None):
+        super().__init__(label)
+    
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "state": {},
+        }
+    
 
 def get_input_instance(iface):
     if isinstance(iface, str):

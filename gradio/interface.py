@@ -20,8 +20,8 @@ import weakref
 from gradio import encryptor, interpretation, networking, queueing, strings, utils  # type: ignore
 from gradio.external import load_interface, load_from_pipeline  # type: ignore
 from gradio.flagging import FlaggingCallback, CSVLogger  # type: ignore
-from gradio.inputs import get_input_instance, InputComponent  # type: ignore
-from gradio.outputs import get_output_instance, OutputComponent  # type: ignore
+from gradio.inputs import get_input_instance, InputComponent, State as i_State  # type: ignore
+from gradio.outputs import get_output_instance, OutputComponent, State as o_State  # type: ignore
 from gradio.process_examples import cache_interface_examples
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
@@ -159,6 +159,18 @@ class Interface:
         self.output_components = [get_output_instance(o) for o in outputs]
         if repeat_outputs_per_model:
             self.output_components *= len(fn)
+            
+        if sum(isinstance(i, i_State) for i in self.input_components) > 1:
+            raise ValueError("Only one input component can be State.")
+        if sum(isinstance(o, o_State) for o in self.output_components) > 1:
+            raise ValueError("Only one output component can be State.")
+        try: 
+            state_param_index = [isinstance(i, i_State) 
+                                 for i in self.input_components].index(True)
+            state_init_value = utils.get_default_args(fn[0])[state_param_index]
+        except ValueError:
+            state_init_value = None
+        self.state_init_value = state_init_value
 
         if interpretation is None or isinstance(interpretation, list) or callable(interpretation):
             self.interpretation = interpretation

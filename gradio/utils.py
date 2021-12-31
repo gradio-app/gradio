@@ -1,3 +1,6 @@
+""" Handy utility functions."""
+
+from __future__ import annotations
 import analytics
 import csv
 from distutils.version import StrictVersion
@@ -8,9 +11,13 @@ import os
 import pkg_resources
 import random
 import requests
+from typing import Callable, Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 import warnings
 
 import gradio
+
+if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
+    from gradio import Interface
 
 
 analytics_url = 'https://api.gradio.app/'
@@ -47,7 +54,7 @@ def get_local_ip_address() -> str:
     return ip_address
 
 
-def initiated_analytics(data):
+def initiated_analytics(data: Dict[str: Any]) -> None:
     try:
         requests.post(analytics_url + 'gradio-initiated-analytics/',
                         data=data, timeout=3)
@@ -55,7 +62,7 @@ def initiated_analytics(data):
         pass  # do not push analytics if no network
 
 
-def launch_analytics(data):
+def launch_analytics(data: Dict[str, Any]) -> None:
     try:
         requests.post(analytics_url + 'gradio-launched-analytics/',
                         data=data, timeout=3)
@@ -63,7 +70,7 @@ def launch_analytics(data):
         pass  # do not push analytics if no network
 
 
-def integration_analytics(data):
+def integration_analytics(data: Dict[str, Any]) -> None:
     try:
         requests.post(analytics_url + 'gradio-integration-analytics/',
                         data=data, timeout=3)
@@ -72,7 +79,7 @@ def integration_analytics(data):
         pass  # do not push analytics if no network
 
 
-def error_analytics(type):
+def error_analytics(type: RuntimeError | NameError) -> None:
     """
     Send error analytics if there is network
     :param type: RuntimeError or NameError
@@ -85,7 +92,7 @@ def error_analytics(type):
         pass  # do not push analytics if no network
 
 
-def log_feature_analytics(ip_address, feature):
+def log_feature_analytics(ip_address: str, feature: str) -> None:
         data={'ip_address': ip_address, 'feature': feature}    
         try:
             requests.post(analytics_url + 'gradio-feature-analytics/',
@@ -94,7 +101,7 @@ def log_feature_analytics(ip_address, feature):
             pass  # do not push analytics if no network
 
 
-def colab_check():
+def colab_check() -> bool:
     """
     Check if interface is launching from Google Colab
     :return is_colab (bool): True or False
@@ -110,7 +117,7 @@ def colab_check():
     return is_colab
 
 
-def ipython_check():
+def ipython_check() -> bool:
     """
     Check if interface is launching from iPython (not colab)
     :return is_ipython (bool): True or False
@@ -125,7 +132,7 @@ def ipython_check():
     return is_ipython
 
 
-def readme_to_html(article):
+def readme_to_html(article: str) -> str:
     try:
         response = requests.get(article, timeout=3)
         if response.status_code == requests.codes.ok:  #pylint: disable=no-member
@@ -135,13 +142,13 @@ def readme_to_html(article):
     return article
 
 
-def show_tip(io):
+def show_tip(interface: Interface) -> None:
     # Only show tip every other use.
-    if io.show_tips and random.random() < 0.5:
+    if interface.show_tips and random.random() < 0.5:
         print(random.choice(gradio.strings.en.TIPS))
 
 
-def launch_counter():
+def launch_counter() -> None:
     try:
         if not os.path.exists(JSON_PATH):
             launches = {"launches": 1}
@@ -159,7 +166,7 @@ def launch_counter():
         pass
 
 
-def get_config_file(interface):
+def get_config_file(interface: Interface) -> Dict[str, Any]:
     config = {
         "input_components": [
             iface.get_template_context()
@@ -233,3 +240,13 @@ def get_config_file(interface):
         else:
             config["examples"] = interface.examples
     return config
+
+
+def get_default_args(func: Callable) -> Dict[str, Any]:
+    signature = inspect.signature(func)
+    return [
+        v.default
+        if v.default is not inspect.Parameter.empty
+        else None
+        for v in signature.parameters.values()
+    ]
