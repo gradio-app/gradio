@@ -693,28 +693,6 @@ class Carousel(OutputComponent):
             ] for sample_set in json.loads(data)]
 
 
-def get_output_instance(iface):
-    if isinstance(iface, str):
-        shortcut = OutputComponent.get_all_shortcut_implementations()[iface]
-        return shortcut[0](**shortcut[1])
-    # a dict with `name` as the output component type and other keys as parameters
-    elif isinstance(iface, dict):
-        name = iface.pop('name')
-        for component in OutputComponent.__subclasses__():
-            if component.__name__.lower() == name:
-                break
-        else:
-            raise ValueError("No such OutputComponent: {}".format(name))
-        return component(**iface)
-    elif isinstance(iface, OutputComponent):
-        return iface
-    else:
-        raise ValueError(
-            "Output interface must be of type `str` or `dict` or"
-            "`OutputComponent` but is {}".format(iface)
-        )
-
-
 class Timeseries(OutputComponent):
     """
     Component accepts pandas.DataFrame.
@@ -769,3 +747,38 @@ class Timeseries(OutputComponent):
 
     def restore_flagged(self, dir, data, encryption_key):
         return json.loads(data)
+
+
+class State(OutputComponent):
+    def __init__(self, label=None):
+        super().__init__(label)
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "state": {},
+        }
+
+
+def get_output_instance(iface):
+    if isinstance(iface, str):
+        shortcut = OutputComponent.get_all_shortcut_implementations()[iface]
+        return shortcut[0](**shortcut[1])
+    # a dict with `name` as the output component type and other keys as parameters
+    elif isinstance(iface, dict):
+        name = iface.pop('name')
+        for component in OutputComponent.__subclasses__():
+            if component.__name__.lower() == name:
+                break
+        else:
+            raise ValueError("No such OutputComponent: {}".format(name))
+        return component(**iface)
+    elif isinstance(iface, OutputComponent):
+        return iface
+    else:
+        raise ValueError(
+            "Output interface must be of type `str` or `dict` or"
+            "`OutputComponent` but is {}".format(iface)
+        )
+
+

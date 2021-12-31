@@ -4,7 +4,6 @@ creating tunnels.
 """
 from __future__ import annotations
 import fastapi
-from functools import wraps
 import http
 import json
 import os
@@ -12,14 +11,12 @@ import requests
 import socket
 import threading
 import time
-from typing import Callable, Any, List, Optional, Tuple, TYPE_CHECKING
+from typing import Callable, List, Optional, Tuple, TYPE_CHECKING
 import urllib.parse
 import urllib.request
 import uvicorn
-from werkzeug.security import safe_join
-from werkzeug.serving import make_server
 
-from gradio import encryptor, queueing
+from gradio import queueing
 from gradio.tunneling import create_tunnel
 from gradio.app import app
 
