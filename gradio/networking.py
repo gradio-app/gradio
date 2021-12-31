@@ -35,9 +35,6 @@ LOCALHOST_NAME = os.getenv('GRADIO_SERVER_NAME', "127.0.0.1")
 GRADIO_API_SERVER = "https://api.gradio.app/v1/tunnel-request"
 
 
-# app.url_map.strict_slashes = False  # TODO: go back to discussion with Charles
-
-
 def get_first_available_port(
     initial: int, 
     final: int) -> int:

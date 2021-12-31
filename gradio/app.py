@@ -114,13 +114,7 @@ def static_resource(path: str):
     raise HTTPException(status_code=404, detail="Static file not found")
 
 
-def get_config():
-    # if app.interface.auth is None or current_user.is_authenticated:
-    return app.interface.config
-    # else:
-        # return {"auth_required": True, "auth_message": app.interface.auth_message}
-
-
+@app.get("/api", response_class=HTMLResponse)  # Needed for Spaces
 @app.get("/api/", response_class=HTMLResponse)
 def api_docs(request: Request):
     inputs = [type(inp) for inp in app.interface.input_components]
