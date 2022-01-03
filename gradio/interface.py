@@ -442,8 +442,6 @@ class Interface:
 
     def block_thread(
         self, 
-        thread: threading.Thread, 
-        path_to_local_server: str
     ) -> None:
         """Block main thread until interrupted by user."""
         try:
@@ -452,8 +450,6 @@ class Interface:
         except (KeyboardInterrupt, OSError):
             print("Keyboard interruption in main thread... closing server.")
             self.server.close()
-            # Hit the server one more time to close it
-            networking.url_ok(self.local_url)
             if self.enable_queue:
                 queueing.close()
 
