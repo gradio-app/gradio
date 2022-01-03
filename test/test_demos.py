@@ -99,7 +99,7 @@ class TestDemo(unittest.TestCase):
         elem.click()
         elem = WebDriverWait(driver, TIMEOUT).until(
             EC.presence_of_element_located((By.CSS_SELECTOR,
-                                            ".panel:nth-child(2) .component:nth-child(2) .output_text"))
+                                            ".panel:nth-child(2) .component:nth-child(2) .textfield"))
         )
 
         total_sleep = 0
@@ -107,7 +107,7 @@ class TestDemo(unittest.TestCase):
             time.sleep(0.2)
             total_sleep += 0.2
 
-        self.assertEqual(elem.text, "LeWant's tgo see a magic trick?!")
+        self.assertEqual(elem.text, "L+e+W-a-n-t'+s+ t-g+o see a magic trick?-!+")
         golden_img = os.path.join(current_dir, GOLDEN_PATH.format(
             "diff_texts", "magic_trick"))
         tmp = os.path.join(current_dir, "test/tmp/{}.png".format(
@@ -138,7 +138,7 @@ class TestDemo(unittest.TestCase):
         elem.click()
         WebDriverWait(driver, TIMEOUT).until(
             EC.visibility_of_element_located(
-                (By.CSS_SELECTOR, ".panel:nth-child(2) .component:nth-child(2) .output_image"))
+                (By.CSS_SELECTOR, ".panel:nth-child(2) .component:nth-child(2) .textfield"))
         )
 
         time.sleep(GAP_TO_SCREENSHOT)

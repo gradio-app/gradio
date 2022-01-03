@@ -82,7 +82,9 @@
     }
     .input_image {
         .snapshot {
-            @apply dark:bg-red-600;
+            button {
+                @apply dark:bg-red-600;
+            }
         }
     }
     .input_checkbox_group, .input_checkbox {

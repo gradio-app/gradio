@@ -127,7 +127,7 @@
         .examples_table_holder:not(.gallery) .examples_table {
             @apply table-auto p-2 bg-gray-50 dark:bg-gray-600 rounded max-w-full border-collapse;
             tbody tr {
-                @apply cursor-pointer;
+                @apply cursor-pointer transition;
             }
             thead {
                 @apply border-b-2 dark:border-gray-600;
@@ -152,7 +152,7 @@
                 @apply font-bold;
             }
             td {
-                @apply cursor-pointer p-2 rounded bg-gray-50 dark:bg-gray-700;
+                @apply cursor-pointer p-2 rounded bg-gray-50 dark:bg-gray-700 transition;
             }
         }
         .pages {

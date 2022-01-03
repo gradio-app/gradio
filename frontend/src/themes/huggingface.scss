@@ -111,10 +111,10 @@
     }
     .input_audio {
         .start {
-            @apply bg-gradient-to-t from-gray-100 to-gray-50 text-gray-600 py-1.5 px-3 hover:to-gray-100 dark:text-gray-50 dark:from-gray-600 dark:to-gray-500 dark:hover:to-gray-600 dark:border-none;
+            @apply bg-gradient-to-t border from-gray-100 to-gray-50 text-gray-600 py-1.5 px-3 hover:to-gray-100 dark:text-gray-50 dark:from-gray-600 dark:to-gray-500 dark:hover:to-gray-600 dark:border-none;
         }
         .stop {
-            @apply bg-gradient-to-t from-red-200 to-red-50 text-red-600 py-1.5 px-3 hover:to-gray-100 dark:from-red-700 dark:to-red-600 dark:text-red-100;
+            @apply border border-red-200 bg-gradient-to-t from-red-200 to-red-50 text-red-600 py-1.5 px-3 hover:to-red-100 dark:from-red-700 dark:to-red-600 dark:text-red-100;
         }
     }
     /* Output Components */
