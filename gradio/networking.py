@@ -3,6 +3,7 @@ Defines helper methods useful for setting up ports, launching servers, and
 creating tunnels.
 """
 from __future__ import annotations
+import contextlib
 import fastapi
 import http
 import json
@@ -30,6 +31,21 @@ INITIAL_PORT_VALUE = int(os.getenv('GRADIO_SERVER_PORT', "7860"))
 TRY_NUM_PORTS = int(os.getenv('GRADIO_NUM_PORTS', "100"))  
 LOCALHOST_NAME = os.getenv('GRADIO_SERVER_NAME', "127.0.0.1")
 GRADIO_API_SERVER = "https://api.gradio.app/v1/tunnel-request"
+
+
+class Server(uvicorn.Server):
+    def install_signal_handlers(self):
+        pass
+
+    def run_in_thread(self):
+        self.thread = threading.Thread(target=self.run, daemon=True)
+        self.thread.start()
+        while not self.started:
+            time.sleep(1e-3)
+
+    def close(self):
+        self.should_exit = True
+        self.thread.join()
 
 
 def get_first_available_port(
@@ -118,18 +134,18 @@ def start_server(
         app.auth = None
     app.interface = interface
     app.cwd = os.getcwd()
-    # if app.interface.enable_queue:
-    #     if auth is not None or app.interface.encrypt:
-    #         raise ValueError("Cannot queue with encryption or authentication enabled.")
-    #     queueing.init()
-    #     app.queue_thread = threading.Thread(target=queue_thread, args=(path_to_local_server,))
-    #     app.queue_thread.start()
+    if app.interface.enable_queue:
+        if auth is not None or app.interface.encrypt:
+            raise ValueError("Cannot queue with encryption or authentication enabled.")
+        queueing.init()
+        app.queue_thread = threading.Thread(target=queue_thread, args=(path_to_local_server,))
+        app.queue_thread.start()
     app.tokens = {}
-    app_kwargs = {"app": app, "port": port, "host": server_name, 
-                  "log_level": "warning"}
-    thread = threading.Thread(target=uvicorn.run, kwargs=app_kwargs)
-    thread.start()
-    return port, path_to_local_server, app, thread, None
+    config = uvicorn.Config(app=app, port=port, host=server_name, 
+                            log_level="warning")
+    server = Server(config=config)
+    server.run_in_thread()
+    return port, path_to_local_server, app, server 
 
 
 def setup_tunnel(local_server_port: int, endpoint: str) -> str:

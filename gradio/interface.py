@@ -440,19 +440,20 @@ class Interface:
     ) -> List[Any]:
         return interpretation.run_interpret(self, raw_input)
 
-    def run_until_interrupted(
+    def block_thread(
         self, 
         thread: threading.Thread, 
         path_to_local_server: str
     ) -> None:
+        """Block main thread until interrupted by user."""
         try:
             while True:
-                time.sleep(0.5)
+                time.sleep(0.1)
         except (KeyboardInterrupt, OSError):
             print("Keyboard interruption in main thread... closing server.")
-            thread.keep_running = False
+            self.server.close()
             # Hit the server one more time to close it
-            networking.url_ok(path_to_local_server)
+            networking.url_ok(self.local_url)
             if self.enable_queue:
                 queueing.close()
 
@@ -545,15 +546,14 @@ class Interface:
         if self.cache_examples:
             cache_interface_examples(self)
 
-        server_port, path_to_local_server, app, thread, server = networking.start_server(
+        server_port, path_to_local_server, app, server = networking.start_server(
             self, server_name, server_port, self.auth)
         
         self.local_url = path_to_local_server
         self.server_port = server_port
         self.status = "RUNNING"
-        self.server = server
         self.server_app = app
-        self.server_thread = thread
+        self.server = server
 
         utils.launch_counter()
 
@@ -631,15 +631,14 @@ class Interface:
 
         utils.show_tip(self)
 
-        # Run server perpetually under certain circumstances
+        # Block main thread if debug==True
         if debug or int(os.getenv('GRADIO_DEBUG', 0)) == 1:
-            while True:
-                sys.stdout.flush()
-                time.sleep(0.1)
+            self.block_thread()
+        # Block main thread if running in a script to stop script from exiting                
         is_in_interactive_mode = bool(
             getattr(sys, 'ps1', sys.flags.interactive))
         if not prevent_thread_lock and not is_in_interactive_mode:
-            self.run_until_interrupted(thread, path_to_local_server)
+            self.block_thread()
 
         return app, path_to_local_server, share_url
 
@@ -651,8 +650,7 @@ class Interface:
         Closes the Interface that was launched and frees the port.
         """
         try:
-            self.server.shutdown()
-            self.server_thread.join()
+            self.server.close()
             if verbose:
                 print("Closing server running on port: {}".format(
                     self.server_port))

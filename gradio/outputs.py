@@ -4,7 +4,6 @@ This module defines various classes that can serve as the `output` to an interfa
 automatically added to a registry, which allows them to be easily referenced in other parts of the code.
 """
 
-from posixpath import basename
 from gradio.component import Component
 import numpy as np
 import json
@@ -18,7 +17,6 @@ import pandas as pd
 import PIL
 from types import ModuleType
 from ffmpy import FFmpeg
-import requests
 
 
 class OutputComponent(Component):

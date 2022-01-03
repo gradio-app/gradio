@@ -17,7 +17,7 @@ from typing import List, Optional, Type, TYPE_CHECKING
 import urllib
 import uvicorn
 
-from gradio import utils
+from gradio import utils, queueing
 from gradio.process_examples import load_from_cache, process_example
 
 
@@ -221,31 +221,21 @@ async def interpret(request: Request):
     }
 
 
-
-# @app.route("/shutdown", methods=['GET'])
-# def shutdown():
-#     shutdown_func = request.environ.get('werkzeug.server.shutdown')
-#     if shutdown_func is None:
-#         raise RuntimeError('Not running werkzeug')
-#     shutdown_func()
-#     return "Shutting down..."
-
-
-# @app.route("/api/queue/push/", methods=["POST"])
-# #@login_check
-# def queue_push():
-#     data = request.json["data"]
-#     action = request.json["action"]
-#     job_hash, queue_position = queueing.push({"data": data}, action)
-#     return {"hash": job_hash, "queue_position": queue_position}
+@app.post("/api/queue/push/", dependencies=[Depends(login_check)])
+async def queue_push(request: Request):
+    body = await request.json()
+    data = body["data"]
+    action = body["action"]
+    job_hash, queue_position = queueing.push({"data": data}, action)
+    return {"hash": job_hash, "queue_position": queue_position}
 
 
-# @app.route("/api/queue/status/", methods=["POST"])
-# #@login_check
-# def queue_status():
-#     hash = request.json['hash']
-#     status, data = queueing.get_status(hash)
-#     return {"status": status, "data": data}
+@app.post("/api/queue/status/", dependencies=[Depends(login_check)])
+async def queue_status(request: Request):
+    body = await request.json()
+    hash = body['hash']
+    status, data = queueing.get_status(hash)
+    return {"status": status, "data": data}
 
 
 ########
