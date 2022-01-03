@@ -60,7 +60,11 @@ window.launchGradio = (config, element_query, space) => {
   let target = document.querySelector(element_query);
   target.classList.add("gradio_app");
   if (config.auth_required) {
-    ReactDOM.render(<Login {...config} />, target);
+    ReactDOM.render(
+      <div class="gradio_wrapper" style={{ "height": window.gradio_mode === "app" ? "100%" : "auto" }}>
+        <Login {...config} />
+      </div>
+      , target);
   } else {
     if (config.css !== null) {
       var head = document.head || document.getElementsByTagName("head")[0],
@@ -71,7 +75,11 @@ window.launchGradio = (config, element_query, space) => {
     let url = new URL(window.location.toString());
     if (config.theme !== null && config.theme.startsWith("dark")) {
       target.classList.add("dark");
-      config.theme = config.theme.substring(4);
+      if (config.theme === "dark") {
+        config.theme = "default";
+      } else {
+        config.theme = config.theme.substring(5);
+      }
     } else if (url.searchParams.get("__dark-theme") === "true") {
       target.classList.add("dark");
     }
@@ -79,11 +87,13 @@ window.launchGradio = (config, element_query, space) => {
       config.root = process.env.REACT_APP_BACKEND_URL;
     }
     ReactDOM.render(
-      <GradioPage
-        {...config}
-        space={space}
-        fn={fn.bind(null, config.root + "api/")}
-      />,
+      <div class="gradio_wrapper" style={{ "height": window.gradio_mode === "app" ? "100%" : "auto" }}>
+        <GradioPage
+          {...config}
+          space={space}
+          fn={fn.bind(null, config.root + "api/")}
+        />
+      </div>,
       target
     );
   }
@@ -93,7 +103,6 @@ window.launchGradioFromSpaces = async (space, target) => {
   const space_url = `https://huggingface.co/gradioiframe/${space}/+/`;
   let config = await fetch(space_url + "config");
   config = await config.json();
-  delete config.css;
   config.root = space_url;
   launchGradio(config, target, space);
 };

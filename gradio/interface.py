@@ -6,6 +6,7 @@ interface using the input and output types.
 from __future__ import annotations
 import copy
 import getpass
+from logging import warning
 import markdown2  # type: ignore
 import os
 import random
@@ -137,7 +138,7 @@ class Interface:
         description (str): a description for the interface; if provided, appears above the input and output components.
         article (str): an expanded article explaining the interface; if provided, appears below the input and output components. Accepts Markdown and HTML content.
         thumbnail (str): path to image or src to use as display picture for models listed in gradio.app/hub
-        theme (str): Theme to use - one of "default", "huggingface", "grass", "peach". Add "dark" prefix, e.g. "darkpeach" or "darkdefault" for darktheme.
+        theme (str): Theme to use - one of "default", "huggingface", "seafoam", "grass", "peach". Add "dark-" prefix, e.g. "dark-peach" for dark theme (or just "dark" for the default dark theme).
         css (str): custom css or path to custom css file to use with interface.
         allow_screenshot (bool): if False, users will not see a button to take a screenshot of the interface.
         allow_flagging (str): one of "never", "auto", or "manual". If "never" or "auto", users will not see a button to flag an input and output. If "manual", users will see a button to flag. If "auto", every prediction will be automatically flagged. If "manual", samples are flagged when the user clicks flag button. Can be set with environmental variable GRADIO_ALLOW_FLAGGING.
@@ -197,9 +198,16 @@ class Interface:
         self.article = article
         self.thumbnail = thumbnail
         theme = theme if theme is not None else os.getenv("GRADIO_THEME", "default")
-        if theme not in ("default", "huggingface", "grass", "peach", "darkdefault", "darkhuggingface", "darkgrass", "darkpeach"):
-            raise ValueError("Invalid theme name.")
+
+        DEPRECATED_THEME_MAP = {"darkdefault": "default", "darkhuggingface": "dark-huggingface", "darkpeach": "dark-peach", "darkgrass": "dark-grass"}
+        VALID_THEME_SET = ("default", "huggingface", "seafoam", "grass", "peach", "dark", "dark-huggingface", "dark-seafoam", "dark-grass", "dark-peach")
+        if theme in DEPRECATED_THEME_MAP:
+            warnings.warn(f"'{theme}' theme name is deprecated, using {DEPRECATED_THEME_MAP[theme]} instead.")
+            theme = DEPRECATED_THEME_MAP[theme]
+        elif theme not in VALID_THEME_SET:
+            raise ValueError(f"Invalid theme name, theme must be one of: {', '.join(VALID_THEME_SET)}")
         self.theme = theme
+        
         self.height = height
         self.width = width
         if self.height is not None or self.width is not None:
