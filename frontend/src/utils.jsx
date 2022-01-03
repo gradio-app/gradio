@@ -181,7 +181,7 @@ export function getNextColor(index, alpha) {
   let default_colors = [
     [255, 99, 132],
     [54, 162, 235],
-    [255, 205, 86],
+    [240, 176, 26],
     [153, 102, 255],
     [75, 192, 192],
     [255, 159, 64]
@@ -189,7 +189,7 @@ export function getNextColor(index, alpha) {
   if (index < default_colors.length) {
     var color_set = default_colors[index];
   } else {
-    var color_set = [randInt(128, 240), randInt(128, 240), randInt(128, 240)];
+    var color_set = [randInt(64, 196), randInt(64, 196), randInt(64, 196)];
   }
   return (
     "rgba(" +

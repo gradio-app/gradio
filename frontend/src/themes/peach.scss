@@ -1,608 +1,114 @@
 .gradio_bg[theme="peach"] {
-    @apply bg-red-50 dark:bg-yellow-700;
+    @apply bg-gradient-to-r from-red-50 to-yellow-100 dark:from-gray-900 dark:to-gray-800;
 }
-
-
 .gradio_bg[theme="peach"] .gradio_interface {
-    .load_status {
-        @apply dark:text-gray-50 absolute right-2 flex items-center gap-2;
-    }
-    .load_status img {
-        @apply h-5 ml-2 inline-block;
-    }
-    .load_status .loading {
-        @keyframes ld-breath{
-            0%{
-                animation-timing-function:cubic-bezier(0.9647,0.2413,-0.0705,0.7911);
-                transform:scale(0.9)
-            }
-            51%{animation-timing-function:cubic-bezier(0.9226,0.2631,-0.0308,0.7628);
-                transform:scale(1.2)
-            }
-            100%{transform:scale(0.9)}
-        }
-        animation:ld-breath 0.75s infinite linear;
-    }
-    .panels {
-        @apply flex flex-wrap justify-center gap-4;
-    }
-    .panels.unaligned {
-        @apply flex-col sm:flex-row items-stretch sm:items-start
-    }
-    .panels.horizontal {
-        @apply flex-col sm:flex-row items-stretch;
-    }
-    .panels.vertical {
-        @apply flex-col items-stretch;
-    }
-    .panel {
-        @apply flex-1;
-    }
     .component_set {
-        @apply bg-red-100 dark:bg-yellow-900 p-2 rounded-lg flex flex-col flex-1 gap-2 dark:drop-shadow-xl;
-        min-height: 36px;
+        @apply bg-white dark:bg-gray-800 rounded-lg;
+    }
+    .component {
+        @apply p-1 transition;
     }
     .panel_header {
-        @apply font-serif dark:text-gray-50 mb-1 text-sm;
+        @apply text-gray-600 dark:text-gray-200 font-semibold;
     }
     .panel_button {
-        @apply bg-gray-50 hover:bg-gray-100 dark:bg-yellow-900 dark:hover:bg-yellow-800 dark:text-gray-50 flex-1 p-3 rounded-lg transition font-semibold focus:outline-none;
-    }
-    .panel_button.disabled {
-        @apply text-gray-400 dark:text-yellow-700 cursor-not-allowed;
+        @apply rounded-lg bg-white dark:bg-gray-800 shadow;
     }
     .panel_button.submit {
-        @apply bg-red-500 dark:bg-yellow-900 dark:hover:bg-yellow-900 hover:bg-red-400 text-white;
-    }
-    .panel_buttons {
-        @apply flex gap-4 my-4;
-    }
-    .flag {
-        @apply relative;
-        .dropcontent {
-            @apply hidden absolute top-8 left-0 bg-white border-gray-200 border-2 w-full;
-            div {
-                @apply p-2;
-            }
-            div:hover {
-                @apply bg-gray-100;
-            }
-        }
-    }
-    .flag:hover:not(.disabled) {
-        .dropcontent {
-            @apply block;
-        }
-    }
-    .screenshot_set {
-        @apply hidden flex hidden flex-grow;
-    }
-    .panel_button.left_panel_button {
-        @apply rounded-tr-none rounded-br-none;
-    }
-    .panel_button.right_panel_button {
-        @apply rounded-tl-none rounded-bl-none hover:bg-gray-200;
+        @apply text-white bg-gradient-to-tr from-red-500 to-yellow-400;
+
     }
     .examples {
-        @apply max-w-full overflow-x-auto;
-        h4 {
-            @apply text-lg font-semibold my-2;
-        }
-        .examples_control_left {
-            @apply flex gap-2;
-        }
-        .shortcut {
-            @apply block text-xs;
-        }
-        .examples_control button {
-            @apply bg-gray-100 hover:p-2;
-        }
-        .examples_table:not(.gallery) {
-            @apply table-auto p-2 bg-gray-100 mt-4 rounded;
-            tbody tr {
-                @apply cursor-pointer;
-            }
-            thead {
-                @apply border-b-2 border-gray-300;
-            }
-            tbody tr:hover {
-                @apply bg-red-500 dark:bg-black dark:bg-opacity-30  text-white;
-            }
-            tbody tr.selected {
-                @apply font-bold;
-            }
-            td,
-            th {
-                @apply py-2 px-4;
+        .examples_table_holder:not(.gallery) {
+            .examples_table {
+                @apply bg-white dark:bg-gray-800;
+                tbody tr:hover {
+                    @apply bg-yellow-500 dark:bg-red-800;
+                }
             }
         }
-        .examples_table.gallery {
-            @apply block;
-            tbody {
-                @apply flex gap-2 flex-wrap ;
-            }
-            thead {
-                @apply hidden;
+        .examples_table_holder.gallery .examples_table {
+            tbody td {
+                @apply bg-white dark:bg-gray-800;
             }
             tbody td:hover {
-                @apply bg-red-500 dark:bg-black dark:bg-opacity-30  text-white;
-            }
-            tbody tr.selected {
-                @apply font-bold;
-            }
-            td {
-                @apply cursor-pointer p-2 rounded-lg bg-gray-100;
+                @apply bg-yellow-500 dark:bg-red-800;
             }
         }
-        .pages {
-            @apply flex gap-1 items-center mt-2;
-        }
-        .page {
-            @apply px-2 py-1 bg-gray-100 rounded;
-        }
-        .page.selected {
-            @apply bg-gray-300;
-        }    
     }
+
     /* Input Components */
     .input_text {
-        textarea {
-            @apply w-full bg-white dark:bg-gray-100 border-gray-400 rounded-lg box-border p-1 resize-none;
-        }
+        textarea,
         input {
-            @apply w-full bg-white dark:bg-gray-100 border-gray-400 rounded-lg box-border p-1;
-        }
-        .interpretation {
-            .interpretation_box {
-                @apply inline-block whitespace-pre-wrap;
-            }
+            @apply rounded-lg bg-gray-50 dark:bg-gray-700 dark:text-gray-50 focus:outline-none focus:bg-gray-100;
         }
     }
     .input_number {
         input {
-            @apply w-full bg-white dark:bg-gray-100 border-gray-400 rounded-lg box-border p-1;
-        }
-        .interpretation {
-            @apply flex h-6;
-            .interpretation_box {
-                @apply flex-grow;
-            }
-        }
-    }
-    .input_image {
-        @apply w-full h-80 relative;
-        .upload_zone {
-            @apply border-red-300 text-red-400 dark:border-none dark:text-gray-50 border-8 border-dashed w-full h-full flex justify-center items-center text-3xl text-center cursor-pointer leading-10;
-        }
-        .image_preview_holder {
-            @apply w-full h-full flex justify-center items-center relative inline-block;
-        }
-        .edit_buttons {
-            @apply absolute top-0 right-0;
-            img {
-                @apply h-4;
-            }
-        }
-        .edit_button {
-            @apply bg-red-500 bg-opacity-30 hover:bg-opacity-100 transition p-1;
-        }
-        .clear_button {
-            @apply bg-gray-400 bg-opacity-30 hover:bg-opacity-100 transition p-1;
-        }
-        .image_editor {
-            @apply fixed w-screen h-screen top-0 left-0 bg-black bg-opacity-50 z-40 flex flex-col justify-center items-center;
-            .image_editor_buttons {
-                width: 800px;
-                @apply flex justify-end gap-1;
-                button {
-                    @apply px-2 py-1 text-xl bg-black text-white font-semibold rounded-t;
-                }
-            }
-            .tui-image-editor-header-buttons {
-                @apply hidden;
-            }
-            .tui-colorpicker-palette-button {
-                width: 12px;
-                height: 12px;
-            }
-        }
-        .image_preview,
-        video {
-            @apply w-full h-full object-contain;
-        }
-        .sketch > div {
-            @apply bg-white;
-        }
-        .snapshot {
-            @apply absolute bottom-0 w-full bg-white bg-opacity-90 py-3 font-bold text-lg text-center;
-        }
-        .interpretation {
-            @apply w-full h-full absolute top-0 left-0 flex justify-center items-center opacity-90 hover:opacity-20 transition;
-        }
-    }
-    .input_image_example {
-        @apply h-24;
-    }
-    .input_radio {
-        @apply flex flex-wrap gap-2;
-        .radio_item {
-            @apply bg-red-200 text-gray-700 dark:text-gray-50 dark:bg-black dark:bg-opacity-10 py-2 px-4 font-semibold rounded-lg cursor-pointer flex items-center gap-1;
-        }
-        .radio_item.selected {
-            @apply bg-red-500 dark:bg-black dark:bg-opacity-30  text-white;
-        }
-        .radio_circle {
-            @apply w-4 h-4 bg-white rounded-full box-border;
-        }
-        .selected .radio_circle {
-            @apply border-4 border-red-600 dark:border-gray-800;
-        }
-    }
-    .input_checkbox_group {
-        @apply flex flex-wrap gap-2;
-        .checkbox_item {
-            @apply bg-red-200 text-gray-700 dark:text-gray-50 dark:bg-black dark:bg-opacity-10 py-2 px-4 font-semibold rounded-lg cursor-pointer flex items-center gap-1;
-        }
-        .checkbox_item.selected {
-            @apply bg-red-500 dark:bg-black dark:bg-opacity-30  text-white;
-        }
-        .checkbox {
-            @apply w-4 h-4 bg-white;
-            .check {
-                @apply hidden;
-            }
-        }
-        .selected .checkbox {
-            @apply bg-red-600 dark:bg-gray-800;
-            .check {
-                @apply block;
-            }
-        }
-        .check line {
-            stroke: white;
-            stroke-width: 4;
-            stroke-linecap: round;
-        }
-        .interpretation {
-            @apply flex;
-            .interpretation_box {
-                @apply flex-grow h-4 w-4;
-            }
-            .interpret_check {
-                @apply w-full h-full;
-            }
-            .interpret_check line {
-                stroke: gray;
-                stroke-width: 4;
-                stroke-linecap: round;
-            }
-        }
-    }
-    .input_checkbox {
-        @apply flex flex-wrap gap-2;
-        .checkbox_item {
-            @apply bg-red-200 text-gray-700 dark:text-gray-50 dark:bg-black dark:bg-opacity-10  py-2 px-4 font-semibold rounded-lg cursor-pointer flex items-center gap-1;
-        }
-        .checkbox_item.selected {
-            @apply bg-red-500 dark:bg-black dark:bg-opacity-30  text-white;
-        }
-        .checkbox {
-            @apply w-4 h-4 bg-white;
-            .check {
-                @apply hidden;
-            }
-        }
-        .selected .checkbox {
-            @apply bg-red-600 dark:bg-gray-800;
-            .check {
-                @apply block;
-            }
-        }
-        .check line {
-            stroke: white;
-            stroke-width: 4;
-            stroke-linecap: round;
-        }
-        .interpretation {
-            @apply flex;
-            .interpretation_box {
-                @apply flex-grow h-4 w-4;
-            }
-            .interpret_check {
-                @apply w-full h-full;
-            }
-            .interpret_check line {
-                stroke: gray;
-                stroke-width: 4;
-                stroke-linecap: round;
-            }
-        }
-    }
-    .input_dropdown {
-        @apply inline-block relative;
-        .selector {
-            @apply bg-red-200 text-gray-700 dark:bg-black dark:bg-opacity-30 dark:text-gray-50 py-2 px-4 font-semibold rounded-lg inline-flex items-center;
-        }
-        .caret {
-            @apply ml-1 fill-current h-4 w-4;
-        }
-        .dropdown_menu {
-            @apply absolute hidden text-gray-700 pt-1 max-h-80 overflow-y-auto z-10;
-        }
-        .dropdown_item:first-child {
-            @apply rounded-t;
-        }
-        .dropdown_item {
-            @apply bg-red-200 hover:bg-red-400 hover:text-gray-50 dark:bg-yellow-800 dark:text-gray-50 dark:hover:bg-yellow-900 py-2 px-4 block whitespace-nowrap cursor-pointer;
-        }
-        .dropdown_item:last-child {
-            @apply rounded-b;
-        }
-        :hover .dropdown_menu {
-            @apply block;
-        }
-        .interpretation_box {
-            @apply p-1;
+            @apply rounded-lg bg-gray-50 dark:bg-gray-700 dark:text-gray-50 focus:outline-none focus:bg-gray-100;
         }
     }
     .input_slider {
-        @apply text-center;
         .range {
-            @apply hover:bg-white dark:bg-gray-100 w-full appearance-none transition rounded-full h-4;
+            @apply bg-gray-50 dark:bg-gray-700 rounded-lg;
         }
         .range::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            @apply appearance-none w-5 h-5 bg-red-500 dark:bg-gray-800 rounded-full cursor-pointer;
+            @apply bg-gradient-to-tr from-red-500 to-yellow-400 rounded-lg shadow-sm;
         }
         .range::-moz-range-thumb {
-            @apply appearance-none w-5 h-5 bg-red-500 dark:bg-gray-800 rounded-full cursor-pointer;
+            @apply bg-gradient-to-tr from-red-500 to-yellow-400 rounded-lg shadow-sm;
         }
         .value {
-            @apply text-gray-700 dark:text-gray-50 inline-block mx-auto mt-1 px-2 py-0.5 rounded-lg;
-        }
-        .interpret_range {
-            @apply flex h-6;
-            div {
-                @apply flex-grow;
-            }
+            @apply font-semibold text-gray-500 dark:bg-gray-700 dark:text-gray-50;
         }
     }
-    .input_audio {
-        .audio-react-recorder {
-            @apply hidden;
+    .input_radio {
+        .radio_item {
+            @apply bg-gray-100 rounded-lg dark:bg-gray-700 dark:text-gray-50;
         }
-        .start {
-            @apply p-2 rounded-lg font-semibold;
+        .radio_item.selected {
+            @apply bg-gradient-to-tr from-red-500 to-yellow-400 text-white shadow;
         }
-        .stop {
-            @apply bg-red-200 text-red-500 p-2 rounded-lg font-semibold;
-        }
-        audio {
-            @apply w-full;
-        }
-        .interpret_range {
-            @apply flex h-4;
-            div {
-                @apply flex-grow h-full;
-            }
-        }
-        .edit_buttons {
-            @apply flex justify-end;
-            img {
-                @apply h-4 dark:invert;
-            }
-        }
-        .edit_button {
-            @apply bg-red-500 bg-opacity-0 hover:bg-opacity-100 transition p-1;
-        }
-        .clear_button {
-            @apply bg-gray-400 bg-opacity-0 hover:bg-opacity-100 transition p-1;
+        .radio_circle {
+            @apply w-4 h-4 bg-white transition rounded-full box-border;
         }
     }
-    .input_video {
-        @apply w-full h-80;
-        .video_recorder {
-            @apply w-full h-full bg-black;
+
+    .input_checkbox_group,
+    .input_checkbox {
+        .checkbox_item {
+            @apply bg-gray-100 rounded-lg dark:bg-gray-700 dark:text-gray-50;
         }
-        .record_holder {
-            @apply absolute left-1/2 bottom-4 -translate-x-1/2 -translate-y-1/2 text-center;
+        .checkbox_item.selected {
+            @apply bg-gradient-to-tr from-red-500 to-yellow-400 text-white shadow;
         }
-        .record_message {
-            @apply text-white font-bold mb-4;
-        }
-        .record {
-            @apply w-12 h-12 rounded-full bg-red-500 hover:bg-red-600 border-4 border-red-600;
-        }
-        .upload_zone {
-            @apply border-red-300 text-red-400 dark:border-none dark:text-gray-50 border-8 border-dashed w-full h-full flex justify-center items-center text-3xl text-center cursor-pointer leading-10;
-        }
-        .video_preview_holder {
-            @apply w-full h-full flex justify-center items-center bg-gray-200;
-        }
-        .video_file_holder {
-            @apply dark:text-gray-50 text-red-400 w-full h-full flex justify-center items-center text-6xl p-6 break-all;
-        }
-        .video_preview {
-            @apply w-full h-full object-contain bg-black;
-        }
-        .edit_buttons {
-            @apply z-10 absolute top-0 right-0;
-            img {
-                @apply h-4;
-            }
-        }
-        .edit_button {
-            @apply bg-red-500 bg-opacity-30 hover:bg-opacity-100 transition p-1;
-        }
-        .clear_button {
-            @apply bg-gray-400 bg-opacity-30 hover:bg-opacity-100 transition p-1;
-        }        
-    }
-    .input_video_example {
-        .video_holder {
-            @apply h-36 object-contain flex justify-center;
-        }
-        .video_preview {
-            @apply w-full;            
+        .selected .checkbox {
+            @apply bg-gray-200 bg-opacity-20;
         }
     }
-    .input_file {
-        @apply w-full h-80;
-        .upload_zone {
-            @apply border-red-300 text-red-400 dark:border-none dark:text-gray-50 border-8 border-dashed w-full h-full flex justify-center items-center text-3xl text-center cursor-pointer leading-10;
+    .input_dropdown {
+        .selector {
+            @apply bg-gray-100 rounded-lg dark:bg-gray-700 dark:text-gray-50;
         }
-        .file_preview_holder {
-            @apply w-full h-full flex flex-col justify-center items-center relative inline-block;
+        .dropdown_menu {
+            @apply shadow;
         }
-        .file_name {
-            @apply text-6xl p-6 break-all;
+        .dropdown_item {
+            @apply bg-gray-100 dark:bg-gray-800 hover:bg-red-500 hover:text-gray-50 hover:font-semibold;
         }
-        .file_size {
-            @apply text-2xl p-2;
-        }
-        .clear_button {
-            @apply absolute top-0 right-0 bg-gray-400 bg-opacity-0 hover:bg-opacity-100 transition p-1;
-            img {
-                @apply h-4 dark:invert;
-            }
+        .dropdown_item:first-child,
+        .dropdown_item:last-child {
+            @apply rounded-lg;
         }
     }
-    .input_timeseries {
-        @apply w-full h-96;
-        .upload_zone {
-            @apply border-red-300 text-red-400 dark:border-none dark:text-gray-50 border-8 border-dashed w-full h-full flex justify-center items-center text-3xl text-center cursor-pointer leading-10;
-        }
-        .file_preview_holder {
-            @apply w-full h-full flex flex-col justify-center items-center relative inline-block;
-        }
-        .js-plotly-plot, .plotly.js-plotly-plot * {
-            position: static !important;
-        } 
-    }
-    /* Output Components */
-    .output_text {
-        word-break: break-word;
-        @apply w-full bg-white border-gray-400 rounded-lg box-border p-1 whitespace-pre-wrap;
-    }
+    /* Components */
     .output_label {
-        @apply dark:text-gray-50;
-        .output_class,
-        .output_class_without_confidences {
-            @apply font-bold text-2xl py-8 px-4 flex-grow flex items-center justify-center;
-        }
-        .confidence_intervals {
-            @apply flex text-xl;
-        }
-        .labels {
-            @apply mr-1;
-        }
-        .confidences {
-            @apply flex flex-grow flex-col items-baseline;
-        }
-        .label {
-            @apply overflow-hidden whitespace-nowrap h-7 mb-1 overflow-ellipsis text-right;
-        }
         .confidence {
-            @apply bg-red-500 dark:bg-black dark:bg-opacity-30  text-white flex justify-end overflow-hidden whitespace-nowrap h-7 mb-1 px-1;
+            @apply bg-gray-300 text-white dark:bg-gray-600 font-semibold rounded-lg;
         }
-    }
-    .output_image {
-        @apply w-full h-80;
-        .image_preview_holder {
-            @apply w-full h-full flex justify-center items-center relative inline-block;
-        }
-        .image_preview,
-        video {
-            @apply w-full h-full object-contain;
-        }
-    }
-    .output_audio {
-        audio {
-            @apply w-full;
-        }
-    }
-    .output_highlightedtext {
-        .category_legend {
-            @apply flex flex-wrap gap-4 mb-2;
-            .category-label {
-                @apply flex gap-2;
-            }
-            .colorbox {
-                @apply w-6;
-            }
-        }
-    }
-    .output_keyvalues {
-        table {
-            @apply bg-white;
-            thead {
-                @apply font-bold;
-            }
-            td,
-            th {
-                @apply p-2;
-            }
-        }
-    }
-    .output_video {
-        @apply w-full h-80 object-contain flex justify-center;
-        video {
-            @apply h-full;
-        }
-        .video_file_holder {
-            @apply dark:text-gray-50 text-red-400 w-full h-full flex justify-center items-center text-6xl p-6 break-all;
-        }
-    }
-    .output_file {
-        @apply w-full h-80 dark:text-gray-50;
-        .file_display {
-            @apply w-full h-full flex flex-col justify-center items-center relative;
-        }
-        .file_name {
-            @apply text-6xl p-6 break-all;
-        }
-        .file_size {
-            @apply text-2xl p-2;
-        }
-    }
-    .output_dataframe {
-        @apply dark:text-gray-50;
-        table {
-            thead {
-                @apply font-bold border-gray-200 border-b-2;
-            }
-            th {
-                @apply transition cursor-pointer;
-            }
-            th:hover {
-                @apply bg-gray-200;
-            }
-            td,
-            th {
-                @apply px-4;
-            }
-        }
-        .pages {
-            @apply flex gap-1 items-center;
-        }
-        .page {
-            @apply px-2 py-1 bg-gray-200;
-        }
-        .page.selected {
-            @apply bg-gray-300;
-        }
-    }
-    .output_carousel {
-        @apply flex flex-col gap-2;
-        .carousel_control {
-            @apply flex gap-4 justify-center items-center my-1;
-            .carousel_index {
-                min-width: 60px;
-                @apply text-xl text-center font-semibold;
-            }
-            button img {
-                @apply h-3 mt-0.5;
-            }
+        .confidence:first-child {
+            @apply bg-gradient-to-tr from-red-500 to-yellow-400;
         }
     }
 }

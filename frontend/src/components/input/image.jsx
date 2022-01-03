@@ -223,9 +223,9 @@ class ImageInput extends BaseComponent {
           <div className="input_image">
             <div className="image_preview_holder">
               <Webcam ref={this.webcamRef} />
-              <button class="snapshot" onClick={this.snapshot}>
-                - Click to Take Snapshot -
-              </button>
+              <div class="snapshot">
+                <button onClick={this.snapshot}>Click to Take Snapshot</button>
+              </div>
             </div>
           </div>
         );
