@@ -138,7 +138,7 @@ class TestDemo(unittest.TestCase):
         elem.click()
         WebDriverWait(driver, TIMEOUT).until(
             EC.visibility_of_element_located(
-                (By.CSS_SELECTOR, ".panel:nth-child(2) .component:nth-child(2) .textfield"))
+                (By.CSS_SELECTOR, ".panel:nth-child(2) .component:nth-child(2) .output_image"))
         )
 
         time.sleep(GAP_TO_SCREENSHOT)
