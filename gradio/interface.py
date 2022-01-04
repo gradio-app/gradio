@@ -278,6 +278,7 @@ class Interface:
         self.flagging_callback = flagging_callback
         self.flagging_dir = flagging_dir
 
+        self.save_to = None  # Used for selenium tests
         self.share = None
         self.share_url = None
         self.local_url = None
