@@ -40,7 +40,7 @@ module.exports = {
   style: {
     postcss: {
       plugins: [
-        require("postcss-prefixwrap")(".gradio_app"),
+        require("postcss-prefixwrap")(".gradio_wrapper"),
         require("tailwindcss"),
         require("autoprefixer")
       ]

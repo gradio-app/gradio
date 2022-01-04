@@ -179,7 +179,8 @@ class TestHighlightedText(unittest.TestCase):
         self.assertEqual(ht_output.get_template_context(), {
             'color_map': {'pos': 'green', 'neg': 'red'},
             'name': 'highlightedtext',
-            'label': None
+            'label': None,
+            'show_legend': False
         })
         ht = {
             "pos": "Hello ",

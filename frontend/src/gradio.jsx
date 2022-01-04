@@ -8,8 +8,10 @@ import classNames from "classnames";
 import logo_error from "./static/img/logo_error.svg";
 import logo from "./static/img/logo.svg";
 import api_logo from "./static/img/api-logo.svg";
-import("./themes/defaults.scss");
+import("./themes/base.scss");
+import("./themes/default.scss");
 import("./themes/huggingface.scss");
+import("./themes/seafoam.scss");
 import("./themes/grass.scss");
 import("./themes/peach.scss");
 
@@ -93,8 +95,8 @@ export class GradioInterface extends React.Component {
       this.props.root +
       (this.props.examples_dir === null
         ? "file" +
-          this.props.examples_dir +
-          (this.props.examples_dir.endswith("/") ? "" : "/")
+        this.props.examples_dir +
+        (this.props.examples_dir.endswith("/") ? "" : "/")
         : "file");
   }
   get_default_state = () => {
@@ -549,58 +551,58 @@ class GradioInterfaceExamples extends React.Component {
     return (
       <div className="examples">
         <h4>Examples</h4>
-        <table
-          className={classNames("examples_table", {
-            gallery: this.props.input_components.length === 1
-          })}
-        >
-          <thead>
-            <tr>
-              {this.props.input_components.map((component, i) => {
-                return <th key={i}>{component.label}</th>;
-              })}
-              {this.props.examples[0].length >
-              this.props.input_components.length
-                ? this.props.output_components.map((component, i) => {
+        <div className={classNames("examples_table_holder", {
+              gallery: this.props.input_components.length === 1
+            })}>
+          <table class="examples_table">
+            <thead>
+              <tr>
+                {this.props.input_components.map((component, i) => {
+                  return <th key={i}>{component.label}</th>;
+                })}
+                {this.props.examples[0].length >
+                  this.props.input_components.length
+                  ? this.props.output_components.map((component, i) => {
                     return (
                       <th key={i + this.props.input_components.length}>
                         {component.label}
                       </th>
                     );
                   })
-                : false}
-            </tr>
-          </thead>
-          <tbody>
-            {selected_examples.map((example_row, page_i) => {
-              let i = page_i + this.state.page * this.props.examples_per_page;
-              return (
-                <tr
-                  key={i}
-                  className={classNames({
-                    selected: i === this.props.example_id
-                  })}
-                  onClick={() => this.props.handleExampleChange(i)}
-                >
-                  {example_row.map((example_data, j) => {
-                    let ExampleComponent = input_component_set.find(
-                      (c) => c.name === this.props.input_components[j].name
-                    ).example_component;
-                    return (
-                      <td>
-                        <ExampleComponent
-                          examples_dir={this.props.examples_dir}
-                          value={example_data}
-                          key={j}
-                        />
-                      </td>
-                    );
-                  })}
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                  : false}
+              </tr>
+            </thead>
+            <tbody>
+              {selected_examples.map((example_row, page_i) => {
+                let i = page_i + this.state.page * this.props.examples_per_page;
+                return (
+                  <tr
+                    key={i}
+                    className={classNames({
+                      selected: i === this.props.example_id
+                    })}
+                    onClick={() => this.props.handleExampleChange(i)}
+                  >
+                    {example_row.map((example_data, j) => {
+                      let ExampleComponent = input_component_set.find(
+                        (c) => c.name === this.props.input_components[j].name
+                      ).example_component;
+                      return (
+                        <td>
+                          <ExampleComponent
+                            examples_dir={this.props.examples_dir}
+                            value={example_data}
+                            key={j}
+                          />
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
         {paginate ? (
           <div class="pages">
             Pages:

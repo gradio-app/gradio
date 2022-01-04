@@ -1,601 +1,125 @@
-html {
-    font-size: 14px;
-}
-
 .gradio_bg[theme="grass"] {
-    @apply dark:bg-gray-600 dark:text-gray-50;
+    @apply dark:bg-gray-700;
 }
-
 .gradio_bg[theme="grass"] .gradio_interface {
-    .load_status {
-        @apply absolute dark:text-gray-50 right-2 flex items-center gap-2 text-xs;
-    }
-    .load_status img {
-        @apply h-5 ml-2 inline-block;
-    }
-    .load_status .loading {
-        @keyframes ld-breath{
-            0%{
-                animation-timing-function:cubic-bezier(0.9647,0.2413,-0.0705,0.7911);
-                transform:scale(0.9)
-            }
-            51%{animation-timing-function:cubic-bezier(0.9226,0.2631,-0.0308,0.7628);
-                transform:scale(1.2)
-            }
-            100%{transform:scale(0.9)}
-        }
-        animation:ld-breath 0.75s infinite linear;
-    }
-    .panels {
-        @apply flex flex-wrap justify-center gap-4;
-    }
-    .panels.unaligned {
-        @apply flex-col sm:flex-row items-stretch sm:items-start
-    }
-    .panels.horizontal {
-        @apply flex-col sm:flex-row items-stretch;
-    }
-    .panels.vertical {
-        @apply flex-col items-stretch;
-    }
-    .panel {
-        @apply flex-1;
-    }
     .component_set {
-        @apply bg-gray-50 dark:bg-gray-800 p-2 flex flex-col flex-1 gap-2;
-        min-height: 36px;
+        @apply bg-gray-50 dark:bg-gray-800 rounded-none;
+    }
+    .component {
+        @apply p-1 transition;
     }
     .panel_header {
-        @apply mb-1 uppercase text-xs text-gray-600 dark:text-gray-200 font-semibold;
-    }
-    .component:hover .panel_header {
-        @apply text-green-600 dark:text-green-500;
+        @apply text-gray-400 dark:text-gray-200 font-semibold;
     }
     .panel_button {
-        @apply flex-1 p-3 bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-50 transition font-semibold focus:outline-none;
-    }
-    .panel_button.disabled {
-        @apply text-gray-400 cursor-not-allowed;
+        @apply rounded-none bg-gray-100 dark:bg-gray-800 shadow;
     }
     .panel_button.submit {
-        @apply bg-green-500 hover:bg-green-400 text-white;
-    }
-    .panel_buttons {
-        @apply flex gap-4 my-4;
-    }
-    .flag {
-        @apply relative;
-        .dropcontent {
-            @apply hidden absolute top-8 left-0 bg-white border-gray-200 dark:bg-gray-500 dark:text-gray-50 border-2 w-full;
-            div {
-                @apply p-2;
-            }
-            div:hover {
-                @apply bg-gray-100 dark:bg-gray-700;
-            }
-        }
-    }
-    .flag:hover:not(.disabled) {
-        .dropcontent {
-            @apply block;
-        }
-    }
-    .screenshot_set {
-        @apply hidden flex hidden flex-grow;
+        @apply bg-green-400 text-white;
     }
     .examples {
-        @apply max-w-full overflow-x-auto;
-        h4 {
-            @apply text-lg font-semibold my-2;
-        }
-        .examples_control {
-            @apply hidden flex hidden gap-2;
-        }
-        .examples_control_left {
-            @apply flex gap-2;
-        }
-        .shortcut {
-            @apply block text-xs;
-        }
-        .examples_table:not(.gallery) {
-            @apply bg-gray-50 border-gray-100 dark:bg-gray-700 dark:text-gray-50 dark:border-none table-auto p-2 mt-4 rounded border;
-            tbody tr {
-                @apply cursor-pointer;
-            }
-            thead {
-                @apply border-gray-100 dark:border-gray-800 border-b-2;
-            }
-            tbody tr:hover {
-                @apply bg-green-500 dark:bg-indigo-900 text-white;
-            }
-            tbody tr.selected {
-                @apply font-bold;
-            }
-            td,
-            th {
-                @apply py-2 px-4;
-            }
-        }
-        .examples_table.gallery {
-            @apply block;
-            tbody {
-                @apply flex gap-2 flex-wrap ;
-            }
-            thead {
-                @apply hidden;
-            }
-            tbody td:hover {
-                @apply bg-green-500 dark:bg-indigo-900 text-white;
-            }
-            tbody tr.selected {
-                @apply font-bold;
-            }
-            td {
-                @apply bg-gray-50 dark:bg-gray-700 cursor-pointer p-2 rounded;
-            }
-        }
-        .pages {
-            @apply flex gap-1 items-center mt-2;
-        }
-        .page {
-            @apply bg-gray-100 dark:bg-gray-700 dark:text-gray-50 px-2 py-1 rounded;
-        }
-        .page.selected {
-            @apply bg-gray-300 dark:bg-gray-800;
-        }    
-    }
-    /* Input Components */
-    .input_text {
-        textarea {
-            @apply w-full bg-white dark:bg-gray-200 dark:text-blue-900 dark:font-semibold focus:ring-2 focus:ring-inset focus:ring-green-500 outline-none box-border p-1 resize-none;
-        }
-        input {
-            @apply w-full bg-white dark:bg-gray-200 dark:text-blue-900 dark:font-semibold focus:ring-2 focus:ring-inset focus:ring-green-500 outline-none box-border p-1;
-        }        
-        .interpretation {
-            .interpretation_box {
-                @apply inline-block whitespace-pre-wrap;
-            }
-        }    
-    } 
-    .input_number {
-        input {
-            @apply w-full bg-white bg-white dark:bg-gray-200 dark:text-blue-900 dark:font-semibold focus:ring-2 focus:ring-inset focus:ring-green-500 outline-none box-border p-1;
-        }
-        .interpretation {
-            @apply flex h-6;
-            .interpretation_box {
-                @apply flex-grow;
-            }
-        }
-    }
-    .input_image {
-        @apply w-full h-48 relative;
-        .upload_zone {
-            @apply bg-gray-200 hover:bg-gray-100 dark:bg-gray-500 dark:hover:bg-gray-400 text-gray-600 dark:text-gray-50 transition w-full h-full flex justify-center items-center text-xl text-center cursor-pointer leading-10;
-        }
-        .image_preview_holder {
-            @apply w-full h-full flex justify-center items-center bg-gray-200 relative inline-block;
-        }
-        .edit_buttons {
-            @apply absolute top-0 right-0;
-            img {
-                @apply h-4;
-            }
-        }
-        .edit_button {
-            @apply bg-green-500 bg-opacity-30 hover:bg-opacity-100 transition p-1;
-        }
-        .clear_button {
-            @apply bg-gray-400 bg-opacity-30 hover:bg-opacity-100 transition p-1;
-        }
-        .image_editor {
-            @apply fixed w-screen h-screen top-0 left-0 bg-black bg-opacity-50 z-40 flex flex-col justify-center items-center;
-            .image_editor_buttons {
-                width: 800px;
-                @apply flex justify-end gap-1;
-                button {
-                    @apply px-2 py-1 text-xl bg-black text-white font-semibold;
+        .examples_table_holder:not(.gallery) {
+            .examples_table {
+                @apply dark:bg-gray-800;
+                tbody tr:hover {
+                    @apply bg-green-400;
                 }
             }
-            .tui-image-editor-header-buttons {
-                @apply hidden;
+        }
+        .examples_table_holder.gallery .examples_table {
+            tbody td {
+                @apply dark:bg-gray-800;
             }
-            .tui-colorpicker-palette-button {
-                width: 12px;
-                height: 12px;
+            tbody td:hover {
+                @apply bg-green-400;
             }
-        }
-        .image_preview,
-        video {
-            @apply w-full h-full object-contain;
-        }
-        .sketch > div {
-            @apply bg-white;
-        }
-        .snapshot {
-            @apply absolute bottom-0 w-full bg-white bg-opacity-90 py-3 font-bold text-lg text-center;
-        }
-        .interpretation {
-            @apply w-full h-full absolute top-0 left-0 flex justify-center items-center opacity-90 hover:opacity-20 transition;
         }
     }
-    .input_image_example {
-        @apply h-24;
+
+    /* Input Components */
+    .input_text {
+        textarea,
+        input {
+            @apply rounded-none dark:bg-gray-700 dark:text-gray-50 box-border border-4 p-2 border-white dark:border-gray-600 focus:border-green-400 dark:focus:border-green-400 focus:outline-none;
+        }
+    }
+    .input_number {
+        input {
+            @apply rounded-none dark:bg-gray-700 dark:text-gray-50 box-border border-4 p-2 border-white dark:border-gray-600 focus:border-green-400 dark:focus:border-green-400 focus:outline-none;
+        }
+    }
+    .input_slider {
+        .range {
+            @apply dark:bg-gray-700 rounded-none;
+        }
+        .range::-webkit-slider-thumb {
+            @apply bg-green-400 rounded-none shadow-sm;
+        }
+        .range::-moz-range-thumb {
+            @apply bg-green-400 rounded-none shadow-sm;
+        }
+        .value {
+            @apply font-semibold text-gray-500 dark:bg-gray-700 dark:text-gray-50;
+        }
     }
     .input_radio {
-        @apply flex flex-wrap gap-2;
         .radio_item {
-            @apply bg-gray-200 text-gray-700 p-1.5 font-semibold cursor-pointer flex items-center gap-1;
-        }
-        .radio_item.selected {
-            @apply bg-green-500 text-white;
+            @apply bg-gray-100 rounded-none dark:bg-gray-700 dark:text-gray-50;
         }
         .radio_circle {
             @apply hidden;
         }
+        .radio_item.selected {
+            @apply bg-green-400 text-white shadow;
+        }
+        .radio_circle {
+            @apply w-4 h-4 bg-white transition rounded-full box-border;
+        }
     }
-    .input_checkbox_group {
-        @apply flex flex-wrap gap-2;
+
+    .input_checkbox_group,
+    .input_checkbox {
         .checkbox_item {
-            @apply bg-gray-200 text-gray-700 p-1.5 font-semibold cursor-pointer flex items-center gap-1;
+            @apply bg-gray-100 rounded-none dark:bg-gray-700 dark:text-gray-50;
         }
         .checkbox_item.selected {
-            @apply bg-green-500 text-white;
-        }
-        .checkbox {
-            @apply hidden;
-            .check {
-                @apply hidden;
-            }
-        }
-        .selected .checkbox {
-            @apply bg-green-600;
-            .check {
-                @apply block;
-            }
-        }
-        .check line {
-            stroke: white;
-            stroke-width: 4;
-            stroke-linecap: round;
-        }
-        .interpretation {
-            @apply flex;
-            .interpretation_box {
-                @apply flex-grow h-4 w-4;
-            }
-            .interpret_check {
-                @apply w-full h-full;
-            }
-            .interpret_check line {
-                stroke: gray;
-                stroke-width: 4;
-                stroke-linecap: round;    
-            }
+            @apply bg-green-400 text-white shadow;
         }
     }
     .input_checkbox {
-        @apply flex flex-wrap gap-2;
-        .checkbox_item {
-            @apply bg-gray-200 text-gray-700 p-1.5 font-semibold cursor-pointer flex items-center gap-1;
-        }
-        .checkbox_item.selected {
-            @apply bg-green-500 text-white;
-        }
         .checkbox {
-            @apply w-4 h-4 bg-white;
-            .check {
-                @apply hidden;
-            }
+            @apply bg-gray-200;
         }
         .selected .checkbox {
-            @apply bg-green-600;
-            .check {
-                @apply block;
-            }
-        }
-        .check line {
-            stroke: white;
-            stroke-width: 4;
-            stroke-linecap: round;
-        }
-        .interpretation {
-            @apply flex;
-            .interpretation_box {
-                @apply flex-grow h-4 w-4;
-            }
-            .interpret_check {
-                @apply w-full h-full;
-            }
-            .interpret_check line {
-                stroke: gray;
-                stroke-width: 4;
-                stroke-linecap: round;    
-            }
+            @apply bg-green-500;
         }
     }
-    .input_dropdown {
-        @apply inline-block relative;
-        .selector {
-            @apply bg-gray-200 text-gray-700 p-1.5 font-semibold inline-flex items-center;
-        }
-        .caret {
-            @apply ml-1 fill-current h-4 w-4;
-        }
-        .dropdown_menu {
-            @apply absolute hidden text-gray-700 pt-1 max-h-80 overflow-y-auto z-10;
-        }
-        .dropdown_item:first-child {
-            @apply-t;
-        }
-        .dropdown_item {
-            @apply bg-gray-200 hover:bg-gray-400 hover:text-gray-50 py-2 px-4 block whitespace-nowrap cursor-pointer;
-        }
-        .dropdown_item:last-child {
-            @apply-b;
-        }
-        :hover .dropdown_menu {
-            @apply block;
-        }
-        .interpretation_box {
-            @apply p-1;
-        }
-    }
-    .input_slider {
-        @apply text-center;
-        .range {
-            @apply dark:bg-gray-200 focus:border-2 focus:border-green-400 box-border w-full appearance-none h-4;
-        }
-        .range::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            @apply appearance-none w-5 h-5 bg-green-500 cursor-pointer;
-        }
-        .range::-moz-range-thumb {
-            @apply appearance-none w-5 h-5 bg-green-500 cursor-pointer;
-        }
-        .value {
-            @apply inline-block mx-auto mt-0.5 px-2 text-sm;
-        }
-        .interpret_range {
-            @apply flex h-6;
-            div {
-                @apply flex-grow;
-            }
-        }
-    }
-    .input_audio {
-        .audio-react-recorder {
-            @apply hidden;
-        }
-        .start {
-            @apply bg-gray-200 dark:bg-gray-500 dark:text-gray-50 p-1.5 font-semibold;
-        }
-        .stop {
-            @apply bg-red-200 text-red-500 p-1.5 font-semibold;
-        }
-        audio {
-            @apply w-full;
-        }
-        .interpret_range {
-            @apply flex h-4;
-            div {
-                @apply flex-grow h-full;
-            }
-        }
-        .edit_buttons {
-            @apply flex justify-end;
-            img {
-                @apply h-4 dark:invert;
-            }
-        }
-        .edit_button {
-            @apply bg-green-500 bg-opacity-0 hover:bg-opacity-100 transition p-1;
-        }
-        .clear_button {
-            @apply bg-gray-400 bg-opacity-0 hover:bg-opacity-100 transition p-1;
-        }
-    }
-    .input_video {
-        @apply w-full h-48;
-        .video_recorder {
-            @apply w-full h-full bg-black;
-        }
-        .record_holder {
-            @apply absolute left-1/2 bottom-4 -translate-x-1/2 -translate-y-1/2 text-center;
-        }
-        .record_message {
-            @apply text-white font-bold mb-4;
-        }
-        .record {
-            @apply w-12 h-12 rounded-full bg-red-500 hover:bg-red-600 border-4 border-red-600;
-        }
-        .upload_zone {
-            @apply bg-gray-200 hover:bg-gray-100 dark:bg-gray-500 dark:hover:bg-gray-400 text-gray-600 dark:text-gray-50 transition w-full h-full flex justify-center items-center text-xl text-center cursor-pointer leading-10;
-        }
-        .video_preview_holder {
-            @apply w-full h-full flex justify-center items-center bg-gray-200;
-        }
-        .video_file_holder {
-            @apply dark:text-gray-50 w-full h-full flex justify-center items-center text-6xl p-6 break-all;
-        }
-        .video_preview {
-            @apply w-full h-full object-contain bg-black;
-        }
-        .edit_buttons {
-            @apply z-10 absolute top-0 right-0;
-            img {
-                @apply h-4;
-            }
-        }
-        .edit_button {
-            @apply bg-green-500 bg-opacity-30 hover:bg-opacity-100 transition p-1;
-        }
-        .clear_button {
-            @apply bg-gray-400 bg-opacity-30 hover:bg-opacity-100 transition p-1;
-        }        
-    }
-    .input_video_example {
-        .video_holder {
-            @apply h-36 object-contain flex justify-center;
-        }
-        .video_preview {
-            @apply w-full;            
-        }
-    }
-    .input_file {
-        @apply w-full h-48;
-        .upload_zone {
-            @apply bg-gray-200 hover:bg-gray-100 dark:bg-gray-500 dark:hover:bg-gray-400 text-gray-600 dark:text-gray-50 transition w-full h-full flex justify-center items-center text-xl text-center cursor-pointer leading-10;
-        }
-        .file_preview_holder {
-            @apply w-full h-full flex flex-col justify-center items-center relative inline-block;
-        }
-        .file_name {
-            @apply text-6xl p-6 break-all;
-        }
-        .file_size {
-            @apply text-2xl p-1.5;
-        }
-        .clear_button {
-            @apply absolute top-0 right-0 bg-gray-400 bg-opacity-0 hover:bg-opacity-100 transition p-1;
-            img {
-                @apply h-4 dark:invert;
-            }
-        }
-    }
-    .input_timeseries {
-        @apply w-full h-60;
-        .upload_zone {
-            @apply bg-gray-200 hover:bg-gray-100 dark:bg-gray-500 dark:hover:bg-gray-400 text-gray-600 dark:text-gray-50 transition w-full h-full flex justify-center items-center text-xl text-center cursor-pointer leading-10;
-        }
-        .file_preview_holder {
-            @apply w-full h-full flex flex-col justify-center items-center relative inline-block;
-        }
-        .js-plotly-plot, .plotly.js-plotly-plot * {
-            position: static !important;
-        } 
-    }
-    /* Output Components */
-    .output_text {
-        word-break: break-word;
-        @apply w-full bg-white dark:text-blue-900 dark:font-semibold dark:bg-gray-200 border-gray-400 box-border p-1 whitespace-pre-wrap;
+    .input_checkbox_group .checkbox {
+        @apply hidden;
     }
 
+    .input_dropdown {
+        .selector {
+            @apply bg-gray-100 rounded-none dark:bg-gray-700 dark:text-gray-50;
+        }
+        .dropdown_menu {
+            @apply shadow;
+        }
+        .dropdown_item {
+            @apply bg-gray-100 dark:bg-gray-800 hover:bg-green-400 hover:text-gray-50 hover:font-semibold;
+        }
+        .dropdown_item:first-child,
+        .dropdown_item:last-child {
+            @apply rounded-none;
+        }
+    }
+    /* Components */
     .output_label {
-        .output_class,
-        .output_class_without_confidences {
-            @apply font-bold text-xl py-6 px-4 flex-grow flex items-center justify-center;
-        }
-        .confidence_intervals {
-            @apply flex text-xl;
-        }
-        .labels {
-            @apply mr-1;
-        }
-        .confidences {
-            @apply flex flex-grow flex-col items-baseline;
-        }
-        .label {
-            @apply overflow-hidden whitespace-nowrap h-5 mb-1 overflow-ellipsis text-right text-sm;
-        }
         .confidence {
-            @apply bg-green-500 text-white font-semibold flex justify-end overflow-hidden whitespace-nowrap h-5 mb-1 px-1 text-sm;
+            @apply bg-gray-300 text-white dark:bg-gray-600 font-semibold;
         }
-    }
-    .output_image {
-        @apply w-full h-48;
-        .image_preview_holder {
-            @apply w-full h-full flex justify-center items-center bg-gray-200 relative inline-block;
-        }
-        .image_preview,
-        video {
-            @apply w-full h-full object-contain;
-        }
-    }
-    .output_audio {
-        audio {
-            @apply w-full;
-        }
-    }
-    .output_highlightedtext {
-        .category_legend {
-            @apply flex flex-wrap gap-4 mb-2;
-            .category-label {
-                @apply flex gap-2;
-            }
-            .colorbox {
-                @apply w-6;
-            }
-        }
-    }
-    .output_keyvalues {
-        table {
-            @apply bg-white dark:bg-gray-200 dark:text-blue-900;
-            thead {
-                @apply font-bold;
-            }
-            td,
-            th {
-                @apply p-1.5;
-            }
-        }
-    }
-    .output_video {
-        @apply w-full h-48 object-contain flex justify-center;
-        video {
-            @apply h-full;
-        }
-        .video_file_holder {
-            @apply dark:text-gray-50 w-full h-full flex justify-center items-center text-6xl p-6 break-all;
-        }
-    }
-    .output_file {
-        @apply bg-gray-200 hover:bg-gray-100 text-gray-600 transition inline-block;
-        .file_name {
-            @apply text-lg p-1.5;
-        }
-        .file_size {
-            @apply hidden;
-        }
-    }
-    .output_dataframe {
-        table {
-            thead {
-                @apply font-bold border-gray-200 border-b-2;
-            }
-            th {
-                @apply transition cursor-pointer;
-            }
-            th:hover {
-                @apply bg-gray-200;
-            }
-            td,
-            th {
-                @apply px-4;
-            }
-        }
-        .pages {
-            @apply flex gap-1 items-center;
-        }
-        .page {
-            @apply px-2 py-1 bg-gray-200;
-        }
-        .page.selected {
-            @apply bg-gray-300;
-        }
-    }
-    .output_carousel {
-        @apply flex flex-col gap-2;
-        .carousel_control {
-            @apply flex gap-4 justify-center items-center my-1;
-            .carousel_index {
-                min-width: 60px;
-                @apply text-xl text-center font-semibold;
-            }
-            button img {
-                @apply h-3 mt-0.5 dark:invert;
-            }
+        .confidence:first-child {
+            @apply bg-green-400;
         }
     }
 }

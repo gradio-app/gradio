@@ -1,7 +1,9 @@
 import gradio as gr
 import numpy as np
+import json
 
 CHOICES = ["foo", "bar", "baz"]
+JSONOBJ = """{"items":{"item":[{"id": "0001","type": null,"is_good": false,"ppu": 0.55,"batters":{"batter":[{ "id": "1001", "type": "Regular" },{ "id": "1002", "type": "Chocolate" },{ "id": "1003", "type": "Blueberry" },{ "id": "1004", "type": "Devil's Food" }]},"topping":[{ "id": "5001", "type": "None" },{ "id": "5002", "type": "Glazed" },{ "id": "5005", "type": "Sugar" },{ "id": "5007", "type": "Powdered Sugar" },{ "id": "5006", "type": "Chocolate with Sprinkles" },{ "id": "5003", "type": "Chocolate" },{ "id": "5004", "type": "Maple" }]}]}}"""
 
 def fn(text1, text2, num, slider1, slider2, single_checkbox,
        checkboxes, radio, dropdown, im1, im2, im3, im4, video, audio1,
@@ -16,14 +18,15 @@ def fn(text1, text2, num, slider1, slider2, single_checkbox,
         },  # Label
         (audio1[0], np.flipud(audio1[1])) if audio1 is not None else "files/cantina.wav",  # Audio
         np.flipud(im1) if im1 is not None else "files/cheetah1.jpg",  # Image
-        video,  # Video
-        [("Height", 70), ("Weight", 150), ("BMI", "22"), (dropdown, 42)],  # KeyValues
-        [("The", "art"), (" ", None), ("quick", "adj"), (" ", None),
-         ("brown", "adj"), (" ", None), ("fox", "noun")],  # HighlightedText
-        {"name": "Jane", "age": 34, "children": checkboxes},  # JSON
+        video if video is not None else "files/world.mp4",  # Video
+        [("The", "art"), ("quick brown", "adj"), ("fox", "nn"), ("jumped", "vrb"), ("testing testing testing", None), ("over", "prp"), ("the", "art"), ("testing", None), ("lazy", "adj"), ("dogs", "nn"), (".", "punc")] + [(f"test {x}",  f"test {x}") for x in range(10)],  # HighlightedText
+        # [("The testing testing testing", None), ("quick brown", 0.2), ("fox", 1), ("jumped", -1), ("testing testing testing", 0), ("over", 0), ("the", 0), ("testing", 0), ("lazy", 1), ("dogs", 0), (".", 1)] + [(f"test {x}",  x/10) for x in range(-10, 10)],  # HighlightedText
+        [("The testing testing testing", None), ("over", 0.6), ("the", 0.2), ("testing", None), ("lazy", -.1), ("dogs", 0.4), (".", 0)] + [(f"test",  x/10) for x in range(-10, 10)],  # HighlightedText
+        json.loads(JSONOBJ),  # JSON
         "<button style='background-color: red'>Click Me: " + radio + "</button>",  # HTML
         "files/titanic.csv",
         df1,  # Dataframe
+        np.random.randint(0, 10, (4,4)), # Dataframe
         [im for im in [im1, im2, im3, im4, "files/cheetah1.jpg"] if im is not None],  # Carousel
         df2  # Timeseries
     )
@@ -49,7 +52,7 @@ iface = gr.Interface(
         gr.inputs.Audio(label="Audio", optional=True),
         gr.inputs.Audio(label="Microphone", source="microphone", optional=True),
         gr.inputs.File(label="File", optional=True),
-        gr.inputs.Dataframe(),
+        gr.inputs.Dataframe(label="Dataframe", headers=["Name", "Age", "Gender"]),
         gr.inputs.Timeseries(x="time", y=["price", "value"], optional=True),
     ],
     outputs=[
@@ -58,12 +61,13 @@ iface = gr.Interface(
         gr.outputs.Audio(label="Audio"),
         gr.outputs.Image(label="Image"),
         gr.outputs.Video(label="Video"),
-        gr.outputs.KeyValues(label="KeyValues"),
         gr.outputs.HighlightedText(label="HighlightedText"),
+        gr.outputs.HighlightedText(label="HighlightedText", show_legend=True),
         gr.outputs.JSON(label="JSON"),
         gr.outputs.HTML(label="HTML"),
         gr.outputs.File(label="File"),
         gr.outputs.Dataframe(label="Dataframe"),
+        gr.outputs.Dataframe(label="Numpy", type="numpy"),
         gr.outputs.Carousel("image", label="Carousel"),
         gr.outputs.Timeseries(x="time", y=["price", "value"], label="Timeseries")
     ],

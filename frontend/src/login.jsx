@@ -1,4 +1,4 @@
-import("./themes/defaults.scss");
+import("./themes/login.scss");
 
 export default function Login(props) {
   if (props.auth_message && props.auth_message.trim().startsWith("<main")) {
