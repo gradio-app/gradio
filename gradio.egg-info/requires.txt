@@ -1,9 +1,6 @@
-Flask-Cors>=3.0.8
-Flask-Login
-Flask>=1.1.1
 analytics-python
+fastapi
 ffmpy
-flask-cachebuster
 markdown2
 matplotlib
 numpy
@@ -11,5 +8,6 @@ pandas
 paramiko
 pillow
 pycryptodome
+python-multipart
 pydub
 requests
