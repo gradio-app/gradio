@@ -61,10 +61,14 @@ window.launchGradio = (config, element_query, space) => {
   target.classList.add("gradio_app");
   if (config.auth_required) {
     ReactDOM.render(
-      <div class="gradio_wrapper" style={{ "height": window.gradio_mode === "app" ? "100%" : "auto" }}>
+      <div
+        class="gradio_wrapper"
+        style={{ height: window.gradio_mode === "app" ? "100%" : "auto" }}
+      >
         <Login {...config} />
-      </div>
-      , target);
+      </div>,
+      target
+    );
   } else {
     if (config.css !== null) {
       var head = document.head || document.getElementsByTagName("head")[0],
@@ -87,7 +91,10 @@ window.launchGradio = (config, element_query, space) => {
       config.root = process.env.REACT_APP_BACKEND_URL;
     }
     ReactDOM.render(
-      <div class="gradio_wrapper" style={{ "height": window.gradio_mode === "app" ? "100%" : "auto" }}>
+      <div
+        class="gradio_wrapper"
+        style={{ height: window.gradio_mode === "app" ? "100%" : "auto" }}
+      >
         <GradioPage
           {...config}
           space={space}

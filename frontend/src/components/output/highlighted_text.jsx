@@ -44,32 +44,46 @@ class HighlightedTextOutput extends BaseComponent {
       this.generate_category_legend(new_color_map);
       return (
         <div className="output_highlightedtext">
-          {this.props.show_legend ? <div className="category_legend">
-            {Object.entries(this.color_map).map(([category, color]) => {
-              return (
-                <div className="category-label" style={{ "background-color": color }}>
-                  {category}
-                </div>
-              );
-            })}
-          </div>
-            : false}
+          {this.props.show_legend ? (
+            <div className="category_legend">
+              {Object.entries(this.color_map).map(([category, color]) => {
+                return (
+                  <div
+                    className="category-label"
+                    style={{ "background-color": color }}
+                  >
+                    {category}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            false
+          )}
           <div className="textfield">
             {this.props.value.map((span) => {
               let category = span[1];
               let style = {};
               if (category !== null) {
                 style["color"] = this.color_map[category];
-                style["backgroundColor"] = style.color.replace("1)", "var(--tw-bg-opacity))");
+                style["backgroundColor"] = style.color.replace(
+                  "1)",
+                  "var(--tw-bg-opacity))"
+                );
               }
               return (
                 <span class="textspan" title={category} style={style}>
                   <span class="text">{span[0]}</span>
-                  {this.props.show_legend || span[1] === null ? false :
-                    <span class="inline_label" style={{ backgroundColor: style.color }}>
+                  {this.props.show_legend || span[1] === null ? (
+                    false
+                  ) : (
+                    <span
+                      class="inline_label"
+                      style={{ backgroundColor: style.color }}
+                    >
                       {span[1]}
                     </span>
-                  }
+                  )}
                 </span>
               );
             })}
@@ -79,14 +93,17 @@ class HighlightedTextOutput extends BaseComponent {
     } else {
       return (
         <div className="output_highlightedtext">
-          {this.props.show_legend ?
+          {this.props.show_legend ? (
             <div className="color_legend">
               <span>-1</span>
               <span>0</span>
               <span>+1</span>
-            </div> : false}
+            </div>
+          ) : (
+            false
+          )}
           <div className="textfield">
-            {this.props.value.map(span => {
+            {this.props.value.map((span) => {
               let [text, value] = span;
               let color = "";
               if (value < 0) {
@@ -95,7 +112,11 @@ class HighlightedTextOutput extends BaseComponent {
                 color = "235, 77, 75," + value;
               }
               return (
-                <span class="textspan" title={value} style={{ "backgroundColor": `rgba(${color})` }}>
+                <span
+                  class="textspan"
+                  title={value}
+                  style={{ backgroundColor: `rgba(${color})` }}
+                >
                   <span class="text">{text}</span>
                 </span>
               );
