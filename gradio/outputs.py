@@ -349,18 +349,21 @@ class HighlightedText(OutputComponent):
     Demos: diff_texts, text_analysis
     '''
 
-    def __init__(self, color_map=None, label=None):
+    def __init__(self, color_map=None, label=None, show_legend=False):
         '''
         Parameters:
         color_map (Dict[str, str]): Map between category and respective colors
         label (str): component name in interface.
+        show_legend (bool): whether to show span categories in a separate legend or inline.
         '''
         self.color_map = color_map
+        self.show_legend = show_legend
         super().__init__(label)
 
     def get_template_context(self):
         return {
             "color_map": self.color_map,
+            "show_legend": self.show_legend,
             **super().get_template_context()
         }
 

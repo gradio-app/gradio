@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Gradio</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css"/>
-  <link href="/gradio_static/bundle.css" rel="stylesheet">
+  <link href="/gradio_static/static/bundle.css" rel="stylesheet">
   <style></style>
 </head>
 
@@ -32,7 +32,7 @@
     var set_theme = theme => {
       if (theme.startsWith("dark")) {
         document.querySelector("#target").classList.add("dark");
-        theme = theme.substring(4);
+        theme = theme === "dark"? "default" : theme.substring(5);
       } else {
         document.querySelector("#target").classList.remove("dark");
       }
@@ -44,14 +44,21 @@
       let style_element = document.querySelector("style");
       let style_html = "";
       if (hidden_inputs.size > 0) {
-        let inputs_selected = Array(...hidden_inputs).map(i => `.panel:nth-child(1) .component:nth-child(${i + 1})`).join(", ");
-        style_html += `${inputs_selected} { display: none !important }`;
+        let inputs_selected = Array.from(hidden_inputs).map(i => `.panel:nth-child(1) .component:nth-child(${i + 1})`).join(", ");
+        let examples_selected = Array.from(hidden_inputs).map(i => `.examples_table tr > *:nth-child(${i + 1})`).join(", ");
+        style_html += `${inputs_selected}, ${examples_selected} { display: none !important }`;
+        if (hidden_inputs.size === input_count - 1) {
+          document.querySelector(".examples_table").classList.add("gallery");
+        } else {
+          document.querySelector(".examples_table").classList.remove("gallery");
+        }
       }
       if (hidden_outputs.size > 0) {
-        let outputs_selected = Array(...hidden_outputs).map(i => `.panel:nth-child(2) .component:nth-child(${i + 2})`).join(", ");
+        let outputs_selected = Array.from(hidden_outputs).map(i => `.panel:nth-child(2) .component:nth-child(${i + 2})`).join(", ");
         style_html += `${outputs_selected} { display: none !important }`;
       }
       style_element.innerHTML = style_html;
+
     }
     var toggle_input = index => {
       if (hidden_inputs.has(index)) {
@@ -75,8 +82,10 @@
       reset_component_visibility();
     }
     var hide_all_inputs = () => {
-      document.querySelectorAll(".input-components input").forEach(n => n.checked = false);
-      window.config.input_components.forEach((_, i) => hidden_inputs.add(i));
+      document.querySelectorAll(".input-components input").forEach((n, i) => {
+        hidden_inputs.add(i);
+        n.checked = false;
+      });
       reset_component_visibility();
     }
     var show_all_outputs = () => {
@@ -85,40 +94,45 @@
       reset_component_visibility();
     }
     var hide_all_outputs = () => {
-      document.querySelectorAll(".output-components input").forEach(n => n.checked = false);
-      window.config.output_components.forEach((_, i) => hidden_outputs.add(i));
+      document.querySelectorAll(".output-components input").forEach((n, i) => {
+        hidden_outputs.add(i);
+        n.checked = false;
+      });
       reset_component_visibility();
     }
+
+    var input_count = 0;
+    var output_count = 0;
+    window.gradio_mode = "website";
   </script>
+  <script src="/gradio_static/static/bundle.js"></script>
   <script>
-    var demo_endpoint = "/demo";
-    window.config = [];
-    let themes = ["default", "huggingface", "grass", "peach", "darkdefault", "darkhuggingface", "darkgrass", "darkpeach"]
+    let themes = ["default", "huggingface", "seafoam", "grass", "peach", "dark", "dark-huggingface", "dark-seafoam","dark-grass", "dark-peach"]
     let theme_html = "";
     for (let theme of themes) {
-      theme_html += `<label><input type="radio" name="theme" onclick="set_theme('${theme}')"> ${theme}</label>`;
+      theme_html += `<label><input type="radio" name="theme" ${theme == "huggingface" ? "checked": ""} onclick="set_theme('${theme}')"> ${theme}</label>`;
     }
     document.querySelector(".theme-set").innerHTML = theme_html;
     fetch('/demo/kitchen_sink/config')
       .then(response => response.json())
       .then(demo => {
-        demo.target = "target";
-        demo.endpoint = demo_endpoint + "/kitchen_sink/api/";
-        window.config = demo;
+        demo.root = "/demo/kitchen_sink/";
+        launchGradio(demo, "#target");
 
         let input_html = "";
         for (let [i, input_component] of demo["input_components"].entries()) {
           input_html += `<label><input type="checkbox" checked name="input" onchange="toggle_input(${i})"> ${input_component["label"]}</label>`;
         }
+        input_count = demo["input_components"].length;
         document.querySelector(".input-components").innerHTML = input_html;
         let output_html = "";
         for (let [i, output_component] of demo["output_components"].entries()) {
           output_html += `<label><input type="checkbox" checked name="output" onchange="toggle_output(${i})"> ${output_component["label"]}</label>`;
         }
+        output_count = demo["output_components"].length;
         document.querySelector(".output-components").innerHTML = output_html;
       });
   </script>
-  <script async src="/gradio_static/bundle.js"></script>
 </body>
 
 </html>

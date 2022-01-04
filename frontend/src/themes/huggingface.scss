@@ -1,598 +1,133 @@
 .gradio_bg[theme="huggingface"] {
-    @apply dark:bg-[#0b0f19] dark:text-gray-50;
+    @apply dark:bg-[#0b0f19];
 }
 
 .gradio_bg[theme="huggingface"] .gradio_interface {
     .load_status {
-        @apply text-gray-700 dark:text-gray-50 absolute right-2 flex items-center gap-2 text-sm;
-    }
-    .load_status img {
-        @apply h-5 ml-2 inline-block;
-    }
-    .load_status .loading {
-        @keyframes ld-breath{
-            0%{
-                animation-timing-function:cubic-bezier(0.9647,0.2413,-0.0705,0.7911);
-                transform:scale(0.9)
-            }
-            51%{animation-timing-function:cubic-bezier(0.9226,0.2631,-0.0308,0.7628);
-                transform:scale(1.2)
-            }
-            100%{transform:scale(0.9)}
-        }
-        animation:ld-breath 0.75s infinite linear;
-    }
-    .panels {
-        @apply flex flex-wrap justify-center gap-4;
-    }
-    .panels.unaligned {
-        @apply flex-col sm:flex-row items-stretch sm:items-start
-    }
-    .panels.horizontal {
-        @apply flex-col sm:flex-row items-stretch;
-    }
-    .panels.vertical {
-        @apply flex-col items-stretch;
-    }
-    .panel {
-        @apply flex-1;
+        @apply text-gray-700;
     }
     .component_set {
-        @apply border border-gray-100 dark:border-none bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 p-4 rounded-lg flex flex-col flex-1 gap-3 ;
-        min-height: 36px;
+        @apply from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 bg-gradient-to-br border border-gray-100 dark:border-none p-4 rounded-lg gap-3;
     }
     .panel_header {
-        @apply flex items-center text-sm dark:text-gray-50 text-gray-700 mb-1.5;
+        @apply flex items-center text-sm text-gray-700 dark:text-gray-50 mb-1.5;
     }
     .panel_button {
-        @apply from-gray-50 hover:from-gray-100 to-gray-100 focus:ring-offset-indigo-300 dark:text-gray-50 dark:from-gray-700 dark:hover:from-gray-800 dark:to-gray-800 dark:focus:ring-offset-indigo-700 dark:border-none shadow-sm font-semibold border flex-grow p-3 rounded-lg transition bg-gradient-to-b;
-    }
-    .panel_buttons {
-        @apply flex gap-4 my-4;
-    }
-    .flag {
-        @apply relative;
-        .dropcontent {
-            @apply bg-white border-gray-200 dark:bg-gray-500 dark:border-none dark:text-gray-50 hidden absolute top-8 left-0 border-2 w-full;
-            div {
-                @apply p-2;
-            }
-            div:hover {
-                @apply bg-gray-100 dark:bg-gray-600;
-            }
-        }
-    }
-    .flag:hover:not(.disabled) {
-        .dropcontent {
-            @apply block;
-        }
-    }
-    .screenshot_set {
-        @apply hidden flex hidden flex-grow;
+        @apply from-gray-50 hover:from-gray-100 to-gray-100 bg-gradient-to-b focus:ring-offset-indigo-300 dark:from-gray-700 dark:hover:from-gray-800 dark:to-gray-800 dark:focus:ring-offset-indigo-700 dark:border-none shadow-sm border rounded-lg;
     }
     .examples {
-        @apply max-w-full overflow-x-auto;
-        h4 {
-            @apply text-lg font-semibold my-2;
-        }
-        .examples_control {
-            @apply hidden flex hidden gap-2;
-        }
-        .examples_control_left {
-            @apply flex gap-2;
-        }
-        .shortcut {
-            @apply block text-xs;
-        }
-        .examples_table:not(.gallery) {
-            @apply bg-gray-50 border-gray-100 dark:bg-gray-700 dark:text-gray-50 dark:border-none table-auto p-2 mt-4 rounded border;
-            tbody tr {
-                @apply cursor-pointer;
-            }
+        .examples_table_holder:not(.gallery) .examples_table {
+            @apply dark:from-gray-700 dark:to-gray-800 bg-gradient-to-br;
             thead {
-                @apply border-gray-100 dark:border-gray-800 border-b-2;
+                @apply border-gray-100 dark:border-gray-600;
             }
             tbody tr:hover {
                 @apply bg-indigo-500 dark:bg-indigo-900 text-white;
             }
-            tbody tr.selected {
-                @apply font-bold;
-            }
-            td,
-            th {
-                @apply py-2 px-4;
-            }
         }
-        .examples_table.gallery {
-            @apply block;
-            tbody {
-                @apply flex gap-2 flex-wrap ;
-            }
-            thead {
-                @apply hidden;
-            }
+        .examples_table_holder.gallery .examples_table {
             tbody td:hover {
                 @apply bg-indigo-500 dark:bg-indigo-900 text-white;
             }
-            tbody tr.selected {
-                @apply font-bold;
-            }
-            td {
-                @apply bg-gray-50 dark:bg-gray-700 cursor-pointer p-2 rounded;
-            }
         }
-        .pages {
-            @apply flex gap-1 items-center mt-2;
+    }
+    /* Common Classes */
+    .edit_buttons {
+        @apply m-1 flex gap-1;
+        button {
+            @apply rounded-full;
         }
-        .page {
-            @apply bg-gray-100 dark:bg-gray-700 dark:text-gray-50 px-2 py-1 rounded;
+        img {
+            @apply h-3;
         }
-        .page.selected {
-            @apply bg-gray-300 dark:bg-gray-800;
-        }    
+    }
+    .edit_button {
+        @apply bg-indigo-400 hover:bg-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-400;
+    }
+    .clear_button {
+        @apply bg-gray-300 hover:bg-gray-400 dark:bg-gray-400 dark:hover:bg-gray-300;
     }
     /* Input Components */
     .input_text {
         textarea {
-            @apply w-full p-3 border rounded-lg shadow-inner outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-200 focus:shadow-inner placeholder-gray-400 dark:bg-gray-600 dark:placeholder-gray-100 dark:text-gray-50 dark:border-none;
+            @apply p-3 border rounded-lg shadow-inner outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-200 focus:shadow-inner placeholder-gray-400 dark:bg-gray-600 dark:placeholder-gray-100 dark:border-none;
         }
         input {
-            @apply w-full p-3 border rounded-lg shadow-inner outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-200 focus:shadow-inner placeholder-gray-400 dark:bg-gray-600 dark:placeholder-gray-100 dark:text-gray-50 dark:border-none;
-        }
-        .interpretation {
-            .interpretation_box {
-                @apply inline-block whitespace-pre-wrap;
-            }
+            @apply p-3 border rounded-lg shadow-inner outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-200 focus:shadow-inner placeholder-gray-400 dark:bg-gray-600 dark:placeholder-gray-100 dark:border-none;
         }
     }
     .input_number {
         input {
-            @apply w-full p-3 border rounded-lg shadow-inner outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-200 focus:shadow-inner placeholder-gray-400 dark:bg-gray-600 dark:placeholder-gray-100 dark:text-gray-50 dark:border-none;
+            @apply p-3 border rounded-lg shadow-inner outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-200 focus:shadow-inner placeholder-gray-400 dark:bg-gray-600 dark:placeholder-gray-100 dark:border-none;
         }
-        .interpretation {
-            @apply flex h-6;
-            .interpretation_box {
-                @apply flex-grow;
-            }
-        }
-    }
-    .input_image {
-        @apply w-full h-80 relative;
-        .upload_zone {
-            @apply border-8 border-gray-300 border-dashed w-full h-full flex justify-center items-center text-3xl text-gray-400 dark:border-gray-500 dark:text-gray-50 text-center cursor-pointer leading-10;
-        }
-        .image_preview_holder {
-            @apply w-full h-full flex justify-center items-center bg-gray-300 dark:bg-gray-400 relative;
-        }
-        .edit_buttons {
-            @apply absolute top-0 right-0;
-            img {
-                @apply h-4;
-            }
-        }
-        .edit_button {
-            @apply bg-indigo-500 bg-opacity-30 hover:bg-opacity-100 transition p-1;
-        }
-        .clear_button {
-            @apply bg-gray-400 bg-opacity-30 hover:bg-opacity-100 transition p-1;
-        }
-        .image_editor {
-            @apply fixed w-screen h-screen top-0 left-0 bg-black bg-opacity-50 z-40 flex flex-col justify-center items-center;
-            .image_editor_buttons {
-                width: 800px;
-                @apply flex justify-end gap-1;
-                button {
-                    @apply px-2 py-1 text-xl bg-black text-white font-semibold rounded-t;
-                }
-            }
-            .tui-image-editor-header-buttons {
-                @apply hidden;
-            }
-            .tui-colorpicker-palette-button {
-                width: 12px;
-                height: 12px;
-            }
-        }
-        .image_preview,
-        video {
-            @apply w-full h-full object-contain;
-        }
-        .sketch > div {
-            @apply bg-white;
-        }
-        .snapshot {
-            @apply absolute bottom-0 w-full bg-white bg-opacity-90 py-3 font-bold text-lg text-center;
-        }
-        .interpretation {
-            @apply w-full h-full absolute top-0 left-0 flex justify-center items-center opacity-90 hover:opacity-20 transition;
-        }
-    }
-    .input_image_example {
-        @apply h-24 max-w-none;
     }
     .input_radio {
-        @apply flex flex-wrap gap-2;
         .radio_item {
-            @apply border bg-gradient-to-t from-gray-100 to-gray-50 text-gray-600 py-1.5 px-3 hover:to-gray-100 dark:from-gray-600 dark:to-gray-500 dark:hover:to-gray-600 dark:text-gray-50 dark:border-none font-semibold rounded cursor-pointer flex items-center gap-1;
+            @apply border bg-gradient-to-t from-gray-100 to-gray-50 text-gray-600 py-1.5 px-3 hover:to-gray-100 dark:text-gray-50 dark:from-gray-600 dark:to-gray-500 dark:hover:to-gray-600 dark:border-none;
         }
         .radio_item.selected {
             @apply text-indigo-500 dark:text-white dark:from-indigo-600 dark:to-indigo-500;
         }
         .radio_circle {
-            @apply w-4 h-4 bg-white dark:bg-gray-400 rounded-full box-border;
+            @apply bg-white;
         }
         .selected .radio_circle {
-            @apply border-4 border-indigo-600 dark:border-indigo-400 dark:bg-white;
+            @apply border-4 border-indigo-600 dark:border-indigo-400;
         }
     }
-    .input_checkbox_group {
-        @apply flex flex-wrap gap-2;
+    .input_checkbox_group, .input_checkbox {
         .checkbox_item {
-            @apply border bg-gradient-to-t from-gray-100 to-gray-50 hover:to-gray-100 text-gray-600 dark:from-gray-600 dark:to-gray-500 dark:hover:to-gray-600 dark:text-gray-50 dark:border-none py-1.5 px-3 font-semibold rounded cursor-pointer flex items-center gap-1;
+            @apply border bg-gradient-to-t from-gray-100 to-gray-50 hover:to-gray-100 text-gray-600 dark:text-gray-50 dark:from-gray-600 dark:to-gray-500 dark:hover:to-gray-600 dark:border-none py-1.5 px-3;
         }
         .checkbox_item.selected {
             @apply text-indigo-500 dark:text-white dark:from-indigo-600 dark:to-indigo-500;
         }
-        .checkbox {
-            @apply w-4 h-4 bg-white dark:bg-gray-400 rounded p-1;
-            .check {
-                @apply hidden;
-            }
-        }
         .selected .checkbox {
             @apply bg-indigo-600 dark:bg-indigo-400;
-            .check {
-                @apply block;
-            }
-        }
-        .check line {
-            stroke: white;
-            stroke-width: 4;
-            stroke-linecap: round;
-        }
-        .interpretation {
-            @apply flex;
-            .interpretation_box {
-                @apply flex-grow h-4 w-4;
-            }
-            .interpret_check {
-                @apply w-full h-full;
-            }
-            .interpret_check line {
-                stroke: gray;
-                stroke-width: 4;
-                stroke-linecap: round;
-            }
-        }
-    }
-    .input_checkbox {
-        @apply flex flex-wrap gap-2;
-        .checkbox_item {
-            @apply border bg-gradient-to-t from-gray-100 to-gray-50 text-gray-600 dark:from-gray-600 dark:to-gray-500 dark:hover:to-gray-600 dark:text-gray-50 dark:border-none py-1.5 px-3 hover:to-gray-100 font-semibold rounded cursor-pointer flex items-center gap-1;
-        }
-        .checkbox_item.selected {
-            @apply text-indigo-500 dark:text-white dark:from-indigo-600 dark:to-indigo-500;
-        }
-        .checkbox {
-            @apply w-4 h-4 bg-white dark:bg-gray-400 rounded p-1;
-            .check {
-                @apply hidden;
-            }
-        }
-        .selected .checkbox {
-            @apply bg-indigo-600 dark:bg-indigo-400;
-            .check {
-                @apply block;
-            }
-        }
-        .check line {
-            stroke: white;
-            stroke-width: 4;
-            stroke-linecap: round;
-        }
-        .interpretation {
-            @apply flex;
-            .interpretation_box {
-                @apply flex-grow h-4 w-4;
-            }
-            .interpret_check {
-                @apply w-full h-full;
-            }
-            .interpret_check line {
-                stroke: gray;
-                stroke-width: 4;
-                stroke-linecap: round;
-            }
         }
     }
     .input_dropdown {
-        @apply inline-block relative;
         .selector {
-            @apply border bg-gradient-to-t from-gray-100 to-gray-50 text-gray-600 dark:from-gray-600 dark:to-gray-500 dark:hover:to-gray-600 dark:text-gray-50 dark:border-none py-1.5 px-3 hover:to-gray-100 font-semibold rounded inline-flex items-center;
-        }
-        .caret {
-            @apply ml-1 fill-current h-4 w-4;
-        }
-        .dropdown_menu {
-            @apply absolute hidden text-gray-700 dark:text-gray-50 pt-1 max-h-80 overflow-y-auto z-10;
-        }
-        .dropdown_item:first-child {
-            @apply rounded-t;
+            @apply border bg-gradient-to-t from-gray-100 to-gray-50 text-gray-600 dark:text-gray-50 dark:from-gray-600 dark:to-gray-500 dark:hover:to-gray-600 dark:border-none py-1.5 px-3 hover:to-gray-100;
         }
         .dropdown_item {
-            @apply bg-gray-50 dark:bg-gray-500 hover:bg-gray-400 hover:text-gray-50 dark:hover:bg-indigo-600 py-2 px-4 block whitespace-nowrap cursor-pointer;
-        }
-        .dropdown_item:last-child {
-            @apply rounded-b;
-        }
-        :hover .dropdown_menu {
-            @apply block;
-        }
-        .interpretation_box {
-            @apply p-1;
+            @apply bg-gray-50 dark:bg-gray-500 hover:bg-gray-400 hover:text-gray-50 dark:hover:bg-indigo-600
         }
     }
     .input_slider {
         @apply text-center;
         .range {
-            @apply w-full appearance-none bg-gray-100 hover:bg-gray-100 transition rounded-full h-4 border dark:bg-gray-600 dark:hover:bg-gray-500 dark:text-gray-50 dark:border-none;
+            @apply bg-white hover:bg-gray-100 dark:bg-gray-600 rounded-full border dark:border-none;
         }
         .range::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            @apply appearance-none w-5 h-5 border dark:bg-white bg-indigo-500 rounded-full cursor-pointer shadow;
+            @apply border dark:bg-white bg-indigo-500 rounded-full shadow;
         }
         .range::-moz-range-thumb {
-            @apply appearance-none w-5 h-5 border dark:bg-white bg-indigo-500 rounded-full cursor-pointer shadow;
+            @apply border dark:bg-white bg-indigo-500 rounded-full shadow;
         }
         .value {
-            @apply inline-block mx-auto mt-1 px-2 py-0.5 bg-gray-100 text-gray-700 dark:bg-gray-600 dark:placeholder-gray-100 dark:text-gray-50 dark:border-none rounded shadow-inner;
-        }
-        .interpret_range {
-            @apply flex h-6;
-            div {
-                @apply flex-grow;
-            }
+            @apply bg-gray-100 text-gray-700 dark:text-gray-50 dark:bg-gray-600 dark:border-none shadow-inner;
         }
     }
     .input_audio {
-        .audio-react-recorder {
-            @apply hidden;
-        }
         .start {
-            @apply bg-gradient-to-t from-gray-100 to-gray-50 text-gray-600 py-1.5 px-3 hover:to-gray-100 font-semibold rounded;
+            @apply bg-gradient-to-t border from-gray-100 to-gray-50 text-gray-600 py-1.5 px-3 hover:to-gray-100 dark:text-gray-50 dark:from-gray-600 dark:to-gray-500 dark:hover:to-gray-600 dark:border-none;
         }
         .stop {
-            @apply bg-gradient-to-t from-red-200 to-red-50 text-red-600 py-1.5 px-3 hover:to-gray-100 font-semibold rounded;
+            @apply border border-red-200 bg-gradient-to-t from-red-200 to-red-50 text-red-600 py-1.5 px-3 hover:to-red-100 dark:from-red-700 dark:to-red-600 dark:text-red-100;
         }
-        audio {
-            @apply w-full;
-            .interpret_range {
-                @apply flex h-4;
-                div {
-                    @apply flex-grow h-full;
-                }
-            }
-        }
-        .edit_buttons {
-            @apply flex justify-end;
-            img {
-                @apply h-4 dark:invert;
-            }
-        }
-        .edit_button {
-            @apply bg-indigo-500 bg-opacity-0 hover:bg-opacity-100 transition p-1;
-        }
-        .clear_button {
-            @apply bg-gray-400 bg-opacity-0 hover:bg-opacity-100 transition p-1;
-        }
-    }
-    .input_video {
-        @apply w-full h-80 relative;
-        .video_recorder {
-            @apply w-full h-full bg-black;
-        }
-        .record_holder {
-            @apply absolute left-1/2 bottom-4 -translate-x-1/2 -translate-y-1/2 text-center;
-        }
-        .record_message {
-            @apply text-white font-bold mb-4;
-        }
-        .record {
-            @apply w-12 h-12 rounded-full bg-red-500 hover:bg-red-600 border-4 border-red-600;
-        }
-        .upload_zone {
-            @apply border-8 border-gray-300 border-dashed w-full h-full flex justify-center items-center text-3xl text-gray-400 dark:border-gray-500 dark:text-gray-50 text-center cursor-pointer leading-10;
-        }
-        .video_preview_holder {
-            @apply w-full h-full flex justify-center items-center bg-gray-200;
-        }
-        .video_file_holder {
-            @apply dark:text-gray-50 w-full h-full flex justify-center items-center text-6xl p-6 break-all;
-        }
-        .video_preview {
-            @apply w-full h-full object-contain bg-black;
-        }
-        .edit_buttons {
-            @apply z-10 absolute top-0 right-0;
-            img {
-                @apply h-4;
-            }
-        }
-        .edit_button {
-            @apply bg-yellow-500 bg-opacity-30 hover:bg-opacity-100 transition p-1;
-        }
-        .clear_button {
-            @apply bg-gray-400 bg-opacity-30 hover:bg-opacity-100 transition p-1;
-        }        
-    }
-    .input_video_example {
-        .video_holder {
-            @apply h-36 object-contain flex justify-center;
-        }
-        .video_preview {
-            @apply max-w-none;
-        }
-    }
-    .input_file {
-        @apply w-full h-80;
-        .upload_zone {
-            @apply border-8 border-gray-300 border-dashed w-full h-full flex justify-center items-center text-3xl text-gray-400 dark:border-gray-500 dark:text-gray-50 text-center cursor-pointer leading-10;
-        }
-        .file_preview_holder {
-            @apply w-full h-full flex flex-col justify-center items-center relative inline-block;
-        }
-        .file_name {
-            @apply text-6xl p-6 dark:text-gray-50 break-all;
-        }
-        .file_size {
-            @apply text-2xl p-2 dark:text-gray-50;
-        }
-        .clear_button {
-            @apply absolute top-0 right-0 bg-gray-400 bg-opacity-0 hover:bg-opacity-100 transition p-1;
-            img {
-                @apply h-4 dark:invert;
-            }
-        }
-    }
-    .input_timeseries {
-        @apply w-full h-96;
-        .upload_zone {
-            @apply border-8 border-gray-300 border-dashed w-full h-full flex justify-center items-center text-3xl text-gray-400 text-center cursor-pointer leading-10;
-        }
-        .file_preview_holder {
-            @apply w-full h-full flex flex-col justify-center items-center relative inline-block;
-        }
-        .js-plotly-plot, .plotly.js-plotly-plot * {
-            position: static !important;
-        } 
-    }
-    .input_dataframe {
-        @apply text-black;
     }
     /* Output Components */
     .output_text {
-        word-break: break-word;
-        @apply w-full p-3 border rounded-lg shadow-inner outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-200 focus:shadow-inner whitespace-pre-wrap dark:bg-gray-600 dark:text-gray-50 dark:border-none;
+        @apply p-3 border rounded-lg shadow-inner outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-200 focus:shadow-inner whitespace-pre-wrap dark:bg-gray-600 dark:border-none;
     }
     .output_label {
         .output_class {
             @apply hidden;
         }
-        .output_class_without_confidences{
-            @apply font-bold text-2xl py-8 px-4 flex-grow flex items-center justify-center dark:text-gray-50;
-        }
-        .confidence_intervals {
-            @apply flex text-xl;
-        }
-        .labels {
-            @apply mr-1;
-        }
-        .confidences {
-            @apply flex flex-grow flex-col items-baseline;
-        }
-        .label {
-            @apply overflow-hidden whitespace-nowrap h-7 mb-1 overflow-ellipsis text-right dark:text-gray-50;
-        }
         .confidence {
-            @apply bg-gradient-to-r from-indigo-200 to-indigo-500 dark:from-indigo-500 dark:to-indigo-700 rounded text-white flex justify-end overflow-hidden whitespace-nowrap h-7 mb-1 px-1;
+            @apply bg-gradient-to-r from-indigo-200 to-indigo-500 dark:from-indigo-500 dark:to-indigo-700 rounded text-white ;
             color: transparent;
         }
     }
-    .output_image {
-        @apply w-full h-80;
-        .image_preview_holder {
-            @apply w-full h-full flex justify-center items-center bg-gray-200 dark:bg-gray-400 relative inline-block;
-        }
-        .image_preview,
-        video {
-            @apply w-full h-full object-contain;
-        }
-    }
-    .output_audio {
-        audio {
-            @apply w-full;
-        }
-    }
-    .output_highlightedtext {
-        .category_legend {
-            @apply flex flex-wrap gap-4 mb-2;
-            .category-label {
-                @apply flex gap-2;
-            }
-            .colorbox {
-                @apply w-6;
-            }
-        }
-    }
-    .output_keyvalues {
-        table {
-            @apply bg-white;
-            thead {
-                @apply font-bold;
-            }
-            td,
-            th {
-                @apply p-2;
-            }
-        }
-    }
-    .output_video {
-        @apply w-full h-80 object-contain flex justify-center;
-        video {
-            @apply h-full;
-        }
-        .video_file_holder {
-            @apply dark:text-gray-50 w-full h-full flex justify-center items-center text-6xl p-6 break-all;
-        }
-    }
-    .output_file {
-        @apply w-full h-80 dark:text-gray-50;
-        .file_display {
-            @apply w-full h-full flex flex-col justify-center items-center relative;
-        }
-        .file_name {
-            @apply text-6xl p-6 break-all;
-        }
-        .file_size {
-            @apply text-2xl p-2;
-        }
-    }
-    .output_dataframe {
-        table {
-            thead {
-                @apply font-bold border-gray-200 border-b-2;
-            }
-            th {
-                @apply transition cursor-pointer;
-            }
-            th:hover {
-                @apply bg-gray-200;
-            }
-            td, th {
-                @apply px-4;
-            }
-        }
-        .pages {
-            @apply flex gap-1 items-center;
-        }
-        .page {
-            @apply px-2 py-1 bg-gray-200;
-        }
-        .page.selected {
-            @apply bg-gray-300;
-        }
-    }
-    .output_carousel {
-        @apply flex flex-col gap-2;
-        .carousel_control {
-            @apply flex gap-4 justify-center items-center my-1;
-            .carousel_index {
-                min-width: 60px;
-                @apply text-xl text-center font-semibold;
-            }
-            button img {
-                @apply h-3 mt-0.5 dark:invert;
-            }
-        }
-    }    
 }
