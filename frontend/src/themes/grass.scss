@@ -40,12 +40,12 @@
     .input_text {
         textarea,
         input {
-            @apply rounded-none dark:bg-gray-700 dark:text-gray-50 box-border border-4 p-2 border-white dark:border-gray-600 focus:border-green-400 dark:focus:border-green-400 focus:outline-none;
+            @apply rounded-none dark:bg-gray-700 dark:text-gray-50 box-border border-4 p-2 border-white dark:border-gray-600 focus:border-green-400 dark:focus:border-green-400;
         }
     }
     .input_number {
         input {
-            @apply rounded-none dark:bg-gray-700 dark:text-gray-50 box-border border-4 p-2 border-white dark:border-gray-600 focus:border-green-400 dark:focus:border-green-400 focus:outline-none;
+            @apply rounded-none dark:bg-gray-700 dark:text-gray-50 box-border border-4 p-2 border-white dark:border-gray-600 focus:border-green-400 dark:focus:border-green-400;
         }
     }
     .input_slider {
