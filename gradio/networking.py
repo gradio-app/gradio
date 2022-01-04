@@ -140,6 +140,8 @@ def start_server(
         queueing.init()
         app.queue_thread = threading.Thread(target=queue_thread, args=(path_to_local_server,))
         app.queue_thread.start()
+    if interface.save_to is not None:
+        interface.save_to["port"] = port        
     app.tokens = {}
     config = uvicorn.Config(app=app, port=port, host=server_name, 
                             log_level="warning")
