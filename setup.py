@@ -28,5 +28,6 @@ setup(
         'python-multipart',
         'pydub',
         'requests',
+        'uvicorn',
     ],
 )
