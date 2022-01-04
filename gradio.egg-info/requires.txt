@@ -11,3 +11,4 @@ pycryptodome
 python-multipart
 pydub
 requests
+uvicorn
