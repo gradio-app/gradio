@@ -95,8 +95,8 @@ export class GradioInterface extends React.Component {
       this.props.root +
       (this.props.examples_dir === null
         ? "file" +
-        this.props.examples_dir +
-        (this.props.examples_dir.endswith("/") ? "" : "/")
+          this.props.examples_dir +
+          (this.props.examples_dir.endswith("/") ? "" : "/")
         : "file");
   }
   get_default_state = () => {
@@ -569,9 +569,11 @@ class GradioInterfaceExamples extends React.Component {
     return (
       <div className="examples">
         <h4>Examples</h4>
-        <div className={classNames("examples_table_holder", {
-              gallery: this.props.input_components.length === 1
-            })}>
+        <div
+          className={classNames("examples_table_holder", {
+            gallery: this.props.input_components.length === 1
+          })}
+        >
           <table class="examples_table">
             <thead>
               <tr>
@@ -579,14 +581,14 @@ class GradioInterfaceExamples extends React.Component {
                   return <th key={i}>{component.label}</th>;
                 })}
                 {this.props.examples[0].length >
-                  this.props.input_components.length
+                this.props.input_components.length
                   ? this.props.output_components.map((component, i) => {
-                    return (
-                      <th key={i + this.props.input_components.length}>
-                        {component.label}
-                      </th>
-                    );
-                  })
+                      return (
+                        <th key={i + this.props.input_components.length}>
+                          {component.label}
+                        </th>
+                      );
+                    })
                   : false}
               </tr>
             </thead>

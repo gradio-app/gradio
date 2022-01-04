@@ -22,7 +22,7 @@
   </div>
 </div>
 
-<style global lang="scss">
+<!-- <style global lang="scss">
 	@import "./style/base";
 	@import "./style/default";
-</style>
+</style> -->

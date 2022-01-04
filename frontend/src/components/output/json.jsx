@@ -9,41 +9,58 @@ class JSONNode extends React.Component {
   }
   open = () => {
     this.setState({ collapsed: false });
-  }
+  };
   close = () => {
     this.setState({ collapsed: true });
-  }
+  };
   render() {
     var node = null;
     var nodetype = null;
     if (this.props.value instanceof Array) {
       if (this.state.collapsed) {
-        node = <button onClick={this.open}>[+{this.props.value.length} children]</button>
+        node = (
+          <button onClick={this.open}>
+            [+{this.props.value.length} children]
+          </button>
+        );
       } else {
-        node = <>
-          [
-          <div class="json_children">
-            {this.props.value.map((n, i) => <div class="json_item">
-            {i}: <JSONNode value={n} depth={this.props.depth + 1} />,
-            </div>)}
-          </div>
-          ]
-        </>;
+        node = (
+          <>
+            [
+            <div class="json_children">
+              {this.props.value.map((n, i) => (
+                <div class="json_item">
+                  {i}: <JSONNode value={n} depth={this.props.depth + 1} />,
+                </div>
+              ))}
+            </div>
+            ]
+          </>
+        );
         nodetype = "array";
       }
     } else if (this.props.value instanceof Object) {
       if (this.state.collapsed) {
-        node = <button onClick={this.open}>&#123;+{Object.keys(this.props.value).length} items&#125;</button>
+        node = (
+          <button onClick={this.open}>
+            &#123;+{Object.keys(this.props.value).length} items&#125;
+          </button>
+        );
       } else {
-        node = <>
-          &#123;
-          <div class="json_children">
-            {Object.entries(this.props.value).map(n => <div class="json_item">
-              {n[0]}: <JSONNode value={n[1]} depth={this.props.depth + 1} />,
-            </div>)}
-          </div>
-          &#125;
-        </>;
+        node = (
+          <>
+            &#123;
+            <div class="json_children">
+              {Object.entries(this.props.value).map((n) => (
+                <div class="json_item">
+                  {n[0]}: <JSONNode value={n[1]} depth={this.props.depth + 1} />
+                  ,
+                </div>
+              ))}
+            </div>
+            &#125;
+          </>
+        );
         nodetype = "object";
       }
     } else if (this.props.value === null) {
@@ -58,7 +75,11 @@ class JSONNode extends React.Component {
         node = node.toLocaleString();
       }
     }
-    return <div type={nodetype} class="json_node">{node}</div>;
+    return (
+      <div type={nodetype} class="json_node">
+        {node}
+      </div>
+    );
   }
 }
 
