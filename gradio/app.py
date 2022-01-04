@@ -39,6 +39,7 @@ app.add_middleware(
 
 templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 
+
 ###########
 # Auth 
 ###########
@@ -102,6 +103,11 @@ def main(
         {"request": request, "config": config}
     )
 
+    
+@app.get("/config", dependencies=[Depends(login_check)])
+def get_config():
+    return app.interface.config
+
 
 @app.get("/static/{path:path}", dependencies=[Depends(login_check)])
 def static_resource(path: str):
@@ -109,6 +115,7 @@ def static_resource(path: str):
         return RedirectResponse(GRADIO_STATIC_ROOT + path)
     else:
         static_file = safe_join(STATIC_PATH_LIB, path)
+    print('static_file', static_file)
     if static_file is not None:
         return FileResponse(static_file)
     raise HTTPException(status_code=404, detail="Static file not found")

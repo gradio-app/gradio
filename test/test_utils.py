@@ -1,3 +1,4 @@
+import ipaddress
 import os
 import pkg_resources
 import requests
@@ -102,6 +103,22 @@ class TestUtils(unittest.TestCase):
         
     def test_readme_to_html_correct_parse(self):
         readme_to_html("https://github.com/gradio-app/gradio/blob/master/README.md")    
+
+
+class TestIPAddress(unittest.TestCase):
+    def test_get_ip(self):
+        ip = get_local_ip_address()
+        try:  # check whether ip is valid
+            ipaddress.ip_address(ip)
+        except ValueError:
+            self.fail("Invalid IP address")
+
+    @mock.patch("requests.get")
+    def test_get_ip_without_internet(self, mock_get):
+        mock_get.side_effect = requests.ConnectionError()
+        ip = get_local_ip_address()
+        self.assertEqual(ip, "No internet connection")
+
 
 
 if __name__ == '__main__':
