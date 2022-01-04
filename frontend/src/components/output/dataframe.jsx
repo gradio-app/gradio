@@ -110,11 +110,19 @@ class DataframeOutput extends BaseComponent {
               {headers.map((header, i) => (
                 <th key={i} onClick={this.sort_table.bind(this, i)}>
                   {header}
-                  {this.state.sort_by === i
-                    ? <svg className="caret" viewBox="0 0 20 20" transform={this.state.sort_descending ? "scale(1, -1)" : ""}>
-                        <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />{" "}
-                      </svg>
-                    : false}
+                  {this.state.sort_by === i ? (
+                    <svg
+                      className="caret"
+                      viewBox="0 0 20 20"
+                      transform={
+                        this.state.sort_descending ? "scale(1, -1)" : ""
+                      }
+                    >
+                      <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />{" "}
+                    </svg>
+                  ) : (
+                    false
+                  )}
                 </th>
               ))}
             </thead>
