@@ -4,7 +4,6 @@ creating tunnels.
 """
 from __future__ import annotations
 import fastapi
-from fastapi_login import LoginManager
 import http
 import json
 import os
@@ -133,11 +132,6 @@ def start_server(
             app.auth = auth
     else:
         app.auth = None
-    app.secret = os.urandom(24).hex()
-    app.login_manager = LoginManager(
-        app.secret, token_url="/login", use_cookie=True)
-    app.users = set()
-     
     app.interface = interface
     app.cwd = os.getcwd()
     if app.interface.enable_queue:
@@ -148,7 +142,7 @@ def start_server(
         app.queue_thread.start()
     if interface.save_to is not None:  # Used for selenium tests
         interface.save_to["port"] = port        
-    
+    app.tokens = {}
     config = uvicorn.Config(app=app, port=port, host=server_name, 
                             log_level="warning")
     server = Server(config=config)
