@@ -3,8 +3,8 @@ Defines helper methods useful for setting up ports, launching servers, and
 creating tunnels.
 """
 from __future__ import annotations
-import contextlib
 import fastapi
+from fastapi_login import LoginManager
 import http
 import json
 import os
@@ -110,7 +110,8 @@ def start_server(
     auth: If provided, username and password (or list of username-password tuples) required to access interface. Can also provide function that takes username and password and returns True if valid login.
     """    
     server_name = server_name or LOCALHOST_NAME
-    if server_port is None:  # if port is not specified, search for first available port        
+    # if port is not specified, search for first available port
+    if server_port is None:          
         port = get_first_available_port(
             INITIAL_PORT_VALUE, INITIAL_PORT_VALUE + TRY_NUM_PORTS
         )
@@ -132,6 +133,11 @@ def start_server(
             app.auth = auth
     else:
         app.auth = None
+    app.secret = os.urandom(24).hex()
+    app.login_manager = LoginManager(
+        app.secret, token_url="/login", use_cookie=True)
+    app.users = set()
+     
     app.interface = interface
     app.cwd = os.getcwd()
     if app.interface.enable_queue:
@@ -142,7 +148,7 @@ def start_server(
         app.queue_thread.start()
     if interface.save_to is not None:  # Used for selenium tests
         interface.save_to["port"] = port        
-    app.tokens = {}
+    
     config = uvicorn.Config(app=app, port=port, host=server_name, 
                             log_level="warning")
     server = Server(config=config)
