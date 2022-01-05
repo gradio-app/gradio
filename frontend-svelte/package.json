@@ -10,6 +10,8 @@
   "devDependencies": {
     "@rollup/plugin-commonjs": "^17.0.0",
     "@rollup/plugin-node-resolve": "^11.0.0",
+    "postcss": "^8.4.5",
+    "postcss-nested": "^5.0.6",
     "rollup": "^2.3.4",
     "rollup-plugin-css-only": "^3.1.0",
     "rollup-plugin-livereload": "^2.0.0",
@@ -21,7 +23,6 @@
     "@rollup/plugin-replace": "^3.0.1",
     "autoprefixer": "^9.8.8",
     "node-sass": "^7.0.1",
-    "postcss": "^7.0.39",
     "sirv-cli": "^1.0.0",
     "svelte-preprocess": "^4.10.1",
     "tailwindcss": "npm:@tailwindcss/postcss7-compat@^2.2.17"

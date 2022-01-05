@@ -1,11 +1,16 @@
 import App from './App.svelte';
+import { fn } from "./api";
 
 window.launchGradio = (config, element_query) => {
   let target = document.querySelector(element_query);
+  if (config.dark_mode) {
+    target.classList.add("dark");
+  }
+  config.fn = fn.bind(null, "BACKEND_URL" + "api/");
   const app = new App({
     target: target,
     props: config
-  });  
+  });
 }
 
 async function get_config() {

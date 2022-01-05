@@ -6,6 +6,7 @@ module.exports = {
     ],
     enabled: production // disable purge in dev
   },
+  mode: "jit",
   darkMode: "class", // or 'media' or 'class'
   theme: {
     extend: {},

@@ -54,6 +54,7 @@ export default {
 				postcss: {
 					plugins: [
 						require("tailwindcss"),
+						require("postcss-nested"),
 						require("autoprefixer"),
 					],
 				},
@@ -66,7 +67,6 @@ export default {
 		// we'll extract any component CSS out into
 		// a separate file - better for performance
 		css({
-			include: ['**/*.css', '**/*.scss'],
 			output: 'bundle.css' 
 		}),
 
