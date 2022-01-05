@@ -3,10 +3,8 @@
 from __future__ import annotations
 from fastapi import FastAPI, Form, Request, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.openapi.models import OAuthFlows as OAuthFlowsModel
 from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
-from fastapi.security import OAuth2, OAuth2PasswordRequestForm
-from fastapi.security.oauth2 import OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.security.utils import get_authorization_scheme_param
 from fastapi.templating import Jinja2Templates
 import inspect
@@ -15,8 +13,6 @@ import posixpath
 import pkg_resources
 import secrets
 from starlette.responses import RedirectResponse
-import starlette
-from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_403_FORBIDDEN
 import traceback
 from typing import List, Optional, Type, TYPE_CHECKING
 import urllib
@@ -49,26 +45,25 @@ templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 # Auth 
 ###########
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login", auto_error=False)
 
-def get_current_user(token: str = Depends(oauth2_scheme)) -> Optional[str]:
-    if token in app.tokens:
-        return app.tokens[token]
-
-
-def is_authenticated(token: str = Depends(oauth2_scheme)) -> bool:
-    return get_current_user(token) is not None     
+@app.get('/user')
+def get_current_user(request: Request) -> Optional[str]:
+    token = request.cookies.get('access-token')
+    return app.tokens.get(token)
 
 
-def login_check(is_authenticated: bool = Depends(is_authenticated)):
-    if app.auth is not None and not(is_authenticated):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, 
-                            detail="Not authenticated")
+@app.get('/login_check')
+def login_check(user: str = Depends(get_current_user)):
+    if app.auth is None or not(user is None):
+        return
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, 
+                        detail="Not authenticated")
 
 
 @app.get('/token')
-def get_token(token: str = Depends(oauth2_scheme)):
-    return {"token": token}
+def get_token(request: Request) -> Optional[str]:
+    token = request.cookies.get('access-token')
+    return {"token": token, "user": app.tokens.get(token)}
 
 
 @app.post('/login')
@@ -79,9 +74,9 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
         or (callable(app.auth) and app.auth.__call__(username, password))):
         token = secrets.token_urlsafe(16)
         app.tokens[token] = username
-        response = RedirectResponse(url="/")
+        response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
         response.set_cookie(key="access-token", value=token, httponly=True)
-        return {"access_token": token, "token_type": "bearer"}
+        return response
     else:
         raise HTTPException(status_code=400, detail="Incorrect credentials.")
 
@@ -93,11 +88,8 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
 
 @app.head('/', response_class=HTMLResponse)
 @app.get('/', response_class=HTMLResponse)
-def main(
-    request: Request, 
-    is_authenticated: bool = Depends(is_authenticated)
-):
-    if app.auth is None or is_authenticated:
+def main(request: Request, user: str = Depends(get_current_user)):
+    if app.auth is None or not(user is None):
         config = app.interface.config
     else:
         config = {"auth_required": True, 
@@ -114,7 +106,7 @@ def get_config():
     return app.interface.config
 
 
-@app.get("/static/{path:path}", dependencies=[Depends(login_check)])
+@app.get("/static/{path:path}")
 def static_resource(path: str):
     if app.interface.share:
         return RedirectResponse(GRADIO_STATIC_ROOT + path)
@@ -315,7 +307,7 @@ if __name__ == '__main__': # Run directly for debugging: python app.py
     app.interface.config = app.interface.get_config_file()
     app.interface.show_error = True
     app.interface.flagging_callback.setup(app.interface.flagging_dir)
-    auth = False
+    auth = True
     if auth:
         app.interface.auth = ("a", "b")
         app.auth = {"a": "b"}
