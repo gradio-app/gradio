@@ -2,16 +2,21 @@
 
 from __future__ import annotations
 from fastapi import FastAPI, Form, Request, Depends, HTTPException, status
-from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
-from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.openapi.models import OAuthFlows as OAuthFlowsModel
+from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
+from fastapi.security import OAuth2, OAuth2PasswordRequestForm
+from fastapi.security.oauth2 import OAuth2PasswordBearer
+from fastapi.security.utils import get_authorization_scheme_param
+from fastapi.templating import Jinja2Templates
 import inspect
 import os
 import posixpath
 import pkg_resources
 import secrets
-from starlette.responses import Response, RedirectResponse
+from starlette.responses import RedirectResponse
+import starlette
+from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_403_FORBIDDEN
 import traceback
 from typing import List, Optional, Type, TYPE_CHECKING
 import urllib
@@ -44,15 +49,15 @@ templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 # Auth 
 ###########
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login", auto_error=False)
 
-@app.manager.user_loader()
-def get_current_user(username: str) -> Optional[str]:
-    if username in app.users:
-        return username
+def get_current_user(token: str = Depends(oauth2_scheme)) -> Optional[str]:
+    if token in app.tokens:
+        return app.tokens[token]
 
 
-def is_authenticated(username: str = Depends(app.manager)) -> bool:
-    return get_current_user(username) is not None     
+def is_authenticated(token: str = Depends(oauth2_scheme)) -> bool:
+    return get_current_user(token) is not None     
 
 
 def login_check(is_authenticated: bool = Depends(is_authenticated)):
@@ -61,24 +66,22 @@ def login_check(is_authenticated: bool = Depends(is_authenticated)):
                             detail="Not authenticated")
 
 
-# @app.get('/token')
-# def get_token(token: str = Depends(app.manager)):
-#     return {"token": token}
+@app.get('/token')
+def get_token(token: str = Depends(oauth2_scheme)):
+    return {"token": token}
 
 
 @app.post('/login')
-def login(response: Response,
-          form_data: OAuth2PasswordRequestForm = Depends()):
+def login(form_data: OAuth2PasswordRequestForm = Depends()):
     username, password = form_data.username, form_data.password
     if ((not callable(app.auth) and username in app.auth 
         and app.auth[username] == password)
         or (callable(app.auth) and app.auth.__call__(username, password))):
-        token = app.manager.create_access_token(
-            data=dict(sub=username)
-        )
-        app.users.add(username)
-        app.manager.set_cookie(response, token)
-        return response
+        token = secrets.token_urlsafe(16)
+        app.tokens[token] = username
+        response = RedirectResponse(url="/")
+        response.set_cookie(key="access-token", value=token, httponly=True)
+        return {"access_token": token, "token_type": "bearer"}
     else:
         raise HTTPException(status_code=400, detail="Incorrect credentials.")
 
@@ -319,5 +322,5 @@ if __name__ == '__main__': # Run directly for debugging: python app.py
         app.interface.auth_message = None
     else:
         app.auth = None
-    app.users = []
+    app.tokens = {}
     uvicorn.run(app)
