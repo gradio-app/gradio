@@ -1,6 +1,7 @@
+"""Contains tests for networking.py and app.py"""
+
 from fastapi.testclient import TestClient
 import os
-import requests
 import unittest
 import unittest.mock as mock
 import urllib.request
@@ -89,7 +90,7 @@ class TestAuthenticatedRoutes(unittest.TestCase):
 
     def test_post_login(self):
         response = self.client.post('/login', data=dict(username="test", password="correct_password"))
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 302)
         response = self.client.post('/login', data=dict(username="test", password="incorrect_password"))
         self.assertEqual(response.status_code, 400) 
 
