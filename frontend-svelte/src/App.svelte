@@ -1,28 +1,37 @@
 <script>
-	import Interface from "./Interface.svelte";
+  import Interface from "./Interface.svelte";
 
-	export let title;
-	export let description;
-	export let theme;
-	export let input_components;
-	export let output_components;
+  export let title;
+  export let description;
+  export let theme;
+  export let input_components;
+  export let output_components;
+  export let fn;
 </script>
 
-<div class="gradio_bg" {theme}>
-  <div class="gradio_page">
-    <div class="content">
-		{#if title !== undefined}
-			<h1 class="title">{title}</h1>
-		{/if}
-		{#if description !== undefined}
-			<p class="description">{description}</p>
-		{/if}
-		<Interface input_components={input_components} output_components={output_components} />
- 	</div>
+<div
+  class="gradio-bg flex flex-col dark:bg-gray-600 {window.gradio_mode === 'app'
+    ? 'h-full'
+    : 'h-auto'}"
+  {theme}
+>
+  <div
+    class="gradio-page container mx-auto flex flex-col box-border flex-grow text-gray-700 dark:text-gray-50"
+  >
+    <div class="content pt-4 px-4 mb-4">
+      {#if title !== undefined}
+        <h1 class="title text-center p-4 text-4xl">{title}</h1>
+      {/if}
+      {#if description !== undefined}
+        <p class="description pb-4">{description}</p>
+      {/if}
+      <Interface {input_components} {output_components} {theme} {fn} />
+    </div>
   </div>
 </div>
 
-<!-- <style global lang="scss">
-	@import "./style/base";
-	@import "./style/default";
-</style> -->
+<style global lang="postcss">
+  @tailwind base;
+  @tailwind components;
+  @tailwind utilities;
+</style>
