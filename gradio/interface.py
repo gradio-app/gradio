@@ -11,7 +11,6 @@ import markdown2  # type: ignore
 import os
 import random
 import sys
-import threading
 import time
 from typing import Callable, Any, List, Optional, Tuple, TYPE_CHECKING
 import warnings
@@ -169,7 +168,7 @@ class Interface:
             state_param_index = [isinstance(i, i_State) 
                                  for i in self.input_components].index(True)
             state_init_value = utils.get_default_args(fn[0])[state_param_index]
-        except ValueError:
+        except ValueError:  # No default value for the state parameter
             state_init_value = None
         self.state_init_value = state_init_value
 

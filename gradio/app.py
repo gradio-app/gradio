@@ -11,7 +11,7 @@ import os
 import posixpath
 import pkg_resources
 import secrets
-from starlette.responses import RedirectResponse
+from starlette.responses import Response, RedirectResponse
 import traceback
 from typing import List, Optional, Type, TYPE_CHECKING
 import urllib
@@ -45,16 +45,14 @@ templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 ###########
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login", auto_error=False)
+@app.manager.user_loader()
+def get_current_user(username: str) -> Optional[str]:
+    if username in app.users:
+        return username
 
 
-def get_current_user(token: str = Depends(oauth2_scheme)) -> Optional[str]:
-    if token in app.tokens:
-        return app.tokens[token]
-
-
-def is_authenticated(token: str = Depends(oauth2_scheme)) -> bool:
-    return get_current_user(token) is not None     
+def is_authenticated(username: str = Depends(app.manager)) -> bool:
+    return get_current_user(username) is not None     
 
 
 def login_check(is_authenticated: bool = Depends(is_authenticated)):
@@ -63,20 +61,24 @@ def login_check(is_authenticated: bool = Depends(is_authenticated)):
                             detail="Not authenticated")
 
 
-@app.get('/token')
-def get_token(token: str = Depends(oauth2_scheme)):
-    return {"token": token}
+# @app.get('/token')
+# def get_token(token: str = Depends(app.manager)):
+#     return {"token": token}
 
 
 @app.post('/login')
-def login(form_data: OAuth2PasswordRequestForm = Depends()):
+def login(response: Response,
+          form_data: OAuth2PasswordRequestForm = Depends()):
     username, password = form_data.username, form_data.password
     if ((not callable(app.auth) and username in app.auth 
         and app.auth[username] == password)
         or (callable(app.auth) and app.auth.__call__(username, password))):
-        token = secrets.token_urlsafe(16)
-        app.tokens[token] = username
-        return {"access_token": token, "token_type": "bearer"}
+        token = app.manager.create_access_token(
+            data=dict(sub=username)
+        )
+        app.users.add(username)
+        app.manager.set_cookie(response, token)
+        return response
     else:
         raise HTTPException(status_code=400, detail="Incorrect credentials.")
 
@@ -317,5 +319,5 @@ if __name__ == '__main__': # Run directly for debugging: python app.py
         app.interface.auth_message = None
     else:
         app.auth = None
-    app.tokens = {}
+    app.users = []
     uvicorn.run(app)

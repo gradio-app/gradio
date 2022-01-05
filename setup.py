@@ -17,6 +17,7 @@ setup(
     install_requires=[
         'analytics-python',
         'fastapi',
+        'fastapi-login',
         'ffmpy',
         'markdown2',
         'matplotlib',
