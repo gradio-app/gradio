@@ -16,6 +16,7 @@ setup(
     keywords=['machine learning', 'visualization', 'reproducibility'],
     install_requires=[
         'analytics-python',
+        'aiohttp',
         'fastapi',
         'ffmpy',
         'markdown2',
