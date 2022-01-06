@@ -201,7 +201,7 @@ async def flag(
     username: str = Depends(get_current_user)
 ):
     if app.interface.analytics_enabled:
-        utils.log_feature_analytics(app.interface.ip_address, 'flag')
+        await utils.log_feature_analytics(app.interface.ip_address, 'flag')
     body = await request.json()
     data = body['data']
     app.interface.flagging_callback.flag(
@@ -214,7 +214,7 @@ async def flag(
 @app.post("/api/interpret/", dependencies=[Depends(login_check)])
 async def interpret(request: Request):
     if app.interface.analytics_enabled:
-        utils.log_feature_analytics(app.interface.ip_address, 'interpret')
+        await utils.log_feature_analytics(app.interface.ip_address, 'interpret')
     body = await request.json()
     raw_input = body["data"]
     interpretation_scores, alternative_outputs = app.interface.interpret(

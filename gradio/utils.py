@@ -1,6 +1,7 @@
 """ Handy utility functions."""
 
 from __future__ import annotations
+import aiohttp
 import analytics
 import csv
 from distutils.version import StrictVersion
@@ -11,7 +12,7 @@ import os
 import pkg_resources
 import random
 import requests
-from typing import Callable, Any, Dict, List, Optional, Tuple, TYPE_CHECKING
+from typing import Callable, Any, Dict, TYPE_CHECKING
 import warnings
 
 import gradio
@@ -43,7 +44,7 @@ def version_check():
     except KeyError:
         warnings.warn("package URL does not contain version info.")
     except:
-        warnings.warn("unable to connect with package URL to collect version info.")
+        pass
 
 
 def get_local_ip_address() -> str:
@@ -92,13 +93,16 @@ def error_analytics(type: RuntimeError | NameError) -> None:
         pass  # do not push analytics if no network
 
 
-def log_feature_analytics(ip_address: str, feature: str) -> None:
+async def log_feature_analytics(ip_address: str, feature: str) -> None:
         data={'ip_address': ip_address, 'feature': feature}    
-        try:
-            requests.post(analytics_url + 'gradio-feature-analytics/',
-                          data=data, timeout=3)
-        except (requests.ConnectionError, requests.exceptions.ReadTimeout):
-            pass  # do not push analytics if no network
+        async with aiohttp.ClientSession() as session:
+            try:
+                async with session.post(
+                    analytics_url + 'gradio-feature-analytics/',
+                    data=data) as resp:
+                        await resp
+            except (aiohttp.ClientError):
+                pass  # do not push analytics if no network
 
 
 def colab_check() -> bool:
@@ -113,7 +117,7 @@ def colab_check() -> bool:
         if "google.colab" in str(from_ipynb):
             is_colab = True
     except (ImportError, NameError):
-        error_analytics("NameError")
+        pass
     return is_colab
 
 
