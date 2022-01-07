@@ -122,7 +122,7 @@
             @apply text-lg font-semibold my-2;
         }
         .examples_table_holder {
-            @apply overflow-x-auto mt-4;
+            @apply overflow-x-auto mt-4 inline-block max-w-full;
         }
         .examples_table_holder:not(.gallery) .examples_table {
             @apply table-auto p-2 bg-gray-50 dark:bg-gray-600 rounded max-w-full border-collapse;
@@ -184,10 +184,10 @@
     /* Input Components */
     .input_text {
         textarea {
-            @apply w-full rounded box-border p-2 resize-none;
+            @apply w-full rounded box-border p-2 resize-none focus:outline-none;
         }
         input {
-            @apply w-full rounded box-border p-2;
+            @apply w-full rounded box-border p-2 focus:outline-none;
         }
         .interpretation {
             .interpretation_box {
@@ -197,7 +197,7 @@
     }
     .input_number {
         input {
-            @apply w-full rounded box-border p-2;
+            @apply w-full rounded box-border p-2 focus:outline-none;
         }
         .interpretation {
             @apply flex h-6;
