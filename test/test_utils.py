@@ -34,16 +34,6 @@ class TestUtils(unittest.TestCase):
             version_check()
             self.assertEqual(str(w[-1].message), "unable to parse version details from package URL.")
 
-    @mock.patch("requests.get")
-    def test_should_warn_with_connection_error(self, mock_get):
-
-        mock_get.side_effect = requests.ConnectionError()
-
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            version_check()
-            self.assertEqual(str(w[-1].message), "unable to connect with package URL to collect version info.")
-
     @mock.patch("requests.Response.json")
     def test_should_warn_url_not_having_version(self, mock_json):
 
@@ -72,15 +62,7 @@ class TestUtils(unittest.TestCase):
         mock_post.side_effect = requests.ConnectionError()
         launch_analytics(data={})
         mock_post.assert_called()
-                                 
-    @mock.patch("IPython.get_ipython")
-    @mock.patch("gradio.utils.error_analytics")
-    def test_colab_check_sends_analytics_on_import_fail(self, mock_error_analytics, mock_get_ipython):
-
-        mock_get_ipython.side_effect = ImportError()
-        colab_check()
-        mock_error_analytics.assert_called_with("NameError")
-        
+                                         
     @mock.patch("IPython.get_ipython")
     def test_colab_check_no_ipython(self, mock_get_ipython):
         mock_get_ipython.return_value = None

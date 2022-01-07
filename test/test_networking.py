@@ -109,20 +109,9 @@ class TestInterfaceCustomParameters(unittest.TestCase):
         self.assertTrue("error" in response.json())
         io.close()
 
-    def test_feature_logging(self):
-        with mock.patch('requests.post') as mock_post:
-            io = Interface(
-                lambda x: 1/x, "number", "number", analytics_enabled=True)
-            io.launch(show_error=True, prevent_thread_lock=True)
-            utils.log_feature_analytics("none", "test_feature")
-            mock_post.assert_called_with(
-                utils.analytics_url + 'gradio-feature-analytics/', 
-                data=mock.ANY, timeout=mock.ANY)
-        io.close()
-
 
 class TestFlagging(unittest.TestCase):
-    @mock.patch("requests.post")
+    @mock.patch("aiohttp.ClientSession.post")
     def test_flagging_analytics(self, mock_post):
         callback = flagging.CSVLogger()
         callback.flag = mock.MagicMock()
@@ -134,16 +123,13 @@ class TestFlagging(unittest.TestCase):
         response = client.post(
             '/api/flag/', 
             json={"data": {"input_data": ["test"], "output_data": ["test"]}})
-        mock_post.assert_any_call(
-            utils.analytics_url + 'gradio-feature-analytics/', 
-            data=mock.ANY, 
-            timeout=mock.ANY)
+        mock_post.assert_called()
         callback.flag.assert_called_once()
         self.assertEqual(response.status_code, 200)
         io.close()
 
 
-@mock.patch("requests.post")
+@mock.patch("aiohttp.ClientSession.post")
 class TestInterpretation(unittest.TestCase):
     def test_interpretation(self, mock_post):
         io = Interface(
@@ -154,9 +140,7 @@ class TestInterpretation(unittest.TestCase):
         io.interpret = mock.MagicMock(return_value=(None, None))
         response = client.post(
             '/api/interpret/', json={"data": ["test test"]})
-        mock_post.assert_any_call(
-            utils.analytics_url + 'gradio-feature-analytics/', 
-            data=mock.ANY, timeout=mock.ANY)
+        mock_post.assert_called()
         self.assertEqual(response.status_code, 200)
         io.close()
 
