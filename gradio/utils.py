@@ -98,9 +98,8 @@ async def log_feature_analytics(ip_address: str, feature: str) -> None:
         async with aiohttp.ClientSession() as session:
             try:
                 async with session.post(
-                    analytics_url + 'gradio-feature-analytics/',
-                    data=data) as resp:
-                        await resp
+                    analytics_url + 'gradio-feature-analytics/', data=data):
+                        pass
             except (aiohttp.ClientError):
                 pass  # do not push analytics if no network
 
