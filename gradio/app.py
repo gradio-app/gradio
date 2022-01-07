@@ -129,7 +129,8 @@ def api_docs(request: Request):
     if app.interface.examples is not None:
         sample_inputs = app.interface.examples[0]
     else:
-        sample_inputs = [inp.generate_sample() for inp in app.interface.input_components]
+        sample_inputs = [inp.generate_sample() 
+                         for inp in app.interface.input_components]
     docs = {
         "inputs": input_names,
         "outputs": output_names,
