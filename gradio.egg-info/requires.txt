@@ -1,4 +1,5 @@
 analytics-python
+aiohttp
 fastapi
 ffmpy
 markdown2

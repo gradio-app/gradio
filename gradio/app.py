@@ -112,7 +112,6 @@ def static_resource(path: str):
         return RedirectResponse(GRADIO_STATIC_ROOT + path)
     else:
         static_file = safe_join(STATIC_PATH_LIB, path)
-    print('static_file', static_file)
     if static_file is not None:
         return FileResponse(static_file)
     raise HTTPException(status_code=404, detail="Static file not found")
