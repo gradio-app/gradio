@@ -19,6 +19,9 @@ import warnings
 from gradio import processing_utils, test_data
 from gradio.component import Component
 
+if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
+    from gradio import Interface
+
 
 class InputComponent(Component):
     """
@@ -460,11 +463,14 @@ class Checkbox(InputComponent):
     Demos: sentence_builder, titanic_survival
     """
 
-    def __init__(self, default=False, label=None):
+    def __init__(
+        self, 
+        default: bool = False, 
+        label: Optional[str] = None):
         """
         Parameters:
         label (str): component name in interface.
-        default (bool): default value.
+        default (bool): if True, checked by default.
         """
         self.test_input = True
         self.default = default
@@ -529,7 +535,12 @@ class CheckboxGroup(InputComponent):
     Demos: sentence_builder, titanic_survival, fraud_detector
     """
 
-    def __init__(self, choices, default=[], type="value", label=None):
+    def __init__(
+        self, 
+        choices: List[str], 
+        default: List[str] = [], 
+        type: str = "value", 
+        label: Optional[str] = None):
         '''
         Parameters:
         choices (List[str]): list of options to select from.
@@ -616,12 +627,17 @@ class Radio(InputComponent):
     Demos: sentence_builder, tax_calculator, titanic_survival
     """
 
-    def __init__(self, choices, type="value", default=None, label=None):
+    def __init__(
+        self, 
+        choices: List(str), 
+        type: str = "value", 
+        default: Optional[str] = None, 
+        label: Optional[str] = None):
         '''
         Parameters:
         choices (List[str]): list of options to select from.
         type (str): Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
-        default (str): default value.
+        default (str): the button selected by default. If None, no button is selected by default.
         label (str): component name in interface.
         '''
         self.choices = choices
@@ -683,12 +699,17 @@ class Dropdown(InputComponent):
     Demos: sentence_builder, filter_records, titanic_survival
     """
 
-    def __init__(self, choices, type="value", default=None, label=None):
+    def __init__(
+        self, 
+        choices: List[str], 
+        type: str = "value", 
+        default: Optional[str] = None, 
+        label: Optional[str] = None):
         '''
         Parameters:
         choices (List[str]): list of options to select from.
         type (str): Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
-        default (str): default value.
+        default (str): default value selected in dropdown. If None, no value is selected by default.
         label (str): component name in interface.
         '''
         self.choices = choices
@@ -750,7 +771,16 @@ class Image(InputComponent):
     Demos: image_classifier, image_mod, webcam, digit_classifier
     """
 
-    def __init__(self, shape=None, image_mode='RGB', invert_colors=False, source="upload", tool="editor", type="numpy", label=None, optional=False):
+    def __init__(
+        self, 
+        shape: Tuple[int, int] = None, 
+        image_mode: str = 'RGB', 
+        invert_colors: bool = False, 
+        source: str = "upload", 
+        tool: str = "editor", 
+        type: str = "numpy", 
+        label: str = None, 
+        optional: bool = False):
         '''
         Parameters:
         shape (Tuple[int, int]): (width, height) shape to crop and resize image to; if None, matches input image size.
@@ -954,7 +984,12 @@ class Video(InputComponent):
     Demos: video_flip
     """
 
-    def __init__(self, type=None, source="upload", label=None, optional=False):
+    def __init__(
+        self, 
+        type: Optional[str] = None, 
+        source: str = "upload", 
+        label: Optional[str] = None, 
+        optional: bool = False):
         '''
         Parameters:
         type (str): Type of video format to be returned by component, such as 'avi' or 'mp4'. If set to None, video will keep uploaded format.
@@ -1032,7 +1067,12 @@ class Audio(InputComponent):
     Demos: main_note, reverse_audio, spectogram
     """
 
-    def __init__(self, source="upload", type="numpy", label=None, optional=False):
+    def __init__(
+        self, 
+        source: str = "upload", 
+        type: str = "numpy", 
+        label: str = None, 
+        optional: bool = False):
         """
         Parameters:
         source (str): Source of audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input.
@@ -1205,7 +1245,13 @@ class File(InputComponent):
     Demos: zip_to_json, zip_two_files
     """
 
-    def __init__(self, file_count="single", type="file", label=None, keep_filename=True, optional=False):
+    def __init__(
+        self, 
+        file_count: str = "single", 
+        type: str = "file", 
+        label: Optional[str] = None, 
+        keep_filename: bool = True, 
+        optional: bool = False):
         '''
         Parameters:
         file_count (str): if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
@@ -1287,10 +1333,19 @@ class Dataframe(InputComponent):
     Demos: filter_records, matrix_transpose, tax_calculator
     """
 
-    def __init__(self, headers=None, row_count=3, col_count=3, datatype="str", col_width=None, default=None, type="pandas", label=None):
+    def __init__(
+        self, 
+        headers: Optional[List[str]] = None, 
+        row_count: int = 3, 
+        col_count: Optional[int] = 3, 
+        datatype: str | List[str] = "str", 
+        col_width: int | List[int] = None, 
+        default: Optional[List[List[Any]]] = None, 
+        type: str = "pandas", 
+        label: Optional[str] = None):
         """
         Parameters:
-        headers (List[str]): Header names to dataframe.
+        headers (List[str]): Header names to dataframe. If None, no headers are shown.
         row_count (int): Limit number of rows for input.
         col_count (int): Limit number of columns for input. If equal to 1, return data will be one-dimensional. Ignored if `headers` is provided.
         datatype (Union[str, List[str]]): Datatype of values in sheet. Can be provided per column as a list of strings, or for the entire sheet as a single string. Valid datatypes are "str", "number", "bool", and "date".
@@ -1378,7 +1433,12 @@ class Timeseries(InputComponent):
     Demos: fraud_detector
     """
 
-    def __init__(self, x=None, y=None, label=None, optional=False):
+    def __init__(
+        self, 
+        x: Optional[str] = None, 
+        y: str | List[str] = None, 
+        label: Optional[str] = None, 
+        optional: bool = False):
         """
         Parameters:
         x (str): Column name of x (time) series. None if csv has no headers, in which case first column is x series.
@@ -1442,7 +1502,20 @@ class Timeseries(InputComponent):
 
 
 class State(InputComponent):
-    def __init__(self, label=None, default=None):
+    """
+    Special hidden component that stores state across runs of the interface.
+    """
+    
+    def __init__(
+        self, 
+        label: str = None, 
+        default: Any = None):
+        """
+        Parameters:
+        label (str): component name in interface.
+        default (Any): the initial value of the state.
+        """
+        
         self.default = default 
         super().__init__(label)
         
@@ -1462,7 +1535,7 @@ class State(InputComponent):
         }
     
 
-def get_input_instance(iface):
+def get_input_instance(iface: Interface):
     if isinstance(iface, str):
         shortcut = InputComponent.get_all_shortcut_implementations()[
             iface]
