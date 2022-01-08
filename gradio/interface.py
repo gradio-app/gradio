@@ -164,13 +164,15 @@ class Interface:
             raise ValueError("Only one input component can be State.")
         if sum(isinstance(o, o_State) for o in self.output_components) > 1:
             raise ValueError("Only one output component can be State.")
-        try: 
+        
+        if sum(isinstance(i, i_State) for i in self.input_components) == 1:
+            if len(fn) > 1:
+                raise ValueError(
+                    "State cannot be used with multiple functions.")
             state_param_index = [isinstance(i, i_State) 
                                  for i in self.input_components].index(True)
-            state_init_value = utils.get_default_args(fn[0])[state_param_index]
-        except ValueError:  # No default value for the state parameter
-            state_init_value = None
-        self.state_init_value = state_init_value
+            default_value = utils.get_default_args(fn[0])[state_param_index]
+            self.input_components[state_param_index].set_default(default_value)
 
         if interpretation is None or isinstance(interpretation, list) or callable(interpretation):
             self.interpretation = interpretation
