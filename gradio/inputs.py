@@ -1442,9 +1442,8 @@ class Timeseries(InputComponent):
 
 
 class State(InputComponent):
-    def __init__(self, label=None, default=None):
+    def __init__(self, label=None):
         super().__init__(label)
-        self.default = default
         
     def set_default(self, default):
         self.default = default
