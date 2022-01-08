@@ -171,8 +171,10 @@ class Interface:
                     "State cannot be used with multiple functions.")
             state_param_index = [isinstance(i, i_State) 
                                  for i in self.input_components].index(True)
-            default_value = utils.get_default_args(fn[0])[state_param_index]
-            self.input_components[state_param_index].set_default(default_value)
+            state: i_State = self.input_components[state_param_index]
+            if state.default is None:
+                default = utils.get_default_args(fn[0])[state_param_index]
+                state.set_default(default)
 
         if interpretation is None or isinstance(interpretation, list) or callable(interpretation):
             self.interpretation = interpretation
