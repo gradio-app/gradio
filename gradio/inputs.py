@@ -1442,11 +1442,18 @@ class Timeseries(InputComponent):
 
 
 class State(InputComponent):
-    def __init__(self, label=None):
+    def __init__(self, label=None, default=None):
+        self.default = default 
         super().__init__(label)
         
-    def set_default(self, default):
+    def set_default(self, default):  
         self.default = default
+    
+    def get_template_context(self):
+        return {
+            "default": self.default,
+            **super().get_template_context()
+        }
     
     @classmethod
     def get_shortcut_implementations(cls):

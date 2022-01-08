@@ -196,7 +196,6 @@ def get_config_file(interface: Interface) -> Dict[str, Any]:
         "queue": interface.enable_queue,
         "cached_examples": interface.cache_examples if hasattr(interface, "cache_examples") else False,
         "version": pkg_resources.require("gradio")[0].version,
-        "state_init_value": interface.state_init_value
     }
     try:
         param_names = inspect.getfullargspec(interface.predict[0])[0]
