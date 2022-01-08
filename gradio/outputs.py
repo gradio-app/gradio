@@ -4,19 +4,25 @@ This module defines various classes that can serve as the `output` to an interfa
 automatically added to a registry, which allows them to be easily referenced in other parts of the code.
 """
 
-from gradio.component import Component
-import numpy as np
+from __future__ import annotations
+from ffmpy import FFmpeg
 import json
-from gradio import processing_utils
-import operator
 from numbers import Number
-import warnings
-import tempfile
+import numpy as np
+import operator
 import os
 import pandas as pd
 import PIL
+import tempfile
 from types import ModuleType
-from ffmpy import FFmpeg
+from typing import Callable, Any, List, Optional, Tuple, Dict, TYPE_CHECKING
+import warnings
+
+from gradio import processing_utils
+from gradio.component import Component
+
+if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
+    from gradio import Interface
 
 
 class OutputComponent(Component):
@@ -44,7 +50,10 @@ class Textbox(OutputComponent):
     Demos: hello_world, sentence_builder
     '''
 
-    def __init__(self, type="auto", label=None):
+    def __init__(
+        self, 
+        type: str = "auto", 
+        label: Optional[str] = None):
         '''
         Parameters:
         type (str): Type of value to be passed to component. "str" expects a string, "number" expects a float value, "auto" detects return type.
@@ -91,7 +100,11 @@ class Label(OutputComponent):
 
     CONFIDENCES_KEY = "confidences"
 
-    def __init__(self, num_top_classes=None, type="auto", label=None):
+    def __init__(
+        self, 
+        num_top_classes: Optional[int] = None, 
+        type: str = "auto", 
+        label: Optional[str] = None):
         '''
         Parameters:
         num_top_classes (int): number of most confident classes to show.
@@ -176,7 +189,11 @@ class Image(OutputComponent):
     Demos: image_mod, webcam
     '''
 
-    def __init__(self, type="auto", plot=False, label=None):
+    def __init__(
+        self, 
+        type: str = "auto", 
+        plot: bool = False, 
+        label: Optional[str] = None):
         '''
         Parameters:
         type (str): Type of value to be passed to component. "numpy" expects a numpy array with shape (width, height, 3), "pil" expects a PIL image object, "file" expects a file path to the saved image or a remote URL, "plot" expects a matplotlib.pyplot object, "auto" detects return type.
@@ -251,7 +268,10 @@ class Video(OutputComponent):
     Demos: video_flip
     '''
 
-    def __init__(self, type=None, label=None):
+    def __init__(
+        self, 
+        type: Optional[str] = None, 
+        label: Optional[str] = None):
         '''
         Parameters:
         type (str): Type of video format to be passed to component, such as 'avi' or 'mp4'. Use 'mp4' to ensure browser playability. If set to None, video will keep returned format.
@@ -306,7 +326,9 @@ class KeyValues(OutputComponent):
     Demos: text_analysis
     '''
 
-    def __init__(self, label=None):
+    def __init__(
+        self, 
+        label: Optional[str] = None):
         '''
         Parameters:
         label (str): component name in interface.
@@ -349,7 +371,11 @@ class HighlightedText(OutputComponent):
     Demos: diff_texts, text_analysis
     '''
 
-    def __init__(self, color_map=None, label=None, show_legend=False):
+    def __init__(
+        self, 
+        color_map: Dict[str, str] = None, 
+        label: Optional[str] = None,
+        show_legend: bool = False):
         '''
         Parameters:
         color_map (Dict[str, str]): Map between category and respective colors
@@ -397,7 +423,10 @@ class Audio(OutputComponent):
     Demos: generate_tone, reverse_audio
     '''
 
-    def __init__(self, type="auto", label=None):
+    def __init__(
+        self, 
+        type: str = "auto", 
+        label: Optional[str] = None):
         '''
         Parameters:
         type (str): Type of value to be passed to component. "numpy" returns a 2-set tuple with an integer sample_rate and the data numpy.array of shape (samples, 2), "file" returns a temporary file path to the saved wav audio file, "auto" detects return type.
@@ -453,7 +482,9 @@ class JSON(OutputComponent):
     Demos: zip_to_json
     '''
 
-    def __init__(self, label=None):
+    def __init__(
+        self, 
+        label: Optional[str] = None):
         '''
         Parameters:
         label (str): component name in interface.
@@ -492,7 +523,9 @@ class HTML(OutputComponent):
     Demos: text_analysis
     '''
 
-    def __init__(self, label=None):
+    def __init__(
+        self, 
+        label: Optional[str] = None):
         '''
         Parameters:
         label (str): component name in interface.
@@ -522,7 +555,9 @@ class File(OutputComponent):
     Demos: zip_two_files
     '''
 
-    def __init__(self, label=None):
+    def __init__(
+        self, 
+        label: Optional[str] = None):
         '''
         Parameters:
         label (str): component name in interface.
@@ -562,7 +597,14 @@ class Dataframe(OutputComponent):
     Demos: filter_records, matrix_transpose, fraud_detector
     """
 
-    def __init__(self, headers=None, max_rows=20, max_cols=None, overflow_row_behaviour="paginate", type="auto", label=None):
+    def __init__(
+        self, 
+        headers: Optional[List[str]] = None, 
+        max_rows: Optional[int] = 20, 
+        max_cols: Optional[int] = None, 
+        overflow_row_behaviour: str = "paginate", 
+        type: str = "auto", 
+        label: Optional[str] = None):
         '''
         Parameters:
         headers (List[str]): Header names to dataframe. Only applicable if type is "numpy" or "array".
@@ -639,7 +681,10 @@ class Carousel(OutputComponent):
     Demos: disease_report
     """
 
-    def __init__(self, components, label=None):
+    def __init__(
+        self, 
+        components: OutputComponent | List[OutputComponent], 
+        label: Optional[str] = None):
         '''
         Parameters:
         components (Union[List[OutputComponent], OutputComponent]): Classes of component(s) that will be scrolled through.
@@ -701,7 +746,11 @@ class Timeseries(OutputComponent):
     Demos: fraud_detector
     """
 
-    def __init__(self, x=None, y=None, label=None):
+    def __init__(
+        self, 
+        x: str = None, 
+        y: str | List[str] = None, 
+        label: Optional[str] = None):
         """
         Parameters:
         x (str): Column name of x (time) series. None if csv has no headers, in which case first column is x series.
@@ -751,7 +800,16 @@ class Timeseries(OutputComponent):
 
 
 class State(OutputComponent):
-    def __init__(self, label=None):
+    """
+    Special hidden component that stores state across runs of the interface.
+    """
+    def __init__(
+        self, 
+        label: Optional[str] = None):
+        """
+        Parameters:
+        label (str): component name in interface (not used).
+        """        
         super().__init__(label)
 
     @classmethod
@@ -761,7 +819,7 @@ class State(OutputComponent):
         }
 
 
-def get_output_instance(iface):
+def get_output_instance(iface: Interface):
     if isinstance(iface, str):
         shortcut = OutputComponent.get_all_shortcut_implementations()[iface]
         return shortcut[0](**shortcut[1])
