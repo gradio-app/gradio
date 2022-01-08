@@ -1512,7 +1512,7 @@ class State(InputComponent):
         default: Any = None):
         """
         Parameters:
-        label (str): component name in interface.
+        label (str): component name in interface (not used).
         default (Any): the initial value of the state.
         """
         
