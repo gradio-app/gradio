@@ -1,5 +1,6 @@
 """Contains tests for networking.py and app.py"""
 
+import aiohttp
 from fastapi.testclient import TestClient
 import os
 import unittest
@@ -111,10 +112,10 @@ class TestInterfaceCustomParameters(unittest.TestCase):
 
 
 class TestFlagging(unittest.TestCase):
-    @mock.patch("aiohttp.ClientSession.post")
-    def test_flagging_analytics(self, mock_post):
+    def test_flagging_analytics(self):
         callback = flagging.CSVLogger()
         callback.flag = mock.MagicMock()
+        aiohttp.ClientSession.post = mock.MagicMock()
         io = Interface(
             lambda x: x, "text", "text", 
             analytics_enabled=True, flagging_callback=callback)
@@ -123,7 +124,7 @@ class TestFlagging(unittest.TestCase):
         response = client.post(
             '/api/flag/', 
             json={"data": {"input_data": ["test"], "output_data": ["test"]}})
-        mock_post.assert_called()
+        aiohttp.ClientSession.post.assert_called()
         callback.flag.assert_called_once()
         self.assertEqual(response.status_code, 200)
         io.close()
