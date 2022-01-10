@@ -36,7 +36,7 @@
           collapsed = false;
         }}
       >
-        &#123;+{Object.keys(value).length} children&#125;
+        &#123;+{Object.keys(value).length} items&#125;
       </button>
     {:else}
       &#123;
