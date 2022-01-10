@@ -7,6 +7,7 @@ import InputVideo from "./input/Video.svelte";
 import InputDropdown from "./input/Dropdown.svelte";
 
 import OutputTextbox from "./output/Textbox.svelte";
+import OutputCarousel from "./output/Carousel.svelte";
 import OutputImage from "./output/Image.svelte";
 import OutputVideo from "./output/Video.svelte";
 import OutputAudio from "./output/Audio.svelte";
@@ -35,7 +36,7 @@ export const inputComponentMap = {
 
 export const outputComponentMap = {
     "audio": OutputAudio,
-    "carousel": Dummy,
+    "carousel": OutputCarousel,
     "dataframe": OutputDataframe,
     "file": OutputFile,
     "highlightedtext": Dummy,
