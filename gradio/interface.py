@@ -117,6 +117,8 @@ class Interface:
         show_tips=None, 
         flagging_dir: str = "flagged", 
         analytics_enabled: Optional[bool] = None, 
+        server_name=None,
+        server_port=None,
         enable_queue=None, 
         api_mode=None,
         flagging_callback: FlaggingCallback = CSVLogger()):
@@ -147,6 +149,8 @@ class Interface:
         show_tips (bool): DEPRECATED. if True, will occasionally show tips about new Gradio features
         enable_queue (bool): DEPRECATED. if True, inference requests will be served through a queue instead of with parallel threads. Required for longer inference times (> 1min) to prevent timeout.  
         api_mode (bool): DEPRECATED. If True, will skip preprocessing steps when the Interface is called() as a function (should remain False unless the Interface is loaded from an external repo)
+        server_name (str): DEPRECATED. Name of the server to use for serving the interface - pass in launch() instead.
+        server_port (int): DEPRECATED. Port of the server to use for serving the interface - pass in launch() instead.
         """
         if not isinstance(fn, list):
             fn = [fn]
@@ -203,6 +207,11 @@ class Interface:
         if capture_session is not None:
             warnings.warn("The `capture_session` parameter in the `Interface`"
                           " is deprecated and has no effect.")
+            
+        if server_name is not None or server_port is not None:
+            raise DeprecationWarning(
+                "The `server_name` and `server_port` parameters in `Interface`"
+                "are deprecated. Please pass into launch() instead.")
 
         self.session = None
         self.title = title
