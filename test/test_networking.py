@@ -116,6 +116,8 @@ class TestFlagging(unittest.TestCase):
         callback = flagging.CSVLogger()
         callback.flag = mock.MagicMock()
         aiohttp.ClientSession.post = mock.MagicMock()
+        aiohttp.ClientSession.post.__aenter__ = None
+        aiohttp.ClientSession.post.__aexit__ = None
         io = Interface(
             lambda x: x, "text", "text", 
             analytics_enabled=True, flagging_callback=callback)
@@ -130,18 +132,20 @@ class TestFlagging(unittest.TestCase):
         io.close()
 
 
-@mock.patch("aiohttp.ClientSession.post")
 class TestInterpretation(unittest.TestCase):
-    def test_interpretation(self, mock_post):
+    def test_interpretation(self):
         io = Interface(
             lambda x: len(x), "text", "label", 
             interpretation="default", analytics_enabled=True)
         app, _, _ = io.launch(prevent_thread_lock=True)
         client = TestClient(app)
+        aiohttp.ClientSession.post = mock.MagicMock()
+        aiohttp.ClientSession.post.__aenter__ = None
+        aiohttp.ClientSession.post.__aexit__ = None        
         io.interpret = mock.MagicMock(return_value=(None, None))
         response = client.post(
             '/api/interpret/', json={"data": ["test test"]})
-        mock_post.assert_called()
+        aiohttp.ClientSession.post.assert_called()
         self.assertEqual(response.status_code, 200)
         io.close()
 
