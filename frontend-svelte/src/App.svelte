@@ -19,10 +19,10 @@
     class="gradio-page container mx-auto flex flex-col box-border flex-grow text-gray-700 dark:text-gray-50"
   >
     <div class="content pt-4 px-4 mb-4">
-      {#if title !== undefined}
+      {#if title}
         <h1 class="title text-center p-4 text-4xl">{title}</h1>
       {/if}
-      {#if description !== undefined}
+      {#if description}
         <p class="description pb-4">{description}</p>
       {/if}
       <Interface {input_components} {output_components} {theme} {fn} />
