@@ -18,7 +18,7 @@
     {/if}
   {:else}
     <div
-      class="video-preview w-full h-60 flex justify-center items-center bg-gray-200 dark:bg-gray-600 relative"
+      class="video-preview w-full h-60 object-contain flex justify-center items-center bg-gray-200 dark:bg-gray-600 relative"
     >
       {#if playable(value.name)}
         <video
