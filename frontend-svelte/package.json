@@ -9,6 +9,7 @@
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^17.0.0",
+    "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^11.0.0",
     "postcss": "^8.4.5",
     "postcss-nested": "^5.0.6",
@@ -17,11 +18,13 @@
     "rollup-plugin-livereload": "^2.0.0",
     "rollup-plugin-svelte": "^7.0.0",
     "rollup-plugin-terser": "^7.0.0",
+    "mime-types": "^2.1.34",
     "svelte": "^3.0.0"
   },
   "dependencies": {
     "@rollup/plugin-replace": "^3.0.1",
     "autoprefixer": "^9.8.8",
+    "mime-types": "^2.1.34",
     "node-sass": "^7.0.1",
     "sirv-cli": "^1.0.0",
     "svelte-preprocess": "^4.10.1",
