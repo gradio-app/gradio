@@ -5,6 +5,7 @@
 <input
   type="number"
   class="input-number w-full rounded box-border p-2 focus:outline-none appearance-none"
+  value={value}
   on:change={e => setValue(parseFloat(e.target.value))}
   {theme}
 />
