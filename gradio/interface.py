@@ -603,7 +603,8 @@ class Interface:
                     print(strings.en["SHARE_LINK_MESSAGE"])
             except RuntimeError:
                 if self.analytics_enabled:
-                    utils.error_analytics("RuntimeError")
+                    utils.error_analytics(self.ip_address, 
+                                          "Not able to set up tunnel")
                 share_url = None
         else:
             print(strings.en["PUBLIC_SHARE_TRUE"])
