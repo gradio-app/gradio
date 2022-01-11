@@ -2,7 +2,6 @@ import ipaddress
 import os
 import pkg_resources
 import requests
-import tempfile
 import unittest
 import unittest.mock as mock
 import warnings
@@ -49,12 +48,12 @@ class TestUtils(unittest.TestCase):
     def test_error_analytics_doesnt_crash_on_connection_error(self, mock_post):
 
         mock_post.side_effect = requests.ConnectionError()
-        error_analytics("placeholder")
+        error_analytics("placeholder", "placeholder")
         mock_post.assert_called()
      
     @mock.patch("requests.post")   
     def test_error_analytics_successful(self, mock_post):
-        error_analytics("placeholder")
+        error_analytics("placeholder", "placeholder")
         mock_post.assert_called()
 
     @mock.patch("requests.post")

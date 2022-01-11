@@ -80,12 +80,12 @@ def integration_analytics(data: Dict[str, Any]) -> None:
         pass  # do not push analytics if no network
 
 
-def error_analytics(type: RuntimeError | NameError) -> None:
+def error_analytics(ip_address: str, message: str) -> None:
     """
     Send error analytics if there is network
     :param type: RuntimeError or NameError
     """
-    data = {'error': '{} in launch method'.format(type)}
+    data = {'ip_address': ip_address, 'error': message}
     try:
         requests.post(analytics_url + 'gradio-error-analytics/',
                       data=data, timeout=3)
