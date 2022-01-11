@@ -118,7 +118,7 @@ iface = gr.Interface(
         gr.outputs.Audio(label="Audio"),
         gr.outputs.Image(label="Image"),
         gr.outputs.Video(label="Video"),
-        gr.outputs.HighlightedText(label="HighlightedText"),
+        gr.outputs.HighlightedText(label="HighlightedText", color_map={"punc": "pink", "test 0": "blue"}),
         gr.outputs.HighlightedText(label="HighlightedText", show_legend=True),
         gr.outputs.JSON(label="JSON"),
         gr.outputs.HTML(label="HTML"),
