@@ -7,6 +7,10 @@ export const playable = (filename) => {
   return true; // FIX BEFORE COMMIT - mime import causing issues
 };
 
+export const deepCopy = (obj) => {
+  return JSON.parse(JSON.stringify(obj));
+}
+
 export function randInt(min, max) {
   return Math.floor(Math.random() * (max - min) + min);
 }

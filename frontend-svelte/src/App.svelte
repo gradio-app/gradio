@@ -4,6 +4,7 @@
   export let title;
   export let description;
   export let theme;
+  export let dark;
   export let input_components;
   export let output_components;
   export let fn;
@@ -14,6 +15,7 @@
     ? 'h-full'
     : 'h-auto'}"
   {theme}
+  class:dark
 >
   <div
     class="gradio-page container mx-auto flex flex-col box-border flex-grow text-gray-700 dark:text-gray-50"
