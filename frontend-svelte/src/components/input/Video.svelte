@@ -1,10 +1,10 @@
 <script>
   import Upload from "../utils/Upload.svelte";
+  import ModifyUpload from "../utils/ModifyUpload.svelte";
   import { prettyBytes, playable } from "../utils/helpers";
 
   export let value, setValue, theme;
   export let source;
-
 </script>
 
 <div class="input-video">
@@ -20,7 +20,9 @@
     <div
       class="video-preview w-full h-60 object-contain flex justify-center items-center bg-gray-200 dark:bg-gray-600 relative"
     >
+      <ModifyUpload clear={() => setValue(null)} {theme} />
       {#if playable(value.name)}
+        <!-- svelte-ignore a11y-media-has-caption -->
         <video
           class="video_preview"
           controls
@@ -29,13 +31,14 @@
           src={value.data}
         />
       {:else}
-      <div class="file-preview h-60 w-full flex flex-col justify-center items-center relative">
-        <div class="file-name text-4xl p-6 break-all">{value.name}</div>
-        <div class="file-size text-2xl p-2">
-          {prettyBytes(value.size)}
+        <div
+          class="file-preview h-60 w-full flex flex-col justify-center items-center relative"
+        >
+          <div class="file-name text-4xl p-6 break-all">{value.name}</div>
+          <div class="file-size text-2xl p-2">
+            {prettyBytes(value.size)}
+          </div>
         </div>
-      </div>
-  
       {/if}
     </div>
   {/if}

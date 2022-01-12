@@ -7,7 +7,7 @@
   <input
     type="range"
     class="range w-full appearance-none transition rounded h-4"
-    on:input={(e) => setValue(e.target.value)}
+    on:input={(e) => setValue(parseFloat(e.target.value))}
     {value}
     min={minimum}
     max={maximum}

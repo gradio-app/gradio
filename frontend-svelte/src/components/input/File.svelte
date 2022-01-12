@@ -1,5 +1,6 @@
 <script>
   import Upload from "../utils/Upload.svelte";
+  import ModifyUpload from "../utils/ModifyUpload.svelte";
   import { prettyBytes } from "../utils/helpers";
 
   export let value, setValue, theme;
@@ -14,6 +15,7 @@
     </Upload>
   {:else}
     <div class="file-preview w-full flex flex-col justify-center items-center relative">
+      <ModifyUpload clear={() => setValue(null)} {theme} />
       <div class="file-name text-4xl p-6 break-all">{value.name}</div>
       <div class="file-size text-2xl p-2">
         {prettyBytes(value.size)}

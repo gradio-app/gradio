@@ -1,5 +1,6 @@
 <script>
   import Upload from "../utils/Upload.svelte";
+  import ModifyUpload from "../utils/ModifyUpload.svelte";
 
   export let value, setValue, theme;
   export let source;
@@ -25,7 +26,8 @@
       </Upload>
     {/if}
   {:else}
-    <audio controls>
+    <ModifyUpload clear={() => setValue(null)} absolute={false} {theme} />
+    <audio class="w-full" controls>
       <source src={value.data} />
     </audio>
   {/if}

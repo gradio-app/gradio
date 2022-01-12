@@ -3,16 +3,20 @@
     inputComponentMap,
     outputComponentMap,
   } from "./components/directory.js";
+  import { deepCopy } from "./components/utils/helpers.js";
 
   export let input_components;
   export let output_components;
   export let theme;
   export let fn;
 
-  let input_values = input_components.map((component) =>
+  const default_inputs = input_components.map((component) =>
     "default" in component ? component.default : null
   );
-  let output_values = new Array(output_components.length).fill(null);
+  const default_outputs = new Array(output_components.length).fill(null);
+
+  let input_values = deepCopy(default_inputs);
+  let output_values = deepCopy(default_outputs);
 
   const setValues = (index, value) => {
     input_values[index] = value;
@@ -22,7 +26,10 @@
       output_values = output["data"];
     });
   };
-  const clear = () => {};
+  const clear = () => {
+    input_values = deepCopy(default_inputs);
+    output_values = deepCopy(default_outputs);
+  };
 </script>
 
 <div class="gradio-interface" {theme}>
@@ -70,11 +77,11 @@
             <div class="component" key={i}>
               <div class="panel-header mb-1.5">{output_component.label}</div>
               <svelte:component
-              this={outputComponentMap[output_component.name]}
-              {...output_component}
-              {theme}
-              value={output_values[i]}
-            />
+                this={outputComponentMap[output_component.name]}
+                {...output_component}
+                {theme}
+                value={output_values[i]}
+              />
             </div>
           {/if}
         {/each}
@@ -109,5 +116,29 @@
     .panel-button.submit {
       @apply bg-yellow-500 hover:bg-yellow-400 dark:bg-red-700 dark:hover:bg-red-600 text-white;
     }
+    .examples {
+      .examples-table-holder:not(.gallery) {
+        @apply shadow;
+        .examples-table {
+          @apply rounded dark:bg-gray-700;
+          thead {
+            @apply border-gray-300 dark:border-gray-600;
+          }
+          tbody tr:hover {
+            @apply bg-yellow-500 dark:bg-red-700 text-white;
+          }
+        }
+      }
+      .examples-table-holder.gallery .examples-table {
+        tbody td {
+          @apply shadow;
+        }
+        tbody td:hover {
+          @apply bg-yellow-500 text-white;
+        }
+      }
+    }
+  }
+  .gradio-interface[theme="huggingface"] {
   }
 </style>

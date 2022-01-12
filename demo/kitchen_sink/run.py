@@ -75,6 +75,7 @@ iface = gr.Interface(
         ["the quick brown fox", "jumps over the lazy dog", 10, 12, 4, True, ["foo", "baz"], "baz", "bar", "files/cheetah1.jpg", "files/cheetah1.jpg", "files/cheetah1.jpg", "files/cheetah1.jpg", "files/world.mp4", "files/cantina.wav", "files/cantina.wav","files/titanic.csv", [[1,2,3],[3,4,5]], "files/time.csv"]
     ] * 3,
     title="Kitchen Sink",
+    theme="default",
     description="Try out all the components!",
     article="Learn more about [Gradio](http://gradio.app)"
 )
