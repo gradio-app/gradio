@@ -3,7 +3,17 @@ import { fn } from "./api";
 
 window.launchGradio = (config, element_query) => {
   let target = document.querySelector(element_query);
-  if (config.dark_mode) {
+  let url = new URL(window.location.toString());
+  if (config.theme !== null && config.theme.startsWith("dark")) {
+    target.classList.add("dark");
+    config.dark = true;
+    if (config.theme === "dark") {
+      config.theme = "default";
+    } else {
+      config.theme = config.theme.substring(5);
+    }
+  } else if (url.searchParams.get("__dark-theme") === "true") {
+    config.dark = true;
     target.classList.add("dark");
   }
   config.fn = fn.bind(null, "BACKEND_URL" + "api/");
