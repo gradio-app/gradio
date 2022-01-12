@@ -211,7 +211,7 @@ def get_spaces_interface(model_name, api_key, alias):
     headers = {'Content-Type': 'application/json'}
 
     r = requests.get(iframe_url)
-    result = re.search('window.config =(.*?);\n', r.text) # some basic regex to extract the config
+    result = re.search('window.gradio_config = (.*?);</script>', r.text) # some basic regex to extract the config
     config = json.loads(result.group(1))
     interface_info = interface_params_from_config(config)
     
