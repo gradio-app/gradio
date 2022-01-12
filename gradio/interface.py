@@ -206,8 +206,16 @@ class Interface:
 
         if capture_session is not None:
             warnings.warn("The `capture_session` parameter in the `Interface`"
-                          " is deprecated and has no effect.")
-            
+                          " is deprecated and may be removed in the future.")
+            try:
+                import tensorflow as tf
+                self.session = tf.get_default_graph(), \
+                    tf.keras.backend.get_session()
+            except (ImportError, AttributeError):
+                # If they are using TF >= 2.0 or don't have TF,
+                # just ignore this parameter.
+                pass
+
         if server_name is not None or server_port is not None:
             raise DeprecationWarning(
                 "The `server_name` and `server_port` parameters in `Interface`"
@@ -400,7 +408,12 @@ class Interface:
 
         for predict_fn in self.predict:
             start = time.time()
-            prediction = predict_fn(*processed_input)
+            if self.capture_session and self.session is not None:  # For TF 1.x
+                graph, sess = self.session
+                with graph.as_default(), sess.as_default():
+                    prediction = predict_fn(*processed_input)
+            else:
+                prediction = predict_fn(*processed_input)
             duration = time.time() - start
 
             if len(self.output_components) == len(self.predict):
