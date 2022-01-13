@@ -178,7 +178,7 @@ class Interface:
             state: i_State = self.input_components[state_param_index]
             if state.default is None:
                 default = utils.get_default_args(fn[0])[state_param_index]
-                state.set_default(default)
+                state.default = default
 
         if interpretation is None or isinstance(interpretation, list) or callable(interpretation):
             self.interpretation = interpretation

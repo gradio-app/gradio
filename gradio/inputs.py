@@ -1518,10 +1518,7 @@ class State(InputComponent):
         
         self.default = default 
         super().__init__(label)
-        
-    def set_default(self, default):  
-        self.default = default
-    
+
     def get_template_context(self):
         return {
             "default": self.default,
