@@ -48,7 +48,7 @@ export default {
 				}
 			}),
 			BUILD_MODE: production ? "prod" : "dev",
-			BACKEND_URL: production ? "" : "http://localhost:7860/"
+			BACKEND_URL: production ? "" : "http://127.0.0.1:7860/"
 		}),
 		svelte({
 			preprocess: sveltePreprocess({

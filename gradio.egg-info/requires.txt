@@ -5,9 +5,12 @@ ffmpy
 markdown2
 matplotlib
 numpy
+pydub
+matplotlib
 pandas
-paramiko
 pillow
+ffmpy
+markdown2
 pycryptodome
 python-multipart
 pydub
