@@ -42,7 +42,7 @@
 </script>
 
 <div
-  class="upload h-60 border-gray-300 text-gray-400 dark:text-gray-500 dark:border-gray-500 border-8 border-dashed w-full flex justify-center items-center text-3xl text-center cursor-pointer leading-10"
+  class="upload h-80 border-gray-300 text-gray-400 dark:text-gray-500 dark:border-gray-500 border-8 border-dashed w-full flex justify-center items-center text-3xl text-center cursor-pointer leading-10"
   {theme}
   on:drag|preventDefault|stopPropagation
   on:dragstart|preventDefault|stopPropagation
