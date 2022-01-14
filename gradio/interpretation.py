@@ -115,7 +115,12 @@ def run_interpret(interface, raw_input):
         processed_input = [input_component.preprocess(raw_input[i])
                             for i, input_component in enumerate(interface.input_components)]
         interpreter = interface.interpretation
-        interpretation = interpreter(*processed_input)
+        if interface.capture_session and interface.session is not None:
+            graph, sess = interface.session
+            with graph.as_default(), sess.as_default():
+                interpretation = interpreter(*processed_input)
+        else:        
+            interpretation = interpreter(*processed_input)
         if len(raw_input) == 1:
             interpretation = [interpretation]
         return interpretation, []

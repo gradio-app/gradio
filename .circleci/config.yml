@@ -5,7 +5,7 @@ orbs:
 jobs:
   build:
     docker:
-      - image: circleci/python:3.7.2-browsers
+      - image: circleci/python:3.9.2-browsers
     steps:
       - checkout
       - run: mkdir test-reports
