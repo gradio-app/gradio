@@ -1,11 +1,10 @@
 """Implements a FastAPI server to run the gradio interface."""
 
 from __future__ import annotations
-from fastapi import FastAPI, Form, Request, Depends, HTTPException, status
+from fastapi import FastAPI, Request, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
 from fastapi.security import OAuth2PasswordRequestForm
-from fastapi.security.utils import get_authorization_scheme_param
 from fastapi.templating import Jinja2Templates
 import inspect
 import os
@@ -14,7 +13,7 @@ import pkg_resources
 import secrets
 from starlette.responses import RedirectResponse
 import traceback
-from typing import List, Optional, Type, TYPE_CHECKING
+from typing import List, Optional, Type
 import urllib
 import uvicorn
 
