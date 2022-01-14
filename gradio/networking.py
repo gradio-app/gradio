@@ -11,7 +11,7 @@ import requests
 import socket
 import threading
 import time
-from typing import Callable, List, Optional, Tuple, TYPE_CHECKING
+from typing import Optional, Tuple, TYPE_CHECKING
 import urllib.parse
 import urllib.request
 import uvicorn
