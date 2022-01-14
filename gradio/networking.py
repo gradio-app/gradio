@@ -142,7 +142,8 @@ def start_server(
         if auth is not None or app.interface.encrypt:
             raise ValueError("Cannot queue with encryption or authentication enabled.")
         queueing.init()
-        app.queue_thread = threading.Thread(target=queue_thread, args=(path_to_local_server,))
+        app.queue_thread = threading.Thread(
+            target=queue_thread, args=(path_to_local_server,))
         app.queue_thread.start()
     if interface.save_to is not None:  # Used for selenium tests
         interface.save_to["port"] = port
