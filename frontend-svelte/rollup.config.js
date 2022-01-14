@@ -40,13 +40,18 @@ export default {
 		file: 'public/build/bundle.js'
 	},
 	plugins: [
+		resolve({
+			browser: true,
+			dedupe: ['svelte']
+		}),
+		commonjs(),
 		json(),
 		replace({
-			process: JSON.stringify({
-				env: {
-					isProd: production,
-				}
-			}),
+			// process: JSON.stringify({
+			// 	env: {
+			// 		isProd: production,
+			// 	}
+			// }),
 			BUILD_MODE: production ? "prod" : "dev",
 			BACKEND_URL: production ? "" : "http://127.0.0.1:7860/"
 		}),
@@ -77,11 +82,7 @@ export default {
 		// some cases you'll need additional configuration -
 		// consult the documentation for details:
 		// https://github.com/rollup/plugins/tree/master/packages/commonjs
-		resolve({
-			browser: true,
-			dedupe: ['svelte']
-		}),
-		commonjs(),
+		
 
 		// In dev mode, call `npm run start` once
 		// the bundle has been generated
