@@ -69,18 +69,14 @@ class TestInterface(unittest.TestCase):
             self.assertEqual(output, 'Test launch: prediction_fn()... PASSED')
             
     @mock.patch("time.sleep")
-    def test_run_until_interupted(self, mock_sleep):
+    def test_block_thread(self, mock_sleep):
         with self.assertRaises(KeyboardInterrupt):
-            with captured_output() as (out, err):
+            with captured_output() as (out, _):
                 mock_sleep.side_effect = KeyboardInterrupt()
                 interface = Interface(lambda x: x, "textbox", "label")
-                interface.enable_queue = False
-                thread = threading.Thread()
-                thread.keep_running = mock.MagicMock()
-                interface.run_until_interrupted(thread, None)
+                interface.launch(prevent_thread_lock=False)
                 output = out.getvalue().strip()
                 self.assertEqual(output, 'Keyboard interruption in main thread... closing server.')
-
 
     @mock.patch('gradio.utils.colab_check')
     def test_launch_colab_share(self, mock_colab_check):

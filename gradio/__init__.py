@@ -1,5 +1,5 @@
 from gradio.interface import *  # This makes it possible to import `Interface` as `gradio.Interface`.
-from gradio.networking import get_state, set_state
+from gradio.app import get_state, set_state
 from gradio.mix import *
 from gradio.flagging import *
 import pkg_resources

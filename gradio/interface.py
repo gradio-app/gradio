@@ -1,6 +1,6 @@
 """
-This is the core file in the `gradio` package, and defines the Interface class, including methods for constructing the
-interface using the input and output types.
+This is the core file in the `gradio` package, and defines the Interface class, 
+including various methods for constructing an interface and then launching it.
 """
 
 from __future__ import annotations
@@ -11,18 +11,17 @@ import markdown2  # type: ignore
 import os
 import random
 import sys
-import threading
 import time
 from typing import Callable, Any, List, Optional, Tuple, TYPE_CHECKING
 import warnings
 import webbrowser
 import weakref
 
-from gradio import encryptor, interpretation, networking, queue, strings, utils  # type: ignore
+from gradio import encryptor, interpretation, networking, queueing, strings, utils  # type: ignore
 from gradio.external import load_interface, load_from_pipeline  # type: ignore
 from gradio.flagging import FlaggingCallback, CSVLogger  # type: ignore
-from gradio.inputs import get_input_instance, InputComponent  # type: ignore
-from gradio.outputs import get_output_instance, OutputComponent  # type: ignore
+from gradio.inputs import get_input_instance, InputComponent, State as i_State  # type: ignore
+from gradio.outputs import get_output_instance, OutputComponent, State as o_State  # type: ignore
 from gradio.process_examples import cache_interface_examples
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
@@ -92,7 +91,7 @@ class Interface:
         fn: Callable | List[Callable], 
         inputs: str | InputComponent | List[str | InputComponent] = None, 
         outputs: str | OutputComponent | List[str | OutputComponent] = None, 
-        verbose: bool = None, 
+        verbose: bool = False, 
         examples: Optional[List[Any] | List[List[Any]] | str] = None,
         examples_per_page: int = 10, 
         live: bool = False, 
@@ -118,6 +117,8 @@ class Interface:
         show_tips=None, 
         flagging_dir: str = "flagged", 
         analytics_enabled: Optional[bool] = None, 
+        server_name=None,
+        server_port=None,
         enable_queue=None, 
         api_mode=None,
         flagging_callback: FlaggingCallback = CSVLogger()):
@@ -148,6 +149,8 @@ class Interface:
         show_tips (bool): DEPRECATED. if True, will occasionally show tips about new Gradio features
         enable_queue (bool): DEPRECATED. if True, inference requests will be served through a queue instead of with parallel threads. Required for longer inference times (> 1min) to prevent timeout.  
         api_mode (bool): DEPRECATED. If True, will skip preprocessing steps when the Interface is called() as a function (should remain False unless the Interface is loaded from an external repo)
+        server_name (str): DEPRECATED. Name of the server to use for serving the interface - pass in launch() instead.
+        server_port (int): DEPRECATED. Port of the server to use for serving the interface - pass in launch() instead.
         """
         if not isinstance(fn, list):
             fn = [fn]
@@ -160,6 +163,22 @@ class Interface:
         self.output_components = [get_output_instance(o) for o in outputs]
         if repeat_outputs_per_model:
             self.output_components *= len(fn)
+            
+        if sum(isinstance(i, i_State) for i in self.input_components) > 1:
+            raise ValueError("Only one input component can be State.")
+        if sum(isinstance(o, o_State) for o in self.output_components) > 1:
+            raise ValueError("Only one output component can be State.")
+        
+        if sum(isinstance(i, i_State) for i in self.input_components) == 1:
+            if len(fn) > 1:
+                raise ValueError(
+                    "State cannot be used with multiple functions.")
+            state_param_index = [isinstance(i, i_State) 
+                                 for i in self.input_components].index(True)
+            state: i_State = self.input_components[state_param_index]
+            if state.default is None:
+                default = utils.get_default_args(fn[0])[state_param_index]
+                state.default = default
 
         if interpretation is None or isinstance(interpretation, list) or callable(interpretation):
             self.interpretation = interpretation
@@ -173,8 +192,9 @@ class Interface:
         self.function_names = [func.__name__ for func in fn]
         self.__name__ = ", ".join(self.function_names)
 
-        if verbose is not None:
-            warnings.warn("The `verbose` parameter in the `Interface` is deprecated and has no effect.")
+        if verbose:
+            warnings.warn("The `verbose` parameter in the `Interface`"
+                          "is deprecated and has no effect.")
 
         self.status = "OFF"
         self.live = live
@@ -185,7 +205,21 @@ class Interface:
         self.capture_session = capture_session
 
         if capture_session is not None:
-            warnings.warn("The `capture_session` parameter in the `Interface` is deprecated and has no effect.")
+            warnings.warn("The `capture_session` parameter in the `Interface`"
+                          " is deprecated and may be removed in the future.")
+            try:
+                import tensorflow as tf
+                self.session = tf.get_default_graph(), \
+                    tf.keras.backend.get_session()
+            except (ImportError, AttributeError):
+                # If they are using TF >= 2.0 or don't have TF,
+                # just ignore this parameter.
+                pass
+
+        if server_name is not None or server_port is not None:
+            raise DeprecationWarning(
+                "The `server_name` and `server_port` parameters in `Interface`"
+                "are deprecated. Please pass into launch() instead.")
 
         self.session = None
         self.title = title
@@ -197,8 +231,8 @@ class Interface:
 
         self.article = article
         self.thumbnail = thumbnail
+        
         theme = theme if theme is not None else os.getenv("GRADIO_THEME", "default")
-
         DEPRECATED_THEME_MAP = {"darkdefault": "default", "darkhuggingface": "dark-huggingface", "darkpeach": "dark-peach", "darkgrass": "dark-grass"}
         VALID_THEME_SET = ("default", "huggingface", "seafoam", "grass", "peach", "dark", "dark-huggingface", "dark-seafoam", "dark-grass", "dark-peach")
         if theme in DEPRECATED_THEME_MAP:
@@ -207,7 +241,7 @@ class Interface:
         elif theme not in VALID_THEME_SET:
             raise ValueError(f"Invalid theme name, theme must be one of: {', '.join(VALID_THEME_SET)}")
         self.theme = theme
-        
+
         self.height = height
         self.width = width
         if self.height is not None or self.width is not None:
@@ -219,13 +253,16 @@ class Interface:
                 self.css = css_file.read()
         else:
             self.css = css
-        if examples is None or isinstance(examples, str) or (isinstance(examples, list) and (len(examples) == 0 or isinstance(examples[0], list))):
+        if examples is None or isinstance(examples, str) or (isinstance(
+            examples, list) and (len(examples) == 0 or isinstance(
+                examples[0], list))):
             self.examples = examples
         elif isinstance(examples, list) and len(self.input_components) == 1:  # If there is only one input component, examples can be provided as a regular list instead of a list of lists 
             self.examples = [[e] for e in examples]
         else:
             raise ValueError(
-                "Examples argument must either be a directory or a nested list, where each sublist represents a set of inputs.")
+                "Examples argument must either be a directory or a nested "
+                "list, where each sublist represents a set of inputs.")
         self.num_shap = num_shap
         self.examples_per_page = examples_per_page
 
@@ -261,11 +298,11 @@ class Interface:
         self.flagging_callback = flagging_callback
         self.flagging_dir = flagging_dir
 
-        self.save_to = None
+        self.save_to = None  # Used for selenium tests
         self.share = None
         self.share_url = None
         self.local_url = None
-        self.ip_address = networking.get_local_ip_address()
+        self.ip_address = utils.get_local_ip_address()
 
         if show_tips is not None:
             warnings.warn("The `show_tips` parameter in the `Interface` is deprecated. Please use the `show_tips` parameter in `launch()` instead")
@@ -371,7 +408,12 @@ class Interface:
 
         for predict_fn in self.predict:
             start = time.time()
-            prediction = predict_fn(*processed_input)
+            if self.capture_session and self.session is not None:  # For TF 1.x
+                graph, sess = self.session
+                with graph.as_default(), sess.as_default():
+                    prediction = predict_fn(*processed_input)
+            else:
+                prediction = predict_fn(*processed_input)
             duration = time.time() - start
 
             if len(self.output_components) == len(self.predict):
@@ -430,21 +472,18 @@ class Interface:
     ) -> List[Any]:
         return interpretation.run_interpret(self, raw_input)
 
-    def run_until_interrupted(
+    def block_thread(
         self, 
-        thread: threading.Thread, 
-        path_to_local_server: str
     ) -> None:
+        """Block main thread until interrupted by user."""
         try:
             while True:
-                time.sleep(0.5)
+                time.sleep(0.1)
         except (KeyboardInterrupt, OSError):
             print("Keyboard interruption in main thread... closing server.")
-            thread.keep_running = False
-            # Hit the server one more time to close it
-            networking.url_ok(path_to_local_server)
+            self.server.close()
             if self.enable_queue:
-                queue.close()
+                queueing.close()
 
     def test_launch(self) -> None:
         for predict_fn in self.predict:
@@ -479,7 +518,8 @@ class Interface:
         height: int = 500, 
         width: int = 900, 
         encrypt: bool = False,
-        cache_examples: bool = False
+        cache_examples: bool = False,
+        favicon_path: Optional[str] = None,
     ) -> Tuple[flask.Flask, str, str]:
         """
         Launches the webserver that serves the UI for the interface.
@@ -501,20 +541,24 @@ class Interface:
         height (int): The height in pixels of the <iframe> element containing the interface (used if inline=True)
         encrypt (bool): If True, flagged data will be encrypted by key provided by creator at launch
         cache_examples (bool): If True, examples outputs will be processed and cached in a folder, and will be used if a user uses an example input.
+        favicon_path (str): If a path to an file (.png, .gif, or .ico) is provided, it will be used as the favicon for the web page.
         Returns:
         app (flask.Flask): Flask app object
         path_to_local_server (str): Locally accessible link
         share_url (str): Publicly accessible link (if share=True)
         """
+        self.config = self.get_config_file()        
         self.cache_examples = cache_examples
-        if auth and not callable(auth) and not isinstance(auth[0], tuple) and not isinstance(auth[0], list):
+        if auth and not callable(auth) and not isinstance(
+            auth[0], tuple) and not isinstance(auth[0], list):
             auth = [auth]
         self.auth = auth
         self.auth_message = auth_message
         self.show_tips = show_tips
         self.show_error = show_error
         self.height = self.height or height
-        self.width = self.width or width  
+        self.width = self.width or width
+        self.favicon_path = favicon_path
         
         if self.encrypt is None:
             self.encrypt = encrypt  
@@ -533,14 +577,14 @@ class Interface:
         if self.cache_examples:
             cache_interface_examples(self)
 
-        server_port, path_to_local_server, app, thread, server = networking.start_server(
-            self, server_name, server_port, self.auth)
+        server_port, path_to_local_server, app, server = networking.start_server(
+            self, server_name, server_port)
+        
         self.local_url = path_to_local_server
         self.server_port = server_port
         self.status = "RUNNING"
-        self.server = server
         self.server_app = app
-        self.server_thread = thread
+        self.server = server
 
         utils.launch_counter()
 
@@ -562,7 +606,7 @@ class Interface:
         if private_endpoint is not None:
             share = True
         self.share = share
-
+        
         if share:
             try:
                 share_url = networking.setup_tunnel(
@@ -575,7 +619,8 @@ class Interface:
                     print(strings.en["SHARE_LINK_MESSAGE"])
             except RuntimeError:
                 if self.analytics_enabled:
-                    utils.error_analytics("RuntimeError")
+                    utils.error_analytics(self.ip_address, 
+                                          "Not able to set up tunnel")
                 share_url = None
         else:
             print(strings.en["PUBLIC_SHARE_TRUE"])
@@ -618,15 +663,14 @@ class Interface:
 
         utils.show_tip(self)
 
-        # Run server perpetually under certain circumstances
+        # Block main thread if debug==True
         if debug or int(os.getenv('GRADIO_DEBUG', 0)) == 1:
-            while True:
-                sys.stdout.flush()
-                time.sleep(0.1)
+            self.block_thread()
+        # Block main thread if running in a script to stop script from exiting                
         is_in_interactive_mode = bool(
             getattr(sys, 'ps1', sys.flags.interactive))
         if not prevent_thread_lock and not is_in_interactive_mode:
-            self.run_until_interrupted(thread, path_to_local_server)
+            self.block_thread()
 
         return app, path_to_local_server, share_url
 
@@ -635,13 +679,13 @@ class Interface:
         verbose: bool = True
     ) -> None:
         """
-        Closes the Interface that was launched. This will close the server and free the port.
+        Closes the Interface that was launched and frees the port.
         """
         try:
-            self.server.shutdown()
-            self.server_thread.join()
+            self.server.close()
             if verbose:
-                print("Closing server running on port: {}".format(self.server_port))
+                print("Closing server running on port: {}".format(
+                    self.server_port))
         except (AttributeError, OSError):  # can't close if not running
             pass
 
@@ -652,11 +696,15 @@ class Interface:
         mlflow=None
     ) -> None:
         """
-        A catch-all method for integrating with other libraries. Should be run after launch()
+        A catch-all method for integrating with other libraries. 
+        Should be run after launch()
         Parameters:
-            comet_ml (Experiment): If a comet_ml Experiment object is provided, will integrate with the experiment and appear on Comet dashboard
-            wandb (module): If the wandb module is provided, will integrate with it and appear on WandB dashboard
-            mlflow (module): If the mlflow module  is provided, will integrate with the experiment and appear on ML Flow dashboard
+            comet_ml (Experiment): If a comet_ml Experiment object is provided, 
+            will integrate with the experiment and appear on Comet dashboard
+            wandb (module): If the wandb module is provided, will integrate 
+            with it and appear on WandB dashboard
+            mlflow (module): If the mlflow module  is provided, will integrate 
+            with the experiment and appear on ML Flow dashboard
         """
         analytics_integration = ""
         if comet_ml is not None:
@@ -671,11 +719,14 @@ class Interface:
         if wandb is not None:
             analytics_integration = "WandB"
             if self.share_url is not None:
-                wandb.log({"Gradio panel": wandb.Html('<iframe src="' + self.share_url + '" width="' +
-                                                      str(self.width) + '" height="' + str(self.height) + '" frameBorder="0"></iframe>')})
+                wandb.log({"Gradio panel": wandb.Html(
+                    '<iframe src="' + self.share_url + '" width="' +
+                    str(self.width) + '" height="' + str(self.height) + 
+                    '" frameBorder="0"></iframe>')})
             else:
                 print(
-                    "The WandB integration requires you to `launch(share=True)` first.")
+                    "The WandB integration requires you to "
+                    "`launch(share=True)` first.")
         if mlflow is not None:
             analytics_integration = "MLFlow"
             if self.share_url is not None:

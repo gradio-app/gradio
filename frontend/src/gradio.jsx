@@ -134,9 +134,13 @@ export class GradioInterface extends React.Component {
     if (this.state.example_id === null) {
       let input_state = [];
       for (let [i, input_component] of this.props.input_components.entries()) {
+        if (input_component.name === "state") {
+          input_state[i] = this.state[i];
+          continue;
+        }
         if (
           this.state[i] === null &&
-          this.props.input_components[i].optional !== true
+          input_component[i].optional !== true
         ) {
           return;
         }
@@ -178,7 +182,15 @@ export class GradioInterface extends React.Component {
           new_state["avg_duration"] = output["avg_durations"][0];
         }
         for (let [i, value] of output["data"].entries()) {
-          new_state[index_start + i] = value;
+          if (this.props.output_components[i].name === "state") {
+            for (let [j, input_component] of this.props.input_components.entries()) {
+              if (input_component.name === "state") {
+                new_state[j] = value;
+              }
+            }
+          } else {
+            new_state[index_start + i] = value;
+          }
         }
         if (output["flag_index"] !== null) {
           new_state["flag_index"] = output["flag_index"];
@@ -370,6 +382,9 @@ export class GradioInterface extends React.Component {
           >
             <div className="component_set">
               {this.props.input_components.map((component, index) => {
+                if (component.name === "state") {
+                  return false;
+                }
                 const Component = input_component_set.find(
                   (c) => c.name === component.name
                 ).memoized_component;
@@ -419,6 +434,9 @@ export class GradioInterface extends React.Component {
             >
               {status}
               {this.props.output_components.map((component, index) => {
+                if (component.name === "state") {
+                  return false;
+                }
                 const Component = output_component_set.find(
                   (c) => c.name === component.name
                 ).memoized_component;

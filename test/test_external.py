@@ -1,12 +1,14 @@
-import unittest
-import pathlib
-import gradio as gr
 import os
+import pathlib
 import transformers
+import unittest
 
+import gradio as gr
 
 """
-WARNING: These tests have an external dependency: namely that Hugging Face's Hub and Space APIs do not change, and they keep their most famous models up. So if, e.g. Spaces is down, then these test will not pass.
+WARNING: These tests have an external dependency: namely that Hugging Face's 
+Hub and Space APIs do not change, and they keep their most famous models up. 
+So if, e.g. Spaces is down, then these test will not pass.
 """
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
@@ -25,9 +27,8 @@ class TestHuggingFaceModelAPI(unittest.TestCase):
 
     def test_text_generation(self):
         model_type = "text_generation"
-        interface_info = gr.external.get_huggingface_interface("gpt2",
-                                                               api_key=None,
-                                                               alias=model_type)
+        interface_info = gr.external.get_huggingface_interface(
+            "gpt2", api_key=None, alias=model_type)
         self.assertEqual(interface_info["fn"].__name__, model_type)
         self.assertIsInstance(interface_info["inputs"], gr.inputs.Textbox)
         self.assertIsInstance(interface_info["outputs"], gr.outputs.Textbox)
