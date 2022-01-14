@@ -518,7 +518,8 @@ class Interface:
         height: int = 500, 
         width: int = 900, 
         encrypt: bool = False,
-        cache_examples: bool = False
+        cache_examples: bool = False,
+        favicon_path: Optional[str] = None,
     ) -> Tuple[flask.Flask, str, str]:
         """
         Launches the webserver that serves the UI for the interface.
@@ -540,6 +541,7 @@ class Interface:
         height (int): The height in pixels of the <iframe> element containing the interface (used if inline=True)
         encrypt (bool): If True, flagged data will be encrypted by key provided by creator at launch
         cache_examples (bool): If True, examples outputs will be processed and cached in a folder, and will be used if a user uses an example input.
+        favicon_path (str): If a path to an file (.png, .gif, or .ico) is provided, it will be used as the favicon for the web page.
         Returns:
         app (flask.Flask): Flask app object
         path_to_local_server (str): Locally accessible link
@@ -555,7 +557,8 @@ class Interface:
         self.show_tips = show_tips
         self.show_error = show_error
         self.height = self.height or height
-        self.width = self.width or width  
+        self.width = self.width or width
+        self.favicon_path = favicon_path
         
         if self.encrypt is None:
             self.encrypt = encrypt  
@@ -575,7 +578,7 @@ class Interface:
             cache_interface_examples(self)
 
         server_port, path_to_local_server, app, server = networking.start_server(
-            self, server_name, server_port, self.auth)
+            self, server_name, server_port)
         
         self.local_url = path_to_local_server
         self.server_port = server_port

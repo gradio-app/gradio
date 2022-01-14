@@ -100,7 +100,6 @@ def start_server(
     interface: Interface, 
     server_name: Optional[str] = None, 
     server_port: Optional[int] = None, 
-    auth: Optional[Callable | Tuple[str, str] | List[Tuple[str, str]]] = None, 
 ) -> Tuple[int, str, fastapi.FastAPI, threading.Thread, None]:
     """Launches a local server running the provided Interface
     Parameters:
@@ -126,6 +125,7 @@ def start_server(
 
     url_host_name = "localhost" if server_name == "0.0.0.0" else server_name
     path_to_local_server = "http://{}:{}/".format(url_host_name, port)
+    auth = interface.auth
     if auth is not None:
         if not callable(auth):
             app.auth = {account[0]: account[1] for account in auth}
@@ -135,6 +135,9 @@ def start_server(
         app.auth = None
     app.interface = interface
     app.cwd = os.getcwd()
+    app.favicon_path = interface.favicon_path
+    app.tokens = {}
+    
     if app.interface.enable_queue:
         if auth is not None or app.interface.encrypt:
             raise ValueError("Cannot queue with encryption or authentication enabled.")
@@ -142,8 +145,8 @@ def start_server(
         app.queue_thread = threading.Thread(target=queue_thread, args=(path_to_local_server,))
         app.queue_thread.start()
     if interface.save_to is not None:  # Used for selenium tests
-        interface.save_to["port"] = port        
-    app.tokens = {}
+        interface.save_to["port"] = port
+                
     config = uvicorn.Config(app=app, port=port, host=server_name, 
                             log_level="warning")
     server = Server(config=config)
