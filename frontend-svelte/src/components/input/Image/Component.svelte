@@ -47,7 +47,8 @@
 
 <div class="input-image">
   <div
-    class="image-preview w-full h-80 flex justify-center items-center bg-gray-200 dark:bg-gray-600 relative"
+    class="image-preview w-full h-80 flex justify-center items-center dark:bg-gray-600 relative"
+    class:bg-gray-200={value}
   >
     {#if value === null}
       {#if source === "upload"}
@@ -64,7 +65,6 @@
       {/if}
     {:else if tool === "select"}
       <Cropper image={value} on:crop={({ detail }) => setValue(detail)} />
-      <!-- svelte-ignore a11y-missing-attribute -->
     {:else if tool === "editor"}
       {#if mode === "edit"}
         <ImageEditor
@@ -78,8 +78,13 @@
         clear={() => setValue(null)}
         {theme}
       />
-      <!-- svelte-ignore a11y-missing-attribute -->
-      <img class="w-full h-full object-contain" src={value} bind:this={el} />
+
+      <img
+        class="w-full h-full object-contain"
+        src={value}
+        bind:this={el}
+        alt=""
+      />
     {/if}
   </div>
 </div>

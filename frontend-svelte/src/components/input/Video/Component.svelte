@@ -7,7 +7,10 @@
   export let source;
 </script>
 
-<div class="input-video">
+<div
+  class="video-preview w-full h-80 object-contain flex justify-center items-center  dark:bg-gray-600 relative"
+  class:bg-gray-200={value}
+>
   {#if value === null}
     {#if source === "upload"}
       <Upload filetype="video/mp4,video/x-m4v,video/*" load={setValue} {theme}>
@@ -17,30 +20,22 @@
       </Upload>
     {/if}
   {:else}
-    <div
-      class="video-preview w-full h-60 flex justify-center items-center bg-gray-200 dark:bg-gray-600 relative"
-    >
-      <ModifyUpload clear={() => setValue(null)} {theme} />
-      {#if playable(value.name)}
-        <!-- svelte-ignore a11y-media-has-caption -->
-        <video
-          class="video_preview w-full h-full object-contain"
-          controls
-          playsInline
-          preload
-          src={value.data}
-        />
-      {:else}
-        <div
-          class="file-preview h-60 w-full flex flex-col justify-center items-center relative"
-        >
-          <div class="file-name text-4xl p-6 break-all">{value.name}</div>
-          <div class="file-size text-2xl p-2">
-            {prettyBytes(value.size)}
-          </div>
-        </div>
-      {/if}
-    </div>
+    <ModifyUpload clear={() => setValue(null)} {theme} />
+    {#if playable(value.name)}
+      <!-- svelte-ignore a11y-media-has-caption -->
+      <video
+        class="w-full h-full object-contain bg-black"
+        controls
+        playsInline
+        preload
+        src={value.data}
+      />
+    {:else}
+      <div class="file-name text-4xl p-6 break-all">{value.name}</div>
+      <div class="file-size text-2xl p-2">
+        {prettyBytes(value.size)}
+      </div>
+    {/if}
   {/if}
 </div>
 
