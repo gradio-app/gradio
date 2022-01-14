@@ -117,6 +117,14 @@ def static_resource(path: str):
     raise HTTPException(status_code=404, detail="Static file not found")
 
 
+@app.get('/favicon.ico')
+async def favicon():
+    if app.favicon_path:
+        return FileResponse(app.favicon_path)
+    else:
+        raise HTTPException(status_code=404, detail="Favicon file not found")
+
+
 @app.get("/api", response_class=HTMLResponse)  # Needed for Spaces
 @app.get("/api/", response_class=HTMLResponse)
 def api_docs(request: Request):
@@ -307,6 +315,9 @@ if __name__ == '__main__': # Run directly for debugging: python app.py
     app.interface.config = app.interface.get_config_file()
     app.interface.show_error = True
     app.interface.flagging_callback.setup(app.interface.flagging_dir)
+    app.favicon_path = None
+    app.tokens = {}
+    
     auth = True
     if auth:
         app.interface.auth = ("a", "b")
@@ -314,5 +325,5 @@ if __name__ == '__main__': # Run directly for debugging: python app.py
         app.interface.auth_message = None
     else:
         app.auth = None
-    app.tokens = {}
+
     uvicorn.run(app)
