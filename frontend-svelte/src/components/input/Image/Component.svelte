@@ -9,35 +9,7 @@
   export let source = "upload";
   export let tool = "editor";
 
-  let editor;
-  let el;
   let mode;
-
-  // const create_editor = () => {
-  //   editor = new ImageEditor(el, {
-  //     usageStatistics: false,
-  //     includeUI: {
-  //       loadImage: {
-  //         path: value,
-  //         name: "Edit Image",
-  //       },
-
-  //       menu: ["shape", "filter"],
-  //       initMenu: "filter",
-  //       uiSize: {
-  //         width: "1000px",
-  //         height: "700px",
-  //       },
-  //       menuBarPosition: "bottom",
-  //     },
-  //     cssMaxWidth: 700,
-  //     cssMaxHeight: 500,
-  //     selectionStyle: {
-  //       cornerSize: 20,
-  //       rotatingPointOffset: 70,
-  //     },
-  //   });
-  // };
 
   function handle_save({ detail }) {
     setValue(detail);
@@ -62,6 +34,10 @@
           <br />- or -<br />
           Click to Upload
         </Upload>
+      {:else if source === "canvas"}
+        canvas
+      {:else if source === "webcam"}
+        webcam
       {/if}
     {:else if tool === "select"}
       <Cropper image={value} on:crop={({ detail }) => setValue(detail)} />
@@ -79,12 +55,7 @@
         {theme}
       />
 
-      <img
-        class="w-full h-full object-contain"
-        src={value}
-        bind:this={el}
-        alt=""
-      />
+      <img class="w-full h-full object-contain" src={value} alt="" />
     {/if}
   </div>
 </div>
