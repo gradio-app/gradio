@@ -1,24 +1,23 @@
 <script>
   import Cropper from "cropperjs";
-  import { onMount } from "svelte";
+  import { onMount, createEventDispatcher } from "svelte";
 
   export let image;
   let el;
+
+  const dispatch = createEventDispatcher();
 
   onMount(() => {
     console.log(el);
     const cropper = new Cropper(el, {
       autoCropArea: 1,
-      crop(event) {
-        console.log(event.detail.x);
-        console.log(event.detail.y);
-        console.log(event.detail.width);
-        console.log(event.detail.height);
-        console.log(event.detail.rotate);
-        console.log(event.detail.scaleX);
-        console.log(event.detail.scaleY);
+      cropend() {
+        const image_data = cropper.getCroppedCanvas().toDataURL();
+        dispatch("crop", image_data);
       },
     });
+
+    dispatch("crop", image);
   });
 </script>
 
