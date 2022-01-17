@@ -186,6 +186,13 @@ class TestLoadInterface(unittest.TestCase):
         output = io("test/test_data/test_audio.wav")
         self.assertIsNotNone(output)
 
+    def test_text_to_image_model(self):
+        interface_info = gr.external.load_interface("models/osanseviero/BigGAN-deep-128")
+        io = gr.Interface(**interface_info)
+        io.api_mode = True
+        filename = io("chest")
+        self.assertTrue(filename.endswith(".jpg") or filename.endswith(".jpeg"))
+
     def test_image_to_image_space(self):
         def assertIsFile(path):
             if not pathlib.Path(path).resolve().is_file():
@@ -196,6 +203,7 @@ class TestLoadInterface(unittest.TestCase):
         io.api_mode = True
         output = io("test/test_data/lion.jpg")
         assertIsFile(output)
+
 
 class TestLoadFromPipeline(unittest.TestCase):
     def test_question_answering(self):
