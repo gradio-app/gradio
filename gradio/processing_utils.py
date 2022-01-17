@@ -45,8 +45,10 @@ def get_mimetype(filename):
 
 def get_extension(encoding):
     encoding = encoding.replace("audio/wav", "audio/x-wav")
-    extension = mimetypes.guess_extension(mimetypes.guess_type(
-        encoding)[0])
+    type = mimetypes.guess_type(encoding)[0]
+    if type == "audio/flac":  # flac is not supported by mimetypes
+        return "flac"
+    extension = mimetypes.guess_extension(type)
     if extension is not None and extension.startswith("."):
         extension = extension[1:]
     return extension

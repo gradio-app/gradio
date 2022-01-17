@@ -21,11 +21,15 @@ def get_huggingface_interface(model_name, api_key, alias):
     assert response.status_code == 200, "Invalid model name or src"
     p = response.json().get('pipeline_tag')
 
-    # convert from binary to base64
-    def post_process_binary_body(r: requests.Response):
-        with tempfile.NamedTemporaryFile(delete=False) as fp:
-            fp.write(r.content)
-            return fp.name
+    def encode_to_base64(r: requests.Response) -> str:
+        base64_repr = base64.b64encode(r.content).decode('utf-8')
+        data_prefix = ";base64,"
+        if data_prefix in base64_repr:
+            return base64_repr
+        else:
+            content_type = r.headers.get('content-type')
+            return "data:{};base64,".format(content_type) + base64_repr
+        
 
     pipelines = {
         'audio-classification': {
@@ -78,7 +82,6 @@ def get_huggingface_interface(model_name, api_key, alias):
             'outputs': [outputs.Textbox(label="Answer"), outputs.Label(label="Score")],
             'preprocess': lambda c, q: {"inputs": {"context": c, "question": q}},
             'postprocess': lambda r: (r.json()["answer"], r.json()["score"]),
-            # 'examples': [['My name is Sarah and I live in London', 'Where do I live?']]
         },
         'summarization': {
             'inputs': inputs.Textbox(label="Input"),
@@ -121,7 +124,6 @@ def get_huggingface_interface(model_name, api_key, alias):
             'postprocess': lambda r: {r.json()["labels"][i]: r.json()["scores"][i] for i in
                                       range(len(r.json()["labels"]))}
         },
-        # Non-HF pipelines
         'sentence-similarity': {
             # example model: hf.co/sentence-transformers/distilbert-base-nli-stsb-mean-tokens
             'inputs': [
@@ -140,14 +142,14 @@ def get_huggingface_interface(model_name, api_key, alias):
             'inputs': inputs.Textbox(label="Input"),
             'outputs': outputs.Audio(label="Audio"),
             'preprocess': lambda x: {"inputs": x},
-            'postprocess': lambda x: base64.b64encode(x.content).decode('utf-8'),
+            'postprocess': encode_to_base64,
         },
         'text-to-image': {
             # example model: hf.co/osanseviero/BigGAN-deep-128
             'inputs': inputs.Textbox(label="Input"),
             'outputs': outputs.Image(label="Output"),
             'preprocess': lambda x: {"inputs": x},
-            'postprocess': lambda x: base64.b64encode(x.content).decode('utf-8'),
+            'postprocess': encode_to_base64,
         },
     }
 
