@@ -40,7 +40,9 @@ def encode_url_or_file_to_base64(path):
 def get_mimetype(filename):
     mimetype = mimetypes.guess_type(filename)[0]
     if mimetype is not None:
-        mimetype = mimetype.replace("x-wav", "wav")
+        mimetype = mimetype.replace(
+            "x-wav", "wav").replace(
+            "x-flac", "flac")
     return mimetype
 
 def get_extension(encoding):
