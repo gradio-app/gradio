@@ -3,13 +3,15 @@
 
   import Upload from "../utils/Upload.svelte";
   import ModifyUpload from "../utils/ModifyUpload.svelte";
+  import ModifySketch from "../utils/ModifySketch.svelte";
   import ImageEditor from "../utils/ImageEditor.svelte";
-
+  import Sketch from "../utils/Sketch.svelte";
   export let value, setValue, theme;
   export let source = "upload";
   export let tool = "editor";
 
   let mode;
+  let sketch;
 
   function handle_save({ detail }) {
     setValue(detail);
@@ -22,7 +24,13 @@
     class="image-preview w-full h-80 flex justify-center items-center dark:bg-gray-600 relative"
     class:bg-gray-200={value}
   >
-    {#if value === null}
+    {#if source === "canvas"}
+      <ModifySketch
+        on:undo={() => sketch.undo()}
+        on:clear={() => sketch.clear()}
+      />
+      <Sketch bind:this={sketch} on:change={({ detail }) => setValue(detail)} />
+    {:else if value === null}
       {#if source === "upload"}
         <Upload
           filetype="image/x-png,image/gif,image/jpeg"
@@ -34,8 +42,6 @@
           <br />- or -<br />
           Click to Upload
         </Upload>
-      {:else if source === "canvas"}
-        canvas
       {:else if source === "webcam"}
         webcam
       {/if}
