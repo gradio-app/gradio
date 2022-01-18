@@ -46,12 +46,14 @@ templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 
 
 @app.get('/user')
+@app.get('/user/')
 def get_current_user(request: Request) -> Optional[str]:
     token = request.cookies.get('access-token')
     return app.tokens.get(token)
 
 
 @app.get('/login_check')
+@app.get('/login_check/')
 def login_check(user: str = Depends(get_current_user)):
     if app.auth is None or not(user is None):
         return
@@ -60,12 +62,14 @@ def login_check(user: str = Depends(get_current_user)):
 
 
 @app.get('/token')
+@app.get('/token/')
 def get_token(request: Request) -> Optional[str]:
     token = request.cookies.get('access-token')
     return {"token": token, "user": app.tokens.get(token)}
 
 
 @app.post('/login')
+@app.post('/login/')
 def login(form_data: OAuth2PasswordRequestForm = Depends()):
     username, password = form_data.username, form_data.password
     if ((not callable(app.auth) and username in app.auth 
@@ -100,6 +104,7 @@ def main(request: Request, user: str = Depends(get_current_user)):
     )
 
     
+@app.get("/config/", dependencies=[Depends(login_check)])
 @app.get("/config", dependencies=[Depends(login_check)])
 def get_config():
     return app.interface.config
