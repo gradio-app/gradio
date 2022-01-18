@@ -15,7 +15,7 @@ GRADIO_DEMO_DIR = os.path.join(GRADIO_DIR, "demo")
 
 guide_names = [] # used for dropdown in navbar
 for guide in sorted(os.listdir(GRADIO_GUIDES_DIR)):
-    if "template" in guide:
+    if "template" in guide or "getting_started" in guide:
         continue
     guide_name = guide[:-3]
     pretty_guide_name = " ".join([word.capitalize().replace("Ml", "ML")
