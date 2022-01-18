@@ -1,7 +1,7 @@
 <script>
-  import Upload from "../utils/Upload.svelte";
-  import ModifyUpload from "../utils/ModifyUpload.svelte";
-  import { prettyBytes, playable } from "../utils/helpers";
+  import Upload from "../../utils/Upload.svelte";
+  import ModifyUpload from "../../utils/ModifyUpload.svelte";
+  import { prettyBytes, playable } from "../../utils/helpers";
 
   export let value, setValue, theme;
   export let source;

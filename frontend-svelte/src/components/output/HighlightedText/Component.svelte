@@ -1,5 +1,5 @@
 <script>
-  import { getNextColor } from "../utils/helpers";
+  import { getNextColor } from "../../utils/helpers";
 
   export let value, theme;
   export let show_legend, color_map;

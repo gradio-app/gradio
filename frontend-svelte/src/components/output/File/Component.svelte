@@ -1,5 +1,5 @@
 <script>
-  import { prettyBytes } from "../utils/helpers";
+  import { prettyBytes } from "../../utils/helpers";
 
   export let value, theme;
 </script>

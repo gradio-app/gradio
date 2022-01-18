@@ -7,6 +7,7 @@
   export let dark;
   export let input_components;
   export let output_components;
+  export let examples;
   export let fn;
 </script>
 
@@ -27,7 +28,7 @@
       {#if description}
         <p class="description pb-4">{description}</p>
       {/if}
-      <Interface {input_components} {output_components} {theme} {fn} />
+      <Interface {input_components} {output_components} {examples} {theme} {fn} />
     </div>
   </div>
 </div>
