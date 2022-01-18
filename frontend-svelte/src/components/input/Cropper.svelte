@@ -8,7 +8,6 @@
   const dispatch = createEventDispatcher();
 
   onMount(() => {
-    console.log(el);
     const cropper = new Cropper(el, {
       autoCropArea: 1,
       cropend() {

@@ -15,13 +15,10 @@
       });
       video_source.srcObject = stream;
       video_source.play();
-      console.log(video_source);
     } catch (error) {
       console.log(error);
     }
   }
-
-  $: video_source && console.log();
 
   function clearphoto() {
     var context = canvas.getContext("2d");
