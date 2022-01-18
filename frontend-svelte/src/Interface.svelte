@@ -4,11 +4,13 @@
     outputComponentMap,
   } from "./components/directory.js";
   import { deepCopy } from "./components/utils/helpers.js";
+  import ExampleSet from "./ExampleSet.svelte";
 
   export let input_components;
   export let output_components;
   export let theme;
   export let fn;
+  export let examples;
 
   const default_inputs = input_components.map((component) =>
     "default" in component ? component.default : null
@@ -43,7 +45,7 @@
           <div class="component" key={i}>
             <div class="panel-header mb-1.5">{input_component.label}</div>
             <svelte:component
-              this={inputComponentMap[input_component.name]}
+              this={inputComponentMap[input_component.name].component}
               {...input_component}
               {theme}
               value={input_values[i]}
@@ -77,7 +79,7 @@
             <div class="component" key={i}>
               <div class="panel-header mb-1.5">{output_component.label}</div>
               <svelte:component
-                this={outputComponentMap[output_component.name]}
+                this={outputComponentMap[output_component.name].component}
                 {...output_component}
                 {theme}
                 value={output_values[i]}
@@ -94,6 +96,9 @@
       </div>
     </div>
   </div>
+  {#if examples}
+    <ExampleSet {examples} {input_components} {theme} />
+  {/if}
 </div>
 
 <style lang="postcss">

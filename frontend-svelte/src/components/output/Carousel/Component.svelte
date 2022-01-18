@@ -1,5 +1,5 @@
 <script>
-    import { outputComponentMap } from "../directory";
+    import { outputComponentMap } from "../../directory";
 
     export let value, theme;
     export let components;
@@ -20,7 +20,7 @@
                 <div class="panel-header">{component.label}</div>
             {/if}
             <svelte:component
-                this={outputComponentMap[component.name]}
+                this={outputComponentMap[component.name].component}
                 {...component}
                 {theme}
                 value={value[carousel_index][i]}

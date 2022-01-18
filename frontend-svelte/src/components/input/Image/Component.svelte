@@ -1,6 +1,6 @@
 <script>
-  import Upload from "../utils/Upload.svelte";
-  import ModifyUpload from "../utils/ModifyUpload.svelte";
+  import Upload from "../../utils/Upload.svelte";
+  import ModifyUpload from "../../utils/ModifyUpload.svelte";
 
   export let value, setValue, theme;
   export let source;
