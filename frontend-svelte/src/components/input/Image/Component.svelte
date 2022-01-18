@@ -6,6 +6,7 @@
   import ModifySketch from "../utils/ModifySketch.svelte";
   import ImageEditor from "../utils/ImageEditor.svelte";
   import Sketch from "../utils/Sketch.svelte";
+  import Webcam from "../utils/Webcam.svelte";
   export let value, setValue, theme;
   export let source = "upload";
   export let tool = "editor";
@@ -23,6 +24,7 @@
   <div
     class="image-preview w-full h-80 flex justify-center items-center dark:bg-gray-600 relative"
     class:bg-gray-200={value}
+    class:h-80={source !== "webcam"}
   >
     {#if source === "canvas"}
       <ModifySketch
@@ -43,7 +45,7 @@
           Click to Upload
         </Upload>
       {:else if source === "webcam"}
-        webcam
+        <Webcam on:capture={({ detail }) => setValue(detail)} />
       {/if}
     {:else if tool === "select"}
       <Cropper image={value} on:crop={({ detail }) => setValue(detail)} />
