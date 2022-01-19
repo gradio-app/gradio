@@ -1,9 +1,15 @@
 <script>
-  import { onDestroy } from "svelte";
+  import { onDestroy, tick } from "svelte";
   import Upload from "../utils/Upload.svelte";
   import ModifyUpload from "../utils/ModifyUpload.svelte";
+  import Range from "svelte-range-slider-pips";
+  import Number from "./Number.svelte";
 
-  export let value, setValue, theme;
+  export let value,
+    setValue,
+    theme,
+    name,
+    is_example = false;
   export let source;
 
   let recording = false;
@@ -11,9 +17,11 @@
   let mode = "";
   let audio_chunks = [];
   let audio_blob;
-
+  let player;
   let inited = false;
+  let crop_values = [0, 100];
 
+  // $: crop_values && player;
   function blob_to_data_url(blob) {
     return new Promise((fulfill, reject) => {
       let reader = new FileReader();
@@ -32,9 +40,13 @@
     });
 
     recorder.addEventListener("stop", async () => {
-      audio_blob = new Blob(audio_chunks, { type: "audio/wav; codecs=MS_PCM" });
-      setValue(await blob_to_data_url(audio_blob));
-      recording = false;
+      audio_blob = new Blob(audio_chunks, { type: "audio/wav" });
+
+      setValue({
+        data: await blob_to_data_url(audio_blob),
+        name,
+        is_example,
+      });
     });
   }
 
@@ -56,6 +68,32 @@
   const stop = () => {
     recorder.stop();
   };
+
+  function clear() {
+    setValue(null);
+    mode = "";
+  }
+
+  function loaded(node) {
+    function clamp_playback() {
+      const start_time = (crop_values[0] / 100) * node.duration;
+      const end_time = (crop_values[1] / 100) * node.duration;
+      if (node.currentTime < start_time) {
+        node.currentTime = start_time;
+      }
+
+      if (node.currentTime > end_time) {
+        node.currentTime = start_time;
+        node.pause();
+      }
+    }
+
+    node.addEventListener("timeupdate", clamp_playback);
+
+    return {
+      destroy: () => node.removeEventListener("timeupdate", clamp_playback),
+    };
+  }
 </script>
 
 <div class="input-audio">
@@ -85,15 +123,40 @@
     {/if}
   {:else}
     <ModifyUpload
-      clear={() => setValue(null)}
+      {clear}
       edit={() => (mode = "edit")}
       absolute={false}
       {theme}
     />
 
-    <audio class="w-full" controls>
-      <source src={value} />
+    <audio
+      use:loaded
+      class="w-full"
+      controls
+      bind:this={player}
+      preload="metadata"
+      src={value.data}
+    >
+      <!-- <source  /> -->
     </audio>
+
+    {#if mode === "edit" && player?.duration}
+      <Range
+        bind:values={crop_values}
+        range
+        min={0}
+        max={100}
+        step={1}
+        on:change={({ detail: { values } }) =>
+          setValue({
+            data: value.data,
+            name,
+            is_example,
+            crop_min: values[0],
+            crop_max: values[1],
+          })}
+      />
+    {/if}
   {/if}
 </div>
 
