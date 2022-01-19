@@ -276,7 +276,9 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             # File previews for certain input and output types
             file_preview_types = {
                 gr.inputs.Audio: "Audio", 
-                gr.outputs.Audio: "Audio"
+                gr.outputs.Audio: "Audio",
+                gr.inputs.Image: "Image", 
+                gr.outputs.Image: "Image",
             }
             
             # Generate the headers and dataset_infos
@@ -299,7 +301,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
                                                              " file"] = {
                                     "_type": _type                                    
                                 }
-                            break
+                                break
                 if interface.flagging_options is not None:
                     headers.append("flag")
                     infos["flagged"]["features"]["flag"] = {
