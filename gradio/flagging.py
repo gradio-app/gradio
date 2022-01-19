@@ -5,7 +5,7 @@ import datetime
 import io
 import json
 import os
-from typing import Callable, Any, List, Optional, Tuple, TYPE_CHECKING
+from typing import Any, List, Optional
 
 import gradio as gr
 from gradio import encryptor
@@ -279,55 +279,65 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
                 gr.outputs.Audio: "Audio"
             }
             
-            # Generate the headers
+            # Generate the headers and dataset_infos
             if is_new:
                 headers = []
-                for component in interface.input_components + interface.output_components:
-                    headers.append(component.label)
-                    infos["flagged"]["features"][component.label] = {
+                for i, component in enumerate(interface.input_components + 
+                                              interface.output_components):
+                    component_label = (interface.config["input_components"] + 
+                             interface.config["output_components"])[i]["label"]
+                    headers.append(component_label)
+                    infos["flagged"]["features"][component_label] = {
                         "dtype": "string", 
                         "_type": "Value"
                     }
-                    if isinstance(component, file_preview_types):
-                        headers.append(interface.label + " file")
+                    if isinstance(component, tuple(file_preview_types)):
+                        headers.append(component_label + " file")
                         for _component, _type in file_preview_types.items():
                             if isinstance(component, _component):
-                                infos["flagged"]["features"][component.label] = {
+                                infos["flagged"]["features"][component_label + 
+                                                             " file"] = {
                                     "_type": _type                                    
                                 }
                             break
                 if interface.flagging_options is not None:
                     headers.append("flag")
+                    infos["flagged"]["features"]["flag"] = {
+                        "dtype": "string", 
+                        "_type": "Value"
+                    }                    
                 writer.writerow(headers)
             
             # Generate the row corresponding to the flagged sample
             csv_data = []
             for i, input in enumerate(interface.input_components):
-                filepath = input.save_flagged(self.dataset_dir, input.label, input_data[i], None)
+                label = interface.config["input_components"][i]["label"]
+                filepath = input.save_flagged(
+                    self.dataset_dir, label, input_data[i], None)
                 csv_data.append(filepath)
-                if isinstance(component, file_preview_types):
+                if isinstance(component, tuple(file_preview_types)):
                     csv_data.append("{}/resolve/main/{}".format(
                         self.path_to_dataset_repo, filepath))
             for i, output in enumerate(interface.output_components):
-                csv_data.append(output.save_flagged(self.dataset_dir, interface.config["output_components"][i]["label"], output_data[i], None) if
+                label = interface.config["output_components"][i]["label"]
+                filepath = (output.save_flagged(
+                    self.dataset_dir, label, output_data[i], None) if
                     output_data[i] is not None else "")
-                if isinstance(component, file_preview_types):
+                csv_data.append(filepath)
+                if isinstance(component, tuple(file_preview_types)):
                     csv_data.append("{}/resolve/main/{}".format(
                         self.path_to_dataset_repo, filepath))
             if flag_option is not None:
                 csv_data.append(flag_option)
             
-            # Write the rows
             writer.writerow(csv_data)
 
         if is_new:
             json.dump(infos, open(self.infos_file, "w"))
             
-        # return number of samples in dataset
         with open(self.log_file, "r") as csvfile:
             line_count = len([None for row in csv.reader(csvfile)]) - 1
 
-        # push the repo 
         self.repo.push_to_hub(
             commit_message="Flagged sample #{}".format(line_count))
         
