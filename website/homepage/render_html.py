@@ -13,14 +13,6 @@ GRADIO_DIR = "../../"
 GRADIO_GUIDES_DIR = os.path.join(GRADIO_DIR, "guides")
 GRADIO_DEMO_DIR = os.path.join(GRADIO_DIR, "demo")
 
-guide_names = [] # used for dropdown in navbar
-for guide in sorted(os.listdir(GRADIO_GUIDES_DIR)):
-    if "template" in guide or "getting_started" in guide:
-        continue
-    guide_name = guide[:-3]
-    pretty_guide_name = " ".join([word.capitalize().replace("Ml", "ML")
-        for word in guide_name.split("_")])
-    guide_names.append((guide_name, pretty_guide_name))
 
 def render_index():
     os.makedirs("generated", exist_ok=True)
@@ -30,12 +22,20 @@ def render_index():
         ).json()["stargazers_count"])
     with open("src/index_template.html", encoding='utf-8') as template_file:
         template = Template(template_file.read())
-        output_html = template.render(tweets=tweets, star_count=star_count, guide_names=guide_names)
+        output_html = template.render(tweets=tweets, star_count=star_count)
     with open(os.path.join("generated", "index.html"), "w", encoding='utf-8') as generated_template:
         generated_template.write(output_html)
 
+
+def render_guides_main():
+    with open("src/guides_main_template.html", encoding='utf-8') as template_file:
+        template = Template(template_file.read())
+        output_html = template.render()
+    with open(os.path.join("generated", "guides.html"), "w", encoding='utf-8') as generated_template:
+        generated_template.write(output_html)
+
+
 def render_guides():
-    guides = []
     for guide in os.listdir(GRADIO_GUIDES_DIR):
         if "template" in guide:
             continue
@@ -73,8 +73,9 @@ def render_guides():
         with open("src/guides_template.html", encoding='utf-8') as general_template_file:
             general_template = Template(general_template_file.read())
         with open(os.path.join("generated", guide, "index.html"), "w", encoding='utf-8') as generated_template:
-            output_html = general_template.render(template_html=output_html, demo_names=demo_names, guide_names=guide_names)
+            output_html = general_template.render(template_html=output_html, demo_names=demo_names)
             generated_template.write(output_html)
+
 
 def render_docs():
     if os.path.exists("generated/colab_links.json"):
@@ -178,26 +179,27 @@ def render_docs():
     os.makedirs("generated", exist_ok=True)
     with open("src/docs_template.html") as template_file:
         template = Template(template_file.read())
-        output_html = template.render(docs=docs, demo_links=demo_links, guide_names=guide_names)
+        output_html = template.render(docs=docs, demo_links=demo_links)
     os.makedirs(os.path.join("generated", "docs"), exist_ok=True)
     with open(os.path.join("generated", "docs", "index.html"), "w") as generated_template:
         generated_template.write(output_html)
+
 
 def render_other():
     os.makedirs("generated", exist_ok=True)
     for template_filename in os.listdir("src/other_templates"):
         with open(os.path.join("src/other_templates", template_filename)) as template_file:
             template = Template(template_file.read())
-            output_html = template.render(guide_names=guide_names)
+            output_html = template.render()
         folder_name = template_filename[:-14]
         os.makedirs(os.path.join("generated", folder_name), exist_ok=True)
         with open(os.path.join("generated", folder_name, "index.html"), "w", encoding='utf-8') as generated_template:
             generated_template.write(output_html)
 
 
-
 if __name__ == "__main__":
     render_index()
+    render_guides_main()
     render_guides()
     render_docs()
     render_other()

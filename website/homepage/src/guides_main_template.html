@@ -91,7 +91,6 @@
     </nav>
   </header>  <div class="container mx-auto px-4 mb-12">
     <div class="prose prose-lg max-w-none">
-      {{ template_html|safe }}
     </div>      
   </div>
   <footer class="container mx-auto p-4 flex justify-between items-center">
@@ -108,21 +107,6 @@
   <script src="/assets/prism.js"></script>
   <script>
     window.gradio_mode = "website";
-  </script>
-  <script defer id='gradio-library' src="/gradio_static/static/bundle.js"></script>
-  <script>
-    var demo_endpoint = "/demo";
-    var demo_names = {{ demo_names|tojson }};
-    document.querySelector("#gradio-library").addEventListener('load', function () {
-      demo_names.forEach((demo_name, i) => {
-      fetch('/demo/' + demo_name + '/config')
-        .then(response => response.json())
-        .then(demo => {
-          demo.root = demo_endpoint + "/" + demo_name + "/";
-          launchGradio(demo, "#interface_" + demo_name);
-        });
-      });
-    });
   </script>
 
 </body>
