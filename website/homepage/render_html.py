@@ -14,6 +14,16 @@ GRADIO_GUIDES_DIR = os.path.join(GRADIO_DIR, "guides")
 GRADIO_DEMO_DIR = os.path.join(GRADIO_DIR, "demo")
 
 
+guide_names = []
+for guide in sorted(os.listdir(GRADIO_GUIDES_DIR)):
+    if "template" in guide or "getting_started" in guide:
+        continue
+    guide_name = guide[:-3]
+    pretty_guide_name = " ".join([word.capitalize().replace("Ml", "ML")
+        for word in guide_name.split("_")])
+    guide_names.append((guide_name, pretty_guide_name))
+
+
 def render_index():
     os.makedirs("generated", exist_ok=True)
     with open("src/tweets.json", encoding='utf-8') as tweets_file:
@@ -30,9 +40,10 @@ def render_index():
 def render_guides_main():
     with open("src/guides_main_template.html", encoding='utf-8') as template_file:
         template = Template(template_file.read())
-        output_html = template.render()
+        output_html = template.render(guide_names=guide_names)
     with open(os.path.join("generated", "guides.html"), "w", encoding='utf-8') as generated_template:
         generated_template.write(output_html)
+        
 
 
 def render_guides():
