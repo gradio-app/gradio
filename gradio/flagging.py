@@ -1,10 +1,14 @@
-import gradio as gr
-import os
-import datetime
-from gradio import encryptor
-import csv
-import io
+from __future__ import annotations
 from abc import ABC, abstractmethod
+import csv
+import datetime
+import io
+import json
+import os
+from typing import Any, List, Optional
+
+import gradio as gr
+from gradio import encryptor
 
 
 class FlaggingCallback(ABC):
@@ -13,7 +17,9 @@ class FlaggingCallback(ABC):
     """
 
     @abstractmethod
-    def setup(self, flagging_dir):
+    def setup(
+        self, 
+        flagging_dir: str):
         """
         This method should be overridden and ensure that everything is set up correctly for flag().
         This method gets called once at the beginning of the Interface.launch() method.
@@ -23,7 +29,14 @@ class FlaggingCallback(ABC):
         pass
 
     @abstractmethod
-    def flag(self, interface, input_data, output_data, flag_option=None, flag_index=None, username=None):
+    def flag(
+        self, 
+        interface: gr.Interface, 
+        input_data: List[Any], 
+        output_data: List[Any], 
+        flag_option: Optional[str] = None, 
+        flag_index: Optional[int] = None, 
+        username: Optional[str] = None) -> int:
         """
         This method should be overridden by the FlaggingCallback subclass and may contain optional additional arguments.
         This gets called every time the <flag> button is pressed.
@@ -45,11 +58,22 @@ class SimpleCSVLogger(FlaggingCallback):
     A simple example implementation of the FlaggingCallback abstract class 
     provided for illustrative purposes.
     """
-    def setup(self, flagging_dir):
+    def setup(
+        self, 
+        flagging_dir: str
+    ):
         self.flagging_dir = flagging_dir
         os.makedirs(flagging_dir, exist_ok=True)
 
-    def flag(self, interface, input_data, output_data, flag_option=None, flag_index=None, username=None):
+    def flag(
+        self, 
+        interface: gr.Interface, 
+        input_data: List[Any], 
+        output_data: List[Any], 
+        flag_option: Optional[str] = None, 
+        flag_index: Optional[int] = None, 
+        username: Optional[str] = None
+    ) -> int:
         flagging_dir = self.flagging_dir
         log_filepath = "{}/log.csv".format(flagging_dir)
 
@@ -76,11 +100,22 @@ class CSVLogger(FlaggingCallback):
     The default implementation of the FlaggingCallback abstract class. 
     Logs the input and output data to a CSV file.
     """
-    def setup(self, flagging_dir):
+    def setup(
+        self, 
+        flagging_dir: str
+    ):
         self.flagging_dir = flagging_dir
         os.makedirs(flagging_dir, exist_ok=True)
 
-    def flag(self, interface, input_data, output_data, flag_option=None, flag_index=None, username=None):
+    def flag(
+        self, 
+        interface: gr.Interface, 
+        input_data: List[Any], 
+        output_data: List[Any], 
+        flag_option: Optional[str] = None, 
+        flag_index: Optional[int] = None, 
+        username: Optional[str] = None
+    ) -> int:
         flagging_dir = self.flagging_dir
         log_fp = "{}/log.csv".format(flagging_dir)
         encryption_key = interface.encryption_key if interface.encrypt else None
@@ -169,8 +204,13 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
     """
     A FlaggingCallback that saves flagged data to a HuggingFace dataset.
     """
-    def __init__(self, hf_foken, dataset_name, organization=None, 
-                 private=False, verbose=True):
+    def __init__(
+        self, 
+        hf_foken: str, 
+        dataset_name: str, 
+        organization: Optional[str] = None, 
+        private: bool = False, 
+        verbose: bool = True):
         """
         Params:
         hf_token (str): The token to use to access the huggingface API.
@@ -190,7 +230,9 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         self.dataset_private = private
         self.verbose = verbose
 
-    def setup(self, flagging_dir):
+    def setup(
+        self, 
+        flagging_dir: str):
         """
         Params:
         flagging_dir (str): local directory where the dataset is cloned, 
@@ -204,6 +246,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         path_to_dataset_repo = huggingface_hub.create_repo(
             name=self.dataset_name, token=self.hf_foken, 
             private=self.dataset_private, repo_type="dataset", exist_ok=True)
+        self.path_to_dataset_repo = path_to_dataset_repo  # e.g. "https://huggingface.co/datasets/abidlabs/test-audio-10"
         self.flagging_dir = flagging_dir
         self.dataset_dir = os.path.join(flagging_dir, self.dataset_name)
         self.repo = huggingface_hub.Repository(
@@ -213,40 +256,90 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         
         #Should filename be user-specified?
         self.log_file = os.path.join(self.dataset_dir, "data.csv")  
+        self.infos_file = os.path.join(self.dataset_dir, "dataset_infos.json")  
 
-    def flag(self, interface, input_data, output_data, flag_option=None, 
-             flag_index=None, username=None, path=None):
-        # Note flag_index, username, path are not currently used 
+    def flag(
+        self, 
+        interface: gr.Interface, 
+        input_data: List[Any], 
+        output_data: List[Any], 
+        flag_option: Optional[str] = None, 
+        flag_index: Optional[int] = None, 
+        username: Optional[str] = None
+    ) -> int:        
         is_new = not os.path.exists(self.log_file)
+        infos = {"flagged": {"features": {}}}
+        
         with open(self.log_file, "a", newline="") as csvfile:
             writer = csv.writer(csvfile)
             
-            # Generate the headers
+            # File previews for certain input and output types
+            file_preview_types = {
+                gr.inputs.Audio: "Audio", 
+                gr.outputs.Audio: "Audio",
+                gr.inputs.Image: "Image", 
+                gr.outputs.Image: "Image",
+            }
+            
+            # Generate the headers and dataset_infos
             if is_new:
-                headers = [interface["label"] for interface in interface.config["input_components"]]
-                headers += [interface["label"] for interface in interface.config["output_components"]]
+                headers = []
+                for i, component in enumerate(interface.input_components + 
+                                              interface.output_components):
+                    component_label = (interface.config["input_components"] + 
+                             interface.config["output_components"])[i]["label"]
+                    headers.append(component_label)
+                    infos["flagged"]["features"][component_label] = {
+                        "dtype": "string", 
+                        "_type": "Value"
+                    }
+                    if isinstance(component, tuple(file_preview_types)):
+                        headers.append(component_label + " file")
+                        for _component, _type in file_preview_types.items():
+                            if isinstance(component, _component):
+                                infos["flagged"]["features"][component_label + 
+                                                             " file"] = {
+                                    "_type": _type                                    
+                                }
+                                break
                 if interface.flagging_options is not None:
                     headers.append("flag")
+                    infos["flagged"]["features"]["flag"] = {
+                        "dtype": "string", 
+                        "_type": "Value"
+                    }                    
                 writer.writerow(headers)
             
             # Generate the row corresponding to the flagged sample
             csv_data = []
             for i, input in enumerate(interface.input_components):
-                csv_data.append(input.save_flagged(self.dataset_dir, interface.config["input_components"][i]["label"], input_data[i], None))
+                label = interface.config["input_components"][i]["label"]
+                filepath = input.save_flagged(
+                    self.dataset_dir, label, input_data[i], None)
+                csv_data.append(filepath)
+                if isinstance(component, tuple(file_preview_types)):
+                    csv_data.append("{}/resolve/main/{}".format(
+                        self.path_to_dataset_repo, filepath))
             for i, output in enumerate(interface.output_components):
-                csv_data.append(output.save_flagged(self.dataset_dir, interface.config["output_components"][i]["label"], output_data[i], None) if
+                label = interface.config["output_components"][i]["label"]
+                filepath = (output.save_flagged(
+                    self.dataset_dir, label, output_data[i], None) if
                     output_data[i] is not None else "")
+                csv_data.append(filepath)
+                if isinstance(component, tuple(file_preview_types)):
+                    csv_data.append("{}/resolve/main/{}".format(
+                        self.path_to_dataset_repo, filepath))
             if flag_option is not None:
                 csv_data.append(flag_option)
             
-            # Write the rows
             writer.writerow(csv_data)
 
-        # return number of samples in dataset
+        if is_new:
+            json.dump(infos, open(self.infos_file, "w"))
+            
         with open(self.log_file, "r") as csvfile:
             line_count = len([None for row in csv.reader(csvfile)]) - 1
 
-        # push the repo 
         self.repo.push_to_hub(
             commit_message="Flagged sample #{}".format(line_count))
         
