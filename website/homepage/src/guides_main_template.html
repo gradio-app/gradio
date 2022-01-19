@@ -89,9 +89,32 @@
         </div>
       </div>
     </nav>
-  </header>  <div class="container mx-auto px-4 mb-12">
-    <div class="prose prose-lg max-w-none">
-    </div>      
+  </header>  
+  <div class="container mx-auto px-4 mb-12">
+    <ul>
+      {% for guide_name, pretty_guide_name in guide_names %}
+      <a class="link px-4 py-2 inline-block hover:bg-gray-100" href="/{{ guide_name }}">
+        <li>
+        {{ pretty_guide_name }}
+        </li>
+      </a>
+      {% endfor %}      
+      <a class="link px-4 py-2 inline-block hover:bg-gray-100" href="/{{ chatbot }}">
+        <li>
+        Creating a chatbot with Gradio!
+        </li>
+      </a>
+      <a class="link px-4 py-2 inline-block hover:bg-gray-100" href="/{{ chatbot }}">
+        <li>
+        Creating an image classifier with Gradio!
+        </li>
+      </a>
+      <a class="link px-4 py-2 inline-block hover:bg-gray-100" href="/{{ chatbot }}">
+        <li>
+        Creating a box with Gradio!
+        </li>
+      </a>
+    </ul>
   </div>
   <footer class="container mx-auto p-4 flex justify-between items-center">
     <img src="/assets/img/logo.svg" class="h-10">
