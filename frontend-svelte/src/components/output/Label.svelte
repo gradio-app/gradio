@@ -25,7 +25,7 @@
       <div class="confidences flex flex-grow flex-col items-baseline">
         {#each value.confidences as confidence_set, i}
           <div
-            class="confidence flex justify-end overflow-hidden whitespace-nowrap h-7 mb-2 px-1"
+            class="confidence flex justify-end items-center overflow-hidden whitespace-nowrap h-7 mb-2 px-1"
             style={"min-width: calc(" +
               Math.round(confidence_set.confidence * 100) +
               "% - 12px)"}
