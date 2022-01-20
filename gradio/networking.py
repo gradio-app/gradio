@@ -147,7 +147,7 @@ def start_server(
         app.queue_thread.start()
     if interface.save_to is not None:  # Used for selenium tests
         interface.save_to["port"] = port
-                
+    
     config = uvicorn.Config(app=app, port=port, host=server_name, 
                             log_level="warning")
     server = Server(config=config)
