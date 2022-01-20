@@ -1,8 +1,10 @@
 ## Getting Started
 
+Prerequisite: `gradio` requires Python 3.7+ and that's it! 
+
 ### Quick Start
 
-To get Gradio running with a simple example, follow these three steps:
+To get Gradio running with a simple "Hello, World" example, follow these three steps:
 
 <span>1.</span> Install Gradio from pip.
 
@@ -18,9 +20,9 @@ pip install gradio
 
 {{ demos["hello_world"] }}
 
-### The Interface
+### The `Interface` class
 
-Gradio can wrap almost any Python function with an easy-to-use user interface. That function could be anything from a simple tax calculator to a pretrained machine learning model.
+Gradio can wrap almost any Python function with an easy-to-use user interface. In the example above, we saw a simple text-based function. But the function could be anything from a tax calculator to, most commonly, a pretrained machine learning model.
 
 The core  `Interface`  class is initialized with three parameters:
 
