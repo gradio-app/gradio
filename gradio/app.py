@@ -128,7 +128,14 @@ async def favicon():
     if app.favicon_path:
         return FileResponse(app.favicon_path)
     else:
-        raise HTTPException(status_code=404, detail="Favicon file not found")
+        favicon_path = "media/logo.ico"
+        if app.interface.share:
+            return RedirectResponse(GRADIO_STATIC_ROOT + favicon_path)
+        else:
+            static_file = safe_join(STATIC_PATH_LIB, favicon_path)
+            if static_file is not None:
+                return FileResponse(static_file)
+    raise HTTPException(status_code=404, detail="Static file not found")
 
 
 @app.get("/api", response_class=HTMLResponse)  # Needed for Spaces
