@@ -1,14 +1,15 @@
-import unittest
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 import multiprocessing
+import os
+import random
 import time
+import unittest
+
 import requests
 from matplotlib.testing.compare import compare_images
-import random
-import os
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 current_dir = os.getcwd()
 
@@ -36,12 +37,14 @@ def wait_for_url(url):
 
 def diff_texts_thread(return_dict):
     from demo.diff_texts.run import iface
+
     iface.save_to = return_dict
     iface.launch()
 
 
 def image_mod_thread(return_dict):
     from demo.image_mod.run import iface
+
     iface.examples = None
     iface.save_to = return_dict
     iface.launch()
@@ -49,12 +52,14 @@ def image_mod_thread(return_dict):
 
 def longest_word_thread(return_dict):
     from demo.longest_word.run import iface
+
     iface.save_to = return_dict
     iface.launch()
 
 
 def sentence_builder_thread(return_dict):
     from demo.sentence_builder.run import iface
+
     iface.save_to = return_dict
     iface.launch()
 
@@ -63,8 +68,7 @@ class TestDemo(unittest.TestCase):
     def start_test(self, target):
         manager = multiprocessing.Manager()
         return_dict = manager.dict()
-        self.i_thread = multiprocessing.Process(target=target,
-                                                args=(return_dict,))
+        self.i_thread = multiprocessing.Process(target=target, args=(return_dict,))
         self.i_thread.start()
         total_sleep = 0
         while not return_dict and total_sleep < TIMEOUT:
@@ -81,25 +85,36 @@ class TestDemo(unittest.TestCase):
     def test_diff_texts(self):
         driver = self.start_test(target=diff_texts_thread)
         elem = WebDriverWait(driver, TIMEOUT).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR,
-                                            ".panel:nth-child(1) .component:nth-child(1) .input_text textarea"))
+            EC.presence_of_element_located(
+                (
+                    By.CSS_SELECTOR,
+                    ".panel:nth-child(1) .component:nth-child(1) .input_text textarea",
+                )
+            )
         )
         elem.clear()
         elem.send_keys("Want to see a magic trick?")
         elem = WebDriverWait(driver, TIMEOUT).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR,
-                                            ".panel:nth-child(1) .component:nth-child(2) .input_text textarea"))
+            EC.presence_of_element_located(
+                (
+                    By.CSS_SELECTOR,
+                    ".panel:nth-child(1) .component:nth-child(2) .input_text textarea",
+                )
+            )
         )
         elem.clear()
         elem.send_keys("Let's go see a magic trick!")
         elem = WebDriverWait(driver, TIMEOUT).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR,
-                                            ".submit"))
+            EC.presence_of_element_located((By.CSS_SELECTOR, ".submit"))
         )
         elem.click()
         elem = WebDriverWait(driver, TIMEOUT).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR,
-                                            ".panel:nth-child(2) .component:nth-child(2) .textfield"))
+            EC.presence_of_element_located(
+                (
+                    By.CSS_SELECTOR,
+                    ".panel:nth-child(2) .component:nth-child(2) .textfield",
+                )
+            )
         )
 
         total_sleep = 0
@@ -108,10 +123,12 @@ class TestDemo(unittest.TestCase):
             total_sleep += 0.2
 
         self.assertEqual(elem.text, "L+e+W-a-n-t'+s+ t-g+o see a magic trick?-!+")
-        golden_img = os.path.join(current_dir, GOLDEN_PATH.format(
-            "diff_texts", "magic_trick"))
-        tmp = os.path.join(current_dir, "test/tmp/{}.png".format(
-            random.getrandbits(32)))
+        golden_img = os.path.join(
+            current_dir, GOLDEN_PATH.format("diff_texts", "magic_trick")
+        )
+        tmp = os.path.join(
+            current_dir, "test/tmp/{}.png".format(random.getrandbits(32))
+        )
         time.sleep(GAP_TO_SCREENSHOT)
         driver.save_screenshot(tmp)
         driver.close()
@@ -122,23 +139,32 @@ class TestDemo(unittest.TestCase):
         driver = self.start_test(target=image_mod_thread)
         elem = WebDriverWait(driver, TIMEOUT).until(
             EC.presence_of_element_located(
-                (By.CSS_SELECTOR, ".panel:nth-child(1) .component:nth-child(1) .hidden_upload"))
+                (
+                    By.CSS_SELECTOR,
+                    ".panel:nth-child(1) .component:nth-child(1) .hidden_upload",
+                )
+            )
         )
         cwd = os.getcwd()
         rel = "test/test_files/cheetah1.jpg"
         elem.send_keys(os.path.join(cwd, rel))
-        golden_img = os.path.join(current_dir, GOLDEN_PATH.format(
-            "image_mod", "cheetah1"))
-        tmp = os.path.join(current_dir, "test/tmp/{}.png".format(
-            random.getrandbits(32)))
+        golden_img = os.path.join(
+            current_dir, GOLDEN_PATH.format("image_mod", "cheetah1")
+        )
+        tmp = os.path.join(
+            current_dir, "test/tmp/{}.png".format(random.getrandbits(32))
+        )
         elem = WebDriverWait(driver, TIMEOUT).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR,
-                                            ".submit"))
+            EC.presence_of_element_located((By.CSS_SELECTOR, ".submit"))
         )
         elem.click()
         WebDriverWait(driver, TIMEOUT).until(
             EC.visibility_of_element_located(
-                (By.CSS_SELECTOR, ".panel:nth-child(2) .component:nth-child(2) .output_image"))
+                (
+                    By.CSS_SELECTOR,
+                    ".panel:nth-child(2) .component:nth-child(2) .output_image",
+                )
+            )
         )
 
         time.sleep(GAP_TO_SCREENSHOT)
@@ -150,18 +176,25 @@ class TestDemo(unittest.TestCase):
     def test_longest_word(self):
         driver = self.start_test(target=longest_word_thread)
         elem = WebDriverWait(driver, TIMEOUT).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR,
-                                            ".panel:nth-child(1) .component:nth-child(1) .input_text textarea"))
+            EC.presence_of_element_located(
+                (
+                    By.CSS_SELECTOR,
+                    ".panel:nth-child(1) .component:nth-child(1) .input_text textarea",
+                )
+            )
         )
-        elem.send_keys("This is the most wonderful machine learning "
-                       "library.")
+        elem.send_keys("This is the most wonderful machine learning " "library.")
         elem = WebDriverWait(driver, TIMEOUT).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR,
-                                            ".submit"))
+            EC.presence_of_element_located((By.CSS_SELECTOR, ".submit"))
         )
         elem.click()
         elem = WebDriverWait(driver, TIMEOUT).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, ".panel:nth-child(2) .component:nth-child(2) .output_class_without_confidences"))
+            EC.presence_of_element_located(
+                (
+                    By.CSS_SELECTOR,
+                    ".panel:nth-child(2) .component:nth-child(2) .output_class_without_confidences",
+                )
+            )
         )
 
         total_sleep = 0
@@ -169,10 +202,12 @@ class TestDemo(unittest.TestCase):
             time.sleep(0.2)
             total_sleep += 0.2
 
-        golden_img = os.path.join(current_dir, GOLDEN_PATH.format(
-            "longest_word", "wonderful"))
-        tmp = os.path.join(current_dir, "test/tmp/{}.png".format(
-            random.getrandbits(32)))
+        golden_img = os.path.join(
+            current_dir, GOLDEN_PATH.format("longest_word", "wonderful")
+        )
+        tmp = os.path.join(
+            current_dir, "test/tmp/{}.png".format(random.getrandbits(32))
+        )
         time.sleep(GAP_TO_SCREENSHOT)
         driver.save_screenshot(tmp)
         driver.close()
@@ -182,12 +217,16 @@ class TestDemo(unittest.TestCase):
     def test_sentence_builder(self):
         driver = self.start_test(target=sentence_builder_thread)
         elem = WebDriverWait(driver, TIMEOUT).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR,
-                                            ".submit"))
+            EC.presence_of_element_located((By.CSS_SELECTOR, ".submit"))
         )
         elem.click()
         elem = WebDriverWait(driver, TIMEOUT).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, ".panel:nth-child(2) .component:nth-child(2) .output_text"))
+            EC.presence_of_element_located(
+                (
+                    By.CSS_SELECTOR,
+                    ".panel:nth-child(2) .component:nth-child(2) .output_text",
+                )
+            )
         )
 
         total_sleep = 0
@@ -196,11 +235,14 @@ class TestDemo(unittest.TestCase):
             total_sleep += 0.2
 
         self.assertEqual(
-            elem.text, "The 2 cats went to the park where they  until the night")
-        golden_img = os.path.join(current_dir, GOLDEN_PATH.format(
-            "sentence_builder", "two_cats"))
-        tmp = os.path.join(current_dir, "test/tmp/{}.png".format(
-            random.getrandbits(32)))
+            elem.text, "The 2 cats went to the park where they  until the night"
+        )
+        golden_img = os.path.join(
+            current_dir, GOLDEN_PATH.format("sentence_builder", "two_cats")
+        )
+        tmp = os.path.join(
+            current_dir, "test/tmp/{}.png".format(random.getrandbits(32))
+        )
         time.sleep(GAP_TO_SCREENSHOT)
         driver.save_screenshot(tmp)
         self.assertIsNone(compare_images(tmp, golden_img, TOLERANCE))
@@ -212,5 +254,5 @@ class TestDemo(unittest.TestCase):
         self.i_thread.join()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

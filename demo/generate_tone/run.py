@@ -1,7 +1,9 @@
-import gradio as gr
 import numpy as np
 
+import gradio as gr
+
 notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+
 
 def generate_tone(note, octave, duration):
     sr = 48000
@@ -14,12 +16,14 @@ def generate_tone(note, octave, duration):
 
 
 iface = gr.Interface(
-    generate_tone, 
+    generate_tone,
     [
         gr.inputs.Dropdown(notes, type="index"),
         gr.inputs.Slider(4, 6, step=1),
-        gr.inputs.Textbox(type="number", default=1, label="Duration in seconds")
-    ], "audio")
+        gr.inputs.Textbox(type="number", default=1, label="Duration in seconds"),
+    ],
+    "audio",
+)
 
 if __name__ == "__main__":
     iface.launch()
