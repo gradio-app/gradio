@@ -16,7 +16,10 @@ window.launchGradio = (config, element_query) => {
     config.dark = true;
     target.classList.add("dark");
   }
-  config.fn = fn.bind(null, "BACKEND_URL" + "api/");
+  if (config.root === undefined) {
+    config.root = "BACKEND_URL";
+  }
+  config.fn = fn.bind(null, config.root + "api/");
   const app = new App({
     target: target,
     props: config

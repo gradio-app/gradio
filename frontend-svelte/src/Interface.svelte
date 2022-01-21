@@ -1,7 +1,7 @@
 <script>
   import {
-    inputComponentMap,
-    outputComponentMap,
+    input_component_map,
+    output_component_map,
   } from "./components/directory.js";
   import { deepCopy } from "./components/utils/helpers.js";
   import ExampleSet from "./ExampleSet.svelte";
@@ -11,6 +11,9 @@
   export let theme;
   export let fn;
   export let examples;
+  export let root;
+
+  let examples_dir = root + "file/";
 
   const default_inputs = input_components.map((component) =>
     "default" in component ? component.default : null
@@ -23,6 +26,17 @@
   const setValues = (index, value) => {
     input_values[index] = value;
   };
+  const setExampleId = (example_id) => {
+    input_components.forEach((input_component, i) => {
+      console.log(input_component_map[input_component.name].component)
+      const preprocess_fn = input_component_map[input_component.name].preprocess_example_fn;
+      if (preprocess_fn) {
+        input_values[i] = preprocess_fn(examples[example_id][i]);
+      } else {
+        input_values[i] = examples[example_id][i];
+      }
+    });
+  }
   const submit = () => {
     fn("predict", { data: input_values }).then((output) => {
       output_values = output["data"];
@@ -45,7 +59,7 @@
           <div class="component" key={i}>
             <div class="panel-header mb-1.5">{input_component.label}</div>
             <svelte:component
-              this={inputComponentMap[input_component.name].component}
+              this={input_component_map[input_component.name].component}
               {...input_component}
               {theme}
               value={input_values[i]}
@@ -79,7 +93,7 @@
             <div class="component" key={i}>
               <div class="panel-header mb-1.5">{output_component.label}</div>
               <svelte:component
-                this={outputComponentMap[output_component.name].component}
+                this={output_component_map[output_component.name].component}
                 {...output_component}
                 {theme}
                 value={output_values[i]}
@@ -97,7 +111,7 @@
     </div>
   </div>
   {#if examples}
-    <ExampleSet {examples} {input_components} {theme} />
+    <ExampleSet {examples} {input_components} {theme} {examples_dir} {setExampleId} />
   {/if}
 </div>
 

@@ -1,5 +1,5 @@
 <script>
-  import { inputComponentMap } from "./components/directory.js";
+  import { input_component_map } from "./components/directory.js";
 
   export let examples,
     examples_dir,
@@ -22,11 +22,14 @@
     {#if gallery}
       <div class="examples-gallery flex gap-2 flex-wrap">
         {#each selected_examples as example_row, i}
-          <td class="cursor-pointer p-2 rounded bg-gray-50 dark:bg-gray-700 transition">
+          <td
+            class="cursor-pointer p-2 rounded bg-gray-50 dark:bg-gray-700 transition"
+          >
             <svelte:component
-              this={inputComponentMap[input_components[0].name].example}
+              this={input_component_map[input_components[0].name].example}
               {theme}
               value={example_row[0]}
+              {examples_dir}
             />
           </td>
         {/each}
@@ -55,9 +58,10 @@
               {#each example_row as example_cell, j}
                 <td class="py-2 px-4">
                   <svelte:component
-                    this={inputComponentMap[input_components[j].name].example}
+                    this={input_component_map[input_components[j].name].example}
                     {theme}
                     value={example_cell}
+                    {examples_dir}
                   />
                 </td>
               {/each}
@@ -70,27 +74,26 @@
 </div>
 
 <style lang="postcss">
-    .examples[theme="default"] {
-        .examples-holder:not(.gallery) {
-            @apply shadow;
-            .examples-table {
-                @apply rounded dark:bg-gray-700;
-                thead {
-                    @apply border-gray-300 dark:border-gray-600;
-                }
-                tbody tr:hover {
-                    @apply bg-yellow-500 dark:bg-red-700 text-white;
-                }
-            }
+  .examples[theme="default"] {
+    .examples-holder:not(.gallery) {
+      @apply shadow;
+      .examples-table {
+        @apply rounded dark:bg-gray-700;
+        thead {
+          @apply border-gray-300 dark:border-gray-600;
         }
-        .examples-holder .examples-gallery {
-            tbody td {
-                @apply shadow;
-            }
-            tbody td:hover {
-                @apply bg-yellow-500 text-white;
-            }
+        tbody tr:hover {
+          @apply bg-yellow-500 dark:bg-red-700 text-white;
         }
+      }
     }
-
+    .examples-holder .examples-gallery {
+      tbody td {
+        @apply shadow;
+      }
+      tbody td:hover {
+        @apply bg-yellow-500 text-white;
+      }
+    }
+  }
 </style>
