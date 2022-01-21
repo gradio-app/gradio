@@ -354,9 +354,9 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
 
             # Generate the row corresponding to the flagged sample
             csv_data = []
-            for i, input in enumerate(interface.input_components):
+            for i, component in enumerate(interface.input_components):
                 label = interface.config["input_components"][i]["label"]
-                filepath = input.save_flagged(
+                filepath = component.save_flagged(
                     self.dataset_dir, label, input_data[i], None
                 )
                 csv_data.append(filepath)
@@ -364,10 +364,10 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
                     csv_data.append(
                         "{}/resolve/main/{}".format(self.path_to_dataset_repo, filepath)
                     )
-            for i, output in enumerate(interface.output_components):
+            for i, component in enumerate(interface.output_components):
                 label = interface.config["output_components"][i]["label"]
                 filepath = (
-                    output.save_flagged(self.dataset_dir, label, output_data[i], None)
+                    component.save_flagged(self.dataset_dir, label, output_data[i], None)
                     if output_data[i] is not None
                     else ""
                 )
