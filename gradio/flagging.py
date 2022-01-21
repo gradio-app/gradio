@@ -324,13 +324,9 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             # Generate the headers and dataset_infos
             if is_new:
                 headers = []
-                for i, component in enumerate(
-                    interface.input_components + interface.output_components
-                ):
-                    component_label = (
-                        interface.config["input_components"]
-                        + interface.config["output_components"]
-                    )[i]["label"]
+                
+                for i, component in enumerate(interface.input_components):
+                    component_label = interface.config["input_components"][i]["label"] or "Input_{}".format(i)
                     headers.append(component_label)
                     infos["flagged"]["features"][component_label] = {
                         "dtype": "string",
@@ -344,18 +340,36 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
                                     component_label + " file"
                                 ] = {"_type": _type}
                                 break
+
+                for i, component in enumerate(interface.output_components):
+                    component_label = interface.config["output_components"][i]["label"] or "Output_{}".format(i)
+                    headers.append(component_label)
+                    infos["flagged"]["features"][component_label] = {
+                        "dtype": "string",
+                        "_type": "Value",
+                    }
+                    if isinstance(component, tuple(file_preview_types)):
+                        headers.append(component_label + " file")
+                        for _component, _type in file_preview_types.items():
+                            if isinstance(component, _component):
+                                infos["flagged"]["features"][
+                                    component_label + " file"
+                                ] = {"_type": _type}
+                                break
+
                 if interface.flagging_options is not None:
                     headers.append("flag")
                     infos["flagged"]["features"]["flag"] = {
                         "dtype": "string",
                         "_type": "Value",
                     }
+
                 writer.writerow(headers)
 
             # Generate the row corresponding to the flagged sample
             csv_data = []
             for i, component in enumerate(interface.input_components):
-                label = interface.config["input_components"][i]["label"]
+                label = interface.config["input_components"][i]["label"] or "Input_{}".format(i)
                 filepath = component.save_flagged(
                     self.dataset_dir, label, input_data[i], None
                 )
@@ -365,7 +379,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
                         "{}/resolve/main/{}".format(self.path_to_dataset_repo, filepath)
                     )
             for i, component in enumerate(interface.output_components):
-                label = interface.config["output_components"][i]["label"]
+                label = interface.config["output_components"][i]["label"] or "Output_{}".format(i)
                 filepath = (
                     component.save_flagged(self.dataset_dir, label, output_data[i], None)
                     if output_data[i] is not None
