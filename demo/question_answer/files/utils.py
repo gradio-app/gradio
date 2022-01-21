@@ -16,13 +16,15 @@ class SquadExample(object):
     For examples without an answer, the start and end position are -1.
     """
 
-    def __init__(self,
-                 qas_id,
-                 question_text,
-                 doc_tokens,
-                 orig_answer_text=None,
-                 start_position=None,
-                 end_position=None):
+    def __init__(
+        self,
+        qas_id,
+        question_text,
+        doc_tokens,
+        orig_answer_text=None,
+        start_position=None,
+        end_position=None,
+    ):
         self.qas_id = qas_id
         self.question_text = question_text
         self.doc_tokens = doc_tokens
@@ -36,8 +38,7 @@ class SquadExample(object):
     def __repr__(self):
         s = ""
         s += "qas_id: %s" % (self.qas_id)
-        s += ", question_text: %s" % (
-            self.question_text)
+        s += ", question_text: %s" % (self.question_text)
         s += ", doc_tokens: [%s]" % (" ".join(self.doc_tokens))
         if self.start_position:
             s += ", start_position: %d" % (self.start_position)
@@ -45,22 +46,25 @@ class SquadExample(object):
             s += ", end_position: %d" % (self.end_position)
         return s
 
+
 class InputFeatures(object):
     """A single set of features of data."""
 
-    def __init__(self,
-                 unique_id,
-                 example_index,
-                 doc_span_index,
-                 tokens,
-                 token_to_orig_map,
-                 token_is_max_context,
-                 input_ids,
-                 input_mask,
-                 segment_ids,
-                 paragraph_len,
-                 start_position=None,
-                 end_position=None,):
+    def __init__(
+        self,
+        unique_id,
+        example_index,
+        doc_span_index,
+        tokens,
+        token_to_orig_map,
+        token_is_max_context,
+        input_ids,
+        input_mask,
+        segment_ids,
+        paragraph_len,
+        start_position=None,
+        end_position=None,
+    ):
         self.unique_id = unique_id
         self.example_index = example_index
         self.doc_span_index = doc_span_index
@@ -73,6 +77,7 @@ class InputFeatures(object):
         self.paragraph_len = paragraph_len
         self.start_position = start_position
         self.end_position = end_position
+
 
 def input_to_squad_example(passage, question):
     """Convert input passage and question into a SquadExample."""
@@ -109,9 +114,11 @@ def input_to_squad_example(passage, question):
         doc_tokens=doc_tokens,
         orig_answer_text=orig_answer_text,
         start_position=start_position,
-        end_position=end_position)
-                
+        end_position=end_position,
+    )
+
     return example
+
 
 def _check_is_max_context(doc_spans, cur_span_index, position):
     """Check if this is the 'max context' doc span for the token."""
@@ -149,12 +156,23 @@ def _check_is_max_context(doc_spans, cur_span_index, position):
 
     return cur_span_index == best_span_index
 
-def squad_examples_to_features(example, tokenizer, max_seq_length,
-                                 doc_stride, max_query_length,cls_token_at_end=False,
-                                 cls_token='[CLS]', sep_token='[SEP]', pad_token=0,
-                                 sequence_a_segment_id=0, sequence_b_segment_id=1,
-                                 cls_token_segment_id=0, pad_token_segment_id=0,
-                                 mask_padding_with_zero=True):
+
+def squad_examples_to_features(
+    example,
+    tokenizer,
+    max_seq_length,
+    doc_stride,
+    max_query_length,
+    cls_token_at_end=False,
+    cls_token="[CLS]",
+    sep_token="[SEP]",
+    pad_token=0,
+    sequence_a_segment_id=0,
+    sequence_b_segment_id=1,
+    cls_token_segment_id=0,
+    pad_token_segment_id=0,
+    mask_padding_with_zero=True,
+):
     """Loads a data file into a list of `InputBatch`s."""
 
     unique_id = 1000000000
@@ -188,7 +206,8 @@ def squad_examples_to_features(example, tokenizer, max_seq_length,
     # To deal with this we do a sliding window approach, where we take chunks
     # of the up to our max length with a stride of `doc_stride`.
     _DocSpan = collections.namedtuple(  # pylint: disable=invalid-name
-        "DocSpan", ["start", "length"])
+        "DocSpan", ["start", "length"]
+    )
     doc_spans = []
     start_offset = 0
     while start_offset < len(all_doc_tokens):
@@ -225,8 +244,9 @@ def squad_examples_to_features(example, tokenizer, max_seq_length,
             split_token_index = doc_span.start + i
             token_to_orig_map[len(tokens)] = tok_to_orig_index[split_token_index]
 
-            is_max_context = _check_is_max_context(doc_spans, doc_span_index,
-                                                    split_token_index)
+            is_max_context = _check_is_max_context(
+                doc_spans, doc_span_index, split_token_index
+            )
             token_is_max_context[len(tokens)] = is_max_context
             tokens.append(all_doc_tokens[split_token_index])
             segment_ids.append(sequence_b_segment_id)
@@ -273,13 +293,17 @@ def squad_examples_to_features(example, tokenizer, max_seq_length,
                 segment_ids=segment_ids,
                 paragraph_len=paragraph_len,
                 start_position=start_position,
-                end_position=end_position))
+                end_position=end_position,
+            )
+        )
         unique_id += 1
 
     return features
 
+
 def to_list(tensor):
     return tensor.detach().cpu().tolist()
+
 
 def _get_best_indexes(logits, n_best_size):
     """Get the n-best logits from a list."""
@@ -292,7 +316,11 @@ def _get_best_indexes(logits, n_best_size):
         best_indexes.append(index_and_score[i][0])
     return best_indexes
 
-RawResult = collections.namedtuple("RawResult",["unique_id", "start_logits", "end_logits"])
+
+RawResult = collections.namedtuple(
+    "RawResult", ["unique_id", "start_logits", "end_logits"]
+)
+
 
 def get_final_text(pred_text, orig_text, do_lower_case, verbose_logging=False):
     """Project the tokenized prediction back to the original text."""
@@ -376,8 +404,9 @@ def get_final_text(pred_text, orig_text, do_lower_case, verbose_logging=False):
     if orig_end_position is None:
         return orig_text
 
-    output_text = orig_text[orig_start_position:(orig_end_position + 1)]
+    output_text = orig_text[orig_start_position : (orig_end_position + 1)]
     return output_text
+
 
 def _compute_softmax(scores):
     """Compute softmax probability over raw logits."""
@@ -401,17 +430,22 @@ def _compute_softmax(scores):
         probs.append(score / total_sum)
     return probs
 
-def get_answer(example, features, all_results, n_best_size,
-                max_answer_length, do_lower_case):
+
+def get_answer(
+    example, features, all_results, n_best_size, max_answer_length, do_lower_case
+):
     example_index_to_features = collections.defaultdict(list)
     for feature in features:
         example_index_to_features[feature.example_index].append(feature)
-    
+
     unique_id_to_result = {}
     for result in all_results:
         unique_id_to_result[result.unique_id] = result
-    
-    _PrelimPrediction = collections.namedtuple( "PrelimPrediction",["feature_index", "start_index", "end_index", "start_logit", "end_logit"])
+
+    _PrelimPrediction = collections.namedtuple(
+        "PrelimPrediction",
+        ["feature_index", "start_index", "end_index", "start_logit", "end_logit"],
+    )
 
     example_index = 0
     features = example_index_to_features[example_index]
@@ -448,10 +482,16 @@ def get_answer(example, features, all_results, n_best_size,
                         start_index=start_index,
                         end_index=end_index,
                         start_logit=result.start_logits[start_index],
-                        end_logit=result.end_logits[end_index]))
-    prelim_predictions = sorted(prelim_predictions,key=lambda x: (x.start_logit + x.end_logit),reverse=True)
-    _NbestPrediction = collections.namedtuple("NbestPrediction",
-                        ["text", "start_logit", "end_logit","start_index","end_index"])
+                        end_logit=result.end_logits[end_index],
+                    )
+                )
+    prelim_predictions = sorted(
+        prelim_predictions, key=lambda x: (x.start_logit + x.end_logit), reverse=True
+    )
+    _NbestPrediction = collections.namedtuple(
+        "NbestPrediction",
+        ["text", "start_logit", "end_logit", "start_index", "end_index"],
+    )
     seen_predictions = {}
     nbest = []
     for pred in prelim_predictions:
@@ -461,10 +501,10 @@ def get_answer(example, features, all_results, n_best_size,
         orig_doc_start = -1
         orig_doc_end = -1
         if pred.start_index > 0:  # this is a non-null prediction
-            tok_tokens = feature.tokens[pred.start_index:(pred.end_index + 1)]
+            tok_tokens = feature.tokens[pred.start_index : (pred.end_index + 1)]
             orig_doc_start = feature.token_to_orig_map[pred.start_index]
             orig_doc_end = feature.token_to_orig_map[pred.end_index]
-            orig_tokens = example.doc_tokens[orig_doc_start:(orig_doc_end + 1)]
+            orig_tokens = example.doc_tokens[orig_doc_start : (orig_doc_end + 1)]
             tok_text = " ".join(tok_tokens)
 
             # De-tokenize WordPieces that have been split off.
@@ -476,7 +516,7 @@ def get_answer(example, features, all_results, n_best_size,
             tok_text = " ".join(tok_text.split())
             orig_text = " ".join(orig_tokens)
 
-            final_text = get_final_text(tok_text, orig_text,do_lower_case)
+            final_text = get_final_text(tok_text, orig_text, do_lower_case)
             if final_text in seen_predictions:
                 continue
 
@@ -491,11 +531,20 @@ def get_answer(example, features, all_results, n_best_size,
                 start_logit=pred.start_logit,
                 end_logit=pred.end_logit,
                 start_index=orig_doc_start,
-                end_index=orig_doc_end))
+                end_index=orig_doc_end,
+            )
+        )
 
     if not nbest:
-        nbest.append(_NbestPrediction(text="empty", start_logit=0.0, end_logit=0.0,start_index=-1,
-                end_index=-1))
+        nbest.append(
+            _NbestPrediction(
+                text="empty",
+                start_logit=0.0,
+                end_logit=0.0,
+                start_index=-1,
+                end_index=-1,
+            )
+        )
 
     assert len(nbest) >= 1
 
@@ -504,11 +553,12 @@ def get_answer(example, features, all_results, n_best_size,
         total_scores.append(entry.start_logit + entry.end_logit)
 
     probs = _compute_softmax(total_scores)
-    
-    answer = {"answer" : nbest[0].text,
-               "start" : nbest[0].start_index,
-               "end" : nbest[0].end_index,
-               "confidence" : probs[0],
-               "document" : example.doc_tokens
-             }
+
+    answer = {
+        "answer": nbest[0].text,
+        "start": nbest[0].start_index,
+        "end": nbest[0].end_index,
+        "confidence": probs[0],
+        "document": example.doc_tokens,
+    }
     return answer

@@ -1,6 +1,7 @@
 import re
-from os.path import join, exists, getmtime
-from jinja2 import Environment, BaseLoader, TemplateNotFound
+from os.path import exists, getmtime, join
+
+from jinja2 import BaseLoader, Environment, TemplateNotFound
 
 README_TEMPLATE = "readme_template.md"
 GETTING_STARTED_TEMPLATE = "getting_started.md"
@@ -15,11 +16,16 @@ code, demos = {}, {}
 for code_src in code_tags:
     with open(join("demo", code_src, "run.py")) as code_file:
         python_code = code_file.read()
-        python_code = python_code.replace('if __name__ == "__main__":\n    iface.launch()', "iface.launch()")
+        python_code = python_code.replace(
+            'if __name__ == "__main__":\n    iface.launch()', "iface.launch()"
+        )
         code[code_src] = "```python\n" + python_code + "\n```"
 
 for demo_src in demo_tags:
-    demos[demo_src] = "![" + demo_src + " interface](demo/" + demo_src + "/screenshot.gif)"
+    demos[demo_src] = (
+        "![" + demo_src + " interface](demo/" + demo_src + "/screenshot.gif)"
+    )
+
 
 class GuidesLoader(BaseLoader):
     def __init__(self, path):
@@ -34,7 +40,10 @@ class GuidesLoader(BaseLoader):
             source = f.read()
         return source, path, lambda: mtime == getmtime(path)
 
-readme_template = Environment(loader=GuidesLoader("guides")).get_template(README_TEMPLATE)
+
+readme_template = Environment(loader=GuidesLoader("guides")).get_template(
+    README_TEMPLATE
+)
 output_readme = readme_template.render(code=code, demos=demos)
 
 with open("README.md", "w") as readme_md:
