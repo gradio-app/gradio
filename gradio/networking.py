@@ -81,7 +81,7 @@ def queue_thread(path_to_local_server, test_mode=False):
                 _, hash, input_data, task_type = next_job
                 queueing.start_job(hash)
                 response = requests.post(
-                    path_to_local_server + "/api/" + task_type + "/", 
+                    path_to_local_server + "api/" + task_type + "/", 
                     json=input_data)
                 if response.status_code == 200:
                     queueing.pass_job(hash, response.json())
