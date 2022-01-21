@@ -123,23 +123,6 @@ def static_resource(path: str):
     raise HTTPException(status_code=404, detail="Static file not found")
 
 
-@app.get('/favicon.ico')
-async def favicon():
-    if app.favicon_path:
-        return FileResponse(app.favicon_path)
-    else:
-        try:
-            favicon_path = "media/logo.ico"
-            if app.interface.share:
-                return RedirectResponse(GRADIO_STATIC_ROOT + favicon_path)
-            else:
-                static_file = safe_join(STATIC_PATH_LIB, favicon_path)
-                if static_file is not None:
-                    return FileResponse(static_file)
-        except (RuntimeError, FileNotFoundError):
-            raise HTTPException(status_code=404, detail="Favicon file missing")
-
-
 @app.get("/api", response_class=HTMLResponse)  # Needed for Spaces
 @app.get("/api/", response_class=HTMLResponse)
 def api_docs(request: Request):
@@ -333,10 +316,10 @@ if __name__ == '__main__': # Run directly for debugging: python app.py
     from gradio import Interface    
     app.interface = Interface(lambda x: "Hello, " + x, "text", "text",
                               analytics_enabled=False)
+    app.interface.favicon_path = None
     app.interface.config = app.interface.get_config_file()
     app.interface.show_error = True
     app.interface.flagging_callback.setup(app.interface.flagging_dir)
-    app.favicon_path = None
     app.tokens = {}
     
     auth = True
