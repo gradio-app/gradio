@@ -317,6 +317,7 @@ class Interface:
                           "Please use the `enable_queue` parameter in "
                           "`launch()` instead")
 
+        self.favicon_path = None
         self.height = height
         self.width = width
         if self.height is not None or self.width is not None:
