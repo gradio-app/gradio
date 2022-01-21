@@ -5,7 +5,7 @@
 
   export let headers = ["one", "two", "three"];
   let sort_by = undefined;
-  let id = -1;
+  let id = 0;
   let editing = false;
   let selected = false;
 
@@ -13,9 +13,9 @@
 
   export let default_data = [
     ["Frank", 32, "Male"],
-    ["Frank", 32, "Male"],
-    ["Frank", 32, "Male"],
-  ]; //undefined;
+    ["Beatrice", 99, "Female"],
+    ["Simone", 999, "Male"],
+  ];
 
   let data = default_data.map((x) =>
     x.map((n) => {
@@ -49,30 +49,44 @@
     input.focus();
   }
 
-  function handle_keydown(key, i, j, id) {
+  function handle_keydown(event, i, j, id) {
     let is_data;
-    switch (key) {
+    switch (event.key) {
       case "ArrowRight":
+        if (editing) break;
+        event.preventDefault();
         is_data = data[i][j + 1];
         selected = is_data ? is_data.id : selected;
         break;
       case "ArrowLeft":
+        if (editing) break;
+        event.preventDefault();
         is_data = data[i][j - 1];
         selected = is_data ? is_data.id : selected;
         break;
       case "ArrowDown":
+        if (editing) break;
+        event.preventDefault();
         is_data = data[i + 1];
         selected = is_data ? is_data[j].id : selected;
         break;
       case "ArrowUp":
+        if (editing) break;
+        event.preventDefault();
         is_data = data[i - 1];
         selected = is_data ? is_data[j].id : selected;
         break;
       case "Escape":
+        event.preventDefault();
         editing = false;
         break;
       case "Enter":
-        editing = id;
+        event.preventDefault();
+        if (editing === id) {
+          editing = false;
+        } else {
+          editing = id;
+        }
         break;
       default:
         break;
@@ -106,20 +120,43 @@
 
   $: set_focus(editing, "edit");
   $: set_focus(selected, "select");
+
+  let sort_direction;
+  function sort(col) {
+    if (!sort_direction) {
+      sort_direction = "asc";
+    } else if (sort_direction === "asc") {
+      sort_direction = "des";
+    } else if (sort_direction === "des") {
+      sort_direction = "asc";
+    }
+
+    if (sort_direction === "asc") {
+      data = data.sort((a, b) => (a[col].value < b[col].value ? -1 : 1));
+    } else if (sort_direction === "des") {
+      data = data.sort((a, b) => (a[col].value > b[col].value ? -1 : 1));
+    }
+  }
 </script>
 
 <h4 id="title">{label}</h4>
-<div class="shadow overflow-hidden  border-gray-200 rounded-sm">
+<div class="shadow overflow-hidden border-gray-200 rounded-sm relative">
+  <!-- <button class="md:absolute h-10 w-36 right-0 text-xs">+ New Column</button>
+  <button
+    class="absolute h-9 w-full bottom-0 left-0 text-left pl-2 bg-white text-sm"
+    >+ Add New Row</button
+  > -->
   <table
     id="grid"
     role="grid"
     aria-labelledby="title"
-    class="min-w-full divide-y divide-gray-200"
+    class="min-w-full divide-y divide-gray-200 "
   >
     <thead class="bg-gray-50">
       <tr>
-        {#each headers as header}
+        {#each headers as header, i}
           <th
+            on:click={() => sort(i)}
             aria-sort={get_sort_status(header, sort_by)}
             class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
           >
@@ -130,14 +167,13 @@
     ><tbody class="bg-white divide-y divide-gray-200">
       {#each data as row, i}
         <tr>
-          {#each row as { value, id, el }, j}
+          {#each row as { value, id }, j (id)}
             <td
               tabindex="-1"
-              class="p-0 whitespace-nowrap display-block outline-none"
+              class="p-0 whitespace-nowrap display-block outline-none relative "
               on:dblclick={() => start_edit(id)}
-              on:click={({ currentTarget }) => handle_cell_click(id)}
-              on:keydown|preventDefault={({ key }) =>
-                handle_keydown(key, i, j, id)}
+              on:click={() => handle_cell_click(id)}
+              on:keydown={(e) => handle_keydown(e, i, j, id)}
               bind:this={els[id].cell}
               on:blur={({ currentTarget }) =>
                 currentTarget.setAttribute("tabindex", -1)}
@@ -148,20 +184,20 @@
               >
                 {#if editing === id}
                   <input
-                    class="w-full outline-none"
+                    class="w-full outline-none absolute p-0 w-3/4"
                     tabindex="-1"
                     bind:value
                     bind:this={els[id].input}
                     on:blur={({ currentTarget }) =>
                       currentTarget.setAttribute("tabindex", -1)}
                   />
-                {:else}
-                  <span
-                    class=" cursor-default w-full"
-                    tabindex="-1"
-                    role="button">{value}</span
-                  >
                 {/if}
+                <span
+                  class=" cursor-default w-full"
+                  class:opacity-0={editing === id}
+                  tabindex="-1"
+                  role="button">{value}</span
+                >
               </div>
             </td>
           {/each}
