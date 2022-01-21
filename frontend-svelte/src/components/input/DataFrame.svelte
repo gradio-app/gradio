@@ -1,0 +1,172 @@
+<script>
+  import { tick } from "svelte";
+
+  export let label = "Title";
+
+  export let headers = ["one", "two", "three"];
+  let sort_by = undefined;
+  let id = -1;
+  let editing = false;
+  let selected = false;
+
+  let els = {};
+
+  export let default_data = [
+    ["Frank", 32, "Male"],
+    ["Frank", 32, "Male"],
+    ["Frank", 32, "Male"],
+  ]; //undefined;
+
+  let data = default_data.map((x) =>
+    x.map((n) => {
+      const _id = ++id;
+      els[id] = { input: null, cell: null };
+      return { value: n, id: _id };
+    })
+  ) || [
+    Array(headers.length)
+      .fill(0)
+
+      .map((_) => {
+        const _id = ++id;
+        els[id] = { input: null, cell: null };
+
+        return { value: "", id: _id };
+      }),
+  ];
+
+  function get_sort_status(name, sort) {
+    if (!sort) return "none";
+    if (sort[0] === name) {
+      return sort[1];
+    }
+  }
+
+  async function start_edit(id) {
+    editing = id;
+    await tick();
+    const { input } = els[id];
+    input.focus();
+  }
+
+  function handle_keydown(key, i, j, id) {
+    let is_data;
+    switch (key) {
+      case "ArrowRight":
+        is_data = data[i][j + 1];
+        selected = is_data ? is_data.id : selected;
+        break;
+      case "ArrowLeft":
+        is_data = data[i][j - 1];
+        selected = is_data ? is_data.id : selected;
+        break;
+      case "ArrowDown":
+        is_data = data[i + 1];
+        selected = is_data ? is_data[j].id : selected;
+        break;
+      case "ArrowUp":
+        is_data = data[i - 1];
+        selected = is_data ? is_data[j].id : selected;
+        break;
+      case "Escape":
+        editing = false;
+        break;
+      case "Enter":
+        editing = id;
+        break;
+      default:
+        break;
+    }
+  }
+
+  async function handle_cell_click(id) {
+    editing = false;
+    selected = id;
+  }
+
+  async function set_focus(id, type) {
+    if (type === "edit" && typeof id == "number") {
+      await tick();
+      els[id].input.focus();
+    }
+
+    if (type === "edit" && typeof id == "boolean") {
+      let cell = els[selected]?.cell;
+      await tick();
+      cell?.focus();
+    }
+
+    if (type === "select" && typeof id == "number") {
+      const { cell } = els[id];
+      cell.setAttribute("tabindex", 0);
+      await tick();
+      els[id].cell.focus();
+    }
+  }
+
+  $: set_focus(editing, "edit");
+  $: set_focus(selected, "select");
+</script>
+
+<h4 id="title">{label}</h4>
+<div class="shadow overflow-hidden  border-gray-200 rounded-sm">
+  <table
+    id="grid"
+    role="grid"
+    aria-labelledby="title"
+    class="min-w-full divide-y divide-gray-200"
+  >
+    <thead class="bg-gray-50">
+      <tr>
+        {#each headers as header}
+          <th
+            aria-sort={get_sort_status(header, sort_by)}
+            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+          >
+            <span tabindex="-1" role="button">{header}</span>
+          </th>
+        {/each}
+      </tr></thead
+    ><tbody class="bg-white divide-y divide-gray-200">
+      {#each data as row, i}
+        <tr>
+          {#each row as { value, id, el }, j}
+            <td
+              tabindex="-1"
+              class="p-0 whitespace-nowrap display-block outline-none"
+              on:dblclick={() => start_edit(id)}
+              on:click={({ currentTarget }) => handle_cell_click(id)}
+              on:keydown|preventDefault={({ key }) =>
+                handle_keydown(key, i, j, id)}
+              bind:this={els[id].cell}
+              on:blur={({ currentTarget }) =>
+                currentTarget.setAttribute("tabindex", -1)}
+            >
+              <div
+                class:border-gray-600={selected === id}
+                class="px-5 py-3 border-transparent border-[0.125rem]"
+              >
+                {#if editing === id}
+                  <input
+                    class="w-full outline-none"
+                    tabindex="-1"
+                    bind:value
+                    bind:this={els[id].input}
+                    on:blur={({ currentTarget }) =>
+                      currentTarget.setAttribute("tabindex", -1)}
+                  />
+                {:else}
+                  <span
+                    class=" cursor-default w-full"
+                    tabindex="-1"
+                    role="button">{value}</span
+                  >
+                {/if}
+              </div>
+            </td>
+          {/each}
+        </tr>
+      {/each}
+    </tbody>
+  </table>
+</div>
