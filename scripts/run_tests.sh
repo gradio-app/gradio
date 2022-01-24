@@ -1,1 +1,1 @@
-python -m unittest
+time python -m unittest
