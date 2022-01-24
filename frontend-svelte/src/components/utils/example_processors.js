@@ -1,4 +1,4 @@
-loadAsFile = async (x, examples_dir) => {
+export const loadAsFile = async (x, examples_dir) => {
   return {
     name: x,
     data: examples_dir + "/" + x,
@@ -6,7 +6,7 @@ loadAsFile = async (x, examples_dir) => {
   };
 }
 
-loadAsData = async (x, examples_dir) => {
+export const loadAsData = async (x, examples_dir) => {
   let file_url = examples_dir + "/" + x;
   let response = await fetch(file_url);
   if (!response.ok) {

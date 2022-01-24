@@ -14,18 +14,22 @@
       Click to Upload
     </Upload>
   {:else}
-    <div class="file-preview w-full flex flex-col justify-center items-center relative">
+    <div
+      class="file-preview w-full flex flex-col justify-center items-center relative"
+    >
       <ModifyUpload clear={() => setValue(null)} {theme} />
       <div class="file-name text-4xl p-6 break-all">{value.name}</div>
-      <div class="file-size text-2xl p-2">
-        {prettyBytes(value.size)}
-      </div>
+      {#if value.size}
+        <div class="file-size text-2xl p-2">
+          {prettyBytes(value.size)}
+        </div>
+      {/if}
     </div>
   {/if}
 </div>
 
 <style lang="postcss">
   .input-file[theme="default"] .file-preview {
-      @apply h-60;
+    @apply h-60;
   }
 </style>

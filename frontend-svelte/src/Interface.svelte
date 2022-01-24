@@ -26,17 +26,19 @@
   const setValues = (index, value) => {
     input_values[index] = value;
   };
-  const setExampleId = (example_id) => {
-    input_components.forEach((input_component, i) => {
-      console.log(input_component_map[input_component.name].component)
-      const preprocess_fn = input_component_map[input_component.name].preprocess_example_fn;
-      if (preprocess_fn) {
-        input_values[i] = preprocess_fn(examples[example_id][i]);
+  const setExampleId = async (example_id) => {
+    input_components.forEach(async (input_component, i) => {
+      const config = input_component_map[input_component.name].config;
+      if (config && config.process_example) {
+        input_values[i] = await config.process_example(
+          examples[example_id][i],
+          examples_dir
+        );
       } else {
         input_values[i] = examples[example_id][i];
       }
     });
-  }
+  };
   const submit = () => {
     fn("predict", { data: input_values }).then((output) => {
       output_values = output["data"];
@@ -111,7 +113,13 @@
     </div>
   </div>
   {#if examples}
-    <ExampleSet {examples} {input_components} {theme} {examples_dir} {setExampleId} />
+    <ExampleSet
+      {examples}
+      {input_components}
+      {theme}
+      {examples_dir}
+      {setExampleId}
+    />
   {/if}
 </div>
 
