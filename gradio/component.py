@@ -1,5 +1,6 @@
 import os
 import shutil
+from typing import Any, Dict
 
 from gradio import processing_utils
 
@@ -32,7 +33,13 @@ class Component:
         """
         return {}
 
-    def save_flagged(self, dir, label, data, encryption_key):
+    def save_flagged(
+        self,
+        dir: str, 
+        label: str, 
+        data: Any, 
+        encryption_key: bool
+    ) -> Any:
         """
         Saves flagged data from component
         """
@@ -44,7 +51,16 @@ class Component:
         """
         return data
 
-    def save_flagged_file(self, dir, label, data, encryption_key):
+    def save_flagged_file(
+        self, 
+        dir: str, 
+        label: str, 
+        data: Any, 
+        encryption_key: bool
+    ) -> str:
+        """
+        Saved flagged data (e.g. image or audio) as a file and returns filepath 
+        """
         if data is None:
             return None
         file = processing_utils.decode_base64_to_file(data, encryption_key)
@@ -64,7 +80,15 @@ class Component:
         shutil.move(old_file_name, os.path.join(dir, label, new_file_name))
         return label + "/" + new_file_name
 
-    def restore_flagged_file(self, dir, file, encryption_key):
+    def restore_flagged_file(
+        self, 
+        dir: str, 
+        file: str, 
+        encryption_key: bool,
+    ) -> Dict[str, Any]:
+        """
+        Loads flagged data from file and returns it
+        """
         data = processing_utils.encode_file_to_base64(
             os.path.join(dir, file), encryption_key=encryption_key
         )
