@@ -19,6 +19,7 @@ def encrypt(
     IV = Random.new().read(AES.block_size)  # generate IV
     encryptor = AES.new(key, AES.MODE_CBC, IV)
     padding = AES.block_size - len(source) % AES.block_size  # calculate needed padding
+    print(type(source), type(padding))
     source += bytes([padding]) * padding  # Python 2.x: source += chr(padding) * padding
     data = IV + encryptor.encrypt(source)  # store the IV at the beginning and encrypt
     return data
