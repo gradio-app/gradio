@@ -260,9 +260,8 @@ async def interpret(request: Request):
 @app.post("/api/queue/push/", dependencies=[Depends(login_check)])
 async def queue_push(request: Request):
     body = await request.json()
-    data = body["data"]
     action = body["action"]
-    job_hash, queue_position = queueing.push({"data": data}, action)
+    job_hash, queue_position = queueing.push(body, action)
     return {"hash": job_hash, "queue_position": queue_position}
 
 
