@@ -1,6 +1,5 @@
 import tempfile
 import unittest
-import unittest.mock as mock
 
 import gradio as gr
 from gradio import flagging
