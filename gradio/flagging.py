@@ -109,9 +109,8 @@ class SimpleCSVLogger(FlaggingCallback):
 class CSVLogger(FlaggingCallback):
     """
     The default implementation of the FlaggingCallback abstract class.
-    Logs the input and output data to a CSV file.
+    Logs the input and output data to a CSV file. Supports encryption.
     """
-
     def setup(self, flagging_dir: str):
         self.flagging_dir = flagging_dir
         os.makedirs(flagging_dir, exist_ok=True)

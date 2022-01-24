@@ -6,7 +6,7 @@ import gradio as gr
 from gradio import flagging
 
 
-class TestFlagging(unittest.TestCase):
+class TestDefaultFlagging(unittest.TestCase):
     def test_default_flagging_handler(self):
         with tempfile.TemporaryDirectory() as tmpdirname:
             io = gr.Interface(lambda x: x, "text", "text", flagging_dir=tmpdirname)
@@ -17,6 +17,8 @@ class TestFlagging(unittest.TestCase):
             self.assertEqual(row_count, 2)  # 3 rows written including header
         io.close()
 
+
+class TestSimpleFlagging(unittest.TestCase):
     def test_simple_csv_flagging_handler(self):
         with tempfile.TemporaryDirectory() as tmpdirname:
             io = gr.Interface(
@@ -33,6 +35,6 @@ class TestFlagging(unittest.TestCase):
             self.assertEqual(row_count, 1)  # no header
         io.close()
 
-
+        
 if __name__ == "__main__":
     unittest.main()
