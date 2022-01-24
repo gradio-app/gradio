@@ -4,7 +4,7 @@
   export let label = "Title";
 
   export let headers = ["one", "two", "three"];
-  let sort_by = undefined;
+  // let sort_by = undefined;
   let id = 0;
   let editing = false;
   let selected = false;
@@ -122,20 +122,29 @@
   $: set_focus(selected, "select");
 
   let sort_direction;
-  function sort(col) {
-    if (!sort_direction) {
-      sort_direction = "asc";
-    } else if (sort_direction === "asc") {
-      sort_direction = "des";
-    } else if (sort_direction === "des") {
-      sort_direction = "asc";
-    }
+  let sort_by;
 
-    if (sort_direction === "asc") {
+  function sort(col, dir) {
+    if (dir === "asc") {
       data = data.sort((a, b) => (a[col].value < b[col].value ? -1 : 1));
-    } else if (sort_direction === "des") {
+    } else if (dir === "des") {
       data = data.sort((a, b) => (a[col].value > b[col].value ? -1 : 1));
     }
+  }
+
+  function handle_sort(col) {
+    if (typeof sort_by !== "number" || sort_by !== col) {
+      sort_direction = "asc";
+      sort_by = col;
+    } else {
+      if (sort_direction === "asc") {
+        sort_direction = "des";
+      } else if (sort_direction === "des") {
+        sort_direction = "asc";
+      }
+    }
+
+    sort(col, sort_direction);
   }
 </script>
 
@@ -155,10 +164,13 @@
     <thead class="bg-gray-50">
       <tr>
         {#each headers as header, i}
+          <!-- {@debug i, sort_by} -->
           <th
-            on:click={() => sort(i)}
+            on:click={() => handle_sort(i)}
             aria-sort={get_sort_status(header, sort_by)}
-            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            class="after:absolute after:opacity-0 after:content-['▲'] after:ml-2 relative px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            class:sorted={sort_by === i}
+            class:des={sort_by === i && sort_direction === "des"}
           >
             <span tabindex="-1" role="button">{header}</span>
           </th>
@@ -206,3 +218,13 @@
     </tbody>
   </table>
 </div>
+
+<style>
+  .sorted::after {
+    opacity: 1;
+  }
+
+  .des::after {
+    transform: rotate(180deg);
+  }
+</style>
