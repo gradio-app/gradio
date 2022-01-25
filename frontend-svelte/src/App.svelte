@@ -10,6 +10,8 @@
   export let examples;
   export let fn;
   export let root;
+  export let allow_flagging;
+  export let allow_interpretation;
 </script>
 
 <div
@@ -29,7 +31,16 @@
       {#if description}
         <p class="description pb-4">{description}</p>
       {/if}
-      <Interface {input_components} {output_components} {examples} {theme} {fn} {root} />
+      <Interface
+        {input_components}
+        {output_components}
+        {examples}
+        {theme}
+        {fn}
+        {root}
+        {allow_flagging}
+        {allow_interpretation}
+      />
     </div>
   </div>
 </div>

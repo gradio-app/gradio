@@ -5,7 +5,7 @@
 
 <div class="input-radio flex flex-wrap gap-2" {theme}>
   {#each choices as choice, i}
-    <div
+    <button
       class="radio-item py-2 px-3 font-semibold rounded cursor-pointer flex items-center gap-2"
       class:selected={value === choice}
       key={i}
@@ -13,7 +13,7 @@
     >
       <div class="radio-circle w-4 h-4 rounded-full box-border" />
       {choice}
-    </div>
+    </button>
   {/each}
 </div>
 

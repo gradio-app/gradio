@@ -18,13 +18,13 @@
     {/if}
   {:else}
     <div
-      class="video-preview w-full h-60 object-contain flex justify-center items-center bg-gray-200 dark:bg-gray-600 relative"
+      class="video-preview w-full h-60 flex justify-center items-center bg-gray-200 dark:bg-gray-600 relative"
     >
       <ModifyUpload clear={() => setValue(null)} {theme} />
       {#if playable(value.name)}
         <!-- svelte-ignore a11y-media-has-caption -->
         <video
-          class="video_preview"
+          class="video_preview w-full h-full object-contain"
           controls
           playsInline
           preload

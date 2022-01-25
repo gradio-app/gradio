@@ -22,8 +22,12 @@
             {i}: <svelte:self
               value={node}
               depth={depth + 1}
+              key={i}
               {theme}
-            />,
+            /><!--
+            -->{#if i !== value.length - 1}<!--
+            -->,
+            {/if}
           </div>
         {/each}
       </div>
@@ -41,20 +45,29 @@
     {:else}
       &#123;
       <div class="json-children pl-4">
-        {#each Object.entries(value) as node}
+        {#each Object.entries(value) as node, i}
           <div class="json-item">
             {node[0]}: <svelte:self
               value={node[1]}
               depth={depth + 1}
+              key={i}
               {theme}
-            />,
+            /><!--
+            -->{#if i !== Object.keys(value).length - 1}<!--
+            -->,
+            {/if}
           </div>
         {/each}
       </div>
       &#125;
     {/if}
   {:else if value === null}
-    <div class="json-item inline text-gray-500 dark:text-gray-400" item-type="null">null</div>
+    <div
+      class="json-item inline text-gray-500 dark:text-gray-400"
+      item-type="null"
+    >
+      null
+    </div>
   {:else if typeof value === "string"}
     <div class="json-item inline text-green-500" item-type="string">
       "{value}"

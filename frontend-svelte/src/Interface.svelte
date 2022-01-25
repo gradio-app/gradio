@@ -12,8 +12,11 @@
   export let fn;
   export let examples;
   export let root;
+  export let allow_flagging;
+  export let allow_interpretation;
 
   let examples_dir = root + "file/";
+  let interpret_mode = false;
 
   const default_inputs = input_components.map((component) =>
     "default" in component ? component.default : null
@@ -22,15 +25,17 @@
 
   let input_values = deepCopy(default_inputs);
   let output_values = deepCopy(default_outputs);
+  let interpretation_values = [];
 
   const setValues = (index, value) => {
     input_values[index] = value;
   };
   const setExampleId = async (example_id) => {
     input_components.forEach(async (input_component, i) => {
-      const config = input_component_map[input_component.name].config;
-      if (config && config.process_example) {
-        input_values[i] = await config.process_example(
+      const process_example =
+        input_component_map[input_component.name].process_example;
+      if (process_example !== undefined) {
+        input_values[i] = await process_example(
           examples[example_id][i],
           examples_dir
         );
@@ -47,6 +52,23 @@
   const clear = () => {
     input_values = deepCopy(default_inputs);
     output_values = deepCopy(default_outputs);
+    interpret_mode = false;
+  };
+  const flag = () => {
+    fn("flag", {
+      data: {
+        input_data: input_values,
+        output_data: output_values,
+      },
+    });
+  };
+  const interpret = () => {
+    fn("interpret", {
+      data: input_values,
+    }).then((output) => {
+      interpret_mode = true;
+      interpretation_values = output.interpretation_scores;
+    });
   };
 </script>
 
@@ -61,10 +83,13 @@
           <div class="component" key={i}>
             <div class="panel-header mb-1.5">{input_component.label}</div>
             <svelte:component
-              this={input_component_map[input_component.name].component}
+              this={input_component_map[input_component.name][
+                interpret_mode ? "interpretation" : "component"
+              ]}
               {...input_component}
               {theme}
               value={input_values[i]}
+              interpretation={interpret_mode ? interpretation_values[i] : null}
               setValue={setValues.bind(this, i)}
             />
           </div>
@@ -105,10 +130,22 @@
         {/each}
       </div>
       <div class="panel-buttons flex gap-4 my-4">
-        <button
-          class="panel-button flag bg-gray-50 dark:bg-gray-700 flex-1 p-3 rounded transition font-semibold focus:outline-none"
-          >Flag</button
-        >
+        {#if allow_interpretation !== "never"}
+          <button
+            class="panel-button flag bg-gray-50 dark:bg-gray-700 flex-1 p-3 rounded transition font-semibold focus:outline-none"
+            on:click={interpret}
+          >
+            Interpret
+          </button>
+        {/if}
+        {#if allow_flagging !== "never"}
+          <button
+            class="panel-button flag bg-gray-50 dark:bg-gray-700 flex-1 p-3 rounded transition font-semibold focus:outline-none"
+            on:click={flag}
+          >
+            Flag
+          </button>
+        {/if}
       </div>
     </div>
   </div>

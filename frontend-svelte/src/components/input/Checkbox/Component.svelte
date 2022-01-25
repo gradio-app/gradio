@@ -8,7 +8,7 @@
   on:click={() => setValue(!value)}
 >
   <div class="checkbox-item py-2 px-3 rounded cursor-pointer" class:selected={value}>
-    <div class="checkbox w-4 h-4 bg-white flex items-center justify-center">
+    <button class="checkbox w-4 h-4 bg-white flex items-center justify-center">
       <svg class="check opacity-0 h-3 w-4" viewBox="-10 -10 20 20">
         <line
           x1="-7.5"
@@ -29,7 +29,7 @@
           stroke-linecap="round"
         />
       </svg>
-    </div>
+    </button>
   </div>
 </div>
 
