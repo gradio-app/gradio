@@ -2,8 +2,14 @@
   import { tick } from "svelte";
 
   export let label = "Title";
-  export let headers = ["one", "two", "three"];
+  export let headers = [];
+  export let values = [
+    ["Frank", 32, "Male"],
+    ["Beatrice", 99, "Female"],
+    ["Simone", 999, "Male"],
+  ];
   export let setValue;
+  export let editable = true;
 
   let id = 0;
   let editing = false;
@@ -11,22 +17,24 @@
   let els = {};
 
   function make_headers(_h) {
-    return _h.map((h) => {
-      const _id = ++id;
-      els[_id] = { cell: null, input: null };
-      return { id: _id, value: h };
-    });
+    if (_h.length === 0) {
+      return values[0].map((_, i) => {
+        const _id = ++id;
+        els[_id] = { cell: null, input: null };
+        return { id: _id, value: i + 1 };
+      });
+    } else {
+      return _h.map((h) => {
+        const _id = ++id;
+        els[_id] = { cell: null, input: null };
+        return { id: _id, value: h };
+      });
+    }
   }
 
   let _headers = make_headers(headers);
 
-  export let default_data = [
-    ["Frank", 32, "Male"],
-    ["Beatrice", 99, "Female"],
-    ["Simone", 999, "Male"],
-  ];
-
-  let data = default_data.map((x) =>
+  let data = values.map((x) =>
     x.map((n) => {
       const _id = ++id;
       els[id] = { input: null, cell: null };
@@ -54,6 +62,7 @@
   }
 
   async function start_edit(id) {
+    if (!editable) return;
     editing = id;
     await tick();
     const { input } = els[id];
@@ -88,10 +97,12 @@
         selected = is_data ? is_data[j].id : selected;
         break;
       case "Escape":
+        if (!editable) break;
         event.preventDefault();
         editing = false;
         break;
       case "Enter":
+        if (!editable) break;
         event.preventDefault();
         if (editing === id) {
           editing = false;
@@ -161,6 +172,7 @@
   let header_edit;
 
   async function edit_header(_id, select) {
+    if (!editable) return;
     header_edit = _id;
     await tick();
     els[_id].input.focus();
@@ -169,6 +181,8 @@
   }
 
   function end_header_edit(event) {
+    if (!editable) return;
+
     switch (event.key) {
       case "Escape":
         event.preventDefault();
@@ -321,18 +335,20 @@
     </tbody>
   </table>
 </div>
-<div class="flex justify-end ">
-  <button
-    on:click={add_col}
-    class="hover:bg-gray-100 dark:hover:bg-gray-600 shadow  py-1 px-3 rounded transition  focus:outline-none m-2 mr-0"
-    >New Column</button
-  >
-  <button
-    on:click={add_row}
-    class="bg-yellow-500 hover:bg-yellow-400 dark:bg-red-700 dark:hover:bg-red-600 text-white shadow py-1 px-3 rounded transition focus:outline-none m-2 mr-0"
-    >New Row</button
-  >
-</div>
+{#if editable}
+  <div class="flex justify-end ">
+    <button
+      on:click={add_col}
+      class="hover:bg-gray-100 dark:hover:bg-gray-600 shadow  py-1 px-3 rounded transition  focus:outline-none m-2 mr-0"
+      >New Column</button
+    >
+    <button
+      on:click={add_row}
+      class="bg-yellow-500 hover:bg-yellow-400 dark:bg-red-700 dark:hover:bg-red-600 text-white shadow py-1 px-3 rounded transition focus:outline-none m-2 mr-0"
+      >New Row</button
+    >
+  </div>
+{/if}
 
 <style>
   .sorted::after {
