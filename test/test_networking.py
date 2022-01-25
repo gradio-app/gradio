@@ -9,7 +9,7 @@ import warnings
 import aiohttp
 from fastapi.testclient import TestClient
 
-from gradio import Interface, flagging, networking, reset_all, utils
+from gradio import Interface, flagging, networking, reset_all, queueing
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -68,15 +68,15 @@ class TestRoutes(unittest.TestCase):
         self.assertTrue("durations" in output)
         self.assertTrue("avg_durations" in output)
 
-    # def test_queue_push_route(self):
-    #     networking.queue.push = mock.MagicMock(return_value=(None, None))
-    #     response = self.client.post('/api/queue/push/', json={"data": "test", "action": "test"})
-    #     self.assertEqual(response.status_code, 200)
+    def test_queue_push_route(self):
+        queueing.push = mock.MagicMock(return_value=(None, None))
+        response = self.client.post('/api/queue/push/', json={"data": "test", "action": "test"})
+        self.assertEqual(response.status_code, 200)
 
-    # def test_queue_push_route(self):
-    #     networking.queue.get_status = mock.MagicMock(return_value=(None, None))
-    #     response = self.client.post('/api/queue/status/', json={"hash": "test"})
-    #     self.assertEqual(response.status_code, 200)
+    def test_queue_push_route(self):
+        queueing.get_status = mock.MagicMock(return_value=(None, None))
+        response = self.client.post('/api/queue/status/', json={"hash": "test"})
+        self.assertEqual(response.status_code, 200)
 
     def tearDown(self) -> None:
         self.io.close()
