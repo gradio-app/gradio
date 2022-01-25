@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import inspect
+import io
 import os
 import posixpath
 import secrets
@@ -20,7 +21,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from starlette.responses import RedirectResponse
 
-from gradio import queueing, utils
+from gradio import encryptor, queueing, utils
 from gradio.process_examples import load_from_cache, process_example
 
 STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "templates/")
@@ -124,6 +125,21 @@ def static_resource(path: str):
     if static_file is not None:
         return FileResponse(static_file)
     raise HTTPException(status_code=404, detail="Static file not found")
+
+
+@app.get("/file/{path:path}", dependencies=[Depends(login_check)])
+def file(path):
+    if app.interface.encrypt and isinstance(
+        app.interface.examples, str) and path.startswith(
+            app.interface.examples):
+        with open(safe_join(app.cwd, path), "rb") as encrypted_file:
+            encrypted_data = encrypted_file.read()
+        file_data = encryptor.decrypt(
+            app.interface.encryption_key, encrypted_data)
+        return FileResponse(
+            io.BytesIO(file_data), attachment_filename=os.path.basename(path))
+    else:
+        return FileResponse(safe_join(app.cwd, path))
 
 
 @app.get("/api", response_class=HTMLResponse)  # Needed for Spaces
@@ -244,9 +260,8 @@ async def interpret(request: Request):
 @app.post("/api/queue/push/", dependencies=[Depends(login_check)])
 async def queue_push(request: Request):
     body = await request.json()
-    data = body["data"]
     action = body["action"]
-    job_hash, queue_position = queueing.push({"data": data}, action)
+    job_hash, queue_position = queueing.push(body, action)
     return {"hash": job_hash, "queue_position": queue_position}
 
 

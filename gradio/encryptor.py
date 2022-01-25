@@ -3,12 +3,19 @@ from Crypto.Cipher import AES
 from Crypto.Hash import SHA256
 
 
-def get_key(password):
+def get_key(
+    password: str
+) -> bytes:
+    """Generates an encryption key based on the password provided."""
     key = SHA256.new(password.encode()).digest()
     return key
 
 
-def encrypt(key, source):
+def encrypt(
+    key: bytes, 
+    source: bytes
+) -> bytes:
+    """Encrypts source data using the provided encryption key"""
     IV = Random.new().read(AES.block_size)  # generate IV
     encryptor = AES.new(key, AES.MODE_CBC, IV)
     padding = AES.block_size - len(source) % AES.block_size  # calculate needed padding
@@ -17,7 +24,10 @@ def encrypt(key, source):
     return data
 
 
-def decrypt(key, source):
+def decrypt(
+    key: bytes, 
+    source: bytes
+) -> bytes:
     IV = source[: AES.block_size]  # extract the IV from the beginning
     decryptor = AES.new(key, AES.MODE_CBC, IV)
     data = decryptor.decrypt(source[AES.block_size :])  # decrypt
