@@ -1,3 +1,4 @@
+from difflib import SequenceMatcher
 import json
 import os
 import tempfile
@@ -567,12 +568,13 @@ class TestAudio(unittest.TestCase):
 
     def test_tokenize(self):
         x_wav = gr.test_data.BASE64_AUDIO
-        audio_input = gr.inputs.Audio()      
+        audio_input = gr.inputs.Audio() 
         tokens, _, _ = audio_input.tokenize(x_wav)
         self.assertEquals(len(tokens), audio_input.interpretation_segments)
         x_new = audio_input.get_masked_inputs(tokens, [[1]*len(tokens)])[0]
-        self.assertEquals(x_new, x_wav)
- 
+        similarity = SequenceMatcher(a=x_wav["data"], b=x_new).ratio()
+        self.assertGreater(similarity, 0.9)
+
 
 class TestFile(unittest.TestCase):
     def test_as_component(self):
