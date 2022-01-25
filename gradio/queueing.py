@@ -1,9 +1,35 @@
 import json
 import os
 import sqlite3
+import time
 import uuid
 
+import requests
+
 DB_FILE = "gradio_queue.db"
+
+
+def queue_thread(path_to_local_server, test_mode=False):
+    while True:
+        try:
+            next_job = pop()
+            if next_job is not None:
+                _, hash, input_data, task_type = next_job
+                start_job(hash)
+                response = requests.post(
+                    path_to_local_server + "api/" + task_type + "/", json=input_data
+                )
+                if response.status_code == 200:
+                    pass_job(hash, response.json())
+                else:
+                    fail_job(hash, response.text)
+            else:
+                time.sleep(1)
+        except Exception as e:
+            time.sleep(1)
+            pass
+        if test_mode:
+            break
 
 
 def generate_hash():

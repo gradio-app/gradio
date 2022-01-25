@@ -109,26 +109,5 @@ class TestURLs(unittest.TestCase):
         self.assertTrue(res)
 
 
-# class TestQueuing(unittest.TestCase):
-#     def test_queueing(self):
-#         # mock queue methods and post method
-#         networking.queue.pop = mock.MagicMock(return_value=(None, None, None, 'predict'))
-#         networking.queue.pass_job = mock.MagicMock(return_value=(None, None))
-#         networking.queue.fail_job = mock.MagicMock(return_value=(None, None))
-#         networking.queue.start_job = mock.MagicMock(return_value=None)
-#         requests.post = mock.MagicMock(return_value=mock.MagicMock(status_code=200))
-#         # execute queue action successfully
-#         networking.queue_thread('test_path', test_mode=True)
-#         networking.queue.pass_job.assert_called_once()
-#         # execute queue action unsuccessfully
-#         requests.post = mock.MagicMock(return_value=mock.MagicMock(status_code=500))
-#         networking.queue_thread('test_path', test_mode=True)
-#         networking.queue.fail_job.assert_called_once()
-#         # no more things on the queue so methods shouldn't be called any more times
-#         networking.queue.pop = mock.MagicMock(return_value=None)
-#         networking.queue.pass_job.assert_called_once()
-#         networking.queue.fail_job.assert_called_once()
-
-
 if __name__ == "__main__":
     unittest.main()

@@ -73,29 +73,6 @@ def get_first_available_port(initial: int, final: int) -> int:
     )
 
 
-def queue_thread(path_to_local_server, test_mode=False):
-    while True:
-        try:
-            next_job = queueing.pop()
-            if next_job is not None:
-                _, hash, input_data, task_type = next_job
-                queueing.start_job(hash)
-                response = requests.post(
-                    path_to_local_server + "api/" + task_type + "/", json=input_data
-                )
-                if response.status_code == 200:
-                    queueing.pass_job(hash, response.json())
-                else:
-                    queueing.fail_job(hash, response.text)
-            else:
-                time.sleep(1)
-        except Exception as e:
-            time.sleep(1)
-            pass
-        if test_mode:
-            break
-
-
 def start_server(
     interface: Interface,
     server_name: Optional[str] = None,
@@ -147,7 +124,7 @@ def start_server(
             raise ValueError("Cannot queue with encryption or authentication enabled.")
         queueing.init()
         app.queue_thread = threading.Thread(
-            target=queue_thread, args=(path_to_local_server,)
+            target=queueing.queue_thread, args=(path_to_local_server,)
         )
         app.queue_thread.start()
     if interface.save_to is not None:  # Used for selenium tests
