@@ -19,7 +19,7 @@ import requests
 import uvicorn
 
 from gradio import queueing
-from gradio.app import app
+from gradio.routes import app
 from gradio.tunneling import create_tunnel
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
