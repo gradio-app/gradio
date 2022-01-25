@@ -1,10 +1,18 @@
 <script>
   import Upload from "../../utils/Upload.svelte";
   import ModifyUpload from "../../utils/ModifyUpload.svelte";
+  import { afterUpdate } from "svelte";
 
   export let value, setValue, theme;
   export let source;
   let recording = false;
+  let audioPlayer;
+
+  afterUpdate(() => {
+    if (value.data !== audioPlayer.currentSrc) { // invalidate cached audio source
+      audioPlayer.src = value.data;
+    }
+  })
 
   const startRecording = () => {};
   const stopRecording = () => {};
@@ -27,8 +35,8 @@
     {/if}
   {:else}
     <ModifyUpload clear={() => setValue(null)} absolute={false} {theme} />
-    <audio class="w-full" controls>
-      <source src={value.data} />
+    <audio class="w-full" controls bind:this={audioPlayer}>
+      <source src={value.data}  />
     </audio>
   {/if}
 </div>

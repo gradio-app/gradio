@@ -1049,8 +1049,11 @@ class Audio(InputComponent):
         return self
 
     def tokenize(self, x):
-        file_obj = processing_utils.decode_base64_to_file(x)
-        sample_rate, data = processing_utils.audio_from_file(x)
+        if x.get("is_example"):
+            sample_rate, data = processing_utils.audio_from_file(x["name"])
+        else:
+            file_obj = processing_utils.decode_base64_to_file(x["data"])
+            sample_rate, data = processing_utils.audio_from_file(file_obj.name)
         leave_one_out_sets = []
         tokens = []
         masks = []
@@ -1076,6 +1079,8 @@ class Audio(InputComponent):
             processing_utils.audio_to_file(sample_rate, token, file.name)
             token_data = processing_utils.encode_file_to_base64(file.name)
             tokens.append(token_data)
+        tokens = [{"name": "token.wav", "data": token} for token in tokens]
+        leave_one_out_sets = [{"name": "loo.wav", "data": loo_set} for loo_set in leave_one_out_sets]
         return tokens, leave_one_out_sets, masks
 
     def get_masked_inputs(self, tokens, binary_mask_matrix):

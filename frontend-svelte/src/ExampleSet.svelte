@@ -16,14 +16,16 @@
 <div class="examples" {theme}>
   <h4 class="text-lg font-semibold my-2">Examples</h4>
   <div
-    class="examples-holder overflow-x-auto mt-4 inline-block max-w-full"
-    {gallery}
+    class="examples-holder mt-4 inline-block max-w-full"
+    class:gallery
+    class:overflow-x-auto={!gallery}
   >
     {#if gallery}
       <div class="examples-gallery flex gap-2 flex-wrap">
         {#each selected_examples as example_row, i}
-          <td
-            class="cursor-pointer p-2 rounded bg-gray-50 dark:bg-gray-700 transition"
+          <button
+            class="example cursor-pointer p-2 rounded bg-gray-50 dark:bg-gray-700 transition"
+            on:click={() => setExampleId(i)}
           >
             <svelte:component
               this={input_component_map[input_components[0].name].example}
@@ -31,7 +33,7 @@
               value={example_row[0]}
               {examples_dir}
             />
-          </td>
+          </button>
         {/each}
       </div>
     {:else}
@@ -88,10 +90,10 @@
       }
     }
     .examples-holder .examples-gallery {
-      tbody td {
+      .example {
         @apply shadow;
       }
-      tbody td:hover {
+      .example:hover {
         @apply bg-yellow-500 text-white;
       }
     }

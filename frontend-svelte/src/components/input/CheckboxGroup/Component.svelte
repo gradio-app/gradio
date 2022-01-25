@@ -14,7 +14,7 @@
 
 <div class="input-checkbox-group flex flex-wrap gap-2" {theme}>
   {#each choices as choice, i}
-    <div
+    <button
       class="checkbox-item py-2 px-3 font-semibold rounded cursor-pointer flex items-center gap-2"
       class:selected={value.includes(choice)}
       key={i}
@@ -43,7 +43,7 @@
         </svg>
       </div>
       {choice}
-    </div>
+    </button>
   {/each}
 </div>
 

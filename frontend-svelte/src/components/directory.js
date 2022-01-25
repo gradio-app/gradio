@@ -1,71 +1,56 @@
-import InputAudio from "./input/Audio/Component.svelte";
-import InputAudioExample from "./input/Audio/Example.svelte";
-import InputAudioConfig from "./input/Audio/config.js";
-import InputCheckbox from "./input/Checkbox/Component.svelte";
-import InputCheckboxExample from "./input/Checkbox/Example.svelte";
-import InputCheckboxGroup from "./input/CheckboxGroup/Component.svelte";
-import InputCheckboxGroupExample from "./input/CheckboxGroup/Example.svelte";
-import InputDropdown from "./input/Dropdown/Component.svelte";
-import InputDropdownExample from "./input/Dropdown/Example.svelte";
-import InputFile from "./input/File/Component.svelte";
-import InputFileExample from "./input/File/Example.svelte";
-import InputFileConfig from "./input/File/config.js";
-import InputImage from "./input/Image/Component.svelte";
-import InputImageExample from "./input/Image/Example.svelte";
-import InputImageConfig from "./input/Image/config.js";
-import InputNumber from "./input/Number/Component.svelte";
-import InputNumberExample from "./input/Number/Example.svelte";
-import InputRadio from "./input/Radio/Component.svelte";
-import InputRadioExample from "./input/Radio/Example.svelte";
-import InputSlider from "./input/Slider/Component.svelte";
-import InputSliderExample from "./input/Slider/Example.svelte";
-import InputTextbox from "./input/Textbox/Component.svelte";
-import InputTextboxExample from "./input/Textbox/Example.svelte";
-import InputVideo from "./input/Video/Component.svelte";
-import InputVideoExample from "./input/Video/Example.svelte";
-import InputVideoConfig from "./input/Video/config.js";
+import InputAudio from "./input/Audio/config.js";
+import InputCheckbox from "./input/Checkbox/config.js";
+import InputCheckboxGroup from "./input/CheckboxGroup/config.js";
+import InputDropdown from "./input/Dropdown/config.js";
+import InputFile from "./input/File/config.js";
+import InputImage from "./input/Image/config.js";
+import InputNumber from "./input/Number/config.js";
+import InputRadio from "./input/Radio/config.js";
+import InputSlider from "./input/Slider/config.js";
+import InputTextbox from "./input/Textbox/config.js";
+import InputVideo from "./input/Video/config.js";
 
-import OutputAudio from "./output/Audio/Component.svelte";
-import OutputCarousel from "./output/Carousel/Component.svelte";
-import OutputDataframe from "./output/Dataframe/Component.svelte";
-import OutputFile from "./output/File/Component.svelte";
-import OutputHighlightedText from "./output/HighlightedText/Component.svelte";
-import OutputHtml from "./output/Html/Component.svelte";
-import OutputImage from "./output/Image/Component.svelte";
-import OutputJson from "./output/Json/Component.svelte";
-import OutputLabel from "./output/Label/Component.svelte";
-import OutputTextbox from "./output/Textbox/Component.svelte";
-import OutputVideo from "./output/Video/Component.svelte";
+import OutputAudio from "./output/Audio/config.js";
+import OutputCarousel from "./output/Carousel/config.js";
+import OutputDataframe from "./output/Dataframe/config.js";
+import OutputFile from "./output/File/config.js";
+import OutputHighlightedText from "./output/HighlightedText/config.js";
+import OutputHtml from "./output/Html/config.js";
+import OutputImage from "./output/Image/config.js";
+import OutputJson from "./output/Json/config.js";
+import OutputLabel from "./output/Label/config.js";
+import OutputTextbox from "./output/Textbox/config.js";
+import OutputVideo from "./output/Video/config.js";
 
 import Dummy from "./Dummy.svelte"
 
 export const input_component_map = {
-    "audio": { component: InputAudio, example: InputAudioExample, config: InputVideoConfig },
-    "checkbox": { component: InputCheckbox, example: InputCheckboxExample },
-    "checkboxgroup": { component: InputCheckboxGroup, example: InputCheckboxGroupExample },
-    "dataframe": { component: Dummy, example: Dummy },
-    "dropdown": { component: InputDropdown, example: InputDropdownExample },
-    "file": { component: InputFile, example: InputFileExample, config: InputFileConfig },
-    "image": { component: InputImage, example: InputImageExample, config: InputImageConfig },
-    "number": { component: InputNumber, example: InputNumberExample },
-    "radio": { component: InputRadio, example: InputRadioExample },
-    "slider": { component: InputSlider, example: InputSliderExample },
-    "textbox": { component: InputTextbox, example: InputTextboxExample },
-    "timeseries": { component: Dummy, example: Dummy },
-    "video": { component: InputVideo, example: InputVideoExample, config: InputVideoConfig },
+    "audio": InputAudio,
+    "checkbox": InputCheckbox,
+    "checkboxgroup": InputCheckboxGroup,
+    "dataframe": {"component": Dummy, "example": Dummy},
+    "dropdown": InputDropdown,
+    "file": InputFile,
+    "image": InputImage,
+    "number": InputNumber,
+    "radio": InputRadio,
+    "slider": InputSlider,
+    "textbox": InputTextbox,
+    "timeseries": {"component": Dummy, "example": Dummy},
+    "video": InputVideo,
 }
 
 export const output_component_map = {
-    "audio": { component: OutputAudio, example: Dummy },
-    "carousel": { component: OutputCarousel, example: Dummy },
-    "dataframe": { component: OutputDataframe, example: Dummy },
-    "file": { component: OutputFile, example: Dummy },
-    "highlightedtext": { component: OutputHighlightedText, example: Dummy },
-    "html": { component: OutputHtml, example: Dummy },
-    "image": { component: OutputImage, example: Dummy },
-    "json": { component: OutputJson, example: Dummy },
-    "label": { component: OutputLabel, example: Dummy },
-    "textbox": { component: OutputTextbox, example: Dummy },
-    "timeseries": { component: Dummy, example: Dummy },
-    "video": { component: OutputVideo, example: Dummy },
+    "audio": OutputAudio,
+    "carousel": OutputCarousel,
+    "dataframe": OutputDataframe,
+    "file": OutputFile,
+    "highlightedtext": OutputHighlightedText,
+    "html": OutputHtml,
+    "image": OutputImage,
+    "json": OutputJson,
+    "label": OutputLabel,
+    "textbox": OutputTextbox,
+    "timeseries": {"component": Dummy, "example": Dummy},
+    "video": OutputVideo,
 }

@@ -60,3 +60,29 @@ export const prettyBytes = (bytes) => {
   return bytes.toFixed(1) + " " + unit;
 }
 
+export const getSaliencyColor = (value) => {
+  var color = null;
+  if (value < 0) {
+    color = [52, 152, 219];
+  } else {
+    color = [231, 76, 60];
+  }
+  return colorToString(interpolate(Math.abs(value), [255, 255, 255], color));
+}
+
+const interpolate = (val, rgb1, rgb2) => {
+  if (val > 1) {
+    val = 1;
+  }
+  val = Math.sqrt(val);
+  var rgb = [0, 0, 0];
+  var i;
+  for (i = 0; i < 3; i++) {
+    rgb[i] = Math.round(rgb1[i] * (1.0 - val) + rgb2[i] * val);
+  }
+  return rgb;
+}
+
+const colorToString = (rgb) => {
+  return "rgb(" + rgb[0] + ", " + rgb[1] + ", " + rgb[2] + ")";
+}
