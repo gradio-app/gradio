@@ -25,14 +25,6 @@ def decode_base64_to_image(encoding):
     return Image.open(BytesIO(base64.b64decode(image_encoded)))
 
 
-def get_url_or_file_as_bytes(path):
-    try:
-        return requests.get(path).content
-    except (requests.exceptions.MissingSchema, requests.exceptions.InvalidSchema):
-        with open(path, "rb") as f:
-            return f.read()
-
-
 def encode_url_or_file_to_base64(path):
     try:
         requests.get(path)
