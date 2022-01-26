@@ -2,6 +2,7 @@ import json
 import os
 import sqlite3
 import time
+from typing import Dict, Tuple
 import uuid
 
 import requests
@@ -9,7 +10,9 @@ import requests
 DB_FILE = "gradio_queue.db"
 
 
-def queue_thread(path_to_local_server, test_mode=False):
+def queue_thread(
+    path_to_local_server: str
+) -> None:
     while True:
         try:
             next_job = pop()
@@ -28,11 +31,9 @@ def queue_thread(path_to_local_server, test_mode=False):
         except Exception as e:
             time.sleep(1)
             pass
-        if test_mode:
-            break
 
 
-def generate_hash():
+def generate_hash() -> str:
     generate = True
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
@@ -50,7 +51,7 @@ def generate_hash():
     return hash
 
 
-def init():
+def init() -> None:
     if os.path.exists(DB_FILE):
         os.remove(DB_FILE)
     conn = sqlite3.connect(DB_FILE)
@@ -77,12 +78,12 @@ def init():
     conn.commit()
 
 
-def close():
+def close() -> None:
     if os.path.exists(DB_FILE):
         os.remove(DB_FILE)
 
 
-def pop():
+def pop() -> Tuple[int, str, Dict, str]:
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
     c.execute("BEGIN EXCLUSIVE")
@@ -107,7 +108,10 @@ def pop():
     return result[0], result[1], json.loads(result[2]), result[3]
 
 
-def push(input_data, action):
+def push(
+    input_data: Dict, 
+    action: str
+) -> Tuple[str, int]:
     input_data = json.dumps(input_data)
     hash = generate_hash()
     conn = sqlite3.connect(DB_FILE)
@@ -130,20 +134,19 @@ def push(input_data, action):
     if queue_position is None:
         conn.commit()
         raise ValueError("Hash not found.")
-    elif queue_position == 0:
-        c.execute(
-            """
-            SELECT COUNT(*) FROM jobs WHERE status = "PENDING";
+    c.execute(
         """
-        )
-        result = c.fetchone()
-        if result[0] == 0:
-            queue_position -= 1
+        SELECT COUNT(*) FROM jobs WHERE status = "PENDING";
+    """
+    )
+    result = c.fetchone()
+    if not(result[0] == 0):
+        queue_position += 1
     conn.commit()
     return hash, queue_position
 
 
-def get_status(hash):
+def get_status(hash: str) -> Tuple[str, int]:
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
     c.execute(
@@ -195,20 +198,19 @@ def get_status(hash):
         )
         result = c.fetchone()
         queue_position = result[0]
-        if queue_position == 0:
-            c.execute(
-                """
-                SELECT COUNT(*) FROM jobs WHERE status = "PENDING";
+        c.execute(
             """
-            )
-            result = c.fetchone()
-            if result[0] == 0:
-                queue_position -= 1
+            SELECT COUNT(*) FROM jobs WHERE status = "PENDING";
+        """
+        )
+        result = c.fetchone()
+        if not(result[0] == 0):
+            queue_position += 1
         conn.commit()
         return "QUEUED", queue_position
 
 
-def start_job(hash):
+def start_job(hash: str) -> None:
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
     c.execute("BEGIN EXCLUSIVE")
@@ -227,7 +229,10 @@ def start_job(hash):
     conn.commit()
 
 
-def fail_job(hash, error_message):
+def fail_job(
+    hash: str, 
+    error_message: str
+) -> None:
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
     c.execute(
@@ -242,7 +247,10 @@ def fail_job(hash, error_message):
     conn.commit()
 
 
-def pass_job(hash, output_data):
+def pass_job(
+    hash: str, 
+    output_data: Dict
+) -> None:
     output_data = json.dumps(output_data)
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
