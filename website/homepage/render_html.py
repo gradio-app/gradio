@@ -1,3 +1,4 @@
+import html
 import inspect
 import json
 import os
@@ -71,6 +72,7 @@ def render_guides():
             .replace("```csv\n", "<pre><code class='lang-bash'>")
             .replace("```", "</code></pre>")
         )
+        
         for code_src in code_tags:
             with open(os.path.join(GRADIO_DEMO_DIR, code_src, "run.py")) as code_file:
                 python_code = code_file.read().replace(
@@ -79,17 +81,26 @@ def render_guides():
                 code[code_src] = (
                     "<pre><code class='lang-python'>" + python_code + "</code></pre>"
                 )
+                
+
         for demo_name in demo_names:
             demos[demo_name] = "<div id='interface_" + demo_name + "'></div>"
         guide_template = Template(guide_text)
         guide_output = guide_template.render(code=code, demos=demos)
+                    
+        # Escape HTML tags inside python code blocks so they show up properly
+        pattern = "<code class='lang-python'>\n?((.|\n)*?)\n?</code>"
+        guide_output = re.sub(pattern, lambda x: "<code class='lang-python'>" + html.escape(x.group(1)) + "</code>", guide_output)
+        
         output_html = markdown2.markdown(guide_output)
         output_html = output_html.replace("<a ", "<a target='blank' ")
+        
         for match in re.findall(r"<h3>([A-Za-z0-9 ]*)<\/h3>", output_html):
             output_html = output_html.replace(
                 f"<h3>{match}</h3>",
                 f"<h3 id={match.lower().replace(' ', '_')}>{match}</h3>",
             )
+                                    
         os.makedirs("generated", exist_ok=True)
         guide = guide[:-3]
         os.makedirs(os.path.join("generated", guide), exist_ok=True)
@@ -97,6 +108,7 @@ def render_guides():
             "src/guides_template.html", encoding="utf-8"
         ) as general_template_file:
             general_template = Template(general_template_file.read())
+        print(output_html)
         with open(os.path.join("generated", guide, "index.html"), "w", encoding='utf-8') as generated_template:
             output_html = general_template.render(template_html=output_html, demo_names=demo_names)
             generated_template.write(output_html)
