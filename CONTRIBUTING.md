@@ -8,19 +8,29 @@ Prequisites:
 More than 30 awesome developers have contributed to the `gradio` library, and we'd be thrilled if you would like be the next `gradio` contributor! You can start by forking or cloning the
 repo (https://github.com/gradio-app/gradio.git) and creating your own branch to work from.
 
-Next, to install the local development version of Gradio:
+### To install the local version of Gradio
 
 * Navigate to the repo folder and run
+
+```bash
+bash scripts/install_gradio.sh
+```
+
+### To install the local development version of Gradio
+
+* Navigate to the repo folder and install test requirements
 
 ```bash
 bash scripts/install_test_requirements.sh
 ```
 
-When installing locally, you may also need to build the front end:
+* Build the front end
 
-* Navigate to the `/frontend` subfolder and run `npm install`.
-* Then run `npm run build` (or `npm run build:win` on Windows).
-* Then you can run `npm run start` to start a local development server (on port 3000 by default) that responds to any changes in the frontend
+```bash
+bash scripts/build_frontend.sh
+```
+
+*  You can also run `npm run start` to start a local frontend development server (on port 3000 by default) that responds to any changes in the frontend.
 
 ### Structure of the Repository
 
@@ -35,7 +45,7 @@ It's helpful to know the overall structure of the repository so that you can foc
 
 ### Continuous Integration and Testing
 
-All PRs must pass the continuous integration tests before merging. To test locally, you can run `python -m unittest` from `/` (the directory where you cloned this repo).
+All PRs must pass the continuous integration tests before merging. To test locally, you can run `python -m unittest` from the repo directory.
 
 ## Submitting PRs
 
