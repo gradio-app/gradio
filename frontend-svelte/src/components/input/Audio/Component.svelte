@@ -9,10 +9,11 @@
   let audioPlayer;
 
   afterUpdate(() => {
-    if (value.data !== audioPlayer.currentSrc) { // invalidate cached audio source
+    if (value?.data !== audioPlayer?.currentSrc) {
+      // invalidate cached audio source
       audioPlayer.src = value.data;
     }
-  })
+  });
 
   const startRecording = () => {};
   const stopRecording = () => {};
@@ -36,7 +37,7 @@
   {:else}
     <ModifyUpload clear={() => setValue(null)} absolute={false} {theme} />
     <audio class="w-full" controls bind:this={audioPlayer}>
-      <source src={value.data}  />
+      <source src={value.data} />
     </audio>
   {/if}
 </div>
