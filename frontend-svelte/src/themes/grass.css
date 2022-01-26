@@ -1,32 +1,32 @@
-.gradio_bg[theme="grass"] {
+.gradio-bg[theme="grass"] {
     @apply dark:bg-gray-700;
 }
-.gradio_bg[theme="grass"] .gradio_interface {
-    .component_set {
+.gradio-bg[theme="grass"] .gradio-interface {
+    .component-set {
         @apply bg-gray-50 dark:bg-gray-800 rounded-none;
     }
     .component {
         @apply p-1 transition;
     }
-    .panel_header {
+    .panel-header {
         @apply text-gray-400 dark:text-gray-200 font-semibold;
     }
-    .panel_button {
+    .panel-button {
         @apply rounded-none bg-gray-100 dark:bg-gray-800 shadow;
     }
-    .panel_button.submit {
+    .panel-button.submit {
         @apply bg-green-400 text-white;
     }
     .examples {
-        .examples_table_holder:not(.gallery) {
-            .examples_table {
+        .examples-table-holder:not(.gallery) {
+            .examples-table {
                 @apply dark:bg-gray-800;
                 tbody tr:hover {
                     @apply bg-green-400;
                 }
             }
         }
-        .examples_table_holder.gallery .examples_table {
+        .examples-table-holder.gallery .examples-table {
             tbody td {
                 @apply dark:bg-gray-800;
             }
@@ -37,18 +37,18 @@
     }
 
     /* Input Components */
-    .input_text {
+    .input-text {
         textarea,
         input {
             @apply rounded-none dark:bg-gray-700 dark:text-gray-50 box-border border-4 p-2 border-white dark:border-gray-600 focus:border-green-400 dark:focus:border-green-400;
         }
     }
-    .input_number {
+    .input-number {
         input {
             @apply rounded-none dark:bg-gray-700 dark:text-gray-50 box-border border-4 p-2 border-white dark:border-gray-600 focus:border-green-400 dark:focus:border-green-400;
         }
     }
-    .input_slider {
+    .input-slider {
         .range {
             @apply dark:bg-gray-700 rounded-none;
         }
@@ -62,31 +62,31 @@
             @apply font-semibold text-gray-500 dark:bg-gray-700 dark:text-gray-50;
         }
     }
-    .input_radio {
-        .radio_item {
+    .input-radio {
+        .radio-item {
             @apply bg-gray-100 rounded-none dark:bg-gray-700 dark:text-gray-50;
         }
-        .radio_circle {
+        .radio-circle {
             @apply hidden;
         }
-        .radio_item.selected {
+        .radio-item.selected {
             @apply bg-green-400 text-white shadow;
         }
-        .radio_circle {
+        .radio-circle {
             @apply w-4 h-4 bg-white transition rounded-full box-border;
         }
     }
 
-    .input_checkbox_group,
-    .input_checkbox {
-        .checkbox_item {
+    .input-checkbox-group,
+    .input-checkbox {
+        .checkbox-item {
             @apply bg-gray-100 rounded-none dark:bg-gray-700 dark:text-gray-50;
         }
-        .checkbox_item.selected {
+        .checkbox-item.selected {
             @apply bg-green-400 text-white shadow;
         }
     }
-    .input_checkbox {
+    .input-checkbox {
         .checkbox {
             @apply bg-gray-200;
         }
@@ -94,27 +94,27 @@
             @apply bg-green-500;
         }
     }
-    .input_checkbox_group .checkbox {
+    .input-checkbox-group .checkbox {
         @apply hidden;
     }
 
-    .input_dropdown {
+    .input-dropdown {
         .selector {
             @apply bg-gray-100 rounded-none dark:bg-gray-700 dark:text-gray-50;
         }
-        .dropdown_menu {
+        .dropdown-menu {
             @apply shadow;
         }
-        .dropdown_item {
+        .dropdown-item {
             @apply bg-gray-100 dark:bg-gray-800 hover:bg-green-400 hover:text-gray-50 hover:font-semibold;
         }
-        .dropdown_item:first-child,
-        .dropdown_item:last-child {
+        .dropdown-item:first-child,
+        .dropdown-item:last-child {
             @apply rounded-none;
         }
     }
     /* Components */
-    .output_label {
+    .output-label {
         .confidence {
             @apply bg-gray-300 text-white dark:bg-gray-600 font-semibold;
         }

@@ -1,26 +1,26 @@
-.gradio_bg[theme="default"] .gradio_interface {
-    .component_set { 
+.gradio-bg[theme="default"] .gradio-interface {
+    .component-set { 
         @apply bg-gray-50 dark:bg-gray-700 dark:drop-shadow-xl shadow;
     }
     .component {
         @apply mb-2;
     }
-    .panel_header {
+    .panel-header {
         @apply uppercase text-xs;
     }
-    .panel_button {
+    .panel-button {
         @apply hover:bg-gray-100 dark:hover:bg-gray-600 shadow;
     }
-    .panel_button.disabled {
+    .panel-button.disabled {
         @apply text-gray-400 cursor-not-allowed;
     }
-    .panel_button.submit {
+    .panel-button.submit {
         @apply bg-yellow-500 hover:bg-yellow-400 dark:bg-red-700 dark:hover:bg-red-600 text-white;
     }
     .examples {
-        .examples_table_holder:not(.gallery) {
+        .examples-table-holder:not(.gallery) {
             @apply shadow;
-            .examples_table {
+            .examples-table {
                 @apply rounded dark:bg-gray-700;
                 thead {
                     @apply border-gray-300 dark:border-gray-600;
@@ -30,7 +30,7 @@
                 }
             }
         }
-        .examples_table_holder.gallery .examples_table {
+        .examples-table-holder.gallery .examples-table {
             tbody td {
                 @apply shadow;
             }
@@ -40,68 +40,68 @@
         }
     }
     /* Common Classes */
-    .edit_buttons {
+    .edit-buttons {
         @apply m-1 flex gap-1;
     }
-    .edit_button {
+    .edit-button {
         @apply bg-yellow-500 dark:bg-red-600 rounded shadow;
     }
-    .clear_button {
+    .clear-button {
         @apply bg-gray-50 dark:bg-gray-500 rounded shadow;
     }
-    .upload_zone {
+    .upload-zone {
         @apply transition hover:border-gray-400 hover:text-gray-500 dark:hover:border-gray-300 dark:hover:text-gray-300;
     }
     /* Input Components */
-    .input_text {
+    .input-text {
         input, textarea {
             @apply shadow transition hover:shadow-md dark:bg-gray-800;
         }
     }
-    .input_number {
+    .input-number {
         input {
             @apply shadow transition hover:shadow-md dark:bg-gray-800;
         }
     }
-    .input_radio {
-        .radio_item {
+    .input-radio {
+        .radio-item {
             @apply bg-white dark:bg-gray-800 shadow transition hover:shadow-md;            
         }
-        .radio_circle {
+        .radio-circle {
             @apply bg-gray-50 dark:bg-gray-400 border-4 border-gray-200 dark:border-gray-600;
         }
-        .radio_item.selected {
+        .radio-item.selected {
             @apply  bg-yellow-500 dark:bg-red-600 text-white shadow;
         }
-        .radio_circle {
+        .radio-circle {
             @apply w-4 h-4 bg-white transition rounded-full box-border;
         }
-        .selected .radio_circle {
+        .selected .radio-circle {
             @apply border-yellow-600 dark:border-red-700;
         }
     }
-    .input_image {
+    .input-image {
         .snapshot {
             button {
                 @apply dark:bg-red-600;
             }
         }
     }
-    .input_checkbox_group, .input_checkbox {
-        .checkbox_item {
+    .input-checkbox-group, .input-checkbox {
+        .checkbox-item {
             @apply bg-white dark:bg-gray-800 shadow transition hover:shadow-md;
         }
         .checkbox {
             @apply bg-gray-100 dark:bg-gray-400 transition;
         }
-        .checkbox_item.selected {
+        .checkbox-item.selected {
             @apply bg-yellow-500 dark:bg-red-600 text-white;
         }
         .selected .checkbox {
             @apply bg-yellow-600 dark:bg-red-700;
         }
     }
-    .input_slider {
+    .input-slider {
         .range {
             @apply bg-white dark:bg-gray-800 shadow h-3 transition hover:shadow-md;
         }
@@ -115,18 +115,18 @@
             @apply bg-gray-100 dark:bg-gray-600 font-semibold;
         }
     }
-    .input_dropdown {
+    .input-dropdown {
         .selector  {
             @apply bg-white dark:bg-gray-800 shadow transition hover:shadow-md;
         }
-        .dropdown_menu {
+        .dropdown-menu {
             @apply shadow;
         }
-        .dropdown_item {
+        .dropdown-item {
             @apply bg-white dark:bg-gray-800 hover:bg-yellow-500 dark:hover:bg-red-600 hover:text-gray-50 hover:font-semibold;
         }
     }
-    .input_audio {
+    .input-audio {
         .start, .stop {
             @apply shadow transition hover:shadow-md;
         }
@@ -135,13 +135,13 @@
         }
     }
     /* Output Components */
-    .output_text {
+    .output-text {
         @apply shadow;
     }
-    .output_image {
+    .output-image {
         @apply dark:bg-gray-600;
     }
-    .output_label {
+    .output-label {
         .label {
             @apply text-sm h-5;
         }
@@ -152,7 +152,7 @@
             @apply border-yellow-600 bg-yellow-500 dark:bg-red-600 border-red-700 text-white;
         }
     }
-    .output_highlightedtext {
+    .output-highlightedtext {
         .textfield {
             @apply shadow;
         }

@@ -1,12 +1,12 @@
-@import "custom_preflight.css";
+@import "custom-preflight.css";
 @tailwind components;
 @tailwind utilities;    
 
-.gradio_bg {
+.gradio-bg {
     @apply flex flex-col dark:bg-gray-600;
 }
 
-.gradio_page {
+.gradio-page {
     @apply container mx-auto flex flex-col box-border flex-grow text-gray-700 dark:text-gray-50;
     .title {
         @apply text-center p-4 text-4xl;
@@ -30,7 +30,7 @@
         @apply h-5 inline;
     };
 }
-.gradio_bg[is_embedded="true"] .gradio_page {
+.gradio-bg[is-embedded="true"] .gradio-page {
     @apply rounded border-2 border-gray-100 shadow-lg;
     .footer {
         @apply bg-gray-100 p-4 rounded-b;
@@ -39,9 +39,9 @@
         }
     }
 }
-.gradio_bg[is_embedded="false"] {
+.gradio-bg[is-embedded="false"] {
     @apply min-h-full;
-    .gradio_page {
+    .gradio-page {
         @apply h-full;
         .content {
             @apply flex-grow flex-shrink-0 pt-4 px-4;
@@ -52,14 +52,14 @@
     }
 }
 
-.gradio_interface {
-    .load_status {
+.gradio-interface {
+    .load-status {
         @apply absolute right-2 flex items-center gap-2 text-sm;
     }
-    .load_status img {
+    .load-status img {
         @apply h-5 ml-2 inline-block;
     }
-    .load_status .loading {
+    .load-status .loading {
         @keyframes ld-breath{
             0%{
                 animation-timing-function:cubic-bezier(0.9647,0.2413,-0.0705,0.7911);
@@ -87,17 +87,17 @@
     .panel {
         @apply flex-1;
     }
-    .component_set { 
+    .component-set { 
         @apply p-2 rounded flex flex-col flex-1 gap-2;
         min-height: 36px;
     }
-    .panel_header {
+    .panel-header {
         @apply mb-1.5;
     }
-    .panel_button {
+    .panel-button {
         @apply bg-gray-50 dark:bg-gray-700 flex-1 p-3 rounded transition font-semibold focus:outline-none;
     }
-    .panel_buttons {
+    .panel-buttons {
         @apply flex gap-4 my-4;
     }
     .flag {
@@ -121,10 +121,10 @@
         h4 {
             @apply text-lg font-semibold my-2;
         }
-        .examples_table_holder {
+        .examples-table-holder {
             @apply overflow-x-auto mt-4 inline-block max-w-full;
         }
-        .examples_table_holder:not(.gallery) .examples_table {
+        .examples-table-holder:not(.gallery) .examples-table {
             @apply table-auto p-2 bg-gray-50 dark:bg-gray-600 rounded max-w-full border-collapse;
             tbody tr {
                 @apply cursor-pointer transition;
@@ -140,7 +140,7 @@
                 @apply py-2 px-4;
             }
         }
-        .examples_table_holder.gallery .examples_table {
+        .examples-table-holder.gallery .examples-table {
             @apply block;
             tbody {
                 @apply flex gap-2 flex-wrap ;
@@ -166,23 +166,23 @@
         }    
     }
     /* Common Classes */
-    .upload_zone {
+    .upload-zone {
         @apply border-gray-300 text-gray-400 dark:text-gray-500 dark:border-gray-500 border-8 border-dashed w-full h-full flex justify-center items-center text-3xl text-center cursor-pointer leading-10;
     }
-    .edit_buttons {
+    .edit-buttons {
         @apply z-10 absolute top-0 right-0;
         img {
             @apply h-4 filter dark:invert;
         }
     }
-    .edit_button {
+    .edit-button {
         @apply bg-opacity-30 hover:bg-opacity-100 transition p-1;
     }
-    .clear_button {
+    .clear-button {
         @apply bg-opacity-30 hover:bg-opacity-100 transition p-1;
     }
     /* Input Components */
-    .input_text {
+    .input-text {
         textarea {
             @apply w-full rounded box-border p-2 resize-none focus:outline-none;
         }
@@ -190,30 +190,30 @@
             @apply w-full rounded box-border p-2 focus:outline-none;
         }
         .interpretation {
-            .interpretation_box {
+            .interpretation-box {
                 @apply inline-block whitespace-pre-wrap;
             }
         }
     }
-    .input_number {
+    .input-number {
         input {
             @apply w-full rounded box-border p-2 focus:outline-none;
         }
         .interpretation {
             @apply flex h-6;
-            .interpretation_box {
+            .interpretation-box {
                 @apply flex-grow;
             }
         }
     }
-    .input_image {
+    .input-image {
         @apply w-full h-80 relative;
-        .image_preview_holder {
+        .image-preview-holder {
             @apply w-full h-full flex justify-center items-center bg-gray-200 dark:bg-gray-600 relative;
         }
-        .image_editor {
+        .image-editor {
             @apply fixed w-screen h-screen top-0 left-0 bg-black bg-opacity-50 z-40 flex flex-col justify-center items-center;
-            .image_editor_buttons {
+            .image-editor-buttons {
                 width: 800px;
                 @apply flex justify-end gap-1;
                 button {
@@ -228,7 +228,7 @@
                 height: 12px;
             }
         }
-        .image_preview,
+        .image-preview,
         video {
             @apply w-full h-full object-contain;
         }
@@ -245,21 +245,21 @@
             @apply w-full h-full absolute top-0 left-0 flex justify-center items-center opacity-90 hover:opacity-20 transition;
         }
     }
-    .input_image_example {
+    .input-image-example {
         @apply h-24 max-w-none;
     }
-    .input_radio {
+    .input-radio {
         @apply flex flex-wrap gap-2;
-        .radio_item {
+        .radio-item {
             @apply py-2 px-3 font-semibold rounded cursor-pointer flex items-center gap-2;
         }
-        .radio_circle {
+        .radio-circle {
             @apply w-4 h-4 rounded-full box-border;
         }
     }
-    .input_checkbox_group, .input_checkbox {
+    .input-checkbox-group, .input-checkbox {
         @apply flex flex-wrap gap-2;
-        .checkbox_item {
+        .checkbox-item {
             @apply py-2 px-3 font-semibold rounded cursor-pointer flex items-center gap-2;
         }
         .checkbox {
@@ -280,20 +280,20 @@
         }
         .interpretation {
             @apply flex;
-            .interpretation_box {
+            .interpretation-box {
                 @apply flex-grow h-4 w-4;
             }
-            .interpret_check {
+            .interpret-check {
                 @apply w-full h-full;
             }
-            .interpret_check line {
+            .interpret-check line {
                 stroke: gray;
                 stroke-width: 4;
                 stroke-linecap: round;
             }
         }
     }
-    .input_dropdown {
+    .input-dropdown {
         @apply inline-block relative;
         .dropdown {
             @apply inline-block relative;
@@ -304,29 +304,29 @@
         .caret {
             @apply ml-2 fill-current h-4 w-4;
         }
-        .dropdown_menu_holder {
+        .dropdown-menu-holder {
             @apply absolute hidden pt-1 z-10 bg-none;
         }
-        .dropdown_menu {
+        .dropdown-menu {
             @apply max-h-80 overflow-y-auto; 
         }
-        .dropdown_item:first-child {
+        .dropdown-item:first-child {
             @apply rounded-t;
         }
-        .dropdown_item {
+        .dropdown-item {
             @apply py-2 px-3 block whitespace-nowrap cursor-pointer;
         }
-        .dropdown_item:last-child {
+        .dropdown-item:last-child {
             @apply rounded-b;
         }
-        :hover .dropdown_menu_holder {
+        :hover .dropdown-menu-holder {
             @apply block;
         }
-        .interpretation_box {
+        .interpretation-box {
             @apply p-1;
         }
     }
-    .input_slider {
+    .input-slider {
         @apply text-center;
         .range {
             @apply w-full appearance-none transition rounded h-4;
@@ -341,14 +341,14 @@
         .value {
             @apply inline-block mx-auto mt-1 px-2 py-0.5 rounded;
         }
-        .interpret_range {
+        .interpret-range {
             @apply flex h-6;
             div {
                 @apply flex-grow;
             }
         }
     }
-    .input_audio {
+    .input-audio {
         .audio-react-recorder {
             @apply hidden;
         }
@@ -364,61 +364,61 @@
         audio {
             @apply w-full;
         }
-        .edit_buttons {
+        .edit-buttons {
             @apply static flex justify-end;
         }
-        .interpret_range {
+        .interpret-range {
             @apply flex h-4;
             div {
                 @apply flex-grow h-full;
             }
         }
     }
-    .input_video {
+    .input-video {
         @apply w-full h-80 relative;
-        .video_recorder {
+        .video-recorder {
             @apply w-full h-full bg-black;
         }
-        .record_holder {
+        .record-holder {
             @apply absolute left-1/2 bottom-4 -translate-x-1/2 -translate-y-1/2 text-center;
         }
-        .record_message {
+        .record-message {
             @apply text-white font-bold mb-4;
         }
         .record {
             @apply w-12 h-12 rounded-full bg-red-500 hover:bg-red-600 border-4 border-red-600;
         }
-        .video_preview_holder {
+        .video-preview-holder {
             @apply w-full h-full flex justify-center items-center bg-gray-200;
         }
-        .video_file_holder {
+        .video-file-holder {
             @apply w-full h-full flex justify-center items-center text-6xl p-6 break-all;
         }
-        .video_preview {
+        .video-preview {
             @apply w-full h-full object-contain bg-black;
         }
     }
-    .input_video_example {
-        .video_holder {
+    .input-video-example {
+        .video-holder {
             @apply h-36 object-contain flex justify-center;
         }
-        .video_preview {
+        .video-preview {
             @apply max-w-none;            
         }
     }
-    .input_file {
+    .input-file {
         @apply w-full h-80;
-        .file_preview_holder {
+        .file-preview-holder {
             @apply w-full h-full flex flex-col justify-center items-center relative;
         }
-        .file_name {
+        .file-name {
             @apply text-6xl p-6 break-all;
         }
-        .file_size {
+        .file-size {
             @apply text-2xl p-2;
         }
     }
-    .input_dataframe {
+    .input-dataframe {
         table {
             border-collapse: separate;
             @apply border-b border-r border-gray-300 dark:border-gray-600;
@@ -432,24 +432,24 @@
                 @apply dark:bg-gray-800;
             }
         }
-        .jexcel_contextmenu {
+        .jexcel-contextmenu {
             display: none;
         }
     }
-    .input_timeseries {
+    .input-timeseries {
         @apply w-full h-96;
     }
     /* Output Components */
-    .output_text {
+    .output-text {
         word-break: break-word;
         @apply w-full bg-white dark:bg-gray-800 rounded box-border p-2 whitespace-pre-wrap;
     }
-    .output_label {
-        .output_class, 
-        .output_class_without_confidences {
+    .output-label {
+        .output-class, 
+        .output-class-without-confidences {
             @apply font-bold text-2xl py-6 px-4 flex-grow flex items-center justify-center;
         }
-        .confidence_intervals {
+        .confidence-intervals {
             @apply flex text-xl;
         }
         .labels {
@@ -465,29 +465,29 @@
             @apply flex justify-end overflow-hidden whitespace-nowrap h-7 mb-2 px-1;
         }
     }
-    .output_image {
+    .output-image {
         @apply w-full h-80;
-        .image_preview_holder {
+        .image-preview-holder {
             @apply w-full h-full flex justify-center items-center bg-gray-200 dark:bg-gray-600 relative;
         }
-        .image_preview,
+        .image-preview,
         video {
             @apply w-full h-full object-contain;
         }
     }
-    .output_audio {
+    .output-audio {
         audio {
             @apply w-full;
         }
     }
-    .output_highlightedtext {
-        .category_legend {
+    .output-highlightedtext {
+        .category-legend {
             @apply flex flex-wrap gap-1 mb-2;
             .category-label {
                 @apply px-2 py-1 rounded text-white font-semibold;
             }
         }
-        .color_legend {
+        .color-legend {
             @apply flex px-2 py-1 justify-between rounded mb-3 font-semibold;
             background: -webkit-linear-gradient(to right,#8d83d6,(255,255,255,0),#eb4d4b);
             background: linear-gradient(to right,#8d83d6,rgba(255,255,255,0),#eb4d4b);
@@ -500,36 +500,36 @@
                     @apply dark:text-white;
                 }
             }
-            .inline_label {
+            .inline-label {
                 @apply text-xs text-white ml-0.5 px-0.5 rounded-sm;
             }
         }
     }
-    .output_json {
+    .output-json {
         @apply font-mono font-semibold;
-        .json_node {
+        .json-node {
             @apply inline;
         }
-        .json_node[type="string"] {
+        .json-node[type="string"] {
             @apply text-green-500;
         }
-        .json_node[type="number"] {
+        .json-node[type="number"] {
             @apply text-blue-500;
         }
-        .json_node[type="boolean"] {
+        .json-node[type="boolean"] {
             @apply text-red-500;
         }
-        .json_node[type="null"] {
+        .json-node[type="null"] {
             @apply text-gray-500 dark:text-gray-400;
         }
-        .json_item {
+        .json-item {
             @apply block;
         }
-        .json_children {
+        .json-children {
             @apply block pl-4;
         }
     }
-    .output_keyvalues {
+    .output-keyvalues {
         table {
             @apply bg-white;
             thead {
@@ -541,28 +541,28 @@
             }
         }
     }
-    .output_video {
+    .output-video {
         @apply w-full h-80 object-contain flex justify-center;
         video {
             @apply h-full;
         }
-        .video_file_holder {
+        .video-file-holder {
             @apply w-full h-full flex justify-center items-center text-6xl p-6 break-all;
         }
     }
-    .output_file {
+    .output-file {
         @apply w-full h-80;
-        .file_display {
+        .file-display {
             @apply w-full h-full flex flex-col justify-center items-center relative;
         }
-        .file_name {
+        .file-name {
             @apply text-6xl p-6 break-all;
         }
-        .file_size {
+        .file-size {
             @apply text-2xl p-2;
         }
     }
-    .output_dataframe {
+    .output-dataframe {
         table {
             thead {
                 @apply font-bold border-gray-200 border-b-2;
@@ -588,11 +588,11 @@
             @apply bg-gray-200;
         }
     }
-    .output_carousel {
+    .output-carousel {
         @apply flex flex-col gap-2;
-        .carousel_control {
+        .carousel-control {
             @apply flex gap-4 justify-center items-center my-1;
-            .carousel_index {
+            .carousel-index {
                 min-width: 60px;
                 @apply text-xl text-center font-semibold;
             }

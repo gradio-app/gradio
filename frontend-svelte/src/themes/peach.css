@@ -1,33 +1,33 @@
-.gradio_bg[theme="peach"] {
+.gradio-bg[theme="peach"] {
     @apply bg-gradient-to-r from-red-50 to-yellow-100 dark:from-gray-900 dark:to-gray-800;
 }
-.gradio_bg[theme="peach"] .gradio_interface {
-    .component_set {
+.gradio-bg[theme="peach"] .gradio-interface {
+    .component-set {
         @apply bg-white dark:bg-gray-800 rounded-lg;
     }
     .component {
         @apply p-1 transition;
     }
-    .panel_header {
+    .panel-header {
         @apply text-gray-600 dark:text-gray-200 font-semibold;
     }
-    .panel_button {
+    .panel-button {
         @apply rounded-lg bg-white dark:bg-gray-800 shadow;
     }
-    .panel_button.submit {
+    .panel-button.submit {
         @apply text-white bg-gradient-to-tr from-red-500 to-yellow-400;
 
     }
     .examples {
-        .examples_table_holder:not(.gallery) {
-            .examples_table {
+        .examples-table-holder:not(.gallery) {
+            .examples-table {
                 @apply bg-white dark:bg-gray-800;
                 tbody tr:hover {
                     @apply bg-yellow-500 dark:bg-red-800;
                 }
             }
         }
-        .examples_table_holder.gallery .examples_table {
+        .examples-table-holder.gallery .examples-table {
             tbody td {
                 @apply bg-white dark:bg-gray-800;
             }
@@ -38,18 +38,18 @@
     }
 
     /* Input Components */
-    .input_text {
+    .input-text {
         textarea,
         input {
             @apply rounded-lg bg-gray-50 dark:bg-gray-700 dark:text-gray-50;
         }
     }
-    .input_number {
+    .input-number {
         input {
             @apply rounded-lg bg-gray-50 dark:bg-gray-700 dark:text-gray-50;
         }
     }
-    .input_slider {
+    .input-slider {
         .range {
             @apply bg-gray-50 dark:bg-gray-700 rounded-lg;
         }
@@ -63,47 +63,47 @@
             @apply font-semibold text-gray-500 dark:bg-gray-700 dark:text-gray-50;
         }
     }
-    .input_radio {
-        .radio_item {
+    .input-radio {
+        .radio-item {
             @apply bg-gray-100 rounded-lg dark:bg-gray-700 dark:text-gray-50;
         }
-        .radio_item.selected {
+        .radio-item.selected {
             @apply bg-gradient-to-tr from-red-500 to-yellow-400 text-white shadow;
         }
-        .radio_circle {
+        .radio-circle {
             @apply w-4 h-4 bg-white transition rounded-full box-border;
         }
     }
 
-    .input_checkbox_group,
-    .input_checkbox {
-        .checkbox_item {
+    .input-checkbox-group,
+    .input-checkbox {
+        .checkbox-item {
             @apply bg-gray-100 rounded-lg dark:bg-gray-700 dark:text-gray-50;
         }
-        .checkbox_item.selected {
+        .checkbox-item.selected {
             @apply bg-gradient-to-tr from-red-500 to-yellow-400 text-white shadow;
         }
         .selected .checkbox {
             @apply bg-gray-200 bg-opacity-20;
         }
     }
-    .input_dropdown {
+    .input-dropdown {
         .selector {
             @apply bg-gray-100 rounded-lg dark:bg-gray-700 dark:text-gray-50;
         }
-        .dropdown_menu {
+        .dropdown-menu {
             @apply shadow;
         }
-        .dropdown_item {
+        .dropdown-item {
             @apply bg-gray-100 dark:bg-gray-800 hover:bg-red-500 hover:text-gray-50 hover:font-semibold;
         }
-        .dropdown_item:first-child,
-        .dropdown_item:last-child {
+        .dropdown-item:first-child,
+        .dropdown-item:last-child {
             @apply rounded-lg;
         }
     }
     /* Components */
-    .output_label {
+    .output-label {
         .confidence {
             @apply bg-gray-300 text-white dark:bg-gray-600 font-semibold rounded-lg;
         }

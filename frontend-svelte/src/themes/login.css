@@ -1,4 +1,4 @@
-@import "custom_preflight.scss";
+@import "custom-preflight.scss";
 @tailwind components;
 @tailwind utilities; 
 

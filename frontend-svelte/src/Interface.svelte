@@ -1,5 +1,5 @@
 <script>
-  import "./themes/custom_preflight.css";
+  import "./themes/custom-preflight.css";
 
   import "./themes/base.css";
   import "./themes/default.css";
@@ -142,7 +142,7 @@
   };
 </script>
 
-<div class="gradio_interface" {theme}>
+<div class="gradio-interface" {theme}>
   <div class="panels flex flex-wrap justify-center gap-4">
     <div class="panel flex-1">
       <div
