@@ -1,9 +1,8 @@
 <script>
-  import { onDestroy, tick } from "svelte";
-  import Upload from "../utils/Upload.svelte";
-  import ModifyUpload from "../utils/ModifyUpload.svelte";
+  import { onDestroy } from "svelte";
+  import Upload from "../../utils/Upload.svelte";
+  import ModifyUpload from "../../utils/ModifyUpload.svelte";
   import Range from "svelte-range-slider-pips";
-  import Number from "./Number.svelte";
 
   export let value,
     setValue,
@@ -21,7 +20,6 @@
   let inited = false;
   let crop_values = [0, 100];
 
-  // $: crop_values && player;
   function blob_to_data_url(blob) {
     return new Promise((fulfill, reject) => {
       let reader = new FileReader();
@@ -40,6 +38,7 @@
     });
 
     recorder.addEventListener("stop", async () => {
+      recording = false;
       audio_blob = new Blob(audio_chunks, { type: "audio/wav" });
 
       setValue({
@@ -61,6 +60,7 @@
 
   onDestroy(() => {
     if (recorder) {
+      console.log(recorder);
       recorder.stop();
     }
   });
@@ -136,9 +136,7 @@
       bind:this={player}
       preload="metadata"
       src={value.data}
-    >
-      <!-- <source  /> -->
-    </audio>
+    />
 
     {#if mode === "edit" && player?.duration}
       <Range
