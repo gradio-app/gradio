@@ -15,7 +15,7 @@ Chatbots are *stateful*, meaning that the model's prediction can change dependin
 
 ### Prerequisites
 
-Make sure you have the `gradio` Python package already [installed](/getting_started). To use a pretrained chatbot model, also install `transformers`.
+Make sure you have the `gradio` Python package already [installed](/getting_started). To use a pretrained chatbot model, also install `transformers` and `torch`.
 
 ## Step 1 — Setting up the Chatbot Model
 
@@ -46,12 +46,11 @@ def predict(input, history=[]):
     bot_input_ids = torch.cat([torch.LongTensor(history), new_user_input_ids], dim=-1)
 
     # generate a response 
-    history = model.generate(bot_input_ids, max_length=1000, pad_token_id=tokenizer.eos_token_id)
+    history = model.generate(bot_input_ids, max_length=1000, pad_token_id=tokenizer.eos_token_id).tolist()
 
-    # convert the tokens to text, and then split the responses into a list
-    response = tokenizer.decode(history[0]).split("<|endoftext|>")
-    response.remove("")
-
+    # convert the tokens to text, and then split the responses into lines
+    response = tokenizer.decode(history[0]).replace("<|endoftext|>", "\n")
+    
     return response, history
 ```
 
@@ -82,9 +81,13 @@ gr.Interface(fn=predict,
              outputs=["text", "state"]).launch()
 ```
 
-This produces the following interface, which you can try right here in your browser:
+This produces the following interface, which you can try right here in your browser (try typing in some simple greetings like "Hi!" to get started):
 
-
+<div id="chatbot-minimal">
+<script defer="defer" id="gradio-library" src="www.gradio.app/gradio_static/bundle.js">
+<script>
+    launchGradioFromSpaces("abidlabs/chatbot-minimal", "#chatbot-minimal")
+</script>
 
 ## Step 4 — Stylizing Your Interface 
 
@@ -99,23 +102,38 @@ def predict(input, history=[]):
     bot_input_ids = torch.cat([torch.LongTensor(history), new_user_input_ids], dim=-1)
 
     # generate a response 
-    history = model.generate(bot_input_ids, max_length=1000, pad_token_id=tokenizer.eos_token_id)
+    history = model.generate(bot_input_ids, max_length=1000, pad_token_id=tokenizer.eos_token_id).tolist()
 
-    # convert the tokens to text, and then split the responses into a list
+    # convert the tokens to text, and then split the responses into lines
     response = tokenizer.decode(history[0]).split("<|endoftext|>")
     response.remove("")
-
-    return response, history
+    
+    # write some HTML
+    html = "<div class='chatbot'>"
+    for m, msg in enumerate(response):
+        cls = "user" if m%2 == 0 else "bot"
+        html += "<div class='msg {}'> {}</div>".format(cls, msg)
+    html += "</div>"
+    
+    return html, history
 ```
 
-We change the first output component to be `"html"` instead, since now we are returning a string of HTML code.
+We change the first output component to be `"html"` instead, since now we are returning a string of HTML code. We also include some custom css to make the output prettier.
 
 ```python
 import gradio as gr
 
+css = """
+.chatbox {display:flex;flex-direction:column}
+.msg {padding:4px;margin-bottom:4px;border-radius:4px;width:80%}
+.msg.user {background-color:cornflowerblue;color:white}
+.msg.bot {background-color:lightgray;align-self:self-end}
+"""
+
 gr.Interface(fn=predict,
              inputs=["text", "state"],
-             outputs=["html", "state"]).launch()
+             outputs=["html", "state"],
+             css=css).launch()
 ```
 
 Notice that we have also passed in a little bit of custom css using the `css` parameter, and we are good to go! Try it out below:
