@@ -7,7 +7,8 @@ import { terser } from 'rollup-plugin-terser';
 import css from 'rollup-plugin-css-only';
 import replace from '@rollup/plugin-replace';
 import json from "@rollup/plugin-json";
-import copy from 'rollup-plugin-copy'
+import copy from 'rollup-plugin-copy';
+import postcss from 'rollup-plugin-postcss';
 
 const production = !process.env.ROLLUP_WATCH;
 
@@ -56,6 +57,14 @@ export default {
 		replace({
 			BUILD_MODE: production ? "prod" : "dev",
 			BACKEND_URL: production ? "" : "http://localhost:7860/"
+		}),
+		postcss({
+			extract: 'themes.css',
+			plugins: [
+				require("tailwindcss"),
+				require("postcss-nested"),
+				require("autoprefixer"),
+			]
 		}),
 		svelte({
 			preprocess: sveltePreprocess({

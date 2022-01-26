@@ -1,4 +1,10 @@
 <script>
+  import "./themes/custom_preflight.css";
+
+  import "./themes/base.css";
+  import "./themes/default.css";
+  import "./themes/grass.css";
+
   import {
     input_component_map,
     output_component_map,

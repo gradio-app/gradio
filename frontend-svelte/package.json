@@ -30,6 +30,7 @@
     "node-sass": "^7.0.1",
     "resize-observer-polyfill": "^1.5.1",
     "rollup-plugin-copy": "^3.4.0",
+    "rollup-plugin-postcss": "^4.0.2",
     "sirv-cli": "^1.0.0",
     "svelte-preprocess": "^4.10.1",
     "svelte-range-slider-pips": "^2.0.1",
