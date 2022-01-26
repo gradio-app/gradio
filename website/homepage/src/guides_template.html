@@ -55,6 +55,9 @@
       height: 14px;
       margin: 0 4px !important;
     }
+    #guide-template{
+      margin-top:30px;
+    }
   </style>
   <script async src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
     <script>
@@ -90,7 +93,7 @@
       </div>
     </nav>
   </header>  
-  <div class="container mx-auto px-4 mb-12">
+  <div class="container mx-auto px-4 mb-12" id="guide-template">
     <div class="prose prose-lg max-w-none">
       {{ template_html|safe }}
     </div>      
