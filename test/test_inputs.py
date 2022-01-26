@@ -1,3 +1,4 @@
+from difflib import SequenceMatcher
 import json
 import os
 import tempfile
@@ -565,21 +566,14 @@ class TestAudio(unittest.TestCase):
         x_wav = gr.processing_utils.audio_from_file("test/test_files/audio_sample.wav")
         self.assertIsInstance(audio_input.serialize(x_wav, False), dict)
 
-    # def test_in_interface(self):
-    #     x_wav = gr.test_data.BASE64_AUDIO
-    #     def max_amplitude_from_wav_file(wav_file):
-    #         audio_segment = AudioSegment.from_file(wav_file.name)
-    #         data = np.array(audio_segment.get_array_of_samples())
-    #         return np.max(data)
-    #     iface = gr.Interface(
-    #         max_amplitude_from_wav_file,
-    #         gr.inputs.Audio(type="file"),
-    #         "number", interpretation="default")
-    # # TODO(aliabd): investigate why this sometimes fails (returns 5239 or 576)
-    #     self.assertEqual(iface.process([x_wav])[0], [576])
-    #     scores, alternative_outputs = iface.interpret([x_wav])
-    #     self.assertEqual(scores, ... )
-    #     self.assertEqual(alternative_outputs, ...)
+    def test_tokenize(self):
+        x_wav = gr.test_data.BASE64_AUDIO
+        audio_input = gr.inputs.Audio() 
+        tokens, _, _ = audio_input.tokenize(x_wav)
+        self.assertEquals(len(tokens), audio_input.interpretation_segments)
+        x_new = audio_input.get_masked_inputs(tokens, [[1]*len(tokens)])[0]
+        similarity = SequenceMatcher(a=x_wav["data"], b=x_new).ratio()
+        self.assertGreater(similarity, 0.9)
 
 
 class TestFile(unittest.TestCase):
