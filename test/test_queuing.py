@@ -45,8 +45,22 @@ class TestQueuingActions(unittest.TestCase):
         self.assertEquals(action, "predict")
         
     def test_jobs(self):
-        pass
-    
+        hash1, _ = queueing.push({"data": "test1"}, "predict")
+        hash2, position = queueing.push({"data": "test1"}, "predict")
+        self.assertEquals(position, 1)
+        
+        queueing.start_job(hash1)
+        _, position = queueing.get_status(hash2)
+        self.assertEquals(position, 1)
+        queueing.pass_job(hash1, {"data": "result"})
+        _, position = queueing.get_status(hash2)
+        self.assertEquals(position, 0)
+        
+        queueing.start_job(hash2)
+        queueing.fail_job(hash2, "failure")
+        status, _ = queueing.get_status(hash2)
+        self.assertEquals(status, "FAILED")
+            
     def tearDown(self):
         queueing.close()
 
