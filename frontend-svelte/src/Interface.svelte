@@ -63,12 +63,16 @@
     });
   };
   const interpret = () => {
-    fn("interpret", {
-      data: input_values,
-    }).then((output) => {
-      interpret_mode = true;
-      interpretation_values = output.interpretation_scores;
-    });
+    if (interpret_mode) {
+      interpret_mode = false;
+    } else {
+      fn("interpret", {
+        data: input_values,
+      }).then((output) => {
+        interpret_mode = true;
+        interpretation_values = output.interpretation_scores;
+      });
+    }
   };
 </script>
 
@@ -130,12 +134,16 @@
         {/each}
       </div>
       <div class="panel-buttons flex gap-4 my-4">
-        {#if allow_interpretation !== "never"}
+        {#if allow_interpretation !== false}
           <button
             class="panel-button flag bg-gray-50 dark:bg-gray-700 flex-1 p-3 rounded transition font-semibold focus:outline-none"
             on:click={interpret}
           >
-            Interpret
+            {#if interpret_mode}
+              Hide
+            {:else}
+              Interpret
+            {/if}
           </button>
         {/if}
         {#if allow_flagging !== "never"}
