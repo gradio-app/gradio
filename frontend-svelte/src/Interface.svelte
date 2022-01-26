@@ -14,9 +14,13 @@
   export let root;
   export let allow_flagging;
   export let allow_interpretation;
+  export let avg_durations;
 
   let examples_dir = root + "file/";
   let interpret_mode = false;
+  let submission_count = 0;
+  let state = "START";
+  let last_duration = null;
 
   const default_inputs = input_components.map((component) =>
     "default" in component ? component.default : null
@@ -26,6 +30,12 @@
   let input_values = deepCopy(default_inputs);
   let output_values = deepCopy(default_outputs);
   let interpretation_values = [];
+  let timer = null;
+  let timer_start = 0;
+  let timer_diff = 0;
+  let avg_duration = Array.isArray(avg_durations)
+    ? this.props.avg_durations[0]
+    : null;
 
   const setValues = (index, value) => {
     input_values[index] = value;
@@ -44,15 +54,61 @@
       }
     });
   };
+  const startTimer = () => {
+    timer_start = Date.now();
+    timer_diff = 0;
+    timer = setInterval(() => {
+      timer_diff = (Date.now() - timer_start) / 1000;
+    }, 100);
+  };
+  const stopTimer = () => {
+    clearInterval(timer);
+  };
   const submit = () => {
-    fn("predict", { data: input_values }).then((output) => {
-      output_values = output["data"];
-    });
+    if (state === "PENDING") {
+      return;
+    }
+    state = "PENDING";
+    submission_count += 1;
+    let submission_count_at_click = submission_count;
+    startTimer();
+    fn("predict", { data: input_values })
+      .then((output) => {
+        if (
+          state !== "PENDING" ||
+          submission_count_at_click !== submission_count
+        ) {
+          return;
+        }
+        stopTimer();
+        output_values = output["data"];
+        if ("durations" in output) {
+          last_duration = output["durations"][0];
+        }
+        if ("avg_duration" in output) {
+          avg_duration = output["avg_durations"][0];
+        }
+        state = "COMPLETE";
+      })
+      .catch((e) => {
+        if (
+          state !== "PENDING" ||
+          submission_count_at_click !== submission_count
+        ) {
+          return;
+        }
+        stopTimer();
+        console.error(e);
+        state = "ERROR";
+        output_values = deepCopy(default_outputs);
+      });
   };
   const clear = () => {
     input_values = deepCopy(default_inputs);
     output_values = deepCopy(default_outputs);
     interpret_mode = false;
+    state = "START";
+    stopTimer();
   };
   const flag = () => {
     fn("flag", {
@@ -116,9 +172,30 @@
     </div>
     <div class="panel flex-1">
       <div
-        class="component-set p-2 rounded flex flex-col flex-1 gap-2"
+        class="component-set p-2 rounded flex flex-col flex-1 gap-2 relative"
         style="min-height: 36px"
+        class:opacity-50={state === "PENDING"}
       >
+        {#if state !== "START"}
+          <div class="state absolute right-2 flex items-center gap-2 text-xs">
+            {#if state === "PENDING"}
+              <div class="timer font-mono">{timer_diff.toFixed(1)}s</div>
+              <img
+                src="./static/img/logo.svg"
+                alt="Pending"
+                class="pending h-5 ml-2 inline-block"
+              />
+            {:else if state === "ERROR"}
+              <img
+                src="./static/img/logo_error.svg"
+                alt="Error"
+                class="error h-5 ml-2 inline-block"
+              />
+            {:else if state === "COMPLETE" && last_duration !== null}
+              <div class="duration font-mono">{last_duration.toFixed(1)}s</div>
+            {/if}
+          </div>
+        {/if}
         {#each output_components as output_component, i}
           {#if output_values[i] !== null}
             <div class="component" key={i}>
@@ -169,6 +246,32 @@
 </div>
 
 <style lang="postcss">
+  .pending {
+    @keyframes ld-breath {
+      0% {
+        animation-timing-function: cubic-bezier(
+          0.9647,
+          0.2413,
+          -0.0705,
+          0.7911
+        );
+        transform: scale(0.9);
+      }
+      51% {
+        animation-timing-function: cubic-bezier(
+          0.9226,
+          0.2631,
+          -0.0308,
+          0.7628
+        );
+        transform: scale(1.2);
+      }
+      100% {
+        transform: scale(0.9);
+      }
+    }
+    animation: ld-breath 0.75s infinite linear;
+  }
   .gradio-interface[theme="default"] {
     .component-set {
       @apply bg-gray-50 dark:bg-gray-700 dark:drop-shadow-xl shadow;
