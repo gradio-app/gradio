@@ -108,7 +108,6 @@ def render_guides():
             "src/guides_template.html", encoding="utf-8"
         ) as general_template_file:
             general_template = Template(general_template_file.read())
-        print(output_html)
         with open(os.path.join("generated", guide, "index.html"), "w", encoding='utf-8') as generated_template:
             output_html = general_template.render(template_html=output_html, demo_names=demo_names)
             generated_template.write(output_html)
