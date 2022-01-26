@@ -4,6 +4,10 @@
   import "./themes/base.css";
   import "./themes/default.css";
   import "./themes/grass.css";
+  import "./themes/huggingface.css";
+  import "./themes/login.css";
+  import "./themes/peach.css";
+  import "./themes/seafoam.css";
 
   import {
     input_component_map,
