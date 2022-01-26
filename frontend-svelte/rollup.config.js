@@ -43,11 +43,6 @@ export default {
 	
 		json(),
 		replace({
-			// process: JSON.stringify({
-			// 	env: {
-			// 		isProd: production,
-			// 	}
-			// }),
 			BUILD_MODE: production ? "prod" : "dev",
 			BACKEND_URL: production ? "" : "http://localhost:7860/"
 		}),
