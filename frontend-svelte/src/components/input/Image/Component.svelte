@@ -1,12 +1,12 @@
 <script>
-  import Cropper from "./Cropper.svelte";
+  import Cropper from "../../utils/Cropper.svelte";
 
-  import Upload from "../utils/Upload.svelte";
-  import ModifyUpload from "../utils/ModifyUpload.svelte";
-  import ModifySketch from "../utils/ModifySketch.svelte";
-  import ImageEditor from "../utils/ImageEditor.svelte";
-  import Sketch from "../utils/Sketch.svelte";
-  import Webcam from "../utils/Webcam.svelte";
+  import Upload from "../../utils/Upload.svelte";
+  import ModifyUpload from "../../utils/ModifyUpload.svelte";
+  import ModifySketch from "../../utils/ModifySketch.svelte";
+  import ImageEditor from "../../utils/ImageEditor.svelte";
+  import Sketch from "../../utils/Sketch.svelte";
+  import Webcam from "../../utils/Webcam.svelte";
   export let value, setValue, theme;
   export let source = "upload";
   export let tool = "editor";
