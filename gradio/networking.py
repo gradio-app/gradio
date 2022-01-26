@@ -3,32 +3,34 @@ Defines helper methods useful for setting up ports, launching servers, and
 creating tunnels.
 """
 from __future__ import annotations
-import fastapi
+
 import http
 import json
 import os
-import requests
 import socket
 import threading
 import time
-from typing import Optional, Tuple, TYPE_CHECKING
 import urllib.parse
 import urllib.request
+from typing import TYPE_CHECKING, Optional, Tuple
+
+import fastapi
+import requests
 import uvicorn
 
 from gradio import queueing
+from gradio.routes import app
 from gradio.tunneling import create_tunnel
-from gradio.app import app
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
     from gradio import Interface
 
 
-# By default, the local server will try to open on localhost, port 7860. 
+# By default, the local server will try to open on localhost, port 7860.
 # If that is not available, then it will try 7861, 7862, ... 7959.
-INITIAL_PORT_VALUE = int(os.getenv('GRADIO_SERVER_PORT', "7860"))  
-TRY_NUM_PORTS = int(os.getenv('GRADIO_NUM_PORTS', "100"))  
-LOCALHOST_NAME = os.getenv('GRADIO_SERVER_NAME', "127.0.0.1")
+INITIAL_PORT_VALUE = int(os.getenv("GRADIO_SERVER_PORT", "7860"))
+TRY_NUM_PORTS = int(os.getenv("GRADIO_NUM_PORTS", "100"))
+LOCALHOST_NAME = os.getenv("GRADIO_SERVER_NAME", "127.0.0.1")
 GRADIO_API_SERVER = "https://api.gradio.app/v1/tunnel-request"
 
 
@@ -47,9 +49,7 @@ class Server(uvicorn.Server):
         self.thread.join()
 
 
-def get_first_available_port(
-    initial: int, 
-    final: int) -> int:
+def get_first_available_port(initial: int, final: int) -> int:
     """
     Gets the first open port in a specified range of port numbers
     Parameters:
@@ -73,33 +73,10 @@ def get_first_available_port(
     )
 
 
-def queue_thread(path_to_local_server, test_mode=False):
-    while True:
-        try:
-            next_job = queueing.pop()
-            if next_job is not None:
-                _, hash, input_data, task_type = next_job
-                queueing.start_job(hash)
-                response = requests.post(
-                    path_to_local_server + "/api/" + task_type + "/", 
-                    json=input_data)
-                if response.status_code == 200:
-                    queueing.pass_job(hash, response.json())
-                else:
-                    queueing.fail_job(hash, response.text)
-            else:
-                time.sleep(1)
-        except Exception as e:
-            time.sleep(1)
-            pass
-        if test_mode:
-            break
-
-
 def start_server(
-    interface: Interface, 
-    server_name: Optional[str] = None, 
-    server_port: Optional[int] = None, 
+    interface: Interface,
+    server_name: Optional[str] = None,
+    server_port: Optional[int] = None,
 ) -> Tuple[int, str, fastapi.FastAPI, threading.Thread, None]:
     """Launches a local server running the provided Interface
     Parameters:
@@ -107,20 +84,24 @@ def start_server(
     server_name: to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME.
     server_port: will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT.
     auth: If provided, username and password (or list of username-password tuples) required to access interface. Can also provide function that takes username and password and returns True if valid login.
-    """    
+    """
     server_name = server_name or LOCALHOST_NAME
     # if port is not specified, search for first available port
-    if server_port is None:          
+    if server_port is None:
         port = get_first_available_port(
             INITIAL_PORT_VALUE, INITIAL_PORT_VALUE + TRY_NUM_PORTS
         )
     else:
         try:
             s = socket.socket()
-            s.bind((LOCALHOST_NAME, server_port)) 
+            s.bind((LOCALHOST_NAME, server_port))
             s.close()
         except OSError:
-            raise OSError("Port {} is in use. If a gradio.Interface is running on the port, you can close() it or gradio.close_all().".format(server_port))
+            raise OSError(
+                "Port {} is in use. If a gradio.Interface is running on the port, you can close() it or gradio.close_all().".format(
+                    server_port
+                )
+            )
         port = server_port
 
     url_host_name = "localhost" if server_name == "0.0.0.0" else server_name
@@ -137,27 +118,28 @@ def start_server(
     app.cwd = os.getcwd()
     app.favicon_path = interface.favicon_path
     app.tokens = {}
-    
+
     if app.interface.enable_queue:
         if auth is not None or app.interface.encrypt:
             raise ValueError("Cannot queue with encryption or authentication enabled.")
         queueing.init()
         app.queue_thread = threading.Thread(
-            target=queue_thread, args=(path_to_local_server,))
+            target=queueing.queue_thread, args=(path_to_local_server,)
+        )
         app.queue_thread.start()
     if interface.save_to is not None:  # Used for selenium tests
         interface.save_to["port"] = port
-                
-    config = uvicorn.Config(app=app, port=port, host=server_name, 
-                            log_level="warning")
+
+    config = uvicorn.Config(app=app, port=port, host=server_name, log_level="warning")
     server = Server(config=config)
     server.run_in_thread()
-    return port, path_to_local_server, app, server 
+    return port, path_to_local_server, app, server
 
 
 def setup_tunnel(local_server_port: int, endpoint: str) -> str:
     response = url_request(
-        endpoint + '/v1/tunnel-request' if endpoint is not None else GRADIO_API_SERVER)
+        endpoint + "/v1/tunnel-request" if endpoint is not None else GRADIO_API_SERVER
+    )
     if response and response.code == 200:
         try:
             payload = json.loads(response.read().decode("utf-8"))[0]
@@ -180,7 +162,7 @@ def url_request(url: str) -> Optional[http.client.HTTPResponse]:
 def url_ok(url: str) -> bool:
     try:
         for _ in range(5):
-            time.sleep(.500)
+            time.sleep(0.500)
             r = requests.head(url, timeout=3)
             if r.status_code in (200, 401, 302):  # 401 or 302 if auth is set
                 return True
