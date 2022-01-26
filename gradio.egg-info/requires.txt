@@ -7,10 +7,10 @@ matplotlib
 numpy
 pydub
 matplotlib
+numpy
 pandas
+paramiko
 pillow
-ffmpy
-markdown2
 pycryptodome
 python-multipart
 pydub
