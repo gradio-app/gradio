@@ -129,15 +129,17 @@ def static_resource(path: str):
 
 @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
 def file(path):
-    if app.interface.encrypt and isinstance(
-        app.interface.examples, str) and path.startswith(
-            app.interface.examples):
+    if (
+        app.interface.encrypt
+        and isinstance(app.interface.examples, str)
+        and path.startswith(app.interface.examples)
+    ):
         with open(safe_join(app.cwd, path), "rb") as encrypted_file:
             encrypted_data = encrypted_file.read()
-        file_data = encryptor.decrypt(
-            app.interface.encryption_key, encrypted_data)
+        file_data = encryptor.decrypt(app.interface.encryption_key, encrypted_data)
         return FileResponse(
-            io.BytesIO(file_data), attachment_filename=os.path.basename(path))
+            io.BytesIO(file_data), attachment_filename=os.path.basename(path)
+        )
     else:
         return FileResponse(safe_join(app.cwd, path))
 

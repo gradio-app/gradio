@@ -17,7 +17,7 @@ import webbrowser
 from logging import warning
 from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
 
-import markdown2  # type: ignore
+import markdown2 
 
 from gradio import (encryptor, interpretation, networking,  # type: ignore
                     queueing, strings, utils)

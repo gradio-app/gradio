@@ -9,7 +9,7 @@ import warnings
 import aiohttp
 from fastapi.testclient import TestClient
 
-from gradio import Interface, flagging, networking, reset_all, utils
+from gradio import Interface, flagging, networking, reset_all, queueing
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -33,77 +33,6 @@ class TestPort(unittest.TestCase):
             self.assertEqual(port1, port2)
         except OSError:
             warnings.warn("Unable to test, no ports available")
-
-
-class TestRoutes(unittest.TestCase):
-    def setUp(self) -> None:
-        self.io = Interface(lambda x: x, "text", "text")
-        self.app, _, _ = self.io.launch(prevent_thread_lock=True)
-        self.client = TestClient(self.app)
-
-    def test_get_main_route(self):
-        response = self.client.get("/")
-        self.assertEqual(response.status_code, 200)
-
-    def test_get_api_route(self):
-        response = self.client.get("/api/")
-        self.assertEqual(response.status_code, 200)
-
-    def test_static_files_served_safely(self):
-        # Make sure things outside the static folder are not accessible
-        response = self.client.get(r"/static/..%2findex.html")
-        self.assertEqual(response.status_code, 404)
-        response = self.client.get(r"/static/..%2f..%2fapi_docs.html")
-        self.assertEqual(response.status_code, 404)
-
-    def test_get_config_route(self):
-        response = self.client.get("/config/")
-        self.assertEqual(response.status_code, 200)
-
-    def test_predict_route(self):
-        response = self.client.post("/api/predict/", json={"data": ["test"]})
-        self.assertEqual(response.status_code, 200)
-        output = dict(response.json())
-        self.assertEqual(output["data"], ["test"])
-        self.assertTrue("durations" in output)
-        self.assertTrue("avg_durations" in output)
-
-    # def test_queue_push_route(self):
-    #     networking.queue.push = mock.MagicMock(return_value=(None, None))
-    #     response = self.client.post('/api/queue/push/', json={"data": "test", "action": "test"})
-    #     self.assertEqual(response.status_code, 200)
-
-    # def test_queue_push_route(self):
-    #     networking.queue.get_status = mock.MagicMock(return_value=(None, None))
-    #     response = self.client.post('/api/queue/status/', json={"hash": "test"})
-    #     self.assertEqual(response.status_code, 200)
-
-    def tearDown(self) -> None:
-        self.io.close()
-        reset_all()
-
-
-class TestAuthenticatedRoutes(unittest.TestCase):
-    def setUp(self) -> None:
-        self.io = Interface(lambda x: x, "text", "text")
-        self.app, _, _ = self.io.launch(
-            auth=("test", "correct_password"), prevent_thread_lock=True
-        )
-        self.client = TestClient(self.app)
-
-    def test_post_login(self):
-        response = self.client.post(
-            "/login", data=dict(username="test", password="correct_password")
-        )
-        self.assertEqual(response.status_code, 302)
-        response = self.client.post(
-            "/login", data=dict(username="test", password="incorrect_password")
-        )
-        self.assertEqual(response.status_code, 400)
-
-    def tearDown(self) -> None:
-        self.io.close()
-        reset_all()
 
 
 class TestInterfaceCustomParameters(unittest.TestCase):
@@ -178,27 +107,6 @@ class TestURLs(unittest.TestCase):
     def test_url_ok(self):
         res = networking.url_ok("https://www.gradio.app")
         self.assertTrue(res)
-
-
-# class TestQueuing(unittest.TestCase):
-#     def test_queueing(self):
-#         # mock queue methods and post method
-#         networking.queue.pop = mock.MagicMock(return_value=(None, None, None, 'predict'))
-#         networking.queue.pass_job = mock.MagicMock(return_value=(None, None))
-#         networking.queue.fail_job = mock.MagicMock(return_value=(None, None))
-#         networking.queue.start_job = mock.MagicMock(return_value=None)
-#         requests.post = mock.MagicMock(return_value=mock.MagicMock(status_code=200))
-#         # execute queue action successfully
-#         networking.queue_thread('test_path', test_mode=True)
-#         networking.queue.pass_job.assert_called_once()
-#         # execute queue action unsuccessfully
-#         requests.post = mock.MagicMock(return_value=mock.MagicMock(status_code=500))
-#         networking.queue_thread('test_path', test_mode=True)
-#         networking.queue.fail_job.assert_called_once()
-#         # no more things on the queue so methods shouldn't be called any more times
-#         networking.queue.pop = mock.MagicMock(return_value=None)
-#         networking.queue.pass_job.assert_called_once()
-#         networking.queue.fail_job.assert_called_once()
 
 
 if __name__ == "__main__":
