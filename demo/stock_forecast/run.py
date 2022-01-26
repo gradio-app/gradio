@@ -1,6 +1,7 @@
-import gradio as gr
 import matplotlib.pyplot as plt
 import numpy as np
+
+import gradio as gr
 
 
 def stock_forecast(final_year, companies, noise, show_legend, point_style):
@@ -28,8 +29,10 @@ iface = gr.Interface(
         gr.inputs.CheckboxGroup(["Google", "Microsoft", "Gradio"]),
         gr.inputs.Slider(1, 100),
         "checkbox",
-        gr.inputs.Dropdown(["cross", "line", "circle"], label="Style")],
-    gr.outputs.Image(plot=True, label="forecast"))
+        gr.inputs.Dropdown(["cross", "line", "circle"], label="Style"),
+    ],
+    gr.outputs.Image(plot=True, label="forecast"),
+)
 
 iface.test_launch()
 if __name__ == "__main__":
