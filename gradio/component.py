@@ -1,8 +1,11 @@
 import os
 import shutil
+from typing import Any, Dict
+
 from gradio import processing_utils
 
-class Component():
+
+class Component:
     """
     A class for defining the methods that all gradio input and output components should have.
     """
@@ -15,16 +18,13 @@ class Component():
         return self.__repr__()
 
     def __repr__(self):
-        return "{}(label=\"{}\")".format(type(self).__name__, self.label)
+        return '{}(label="{}")'.format(type(self).__name__, self.label)
 
     def get_template_context(self):
         """
         :return: a dictionary with context variables for the javascript file associated with the context
         """
-        return {
-            "name": self.__class__.__name__.lower(),
-            "label": self.label
-        }
+        return {"name": self.__class__.__name__.lower(), "label": self.label}
 
     @classmethod
     def get_shortcut_implementations(cls):
@@ -33,7 +33,13 @@ class Component():
         """
         return {}
 
-    def save_flagged(self, dir, label, data, encryption_key):
+    def save_flagged(
+        self,
+        dir: str, 
+        label: str, 
+        data: Any, 
+        encryption_key: bool
+    ) -> Any:
         """
         Saves flagged data from component
         """
@@ -45,7 +51,16 @@ class Component():
         """
         return data
 
-    def save_flagged_file(self, dir, label, data, encryption_key):
+    def save_flagged_file(
+        self, 
+        dir: str, 
+        label: str, 
+        data: Any, 
+        encryption_key: bool
+    ) -> str:
+        """
+        Saved flagged data (e.g. image or audio) as a file and returns filepath 
+        """
         if data is None:
             return None
         file = processing_utils.decode_base64_to_file(data, encryption_key)
@@ -60,13 +75,23 @@ class Component():
         new_file_name = str(file_index)
         if "." in old_file_name:
             uploaded_format = old_file_name.split(".")[-1].lower()
-            new_file_name +=  "." + uploaded_format
+            new_file_name += "." + uploaded_format
         file.close()
         shutil.move(old_file_name, os.path.join(dir, label, new_file_name))
         return label + "/" + new_file_name
 
-    def restore_flagged_file(self, dir, file, encryption_key):
-        data = processing_utils.encode_file_to_base64(os.path.join(dir, file), encryption_key=encryption_key)
+    def restore_flagged_file(
+        self, 
+        dir: str, 
+        file: str, 
+        encryption_key: bool,
+    ) -> Dict[str, Any]:
+        """
+        Loads flagged data from file and returns it
+        """
+        data = processing_utils.encode_file_to_base64(
+            os.path.join(dir, file), encryption_key=encryption_key
+        )
         return {"name": file, "data": data}
 
     @classmethod

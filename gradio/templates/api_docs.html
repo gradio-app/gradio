@@ -458,8 +458,8 @@
         str;
     };
     url = stripTrailingSlash(url);
-    var api_url = url + '/predict'
-    var login_url = url.slice(0, -4) + '/login'
+    var api_url = url + '/predict/'
+    var login_url = url.slice(0, -4) + '/login/'
     var interface_url = url.replace(/(api$)/, '')
     $('#api_url').html(api_url);
     $('#py_syntax_url').html(api_url);

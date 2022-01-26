@@ -1,4 +1,5 @@
 <script>
+
   import {
     input_component_map,
     output_component_map,
@@ -245,7 +246,7 @@
   {/if}
 </div>
 
-<style lang="postcss">
+<style lang="postcss" global>
   .pending {
     @keyframes ld-breath {
       0% {

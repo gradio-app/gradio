@@ -9,6 +9,7 @@ import InputRadio from "./input/Radio/config.js";
 import InputSlider from "./input/Slider/config.js";
 import InputTextbox from "./input/Textbox/config.js";
 import InputVideo from "./input/Video/config.js";
+import InputDataFrame from "./input/DataFrame/config.js";
 
 import OutputAudio from "./output/Audio/config.js";
 import OutputCarousel from "./output/Carousel/config.js";
@@ -28,7 +29,7 @@ export const input_component_map = {
     "audio": InputAudio,
     "checkbox": InputCheckbox,
     "checkboxgroup": InputCheckboxGroup,
-    "dataframe": {"component": Dummy, "example": Dummy},
+    "dataframe": InputDataFrame,
     "dropdown": InputDropdown,
     "file": InputFile,
     "image": InputImage,

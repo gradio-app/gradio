@@ -1,14 +1,17 @@
-import gradio as gr
+from math import sqrt
+
 import matplotlib.pyplot as plt
 import numpy as np
-from math import sqrt
+
+import gradio as gr
+
 
 def outbreak(r, month, countries, social_distancing):
     months = ["January", "February", "March", "April", "May"]
     m = months.index(month)
     start_day = 30 * m
     final_day = 30 * (m + 1)
-    x = np.arange(start_day, final_day+1)
+    x = np.arange(start_day, final_day + 1)
     day_count = x.shape[0]
     pop_count = {"USA": 350, "Canada": 40, "Mexico": 300, "UK": 120}
     r = sqrt(r)
@@ -23,13 +26,18 @@ def outbreak(r, month, countries, social_distancing):
     plt.legend(countries)
     return plt
 
-iface = gr.Interface(outbreak, 
+
+iface = gr.Interface(
+    outbreak,
     [
-        gr.inputs.Slider(1, 4, default=3.2, label="R"), 
-        gr.inputs.Dropdown(["January", "February", "March", "April", "May"], label="Month"), 
-        gr.inputs.CheckboxGroup(["USA", "Canada", "Mexico", "UK"], label="Countries"), 
-        gr.inputs.Checkbox(label="Social Distancing?"), 
-    ], 
-    "plot")
+        gr.inputs.Slider(1, 4, default=3.2, label="R"),
+        gr.inputs.Dropdown(
+            ["January", "February", "March", "April", "May"], label="Month"
+        ),
+        gr.inputs.CheckboxGroup(["USA", "Canada", "Mexico", "UK"], label="Countries"),
+        gr.inputs.Checkbox(label="Social Distancing?"),
+    ],
+    "plot",
+)
 if __name__ == "__main__":
     iface.launch()

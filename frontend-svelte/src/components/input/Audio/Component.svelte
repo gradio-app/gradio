@@ -1,30 +1,118 @@
 <script>
+  import { onDestroy } from "svelte";
   import Upload from "../../utils/Upload.svelte";
   import ModifyUpload from "../../utils/ModifyUpload.svelte";
-  import { afterUpdate } from "svelte";
+  import Range from "svelte-range-slider-pips";
 
-  export let value, setValue, theme;
+  export let value,
+    setValue,
+    theme,
+    name,
+    is_example = false;
   export let source;
+
   let recording = false;
-  let audioPlayer;
+  let recorder;
+  let mode = "";
+  let audio_chunks = [];
+  let audio_blob;
+  let player;
+  let inited = false;
+  let crop_values = [0, 100];
 
-  afterUpdate(() => {
-    if (value.data !== audioPlayer.currentSrc) { // invalidate cached audio source
-      audioPlayer.src = value.data;
+  function blob_to_data_url(blob) {
+    return new Promise((fulfill, reject) => {
+      let reader = new FileReader();
+      reader.onerror = reject;
+      reader.onload = (e) => fulfill(reader.result);
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  async function prepare_audio() {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    recorder = new MediaRecorder(stream);
+
+    recorder.addEventListener("dataavailable", (event) => {
+      audio_chunks.push(event.data);
+    });
+
+    recorder.addEventListener("stop", async () => {
+      recording = false;
+      audio_blob = new Blob(audio_chunks, { type: "audio/wav" });
+
+      setValue({
+        data: await blob_to_data_url(audio_blob),
+        name,
+        is_example,
+      });
+    });
+  }
+
+  async function record() {
+    recording = true;
+    audio_chunks = [];
+
+    if (!inited) await prepare_audio();
+
+    recorder.start();
+  }
+
+  onDestroy(() => {
+    if (recorder) {
+      console.log(recorder);
+      recorder.stop();
     }
-  })
+  });
 
-  const startRecording = () => {};
-  const stopRecording = () => {};
+  const stop = () => {
+    recorder.stop();
+  };
+
+  function clear() {
+    setValue(null);
+    mode = "";
+  }
+
+  function loaded(node) {
+    function clamp_playback() {
+      const start_time = (crop_values[0] / 100) * node.duration;
+      const end_time = (crop_values[1] / 100) * node.duration;
+      if (node.currentTime < start_time) {
+        node.currentTime = start_time;
+      }
+
+      if (node.currentTime > end_time) {
+        node.currentTime = start_time;
+        node.pause();
+      }
+    }
+
+    node.addEventListener("timeupdate", clamp_playback);
+
+    return {
+      destroy: () => node.removeEventListener("timeupdate", clamp_playback),
+    };
+  }
 </script>
 
 <div class="input-audio">
   {#if value === null}
     {#if source === "microphone"}
       {#if recording}
-        <button class="stop" onClick={stopRecording}> Recording... </button>
+        <button
+          class="p-2 rounded font-semibold bg-red-200 text-red-500 dark:bg-red-600 dark:text-red-100 shadow transition hover:shadow-md"
+          on:click={stop}
+        >
+          Stop Recording
+        </button>
       {:else}
-        <button class="start" onClick={startRecording}> Record </button>
+        <button
+          class="p-2 rounded font-semibold bg-white dark:bg-gray-600 shadow transition hover:shadow-md bg-white dark:bg-gray-800"
+          on:click={record}
+        >
+          Record
+        </button>
       {/if}
     {:else if source === "upload"}
       <Upload filetype="audio/*" load={setValue} {theme}>
@@ -34,10 +122,39 @@
       </Upload>
     {/if}
   {:else}
-    <ModifyUpload clear={() => setValue(null)} absolute={false} {theme} />
-    <audio class="w-full" controls bind:this={audioPlayer}>
-      <source src={value.data}  />
-    </audio>
+    <ModifyUpload
+      {clear}
+      edit={() => (mode = "edit")}
+      absolute={false}
+      {theme}
+    />
+
+    <audio
+      use:loaded
+      class="w-full"
+      controls
+      bind:this={player}
+      preload="metadata"
+      src={value.data}
+    />
+
+    {#if mode === "edit" && player?.duration}
+      <Range
+        bind:values={crop_values}
+        range
+        min={0}
+        max={100}
+        step={1}
+        on:change={({ detail: { values } }) =>
+          setValue({
+            data: value.data,
+            name,
+            is_example,
+            crop_min: values[0],
+            crop_max: values[1],
+          })}
+      />
+    {/if}
   {/if}
 </div>
 

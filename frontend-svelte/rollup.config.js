@@ -7,6 +7,8 @@ import { terser } from 'rollup-plugin-terser';
 import css from 'rollup-plugin-css-only';
 import replace from '@rollup/plugin-replace';
 import json from "@rollup/plugin-json";
+import copy from 'rollup-plugin-copy';
+import postcss from 'rollup-plugin-postcss';
 
 const production = !process.env.ROLLUP_WATCH;
 
@@ -33,26 +35,40 @@ function serve() {
 
 export default {
 	input: 'src/main.js',
-	output: {
+	output: [{
 		sourcemap: true,
 		format: 'iife',
 		name: 'app',
 		file: 'public/build/bundle.js'
-	},
+	}, {
+		sourcemap: true,
+		format: 'iife',
+		name: 'app',
+		file: '../gradio/templates/frontend/build/bundle.js'
+	}],
 	plugins: [
+		copy({
+			targets: [
+				{ src: 'public/*', dest: '../gradio/templates/frontend' },
+				{ src: 'public/static', dest: '../gradio/templates/frontend' }
+			]
+		}),
 		json(),
 		replace({
-			process: JSON.stringify({
-				env: {
-					isProd: production,
-				}
-			}),
 			BUILD_MODE: production ? "prod" : "dev",
 			BACKEND_URL: production ? "" : "http://localhost:7860/"
 		}),
+		postcss({
+			extract: 'themes.css',
+			plugins: [
+				require("tailwindcss"),
+				require("postcss-nested"),
+				require("autoprefixer"),
+			]
+		}),
 		svelte({
 			preprocess: sveltePreprocess({
-				sourceMap: !production,
+				// sourceMap: true,
 				postcss: {
 					plugins: [
 						require("tailwindcss"),

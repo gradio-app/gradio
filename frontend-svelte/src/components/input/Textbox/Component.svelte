@@ -22,7 +22,7 @@
   />
 {/if}
 
-<style lang="postcss">
+<style lang="postcss" global>
   .input-text[theme="default"] {
     @apply shadow transition hover:shadow-md dark:bg-gray-800;
   }
