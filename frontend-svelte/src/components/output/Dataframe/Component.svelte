@@ -1,5 +1,5 @@
 <script>
-  import DataFrame from "../input/DataFrame.svelte";
+  import DataFrame from "../../input/DataFrame/Component.svelte";
 
   export let headers,
     value,
@@ -14,4 +14,5 @@
   values={value.data}
   {setValue}
   editable={false}
+  {theme}
 />

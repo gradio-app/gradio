@@ -1,6 +1,7 @@
 <script>
   import { tick } from "svelte";
 
+  export let theme = "";
   export let label = "Title";
   export let headers = [];
   export let values = [
