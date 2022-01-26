@@ -59,7 +59,7 @@ export default {
 		}),
 		svelte({
 			preprocess: sveltePreprocess({
-				sourceMap: !production,
+				// sourceMap: true,
 				postcss: {
 					plugins: [
 						require("tailwindcss"),

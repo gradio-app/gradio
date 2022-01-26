@@ -245,7 +245,7 @@
   {/if}
 </div>
 
-<style lang="postcss">
+<style lang="postcss" global>
   .pending {
     @keyframes ld-breath {
       0% {

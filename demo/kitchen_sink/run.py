@@ -118,7 +118,8 @@ iface = gr.Interface(
         gr.outputs.Audio(label="Audio"),
         gr.outputs.Image(label="Image"),
         gr.outputs.Video(label="Video"),
-        gr.outputs.HighlightedText(label="HighlightedText", color_map={"punc": "pink", "test 0": "blue"}),
+        gr.outputs.HighlightedText(label="HighlightedText", color_map={
+                                   "punc": "pink", "test 0": "blue"}),
         gr.outputs.HighlightedText(label="HighlightedText", show_legend=True),
         gr.outputs.JSON(label="JSON"),
         gr.outputs.HTML(label="HTML"),
@@ -153,9 +154,8 @@ iface = gr.Interface(
         ]
     ]
     * 3,
-    theme="huggingface",
-    title="Kitchen Sink",
     theme="default",
+    title="Kitchen Sink",
     description="Try out all the components!",
     article="Learn more about [Gradio](http://gradio.app)",
 )

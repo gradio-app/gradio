@@ -5,9 +5,6 @@ ffmpy
 markdown2
 matplotlib
 numpy
-pydub
-matplotlib
-numpy
 pandas
 paramiko
 pillow

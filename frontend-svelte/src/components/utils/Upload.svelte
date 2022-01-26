@@ -64,7 +64,7 @@
   />
 </div>
 
-<style lang="postcss">
+<style lang="postcss" global>
   .upload[theme="default"] {
     @apply transition hover:border-gray-400 hover:text-gray-500 dark:hover:border-gray-300 dark:hover:text-gray-300;
   }

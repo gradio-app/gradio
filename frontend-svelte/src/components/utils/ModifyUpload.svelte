@@ -3,7 +3,11 @@
   export let absolute = true;
 </script>
 
-<div class="modify-upload z-10 top-0 right-0 flex justify-end" class:absolute {theme}>
+<div
+  class="modify-upload z-10 top-0 right-0 flex justify-end"
+  class:absolute
+  {theme}
+>
   {#if edit}
     <button
       class="edit bg-opacity-30 hover:bg-opacity-100 transition p-1"
@@ -28,7 +32,7 @@
   </button>
 </div>
 
-<style lang="postcss">
+<style lang="postcss" global>
   .modify-upload[theme="default"] {
     @apply m-1 flex gap-1;
     .edit {

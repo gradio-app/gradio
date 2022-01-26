@@ -75,7 +75,7 @@
   </div>
 </div>
 
-<style lang="postcss">
+<style lang="postcss" global>
   .examples[theme="default"] {
     .examples-holder:not(.gallery) {
       @apply shadow;

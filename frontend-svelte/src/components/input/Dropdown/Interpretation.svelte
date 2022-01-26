@@ -19,7 +19,7 @@
   </ul>
 </div>
 
-<style lang="postcss">
+<style lang="postcss" global>
   .input-dropdown[theme="default"] {
     .selector {
       @apply bg-white dark:bg-gray-800 shadow transition hover:shadow-md;

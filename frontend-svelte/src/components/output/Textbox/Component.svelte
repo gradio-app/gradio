@@ -9,7 +9,7 @@
   {value}
 </div>
 
-<style lang="postcss">
+<style lang="postcss" global>
   .output-text[theme="default"] {
     @apply shadow transition hover:shadow-md dark:bg-gray-800;
   }

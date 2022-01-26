@@ -5,12 +5,12 @@
 <input
   type="number"
   class="input-number w-full rounded box-border p-2 focus:outline-none appearance-none"
-  value={value}
-  on:change={e => setValue(parseFloat(e.target.value))}
+  {value}
+  on:change={(e) => setValue(parseFloat(e.target.value))}
   {theme}
 />
 
-<style lang="postcss">
+<style lang="postcss" global>
   input::-webkit-outer-spin-button,
   input::-webkit-inner-spin-button {
     -webkit-appearance: none;
