@@ -15,7 +15,7 @@
 </script>
 
 <div
-  class="gradio-bg flex flex-col dark:bg-gray-600 {window.gradio_mode === 'app'
+  class="gradio_bg flex flex-col dark:bg-gray-600 {window.gradio_mode === 'app'
     ? 'h-full'
     : 'h-auto'}"
   {theme}
