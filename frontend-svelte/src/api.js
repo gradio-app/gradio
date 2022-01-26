@@ -46,6 +46,9 @@ export const fn = async (api_endpoint, action, data, queue, queue_callback) => {
     }
   } else {
     const output = await postData(api_endpoint + action + "/", data);
+    if (output.status !== 200) {
+      throw new Error(output.statusText);
+    }
     return await output.json();
   }
 };
