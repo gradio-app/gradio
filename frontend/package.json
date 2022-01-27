@@ -36,7 +36,7 @@
   "scripts": {
     "start": "cross-env REACT_APP_BACKEND_URL='http://localhost:7860/' craco start",
     "format": "prettier-eslint --write '**/*.js*'",
-    "build": "cross-env REACT_APP_BACKEND_URL='' REACT_APP_VERSION=$(cat ../gradio/version.txt) GENERATE_SOURCEMAP=false craco build",
+    "build": "REACT_APP_BACKEND_URL='' REACT_APP_VERSION=$(cat ../gradio/version.txt) GENERATE_SOURCEMAP=false craco build",
     "build:win": "cross-env REACT_APP_BACKEND_URL='' GENERATE_SOURCEMAP=false craco build",
     "eject": "react-scripts eject"
   },
