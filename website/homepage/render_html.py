@@ -18,7 +18,6 @@ GRADIO_DEMO_DIR = os.path.join(GRADIO_DIR, "demo")
 
 
 guides = []
-counter = 0
 for guide in sorted(os.listdir(GRADIO_GUIDES_DIR)):
     if "template" in guide or "getting_started" in guide:
         continue
@@ -28,10 +27,21 @@ for guide in sorted(os.listdir(GRADIO_GUIDES_DIR)):
     )
     with open(os.path.join(GRADIO_GUIDES_DIR, guide),"r") as f:
         guide_content = f.read()
+
+    guide_author, guide_date = "", ""
+    if "By [" in guide_content:
+        guide_author = guide_content.split("By [")[1].split("]")[0]
+    elif "By " in guide_content:
+        guide_author = guide_content.split("By ")[1].split("<br>")[0]
+    if "Published: " in guide_content:
+        guide_date = guide_content.split("Published: ")[1].split("<br>")[0]
+
     guide_dict = {
         "guide_name": guide_name,
         "pretty_guide_name": pretty_guide_name,
         "guide_content": guide_content,
+        "guide_author": guide_author,
+        "guide_date": guide_date
     }
     guides.append(guide_dict)
 
