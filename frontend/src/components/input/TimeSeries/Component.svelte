@@ -42,7 +42,7 @@
     include_file_metadata={false}
     {theme}
   >
-    Drop Image Here
+    Drop CSV Here
     <br />- or -<br />
     Click to Upload
   </Upload>

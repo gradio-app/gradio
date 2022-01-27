@@ -25,8 +25,8 @@
   );
 </script>
 
-<div>
-  <svg viewbox="-70 -20 700 420">
+<div style="width: 600px">
+  <svg class="w-full" viewbox="-70 -20 700 420">
     <g>
       {#each x_ticks as tick}
         <line
@@ -42,6 +42,7 @@
           stroke="#aaa"
         />
         <text
+          class="font-mono text-xs"
           text-anchor="middle"
           x={scale_x(tick)}
           y={scale_y(y_ticks[0]) + 30}
@@ -65,6 +66,7 @@
         />
 
         <text
+          class="font-mono text-xs"
           text-anchor="end"
           y={scale_y(tick) + 4}
           x={scale_x(x_ticks[0]) - 20}
@@ -83,6 +85,7 @@
           stroke="#aaa"
         />
         <text
+          class="font-mono text-xs"
           text-anchor="middle"
           y={scale_y(y_domain[1]) + 43}
           x={scale_x(x_ticks[0]) + 15}
@@ -131,16 +134,3 @@
     {/each}
   </svg>
 </div>
-
-<style>
-  div {
-    width: 600px;
-  }
-  svg {
-    width: 100%;
-  }
-
-  text {
-    font: 13px monospace;
-  }
-</style>

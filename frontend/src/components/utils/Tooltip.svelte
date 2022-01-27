@@ -8,32 +8,12 @@
 </script>
 
 <div
+  class="bg-black bg-opacity-80 text-white border-r-2 p-1 absolute text-xs flex items-center justify-center"
   bind:offsetWidth={w}
   bind:offsetHeight={h}
   style="
 		top: {y - h / 2}px;
 		left: {x - w - 7}px;"
 >
-  <span style="background: {color}" />{text}
+  <span class="inline-block w-3 h-3 mr-1" style="background: {color}" />{text}
 </div>
-
-<style>
-  div {
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
-    border-radius: 2px;
-    padding: 4px;
-    position: absolute;
-    font-size: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  span {
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    margin-right: 3px;
-  }
-</style>
