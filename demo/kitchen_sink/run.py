@@ -118,12 +118,8 @@ iface = gr.Interface(
         gr.outputs.Audio(label="Audio"),
         gr.outputs.Image(label="Image"),
         gr.outputs.Video(label="Video"),
-<<<<<<< HEAD
-        gr.outputs.HighlightedText(label="HighlightedText", color_map={"punc": "pink", "test 0": "blue"}),
-=======
         gr.outputs.HighlightedText(label="HighlightedText", color_map={
                                    "punc": "pink", "test 0": "blue"}),
->>>>>>> master
         gr.outputs.HighlightedText(label="HighlightedText", show_legend=True),
         gr.outputs.JSON(label="JSON"),
         gr.outputs.HTML(label="HTML"),
@@ -135,10 +131,6 @@ iface = gr.Interface(
             x="time", y=["price", "value"], label="Timeseries"),
     ],
     examples=[
-<<<<<<< HEAD
-        ["the quick brown fox", "jumps over the lazy dog", 10, 12, 4, True, ["foo", "baz"], "baz", "bar", "files/cheetah1.jpg", "files/cheetah1.jpg", "files/cheetah1.jpg", "files/cheetah1.jpg", "files/world.mp4", "files/cantina.wav", "files/cantina.wav","files/titanic.csv", [[1,2,3],[3,4,5]], "files/time.csv"]
-    ] * 3,
-=======
         [
             "the quick brown fox",
             "jumps over the lazy dog",
@@ -163,7 +155,6 @@ iface = gr.Interface(
     ]
     * 3,
     theme="default",
->>>>>>> master
     title="Kitchen Sink",
     theme="default",
     description="Try out all the components!",
