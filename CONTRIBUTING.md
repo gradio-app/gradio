@@ -20,17 +20,37 @@ bash scripts/install_gradio.sh
 
 * Navigate to the repo folder and install test requirements
 
-```bash
+```
 bash scripts/install_test_requirements.sh
+```
+
+* Install chrome driver and chrome for selenium (necessary for tests)
+
+```
+https://sites.google.com/chromium.org/driver/
+```
+
+```
+https://www.google.com/chrome/
 ```
 
 * Build the front end
 
-```bash
+```
 bash scripts/build_frontend.sh
 ```
 
-*  You can also run `npm run start` to start a local frontend development server (on port 3000 by default) that responds to any changes in the frontend.
+* Run the tests
+
+```
+bash scripts/run_tests.sh
+```
+
+* You can also start a local frontend development server (on port 3000 by default) that responds to any changes in the frontend.
+
+```
+bash scripts/run_frontend.sh
+```
 
 ### Structure of the Repository
 
