@@ -167,11 +167,11 @@
     </div>
 
     <div id="guide-list" class="grid grid-cols-1 lg:grid-cols-3 gap-12 pt-12">
-      {% for guide_name, pretty_guide_name in guide_names %}
-      <a class="flex lg:col-span-1 flex-col group overflow-hidden relative border-gray-100 rounded-xl border shadow-sm hover:shadow-alternate transition-shadow" href="/{{ guide_name }}">
+      {% for guide in guides %}
+      <a class="flex lg:col-span-1 flex-col group overflow-hidden relative border-gray-100 rounded-xl border shadow-sm hover:shadow-alternate transition-shadow" href="/{{ guide.guide_name }}">
         <div class="flex flex-col p-4" style="
       height: min-content;">
-          <h2 class="font-semibold group-hover:underline font-serif text-xl">{{ pretty_guide_name }}
+          <h2 class="font-semibold group-hover:underline font-serif text-xl">{{ guide.pretty_guide_name }}
           </h2>
 
           <p class="font-mono text-xs text-gray-500 flex items-center mt-3">By&nbsp;<object title="">Author Name</object>
@@ -229,15 +229,16 @@
     var filter, i, txtValue;
     filter = term.toUpperCase();
     var counter = 0
-    for (i = 0; i < a.length; i++) {
-      txtValue = a[i].innerText;
-      if (txtValue.toUpperCase().indexOf(filter) > -1) {
-        a[i].style.display = "";
+    {% for guide in guides %}
+      txtValue = a[{{ loop.index - 1 }}].innerText;
+      guideContent = {{ guide.guide_content|tojson|safe }}
+      if (txtValue.toUpperCase().indexOf(filter) > -1 || guideContent.toUpperCase().indexOf(filter) > -1) {
+        a[{{ loop.index - 1}}].style.display = "";
       } else {
-        a[i].style.display = "none";
+        a[{{ loop.index - 1 }}].style.display = "none";
         counter++;
       }
-    }
+    {% endfor %}
     ngf = document.getElementById("no-guides-found");
     if (counter == a.length) {
       ngf.style.display = "";

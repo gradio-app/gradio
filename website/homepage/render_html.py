@@ -17,7 +17,8 @@ GRADIO_GUIDES_DIR = os.path.join(GRADIO_DIR, "guides")
 GRADIO_DEMO_DIR = os.path.join(GRADIO_DIR, "demo")
 
 
-guide_names = []
+guides = []
+counter = 0
 for guide in sorted(os.listdir(GRADIO_GUIDES_DIR)):
     if "template" in guide or "getting_started" in guide:
         continue
@@ -25,7 +26,14 @@ for guide in sorted(os.listdir(GRADIO_GUIDES_DIR)):
     pretty_guide_name = " ".join(
         [word.capitalize().replace("Ml", "ML") for word in guide_name.split("_")]
     )
-    guide_names.append((guide_name, pretty_guide_name))
+    with open(os.path.join(GRADIO_GUIDES_DIR, guide),"r") as f:
+        guide_content = f.read()
+    guide_dict = {
+        "guide_name": guide_name,
+        "pretty_guide_name": pretty_guide_name,
+        "guide_content": guide_content,
+    }
+    guides.append(guide_dict)
 
 
 def render_index():
@@ -47,7 +55,7 @@ def render_index():
 def render_guides_main():
     with open("src/guides_main_template.html", encoding='utf-8') as template_file:
         template = Template(template_file.read())
-        output_html = template.render(guide_names=guide_names)
+        output_html = template.render(guides=guides)
     with open(os.path.join("generated", "guides.html"), "w", encoding='utf-8') as generated_template:
         generated_template.write(output_html)
         
@@ -255,5 +263,5 @@ if __name__ == "__main__":
     render_index()
     render_guides_main()
     render_guides()
-    render_docs()
+    # render_docs()
     render_other()
