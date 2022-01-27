@@ -1,7 +1,9 @@
-import gradio as gr
 import random
+
 import matplotlib.pyplot as plt
 import numpy as np
+
+import gradio as gr
 
 
 def plot_forecast(final_year, companies, noise, show_legend, point_style):
@@ -22,18 +24,19 @@ def plot_forecast(final_year, companies, noise, show_legend, point_style):
     return fig
 
 
-iface = gr.Interface(plot_forecast,
-             [
-                 gr.inputs.Radio([2025, 2030, 2035, 2040],
-                                 label="Project to:"),
-                 gr.inputs.CheckboxGroup(
-                     ["Google", "Microsoft", "Gradio"], label="Company Selection"),
-                 gr.inputs.Slider(1, 100, label="Noise Level"),
-                 gr.inputs.Checkbox(label="Show Legend"),
-                 gr.inputs.Dropdown(["cross", "line", "circle"], label="Style"),
-             ],
-             gr.outputs.Image(plot=True, label="forecast") 
-             )
+iface = gr.Interface(
+    plot_forecast,
+    [
+        gr.inputs.Radio([2025, 2030, 2035, 2040], label="Project to:"),
+        gr.inputs.CheckboxGroup(
+            ["Google", "Microsoft", "Gradio"], label="Company Selection"
+        ),
+        gr.inputs.Slider(1, 100, label="Noise Level"),
+        gr.inputs.Checkbox(label="Show Legend"),
+        gr.inputs.Dropdown(["cross", "line", "circle"], label="Style"),
+    ],
+    gr.outputs.Image(plot=True, label="forecast"),
+)
 
 if __name__ == "__main__":
     iface.launch()

@@ -1,4 +1,9 @@
 # Contributing to Gradio
+
+Prequisites:
+  * Python 3.7+
+  * Node 16.0+ (optional for backend-only changes, but needed for any frontend changes) 
+
 More than 30 awesome developers have contributed to the `gradio` library, and we'd be thrilled if you would like be the next `gradio` contributor! You can start by forking or cloning the repo (https://github.com/gradio-app/gradio.git) and creating your own branch to work from.
 
 Next, to install the local development version of Gradio:
@@ -6,8 +11,8 @@ Next, to install the local development version of Gradio:
 
 When installing locally, you may also need to build the front end:
   * Navigate to the `/frontend` subfolder and run `npm install`.
-  * Then run `npm run build`.
-  * Then you can run `npm run start` to start a local development server (on port 3000) that responds to any changes in the frontend
+  * Then run `npm run build` (or `npm run build:win` on Windows).
+  * Then you can run `npm run start` to start a local development server (on port 3000 by default) that responds to any changes in the frontend
 
 ### Structure of the Repository
 

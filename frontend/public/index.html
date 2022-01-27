@@ -1,9 +1,13 @@
 <!DOCTYPE html>
-<html lang="en" style="height: 100%; margin: 0; padding: 0;">
+<html lang="en" style="min-height: 100%; margin: 0; padding: 0;">
 
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel='stylesheet' href='/build/bundle.css'>
+  <link rel='stylesheet' href='/build/themes.css'>
+
+  <link rel="stylesheet" href="./global.css">
 
   <title>{{ config['title'] or 'Gradio' }}</title>
   <meta property="og:url" content="https://gradio.app/" />
@@ -35,6 +39,8 @@
 
 <body style="height: 100%; margin: 0; padding: 0;">
   <div id="root" style="height: 100%"></div>
+
 </body>
+<script defer src='/build/bundle.js'></script>
 
 </html>
