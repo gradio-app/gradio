@@ -68,14 +68,14 @@
 
     .searchTerm {
       width: 100%;
-      border: 3px solid #dbdde1;
+      border: 1px solid #bebfc3;
       padding: 5px;
       height: 50px;
-      border-radius: 10px;
+      border-radius: 25px;
       outline: none;
       color: #9ca3af;
       text-align: center;
-      font-size: larger;
+      font-size: large;
     }
 
     .searchTerm:focus{
@@ -84,7 +84,6 @@
 
     .wrap-for-search{
       padding-top: 20px;
-      width: 30%;
       margin: auto;
     }
 
@@ -106,6 +105,7 @@
 
     .counter-parent {
       text-align: center;
+      font-size: smaller;
     }
     .counter-child {
       display: inline-block;
@@ -147,7 +147,7 @@
       </div>
     </nav>
   </header>
-  <div class="container mx-auto px-4 mb-12">
+  <div class="container mx-auto px-4 mb-12" style="width: 80%;">
 
     <div class="wrap-for-search">
             <div class="search-for-tag">
@@ -156,6 +156,9 @@
             </div>
     </div>
     <div class="counter-parent">
+        <div class="counter-child">
+          <h2 style="font-weight: 100; color: #444343; padding-bottom: 20px;">Search through </h2>
+        </div>
         <div class="counter-child">
             <div class="counter-box">
                 <div id="counter" class="counter"></div>
@@ -168,16 +171,11 @@
 
     <div id="guide-list" class="grid grid-cols-1 lg:grid-cols-3 gap-12 pt-12">
       {% for guide in guides %}
-      <a class="flex lg:col-span-1 flex-col group overflow-hidden relative border-gray-100 rounded-xl border shadow-sm hover:shadow-alternate transition-shadow" href="/{{ guide.guide_name }}">
+      <a class="flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow" href="/{{ guide.guide_name }}">
         <div class="flex flex-col p-4" style="
       height: min-content;">
-          <h2 class="font-semibold group-hover:underline font-serif text-xl">{{ guide.pretty_guide_name }}
+          <h2 class="font-semibold group-hover:underline font-serif text-xl" style="color: #5a5a5a;">{{ guide.pretty_guide_name }}
           </h2>
-
-          <p class="font-mono text-xs text-gray-500 flex items-center mt-3">By&nbsp;<object title="">Author Name</object>
-                  <span class="w-1 h-1 flex-none mx-2 bg-gray-200"></span>
-              <span>Date</span>
-          </p>
         </div>
       </a>
       {% endfor %}
@@ -208,6 +206,32 @@
   var div, li, a;
   div = document.getElementById("guide-list");
   a = div.getElementsByTagName('a');
+
+  var backgrounds = ['linear-gradient(90deg, rgba(255,254,188,0.3) 0%, rgba(255,255,240,0.3) 100%)',
+                     'linear-gradient(90deg, rgba(255,205,188,0.3) 0%, rgba(255,253,253,0.3) 100%)',
+                     'linear-gradient(90deg, rgba(255,188,188,0.3) 0%, rgba(255,238,238,0.3) 100%)',
+                     'linear-gradient(90deg, rgba(194,255,169,0.3) 0%, rgba(243,255,238,0.3) 100%)',
+                     'linear-gradient(90deg, rgba(169,255,237,0.3) 0%, rgba(230,255,250,0.3) 100%)',
+                     'linear-gradient(90deg, rgba(182,169,255,0.3) 0%, rgba(237,234,255,0.3) 100%)',
+                     'linear-gradient(90deg, rgba(255,183,245,0.3) 0%, rgba(255,234,252,0.3) 100%)']
+
+  function shuffleBackgrounds(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+  }
+
+  shuffleBackgrounds(backgrounds);
+
+  color_counter = 0
+  for (let i = 0; i < a.length; i++) {
+    a[i].style.background = backgrounds[color_counter];
+    color_counter += 1
+    if (color_counter == backgrounds.length) {
+      color_counter = 0;
+    }
+  }
 
   function animateValue(obj, start, end, duration) {
     let startTimestamp = null;
