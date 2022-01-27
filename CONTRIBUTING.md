@@ -1,4 +1,9 @@
 # Contributing to Gradio
+
+Prequisites:
+  * Python 3.7+
+  * Node 16.0+ (optional for backend-only changes, but needed for any frontend changes) 
+
 More than 30 awesome developers have contributed to the `gradio` library, and we'd be thrilled if you would like be the next `gradio` contributor! You can start by forking or cloning the repo (https://github.com/gradio-app/gradio.git) and creating your own branch to work from.
 
 Next, to install the local development version of Gradio:

@@ -1,8 +1,10 @@
-import os, sys
-import subprocess
-from jinja2 import Template
 import json
+import os
 import re
+import subprocess
+import sys
+
+from jinja2 import Template
 
 GRADIO_DIR = os.path.join(os.getcwd(), os.pardir, os.pardir)
 GRADIO_DEMO_DIR = os.path.join(GRADIO_DIR, "demo")
@@ -22,14 +24,16 @@ for demo_name in demos_to_run:
     demo_folder = os.path.join(GRADIO_DEMO_DIR, demo_name)
     requirements_file = os.path.join(demo_folder, "requirements.txt")
     if os.path.exists(requirements_file):
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", requirements_file]) 
+        subprocess.check_call(
+            [sys.executable, "-m", "pip", "install", "-r", requirements_file]
+        )
     setup_file = os.path.join(demo_folder, "setup.sh")
     if os.path.exists(setup_file):
-        subprocess.check_call(["sh", setup_file]) 
+        subprocess.check_call(["sh", setup_file])
     demo_port_sets.append((demo_name, port))
     port += 1
 
-with open("nginx_template.conf") as nginx_template_conf: 
+with open("nginx_template.conf") as nginx_template_conf:
     template = Template(nginx_template_conf.read())
 output_nginx_conf = template.render(demo_port_sets=demo_port_sets)
 with open("nginx.conf", "w") as nginx_conf:
