@@ -1,13 +1,14 @@
 import io
-import sys
 import json
+import os
+import sys
+import threading
 import unittest
 import unittest.mock as mock
-from gradio import tunneling, networking, Interface
-import threading
-import paramiko
-import os
 
+import paramiko
+
+from gradio import Interface, networking, tunneling
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -27,13 +28,13 @@ class TestTunneling(unittest.TestCase):
         io.close()
 
 
-class TestVerbose(unittest.TestCase):   
-    """Not absolutely needed but just including them for the sake of completion.""" 
-    
+class TestVerbose(unittest.TestCase):
+    """Not absolutely needed but just including them for the sake of completion."""
+
     def setUp(self):
         self.message = "print test"
-        self.capturedOutput = io.StringIO()                  # Create StringIO object
-        sys.stdout = self.capturedOutput                     #  and redirect stdout.
+        self.capturedOutput = io.StringIO()  # Create StringIO object
+        sys.stdout = self.capturedOutput  #  and redirect stdout.
 
     def test_verbose_debug_true(self):
         tunneling.verbose(self.message, debug_mode=True)
@@ -41,10 +42,11 @@ class TestVerbose(unittest.TestCase):
 
     def test_verbose_debug_false(self):
         tunneling.verbose(self.message, debug_mode=False)
-        self.assertEqual(self.capturedOutput.getvalue().strip(), '')
+        self.assertEqual(self.capturedOutput.getvalue().strip(), "")
 
     def tearDown(self):
         sys.stdout = sys.__stdout__
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

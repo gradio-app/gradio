@@ -1,11 +1,12 @@
-import time
-import os
-import requests
-import json
 import importlib
+import json
+import os
+import subprocess
 import sys
 import threading
-import subprocess
+import time
+
+import requests
 
 LAUNCH_PERIOD = 60
 GRADIO_DEMO_DIR = "../../demo"
@@ -14,18 +15,18 @@ sys.path.insert(0, GRADIO_DEMO_DIR)
 with open("demos.json") as demos_file:
     demo_port_sets = json.load(demos_file)
 
+
 def launch_demo(demo_folder):
     subprocess.call(f"cd {demo_folder} && python run.py", shell=True)
+
 
 for demo_name, port in demo_port_sets:
     demo_folder = os.path.join(GRADIO_DEMO_DIR, demo_name)
     demo_file = os.path.join(demo_folder, "run.py")
-    with open(demo_file, 'r') as file:
+    with open(demo_file, "r") as file:
         filedata = file.read()
-    filedata = filedata.replace(
-        f'iface.launch()', 
-        f'iface.launch(server_port={port})')
-    with open(demo_file, 'w') as file:
+    filedata = filedata.replace(f"iface.launch()", f"iface.launch(server_port={port})")
+    with open(demo_file, "w") as file:
         file.write(filedata)
     demo_thread = threading.Thread(target=launch_demo, args=(demo_folder,))
     demo_thread.start()
