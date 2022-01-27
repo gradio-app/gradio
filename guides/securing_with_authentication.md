@@ -49,7 +49,7 @@ def predict(input, history=[]):
     history = model.generate(bot_input_ids, max_length=1000, pad_token_id=tokenizer.eos_token_id)
 
     # convert the tokens to text, and then split the responses into a list
-        response.remove("")
+    response.remove("")
 
     return response, history
 ```

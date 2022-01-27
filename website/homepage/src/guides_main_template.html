@@ -55,6 +55,63 @@
       height: 14px;
       margin: 0 4px !important;
     }
+
+    ul {
+      text-align: center !important;
+    }
+
+    .search-for-tags {
+      width: 100%;
+      position: relative;
+      display: flex;
+    }
+
+    .searchTerm {
+      width: 100%;
+      border: 3px solid #dbdde1;
+      padding: 5px;
+      height: 50px;
+      border-radius: 10px;
+      outline: none;
+      color: #9ca3af;
+      text-align: center;
+      font-size: larger;
+    }
+
+    .searchTerm:focus{
+      color: #101827;
+    }
+
+    .wrap-for-search{
+      padding-top: 20px;
+      width: 30%;
+      margin: auto;
+    }
+
+    #no-guides-found {
+      text-align: center;
+      color: #9ca3af;
+      font-size: larger;
+    }
+
+    .counter-box {
+        width: 100%;
+        color: #ec8f14;
+    }
+
+    .counter{
+        padding-left: 4px;
+        padding-right: 4px;
+      }
+
+    .counter-parent {
+      text-align: center;
+    }
+    .counter-child {
+      display: inline-block;
+    }
+
+
   </style>
   <script async src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
     <script>
@@ -89,17 +146,52 @@
         </div>
       </div>
     </nav>
-  </header>  
+  </header>
   <div class="container mx-auto px-4 mb-12">
-    <ul>
+
+    <div class="wrap-for-search">
+            <div class="search-for-tag">
+                  <input id="search-by-tag" type="text" class="searchTerm" placeholder="What do you want to build..." onfocus="this.placeholder = ''"
+                    onblur="this.placeholder = 'What do you want to build...'" autocomplete="off" onkeyup="search(this.value);">
+            </div>
+    </div>
+    <div class="counter-parent">
+        <div class="counter-child">
+            <div class="counter-box">
+                <div id="counter" class="counter"></div>
+            </div>
+        </div>
+        <div class="counter-child">
+            <h2 style="font-weight: 100; color: #444343; padding-bottom: 20px;"> Guides. <a class="link" href="#" style="color: grey;">Contribute here.</a></h2>
+        </div>
+    </div>
+
+    <div id="guide-list" class="grid grid-cols-1 lg:grid-cols-3 gap-12 pt-12">
       {% for guide_name, pretty_guide_name in guide_names %}
-      <a class="link px-4 py-2 inline-block hover:bg-gray-100" href="/{{ guide_name }}">
-        <li>
-        {{ pretty_guide_name }}
-        </li>
+      <a class="flex lg:col-span-1 flex-col group overflow-hidden relative border-gray-100 rounded-xl border shadow-sm hover:shadow-alternate transition-shadow" href="/{{ guide_name }}">
+        <div class="flex flex-col p-4" style="
+      height: min-content;">
+          <h2 class="font-semibold group-hover:underline font-serif text-xl">{{ pretty_guide_name }}
+          </h2>
+
+          <p class="font-mono text-xs text-gray-500 flex items-center mt-3">By&nbsp;<object title="">Author Name</object>
+                  <span class="w-1 h-1 flex-none mx-2 bg-gray-200"></span>
+              <span>Date</span>
+          </p>
+        </div>
       </a>
-      {% endfor %}      
-    </ul>
+      {% endfor %}
+  </div>
+
+    <div id="no-guides-found" style="display: none">
+    <p>
+        Sorry, we couldn't find a guide :(
+    </p>
+    <p>
+        Try a different term, or <a class="link" href="/docs">see the docs</a>
+    </p>
+
+    </div>
   </div>
   <footer class="container mx-auto p-4 flex justify-between items-center">
     <img src="/assets/img/logo.svg" class="h-10">
@@ -112,6 +204,49 @@
       </a>
     </div>
   </footer>
+  <script>
+  var div, li, a;
+  div = document.getElementById("guide-list");
+  a = div.getElementsByTagName('a');
+
+  function animateValue(obj, start, end, duration) {
+    let startTimestamp = null;
+    const step = (timestamp) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      obj.innerHTML = Math.floor(progress * (end - start) + start);
+      if (progress < 1) {
+        window.requestAnimationFrame(step);
+      }
+    };
+    window.requestAnimationFrame(step);
+  }
+
+  const obj = document.getElementById("counter");
+  animateValue(obj, 0, a.length, 1000);
+
+  function search(term) {
+    var filter, i, txtValue;
+    filter = term.toUpperCase();
+    var counter = 0
+    for (i = 0; i < a.length; i++) {
+      txtValue = a[i].innerText;
+      if (txtValue.toUpperCase().indexOf(filter) > -1) {
+        a[i].style.display = "";
+      } else {
+        a[i].style.display = "none";
+        counter++;
+      }
+    }
+    ngf = document.getElementById("no-guides-found");
+    if (counter == a.length) {
+      ngf.style.display = "";
+    } else {
+      ngf.style.display = "none";
+    }
+  }
+
+  </script>
   <script src="/assets/prism.js"></script>
   <script>
     window.gradio_mode = "website";
