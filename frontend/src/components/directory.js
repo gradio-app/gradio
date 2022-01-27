@@ -10,6 +10,7 @@ import InputSlider from "./input/Slider/config.js";
 import InputTextbox from "./input/Textbox/config.js";
 import InputVideo from "./input/Video/config.js";
 import InputDataFrame from "./input/DataFrame/config.js";
+import InputTimeSeries from './input/TimeSeries/config.js';
 
 import OutputAudio from "./output/Audio/config.js";
 import OutputCarousel from "./output/Carousel/config.js";
@@ -37,7 +38,7 @@ export const input_component_map = {
     "radio": InputRadio,
     "slider": InputSlider,
     "textbox": InputTextbox,
-    "timeseries": {"component": Dummy, "example": Dummy},
+    "timeseries": InputTimeSeries,
     "video": InputVideo,
 }
 
