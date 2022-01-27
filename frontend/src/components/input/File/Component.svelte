@@ -24,8 +24,6 @@
       {prettyBytes(value.size)}
     </div>
   </div>
-      {/if}
-    </div>
   {/if}
 </div>
 
