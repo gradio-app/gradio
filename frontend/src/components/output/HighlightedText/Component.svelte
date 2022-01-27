@@ -40,7 +40,7 @@
       </div>
     {/if}
     <div
-      class="textfield p-2 bg-white dark:bg-gray-800 rounded box-border max-w-full leading-8 break-all"
+      class="textfield p-2 bg-white dark:bg-gray-800 rounded box-border max-w-full leading-8 break-word"
     >
       {#each value as [text, category], i}
         <span
@@ -79,7 +79,7 @@
       </div>
     {/if}
     <div
-      class="textfield p-2 bg-white dark:bg-gray-800 rounded box-border max-w-full leading-8 break-all"
+      class="textfield p-2 bg-white dark:bg-gray-800 rounded box-border max-w-full leading-8 break-word"
     >
       {#each value as [text, score], i}
         <span

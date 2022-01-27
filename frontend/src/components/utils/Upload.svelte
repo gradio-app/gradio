@@ -3,7 +3,9 @@
   export let single_file = true;
   export let include_file_metadata = true;
   let hidden_upload;
+  let dragging = false;
 
+  const updateDragging = () => {dragging = !dragging}
   const openFileUpload = () => {
     hidden_upload.click();
   };
@@ -42,7 +44,7 @@
 </script>
 
 <div
-  class="upload h-80 border-gray-300 text-gray-400 dark:text-gray-500 dark:border-gray-500 border-8 border-dashed w-full flex justify-center items-center text-3xl text-center cursor-pointer leading-10"
+  class={dragging ? "upload h-60 border-green-300 text-green-400 dark:text-green-500 dark:border-green-500 border-8 border-dashed w-full flex justify-center items-center text-3xl text-center cursor-pointer leading-10" : "upload h-60 border-gray-300 text-gray-400 dark:text-gray-500 dark:border-gray-500 border-8 border-dashed w-full flex justify-center items-center text-3xl text-center cursor-pointer leading-10"}
   {theme}
   on:drag|preventDefault|stopPropagation
   on:dragstart|preventDefault|stopPropagation
@@ -53,6 +55,8 @@
   on:drop|preventDefault|stopPropagation
   on:click={openFileUpload}
   on:drop={loadFilesFromDrop}
+  on:dragenter={updateDragging}
+  on:dragleave={updateDragging}
 >
   <slot />
   <input
