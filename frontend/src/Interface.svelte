@@ -1,5 +1,4 @@
 <script>
-
   import {
     input_component_map,
     output_component_map,
