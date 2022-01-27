@@ -45,6 +45,7 @@ readme_template = Environment(loader=GuidesLoader("guides")).get_template(
     README_TEMPLATE
 )
 output_readme = readme_template.render(code=code, demos=demos)
+output_readme = output_readme.replace("(/assets/", "(website/homepage/src/assets/")
 
 with open("README.md", "w") as readme_md:
     readme_md.write(output_readme)

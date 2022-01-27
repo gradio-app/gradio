@@ -156,7 +156,6 @@ iface = gr.Interface(
     * 3,
     theme="default",
     title="Kitchen Sink",
-    theme="default",
     description="Try out all the components!",
     article="Learn more about [Gradio](http://gradio.app)",
 )
