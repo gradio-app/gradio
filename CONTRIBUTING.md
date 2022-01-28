@@ -18,7 +18,7 @@ bash scripts/install_gradio.sh
 
 ### To install the local development version of Gradio
 
-* Navigate to the repo folder and install test requirements
+* Navigate to the repo folder and install test requirements (note that it is highly recommended to use a virtual environment since the versions are pinned)
 
 ```
 bash scripts/install_test_requirements.sh
