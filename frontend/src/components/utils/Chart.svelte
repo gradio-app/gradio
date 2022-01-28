@@ -25,7 +25,18 @@
   );
 </script>
 
-<div style="width: 600px">
+<div>
+  <div class="flex justify-center align-items-center text-sm">
+    {#each y as { name }}
+      <div class="mx-2">
+        <span
+          class="inline-block w-[10px] h-[10px]"
+          style="background-color: {colors[name]}"
+        />
+        {name}
+      </div>
+    {/each}
+  </div>
   <svg class="w-full" viewbox="-70 -20 700 420">
     <g>
       {#each x_ticks as tick}
@@ -86,9 +97,9 @@
         />
         <text
           class="font-mono text-xs"
-          text-anchor="middle"
-          y={scale_y(y_domain[1]) + 43}
-          x={scale_x(x_ticks[0]) + 15}
+          text-anchor="end"
+          y={scale_y(y_domain[1]) + 4}
+          x={scale_x(x_ticks[0]) - 20}
         >
           {y_domain[1]}
         </text>
@@ -133,4 +144,8 @@
       {/each}
     {/each}
   </svg>
+
+  <div class="flex justify-center align-items-center text-sm">
+    {x.name}
+  </div>
 </div>

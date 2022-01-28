@@ -29,7 +29,11 @@
     reader.readAsText(blb);
   }
 
-  $: value && blob_to_string(data_uri_to_blob(value));
+  $: {
+    console.log(value);
+    if (!value) _value = null;
+    else blob_to_string(data_uri_to_blob(value.data));
+  }
 </script>
 
 {#if _value}
@@ -38,7 +42,7 @@
 {#if !value}
   <Upload
     filetype="text/csv"
-    load={setValue}
+    load={(v) => setValue({ data: v })}
     include_file_metadata={false}
     {theme}
   >

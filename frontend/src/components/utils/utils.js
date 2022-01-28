@@ -46,6 +46,8 @@ export function get_color() {
     [255, 159, 64],
   ];
 
+  if (c >= default_colors.length) c = 0;
+
   const [r, g, b] = default_colors[c++];
 
   return `rgb(${r},${g},${b})`;
