@@ -1236,14 +1236,14 @@ class Audio(InputComponent):
 
     def get_masked_inputs(self, tokens, binary_mask_matrix):
         # create a "zero input" vector and get sample rate
-        x = tokens[0]
+        x = tokens[0]["data"]
         file_obj = processing_utils.decode_base64_to_file(x)
         sample_rate, data = processing_utils.audio_from_file(file_obj.name)
         zero_input = np.zeros_like(data, dtype='int16')
         # decode all of the tokens
         token_data = []
         for token in tokens:
-            file_obj = processing_utils.decode_base64_to_file(token)
+            file_obj = processing_utils.decode_base64_to_file(token["data"])
             _, data = processing_utils.audio_from_file(file_obj.name)
             token_data.append(data)
         # construct the masked version
