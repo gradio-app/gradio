@@ -88,7 +88,7 @@ class TestDemo(unittest.TestCase):
             EC.presence_of_element_located(
                 (
                     By.CSS_SELECTOR,
-                    ".panel:nth-child(1) .component:nth-child(1) .input_text textarea",
+                    ".panel:nth-child(1) .component:nth-child(1) .input-text",
                 )
             )
         )
@@ -98,7 +98,7 @@ class TestDemo(unittest.TestCase):
             EC.presence_of_element_located(
                 (
                     By.CSS_SELECTOR,
-                    ".panel:nth-child(1) .component:nth-child(2) .input_text textarea",
+                    ".panel:nth-child(1) .component:nth-child(2) .input-text",
                 )
             )
         )
@@ -141,7 +141,7 @@ class TestDemo(unittest.TestCase):
             EC.presence_of_element_located(
                 (
                     By.CSS_SELECTOR,
-                    ".panel:nth-child(1) .component:nth-child(1) .hidden_upload",
+                    ".panel:nth-child(1) .component:nth-child(1) .hidden-upload",
                 )
             )
         )
@@ -162,7 +162,7 @@ class TestDemo(unittest.TestCase):
             EC.visibility_of_element_located(
                 (
                     By.CSS_SELECTOR,
-                    ".panel:nth-child(2) .component:nth-child(2) .output_image",
+                    ".panel:nth-child(2) .component:nth-child(2) .output-image",
                 )
             )
         )
@@ -179,7 +179,7 @@ class TestDemo(unittest.TestCase):
             EC.presence_of_element_located(
                 (
                     By.CSS_SELECTOR,
-                    ".panel:nth-child(1) .component:nth-child(1) .input_text textarea",
+                    ".panel:nth-child(1) .component:nth-child(1) .input-text",
                 )
             )
         )
@@ -192,7 +192,7 @@ class TestDemo(unittest.TestCase):
             EC.presence_of_element_located(
                 (
                     By.CSS_SELECTOR,
-                    ".panel:nth-child(2) .component:nth-child(2) .output_class_without_confidences",
+                    ".panel:nth-child(2) .component:nth-child(2) .output-class",
                 )
             )
         )
@@ -224,7 +224,7 @@ class TestDemo(unittest.TestCase):
             EC.presence_of_element_located(
                 (
                     By.CSS_SELECTOR,
-                    ".panel:nth-child(2) .component:nth-child(2) .output_text",
+                    ".panel:nth-child(2) .component:nth-child(2) .output-text",
                 )
             )
         )
