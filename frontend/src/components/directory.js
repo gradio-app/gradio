@@ -23,6 +23,7 @@ import OutputJson from "./output/Json/config.js";
 import OutputLabel from "./output/Label/config.js";
 import OutputTextbox from "./output/Textbox/config.js";
 import OutputVideo from "./output/Video/config.js";
+import OutputTimeSeries from './output/TimeSeries/config.js'
 
 import Dummy from "./Dummy.svelte"
 
@@ -53,6 +54,6 @@ export const output_component_map = {
     "json": OutputJson,
     "label": OutputLabel,
     "textbox": OutputTextbox,
-    "timeseries": {"component": Dummy, "example": Dummy},
+    "timeseries": OutputTimeSeries,
     "video": OutputVideo,
 }

@@ -2,7 +2,7 @@
   import Upload from "../../utils/Upload.svelte";
   import Chart from "../../utils/Chart.svelte";
 
-  export let value, setValue, theme;
+  export let value, setValue, theme, y, x;
   let _value;
 
   function data_uri_to_blob(data_uri) {
@@ -31,13 +31,38 @@
 
   $: {
     console.log(value);
-    if (!value) _value = null;
-    else blob_to_string(data_uri_to_blob(value.data));
+    if (value && value.data && typeof value.data === "string") {
+      if (!value) _value = null;
+      else blob_to_string(data_uri_to_blob(value.data));
+    }
+  }
+
+  function make_dict(x, y) {
+    const headers = [];
+    const data = [];
+
+    headers.push(x.name);
+    y.forEach(({ name }) => headers.push(name));
+
+    for (let i = 0; i < x.values.length; i++) {
+      let _data = [];
+      _data.push(x.values[i]);
+      y.forEach(({ values }) => _data.push(values[i].y));
+
+      data.push(_data);
+    }
+    console.log({ headers, data });
+    return { headers, data };
   }
 </script>
 
 {#if _value}
-  <Chart value={_value} />
+  <Chart
+    value={_value}
+    {y}
+    {x}
+    on:process={({ detail: { x, y } }) => setValue(make_dict(x, y))}
+  />
 {/if}
 {#if !value}
   <Upload

@@ -10,15 +10,16 @@ export function get_domains(values) {
   return [Math.min(..._vs), Math.max(..._vs)];
 }
 
-export function transform_values(values) {
-  const [first, ...rest] = Object.entries(values[0]);
-  const transformed_values = {
-    x: {
-      name: first[0],
-      values: [],
-    },
-    y: rest.map((x) => ({ name: x[0], values: [] })),
-  };
+export function transform_values(values, x, y, cb) {
+  console.log(values)
+  const transformed_values = Object.entries(values[0]).reduce((acc, next, i) => {
+    if ((!x && i === 0) || (x && next[0] === x)) {
+      acc.x.name = next[0];
+    } else if (!y || y && y.includes(next[0]) ) {
+      acc.y.push({name: next[0], values: []});
+    }
+    return acc;
+  }, {x: {name: '', values: []}, y: []});
 
   for (let i = 0; i < values.length; i++) {
     const _a = Object.entries(values[i]);
@@ -32,6 +33,7 @@ export function transform_values(values) {
     }
   }
 
+  cb('process', transformed_values);
   return transformed_values;
 }
 

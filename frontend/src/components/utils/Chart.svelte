@@ -2,15 +2,22 @@
   import { csvParse } from "d3-dsv";
   import { scaleLinear } from "d3-scale";
   import { line as _line, curveLinear } from "d3-shape";
+  import { createEventDispatcher, onMount } from "svelte";
 
   import { get_domains, transform_values, get_color } from "./utils.js";
   import { tooltip } from "./tooltip.js";
 
   export let value;
-  export let setValue;
   export let theme;
+  export let x;
+  export let y;
 
-  $: ({ x, y } = transform_values(csvParse(value)));
+  const dispatch = createEventDispatcher();
+
+  $: ({ x, y } = transform_values(csvParse(value), x, y, dispatch));
+  // $: x, y && dispatch("process", { x, y });
+  $: console.log({ x, y });
+
   $: x_domain = get_domains(x);
   $: y_domain = get_domains(y);
 
@@ -23,6 +30,10 @@
     (acc, next) => ({ ...acc, [next.name]: get_color() }),
     {}
   );
+
+  onMount(() => {
+    dispatch("process", { x, y });
+  });
 </script>
 
 <div>
