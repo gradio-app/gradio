@@ -72,7 +72,6 @@
     submission_count += 1;
     let submission_count_at_click = submission_count;
     startTimer();
-    console.log({ data: input_values });
     fn("predict", { data: input_values })
       .then((output) => {
         if (

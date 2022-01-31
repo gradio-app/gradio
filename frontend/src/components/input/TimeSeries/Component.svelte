@@ -30,7 +30,6 @@
   }
 
   $: {
-    console.log(value);
     if (value && value.data && typeof value.data === "string") {
       if (!value) _value = null;
       else blob_to_string(data_uri_to_blob(value.data));
@@ -51,7 +50,6 @@
 
       data.push(_data);
     }
-    console.log({ headers, data });
     return { headers, data };
   }
 </script>

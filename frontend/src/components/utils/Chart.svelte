@@ -11,12 +11,14 @@
   export let theme;
   export let x;
   export let y;
+  export let type = "csv";
 
   const dispatch = createEventDispatcher();
 
-  $: ({ x, y } = transform_values(csvParse(value), x, y, dispatch));
-  // $: x, y && dispatch("process", { x, y });
-  $: console.log({ x, y });
+  $: ({ x, y } =
+    type === "csv"
+      ? transform_values(csvParse(value), x, y)
+      : transform_values(value, x, y));
 
   $: x_domain = get_domains(x);
   $: y_domain = get_domains(y);

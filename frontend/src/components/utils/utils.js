@@ -10,8 +10,7 @@ export function get_domains(values) {
   return [Math.min(..._vs), Math.max(..._vs)];
 }
 
-export function transform_values(values, x, y, cb) {
-  console.log(values)
+export function transform_values(values, x, y) {
   const transformed_values = Object.entries(values[0]).reduce((acc, next, i) => {
     if ((!x && i === 0) || (x && next[0] === x)) {
       acc.x.name = next[0];
@@ -33,7 +32,6 @@ export function transform_values(values, x, y, cb) {
     }
   }
 
-  cb('process', transformed_values);
   return transformed_values;
 }
 

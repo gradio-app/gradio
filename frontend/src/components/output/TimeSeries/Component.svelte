@@ -3,7 +3,9 @@
   import Chart from "../../utils/Chart.svelte";
 
   export let value;
-  $: console.log(value);
+  $: formatted_value = value.data.map((r) =>
+    r.reduce((acc, next, i) => ({ ...acc, [value.headers[i]]: next }), {})
+  );
 </script>
 
-<Chart value={value.data} />
+<Chart value={formatted_value} type="data" />
