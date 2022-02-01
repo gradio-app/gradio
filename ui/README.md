@@ -6,7 +6,7 @@ This folder contains all of the Gradio UI and component source code.
 
 This folder is managed as 'monorepo' a multi-package repository which make dependency management very simple. In order to do this we use `pnpm` as our package manager. 
 
-Make sure `pnpm` is installed by [following the installation instructions for your system](https://pnpm.io/installation). 
+Make sure [`pnpm`](https://pnpm.io/) is installed by [following the installation instructions for your system](https://pnpm.io/installation). 
 
 You will also need `node` which you probably already have
 
