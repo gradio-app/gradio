@@ -1,5 +1,5 @@
 <script>
-  export let value, examples_dir;
+	export let value, examples_dir;
 </script>
 
 <!-- svelte-ignore a11y-missing-attribute -->

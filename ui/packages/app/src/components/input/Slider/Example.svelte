@@ -1,5 +1,5 @@
 <script>
-    export let value;
-  </script>
-  
-  <div class="input-slider-example">{value}</div>  
+	export let value;
+</script>
+
+<div class="input-slider-example">{value}</div>
