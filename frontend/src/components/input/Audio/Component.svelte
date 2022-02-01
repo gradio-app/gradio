@@ -60,7 +60,6 @@
 
   onDestroy(() => {
     if (recorder) {
-      console.log(recorder);
       recorder.stop();
     }
   });

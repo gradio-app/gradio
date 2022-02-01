@@ -21,7 +21,6 @@
       }
     }
   }
-  console.log(color_map);
 </script>
 
 <div class="output-highlightedtext" {theme}>
