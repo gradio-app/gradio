@@ -10,7 +10,7 @@ import InputSlider from "./input/Slider/config.js";
 import InputTextbox from "./input/Textbox/config.js";
 import InputVideo from "./input/Video/config.js";
 import InputDataFrame from "./input/DataFrame/config.js";
-import InputTimeSeries from './input/TimeSeries/config.js';
+import InputTimeSeries from "./input/TimeSeries/config.js";
 
 import OutputAudio from "./output/Audio/config.js";
 import OutputCarousel from "./output/Carousel/config.js";
@@ -23,37 +23,37 @@ import OutputJson from "./output/Json/config.js";
 import OutputLabel from "./output/Label/config.js";
 import OutputTextbox from "./output/Textbox/config.js";
 import OutputVideo from "./output/Video/config.js";
-import OutputTimeSeries from './output/TimeSeries/config.js'
+import OutputTimeSeries from "./output/TimeSeries/config.js";
 
-import Dummy from "./Dummy.svelte"
+import Dummy from "./Dummy.svelte";
 
 export const input_component_map = {
-    "audio": InputAudio,
-    "checkbox": InputCheckbox,
-    "checkboxgroup": InputCheckboxGroup,
-    "dataframe": InputDataFrame,
-    "dropdown": InputDropdown,
-    "file": InputFile,
-    "image": InputImage,
-    "number": InputNumber,
-    "radio": InputRadio,
-    "slider": InputSlider,
-    "textbox": InputTextbox,
-    "timeseries": InputTimeSeries,
-    "video": InputVideo,
-}
+	audio: InputAudio,
+	checkbox: InputCheckbox,
+	checkboxgroup: InputCheckboxGroup,
+	dataframe: InputDataFrame,
+	dropdown: InputDropdown,
+	file: InputFile,
+	image: InputImage,
+	number: InputNumber,
+	radio: InputRadio,
+	slider: InputSlider,
+	textbox: InputTextbox,
+	timeseries: InputTimeSeries,
+	video: InputVideo
+};
 
 export const output_component_map = {
-    "audio": OutputAudio,
-    "carousel": OutputCarousel,
-    "dataframe": OutputDataframe,
-    "file": OutputFile,
-    "highlightedtext": OutputHighlightedText,
-    "html": OutputHtml,
-    "image": OutputImage,
-    "json": OutputJson,
-    "label": OutputLabel,
-    "textbox": OutputTextbox,
-    "timeseries": OutputTimeSeries,
-    "video": OutputVideo,
-}
+	audio: OutputAudio,
+	carousel: OutputCarousel,
+	dataframe: OutputDataframe,
+	file: OutputFile,
+	highlightedtext: OutputHighlightedText,
+	html: OutputHtml,
+	image: OutputImage,
+	json: OutputJson,
+	label: OutputLabel,
+	textbox: OutputTextbox,
+	timeseries: OutputTimeSeries,
+	video: OutputVideo
+};
