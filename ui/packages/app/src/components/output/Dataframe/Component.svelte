@@ -1,16 +1,16 @@
 <script>
-  import DataFrame from "../../input/DataFrame/Component.svelte";
+	import DataFrame from "../../input/DataFrame/Component.svelte";
 
-  export let headers,
-    value,
-    theme,
-    setValue = () => {};
+	export let headers,
+		value,
+		theme,
+		setValue = () => {};
 </script>
 
 <DataFrame
-  headers={headers || value.headers}
-  values={value.data}
-  {setValue}
-  editable={false}
-  {theme}
+	headers={headers || value.headers}
+	values={value.data}
+	{setValue}
+	editable={false}
+	{theme}
 />
