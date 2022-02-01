@@ -5,7 +5,7 @@ import { fn } from "./api";
 window.launchGradio = (config, element_query) => {
 	let target = document.querySelector(element_query);
 	if (config.root === undefined) {
-		config.root = "BACKEND_URL";
+		config.root = BACKEND_URL;
 	}
 	if (config.detail === "Not authenticated") {
 		new Login({
@@ -35,8 +35,8 @@ window.launchGradio = (config, element_query) => {
 };
 
 async function get_config() {
-	if ("BUILD_MODE" === "dev") {
-		let config = await fetch("BACKEND_URL" + "config");
+	if (BUILD_MODE === "dev") {
+		let config = await fetch(BACKEND_URL + "config");
 		config = await config.json();
 		return config;
 	} else {
