@@ -2,11 +2,9 @@
   "name": "gradio-ui",
   "version": "0.0.1",
   "description": "Gradio UI packages",
-  "scripts": {},
+  "scripts": {
+  },
   "author": "",
   "license": "ISC",
-  "private": true,
-  "dependencies": {
-    "svelte": "^3.46.3"
-  }
+  "private": true
 }

@@ -1,0 +1,15 @@
+{
+  "0 debug pnpm:scope": {
+    "selected": 1,
+    "workspacePrefix": "/Users/peterallen/Projects/gradio/ui"
+  },
+  "1 error pnpm": {
+    "code": "ERR_PNPM_ADDING_TO_ROOT",
+    "err": {
+      "name": "pnpm",
+      "message": "Running this command will add the dependency to the workspace root, which might not be what you want - if you really meant it, make it explicit by running this command again with the -w flag (or --workspace-root). If you don't want to see this warning anymore, you may set the ignore-workspace-root-check setting to true.",
+      "code": "ERR_PNPM_ADDING_TO_ROOT",
+      "stack": "pnpm: Running this command will add the dependency to the workspace root, which might not be what you want - if you really meant it, make it explicit by running this command again with the -w flag (or --workspace-root). If you don't want to see this warning anymore, you may set the ignore-workspace-root-check setting to true.\n    at Object.handler [as add] (/Users/peterallen/.volta/tools/image/packages/pnpm/lib/node_modules/pnpm/dist/pnpm.cjs:117754:15)\n    at /Users/peterallen/.volta/tools/image/packages/pnpm/lib/node_modules/pnpm/dist/pnpm.cjs:182689:83\n    at async run (/Users/peterallen/.volta/tools/image/packages/pnpm/lib/node_modules/pnpm/dist/pnpm.cjs:182665:34)\n    at async runPnpm (/Users/peterallen/.volta/tools/image/packages/pnpm/lib/node_modules/pnpm/dist/pnpm.cjs:182877:5)\n    at async /Users/peterallen/.volta/tools/image/packages/pnpm/lib/node_modules/pnpm/dist/pnpm.cjs:182869:7"
+    }
+  }
+}

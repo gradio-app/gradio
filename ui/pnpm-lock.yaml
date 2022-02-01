@@ -1,0 +1,16 @@
+lockfileVersion: 5.3
+
+importers:
+
+  .:
+    specifiers:
+      svelte: ^3.46.3
+    dependencies:
+      svelte: 3.46.3
+
+packages:
+
+  /svelte/3.46.3:
+    resolution: {integrity: sha512-mTOXvv74CVQqJHqoIZDprVfRKVVmYNadXP0VKnOEA54223kLGCr1nMrifS4Zx29qMt/xRB38Eq1D7dDH/fM8fQ==}
+    engines: {node: '>= 8'}
+    dev: false
