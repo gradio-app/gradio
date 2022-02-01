@@ -26,10 +26,14 @@ from gradio.process_examples import load_from_cache, process_example
 
 STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "templates/")
 STATIC_PATH_LIB = pkg_resources.resource_filename("gradio", "templates/frontend/static")
+BUILD_PATH_LIB = pkg_resources.resource_filename("gradio", "templates/frontend/build")
 VERSION_FILE = pkg_resources.resource_filename("gradio", "version.txt")
 with open(VERSION_FILE) as version_file:
     VERSION = version_file.read()
 GRADIO_STATIC_ROOT = "https://gradio.s3-us-west-2.amazonaws.com/{}/static/".format(
+    VERSION
+)
+GRADIO_BUILD_ROOT = "https://gradio.s3-us-west-2.amazonaws.com/{}/build/".format(
     VERSION
 )
 
@@ -125,6 +129,16 @@ def static_resource(path: str):
     if static_file is not None:
         return FileResponse(static_file)
     raise HTTPException(status_code=404, detail="Static file not found")
+
+@app.get("/build/{path:path}")
+def build_resource(path: str):
+    if app.interface.share:
+        return RedirectResponse(GRADIO_BUILD_ROOT + path)
+    else:
+        build_file = safe_join(BUILD_PATH_LIB, path)
+    if build_file is not None:
+        return FileResponse(build_file)
+    raise HTTPException(status_code=404, detail="Build file not found")
 
 
 @app.get("/file/{path:path}", dependencies=[Depends(login_check)])

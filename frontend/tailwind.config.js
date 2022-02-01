@@ -1,37 +1,18 @@
+const production = !process.env.ROLLUP_WATCH;
 module.exports = {
-  purge: ["./src/**/*.{js,jsx,ts,tsx}", "./public/index.html"],
+  purge: {
+    content: [
+      "./src/**/*.svelte",
+    ],
+    enabled: production // disable purge in dev
+  },
   mode: "jit",
   darkMode: "class", // or 'media' or 'class'
   theme: {
-    extend: {
-      typography: {
-        DEFAULT: {
-          css: {
-            h1: {
-              fontWeight: "semibold"
-            },
-            h2: {
-              fontWeight: "semibold"
-            },
-            h3: {
-              fontWeight: "semibold"
-            },
-            h4: {
-              fontWeight: "semibold"
-            },
-            h5: {
-              fontWeight: "semibold"
-            },
-            h6: {
-              fontWeight: "semibold"
-            }
-          }
-        }
-      }
-    }
+    extend: {},
   },
   variants: {
-    extend: {}
+    extend: {},
   },
-  plugins: [require("@tailwindcss/typography")]
-};
+  plugins: [],
+}
