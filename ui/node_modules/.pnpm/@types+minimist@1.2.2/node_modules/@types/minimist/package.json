@@ -1,0 +1,40 @@
+{
+    "name": "@types/minimist",
+    "version": "1.2.2",
+    "description": "TypeScript definitions for minimist",
+    "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/minimist",
+    "license": "MIT",
+    "contributors": [
+        {
+            "name": "Bart van der Schoor",
+            "url": "https://github.com/Bartvds",
+            "githubUsername": "Bartvds"
+        },
+        {
+            "name": "Necroskillz",
+            "url": "https://github.com/Necroskillz",
+            "githubUsername": "Necroskillz"
+        },
+        {
+            "name": "kamranayub",
+            "url": "https://github.com/kamranayub",
+            "githubUsername": "kamranayub"
+        },
+        {
+            "name": "Piotr Błażejewicz",
+            "url": "https://github.com/peterblazejewicz",
+            "githubUsername": "peterblazejewicz"
+        }
+    ],
+    "main": "",
+    "types": "index.d.ts",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+        "directory": "types/minimist"
+    },
+    "scripts": {},
+    "dependencies": {},
+    "typesPublisherContentHash": "9032205d52417d0f537f1e52af6f7ac447acb4b87dca0ab5840b83ec7818232e",
+    "typeScriptVersion": "3.6"
+}

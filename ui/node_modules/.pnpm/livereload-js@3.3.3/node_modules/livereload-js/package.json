@@ -1,0 +1,53 @@
+{
+  "name": "livereload-js",
+  "version": "3.3.3",
+  "description": "LiveReload JS client - auto reload browser on changes",
+  "main": "dist/livereload.js",
+  "module": "src/startup.js",
+  "directories": {
+    "test": "test"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.16.12",
+    "@babel/preset-env": "^7.16.11",
+    "@babel/register": "^7.16.9",
+    "babelify": "^10.0.0",
+    "browserify": "^17.0.0",
+    "core-js": "^2.6.12",
+    "envify": "^4.1.0",
+    "eslint": "^7.32.0",
+    "eslint-config-standard": "^16.0.2",
+    "eslint-plugin-import": "^2.25.4",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^5.2.0",
+    "jsdom": "^19.0.0",
+    "mocha": "^9.2.0",
+    "terser": "^5.10.0",
+    "watchify": "^4.0.0"
+  },
+  "scripts": {
+    "lint": "eslint src test/*_test.js version-bower.js",
+    "test": "mocha --require @babel/register test/*_test.js",
+    "test-manual": "NODE_ENV=production watchify -v -t envify -t babelify -o test/html/browserified/bundle.js test/html/browserified/main.js",
+    "build": "NODE_ENV=production browserify -t envify -t babelify src/startup.js > dist/livereload.js",
+    "minify": "NODE_ENV=production terser -c -m -- dist/livereload.js > dist/livereload.min.js",
+    "version-bower": "node version-bower.js",
+    "preversion": "npm run lint && npm test",
+    "version": "npm run version-bower && npm run build && npm run minify && git add dist bower.json",
+    "postversion": "git push && git push --tags"
+  },
+  "browserslist": [
+    ">= 0.2%",
+    "Firefox ESR",
+    "not dead"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/livereload/livereload-js.git"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/livereload/livereload-js/issues"
+  },
+  "homepage": "https://github.com/livereload/livereload-js"
+}

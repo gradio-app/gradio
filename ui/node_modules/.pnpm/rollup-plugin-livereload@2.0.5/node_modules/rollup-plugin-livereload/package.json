@@ -1,0 +1,49 @@
+{
+  "name": "rollup-plugin-livereload",
+  "version": "2.0.5",
+  "description": "Rollup plugin for LiveReload that watches the bundle and reloads the page on change",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.es.js",
+  "jsnext:main": "dist/index.es.js",
+  "types": "index.d.ts",
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -cw",
+    "lint": "prettier -l .",
+    "fix": "prettier --write .",
+    "test": "cd test && rollup -cw ; cd ..",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "rollup",
+    "rollup-plugin",
+    "livereload",
+    "lr"
+  ],
+  "license": "MIT",
+  "author": "Thomas Ghysels <info@thomasg.be>",
+  "homepage": "https://github.com/thgh/rollup-plugin-livereload",
+  "bugs": {
+    "url": "https://github.com/thgh/rollup-plugin-livereload/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thgh/rollup-plugin-livereload"
+  },
+  "files": [
+    "dist",
+    "index.d.ts"
+  ],
+  "engines": {
+    "node": ">=8.3"
+  },
+  "dependencies": {
+    "livereload": "^0.9.1"
+  },
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^9.0.0",
+    "port-authority": "^1.1.1",
+    "rollup": "2",
+    "rollup-plugin-serve": "1"
+  }
+}

@@ -1,0 +1,168 @@
+/* SUBMENU */
+.{prefix}-container
+    .{prefix}-submenu
+        display: none;
+        position: absolute;
+        bottom: 0;
+        width:100%;
+        height: 150px;
+        white-space: nowrap;
+        z-index: 2;
+        .{prefix}-button:hover svg > use.active
+            display: block;
+        .{prefix}-submenu-item
+            li
+                display: inline-block;
+                vertical-align: top;
+            .{prefix}-newline
+                display: block;
+                margin-top: 0;
+            .{prefix}-button
+                position: relative;
+                cursor: pointer;
+                display: inline-block;
+                font-weight: normal;
+                font-size: 11px;
+                margin: 0 9px 0 9px;
+            .{prefix}-button.preset
+                margin: 0 9px 20px 5px;
+            label > span
+                display: inline-block;
+                cursor: pointer;
+                padding-top: 5px;
+                font-family: "Noto Sans", sans-serif;
+                font-size: 11px;
+            .{prefix}-button.apply label,
+            .{prefix}-button.cancel label
+                vertical-align: 7px;
+        > div
+            display: none;
+            vertical-align: bottom;
+        .{prefix}-submenu-style
+            opacity: 0.95;
+            z-index: -1;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: block;
+
+    .{prefix}-partition > div
+        width: 1px;
+        height: 52px;
+        border-left: 1px solid #3c3c3c;
+        margin: 0 8px 0 8px;
+    .{prefix}-main.{prefix}-menu-filter .{prefix}-partition > div
+        height: 108px;
+        margin: 0 29px 0 0px;
+    .{prefix}-submenu-align
+        text-align: left;
+        margin-right: 30px;
+        label > span
+            width: 55px;
+            white-space: nowrap;
+    .{prefix}-submenu-align:first-child
+        margin-right: 0;
+        label > span
+            width: 70px;
+    .{prefix}-main.{prefix}-menu-crop .{prefix}-submenu > div.{prefix}-menu-crop,
+    .{prefix}-main.{prefix}-menu-resize .{prefix}-submenu > div.{prefix}-menu-resize,
+    .{prefix}-main.{prefix}-menu-flip .{prefix}-submenu > div.{prefix}-menu-flip,
+    .{prefix}-main.{prefix}-menu-rotate .{prefix}-submenu > div.{prefix}-menu-rotate,
+    .{prefix}-main.{prefix}-menu-shape .{prefix}-submenu > div.{prefix}-menu-shape,
+    .{prefix}-main.{prefix}-menu-text .{prefix}-submenu > div.{prefix}-menu-text,
+    .{prefix}-main.{prefix}-menu-mask .{prefix}-submenu > div.{prefix}-menu-mask,
+    .{prefix}-main.{prefix}-menu-icon .{prefix}-submenu > div.{prefix}-menu-icon,
+    .{prefix}-main.{prefix}-menu-draw .{prefix}-submenu > div.{prefix}-menu-draw,
+    .{prefix}-main.{prefix}-menu-filter .{prefix}-submenu > div.{prefix}-menu-filter,
+    .{prefix}-main.{prefix}-menu-zoom .{prefix}-submenu > div.{prefix}-menu-zoom
+        display: table-cell;
+    .{prefix}-main.{prefix}-menu-crop,
+    .{prefix}-main.{prefix}-menu-resize,
+    .{prefix}-main.{prefix}-menu-flip,
+    .{prefix}-main.{prefix}-menu-rotate,
+    .{prefix}-main.{prefix}-menu-shape,
+    .{prefix}-main.{prefix}-menu-text,
+    .{prefix}-main.{prefix}-menu-mask,
+    .{prefix}-main.{prefix}-menu-icon,
+    .{prefix}-main.{prefix}-menu-draw,
+    .{prefix}-main.{prefix}-menu-filter,
+    .{prefix}-main.{prefix}-menu-zoom
+      .{prefix}-submenu
+        display: table;
+
+/* Help menu bar */
+.{prefix}-container
+    .{prefix}-help-menu
+        list-style: none;
+        padding: 0;
+        margin: 0 auto;
+        text-align: center;
+        vertical-align: middle;
+        border-radius: 20px;
+        background-color: rgba(255, 255, 255, 0.06);
+        z-index: 2;
+        position: absolute;
+        .tie-panel-history
+            display: none;
+            background-color: #fff;
+            color: #444;
+            position: absolute;
+            width: 196px;
+            height: 276px;
+            padding: 4px 2px;
+            box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.15);
+            cursor: auto;
+            transform: translateX(calc(-50% + 12px));
+            .history-list
+                height: 268px;
+                padding: 0;
+                overflow: hidden scroll;
+                list-style: none;
+                .history-item
+                    height: 24px;
+                    font-size: 11px;
+                    line-height: 24px;
+                    .{prefix}-history-item
+                        position: relative;
+                        height: 24px;
+                        cursor: pointer;
+                        svg
+                            width: 24px;
+                            height: 24px;
+                        span
+                            display: inline-block;
+                            width: 128px;
+                            height: 24px;
+                            text-align: left;
+                        .history-item-icon
+                            display: inline-block;
+                            width: 24px;
+                            height: 24px;
+                            position: absolute;
+                            top: 6px;
+                            left: 6px;
+                        .history-item-checkbox
+                            display: none;
+                            width: 24px;
+                            height: 24px;
+                            position: absolute;
+                            top: 5px;
+                            right: -6px;
+                    &.selected-item
+                        background-color: rgba(119, 119, 119, 0.12);
+                        .history-item-checkbox
+                            display: inline-block;
+                    &.disabled-item
+                        color: #333;
+                        opacity: 0.3;
+        .opened .tie-panel-history
+            display: block;
+            &:before
+                content: '';
+                position: absolute;
+                display: inline-block;
+                margin: 0 auto;
+                width: 0;
+                height: 0;

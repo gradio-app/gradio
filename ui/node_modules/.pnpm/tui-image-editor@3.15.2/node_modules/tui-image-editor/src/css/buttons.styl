@@ -1,0 +1,102 @@
+/* ICON BUTTON */
+.tie-icon-add-button
+    &.icon-bubble .{prefix}-button[data-icontype="icon-bubble"] svg > use.active,
+    &.icon-heart .{prefix}-button[data-icontype="icon-heart"] svg > use.active,
+    &.icon-location .{prefix}-button[data-icontype="icon-location"] svg > use.active,
+    &.icon-polygon .{prefix}-button[data-icontype="icon-polygon"] svg > use.active,
+    &.icon-star .{prefix}-button[data-icontype="icon-star"] svg > use.active,
+    &.icon-star-2 .{prefix}-button[data-icontype="icon-star-2"] svg > use.active,
+    &.icon-arrow-3 .{prefix}-button[data-icontype="icon-arrow-3"] svg > use.active,
+    &.icon-arrow-2 .{prefix}-button[data-icontype="icon-arrow-2"] svg > use.active,
+    &.icon-arrow .{prefix}-button[data-icontype="icon-arrow"] svg > use.active,
+    &.icon-bubble .{prefix}-button[data-icontype="icon-bubble"] svg > use.active
+        display: block;
+
+/* DRAW BUTTON */
+.tie-draw-line-select-button
+  &.line .{prefix}-button.line svg > use.normal,
+  &.free .{prefix}-button.free svg > use.normal
+    display: none;
+
+  &.line .{prefix}-button.line svg > use.active,
+  &.free .{prefix}-button.free svg > use.active
+    display: block;
+
+/* FLIP BUTTON */
+.tie-flip-button
+  &.resetFlip .{prefix}-button.resetFlip,
+  &.flipX .{prefix}-button.flipX,
+  &.flipY .{prefix}-button.flipY
+    svg > use.normal
+        display: none;
+    svg > use.active
+        display: block;
+
+/*  MASK BUTTON */
+.tie-mask-apply.apply.active .{prefix}-button.apply
+    label
+        color: #fff;
+    svg > use.active
+        display: block;
+
+/* CROP BUTTON */
+.tie-crop-button,
+.tie-crop-preset-button
+    .{prefix}-button.apply
+        margin-right: 24px;
+    .{prefix}-button.preset.active svg > use.active
+        display: block;
+    .{prefix}-button.apply.active svg > use.active
+        display: block;
+
+/* RESIZE BUTTON */
+.tie-resize-button,
+.tie-resize-preset-button
+    .{prefix}-button.apply
+        margin-right: 24px;
+    .{prefix}-button.preset.active svg > use.active
+        display: block;
+    .{prefix}-button.apply.active svg > use.active
+        display: block;
+
+
+/* SHAPE BUTTON */
+.tie-shape-button
+  &.rect .{prefix}-button.rect,
+  &.circle .{prefix}-button.circle,
+  &.triangle .{prefix}-button.triangle
+    svg > use.normal
+        display: none;
+    svg > use.active
+        display: block;
+
+/* TEXT BUTTON */
+.tie-text-effect-button
+    .{prefix}-button.active svg > use.active
+        display: block;
+.tie-text-align-button
+    &.tie-text-align-left .{prefix}-button.left svg > use.active,
+    &.tie-text-align-center .{prefix}-button.center svg > use.active,
+    &.tie-text-align-right .{prefix}-button.right svg > use.active
+        display: block;
+.tie-mask-image-file,
+.tie-icon-image-file
+    opacity: 0;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border: 1px solid green;
+    cursor: inherit;
+    left: 0;
+    top: 0;
+
+
+/* FLIP BUTTON */
+.tie-zoom-button
+    &.resetFlip .{prefix}-button.resetFlip,
+    &.flipX .{prefix}-button.flipX,
+    &.flipY .{prefix}-button.flipY
+        svg > use.normal
+            display: none;
+        svg > use.active
+            display: block;

@@ -1,0 +1,37 @@
+{
+  "name": "lazy-brush",
+  "version": "1.0.1",
+  "description": "Lazy brush - smooth drawing using mouse or finger",
+  "main": "lib/index.js",
+  "keywords": [
+    "brush",
+    "mouse",
+    "lazy",
+    "canvas",
+    "drawing",
+    "smooth",
+    "pencil",
+    "string",
+    "radius"
+  ],
+  "repository": "https://github.com/dulnan/lazy-brush",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "build": "babel src --presets babel-preset-env --out-dir lib",
+    "test": "mocha --require babel-register --colors",
+    "dev": "echo \"Error: no dev stuff specifried\" && exit 1",
+    "prepublish": "npm run build",
+    "prepare": "npm run build"
+  },
+  "author": "Jan Hug <me@dulnan.net>",
+  "license": "MIT",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "babel-register": "^6.26.0",
+    "chai": "^4.1.2",
+    "mocha": "^5.2.0"
+  }
+}

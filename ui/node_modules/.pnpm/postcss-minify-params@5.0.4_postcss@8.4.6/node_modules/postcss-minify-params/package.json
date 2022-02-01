@@ -1,0 +1,44 @@
+{
+  "name": "postcss-minify-params",
+  "version": "5.0.4",
+  "description": "Minify at-rule params with PostCSS",
+  "keywords": [
+    "postcss",
+    "css",
+    "postcss-plugin",
+    "minify",
+    "optimise",
+    "params"
+  ],
+  "main": "dist/index.js",
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "author": "Bogdan Chadkin <trysound@yandex.ru>",
+  "license": "MIT",
+  "repository": "cssnano/cssnano",
+  "bugs": {
+    "url": "https://github.com/cssnano/cssnano/issues"
+  },
+  "homepage": "https://github.com/cssnano/cssnano",
+  "dependencies": {
+    "browserslist": "^4.16.6",
+    "cssnano-utils": "^3.0.1",
+    "postcss-value-parser": "^4.2.0"
+  },
+  "engines": {
+    "node": "^10 || ^12 || >=14.0"
+  },
+  "devDependencies": {
+    "postcss": "^8.2.15"
+  },
+  "peerDependencies": {
+    "postcss": "^8.2.15"
+  },
+  "scripts": {
+    "prebuild": "rimraf dist",
+    "build": "babel src --config-file ../../babel.config.json --out-dir dist --ignore \"**/__tests__/\""
+  },
+  "readme": "# postcss-minify-params [![Build Status][ci-img]][ci]\n\n> Minify at-rule params with PostCSS.\n\n```css\n@media only screen   and ( min-width: 400px, min-height: 500px ) {\n    h2{\n        color:blue\n    }\n}\n```\n\n```css\n@media only screen and (min-width:400px,min-height:500px) {\n    h2{\n        color:blue\n    }\n}\n```\n\n## Usage\n\n```js\npostcss([ require('postcss-minify-params') ])\n```\n\nSee [PostCSS] docs for examples for your environment.\n\n## Contributors\n\nSee [CONTRIBUTORS.md](https://github.com/cssnano/cssnano/blob/master/CONTRIBUTORS.md).\n\n## License\n\nMIT © [Bogdan Chadkin](mailto:trysound@yandex.ru)\n\n[PostCSS]: https://github.com/postcss/postcss\n[ci-img]:  https://travis-ci.org/cssnano/postcss-minify-params.svg\n[ci]:      https://travis-ci.org/cssnano/postcss-minify-params\n"
+}

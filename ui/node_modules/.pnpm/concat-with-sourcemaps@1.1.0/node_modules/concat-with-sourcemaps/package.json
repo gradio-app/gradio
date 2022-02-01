@@ -1,0 +1,38 @@
+{
+  "name": "concat-with-sourcemaps",
+  "version": "1.1.0",
+  "description": "Concatenate file contents with a custom separator and generate a source map",
+  "homepage": "http://github.com/floridoo/concat-with-sourcemaps",
+  "repository": "git://github.com/floridoo/concat-with-sourcemaps.git",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "scripts": {
+    "test": "jshint *.js test/*.js && faucet test/*.js",
+    "tap": "tape test/*.js",
+    "cover": "istanbul cover --dir reports/coverage tape test/*.js",
+    "coveralls": "istanbul cover tape test/*.js --report lcovonly && cat ./coverage/lcov.info | coveralls && rm -rf ./coverage"
+  },
+  "keywords": [
+    "concat",
+    "source map"
+  ],
+  "author": "Florian Reiterer <me@florianreiterer.com>",
+  "license": "ISC",
+  "dependencies": {
+    "source-map": "^0.6.1"
+  },
+  "devDependencies": {
+    "coveralls": "^3.0.0",
+    "faucet": "0.0.1",
+    "istanbul": "^0.4.5",
+    "jshint": "^2.9.5",
+    "tape": "^4.9.0"
+  },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "package.json",
+    "README.md",
+    "LICENSE.md"
+  ]
+}

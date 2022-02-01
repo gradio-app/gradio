@@ -1,0 +1,42 @@
+{
+  "name": "style-inject",
+  "version": "0.3.0",
+  "description": "Inject style tag to document head.",
+  "main": "dist/style-inject.js",
+  "module": "dist/style-inject.es.js",
+  "scripts": {
+    "test": "echo lol",
+    "build": "bili --format umd,es",
+    "prepublishOnly": "npm run build",
+    "lint": "xo"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/egoist/style-inject.git"
+  },
+  "keywords": [
+    "style",
+    "css",
+    "inject"
+  ],
+  "files": [
+    "dist"
+  ],
+  "author": "EGOIST <0x142857@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/egoist/style-inject/issues"
+  },
+  "homepage": "https://github.com/egoist/style-inject#readme",
+  "devDependencies": {
+    "bili": "^2.2.6",
+    "eslint-config-rem": "^3.2.0",
+    "xo": "^0.18.2"
+  },
+  "xo": {
+    "extends": "rem/prettier",
+    "envs": [
+      "browser"
+    ]
+  }
+}

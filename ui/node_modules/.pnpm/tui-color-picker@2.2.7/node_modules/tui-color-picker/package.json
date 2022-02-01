@@ -1,0 +1,56 @@
+{
+  "name": "tui-color-picker",
+  "version": "2.2.7",
+  "main": "dist/tui-color-picker.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "test": "jest",
+    "bundle": "webpack --mode=production & webpack --mode=production --minify",
+    "serve": "webpack-dev-server --inline --hot -d",
+    "doc:serve": "tuidoc --serv",
+    "doc": "tuidoc",
+    "note": "tui-note"
+  },
+  "description": "TOAST UI Components: Color Picker",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nhn/tui.color-picker.git"
+  },
+  "keywords": [
+    "nhn",
+    "tui",
+    "component",
+    "color",
+    "picker",
+    "svgvml"
+  ],
+  "author": "NHN FE Development Team <dl_javascript@nhn.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/core": "^7.5.5",
+    "@toast-ui/release-notes": "^2.0.1",
+    "babel-eslint": "^7.1.0",
+    "babel-loader": "^8.0.6",
+    "css-loader": "^0.28.7",
+    "eslint": "^5.12.0",
+    "eslint-config-prettier": "^6.2.0",
+    "eslint-config-tui": "^2.2.0",
+    "eslint-loader": "^3.0.0",
+    "eslint-plugin-jest": "^24.3.6",
+    "eslint-plugin-prettier": "^3.1.2",
+    "jest": "^27.0.4",
+    "mini-css-extract-plugin": "^0.8.0",
+    "optimize-css-assets-webpack-plugin": "^5.0.3",
+    "prettier": "^1.18.2",
+    "style-loader": "^0.18.2",
+    "stylus": "^0.54.5",
+    "stylus-loader": "^3.0.1",
+    "terser-webpack-plugin": "^2.3.0",
+    "tui-code-snippet": "^2.2.0",
+    "webpack": "^4.39.3",
+    "webpack-cli": "^3.3.7",
+    "webpack-dev-server": "^3.8.0"
+  }
+}

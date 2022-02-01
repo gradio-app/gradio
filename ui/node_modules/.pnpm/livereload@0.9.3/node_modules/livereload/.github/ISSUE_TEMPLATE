@@ -1,0 +1,28 @@
+<!-- Please provide all details. Because I'm the sole maintainer, issues without these
+details may be closed, as I don't have time to attempt to debug without info. -->
+
+## What version of Livereload are you using?
+
+<!--  Please be specific. Don't say "the latest" -->
+
+## What OS are you using?
+
+<!--  Please provide OS name and version -->
+
+## What web browser are you using? (Browser name and specific version please)
+
+## Expected result
+
+<!-- What's supposed to happen? -->
+
+## Actual result
+
+<!-- What are you seeing? The more detail you can provide, the better. -->
+
+## Steps to reproduce issue 
+
+<!-- Issues without instructions to reproduce the error may be closed. -->
+
+## Why is this important?
+
+<!-- If this is a new feature request, what's the value to implementing it? -->

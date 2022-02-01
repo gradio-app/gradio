@@ -1,0 +1,45 @@
+{
+  "name": "postcss-ordered-values",
+  "version": "5.0.4",
+  "description": "Ensure values are ordered consistently in your CSS.",
+  "main": "dist/index.js",
+  "files": [
+    "dist",
+    "LICENSE-MIT"
+  ],
+  "keywords": [
+    "css",
+    "postcss",
+    "postcss-plugin"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/cssnano/cssnano",
+  "author": {
+    "name": "Ben Briggs",
+    "email": "beneb.info@gmail.com",
+    "url": "http://beneb.info"
+  },
+  "repository": "cssnano/cssnano",
+  "dependencies": {
+    "cssnano-utils": "^3.0.1",
+    "postcss-value-parser": "^4.2.0"
+  },
+  "bugs": {
+    "url": "https://github.com/cssnano/cssnano/issues"
+  },
+  "engines": {
+    "node": "^10 || ^12 || >=14.0"
+  },
+  "devDependencies": {
+    "node-fetch": "^2.6.0",
+    "postcss": "^8.2.15"
+  },
+  "peerDependencies": {
+    "postcss": "^8.2.15"
+  },
+  "scripts": {
+    "prebuild": "rimraf dist",
+    "build": "babel src --config-file ../../babel.config.json --out-dir dist --ignore \"**/__tests__/\" && node script/buildListStyleType.js"
+  },
+  "readme": "# [postcss][postcss]-ordered-values\n\n> Ensure values are ordered consistently in your CSS.\n\n\n## Install\n\nWith [npm](https://npmjs.org/package/postcss-ordered-values) do:\n\n```\nnpm install postcss-ordered-values --save\n```\n\n\n## Example\n\nSome CSS properties accept their values in an arbitrary order; for this reason,\nit is entirely possible that different developers will write their values in\ndifferent orders. This module normalizes the order, making it easier for other\nmodules to understand which declarations are duplicates.\n\n### Input\n\n```css\nh1 {\n    border: solid 1px red;\n    border: red solid .5em;\n    border: rgba(0, 30, 105, 0.8) solid 1px;\n    border: 1px solid red;\n}\n```\n\n### Output\n\n```css\nh1 {\n    border: 1px solid red;\n    border: .5em solid red;\n    border: 1px solid rgba(0, 30, 105, 0.8);\n    border: 1px solid red;\n}\n```\n\n\n## Support List\n\nFor more examples, see the [tests](src/__tests__/index.js).\n\n* `animation`, `-webkit-animation`\n* `border(border-left|right|top|bottom)`\n* `box-shadow`\n* `outline`\n* `flex-flow`\n* `transition`, `-webkit-transition`\n\n\n## Usage\n\nSee the [PostCSS documentation](https://github.com/postcss/postcss#usage) for\nexamples for your environment.\n\n\n## Contributors\n\nSee [CONTRIBUTORS.md](https://github.com/cssnano/cssnano/blob/master/CONTRIBUTORS.md).\n\n\n## License\n\nMIT © [Ben Briggs](http://beneb.info)\n\n[postcss]: https://github.com/postcss/postcss\n"
+}

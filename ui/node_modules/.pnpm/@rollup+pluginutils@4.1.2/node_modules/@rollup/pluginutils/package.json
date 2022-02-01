@@ -1,0 +1,92 @@
+{
+  "name": "@rollup/pluginutils",
+  "version": "4.1.2",
+  "publishConfig": {
+    "access": "public"
+  },
+  "description": "A set of utility functions commonly used by Rollup plugins",
+  "license": "MIT",
+  "repository": {
+    "url": "rollup/plugins",
+    "directory": "packages/pluginutils"
+  },
+  "author": "Rich Harris <richard.a.harris@gmail.com>",
+  "homepage": "https://github.com/rollup/plugins/tree/master/packages/pluginutils#readme",
+  "bugs": {
+    "url": "https://github.com/rollup/plugins/issues"
+  },
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/es/index.js",
+  "type": "commonjs",
+  "exports": {
+    "require": "./dist/cjs/index.js",
+    "import": "./dist/es/index.js"
+  },
+  "engines": {
+    "node": ">= 8.0.0"
+  },
+  "scripts": {
+    "build": "rollup -c",
+    "ci:coverage": "nyc pnpm test && nyc report --reporter=text-lcov > coverage.lcov",
+    "ci:lint": "pnpm build && pnpm lint",
+    "ci:lint:commits": "commitlint --from=${CIRCLE_BRANCH} --to=${CIRCLE_SHA1}",
+    "ci:test": "pnpm test -- --verbose",
+    "prebuild": "del-cli dist",
+    "prepare": "if [ ! -d 'dist' ]; then pnpm build; fi",
+    "prerelease": "pnpm build",
+    "pretest": "pnpm build -- --sourcemap",
+    "release": "pnpm plugin:release --workspace-root -- --pkg $npm_package_name",
+    "test": "ava",
+    "test:ts": "tsc --noEmit"
+  },
+  "files": [
+    "dist",
+    "types",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "rollup",
+    "plugin",
+    "utils"
+  ],
+  "dependencies": {
+    "estree-walker": "^2.0.1",
+    "picomatch": "^2.2.2"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^14.0.0",
+    "@rollup/plugin-node-resolve": "^8.4.0",
+    "@rollup/plugin-typescript": "^5.0.2",
+    "@types/estree": "0.0.45",
+    "@types/node": "^14.0.26",
+    "@types/picomatch": "^2.2.1",
+    "acorn": "^8.0.4",
+    "rollup": "^2.23.0",
+    "typescript": "^4.1.2"
+  },
+  "types": "types/index.d.ts",
+  "ava": {
+    "babel": {
+      "compileEnhancements": false
+    },
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ],
+    "files": [
+      "!**/fixtures/**",
+      "!**/helpers/**",
+      "!**/recipes/**",
+      "!**/types.ts"
+    ]
+  },
+  "nyc": {
+    "extension": [
+      ".js",
+      ".ts"
+    ]
+  }
+}

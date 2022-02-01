@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <title>Popup</title>
+</head>
+<body>
+<div>
+    <input type="button" id="open-popup" value="open" />
+</div>
+<script type="text/javascript" charset="utf-8" src="code-snippet.js"></script>
+<script type="text/javascript" charset="utf-8">
+(function() {
+
+    document.getElementById('open-popup').onclick = function() {
+        tui.util.popup.openPopup('target', {
+            postBridgeUrl: 'postBridge.html',
+            popupOptionStr: 'width=600,height=400',
+            method: 'POST',
+            param: { a: 'b' }
+        });
+    };
+
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+{
+  "name": "internmap",
+  "version": "2.0.3",
+  "description": "Map and Set with automatic key interning",
+  "homepage": "https://github.com/mbostock/internmap/",
+  "license": "ISC",
+  "author": {
+    "name": "Mike Bostock",
+    "url": "https://bost.ocks.org/mike"
+  },
+  "type": "module",
+  "main": "src/index.js",
+  "module": "src/index.js",
+  "jsdelivr": "dist/internmap.min.js",
+  "unpkg": "dist/internmap.min.js",
+  "exports": {
+    "umd": "./dist/internmap.min.js",
+    "default": "./src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mbostock/internmap.git"
+  },
+  "files": [
+    "dist/**/*.js",
+    "src/**/*.js"
+  ],
+  "scripts": {
+    "test": "mocha 'test/**/*-test.js' && eslint src test",
+    "prepublishOnly": "rm -rf dist && yarn test && rollup -c",
+    "postpublish": "git push && git push --tags"
+  },
+  "sideEffects": false,
+  "devDependencies": {
+    "eslint": "^7.32.0",
+    "mocha": "^9.1.1",
+    "rollup": "^2.56.3",
+    "rollup-plugin-terser": "^7.0.2"
+  },
+  "engines": {
+    "node": ">=12"
+  }
+}

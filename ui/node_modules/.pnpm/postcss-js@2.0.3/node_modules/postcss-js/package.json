@@ -1,0 +1,21 @@
+{
+  "name": "postcss-js",
+  "version": "2.0.3",
+  "description": "PostCSS for React Inline Styles, Radium, Free Style and other CSS-in-JS",
+  "keywords": [
+    "postcss",
+    "postcss-runner",
+    "js",
+    "inline",
+    "react",
+    "css",
+    "cssinjs"
+  ],
+  "author": "Andrey Sitnik <andrey@sitnik.ru>",
+  "license": "MIT",
+  "repository": "postcss/postcss-js",
+  "dependencies": {
+    "camelcase-css": "^2.0.1",
+    "postcss": "^7.0.18"
+  }
+}

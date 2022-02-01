@@ -1,0 +1,171 @@
+#+TITLE: opts.js
+
+Find the full documentation, source code, and examples online at https://khtdr.com/opts.
+
+Or download this README as a man-page.
+#+BEGIN_SRC bash
+curl -o opts.3 https://raw.githubusercontent.com/khtdr/opts/master/man.3
+man ./opts.3
+#+END_SRC
+
+* NAME
+opts.js - a command line parser for options and arguments
+
+* SYNOPSIS
+
+The following example uses a custom *version* function, and opts in to the automatic help text. No pun intended.
+
+#+BEGIN_SRC javascript
+var opts = require('opts');
+
+var options = [
+  { short       : 'v'
+  , long        : 'version'
+  , description : 'Show version and exit'
+  , callback    : function () { console.log('v1.0'); process.exit(1); }
+  }
+];
+
+opts.parse(options, true);
+console.log('Example 1');
+process.exit(0);
+#+END_SRC
+See https://raw.githubusercontent.com/khtdr/opts/master/examples/example1.js
+
+*** running:
+#+BEGIN_SRC bash
+$ node ./example1
+#+END_SRC
+*** produces:
+#+BEGIN_SRC bash
+Example 1
+#+END_SRC
+
+*** running:
+#+BEGIN_SRC bash
+$ node ./example1 --help
+#+END_SRC
+*** produces:
+#+BEGIN_SRC bash
+Usage: node ./example1 [options]
+Show this help message
+   --help
+Show version and exit
+   -v, --version
+#+END_SRC
+
+*** running:
+#+BEGIN_SRC sh
+node ./example1 -v
+#+END_SRC
+*** produces:
+#+BEGIN_SRC sh
+v1.0
+#+END_SRC
+
+
+
+* INSTALLATION
+
+You do not need to use NPM or any package manager. It is written in plain-old Javascript and can be downloaded and included in your Node.js project, as-is. All of the examples use this approach.
+.RE
+See https://github.com/khtdr/opts/tree/master/examples
+
+** Stand-alone version
+#+BEGIN_SRC bash
+cd /path/to/your/project
+curl -o opts.js https://raw.githubusercontent.com/khtdr/opts/master/src/opts.js
+#+END_SRC
+
+** NPM version
+#+BEGIN_SRC bash
+npm install opts
+#+END_SRC
+
+* USAGE
+** LOADING
+With classic syntax:
+#+BEGIN_SRC javascript
+var opts = require('opts');
+opts.parse(options, arguments, help);
+#+END_SRC
+
+With modern syntax:
+#+BEGIN_SRC javascript
+import * as opts from 'opts';
+opts.parse(options, arguments, help);
+#+END_SRC
+
+If you installed ~opts~ with NPM, the typescript definitions should automatically be available in your editor. Otherwise you can download the .d.ts file manually.
+.RE
+See https://raw.githubusercontent.com/khtdr/opts/master/src/opts.d.ts
+
+** CONFIGURING
+
+=opts.parse(options, arguments, help)=
+
+Options are flag-arguments. Arguments are everything else. Consider the following hypothetical command for starting a server that listens on http://0.0.0.0:4000
+
+#+BEGIN_SRC bash
+node ./my-app start --host 0.0.0.0 -p 4000
+#+END_SRC
+
+In this example, the options are =--host 0.0.0.0= and =-p 4000=. The argument is =start=. The arguments can be after, before, or among the options.
+
+*** options
+
+~options~ is an array of option objects. Each option in the array can have the following fields. None are required, but you should at least provide a short or long name.
+
+#+BEGIN_SRC javascript
+let options = [
+  { short       : 'l',
+    long        : 'list',
+    description : 'Show a list',
+    value       : false, // default false
+    required    : true, // default false
+    callback    : function (value) { ... },
+  }, // ... followed by more options
+];
+#+END_SRC
+
+*** arguments
+~arguments~ require less configuration. This is an optional argument to ~opts.parse~:
+
+#+BEGIN_SRC javascript
+let arguments =
+  { name     : 'script',
+    required : true, // not required by default
+    callback : function (value) { ... },
+  };
+#+END_SRC
+
+*** help text generator
+Finally, you can add an automatically generated help message by passing
+a last parameter of =true=. This is also an optional argument to ~opts.parse~.
+
+#+BEGIN_SRC javascript
+opts.parse(options, true);
+// or if you want more control, you can do:
+/*
+  options.push({
+    long        : 'help',
+    description : 'Show this help message',
+    callback    : require('opts').help,
+  }
+  opts.parse(options);
+*/
+#+END_SRC
+
+
+
+* AUTHOR / CHANGELOG / LICENSE
+
+Email: ohkay@khtdr.com
+
+Relatively unchanged since 2010.
+.RE
+See https://github.com/khtdr/opts/blob/master/CHANGES.org
+
+BSD 2-Clause License
+.RE
+See https://github.com/khtdr/opts/blob/master/LICENSE.txt

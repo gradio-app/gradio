@@ -1,0 +1,52 @@
+{
+  "name": "tui-image-editor",
+  "version": "3.15.2",
+  "description": "TOAST UI ImageEditor",
+  "keywords": [
+    "nhn",
+    "nhnent",
+    "tui",
+    "component",
+    "image",
+    "editor",
+    "canvas",
+    "fabric"
+  ],
+  "main": "dist/tui-image-editor.js",
+  "files": [
+    "src",
+    "dist",
+    "index.d.ts"
+  ],
+  "scripts": {
+    "test": "jest --forceExit --detectOpenHandles",
+    "test:types": "tsc --project tests/types",
+    "build": "npm run build:clean && npm run build:svg && npm run build:prod && npm run build:minify && node tsBannerGenerator.js",
+    "build:clean": "rm -rf ./dist",
+    "build:prod": "webpack",
+    "build:minify": "webpack --env minify",
+    "build:svg": "node makesvg.js",
+    "serve": "webpack serve",
+    "doc:dev": "tuidoc --serv",
+    "doc": "tuidoc",
+    "update:wrapper": "node scripts/updateWrapper.js",
+    "publish:cdn": "node scripts/publishToCDN.js"
+  },
+  "homepage": "https://github.com/nhn/tui.image-editor",
+  "bugs": "https://github.com/nhn/tui.image-editor/issues",
+  "author": "NHN. FE Development Team <dl_javascript@nhn.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nhn/tui.image-editor.git"
+  },
+  "license": "MIT",
+  "browserslist": [
+    "last 2 versions",
+    "not ie <= 9"
+  ],
+  "dependencies": {
+    "fabric": "^4.2.0",
+    "tui-code-snippet": "^1.5.0",
+    "tui-color-picker": "^2.2.6"
+  }
+}

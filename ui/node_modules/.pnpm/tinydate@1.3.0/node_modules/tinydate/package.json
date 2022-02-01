@@ -1,0 +1,44 @@
+{
+  "name": "tinydate",
+  "version": "1.3.0",
+  "repository": "lukeed/tinydate",
+  "description": "A tiny (349B) reusable date formatter. Extremely fast!",
+  "unpkg": "dist/tinydate.min.js",
+  "module": "dist/tinydate.mjs",
+  "main": "dist/tinydate.js",
+  "types": "index.d.ts",
+  "license": "MIT",
+  "author": {
+    "name": "Luke Edwards",
+    "email": "luke.edwards05@gmail.com",
+    "url": "https://lukeed.com"
+  },
+  "engines": {
+    "node": ">=4"
+  },
+  "scripts": {
+    "build": "bundt",
+    "bench": "node bench",
+    "prebench": "npm run build",
+    "pretest": "npm run build",
+    "test": "tape test/*.js | tap-spec"
+  },
+  "files": [
+    "dist",
+    "*.d.ts"
+  ],
+  "keywords": [
+    "date",
+    "datestamp",
+    "format",
+    "stamp",
+    "time",
+    "timestamp",
+    "time-stamp"
+  ],
+  "devDependencies": {
+    "bundt": "0.4.0",
+    "tap-spec": "5.0.0",
+    "tape": "4.11.0"
+  }
+}

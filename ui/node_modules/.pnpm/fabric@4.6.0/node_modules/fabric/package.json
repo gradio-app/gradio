@@ -1,0 +1,89 @@
+{
+  "name": "fabric",
+  "description": "Object model for HTML5 canvas, and SVG-to-canvas parser. Backed by jsdom and node-canvas.",
+  "homepage": "http://fabricjs.com/",
+  "version": "4.6.0",
+  "author": "Juriy Zaytsev <kangax@gmail.com>",
+  "contributors": [
+    {
+      "name": "Andrea Bogazzi",
+      "email": "andreabogazzi79@gmail.com"
+    },
+    {
+      "name": "Steve Eberhardt",
+      "email": "melchiar2@gmail.com"
+    }
+  ],
+  "keywords": [
+    "canvas",
+    "graphic",
+    "graphics",
+    "SVG",
+    "node-canvas",
+    "parser",
+    "HTML5",
+    "object model"
+  ],
+  "browser": {
+    "canvas": false,
+    "fs": false,
+    "jsdom": false,
+    "jsdom/lib/jsdom/living/generated/utils": false,
+    "jsdom/lib/jsdom/utils": false,
+    "http": false,
+    "https": false,
+    "xmldom": false,
+    "url": false
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fabricjs/fabric.js"
+  },
+  "bugs": {
+    "url": "https://github.com/fabricjs/fabric.js/issues"
+  },
+  "license": "MIT",
+  "scripts": {
+    "build": "node build.js modules=ALL requirejs exclude=gestures,accessors,erasing",
+    "build:fast": "node build.js modules=ALL requirejs fast exclude=gestures,accessors,erasing",
+    "build:watch": "onchange 'src/**/**' 'HEADER.js' 'lib/**/**' -- npm run build_export",
+    "link:watch": "onchange 'src/**/**' 'HEADER.js' 'lib/**/**' -- npm link",
+    "build_with_gestures": "node build.js modules=ALL exclude=accessors",
+    "build_export": "npm run build:fast && npm run export_dist_to_site",
+    "test:single": "qunit test/node_test_setup.js test/lib",
+    "test:coverage": "nyc --silent qunit test/node_test_setup.js test/lib test/unit",
+    "test:visual:coverage": "nyc --silent --no-clean qunit test/node_test_setup.js test/lib test/visual",
+    "coverage:report": "nyc report --reporter=lcov --reporter=text",
+    "test": "qunit test/node_test_setup.js test/lib test/unit",
+    "test:visual": "qunit test/node_test_setup.js test/lib test/visual",
+    "test:visual:single": "qunit test/node_test_setup.js test/lib",
+    "test:all": "npm run test && npm run test:visual",
+    "lint": "eslint --config .eslintrc.json src",
+    "lint_tests": "eslint test/unit --config .eslintrc_tests && eslint test/visual --config .eslintrc_tests",
+    "export_gesture_to_site": "cp dist/fabric.js ../fabricjs.com/lib/fabric_with_gestures.js",
+    "export_dist_to_site": "cp dist/fabric.js ../fabricjs.com/lib/fabric.js && cp package.json ../fabricjs.com/lib/package.json && cp -r src HEADER.js lib ../fabricjs.com/build/files/",
+    "export_tests_to_site": "cp test/unit/*.js ../fabricjs.com/test/unit && cp -r test/visual/* ../fabricjs.com/test/visual && cp -r test/fixtures/* ../fabricjs.com/test/fixtures && cp -r test/lib/* ../fabricjs.com/test/lib",
+    "all": "npm run build && npm run test && npm run test:visual && npm run lint && npm run lint_tests && npm run export_dist_to_site && npm run export_tests_to_site",
+    "testem": "testem .",
+    "testem:ci": "testem ci"
+  },
+  "optionalDependencies": {
+    "canvas": "^2.6.1",
+    "jsdom": "^15.2.1"
+  },
+  "devDependencies": {
+    "chalk": "^2.4.1",
+    "eslint": "4.18.x",
+    "nyc": "^15.1.0",
+    "onchange": "^3.x.x",
+    "pixelmatch": "^4.0.2",
+    "qunit": "^2.13.0",
+    "testem": "^3.2.0",
+    "uglify-js": "3.3.x"
+  },
+  "engines": {
+    "node": ">=8.0.0"
+  },
+  "main": "./dist/fabric.js",
+  "dependencies": {}
+}

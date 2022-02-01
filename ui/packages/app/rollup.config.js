@@ -33,6 +33,8 @@ function serve() {
 	};
 }
 
+const REPO_ROOT = '../../..';
+
 export default {
 	input: 'src/main.js',
 	output: [{
@@ -44,13 +46,13 @@ export default {
 		sourcemap: true,
 		format: 'iife',
 		name: 'app',
-		file: '../gradio/templates/frontend/build/bundle.js'
+		file: `${REPO_ROOT}/gradio/templates/frontend/build/bundle.js`
 	}],
 	plugins: [
 		copy({
 			targets: [
-				{ src: 'public/*', dest: '../gradio/templates/frontend' },
-				{ src: 'public/static', dest: '../gradio/templates/frontend' }
+				{ src: 'public/*', dest: `${REPO_ROOT}/gradio/templates/frontend` },
+				{ src: 'public/static', dest: `${REPO_ROOT}/gradio/templates/frontend` }
 			]
 		}),
 		json(),

@@ -1,0 +1,6 @@
+{
+    "rules": {
+        "max-nested-callbacks": 0,
+        "require-jsdoc": 0
+    }
+}

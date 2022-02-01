@@ -1,0 +1,98 @@
+/* COLOR PICKER */
+.{prefix}-container
+    div.tui-colorpicker-clearfix
+        width: 159px;
+        height: 28px;
+        border: 1px solid #d5d5d5;
+        border-radius: 2px;
+        background-color: #f5f5f5;
+        margin-top: 6px;
+        padding: 4px 7px 4px 7px;
+    .tui-colorpicker-palette-hex
+        width: 114px;
+        background-color: #f5f5f5;
+        border: 0;
+        font-size: 11px;
+        margin-top: 2px;
+        font-family: 'Noto Sans', sans-serif;
+    .tui-colorpicker-palette-hex[value='#ffffff'] + .tui-colorpicker-palette-preview,
+    .tui-colorpicker-palette-hex[value=''] + .tui-colorpicker-palette-preview
+            border: 1px solid #ccc;
+    .tui-colorpicker-palette-hex[value=''] + .tui-colorpicker-palette-preview
+            background-size: cover;
+            background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAdBJREFUWAnFl0FuwjAQRZ0ukiugHqFSOQNdseuKW3ALzkA4BateICvUGyCxrtRFd4WuunH/TzykaYJrnLEYaTJJsP2+x8GZZCbQrLU5mj7Bn+EP8HvnCObd+R7xBV5lWfaNON4AnsA38E94qLEt+0yiFaBzAV/Bv+Cxxr4co7hKCDpw1q9wLeNYYdlAwyn8TYt8Hme3+8D5ozcTaMCZ68PXa2tnM2sbEcOZAJhrrpl2DAcTOGNjZPSfCdzkw6JrfbiMv+osBe4y9WOedhm4jZfhbENWuxS44H9Wz/xw4WzqLOAqh1+zycgAwzEMzr5k5gaHOa9ULBwuuDkFlHI1Kl4PJ66kgIpnoywOTmRFAYcbwYk9UMApWkD8zAV5ihcwHk4Rx7gl0IFTQL0EFc+CTQ9OZHWH3YhlVJiVpTHbrTGLhTHLZVgff6s9lyBsI9KduSS83oj+34rTwJutmBmCnMsvozRwZqB5GTkBw6/jdPDu69iJ6BYk6eCcfbcgcQIK/MByaaiMqm8rHcjol2TnpWDhyAKSGdA3FrxtJUToX0ODqatetfGE+8tyEUOV8GY5dGRwLP/MBS4RHQr4bT7NRAQjlcOTfZxmv2G+c4hI8nn+Ax5PG/zhI393AAAAAElFTkSuQmCC');
+    .tui-colorpicker-palette-preview
+        border-radius: 100%;
+        float: left;
+        width: 17px;
+        height: 17px;
+        border: 0;
+    .color-picker-control
+        position: absolute;
+        display: none;
+        z-index: 99;
+        width: 192px;
+        background-color: #fff;
+        box-shadow: 0 3px 22px 6px rgba(0, 0, 0, .15);
+        padding: 16px;
+        border-radius: 2px;
+        .tui-colorpicker-palette-toggle-slider
+            display: none;
+        .tui-colorpicker-palette-button
+            border: 0;
+            border-radius: 100%;
+            margin: 2px;
+            background-size: cover;
+            font-size: 1px;
+            &[title='#ffffff']
+              border: 1px solid #ccc;
+            &[title='']
+              border: 1px solid #ccc;
+        .triangle
+            width: 0;
+            height: 0;
+            border-right: 7px solid transparent;
+            border-top: 8px solid #fff;
+            border-left: 7px solid transparent;
+            position: absolute;
+            bottom: -8px;
+            left: 84px;
+        .tui-colorpicker-container,
+        .tui-colorpicker-palette-container ul,
+        .tui-colorpicker-palette-container
+            width: 100%;
+            height: auto;
+
+
+    .filter-color-item
+        .color-picker-control label
+            font-color: #333;
+            font-weight: normal;
+            margin-right: 7pxleft
+        .tui-image-editor-checkbox
+            margin-top: 0;
+            input + label:before,
+            > label:before
+              left: -16px;
+    .color-picker
+        width: 100%;
+        height: auto;
+    .color-picker-value 
+        width: 32px;
+        height: 32px;
+        border: 0px;
+        border-radius: 100%;
+        margin: auto;
+        margin-bottom: 1px;
+        &.transparent
+            border: 1px solid #cbcbcb;
+            background-size: cover;
+            background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAdBJREFUWAnFl0FuwjAQRZ0ukiugHqFSOQNdseuKW3ALzkA4BateICvUGyCxrtRFd4WuunH/TzykaYJrnLEYaTJJsP2+x8GZZCbQrLU5mj7Bn+EP8HvnCObd+R7xBV5lWfaNON4AnsA38E94qLEt+0yiFaBzAV/Bv+Cxxr4co7hKCDpw1q9wLeNYYdlAwyn8TYt8Hme3+8D5ozcTaMCZ68PXa2tnM2sbEcOZAJhrrpl2DAcTOGNjZPSfCdzkw6JrfbiMv+osBe4y9WOedhm4jZfhbENWuxS44H9Wz/xw4WzqLOAqh1+zycgAwzEMzr5k5gaHOa9ULBwuuDkFlHI1Kl4PJ66kgIpnoywOTmRFAYcbwYk9UMApWkD8zAV5ihcwHk4Rx7gl0IFTQL0EFc+CTQ9OZHWH3YhlVJiVpTHbrTGLhTHLZVgff6s9lyBsI9KduSS83oj+34rTwJutmBmCnMsvozRwZqB5GTkBw6/jdPDu69iJ6BYk6eCcfbcgcQIK/MByaaiMqm8rHcjol2TnpWDhyAKSGdA3FrxtJUToX0ODqatetfGE+8tyEUOV8GY5dGRwLP/MBS4RHQr4bT7NRAQjlcOTfZxmv2G+c4hI8nn+Ax5PG/zhI393AAAAAElFTkSuQmCC');
+
+    .color-picker-value + label
+        color: #fff;
+
+    .{prefix}-submenu svg > use
+        display: none;
+    .{prefix}-submenu svg > use.normal
+        display: block;

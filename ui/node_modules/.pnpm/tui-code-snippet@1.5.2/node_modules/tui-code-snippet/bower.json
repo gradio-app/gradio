@@ -1,0 +1,20 @@
+{
+  "name": "tui-code-snippet",
+  "authors": [
+     "NHN. FE Development Lab <dl_javascript@nhn.com>"
+  ],
+  "main": "dist/tui-code-snippet.js",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    ".*",
+    "node_modules",
+    "bower_components",
+    "src",
+    "test",
+    "jsdoc.conf.json",
+    "karma.conf.js",
+    "webpack.config.js",
+    "package.json"
+  ]
+}

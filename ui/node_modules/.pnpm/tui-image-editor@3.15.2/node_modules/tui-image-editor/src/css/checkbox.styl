@@ -1,0 +1,86 @@
+/* VIRTUAL CHECKBOX */
+.{prefix}-container
+  .filter-color-item
+    display: inline-block;
+    .tui-image-editor-checkbox
+        display: block;
+  .{prefix}-checkbox-wrap
+      display: inline-block !important;
+      text-align: left;
+  .{prefix}-checkbox-wrap.fixed-width
+      width: 187px;
+      white-space: normal;
+  .{prefix}-checkbox
+      display: inline-block;
+      margin: 1px 0 1px 0;
+      input
+          width: 14px;
+          height: 14px;
+          opacity: 0;
+      > label > span
+          color: #fff;
+          height: 14px;
+          position: relative;
+      input + label:before,
+      > label > span:before
+          content: '';
+          position: absolute;
+          width: 14px;
+          height: 14px;
+          background-color: #fff;
+          top: 6px;
+          left: -19px;
+          display: inline-block;
+          margin: 0;
+          text-align: center;
+          font-size: 11px;
+          border: 0;
+          border-radius: 2px;
+          padding-top: 1px;
+          box-sizing: border-box;
+      input[type='checkbox']:checked + span:before
+          background-size: cover;
+          background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAAAAXNSR0IArs4c6QAAAMBJREFUKBWVkjEOwjAMRe2WgZW7IIHEDdhghhuwcQ42rlJugAQS54Cxa5cq1QM5TUpByZfS2j9+dlJVt/tX5ZxbS4ZU9VLkQvSHKTIGRaVJYFmKrBbTCJxE2UgCdDzMZDkHrOV6b95V0US6UmgKodujEZbJg0B0ZgEModO5lrY1TMQf1TpyJGBEjD+E2NPN7ukIUDiF/BfEXgRiGEw8NgkffYGYwCi808fpn/6OvfUfsDr/Vc1IfRf8sKnFVqeiVQfDu0tf/nWH9gAAAABJRU5ErkJggg==');
+
+  .{prefix}-selectlist-wrap
+      position: relative;
+      select
+          width: 100%;
+          height: 28px;
+          margin-top: 4px;
+          border: 0;
+          outline: 0;
+          border-radius: 0;
+          border: 1px solid #cbdbdb;
+          background-color: #fff;
+          -webkit-appearance: none;
+          -moz-appearance: none;
+          appearance: none;
+          padding: 0 7px 0 10px;
+      .{prefix}-selectlist
+          display: none;
+          position: relative;
+          top: -1px;
+          border: 1px solid #ccc;
+          background-color: #fff;
+          border-top: 0px;
+          padding: 4px 0;
+          li
+              display: block;
+              text-align: left;
+              padding: 7px 10px;
+              font-family: 'Noto Sans', sans-serif;
+          li:hover
+                  background-color: rgba(81, 92, 230, 0.05);
+  .{prefix}-selectlist-wrap:before
+      content: '';
+      position: absolute;
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      right: 5px;
+      top: 10px;
+      background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAAAAXNSR0IArs4c6QAAAHlJREFUKBVjYBgFOEOAEVkmPDxc89+/f6eAYjzI4kD2FyYmJrOVK1deh4kzwRggGiQBVJCELAZig8SQNYHEmEEEMrh69eo1HR0dfqCYJUickZGxf9WqVf3IakBsFBthklpaWmVA9mEQhrJhUoTp0NBQCRAmrHL4qgAAuu4cWZOZIGsAAAAASUVORK5CYII=');
+      background-size: cover;
+  .{prefix}-selectlist-wrap select::-ms-expand
+      display:none;

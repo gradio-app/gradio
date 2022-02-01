@@ -1,0 +1,91 @@
+/* VIRTUAL RANGE */
+.{prefix}-container
+
+    .{prefix}-virtual-range-bar
+    .{prefix}-virtual-range-subbar
+    .{prefix}-virtual-range-pointer
+        .{prefix}-disabled
+            backbround-color: red;
+
+    .{prefix}-range
+        position: relative;
+        top: 5px;
+        width: 166px;
+        height: 17px;
+        display: inline-block;
+    .{prefix}-virtual-range-bar
+        top: 7px;
+        position: absolute;
+        width: 100%;
+        height: 2px;
+        background-color: #666666;
+    .{prefix}-virtual-range-subbar
+        position: absolute;
+        height: 100%;
+        left: 0;
+        right: 0;
+        background-color: #d1d1d1;
+    .{prefix}-virtual-range-pointer
+        position: absolute;
+        cursor: pointer;
+        top: -5px;
+        left: 0;
+        width: 12px;
+        height: 12px;
+        background-color: #fff;
+        border-radius: 100%;
+    .{prefix}-range-wrap
+        display: inline-block;
+        margin-left: 4px;
+        &.short .tui-image-editor-range
+            width: 100px;
+    .color-picker-control
+        .{prefix}-range
+            width: 108px;
+            margin-left: 10px;
+        .{prefix}-virtual-range-pointer
+            background-color: #333;
+        .{prefix}-virtual-range-bar
+            background-color: #ccc;
+        .{prefix}-virtual-range-subbar
+            background-color: #606060;
+    .{prefix}-range-wrap.{prefix}-newline.short
+        margin-top: -2px;
+        margin-left: 19px;
+        label
+            color: #8e8e8e;
+            font-weight: normal;
+    .{prefix}-range-wrap label
+        vertical-align: baseline;
+        font-size: 11px;
+        margin-right: 7px;
+        color: #fff;
+    .{prefix}-range-value
+        cursor: default;
+        width: 40px;
+        height: 24px;
+        outline: none;
+        border-radius: 2px;
+        box-shadow: none;
+        border: 1px solid #d5d5d5;
+        text-align: center;
+        background-color: #1c1c1c;
+        color: #fff;
+        font-weight: lighter;
+        vertical-align: baseline;
+        font-family: 'Noto Sans', sans-serif;
+        margin-top: 15px;
+        margin-left: 4px;
+    .{prefix}-controls
+        position: absolute;
+        background-color: #151515;
+        width: 100%;
+        height: 64px;
+        display: table;
+        bottom: 0;
+        z-index: 2;
+    .{prefix}-icpartition
+        display: inline-block;
+        background-color: #444;
+        width: 1px;
+        height: 24px;

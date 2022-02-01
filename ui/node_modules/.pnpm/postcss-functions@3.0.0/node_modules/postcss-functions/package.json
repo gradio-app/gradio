@@ -1,0 +1,62 @@
+{
+  "name": "postcss-functions",
+  "version": "3.0.0",
+  "description": "PostCSS plugin for exposing JavaScript functions",
+  "main": "dist/index.js",
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "scripts": {
+    "prepublish": "npm run build && del-cli dist/__tests__",
+    "build": "del-cli dist && cross-env BABEL_ENV=publish babel src --out-dir dist",
+    "pretest": "eslint src && npm run build",
+    "test": "nyc ava src/__tests__/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/andyjansson/postcss-functions.git"
+  },
+  "keywords": [
+    "postcss",
+    "postcss-plugin",
+    "javascript",
+    "function",
+    "functions"
+  ],
+  "author": "Andy Jansson",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/andyjansson/postcss-functions/issues"
+  },
+  "homepage": "https://github.com/andyjansson/postcss-functions",
+  "dependencies": {
+    "glob": "^7.1.2",
+    "object-assign": "^4.1.1",
+    "postcss": "^6.0.9",
+    "postcss-value-parser": "^3.3.0"
+  },
+  "devDependencies": {
+    "ava": "^0.21.0",
+    "babel-cli": "^6.24.1",
+    "babel-core": "^6.25.0",
+    "babel-eslint": "^7.2.3",
+    "babel-plugin-add-module-exports": "^0.2.1",
+    "babel-preset-env": "^1.6.0",
+    "babel-register": "^6.24.1",
+    "cross-env": "^5.0.5",
+    "del-cli": "^1.1.0",
+    "eslint": "^4.4.1",
+    "eslint-config-i-am-meticulous": "^6.0.1",
+    "eslint-plugin-babel": "^4.1.2",
+    "eslint-plugin-import": "^2.7.0",
+    "nyc": "^11.1.0"
+  },
+  "ava": {
+    "require": "babel-register"
+  },
+  "eslintConfig": {
+    "parser": "babel-eslint",
+    "extends": "eslint-config-i-am-meticulous"
+  }
+}

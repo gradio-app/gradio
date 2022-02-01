@@ -1,0 +1,45 @@
+{
+  "name": "scss-tokenizer",
+  "version": "0.3.0",
+  "description": "A tokenzier for Sass' SCSS syntax",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "clean": "rm lib/*",
+    "build": "npm run clean; babel src/ --out-dir lib"
+  },
+  "files": [
+    "index.js",
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sasstools/scss-tokenizer.git"
+  },
+  "keywords": [
+    "parser",
+    "tokenizer",
+    "sass",
+    "scss",
+    "libsass"
+  ],
+  "author": "xzyfer",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sasstools/scss-tokenizer/issues"
+  },
+  "homepage": "https://github.com/sasstools/scss-tokenizer",
+  "dependencies": {
+    "js-base64": "^2.4.3",
+    "source-map": "^0.7.1"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.0",
+    "babel-jest": "^22.4.3",
+    "babel-preset-es2015": "^6.24.1",
+    "glob": "^7.1.2",
+    "jest": "^22.4.3",
+    "sass-spec": "^3.5.1"
+  }
+}

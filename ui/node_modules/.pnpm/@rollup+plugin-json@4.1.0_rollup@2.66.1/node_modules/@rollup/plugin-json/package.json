@@ -1,0 +1,67 @@
+{
+  "name": "@rollup/plugin-json",
+  "version": "4.1.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "description": "Convert .json files to ES6 modules",
+  "license": "MIT",
+  "repository": "rollup/plugins",
+  "author": "rollup",
+  "homepage": "https://github.com/rollup/plugins/tree/master/packages/json#readme",
+  "bugs": "https://github.com/rollup/plugins/issues",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "rollup -c",
+    "ci:coverage": "nyc pnpm run test && nyc report --reporter=text-lcov > coverage.lcov",
+    "ci:lint": "pnpm run build && pnpm run lint",
+    "ci:lint:commits": "commitlint --from=${CIRCLE_BRANCH} --to=${CIRCLE_SHA1}",
+    "ci:test": "pnpm run test -- --verbose && pnpm run test:ts",
+    "lint": "pnpm run lint:js && pnpm run lint:docs && pnpm run lint:json && pnpm run lint:package",
+    "lint:docs": "prettier --single-quote --write README.md",
+    "lint:js": "eslint --fix --cache src test types --ext .js,.ts",
+    "lint:json": "prettier --write \"test/fixtures/!(garbage)/*.json\"",
+    "lint:package": "prettier --write package.json --plugin=prettier-plugin-package",
+    "prebuild": "del-cli dist",
+    "prepare": "pnpm run build",
+    "prepublishOnly": "pnpm run lint && pnpm run test",
+    "pretest": "pnpm run build",
+    "test": "ava",
+    "test:ts": "tsc types/index.d.ts test/types.ts --noEmit"
+  },
+  "files": [
+    "dist",
+    "types",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "rollup",
+    "plugin",
+    "json",
+    "es2015",
+    "npm",
+    "modules"
+  ],
+  "peerDependencies": {
+    "rollup": "^1.20.0 || ^2.0.0"
+  },
+  "dependencies": {
+    "@rollup/pluginutils": "^3.0.8"
+  },
+  "devDependencies": {
+    "@rollup/plugin-buble": "^0.21.0",
+    "@rollup/plugin-node-resolve": "^7.0.0",
+    "source-map-support": "^0.5.16"
+  },
+  "ava": {
+    "files": [
+      "!**/fixtures/**",
+      "!**/helpers/**",
+      "!**/recipes/**",
+      "!**/types.ts"
+    ]
+  },
+  "module": "dist/index.es.js",
+  "types": "types/index.d.ts"
+}

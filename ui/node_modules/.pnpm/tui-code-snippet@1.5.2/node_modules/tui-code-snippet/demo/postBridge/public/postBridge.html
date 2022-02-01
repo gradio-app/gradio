@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<title>PostBridge Example</title>
+<script type="text/javascript" charset="utf-8">
+function redirect(url, data) {
+    var form = document.createElement('form'),
+        textarea;
+
+    form.style.display = 'none';
+    form.setAttribute('method', 'POST');
+    form.setAttribute('action', url);
+
+    for (key in data) {
+        if (data.hasOwnProperty(key)) {
+            textarea = document.createElement('textarea');
+            textarea.setAttribute('name', key);
+            textarea.value = data[key];
+            form.appendChild(textarea);
+        }
+    }
+
+    document.body.appendChild(form);
+    form.submit();
+}
+</script>
+</head>
+<body>
+</body>
+</html>

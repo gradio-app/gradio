@@ -2,7 +2,10 @@
   "name": "gradio-ui",
   "version": "0.0.1",
   "description": "Gradio UI packages",
-  "scripts": {},
+  "scripts": {
+    "dev" : "pnpm dev --filter @gradio/app",
+    "build": "pnpm build --filter @gradio/app"
+  },
   "author": "",
   "license": "ISC",
   "private": true,

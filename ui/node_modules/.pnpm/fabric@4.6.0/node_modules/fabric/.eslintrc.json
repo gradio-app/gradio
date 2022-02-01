@@ -1,0 +1,151 @@
+{
+  "env": {
+    "browser": true
+  },
+  "globals": {
+    "ActiveXObject": true,
+    "define": true,
+    "eventjs": true,
+    "exports": true,
+    "fabric": true,
+    "require": true,
+    "Buffer": true,
+    "process": true,
+    "QUnit": true,
+    "assert": true
+  },
+  "rules": {
+    "semi": 2,
+    "eqeqeq": 2,
+    "no-eq-null": 2,
+    "no-eval": 2,
+    "no-unused-expressions": [
+      2,
+      {
+        "allowShortCircuit": true
+      }
+    ],
+    "guard-for-in": 0,
+    "wrap-iife": [
+      2,
+      "inside"
+    ],
+    "linebreak-style": [
+      2,
+      "unix"
+    ],
+    "no-loop-func": 2,
+    "no-multi-str": 2,
+    "no-caller": 2,
+    "no-empty": [
+      2,
+      {
+        "allowEmptyCatch": true
+      }
+    ],
+    "no-new": 0,
+    "no-plusplus": 0,
+    "strict": 0,
+    "dot-notation": 2,
+    "no-undef": 2,
+    "no-unused-vars": 2,
+    "max-depth": [
+      2,
+      4
+    ],
+    "max-statements": [
+      2,
+      150
+    ],
+    "curly": [
+      2,
+      "all"
+    ],
+    "keyword-spacing": [
+      2,
+      {}
+    ],
+    "space-infix-ops": 2,
+    "array-bracket-spacing": [
+      2,
+      "never"
+    ],
+    "comma-style": [
+      2,
+      "last"
+    ],
+    "camelcase": [
+      2,
+      {
+        "properties": "never"
+      }
+    ],
+    "brace-style": [
+      2,
+      "stroustrup",
+      {
+        "allowSingleLine": true
+      }
+    ],
+    "eol-last": 2,
+    "one-var": [
+      0,
+      "always"
+    ],
+    "quote-props": [
+      2,
+      "as-needed",
+      {
+        "keywords": true
+      }
+    ],
+    "key-spacing": [
+      2,
+      {
+        "beforeColon": false,
+        "afterColon": true,
+        "mode": "minimum"
+      }
+    ],
+    "space-unary-ops": [
+      2,
+      {
+        "words": true,
+        "nonwords": false
+      }
+    ],
+    "no-with": 2,
+    "no-multiple-empty-lines": 2,
+    "no-mixed-spaces-and-tabs": 2,
+    "no-trailing-spaces": 2,
+    "quotes": [
+      2,
+      "single"
+    ],
+    "indent": [
+      2,
+      2,
+      {
+        "SwitchCase": 1,
+        "VariableDeclarator": 2
+      }
+    ],
+    "consistent-this": [
+      2,
+      "_this"
+    ],
+    "valid-jsdoc": [
+      0,
+      {
+        "requireReturn": false
+      }
+    ],
+    "max-len": [
+      2,
+      120,
+      {
+        "ignoreComments": true
+      }
+    ]
+  }
+}

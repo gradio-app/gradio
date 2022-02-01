@@ -1,0 +1,46 @@
+{
+  "env": {
+    "browser": true,
+    "node": true
+  },
+  "globals": {
+    "fabric": true,
+    "QUnit": true,
+    "assert": true,
+    "pixelmatch": true
+  },
+  "rules": {
+    "eqeqeq": 0,
+    "no-eq-null": 2,
+    "no-eval": 2,
+    "no-unused-expressions": 2,
+    "guard-for-in": 0,
+    "wrap-iife": [
+      2,
+      "any"
+    ],
+    "quote-props": 0,
+    "linebreak-style": 2,
+    "no-loop-func": 2,
+    "no-multi-str": 0,
+    "new-cap": 2,
+    "no-caller": 2,
+    "no-empty": 0,
+    "no-new": 0,
+    "no-plusplus": 0,
+    "strict": 0,
+    "dot-notation": 0,
+    "no-undef": 2,
+    "no-unused-vars": 2,
+    "max-statements": 0,
+    "camelcase": 0,
+    "consistent-this": 0,
+    "max-len": [
+      0,
+      120,
+      {
+        "ignoreComments": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,58 @@
+{
+    "name": "domhandler",
+    "version": "4.3.0",
+    "description": "Handler for htmlparser2 that turns pages into a dom",
+    "author": "Felix Boehm <me@feedic.com>",
+    "funding": {
+        "url": "https://github.com/fb55/domhandler?sponsor=1"
+    },
+    "license": "BSD-2-Clause",
+    "main": "lib/index.js",
+    "types": "lib/index.d.ts",
+    "sideEffects": false,
+    "files": [
+        "lib"
+    ],
+    "scripts": {
+        "test": "npm run test:jest && npm run lint",
+        "test:jest": "jest",
+        "lint": "eslint src",
+        "format": "prettier --write '**/*.{ts,md,json}'",
+        "build": "tsc",
+        "prepare": "npm run build"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/fb55/domhandler.git"
+    },
+    "keywords": [
+        "dom",
+        "htmlparser2"
+    ],
+    "engines": {
+        "node": ">= 4"
+    },
+    "dependencies": {
+        "domelementtype": "^2.2.0"
+    },
+    "devDependencies": {
+        "@types/jest": "^27.0.3",
+        "@types/node": "^16.11.11",
+        "@typescript-eslint/eslint-plugin": "^5.5.0",
+        "@typescript-eslint/parser": "^5.5.0",
+        "eslint": "^8.3.0",
+        "eslint-config-prettier": "^8.1.0",
+        "htmlparser2": "^7.2.0",
+        "jest": "^27.4.2",
+        "prettier": "^2.5.0",
+        "ts-jest": "^27.0.7",
+        "typescript": "^4.5.2"
+    },
+    "jest": {
+        "preset": "ts-jest",
+        "testEnvironment": "node"
+    },
+    "prettier": {
+        "tabWidth": 4
+    }
+}

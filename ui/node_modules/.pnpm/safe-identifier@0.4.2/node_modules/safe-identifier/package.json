@@ -1,0 +1,39 @@
+{
+  "name": "safe-identifier",
+  "version": "0.4.2",
+  "author": "Eemeli Aro <eemeli@gmail.com>",
+  "license": "ISC",
+  "description": "Sanitize strings for use as JavaScript identifiers & property names",
+  "keywords": [
+    "es3",
+    "es5",
+    "esnext",
+    "reserved",
+    "words",
+    "code",
+    "generation",
+    "identifier",
+    "property"
+  ],
+  "main": "./index.js",
+  "type": "commonjs",
+  "exports": {
+    ".": [
+      {
+        "import": "./index.mjs",
+        "require": "./index.js"
+      },
+      "./index.js"
+    ],
+    "./reserved": "./reserved.js",
+    "./package.json": "./package.json"
+  },
+  "browser": "./index.mjs",
+  "sideEffects": false,
+  "repository": "https://github.com/eemeli/safe-identifier.git",
+  "homepage": "https://github.com/eemeli/safe-identifier#readme",
+  "prettier": {
+    "semi": false,
+    "singleQuote": true
+  }
+}

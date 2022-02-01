@@ -1,0 +1,27 @@
+{
+  "name": "console-clear",
+  "version": "1.1.1",
+  "description": "Clear the console, cross-platform",
+  "repository": "lukeed/console-clear",
+  "license": "MIT",
+  "author": {
+    "name": "Luke Edwards",
+    "email": "luke.edwards05@gmail.com",
+    "url": "lukeed.com"
+  },
+  "engines": {
+    "node": ">=4"
+  },
+  "files": [
+    "index.js"
+  ],
+  "keywords": [
+    "cli",
+    "term",
+    "shell",
+    "console",
+    "terminal",
+    "clear",
+    "reset"
+  ]
+}

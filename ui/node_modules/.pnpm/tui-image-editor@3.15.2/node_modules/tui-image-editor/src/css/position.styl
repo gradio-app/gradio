@@ -1,0 +1,309 @@
+/* POSITION LEFT */
+.{prefix}-container
+  &.left
+    .{prefix}-menu
+        > .{prefix}-item[tooltip-content]
+            &:before
+                left: 28px;
+                top: 11px;
+                border-right: 7px solid #2f2f2f;
+                border-top: 7px solid transparent;
+                border-bottom: 7px solid transparent;
+            &:after
+                top: 7px;
+                left: 42px;
+                white-space: nowrap;
+    .{prefix}-submenu
+        left: 0;
+        height: 100%;
+        width: 248px;
+    .{prefix}-main-container
+        left: 64px;
+        width: calc(100% - 64px);
+        height: 100%;
+    .{prefix}-controls
+        width: 64px;
+        height: 100%;
+        display: table;
+
+/* POSITION LEFT & RIGHT */
+.{prefix}-container
+  &.left, &.right
+    .{prefix}-menu
+        white-space: inherit;
+    .{prefix}-submenu
+        white-space: normal;
+        > div
+            vertical-align: middle;
+    .{prefix}-controls li
+        display: inline-block;
+        margin: 4px auto;
+    .{prefix}-icpartition
+        position: relative;
+        top: -7px;
+        width: 24px;
+        height: 1px;
+    .{prefix}-submenu
+        .{prefix}-partition
+            display: block;
+            width: 75%;
+            margin: auto;
+            > div
+                border-left: 0;
+                height:10px;
+                border-bottom: 1px solid #3c3c3c;
+                width: 100%;
+                margin: 0;
+        .{prefix}-submenu-align
+            margin-right: 0;
+        .{prefix}-submenu-item
+            li
+                margin-top: 15px;
+            .tui-colorpicker-clearfix li
+                margin-top: 0;
+
+    .{prefix}-checkbox-wrap.fixed-width
+        width: 182px;
+        white-space: normal;
+    .{prefix}-range-wrap.{prefix}-newline label.range
+        display: block;
+        text-align: left;
+        width: 75%;
+        margin: auto;
+    .{prefix}-range
+        width: 136px;
+
+
+/* POSITION RIGHT */
+.{prefix}-container
+  &.right
+    .{prefix}-menu
+        > .{prefix}-item[tooltip-content]
+            &:before
+                left: -3px;
+                top: 11px;
+                border-left: 7px solid #2f2f2f;
+                border-top: 7px solid transparent;
+                border-bottom: 7px solid transparent;
+            &:after
+                top: 7px;
+                left: unset;
+                right: 43px;
+                white-space: nowrap;
+    .{prefix}-submenu
+        right: 0;
+        height: 100%;
+        width: 248px;
+    .{prefix}-main-container 
+        right: 64px;
+        width: calc(100% - 64px);
+        height: 100%;
+    .{prefix}-controls
+        right: 0;
+        width: 64px;
+        height: 100%;
+        display: table;
+
+
+/* POSITION TOP & BOTTOM */
+.{prefix}-container
+  &.top, &.bottom
+    .{prefix}-submenu
+        .{prefix}-partition.only-left-right
+            display: none;
+
+
+/* POSITION BOTTOM */
+.{prefix}-container
+    &.bottom .tui-image-editor-submenu > div
+        padding-bottom: 24px;
+
+/* POSITION TOP */
+.{prefix}-container
+  &.top
+    .color-picker-control .triangle
+        top: -8px;
+        border-right: 7px solid transparent;
+        border-top: 0px;
+        border-left: 7px solid transparent;
+        border-bottom: 8px solid #fff;
+    .{prefix}-size-wrap
+        height: 100%;
+    .{prefix}-main-container
+        bottom: 0;
+    .{prefix}-menu
+        > .{prefix}-item[tooltip-content]
+            &:before
+                left: 13px;
+                border-top: 0;
+                border-bottom: 7px solid #2f2f2f;
+                top: 33px;
+            &:after
+                top: 38px;
+    .{prefix}-submenu
+        top: 0;
+        bottom: auto;
+        > div
+            padding-top: 24px;
+            vertical-align: top;
+    .{prefix}-controls-logo
+        display: table-cell;
+    .{prefix}-controls-buttons
+        display: table-cell;
+    .{prefix}-main
+        top: 64px;
+        height: calc(100% - 64px);
+    .{prefix}-controls
+        top: 0;
+        bottom: inherit;
+
+/* HELP MENUBAR POSITION TOP */
+.{prefix}-container
+    .{prefix}-help-menu
+        &.top
+            white-space: nowrap;
+            width: 506px;
+            height: 40px;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            .tie-panel-history
+                top: 45px;
+            .opened .tie-panel-history:before
+                border-right: 8px solid transparent;
+                border-left: 8px solid transparent;
+                border-bottom: 8px solid #fff;
+                left: 90px;
+                top: -8px;
+            > .{prefix}-item[tooltip-content]
+                &:before
+                    left: 13px;
+                    top: 35px;
+                    border: none;
+                    border-bottom: 7px solid #2f2f2f;
+                    border-left: 7px solid transparent;
+                    border-right: 7px solid transparent;
+                &:after
+                    top: 41px;
+                    left: -4px;
+                    white-space: nowrap;
+            > .{prefix}-item[tooltip-content].opened
+                &:before,
+                &:after
+                    content: none;
+
+/* HELP MENUBAR POSITION BOTTOM */
+.{prefix}-container
+    .{prefix}-help-menu
+        &.bottom
+            white-space: nowrap;
+            width: 506px;
+            height: 40px;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            .tie-panel-history
+                bottom: 45px;
+            .opened .tie-panel-history:before
+                border-right: 8px solid transparent;
+                border-left: 8px solid transparent;
+                border-top: 8px solid #fff;
+                left: 90px;
+                bottom: -8px;
+            > .{prefix}-item[tooltip-content]
+                &:before
+                    left: 13px;
+                    top: auto;
+                    bottom: 36px;
+                    border: none;
+                    border-top: 7px solid #2f2f2f;
+                    border-left: 7px solid transparent;
+                    border-right: 7px solid transparent;
+                &:after
+                    top: auto;
+                    left: -4px;
+                    bottom: 41px;
+                    white-space: nowrap;
+            > .{prefix}-item[tooltip-content].opened
+                &:before,
+                &:after
+                    content: none;
+
+/* HELP MENUBAR POSITION LEFT */
+.{prefix}-container
+    .{prefix}-help-menu
+        &.left
+            white-space: inherit;
+            width: 40px;
+            height: 506px;
+            left: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            .tie-panel-history
+                left: 140px;
+                top: -4px;
+            .opened .tie-panel-history:before
+                border-top: 8px solid transparent;
+                border-bottom: 8px solid transparent;
+                border-right: 8px solid #fff;
+                left: -8px;
+                top: 14px;
+            .{prefix}-item
+                margin: 4px auto;
+                padding: 6px 8px;
+            > .{prefix}-item[tooltip-content]
+                &:before
+                    left: 27px;
+                    top: 11px;
+                    border: none;
+                    border-right: 7px solid #2f2f2f;
+                    border-top: 7px solid transparent;
+                    border-bottom: 7px solid transparent;
+                &:after
+                    top: 7px;
+                    left: 40px;
+                    white-space: nowrap;
+            > .{prefix}-item[tooltip-content].opened
+                &:before,
+                &:after
+                    content: none;
+
+/* HELP MENUBAR POSITION RIGHT */
+.{prefix}-container
+    .{prefix}-help-menu
+        &.right
+            white-space: inherit;
+            width: 40px;
+            height: 506px;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            .tie-panel-history
+                right: -30px;
+                top: -4px;
+            .opened .tie-panel-history:before
+                border-top: 8px solid transparent;
+                border-bottom: 8px solid transparent;
+                border-left: 8px solid #fff;
+                right: -8px;
+                top: 14px;
+            .{prefix}-item
+                margin: 4px auto;
+                padding: 6px 8px;
+            > .{prefix}-item[tooltip-content]
+                &:before
+                    left: -6px;
+                    top: 11px;
+                    border: none;
+                    border-left: 7px solid #2f2f2f;
+                    border-top: 7px solid transparent;
+                    border-bottom: 7px solid transparent;
+                &:after
+                    top: 7px;
+                    left: auto;
+                    right: 39px;
+                    white-space: nowrap;
+            > .{prefix}-item[tooltip-content].opened
+                &:before,
+                &:after
+                    content: none;

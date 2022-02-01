@@ -1,0 +1,48 @@
+{
+  "name": "postcss-merge-rules",
+  "version": "5.0.5",
+  "description": "Merge CSS rules with PostCSS.",
+  "main": "dist/index.js",
+  "files": [
+    "LICENSE-MIT",
+    "dist"
+  ],
+  "keywords": [
+    "css",
+    "optimise",
+    "postcss",
+    "postcss-plugin"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/cssnano/cssnano",
+  "author": {
+    "name": "Ben Briggs",
+    "email": "beneb.info@gmail.com",
+    "url": "http://beneb.info"
+  },
+  "repository": "cssnano/cssnano",
+  "dependencies": {
+    "browserslist": "^4.16.6",
+    "caniuse-api": "^3.0.0",
+    "cssnano-utils": "^3.0.1",
+    "postcss-selector-parser": "^6.0.5"
+  },
+  "bugs": {
+    "url": "https://github.com/cssnano/cssnano/issues"
+  },
+  "engines": {
+    "node": "^10 || ^12 || >=14.0"
+  },
+  "devDependencies": {
+    "postcss": "^8.2.15",
+    "postcss-discard-comments": "^5.0.2"
+  },
+  "peerDependencies": {
+    "postcss": "^8.2.15"
+  },
+  "scripts": {
+    "prebuild": "rimraf dist",
+    "build": "babel src --config-file ../../babel.config.json --out-dir dist --ignore \"**/__tests__/\""
+  },
+  "readme": "# [postcss][postcss]-merge-rules\n\n> Merge CSS rules with PostCSS.\n\n## Install\n\nWith [npm](https://npmjs.org/package/postcss-merge-rules) do:\n\n```\nnpm install postcss-merge-rules --save\n```\n\n## Examples\n\nThis module will attempt to merge *adjacent* CSS rules:\n\n### By declarations\n\n#### Input\n\n```css\na {\n    color: blue;\n    font-weight: bold\n}\n\np {\n    color: blue;\n    font-weight: bold\n}\n```\n\n#### Output\n\n```css\na,p {\n    color: blue;\n    font-weight: bold\n}\n```\n\n### By selectors\n\n#### Input\n\n```css\na {\n    color: blue\n}\n\na {\n    font-weight: bold\n}\n```\n\n#### Output\n\n```css\na {\n    color: blue;\n    font-weight: bold\n}\n```\n\n### By partial declarations\n\n#### Input\n\n```css\na {\n    font-weight: bold\n}\n\np {\n    color: blue;\n    font-weight: bold\n}\n```\n\n#### Output\n\n```css\na,p {\n    font-weight: bold\n}\n\np {\n    color: blue\n}\n```\n\n## Usage\n\nSee the [PostCSS documentation](https://github.com/postcss/postcss#usage) for\nexamples for your environment.\n\n## Contributors\n\nSee [CONTRIBUTORS.md](https://github.com/cssnano/cssnano/blob/master/CONTRIBUTORS.md).\n\n## License\n\nMIT © [Ben Briggs](http://beneb.info)\n\n[postcss]: https://github.com/postcss/postcss\n"
+}

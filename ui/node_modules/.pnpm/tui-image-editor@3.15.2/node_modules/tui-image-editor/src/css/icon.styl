@@ -1,0 +1,44 @@
+/* ICON */
+.{prefix}-container
+    .tie-icon-add-button .{prefix}-button
+        min-width: 42px;
+    .svg_ic-menu
+    .svg_ic-helpmenu
+        width: 24px;
+        height: 24px;
+    .svg_ic-submenu
+        width: 32px;
+        height: 32px;
+    .svg_img-bi
+        width: 257px;
+        height: 26px;
+
+    .{prefix}-help-menu
+    .{prefix}-controls
+        svg > use
+            display: none;
+        .enabled svg:hover > use.hover
+        .normal svg:hover > use.hover
+            display: block;
+        .active svg:hover > use.hover
+            display: none;
+        .on svg > use.hover,
+        .opened svg > use.hover
+            display: block;
+        svg > use.normal
+            display: block;
+        .active svg > use.active
+            display: block;
+        .enabled svg > use.enabled
+            display: block;
+        .active svg > use.normal,
+        .enabled svg > use.normal
+            display: none;
+        .help svg > use.disabled,
+        .help.enabled svg > use.normal
+            display: block;
+        .help.enabled svg > use.disabled
+            display: none;
+
+    .{prefix}-controls:hover
+        z-index: 3;

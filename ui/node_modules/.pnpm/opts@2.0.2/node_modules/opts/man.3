@@ -1,0 +1,225 @@
+.TH "opts.js" "3"
+.PP
+Find the full documentation, source code, and examples at \fIhttps://khtdr.com/opts\fP
+
+.SH "NAME"
+.PP
+opts.js - a command line parser for options and arguments
+
+.SH "VERSION"
+.PP
+v2.0.2
+
+.SH "SYNOPSIS"
+.PP
+The following example uses a custom \fBversion\fP function, and opts in to the automatic help text. No pun intended.
+
+.RS
+.nf
+\fCvar opts = require('opts');
+
+var options = [
+  { short       : 'v'
+  , long        : 'version'
+  , description : 'Show version and exit'
+  , callback    : function () { console.log('v1.0'); process.exit(1); }
+  }
+];
+
+opts.parse(options, true);
+console.log('Example 1');
+process.exit(0);
+\fP
+.fi
+.RE
+.PP
+See \fIhttps://raw.githubusercontent.com/khtdr/opts/master/examples/example1.js\fP
+
+.SS "running:"
+.RS
+.nf
+\fC$ node ./example1
+\fP
+.fi
+.RE
+.SS "produces:"
+.RS
+.nf
+\fCExample 1
+\fP
+.fi
+.RE
+
+.SS "running:"
+.RS
+.nf
+\fC$ node ./example1 --help
+\fP
+.fi
+.RE
+.SS "produces:"
+.RS
+.nf
+\fCUsage: node ./example1 [options]
+Show this help message
+   --help
+Show version and exit
+   -v, --version
+\fP
+.fi
+.RE
+
+.SS "running:"
+.RS
+.nf
+\fCnode ./example1 -v
+\fP
+.fi
+.RE
+.SS "produces:"
+.RS
+.nf
+\fCv1.0
+\fP
+.fi
+.RE
+
+
+
+.SH "INSTALLATION"
+.PP
+You do not need to use NPM or any package manager. It is written in plain-old Javascript and can be downloaded and included in your Node.js project, as-is. All of the examples use this approach.
+.RE
+See \fIhttps://github.com/khtdr/opts/tree/master/examples\fP
+
+.SS "Stand-alone version"
+.RS
+.nf
+\fCcd /path/to/your/project
+curl -o opts.js https://raw.githubusercontent.com/khtdr/opts/master/src/opts.js
+\fP
+.fi
+.RE
+
+.SS "NPM version"
+.RS
+.nf
+\fCnpm install opts
+\fP
+.fi
+.RE
+
+.SH "USAGE"
+.SS "LOADING"
+.PP
+With classic syntax:
+.RS
+.nf
+\fCvar opts = require('opts');
+opts.parse(options, arguments, help);
+\fP
+.fi
+.RE
+
+.PP
+With modern syntax:
+.RS
+.nf
+\fCimport * as opts from 'opts';
+opts.parse(options, arguments, help);
+\fP
+.fi
+.RE
+
+.PP
+If you installed \fCopts\fP with NPM, the typescript definitions should automatically be available in your editor. Otherwise you can download the .d.ts file manually.
+.RE
+See \fIhttps://raw.githubusercontent.com/khtdr/opts/master/src/opts.d.ts\fP
+
+.SS "CONFIGURING"
+.PP
+\fIopts.parse(options, arguments, help)\fP
+
+.PP
+Options are flag-arguments. Arguments are everything else. Consider the following hypothetical command for starting a server that listens on \fIhttp://0.0.0.0:4000\fP
+
+.RS
+.nf
+\fCnode ./my-app start --host 0.0.0.0 -p 4000
+\fP
+.fi
+.RE
+
+.PP
+In this example, the options are \fI\-\-host 0.0.0.0\fP and \fI\-p 4000\fP. The argument is \fIstart\fP. The arguments can be after, before, or among the options.
+
+.SS "options"
+.PP
+\fCoptions\fP is an array of option objects. Each option in the array can have the following fields. None are required, but you should at least provide a short or long name.
+
+.RS
+.nf
+\fClet options = [
+  { short       : 'l',
+    long        : 'list',
+    description : 'Show a list',
+    value       : false, // default false
+    required    : true, // default false
+    callback    : function (value) { ... },
+  }, // ... followed by more options
+];
+\fP
+.fi
+.RE
+
+.SS "arguments"
+.PP
+\fCarguments\fP require less configuration. This is an optional argument to \fCopts.parse\fP:
+
+.RS
+.nf
+\fClet arguments =
+  { name     : 'script',
+    required : true, // not required by default
+    callback : function (value) { ... },
+  };
+\fP
+.fi
+.RE
+
+.SS "help text generator"
+.PP
+Finally, you can add an automatically generated help message by passing
+a last parameter of \fItrue\fP. This is also an optional argument to \fCopts.parse\fP.
+
+.RS
+.nf
+\fCopts.parse(options, true);
+// or if you want more control, you can do:
+/*
+  options.push({
+    long        : 'help',
+    description : 'Show this help message',
+    callback    : require('opts').help,
+  }
+  opts.parse(options);
+*/
+\fP
+.fi
+.RE
+
+
+
+.SH "AUTHOR / CHANGELOG / LICENSE"
+.PP
+Email: ohkay@khtdr.com
+
+.PP
+Relatively unchanged since 2010.
+.RE
+See \fIhttps://github.com/khtdr/opts/blob/master/CHANGES.org\fP
+
+.PP
+BSD 2-Clause License
+.RE
+See \fIhttps://github.com/khtdr/opts/blob/master/LICENSE\fP

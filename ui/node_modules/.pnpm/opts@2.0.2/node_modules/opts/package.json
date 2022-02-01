@@ -1,0 +1,22 @@
+{
+  "name": "opts",
+  "description": "Command line argument parser with automatic help text generation.",
+  "version": "2.0.2",
+  "author": "Oh Kay <khtdr.com@gmail.com> (http://khtdr.com)",
+  "homepage": "http://khtdr.com/opts",
+  "repository": "github:khtdr/opts",
+  "bugs": "https://github.com/khtdr/opts/issues",
+  "main": "src/opts",
+  "man": "man.3",
+  "types": "src/opts.d.ts",
+  "license": "BSD-2-Clause",
+  "keywords": [
+    "command line parser",
+    "opts",
+    "args",
+    "help text"
+  ],
+  "devDependencies": {
+    "@types/node": "^12.12.0"
+  }
+}

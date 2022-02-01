@@ -1,0 +1,46 @@
+{
+  "name": "postcss-minify-selectors",
+  "version": "5.1.2",
+  "description": "Minify selectors with PostCSS.",
+  "main": "dist/index.js",
+  "files": [
+    "dist",
+    "LICENSE-MIT"
+  ],
+  "keywords": [
+    "css",
+    "minify",
+    "optimise",
+    "postcss",
+    "postcss-plugin",
+    "selectors"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/cssnano/cssnano",
+  "author": {
+    "name": "Ben Briggs",
+    "email": "beneb.info@gmail.com",
+    "url": "http://beneb.info"
+  },
+  "repository": "cssnano/cssnano",
+  "dependencies": {
+    "postcss-selector-parser": "^6.0.5"
+  },
+  "bugs": {
+    "url": "https://github.com/cssnano/cssnano/issues"
+  },
+  "engines": {
+    "node": "^10 || ^12 || >=14.0"
+  },
+  "devDependencies": {
+    "postcss": "^8.2.15"
+  },
+  "peerDependencies": {
+    "postcss": "^8.2.15"
+  },
+  "scripts": {
+    "prebuild": "rimraf dist",
+    "build": "babel src --config-file ../../babel.config.json --out-dir dist --ignore \"**/__tests__/\""
+  },
+  "readme": "# [postcss][postcss]-minify-selectors\n\n> Minify selectors with PostCSS.\n\n## Install\n\nWith [npm](https://www.npmjs.com/package/postcss-minify-selectors) do:\n\n```\nnpm install postcss-minify-selectors --save\n```\n\n## Example\n\n### Input\n\n```css\nh1 + p, h2, h3, h2{color:blue}\n```\n\n### Output\n\n```css\nh1+p,h2,h3{color:blue}\n```\n\nFor more examples see the [tests](test.js).\n\n## Usage\n\nSee the [PostCSS documentation](https://github.com/postcss/postcss#usage) for\nexamples for your environment.\n\n## Contributors\n\nSee [CONTRIBUTORS.md](https://github.com/cssnano/cssnano/blob/master/CONTRIBUTORS.md).\n\n## License\n\nMIT © [Ben Briggs](http://beneb.info)\n\n[postcss]: https://github.com/postcss/postcss\n"
+}

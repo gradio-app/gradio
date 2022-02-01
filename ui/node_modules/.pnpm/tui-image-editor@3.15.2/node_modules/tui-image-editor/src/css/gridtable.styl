@@ -1,0 +1,45 @@
+/* GRID VISUAL OF FLIP AND ROTATE MENU  */
+.{prefix}-container
+    .{prefix}-grid-visual
+        display: none;
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border: 1px solid rgba(255,255,255,0.7);
+    .{prefix}-main.{prefix}-menu-flip,
+    .{prefix}-main.{prefix}-menu-rotate
+        .tui-image-editor
+            transition: none;
+    .{prefix}-main.{prefix}-menu-flip .{prefix}-grid-visual,
+    .{prefix}-main.{prefix}-menu-rotate .{prefix}-grid-visual,
+    .{prefix}-main.{prefix}-menu-resize .{prefix}-grid-visual
+        display: block;
+    .{prefix}-grid-visual 
+        table
+            width: 100%;
+            height: 100%;
+            border-collapse: collapse;
+            td
+                border: 1px solid rgba(255,255,255,0.3);
+            td.dot:before
+                content: '';
+                position: absolute;
+                box-sizing: border-box;
+                width: 10px;
+                height: 10px;
+                border: 0;
+                box-shadow: 0 0 1px 0 rgba(0,0,0,0.3);
+                border-radius: 100%;
+                background-color: #fff;
+            td.dot.left-top:before
+                top: -5px;
+                left: -5px;
+            td.dot.right-top:before
+                top: -5px;
+                right: -5px;
+            td.dot.left-bottom:before
+                bottom: -5px;
+                left: -5px;
+            td.dot.right-bottom:before
+                bottom: -5px;
+                right: -5px;

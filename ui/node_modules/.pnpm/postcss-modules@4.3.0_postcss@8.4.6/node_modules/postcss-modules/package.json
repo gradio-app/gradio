@@ -1,0 +1,65 @@
+{
+  "name": "postcss-modules",
+  "version": "4.3.0",
+  "description": "PostCSS plugin to use CSS Modules everywhere",
+  "main": "build/index.js",
+  "types": "index.d.ts",
+  "keywords": [
+    "postcss",
+    "css",
+    "postcss-plugin",
+    "modules",
+    "css modules",
+    "components"
+  ],
+  "author": "Alexander Madyankin <alexander@madyankin.name>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/css-modules/postcss-modules.git"
+  },
+  "dependencies": {
+    "generic-names": "^4.0.0",
+    "icss-replace-symbols": "^1.1.0",
+    "lodash.camelcase": "^4.3.0",
+    "postcss-modules-extract-imports": "^3.0.0",
+    "postcss-modules-local-by-default": "^4.0.0",
+    "postcss-modules-scope": "^3.0.0",
+    "postcss-modules-values": "^4.0.0",
+    "string-hash": "^1.1.1"
+  },
+  "peerDependencies": {
+    "postcss": "^8.0.0"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.0.2",
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.3",
+    "babel-eslint": "^10.1.0",
+    "babel-preset-env": "^1.7.0",
+    "eslint": "^7.3.1",
+    "eslint-plugin-import": "^2.21.2",
+    "eslint-plugin-jest": "^23.17.0",
+    "husky": "^4.2.5",
+    "jest": "^26.0.1",
+    "lint-staged": "^10.2.11",
+    "postcss": "^8.1.9",
+    "prettier": "^2.0.5"
+  },
+  "scripts": {
+    "test": "make test",
+    "precommit": "lint-staged"
+  },
+  "lint-staged": {
+    "*.{json,md}": [
+      "prettier --write",
+      "git add"
+    ],
+    "*.js": [
+      "prettier --write",
+      "eslint --fix",
+      "git add"
+    ]
+  },
+  "require": "babel-core/register"
+}
