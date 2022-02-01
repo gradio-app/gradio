@@ -1,0 +1,23 @@
+<script>
+  export let root;
+</script>
+
+<div class="login container mt-8">
+  <form
+    class="mx-auto p-4 bg-gray-50 shadow-md w-1/2"
+    id="login"
+    method="POST"
+    action={root + "login"}
+  >
+    <h2 class="text-2xl font-semibold my-2">login</h2>
+
+    <label class="block uppercase mt-4" for="username">username</label>
+    <input class="p-2 block" type="text" name="username" />
+    <label class="block uppercase mt-4" for="password">password</label>
+    <input class="p-2 block" type="password" name="password" />
+    <input
+      type="submit"
+      class="block bg-yellow-500 hover:bg-yellow-400 dark:hover:bg-yellow-600 transition px-4 py-2 rounded text-white font-semibold cursor-pointer mt-4"
+    />
+  </form>
+</div>
