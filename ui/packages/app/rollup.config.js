@@ -63,10 +63,7 @@ export default {
 			BUILD_MODE: production ? "prod" : "dev",
 			BACKEND_URL: production ? "" : "http://localhost:7860/"
 		}),
-		postcss({
-			extract: "themes.css",
-			plugins: [require("tailwindcss"), require("postcss-nested"), require("autoprefixer")]
-		}),
+		postcss(),
 		svelte({
 			preprocess: sveltePreprocess({
 				// sourceMap: true,
