@@ -24,7 +24,7 @@ export const loadAsData = async (x, examples_dir) => {
 		);
 
 		reader.onerror = () => {
-			return reject(this);
+			return reject();
 		};
 		reader.readAsDataURL(blob);
 	});

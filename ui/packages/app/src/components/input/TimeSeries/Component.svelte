@@ -4,7 +4,7 @@
 
 	export let value, setValue, theme, y, x;
 	let _value;
-
+	console.log("BOO");
 	function data_uri_to_blob(data_uri) {
 		var byte_str = atob(data_uri.split(",")[1]);
 		var mime_str = data_uri.split(",")[0].split(":")[1].split(";")[0];
