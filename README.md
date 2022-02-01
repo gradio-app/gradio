@@ -34,8 +34,10 @@ pip install gradio
 ```python
 import gradio as gr
 
+
 def greet(name):
-  return "Hello " + name + "!!"
+    return "Hello " + name + "!!"
+
 
 iface = gr.Interface(fn=greet, inputs="text", outputs="text")
 iface.launch()
@@ -65,14 +67,18 @@ Let's say we want to customize the input text field - for example, we wanted it 
 ```python
 import gradio as gr
 
+
 def greet(name):
-  return "Hello " + name + "!"
+    return "Hello " + name + "!"
+
 
 iface = gr.Interface(
-  fn=greet, 
-  inputs=gr.inputs.Textbox(lines=2, placeholder="Name Here..."), 
-  outputs="text")
+    fn=greet,
+    inputs=gr.inputs.Textbox(lines=2, placeholder="Name Here..."),
+    outputs="text",
+)
 iface.launch()
+
 ```
 ![hello_world_2 interface](demo/hello_world_2/screenshot.gif)
 
@@ -83,18 +89,21 @@ Let's say we had a much more complex function, with multiple inputs and outputs.
 ```python
 import gradio as gr
 
+
 def greet(name, is_morning, temperature):
-  salutation = "Good morning" if is_morning else "Good evening"
-  greeting = "%s %s. It is %s degrees today" % (
-    salutation, name, temperature)
-  celsius = (temperature - 32) * 5 / 9
-  return greeting, round(celsius, 2)
+    salutation = "Good morning" if is_morning else "Good evening"
+    greeting = "%s %s. It is %s degrees today" % (salutation, name, temperature)
+    celsius = (temperature - 32) * 5 / 9
+    return greeting, round(celsius, 2)
+
 
 iface = gr.Interface(
-  fn=greet, 
-  inputs=["text", "checkbox", gr.inputs.Slider(0, 100)],
-  outputs=["text", "number"])
+    fn=greet,
+    inputs=["text", "checkbox", gr.inputs.Slider(0, 100)],
+    outputs=["text", "number"],
+)
 iface.launch()
+
 ```
 ![hello_world_3 interface](demo/hello_world_3/screenshot.gif)
 
@@ -105,20 +114,24 @@ We simply wrap the components in a list. Each component in the `inputs` list cor
 Let's try an image-to-image function. When using the  `Image`  component, your function will receive a numpy array of your specified size, with the shape  `(width, height, 3)`, where the last dimension represents the RGB values. We'll return an image as well in the form of a numpy array.
 
 ```python
-import gradio as gr
 import numpy as np
 
+import gradio as gr
+
+
 def sepia(input_img):
-  sepia_filter = np.array([[.393, .769, .189],
-                           [.349, .686, .168],
-                           [.272, .534, .131]])
-  sepia_img = input_img.dot(sepia_filter.T)
-  sepia_img /= sepia_img.max()                          
-  return sepia_img
+    sepia_filter = np.array(
+        [[0.393, 0.769, 0.189], [0.349, 0.686, 0.168], [0.272, 0.534, 0.131]]
+    )
+    sepia_img = input_img.dot(sepia_filter.T)
+    sepia_img /= sepia_img.max()
+    return sepia_img
+
 
 iface = gr.Interface(sepia, gr.inputs.Image(shape=(200, 200)), "image")
 
 iface.launch()
+
 ```
 ![sepia_filter interface](demo/sepia_filter/screenshot.gif)
 
@@ -131,35 +144,40 @@ In addition to images, Gradio supports other media input types, such as audio or
 You can use Gradio to support inputs and outputs from your typical data libraries, such as numpy arrays, pandas dataframes, and plotly graphs. Take a look at the demo below (ignore the complicated data manipulation in the function!)
 
 ```python
-import gradio as gr
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
+
+import gradio as gr
+
 
 def sales_projections(employee_data):
     sales_data = employee_data.iloc[:, 1:4].astype("int").to_numpy()
-    regression_values = np.apply_along_axis(lambda row: 
-        np.array(np.poly1d(np.polyfit([0,1,2], row, 2))), 0, sales_data)
-    projected_months = np.repeat(np.expand_dims(
-        np.arange(3,12), 0), len(sales_data), axis=0)
-    projected_values = np.array([
-        month * month * regression[0] + month * regression[1] + regression[2]
-        for month, regression in zip(projected_months, regression_values)])
+    regression_values = np.apply_along_axis(
+        lambda row: np.array(np.poly1d(np.polyfit([0, 1, 2], row, 2))), 0, sales_data
+    )
+    projected_months = np.repeat(
+        np.expand_dims(np.arange(3, 12), 0), len(sales_data), axis=0
+    )
+    projected_values = np.array(
+        [
+            month * month * regression[0] + month * regression[1] + regression[2]
+            for month, regression in zip(projected_months, regression_values)
+        ]
+    )
     plt.plot(projected_values.T)
     plt.legend(employee_data["Name"])
     return employee_data, plt.gcf(), regression_values
 
-iface = gr.Interface(sales_projections, 
+
+iface = gr.Interface(
+    sales_projections,
     gr.inputs.Dataframe(
         headers=["Name", "Jan Sales", "Feb Sales", "Mar Sales"],
-        default=[["Jon", 12, 14, 18], ["Alice", 14, 17, 2], ["Sana", 8, 9.5, 12]]
+        default=[["Jon", 12, 14, 18], ["Alice", 14, 17, 2], ["Sana", 8, 9.5, 12]],
     ),
-    [
-        "dataframe",
-        "plot",
-        "numpy"
-    ],
-    description="Enter sales figures for employees to predict sales trajectory over year."
+    ["dataframe", "plot", "numpy"],
+    description="Enter sales figures for employees to predict sales trajectory over year.",
 )
 iface.launch()
 
@@ -173,6 +191,7 @@ You can provide example data that a user can easily load into the model. This ca
 ```python
 import gradio as gr
 
+
 def calculator(num1, operation, num2):
     if operation == "add":
         return num1 + num2
@@ -183,7 +202,9 @@ def calculator(num1, operation, num2):
     elif operation == "divide":
         return num1 / num2
 
-iface = gr.Interface(calculator, 
+
+iface = gr.Interface(
+    calculator,
     ["number", gr.inputs.Radio(["add", "subtract", "multiply", "divide"]), "number"],
     "number",
     examples=[
@@ -211,6 +232,7 @@ You can make interfaces automatically refresh by setting `live=True` in the inte
 ```python
 import gradio as gr
 
+
 def calculator(num1, operation, num2):
     if operation == "add":
         return num1 + num2
@@ -221,10 +243,12 @@ def calculator(num1, operation, num2):
     elif operation == "divide":
         return num1 / num2
 
-iface = gr.Interface(calculator, 
+
+iface = gr.Interface(
+    calculator,
     ["number", gr.inputs.Radio(["add", "subtract", "multiply", "divide"]), "number"],
     "number",
-    live=True
+    live=True,
 )
 
 iface.launch()
@@ -241,13 +265,15 @@ Your function may use data that persists beyond a single function call. If the d
 Another type of data persistence Gradio supports is session state, where data persists across multiple submits within a page load. To store data with this permanence, use `gr.get_state` and `gr.set_state` methods.
 
 ```python
-import gradio as gr
 import random
 
-def chat(message):
-    history = gr.get_state() or []
+import gradio as gr
+
+
+def chat(message, history):
+    history = history or []
     if message.startswith("How many"):
-        response = random.randint(1,10)
+        response = random.randint(1, 10)
     elif message.startswith("How"):
         response = random.choice(["Great", "Good", "Okay", "Bad"])
     elif message.startswith("Where"):
@@ -255,21 +281,29 @@ def chat(message):
     else:
         response = "I don't know"
     history.append((message, response))
-    gr.set_state(history)
     html = "<div class='chatbot'>"
     for user_msg, resp_msg in history:
         html += f"<div class='user_msg'>{user_msg}</div>"
         html += f"<div class='resp_msg'>{resp_msg}</div>"
     html += "</div>"
-    return html
+    return html, history
 
-iface = gr.Interface(chat, "text", "html", css="""
+
+iface = gr.Interface(
+    chat,
+    ["text", "state"],
+    ["html", "state"],
+    css="""
     .chatbox {display:flex;flex-direction:column}
     .user_msg, .resp_msg {padding:4px;margin-bottom:4px;border-radius:4px;width:80%}
     .user_msg {background-color:cornflowerblue;color:white;align-self:start}
     .resp_msg {background-color:lightgray;align-self:self-end}
-""", allow_screenshot=False, allow_flagging=False)
+""",
+    allow_screenshot=False,
+    allow_flagging="never",
+)
 iface.launch()
+
 ```
 ![chatbot interface](demo/chatbot/screenshot.gif)
 
@@ -331,13 +365,13 @@ Keep in mind, however, that these links are publicly accessible, meaning that an
 
 Share links expire after 72 hours. For permanent hosting, see Hosting Gradio Apps on Spaces below.
 
-![Sharing diagram](/assets/img/sharing.svg)
+![Sharing diagram](website/homepage/src/assets/img/sharing.svg)
 
 ### Hosting Gradio Apps on Spaces
 
 Huggingface provides the infrastructure to permanently host your Gradio model on the internet, for free! You can either drag and drop a folder containing your Gradio model and all related files, or you can point HF Spaces to your Git repository and HP Spaces will pull the Gradio interface from there. See [Huggingface Spaces](http://huggingface.co/spaces/) for more information. 
 
-![Hosting Demo](/assets/img/hf_demo.gif)
+![Hosting Demo](website/homepage/src/assets/img/hf_demo.gif)
 
 ## Advanced Features
 <span id="advanced-features"></span>
@@ -357,26 +391,32 @@ gr.Interface(fn=classify_image, inputs=image, outputs=label).launch(auth=("admin
 Most models are black boxes such that the internal logic of the function is hidden from the end user. To encourage transparency, we've made it very easy to add interpretation to your model by  simply setting the `interpretation` keyword in the `Interface` class to `default`. This allows your users to understand what parts of the input are responsible for the output. Take a look at the simple interface below which shows an image classifier that also includes interpretation:
 
 ```python
-import gradio as gr
-import tensorflow as tf
 import requests
+import tensorflow as tf
 
-inception_net = tf.keras.applications.MobileNetV2() # load the model
+import gradio as gr
+
+inception_net = tf.keras.applications.MobileNetV2()  # load the model
 
 # Download human-readable labels for ImageNet.
 response = requests.get("https://git.io/JJkYN")
 labels = response.text.split("\n")
 
+
 def classify_image(inp):
-  inp = inp.reshape((-1, 224, 224, 3))
-  inp = tf.keras.applications.mobilenet_v2.preprocess_input(inp)
-  prediction = inception_net.predict(inp).flatten()
-  return {labels[i]: float(prediction[i]) for i in range(1000)}
+    inp = inp.reshape((-1, 224, 224, 3))
+    inp = tf.keras.applications.mobilenet_v2.preprocess_input(inp)
+    prediction = inception_net.predict(inp).flatten()
+    return {labels[i]: float(prediction[i]) for i in range(1000)}
+
 
 image = gr.inputs.Image(shape=(224, 224))
 label = gr.outputs.Label(num_top_classes=3)
 
-gr.Interface(fn=classify_image, inputs=image, outputs=label, interpretation="default").launch()
+gr.Interface(
+    fn=classify_image, inputs=image, outputs=label, interpretation="default"
+).launch()
+
 ```
 
 
@@ -389,19 +429,28 @@ gr.Interface(fn=classify_image, inputs=image, outputs=label, interpretation="sha
 This will work for any function, even if internally, the model is a complex neural network or some other black box. If you use Gradio's `default` or `shap` interpretation, the output component must be a `Label`. All common input components are supported. Here is an example with text input.
 
 ```python
-import gradio as gr
 import re
 
-male_words, female_words = ["he", "his", "him"], ["she", "her"]
+import gradio as gr
+
+male_words, female_words = ["he", "his", "him"], ["she", "hers", "her"]
+
+
 def gender_of_sentence(sentence):
-  male_count = len([word for word in sentence.split() if word.lower() in male_words])
-  female_count = len([word for word in sentence.split() if word.lower() in female_words])
-  total = max(male_count + female_count, 1)
-  return {"male": male_count / total, "female": female_count / total}
+    male_count = len([word for word in sentence.split() if word.lower() in male_words])
+    female_count = len(
+        [word for word in sentence.split() if word.lower() in female_words]
+    )
+    total = max(male_count + female_count, 1)
+    return {"male": male_count / total, "female": female_count / total}
+
 
 iface = gr.Interface(
-  fn=gender_of_sentence, inputs=gr.inputs.Textbox(default="She went to his house to get her keys."),
-  outputs="label", interpretation="default")
+    fn=gender_of_sentence,
+    inputs=gr.inputs.Textbox(default="She went to his house to get her keys."),
+    outputs="label",
+    interpretation="default",
+)
 iface.launch()
 
 ```
@@ -411,34 +460,48 @@ So what is happening under the hood? With these interpretation methods, Gradio r
 You can also write your own interpretation function. The demo below adds custom interpretation to the previous demo. This function will take the same inputs as the main wrapped function. The output of this interpretation function will be used to highlight the input of each input interface - therefore the number of outputs here corresponds to the number of input interfaces. To see the format for interpretation for each input interface, check the Docs.
 
 ```python
-import gradio as gr
 import re
 
-male_words, female_words = ["he", "his", "him"], ["she", "her"]
+import gradio as gr
+
+male_words, female_words = ["he", "his", "him"], ["she", "hers", "her"]
+
+
 def gender_of_sentence(sentence):
-  male_count = len([word for word in sentence.split() if word.lower() in male_words])
-  female_count = len([word for word in sentence.split() if word.lower() in female_words])
-  total = max(male_count + female_count, 1)
-  return {"male": male_count / total, "female": female_count / total}
+    male_count = len([word for word in sentence.split() if word.lower() in male_words])
+    female_count = len(
+        [word for word in sentence.split() if word.lower() in female_words]
+    )
+    total = max(male_count + female_count, 1)
+    return {"male": male_count / total, "female": female_count / total}
+
 
 def interpret_gender(sentence):
-  result = gender_of_sentence(sentence)
-  is_male = result["male"] > result["female"]
-  interpretation = []
-  for word in re.split('( )', sentence):
-    score = 0
-    token = word.lower()
-    if (is_male and token in male_words) or (not is_male and token in female_words):
-      score = 1
-    elif (is_male and token in female_words) or (not is_male and token in male_words):
-      score = -1
-    interpretation.append((word, score))
-  return interpretation
+    result = gender_of_sentence(sentence)
+    is_male = result["male"] > result["female"]
+    interpretation = []
+    for word in re.split("( )", sentence):
+        score = 0
+        token = word.lower()
+        if (is_male and token in male_words) or (not is_male and token in female_words):
+            score = 1
+        elif (is_male and token in female_words) or (
+            not is_male and token in male_words
+        ):
+            score = -1
+        interpretation.append((word, score))
+    return interpretation
+
 
 iface = gr.Interface(
-  fn=gender_of_sentence, inputs=gr.inputs.Textbox(default="She went to his house to get her keys."),
-  outputs="label", interpretation=interpret_gender, enable_queue=True)
+    fn=gender_of_sentence,
+    inputs=gr.inputs.Textbox(default="She went to his house to get her keys."),
+    outputs="label",
+    interpretation=interpret_gender,
+    enable_queue=True,
+)
 iface.launch()
+
 ```
 
 ### Themes and Custom Styling
@@ -470,7 +533,7 @@ Gradio integrates nicely with the Hugging Face Hub, allowing you to load models 
 - To load any model from the Hugging Face Hub and create an interface around it, you pass `"model/"` or `"huggingface/"` followed by the model name, like these examples:
 
 ```python
-gr.Interface.load("huggingface/gpt-2").launch();
+gr.Interface.load("huggingface/gpt2").launch();
 ```
 
 ```python
@@ -517,10 +580,10 @@ And of course, you can also mix `Parallel` and `Series` together whenever that m
 
 ### Queuing to Manage Long Inference Times
 
-If many people are using your interface or if the inference time of your function is long (> 1min), simply set the `enable_queue` parameter in the `Interface` class to `True` to prevent timeouts.
+If many people are using your interface or if the inference time of your function is long (> 1min), simply set the `enable_queue` parameter in the `launch` method to `True` to prevent timeouts.
 
 ```python
-gr.Interface(fn=classify_image, inputs=image, outputs=label, enable_queue=True).launch()
+gr.Interface(fn=classify_image, inputs=image, outputs=label).launch(enable_queue=True)
 ```
 
 This sets up a queue of workers to handle the predictions and return the response to the front end. This is strongly recommended if you are planning on uploading your demo to Hugging Face Spaces (as described above) so that you can manage a large number of users simultaneously using your demo.
