@@ -36,7 +36,17 @@ export const getNextColor = (index, alpha) => {
 	} else {
 		var color_set = [randInt(64, 196), randInt(64, 196), randInt(64, 196)];
 	}
-	return "rgba(" + color_set[0] + ", " + color_set[1] + ", " + color_set[2] + ", " + alpha + ")";
+	return (
+		"rgba(" +
+		color_set[0] +
+		", " +
+		color_set[1] +
+		", " +
+		color_set[2] +
+		", " +
+		alpha +
+		")"
+	);
 };
 
 export const prettyBytes = (bytes) => {

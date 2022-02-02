@@ -62,7 +62,12 @@
 			&#125;
 		{/if}
 	{:else if value === null}
-		<div class="json-item inline text-gray-500 dark:text-gray-400" item-type="null">null</div>
+		<div
+			class="json-item inline text-gray-500 dark:text-gray-400"
+			item-type="null"
+		>
+			null
+		</div>
 	{:else if typeof value === "string"}
 		<div class="json-item inline text-green-500" item-type="string">
 			"{value}"
