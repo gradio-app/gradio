@@ -16,6 +16,18 @@ os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
 class TestHuggingFaceModelAPI(unittest.TestCase):
+    def test_audio_to_audio(self):
+        model_type = "audio-to-audio"
+        interface_info = gr.external.get_huggingface_interface(
+            "facebook/xm_transformer_600m-es_en-multi_domain",
+            api_key=None,
+            alias=model_type,
+        )
+        self.assertEqual(interface_info["fn"].__name__, model_type)
+        self.assertIsInstance(interface_info["inputs"], gr.inputs.Audio)
+        self.assertIsInstance(interface_info["outputs"], gr.outputs.Audio)
+
+    
     def test_question_answering(self):
         model_type = "question-answering"
         interface_info = gr.external.get_huggingface_interface(
