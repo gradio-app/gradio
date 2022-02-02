@@ -121,7 +121,12 @@
 			</Upload>
 		{/if}
 	{:else}
-		<ModifyUpload {clear} edit={() => (mode = "edit")} absolute={false} {theme} />
+		<ModifyUpload
+			{clear}
+			edit={() => (mode = "edit")}
+			absolute={false}
+			{theme}
+		/>
 
 		<audio
 			use:loaded
