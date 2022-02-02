@@ -44,6 +44,15 @@ def get_huggingface_interface(model_name, api_key, alias):
                 i["label"].split(", ")[0]: i["score"] for i in r.json()
             },
         },
+        "audio-to-audio": {
+            # example model: https://hf.co/ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition
+            "inputs": inputs.Audio(label="Input", source="upload", type="filepath"),
+            "outputs": outputs.Audio(label="Output"),
+            "preprocess": lambda i: base64.b64decode(
+                i["data"].split(",")[1]
+            ),  # convert the base64 representation to binary
+             "postprocess": encode_to_base64,
+        },
         "automatic-speech-recognition": {
             # example model: https://hf.co/jonatasgrosman/wav2vec2-large-xlsr-53-english
             "inputs": inputs.Audio(label="Input", source="upload", type="filepath"),
