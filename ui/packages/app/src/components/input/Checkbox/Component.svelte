@@ -1,9 +1,18 @@
-<script>
-	export let value, setValue, theme;
+<script lang="ts">
+	export let value: boolean;
+	export let setValue: (val: typeof value) => typeof value;
+	export let theme: string;
 </script>
 
-<div class="input-checkbox inline-block" {theme} on:click={() => setValue(!value)}>
-	<button class="checkbox-item py-2 px-3 rounded cursor-pointer" class:selected={value}>
+<div
+	class="input-checkbox inline-block"
+	{theme}
+	on:click={() => setValue(!value)}
+>
+	<button
+		class="checkbox-item py-2 px-3 rounded cursor-pointer"
+		class:selected={value}
+	>
 		<div class="checkbox w-4 h-4 bg-white flex items-center justify-center">
 			<svg class="check opacity-0 h-3 w-4" viewBox="-10 -10 20 20">
 				<line
