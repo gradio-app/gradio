@@ -1,7 +1,18 @@
-export function get_domains(values) {
-	let _vs;
+interface XYValue {
+	x: number;
+	y: number;
+}
+
+interface ObjectValue {
+	values: XYValue[];
+}
+
+export function get_domains(
+	values: ObjectValue[] | { values: number[] }
+): [number, number] {
+	let _vs: number[];
 	if (Array.isArray(values)) {
-		_vs = values.reduce((acc, { values }) => {
+		_vs = values.reduce<number[]>((acc, { values }) => {
 			return [...acc, ...values.map(({ x, y }) => y)];
 		}, []);
 	} else {
@@ -10,8 +21,30 @@ export function get_domains(values) {
 	return [Math.min(..._vs), Math.max(..._vs)];
 }
 
-export function transform_values(values, x, y) {
-	const transformed_values = Object.entries(values[0]).reduce(
+interface Row {
+	name: string;
+	values: number[];
+}
+
+interface RowPoint {
+	name: string;
+	values: Array<{ x: number; y: number }>;
+}
+
+interface TransformedValues {
+	x: Row;
+	y: Array<RowPoint>;
+}
+
+export function transform_values(
+	values: Array<Record<string, string>>,
+	x?: string,
+	y?: string[]
+) {
+	console.log(values);
+	const transformed_values = Object.entries(
+		values[0]
+	).reduce<TransformedValues>(
 		(acc, next, i) => {
 			if ((!x && i === 0) || (x && next[0] === x)) {
 				acc.x.name = next[0];
@@ -28,9 +61,12 @@ export function transform_values(values, x, y) {
 		for (let j = 0; j < _a.length; j++) {
 			let [name, x] = _a[j];
 			if (name === transformed_values.x.name) {
-				transformed_values.x.values.push(x);
+				transformed_values.x.values.push(parseInt(x, 10));
 			} else {
-				transformed_values.y[j - 1].values.push({ y: _a[j][1], x: _a[0][1] });
+				transformed_values.y[j - 1].values.push({
+					y: parseInt(_a[j][1], 10),
+					x: parseInt(_a[0][1], 10)
+				});
 			}
 		}
 	}
@@ -39,7 +75,7 @@ export function transform_values(values, x, y) {
 }
 
 let c = 0;
-export function get_color() {
+export function get_color(): string {
 	let default_colors = [
 		[255, 99, 132],
 		[54, 162, 235],
