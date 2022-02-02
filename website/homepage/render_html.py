@@ -79,6 +79,22 @@ def render_guides():
             os.path.join(GRADIO_GUIDES_DIR, guide), encoding="utf-8"
         ) as guide_file:
             guide_text = guide_file.read()
+        if "gradio_version: " in guide_text:
+            version = guide_text.split("gradio_version: ")[1].split("\n")[0]
+            guide_text = guide_text.replace(f"gradio_version: {version}",
+                               f"![](https://img.shields.io/static/v1.svg?label=gradio&message={version}"
+                               f"&color=green&labelColor=orange)")
+
+
+        if "related_spaces: " in guide_text:
+            spaces = guide_text.split("related_spaces: ")[1].split("\n")[0].split(", ")
+            spaces_html = "<div id='spaces-holder'><a href='https://hf.co/spaces' target='_blank'><img src='/assets/img/spaces-logo.svg'></a>"
+            for space in spaces:
+                spaces_html += f"<div class='space-link' ><a href='{space}' target='_blank'>{space[30:]}</a></div>"
+            spaces_html += "</div>"
+            guide_text = guide_text.split("related_spaces: ")[0] + spaces_html + "\n".join(guide_text.split("related_spaces: ")[1].split("\n")[1:])
+
+
         code_tags = re.findall(r'\{\{ code\["([^\s]*)"\] \}\}', guide_text)
         demo_names = re.findall(r'\{\{ demos\["([^\s]*)"\] \}\}', guide_text)
         code, demos = {}, {}

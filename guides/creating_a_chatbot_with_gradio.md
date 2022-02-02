@@ -2,7 +2,8 @@
 
 By [Abubakar Abid](https://huggingface.co/abidlabs) <br>
 Published: 20 January 2022 <br>
-Tested with: `gradio>=2.7.5`
+gradio_version: 2.7.5
+related_spaces: https://huggingface.co/spaces/abidlabs/chatbot-minimal, https://huggingface.co/spaces/ThomasSimonini/Chat-with-Gandalf-GPT-J6B, https://huggingface.co/spaces/gorkemgoknar/moviechatbot, https://huggingface.co/spaces/Kirili4ik/chat-with-Kirill
 
 ## Introduction
 
