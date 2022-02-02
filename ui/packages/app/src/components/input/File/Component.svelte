@@ -14,7 +14,9 @@
 			Click to Upload
 		</Upload>
 	{:else}
-		<div class="file-preview w-full flex flex-row flex-wrap justify-center items-center relative">
+		<div
+			class="file-preview w-full flex flex-row flex-wrap justify-center items-center relative"
+		>
 			<ModifyUpload clear={() => setValue(null)} {theme} />
 			<svg
 				xmlns="http://www.w3.org/2000/svg"

@@ -55,7 +55,12 @@
 </script>
 
 {#if _value}
-	<Chart value={_value} {y} {x} on:process={({ detail: { x, y } }) => setValue(make_dict(x, y))} />
+	<Chart
+		value={_value}
+		{y}
+		{x}
+		on:process={({ detail: { x, y } }) => setValue(make_dict(x, y))}
+	/>
 {/if}
 {#if !value}
 	<Upload
