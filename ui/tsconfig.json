@@ -11,7 +11,7 @@
 		"importsNotUsedAsValues": "error",
 		"isolatedModules": true,
 		"resolveJsonModule": true,
-    "strict": true,
+		"strict": true,
 		"sourceMap": true,
 		"esModuleInterop": true,
 		"skipLibCheck": true,
@@ -19,8 +19,8 @@
 		"baseUrl": ".",
 		"allowJs": true,
 		"checkJs": true,
-    "outDir": "dist"
+		"outDir": "dist"
 	},
-  "exclude": ["**/dist/**/*", "**/public/**/*", "**/*.config.js", "dist"],
-	"include": ["**/*.d.ts", "**/*.js", "**/*.ts", "**/*.svelte"],
+	"exclude": ["**/dist/**/*", "**/public/**/*", "**/*.config.js", "dist"],
+	"include": ["**/*.d.ts", "**/*.js", "**/*.ts", "**/*.svelte"]
 }

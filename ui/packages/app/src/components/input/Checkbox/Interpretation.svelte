@@ -5,7 +5,10 @@
 </script>
 
 <div class="input-checkbox inline-block" {theme}>
-	<button class="checkbox-item py-2 px-3 rounded cursor-pointer flex gap-1" class:selected={value}>
+	<button
+		class="checkbox-item py-2 px-3 rounded cursor-pointer flex gap-1"
+		class:selected={value}
+	>
 		<div
 			class="checkbox w-4 h-4 bg-white flex items-center justify-center border border-gray-400 box-border"
 			style={"background-color: " + getSaliencyColor(interpretation[0])}

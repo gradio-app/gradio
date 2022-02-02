@@ -4,13 +4,19 @@
 </script>
 
 <div class="input-dropdown group inline-block relative" {theme}>
-	<button class="selector py-2 px-3 font-semibold rounded inline-flex items-center">
+	<button
+		class="selector py-2 px-3 font-semibold rounded inline-flex items-center"
+	>
 		{value}
 		<svg class="caret ml-2 fill-current h-4 w-4" viewBox="0 0 20 20">
-			<path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+			<path
+				d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"
+			/>
 		</svg>
 	</button>
-	<div class="dropdown-menu-holder absolute hidden group-hover:block pt-1 z-10 bg-none">
+	<div
+		class="dropdown-menu-holder absolute hidden group-hover:block pt-1 z-10 bg-none"
+	>
 		<ul class="dropdown-menu max-h-80 overflow-y-auto">
 			{#each choices as choice, i}
 				<li

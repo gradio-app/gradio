@@ -32,7 +32,13 @@
 		if (video_source.videoWidth && video_source.videoHeight) {
 			canvas.width = video_source.videoWidth;
 			canvas.height = video_source.videoHeight;
-			context.drawImage(video_source, 0, 0, video_source.videoWidth, video_source.videoHeight);
+			context.drawImage(
+				video_source,
+				0,
+				0,
+				video_source.videoWidth,
+				video_source.videoHeight
+			);
 
 			var data = canvas.toDataURL("image/png");
 			dispatch("capture", data);

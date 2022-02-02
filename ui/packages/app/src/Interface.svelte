@@ -1,5 +1,8 @@
 <script>
-	import { input_component_map, output_component_map } from "./components/directory.js";
+	import {
+		input_component_map,
+		output_component_map
+	} from "./components/directory.js";
 	import { deepCopy } from "./components/utils/helpers.js";
 	import ExampleSet from "./ExampleSet.svelte";
 
@@ -30,16 +33,22 @@
 	let timer = null;
 	let timer_start = 0;
 	let timer_diff = 0;
-	let avg_duration = Array.isArray(avg_durations) ? this.props.avg_durations[0] : null;
+	let avg_duration = Array.isArray(avg_durations)
+		? this.props.avg_durations[0]
+		: null;
 
 	const setValues = (index, value) => {
 		input_values[index] = value;
 	};
 	const setExampleId = async (example_id) => {
 		input_components.forEach(async (input_component, i) => {
-			const process_example = input_component_map[input_component.name].process_example;
+			const process_example =
+				input_component_map[input_component.name].process_example;
 			if (process_example !== undefined) {
-				input_values[i] = await process_example(examples[example_id][i], examples_dir);
+				input_values[i] = await process_example(
+					examples[example_id][i],
+					examples_dir
+				);
 			} else {
 				input_values[i] = examples[example_id][i];
 			}
@@ -65,7 +74,10 @@
 		startTimer();
 		fn("predict", { data: input_values })
 			.then((output) => {
-				if (state !== "PENDING" || submission_count_at_click !== submission_count) {
+				if (
+					state !== "PENDING" ||
+					submission_count_at_click !== submission_count
+				) {
 					return;
 				}
 				stopTimer();
@@ -79,7 +91,10 @@
 				state = "COMPLETE";
 			})
 			.catch((e) => {
-				if (state !== "PENDING" || submission_count_at_click !== submission_count) {
+				if (
+					state !== "PENDING" ||
+					submission_count_at_click !== submission_count
+				) {
 					return;
 				}
 				stopTimer();
@@ -120,7 +135,10 @@
 <div class="gradio-interface" {theme}>
 	<div class="panels flex flex-wrap justify-center gap-4">
 		<div class="panel flex-1">
-			<div class="component-set p-2 rounded flex flex-col flex-1 gap-2" style="min-height: 36px">
+			<div
+				class="component-set p-2 rounded flex flex-col flex-1 gap-2"
+				style="min-height: 36px"
+			>
 				{#each input_components as input_component, i}
 					<div class="component" key={i}>
 						<div class="panel-header mb-1.5">{input_component.label}</div>
@@ -217,7 +235,13 @@
 		</div>
 	</div>
 	{#if examples}
-		<ExampleSet {examples} {input_components} {theme} {examples_dir} {setExampleId} />
+		<ExampleSet
+			{examples}
+			{input_components}
+			{theme}
+			{examples_dir}
+			{setExampleId}
+		/>
 	{/if}
 </div>
 
@@ -225,11 +249,21 @@
 	.pending {
 		@keyframes ld-breath {
 			0% {
-				animation-timing-function: cubic-bezier(0.9647, 0.2413, -0.0705, 0.7911);
+				animation-timing-function: cubic-bezier(
+					0.9647,
+					0.2413,
+					-0.0705,
+					0.7911
+				);
 				transform: scale(0.9);
 			}
 			51% {
-				animation-timing-function: cubic-bezier(0.9226, 0.2631, -0.0308, 0.7628);
+				animation-timing-function: cubic-bezier(
+					0.9226,
+					0.2631,
+					-0.0308,
+					0.7628
+				);
 				transform: scale(1.2);
 			}
 			100% {

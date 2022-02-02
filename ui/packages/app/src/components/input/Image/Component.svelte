@@ -27,7 +27,10 @@
 		class:h-80={source !== "webcam"}
 	>
 		{#if source === "canvas"}
-			<ModifySketch on:undo={() => sketch.undo()} on:clear={() => sketch.clear()} />
+			<ModifySketch
+				on:undo={() => sketch.undo()}
+				on:clear={() => sketch.clear()}
+			/>
 			<Sketch bind:this={sketch} on:change={({ detail }) => setValue(detail)} />
 		{:else if value === null}
 			{#if source === "upload"}
@@ -48,9 +51,17 @@
 			<Cropper image={value} on:crop={({ detail }) => setValue(detail)} />
 		{:else if tool === "editor"}
 			{#if mode === "edit"}
-				<ImageEditor {value} on:cancel={() => (mode = "view")} on:save={handle_save} />
+				<ImageEditor
+					{value}
+					on:cancel={() => (mode = "view")}
+					on:save={handle_save}
+				/>
 			{/if}
-			<ModifyUpload edit={() => (mode = "edit")} clear={() => setValue(null)} {theme} />
+			<ModifyUpload
+				edit={() => (mode = "edit")}
+				clear={() => setValue(null)}
+				{theme}
+			/>
 
 			<img class="w-full h-full object-contain" src={value} alt="" />
 		{/if}
