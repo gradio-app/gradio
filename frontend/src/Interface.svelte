@@ -1,4 +1,6 @@
 <script>
+  import { init } from "svelte/internal";
+
   import {
     input_component_map,
     output_component_map,
@@ -6,21 +8,26 @@
   import { deepCopy } from "./components/utils/helpers.js";
   import ExampleSet from "./ExampleSet.svelte";
 
-  export let input_components;
-  export let output_components;
-  export let theme;
-  export let fn;
-  export let examples;
-  export let root;
-  export let allow_flagging;
-  export let allow_interpretation;
-  export let avg_durations;
+  export let input_components,
+    output_components,
+    theme,
+    fn,
+    examples,
+    root,
+    allow_flagging,
+    allow_interpretation,
+    avg_durations,
+    live,
+    queue;
 
   let examples_dir = root + "file/";
   let interpret_mode = false;
   let submission_count = 0;
   let state = "START";
   let last_duration = null;
+  let has_changed = false;
+  let queue_index = null;
+  let initial_queue_index = null;
 
   const default_inputs = input_components.map((component) =>
     "default" in component ? component.default : null
@@ -36,9 +43,14 @@
   let avg_duration = Array.isArray(avg_durations)
     ? this.props.avg_durations[0]
     : null;
+  let expected_duration = null;
 
   const setValues = (index, value) => {
+    has_changed = true;
     input_values[index] = value;
+    if (live && state !== "PENDING") {
+      submit();
+    }
   };
   const setExampleId = async (example_id) => {
     input_components.forEach(async (input_component, i) => {
@@ -68,11 +80,21 @@
     if (state === "PENDING") {
       return;
     }
+    for (let [i, input_component] of input_components.entries()) {
+      if (
+        input_values[i] === null &&
+        input_component.name !== "state" &&
+        input_component.optional !== true
+      ) {
+        return;
+      }
+    }
     state = "PENDING";
     submission_count += 1;
+    has_changed = false;
     let submission_count_at_click = submission_count;
     startTimer();
-    fn("predict", { data: input_values })
+    fn("predict", { data: input_values }, queue, queueCallback)
       .then((output) => {
         if (
           state !== "PENDING" ||
@@ -82,13 +104,30 @@
         }
         stopTimer();
         output_values = output["data"];
+        for (let [i, value] of output_values.entries()) {
+          if (output_components[i].name === "state") {
+            for (let [j, input_component] of input_components.entries()) {
+              if (input_component.name === "state") {
+                input_values[j] = value;
+              }
+            }
+          }
+        }
         if ("durations" in output) {
           last_duration = output["durations"][0];
         }
-        if ("avg_duration" in output) {
+        if ("avg_durations" in output) {
           avg_duration = output["avg_durations"][0];
+          if (queue && initial_queue_index) {
+            expected_duration = avg_duration * (initial_queue_index + 1);
+          } else {
+            expected_duration = avg_duration;
+          }
         }
         state = "COMPLETE";
+        if (live && has_changed) {
+          submit();
+        }
       })
       .catch((e) => {
         if (
@@ -122,37 +161,52 @@
     if (interpret_mode) {
       interpret_mode = false;
     } else {
-      fn("interpret", {
-        data: input_values,
-      }).then((output) => {
+      fn(
+        "interpret",
+        {
+          data: input_values,
+        },
+        queue,
+        queueCallback
+      ).then((output) => {
         interpret_mode = true;
         interpretation_values = output.interpretation_scores;
       });
     }
   };
+  const queueCallback = (index, is_initial) => {
+    if (is_initial) {
+      initial_queue_index = index;
+    }
+    queue_index = index;
+  };
 </script>
 
 <div class="gradio-interface" {theme}>
-  <div class="panels flex flex-wrap justify-center gap-4">
+  <div class="panels flex flex-wrap justify-center gap-4 flex-col sm:flex-row">
     <div class="panel flex-1">
       <div
         class="component-set p-2 rounded flex flex-col flex-1 gap-2"
         style="min-height: 36px"
       >
         {#each input_components as input_component, i}
-          <div class="component" key={i}>
-            <div class="panel-header mb-1.5">{input_component.label}</div>
-            <svelte:component
-              this={input_component_map[input_component.name][
-                interpret_mode ? "interpretation" : "component"
-              ]}
-              {...input_component}
-              {theme}
-              value={input_values[i]}
-              interpretation={interpret_mode ? interpretation_values[i] : null}
-              setValue={setValues.bind(this, i)}
-            />
-          </div>
+          {#if input_component.name !== "state"}
+            <div class="component" key={i}>
+              <div class="panel-header mb-1.5">{input_component.label}</div>
+              <svelte:component
+                this={input_component_map[input_component.name][
+                  interpret_mode ? "interpretation" : "component"
+                ]}
+                {...input_component}
+                {theme}
+                value={input_values[i]}
+                interpretation={interpret_mode
+                  ? interpretation_values[i]
+                  : null}
+                setValue={setValues.bind(this, i)}
+              />
+            </div>
+          {/if}
         {/each}
       </div>
       <div class="panel-buttons flex gap-4 my-4">
@@ -177,13 +231,26 @@
         class:opacity-50={state === "PENDING"}
       >
         {#if state !== "START"}
-          <div class="state absolute right-2 flex items-center gap-2 text-xs">
+          <div class="state absolute right-2 flex items-center gap-0.5 text-xs">
             {#if state === "PENDING"}
-              <div class="timer font-mono">{timer_diff.toFixed(1)}s</div>
+              <div class="timer font-mono text-right" style="max">
+                {timer_diff.toFixed(1)}s
+                {#if expected_duration !== null}
+                  <span>
+                    (ETA: {expected_duration.toFixed(
+                      1
+                    )}s<!--
+                    -->{#if queue_index}
+                      , {queue_index} ahead<!--
+                    -->{/if})<!--
+                  --></span
+                  >
+                {/if}
+              </div>
               <img
                 src="./static/img/logo.svg"
                 alt="Pending"
-                class="pending h-5 ml-2 inline-block"
+                class="pending h-5 ml-1 inline-block"
               />
             {:else if state === "ERROR"}
               <img

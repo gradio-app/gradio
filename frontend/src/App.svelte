@@ -1,17 +1,23 @@
 <script>
   import Interface from "./Interface.svelte";
 
-  export let title;
-  export let description;
-  export let theme;
-  export let dark;
-  export let input_components;
-  export let output_components;
-  export let examples;
-  export let fn;
-  export let root;
-  export let allow_flagging;
-  export let allow_interpretation;
+  export let title,
+    description,
+    article,
+    theme,
+    dark,
+    input_components,
+    output_components,
+    examples,
+    fn,
+    root,
+    space,
+    allow_flagging,
+    allow_interpretation,
+    live,
+    queue;
+
+  $: embedded = space && space.includes("/");
 </script>
 
 <div
@@ -20,9 +26,11 @@
     : 'h-auto'}"
   {theme}
   class:dark
+  class:min-h-full={!embedded}
 >
   <div
     class="gradio-page container mx-auto flex flex-col box-border flex-grow text-gray-700 dark:text-gray-50"
+    class:embedded
   >
     <div class="content pt-4 px-4 mb-4">
       {#if title}
@@ -40,8 +48,44 @@
         {root}
         {allow_flagging}
         {allow_interpretation}
+        {live}
+        {queue}
       />
+      {#if article}
+        <p class="article prose pt-8 pb-4 max-w-none">
+          {@html article}
+        </p>
+      {/if}
     </div>
+    {#if embedded}
+      <div class="footer bg-gray-100 p-4 rounded-b">
+        <a
+          href={"https://huggingface.co/spaces/" + space}
+          class="font-semibold"
+        >
+          {space[space.indexOf("/") + 1].toUpperCase() +
+            space.substring(space.indexOf("/") + 2)}
+        </a>
+        built with
+        <a href="https://gradio.app" class="font-semibold">Gradio</a>, hosted on
+        <a href="https://huggingface.co/spaces" class="font-semibold"
+          >Hugging Face Spaces</a
+        >.
+      </div>
+    {:else}
+      <div
+        class="footer flex-shrink-0 inline-flex gap-2.5 items-center text-gray-400 justify-center py-2"
+      >
+        <a href="api" target="_blank" rel="noreferrer">
+          view the api
+          <img class="h-5 inline-block" src="./static/img/api-logo.svg" alt="api" />
+        </a>
+        &bull;
+        <a href="https://gradio.app" target="_blank" rel="noreferrer">
+          built with <img class="h-6 inline-block" src="./static/img/logo.svg" alt="logo" />
+        </a>
+      </div>
+    {/if}
   </div>
 </div>
 
@@ -49,4 +93,14 @@
   @tailwind base;
   @tailwind components;
   @tailwind utilities;
+
+  .gradio-page.embedded {
+    @apply rounded border-2 border-gray-100 shadow-lg;
+  }
+  .gradio-page:not(.embedded) {
+    @apply h-full;
+    .content {
+      @apply flex-grow flex-shrink-0 pt-4 px-4;
+    }
+  }
 </style>
