@@ -2,16 +2,21 @@ name: gradio-ui
 
 on:
   push:
+    branches: 
+      - "master"
     paths:
-      - 'ui/**'
+      - "ui/**"
   pull_request:
     paths:
-      - 'ui/**'
+      - "ui/**"
+
+defaults:
+  run:
+    working-directory: "./ui"
 
 jobs:
-  lint:
-    working-directory: "./ui"
-    name: check
+  check:
+    name: static checks
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
