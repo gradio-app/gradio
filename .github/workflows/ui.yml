@@ -1,0 +1,29 @@
+name: gradio-ui
+
+on:
+  push:
+    paths:
+      - 'ui/**'
+  pull_request:
+    paths:
+      - 'ui/**'
+
+jobs:
+  lint:
+    working-directory: "./ui"
+    name: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: npm i -g pnpm@6
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 16
+
+      - name: "install dependencies"
+        run: pnpm i --frozen-lockfile
+      - name: "formatting check"
+        run: pnpm format:check
+      - name: "typecheck"
+        run: pnpm ts:check
+        continue-on-error: true
