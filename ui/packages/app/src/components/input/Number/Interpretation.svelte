@@ -7,7 +7,10 @@
 <div class="input-number">
 	<div class="interpret_range flex">
 		{#each interpretation as interpret_value}
-			<div class="flex-1" style={"background-color: " + getSaliencyColor(interpret_value[1])}>
+			<div
+				class="flex-1"
+				style={"background-color: " + getSaliencyColor(interpret_value[1])}
+			>
 				{interpret_value[0]}
 			</div>
 		{/each}

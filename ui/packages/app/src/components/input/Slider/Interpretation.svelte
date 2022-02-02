@@ -17,7 +17,10 @@
 	/>
 	<div class="interpret_range flex">
 		{#each interpretation as interpret_value}
-			<div class="flex-1 h-4" style={"background-color: " + getSaliencyColor(interpret_value)} />
+			<div
+				class="flex-1 h-4"
+				style={"background-color: " + getSaliencyColor(interpret_value)}
+			/>
 		{/each}
 	</div>
 	<div class="value inline-block mx-auto mt-1 px-2 py-0.5 rounded">{value}</div>

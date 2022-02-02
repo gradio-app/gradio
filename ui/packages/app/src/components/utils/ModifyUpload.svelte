@@ -3,14 +3,32 @@
 	export let absolute = true;
 </script>
 
-<div class="modify-upload z-10 top-0 right-0 flex justify-end" class:absolute {theme}>
+<div
+	class="modify-upload z-10 top-0 right-0 flex justify-end"
+	class:absolute
+	{theme}
+>
 	{#if edit}
-		<button class="edit bg-opacity-30 hover:bg-opacity-100 transition p-1" on:click={edit}>
-			<img class="h-4 filter dark:invert" src="static/img/edit.svg" alt="Edit" />
+		<button
+			class="edit bg-opacity-30 hover:bg-opacity-100 transition p-1"
+			on:click={edit}
+		>
+			<img
+				class="h-4 filter dark:invert"
+				src="static/img/edit.svg"
+				alt="Edit"
+			/>
 		</button>
 	{/if}
-	<button class="clear bg-opacity-30 hover:bg-opacity-100 transition p-1" on:click={clear}>
-		<img class="h-4 filter dark:invert" src="static/img/clear.svg" alt="Clear" />
+	<button
+		class="clear bg-opacity-30 hover:bg-opacity-100 transition p-1"
+		on:click={clear}
+	>
+		<img
+			class="h-4 filter dark:invert"
+			src="static/img/clear.svg"
+			alt="Clear"
+		/>
 	</button>
 </div>
 

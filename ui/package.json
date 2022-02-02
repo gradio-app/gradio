@@ -7,7 +7,7 @@
 		"build": "pnpm build --filter @gradio/app",
 		"format:check": "prettier --check --plugin-search-dir=. .",
 		"format:write": "prettier --write --plugin-search-dir=. .",
-		"check": "svelte-check --tsconfig tsconfig.json"
+		"ts:check": "svelte-check --tsconfig tsconfig.json"
 	},
 	"author": "",
 	"license": "ISC",

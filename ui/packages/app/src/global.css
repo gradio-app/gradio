@@ -510,7 +510,9 @@ body > textarea {
 	white-space: nowrap;
 }
 .tui-image-editor-container .tui-image-editor-menu > .tui-image-editor-item,
-.tui-image-editor-container .tui-image-editor-help-menu > .tui-image-editor-item {
+.tui-image-editor-container
+	.tui-image-editor-help-menu
+	> .tui-image-editor-item {
 	position: relative;
 	display: inline-block;
 	border-radius: 2px;
@@ -556,8 +558,12 @@ body > textarea {
 	left: 0;
 	min-width: 24px;
 }
-.tui-image-editor-container .tui-image-editor-menu > .tui-image-editor-item.active,
-.tui-image-editor-container .tui-image-editor-help-menu > .tui-image-editor-item.active {
+.tui-image-editor-container
+	.tui-image-editor-menu
+	> .tui-image-editor-item.active,
+.tui-image-editor-container
+	.tui-image-editor-help-menu
+	> .tui-image-editor-item.active {
 	background-color: #fff;
 	transition: all 0.3s ease;
 }
@@ -571,8 +577,12 @@ body > textarea {
 	height: 100%;
 	border: 1px solid rgba(255, 255, 255, 0.7);
 }
-.tui-image-editor-container .tui-image-editor-main.tui-image-editor-menu-flip .tui-image-editor,
-.tui-image-editor-container .tui-image-editor-main.tui-image-editor-menu-rotate .tui-image-editor {
+.tui-image-editor-container
+	.tui-image-editor-main.tui-image-editor-menu-flip
+	.tui-image-editor,
+.tui-image-editor-container
+	.tui-image-editor-main.tui-image-editor-menu-rotate
+	.tui-image-editor {
 	transition: none;
 }
 .tui-image-editor-container
@@ -605,19 +615,31 @@ body > textarea {
 	border-radius: 100%;
 	background-color: #fff;
 }
-.tui-image-editor-container .tui-image-editor-grid-visual table td.dot.left-top:before {
+.tui-image-editor-container
+	.tui-image-editor-grid-visual
+	table
+	td.dot.left-top:before {
 	top: -5px;
 	left: -5px;
 }
-.tui-image-editor-container .tui-image-editor-grid-visual table td.dot.right-top:before {
+.tui-image-editor-container
+	.tui-image-editor-grid-visual
+	table
+	td.dot.right-top:before {
 	top: -5px;
 	right: -5px;
 }
-.tui-image-editor-container .tui-image-editor-grid-visual table td.dot.left-bottom:before {
+.tui-image-editor-container
+	.tui-image-editor-grid-visual
+	table
+	td.dot.left-bottom:before {
 	bottom: -5px;
 	left: -5px;
 }
-.tui-image-editor-container .tui-image-editor-grid-visual table td.dot.right-bottom:before {
+.tui-image-editor-container
+	.tui-image-editor-grid-visual
+	table
+	td.dot.right-bottom:before {
 	bottom: -5px;
 	right: -5px;
 }
@@ -637,7 +659,10 @@ body > textarea {
 	> use.active {
 	display: block;
 }
-.tui-image-editor-container .tui-image-editor-submenu .tui-image-editor-submenu-item li {
+.tui-image-editor-container
+	.tui-image-editor-submenu
+	.tui-image-editor-submenu-item
+	li {
 	display: inline-block;
 	vertical-align: top;
 }
@@ -665,7 +690,11 @@ body > textarea {
 	.tui-image-editor-button.preset {
 	margin: 0 9px 20px 5px;
 }
-.tui-image-editor-container .tui-image-editor-submenu .tui-image-editor-submenu-item label > span {
+.tui-image-editor-container
+	.tui-image-editor-submenu
+	.tui-image-editor-submenu-item
+	label
+	> span {
 	display: inline-block;
 	cursor: pointer;
 	padding-top: 5px;
@@ -688,7 +717,9 @@ body > textarea {
 	display: none;
 	vertical-align: bottom;
 }
-.tui-image-editor-container .tui-image-editor-submenu .tui-image-editor-submenu-style {
+.tui-image-editor-container
+	.tui-image-editor-submenu
+	.tui-image-editor-submenu-style {
 	opacity: 0.95;
 	z-index: -1;
 	position: absolute;
@@ -722,7 +753,10 @@ body > textarea {
 .tui-image-editor-container .tui-image-editor-submenu-align:first-child {
 	margin-right: 0;
 }
-.tui-image-editor-container .tui-image-editor-submenu-align:first-child label > span {
+.tui-image-editor-container
+	.tui-image-editor-submenu-align:first-child
+	label
+	> span {
 	width: 70px;
 }
 .tui-image-editor-container
@@ -829,7 +863,10 @@ body > textarea {
 	cursor: auto;
 	transform: translateX(calc(-50% + 12px));
 }
-.tui-image-editor-container .tui-image-editor-help-menu .tie-panel-history .history-list {
+.tui-image-editor-container
+	.tui-image-editor-help-menu
+	.tie-panel-history
+	.history-list {
 	height: 268px;
 	padding: 0;
 	overflow: hidden scroll;
@@ -927,10 +964,16 @@ body > textarea {
 	color: #333;
 	opacity: 0.3;
 }
-.tui-image-editor-container .tui-image-editor-help-menu .opened .tie-panel-history {
+.tui-image-editor-container
+	.tui-image-editor-help-menu
+	.opened
+	.tie-panel-history {
 	display: block;
 }
-.tui-image-editor-container .tui-image-editor-help-menu .opened .tie-panel-history:before {
+.tui-image-editor-container
+	.tui-image-editor-help-menu
+	.opened
+	.tie-panel-history:before {
 	content: "";
 	position: absolute;
 	display: inline-block;
@@ -1008,7 +1051,9 @@ body > textarea {
 	appearance: none;
 	padding: 0 7px 0 10px;
 }
-.tui-image-editor-container .tui-image-editor-selectlist-wrap .tui-image-editor-selectlist {
+.tui-image-editor-container
+	.tui-image-editor-selectlist-wrap
+	.tui-image-editor-selectlist {
 	display: none;
 	position: relative;
 	top: -1px;
@@ -1017,7 +1062,10 @@ body > textarea {
 	border-top: 0;
 	padding: 4px 0;
 }
-.tui-image-editor-container .tui-image-editor-selectlist-wrap .tui-image-editor-selectlist li {
+.tui-image-editor-container
+	.tui-image-editor-selectlist-wrap
+	.tui-image-editor-selectlist
+	li {
 	display: block;
 	text-align: left;
 	padding: 7px 10px;
@@ -1040,12 +1088,20 @@ body > textarea {
 	background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAAAAXNSR0IArs4c6QAAAHlJREFUKBVjYBgFOEOAEVkmPDxc89+/f6eAYjzI4kD2FyYmJrOVK1deh4kzwRggGiQBVJCELAZig8SQNYHEmEEEMrh69eo1HR0dfqCYJUickZGxf9WqVf3IakBsFBthklpaWmVA9mEQhrJhUoTp0NBQCRAmrHL4qgAAuu4cWZOZIGsAAAAASUVORK5CYII=);
 	background-size: cover;
 }
-.tui-image-editor-container .tui-image-editor-selectlist-wrap select::-ms-expand {
+.tui-image-editor-container
+	.tui-image-editor-selectlist-wrap
+	select::-ms-expand {
 	display: none;
 }
-.tui-image-editor-container .tui-image-editor-virtual-range-bar .tui-image-editor-disabled,
-.tui-image-editor-container .tui-image-editor-virtual-range-subbar .tui-image-editor-disabled,
-.tui-image-editor-container .tui-image-editor-virtual-range-pointer .tui-image-editor-disabled {
+.tui-image-editor-container
+	.tui-image-editor-virtual-range-bar
+	.tui-image-editor-disabled,
+.tui-image-editor-container
+	.tui-image-editor-virtual-range-subbar
+	.tui-image-editor-disabled,
+.tui-image-editor-container
+	.tui-image-editor-virtual-range-pointer
+	.tui-image-editor-disabled {
 	backbround-color: #f00;
 }
 .tui-image-editor-container .tui-image-editor-range {
@@ -1083,27 +1139,38 @@ body > textarea {
 	display: inline-block;
 	margin-left: 4px;
 }
-.tui-image-editor-container .tui-image-editor-range-wrap.short .tui-image-editor-range {
+.tui-image-editor-container
+	.tui-image-editor-range-wrap.short
+	.tui-image-editor-range {
 	width: 100px;
 }
 .tui-image-editor-container .color-picker-control .tui-image-editor-range {
 	width: 108px;
 	margin-left: 10px;
 }
-.tui-image-editor-container .color-picker-control .tui-image-editor-virtual-range-pointer {
+.tui-image-editor-container
+	.color-picker-control
+	.tui-image-editor-virtual-range-pointer {
 	background-color: #333;
 }
-.tui-image-editor-container .color-picker-control .tui-image-editor-virtual-range-bar {
+.tui-image-editor-container
+	.color-picker-control
+	.tui-image-editor-virtual-range-bar {
 	background-color: #ccc;
 }
-.tui-image-editor-container .color-picker-control .tui-image-editor-virtual-range-subbar {
+.tui-image-editor-container
+	.color-picker-control
+	.tui-image-editor-virtual-range-subbar {
 	background-color: #606060;
 }
-.tui-image-editor-container .tui-image-editor-range-wrap.tui-image-editor-newline.short {
+.tui-image-editor-container
+	.tui-image-editor-range-wrap.tui-image-editor-newline.short {
 	margin-top: -2px;
 	margin-left: 19px;
 }
-.tui-image-editor-container .tui-image-editor-range-wrap.tui-image-editor-newline.short label {
+.tui-image-editor-container
+	.tui-image-editor-range-wrap.tui-image-editor-newline.short
+	label {
 	color: #8e8e8e;
 	font-weight: normal;
 }
@@ -1200,26 +1267,46 @@ body > textarea {
 	width: 24px;
 	height: 1px;
 }
-.tui-image-editor-container.left .tui-image-editor-submenu .tui-image-editor-partition,
-.tui-image-editor-container.right .tui-image-editor-submenu .tui-image-editor-partition {
+.tui-image-editor-container.left
+	.tui-image-editor-submenu
+	.tui-image-editor-partition,
+.tui-image-editor-container.right
+	.tui-image-editor-submenu
+	.tui-image-editor-partition {
 	display: block;
 	width: 75%;
 	margin: auto;
 }
-.tui-image-editor-container.left .tui-image-editor-submenu .tui-image-editor-partition > div,
-.tui-image-editor-container.right .tui-image-editor-submenu .tui-image-editor-partition > div {
+.tui-image-editor-container.left
+	.tui-image-editor-submenu
+	.tui-image-editor-partition
+	> div,
+.tui-image-editor-container.right
+	.tui-image-editor-submenu
+	.tui-image-editor-partition
+	> div {
 	border-left: 0;
 	height: 10px;
 	border-bottom: 1px solid #3c3c3c;
 	width: 100%;
 	margin: 0;
 }
-.tui-image-editor-container.left .tui-image-editor-submenu .tui-image-editor-submenu-align,
-.tui-image-editor-container.right .tui-image-editor-submenu .tui-image-editor-submenu-align {
+.tui-image-editor-container.left
+	.tui-image-editor-submenu
+	.tui-image-editor-submenu-align,
+.tui-image-editor-container.right
+	.tui-image-editor-submenu
+	.tui-image-editor-submenu-align {
 	margin-right: 0;
 }
-.tui-image-editor-container.left .tui-image-editor-submenu .tui-image-editor-submenu-item li,
-.tui-image-editor-container.right .tui-image-editor-submenu .tui-image-editor-submenu-item li {
+.tui-image-editor-container.left
+	.tui-image-editor-submenu
+	.tui-image-editor-submenu-item
+	li,
+.tui-image-editor-container.right
+	.tui-image-editor-submenu
+	.tui-image-editor-submenu-item
+	li {
 	margin-top: 15px;
 }
 .tui-image-editor-container.left
@@ -1239,7 +1326,9 @@ body > textarea {
 	width: 182px;
 	white-space: normal;
 }
-.tui-image-editor-container.left .tui-image-editor-range-wrap.tui-image-editor-newline label.range,
+.tui-image-editor-container.left
+	.tui-image-editor-range-wrap.tui-image-editor-newline
+	label.range,
 .tui-image-editor-container.right
 	.tui-image-editor-range-wrap.tui-image-editor-newline
 	label.range {
@@ -1355,7 +1444,10 @@ body > textarea {
 .tui-image-editor-container .tui-image-editor-help-menu.top .tie-panel-history {
 	top: 45px;
 }
-.tui-image-editor-container .tui-image-editor-help-menu.top .opened .tie-panel-history:before {
+.tui-image-editor-container
+	.tui-image-editor-help-menu.top
+	.opened
+	.tie-panel-history:before {
 	border-right: 8px solid transparent;
 	border-left: 8px solid transparent;
 	border-bottom: 8px solid #fff;
@@ -1395,10 +1487,15 @@ body > textarea {
 	left: 50%;
 	transform: translateX(-50%);
 }
-.tui-image-editor-container .tui-image-editor-help-menu.bottom .tie-panel-history {
+.tui-image-editor-container
+	.tui-image-editor-help-menu.bottom
+	.tie-panel-history {
 	bottom: 45px;
 }
-.tui-image-editor-container .tui-image-editor-help-menu.bottom .opened .tie-panel-history:before {
+.tui-image-editor-container
+	.tui-image-editor-help-menu.bottom
+	.opened
+	.tie-panel-history:before {
 	border-right: 8px solid transparent;
 	border-left: 8px solid transparent;
 	border-top: 8px solid #fff;
@@ -1440,18 +1537,25 @@ body > textarea {
 	top: 50%;
 	transform: translateY(-50%);
 }
-.tui-image-editor-container .tui-image-editor-help-menu.left .tie-panel-history {
+.tui-image-editor-container
+	.tui-image-editor-help-menu.left
+	.tie-panel-history {
 	left: 140px;
 	top: -4px;
 }
-.tui-image-editor-container .tui-image-editor-help-menu.left .opened .tie-panel-history:before {
+.tui-image-editor-container
+	.tui-image-editor-help-menu.left
+	.opened
+	.tie-panel-history:before {
 	border-top: 8px solid transparent;
 	border-bottom: 8px solid transparent;
 	border-right: 8px solid #fff;
 	left: -8px;
 	top: 14px;
 }
-.tui-image-editor-container .tui-image-editor-help-menu.left .tui-image-editor-item {
+.tui-image-editor-container
+	.tui-image-editor-help-menu.left
+	.tui-image-editor-item {
 	margin: 4px auto;
 	padding: 6px 8px;
 }
@@ -1488,18 +1592,25 @@ body > textarea {
 	top: 50%;
 	transform: translateY(-50%);
 }
-.tui-image-editor-container .tui-image-editor-help-menu.right .tie-panel-history {
+.tui-image-editor-container
+	.tui-image-editor-help-menu.right
+	.tie-panel-history {
 	right: -30px;
 	top: -4px;
 }
-.tui-image-editor-container .tui-image-editor-help-menu.right .opened .tie-panel-history:before {
+.tui-image-editor-container
+	.tui-image-editor-help-menu.right
+	.opened
+	.tie-panel-history:before {
 	border-top: 8px solid transparent;
 	border-bottom: 8px solid transparent;
 	border-left: 8px solid #fff;
 	right: -8px;
 	top: 14px;
 }
-.tui-image-editor-container .tui-image-editor-help-menu.right .tui-image-editor-item {
+.tui-image-editor-container
+	.tui-image-editor-help-menu.right
+	.tui-image-editor-item {
 	margin: 4px auto;
 	padding: 6px 8px;
 }
@@ -1549,14 +1660,38 @@ body > textarea {
 .tui-image-editor-container .tui-image-editor-controls svg > use {
 	display: none;
 }
-.tui-image-editor-container .tui-image-editor-help-menu .enabled svg:hover > use.hover,
-.tui-image-editor-container .tui-image-editor-controls .enabled svg:hover > use.hover,
-.tui-image-editor-container .tui-image-editor-help-menu .normal svg:hover > use.hover,
-.tui-image-editor-container .tui-image-editor-controls .normal svg:hover > use.hover {
+.tui-image-editor-container
+	.tui-image-editor-help-menu
+	.enabled
+	svg:hover
+	> use.hover,
+.tui-image-editor-container
+	.tui-image-editor-controls
+	.enabled
+	svg:hover
+	> use.hover,
+.tui-image-editor-container
+	.tui-image-editor-help-menu
+	.normal
+	svg:hover
+	> use.hover,
+.tui-image-editor-container
+	.tui-image-editor-controls
+	.normal
+	svg:hover
+	> use.hover {
 	display: block;
 }
-.tui-image-editor-container .tui-image-editor-help-menu .active svg:hover > use.hover,
-.tui-image-editor-container .tui-image-editor-controls .active svg:hover > use.hover {
+.tui-image-editor-container
+	.tui-image-editor-help-menu
+	.active
+	svg:hover
+	> use.hover,
+.tui-image-editor-container
+	.tui-image-editor-controls
+	.active
+	svg:hover
+	> use.hover {
 	display: none;
 }
 .tui-image-editor-container .tui-image-editor-help-menu .on svg > use.hover,
@@ -1569,28 +1704,76 @@ body > textarea {
 .tui-image-editor-container .tui-image-editor-controls svg > use.normal {
 	display: block;
 }
-.tui-image-editor-container .tui-image-editor-help-menu .active svg > use.active,
-.tui-image-editor-container .tui-image-editor-controls .active svg > use.active {
+.tui-image-editor-container
+	.tui-image-editor-help-menu
+	.active
+	svg
+	> use.active,
+.tui-image-editor-container
+	.tui-image-editor-controls
+	.active
+	svg
+	> use.active {
 	display: block;
 }
-.tui-image-editor-container .tui-image-editor-help-menu .enabled svg > use.enabled,
-.tui-image-editor-container .tui-image-editor-controls .enabled svg > use.enabled {
+.tui-image-editor-container
+	.tui-image-editor-help-menu
+	.enabled
+	svg
+	> use.enabled,
+.tui-image-editor-container
+	.tui-image-editor-controls
+	.enabled
+	svg
+	> use.enabled {
 	display: block;
 }
-.tui-image-editor-container .tui-image-editor-help-menu .active svg > use.normal,
+.tui-image-editor-container
+	.tui-image-editor-help-menu
+	.active
+	svg
+	> use.normal,
 .tui-image-editor-container .tui-image-editor-controls .active svg > use.normal,
-.tui-image-editor-container .tui-image-editor-help-menu .enabled svg > use.normal,
-.tui-image-editor-container .tui-image-editor-controls .enabled svg > use.normal {
+.tui-image-editor-container
+	.tui-image-editor-help-menu
+	.enabled
+	svg
+	> use.normal,
+.tui-image-editor-container
+	.tui-image-editor-controls
+	.enabled
+	svg
+	> use.normal {
 	display: none;
 }
-.tui-image-editor-container .tui-image-editor-help-menu .help svg > use.disabled,
+.tui-image-editor-container
+	.tui-image-editor-help-menu
+	.help
+	svg
+	> use.disabled,
 .tui-image-editor-container .tui-image-editor-controls .help svg > use.disabled,
-.tui-image-editor-container .tui-image-editor-help-menu .help.enabled svg > use.normal,
-.tui-image-editor-container .tui-image-editor-controls .help.enabled svg > use.normal {
+.tui-image-editor-container
+	.tui-image-editor-help-menu
+	.help.enabled
+	svg
+	> use.normal,
+.tui-image-editor-container
+	.tui-image-editor-controls
+	.help.enabled
+	svg
+	> use.normal {
 	display: block;
 }
-.tui-image-editor-container .tui-image-editor-help-menu .help.enabled svg > use.disabled,
-.tui-image-editor-container .tui-image-editor-controls .help.enabled svg > use.disabled {
+.tui-image-editor-container
+	.tui-image-editor-help-menu
+	.help.enabled
+	svg
+	> use.disabled,
+.tui-image-editor-container
+	.tui-image-editor-controls
+	.help.enabled
+	svg
+	> use.disabled {
 	display: none;
 }
 .tui-image-editor-container .tui-image-editor-controls:hover {
@@ -1644,20 +1827,28 @@ body > textarea {
 	padding: 16px;
 	border-radius: 2px;
 }
-.tui-image-editor-container .color-picker-control .tui-colorpicker-palette-toggle-slider {
+.tui-image-editor-container
+	.color-picker-control
+	.tui-colorpicker-palette-toggle-slider {
 	display: none;
 }
-.tui-image-editor-container .color-picker-control .tui-colorpicker-palette-button {
+.tui-image-editor-container
+	.color-picker-control
+	.tui-colorpicker-palette-button {
 	border: 0;
 	border-radius: 100%;
 	margin: 2px;
 	background-size: cover;
 	font-size: 1px;
 }
-.tui-image-editor-container .color-picker-control .tui-colorpicker-palette-button[title="#ffffff"] {
+.tui-image-editor-container
+	.color-picker-control
+	.tui-colorpicker-palette-button[title="#ffffff"] {
 	border: 1px solid #ccc;
 }
-.tui-image-editor-container .color-picker-control .tui-colorpicker-palette-button[title=""] {
+.tui-image-editor-container
+	.color-picker-control
+	.tui-colorpicker-palette-button[title=""] {
 	border: 1px solid #ccc;
 }
 .tui-image-editor-container .color-picker-control .triangle {
@@ -1671,8 +1862,13 @@ body > textarea {
 	left: 84px;
 }
 .tui-image-editor-container .color-picker-control .tui-colorpicker-container,
-.tui-image-editor-container .color-picker-control .tui-colorpicker-palette-container ul,
-.tui-image-editor-container .color-picker-control .tui-colorpicker-palette-container {
+.tui-image-editor-container
+	.color-picker-control
+	.tui-colorpicker-palette-container
+	ul,
+.tui-image-editor-container
+	.color-picker-control
+	.tui-colorpicker-palette-container {
 	width: 100%;
 	height: auto;
 }
@@ -1684,8 +1880,15 @@ body > textarea {
 .tui-image-editor-container .filter-color-item .tui-image-editor-checkbox {
 	margin-top: 0;
 }
-.tui-image-editor-container .filter-color-item .tui-image-editor-checkbox input + label:before,
-.tui-image-editor-container .filter-color-item .tui-image-editor-checkbox > label:before {
+.tui-image-editor-container
+	.filter-color-item
+	.tui-image-editor-checkbox
+	input
+	+ label:before,
+.tui-image-editor-container
+	.filter-color-item
+	.tui-image-editor-checkbox
+	> label:before {
 	left: -16px;
 }
 .tui-image-editor-container .color-picker {
@@ -1730,7 +1933,10 @@ body > textarea {
 	.tui-image-editor-button[data-icontype="icon-polygon"]
 	svg
 	> use.active,
-.tie-icon-add-button.icon-star .tui-image-editor-button[data-icontype="icon-star"] svg > use.active,
+.tie-icon-add-button.icon-star
+	.tui-image-editor-button[data-icontype="icon-star"]
+	svg
+	> use.active,
 .tie-icon-add-button.icon-star-2
 	.tui-image-editor-button[data-icontype="icon-star-2"]
 	svg
@@ -1749,12 +1955,24 @@ body > textarea {
 	> use.active {
 	display: block;
 }
-.tie-draw-line-select-button.line .tui-image-editor-button.line svg > use.normal,
-.tie-draw-line-select-button.free .tui-image-editor-button.free svg > use.normal {
+.tie-draw-line-select-button.line
+	.tui-image-editor-button.line
+	svg
+	> use.normal,
+.tie-draw-line-select-button.free
+	.tui-image-editor-button.free
+	svg
+	> use.normal {
 	display: none;
 }
-.tie-draw-line-select-button.line .tui-image-editor-button.line svg > use.active,
-.tie-draw-line-select-button.free .tui-image-editor-button.free svg > use.active {
+.tie-draw-line-select-button.line
+	.tui-image-editor-button.line
+	svg
+	> use.active,
+.tie-draw-line-select-button.free
+	.tui-image-editor-button.free
+	svg
+	> use.active {
 	display: block;
 }
 .tie-flip-button.resetFlip .tui-image-editor-button.resetFlip svg > use.normal,
@@ -1778,7 +1996,10 @@ body > textarea {
 	margin-right: 24px;
 }
 .tie-crop-button .tui-image-editor-button.preset.active svg > use.active,
-.tie-crop-preset-button .tui-image-editor-button.preset.active svg > use.active {
+.tie-crop-preset-button
+	.tui-image-editor-button.preset.active
+	svg
+	> use.active {
 	display: block;
 }
 .tie-crop-button .tui-image-editor-button.apply.active svg > use.active,
@@ -1790,11 +2011,17 @@ body > textarea {
 	margin-right: 24px;
 }
 .tie-resize-button .tui-image-editor-button.preset.active svg > use.active,
-.tie-resize-preset-button .tui-image-editor-button.preset.active svg > use.active {
+.tie-resize-preset-button
+	.tui-image-editor-button.preset.active
+	svg
+	> use.active {
 	display: block;
 }
 .tie-resize-button .tui-image-editor-button.apply.active svg > use.active,
-.tie-resize-preset-button .tui-image-editor-button.apply.active svg > use.active {
+.tie-resize-preset-button
+	.tui-image-editor-button.apply.active
+	svg
+	> use.active {
 	display: block;
 }
 .tie-shape-button.rect .tui-image-editor-button.rect svg > use.normal,
@@ -1810,9 +2037,18 @@ body > textarea {
 .tie-text-effect-button .tui-image-editor-button.active svg > use.active {
 	display: block;
 }
-.tie-text-align-button.tie-text-align-left .tui-image-editor-button.left svg > use.active,
-.tie-text-align-button.tie-text-align-center .tui-image-editor-button.center svg > use.active,
-.tie-text-align-button.tie-text-align-right .tui-image-editor-button.right svg > use.active {
+.tie-text-align-button.tie-text-align-left
+	.tui-image-editor-button.left
+	svg
+	> use.active,
+.tie-text-align-button.tie-text-align-center
+	.tui-image-editor-button.center
+	svg
+	> use.active,
+.tie-text-align-button.tie-text-align-right
+	.tui-image-editor-button.right
+	svg
+	> use.active {
 	display: block;
 }
 .tie-mask-image-file,
@@ -1836,9 +2072,12 @@ body > textarea {
 .tie-zoom-button.flipY .tui-image-editor-button.flipY svg > use.active {
 	display: block;
 }
-.tui-image-editor-container.top.tui-image-editor-top-optimization .tui-image-editor-controls ul {
+.tui-image-editor-container.top.tui-image-editor-top-optimization
+	.tui-image-editor-controls
+	ul {
 	text-align: right;
 }
-.tui-image-editor-container.top.tui-image-editor-top-optimization .tui-image-editor-controls-logo {
+.tui-image-editor-container.top.tui-image-editor-top-optimization
+	.tui-image-editor-controls-logo {
 	display: none;
 }
