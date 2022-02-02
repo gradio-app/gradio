@@ -252,7 +252,12 @@
 <h4 id="title">{label}</h4>
 
 <div class="shadow overflow-hidden border-gray-200 rounded-sm relative">
-	<table id="grid" role="grid" aria-labelledby="title" class="min-w-full divide-y divide-gray-200 ">
+	<table
+		id="grid"
+		role="grid"
+		aria-labelledby="title"
+		class="min-w-full divide-y divide-gray-200 "
+	>
 		<thead class="bg-gray-50">
 			<tr>
 				{#each _headers as { value, id }, i (id)}
@@ -273,7 +278,8 @@
 								bind:value
 								bind:this={els[id].input}
 								on:keydown={end_header_edit}
-								on:blur={({ currentTarget }) => currentTarget.setAttribute("tabindex", -1)}
+								on:blur={({ currentTarget }) =>
+									currentTarget.setAttribute("tabindex", -1)}
 							/>
 						{/if}
 						<span
@@ -296,7 +302,8 @@
 							on:click={() => handle_cell_click(id)}
 							on:keydown={(e) => handle_keydown(e, i, j, id)}
 							bind:this={els[id].cell}
-							on:blur={({ currentTarget }) => currentTarget.setAttribute("tabindex", -1)}
+							on:blur={({ currentTarget }) =>
+								currentTarget.setAttribute("tabindex", -1)}
 						>
 							<div
 								class:border-gray-600={selected === id}
@@ -309,7 +316,8 @@
 										tabindex="-1"
 										bind:value
 										bind:this={els[id].input}
-										on:blur={({ currentTarget }) => currentTarget.setAttribute("tabindex", -1)}
+										on:blur={({ currentTarget }) =>
+											currentTarget.setAttribute("tabindex", -1)}
 									/>
 								{/if}
 								<span

@@ -32,13 +32,24 @@
 			image.naturalHeight
 		);
 		if (shape) {
-			size = getObjectFitSize(true, size.width, size.height, shape[0], shape[1]);
+			size = getObjectFitSize(
+				true,
+				size.width,
+				size.height,
+				shape[0],
+				shape[1]
+			);
 		}
 		let width = size.width;
 		let height = size.height;
 		saliency_layer.setAttribute("height", height);
 		saliency_layer.setAttribute("width", width);
-		paintSaliency(interpretation, saliency_layer.getContext("2d"), width, height);
+		paintSaliency(
+			interpretation,
+			saliency_layer.getContext("2d"),
+			width,
+			height
+		);
 	});
 </script>
 

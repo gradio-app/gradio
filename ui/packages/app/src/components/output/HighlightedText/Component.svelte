@@ -47,17 +47,18 @@
 					title={category}
 					style={category === null
 						? ""
-						: `color: ${color_map[category]}; background-color: ${color_map[category].replace(
-								"1)",
-								"var(--tw-bg-opacity))"
-						  )}`}
+						: `color: ${color_map[category]}; background-color: ${color_map[
+								category
+						  ].replace("1)", "var(--tw-bg-opacity))")}`}
 					key={i}
 				>
 					<span class="text dark:text-white">{text}</span>
 					{#if !show_legend && category !== null}
 						<span
 							class="inline-category text-xs text-white ml-0.5 px-0.5 rounded-sm"
-							style={category === null ? "" : `background-color: ${color_map[category]}`}
+							style={category === null
+								? ""
+								: `background-color: ${color_map[category]}`}
 						>
 							{category}
 						</span>

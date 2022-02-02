@@ -4,7 +4,7 @@
 	import { line as _line, curveLinear } from "d3-shape";
 	import { createEventDispatcher, onMount } from "svelte";
 
-	import { get_domains, transform_values, get_color } from "./utils.js";
+	import { get_domains, transform_values, get_color } from "./utils";
 	import { tooltip } from "./tooltip.js";
 
 	export let value;
@@ -16,7 +16,9 @@
 	const dispatch = createEventDispatcher();
 
 	$: ({ x, y } =
-		type === "csv" ? transform_values(csvParse(value), x, y) : transform_values(value, x, y));
+		type === "csv"
+			? transform_values(csvParse(value), x, y)
+			: transform_values(value, x, y));
 
 	$: x_domain = get_domains(x);
 	$: y_domain = get_domains(y);
@@ -26,7 +28,10 @@
 	$: x_ticks = scale_x.ticks(8);
 	$: y_ticks = scale_y.ticks(y_domain[1] < 10 ? y_domain[1] : 8);
 
-	$: colors = y.reduce((acc, next) => ({ ...acc, [next.name]: get_color() }), {});
+	$: colors = y.reduce(
+		(acc, next) => ({ ...acc, [next.name]: get_color() }),
+		{}
+	);
 
 	onMount(() => {
 		dispatch("process", { x, y });
@@ -37,7 +42,10 @@
 	<div class="flex justify-center align-items-center text-sm">
 		{#each y as { name }}
 			<div class="mx-2">
-				<span class="inline-block w-[10px] h-[10px]" style="background-color: {colors[name]}" />
+				<span
+					class="inline-block w-[10px] h-[10px]"
+					style="background-color: {colors[name]}"
+				/>
 				{name}
 			</div>
 		{/each}
@@ -51,7 +59,9 @@
 					x2={scale_x(tick)}
 					y1={scale_y(y_ticks[0] < y_domain[0] ? y_ticks[0] : y_domain[0]) + 10}
 					y2={scale_y(
-						y_domain[1] > y_ticks[y_ticks.length - 1] ? y_domain[1] : y_ticks[y_ticks.length - 1]
+						y_domain[1] > y_ticks[y_ticks.length - 1]
+							? y_domain[1]
+							: y_ticks[y_ticks.length - 1]
 					)}
 					stroke="#aaa"
 				/>
@@ -72,7 +82,9 @@
 					y2={scale_y(tick)}
 					x1={scale_x(x_ticks[0] < x_domain[0] ? x_ticks[0] : x_domain[0]) - 10}
 					x2={scale_x(
-						x_domain[1] > x_ticks[x_ticks.length - 1] ? x_domain[1] : x_ticks[x_ticks.length - 1]
+						x_domain[1] > x_ticks[x_ticks.length - 1]
+							? x_domain[1]
+							: x_ticks[x_ticks.length - 1]
 					)}
 					stroke="#aaa"
 				/>
@@ -120,7 +132,9 @@
 				/>
 			{/each}
 			<path
-				d={_line().curve(curveLinear)(values.map(({ x, y }) => [scale_x(x), scale_y(y)]))}
+				d={_line().curve(curveLinear)(
+					values.map(({ x, y }) => [scale_x(x), scale_y(y)])
+				)}
 				fill="none"
 				stroke={color}
 				stroke-width="3"

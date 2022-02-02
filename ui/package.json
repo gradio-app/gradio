@@ -6,7 +6,8 @@
 		"dev": "pnpm dev --filter @gradio/app",
 		"build": "pnpm build --filter @gradio/app",
 		"format:check": "prettier --check --plugin-search-dir=. .",
-		"format:write": "prettier --write --plugin-search-dir=. ."
+		"format:write": "prettier --write --plugin-search-dir=. .",
+		"ts:check": "svelte-check --tsconfig tsconfig.json"
 	},
 	"author": "",
 	"license": "ISC",
@@ -14,6 +15,7 @@
 	"dependencies": {
 		"prettier": "^2.5.1",
 		"prettier-plugin-svelte": "^2.6.0",
-		"svelte": "^3.46.3"
+		"svelte": "^3.46.3",
+		"svelte-check": "^2.4.1"
 	}
 }
