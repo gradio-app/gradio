@@ -1,146 +1,105 @@
-# 💬 How to Create a Chatbot with Gradio
+# 💬 Building a Pictionary App with Gradio
 
 By [Abubakar Abid](https://huggingface.co/abidlabs) <br>
-Published: 20 January 2022 <br>
-gradio_version: 2.7.5
-related_spaces: https://huggingface.co/spaces/abidlabs/chatbot-minimal, https://huggingface.co/spaces/ThomasSimonini/Chat-with-Gandalf-GPT-J6B, https://huggingface.co/spaces/gorkemgoknar/moviechatbot, https://huggingface.co/spaces/Kirili4ik/chat-with-Kirill
+Published: 2 February 2022 <br>
+gradio_version: 2.7.5 <br>
+related_spaces: https://huggingface.co/spaces/nateraw/quickdraw
 
 ## Introduction
 
-How well can an algorithm guess what you're drawing? Recently, Google and several other companies released sketch recognition models designed to make predictions of an object as it is being drawn. These models are perfect to use with Gradio's *sketchpad* input, so in this tutorial we will build a Pictionary application. As we'll see, we'll be able to build the whole thing in just XX lines of code, and will look like this:
+How well can an algorithm guess what you're drawing? A few years ago, Google released the **Quick Draw** dataset, which contains drawings made by humans of a variety of every objects. Researchers have used this dataset to train models to guess Pictionary-style drawings. Such models are perfect to use with Gradio's *sketchpad* input, so in this tutorial we will build a Pictionary web application using Gradio. We will be able to build the whole web application in Python, and will look like this (try drawing something!):
 
-<iframe src="https://hf.space/gradioiframe/abidlabs/chatbot-stylized/+" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+<iframe src="https://hf.space/gradioiframe/abidlabs/draw2/+" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
 Let's get started!
 
 ### Prerequisites
 
-Make sure you have the `gradio` Python package already [installed](/getting_started). To use the pretrained sketcpad model, also install XX.
+Make sure you have the `gradio` Python package already [installed](/getting_started). To use the pretrained sketcpad model, also install `torch`.
 
-## Step 1 — Setting up the Chatbot Model
+## Step 1 — Setting up the Sketch Recognition Model
 
-First, you will need to have a chatbot model that you have either trained yourself or you will need to download a pretrained model. In this tutorial, we will use a pretrained chatbot model, `DialoGPT`, and its tokenizer from the [Hugging Face Hub](https://huggingface.co/microsoft/DialoGPT-medium), but you can replace this with your own model. 
+First, you will need to have a sketch recognition model that you have either trained yourself or you will need to download a pretrained model. Since many researchers have already trained their own models, in this tutorial, we will use a 1.5 MB pretrained chatbot model trained by Nate Raw, that [you can download here](https://huggingface.co/spaces/nateraw/quickdraw/blob/main/pytorch_model.bin). 
 
-Here is the code to load `DialoGPT` from Hugging Face `transformers`.
+If you are interested, here [is the code](https://github.com/nateraw/quickdraw-pytorch) that was used to train the model. We will simply load the pretrained model in PyTorch, as follows:
 
 ```python
-from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
+from torch import nn
 
-tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-medium")
-model = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-medium")
+model = nn.Sequential(
+    nn.Conv2d(1, 32, 3, padding='same'),
+    nn.ReLU(),
+    nn.MaxPool2d(2),
+    nn.Conv2d(32, 64, 3, padding='same'),
+    nn.ReLU(),
+    nn.MaxPool2d(2),
+    nn.Conv2d(64, 128, 3, padding='same'),
+    nn.ReLU(),
+    nn.MaxPool2d(2),
+    nn.Flatten(),
+    nn.Linear(1152, 256),
+    nn.ReLU(),
+    nn.Linear(256, len(LABELS)),
+)
+state_dict = torch.load('pytorch_model.bin',    map_location='cpu')
+model.load_state_dict(state_dict, strict=False)
+model.eval()
 ```
 
 ## Step 2 — Defining a `predict` function
 
-Next, you will need to define a function that takes in the *user input* as well as the previous *chat history* to generate a response.
+Next, you will need to define a function that takes in the *user input*, which in this case is a sketched image, and returns the prediction. The prediction should be returned as a dictionary whose keys are class name and values are confidence probabilities. We will load the class names from this [text file](https://huggingface.co/spaces/nateraw/quickdraw/blob/main/class_names.txt).
 
 In the case of our pretrained model, it will look like this:
 
 ```python
-def predict(input, history=[]):
-    # tokenize the new input sentence
-    new_user_input_ids = tokenizer.encode(input + tokenizer.eos_token, return_tensors='pt')
+from pathlib import Path
 
-    # append the new user input tokens to the chat history
-    bot_input_ids = torch.cat([torch.LongTensor(history), new_user_input_ids], dim=-1)
+LABELS = Path('class_names.txt').read_text().splitlines()
 
-    # generate a response 
-    history = model.generate(bot_input_ids, max_length=1000, pad_token_id=tokenizer.eos_token_id).tolist()
-    # convert the tokens to text, and then split the responses into lines
-    response = tokenizer.decode(history[0]).replace("<|endoftext|>", "\n")
-    
-    return response, history
+def predict(img):
+    x = torch.tensor(img, dtype=torch.float32).unsqueeze(0).unsqueeze(0) / 255.
+    with torch.no_grad():
+        out = model(x)
+    probabilities = torch.nn.functional.softmax(out[0], dim=0)
+    values, indices = torch.topk(probabilities, 5)
+    confidences = {LABELS[i]: v.item() for i, v in zip(indices, values)}
+    return confidences
 ```
 
-Let's break this down. The function takes two parameters:
+Let's break this down. The function takes one parameters:
 
-* `input`: which is what the user enters (through the Gradio GUI) in a particular step of the conversation. 
-* `history`: which represents the **state**, consisting of the list of user and bot responses. To create a stateful Gradio demo, we *must* pass in a parameter to represent the state, and we set the default value of this parameter to be the initial value of the state (in this case, the empty list since this is what we would like the chat history to be at the start).
+* `img`: the input image as a `numpy` array
 
-Then, the function tokenizes the input and concatenates it with the tokens corresponding to the previous user and bot responses. Then, this is fed into the pretrained model to get a prediction. Finally, we do some cleaning up so that we can return two values from our function:
+Then, the function converts the image to a PyTorch `tensor`, passes it through the model, and returns:
 
-* `response`: which is a list of strings corresponding to all of the user and bot responses. This will be rendered as the output in the Gradio demo.
-* `history` variable, which is the token representation of all of the user and bot responses. In stateful Gradio demos, we *must* return the updated state at the end of the function. 
+* `confidences`: the top five predictions, as a dictionary whose keys are class labels and whose values are confidence probabilities
 
 ## Step 3 — Creating a Gradio Interface
 
 Now that we have our predictive function set up, we can create a Gradio Interface around it. 
 
-In this case, our function takes in two values, a text input and a state input. The corresponding input components in `gradio` are `"text"` and `"state"`. 
+In this case, the input component is a sketchpad. To create a sketchpad input, we can use the convenient string shortcut, `"sketchpad"` which creates a canvas for a user to draw on and handles the preprocessing to convert that to a numpy array. 
 
-The function also returns two values. For now, we will display the list of responses as `"text"` and use the `"state"` output component type for the second return value.
+The output component will be a `"label"`, which displays the top labels in a nice form.
 
-Note that the `"state"` input and output components are not displayed. 
-
-```python
-import gradio as gr
-
-gr.Interface(fn=predict,
-             inputs=["text", "state"],
-             outputs=["text", "state"]).launch()
-```
-
-This produces the following interface, which you can try right here in your browser (try typing in some simple greetings like "Hi!" to get started):
-
-<iframe src="https://hf.space/gradioiframe/abidlabs/chatbot-minimal/+" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
-
-## Step 4 — Styling Your Interface 
-
-The problem is that the output of the chatbot looks pretty ugly. No problem, we can make it prettier by using a little bit of CSS. First, we modify our function to return a string of HTML components, instead of just text:
-
-```python
-def predict(input, history=[]):
-    # tokenize the new input sentence
-    new_user_input_ids = tokenizer.encode(input + tokenizer.eos_token, return_tensors='pt')
-
-    # append the new user input tokens to the chat history
-    bot_input_ids = torch.cat([torch.LongTensor(history), new_user_input_ids], dim=-1)
-
-    # generate a response 
-    history = model.generate(bot_input_ids, max_length=1000, pad_token_id=tokenizer.eos_token_id).tolist()
-
-    # convert the tokens to text, and then split the responses into lines
-    response = tokenizer.decode(history[0]).split("<|endoftext|>")
-    response.remove("")
-    
-    # write some HTML
-    html = "<div class='chatbot'>"
-    for m, msg in enumerate(response):
-        cls = "user" if m%2 == 0 else "bot"
-        html += "<div class='msg {}'> {}</div>".format(cls, msg)
-    html += "</div>"
-    
-    return html, history
-```
-
-Now, we change the first output component to be `"html"` instead, since now we are returning a string of HTML code. We also include some custom css to make the output prettier using the `css` parameter. 
+Finally, we'll add one more parameter, setting `live=True`, which allows our interface to run in real time, adjusting its predictions every time a user draws on the sketchpad. The code for Gradio looks like this:
 
 ```python
 import gradio as gr
 
-css = """
-.chatbox {display:flex;flex-direction:column}
-.msg {padding:4px;margin-bottom:4px;border-radius:4px;width:80%}
-.msg.user {background-color:cornflowerblue;color:white}
-.msg.bot {background-color:lightgray;align-self:self-end}
-"""
-
-gr.Interface(fn=predict,
-             inputs=[gr.inputs.Textbox(placeholder="How are you?"), "state"],
-             outputs=["html", "state"],
-             css=css).launch()
+gr.Interface(fn=predict, 
+             inputs="sketchpad",
+             outputs="label",
+             live=True).launch()
 ```
 
-Notice that we have also added a placeholder to the input `text` component by instantiating the `gr.inputs.Textbox()` class and passing in a `placeholder` value, and now we are good to go! Try it out below:
+This produces the following interface, which you can try right here in your browser (try drawing something, like a "snake" or a "laptop"):
 
-<iframe src="https://hf.space/gradioiframe/abidlabs/chatbot-stylized/+" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+<iframe src="https://hf.space/gradioiframe/abidlabs/draw2/+" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
 ----------
 
-And you're done! That's all the code you need to build an interface for your chatbot model. Here are some references that you may find useful:
-
-* Gradio's ["Getting Started" guide]()
-* The [chatbot demo]() and [complete code]() (on Hugging Face Spaces)
-
+And you're done! That's all the code you need to build a Pictionary-style guessing app. Have fun and try to find some edge cases 🧐
 
