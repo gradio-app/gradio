@@ -1,0 +1,21 @@
+{
+	"name": "gradio-ui",
+	"version": "0.0.1",
+	"description": "Gradio UI packages",
+	"scripts": {
+		"dev": "pnpm dev --filter @gradio/app",
+		"build": "pnpm build --filter @gradio/app",
+		"format:check": "prettier --check --plugin-search-dir=. .",
+		"format:write": "prettier --write --plugin-search-dir=. .",
+		"check": "svelte-check --tsconfig tsconfig.json"
+	},
+	"author": "",
+	"license": "ISC",
+	"private": true,
+	"dependencies": {
+		"prettier": "^2.5.1",
+		"prettier-plugin-svelte": "^2.6.0",
+		"svelte": "^3.46.3",
+		"svelte-check": "^2.4.1"
+	}
+}

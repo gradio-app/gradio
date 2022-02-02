@@ -19,12 +19,15 @@
     "rollup-plugin-livereload": "^2.0.0",
     "rollup-plugin-svelte": "^7.0.0",
     "rollup-plugin-terser": "^7.0.0",
-    "svelte": "^3.0.0"
+    "svelte": "^3.46.3"
   },
   "dependencies": {
     "@rollup/plugin-replace": "^3.0.1",
     "autoprefixer": "^9.8.8",
     "cropperjs": "^1.5.12",
+    "d3-dsv": "^3.0.1",
+    "d3-scale": "^4.0.2",
+    "d3-shape": "^3.1.0",
     "lazy-brush": "^1.0.1",
     "mime-types": "^2.1.34",
     "node-sass": "^7.0.1",

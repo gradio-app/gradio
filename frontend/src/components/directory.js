@@ -10,6 +10,7 @@ import InputSlider from "./input/Slider/config.js";
 import InputTextbox from "./input/Textbox/config.js";
 import InputVideo from "./input/Video/config.js";
 import InputDataFrame from "./input/DataFrame/config.js";
+import InputTimeSeries from './input/TimeSeries/config.js';
 
 import OutputAudio from "./output/Audio/config.js";
 import OutputCarousel from "./output/Carousel/config.js";
@@ -22,6 +23,7 @@ import OutputJson from "./output/Json/config.js";
 import OutputLabel from "./output/Label/config.js";
 import OutputTextbox from "./output/Textbox/config.js";
 import OutputVideo from "./output/Video/config.js";
+import OutputTimeSeries from './output/TimeSeries/config.js'
 
 import Dummy from "./Dummy.svelte"
 
@@ -37,7 +39,7 @@ export const input_component_map = {
     "radio": InputRadio,
     "slider": InputSlider,
     "textbox": InputTextbox,
-    "timeseries": {"component": Dummy, "example": Dummy},
+    "timeseries": InputTimeSeries,
     "video": InputVideo,
 }
 
@@ -52,6 +54,6 @@ export const output_component_map = {
     "json": OutputJson,
     "label": OutputLabel,
     "textbox": OutputTextbox,
-    "timeseries": {"component": Dummy, "example": Dummy},
+    "timeseries": OutputTimeSeries,
     "video": OutputVideo,
 }
