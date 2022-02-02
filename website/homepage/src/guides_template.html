@@ -58,6 +58,33 @@
     #guide-template{
       margin-top:30px;
     }
+    .prose p > img {
+      margin: 0;
+      width: fit-content;
+    }
+    .prose h1 {
+      font-weight: 600;
+    }
+
+
+    .space-link {
+      display: inline-block;
+      margin: 4px;
+      padding-left: 6px;
+      padding-right: 6px;
+      border-radius: 7px;
+    }
+
+    .space-link a {
+      text-decoration: none;
+    }
+
+    #spaces-holder img {
+      display: inherit;
+      width: 3%;
+      margin: 0;
+    }
+
   </style>
   <script async src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
     <script>
@@ -93,8 +120,8 @@
       </div>
     </nav>
   </header>  
-  <div class="container mx-auto px-4 mb-12" id="guide-template">
-    <div class="prose prose-lg max-w-none">
+  <div class="container mx-auto max-w-4xl px-4 mb-12" id="guide-template">
+    <div class="prose max-w-none">
       {{ template_html|safe }}
     </div>
   </div>
@@ -127,6 +154,36 @@
         });
       });
     });
+
+    var spacesHolder, spaces;
+    spacesHolder = document.getElementById("spaces-holder");
+    spaces = spacesHolder.getElementsByTagName('div');
+
+    var backgrounds = ['rgba(255,254,188,0.3)',
+                       'rgba(255,205,188,0.3)',
+                       'rgba(255,188,188,0.3)',
+                       'rgba(194,255,169,0.3)',
+                       'rgba(169,255,237,0.3)',
+                       'rgba(182,169,255,0.3)',
+                       'rgba(255,183,245,0.3)']
+
+    function shuffleBackgrounds(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    shuffleBackgrounds(backgrounds);
+
+    color_counter = 0
+    for (let i = 0; i < spaces.length; i++) {
+      spaces[i].style.background = backgrounds[color_counter];
+      color_counter += 1
+      if (color_counter == backgrounds.length) {
+        color_counter = 0;
+      }
+    }
   </script>
 
 </body>
