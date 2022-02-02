@@ -1,0 +1,11 @@
+IPython
+comet_ml
+coverage
+mlflow
+tensorflow
+transformers
+selenium==4.0.0a6.post2
+scikit-image
+shap
+pytest
+wandb
