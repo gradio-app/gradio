@@ -37,6 +37,8 @@ for guide in sorted(os.listdir(GRADIO_GUIDES_DIR)):
     }
     guides.append(guide_dict)
 
+with open("src/navbar.html", encoding="utf-8") as navbar_file:
+    navbar_html = navbar_file.read()
 
 def render_index():
     os.makedirs("generated", exist_ok=True)
@@ -46,10 +48,11 @@ def render_index():
         requests.get("https://api.github.com/repos/gradio-app/gradio").json()[
             "stargazers_count"
         ]
-    )
+    )    
     with open("src/index_template.html", encoding="utf-8") as template_file:
         template = Template(template_file.read())
-        output_html = template.render(tweets=tweets, star_count=star_count)
+        output_html = template.render(tweets=tweets, star_count=star_count,
+                                      navbar_html=navbar_html)
     with open(os.path.join("generated", "index.html"), "w", encoding='utf-8') as generated_template:
         generated_template.write(output_html)
 
@@ -57,7 +60,7 @@ def render_index():
 def render_guides_main():
     with open("src/guides_main_template.html", encoding='utf-8') as template_file:
         template = Template(template_file.read())
-        output_html = template.render(guides=guides)
+        output_html = template.render(guides=guides, navbar_html=navbar_html)
     with open(os.path.join("generated", "guides.html"), "w", encoding='utf-8') as generated_template:
         generated_template.write(output_html)
 
@@ -203,7 +206,9 @@ def render_guides():
         ) as general_template_file:
             general_template = Template(general_template_file.read())
         with open(os.path.join("generated", guide, "index.html"), "w", encoding='utf-8') as generated_template:
-            output_html = general_template.render(template_html=output_html, demo_names=demo_names, meta_tags=meta_tags)
+            output_html = general_template.render(
+                template_html=output_html, demo_names=demo_names, 
+                meta_tags=meta_tags, navbar_html=navbar_html)
             generated_template.write(output_html)
 
 
@@ -321,7 +326,8 @@ def render_docs():
     os.makedirs("generated", exist_ok=True)
     with open("src/docs_template.html") as template_file:
         template = Template(template_file.read())
-        output_html = template.render(docs=docs, demo_links=demo_links)
+        output_html = template.render(docs=docs, demo_links=demo_links,
+                                      navbar_html=navbar_html)
     os.makedirs(os.path.join("generated", "docs"), exist_ok=True)
     with open(
         os.path.join("generated", "docs", "index.html"), "w"
@@ -349,5 +355,5 @@ if __name__ == "__main__":
     render_index()
     render_guides_main()
     render_guides()
-    # render_docs()
+    render_docs()
     render_other()
