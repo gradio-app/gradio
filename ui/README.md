@@ -89,7 +89,7 @@ to typecheck the code:
 pnpm ts:check
 ```
 
-## CI Checks
+## ci checks
 
 Currently the following checks are run in CI:
 
