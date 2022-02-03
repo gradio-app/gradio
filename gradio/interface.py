@@ -9,6 +9,7 @@ import copy
 import getpass
 import os
 import random
+import re
 import sys
 import time
 import warnings
@@ -17,7 +18,8 @@ import webbrowser
 from logging import warning
 from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
 
-import markdown2 
+from markdown_it import MarkdownIt
+from mdit_py_plugins.footnote import footnote_plugin
 
 from gradio import (encryptor, interpretation, networking,  # type: ignore
                     queueing, strings, utils)
@@ -241,14 +243,29 @@ class Interface:
 
         self.session = None
         self.title = title
+        
+        CLEANER = re.compile('<.*?>') 
+        def clean_html(raw_html):
+            cleantext = re.sub(CLEANER, '', raw_html)
+            return cleantext
+        md = MarkdownIt("js-default", {
+                "linkify": True,
+                "typographer": True,
+                "html": True,
+            }).use(footnote_plugin)
+             
+        simple_description = None
+        if description is not None:
+            description = md.render(description)            
+            simple_description = clean_html(description)
+        self.simple_description = simple_description
         self.description = description
         if article is not None:
             article = utils.readme_to_html(article)
-            article = markdown2.markdown(
-                article, extras=["fenced-code-blocks"])
+            article = md.render(article)
         self.article = article
+        
         self.thumbnail = thumbnail
-
         theme = theme if theme is not None else os.getenv("GRADIO_THEME", "default")
         DEPRECATED_THEME_MAP = {
             "darkdefault": "default",
