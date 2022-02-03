@@ -19,7 +19,7 @@ from logging import warning
 from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
 
 from markdown_it import MarkdownIt
-from mdit_py_plugins.texmath import texmath_plugin
+from mdit_py_plugins.footnote import footnote_plugin
 
 from gradio import (encryptor, interpretation, networking,  # type: ignore
                     queueing, strings, utils)
@@ -248,7 +248,11 @@ class Interface:
         def clean_html(raw_html):
             cleantext = re.sub(CLEANER, '', raw_html)
             return cleantext
-        md = MarkdownIt("js-default").use(texmath_plugin)   
+        md = MarkdownIt("js-default", {
+                "linkify": True,
+                "typographer": True,
+                "html": True,
+            }).use(footnote_plugin)
              
         simple_description = None
         if description is not None:
