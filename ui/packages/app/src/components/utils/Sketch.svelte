@@ -5,7 +5,7 @@
 
 	const dispatch = createEventDispatcher();
 
-	let brush_radius = 30;
+	let brush_radius = 50;
 	let brush_color = "#444";
 	let catenary_color = "#aaa";
 	let background_color = "#FFF";
@@ -270,6 +270,8 @@
 		values_changed = true;
 		ctx.drawing.clearRect(0, 0, canvas.drawing.width, canvas.drawing.height);
 		ctx.temp.clearRect(0, 0, canvas.temp.width, canvas.temp.height);
+		ctx.drawing.fillStyle = "#FFFFFF";
+		ctx.drawing.fillRect(0, 0, canvas.drawing.width, canvas.drawing.height);
 	}
 
 	let loop = ({ once = false } = {}) => {
