@@ -7,17 +7,17 @@ tags: SKETCHPAD, LABELS, LIVE
 
 How well can an algorithm guess what you're drawing? A few years ago, Google released the **Quick Draw** dataset, which contains drawings made by humans of a variety of every objects. Researchers have used this dataset to train models to guess Pictionary-style drawings. Such models are perfect to use with Gradio's *sketchpad* input, so in this tutorial we will build a Pictionary web application using Gradio. We will be able to build the whole web application in Python, and will look like this (try drawing something!):
 
-<iframe src="https://hf.space/gradioiframe/abidlabs/draw2/+" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+<iframe src="https://hf.space/gradioiframe/abidlabs/draw2/+" frameBorder="0" height="450" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
 Let's get started!
 
 ### Prerequisites
 
-Make sure you have the `gradio` Python package already [installed](/getting_started). To use the pretrained sketcpad model, also install `torch`.
+Make sure you have the `gradio` Python package already [installed](/getting_started). To use the pretrained sketchpad model, also install `torch`.
 
 ## Step 1 — Setting up the Sketch Recognition Model
 
-First, you will need to have a sketch recognition model that you have either trained yourself or you will need to download a pretrained model. Since many researchers have already trained their own models, in this tutorial, we will use a 1.5 MB pretrained chatbot model trained by Nate Raw, that [you can download here](https://huggingface.co/spaces/nateraw/quickdraw/blob/main/pytorch_model.bin). 
+First, you will need a sketch recognition model. Since many researchers have already trained their own models on the Quick Draw dataset, we will use a pretrained model in this tutorial. Our model is a light 1.5 MB  model trained by Nate Raw, that [you can download here](https://huggingface.co/spaces/nateraw/quickdraw/blob/main/pytorch_model.bin). 
 
 If you are interested, here [is the code](https://github.com/nateraw/quickdraw-pytorch) that was used to train the model. We will simply load the pretrained model in PyTorch, as follows:
 
@@ -95,7 +95,7 @@ gr.Interface(fn=predict,
 
 This produces the following interface, which you can try right here in your browser (try drawing something, like a "snake" or a "laptop"):
 
-<iframe src="https://hf.space/gradioiframe/abidlabs/draw2/+" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+<iframe src="https://hf.space/gradioiframe/abidlabs/draw2/+" frameBorder="0" height="450" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
 ----------
 

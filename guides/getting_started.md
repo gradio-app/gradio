@@ -1,6 +1,6 @@
 ## Getting Started
 
-Prerequisite: `gradio` requires Python 3.7+ and that's it! 
+**Prerequisite**: Python 3.7+ and that's it! 
 
 ### Quick Start
 
@@ -20,15 +20,15 @@ pip install gradio
 
 {{ demos["hello_world"] }}
 
-### The `Interface` class
+### Understanding the `Interface` class
 
-Gradio can wrap almost any Python function with an easy-to-use user interface. In the example above, we saw a simple text-based function. But the function could be anything from a tax calculator to, most commonly, a pretrained machine learning model.
+Gradio can wrap almost any Python function with an easy-to-use user interface. In the example above, we saw a simple text-based function. But the function could be anything from image enhancer to a tax calculator to (most commonly) the prediction function of a pretrained machine learning model.
 
 The core  `Interface`  class is initialized with three parameters:
 
 -   `fn`: the function to wrap
--   `inputs`: the input component type(s)
--   `outputs`: the output component type(s)
+-   `inputs`: the input component type(s), e.g. `"image"` or `"audio"` ([see docs for complete list](/docs))
+-   `outputs`: the output component type(s) e.g. `"image"` or `"label"` ([see docs for complete list](/docs))
 
 With these three arguments, we can quickly create interfaces and  `launch()`  them. But what if you want to change how the UI components look or behave?
 
