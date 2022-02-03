@@ -13,6 +13,7 @@ build/
 # JS build
 gradio/templates/frontend/static
 gradio/templates/frontend/build
+gradio/templates/frontend/assets
 gradio/templates/frontend/global.css
 
 # Secrets
@@ -41,3 +42,6 @@ demo/files/*.mp4
 *.bak
 workspace.code-workspace
 *.h5
+
+# log files
+.pnpm-debug.log
