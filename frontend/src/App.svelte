@@ -18,7 +18,7 @@
     queue,
     static_src;
 
-  $: embedded = space && space.includes("/");
+  $: embedded = space !== undefined;
 </script>
 
 <div
@@ -65,8 +65,10 @@
           href={"https://huggingface.co/spaces/" + space}
           class="font-semibold"
         >
-          {space[space.indexOf("/") + 1].toUpperCase() +
-            space.substring(space.indexOf("/") + 2)}
+          {space.includes("/")
+            ? space[space.indexOf("/") + 1].toUpperCase() +
+              space.substring(space.indexOf("/") + 2)
+            : space}
         </a>
         built with
         <a href="https://gradio.app" class="font-semibold">Gradio</a>, hosted on
@@ -80,11 +82,19 @@
       >
         <a href="api" target="_blank" rel="noreferrer">
           view the api
-          <img class="h-5 inline-block" src="{static_src}/static/img/api-logo.svg" alt="api" />
+          <img
+            class="h-5 inline-block"
+            src="{static_src}/static/img/api-logo.svg"
+            alt="api"
+          />
         </a>
         &bull;
         <a href="https://gradio.app" target="_blank" rel="noreferrer">
-          built with <img class="h-6 inline-block" src="{static_src}/static/img/logo.svg" alt="logo" />
+          built with <img
+            class="h-6 inline-block"
+            src="{static_src}/static/img/logo.svg"
+            alt="logo"
+          />
         </a>
       </div>
     {/if}

@@ -18,8 +18,7 @@
     allow_interpretation,
     avg_durations,
     live,
-    queue,
-    static_src;
+    queue;
 
   let examples_dir = root + "file/";
   let interpret_mode = false;
@@ -205,7 +204,6 @@
                   ? interpretation_values[i]
                   : null}
                 setValue={setValues.bind(this, i)}
-                {static_src}
               />
             </div>
           {/if}
