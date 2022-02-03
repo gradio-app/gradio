@@ -1,10 +1,7 @@
-# 💬 How to Create a Chatbot with Gradio
+# How to Create a Chatbot with Gradio
 
-By [Abubakar Abid](https://huggingface.co/abidlabs) <br>
-Published: 20 January 2022 <br>
-gradio_version: 2.7.5
 related_spaces: https://huggingface.co/spaces/abidlabs/chatbot-minimal, https://huggingface.co/spaces/ThomasSimonini/Chat-with-Gandalf-GPT-J6B, https://huggingface.co/spaces/gorkemgoknar/moviechatbot, https://huggingface.co/spaces/Kirili4ik/chat-with-Kirill
-
+tags: NLP, TEXT, HTML
 ## Introduction
 
 Chatbots are widely studied in natural language processing (NLP) research and are a common use case of NLP in industry. Because chatbots are designed to be used directly by customers and end users, it is important to validate that chatbots are behaving as expected when confronted with a wide variety of input prompts. Using `gradio`, you can easily build a demo of your chatbot model and share that with a testing team, or test it yourself using an intuitive chatbot GUI.
