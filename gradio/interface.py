@@ -9,6 +9,7 @@ import copy
 import getpass
 import os
 import random
+import re
 import sys
 import time
 import warnings
@@ -241,6 +242,18 @@ class Interface:
 
         self.session = None
         self.title = title
+        
+        CLEANER = re.compile('<.*?>') 
+        def clean_html(raw_html):
+            cleantext = re.sub(CLEANER, '', raw_html)
+            return cleantext
+        
+        simple_description = None
+        if description is not None:
+            description = markdown2.markdown(
+                description, extras=["fenced-code-blocks"])            
+            simple_description = clean_html(description)
+        self.simple_description = simple_description
         self.description = description
         if article is not None:
             article = utils.readme_to_html(article)
