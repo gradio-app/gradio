@@ -1,6 +1,4 @@
 <script>
-  import { init } from "svelte/internal";
-
   import {
     input_component_map,
     output_component_map,
