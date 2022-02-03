@@ -1,9 +1,7 @@
-# 💬 Building a Pictionary App with Gradio
+# Building a Pictionary App
 
-By [Abubakar Abid](https://huggingface.co/abidlabs) <br>
-Published: 2 February 2022 <br>
-gradio_version: 2.7.5 <br>
 related_spaces: https://huggingface.co/spaces/nateraw/quickdraw
+tags: SKETCHPAD, LABELS, LIVE
 
 ## Introduction
 
