@@ -3,11 +3,11 @@
 This folder contains all of the Gradio UI and component source code.
 
 - [set up](#setup)
-- [running the application](#running_the_application)
-- [local development](#local_development)
-- [building for production](#building_for_production)
-- [quality checks](#quality_checks)
-- [ci checks](#ci_checks)
+- [running the application](#running-the-application)
+- [local development](#local-development)
+- [building for production](#building-for-production)
+- [quality checks](#quality-checks)
+- [ci checks](#ci-checks)
 
 > Note: The below assumes you are in the `ui` directory unless alternative instructions are given.
 
