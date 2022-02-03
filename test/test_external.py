@@ -19,7 +19,7 @@ class TestHuggingFaceModelAPI(unittest.TestCase):
     def test_audio_to_audio(self):
         model_type = "audio-to-audio"
         interface_info = gr.external.get_huggingface_interface(
-            "facebook/xm_transformer_600m-es_en-multi_domain",
+            "speechbrain/mtl-mimic-voicebank",
             api_key=None,
             alias=model_type,
         )
