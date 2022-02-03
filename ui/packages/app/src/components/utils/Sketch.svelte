@@ -5,6 +5,10 @@
 
 	const dispatch = createEventDispatcher();
 
+	export let value;
+
+	let mounted;
+
 	let brush_radius = 50;
 	let brush_color = "#444";
 	let catenary_color = "#aaa";
@@ -12,6 +16,8 @@
 
 	let canvas_width = 400;
 	let canvas_height = 400;
+
+	$: mounted && !value && clear();
 
 	function mid_point(p1, p2) {
 		return {
@@ -67,7 +73,7 @@
 		);
 		canvas_observer.observe(canvas_container);
 		loop();
-
+		mounted = true;
 		window.setTimeout(() => {
 			const initX = window.innerWidth / 2;
 			const initY = window.innerHeight / 2;
@@ -84,6 +90,7 @@
 	});
 
 	onDestroy(() => {
+		mounted = false;
 		canvas_observer.unobserve(canvas_container);
 	});
 
