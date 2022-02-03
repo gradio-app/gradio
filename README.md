@@ -592,6 +592,10 @@ This sets up a queue of workers to handle the predictions and return the respons
 
 
 
+##  System Requirements:
+
+Gradio requires Python `3.7+` and has been tested on the latest versions of Windows, MacOS, and various common Linux distributions (e.g. Ubuntu). For Python package requirements, please see the `setup.py` file.
+
 ##  Contributing:
 
 If you would like to contribute and your contribution is small, you can directly open a pull request (PR). If you would like to contribute a larger feature, we recommend first creating an issue with a proposed design for discussion. Please see our [contributing guidelines](https://github.com/gradio-app/gradio/blob/master/CONTRIBUTING.md) for more info.
@@ -599,6 +603,7 @@ If you would like to contribute and your contribution is small, you can directly
 ##  License:
 
 Gradio is licensed under the Apache License 2.0
+
 
 ##  See more:
 
