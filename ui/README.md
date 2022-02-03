@@ -2,7 +2,16 @@
 
 This folder contains all of the Gradio UI and component source code.
 
-## set up
+- [set up](#setup)
+- [running the application](#running_the_application)
+- [local development](#local_development)
+- [building for production](#building_for_production)
+- [quality checks](#quality_checks)
+- [ci checks](#ci_checks)
+
+> Note: The below assumes you are in the `ui` directory unless alternative instructions are given.
+
+## setup
 
 This folder is managed as 'monorepo' a multi-package repository which make dependency management very simple. In order to do this we use `pnpm` as our package manager.
 
@@ -15,7 +24,6 @@ You will also need `node` which you probably already have
 Install all dependencies from the `ui` folder:
 
 ```bash
-cd ui
 pnpm i
 ```
 
@@ -25,7 +33,7 @@ This will install the dependencies for all packages within the `ui` folder and l
 
 To develop locally, open two browser tabs from the root of the repository.
 
-Run the python test server:
+Run the python test server, from the root directory:
 
 ```bash
 cd demo/kitchen_sink
@@ -37,7 +45,7 @@ This will start a development server on port `7863` that the web app is expectin
 Run the web app:
 
 ```bash
-cd ui
+cd ui #move back into ui if you haven't already
 pnpm dev
 ```
 
@@ -46,8 +54,45 @@ pnpm dev
 From the `ui` folder run the build.
 
 ```bash
-cd ui
 pnpm build
 ```
 
 This will create the necessary files in `ui/app/public` and also in `gradio/templates/frontend`.
+
+## quality checks
+
+The repos currently has two quality checks that can be run locally and are run in CI.
+
+### formatting
+
+Formatting is handled by [`prettier`](https://prettier.io/) to ensure consistent formatting and prevent style-focused conversations. Formatting failures will fails CI and should be reoslve before merging.
+
+To check formatting:
+
+```bash
+pnpm format:check
+```
+
+If you have formatting failures then you can run the following command to fix them:
+
+```bash
+pnpm format:write
+```
+
+### type checking
+
+We use [TypeScript](https://www.typescriptlang.org/) to provide static types to javascript code. These checks are also run in CI.
+
+to typecheck the code:
+
+```bash
+pnpm ts:check
+```
+
+## CI Checks
+
+Currently the following checks are run in CI:
+
+- Format check (`pnpm format:check`)
+- Type check (`pnpm ts:check`)
+- Build as a smoke test (`pnpm build`)
