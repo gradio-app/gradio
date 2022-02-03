@@ -7,6 +7,13 @@ window.launchGradio = (config, element_query) => {
   if (config.root === undefined) {
     config.root = "BACKEND_URL";
   }
+  if (window.gradio_mode === "app") {
+    config.static_src = ".";
+  } else if (window.gradio_mode === "website") {
+    config.static_src = "/gradio_static";
+  } else {
+    config.static_src = "https://gradio.s3-us-west-2.amazonaws.com/PIP_VERSION";
+  }
   if (config.detail === "Not authenticated") {
     new Login({
       target: target,

@@ -15,7 +15,8 @@
     allow_flagging,
     allow_interpretation,
     live,
-    queue;
+    queue,
+    static_src;
 
   $: embedded = space && space.includes("/");
 </script>
@@ -50,6 +51,7 @@
         {allow_interpretation}
         {live}
         {queue}
+        {static_src}
       />
       {#if article}
         <p class="article prose pt-8 pb-4 max-w-none">
@@ -78,11 +80,11 @@
       >
         <a href="api" target="_blank" rel="noreferrer">
           view the api
-          <img class="h-5 inline-block" src="./static/img/api-logo.svg" alt="api" />
+          <img class="h-5 inline-block" src="{static_src}/static/img/api-logo.svg" alt="api" />
         </a>
         &bull;
         <a href="https://gradio.app" target="_blank" rel="noreferrer">
-          built with <img class="h-6 inline-block" src="./static/img/logo.svg" alt="logo" />
+          built with <img class="h-6 inline-block" src="{static_src}/static/img/logo.svg" alt="logo" />
         </a>
       </div>
     {/if}

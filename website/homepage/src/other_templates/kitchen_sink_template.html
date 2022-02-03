@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Gradio</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css"/>
-  <link href="/gradio_static/static/bundle.css" rel="stylesheet">
+  <link href="/gradio_static/build/bundle.css" rel="stylesheet">
   <style></style>
 </head>
 
@@ -36,7 +36,7 @@
       } else {
         document.querySelector("#target").classList.remove("dark");
       }
-      document.querySelector(".gradio_bg").setAttribute("theme", theme);
+      document.querySelector(".gradio-bg").setAttribute("theme", theme);
     }
     var hidden_inputs = new Set();
     var hidden_outputs = new Set();    
@@ -45,12 +45,12 @@
       let style_html = "";
       if (hidden_inputs.size > 0) {
         let inputs_selected = Array.from(hidden_inputs).map(i => `.panel:nth-child(1) .component:nth-child(${i + 1})`).join(", ");
-        let examples_selected = Array.from(hidden_inputs).map(i => `.examples_table tr > *:nth-child(${i + 1})`).join(", ");
+        let examples_selected = Array.from(hidden_inputs).map(i => `.examples-table tr > *:nth-child(${i + 1})`).join(", ");
         style_html += `${inputs_selected}, ${examples_selected} { display: none !important }`;
         if (hidden_inputs.size === input_count - 1) {
-          document.querySelector(".examples_table").classList.add("gallery");
+          document.querySelector(".examples-table").classList.add("gallery");
         } else {
-          document.querySelector(".examples_table").classList.remove("gallery");
+          document.querySelector(".examples-table").classList.remove("gallery");
         }
       }
       if (hidden_outputs.size > 0) {
@@ -105,7 +105,7 @@
     var output_count = 0;
     window.gradio_mode = "website";
   </script>
-  <script src="/gradio_static/static/bundle.js"></script>
+  <script src="/gradio_static/build/bundle.js"></script>
   <script>
     let themes = ["default", "huggingface", "seafoam", "grass", "peach", "dark", "dark-huggingface", "dark-seafoam","dark-grass", "dark-peach"]
     let theme_html = "";

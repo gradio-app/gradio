@@ -18,7 +18,8 @@
     allow_interpretation,
     avg_durations,
     live,
-    queue;
+    queue,
+    static_src;
 
   let examples_dir = root + "file/";
   let interpret_mode = false;
@@ -204,6 +205,7 @@
                   ? interpretation_values[i]
                   : null}
                 setValue={setValues.bind(this, i)}
+                {static_src}
               />
             </div>
           {/if}
@@ -248,13 +250,13 @@
                 {/if}
               </div>
               <img
-                src="./static/img/logo.svg"
+                src="{static_src}/static/img/logo.svg"
                 alt="Pending"
                 class="pending h-5 ml-1 inline-block"
               />
             {:else if state === "ERROR"}
               <img
-                src="./static/img/logo_error.svg"
+                src="{static_src}/static/img/logo_error.svg"
                 alt="Error"
                 class="error h-5 ml-2 inline-block"
               />
