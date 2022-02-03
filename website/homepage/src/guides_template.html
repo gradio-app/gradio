@@ -5,20 +5,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <title>Gradio</title>
-  <meta name="description" content="Start building machine learning web apps in 5 lines of pure Python!">
-  <meta name="author" content="Getting Started with Gradio">
-  <meta property="og:title" content="Gradio">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://gradio.app/">
-  <meta property="og:description" content="Start building machine learning web apps in 5 lines of pure Python!">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:creator" content="@teamGradio">
-  <meta name="twitter:title" content="Getting Started with Gradio">
-  <meta name="twitter:description" content="Start building machine learning web apps in 5 lines of pure Python!">
-  <meta name="twitter:image" content="https://gradio.app/static/home/img/social-cheetah.jpg">  
-
+  {{ meta_tags|safe }}
   <link rel="icon" type="image/png" href="/assets/img/logo.png">
   <link href="/gradio_static/static/bundle.css" rel="stylesheet">
   <link rel="stylesheet" href="/style.css">
@@ -81,8 +68,9 @@
 
     #spaces-holder img {
       display: inherit;
-      width: 3%;
+      width: 2.5%;
       margin: 0;
+      padding-bottom: 6px;
     }
 
   </style>

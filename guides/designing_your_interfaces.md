@@ -1,4 +1,6 @@
-## Designing Your Interfaces
+# Designing your Interfaces
 
-By [Ali Abdalla](https://huggingface.co/aliabd) <br>
-Published: 06 January 2022 <br>
+related_spaces: https://huggingface.co/spaces/abidlabs/chatbot-minimal, https://huggingface.co/spaces/ThomasSimonini/Chat-with-Gandalf-GPT-J6B, https://huggingface.co/spaces/gorkemgoknar/moviechatbot, https://huggingface.co/spaces/Kirili4ik/chat-with-Kirill
+tags: CSS, THEMES, ARTICLE, HTML
+
+## Introduction

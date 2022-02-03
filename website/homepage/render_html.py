@@ -12,6 +12,8 @@ from gradio.inputs import InputComponent
 from gradio.interface import Interface
 from gradio.outputs import OutputComponent
 
+import cairo
+
 GRADIO_DIR = "../../"
 GRADIO_GUIDES_DIR = os.path.join(GRADIO_DIR, "guides")
 GRADIO_DEMO_DIR = os.path.join(GRADIO_DIR, "demo")
@@ -25,23 +27,13 @@ for guide in sorted(os.listdir(GRADIO_GUIDES_DIR)):
     pretty_guide_name = " ".join(
         [word.capitalize().replace("Ml", "ML") for word in guide_name.split("_")]
     )
-    with open(os.path.join(GRADIO_GUIDES_DIR, guide),"r") as f:
+    with open(os.path.join(GRADIO_GUIDES_DIR, guide), "r") as f:
         guide_content = f.read()
-
-    guide_author, guide_date = "", ""
-    if "By [" in guide_content:
-        guide_author = guide_content.split("By [")[1].split("]")[0]
-    elif "By " in guide_content:
-        guide_author = guide_content.split("By ")[1].split("<br>")[0]
-    if "Published: " in guide_content:
-        guide_date = guide_content.split("Published: ")[1].split("<br>")[0]
 
     guide_dict = {
         "guide_name": guide_name,
         "pretty_guide_name": pretty_guide_name,
         "guide_content": guide_content,
-        "guide_author": guide_author,
-        "guide_date": guide_date
     }
     guides.append(guide_dict)
 
@@ -68,7 +60,71 @@ def render_guides_main():
         output_html = template.render(guides=guides)
     with open(os.path.join("generated", "guides.html"), "w", encoding='utf-8') as generated_template:
         generated_template.write(output_html)
-        
+
+
+def add_line_breaks(text, num_char):
+    if len(text) > num_char:
+        text_list = text.split()
+        text = ""
+        total_count = 0
+        count = 0
+        for word in text_list:
+            if total_count > num_char*5:
+                text = text[:-1]
+                text += "..."
+                break
+            count += len(word)
+            if count > num_char:
+                text += word + "\n"
+                total_count += count
+                count = 0
+            else:
+                text += word + " "
+                total_count += len(word+" ")
+        return text
+    return text
+
+
+def generate_guide_meta_tags(title, tags, url, guide_path_name):
+    surface = cairo.ImageSurface.create_from_png("src/assets/img/guides/base-image.png")
+    ctx = cairo.Context(surface)
+    ctx.scale(500, 500)
+    ctx.set_source_rgba(0.611764706,0.639215686,0.6862745098,1)
+    ctx.select_font_face("Arial", cairo.FONT_SLANT_NORMAL,
+      cairo.FONT_WEIGHT_NORMAL)
+    ctx.set_font_size(0.15)
+    ctx.move_to(0.3, 0.55)
+    ctx.show_text("gradio.app/guides")
+    if len(tags) > 5:
+        tags = tags[:5]
+    tags = "  |  ".join(tags)
+    ctx.move_to(0.3, 2.2)
+    ctx.show_text(tags)
+    ctx.set_source_rgba(0.352941176,0.352941176,0.352941176,1)
+    ctx.set_font_size(0.28)
+    title_breaked = add_line_breaks(title, 10)
+
+    if "\n" in title_breaked:
+        for i, t in enumerate(title_breaked.split("\n")):
+            ctx.move_to(0.3, 0.9+i*0.4)
+            ctx.show_text(t)
+    else:
+        ctx.move_to(0.3, 1.0)
+        ctx.show_text(title_breaked)
+    image_path = f"src/assets/img/guides/{guide_path_name}.png"
+    surface.write_to_png(image_path)
+    load_path = f"/assets/img/guides/{guide_path_name}.png"
+    meta_tags = f"""
+    <title>{title}</title>
+    <meta property="og:title" content="{title}" />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="{url}" />
+    <meta property="og:image" content="{load_path}" />
+    <meta name="twitter:title" content="{title}">
+    <meta name="twitter:image" content="{load_path}">
+    <meta name="twitter:card" content="summary_large_image">
+    """
+    return meta_tags
 
 
 def render_guides():
@@ -79,21 +135,25 @@ def render_guides():
             os.path.join(GRADIO_GUIDES_DIR, guide), encoding="utf-8"
         ) as guide_file:
             guide_text = guide_file.read()
-        if "gradio_version: " in guide_text:
-            version = guide_text.split("gradio_version: ")[1].split("\n")[0]
-            guide_text = guide_text.replace(f"gradio_version: {version}",
-                               f"![](https://img.shields.io/static/v1.svg?label=gradio&message={version}"
-                               f"&color=green&labelColor=orange)")
-
 
         if "related_spaces: " in guide_text:
             spaces = guide_text.split("related_spaces: ")[1].split("\n")[0].split(", ")
-            spaces_html = "<div id='spaces-holder'><a href='https://hf.co/spaces' target='_blank'><img src='/assets/img/spaces-logo.svg'></a>"
+            spaces_html = "<div id='spaces-holder'><a href='https://hf.co/spaces' target='_blank'><img src='/assets/img/spaces-logo.svg'></a><p style='margin: 0;display: inline;font-size: large;font-weight: 400;'>Related Spaces: </p>"
             for space in spaces:
-                spaces_html += f"<div class='space-link' ><a href='{space}' target='_blank'>{space[30:]}</a></div>"
+                spaces_html += f"<div class='space-link'><a href='{space}' target='_blank'>{space[30:]}</a></div>"
             spaces_html += "</div>"
             guide_text = guide_text.split("related_spaces: ")[0] + spaces_html + "\n".join(guide_text.split("related_spaces: ")[1].split("\n")[1:])
 
+        tags = ""
+        if "tags: " in guide_text:
+            tags = guide_text.split("tags: ")[1].split("\n")[0].split(", ")
+            guide_text = guide_text.split("tags: ")[0] + "\n" + "\n".join(guide_text.split("tags: ")[1].split("\n")[1:])
+
+        title = " ".join(
+            [word.capitalize().replace("Ml", "ML").replace("Gan", "GAN") for word in guide[:-3].split("_")]
+        )
+        url = f"https://gradio.app/{guide[:-3]}/"
+        meta_tags = generate_guide_meta_tags(title, tags, url, guide[:-3])
 
         code_tags = re.findall(r'\{\{ code\["([^\s]*)"\] \}\}', guide_text)
         demo_names = re.findall(r'\{\{ demos\["([^\s]*)"\] \}\}', guide_text)
@@ -143,7 +203,7 @@ def render_guides():
         ) as general_template_file:
             general_template = Template(general_template_file.read())
         with open(os.path.join("generated", guide, "index.html"), "w", encoding='utf-8') as generated_template:
-            output_html = general_template.render(template_html=output_html, demo_names=demo_names)
+            output_html = general_template.render(template_html=output_html, demo_names=demo_names, meta_tags=meta_tags)
             generated_template.write(output_html)
 
 
