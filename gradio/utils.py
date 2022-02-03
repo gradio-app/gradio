@@ -196,6 +196,7 @@ def get_config_file(interface: Interface) -> Dict[str, Any]:
         "show_output": interface.show_output,
         "title": interface.title,
         "description": interface.description,
+        "simple_description": interface.simple_description,
         "article": interface.article,
         "theme": interface.theme,
         "css": interface.css,

@@ -37,7 +37,7 @@
         <h1 class="title text-center p-4 text-4xl">{title}</h1>
       {/if}
       {#if description}
-        <p class="description pb-4">{description}</p>
+        <p class="description pb-4">{@html description}</p>
       {/if}
       <Interface
         {input_components}
