@@ -1,0 +1,5 @@
+node_modules
+public/build/
+
+.DS_Store
+.pnpm-debug.log

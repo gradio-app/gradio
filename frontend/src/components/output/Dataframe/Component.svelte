@@ -5,8 +5,6 @@
     value,
     theme,
     setValue = () => {};
-
-  $: console.log(headers, value);
 </script>
 
 <DataFrame
