@@ -1,7 +1,8 @@
-<script>
+<script lang="ts">
 	import JsonNode from "./JsonNode.svelte";
 
-	export let value, theme;
+	export let value: any;
+	export let theme: string;
 </script>
 
 <div class="output-json font-mono leading-relaxed" {theme}>
