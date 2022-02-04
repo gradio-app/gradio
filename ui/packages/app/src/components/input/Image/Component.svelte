@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import Cropper from "../../utils/Cropper.svelte";
 
 	import Upload from "../../utils/Upload.svelte";
@@ -7,16 +7,31 @@
 	import ImageEditor from "../../utils/ImageEditor.svelte";
 	import Sketch from "../../utils/Sketch.svelte";
 	import Webcam from "../../utils/Webcam.svelte";
-	export let value, setValue, theme, static_src;
-	export let source = "upload";
-	export let tool = "editor";
+	export let value: null | string;
+	export let setValue: (val: typeof value) => typeof value;
+	export let theme: string;
+	export let static_src: string;
+	export let source: "canvas" | "webcam" | "upload" = "upload";
+	export let tool: "editor" | "select" = "editor";
 
-	let mode;
-	let sketch;
+	let mode: "edit" | "view" = "view";
+	let sketch: Sketch;
 
-	function handle_save({ detail }) {
+	interface FileData {
+		name: string;
+		size: number;
+		data: string;
+		is_example: false;
+	}
+
+	function handle_save({ detail }: { detail: string }) {
 		setValue(detail);
 		mode = "view";
+	}
+
+	function handle_load(val: string | FileData | (string | FileData)[] | null) {
+		setValue(val as string);
+		return val;
 	}
 </script>
 
@@ -40,7 +55,7 @@
 			{#if source === "upload"}
 				<Upload
 					filetype="image/x-png,image/gif,image/jpeg"
-					load={setValue}
+					load={handle_load}
 					include_file_metadata={false}
 					{theme}
 				>
