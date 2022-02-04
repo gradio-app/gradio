@@ -30,10 +30,17 @@ for guide in sorted(os.listdir(GRADIO_GUIDES_DIR)):
     with open(os.path.join(GRADIO_GUIDES_DIR, guide), "r") as f:
         guide_content = f.read()
 
+    tags = []
+    if "tags: " in guide_content:
+        tags = guide_content.split("tags: ")[1].split("\n")[0].split(", ")
+        tags = tags[:3]
+        tags = " • ".join(tags)
+
     guide_dict = {
         "guide_name": guide_name,
         "pretty_guide_name": pretty_guide_name,
         "guide_content": guide_content,
+        "tags": tags
     }
     guides.append(guide_dict)
 
