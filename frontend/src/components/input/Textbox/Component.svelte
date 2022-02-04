@@ -8,7 +8,7 @@
     class="input-text w-full rounded box-border p-2 focus:outline-none appearance-none"
     {value}
     {placeholder}
-    on:change={(e) => setValue(e.target.value)}
+    on:input={(e) => setValue(e.target.value)}
     {theme}
   />
 {:else}
