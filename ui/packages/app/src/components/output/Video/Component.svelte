@@ -1,7 +1,10 @@
-<script>
+<script lang="ts">
 	import { prettyBytes, playable } from "../../utils/helpers";
 
-	export let value, theme;
+	export let value: {
+		name: string;
+		data: string;
+	};
 </script>
 
 <div
@@ -13,7 +16,7 @@
 			class="video_preview w-full h-full object-contain"
 			controls
 			playsInline
-			preload
+			preload="auto"
 			src={value.data}
 		/>
 	{:else}

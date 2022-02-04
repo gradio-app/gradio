@@ -8,8 +8,8 @@
 	import { tooltip } from "./tooltip.js";
 
 	export let value: string | Array<Record<string, string>>;
-	export let x: string;
-	export let y: Array<string>;
+	export let x: string | undefined = undefined;
+	export let y: Array<string> | undefined = undefined;
 
 	const dispatch = createEventDispatcher();
 
