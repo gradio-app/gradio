@@ -1,31 +1,49 @@
-<script>
+<script lang="ts">
 	import { onDestroy } from "svelte";
 	import Upload from "../../utils/Upload.svelte";
 	import ModifyUpload from "../../utils/ModifyUpload.svelte";
+	//@ts-ignore
 	import Range from "svelte-range-slider-pips";
 
-	export let value,
+	interface Value {
+		data: string;
+		is_example: boolean;
+		name: string;
+		size: number;
+	}
+
+	export let value: null | Value;
+	export let setValue: Function;
+	export let theme: string;
+	export let name: string;
+	export let static_src: string;
+	export let is_example: boolean = false;
+	export let source: "microphone" | "upload";
+
+	$: console.log({
+		value,
 		setValue,
 		theme,
 		name,
 		static_src,
-		is_example = false;
-	export let source;
+		is_example,
+		source
+	});
 
 	let recording = false;
-	let recorder;
+	let recorder: MediaRecorder;
 	let mode = "";
-	let audio_chunks = [];
+	let audio_chunks: Array<Blob> = [];
 	let audio_blob;
 	let player;
 	let inited = false;
 	let crop_values = [0, 100];
 
-	function blob_to_data_url(blob) {
+	function blob_to_data_url(blob: Blob): Promise<string> {
 		return new Promise((fulfill, reject) => {
 			let reader = new FileReader();
 			reader.onerror = reject;
-			reader.onload = (e) => fulfill(reader.result);
+			reader.onload = (e) => fulfill(reader.result as string);
 			reader.readAsDataURL(blob);
 		});
 	}
@@ -74,7 +92,7 @@
 		mode = "";
 	}
 
-	function loaded(node) {
+	function loaded(node: HTMLAudioElement) {
 		function clamp_playback() {
 			const start_time = (crop_values[0] / 100) * node.duration;
 			const end_time = (crop_values[1] / 100) * node.duration;
@@ -93,6 +111,20 @@
 		return {
 			destroy: () => node.removeEventListener("timeupdate", clamp_playback)
 		};
+	}
+
+	function handle_change({
+		detail: { values }
+	}: {
+		detail: { values: [number, number] };
+	}) {
+		setValue({
+			data: value?.data,
+			name,
+			is_example,
+			crop_min: values[0],
+			crop_max: values[1]
+		});
 	}
 </script>
 
@@ -146,14 +178,7 @@
 				min={0}
 				max={100}
 				step={1}
-				on:change={({ detail: { values } }) =>
-					setValue({
-						data: value.data,
-						name,
-						is_example,
-						crop_min: values[0],
-						crop_max: values[1]
-					})}
+				on:change={handle_change}
 			/>
 		{/if}
 	{/if}
