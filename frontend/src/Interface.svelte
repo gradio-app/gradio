@@ -18,7 +18,8 @@
     allow_interpretation,
     avg_durations,
     live,
-    queue;
+    queue,
+    static_src;
 
   let examples_dir = root + "file/";
   let interpret_mode = false;
