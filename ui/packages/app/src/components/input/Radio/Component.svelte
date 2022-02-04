@@ -1,6 +1,8 @@
-<script>
-	export let value, setValue, theme;
-	export let choices;
+<script lang="ts">
+	export let value: string;
+	export let setValue: (val: string) => string;
+	export let theme: string;
+	export let choices: Array<string>;
 </script>
 
 <div class="input-radio flex flex-wrap gap-2" {theme}>
@@ -8,7 +10,6 @@
 		<button
 			class="radio-item py-2 px-3 font-semibold rounded cursor-pointer flex items-center gap-2"
 			class:selected={value === choice}
-			key={i}
 			on:click={() => setValue(choice)}
 		>
 			<div class="radio-circle w-4 h-4 rounded-full box-border" />
