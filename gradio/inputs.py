@@ -1574,6 +1574,8 @@ class Timeseries(InputComponent):
 class State(InputComponent):
     """
     Special hidden component that stores state across runs of the interface.
+    Input type: Any
+    Demos: chatbot
     """
 
     def __init__(self, label: str = None, default: Any = None):

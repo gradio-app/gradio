@@ -797,6 +797,8 @@ class Timeseries(OutputComponent):
 class State(OutputComponent):
     """
     Special hidden component that stores state across runs of the interface.
+    Output type: Any
+    Demos: chatbot
     """
 
     def __init__(self, label: Optional[str] = None):
