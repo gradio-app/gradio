@@ -1,6 +1,8 @@
-<script>
-	export let value, setValue, theme;
-	export let choices;
+<script lang="ts">
+	export let value: string;
+	export let setValue: (val: typeof value) => typeof value;
+	export let theme: string;
+	export let choices: Array<string>;
 </script>
 
 <div class="input-dropdown group inline-block relative" {theme}>
@@ -22,7 +24,6 @@
 				<li
 					class="dropdown-item first:rounded-t transition last:rounded-b py-2 px-3 block whitespace-nowrap cursor-pointer"
 					on:click={() => setValue(choice)}
-					key={i}
 				>
 					{choice}
 				</li>
