@@ -1,0 +1,8 @@
+{
+  "interface": {
+    "submit": "Submit",
+    "clear": "Clear",
+    "interpret": "Interpret",
+    "flag": "Flag"
+  }
+}

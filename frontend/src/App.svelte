@@ -1,5 +1,7 @@
 <script>
   import Interface from "./Interface.svelte";
+  import { setupi18n } from "./i18n";
+  setupi18n()
 
   export let title;
   export let description;
