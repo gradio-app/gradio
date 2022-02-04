@@ -200,6 +200,7 @@
                 ]}
                 {...input_component}
                 {theme}
+                {static_src}
                 value={input_values[i]}
                 interpretation={interpret_mode
                   ? interpretation_values[i]
@@ -272,6 +273,7 @@
                 this={output_component_map[output_component.name].component}
                 {...output_component}
                 {theme}
+                {static_src}
                 value={output_values[i]}
               />
             </div>
