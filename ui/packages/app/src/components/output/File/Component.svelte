@@ -1,7 +1,12 @@
-<script>
+<script lang="ts">
 	import { prettyBytes } from "../../utils/helpers";
 
-	export let value, theme;
+	export let value: {
+		data: string;
+		name: string;
+		size: number;
+	};
+	export let theme: string;
 </script>
 
 <a

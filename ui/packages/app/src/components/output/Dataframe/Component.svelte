@@ -1,10 +1,14 @@
-<script>
+<script lang="ts">
 	import DataFrame from "../../input/DataFrame/Component.svelte";
 
-	export let headers,
-		value,
-		theme,
-		setValue = () => {};
+	export let headers: Array<string>;
+	export let value: {
+		data: (string | number)[][];
+		headers: Array<string>;
+	};
+	export let setValue: (
+		val: Array<Array<string | number>>
+	) => Array<Array<string | number>> = (v) => v;
 </script>
 
 <DataFrame
@@ -12,5 +16,4 @@
 	values={value.data}
 	{setValue}
 	editable={false}
-	{theme}
 />

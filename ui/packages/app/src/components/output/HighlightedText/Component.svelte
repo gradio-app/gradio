@@ -1,10 +1,12 @@
-<script>
+<script lang="ts">
 	import { getNextColor } from "../../utils/helpers";
 
-	export let value, theme;
-	export let show_legend, color_map;
-	color_map = color_map || {};
-	let mode;
+	export let value: Array<[string, string | number]>;
+	export let theme: string;
+	export let show_legend: boolean;
+	export let color_map: Record<string, string> = {};
+
+	let mode: "categories" | "scores";
 
 	if (value.length > 0) {
 		for (let [_, label] of value) {
@@ -27,11 +29,10 @@
 	{#if mode === "categories"}
 		{#if show_legend}
 			<div class="category-legend flex flex-wrap gap-1 mb-2">
-				{#each color_map.entries() as [category, color], i}
+				{#each Object.entries(color_map) as [category, color], i}
 					<div
 						class="category-label px-2 py-1 rounded text-white font-semibold"
 						style={"background-color" + color}
-						key={i}
 					>
 						{category}
 					</div>
@@ -44,13 +45,11 @@
 			{#each value as [text, category], i}
 				<span
 					class="textspan p-1 mr-0.5 bg-opacity-20 dark:bg-opacity-80 rounded-sm"
-					title={category}
 					style={category === null
 						? ""
 						: `color: ${color_map[category]}; background-color: ${color_map[
 								category
 						  ].replace("1)", "var(--tw-bg-opacity))")}`}
-					key={i}
 				>
 					<span class="text dark:text-white">{text}</span>
 					{#if !show_legend && category !== null}
@@ -83,7 +82,6 @@
 			{#each value as [text, score], i}
 				<span
 					class="textspan p-1 mr-0.5 bg-opacity-20 dark:bg-opacity-80 rounded-sm"
-					title={value}
 					style={"background-color: rgba(" +
 						(score < 0 ? "141, 131, 214," + -score : "235, 77, 75," + score) +
 						")"}
