@@ -1,10 +1,10 @@
-function delay(n) {
+function delay(n: number) {
 	return new Promise(function (resolve) {
 		setTimeout(resolve, n * 1000);
 	});
 }
 
-let postData = async (url, body) => {
+let postData = async (url: string, body: unknown) => {
 	const output = await fetch(url, {
 		method: "POST",
 		body: JSON.stringify(body),
@@ -13,7 +13,13 @@ let postData = async (url, body) => {
 	return output;
 };
 
-export const fn = async (api_endpoint, action, data, queue, queue_callback) => {
+export const fn = async (
+	api_endpoint: string,
+	action: string,
+	data: Record<string, unknown>,
+	queue: boolean,
+	queue_callback: (pos: number | null, is_initial?: boolean) => void
+) => {
 	if (queue && ["predict", "interpret"].includes(action)) {
 		data["action"] = action;
 		const output = await postData(api_endpoint + "queue/push/", data);

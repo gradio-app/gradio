@@ -1,5 +1,5 @@
 <script>
-	import { input_component_map } from "./components/directory.js";
+	import { input_component_map } from "./components/directory";
 
 	export let examples,
 		examples_dir,

@@ -5,7 +5,7 @@
 	import { createEventDispatcher, onMount } from "svelte";
 
 	import { get_domains, transform_values, get_color } from "./utils";
-	import { tooltip } from "./tooltip.js";
+	import { tooltip } from "./tooltip";
 
 	export let value: string | Array<Record<string, string>>;
 	export let x: string | undefined = undefined;

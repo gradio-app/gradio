@@ -1,23 +1,23 @@
-<script>
+<script lang="ts">
 	import Interface from "./Interface.svelte";
 	import "./global.css";
 
-	export let title;
-	export let description;
-	export let article;
-	export let theme;
-	export let dark;
-	export let input_components;
-	export let output_components;
-	export let examples;
-	export let fn;
-	export let root;
-	export let space;
-	export let allow_flagging;
-	export let allow_interpretation;
-	export let live;
-	export let queue;
-	export let static_src;
+	export let title: string;
+	export let description: string;
+	export let article: string;
+	export let theme: string;
+	export let dark: boolean;
+	export let input_components: unknown;
+	export let output_components: unknown;
+	export let examples: unknown;
+	export let fn: unknown;
+	export let root: boolean;
+	export let space: string;
+	export let allow_flagging: boolean;
+	export let allow_interpretation: boolean;
+	export let live: boolean;
+	export let queue: boolean;
+	export let static_src: string;
 
 	$: embedded = space !== undefined;
 </script>

@@ -3,6 +3,7 @@ import Login from "./Login.svelte";
 import { fn } from "./api";
 
 window.launchGradio = (config, element_query) => {
+	console.log(config);
 	let target = document.querySelector(element_query);
 	if (config.root === undefined) {
 		config.root = BACKEND_URL;

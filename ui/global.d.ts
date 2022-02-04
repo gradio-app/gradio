@@ -4,3 +4,9 @@ declare namespace svelte.JSX {
 		"item-type"?: string;
 	}
 }
+
+declare namespace global {
+	interface Window {
+		gradio_mode: "app" | "website";
+	}
+}

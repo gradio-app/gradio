@@ -1,15 +1,20 @@
-<script>
+<script lang="ts">
 	import {
 		input_component_map,
 		output_component_map
-	} from "./components/directory.js";
-	import { deepCopy } from "./components/utils/helpers.js";
+	} from "./components/directory";
+	import { deepCopy } from "./components/utils/helpers";
 	import ExampleSet from "./ExampleSet.svelte";
 
-	export let input_components;
-	export let output_components;
-	export let theme;
-	export let fn;
+	interface Component {
+		name: string;
+		[key: string]: unknown;
+	}
+
+	export let input_components: Array<Component>;
+	export let output_components: Array<Component>;
+	export let theme: string;
+	export let fn: unknown;
 	export let examples;
 	export let root;
 	export let allow_flagging;
