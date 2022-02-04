@@ -1,5 +1,9 @@
-<script>
-	export let value, theme;
+<script lang="ts">
+	export let value: {
+		label: string;
+		confidences?: Array<{ label: string; confidence: number }>;
+	};
+	export let theme: string;
 </script>
 
 <div class="output-label" {theme}>
@@ -9,14 +13,13 @@
 	>
 		{value.label}
 	</div>
-	{#if "confidences" in value}
+	{#if value.confidences}
 		<div class="confidence-intervals flex text-xl">
-			<div class="labels mr-2" style={{ maxWidth: "120px" }}>
-				{#each value.confidences as confidence_set, i}
+			<div class="labels mr-2" style="maxWidth: 120px">
+				{#each value.confidences as confidence_set}
 					<div
 						class="label overflow-hidden whitespace-nowrap h-7 mb-2 overflow-ellipsis text-right"
 						title={confidence_set.label}
-						key={i}
 					>
 						{confidence_set.label}
 					</div>
@@ -26,10 +29,9 @@
 				{#each value.confidences as confidence_set, i}
 					<div
 						class="confidence flex justify-end items-center overflow-hidden whitespace-nowrap h-7 mb-2 px-1"
-						style={"min-width: calc(" +
-							Math.round(confidence_set.confidence * 100) +
-							"% - 12px)"}
-						key={i}
+						style="min-width: calc(
+							{Math.round(confidence_set.confidence * 100)}
+							% - 12px)"
 					>
 						{Math.round(confidence_set.confidence * 100) + "%"}
 					</div>
