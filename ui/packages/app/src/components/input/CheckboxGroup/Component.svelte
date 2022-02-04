@@ -1,8 +1,11 @@
-<script>
-	export let value, setValue, theme;
-	export let choices;
+<script lang="ts">
+	export let value: Array<string>;
+	export let setValue: (val: typeof value) => typeof value;
+	export let choices: Array<string>;
 
-	const toggleChoice = (choice) => {
+	export let theme: string;
+
+	const toggleChoice = (choice: string) => {
 		if (value.includes(choice)) {
 			value.splice(value.indexOf(choice), 1);
 		} else {
@@ -17,7 +20,6 @@
 		<button
 			class="checkbox-item py-2 px-3 font-semibold rounded cursor-pointer flex items-center gap-2"
 			class:selected={value.includes(choice)}
-			key={i}
 			on:click={() => toggleChoice(choice)}
 		>
 			<div class="checkbox w-4 h-4 bg-white flex items-center justify-center">

@@ -1,28 +1,33 @@
-<script>
+<script lang="ts">
 	import { tick } from "svelte";
 
-	export let theme = "";
 	export let label = "Title";
-	export let headers = [];
-	export let values = [
+	export let headers: Array<string> = [];
+	export let values: Array<Array<string | number>> = [
 		["Frank", 32, "Male"],
 		["Beatrice", 99, "Female"],
 		["Simone", 999, "Male"]
 	];
-	export let setValue;
+
+	export let setValue: (val: typeof values) => typeof values;
 	export let editable = true;
 
 	let id = 0;
-	let editing = false;
-	let selected = false;
-	let els = {};
+	let editing: boolean | number = false;
+	let selected: boolean | number = false;
+	let els: Record<
+		string,
+		{ cell: null | HTMLTableCellElement; input: null | HTMLInputElement }
+	> = {};
 
-	function make_headers(_h) {
+	type Headers = Array<{ value: string; id: number }>;
+
+	function make_headers(_h: Array<string>): Headers {
 		if (_h.length === 0) {
 			return values[0].map((_, i) => {
 				const _id = ++id;
 				els[_id] = { cell: null, input: null };
-				return { id: _id, value: i + 1 };
+				return { id: _id, value: JSON.stringify(i + 1) };
 			});
 		} else {
 			return _h.map((h) => {
@@ -55,22 +60,32 @@
 
 	$: setValue(data.map((r) => r.map(({ value }) => value)));
 
-	function get_sort_status(name, sort) {
+	function get_sort_status(
+		name: string,
+		sort: number,
+		direction?: SortDirection
+	) {
 		if (!sort) return "none";
-		if (sort[0] === name) {
-			return sort[1];
+		if (headers[sort] === name) {
+			if (direction === "asc") return "ascending";
+			if (direction === "des") return "descending";
 		}
 	}
 
-	async function start_edit(id) {
+	async function start_edit(id: number) {
 		if (!editable) return;
 		editing = id;
 		await tick();
 		const { input } = els[id];
-		input.focus();
+		input?.focus();
 	}
 
-	function handle_keydown(event, i, j, id) {
+	function handle_keydown(
+		event: KeyboardEvent,
+		i: number,
+		j: number,
+		id: number
+	) {
 		let is_data;
 		switch (event.key) {
 			case "ArrowRight":
@@ -116,18 +131,22 @@
 		}
 	}
 
-	async function handle_cell_click(id) {
+	async function handle_cell_click(id: number) {
 		editing = false;
 		selected = id;
 	}
 
-	async function set_focus(id, type) {
+	async function set_focus(id: number | boolean, type: "edit" | "select") {
 		if (type === "edit" && typeof id == "number") {
 			await tick();
-			els[id].input.focus();
+			els[id].input?.focus();
 		}
 
-		if (type === "edit" && typeof id == "boolean") {
+		if (
+			type === "edit" &&
+			typeof id == "boolean" &&
+			typeof selected === "number"
+		) {
 			let cell = els[selected]?.cell;
 			await tick();
 			cell?.focus();
@@ -135,19 +154,20 @@
 
 		if (type === "select" && typeof id == "number") {
 			const { cell } = els[id];
-			cell.setAttribute("tabindex", 0);
+			cell?.setAttribute("tabindex", "0");
 			await tick();
-			els[id].cell.focus();
+			els[id].cell?.focus();
 		}
 	}
 
 	$: set_focus(editing, "edit");
 	$: set_focus(selected, "select");
 
-	let sort_direction;
-	let sort_by;
+	type SortDirection = "asc" | "des";
+	let sort_direction: SortDirection;
+	let sort_by: number;
 
-	function sort(col, dir) {
+	function sort(col: number, dir: SortDirection) {
 		if (dir === "asc") {
 			data = data.sort((a, b) => (a[col].value < b[col].value ? -1 : 1));
 		} else if (dir === "des") {
@@ -155,7 +175,7 @@
 		}
 	}
 
-	function handle_sort(col) {
+	function handle_sort(col: number) {
 		if (typeof sort_by !== "number" || sort_by !== col) {
 			sort_direction = "asc";
 			sort_by = col;
@@ -170,18 +190,18 @@
 		sort(col, sort_direction);
 	}
 
-	let header_edit;
+	let header_edit: number | boolean;
 
-	async function edit_header(_id, select) {
+	async function edit_header(_id: number, select?: boolean) {
 		if (!editable) return;
 		header_edit = _id;
 		await tick();
-		els[_id].input.focus();
+		els[_id].input?.focus();
 
-		if (select) els[_id].input.select();
+		if (select) els[_id].input?.select();
 	}
 
-	function end_header_edit(event) {
+	function end_header_edit(event: KeyboardEvent) {
 		if (!editable) return;
 
 		switch (event.key) {
@@ -225,10 +245,13 @@
 		edit_header(_id, true);
 	}
 
-	const double_click = (node, { click, dblclick }) => {
-		let timer;
+	const double_click = (
+		node: HTMLElement,
+		{ click, dblclick }: { click: Function; dblclick: Function }
+	) => {
+		let timer: NodeJS.Timeout | undefined;
 
-		function handler(event) {
+		function handler(event: MouseEvent) {
 			if (timer) {
 				clearTimeout(timer);
 				timer = undefined;
@@ -266,7 +289,7 @@
 							click: () => handle_sort(i),
 							dblclick: () => edit_header(id)
 						}}
-						aria-sort={get_sort_status(value, sort_by)}
+						aria-sort={get_sort_status(value, sort_by, sort_direction)}
 						class="relative after:absolute after:opacity-0 after:content-['▲'] after:ml-2 after:inset-y-0 after:h-[1.05rem] after:m-auto relative px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
 						class:sorted={sort_by === i}
 						class:des={sort_by === i && sort_direction === "des"}
@@ -279,7 +302,7 @@
 								bind:this={els[id].input}
 								on:keydown={end_header_edit}
 								on:blur={({ currentTarget }) =>
-									currentTarget.setAttribute("tabindex", -1)}
+									currentTarget.setAttribute("tabindex", "-1")}
 							/>
 						{/if}
 						<span
@@ -303,7 +326,7 @@
 							on:keydown={(e) => handle_keydown(e, i, j, id)}
 							bind:this={els[id].cell}
 							on:blur={({ currentTarget }) =>
-								currentTarget.setAttribute("tabindex", -1)}
+								currentTarget.setAttribute("tabindex", "-1")}
 						>
 							<div
 								class:border-gray-600={selected === id}
@@ -317,7 +340,7 @@
 										bind:value
 										bind:this={els[id].input}
 										on:blur={({ currentTarget }) =>
-											currentTarget.setAttribute("tabindex", -1)}
+											currentTarget.setAttribute("tabindex", "-1")}
 									/>
 								{/if}
 								<span

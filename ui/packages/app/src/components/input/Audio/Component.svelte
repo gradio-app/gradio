@@ -1,19 +1,14 @@
 <script lang="ts">
+	import type { Value } from "./types";
+
 	import { onDestroy } from "svelte";
 	import Upload from "../../utils/Upload.svelte";
 	import ModifyUpload from "../../utils/ModifyUpload.svelte";
 	//@ts-ignore
 	import Range from "svelte-range-slider-pips";
 
-	interface Value {
-		data: string;
-		is_example: boolean;
-		name: string;
-		size: number;
-	}
-
 	export let value: null | Value;
-	export let setValue: Function;
+	export let setValue: (val: typeof value) => typeof value;
 	export let theme: string;
 	export let name: string;
 	export let static_src: string;
@@ -118,8 +113,10 @@
 	}: {
 		detail: { values: [number, number] };
 	}) {
+		if (!value?.data) return;
+
 		setValue({
-			data: value?.data,
+			data: value.data,
 			name,
 			is_example,
 			crop_min: values[0],
