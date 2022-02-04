@@ -1,6 +1,8 @@
 <script>
 	import { createEventDispatcher, onMount } from "svelte";
 
+	export let static_src;
+
 	let video_source = null;
 	let canvas;
 
@@ -58,7 +60,7 @@
 	>
 		<img
 			style="color: white"
-			src="static/img/camera.svg"
+			src="{static_src}/static/img/camera.svg"
 			alt="take a screenshot"
 			class="w-2/4 h-2/4"
 		/>

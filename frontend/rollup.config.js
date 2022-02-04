@@ -9,8 +9,10 @@ import replace from '@rollup/plugin-replace';
 import json from "@rollup/plugin-json";
 import copy from 'rollup-plugin-copy';
 import postcss from 'rollup-plugin-postcss';
+var fs = require("fs");
 
 const production = !process.env.ROLLUP_WATCH;
+const PIP_VERSION = fs.readFileSync("../gradio/version.txt")
 
 function serve() {
 	let server;
@@ -56,7 +58,8 @@ export default {
 		json(),
 		replace({
 			BUILD_MODE: production ? "prod" : "dev",
-			BACKEND_URL: production ? "" : "http://localhost:7860/"
+			BACKEND_URL: production ? "" : "http://localhost:7860/",
+			PIP_VERSION: PIP_VERSION
 		}),
 		postcss({
 			extract: 'themes.css',

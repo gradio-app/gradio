@@ -8,6 +8,7 @@
     setValue,
     theme,
     name,
+    static_src,
     is_example = false;
   export let source;
 
@@ -126,6 +127,7 @@
       edit={() => (mode = "edit")}
       absolute={false}
       {theme}
+      {static_src}
     />
 
     <audio
