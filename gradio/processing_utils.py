@@ -130,6 +130,7 @@ def audio_from_file(filename, crop_min=0, crop_max=100):
 
 
 def audio_to_file(sample_rate, data, filename):
+    data = convert_to_16_bit_wav(data)
     audio = AudioSegment(
         data.tobytes(),
         frame_rate=sample_rate,
@@ -137,6 +138,32 @@ def audio_to_file(sample_rate, data, filename):
         channels=(1 if len(data.shape) == 1 else data.shape[1]),
     )
     audio.export(filename, format="wav").close()
+    
+    
+def convert_to_16_bit_wav(data):
+    # Based on: https://docs.scipy.org/doc/scipy/reference/generated/scipy.io.wavfile.write.html
+    if data.dtype==np.float32:
+        warnings.warn("Audio data is not in 16-bit integer format." 
+                        "Trying to convert to 16-bit int format.")
+        data = data / np.abs(data).max()
+        data = data * 32767
+        data = data.astype(np.int16)
+    elif data.dtype==np.int32:
+        warnings.warn("Audio data is not in 16-bit integer format." 
+                        "Trying to convert to 16-bit int format.")
+        data = data / 65538
+        data = data.astype(np.int16)
+    elif data.dtype==np.int16:
+        pass
+    elif data.dtype==np.uint8:
+        warnings.warn("Audio data is not in 16-bit integer format." 
+                        "Trying to convert to 16-bit int format.")
+        data = data * 257 - 32768
+        data = data.astype(np.int16)
+    else:
+        raise ValueError("Audio data cannot be converted to "
+                            "16-bit int format.") 
+    return data                   
 
 
 ##################
