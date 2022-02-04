@@ -16,10 +16,7 @@ jobs:
           command: |
             python3 -m venv venv
             . venv/bin/activate
-            pip install --upgrade pip
-            pip install -r gradio.egg-info/requires.txt
-            pip install shap IPython comet_ml wandb mlflow tensorflow transformers huggingface_hub
-            pip install selenium==4.0.0a6.post2 coverage scikit-image
+            bash scripts/install_test_requirements.sh
       - run:
           command: |
             chromedriver --version
