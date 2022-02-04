@@ -1,5 +1,6 @@
 # Using Flagging
 
+related_spaces: https://huggingface.co/spaces/aliabd/calculator-flagging-crowdsourced, https://huggingface.co/spaces/aliabd/calculator-flagging-options, https://huggingface.co/spaces/aliabd/calculator-flag-basic
 tags: FLAGGING, DATA
 
 ## The `flag` button 
