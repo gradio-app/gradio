@@ -1,13 +1,21 @@
-<script>
-	export let value, setValue, theme;
-	export let minimum, maximum, step;
+<script lang="ts">
+	export let value: number;
+	export let setValue: (val: number) => number;
+	export let theme: string;
+	export let minimum: number;
+	export let maximum: number;
+	export let step: number;
+
+	function handle_input(event: Event) {
+		setValue(parseFloat((event.target as HTMLInputElement).value));
+	}
 </script>
 
 <div class="input-slider text-center" {theme}>
 	<input
 		type="range"
 		class="range w-full appearance-none transition rounded h-4"
-		on:input={(e) => setValue(parseFloat(e.target.value))}
+		on:input={handle_input}
 		{value}
 		min={minimum}
 		max={maximum}
