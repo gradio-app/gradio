@@ -19,7 +19,7 @@ setup(
         "aiohttp",
         "fastapi",
         "ffmpy",
-        "markdown2",
+        "markdown-it-py[linkify,plugins]",
         "matplotlib",
         "numpy",
         "pandas",

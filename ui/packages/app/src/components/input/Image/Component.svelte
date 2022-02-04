@@ -31,7 +31,11 @@
 				on:undo={() => sketch.undo()}
 				on:clear={() => sketch.clear()}
 			/>
-			<Sketch bind:this={sketch} on:change={({ detail }) => setValue(detail)} />
+			<Sketch
+				{value}
+				bind:this={sketch}
+				on:change={({ detail }) => setValue(detail)}
+			/>
 		{:else if value === null}
 			{#if source === "upload"}
 				<Upload

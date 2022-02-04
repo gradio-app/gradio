@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" style="min-height: 100%; margin: 0; padding: 0;">
+<html lang="en" style="height: 100%; margin: 0; padding: 0;">
 
 <head>
   <meta charset="utf-8" />
@@ -14,11 +14,11 @@
   <meta property="og:type" content="website" />
   <meta property="og:image" content="{{ config['thumbnail'] or '' }}" />
   <meta property="og:title" content="{{ config['title'] or '' }}" />
-  <meta property="og:description" content="{{ config['description'] or '' }}" />
+  <meta property="og:description" content="{{ config['simple_description'] or '' }}" />
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:creator" content="@teamGradio">
   <meta name="twitter:title" content="{{ config['title'] or '' }}">
-  <meta name="twitter:description" content="{{ config['description'] or '' }}">
+  <meta name="twitter:description" content="{{ config['simple_description'] or '' }}">
   <meta name="twitter:image" content="{{ config['thumbnail'] or '' }}">
   <script async src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
   <script>

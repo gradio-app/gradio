@@ -34,6 +34,15 @@ window.launchGradio = (config, element_query) => {
   }
 }
 
+window.launchGradioFromSpaces = async (space, target) => {
+  const space_url = `https://huggingface.co/gradioiframe/${space}/+/`;
+  let config = await fetch(space_url + "config");
+  config = await config.json();
+  config.root = space_url;
+  config.space = space;
+  launchGradio(config, target);
+}
+
 async function get_config() {
   if ('BUILD_MODE' === "dev") {
     let config = await fetch("BACKEND_URL" + "config");
