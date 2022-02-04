@@ -1,12 +1,18 @@
-<script>
-	export let value, setValue, theme;
+<script lang="ts">
+	export let value: number;
+	export let setValue: (val: number) => number;
+	export let theme: string;
+
+	function handle_input(event: Event) {
+		setValue(parseFloat((event.target as HTMLInputElement).value));
+	}
 </script>
 
 <input
 	type="number"
 	class="input-number w-full rounded box-border p-2 focus:outline-none appearance-none"
 	{value}
-	on:input={(e) => setValue(parseFloat(e.target.value))}
+	on:input={handle_input}
 	{theme}
 />
 
