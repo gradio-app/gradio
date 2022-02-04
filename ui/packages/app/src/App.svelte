@@ -1,6 +1,6 @@
 <script>
 	import Interface from "./Interface.svelte";
-	// import "./global.css";
+	import "./global.css";
 
 	export let title;
 	export let description;
