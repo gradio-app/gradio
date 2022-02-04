@@ -1,6 +1,9 @@
-<script>
-	export let value, setValue, theme;
-	export let lines, placeholder;
+<script lang="ts">
+	export let value: string;
+	export let setValue: (val: string) => string;
+	export let theme: string;
+	export let lines: number;
+	export let placeholder: string;
 </script>
 
 {#if lines > 1}
