@@ -428,7 +428,7 @@ class Audio(OutputComponent):
     def __init__(self, type: str = "auto", label: Optional[str] = None):
         """
         Parameters:
-        type (str): Type of value to be passed to component. "numpy" returns a 2-set tuple with an integer sample_rate and the data numpy.array of shape (samples, 2), "file" returns a temporary file path to the saved wav audio file, "auto" detects return type.
+        type (str): Type of value to be passed to component. "numpy" returns a 2-set tuple with an integer sample_rate and the data as 16-bit int numpy.array of shape (samples, 2), "file" returns a temporary file path to the saved wav audio file, "auto" detects return type.
         label (str): component name in interface.
         """
         self.type = type
@@ -442,6 +442,7 @@ class Audio(OutputComponent):
         return {
             "audio": {},
         }
+    
 
     def postprocess(self, y):
         """
@@ -452,7 +453,7 @@ class Audio(OutputComponent):
         """
         if self.type in ["numpy", "file", "auto"]:
             if self.type == "numpy" or (self.type == "auto" and isinstance(y, tuple)):
-                sample_rate, data = y
+                sample_rate, data = y                
                 file = tempfile.NamedTemporaryFile(
                     prefix="sample", suffix=".wav", delete=False
                 )
@@ -797,6 +798,8 @@ class Timeseries(OutputComponent):
 class State(OutputComponent):
     """
     Special hidden component that stores state across runs of the interface.
+    Output type: Any
+    Demos: chatbot
     """
 
     def __init__(self, label: Optional[str] = None):

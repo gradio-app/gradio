@@ -9,3 +9,4 @@ scikit-image
 shap
 pytest
 wandb
+huggingface_hub

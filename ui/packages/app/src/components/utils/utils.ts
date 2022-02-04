@@ -41,7 +41,6 @@ export function transform_values(
 	x?: string,
 	y?: string[]
 ) {
-	console.log(values);
 	const transformed_values = Object.entries(
 		values[0]
 	).reduce<TransformedValues>(
