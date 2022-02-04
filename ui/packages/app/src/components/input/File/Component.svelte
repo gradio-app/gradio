@@ -1,9 +1,15 @@
-<script>
+<script lang="ts">
+	import type { FileData } from "./types";
 	import Upload from "../../utils/Upload.svelte";
 	import ModifyUpload from "../../utils/ModifyUpload.svelte";
 	import { prettyBytes } from "../../utils/helpers";
 
-	export let value, setValue, theme, static_src;
+	export let value: null | FileData;
+	export let setValue: (
+		val: Array<string | FileData> | string | FileData | null
+	) => Array<string | FileData> | string | FileData | null;
+	export let theme: string;
+	export let static_src: string;
 </script>
 
 <div class="input-file" {theme}>
@@ -18,6 +24,7 @@
 			class="file-preview w-full flex flex-row flex-wrap justify-center items-center relative"
 		>
 			<ModifyUpload clear={() => setValue(null)} {theme} {static_src} />
+
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
 				class="h-10 w-1/5"
