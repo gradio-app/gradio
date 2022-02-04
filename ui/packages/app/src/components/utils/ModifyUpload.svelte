@@ -1,5 +1,5 @@
 <script>
-	export let edit, clear, theme;
+	export let edit, clear, theme, static_src;
 	export let absolute = true;
 </script>
 
@@ -15,7 +15,7 @@
 		>
 			<img
 				class="h-4 filter dark:invert"
-				src="static/img/edit.svg"
+				src="{static_src}/static/img/edit.svg"
 				alt="Edit"
 			/>
 		</button>
@@ -26,7 +26,7 @@
 	>
 		<img
 			class="h-4 filter dark:invert"
-			src="static/img/clear.svg"
+			src="{static_src}/static/img/clear.svg"
 			alt="Clear"
 		/>
 	</button>

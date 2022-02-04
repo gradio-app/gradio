@@ -7,7 +7,7 @@
 	import ImageEditor from "../../utils/ImageEditor.svelte";
 	import Sketch from "../../utils/Sketch.svelte";
 	import Webcam from "../../utils/Webcam.svelte";
-	export let value, setValue, theme;
+	export let value, setValue, theme, static_src;
 	export let source = "upload";
 	export let tool = "editor";
 
@@ -31,7 +31,11 @@
 				on:undo={() => sketch.undo()}
 				on:clear={() => sketch.clear()}
 			/>
-			<Sketch bind:this={sketch} on:change={({ detail }) => setValue(detail)} />
+			<Sketch
+				{value}
+				bind:this={sketch}
+				on:change={({ detail }) => setValue(detail)}
+			/>
 		{:else if value === null}
 			{#if source === "upload"}
 				<Upload
@@ -45,7 +49,7 @@
 					Click to Upload
 				</Upload>
 			{:else if source === "webcam"}
-				<Webcam on:capture={({ detail }) => setValue(detail)} />
+				<Webcam on:capture={({ detail }) => setValue(detail)} {static_src} />
 			{/if}
 		{:else if tool === "select"}
 			<Cropper image={value} on:crop={({ detail }) => setValue(detail)} />
@@ -61,6 +65,7 @@
 				edit={() => (mode = "edit")}
 				clear={() => setValue(null)}
 				{theme}
+				{static_src}
 			/>
 
 			<img class="w-full h-full object-contain" src={value} alt="" />
