@@ -1,4 +1,6 @@
 <script>
+  import { init } from "svelte/internal";
+
   import {
     input_component_map,
     output_component_map,
@@ -16,7 +18,8 @@
     allow_interpretation,
     avg_durations,
     live,
-    queue;
+    queue,
+    static_src;
 
   let examples_dir = root + "file/";
   let interpret_mode = false;
@@ -197,6 +200,7 @@
                 ]}
                 {...input_component}
                 {theme}
+                {static_src}
                 value={input_values[i]}
                 interpretation={interpret_mode
                   ? interpretation_values[i]
@@ -246,13 +250,13 @@
                 {/if}
               </div>
               <img
-                src="./static/img/logo.svg"
+                src="{static_src}/static/img/logo.svg"
                 alt="Pending"
                 class="pending h-5 ml-1 inline-block"
               />
             {:else if state === "ERROR"}
               <img
-                src="./static/img/logo_error.svg"
+                src="{static_src}/static/img/logo_error.svg"
                 alt="Error"
                 class="error h-5 ml-2 inline-block"
               />
@@ -269,6 +273,7 @@
                 this={output_component_map[output_component.name].component}
                 {...output_component}
                 {theme}
+                {static_src}
                 value={output_values[i]}
               />
             </div>
