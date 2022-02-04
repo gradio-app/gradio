@@ -25,8 +25,6 @@ import OutputTextbox from "./output/Textbox/config.js";
 import OutputVideo from "./output/Video/config.js";
 import OutputTimeSeries from "./output/TimeSeries/config.js";
 
-import Dummy from "./Dummy.svelte";
-
 export const input_component_map = {
 	audio: InputAudio,
 	checkbox: InputCheckbox,

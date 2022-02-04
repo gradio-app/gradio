@@ -1,4 +1,4 @@
-export const loadAsFile = async (x, examples_dir) => {
+export const loadAsFile = async (x: string, examples_dir: String) => {
 	return {
 		name: x,
 		data: examples_dir + x,
@@ -6,7 +6,10 @@ export const loadAsFile = async (x, examples_dir) => {
 	};
 };
 
-export const loadAsData = async (x, examples_dir) => {
+export const loadAsData = async (
+	x: string,
+	examples_dir: string
+): Promise<string> => {
 	let file_url = examples_dir + x;
 	let response = await fetch(file_url);
 	if (!response.ok) {
@@ -18,7 +21,7 @@ export const loadAsData = async (x, examples_dir) => {
 		reader.addEventListener(
 			"load",
 			function () {
-				resolve(reader.result);
+				resolve(reader.result as string);
 			},
 			false
 		);

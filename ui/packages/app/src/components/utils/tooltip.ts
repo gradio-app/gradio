@@ -1,9 +1,13 @@
 import Tooltip from "./Tooltip.svelte";
 
-export function tooltip(element, { color, text }) {
-	let div;
-	let tooltipComponent;
-	function mouseOver(event) {
+interface ActionArgs {
+	color: string;
+	text: string;
+}
+
+export function tooltip(element: HTMLElement, { color, text }: ActionArgs) {
+	let tooltipComponent: Tooltip;
+	function mouseOver(event: MouseEvent) {
 		tooltipComponent = new Tooltip({
 			props: {
 				text,
@@ -14,7 +18,7 @@ export function tooltip(element, { color, text }) {
 			target: document.body
 		});
 	}
-	function mouseMove(event) {
+	function mouseMove(event: MouseEvent) {
 		tooltipComponent.$set({
 			x: event.pageX,
 			y: event.pageY

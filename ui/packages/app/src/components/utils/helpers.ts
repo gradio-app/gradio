@@ -1,21 +1,21 @@
 // import mime from "mime-types";
 
-export const playable = (filename) => {
+export const playable = (filename: string): boolean => {
 	// let video_element = document.createElement("video");
 	// let mime_type = mime.lookup(filename);
 	// return video_element.canPlayType(mime_type) != "";
 	return true; // FIX BEFORE COMMIT - mime import causing issues
 };
 
-export const deepCopy = (obj) => {
+export const deepCopy = (obj: unknown): typeof obj => {
 	return JSON.parse(JSON.stringify(obj));
 };
 
-export function randInt(min, max) {
+export function randInt(min: number, max: number): number {
 	return Math.floor(Math.random() * (max - min) + min);
 }
 
-export const getNextColor = (index, alpha) => {
+export const getNextColor = (index: number, alpha?: number): string => {
 	alpha = alpha || 1;
 	let default_colors = [
 		[255, 99, 132],
@@ -49,7 +49,7 @@ export const getNextColor = (index, alpha) => {
 	);
 };
 
-export const prettyBytes = (bytes) => {
+export const prettyBytes = (bytes: number): string => {
 	let units = ["B", "KB", "MB", "GB", "PB"];
 	let i = 0;
 	while (bytes > 1024) {
@@ -60,8 +60,8 @@ export const prettyBytes = (bytes) => {
 	return bytes.toFixed(1) + " " + unit;
 };
 
-export const getSaliencyColor = (value) => {
-	var color = null;
+export const getSaliencyColor = (value: number): string => {
+	var color: [number, number, number] | null = null;
 	if (value < 0) {
 		color = [52, 152, 219];
 	} else {
@@ -70,12 +70,16 @@ export const getSaliencyColor = (value) => {
 	return colorToString(interpolate(Math.abs(value), [255, 255, 255], color));
 };
 
-const interpolate = (val, rgb1, rgb2) => {
+const interpolate = (
+	val: number,
+	rgb1: [number, number, number],
+	rgb2: [number, number, number]
+): [number, number, number] => {
 	if (val > 1) {
 		val = 1;
 	}
 	val = Math.sqrt(val);
-	var rgb = [0, 0, 0];
+	var rgb: [number, number, number] = [0, 0, 0];
 	var i;
 	for (i = 0; i < 3; i++) {
 		rgb[i] = Math.round(rgb1[i] * (1.0 - val) + rgb2[i] * val);
@@ -83,16 +87,16 @@ const interpolate = (val, rgb1, rgb2) => {
 	return rgb;
 };
 
-const colorToString = (rgb) => {
+const colorToString = (rgb: [number, number, number]): string => {
 	return "rgb(" + rgb[0] + ", " + rgb[1] + ", " + rgb[2] + ")";
 };
 
 export const getObjectFitSize = (
-	contains /* true = contain, false = cover */,
-	containerWidth,
-	containerHeight,
-	width,
-	height
+	contains: boolean /* true = contain, false = cover */,
+	containerWidth: number,
+	containerHeight: number,
+	width: number,
+	height: number
 ) => {
 	var doRatio = width / height;
 	var cRatio = containerWidth / containerHeight;
