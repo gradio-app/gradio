@@ -8,4 +8,4 @@
 	);
 </script>
 
-<Chart value={formatted_value} type="data" />
+<Chart value={formatted_value} />

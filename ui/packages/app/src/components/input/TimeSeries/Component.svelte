@@ -1,11 +1,22 @@
-<script>
+<script lang="ts">
 	import Upload from "../../utils/Upload.svelte";
 	import Chart from "../../utils/Chart.svelte";
 
-	export let value, setValue, theme, y, x;
-	let _value;
-	console.log("BOO");
-	function data_uri_to_blob(data_uri) {
+	interface Data {
+		data: Array<Array<number>> | string;
+		headers?: Array<string>;
+	}
+
+	export let value: null | Data;
+	export let setValue: (val: Data) => Data;
+	export let theme: string;
+	export let y: Array<string>;
+	export let x: string;
+	let _value: string | null;
+
+	$: console.log(y, x);
+
+	function data_uri_to_blob(data_uri: string) {
 		var byte_str = atob(data_uri.split(",")[1]);
 		var mime_str = data_uri.split(",")[0].split(":")[1].split(";")[0];
 
@@ -19,14 +30,15 @@
 		return new Blob([ab], { type: mime_str });
 	}
 
-	function blob_to_string(blb) {
+	function blob_to_string(blob: Blob) {
 		const reader = new FileReader();
 
 		reader.addEventListener("loadend", (e) => {
+			//@ts-ignore
 			_value = e.srcElement.result;
 		});
 
-		reader.readAsText(blb);
+		reader.readAsText(blob);
 	}
 
 	$: {
@@ -36,7 +48,18 @@
 		}
 	}
 
-	function make_dict(x, y) {
+	interface XRow {
+		name: string;
+		values: Array<number>;
+	}
+
+	interface YRow {
+		name: string;
+		values: Array<{ x: number; y: number }>;
+	}
+
+	function make_dict(x: XRow, y: Array<YRow>): Data {
+		console.log(x, y);
 		const headers = [];
 		const data = [];
 
@@ -52,6 +75,18 @@
 		}
 		return { headers, data };
 	}
+
+	interface FileData {
+		name: string;
+		size: number;
+		data: string;
+		is_example: false;
+	}
+
+	function handle_load(v: string | FileData | (string | FileData)[] | null) {
+		setValue({ data: v as string });
+		return v;
+	}
 </script>
 
 {#if _value}
@@ -65,7 +100,7 @@
 {#if !value}
 	<Upload
 		filetype="text/csv"
-		load={(v) => setValue({ data: v })}
+		load={handle_load}
 		include_file_metadata={false}
 		{theme}
 	>
