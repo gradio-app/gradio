@@ -1,10 +1,31 @@
-<script>
+<script lang="ts">
 	import Upload from "../../utils/Upload.svelte";
 	import ModifyUpload from "../../utils/ModifyUpload.svelte";
 	import { prettyBytes, playable } from "../../utils/helpers";
 
-	export let value, setValue, theme, static_src;
-	export let source;
+	interface Data {
+		data: string;
+		name: string;
+		size: number;
+	}
+
+	interface FileData {
+		name: string;
+		size: number;
+		data: string;
+		is_example: false;
+	}
+
+	export let value: Data;
+	export let setValue: (val: null | Data) => null | Data;
+	export let theme: string;
+	export let static_src: string;
+	export let source: string;
+
+	function handle_load(v: string | FileData | (string | FileData)[] | null) {
+		setValue(v as Data);
+		return v;
+	}
 </script>
 
 <div
@@ -13,7 +34,11 @@
 >
 	{#if value === null}
 		{#if source === "upload"}
-			<Upload filetype="video/mp4,video/x-m4v,video/*" load={setValue} {theme}>
+			<Upload
+				filetype="video/mp4,video/x-m4v,video/*"
+				load={handle_load}
+				{theme}
+			>
 				Drop Video Here
 				<br />- or -<br />
 				Click to Upload
@@ -27,7 +52,7 @@
 				class="w-full h-full object-contain bg-black"
 				controls
 				playsInline
-				preload
+				preload="auto"
 				src={value.data}
 			/>
 		{:else}
