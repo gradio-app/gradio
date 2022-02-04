@@ -52,7 +52,6 @@ window.launchGradioFromSpaces = async (space, target) => {
 
 async function get_config() {
 	if (BUILD_MODE === "dev") {
-		console.log(BACKEND_URL);
 		let config = await fetch(BACKEND_URL + "config");
 		config = await config.json();
 		return config;

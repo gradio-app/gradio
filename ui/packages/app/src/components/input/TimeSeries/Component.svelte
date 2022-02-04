@@ -14,8 +14,6 @@
 	export let x: string;
 	let _value: string | null;
 
-	$: console.log(y, x);
-
 	function data_uri_to_blob(data_uri: string) {
 		var byte_str = atob(data_uri.split(",")[1]);
 		var mime_str = data_uri.split(",")[0].split(":")[1].split(";")[0];

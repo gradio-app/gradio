@@ -11,16 +11,12 @@
 	export let x: string;
 	export let y: Array<string>;
 
-	$: console.log(value);
-
 	const dispatch = createEventDispatcher();
 
 	$: ({ x: _x, y: _y } =
 		typeof value === "string"
-			? transform_values(csvParse(value), x, y)
+			? transform_values(csvParse(value) as Array<Record<string, string>>, x, y)
 			: transform_values(value, x, y));
-
-	$: console.log(_x, _y);
 
 	$: x_domain = get_domains(_x);
 	$: y_domain = get_domains(_y);

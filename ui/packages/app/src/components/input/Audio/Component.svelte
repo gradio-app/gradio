@@ -15,16 +15,6 @@
 	export let is_example: boolean = false;
 	export let source: "microphone" | "upload";
 
-	$: console.log({
-		value,
-		setValue,
-		theme,
-		name,
-		static_src,
-		is_example,
-		source
-	});
-
 	let recording = false;
 	let recorder: MediaRecorder;
 	let mode = "";
