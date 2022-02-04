@@ -1,0 +1,8 @@
+{
+  "interface": {
+    "submit": "Enviar",
+    "clear": "Limpiar",
+    "interpret": "Interpretar",
+    "flag": "Avisar"
+  }
+}

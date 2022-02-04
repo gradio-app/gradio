@@ -5,6 +5,8 @@
   } from "./components/directory.js";
   import { deepCopy } from "./components/utils/helpers.js";
   import ExampleSet from "./ExampleSet.svelte";
+  import { _ } from "svelte-i18n";
+
 
   export let input_components;
   export let output_components;
@@ -166,7 +168,7 @@
           class="panel-button submit bg-gray-50 dark:bg-gray-700 flex-1 p-3 rounded transition font-semibold focus:outline-none"
           on:click={submit}
         >
-          Submit
+        {$_("interface.submit")}
         </button>
       </div>
     </div>

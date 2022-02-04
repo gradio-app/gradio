@@ -38,6 +38,7 @@
     "svelte-preprocess": "^4.10.1",
     "svelte-range-slider-pips": "^2.0.1",
     "tailwindcss": "npm:@tailwindcss/postcss7-compat@^2.2.17",
-    "tui-image-editor": "^3.15.2"
+    "tui-image-editor": "^3.15.2",
+    "svelte-i18n": "^3.3.13"
   }
 }
