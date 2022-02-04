@@ -112,6 +112,12 @@
       display: inline-block;
     }
 
+    .tags-holder {
+      text-align: left;
+      font-size: small;
+      font-weight: 300;
+      color: #5a5a5a;
+    }
 
   </style>
   <script async src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
@@ -145,7 +151,7 @@
             </div>
         </div>
         <div class="counter-child">
-            <h2 style="font-weight: 100; color: #444343; padding-bottom: 20px;"> Guides. <a class="link" href="#" style="color: grey;">Contribute here.</a></h2>
+            <h2 style="font-weight: 100; color: #444343; padding-bottom: 20px;"> Guides. <a class="link" href="https://github.com/gradio-app/gradio/tree/master/guides" style="color: grey;">Contribute here</a></h2>
         </div>
     </div>
 
@@ -156,6 +162,11 @@
       height: min-content;">
           <h2 class="font-semibold group-hover:underline text-xl" style="color: #5a5a5a;">{{ guide.pretty_guide_name }}
           </h2>
+          <div class="tags-holder">
+            <p>
+            {{ guide.tags }}
+            </p>
+          </div>
         </div>
       </a>
       {% endfor %}
