@@ -3,7 +3,7 @@
   import ModifyUpload from "../../utils/ModifyUpload.svelte";
   import { prettyBytes, playable } from "../../utils/helpers";
 
-  export let value, setValue, theme;
+  export let value, setValue, theme, static_src;
   export let source;
 </script>
 
@@ -20,7 +20,7 @@
       </Upload>
     {/if}
   {:else}
-    <ModifyUpload clear={() => setValue(null)} {theme} />
+    <ModifyUpload clear={() => setValue(null)} {theme} {static_src} />
     {#if playable(value.name)}
       <!-- svelte-ignore a11y-media-has-caption -->
       <video

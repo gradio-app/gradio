@@ -3,7 +3,7 @@
 	import ModifyUpload from "../../utils/ModifyUpload.svelte";
 	import { prettyBytes } from "../../utils/helpers";
 
-	export let value, setValue, theme;
+	export let value, setValue, theme, static_src;
 </script>
 
 <div class="input-file" {theme}>
@@ -17,7 +17,7 @@
 		<div
 			class="file-preview w-full flex flex-row flex-wrap justify-center items-center relative"
 		>
-			<ModifyUpload clear={() => setValue(null)} {theme} />
+			<ModifyUpload clear={() => setValue(null)} {theme} {static_src} />
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
 				class="h-10 w-1/5"
