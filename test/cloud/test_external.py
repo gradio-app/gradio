@@ -31,13 +31,11 @@ class TestHuggingFaceModelAPI(unittest.TestCase):
     def test_question_answering(self):
         model_type = "question-answering"
         interface_info = gr.external.get_huggingface_interface(
-            "deepset/roberta-base-squad2", api_key=None, alias=model_type
+            "lysandre/tiny-vit-random", api_key=None, alias=model_type
         )
         self.assertEqual(interface_info["fn"].__name__, model_type)
-        self.assertIsInstance(interface_info["inputs"][0], gr.inputs.Textbox)
-        self.assertIsInstance(interface_info["inputs"][1], gr.inputs.Textbox)
-        self.assertIsInstance(interface_info["outputs"][0], gr.outputs.Textbox)
-        self.assertIsInstance(interface_info["outputs"][1], gr.outputs.Label)
+        self.assertIsInstance(interface_info["inputs"], gr.inputs.Image)
+        self.assertIsInstance(interface_info["outputs"], gr.outputs.Label)
 
     def test_text_generation(self):
         model_type = "text_generation"
