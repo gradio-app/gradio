@@ -1,5 +1,5 @@
 <script lang="ts">
-	import DataFrame from "../../input/DataFrame/Component.svelte";
+	import DataFrame from "../../input/DataFrame/DataFrame.svelte";
 
 	export let headers: Array<string>;
 	export let value: {

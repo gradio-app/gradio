@@ -1,4 +1,4 @@
-import Component from "./Component.svelte";
+import Component from "./Number.svelte";
 import ExampleComponent from "./Example.svelte";
 import Interpretation from "./Interpretation.svelte";
 

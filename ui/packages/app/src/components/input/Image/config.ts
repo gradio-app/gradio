@@ -1,4 +1,4 @@
-import Component from "./Component.svelte";
+import Component from "./Image.svelte";
 import ExampleComponent from "./Example.svelte";
 import Interpretation from "./Interpretation.svelte";
 import { loadAsData } from "../../utils/example_processors";

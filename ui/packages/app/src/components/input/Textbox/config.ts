@@ -1,4 +1,4 @@
-import Component from "./Component.svelte";
+import Component from "./Textbox.svelte";
 import ExampleComponent from "./Example.svelte";
 
 export default {

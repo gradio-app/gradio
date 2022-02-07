@@ -1,4 +1,4 @@
-import Component from "./Component.svelte";
+import Component from "./TimeSeries.svelte";
 
 export default {
 	component: Component

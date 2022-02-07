@@ -1,4 +1,4 @@
-import Component from "./Component.svelte";
+import Component from "./HighlightedText.svelte";
 
 export default {
 	component: Component
