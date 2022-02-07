@@ -14,8 +14,6 @@ asttokens==2.0.5
     # via stack-data
 astunparse==1.6.3
     # via tensorflow
-atomicwrites==1.4.0
-    # via pytest
 attrs==21.4.0
     # via
     #   jsonschema
@@ -48,12 +46,6 @@ cloudpickle==2.0.0
     # via
     #   mlflow
     #   shap
-colorama==0.4.4
-    # via
-    #   click
-    #   ipython
-    #   pytest
-    #   tqdm
 comet-ml==3.25.0
     # via -r requirements.in
 configobj==5.0.6
@@ -112,6 +104,8 @@ grpcio==1.43.0
     # via
     #   tensorboard
     #   tensorflow
+gunicorn==20.1.0
+    # via mlflow
 h5py==3.6.0
     # via tensorflow
 huggingface-hub==0.4.0
@@ -212,6 +206,8 @@ pathspec==0.9.0
     # via black
 pathtools==0.1.2
     # via wandb
+pexpect==4.8.0
+    # via ipython
 pickleshare==0.7.5
     # via ipython
 pillow==9.0.1
@@ -238,6 +234,8 @@ protobuf==3.19.4
     #   wandb
 psutil==5.9.0
     # via wandb
+ptyprocess==0.7.0
+    # via pexpect
 pure-eval==0.2.2
     # via stack-data
 py==1.11.0
@@ -270,8 +268,6 @@ pytz==2021.3
     #   pandas
 pywavelets==1.2.0
     # via scikit-image
-pywin32==227
-    # via docker
 pyyaml==6.0
     # via
     #   huggingface-hub
@@ -406,8 +402,6 @@ urllib3[secure]==1.26.8
     #   requests
     #   selenium
     #   sentry-sdk
-waitress==2.0.0
-    # via mlflow
 wandb==0.12.10
     # via -r requirements.in
 wcwidth==0.2.5
