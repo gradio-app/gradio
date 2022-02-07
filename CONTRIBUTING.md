@@ -17,6 +17,13 @@ repo (https://github.com/gradio-app/gradio.git) and creating your own branch to 
 bash scripts/install_gradio.sh
 ```
 
+* Build the front end
+
+```
+bash scripts/build_frontend.sh
+```
+
+
 ### To install development and testing requirements
 
 * Navigate to the repo folder and install test requirements (note that it is highly recommended to use a virtual environment since the versions are pinned)
@@ -33,12 +40,6 @@ https://sites.google.com/chromium.org/driver/
 
 ```
 https://www.google.com/chrome/
-```
-
-* Build the front end
-
-```
-bash scripts/build_frontend.sh
 ```
 
 * Run the tests
