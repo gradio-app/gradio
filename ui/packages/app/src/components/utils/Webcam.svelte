@@ -1,10 +1,10 @@
-<script>
+<script lang="ts">
 	import { createEventDispatcher, onMount } from "svelte";
 
-	export let static_src;
+	export let static_src: string;
 
-	let video_source = null;
-	let canvas;
+	let video_source: HTMLVideoElement;
+	let canvas: HTMLCanvasElement;
 
 	const dispatch = createEventDispatcher();
 
@@ -23,13 +23,13 @@
 	}
 
 	function clearphoto() {
-		var context = canvas.getContext("2d");
+		var context = canvas.getContext("2d")!;
 		context.fillStyle = "#AAA";
 		context.fillRect(0, 0, canvas.width, canvas.height);
 	}
 
 	function takepicture() {
-		var context = canvas.getContext("2d");
+		var context = canvas.getContext("2d")!;
 
 		if (video_source.videoWidth && video_source.videoHeight) {
 			canvas.width = video_source.videoWidth;
