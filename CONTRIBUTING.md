@@ -8,7 +8,7 @@ Prequisites:
 More than 30 awesome developers have contributed to the `gradio` library, and we'd be thrilled if you would like be the next `gradio` contributor! You can start by forking or cloning the
 repo (https://github.com/gradio-app/gradio.git) and creating your own branch to work from.
 
-### To install the local version of Gradio
+### To install Gradio from the `master` branch
 
 * Navigate to the repo folder and run
 
@@ -16,7 +16,7 @@ repo (https://github.com/gradio-app/gradio.git) and creating your own branch to 
 bash scripts/install_gradio.sh
 ```
 
-### To install the local development version of Gradio
+### To install development and testing requirements
 
 * Navigate to the repo folder and install test requirements (note that it is highly recommended to use a virtual environment since the versions are pinned)
 
