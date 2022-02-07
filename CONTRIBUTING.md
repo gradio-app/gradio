@@ -10,6 +10,7 @@ repo (https://github.com/gradio-app/gradio.git) and creating your own branch to 
 
 ### To install Gradio from the `master` branch
 
+* Clone this repo
 * Navigate to the repo folder and run
 
 ```bash
