@@ -1,10 +1,11 @@
-<script>
-	export let text;
-	export let x;
-	export let y;
-	export let color;
+<script lang="ts">
+	export let text: string;
+	export let x: number;
+	export let y: number;
+	export let color: string;
 
-	let w, h;
+	let w: number;
+	let h: number;
 </script>
 
 <div

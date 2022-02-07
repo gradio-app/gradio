@@ -1,13 +1,18 @@
-<script>
-	import { input_component_map } from "./components/directory.js";
+<script lang="ts">
+	import { input_component_map } from "./components/directory";
 
-	export let examples,
-		examples_dir,
-		example_id,
-		setExampleId,
-		examples_per_page,
-		input_components,
-		theme;
+	interface Component {
+		name: string;
+		[key: string]: unknown;
+	}
+
+	export let examples: Array<Array<unknown>>;
+	export let examples_dir: string;
+	export let example_id: number | undefined;
+	export let setExampleId: Function;
+	export let examples_per_page: number;
+	export let input_components: Array<Component>;
+	export let theme: string;
 
 	let selected_examples = examples;
 	let gallery = input_components.length === 1;
@@ -42,8 +47,8 @@
 			>
 				<thead class="border-b-2 dark:border-gray-600">
 					<tr>
-						{#each input_components as input_component, i}
-							<th class="py-2 px-4" key={i}>
+						{#each input_components as input_component}
+							<th class="py-2 px-4">
 								{input_component.label}
 							</th>
 						{/each}
@@ -53,7 +58,6 @@
 					{#each selected_examples as example_row, i}
 						<tr
 							class="cursor-pointer transition"
-							key={i}
 							class:selected={i === example_id}
 							on:click={() => setExampleId(i)}
 						>

@@ -1,5 +1,8 @@
-<script>
-	export let edit, clear, theme, static_src;
+<script lang="ts">
+	export let edit: (() => void) | false = false;
+	export let clear: () => void = () => {};
+	export let theme: string;
+	export let static_src: string;
 	export let absolute = true;
 </script>
 

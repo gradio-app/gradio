@@ -1,8 +1,9 @@
-<script>
+<script lang="ts">
 	import { playable } from "../../utils/helpers";
 
-	export let value, examples_dir;
-	let video;
+	export let value: string;
+	export let examples_dir: string;
+	let video: HTMLVideoElement;
 </script>
 
 <!-- svelte-ignore a11y-media-has-caption -->

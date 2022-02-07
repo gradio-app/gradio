@@ -1,57 +1,63 @@
-<script>
+<script lang="ts">
 	import {
 		input_component_map,
 		output_component_map
-	} from "./components/directory.js";
-	import { deepCopy } from "./components/utils/helpers.js";
+	} from "./components/directory";
+	import { deepCopy } from "./components/utils/helpers";
 	import ExampleSet from "./ExampleSet.svelte";
 
-	export let input_components;
-	export let output_components;
-	export let theme;
-	export let fn;
-	export let examples;
-	export let root;
-	export let allow_flagging;
-	export let allow_interpretation;
-	export let avg_durations;
-	export let live;
-	export let queue;
-	export let static_src;
+	interface Component {
+		name: string;
+		[key: string]: unknown;
+	}
+
+	export let input_components: Array<Component>;
+	export let output_components: Array<Component>;
+	export let theme: string;
+	export let fn: (...args: any) => Promise<unknown>;
+	export let examples: Array<Array<unknown>>;
+	export let root: string;
+	export let allow_flagging: string;
+	export let allow_interpretation: boolean;
+	export let avg_durations: undefined | Array<number> = undefined;
+	export let live: boolean;
+	export let queue: boolean;
+	export let static_src: string;
 
 	let examples_dir = root + "file/";
 	let interpret_mode = false;
 	let submission_count = 0;
 	let state = "START";
-	let last_duration = null;
+	let last_duration: number | null = null;
 	let has_changed = false;
-	let queue_index = null;
-	let initial_queue_index = null;
+	let queue_index: number | null = null;
+	let initial_queue_index: number | null = null;
 
-	const default_inputs = input_components.map((component) =>
+	const default_inputs: Array<unknown> = input_components.map((component) =>
 		"default" in component ? component.default : null
 	);
+	console.log(default_inputs);
 	const default_outputs = new Array(output_components.length).fill(null);
 
-	let input_values = deepCopy(default_inputs);
+	let input_values: Array<unknown> = deepCopy(default_inputs);
 	let output_values = deepCopy(default_outputs);
-	let interpretation_values = [];
-	let timer = null;
+	let interpretation_values: Array<unknown> = [];
+	let timer: NodeJS.Timeout = null;
 	let timer_start = 0;
 	let timer_diff = 0;
-	let avg_duration = Array.isArray(avg_durations)
-		? this.props.avg_durations[0]
-		: null;
-	let expected_duration = null;
+	let avg_duration = Array.isArray(avg_durations) ? avg_durations[0] : null;
+	let expected_duration: number | null = null;
+	console.log({ interpretation_values });
 
-	const setValues = (index, value) => {
+	const setValues = (index: number, value: unknown) => {
 		has_changed = true;
 		input_values[index] = value;
 		if (live && state !== "PENDING") {
 			submit();
 		}
 	};
-	const setExampleId = async (example_id) => {
+
+	const setExampleId = async (example_id: number) => {
 		input_components.forEach(async (input_component, i) => {
 			const process_example =
 				input_component_map[input_component.name].process_example;
@@ -65,6 +71,7 @@
 			}
 		});
 	};
+
 	const startTimer = () => {
 		timer_start = Date.now();
 		timer_diff = 0;
@@ -72,9 +79,11 @@
 			timer_diff = (Date.now() - timer_start) / 1000;
 		}, 100);
 	};
+
 	const stopTimer = () => {
 		clearInterval(timer);
 	};
+
 	const submit = () => {
 		if (state === "PENDING") {
 			return;
@@ -173,7 +182,8 @@
 			});
 		}
 	};
-	const queueCallback = (index, is_initial) => {
+
+	const queueCallback = (index: number, is_initial: boolean) => {
 		if (is_initial) {
 			initial_queue_index = index;
 		}
@@ -203,7 +213,7 @@
 								interpretation={interpret_mode
 									? interpretation_values[i]
 									: null}
-								setValue={setValues.bind(this, i)}
+								setValue={(value) => setValues(i, value)}
 							/>
 						</div>
 					{/if}

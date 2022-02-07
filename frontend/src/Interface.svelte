@@ -10,6 +10,11 @@
   import { _ } from "svelte-i18n";
 
 
+  import huggingface_theme from "./themes/huggingface.scss";
+  import grass_theme from "./themes/grass.scss";
+  import peach_theme from "./themes/peach.scss";
+  import seafoam_theme from "./themes/seafoam.scss";
+
   export let input_components,
     output_components,
     theme,
