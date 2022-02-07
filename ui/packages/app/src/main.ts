@@ -2,9 +2,64 @@ import App from "./App.svelte";
 import Login from "./Login.svelte";
 import { fn } from "./api";
 
-window.launchGradio = (config, element_query) => {
-	console.log(config);
+interface CustomWindow extends Window {
+	gradio_mode: "app" | "website";
+	launchGradio: Function;
+	launchGradioFromSpaces: Function;
+	gradio_config: Config;
+}
+
+declare let window: CustomWindow;
+declare let BACKEND_URL: string;
+declare let BUILD_MODE: string;
+
+interface Component {
+	name: string;
+	[key: string]: unknown;
+}
+
+interface Config {
+	allow_flagging: string;
+	allow_interpretation: boolean;
+	allow_screenshot: boolean;
+	article: string;
+	cached_examples: boolean;
+	css: null | string;
+	description: string;
+	examples: Array<unknown>;
+	examples_per_page: number;
+	favicon_path: null | string;
+	flagging_options: null | unknown;
+	fn: Function;
+	function_count: number;
+	input_components: Array<Component>;
+	output_components: Array<Component>;
+	layout: string;
+	live: boolean;
+	queue: boolean;
+	root: string;
+	show_input: boolean;
+	show_output: boolean;
+	simpler_description: string;
+	static_src: string;
+	theme: string;
+	thumbnail: null | string;
+	title: string;
+	version: string;
+	space?: string;
+	detail: string;
+	dark: boolean;
+}
+
+window.launchGradio = (config: Config, element_query: string) => {
 	let target = document.querySelector(element_query);
+
+	if (!target) {
+		throw new Error(
+			"The target element could not be found. Please ensure atht element exists."
+		);
+	}
+
 	if (config.root === undefined) {
 		config.root = BACKEND_URL;
 	}
@@ -42,13 +97,13 @@ window.launchGradio = (config, element_query) => {
 	}
 };
 
-window.launchGradioFromSpaces = async (space, target) => {
+window.launchGradioFromSpaces = async (space: string, target: string) => {
 	const space_url = `https://huggingface.co/gradioiframe/${space}/+/`;
 	let config = await fetch(space_url + "config");
-	config = await config.json();
-	config.root = space_url;
-	config.space = space;
-	launchGradio(config, target);
+	let _config: Config = await config.json();
+	_config.root = space_url;
+	_config.space = space;
+	window.launchGradio(_config, target);
 };
 
 async function get_config() {
@@ -63,6 +118,6 @@ async function get_config() {
 
 if (window.gradio_mode == "app") {
 	get_config().then((config) => {
-		launchGradio(config, "#root");
+		window.launchGradio(config, "#root");
 	});
 }

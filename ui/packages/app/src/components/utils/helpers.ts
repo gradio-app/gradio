@@ -7,7 +7,7 @@ export const playable = (filename: string): boolean => {
 	return true; // FIX BEFORE COMMIT - mime import causing issues
 };
 
-export const deepCopy = (obj: unknown): typeof obj => {
+export const deepCopy = <T>(obj: T): T => {
 	return JSON.parse(JSON.stringify(obj));
 };
 

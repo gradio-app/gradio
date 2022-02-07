@@ -1,19 +1,32 @@
+<script context="module" lang="ts">
+	interface CustomWindow extends Window {
+		gradio_mode: "app" | "website";
+	}
+
+	declare let window: CustomWindow;
+</script>
+
 <script lang="ts">
 	import Interface from "./Interface.svelte";
 	import "./global.css";
+
+	interface Component {
+		name: string;
+		[key: string]: unknown;
+	}
 
 	export let title: string;
 	export let description: string;
 	export let article: string;
 	export let theme: string;
 	export let dark: boolean;
-	export let input_components: unknown;
-	export let output_components: unknown;
-	export let examples: unknown;
-	export let fn: unknown;
-	export let root: boolean;
-	export let space: string;
-	export let allow_flagging: boolean;
+	export let input_components: Array<Component>;
+	export let output_components: Array<Component>;
+	export let examples: Array<Array<unknown>>;
+	export let fn: (...args: any) => Promise<unknown>;
+	export let root: string;
+	export let space: string | undefined = undefined;
+	export let allow_flagging: string;
 	export let allow_interpretation: boolean;
 	export let live: boolean;
 	export let queue: boolean;
@@ -66,7 +79,7 @@
 					href={"https://huggingface.co/spaces/" + space}
 					class="font-semibold"
 				>
-					{space.includes("/")
+					{space && space.includes("/")
 						? space[space.indexOf("/") + 1].toUpperCase() +
 						  space.substring(space.indexOf("/") + 2)
 						: space}
