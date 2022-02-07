@@ -1,5 +1,5 @@
-<script>
-	export let value;
+<script lang="ts">
+	export let value: boolean;
 </script>
 
 <div class="input-checkbox-example">{value.toLocaleString()}</div>

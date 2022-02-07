@@ -1,5 +1,5 @@
-<script>
-	export let root;
+<script lang="ts">
+	export let root: string;
 </script>
 
 <div class="login container mt-8">

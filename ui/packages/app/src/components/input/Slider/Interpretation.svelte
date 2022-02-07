@@ -1,8 +1,12 @@
-<script>
+<script lang="ts">
 	import { getSaliencyColor } from "../../utils/helpers";
 
-	export let value, interpretation, theme;
-	export let minimum, maximum, step;
+	export let value: number;
+	export let interpretation: Array<number>;
+	export let theme: string;
+	export let minimum: number;
+	export let maximum: number;
+	export let step: number;
 </script>
 
 <div class="input-slider text-center" {theme}>

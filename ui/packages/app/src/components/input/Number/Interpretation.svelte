@@ -1,7 +1,9 @@
-<script>
+<script lang="ts">
 	import { getSaliencyColor } from "../../utils/helpers";
 
-	export let value, interpretation, theme;
+	export let value: string;
+	export let interpretation: Array<[number, number]>;
+	export let theme: string;
 </script>
 
 <div class="input-number">

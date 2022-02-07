@@ -1,8 +1,10 @@
 ## Getting Started
 
+**Prerequisite**: Python 3.7+ and that's it! 
+
 ### Quick Start
 
-To get Gradio running with a simple example, follow these three steps:
+To get Gradio running with a simple "Hello, World" example, follow these three steps:
 
 <span>1.</span> Install Gradio from pip.
 
@@ -18,15 +20,15 @@ pip install gradio
 
 {{ demos["hello_world"] }}
 
-### The Interface
+### Understanding the `Interface` class
 
-Gradio can wrap almost any Python function with an easy-to-use user interface. That function could be anything from a simple tax calculator to a pretrained machine learning model.
+Gradio can wrap almost any Python function with an easy-to-use user interface. In the example above, we saw a simple text-based function. But the function could be anything from image enhancer to a tax calculator to (most commonly) the prediction function of a pretrained machine learning model.
 
 The core  `Interface`  class is initialized with three parameters:
 
 -   `fn`: the function to wrap
--   `inputs`: the input component type(s)
--   `outputs`: the output component type(s)
+-   `inputs`: the input component type(s), e.g. `"image"` or `"audio"` ([see docs for complete list](/docs))
+-   `outputs`: the output component type(s) e.g. `"image"` or `"label"` ([see docs for complete list](/docs))
 
 With these three arguments, we can quickly create interfaces and  `launch()`  them. But what if you want to change how the UI components look or behave?
 
@@ -84,14 +86,14 @@ Note there is no submit button, because the interface resubmits automatically on
 
 ### Using State
 
-Your function may use data that persists beyond a single function call. If the data is something accessible to all function calls, you can create a global variable outside the function call and access it inside the function. For example, you may load a large model outside the function and use it inside the function so that every function call does not need to reload the model.
+Your function may use data that persists beyond a single function call. If the data is something accessible to all function calls and all users, you can create a global variable outside the function call and access it inside the function. For example, you may load a large model outside the function and use it inside the function so that every function call does not need to reload the model.
 
-Another type of data persistence Gradio supports is session state, where data persists across multiple submits within a page load. To store data with this permanence, use `gr.get_state` and `gr.set_state` methods.
+Another type of data persistence Gradio supports is session **state**, where data persists across multiple submits within a page load. However, data is *not* shared between different users of your model. To store data in a session state, you need to do three things: (1) Pass in an extra parameter into your function, which represents the state of the interface. (2) At the end of the function, return the updated value of the state as an extra return value (3) Add the `'state'` input and `'state'` output components when creating your `Interface`. See the chatbot example below: 
 
 {{ code["chatbot"] }}
 {{ demos["chatbot"] }}
 
-Notice how the state persists across submits within each page, but the state is not shared between the two pages.
+Notice how the state persists across submits within each page, but the state is not shared between the two pages. Some more points to note: you can pass in a default value to the state parameter, which is used as the initial value of the state. The state must be a something that can be serialized to a JSON format (e.g. a dictionary, a list, or a single value. Typically, objects will not work).  
 
 ### Flagging
 
