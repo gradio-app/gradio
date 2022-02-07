@@ -24,15 +24,7 @@ bash scripts/install_gradio.sh
 bash scripts/install_test_requirements.sh
 ```
 
-* Install chrome driver and chrome for selenium (necessary for tests)
-
-```
-https://sites.google.com/chromium.org/driver/
-```
-
-```
-https://www.google.com/chrome/
-```
+* Install [chrome driver](https://sites.google.com/chromium.org/driver/) and [chrome](https://www.google.com/chrome/) for selenium (necessary for tests)
 
 * Build the front end
 
