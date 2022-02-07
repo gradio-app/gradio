@@ -1,8 +1,10 @@
-<script>
+<script lang="ts">
 	import { getSaliencyColor } from "../../utils/helpers";
 
-	export let value, interpretation, theme;
-	export let choices;
+	export let value: string;
+	export let interpretation: Array<number>;
+	export let theme: string;
+	export let choices: Array<string>;
 </script>
 
 <div class="input-radio flex flex-wrap gap-2" {theme}>
@@ -10,7 +12,6 @@
 		<button
 			class="radio-item py-2 px-3 font-semibold rounded cursor-pointer flex items-center gap-2"
 			class:selected={value === choice}
-			key={i}
 		>
 			<div
 				class="radio-circle w-4 h-4 rounded-full box-border"

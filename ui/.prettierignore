@@ -1,3 +1,4 @@
 packages/app/public/**
 pnpm-workspace.yaml
 packages/app/dist/**
+pnpm-lock.yaml

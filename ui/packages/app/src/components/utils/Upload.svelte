@@ -1,46 +1,66 @@
-<script>
-	export let load, filetype, theme;
-	export let single_file = true;
+<script lang="ts">
+	interface FileData {
+		name: string;
+		size: number;
+		data: string;
+		is_example: false;
+	}
+
+	export let load: (
+		val: Array<string | FileData> | string | FileData | null
+	) => Array<string | FileData> | string | FileData | null;
+	export let filetype: string | undefined = undefined;
+	export let theme: string;
+	export let single_file: boolean = true;
 	export let include_file_metadata = true;
-	let hidden_upload;
+	let hidden_upload: HTMLInputElement;
 	let dragging = false;
 
 	const updateDragging = () => {
 		dragging = !dragging;
 	};
+
 	const openFileUpload = () => {
 		hidden_upload.click();
 	};
-	const loadFiles = (files) => {
+
+	const loadFiles = (files: FileList) => {
+		let _files: Array<File> = Array.from(files);
 		if (!files.length || !window.FileReader) {
 			return;
 		}
 		if (single_file) {
-			files = [files[0]];
+			_files = [files[0]];
 		}
-		var all_file_data = [];
-		files.forEach((file, i) => {
+		var all_file_data: Array<FileData | string> = [];
+		_files.forEach((f, i) => {
 			let ReaderObj = new FileReader();
-			ReaderObj.readAsDataURL(file);
-			ReaderObj.onloadend = function (e) {
+			ReaderObj.readAsDataURL(f);
+			ReaderObj.onloadend = function () {
 				all_file_data[i] = include_file_metadata
 					? {
-							name: file.name,
-							size: file.size,
-							data: this.result,
+							name: f.name,
+							size: f.size,
+							data: this.result as string,
 							is_example: false
 					  }
-					: this.result;
-				if (Object.keys(all_file_data).length === files.length) {
+					: (this.result as string);
+				if (all_file_data.length === files.length) {
 					load(single_file ? all_file_data[0] : all_file_data);
 				}
 			};
 		});
 	};
-	const loadFilesFromUpload = (e) => {
-		loadFiles(e.target.files);
+
+	const loadFilesFromUpload = (e: Event) => {
+		const target = e.target as HTMLInputElement;
+
+		if (!target.files) return;
+		loadFiles(target.files);
 	};
-	const loadFilesFromDrop = (e) => {
+
+	const loadFilesFromDrop = (e: DragEvent) => {
+		if (!e.dataTransfer?.files) return;
 		loadFiles(e.dataTransfer.files);
 	};
 </script>
