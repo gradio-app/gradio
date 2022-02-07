@@ -1,10 +1,18 @@
-<script>
+<script lang="ts">
 	import { output_component_map } from "../../directory";
 
-	export let value, theme;
-	export let components;
+	interface Component {
+		name: string;
+		[key: string]: unknown;
+	}
 
-	let carousel_index = 0;
+	export let value: Array<Array<unknown>>;
+	export let theme: string;
+	export let components: Array<Component>;
+
+	$: console.log({ value, theme, components });
+
+	let carousel_index: number = 0;
 	const next = () => {
 		carousel_index = (carousel_index + 1) % value.length;
 	};
@@ -15,7 +23,7 @@
 
 <div class="output-carousel flex flex-col gap-2" {theme}>
 	{#each components as component, i}
-		<div class="component" key={i}>
+		<div class="component">
 			{#if component.label}
 				<div class="panel-header">{component.label}</div>
 			{/if}
