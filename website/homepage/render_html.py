@@ -68,6 +68,9 @@ def render_guides_main():
     with open("src/guides_main_template.html", encoding='utf-8') as template_file:
         template = Template(template_file.read())
         output_html = template.render(guides=guides, navbar_html=navbar_html)
+    os.makedirs(os.path.join("generated", "guides"), exist_ok=True)
+    with open(os.path.join("generated", "guides", "index.html"), "w", encoding='utf-8') as generated_template:
+        generated_template.write(output_html)
     with open(os.path.join("generated", "guides.html"), "w", encoding='utf-8') as generated_template:
         generated_template.write(output_html)
 
