@@ -23,7 +23,7 @@ bash scripts/build_frontend.sh
 ```
 
 
-### To install development and testing requirements
+### Install development and testing requirements
 
 * Navigate to the repo folder and install test requirements (note that it is highly recommended to use a virtual environment since the versions are pinned)
 
