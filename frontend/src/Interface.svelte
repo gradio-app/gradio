@@ -271,7 +271,7 @@
           </div>
         {/if}
         {#each output_components as output_component, i}
-          {#if output_values[i] !== null}
+          {#if output_values[i] !== null && output_component.name !== "state"}
             <div class="component" key={i}>
               <div class="panel-header mb-1.5">{output_component.label}</div>
               <svelte:component
