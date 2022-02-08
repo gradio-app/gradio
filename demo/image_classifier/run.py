@@ -24,5 +24,5 @@ gr.Interface(
     fn=classify_image,
     inputs=image,
     outputs=label,
-    examples=[["images/cheetah1.jpg"], ["images/lion.jpg"]],
+    examples=[["./image_classifier/images/cheetah1.jpg"], ["./image_classifier/images/lion.jpg"]],
 ).launch()

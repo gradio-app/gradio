@@ -1,5 +1,6 @@
 <script>
   import { input_component_map } from "./components/directory.js";
+  import { _ } from "svelte-i18n";
 
   export let examples,
     examples_dir,
@@ -14,7 +15,7 @@
 </script>
 
 <div class="examples" {theme}>
-  <h4 class="text-lg font-semibold my-2">Examples</h4>
+  <h4 class="text-lg font-semibold my-2">{$_("interface.examples")}</h4>
   <div
     class="examples-holder mt-4 inline-block max-w-full"
     class:gallery
