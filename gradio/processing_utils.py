@@ -138,32 +138,37 @@ def audio_to_file(sample_rate, data, filename):
         channels=(1 if len(data.shape) == 1 else data.shape[1]),
     )
     audio.export(filename, format="wav").close()
-    
-    
+
+
 def convert_to_16_bit_wav(data):
     # Based on: https://docs.scipy.org/doc/scipy/reference/generated/scipy.io.wavfile.write.html
-    if data.dtype==np.float32:
-        warnings.warn("Audio data is not in 16-bit integer format." 
-                        "Trying to convert to 16-bit int format.")
+    if data.dtype == np.float32:
+        warnings.warn(
+            "Audio data is not in 16-bit integer format."
+            "Trying to convert to 16-bit int format."
+        )
         data = data / np.abs(data).max()
         data = data * 32767
         data = data.astype(np.int16)
-    elif data.dtype==np.int32:
-        warnings.warn("Audio data is not in 16-bit integer format." 
-                        "Trying to convert to 16-bit int format.")
+    elif data.dtype == np.int32:
+        warnings.warn(
+            "Audio data is not in 16-bit integer format."
+            "Trying to convert to 16-bit int format."
+        )
         data = data / 65538
         data = data.astype(np.int16)
-    elif data.dtype==np.int16:
+    elif data.dtype == np.int16:
         pass
-    elif data.dtype==np.uint8:
-        warnings.warn("Audio data is not in 16-bit integer format." 
-                        "Trying to convert to 16-bit int format.")
+    elif data.dtype == np.uint8:
+        warnings.warn(
+            "Audio data is not in 16-bit integer format."
+            "Trying to convert to 16-bit int format."
+        )
         data = data * 257 - 32768
         data = data.astype(np.int16)
     else:
-        raise ValueError("Audio data cannot be converted to "
-                            "16-bit int format.") 
-    return data                   
+        raise ValueError("Audio data cannot be converted to " "16-bit int format.")
+    return data
 
 
 ##################
@@ -330,7 +335,7 @@ def _convert(image, dtype, force_copy=False, uniform=False):
             Output image array. Has the same kind as `a`.
         """
         kind = a.dtype.kind
-        if n > m and a.max() < 2 ** m:
+        if n > m and a.max() < 2**m:
             mnew = int(np.ceil(m / 2) * 2)
             if mnew > m:
                 dtype = "int{}".format(mnew)
@@ -353,11 +358,11 @@ def _convert(image, dtype, force_copy=False, uniform=False):
             # exact upscale to a multiple of `n` bits
             if copy:
                 b = np.empty(a.shape, _dtype_bits(kind, m))
-                np.multiply(a, (2 ** m - 1) // (2 ** n - 1), out=b, dtype=b.dtype)
+                np.multiply(a, (2**m - 1) // (2**n - 1), out=b, dtype=b.dtype)
                 return b
             else:
                 a = a.astype(_dtype_bits(kind, m, a.dtype.itemsize), copy=False)
-                a *= (2 ** m - 1) // (2 ** n - 1)
+                a *= (2**m - 1) // (2**n - 1)
                 return a
         else:
             # upscale to a multiple of `n` bits,
@@ -365,12 +370,12 @@ def _convert(image, dtype, force_copy=False, uniform=False):
             o = (m // n + 1) * n
             if copy:
                 b = np.empty(a.shape, _dtype_bits(kind, o))
-                np.multiply(a, (2 ** o - 1) // (2 ** n - 1), out=b, dtype=b.dtype)
+                np.multiply(a, (2**o - 1) // (2**n - 1), out=b, dtype=b.dtype)
                 b //= 2 ** (o - m)
                 return b
             else:
                 a = a.astype(_dtype_bits(kind, o, a.dtype.itemsize), copy=False)
-                a *= (2 ** o - 1) // (2 ** n - 1)
+                a *= (2**o - 1) // (2**n - 1)
                 a //= 2 ** (o - m)
                 return a
 

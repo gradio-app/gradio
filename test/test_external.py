@@ -27,7 +27,6 @@ class TestHuggingFaceModelAPI(unittest.TestCase):
         self.assertIsInstance(interface_info["inputs"], gr.inputs.Audio)
         self.assertIsInstance(interface_info["outputs"], gr.outputs.Audio)
 
-    
     def test_question_answering(self):
         model_type = "question-answering"
         interface_info = gr.external.get_huggingface_interface(
