@@ -645,8 +645,8 @@ class Interface:
         server_name (str): to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME.
         show_tips (bool): if True, will occasionally show tips about new Gradio features
         enable_queue (bool): if True, inference requests will be served through a queue instead of with parallel threads. Required for longer inference times (> 1min) to prevent timeout.
-        width (int): The width in pixels of the <iframe> element containing the interface (used if inline=True)
-        height (int): The height in pixels of the <iframe> element containing the interface (used if inline=True)
+        width (int): The width in pixels of the iframe element containing the interface (used if inline=True)
+        height (int): The height in pixels of the iframe element containing the interface (used if inline=True)
         encrypt (bool): If True, flagged data will be encrypted by key provided by creator at launch
         cache_examples (bool): If True, examples outputs will be processed and cached in a folder, and will be used if a user uses an example input.
         favicon_path (str): If a path to an file (.png, .gif, or .ico) is provided, it will be used as the favicon for the web page.
