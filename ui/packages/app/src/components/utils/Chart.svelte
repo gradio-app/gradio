@@ -1,46 +1,45 @@
-<script>
+<script lang="ts">
 	import { csvParse } from "d3-dsv";
 	import { scaleLinear } from "d3-scale";
 	import { line as _line, curveLinear } from "d3-shape";
 	import { createEventDispatcher, onMount } from "svelte";
 
 	import { get_domains, transform_values, get_color } from "./utils";
-	import { tooltip } from "./tooltip.js";
+	import { tooltip } from "./tooltip";
 
-	export let value;
-	export let theme;
-	export let x;
-	export let y;
-	export let type = "csv";
+	export let value: string | Array<Record<string, string>>;
+	export let x: string | undefined = undefined;
+	export let y: Array<string> | undefined = undefined;
 
 	const dispatch = createEventDispatcher();
 
-	$: ({ x, y } =
-		type === "csv"
-			? transform_values(csvParse(value), x, y)
+	$: ({ x: _x, y: _y } =
+		typeof value === "string"
+			? transform_values(csvParse(value) as Array<Record<string, string>>, x, y)
 			: transform_values(value, x, y));
 
-	$: x_domain = get_domains(x);
-	$: y_domain = get_domains(y);
+	$: x_domain = get_domains(_x);
+	$: y_domain = get_domains(_y);
 
 	$: scale_x = scaleLinear(x_domain, [0, 600]).nice();
 	$: scale_y = scaleLinear(y_domain, [350, 0]).nice();
 	$: x_ticks = scale_x.ticks(8);
 	$: y_ticks = scale_y.ticks(y_domain[1] < 10 ? y_domain[1] : 8);
 
-	$: colors = y.reduce(
+	let colors: Record<string, string>;
+	$: colors = _y.reduce(
 		(acc, next) => ({ ...acc, [next.name]: get_color() }),
 		{}
 	);
 
 	onMount(() => {
-		dispatch("process", { x, y });
+		dispatch("process", { x: _x, y: _y });
 	});
 </script>
 
 <div>
 	<div class="flex justify-center align-items-center text-sm">
-		{#each y as { name }}
+		{#each _y as { name }}
 			<div class="mx-2">
 				<span
 					class="inline-block w-[10px] h-[10px]"
@@ -50,7 +49,7 @@
 			</div>
 		{/each}
 	</div>
-	<svg class="w-full" viewbox="-70 -20 700 420">
+	<svg class="w-full" viewBox="-70 -20 700 420">
 		<g>
 			{#each x_ticks as tick}
 				<line
@@ -119,7 +118,7 @@
 			{/if}
 		</g>
 
-		{#each y as { name, values }}
+		{#each _y as { name, values }}
 			{@const color = colors[name]}
 			{#each values as { x, y }}
 				<circle
@@ -142,7 +141,7 @@
 			/>
 		{/each}
 
-		{#each y as { name, values }}
+		{#each _y as { name, values }}
 			{@const color = colors[name]}
 			{#each values as { x, y }}
 				<circle
@@ -159,6 +158,6 @@
 	</svg>
 
 	<div class="flex justify-center align-items-center text-sm">
-		{x.name}
+		{_x.name}
 	</div>
 </div>

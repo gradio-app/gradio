@@ -19,8 +19,7 @@ There are four parameters `gr.Interface` that control how flagging works. We wil
 * `flagging_options`:
     * This parameter takes a list of strings.
     * If provided, allows user to select from a list of options when flagging. Only applies if `allow_flagging` is `"manual"`.
-    * The chosen option is then piped along with the input and output. 
-    -----> INSERT VIDEO FOR FLAGGING_OPTIONS
+    * The chosen option is then piped along with the input and output.
 * `flagging_dir`: 
     * This parameter takes a string.
     * What to name the directory where flagged data is stored.
