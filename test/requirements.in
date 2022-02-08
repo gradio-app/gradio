@@ -10,3 +10,4 @@ shap
 pytest
 wandb
 huggingface_hub
+pytest-cov
