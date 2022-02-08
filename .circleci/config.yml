@@ -40,11 +40,11 @@ jobs:
       - run:
           command: |
             . venv/bin/activate
-            python -m pytest
+            python -m pytest test/local
       - run:
           command: |
             . venv/bin/activate
-            coverage run -m pytest
+            coverage run -m pytest test
             coverage xml
       - codecov/upload:
           file: 'coverage.xml'
