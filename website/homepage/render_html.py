@@ -43,7 +43,7 @@ def render_index():
 
 guides = []
 for guide in sorted(os.listdir(GRADIO_GUIDES_DIR)):
-    if "template" in guide:
+    if "readme" in guide.lower():
         continue
     guide_name = guide[:-3]
     pretty_guide_name = " ".join(
