@@ -5,7 +5,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  {{ meta_tags|safe }}
+  <meta property="og:title" content="{{ title }}" />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="{{ url }}" />
+  <meta property="og:image" content="/assets/img/guides/{{ guide_name }}.png" />
+  <meta name="twitter:title" content="{{ title }}">
+  <meta name="twitter:image" content="/assets/img/guides/{{ guide_name }}.png">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" type="image/png" href="/assets/img/logo.png">
   <link href="/gradio_static/build/themes.css" rel="stylesheet">
   <link rel="stylesheet" href="/style.css">
@@ -14,83 +20,74 @@
     html {
       font-size: 16px !important;
     }
-    header {
-      flex
-    }
-    .prose p > img {
-        margin: 0 auto;
-        width: 600px;
-        max-width: 100%;
-    }
+
     .prose {
       max-width: none !important;
     }
+
+    .prose p>img {
+      margin: 0 auto;
+      width: 600px;
+      max-width: 100%;
+    }
+
     .gradio-page .content {
       padding: 0px !important;
     }
+
     .gradio-page .footer {
       display: none !important;
     }
-    .prose .code, .prose pre {
+
+    .prose .code,
+    .prose pre {
       color: black;
+      background: rgb(249, 250, 251);
     }
-    .prose table {
-      width: auto;
-    }
+
     h3 a {
       display: inline-block;
     }
-    h3 a img {
-      height: 14px;
-      margin: 0 4px !important;
-    }
-    #guide-template{
-      margin-top:30px;
-    }
-    .prose p > img {
-      margin: 0;
-      width: fit-content;
-    }
+
     .prose h1 {
       font-weight: 600;
     }
-
-
-    .space-link {
-      display: inline-block;
-      margin: 4px;
-      padding-left: 6px;
-      padding-right: 6px;
-      border-radius: 7px;
-    }
-
-    .space-link a {
-      text-decoration: none;
-    }
-
-    #spaces-holder img {
-      display: inherit;
-      width: 2.5%;
-      margin: 0;
-      padding-bottom: 6px;
-    }
-
   </style>
   <script async src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag() {
-        dataLayer.push(arguments);
-      }
-      gtag('js', new Date());
-      gtag('config', 'UA-156449732-1');
-    </script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+    gtag('js', new Date());
+    gtag('config', 'UA-156449732-1');
+  </script>
 </head>
 
 <body class="bg-white text-gray-900 text-md sm:text-lg">
   {{navbar_html|safe}}
-  <div class="container mx-auto max-w-4xl px-4 mb-12" id="guide-template">
-    <div class="prose max-w-none">
+  <div class="container mx-auto max-w-4xl px-4 mb-12 mt-6" id="guide-template">
+    {% if spaces is not none %}
+    <p class='mb-2 text-sm text-gray-500'>
+      <span class="italic">Related Spaces:</span>
+      {% for space in spaces %}
+        <a href='{{ space }}' target='_blank' class="hover:text-blue-500 transition">{{ space[30:] }}</a>
+        {% if not loop.last %}, {% endif %}
+      {% endfor %}
+    </p>
+    {% endif %}
+
+    {% if tags is not none %}
+    <p class='mb-2 text-sm text-gray-500'>
+      <span class="italic">Tags:</span>
+      {% for tag in tags %}
+        <span>{{ tag }}</span><!--
+     -->{% if not loop.last %}, {% endif %}
+      {% endfor %}
+    </p>
+    {% endif %}
+
+    <div class="prose mt-6">
       {{ template_html|safe }}
     </div>
   </div>
@@ -112,47 +109,17 @@
   <script defer id='gradio-library' src="/gradio_static/build/bundle.js"></script>
   <script>
     var demo_endpoint = "/demo";
-    var demo_names = {{ demo_names|tojson }};
+    var demo_names = {{ demo_names| tojson }};
     document.querySelector("#gradio-library").addEventListener('load', function () {
       demo_names.forEach((demo_name, i) => {
-      fetch('/demo/' + demo_name + '/config')
-        .then(response => response.json())
-        .then(demo => {
-          demo.root = demo_endpoint + "/" + demo_name + "/";
-          launchGradio(demo, "#interface_" + demo_name);
-        });
+        fetch('/demo/' + demo_name + '/config')
+          .then(response => response.json())
+          .then(demo => {
+            demo.root = demo_endpoint + "/" + demo_name + "/";
+            launchGradio(demo, "#interface_" + demo_name);
+          });
       });
     });
-
-    var spacesHolder, spaces;
-    spacesHolder = document.getElementById("spaces-holder");
-    spaces = spacesHolder.getElementsByTagName('div');
-
-    var backgrounds = ['rgba(255,254,188,0.3)',
-                       'rgba(255,205,188,0.3)',
-                       'rgba(255,188,188,0.3)',
-                       'rgba(194,255,169,0.3)',
-                       'rgba(169,255,237,0.3)',
-                       'rgba(182,169,255,0.3)',
-                       'rgba(255,183,245,0.3)']
-
-    function shuffleBackgrounds(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [array[i], array[j]] = [array[j], array[i]];
-      }
-    }
-
-    shuffleBackgrounds(backgrounds);
-
-    color_counter = 0
-    for (let i = 0; i < spaces.length; i++) {
-      spaces[i].style.background = backgrounds[color_counter];
-      color_counter += 1
-      if (color_counter == backgrounds.length) {
-        color_counter = 0;
-      }
-    }
   </script>
 
 </body>
