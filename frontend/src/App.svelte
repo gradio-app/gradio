@@ -1,7 +1,16 @@
 <script>
   import Interface from "./Interface.svelte";
+  import { _ } from "svelte-i18n";
   import { setupi18n } from "./i18n";
   setupi18n()
+
+  // import { addMessages, init } from "svelte-i18n";
+  // import es from '../public/lang/es.json'
+  // addMessages("es", es);
+  // init({
+  //   initialLocale: "es",
+  // });
+
 
   export let title,
     description,
@@ -83,7 +92,7 @@
         class="footer flex-shrink-0 inline-flex gap-2.5 items-center text-gray-400 justify-center py-2"
       >
         <a href="api" target="_blank" rel="noreferrer">
-          view the api
+          {$_("interface.view_api")}
           <img
             class="h-5 inline-block"
             src="{static_src}/static/img/api-logo.svg"
@@ -92,7 +101,8 @@
         </a>
         &bull;
         <a href="https://gradio.app" target="_blank" rel="noreferrer">
-          built with <img
+          {$_("interface.built_with_Gradio")}
+          <img
             class="h-6 inline-block"
             src="{static_src}/static/img/logo.svg"
             alt="logo"
