@@ -41,10 +41,13 @@ jobs:
           command: |
             . venv/bin/activate
             python -m pytest
+      - run:
+          command: |
+            . venv/bin/activate
             coverage run -m pytest
             coverage xml
       - codecov/upload:
-          file: 'coverage.xml'                    
+          file: 'coverage.xml'
       - store_artifacts:
           path: /home/circleci/project/test/tmp
           destination: screenshots
