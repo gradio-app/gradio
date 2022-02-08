@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest an improvement or new feature for Gradio
+about: Suggest an improvement or new feature or a new Guide for Gradio
 title: ''
 labels: ''
 assignees: ''
