@@ -21,8 +21,14 @@ from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
 from markdown_it import MarkdownIt
 from mdit_py_plugins.footnote import footnote_plugin
 
-from gradio import (encryptor, interpretation, networking,  # type: ignore
-                    queueing, strings, utils)
+from gradio import (
+    encryptor,
+    interpretation,
+    networking,  # type: ignore
+    queueing,
+    strings,
+    utils,
+)
 from gradio.external import load_from_pipeline, load_interface  # type: ignore
 from gradio.flagging import CSVLogger, FlaggingCallback  # type: ignore
 from gradio.inputs import InputComponent
@@ -243,20 +249,25 @@ class Interface:
 
         self.session = None
         self.title = title
-        
-        CLEANER = re.compile('<.*?>') 
+
+        CLEANER = re.compile("<.*?>")
+
         def clean_html(raw_html):
-            cleantext = re.sub(CLEANER, '', raw_html)
+            cleantext = re.sub(CLEANER, "", raw_html)
             return cleantext
-        md = MarkdownIt("js-default", {
+
+        md = MarkdownIt(
+            "js-default",
+            {
                 "linkify": True,
                 "typographer": True,
                 "html": True,
-            }).use(footnote_plugin)
-             
+            },
+        ).use(footnote_plugin)
+
         simple_description = None
         if description is not None:
-            description = md.render(description)            
+            description = md.render(description)
             simple_description = clean_html(description)
         self.simple_description = simple_description
         self.description = description
@@ -264,7 +275,7 @@ class Interface:
             article = utils.readme_to_html(article)
             article = md.render(article)
         self.article = article
-        
+
         self.thumbnail = thumbnail
         theme = theme if theme is not None else os.getenv("GRADIO_THEME", "default")
         DEPRECATED_THEME_MAP = {

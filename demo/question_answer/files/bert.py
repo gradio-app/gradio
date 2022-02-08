@@ -6,11 +6,19 @@ import math
 
 import numpy as np
 import torch
-from pytorch_transformers import (WEIGHTS_NAME, BertConfig,
-                                  BertForQuestionAnswering, BertTokenizer)
+from pytorch_transformers import (
+    WEIGHTS_NAME,
+    BertConfig,
+    BertForQuestionAnswering,
+    BertTokenizer,
+)
 from torch.utils.data import DataLoader, SequentialSampler, TensorDataset
-from utils import (get_answer, input_to_squad_example,
-                   squad_examples_to_features, to_list)
+from utils import (
+    get_answer,
+    input_to_squad_example,
+    squad_examples_to_features,
+    to_list,
+)
 
 RawResult = collections.namedtuple(
     "RawResult", ["unique_id", "start_logits", "end_logits"]

@@ -58,6 +58,7 @@ for guide in sorted(os.listdir(GRADIO_GUIDES_DIR)):
     tags = None
     if "tags: " in guide_content:
         tags = guide_content.split("tags: ")[1].split("\n")[0].split(", ")
+
     spaces = None
     if "related_spaces: " in guide_content:
         spaces = guide_content.split("related_spaces: ")[1].split("\n")[0].split(", ")
@@ -83,9 +84,13 @@ def render_guides_main():
         template = Template(template_file.read())
         output_html = template.render(guides=filtered_guides, navbar_html=navbar_html)
     os.makedirs(os.path.join("generated", "guides"), exist_ok=True)
-    with open(os.path.join("generated", "guides", "index.html"), "w", encoding='utf-8') as generated_template:
+    with open(
+        os.path.join("generated", "guides", "index.html"), "w", encoding="utf-8"
+    ) as generated_template:
         generated_template.write(output_html)
-    with open(os.path.join("generated", "guides.html"), "w", encoding='utf-8') as generated_template:
+    with open(
+        os.path.join("generated", "guides.html"), "w", encoding="utf-8"
+    ) as generated_template:
         generated_template.write(output_html)
 
 

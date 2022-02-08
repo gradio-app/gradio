@@ -122,7 +122,10 @@ class TestDemo(unittest.TestCase):
             time.sleep(0.2)
             total_sleep += 0.2
 
-        self.assertEqual(elem.text, "L + e + W - a - n - t ' + s + t - g + o s e e a m a g i c t r i c k ? - ! +")
+        self.assertEqual(
+            elem.text,
+            "L + e + W - a - n - t ' + s + t - g + o s e e a m a g i c t r i c k ? - ! +",
+        )
         golden_img = os.path.join(
             current_dir, GOLDEN_PATH.format("diff_texts", "magic_trick")
         )
