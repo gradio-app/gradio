@@ -50,8 +50,10 @@ comet-ml==3.25.0
     # via -r requirements.in
 configobj==5.0.6
     # via everett
-coverage==6.3.1
-    # via -r requirements.in
+coverage[toml]==6.3.1
+    # via
+    #   -r requirements.in
+    #   pytest-cov
 cryptography==36.0.1
     # via
     #   pyopenssl
@@ -257,6 +259,10 @@ pyparsing==3.0.7
 pyrsistent==0.18.1
     # via jsonschema
 pytest==7.0.0
+    # via
+    #   -r requirements.in
+    #   pytest-cov
+pytest-cov==3.0.0
     # via -r requirements.in
 python-dateutil==2.8.2
     # via
@@ -378,6 +384,7 @@ tokenizers==0.11.4
 tomli==2.0.0
     # via
     #   black
+    #   coverage
     #   pytest
 tqdm==4.62.3
     # via
