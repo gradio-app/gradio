@@ -40,7 +40,7 @@ jobs:
       - run:
           command: |
             . venv/bin/activate
-            coverage run -m unittest
+            coverage run -m pytest
             coverage xml
       - codecov/upload:
           file: 'coverage.xml'                    
