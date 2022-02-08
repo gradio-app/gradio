@@ -52,6 +52,7 @@ export default {
 		copy({
 			targets: [
 				{ src: 'public/*', dest: '../gradio/templates/frontend' },
+				{ src: 'public/global.css', dest: '../gradio/templates/frontend/build' },
 				{ src: 'public/static', dest: '../gradio/templates/frontend' }
 			]
 		}),
