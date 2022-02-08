@@ -35,12 +35,13 @@ def get_huggingface_interface(model_name, api_key, alias):
             content_type = r.headers.get("content-type")
             # Case 2: the data prefix is a key in the response
             if content_type == "application/json":
-                try: 
+                try:
                     content_type = r.json()[0]["content-type"]
                     base64_repr = r.json()[0]["blob"]
                 except KeyError:
-                    raise ValueError("Cannot determine content type returned"
-                                     "by external API.")
+                    raise ValueError(
+                        "Cannot determine content type returned" "by external API."
+                    )
             # Case 3: the data prefix is included in the response headers
             else:
                 pass
@@ -66,7 +67,7 @@ def get_huggingface_interface(model_name, api_key, alias):
             "preprocess": lambda i: base64.b64decode(
                 i["data"].split(",")[1]
             ),  # convert the base64 representation to binary
-             "postprocess": encode_to_base64,
+            "postprocess": encode_to_base64,
         },
         "automatic-speech-recognition": {
             # example model: https://hf.co/jonatasgrosman/wav2vec2-large-xlsr-53-english
