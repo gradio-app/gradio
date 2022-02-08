@@ -10,9 +10,7 @@ import requests
 DB_FILE = "gradio_queue.db"
 
 
-def queue_thread(
-    path_to_local_server: str
-) -> None:
+def queue_thread(path_to_local_server: str) -> None:
     while True:
         try:
             next_job = pop()
@@ -108,10 +106,7 @@ def pop() -> Tuple[int, str, Dict, str]:
     return result[0], result[1], json.loads(result[2]), result[3]
 
 
-def push(
-    input_data: Dict, 
-    action: str
-) -> Tuple[str, int]:
+def push(input_data: Dict, action: str) -> Tuple[str, int]:
     input_data = json.dumps(input_data)
     hash = generate_hash()
     conn = sqlite3.connect(DB_FILE)
@@ -140,7 +135,7 @@ def push(
     """
     )
     result = c.fetchone()
-    if not(result[0] == 0):
+    if not (result[0] == 0):
         queue_position += 1
     conn.commit()
     return hash, queue_position
@@ -204,7 +199,7 @@ def get_status(hash: str) -> Tuple[str, int]:
         """
         )
         result = c.fetchone()
-        if not(result[0] == 0):
+        if not (result[0] == 0):
             queue_position += 1
         conn.commit()
         return "QUEUED", queue_position
@@ -229,10 +224,7 @@ def start_job(hash: str) -> None:
     conn.commit()
 
 
-def fail_job(
-    hash: str, 
-    error_message: str
-) -> None:
+def fail_job(hash: str, error_message: str) -> None:
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
     c.execute(
@@ -247,10 +239,7 @@ def fail_job(
     conn.commit()
 
 
-def pass_job(
-    hash: str, 
-    output_data: Dict
-) -> None:
+def pass_job(hash: str, output_data: Dict) -> None:
     output_data = json.dumps(output_data)
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()

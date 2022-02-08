@@ -111,6 +111,7 @@ class CSVLogger(FlaggingCallback):
     The default implementation of the FlaggingCallback abstract class.
     Logs the input and output data to a CSV file. Supports encryption.
     """
+
     def setup(self, flagging_dir: str):
         self.flagging_dir = flagging_dir
         os.makedirs(flagging_dir, exist_ok=True)
@@ -323,9 +324,11 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             # Generate the headers and dataset_infos
             if is_new:
                 headers = []
-                
+
                 for i, component in enumerate(interface.input_components):
-                    component_label = interface.config["input_components"][i]["label"] or "Input_{}".format(i)
+                    component_label = interface.config["input_components"][i][
+                        "label"
+                    ] or "Input_{}".format(i)
                     headers.append(component_label)
                     infos["flagged"]["features"][component_label] = {
                         "dtype": "string",
@@ -341,7 +344,9 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
                                 break
 
                 for i, component in enumerate(interface.output_components):
-                    component_label = interface.config["output_components"][i]["label"] or "Output_{}".format(i)
+                    component_label = interface.config["output_components"][i][
+                        "label"
+                    ] or "Output_{}".format(i)
                     headers.append(component_label)
                     infos["flagged"]["features"][component_label] = {
                         "dtype": "string",
@@ -368,7 +373,9 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             # Generate the row corresponding to the flagged sample
             csv_data = []
             for i, component in enumerate(interface.input_components):
-                label = interface.config["input_components"][i]["label"] or "Input_{}".format(i)
+                label = interface.config["input_components"][i][
+                    "label"
+                ] or "Input_{}".format(i)
                 filepath = component.save_flagged(
                     self.dataset_dir, label, input_data[i], None
                 )
@@ -378,9 +385,13 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
                         "{}/resolve/main/{}".format(self.path_to_dataset_repo, filepath)
                     )
             for i, component in enumerate(interface.output_components):
-                label = interface.config["output_components"][i]["label"] or "Output_{}".format(i)
+                label = interface.config["output_components"][i][
+                    "label"
+                ] or "Output_{}".format(i)
                 filepath = (
-                    component.save_flagged(self.dataset_dir, label, output_data[i], None)
+                    component.save_flagged(
+                        self.dataset_dir, label, output_data[i], None
+                    )
                     if output_data[i] is not None
                     else ""
                 )

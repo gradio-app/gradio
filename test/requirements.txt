@@ -22,7 +22,7 @@ attrs==21.4.0
     #   pytest
 backcall==0.2.0
     # via ipython
-black==21.12b0
+black~=22.1
     # via ipython
 cachetools==5.0.0
     # via google-auth

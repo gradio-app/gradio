@@ -38,7 +38,7 @@ class TestSimpleFlagging(unittest.TestCase):
             self.assertEqual(row_count, 1)  # no header in SimpleCSVLogger
         io.close()
 
-        
+
 class TestHuggingFaceDatasetSaver(unittest.TestCase):
     def test_saver_setup(self):
         huggingface_hub.create_repo = MagicMock()
@@ -47,7 +47,7 @@ class TestHuggingFaceDatasetSaver(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdirname:
             flagger.setup(tmpdirname)
         huggingface_hub.create_repo.assert_called_once()
-        
+
     def test_saver_flag(self):
         huggingface_hub.create_repo = MagicMock()
         huggingface_hub.Repository = MagicMock()
@@ -65,7 +65,7 @@ class TestHuggingFaceDatasetSaver(unittest.TestCase):
             self.assertEqual(row_count, 1)  # 2 rows written including header
             row_count = io.flagging_callback.flag(io, ["test"], ["test"])
             self.assertEqual(row_count, 2)  # 3 rows written including header
-                
-        
+
+
 if __name__ == "__main__":
     unittest.main()
