@@ -49,7 +49,7 @@ jobs:
       - run:
           command: |
             . venv/bin/activate
-            python -m isort --check-only gradio test
+            python -m isort --profile=black --check-only gradio test
       - run:
           command: |
             . venv/bin/activate
