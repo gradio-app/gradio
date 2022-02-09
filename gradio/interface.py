@@ -719,7 +719,6 @@ class Interface:
 
         if private_endpoint is not None:
             share = True
-        self.share = share
 
         if share:
             try:
@@ -734,9 +733,13 @@ class Interface:
                 if self.analytics_enabled:
                     utils.error_analytics(self.ip_address, "Not able to set up tunnel")
                 share_url = None
+                share = False
+                print(strings.en["COULD_NOT_GET_SHARE_LINK"])
         else:
             print(strings.en["PUBLIC_SHARE_TRUE"])
             share_url = None
+
+        self.share = share
 
         if inbrowser:
             link = share_url if share else path_to_local_server
