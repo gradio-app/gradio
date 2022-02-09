@@ -4,5 +4,5 @@ if [ -z "$(ls | grep CONTRIBUTING.md)" ]; then
   exit -1
 else
   echo "Running the tests"
-  python -m pytest --durations=0 test
+  python -m pytest --cov=gradio --durations=20 --durations-min=0.1 test/local
 fi
