@@ -39,15 +39,14 @@ jobs:
             mkdir screenshots
       - run:
           command: |
-            python -m black --check gradio test
-            python -m isort --check-only gradio test
-            python -m flake8 --max-line-length=160 gradio test
-
-      - run:
-          command: |
             . venv/bin/activate
             coverage run -m pytest
             coverage xml
+      - run:
+          command: |
+            python -m black --check gradio test
+            python -m isort --check-only gradio test
+            python -m flake8 --max-line-length=160 gradio test
       - codecov/upload:
           file: 'coverage.xml'
       - store_artifacts:
