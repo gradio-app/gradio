@@ -39,9 +39,9 @@ jobs:
             mkdir screenshots
       - run:
           command: |
-            black --check gradio test
-            isort --check-only gradio test
-            flake8 --max-line-length=160 gradio test
+            python -m black --check gradio test
+            python -m isort --check-only gradio test
+            python -m flake8 --max-line-length=160 gradio test
 
       - run:
           command: |
