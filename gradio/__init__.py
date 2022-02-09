@@ -1,7 +1,11 @@
 import pkg_resources
 
-from gradio.flagging import (CSVLogger, FlaggingCallback,
-                             HuggingFaceDatasetSaver, SimpleCSVLogger)
+from gradio.flagging import (
+    CSVLogger,
+    FlaggingCallback,
+    HuggingFaceDatasetSaver,
+    SimpleCSVLogger,
+)
 from gradio.interface import Interface, close_all, reset_all
 from gradio.mix import Parallel, Series
 from gradio.routes import get_state, set_state
