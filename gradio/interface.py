@@ -94,6 +94,12 @@ class Interface:
         pipeline (transformers.Pipeline):
         Returns:
         (gradio.Interface): a Gradio Interface object from the given Pipeline
+
+        Example usage:
+            import gradio as gr
+            from transformers import pipeline
+            pipe = pipeline(model="lysandre/tiny-vit-random")
+            gr.Interface.from_pipeline(pipe).launch()
         """
         interface_info = load_from_pipeline(pipeline)
         kwargs = dict(interface_info, **kwargs)
