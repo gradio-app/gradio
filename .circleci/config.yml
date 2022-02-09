@@ -40,7 +40,7 @@ jobs:
       - run:
           command: |
             . venv/bin/activate
-            coverage run -m pytest --cov=gradio --durations=20 --durations-min=1 test
+            coverage run -m pytest
             coverage xml
       - codecov/upload:
           file: 'coverage.xml'
