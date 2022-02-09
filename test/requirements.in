@@ -10,3 +10,4 @@ shap
 pytest
 wandb
 huggingface_hub
+black>=22.1.0
