@@ -25,10 +25,8 @@ from gradio import encryptor, queueing, utils
 from gradio.process_examples import load_from_cache, process_example
 
 STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "templates/")
-STATIC_PATH_LIB = pkg_resources.resource_filename(
-    "gradio", "templates/frontend/static")
-BUILD_PATH_LIB = pkg_resources.resource_filename(
-    "gradio", "templates/frontend/assets")
+STATIC_PATH_LIB = pkg_resources.resource_filename("gradio", "templates/frontend/static")
+BUILD_PATH_LIB = pkg_resources.resource_filename("gradio", "templates/frontend/assets")
 VERSION_FILE = pkg_resources.resource_filename("gradio", "version.txt")
 with open(VERSION_FILE) as version_file:
     VERSION = version_file.read()
@@ -109,8 +107,7 @@ def main(request: Request, user: str = Depends(get_current_user)):
     if app.auth is None or not (user is None):
         config = app.interface.config
     else:
-        config = {"auth_required": True,
-                  "auth_message": app.interface.auth_message}
+        config = {"auth_required": True, "auth_message": app.interface.auth_message}
 
     return templates.TemplateResponse(
         "frontend/index.html", {"request": request, "config": config}
@@ -133,7 +130,6 @@ def static_resource(path: str):
         return FileResponse(static_file)
     raise HTTPException(status_code=404, detail="Static file not found")
 
-
 @app.get("/assets/{path:path}")
 def build_resource(path: str):
     if app.interface.share:
@@ -154,8 +150,7 @@ def file(path):
     ):
         with open(safe_join(app.cwd, path), "rb") as encrypted_file:
             encrypted_data = encrypted_file.read()
-        file_data = encryptor.decrypt(
-            app.interface.encryption_key, encrypted_data)
+        file_data = encryptor.decrypt(app.interface.encryption_key, encrypted_data)
         return FileResponse(
             io.BytesIO(file_data), attachment_filename=os.path.basename(path)
         )
@@ -170,10 +165,8 @@ def api_docs(request: Request):
     outputs = [type(out) for out in app.interface.output_components]
     input_types_doc, input_types = get_types(inputs, "input")
     output_types_doc, output_types = get_types(outputs, "output")
-    input_names = [
-        type(inp).__name__ for inp in app.interface.input_components]
-    output_names = [
-        type(out).__name__ for out in app.interface.output_components]
+    input_names = [type(inp).__name__ for inp in app.interface.input_components]
+    output_names = [type(out).__name__ for out in app.interface.output_components]
     if app.interface.examples is not None:
         sample_inputs = app.interface.examples[0]
     else:
