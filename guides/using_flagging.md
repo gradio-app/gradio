@@ -21,8 +21,9 @@ There are four parameters `gr.Interface` that control how flagging works. We wil
     * `manual`: users will see a button to flag, and events are only flagged when it's clicked.
     * `auto`: users will not see a button to flag, but every event will be flagged automatically. 
     * `never`: users will not see a button to flag, and no event will be flagged. 
-* `flagging_options`: this *optional* parameter takes a list of strings.
-    * If provided, allows user to select from a list of options when flagging. Only applies if `allow_flagging` is `"manual"`.
+* `flagging_options`: this parameter can be either `None` (default) or a list of strings.
+    * If `None`, then the user simply clicks on the **Flag** button and no additional options are shown.
+    * If a list of strings are provided, this allows user to select from a list of options when flagging. Only applies if `allow_flagging` is `"manual"`.
     * The chosen option is then piped along with the input and output.
 * `flagging_dir`: this parameter takes a string.
     * It represents what to name the directory where flagged data is stored.
