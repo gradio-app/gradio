@@ -628,6 +628,8 @@ class Interface:
         encrypt: bool = False,
         cache_examples: bool = False,
         favicon_path: Optional[str] = None,
+        ssl_keyfile: Optional[str] = None,
+        ssl_certfile: Optional[str] = None,
     ) -> Tuple[flask.Flask, str, str]:
         """
         Launches the webserver that serves the UI for the interface.
@@ -649,7 +651,9 @@ class Interface:
         height (int): The height in pixels of the iframe element containing the interface (used if inline=True)
         encrypt (bool): If True, flagged data will be encrypted by key provided by creator at launch
         cache_examples (bool): If True, examples outputs will be processed and cached in a folder, and will be used if a user uses an example input.
-        favicon_path (str): If a path to an file (.png, .gif, or .ico) is provided, it will be used as the favicon for the web page.
+        favicon_path (str): If a path to a file (.png, .gif, or .ico) is provided, it will be used as the favicon for the web page.
+        ssl_keyfile (str): If a path to a file is provided, will use this as the private key file to create a local server running on https.
+        ssl_certfile (str): If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
         Returns:
         app (flask.Flask): Flask app object
         path_to_local_server (str): Locally accessible link
@@ -691,9 +695,9 @@ class Interface:
             cache_interface_examples(self)
 
         server_port, path_to_local_server, app, server = networking.start_server(
-            self, server_name, server_port
+            self, server_name, server_port, ssl_keyfile, ssl_certfile
         )
-
+        
         self.local_url = path_to_local_server
         self.server_port = server_port
         self.status = "RUNNING"
