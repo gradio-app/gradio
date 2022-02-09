@@ -130,6 +130,7 @@ def static_resource(path: str):
         return FileResponse(static_file)
     raise HTTPException(status_code=404, detail="Static file not found")
 
+
 @app.get("/build/{path:path}")
 def build_resource(path: str):
     if app.interface.share:

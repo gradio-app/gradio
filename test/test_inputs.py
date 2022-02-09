@@ -147,10 +147,10 @@ class TestNumber(unittest.TestCase):
         )
 
     def test_in_interface(self):
-        iface = gr.Interface(lambda x: x ** 2, "number", "textbox")
+        iface = gr.Interface(lambda x: x**2, "number", "textbox")
         self.assertEqual(iface.process([2])[0], ["4.0"])
         iface = gr.Interface(
-            lambda x: x ** 2, "number", "textbox", interpretation="default"
+            lambda x: x**2, "number", "textbox", interpretation="default"
         )
         scores, alternative_outputs = iface.interpret([2])
         self.assertEqual(
@@ -211,10 +211,10 @@ class TestSlider(unittest.TestCase):
         )
 
     def test_in_interface(self):
-        iface = gr.Interface(lambda x: x ** 2, "slider", "textbox")
+        iface = gr.Interface(lambda x: x**2, "slider", "textbox")
         self.assertEqual(iface.process([2])[0], ["4"])
         iface = gr.Interface(
-            lambda x: x ** 2, "slider", "textbox", interpretation="default"
+            lambda x: x**2, "slider", "textbox", interpretation="default"
         )
         scores, alternative_outputs = iface.interpret([2])
         self.assertEqual(
@@ -568,10 +568,10 @@ class TestAudio(unittest.TestCase):
 
     def test_tokenize(self):
         x_wav = gr.test_data.BASE64_AUDIO
-        audio_input = gr.inputs.Audio() 
+        audio_input = gr.inputs.Audio()
         tokens, _, _ = audio_input.tokenize(x_wav)
         self.assertEquals(len(tokens), audio_input.interpretation_segments)
-        x_new = audio_input.get_masked_inputs(tokens, [[1]*len(tokens)])[0]
+        x_new = audio_input.get_masked_inputs(tokens, [[1] * len(tokens)])[0]
         similarity = SequenceMatcher(a=x_wav["data"], b=x_new).ratio()
         self.assertGreater(similarity, 0.9)
 

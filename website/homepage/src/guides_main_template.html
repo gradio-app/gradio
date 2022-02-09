@@ -1,0 +1,243 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Gradio Guides</title>
+  <meta name="description" content="How to use Gradio">
+  <meta name="author" content="How to use Gradio">
+  <meta property="og:title" content="Gradio Guides">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://gradio.app/guides">
+  <meta property="og:description" content="How to use Gradio">
+  <meta property="og:image" content="/assets/img/guides/guides-meta.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:creator" content="@teamGradio">
+  <meta name="twitter:title" content="Gradio Guides">
+  <meta name="twitter:description" content="How to use Gradio">
+  <meta name="twitter:image" content="/assets/img/guides/guides-meta.png">
+
+  <link rel="icon" type="image/png" href="/assets/img/logo.png">
+  <link href="/gradio_static/static/bundle.css" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/assets/prism.css">
+  <style>
+    html {
+      font-size: 16px !important;
+    }
+    .search-for-tags {
+      width: 100%;
+      position: relative;
+      display: flex;
+    }
+    .searchTerm {
+      width: 100%;
+      border: 1px solid #bebfc3;
+      padding: 5px;
+      height: 50px;
+      border-radius: 25px;
+      outline: none;
+      color: #9ca3af;
+      text-align: center;
+      font-size: large;
+    }
+
+    .searchTerm:focus{
+      color: #101827;
+    }
+
+    .wrap-for-search{
+      padding-top: 20px;
+      margin: auto;
+    }
+
+    #no-guides-found {
+      text-align: center;
+      color: #9ca3af;
+      font-size: larger;
+    }
+
+    .counter-box {
+        width: 100%;
+        color: #ec8f14;
+    }
+
+    .counter{
+        padding-left: 4px;
+        padding-right: 4px;
+      }
+
+    .counter-parent {
+      text-align: center;
+      font-size: smaller;
+    }
+    .counter-child {
+      display: inline-block;
+    }
+
+    .tags-holder {
+      text-align: left;
+      font-size: small;
+      font-weight: 300;
+      color: #5a5a5a;
+    }
+
+  </style>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag('js', new Date());
+      gtag('config', 'UA-156449732-1');
+    </script>
+</head>
+
+<body class="bg-white text-gray-900 text-md sm:text-lg">
+  {{navbar_html|safe}}
+  <div class="container mx-auto px-4 mb-12" style="width: 80%;">
+
+    <div class="wrap-for-search">
+            <div class="search-for-tag">
+                  <input id="search-by-tag" type="text" class="searchTerm" placeholder="What do you want to build..." onfocus="this.placeholder = ''"
+                    onblur="this.placeholder = 'What do you want to build...'" autocomplete="off" onkeyup="search(this.value);">
+            </div>
+    </div>
+    <div class="counter-parent">
+        <div class="counter-child">
+          <h2 style="font-weight: 100; color: #444343; padding-bottom: 20px;">Search through </h2>
+        </div>
+        <div class="counter-child">
+            <div class="counter-box">
+                <div id="counter" class="counter"></div>
+            </div>
+        </div>
+        <div class="counter-child">
+            <h2 style="font-weight: 100; color: #444343; padding-bottom: 20px;"> Guides. <a class="link" href="https://github.com/gradio-app/gradio/tree/master/guides" style="color: grey;">Contribute here</a></h2>
+        </div>
+    </div>
+
+    <div id="guide-list" class="grid grid-cols-1 lg:grid-cols-3 gap-12 pt-12">
+      {% for guide in guides %}
+      <a class="flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow" href="/{{ guide.name }}">
+        <div class="flex flex-col p-4" style="
+      height: min-content;">
+          <h2 class="font-semibold group-hover:underline text-xl">{{ guide.pretty_name }}
+          </h2>
+          <div class="tags-holder">
+            <p>
+              {% for tag in guide.tags %}
+                {{ tag }}<!--
+             -->{% if not loop.last %}, {% endif %}
+              {% endfor %}
+            </p>
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+  </div>
+
+    <div id="no-guides-found" style="display: none">
+    <p>
+        Sorry, we couldn't find a guide :(
+    </p>
+    <p>
+        Try a different term, or <a class="link" href="/docs">see the docs</a>
+    </p>
+
+    </div>
+  </div>
+  <footer class="container mx-auto p-4 flex justify-between items-center">
+    <div class="h-10"></div>
+    <div class="flex gap-4">
+      <a class="hover:opacity-75 transition" href="https://twitter.com/Gradio">
+        <img src="/assets/img/twitter.svg" class="h-8">
+      </a>
+      <a class="hover:opacity-75 transition" href="https://github.com/gradio-app/gradio">
+        <img src="/assets/img/github.svg" class="h-8">
+      </a>
+    </div>
+    <div class="h-10"></div>
+  </footer>
+  <script>
+  var div, li, a;
+  div = document.getElementById("guide-list");
+  a = div.getElementsByTagName('a');
+
+  var backgrounds = ['linear-gradient(90deg, rgba(255,254,188,0.3) 0%, rgba(255,255,240,0.3) 100%)',
+                     'linear-gradient(90deg, rgba(255,205,188,0.3) 0%, rgba(255,253,253,0.3) 100%)',
+                     'linear-gradient(90deg, rgba(255,188,188,0.3) 0%, rgba(255,238,238,0.3) 100%)',
+                     'linear-gradient(90deg, rgba(194,255,169,0.3) 0%, rgba(243,255,238,0.3) 100%)',
+                     'linear-gradient(90deg, rgba(169,255,237,0.3) 0%, rgba(230,255,250,0.3) 100%)',
+                     'linear-gradient(90deg, rgba(182,169,255,0.3) 0%, rgba(237,234,255,0.3) 100%)',
+                     'linear-gradient(90deg, rgba(255,183,245,0.3) 0%, rgba(255,234,252,0.3) 100%)']
+
+  function shuffleBackgrounds(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+  }
+
+  shuffleBackgrounds(backgrounds);
+
+  color_counter = 0
+  for (let i = 0; i < a.length; i++) {
+    a[i].style.background = backgrounds[color_counter];
+    color_counter += 1
+    if (color_counter == backgrounds.length) {
+      color_counter = 0;
+    }
+  }
+
+  function animateValue(obj, start, end, duration) {
+    let startTimestamp = null;
+    const step = (timestamp) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      obj.innerHTML = Math.floor(progress * (end - start) + start);
+      if (progress < 1) {
+        window.requestAnimationFrame(step);
+      }
+    };
+    window.requestAnimationFrame(step);
+  }
+
+  const obj = document.getElementById("counter");
+  animateValue(obj, 0, a.length, 1000);
+
+  function search(term) {
+    var filter, i, txtValue;
+    filter = term.toUpperCase();
+    var counter = 0
+    {% for guide in guides %}
+      txtValue = a[{{ loop.index - 1 }}].innerText;
+      guideContent = {{ guide.content|tojson|safe }}
+      if (txtValue.toUpperCase().indexOf(filter) > -1 || guideContent.toUpperCase().indexOf(filter) > -1) {
+        a[{{ loop.index - 1}}].style.display = "";
+      } else {
+        a[{{ loop.index - 1 }}].style.display = "none";
+        counter++;
+      }
+    {% endfor %}
+    ngf = document.getElementById("no-guides-found");
+    if (counter == a.length) {
+      ngf.style.display = "";
+    } else {
+      ngf.style.display = "none";
+    }
+  }
+
+  </script>
+  <script src="/assets/prism.js"></script>
+  <script>
+    window.gradio_mode = "website";
+  </script>
+
+</body>
+
+</html>

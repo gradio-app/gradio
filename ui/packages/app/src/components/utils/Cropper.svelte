@@ -1,9 +1,9 @@
-<script>
+<script lang="ts">
 	import Cropper from "cropperjs";
 	import { onMount, createEventDispatcher } from "svelte";
 
-	export let image;
-	let el;
+	export let image: string;
+	let el: HTMLImageElement;
 
 	const dispatch = createEventDispatcher();
 

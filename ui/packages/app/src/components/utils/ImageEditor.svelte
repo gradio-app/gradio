@@ -1,11 +1,11 @@
-<script>
+<script lang="ts">
 	import ImageEditor from "tui-image-editor";
 
 	import { createEventDispatcher, onMount } from "svelte";
 
-	export let value;
-	let el;
-	let editor;
+	export let value: string;
+	let el: HTMLDivElement;
+	let editor: ImageEditor;
 
 	const dispatch = createEventDispatcher();
 

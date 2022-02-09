@@ -442,7 +442,6 @@ class Audio(OutputComponent):
         return {
             "audio": {},
         }
-    
 
     def postprocess(self, y):
         """
@@ -453,7 +452,7 @@ class Audio(OutputComponent):
         """
         if self.type in ["numpy", "file", "auto"]:
             if self.type == "numpy" or (self.type == "auto" and isinstance(y, tuple)):
-                sample_rate, data = y                
+                sample_rate, data = y
                 file = tempfile.NamedTemporaryFile(
                     prefix="sample", suffix=".wav", delete=False
                 )

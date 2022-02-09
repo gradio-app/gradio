@@ -6,8 +6,7 @@ import numpy as np
 import gradio.interpretation
 import gradio.test_data
 from gradio import Interface
-from gradio.processing_utils import (decode_base64_to_image,
-                                     encode_array_to_base64)
+from gradio.processing_utils import decode_base64_to_image, encode_array_to_base64
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 

@@ -1,8 +1,10 @@
-<script>
+<script lang="ts">
 	import { getSaliencyColor } from "../../utils/helpers";
 
-	export let value, interpretation, theme;
-	export let choices;
+	export let value: string;
+	export let interpretation: Array<number>;
+	export let theme: string;
+	export let choices: Array<string>;
 </script>
 
 <div class="input-dropdown" {theme}>
@@ -11,7 +13,6 @@
 			<li
 				class="dropdown-item first:rounded-t transition last:rounded-b py-2 px-3 block whitespace-nowrap cursor-pointer"
 				style={"background-color: " + getSaliencyColor(interpretation[i])}
-				key={i}
 			>
 				{choice}
 			</li>

@@ -8,6 +8,11 @@
   import { deepCopy } from "./components/utils/helpers.js";
   import ExampleSet from "./ExampleSet.svelte";
 
+  import huggingface_theme from "./themes/huggingface.scss";
+  import grass_theme from "./themes/grass.scss";
+  import peach_theme from "./themes/peach.scss";
+  import seafoam_theme from "./themes/seafoam.scss";
+
   export let input_components,
     output_components,
     theme,
@@ -266,7 +271,7 @@
           </div>
         {/if}
         {#each output_components as output_component, i}
-          {#if output_values[i] !== null}
+          {#if output_values[i] !== null && output_component.name !== "state"}
             <div class="component" key={i}>
               <div class="panel-header mb-1.5">{output_component.label}</div>
               <svelte:component

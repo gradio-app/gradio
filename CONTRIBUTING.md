@@ -5,18 +5,25 @@ Prequisites:
 * Python 3.7+
 * Node 16.0+ (optional for backend-only changes, but needed for any frontend changes)
 
-More than 30 awesome developers have contributed to the `gradio` library, and we'd be thrilled if you would like be the next `gradio` contributor! You can start by forking or cloning the
-repo (https://github.com/gradio-app/gradio.git) and creating your own branch to work from.
+More than 30 awesome developers have contributed to the `gradio` library, and we'd be thrilled if you would like be the next `gradio` contributor! You can start by forking or cloning the repo (https://github.com/gradio-app/gradio.git) and creating your own branch to work from.
 
-### To install the local version of Gradio
+### Install Gradio locally from the `master` branch
 
+* Clone this repo
 * Navigate to the repo folder and run
 
 ```bash
 bash scripts/install_gradio.sh
 ```
 
-### To install the local development version of Gradio
+* Build the front end
+
+```
+bash scripts/build_frontend.sh
+```
+
+
+### Install development and testing requirements
 
 * Navigate to the repo folder and install test requirements (note that it is highly recommended to use a virtual environment since the versions are pinned)
 
@@ -25,12 +32,6 @@ bash scripts/install_test_requirements.sh
 ```
 
 * Install [chrome driver](https://sites.google.com/chromium.org/driver/) and [chrome](https://www.google.com/chrome/) for selenium (necessary for tests)
-
-* Build the front end
-
-```
-bash scripts/build_frontend.sh
-```
 
 * Run the tests
 

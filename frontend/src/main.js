@@ -14,6 +14,11 @@ window.launchGradio = (config, element_query) => {
   } else {
     config.static_src = "https://gradio.s3-us-west-2.amazonaws.com/PIP_VERSION";
   }
+  if (config.css) {
+    let style = document.createElement("style");
+    style.innerHTML = config.css;
+    document.head.appendChild(style);
+  }
   if (config.detail === "Not authenticated") {
     new Login({
       target: target,

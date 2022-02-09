@@ -1,7 +1,9 @@
-<script>
+<script lang="ts">
 	import { getSaliencyColor } from "../../utils/helpers";
 
-	export let value, interpretation, theme;
+	export let value: boolean;
+	export let interpretation: [number, number];
+	export let theme: string;
 </script>
 
 <div class="input-checkbox inline-block" {theme}>
