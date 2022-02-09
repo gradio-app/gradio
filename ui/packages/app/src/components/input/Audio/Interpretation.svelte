@@ -6,7 +6,6 @@
 	export let interpretation: Array<number>;
 	export let theme: string;
 
-	$: console.log({ value, interpretation, theme });
 </script>
 
 <div class="input-audio" {theme}>

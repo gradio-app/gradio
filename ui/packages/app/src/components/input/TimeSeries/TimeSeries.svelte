@@ -57,7 +57,6 @@
 	}
 
 	function make_dict(x: XRow, y: Array<YRow>): Data {
-		console.log(x, y);
 		const headers = [];
 		const data = [];
 
