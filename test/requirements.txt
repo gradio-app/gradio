@@ -398,6 +398,8 @@ tomli==2.0.0
     #   black
     #   coverage
     #   pytest
+torch==1.10.2
+    # via -r requirements.in
 tqdm==4.62.3
     # via
     #   huggingface-hub
@@ -415,6 +417,7 @@ typing-extensions==4.0.1
     #   black
     #   huggingface-hub
     #   tensorflow
+    #   torch
 urllib3[secure]==1.26.8
     # via
     #   dulwich
