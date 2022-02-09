@@ -17,7 +17,7 @@ Gradio is useful for:
 **You can find an interactive version of the following Getting Started at [https://gradio.app/getting_started](https://gradio.app/getting_started).**
 
 {% with code=code, demos=demos %}
-{% include "getting_started.md" %}
+{% include "guides/getting_started.md" %}
 {% endwith %}
 
 ##  System Requirements:
