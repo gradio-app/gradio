@@ -17,6 +17,6 @@
 		class="clear bg-opacity-30 hover:bg-opacity-100 transition p-1 bg-gray-50 dark:bg-gray-500 rounded shadow w-8 h-8"
 		on:click={() => dispatch("clear")}
 	>
-		<img alt="clear sketch" src="{static_src}static/img/clear.svg" />
+		<img alt="clear sketch" src="{static_src}/static/img/clear.svg" />
 	</button>
 </div>
