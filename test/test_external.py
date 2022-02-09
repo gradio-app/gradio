@@ -245,9 +245,7 @@ class TestLoadInterface(unittest.TestCase):
 class TestLoadFromPipeline(unittest.TestCase):
     def test_question_answering(self):
         pipe = transformers.pipeline(model="sshleifer/bart-tiny-random")
-        output = pipe(
-            "My name is Sylvain and I work at Hugging Face in Brooklyn"
-        )
+        output = pipe("My name is Sylvain and I work at Hugging Face in Brooklyn")
         self.assertIsNotNone(output)
 
 

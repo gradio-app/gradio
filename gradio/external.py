@@ -2,9 +2,9 @@ import base64
 import json
 import re
 import tempfile
-from pydantic import MissingError
 
 import requests
+from pydantic import MissingError
 
 from gradio import inputs, outputs
 
