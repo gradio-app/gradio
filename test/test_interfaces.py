@@ -49,11 +49,11 @@ class TestInterface(unittest.TestCase):
             Interface(lambda x: x, examples=1234)
 
     def test_examples_valid_path(self):
-        path = os.path.join(os.path.dirname(__file__), "../test_data/flagged_with_log")
+        path = os.path.join(os.path.dirname(__file__), "test_data/flagged_with_log")
         interface = Interface(lambda x: 3 * x, "number", "number", examples=path)
         self.assertEqual(len(interface.get_config_file()["examples"]), 2)
 
-        path = os.path.join(os.path.dirname(__file__), "../test_data/flagged_no_log")
+        path = os.path.join(os.path.dirname(__file__), "test_data/flagged_no_log")
         interface = Interface(lambda x: 3 * x, "number", "number", examples=path)
         self.assertEqual(len(interface.get_config_file()["examples"]), 3)
 
