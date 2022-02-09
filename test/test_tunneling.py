@@ -34,7 +34,7 @@ class TestVerbose(unittest.TestCase):
     def setUp(self):
         self.message = "print test"
         self.capturedOutput = io.StringIO()  # Create StringIO object
-        sys.stdout = self.capturedOutput  #  and redirect stdout.
+        sys.stdout = self.capturedOutput  # and redirect stdout.
 
     def test_verbose_debug_true(self):
         tunneling.verbose(self.message, debug_mode=True)

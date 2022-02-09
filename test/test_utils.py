@@ -7,8 +7,7 @@ import warnings
 import pkg_resources
 import requests
 
-import gradio
-from gradio.utils import *
+from gradio.utils import version_check, json, error_analytics, colab_check, ipython_check, readme_to_html, get_local_ip_address, launch_analytics
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 

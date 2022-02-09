@@ -1,9 +1,7 @@
 import os
-import pathlib
 import tempfile
 import unittest
 
-import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 
@@ -38,7 +36,8 @@ class ImagePreprocessing(unittest.TestCase):
         )
         self.assertEqual(output_base64, gr.test_data.BASE64_IMAGE)
 
-    # def test_encode_plot_to_base64(self):  # Commented out because this is throwing errors on Windows. Possibly due to different matplotlib behavior on Windows?
+    # Commented out because this is throwing errors on Windows. Possibly due to different matplotlib behavior on Windows?
+    # def test_encode_plot_to_base64(self):
     #     plt.plot([1, 2, 3, 4])
     #     output_base64 = gr.processing_utils.encode_plot_to_base64(plt)
     #     self.assertEqual(output_base64, gr.test_data.BASE64_PLT_IMG)

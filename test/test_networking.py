@@ -9,7 +9,7 @@ import warnings
 import aiohttp
 from fastapi.testclient import TestClient
 
-from gradio import Interface, flagging, networking, queueing, reset_all
+from gradio import Interface, flagging, networking
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -104,7 +104,7 @@ class TestURLs(unittest.TestCase):
         res = networking.setup_tunnel(None, None)
         self.assertEqual(res, "test")
 
-    def test_url_ok(self):
+    def test_url_ok_2(self):
         res = networking.url_ok("https://www.gradio.app")
         self.assertTrue(res)
 

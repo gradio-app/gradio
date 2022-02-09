@@ -22,10 +22,10 @@ def encrypt(key: bytes, source: bytes) -> bytes:
 def decrypt(key: bytes, source: bytes) -> bytes:
     IV = source[: AES.block_size]  # extract the IV from the beginning
     decryptor = AES.new(key, AES.MODE_CBC, IV)
-    data = decryptor.decrypt(source[AES.block_size :])  # decrypt
+    data = decryptor.decrypt(source[AES.block_size:])  # decrypt
     padding = data[-1]  # pick the padding value from the end; Python 2.x: ord(data[-1])
     if (
-        data[-padding:] != bytes([padding]) * padding
+            data[-padding:] != bytes([padding]) * padding
     ):  # Python 2.x: chr(padding) * padding
         raise ValueError("Invalid padding...")
     return data[:-padding]  # remove the padding
