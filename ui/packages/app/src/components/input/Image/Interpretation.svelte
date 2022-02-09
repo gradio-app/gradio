@@ -1,14 +1,20 @@
-<script>
-	import ModifyUpload from "../../utils/ModifyUpload.svelte";
+<script lang="ts">
 	import { getObjectFitSize, getSaliencyColor } from "../../utils/helpers";
 	import { afterUpdate } from "svelte";
 
-	export let value, setValue, interpretation, shape, theme;
+	export let value: string;
+	export let interpretation: Array<Array<number>>;
+	export let shape: undefined | [number, number];
 
-	let saliency_layer;
-	let image;
+	let saliency_layer: HTMLCanvasElement;
+	let image: HTMLImageElement;
 
-	const paintSaliency = (data, ctx, width, height) => {
+	const paintSaliency = (
+		data: Array<Array<number>>,
+		ctx: CanvasRenderingContext2D,
+		width: number,
+		height: number
+	) => {
 		var cell_width = width / data[0].length;
 		var cell_height = height / data.length;
 		var r = 0;
@@ -42,11 +48,11 @@
 		}
 		let width = size.width;
 		let height = size.height;
-		saliency_layer.setAttribute("height", height);
-		saliency_layer.setAttribute("width", width);
+		saliency_layer.setAttribute("height", `${height}`);
+		saliency_layer.setAttribute("width", `${width}`);
 		paintSaliency(
 			interpretation,
-			saliency_layer.getContext("2d"),
+			saliency_layer.getContext("2d")!,
 			width,
 			height
 		);
