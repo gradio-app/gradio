@@ -244,9 +244,8 @@ class TestLoadInterface(unittest.TestCase):
 
 class TestLoadFromPipeline(unittest.TestCase):
     def test_question_answering(self):
-        p = transformers.pipeline("question-answering")
-        io = gr.Interface.from_pipeline(p)
-        output = io(
+        pipe = transformers.pipeline(model="lysandre/tiny-vit-random")
+        output = pipe(
             "My name is Sylvain and I work at Hugging Face in Brooklyn",
             "Where do I work?",
         )
