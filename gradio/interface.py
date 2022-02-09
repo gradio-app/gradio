@@ -21,14 +21,8 @@ from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
 from markdown_it import MarkdownIt
 from mdit_py_plugins.footnote import footnote_plugin
 
-from gradio import (
-    encryptor,
-    interpretation,
-    networking,  # type: ignore
-    queueing,
-    strings,
-    utils,
-)
+from gradio import networking  # type: ignore
+from gradio import encryptor, interpretation, queueing, strings, utils
 from gradio.external import load_from_pipeline, load_interface  # type: ignore
 from gradio.flagging import CSVLogger, FlaggingCallback  # type: ignore
 from gradio.inputs import InputComponent
@@ -703,7 +697,7 @@ class Interface:
         server_port, path_to_local_server, app, server = networking.start_server(
             self, server_name, server_port, ssl_keyfile, ssl_certfile
         )
-        
+
         self.local_url = path_to_local_server
         self.server_port = server_port
         self.status = "RUNNING"

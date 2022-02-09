@@ -2,8 +2,8 @@ import json
 import os
 import sqlite3
 import time
-from typing import Dict, Tuple
 import uuid
+from typing import Dict, Tuple
 
 import requests
 

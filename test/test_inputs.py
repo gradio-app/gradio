@@ -1,8 +1,8 @@
-from difflib import SequenceMatcher
 import json
 import os
 import tempfile
 import unittest
+from difflib import SequenceMatcher
 from re import sub
 
 import numpy as np

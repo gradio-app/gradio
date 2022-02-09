@@ -39,6 +39,12 @@ jobs:
             mkdir screenshots
       - run:
           command: |
+            black --check gradio test
+            isort --check-only gradio test
+            flake8 --max-line-length=160 gradio test
+
+      - run:
+          command: |
             . venv/bin/activate
             coverage run -m pytest
             coverage xml

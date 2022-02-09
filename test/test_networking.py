@@ -9,7 +9,7 @@ import warnings
 import aiohttp
 from fastapi.testclient import TestClient
 
-from gradio import Interface, flagging, networking, reset_all, queueing
+from gradio import Interface, flagging, networking, queueing, reset_all
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 

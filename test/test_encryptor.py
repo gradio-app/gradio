@@ -4,7 +4,6 @@ import unittest
 from gradio import encryptor, processing_utils
 from gradio.test_data import BASE64_IMAGE
 
-
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
