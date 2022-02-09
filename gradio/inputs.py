@@ -11,7 +11,6 @@ import math
 import os
 import tempfile
 import warnings
-from numbers import Number
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
 import numpy as np
@@ -78,7 +77,7 @@ class InputComponent(Component):
         pass
 
     def get_interpretation_scores(
-        self, x: Any, neighbors: List[Any], scores: List[float], **kwargs
+            self, x: Any, neighbors: List[Any], scores: List[float], **kwargs
     ) -> List[Any]:
         """
         Arrange the output values from the neighbors into interpretation scores for the interface to render.
@@ -107,13 +106,13 @@ class Textbox(InputComponent):
     """
 
     def __init__(
-        self,
-        lines: int = 1,
-        placeholder: Optional[str] = None,
-        default: str = "",
-        numeric: Optional[bool] = False,
-        type: Optional[str] = "str",
-        label: Optional[str] = None,
+            self,
+            lines: int = 1,
+            placeholder: Optional[str] = None,
+            default: str = "",
+            numeric: Optional[bool] = False,
+            type: Optional[str] = "str",
+            label: Optional[str] = None,
     ):
         """
         Parameters:
@@ -184,7 +183,7 @@ class Textbox(InputComponent):
         return x
 
     def set_interpret_parameters(
-        self, separator: str = " ", replacement: Optional[str] = None
+            self, separator: str = " ", replacement: Optional[str] = None
     ):
         """
         Calculates interpretation score of characters in input by splitting input into tokens, then using a "leave one out" method to calculate the score of each token by removing each token and measuring the delta of the output value.
@@ -214,7 +213,7 @@ class Textbox(InputComponent):
         return tokens, leave_one_out_strings, None
 
     def get_masked_inputs(
-        self, tokens: List[str], binary_mask_matrix: List[List[int]]
+            self, tokens: List[str], binary_mask_matrix: List[List[int]]
     ) -> List[str]:
         """
         Constructs partially-masked sentences for SHAP interpretation
@@ -226,7 +225,7 @@ class Textbox(InputComponent):
         return masked_inputs
 
     def get_interpretation_scores(
-        self, x, neighbors, scores: List[float], tokens: List[str], masks=None
+            self, x, neighbors, scores: List[float], tokens: List[str], masks=None
     ) -> List[Tuple[str, float]]:
         """
         Returns:
@@ -286,7 +285,7 @@ class Number(InputComponent):
         return x
 
     def set_interpret_parameters(
-        self, steps: int = 3, delta: float = 1, delta_type: str = "percent"
+            self, steps: int = 3, delta: float = 1, delta_type: str = "percent"
     ):
         """
         Calculates interpretation scores of numeric values close to the input number.
@@ -311,7 +310,7 @@ class Number(InputComponent):
         return negatives + positives, {}
 
     def get_interpretation_scores(
-        self, x: Number, neighbors: List[float], scores: List[float]
+            self, x: Number, neighbors: List[float], scores: List[float]
     ) -> List[Tuple[float, float]]:
         """
         Returns:
@@ -333,12 +332,12 @@ class Slider(InputComponent):
     """
 
     def __init__(
-        self,
-        minimum: float = 0,
-        maximum: float = 100,
-        step: Optional[float] = None,
-        default: Optional[float] = None,
-        label: Optional[str] = None,
+            self,
+            minimum: float = 0,
+            maximum: float = 100,
+            step: Optional[float] = None,
+            default: Optional[float] = None,
+            label: Optional[str] = None,
     ):
         """
         Parameters:
@@ -353,7 +352,7 @@ class Slider(InputComponent):
         if step is None:
             difference = maximum - minimum
             power = math.floor(math.log10(difference) - 2)
-            step = 10**power
+            step = 10 ** power
         self.step = step
         self.default = minimum if default is None else default
         self.test_input = self.default
@@ -407,7 +406,7 @@ class Slider(InputComponent):
         )
 
     def get_interpretation_scores(
-        self, x, neighbors, scores: List[float]
+            self, x, neighbors, scores: List[float]
     ) -> List[float]:
         """
         Returns:
@@ -493,11 +492,11 @@ class CheckboxGroup(InputComponent):
     """
 
     def __init__(
-        self,
-        choices: List[str],
-        default: List[str] = [],
-        type: str = "value",
-        label: Optional[str] = None,
+            self,
+            choices: List[str],
+            default: List[str] = [],
+            type: str = "value",
+            label: Optional[str] = None,
     ):
         """
         Parameters:
@@ -590,11 +589,11 @@ class Radio(InputComponent):
     """
 
     def __init__(
-        self,
-        choices: List(str),
-        type: str = "value",
-        default: Optional[str] = None,
-        label: Optional[str] = None,
+            self,
+            choices: List(str),
+            type: str = "value",
+            default: Optional[str] = None,
+            label: Optional[str] = None,
     ):
         """
         Parameters:
@@ -666,11 +665,11 @@ class Dropdown(InputComponent):
     """
 
     def __init__(
-        self,
-        choices: List[str],
-        type: str = "value",
-        default: Optional[str] = None,
-        label: Optional[str] = None,
+            self,
+            choices: List[str],
+            type: str = "value",
+            default: Optional[str] = None,
+            label: Optional[str] = None,
     ):
         """
         Parameters:
@@ -742,15 +741,15 @@ class Image(InputComponent):
     """
 
     def __init__(
-        self,
-        shape: Tuple[int, int] = None,
-        image_mode: str = "RGB",
-        invert_colors: bool = False,
-        source: str = "upload",
-        tool: str = "editor",
-        type: str = "numpy",
-        label: str = None,
-        optional: bool = False,
+            self,
+            shape: Tuple[int, int] = None,
+            image_mode: str = "RGB",
+            invert_colors: bool = False,
+            source: str = "upload",
+            tool: str = "editor",
+            type: str = "numpy",
+            label: str = None,
+            optional: bool = False,
     ):
         """
         Parameters:
@@ -979,11 +978,11 @@ class Video(InputComponent):
     """
 
     def __init__(
-        self,
-        type: Optional[str] = None,
-        source: str = "upload",
-        label: Optional[str] = None,
-        optional: bool = False,
+            self,
+            type: Optional[str] = None,
+            source: str = "upload",
+            label: Optional[str] = None,
+            optional: bool = False,
     ):
         """
         Parameters:
@@ -1036,7 +1035,7 @@ class Video(InputComponent):
         file_name = file.name
         uploaded_format = file_name.split(".")[-1].lower()
         if self.type is not None and uploaded_format != self.type:
-            output_file_name = file_name[0 : file_name.rindex(".") + 1] + self.type
+            output_file_name = file_name[0: file_name.rindex(".") + 1] + self.type
             ff = FFmpeg(inputs={file_name: None}, outputs={output_file_name: None})
             ff.run()
             return output_file_name
@@ -1066,11 +1065,11 @@ class Audio(InputComponent):
     """
 
     def __init__(
-        self,
-        source: str = "upload",
-        type: str = "numpy",
-        label: str = None,
-        optional: bool = False,
+            self,
+            source: str = "upload",
+            type: str = "numpy",
+            label: str = None,
+            optional: bool = False,
     ):
         """
         Parameters:
@@ -1278,12 +1277,12 @@ class File(InputComponent):
     """
 
     def __init__(
-        self,
-        file_count: str = "single",
-        type: str = "file",
-        label: Optional[str] = None,
-        keep_filename: bool = True,
-        optional: bool = False,
+            self,
+            file_count: str = "single",
+            type: str = "file",
+            label: Optional[str] = None,
+            keep_filename: bool = True,
+            optional: bool = False,
     ):
         """
         Parameters:
@@ -1379,15 +1378,15 @@ class Dataframe(InputComponent):
     """
 
     def __init__(
-        self,
-        headers: Optional[List[str]] = None,
-        row_count: int = 3,
-        col_count: Optional[int] = 3,
-        datatype: str | List[str] = "str",
-        col_width: int | List[int] = None,
-        default: Optional[List[List[Any]]] = None,
-        type: str = "pandas",
-        label: Optional[str] = None,
+            self,
+            headers: Optional[List[str]] = None,
+            row_count: int = 3,
+            col_count: Optional[int] = 3,
+            datatype: str | List[str] = "str",
+            col_width: int | List[int] = None,
+            default: Optional[List[List[Any]]] = None,
+            type: str = "pandas",
+            label: Optional[str] = None,
     ):
         """
         Parameters:
@@ -1492,11 +1491,11 @@ class Timeseries(InputComponent):
     """
 
     def __init__(
-        self,
-        x: Optional[str] = None,
-        y: str | List[str] = None,
-        label: Optional[str] = None,
-        optional: bool = False,
+            self,
+            x: Optional[str] = None,
+            y: str | List[str] = None,
+            label: Optional[str] = None,
+            optional: bool = False,
     ):
         """
         Parameters:
@@ -1592,7 +1591,7 @@ def get_input_instance(iface: Interface):
         shortcut = InputComponent.get_all_shortcut_implementations()[iface]
         return shortcut[0](**shortcut[1])
     elif isinstance(
-        iface, dict
+            iface, dict
     ):  # a dict with `name` as the input component type and other keys as parameters
         name = iface.pop("name")
         for component in InputComponent.__subclasses__():

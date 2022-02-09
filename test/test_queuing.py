@@ -2,11 +2,7 @@
 
 import os
 import unittest
-import unittest.mock as mock
-
-import requests
-
-from gradio import Interface, queueing
+from gradio import queueing
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 

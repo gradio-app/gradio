@@ -22,7 +22,6 @@ import gradio
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio import Interface
 
-
 analytics_url = "https://api.gradio.app/"
 PKG_VERSION_URL = "https://api.gradio.app/pkg-version"
 analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
@@ -106,7 +105,7 @@ async def log_feature_analytics(ip_address: str, feature: str) -> None:
     async with aiohttp.ClientSession() as session:
         try:
             async with session.post(
-                analytics_url + "gradio-feature-analytics/", data=data
+                    analytics_url + "gradio-feature-analytics/", data=data
             ):
                 pass
         except (aiohttp.ClientError):
@@ -233,9 +232,9 @@ def get_config_file(interface: Interface) -> Dict[str, Any]:
                 iface["label"] = ret_name
             if len(interface.predict) > 1:
                 iface["label"] = (
-                    interface.function_names[function_index].replace("_", " ")
-                    + ": "
-                    + iface["label"]
+                        interface.function_names[function_index].replace("_", " ")
+                        + ": "
+                        + iface["label"]
                 )
 
     except ValueError:
@@ -264,10 +263,10 @@ def get_config_file(interface: Interface) -> Dict[str, Any]:
                     examples = examples[1:]  # remove header
             for i, example in enumerate(examples):
                 for j, (component, cell) in enumerate(
-                    zip(
-                        interface.input_components + interface.output_components,
-                        example,
-                    )
+                        zip(
+                            interface.input_components + interface.output_components,
+                            example,
+                        )
                 ):
                     examples[i][j] = component.restore_flagged(
                         interface.flagging_dir,
