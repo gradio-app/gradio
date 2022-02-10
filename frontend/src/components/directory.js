@@ -25,6 +25,9 @@ import OutputTextbox from "./output/Textbox/config.js";
 import OutputVideo from "./output/Video/config.js";
 import OutputTimeSeries from './output/TimeSeries/config.js'
 
+import StaticButton from "./static/Button/config.js";
+import StaticMarkdown from "./static/Markdown/config.js";
+
 import Dummy from "./Dummy.svelte"
 
 export const input_component_map = {
@@ -56,4 +59,15 @@ export const output_component_map = {
     "textbox": OutputTextbox,
     "timeseries": OutputTimeSeries,
     "video": OutputVideo,
+}
+
+export const static_component_map = {
+    "button": StaticButton,
+    "markdown": StaticMarkdown
+}
+
+export const all_components_map = {
+    "input": input_component_map,
+    "output": output_component_map,
+    "static": static_component_map
 }

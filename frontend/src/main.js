@@ -1,4 +1,5 @@
 import App from './App.svelte';
+import Page from './Page.svelte';
 import Login from "./Login.svelte";
 import { fn } from "./api";
 
@@ -39,10 +40,79 @@ window.launchGradio = (config, element_query) => {
       target.classList.add("dark");
     }
     config.fn = fn.bind(null, config.root + "api/");
-    new App({
-      target: target,
-      props: config
-    });
+    if (url.searchParams.get("page") === "1") {
+      config = {
+        ...config,
+        components: [
+          { id: 1, name: "markdown", type: "static", props: {content: "<h1 style='font-weight: bold; font-size: 2rem; margin-bottom: 0.5rem'>Detect Disease ...</h1>"}},
+          { id: 2, name: "checkboxgroup", type: "input", props: {choices: ["Covid", "Malaria", "Lung Cancer"], label: "Disease to Scan For", default: []}},
+          { id: 3, name: "markdown", type: "static", props: {content: "<p>Upload an X-ray Image</p>"}},
+          { id: 4, name: "image", type: "input" },
+          { id: 5, name: "json", type: "output" },
+          { id: 6, name: "button", type: "static", props: {label: "Run"}},
+          { id: 7, name: "markdown", type: "static", props: {content: "<p>Upload a CT Scan</p>"}},
+          { id: 8, name: "image", type: "input" },
+          { id: 9, name: "json", type: "output" },
+          { id: 10, name: "button", type: "static", props: {label: "Run"}},
+          { id: 11, name: "textbox", type: "output" },
+        ],
+        layout: {
+          type: "column",
+          children: [
+            1, 2,
+            {
+              type: "tabset",
+              children: [{
+                type: "column",
+                name: "X-ray",
+                children: [
+                  3,
+                  {
+                    type: "row",
+                    children: [4, 5],
+                  },
+                  6
+                ]
+              },
+              {
+                type: "column",
+                name: "CT Scan",
+                children: [
+                  7,
+                  {
+                    type: "row",
+                    children: [8, 9]
+                  },
+                  10
+                ]
+              },]
+            },
+            11
+          ]
+        },
+        dependencies: [
+          { trigger: "click", targets: [6], inputs: [2, 4], outputs: [5] },
+          { trigger: "click", targets: [10], inputs: [2, 8], outputs: [9] },
+          { trigger: "change", targets: [5, 9], inputs: [5, 9], outputs: [11] },
+        ]
+      }
+      config.fn = async (fn_index, inputs) => {
+        let result = {};
+        for (let disease of inputs[0]) {
+          result[disease] = Math.random();
+        }
+        return [result];
+      }
+      new Page({
+        target: target,
+        props: config
+      });
+    } else {
+      new App({
+        target: target,
+        props: config
+      });
+    }
   }
 }
 
