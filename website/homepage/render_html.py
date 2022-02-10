@@ -108,11 +108,13 @@ def render_guides():
         code_tags = re.findall(r'\{\{ code\["([^\s]*)"\] \}\}', guide["content"])
         demo_names = re.findall(r'\{\{ demos\["([^\s]*)"\] \}\}', guide["content"])
         code, demos = {}, {}
+        copy_button = "<button class='copy' onclick='copyCode(this)'><img class='copy-svg' src='/assets/img/copy.svg'></button>"
+
         guide["content"] = (
             guide["content"]
             .replace("website/src/assets", "/assets")
-            .replace("```python\n", "<pre><code class='lang-python'>")
-            .replace("```bash\n", "<pre><code class='lang-bash'>")
+            .replace("```python\n", f"<pre>{copy_button}<code class='lang-python'>")
+            .replace("```bash\n", f"<pre>{copy_button}<code class='lang-bash'>")
             .replace("```directory\n", "<pre><code class='lang-bash'>")
             .replace("```csv\n", "<pre><code class='lang-bash'>")
             .replace("```", "</code></pre>")

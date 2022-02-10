@@ -53,6 +53,22 @@
     .prose h1 {
       font-weight: 600;
     }
+
+    .copy {
+      float: right;
+      background: none;
+      cursor:pointer;
+      border-radius: 4px;
+      padding: 5px;
+    }
+    .copy:hover {
+      background: rgb(235 159 89 / 25%);
+    }
+
+    .copy-svg {
+      width: 20px;
+      margin: 0 !important;
+    }
   </style>
   <script async src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
   <script>
@@ -121,6 +137,12 @@
           });
       });
     });
+
+    function copyCode(elem) {
+        var text = elem.parentElement.innerText;
+        navigator.clipboard.writeText(text);
+    };
+
   </script>
 
 </body>
