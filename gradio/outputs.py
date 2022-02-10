@@ -794,6 +794,24 @@ class Timeseries(OutputComponent):
     def restore_flagged(self, dir, data, encryption_key):
         return json.loads(data)
 
+class Chatbot(OutputComponent):
+
+    def __init__(self, label: Optional[str] = None):
+        super().__init__(label)
+
+    def get_template_context(self):
+        return {**super().get_template_context()}
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "chatbot": {},
+        }
+
+    def postprocess(self, y):
+        return y
+
+
 
 class State(OutputComponent):
     """

@@ -23,7 +23,9 @@ import OutputJson from "./output/Json/config.js";
 import OutputLabel from "./output/Label/config.js";
 import OutputTextbox from "./output/Textbox/config.js";
 import OutputVideo from "./output/Video/config.js";
-import OutputTimeSeries from './output/TimeSeries/config.js'
+import OutputTimeSeries from './output/TimeSeries/config.js';
+import OutputChatbot from './output/Chatbot/config.js';
+
 
 import Dummy from "./Dummy.svelte"
 
@@ -56,4 +58,5 @@ export const output_component_map = {
     "textbox": OutputTextbox,
     "timeseries": OutputTimeSeries,
     "video": OutputVideo,
+    "chatbot": OutputChatbot,
 }
