@@ -33,8 +33,6 @@
 		setValue(val as string);
 		return val;
 	}
-
-	$: console.log(value);
 </script>
 
 <div class="input-image">
