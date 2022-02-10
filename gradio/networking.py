@@ -157,26 +157,17 @@ def start_server(
 
 
 def setup_tunnel(local_server_port: int, endpoint: str) -> str:
-    response = url_request(
+    response = requests.get(
         endpoint + "/v1/tunnel-request" if endpoint is not None else GRADIO_API_SERVER
     )
-    if response and response.code == 200:
+    if response and response.status_code == 200:
         try:
-            payload = json.loads(response.read().decode("utf-8"))[0]
+            payload = response.json()[0]
             return create_tunnel(payload, LOCALHOST_NAME, local_server_port)
         except Exception as e:
             raise RuntimeError(str(e))
-
-
-def url_request(url: str) -> Optional[http.client.HTTPResponse]:
-    try:
-        req = urllib.request.Request(
-            url=url, headers={"content-type": "application/json"}
-        )
-        res = urllib.request.urlopen(req, timeout=10)
-        return res
-    except Exception as e:
-        raise RuntimeError(str(e))
+    else:
+        raise RuntimeError("Could not get share link from Gradio API Server.")
 
 
 def url_ok(url: str) -> bool:
