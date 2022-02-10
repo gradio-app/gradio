@@ -60,10 +60,10 @@ def encode_file_to_base64(f, encryption_key=None):
         base64_str = str(encoded_string, "utf-8")
         mimetype = get_mimetype(f)
         return (
-                "data:"
-                + (mimetype if mimetype is not None else "")
-                + ";base64,"
-                + base64_str
+            "data:"
+            + (mimetype if mimetype is not None else "")
+            + ";base64,"
+            + base64_str
         )
 
 
@@ -72,7 +72,7 @@ def encode_url_to_base64(url):
     base64_str = str(encoded_string, "utf-8")
     mimetype = get_mimetype(url)
     return (
-            "data:" + (mimetype if mimetype is not None else "") + ";base64," + base64_str
+        "data:" + (mimetype if mimetype is not None else "") + ";base64," + base64_str
     )
 
 
@@ -190,8 +190,8 @@ def decode_base64_to_file(encoding, encryption_key=None, file_path=None):
         filename = os.path.basename(file_path)
         prefix = filename
         if "." in filename:
-            prefix = filename[0: filename.index(".")]
-            extension = filename[filename.index(".") + 1:]
+            prefix = filename[0 : filename.index(".")]
+            extension = filename[filename.index(".") + 1 :]
     if extension is None:
         file_obj = tempfile.NamedTemporaryFile(delete=False, prefix=prefix)
     else:
@@ -209,8 +209,8 @@ def create_tmp_copy_of_file(file_path):
     file_name = os.path.basename(file_path)
     prefix, extension = file_name, None
     if "." in file_name:
-        prefix = file_name[0: file_name.index(".")]
-        extension = file_name[file_name.index(".") + 1:]
+        prefix = file_name[0 : file_name.index(".")]
+        extension = file_name[file_name.index(".") + 1 :]
     if extension is None:
         file_obj = tempfile.NamedTemporaryFile(delete=False, prefix=prefix)
     else:
@@ -336,7 +336,7 @@ def _convert(image, dtype, force_copy=False, uniform=False):
             Output image array. Has the same kind as `a`.
         """
         kind = a.dtype.kind
-        if n > m and a.max() < 2 ** m:
+        if n > m and a.max() < 2**m:
             return a.astype(_dtype_bits(kind, m))
         elif n == m:
             return a.copy() if copy else a
@@ -353,11 +353,11 @@ def _convert(image, dtype, force_copy=False, uniform=False):
             # exact upscale to a multiple of `n` bits
             if copy:
                 b = np.empty(a.shape, _dtype_bits(kind, m))
-                np.multiply(a, (2 ** m - 1) // (2 ** n - 1), out=b, dtype=b.dtype)
+                np.multiply(a, (2**m - 1) // (2**n - 1), out=b, dtype=b.dtype)
                 return b
             else:
                 a = a.astype(_dtype_bits(kind, m, a.dtype.itemsize), copy=False)
-                a *= (2 ** m - 1) // (2 ** n - 1)
+                a *= (2**m - 1) // (2**n - 1)
                 return a
         else:
             # upscale to a multiple of `n` bits,
@@ -365,12 +365,12 @@ def _convert(image, dtype, force_copy=False, uniform=False):
             o = (m // n + 1) * n
             if copy:
                 b = np.empty(a.shape, _dtype_bits(kind, o))
-                np.multiply(a, (2 ** o - 1) // (2 ** n - 1), out=b, dtype=b.dtype)
+                np.multiply(a, (2**o - 1) // (2**n - 1), out=b, dtype=b.dtype)
                 b //= 2 ** (o - m)
                 return b
             else:
                 a = a.astype(_dtype_bits(kind, o, a.dtype.itemsize), copy=False)
-                a *= (2 ** o - 1) // (2 ** n - 1)
+                a *= (2**o - 1) // (2**n - 1)
                 a //= 2 ** (o - m)
                 return a
 

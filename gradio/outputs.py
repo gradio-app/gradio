@@ -99,10 +99,10 @@ class Label(OutputComponent):
     CONFIDENCES_KEY = "confidences"
 
     def __init__(
-            self,
-            num_top_classes: Optional[int] = None,
-            type: str = "auto",
-            label: Optional[str] = None,
+        self,
+        num_top_classes: Optional[int] = None,
+        type: str = "auto",
+        label: Optional[str] = None,
     ):
         """
         Parameters:
@@ -122,11 +122,11 @@ class Label(OutputComponent):
         (Dict[label: str, confidences: List[Dict[label: str, confidence: number]]]): Object with key 'label' representing primary label, and key 'confidences' representing a list of label-confidence pairs
         """
         if self.type == "label" or (
-                self.type == "auto" and (isinstance(y, str) or isinstance(y, Number))
+            self.type == "auto" and (isinstance(y, str) or isinstance(y, Number))
         ):
             return {"label": str(y)}
         elif self.type == "confidences" or (
-                self.type == "auto" and isinstance(y, dict)
+            self.type == "auto" and isinstance(y, dict)
         ):
             sorted_pred = sorted(y.items(), key=operator.itemgetter(1), reverse=True)
             if self.num_top_classes is not None:
@@ -146,13 +146,13 @@ class Label(OutputComponent):
     def deserialize(self, y):
         # 5 cases: (1): {'label': 'lion'}, {'label': 'lion', 'confidences':...}, {'lion': 0.46, ...}, 'lion', '0.46'
         if self.type == "label" or (
-                self.type == "auto"
-                and (
-                        isinstance(y, str)
-                        or isinstance(y, int)
-                        or isinstance(y, float)
-                        or ("label" in y and not ("confidences" in y.keys()))
-                )
+            self.type == "auto"
+            and (
+                isinstance(y, str)
+                or isinstance(y, int)
+                or isinstance(y, float)
+                or ("label" in y and not ("confidences" in y.keys()))
+            )
         ):
             if isinstance(y, str) or isinstance(y, int) or isinstance(y, float):
                 return y
@@ -201,7 +201,7 @@ class Image(OutputComponent):
     """
 
     def __init__(
-            self, type: str = "auto", plot: bool = False, label: Optional[str] = None
+        self, type: str = "auto", plot: bool = False, label: Optional[str] = None
     ):
         """
         Parameters:
@@ -301,7 +301,7 @@ class Video(OutputComponent):
         """
         returned_format = y.split(".")[-1].lower()
         if self.type is not None and returned_format != self.type:
-            output_file_name = y[0: y.rindex(".") + 1] + self.type
+            output_file_name = y[0 : y.rindex(".") + 1] + self.type
             ff = FFmpeg(inputs={y: None}, outputs={output_file_name: None})
             ff.run()
             y = output_file_name
@@ -373,10 +373,10 @@ class HighlightedText(OutputComponent):
     """
 
     def __init__(
-            self,
-            color_map: Dict[str, str] = None,
-            label: Optional[str] = None,
-            show_legend: bool = False,
+        self,
+        color_map: Dict[str, str] = None,
+        label: Optional[str] = None,
+        show_legend: bool = False,
     ):
         """
         Parameters:
@@ -591,13 +591,13 @@ class Dataframe(OutputComponent):
     """
 
     def __init__(
-            self,
-            headers: Optional[List[str]] = None,
-            max_rows: Optional[int] = 20,
-            max_cols: Optional[int] = None,
-            overflow_row_behaviour: str = "paginate",
-            type: str = "auto",
-            label: Optional[str] = None,
+        self,
+        headers: Optional[List[str]] = None,
+        max_rows: Optional[int] = 20,
+        max_cols: Optional[int] = None,
+        overflow_row_behaviour: str = "paginate",
+        type: str = "auto",
+        label: Optional[str] = None,
     ):
         """
         Parameters:
@@ -679,9 +679,9 @@ class Carousel(OutputComponent):
     """
 
     def __init__(
-            self,
-            components: OutputComponent | List[OutputComponent],
-            label: Optional[str] = None,
+        self,
+        components: OutputComponent | List[OutputComponent],
+        label: Optional[str] = None,
     ):
         """
         Parameters:
@@ -752,7 +752,7 @@ class Timeseries(OutputComponent):
     """
 
     def __init__(
-            self, x: str = None, y: str | List[str] = None, label: Optional[str] = None
+        self, x: str = None, y: str | List[str] = None, label: Optional[str] = None
     ):
         """
         Parameters:

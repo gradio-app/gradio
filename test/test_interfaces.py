@@ -7,7 +7,8 @@ from contextlib import contextmanager
 import mlflow
 import requests
 import wandb
-from gradio.interface import Interface, os, close_all
+
+from gradio.interface import Interface, close_all, os
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 

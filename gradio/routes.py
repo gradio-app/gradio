@@ -82,9 +82,9 @@ def get_token(request: Request) -> Optional[str]:
 def login(form_data: OAuth2PasswordRequestForm = Depends()):
     username, password = form_data.username, form_data.password
     if (
-            not callable(app.auth)
-            and username in app.auth
-            and app.auth[username] == password
+        not callable(app.auth)
+        and username in app.auth
+        and app.auth[username] == password
     ) or (callable(app.auth) and app.auth.__call__(username, password)):
         token = secrets.token_urlsafe(16)
         app.tokens[token] = username
@@ -144,9 +144,9 @@ def build_resource(path: str):
 @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
 def file(path):
     if (
-            app.interface.encrypt
-            and isinstance(app.interface.examples, str)
-            and path.startswith(app.interface.examples)
+        app.interface.encrypt
+        and isinstance(app.interface.examples, str)
+        and path.startswith(app.interface.examples)
     ):
         with open(safe_join(app.cwd, path), "rb") as encrypted_file:
             encrypted_data = encrypted_file.read()
@@ -305,10 +305,10 @@ def safe_join(directory: str, path: str) -> Optional[str]:
         filename = posixpath.normpath(path)
 
     if (
-            any(sep in filename for sep in _os_alt_seps)
-            or os.path.isabs(filename)
-            or filename == ".."
-            or filename.startswith("../")
+        any(sep in filename for sep in _os_alt_seps)
+        or os.path.isabs(filename)
+        or filename == ".."
+        or filename.startswith("../")
     ):
         return None
 
