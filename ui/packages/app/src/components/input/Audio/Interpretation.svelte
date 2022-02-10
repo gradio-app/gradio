@@ -5,7 +5,6 @@
 	export let value: Value;
 	export let interpretation: Array<number>;
 	export let theme: string;
-
 </script>
 
 <div class="input-audio" {theme}>
