@@ -2,8 +2,8 @@ import json
 import os
 import sqlite3
 import time
-from typing import Dict, Tuple
 import uuid
+from typing import Dict, Tuple
 
 import requests
 
@@ -26,7 +26,7 @@ def queue_thread(path_to_local_server: str) -> None:
                     fail_job(hash, response.text)
             else:
                 time.sleep(1)
-        except Exception as e:
+        except:
             time.sleep(1)
             pass
 

@@ -7,8 +7,8 @@ import transformers
 import gradio as gr
 
 """
-WARNING: These tests have an external dependency: namely that Hugging Face's 
-Hub and Space APIs do not change, and they keep their most famous models up. 
+WARNING: These tests have an external dependency: namely that Hugging Face's
+Hub and Space APIs do not change, and they keep their most famous models up.
 So if, e.g. Spaces is down, then these test will not pass.
 """
 
@@ -243,11 +243,9 @@ class TestLoadInterface(unittest.TestCase):
 
 
 class TestLoadFromPipeline(unittest.TestCase):
-    def test_question_answering(self):
+    def test_text_to_text_model_from_pipeline(self):
         pipe = transformers.pipeline(model="sshleifer/bart-tiny-random")
-        output = pipe(
-            "My name is Sylvain and I work at Hugging Face in Brooklyn"
-        )
+        output = pipe("My name is Sylvain and I work at Hugging Face in Brooklyn")
         self.assertIsNotNone(output)
 
 

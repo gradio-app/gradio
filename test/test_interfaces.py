@@ -1,8 +1,5 @@
 import io
-import socket
 import sys
-import tempfile
-import threading
 import unittest
 import unittest.mock as mock
 from contextlib import contextmanager
@@ -10,9 +7,8 @@ from contextlib import contextmanager
 import mlflow
 import requests
 import wandb
-from comet_ml import Experiment
 
-from gradio.interface import *
+from gradio.interface import Interface, close_all, os
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 

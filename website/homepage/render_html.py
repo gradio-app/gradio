@@ -7,12 +7,11 @@ import re
 import markdown2
 import requests
 from jinja2 import Template
+from render_html_helpers import generate_meta_image
 
 from gradio.inputs import InputComponent
 from gradio.interface import Interface
 from gradio.outputs import OutputComponent
-
-from render_html_helpers import generate_meta_image
 
 GRADIO_DIR = "../../"
 GRADIO_GUIDES_DIR = os.path.join(GRADIO_DIR, "guides")
@@ -28,7 +27,9 @@ def render_index():
         tweets = json.load(tweets_file)
     star_request = requests.get("https://api.github.com/repos/gradio-app/gradio").json()
     star_count = (
-        "{:,}".format(star_request["stargazers_count"]) if "stargazers_count" in star_request else ""
+        "{:,}".format(star_request["stargazers_count"])
+        if "stargazers_count" in star_request
+        else ""
     )
     with open("src/index_template.html", encoding="utf-8") as template_file:
         template = Template(template_file.read())
@@ -64,7 +65,13 @@ for guide in sorted(os.listdir(GRADIO_GUIDES_DIR)):
         spaces = guide_content.split("related_spaces: ")[1].split("\n")[0].split(", ")
     url = f"https://gradio.app/{guide_name}/"
 
-    guide_content = "\n".join([line for line in guide_content.split("\n") if not (line.startswith("tags: ") or line.startswith("related_spaces: "))]) 
+    guide_content = "\n".join(
+        [
+            line
+            for line in guide_content.split("\n")
+            if not (line.startswith("tags: ") or line.startswith("related_spaces: "))
+        ]
+    )
 
     guides.append(
         {

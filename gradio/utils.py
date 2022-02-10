@@ -22,7 +22,6 @@ import gradio
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio import Interface
 
-
 analytics_url = "https://api.gradio.app/"
 PKG_VERSION_URL = "https://api.gradio.app/pkg-version"
 analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"

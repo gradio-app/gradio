@@ -1,5 +1,5 @@
 """
-This is the core file in the `gradio` package, and defines the Interface class, 
+This is the core file in the `gradio` package, and defines the Interface class,
 including various methods for constructing an interface and then launching it.
 """
 
@@ -15,20 +15,13 @@ import time
 import warnings
 import weakref
 import webbrowser
-from logging import warning
 from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
 
 from markdown_it import MarkdownIt
 from mdit_py_plugins.footnote import footnote_plugin
 
-from gradio import (
-    encryptor,
-    interpretation,
-    networking,  # type: ignore
-    queueing,
-    strings,
-    utils,
-)
+from gradio import networking  # type: ignore
+from gradio import encryptor, interpretation, queueing, strings, utils
 from gradio.external import load_from_pipeline, load_interface  # type: ignore
 from gradio.flagging import CSVLogger, FlaggingCallback  # type: ignore
 from gradio.inputs import InputComponent
@@ -359,7 +352,7 @@ class Interface:
         )
         if allow_flagging is None:
             allow_flagging = os.getenv("GRADIO_ALLOW_FLAGGING", "manual")
-        if allow_flagging == True:
+        if allow_flagging is True:
             warnings.warn(
                 "The `allow_flagging` parameter in `Interface` now"
                 "takes a string value ('auto', 'manual', or 'never')"
@@ -368,7 +361,7 @@ class Interface:
             self.allow_flagging = "manual"
         elif allow_flagging == "manual":
             self.allow_flagging = "manual"
-        elif allow_flagging == False:
+        elif allow_flagging is False:
             warnings.warn(
                 "The `allow_flagging` parameter in `Interface` now"
                 "takes a string value ('auto', 'manual', or 'never')"
@@ -703,7 +696,7 @@ class Interface:
         server_port, path_to_local_server, app, server = networking.start_server(
             self, server_name, server_port, ssl_keyfile, ssl_certfile
         )
-        
+
         self.local_url = path_to_local_server
         self.server_port = server_port
         self.status = "RUNNING"
