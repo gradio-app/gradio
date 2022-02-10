@@ -13,7 +13,7 @@ import tempfile
 import warnings
 from numbers import Number
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Dict, List, Optional
 
 import numpy as np
 import pandas as pd

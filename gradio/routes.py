@@ -45,7 +45,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 
 
@@ -198,7 +197,7 @@ async def predict(request: Request, username: str = Depends(get_current_user)):
     body = await request.json()
     flag_index = None
 
-    if body.get("example_id") != None:
+    if body.get("example_id") is not None:
         example_id = body["example_id"]
         if app.interface.cache_examples:
             prediction = await run_in_threadpool(
