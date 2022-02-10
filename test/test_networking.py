@@ -94,17 +94,12 @@ class TestInterpretation(unittest.TestCase):
 
 
 class TestURLs(unittest.TestCase):
-    def test_url_ok(self):
-        urllib.request.urlopen = mock.MagicMock(return_value="test")
-        res = networking.url_request("http://www.gradio.app")
-        self.assertEqual(res, "test")
-
     def test_setup_tunnel(self):
         networking.create_tunnel = mock.MagicMock(return_value="test")
         res = networking.setup_tunnel(None, None)
         self.assertEqual(res, "test")
 
-    def test_url_ok_2(self):
+    def test_url_ok(self):
         res = networking.url_ok("https://www.gradio.app")
         self.assertTrue(res)
 
