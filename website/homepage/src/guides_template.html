@@ -61,9 +61,6 @@
       border-radius: 4px;
       padding: 5px;
     }
-    .copy:hover {
-      background: rgb(235 159 89 / 25%);
-    }
 
     .copy-svg {
       width: 20px;
@@ -141,6 +138,10 @@
     function copyCode(elem) {
         var text = elem.parentElement.innerText;
         navigator.clipboard.writeText(text);
+        elem.style.background = "#cbc7c7"
+        setTimeout(function(){
+          elem.style.background = "none"
+        }, 500);
     };
 
   </script>
