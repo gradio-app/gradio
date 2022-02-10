@@ -24,6 +24,7 @@ import OutputLabel from "./output/Label/config.js";
 import OutputTextbox from "./output/Textbox/config.js";
 import OutputVideo from "./output/Video/config.js";
 import OutputTimeSeries from "./output/TimeSeries/config.js";
+import OutputChatbot from "./output/Chatbot/config.js";
 
 export const input_component_map = {
 	audio: InputAudio,
@@ -53,5 +54,6 @@ export const output_component_map = {
 	label: OutputLabel,
 	textbox: OutputTextbox,
 	timeseries: OutputTimeSeries,
-	video: OutputVideo
+	video: OutputVideo,
+	chatbot: OutputChatbot
 };
