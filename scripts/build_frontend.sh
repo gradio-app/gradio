@@ -4,7 +4,7 @@ if [ -z "$(ls | grep CONTRIBUTING.md)" ]; then
   exit -1
 else
   echo "Building the frontend"
-  cd frontend
-  npm install
-  npm run build
+  cd ui
+  pnpm i --frozen-lockfile
+  pnpm build
 fi

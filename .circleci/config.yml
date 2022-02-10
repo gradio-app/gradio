@@ -31,9 +31,10 @@ jobs:
       - run:
           name: Build frontend
           command: |
-            cd frontend
-            npm install
-            npm run build
+            npm i pnpm -g
+            cd ui
+            pnpm i --frozen-lockfile
+            pnpm build
       - run:
           command: |
             mkdir screenshots
