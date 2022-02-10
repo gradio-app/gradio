@@ -44,7 +44,7 @@ def render_index():
 
 guides = []
 for guide in sorted(os.listdir(GRADIO_GUIDES_DIR)):
-    if guide.lower() in ["getting_started.md", "readme.md"]:
+    if guide.lower() == "readme.md":
         continue
     guide_name = guide[:-3]
     pretty_guide_name = " ".join(
@@ -113,7 +113,7 @@ def render_guides():
         guide["content"] = (
             guide["content"]
             .replace("website/src/assets", "/assets")
-            .replace("```python\n", f"<pre>{copy_button}<code class='lang-python'>")
+            .replace("```python\n", "<pre><code class='lang-python'>")
             .replace("```bash\n", f"<pre>{copy_button}<code class='lang-bash'>")
             .replace("```directory\n", "<pre><code class='lang-bash'>")
             .replace("```csv\n", "<pre><code class='lang-bash'>")
@@ -140,11 +140,13 @@ def render_guides():
         pattern = "<code class='lang-python'>\n?((.|\n)*?)\n?</code>"
         guide_output = re.sub(
             pattern,
-            lambda x: "<code class='lang-python'>"
+            lambda x: f"{copy_button}<code class='lang-python'>"
             + html.escape(x.group(1))
             + "</code>",
             guide_output,
         )
+
+        guide_output = guide_output.replace("<pre><code class='lang-python'>", f"<pre>{copy_button}<code class='lang-python'>")
 
         output_html = markdown2.markdown(guide_output, extras=["target-blank-links"])
 
@@ -322,5 +324,5 @@ if __name__ == "__main__":
     render_index()
     render_guides_main()
     render_guides()
-    render_docs()
+    # render_docs()
     render_other()
