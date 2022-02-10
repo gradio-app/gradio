@@ -1,6 +1,7 @@
 import base64
 import json
 import re
+
 import requests
 
 from gradio import inputs, outputs
@@ -213,7 +214,7 @@ def get_huggingface_interface(model_name, api_key, alias):
         # Convert to a list of input components
         data = pipeline["preprocess"](*params)
         if isinstance(
-                data, dict
+            data, dict
         ):  # HF doesn't allow additional parameters for binary files (e.g. images or audio files)
             data.update({"options": {"wait_for_model": True}})
             data = json.dumps(data)
@@ -248,7 +249,7 @@ def load_interface(name, src=None, api_key=None, alias=None):
             "/"
         )  # Separate the source (e.g. "huggingface") from the repo name (e.g. "google/vit-base-patch16-224")
         assert (
-                len(tokens) > 1
+            len(tokens) > 1
         ), "Either `src` parameter must be provided, or `name` must be formatted as {src}/{repo name}"
         src = tokens[0]
         name = "/".join(tokens[1:])
@@ -308,11 +309,11 @@ def get_spaces_interface(model_name, api_key, alias):
         result = json.loads(response.content.decode("utf-8"))
         output = result["data"]
         if (
-                len(interface_info["outputs"]) == 1
+            len(interface_info["outputs"]) == 1
         ):  # if the fn is supposed to return a single value, pop it
             output = output[0]
         if len(interface_info["outputs"]) == 1 and isinstance(
-                output, list
+            output, list
         ):  # Needed to support Output.Image() returning bounding boxes as well (TODO: handle different versions of gradio since they have slightly different APIs)
             output = output[0]
         return output
@@ -350,7 +351,7 @@ def load_from_pipeline(pipeline):
     # Handle the different pipelines. The has_attr() checks to make sure the pipeline exists in the
     # version of the transformers library that the user has installed.
     if hasattr(transformers, "AudioClassificationPipeline") and isinstance(
-            pipeline, transformers.AudioClassificationPipeline
+        pipeline, transformers.AudioClassificationPipeline
     ):
         pipeline_info = {
             "inputs": inputs.Audio(label="Input", source="microphone", type="filepath"),
@@ -359,7 +360,7 @@ def load_from_pipeline(pipeline):
             "postprocess": lambda r: {i["label"].split(", ")[0]: i["score"] for i in r},
         }
     elif hasattr(transformers, "AutomaticSpeechRecognitionPipeline") and isinstance(
-            pipeline, transformers.AutomaticSpeechRecognitionPipeline
+        pipeline, transformers.AutomaticSpeechRecognitionPipeline
     ):
         pipeline_info = {
             "inputs": inputs.Audio(label="Input", source="microphone", type="filepath"),
@@ -368,7 +369,7 @@ def load_from_pipeline(pipeline):
             "postprocess": lambda r: r["text"],
         }
     elif hasattr(transformers, "FeatureExtractionPipeline") and isinstance(
-            pipeline, transformers.FeatureExtractionPipeline
+        pipeline, transformers.FeatureExtractionPipeline
     ):
         pipeline_info = {
             "inputs": inputs.Textbox(label="Input"),
@@ -377,7 +378,7 @@ def load_from_pipeline(pipeline):
             "postprocess": lambda r: r[0],
         }
     elif hasattr(transformers, "FillMaskPipeline") and isinstance(
-            pipeline, transformers.FillMaskPipeline
+        pipeline, transformers.FillMaskPipeline
     ):
         pipeline_info = {
             "inputs": inputs.Textbox(label="Input"),
@@ -386,7 +387,7 @@ def load_from_pipeline(pipeline):
             "postprocess": lambda r: {i["token_str"]: i["score"] for i in r},
         }
     elif hasattr(transformers, "ImageClassificationPipeline") and isinstance(
-            pipeline, transformers.ImageClassificationPipeline
+        pipeline, transformers.ImageClassificationPipeline
     ):
         pipeline_info = {
             "inputs": inputs.Image(label="Input Image", type="filepath"),
@@ -395,7 +396,7 @@ def load_from_pipeline(pipeline):
             "postprocess": lambda r: {i["label"].split(", ")[0]: i["score"] for i in r},
         }
     elif hasattr(transformers, "QuestionAnsweringPipeline") and isinstance(
-            pipeline, transformers.QuestionAnsweringPipeline
+        pipeline, transformers.QuestionAnsweringPipeline
     ):
         pipeline_info = {
             "inputs": [
@@ -407,7 +408,7 @@ def load_from_pipeline(pipeline):
             "postprocess": lambda r: (r["answer"], r["score"]),
         }
     elif hasattr(transformers, "SummarizationPipeline") and isinstance(
-            pipeline, transformers.SummarizationPipeline
+        pipeline, transformers.SummarizationPipeline
     ):
         pipeline_info = {
             "inputs": inputs.Textbox(label="Input", lines=7),
@@ -416,7 +417,7 @@ def load_from_pipeline(pipeline):
             "postprocess": lambda r: r[0]["summary_text"],
         }
     elif hasattr(transformers, "TextClassificationPipeline") and isinstance(
-            pipeline, transformers.TextClassificationPipeline
+        pipeline, transformers.TextClassificationPipeline
     ):
         pipeline_info = {
             "inputs": inputs.Textbox(label="Input"),
@@ -425,7 +426,7 @@ def load_from_pipeline(pipeline):
             "postprocess": lambda r: {i["label"].split(", ")[0]: i["score"] for i in r},
         }
     elif hasattr(transformers, "TextGenerationPipeline") and isinstance(
-            pipeline, transformers.TextGenerationPipeline
+        pipeline, transformers.TextGenerationPipeline
     ):
         pipeline_info = {
             "inputs": inputs.Textbox(label="Input"),
@@ -434,7 +435,7 @@ def load_from_pipeline(pipeline):
             "postprocess": lambda r: r[0]["generated_text"],
         }
     elif hasattr(transformers, "TranslationPipeline") and isinstance(
-            pipeline, transformers.TranslationPipeline
+        pipeline, transformers.TranslationPipeline
     ):
         pipeline_info = {
             "inputs": inputs.Textbox(label="Input"),
@@ -443,7 +444,7 @@ def load_from_pipeline(pipeline):
             "postprocess": lambda r: r[0]["translation_text"],
         }
     elif hasattr(transformers, "Text2TextGenerationPipeline") and isinstance(
-            pipeline, transformers.Text2TextGenerationPipeline
+        pipeline, transformers.Text2TextGenerationPipeline
     ):
         pipeline_info = {
             "inputs": inputs.Textbox(label="Input"),
@@ -452,7 +453,7 @@ def load_from_pipeline(pipeline):
             "postprocess": lambda r: r[0]["generated_text"],
         }
     elif hasattr(transformers, "ZeroShotClassificationPipeline") and isinstance(
-            pipeline, transformers.ZeroShotClassificationPipeline
+        pipeline, transformers.ZeroShotClassificationPipeline
     ):
         pipeline_info = {
             "inputs": [
@@ -478,12 +479,12 @@ def load_from_pipeline(pipeline):
         data = pipeline_info["preprocess"](*params)
         # special cases that needs to be handled differently
         if isinstance(
-                pipeline,
-                (
-                        transformers.TextClassificationPipeline,
-                        transformers.Text2TextGenerationPipeline,
-                        transformers.TranslationPipeline,
-                ),
+            pipeline,
+            (
+                transformers.TextClassificationPipeline,
+                transformers.Text2TextGenerationPipeline,
+                transformers.TranslationPipeline,
+            ),
         ):
             data = pipeline(*data)
         else:
