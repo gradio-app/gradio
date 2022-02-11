@@ -9,6 +9,9 @@
 <script lang="ts">
 	import Interface from "./Interface.svelte";
 	import "./global.css";
+	import { _ } from "svelte-i18n";
+  import { setupi18n } from "./i18n";
+  setupi18n()
 
 	interface Component {
 		name: string;
@@ -95,17 +98,18 @@
 				class="footer flex-shrink-0 inline-flex gap-2.5 items-center text-gray-400 justify-center py-2"
 			>
 				<a href="api" target="_blank" rel="noreferrer">
-					view the api
+					{$_("interface.view_api")}
 					<img
-						class="h-5 inline-block"
+						class="h-4 inline-block"
 						src="{static_src}/static/img/api-logo.svg"
 						alt="api"
 					/>
 				</a>
 				&bull;
 				<a href="https://gradio.app" target="_blank" rel="noreferrer">
-					built with <img
-						class="h-6 inline-block"
+					{$_("interface.built_with_Gradio")}
+					<img
+						class="h-5 inline-block"
 						src="{static_src}/static/img/logo.svg"
 						alt="logo"
 					/>

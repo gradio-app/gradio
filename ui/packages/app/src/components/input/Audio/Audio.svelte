@@ -6,6 +6,7 @@
 	import ModifyUpload from "../../utils/ModifyUpload.svelte";
 	//@ts-ignore
 	import Range from "svelte-range-slider-pips";
+	import { _ } from "svelte-i18n";
 
 	export let value: null | Value;
 	export let setValue: (val: typeof value) => typeof value;
@@ -135,9 +136,9 @@
 			{/if}
 		{:else if source === "upload"}
 			<Upload filetype="audio/*" load={setValue} {theme}>
-				Drop Audio Here
-				<br />- or -<br />
-				Click to Upload
+				{$_("interface.drop_audio")}
+					<br />- {$_("interface.or")} -<br />
+				{$_("interface.click_to_upload")}
 			</Upload>
 		{/if}
 	{:else}

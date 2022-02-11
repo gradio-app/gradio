@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Upload from "../../utils/Upload.svelte";
 	import Chart from "../../utils/Chart.svelte";
+	import { _ } from "svelte-i18n";
 
 	interface Data {
 		data: Array<Array<number>> | string;
@@ -102,8 +103,8 @@
 		include_file_metadata={false}
 		{theme}
 	>
-		Drop CSV Here
-		<br />- or -<br />
-		Click to Upload
+		{$_("interface.drop_csv")}
+		<br />- {$_("interface.or")} -<br />
+		{$_("interface.click_to_upload")}
 	</Upload>
 {/if}
