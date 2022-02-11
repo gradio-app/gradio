@@ -28,7 +28,7 @@
 
     .prose p>img {
       margin: 0 auto;
-      width: 600px;
+      width: 900px;
       max-width: 100%;
     }
 
@@ -87,23 +87,18 @@
   {{navbar_html|safe}}
   <div class="container mx-auto max-w-4xl px-4 mb-12 mt-6" id="guide-template">
     {% if spaces is not none %}
-    <p class='mb-2 text-sm text-gray-500'>
-      <span class="italic">Related Spaces:</span>
-      {% for space in spaces %}
-        <a href='{{ space }}' target='_blank' class="hover:text-blue-500 transition">{{ space[30:] }}</a>
-        {% if not loop.last %}, {% endif %}
-      {% endfor %}
-    </p>
-    {% endif %}
+    <div id='spaces-holder'>
+      <a href='https://hf.co/spaces' target='_blank'>
+        <img class="inline-block my-0 mx-auto w-5 max-w-full pb-1" src='/assets/img/spaces-logo.svg'>
+      </a>
+      <p class="m-0 inline text-lg font-normal">Related Spaces: </p>
 
-    {% if tags is not none %}
-    <p class='mb-2 text-sm text-gray-500'>
-      <span class="italic">Tags:</span>
-      {% for tag in tags %}
-        <span>{{ tag }}</span><!--
-     -->{% if not loop.last %}, {% endif %}
+      {% for space in spaces %}
+      <div class='space-link inline-block m-1 px-1 rounded-md'>
+        <a href='{{space}}' target='_blank' class="no-underline">{{space[30:]}}</a>
+      </div>
       {% endfor %}
-    </p>
+      </div>
     {% endif %}
 
     <div class="prose mt-6">
@@ -148,6 +143,36 @@
           elem.firstChild.src = "/assets/img/copy-grey.svg"
         }, 600);
     };
+
+    var spacesHolder, spaces;
+    spacesHolder = document.getElementById("spaces-holder");
+    spaces = spacesHolder.getElementsByTagName('div');
+
+    var backgrounds = ['rgba(255,254,188,0.3)',
+                       'rgba(255,205,188,0.3)',
+                       'rgba(255,188,188,0.3)',
+                       'rgba(194,255,169,0.3)',
+                       'rgba(169,255,237,0.3)',
+                       'rgba(182,169,255,0.3)',
+                       'rgba(255,183,245,0.3)']
+
+    function shuffleBackgrounds(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    shuffleBackgrounds(backgrounds);
+
+    color_counter = 0
+    for (let i = 0; i < spaces.length; i++) {
+      spaces[i].style.background = backgrounds[color_counter];
+      color_counter += 1
+      if (color_counter == backgrounds.length) {
+        color_counter = 0;
+      }
+    }
 
   </script>
 

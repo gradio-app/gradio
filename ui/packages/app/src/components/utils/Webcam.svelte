@@ -18,7 +18,7 @@
 			video_source.srcObject = stream;
 			video_source.play();
 		} catch (error) {
-			console.log(error);
+			console.error(error);
 		}
 	}
 

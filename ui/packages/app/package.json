@@ -13,6 +13,7 @@
 		"postcss": "^8.4.5",
 		"postcss-nested": "^5.0.6",
 		"svelte": "^3.46.3",
+		"tailwindcss": "^3.0.19",
 		"vite": "^2.7.13"
 	},
 	"dependencies": {
@@ -29,7 +30,6 @@
 		"resize-observer-polyfill": "^1.5.1",
 		"svelte-preprocess": "^4.10.1",
 		"svelte-range-slider-pips": "^2.0.1",
-		"tailwindcss": "npm:@tailwindcss/postcss7-compat@^2.2.17",
 		"tui-image-editor": "^3.15.2"
 	}
 }
