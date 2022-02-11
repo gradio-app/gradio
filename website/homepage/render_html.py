@@ -144,7 +144,7 @@ def render_guides():
             guide_output,
         )
 
-        output_html = markdown2.markdown(guide_output, extras=["target-blank-links"])
+        output_html = markdown2.markdown(guide_output, extras=["target-blank-links", "header-ids"])
 
         for match in re.findall(r"<h3>([A-Za-z0-9 ]*)<\/h3>", output_html):
             output_html = output_html.replace(
