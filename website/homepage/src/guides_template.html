@@ -53,27 +53,6 @@
     .prose h1 {
       font-weight: 600;
     }
-
-    .space-link {
-      display: inline-block;
-      margin: 4px;
-      padding-left: 6px;
-      padding-right: 6px;
-      border-radius: 7px;
-    }
-
-    .space-link a {
-      text-decoration: none;
-    }
-
-    #spaces-holder img {
-      display: inherit;
-      margin: 0 auto 0 auto;
-      width: 20px;
-      max-width: 100%;
-      padding-bottom: 7px;
-    }
-
   </style>
   <script async src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
   <script>
@@ -92,13 +71,13 @@
     {% if spaces is not none %}
     <div id='spaces-holder'>
       <a href='https://hf.co/spaces' target='_blank'>
-        <img src='/assets/img/spaces-logo.svg'>
+        <img class="inline-block my-0 mx-auto w-5 max-w-full pb-1" src='/assets/img/spaces-logo.svg'>
       </a>
-      <p style='margin: 0;display: inline;font-size: large;font-weight: 400;'>Related Spaces: </p>
+      <p class="m-0 inline text-lg font-normal">Related Spaces: </p>
 
       {% for space in spaces %}
-      <div class='space-link'>
-        <a href='{{space}}' target='_blank'>{{space[30:]}}</a>
+      <div class='space-link inline-block m-1 px-1 rounded-md'>
+        <a href='{{space}}' target='_blank' class="no-underline">{{space[30:]}}</a>
       </div>
       {% endfor %}
       </div>
