@@ -14,11 +14,11 @@ describe("prettyBytes", () => {
 		assert.equal(prettyBytes(1_300_000), "1.2 MB");
 	});
 
-	it("handles MB", () => {
+	it("handles GB", () => {
 		assert.equal(prettyBytes(1_300_000_123), "1.2 GB");
 	});
 
-	it("handles MB", () => {
+	it("handles PB", () => {
 		assert.equal(prettyBytes(1_300_000_123_000), "1.2 PB");
 	});
 });
