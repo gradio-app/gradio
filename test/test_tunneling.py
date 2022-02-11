@@ -7,6 +7,7 @@ import unittest
 import unittest.mock as mock
 
 import paramiko
+import requests
 
 from gradio import Interface, networking, tunneling
 
@@ -15,8 +16,8 @@ os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 class TestTunneling(unittest.TestCase):
     def test_create_tunnel(self):
-        response = networking.url_request(networking.GRADIO_API_SERVER)
-        payload = json.loads(response.read().decode("utf-8"))[0]
+        response = requests.get(networking.GRADIO_API_SERVER)
+        payload = response.json()[0]
         io = Interface(lambda x: x, "text", "text")
         _, path_to_local_server, _ = io.launch(prevent_thread_lock=True, share=False)
         _, localhost, port = path_to_local_server.split(":")
@@ -34,7 +35,7 @@ class TestVerbose(unittest.TestCase):
     def setUp(self):
         self.message = "print test"
         self.capturedOutput = io.StringIO()  # Create StringIO object
-        sys.stdout = self.capturedOutput  #  and redirect stdout.
+        sys.stdout = self.capturedOutput  # and redirect stdout.
 
     def test_verbose_debug_true(self):
         tunneling.verbose(self.message, debug_mode=True)

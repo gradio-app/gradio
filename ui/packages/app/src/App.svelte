@@ -9,6 +9,10 @@
 <script lang="ts">
 	import Interface from "./Interface.svelte";
 	import "./global.css";
+	import "./themes/huggingface.css";
+	import "./themes/grass.css";
+	import "./themes/peach.css";
+	import "./themes/seafoam.css";
 
 	interface Component {
 		name: string;

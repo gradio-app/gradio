@@ -1,14 +1,12 @@
-from difflib import SequenceMatcher
 import json
 import os
 import tempfile
 import unittest
-from re import sub
+from difflib import SequenceMatcher
 
 import numpy as np
 import pandas
 import PIL
-from pydub import AudioSegment
 
 import gradio as gr
 
@@ -147,10 +145,10 @@ class TestNumber(unittest.TestCase):
         )
 
     def test_in_interface(self):
-        iface = gr.Interface(lambda x: x ** 2, "number", "textbox")
+        iface = gr.Interface(lambda x: x**2, "number", "textbox")
         self.assertEqual(iface.process([2])[0], ["4.0"])
         iface = gr.Interface(
-            lambda x: x ** 2, "number", "textbox", interpretation="default"
+            lambda x: x**2, "number", "textbox", interpretation="default"
         )
         scores, alternative_outputs = iface.interpret([2])
         self.assertEqual(
@@ -211,10 +209,10 @@ class TestSlider(unittest.TestCase):
         )
 
     def test_in_interface(self):
-        iface = gr.Interface(lambda x: x ** 2, "slider", "textbox")
+        iface = gr.Interface(lambda x: x**2, "slider", "textbox")
         self.assertEqual(iface.process([2])[0], ["4"])
         iface = gr.Interface(
-            lambda x: x ** 2, "slider", "textbox", interpretation="default"
+            lambda x: x**2, "slider", "textbox", interpretation="default"
         )
         scores, alternative_outputs = iface.interpret([2])
         self.assertEqual(
@@ -568,10 +566,10 @@ class TestAudio(unittest.TestCase):
 
     def test_tokenize(self):
         x_wav = gr.test_data.BASE64_AUDIO
-        audio_input = gr.inputs.Audio() 
+        audio_input = gr.inputs.Audio()
         tokens, _, _ = audio_input.tokenize(x_wav)
         self.assertEquals(len(tokens), audio_input.interpretation_segments)
-        x_new = audio_input.get_masked_inputs(tokens, [[1]*len(tokens)])[0]
+        x_new = audio_input.get_masked_inputs(tokens, [[1] * len(tokens)])[0]
         similarity = SequenceMatcher(a=x_wav["data"], b=x_new).ratio()
         self.assertGreater(similarity, 0.9)
 
@@ -668,8 +666,8 @@ class TestDataframe(unittest.TestCase):
         self.assertEqual(iface.process([x_data])[0], [6])
         x_data = [["Tim"], ["Jon"], ["Sal"]]
 
-        def get_last(l):
-            return l[-1]
+        def get_last(my_list):
+            return my_list[-1]
 
         iface = gr.Interface(get_last, "list", "text")
         self.assertEqual(iface.process([x_data])[0], ["Sal"])

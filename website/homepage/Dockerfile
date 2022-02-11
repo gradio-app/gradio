@@ -1,7 +1,7 @@
 FROM python:3.8
 
-RUN apt-get update
-RUN apt-get --assume-yes install npm nginx
+RUN apt-get update --fix-missing
+RUN apt-get --assume-yes install npm nginx libcairo2-dev pkg-config python3-dev
 RUN pip install pandas matplotlib
 RUN mkdir gradio
 WORKDIR /gradio

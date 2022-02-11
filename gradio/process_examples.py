@@ -6,7 +6,7 @@ from __future__ import annotations
 import csv
 import os
 import shutil
-from typing import Any, List, Tuple, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, List, Tuple
 
 from gradio.flagging import CSVLogger
 
@@ -18,8 +18,7 @@ CACHE_FILE = os.path.join(CACHED_FOLDER, "log.csv")
 
 
 def process_example(
-    interface: Interface, 
-    example_id: int
+    interface: Interface, example_id: int
 ) -> Tuple[List[Any], List[float]]:
     """Loads an example from the interface and returns its prediction."""
     example_set = interface.examples[example_id]
@@ -31,9 +30,7 @@ def process_example(
     return prediction, durations
 
 
-def cache_interface_examples(
-    interface: Interface
-) -> None:
+def cache_interface_examples(interface: Interface) -> None:
     """Caches all of the examples from an interface."""
     if os.path.exists(CACHE_FILE):
         print(
@@ -54,10 +51,7 @@ def cache_interface_examples(
                 raise e
 
 
-def load_from_cache(
-    interface: Interface, 
-    example_id: int
-) -> List[Any]:
+def load_from_cache(interface: Interface, example_id: int) -> List[Any]:
     """Loads a particular cached example for the interface."""
     with open(CACHE_FILE) as cache:
         examples = list(csv.reader(cache))

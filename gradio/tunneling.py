@@ -82,7 +82,7 @@ def create_tunnel(payload, local_server, local_server_port):
             )
     except Exception as e:
         print(
-            "*** Failed to connect to {}:{}: {}}".format(
+            "*** Failed to connect to {}:{}: {}".format(
                 payload["host"], int(payload["port"]), e
             )
         )

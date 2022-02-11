@@ -30,9 +30,9 @@ class Parallel(gradio.Interface):
         }
         kwargs.update(options)
         super().__init__(**kwargs)
-        self.api_mode = (
-            interfaces[0].api_mode,
-        )  # TODO(abidlabs): make api_mode a per-function attribute
+        self.api_mode = interfaces[
+            0
+        ].api_mode  # TODO(abidlabs): make api_mode a per-function attribute
 
 
 class Series(gradio.Interface):
@@ -83,6 +83,6 @@ class Series(gradio.Interface):
         }
         kwargs.update(options)
         super().__init__(**kwargs)
-        self.api_mode = (
-            interfaces[0].api_mode,
-        )  # TODO(abidlabs): make api_mode a per-function attribute
+        self.api_mode = interfaces[
+            0
+        ].api_mode  # TODO(abidlabs): make api_mode a per-function attribute

@@ -34,11 +34,7 @@ class Component:
         return {}
 
     def save_flagged(
-        self,
-        dir: str, 
-        label: str, 
-        data: Any, 
-        encryption_key: bool
+        self, dir: str, label: str, data: Any, encryption_key: bool
     ) -> Any:
         """
         Saves flagged data from component
@@ -52,14 +48,10 @@ class Component:
         return data
 
     def save_flagged_file(
-        self, 
-        dir: str, 
-        label: str, 
-        data: Any, 
-        encryption_key: bool
+        self, dir: str, label: str, data: Any, encryption_key: bool
     ) -> str:
         """
-        Saved flagged data (e.g. image or audio) as a file and returns filepath 
+        Saved flagged data (e.g. image or audio) as a file and returns filepath
         """
         if data is None:
             return None
@@ -81,9 +73,9 @@ class Component:
         return label + "/" + new_file_name
 
     def restore_flagged_file(
-        self, 
-        dir: str, 
-        file: str, 
+        self,
+        dir: str,
+        file: str,
         encryption_key: bool,
     ) -> Dict[str, Any]:
         """

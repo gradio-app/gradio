@@ -3,31 +3,36 @@
 related_spaces: https://huggingface.co/spaces/aliabd/calculator-flagging-crowdsourced, https://huggingface.co/spaces/aliabd/calculator-flagging-options, https://huggingface.co/spaces/aliabd/calculator-flag-basic
 tags: FLAGGING, DATA
 
-## The `flag` button 
+## Introduction
 
-Underneath the output interfaces, there is a button marked `flag`. When a user testing your model sees input with interesting output, such as erroneous or unexpected model behaviour, they can flag the input for the interface creator to review. 
+When you deploy or demo a machine learning model, you may find that it behaves differently than how you expected (e.g. the model makes an incorrect prediction) when a user tries it with their own data. Capturing these "hard" data points is important because it allows you to make you machine learning model more reliable and robust.
+
+Gradio simplifies the collection of this data by including a FLAG button with every `Interface`. This allows your user or tester to easily send data back to you, whether the model is running locally or has been shared by setting `share=True`. 
+
+## The **Flag** button 
+
+Underneath the output interfaces, there is a button marked **Flag**. When a user testing your model sees input with interesting output, such as erroneous or unexpected model behaviour, they can flag the input for the interface creator to review. 
 
 ![flag button](website/src/assets/img/guides/using_flagging/flag_button.gif)
 
 There are four parameters `gr.Interface` that control how flagging works. We will go over them in greater detail.
 
-* `allow_flagging`: 
-    * This parameter can be set to either `"manual"`, `"auto"`, or `"never"`.                 
+* `allow_flagging`: this parameter can be set to either `"manual"`, `"auto"`, or `"never"`.                 
     * `manual`: users will see a button to flag, and events are only flagged when it's clicked.
     * `auto`: users will not see a button to flag, but every event will be flagged automatically. 
     * `never`: users will not see a button to flag, and no event will be flagged. 
-* `flagging_options`:
-    * This parameter takes a list of strings.
-    * If provided, allows user to select from a list of options when flagging. Only applies if `allow_flagging` is `"manual"`.
+* `flagging_options`: this parameter can be either `None` (default) or a list of strings.
+    * If `None`, then the user simply clicks on the **Flag** button and no additional options are shown.
+    * If a list of strings are provided, this allows user to select from a list of options when flagging. Only applies if `allow_flagging` is `"manual"`.
     * The chosen option is then piped along with the input and output.
-* `flagging_dir`: 
-    * This parameter takes a string.
-    * What to name the directory where flagged data is stored.
-* `flagging_callback`: 
+* `flagging_dir`: this parameter takes a string.
+    * It represents what to name the directory where flagged data is stored.
+* `flagging_callback`: this parameter takes an instance of a subclass of the `FlaggingCallback` class
     * Using this parameter allows you to write custom code that gets run when the flag button is clicked
-    * One example is setting it to `gr.HuggingFaceDatasetSaver` which can allow you to pipe any flagged data into a HuggingFace Dataset.
+    * By default, this is set to an instance of `gr.CSVLogger`
+    * One example is setting it to an instance of `gr.HuggingFaceDatasetSaver` which can allow you to pipe any flagged data into a HuggingFace Dataset.
 
-## The data:
+## What happens to flagged data?
 
 Within the directory provided by the `flagging_dir` argument, a CSV file will log the flagged data. 
 

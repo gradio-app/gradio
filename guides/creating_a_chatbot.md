@@ -2,9 +2,12 @@
 
 related_spaces: https://huggingface.co/spaces/abidlabs/chatbot-minimal, https://huggingface.co/spaces/ThomasSimonini/Chat-with-Gandalf-GPT-J6B, https://huggingface.co/spaces/gorkemgoknar/moviechatbot, https://huggingface.co/spaces/Kirili4ik/chat-with-Kirill
 tags: NLP, TEXT, HTML
+
 ## Introduction
 
-Chatbots are widely studied in natural language processing (NLP) research and are a common use case of NLP in industry. Because chatbots are designed to be used directly by customers and end users, it is important to validate that chatbots are behaving as expected when confronted with a wide variety of input prompts. Using `gradio`, you can easily build a demo of your chatbot model and share that with a testing team, or test it yourself using an intuitive chatbot GUI.
+Chatbots are widely studied in natural language processing (NLP) research and are a common use case of NLP in industry. Because chatbots are designed to be used directly by customers and end users, it is important to validate that chatbots are behaving as expected when confronted with a wide variety of input prompts. 
+
+Using `gradio`, you can easily build a demo of your chatbot model and share that with a testing team, or test it yourself using an intuitive chatbot GUI.
 
 This tutorial will show how to take a pretrained chatbot model and deploy it with a Gradio interface in 4 steps. The live chatbot interface that we create will look something like this (try it!):
 
@@ -139,7 +142,7 @@ Notice that we have also added a placeholder to the input `text` component by in
 
 And you're done! That's all the code you need to build an interface for your chatbot model. Here are some references that you may find useful:
 
-* Gradio's ["Getting Started" guide]()
-* The [chatbot demo]() and [complete code]() (on Hugging Face Spaces)
+* Gradio's ["Getting Started" guide](https://gradio.app/getting_started/)
+* The final [chatbot demo](https://huggingface.co/spaces/abidlabs/chatbot-stylized) and [complete code](https://huggingface.co/spaces/abidlabs/chatbot-stylized/tree/main) (on Hugging Face Spaces)
 
 

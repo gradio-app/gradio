@@ -138,7 +138,7 @@ class TestImage(unittest.TestCase):
         xpoints = np.array([0, 6])
         ypoints = np.array([0, 250])
         fig = plt.figure()
-        p = plt.plot(xpoints, ypoints)
+        plt.plot(xpoints, ypoints)
         self.assertTrue(
             plot_output.postprocess(fig).startswith("data:image/png;base64,")
         )
