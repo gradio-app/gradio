@@ -223,13 +223,13 @@
 					class="panel-button bg-gray-50 dark:bg-gray-700 flex-1 p-3 rounded transition font-semibold focus:outline-none"
 					on:click={clear}
 				>
-				{$_("interface.clear")}
+					{$_("interface.clear")}
 				</button>
 				<button
 					class="panel-button submit bg-gray-50 dark:bg-gray-700 flex-1 p-3 rounded transition font-semibold focus:outline-none"
 					on:click={submit}
 				>
-				{$_("interface.submit")}
+					{$_("interface.submit")}
 				</button>
 			</div>
 		</div>
@@ -296,7 +296,7 @@
 						{#if interpret_mode}
 							Hide
 						{:else}
-						{$_("interface.interpret")}
+							{$_("interface.interpret")}
 						{/if}
 					</button>
 				{/if}
@@ -305,7 +305,7 @@
 						class="panel-button flag bg-gray-50 dark:bg-gray-700 flex-1 p-3 rounded transition font-semibold focus:outline-none"
 						on:click={flag}
 					>
-					{$_("interface.flag")}
+						{$_("interface.flag")}
 					</button>
 				{/if}
 			</div>

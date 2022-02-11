@@ -40,9 +40,9 @@
 				load={handle_load}
 				{theme}
 			>
-			{$_("interface.drop_video")}
-			<br />- {$_("interface.or")} -<br />
-			{$_("interface.click_to_upload")}
+				{$_("interface.drop_video")}
+				<br />- {$_("interface.or")} -<br />
+				{$_("interface.click_to_upload")}
 			</Upload>
 		{/if}
 	{:else}

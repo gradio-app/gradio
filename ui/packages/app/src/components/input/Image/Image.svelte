@@ -61,9 +61,9 @@
 					include_file_metadata={false}
 					{theme}
 				>
-				{$_("interface.drop_image")}
+					{$_("interface.drop_image")}
 					<br />- {$_("interface.or")} -<br />
-				{$_("interface.click_to_upload")}
+					{$_("interface.click_to_upload")}
 				</Upload>
 			{:else if source === "webcam"}
 				<Webcam on:capture={({ detail }) => setValue(detail)} {static_src} />
