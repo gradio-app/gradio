@@ -42,6 +42,8 @@
 
     .prose .code,
     .prose pre {
+      width: 95%;
+      border-radius: 4px 0 0 4px;
       color: black;
       background: rgb(249, 250, 251);
     }
@@ -55,16 +57,19 @@
     }
 
     .copy {
+      padding-right: 1em;
+      display: flex;
       float: right;
-      background: none;
-      cursor:pointer;
-      border-radius: 4px;
-      padding: 5px;
+      background: #f9fafb;
+      cursor: pointer;
+      border-radius: 0 4px 4px 0;
+      margin: 0.6em 0;;
     }
 
     .copy-svg {
+      margin-top: 1em !important;
       width: 20px;
-      margin: 0 !important;
+      margin: 0;
     }
   </style>
   <script async src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
@@ -138,10 +143,10 @@
     function copyCode(elem) {
         var text = elem.parentElement.innerText;
         navigator.clipboard.writeText(text);
-        elem.style.background = "#cbc7c7"
+        elem.firstChild.src = "/assets/img/copy-orange.svg"
         setTimeout(function(){
-          elem.style.background = "none"
-        }, 500);
+          elem.firstChild.src = "/assets/img/copy-grey.svg"
+        }, 600);
     };
 
   </script>

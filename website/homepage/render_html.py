@@ -108,13 +108,12 @@ def render_guides():
         code_tags = re.findall(r'\{\{ code\["([^\s]*)"\] \}\}', guide["content"])
         demo_names = re.findall(r'\{\{ demos\["([^\s]*)"\] \}\}', guide["content"])
         code, demos = {}, {}
-        copy_button = "<button class='copy' onclick='copyCode(this)'><img class='copy-svg' src='/assets/img/copy.svg'></button>"
 
         guide["content"] = (
             guide["content"]
             .replace("website/src/assets", "/assets")
             .replace("```python\n", "<pre><code class='lang-python'>")
-            .replace("```bash\n", f"<pre>{copy_button}<code class='lang-bash'>")
+            .replace("```bash\n", "<pre><code class='lang-bash'>")
             .replace("```directory\n", "<pre><code class='lang-bash'>")
             .replace("```csv\n", "<pre><code class='lang-bash'>")
             .replace("```", "</code></pre>")
@@ -140,13 +139,16 @@ def render_guides():
         pattern = "<code class='lang-python'>\n?((.|\n)*?)\n?</code>"
         guide_output = re.sub(
             pattern,
-            lambda x: f"{copy_button}<code class='lang-python'>"
+            lambda x: "<code class='lang-python'>"
             + html.escape(x.group(1))
             + "</code>",
             guide_output,
         )
 
-        guide_output = guide_output.replace("<pre><code class='lang-python'>", f"<pre>{copy_button}<code class='lang-python'>")
+        copy_button = "<button class='copy' onclick='copyCode(this)'><img style='flex: 0 1 auto;' class='copy-svg' " \
+                      "src='/assets/img/copy-grey.svg'><div style='flex: 1 1 auto;'></div></button>"
+        guide_output = guide_output.replace("<pre>", "<div style='display: flex'><pre>")
+        guide_output = guide_output.replace("</pre>", f"</pre>{copy_button}</div>")
 
         output_html = markdown2.markdown(guide_output, extras=["target-blank-links"])
 
@@ -324,5 +326,5 @@ if __name__ == "__main__":
     render_index()
     render_guides_main()
     render_guides()
-    # render_docs()
+    render_docs()
     render_other()
