@@ -145,8 +145,9 @@ def render_guides():
             guide_output,
         )
 
-        copy_button = "<button class='copy' onclick='copyCode(this)'><img style='flex: 0 1 auto;' class='copy-svg' " \
-                      "src='/assets/img/copy-grey.svg'><div style='flex: 1 1 auto;'></div></button>"
+        copy_button = "<button class='copy flex float-right cursor-pointer rounded-l-none rounded-r mx-0 my-2' " \
+                      "onclick='copyCode(this)'><img class='copy-svg m0 w-7 flex-initial' " \
+                      "src='/assets/img/copy-grey.svg'><div class='flex-auto'></div></button>"
         guide_output = guide_output.replace("<pre>", "<div class='code-block' style='display: flex'><pre>")
         guide_output = guide_output.replace("</pre>", f"</pre>{copy_button}</div>")
 
