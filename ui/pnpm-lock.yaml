@@ -36,6 +36,7 @@ importers:
       tailwindcss: ^3.0.19
       tui-image-editor: ^3.15.2
       vite: ^2.7.13
+      svelte-i18n: ^3.3.13
     dependencies:
       '@types/d3-dsv': 3.0.0
       '@types/d3-scale': 4.0.2
@@ -51,6 +52,7 @@ importers:
       svelte-preprocess: 4.10.2_postcss@8.4.6+svelte@3.46.3
       svelte-range-slider-pips: 2.0.2
       tui-image-editor: 3.15.2
+      svelte-i18n: ^3.3.13
     devDependencies:
       '@sveltejs/vite-plugin-svelte': 1.0.0-next.36_svelte@3.46.3+vite@2.7.13
       postcss: 8.4.6
