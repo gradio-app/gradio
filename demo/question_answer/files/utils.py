@@ -5,8 +5,7 @@ import math
 
 import numpy as np
 import torch
-from pytorch_transformers.tokenization_bert import (BasicTokenizer,
-                                                    whitespace_tokenize)
+from pytorch_transformers.tokenization_bert import BasicTokenizer, whitespace_tokenize
 from torch.utils.data import DataLoader, SequentialSampler, TensorDataset
 
 

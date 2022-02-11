@@ -28,45 +28,11 @@
     html {
       font-size: 16px !important;
     }
-    header {
-      flex
-    }
-    .prose p > img {
-        margin: 0 auto;
-        width: 600px;
-        max-width: 100%;
-    }
-    .prose {
-      max-width: none !important;
-    }
-    .gradio_page .footer {
-      display: none !important;
-    }
-    .prose .code, .prose pre {
-      background-color: whitesmoke;
-      color: black;
-    }
-    .prose table {
-      width: auto;
-    }
-    h3 a {
-      display: inline-block;
-    }
-    h3 a img {
-      height: 14px;
-      margin: 0 4px !important;
-    }
-
-    ul {
-      text-align: center !important;
-    }
-
     .search-for-tags {
       width: 100%;
       position: relative;
       display: flex;
     }
-
     .searchTerm {
       width: 100%;
       border: 1px solid #bebfc3;
@@ -157,14 +123,17 @@
 
     <div id="guide-list" class="grid grid-cols-1 lg:grid-cols-3 gap-12 pt-12">
       {% for guide in guides %}
-      <a class="flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow" href="/{{ guide.guide_name }}">
+      <a class="flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow" href="/{{ guide.name }}">
         <div class="flex flex-col p-4" style="
       height: min-content;">
-          <h2 class="font-semibold group-hover:underline text-xl" style="color: #5a5a5a;">{{ guide.pretty_guide_name }}
+          <h2 class="font-semibold group-hover:underline text-xl">{{ guide.pretty_name }}
           </h2>
           <div class="tags-holder">
             <p>
-            {{ guide.tags }}
+              {% for tag in guide.tags %}
+                {{ tag }}<!--
+             -->{% if not loop.last %}, {% endif %}
+              {% endfor %}
             </p>
           </div>
         </div>
@@ -247,7 +216,7 @@
     var counter = 0
     {% for guide in guides %}
       txtValue = a[{{ loop.index - 1 }}].innerText;
-      guideContent = {{ guide.guide_content|tojson|safe }}
+      guideContent = {{ guide.content|tojson|safe }}
       if (txtValue.toUpperCase().indexOf(filter) > -1 || guideContent.toUpperCase().indexOf(filter) > -1) {
         a[{{ loop.index - 1}}].style.display = "";
       } else {

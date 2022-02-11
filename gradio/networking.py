@@ -77,6 +77,8 @@ def start_server(
     interface: Interface,
     server_name: Optional[str] = None,
     server_port: Optional[int] = None,
+    ssl_keyfile: Optional[str] = None,
+    ssl_certfile: Optional[str] = None,
 ) -> Tuple[int, str, fastapi.FastAPI, threading.Thread, None]:
     """Launches a local server running the provided Interface
     Parameters:
@@ -84,6 +86,8 @@ def start_server(
     server_name: to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME.
     server_port: will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT.
     auth: If provided, username and password (or list of username-password tuples) required to access interface. Can also provide function that takes username and password and returns True if valid login.
+    ssl_keyfile: If a path to a file is provided, will use this as the private key file to create a local server running on https.
+    ssl_certfile: If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
     """
     server_name = server_name or LOCALHOST_NAME
     # if port is not specified, search for first available port
@@ -105,7 +109,16 @@ def start_server(
         port = server_port
 
     url_host_name = "localhost" if server_name == "0.0.0.0" else server_name
-    path_to_local_server = "http://{}:{}/".format(url_host_name, port)
+
+    if ssl_keyfile is not None:
+        if ssl_certfile is None:
+            raise ValueError(
+                "ssl_certfile must be provided if ssl_keyfile is provided."
+            )
+        path_to_local_server = "https://{}:{}/".format(url_host_name, port)
+    else:
+        path_to_local_server = "http://{}:{}/".format(url_host_name, port)
+
     auth = interface.auth
     if auth is not None:
         if not callable(auth):
@@ -130,40 +143,38 @@ def start_server(
     if interface.save_to is not None:  # Used for selenium tests
         interface.save_to["port"] = port
 
-    config = uvicorn.Config(app=app, port=port, host=server_name, log_level="warning")
+    config = uvicorn.Config(
+        app=app,
+        port=port,
+        host=server_name,
+        log_level="warning",
+        ssl_keyfile=ssl_keyfile,
+        ssl_certfile=ssl_certfile,
+    )
     server = Server(config=config)
     server.run_in_thread()
     return port, path_to_local_server, app, server
 
 
 def setup_tunnel(local_server_port: int, endpoint: str) -> str:
-    response = url_request(
+    response = requests.get(
         endpoint + "/v1/tunnel-request" if endpoint is not None else GRADIO_API_SERVER
     )
-    if response and response.code == 200:
+    if response and response.status_code == 200:
         try:
-            payload = json.loads(response.read().decode("utf-8"))[0]
+            payload = response.json()[0]
             return create_tunnel(payload, LOCALHOST_NAME, local_server_port)
         except Exception as e:
             raise RuntimeError(str(e))
-
-
-def url_request(url: str) -> Optional[http.client.HTTPResponse]:
-    try:
-        req = urllib.request.Request(
-            url=url, headers={"content-type": "application/json"}
-        )
-        res = urllib.request.urlopen(req, timeout=10)
-        return res
-    except Exception as e:
-        raise RuntimeError(str(e))
+    else:
+        raise RuntimeError("Could not get share link from Gradio API Server.")
 
 
 def url_ok(url: str) -> bool:
     try:
         for _ in range(5):
             time.sleep(0.500)
-            r = requests.head(url, timeout=3)
+            r = requests.head(url, timeout=3, verify=False)
             if r.status_code in (200, 401, 302):  # 401 or 302 if auth is set
                 return True
     except (ConnectionError, requests.exceptions.ConnectionError):

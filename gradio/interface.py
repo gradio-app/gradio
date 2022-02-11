@@ -1,5 +1,5 @@
 """
-This is the core file in the `gradio` package, and defines the Interface class, 
+This is the core file in the `gradio` package, and defines the Interface class,
 including various methods for constructing an interface and then launching it.
 """
 
@@ -15,14 +15,13 @@ import time
 import warnings
 import weakref
 import webbrowser
-from logging import warning
 from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
 
 from markdown_it import MarkdownIt
 from mdit_py_plugins.footnote import footnote_plugin
 
-from gradio import (encryptor, interpretation, networking,  # type: ignore
-                    queueing, strings, utils)
+from gradio import networking  # type: ignore
+from gradio import encryptor, interpretation, queueing, strings, utils
 from gradio.external import load_from_pipeline, load_interface  # type: ignore
 from gradio.flagging import CSVLogger, FlaggingCallback  # type: ignore
 from gradio.inputs import InputComponent
@@ -88,6 +87,12 @@ class Interface:
         pipeline (transformers.Pipeline):
         Returns:
         (gradio.Interface): a Gradio Interface object from the given Pipeline
+
+        Example usage:
+            import gradio as gr
+            from transformers import pipeline
+            pipe = pipeline(model="lysandre/tiny-vit-random")
+            gr.Interface.from_pipeline(pipe).launch()
         """
         interface_info = load_from_pipeline(pipeline)
         kwargs = dict(interface_info, **kwargs)
@@ -243,20 +248,25 @@ class Interface:
 
         self.session = None
         self.title = title
-        
-        CLEANER = re.compile('<.*?>') 
+
+        CLEANER = re.compile("<.*?>")
+
         def clean_html(raw_html):
-            cleantext = re.sub(CLEANER, '', raw_html)
+            cleantext = re.sub(CLEANER, "", raw_html)
             return cleantext
-        md = MarkdownIt("js-default", {
+
+        md = MarkdownIt(
+            "js-default",
+            {
                 "linkify": True,
                 "typographer": True,
                 "html": True,
-            }).use(footnote_plugin)
-             
+            },
+        ).use(footnote_plugin)
+
         simple_description = None
         if description is not None:
-            description = md.render(description)            
+            description = md.render(description)
             simple_description = clean_html(description)
         self.simple_description = simple_description
         self.description = description
@@ -264,7 +274,7 @@ class Interface:
             article = utils.readme_to_html(article)
             article = md.render(article)
         self.article = article
-        
+
         self.thumbnail = thumbnail
         theme = theme if theme is not None else os.getenv("GRADIO_THEME", "default")
         DEPRECATED_THEME_MAP = {
@@ -342,7 +352,7 @@ class Interface:
         )
         if allow_flagging is None:
             allow_flagging = os.getenv("GRADIO_ALLOW_FLAGGING", "manual")
-        if allow_flagging == True:
+        if allow_flagging is True:
             warnings.warn(
                 "The `allow_flagging` parameter in `Interface` now"
                 "takes a string value ('auto', 'manual', or 'never')"
@@ -351,7 +361,7 @@ class Interface:
             self.allow_flagging = "manual"
         elif allow_flagging == "manual":
             self.allow_flagging = "manual"
-        elif allow_flagging == False:
+        elif allow_flagging is False:
             warnings.warn(
                 "The `allow_flagging` parameter in `Interface` now"
                 "takes a string value ('auto', 'manual', or 'never')"
@@ -617,6 +627,8 @@ class Interface:
         encrypt: bool = False,
         cache_examples: bool = False,
         favicon_path: Optional[str] = None,
+        ssl_keyfile: Optional[str] = None,
+        ssl_certfile: Optional[str] = None,
     ) -> Tuple[flask.Flask, str, str]:
         """
         Launches the webserver that serves the UI for the interface.
@@ -634,11 +646,13 @@ class Interface:
         server_name (str): to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME.
         show_tips (bool): if True, will occasionally show tips about new Gradio features
         enable_queue (bool): if True, inference requests will be served through a queue instead of with parallel threads. Required for longer inference times (> 1min) to prevent timeout.
-        width (int): The width in pixels of the <iframe> element containing the interface (used if inline=True)
-        height (int): The height in pixels of the <iframe> element containing the interface (used if inline=True)
+        width (int): The width in pixels of the iframe element containing the interface (used if inline=True)
+        height (int): The height in pixels of the iframe element containing the interface (used if inline=True)
         encrypt (bool): If True, flagged data will be encrypted by key provided by creator at launch
         cache_examples (bool): If True, examples outputs will be processed and cached in a folder, and will be used if a user uses an example input.
-        favicon_path (str): If a path to an file (.png, .gif, or .ico) is provided, it will be used as the favicon for the web page.
+        favicon_path (str): If a path to a file (.png, .gif, or .ico) is provided, it will be used as the favicon for the web page.
+        ssl_keyfile (str): If a path to a file is provided, will use this as the private key file to create a local server running on https.
+        ssl_certfile (str): If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
         Returns:
         app (flask.Flask): Flask app object
         path_to_local_server (str): Locally accessible link
@@ -680,7 +694,7 @@ class Interface:
             cache_interface_examples(self)
 
         server_port, path_to_local_server, app, server = networking.start_server(
-            self, server_name, server_port
+            self, server_name, server_port, ssl_keyfile, ssl_certfile
         )
 
         self.local_url = path_to_local_server
@@ -708,7 +722,6 @@ class Interface:
 
         if private_endpoint is not None:
             share = True
-        self.share = share
 
         if share:
             try:
@@ -723,9 +736,13 @@ class Interface:
                 if self.analytics_enabled:
                     utils.error_analytics(self.ip_address, "Not able to set up tunnel")
                 share_url = None
+                share = False
+                print(strings.en["COULD_NOT_GET_SHARE_LINK"])
         else:
             print(strings.en["PUBLIC_SHARE_TRUE"])
             share_url = None
+
+        self.share = share
 
         if inbrowser:
             link = share_url if share else path_to_local_server

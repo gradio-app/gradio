@@ -58,7 +58,6 @@
 	}
 
 	function make_dict(x: XRow, y: Array<YRow>): Data {
-		console.log(x, y);
 		const headers = [];
 		const data = [];
 
@@ -86,6 +85,8 @@
 		setValue({ data: v as string });
 		return v;
 	}
+
+	$: _value = value == null ? null : _value;
 </script>
 
 {#if _value}
@@ -96,7 +97,7 @@
 		on:process={({ detail: { x, y } }) => setValue(make_dict(x, y))}
 	/>
 {/if}
-{#if !value}
+{#if value == null}
 	<Upload
 		filetype="text/csv"
 		load={handle_load}
