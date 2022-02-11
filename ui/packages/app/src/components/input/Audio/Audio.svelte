@@ -137,7 +137,7 @@
 		{:else if source === "upload"}
 			<Upload filetype="audio/*" load={setValue} {theme}>
 				{$_("interface.drop_audio")}
-					<br />- {$_("interface.or")} -<br />
+				<br />- {$_("interface.or")} -<br />
 				{$_("interface.click_to_upload")}
 			</Upload>
 		{/if}

@@ -14,8 +14,8 @@
 	import "./themes/peach.css";
 	import "./themes/seafoam.css";
 	import { _ } from "svelte-i18n";
-  import { setupi18n } from "./i18n";
-  setupi18n()
+	import { setupi18n } from "./i18n";
+	setupi18n();
 
 	interface Component {
 		name: string;
