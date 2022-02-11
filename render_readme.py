@@ -41,7 +41,7 @@ class GuidesLoader(BaseLoader):
         return source, path, lambda: mtime == getmtime(path)
 
 
-readme_template = Environment(loader=GuidesLoader("guides")).get_template(
+readme_template = Environment(loader=GuidesLoader(".")).get_template(
     README_TEMPLATE
 )
 output_readme = readme_template.render(code=code, demos=demos)

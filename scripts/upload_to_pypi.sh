@@ -14,7 +14,7 @@ else
   if [[ $REPLY =~ ^[Yy]$ ]]
   then
     echo -n $new_version > gradio/version.txt
-    cd frontend
+    cd ui
     npm run build
     cd ..
     aws s3 cp gradio/templates/frontend s3://gradio/$new_version/ --recursive 

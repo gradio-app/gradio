@@ -1,8 +1,6 @@
 import base64
 import json
 import re
-import tempfile
-from pydantic import MissingError
 
 import requests
 
@@ -35,12 +33,13 @@ def get_huggingface_interface(model_name, api_key, alias):
             content_type = r.headers.get("content-type")
             # Case 2: the data prefix is a key in the response
             if content_type == "application/json":
-                try: 
+                try:
                     content_type = r.json()[0]["content-type"]
                     base64_repr = r.json()[0]["blob"]
                 except KeyError:
-                    raise ValueError("Cannot determine content type returned"
-                                     "by external API.")
+                    raise ValueError(
+                        "Cannot determine content type returned" "by external API."
+                    )
             # Case 3: the data prefix is included in the response headers
             else:
                 pass
@@ -66,7 +65,7 @@ def get_huggingface_interface(model_name, api_key, alias):
             "preprocess": lambda i: base64.b64decode(
                 i["data"].split(",")[1]
             ),  # convert the base64 representation to binary
-             "postprocess": encode_to_base64,
+            "postprocess": encode_to_base64,
         },
         "automatic-speech-recognition": {
             # example model: https://hf.co/jonatasgrosman/wav2vec2-large-xlsr-53-english
@@ -251,7 +250,7 @@ def load_interface(name, src=None, api_key=None, alias=None):
         )  # Separate the source (e.g. "huggingface") from the repo name (e.g. "google/vit-base-patch16-224")
         assert (
             len(tokens) > 1
-        ), "Either `src` parameter must be provided, or `name` must be formatted as \{src\}/\{repo name\}"
+        ), "Either `src` parameter must be provided, or `name` must be formatted as {src}/{repo name}"
         src = tokens[0]
         name = "/".join(tokens[1:])
     assert src.lower() in repos, "parameter: src must be one of {}".format(repos.keys())
@@ -260,7 +259,7 @@ def load_interface(name, src=None, api_key=None, alias=None):
 
 
 def interface_params_from_config(config_dict):
-    ## instantiate input component and output component
+    # instantiate input component and output component
     config_dict["inputs"] = [
         inputs.get_input_instance(component)
         for component in config_dict["input_components"]

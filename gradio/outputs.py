@@ -13,7 +13,7 @@ import tempfile
 import warnings
 from numbers import Number
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Dict, List, Optional
 
 import numpy as np
 import pandas as pd
@@ -442,7 +442,6 @@ class Audio(OutputComponent):
         return {
             "audio": {},
         }
-    
 
     def postprocess(self, y):
         """
@@ -453,7 +452,7 @@ class Audio(OutputComponent):
         """
         if self.type in ["numpy", "file", "auto"]:
             if self.type == "numpy" or (self.type == "auto" and isinstance(y, tuple)):
-                sample_rate, data = y                
+                sample_rate, data = y
                 file = tempfile.NamedTemporaryFile(
                     prefix="sample", suffix=".wav", delete=False
                 )

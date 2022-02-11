@@ -10,8 +10,6 @@
 	export let theme: string;
 	export let components: Array<Component>;
 
-	$: console.log({ value, theme, components });
-
 	let carousel_index: number = 0;
 	const next = () => {
 		carousel_index = (carousel_index + 1) % value.length;

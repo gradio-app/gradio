@@ -3,7 +3,6 @@ if [ -z "$(ls | grep CONTRIBUTING.md)" ]; then
   echo "Please run the script from repo directory"
   exit -1
 else
-  echo "Running the frontend"
-  cd ui
-  npm run dev
+  echo "Running the tests"
+  python -m pytest --cov=gradio --durations=20 --durations-min=0.1 test/local
 fi

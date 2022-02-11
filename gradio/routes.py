@@ -26,14 +26,14 @@ from gradio.process_examples import load_from_cache, process_example
 
 STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "templates/")
 STATIC_PATH_LIB = pkg_resources.resource_filename("gradio", "templates/frontend/static")
-BUILD_PATH_LIB = pkg_resources.resource_filename("gradio", "templates/frontend/build")
+BUILD_PATH_LIB = pkg_resources.resource_filename("gradio", "templates/frontend/assets")
 VERSION_FILE = pkg_resources.resource_filename("gradio", "version.txt")
 with open(VERSION_FILE) as version_file:
     VERSION = version_file.read()
 GRADIO_STATIC_ROOT = "https://gradio.s3-us-west-2.amazonaws.com/{}/static/".format(
     VERSION
 )
-GRADIO_BUILD_ROOT = "https://gradio.s3-us-west-2.amazonaws.com/{}/build/".format(
+GRADIO_BUILD_ROOT = "https://gradio.s3-us-west-2.amazonaws.com/{}/assets/".format(
     VERSION
 )
 
@@ -44,7 +44,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 
@@ -130,7 +129,8 @@ def static_resource(path: str):
         return FileResponse(static_file)
     raise HTTPException(status_code=404, detail="Static file not found")
 
-@app.get("/build/{path:path}")
+
+@app.get("/assets/{path:path}")
 def build_resource(path: str):
     if app.interface.share:
         return RedirectResponse(GRADIO_BUILD_ROOT + path)
@@ -197,7 +197,7 @@ async def predict(request: Request, username: str = Depends(get_current_user)):
     body = await request.json()
     flag_index = None
 
-    if body.get("example_id") != None:
+    if body.get("example_id") is not None:
         example_id = body["example_id"]
         if app.interface.cache_examples:
             prediction = await run_in_threadpool(

@@ -15,7 +15,7 @@ def plot_forecast(final_year, companies, noise, show_legend, point_style):
     ax = fig.add_subplot(111)
     for i, company in enumerate(companies):
         series = np.arange(0, year_count, dtype=float)
-        series = series ** 2 * (i + 1)
+        series = series**2 * (i + 1)
         series += np.random.rand(year_count) * noise
         ax.plot(x, series, plt_format)
     if show_legend:

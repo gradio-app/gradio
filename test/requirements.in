@@ -1,3 +1,4 @@
+# Don't forget to run bash scripts/create_test_requirements.sh from unix or wsl when you update this file.
 IPython
 comet_ml
 coverage
@@ -10,3 +11,8 @@ shap
 pytest
 wandb
 huggingface_hub
+pytest-cov
+black
+isort
+flake8
+torch

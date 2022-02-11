@@ -31,15 +31,7 @@ bash scripts/build_frontend.sh
 bash scripts/install_test_requirements.sh
 ```
 
-* Install chrome driver and chrome for selenium (necessary for tests)
-
-```
-https://sites.google.com/chromium.org/driver/
-```
-
-```
-https://www.google.com/chrome/
-```
+* Install [chrome driver](https://sites.google.com/chromium.org/driver/) and [chrome](https://www.google.com/chrome/) for selenium (necessary for tests)
 
 * Run the tests
 
@@ -76,5 +68,14 @@ All PRs should be against `master`. Direct commits to master are blocked, and PR
 * A maintainer (@abidlabs, @aliabid94, @aliabd, @AK391, or @dawoodkhan82) is tagged in the PR comments and asked to complete a review
 
 We ask that you make sure initial CI checks are passing before requesting a review. One of the Gradio maintainers will merge the PR when all the checks are passing.
+
+Do not forget the format the backend before pushing.
+```
+bash scripts/format_backend.sh
+```
+You can run the circleci checks locally as well. 
+```
+bash scripts/run_circleci.sh
+```
 
 *Could these guidelines be clearer? Feel free to open a PR to help us faciltiate open-source contributions!*
