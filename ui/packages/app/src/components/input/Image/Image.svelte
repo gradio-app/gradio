@@ -46,6 +46,7 @@
 			<ModifySketch
 				on:undo={() => sketch.undo()}
 				on:clear={() => sketch.clear()}
+				{static_src}
 			/>
 			<Sketch
 				{value}

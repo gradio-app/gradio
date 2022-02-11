@@ -7,8 +7,8 @@ import transformers
 import gradio as gr
 
 """
-WARNING: These tests have an external dependency: namely that Hugging Face's 
-Hub and Space APIs do not change, and they keep their most famous models up. 
+WARNING: These tests have an external dependency: namely that Hugging Face's
+Hub and Space APIs do not change, and they keep their most famous models up.
 So if, e.g. Spaces is down, then these test will not pass.
 """
 
@@ -27,17 +27,14 @@ class TestHuggingFaceModelAPI(unittest.TestCase):
         self.assertIsInstance(interface_info["inputs"], gr.inputs.Audio)
         self.assertIsInstance(interface_info["outputs"], gr.outputs.Audio)
 
-    
     def test_question_answering(self):
         model_type = "question-answering"
         interface_info = gr.external.get_huggingface_interface(
-            "deepset/roberta-base-squad2", api_key=None, alias=model_type
+            "lysandre/tiny-vit-random", api_key=None, alias=model_type
         )
         self.assertEqual(interface_info["fn"].__name__, model_type)
-        self.assertIsInstance(interface_info["inputs"][0], gr.inputs.Textbox)
-        self.assertIsInstance(interface_info["inputs"][1], gr.inputs.Textbox)
-        self.assertIsInstance(interface_info["outputs"][0], gr.outputs.Textbox)
-        self.assertIsInstance(interface_info["outputs"][1], gr.outputs.Label)
+        self.assertIsInstance(interface_info["inputs"], gr.inputs.Image)
+        self.assertIsInstance(interface_info["outputs"], gr.outputs.Label)
 
     def test_text_generation(self):
         model_type = "text_generation"
@@ -246,13 +243,9 @@ class TestLoadInterface(unittest.TestCase):
 
 
 class TestLoadFromPipeline(unittest.TestCase):
-    def test_question_answering(self):
-        p = transformers.pipeline("question-answering")
-        io = gr.Interface.from_pipeline(p)
-        output = io(
-            "My name is Sylvain and I work at Hugging Face in Brooklyn",
-            "Where do I work?",
-        )
+    def test_text_to_text_model_from_pipeline(self):
+        pipe = transformers.pipeline(model="sshleifer/bart-tiny-random")
+        output = pipe("My name is Sylvain and I work at Hugging Face in Brooklyn")
         self.assertIsNotNone(output)
 
 

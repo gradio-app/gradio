@@ -5,33 +5,15 @@ Prequisites:
 * Python 3.7+
 * Node 16.0+ (optional for backend-only changes, but needed for any frontend changes)
 
-More than 30 awesome developers have contributed to the `gradio` library, and we'd be thrilled if you would like be the next `gradio` contributor! You can start by forking or cloning the
-repo (https://github.com/gradio-app/gradio.git) and creating your own branch to work from.
+More than 30 awesome developers have contributed to the `gradio` library, and we'd be thrilled if you would like be the next `gradio` contributor! You can start by forking or cloning the repo (https://github.com/gradio-app/gradio.git) and creating your own branch to work from.
 
-### To install the local version of Gradio
+### Install Gradio locally from the `master` branch
 
+* Clone this repo
 * Navigate to the repo folder and run
 
 ```bash
 bash scripts/install_gradio.sh
-```
-
-### To install the local development version of Gradio
-
-* Navigate to the repo folder and install test requirements (note that it is highly recommended to use a virtual environment since the versions are pinned)
-
-```
-bash scripts/install_test_requirements.sh
-```
-
-* Install chrome driver and chrome for selenium (necessary for tests)
-
-```
-https://sites.google.com/chromium.org/driver/
-```
-
-```
-https://www.google.com/chrome/
 ```
 
 * Build the front end
@@ -39,6 +21,17 @@ https://www.google.com/chrome/
 ```
 bash scripts/build_frontend.sh
 ```
+
+
+### Install development and testing requirements
+
+* Navigate to the repo folder and install test requirements (note that it is highly recommended to use a virtual environment since the versions are pinned)
+
+```
+bash scripts/install_test_requirements.sh
+```
+
+* Install [chrome driver](https://sites.google.com/chromium.org/driver/) and [chrome](https://www.google.com/chrome/) for selenium (necessary for tests)
 
 * Run the tests
 
@@ -75,5 +68,14 @@ All PRs should be against `master`. Direct commits to master are blocked, and PR
 * A maintainer (@abidlabs, @aliabid94, @aliabd, @AK391, or @dawoodkhan82) is tagged in the PR comments and asked to complete a review
 
 We ask that you make sure initial CI checks are passing before requesting a review. One of the Gradio maintainers will merge the PR when all the checks are passing.
+
+Do not forget the format the backend before pushing.
+```
+bash scripts/format_backend.sh
+```
+You can run the circleci checks locally as well. 
+```
+bash scripts/run_circleci.sh
+```
 
 *Could these guidelines be clearer? Feel free to open a PR to help us faciltiate open-source contributions!*

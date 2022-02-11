@@ -22,7 +22,6 @@ import gradio
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio import Interface
 
-
 analytics_url = "https://api.gradio.app/"
 PKG_VERSION_URL = "https://api.gradio.app/pkg-version"
 analytics.write_key = "uxIFddIEuuUcFLf9VgH2teTEtPlWdkNy"
@@ -195,6 +194,7 @@ def get_config_file(interface: Interface) -> Dict[str, Any]:
         "show_input": interface.show_input,
         "show_output": interface.show_output,
         "title": interface.title,
+        "analytics_enabled": interface.analytics_enabled,
         "description": interface.description,
         "simple_description": interface.simple_description,
         "article": interface.article,

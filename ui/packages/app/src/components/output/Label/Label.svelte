@@ -30,10 +30,9 @@
 					<div
 						class="confidence flex justify-end items-center overflow-hidden whitespace-nowrap h-7 mb-2 px-1"
 						style="min-width: calc(
-							{Math.round(confidence_set.confidence * 100)}
-							% - 12px)"
+							{Math.round(confidence_set.confidence * 100)}% - 12px)"
 					>
-						{Math.round(confidence_set.confidence * 100) + "%"}
+						{Math.round(confidence_set.confidence * 100)}%
 					</div>
 				{/each}
 			</div>

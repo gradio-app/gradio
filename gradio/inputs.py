@@ -6,12 +6,11 @@ automatically added to a registry, which allows them to be easily referenced in 
 
 from __future__ import annotations
 
-import os
 import json
 import math
+import os
 import tempfile
 import warnings
-from numbers import Number
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
 import numpy as np
@@ -221,10 +220,8 @@ class Textbox(InputComponent):
         """
         masked_inputs = []
         for binary_mask_vector in binary_mask_matrix:
-            masked_input = np.array(tokens)[np.array(
-                binary_mask_vector, dtype=bool)]
-            masked_inputs.append(
-                self.interpretation_separator.join(masked_input))
+            masked_input = np.array(tokens)[np.array(binary_mask_vector, dtype=bool)]
+            masked_inputs.append(self.interpretation_separator.join(masked_input))
         return masked_inputs
 
     def get_interpretation_scores(
@@ -308,10 +305,8 @@ class Number(InputComponent):
             delta = 1.0 * self.interpretation_delta * x / 100
         elif self.interpretation_delta_type == "absolute":
             delta = self.interpretation_delta
-        negatives = (x + np.arange(-self.interpretation_steps, 0)
-                     * delta).tolist()
-        positives = (
-            x + np.arange(1, self.interpretation_steps + 1) * delta).tolist()
+        negatives = (x + np.arange(-self.interpretation_steps, 0) * delta).tolist()
+        positives = (x + np.arange(1, self.interpretation_steps + 1) * delta).tolist()
         return negatives + positives, {}
 
     def get_interpretation_scores(
@@ -357,7 +352,7 @@ class Slider(InputComponent):
         if step is None:
             difference = maximum - minimum
             power = math.floor(math.log10(difference) - 2)
-            step = 10 ** power
+            step = 10**power
         self.step = step
         self.default = minimum if default is None else default
         self.test_input = self.default
@@ -406,8 +401,7 @@ class Slider(InputComponent):
 
     def get_interpretation_neighbors(self, x) -> List[float]:
         return (
-            np.linspace(self.minimum, self.maximum,
-                        self.interpretation_steps).tolist(),
+            np.linspace(self.minimum, self.maximum, self.interpretation_steps).tolist(),
             {},
         )
 
@@ -944,8 +938,7 @@ class Image(InputComponent):
             masked_input = np.zeros_like(tokens[0], dtype=int)
             for token, b in zip(tokens, binary_mask_vector):
                 masked_input = masked_input + token * int(b)
-            masked_inputs.append(
-                processing_utils.encode_array_to_base64(masked_input))
+            masked_inputs.append(processing_utils.encode_array_to_base64(masked_input))
         return masked_inputs
 
     def get_interpretation_scores(self, x, neighbors, scores, masks, tokens=None):
@@ -1042,10 +1035,8 @@ class Video(InputComponent):
         file_name = file.name
         uploaded_format = file_name.split(".")[-1].lower()
         if self.type is not None and uploaded_format != self.type:
-            output_file_name = file_name[0: file_name.rindex(
-                ".") + 1] + self.type
-            ff = FFmpeg(inputs={file_name: None},
-                        outputs={output_file_name: None})
+            output_file_name = file_name[0 : file_name.rindex(".") + 1] + self.type
+            ff = FFmpeg(inputs={file_name: None}, outputs={output_file_name: None})
             ff.run()
             return output_file_name
         else:
@@ -1200,8 +1191,7 @@ class Audio(InputComponent):
         tokens = []
         masks = []
         duration = data.shape[0]
-        boundaries = np.linspace(
-            0, duration, self.interpretation_segments + 1).tolist()
+        boundaries = np.linspace(0, duration, self.interpretation_segments + 1).tolist()
         boundaries = [round(boundary) for boundary in boundaries]
         for index in range(len(boundaries) - 1):
             start, stop = boundaries[index], boundaries[index + 1]
@@ -1211,8 +1201,7 @@ class Audio(InputComponent):
             leave_one_out_data = np.copy(data)
             leave_one_out_data[start:stop] = 0
             file = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
-            processing_utils.audio_to_file(
-                sample_rate, leave_one_out_data, file.name)
+            processing_utils.audio_to_file(sample_rate, leave_one_out_data, file.name)
             out_data = processing_utils.encode_file_to_base64(file.name)
             leave_one_out_sets.append(out_data)
             file.close()
@@ -1230,8 +1219,9 @@ class Audio(InputComponent):
 
             tokens.append(token_data)
         tokens = [{"name": "token.wav", "data": token} for token in tokens]
-        leave_one_out_sets = [{"name": "loo.wav", "data": loo_set}
-                              for loo_set in leave_one_out_sets]
+        leave_one_out_sets = [
+            {"name": "loo.wav", "data": loo_set} for loo_set in leave_one_out_sets
+        ]
         return tokens, leave_one_out_sets, masks
 
     def get_masked_inputs(self, tokens, binary_mask_matrix):
@@ -1239,7 +1229,7 @@ class Audio(InputComponent):
         x = tokens[0]["data"]
         file_obj = processing_utils.decode_base64_to_file(x)
         sample_rate, data = processing_utils.audio_from_file(file_obj.name)
-        zero_input = np.zeros_like(data, dtype='int16')
+        zero_input = np.zeros_like(data, dtype="int16")
         # decode all of the tokens
         token_data = []
         for token in tokens:
@@ -1253,8 +1243,7 @@ class Audio(InputComponent):
             for t, b in zip(token_data, binary_mask_vector):
                 masked_input = masked_input + t * int(b)
             file = tempfile.NamedTemporaryFile(delete=False)
-            processing_utils.audio_to_file(
-                sample_rate, masked_input, file.name)
+            processing_utils.audio_to_file(sample_rate, masked_input, file.name)
             masked_data = processing_utils.encode_file_to_base64(file.name)
             file.close()
             os.unlink(file.name)
@@ -1428,8 +1417,7 @@ class Dataframe(InputComponent):
             "date": "02/08/1993",
         }
         column_dtypes = (
-            [datatype] *
-            self.col_count if isinstance(datatype, str) else datatype
+            [datatype] * self.col_count if isinstance(datatype, str) else datatype
         )
         self.test_input = [
             [sample_values[c] for c in column_dtypes] for _ in range(row_count)
