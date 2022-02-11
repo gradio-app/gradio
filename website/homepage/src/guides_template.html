@@ -63,14 +63,20 @@
       background: #f9fafb;
       cursor: pointer;
       border-radius: 0 4px 4px 0;
-      margin: 0.6em 0;;
+      margin: 0.6em 0;
     }
 
     .copy-svg {
       margin-top: 1em !important;
       width: 20px;
       margin: 0;
+      visibility: hidden;
     }
+
+    .code-block:hover .copy-svg {
+        visibility: visible;
+    }
+
   </style>
   <script async src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
   <script>

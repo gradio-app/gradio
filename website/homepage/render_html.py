@@ -147,7 +147,7 @@ def render_guides():
 
         copy_button = "<button class='copy' onclick='copyCode(this)'><img style='flex: 0 1 auto;' class='copy-svg' " \
                       "src='/assets/img/copy-grey.svg'><div style='flex: 1 1 auto;'></div></button>"
-        guide_output = guide_output.replace("<pre>", "<div style='display: flex'><pre>")
+        guide_output = guide_output.replace("<pre>", "<div class='code-block' style='display: flex'><pre>")
         guide_output = guide_output.replace("</pre>", f"</pre>{copy_button}</div>")
 
         output_html = markdown2.markdown(guide_output, extras=["target-blank-links"])
