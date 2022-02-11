@@ -7,22 +7,22 @@ module.exports = {
         DEFAULT: {
           css: {
             code: {
-              fontWeight: 'normal',
-              backgroundColor: 'whitesmoke',
-              '&:before': {
+              fontWeight: "normal",
+              backgroundColor: "whitesmoke",
+              "&:before": {
                 content: "none !important",
               },
-              '&:after': {
+              "&:after": {
                 content: "none !important",
               },
             },
           },
         },
-      }
+      },
     },
   },
   variants: {
     extend: {},
   },
-  plugins: [require("@tailwindcss/typography")]
-}
+  plugins: [require("@tailwindcss/typography")],
+};

@@ -4,7 +4,7 @@ coverage:
   precision: 2
   status:
     project:
-      default: false  # disable the default status that measures entire project
+      default: false # disable the default status that measures entire project
       source:
         paths:
           - "gradio/"
@@ -12,8 +12,8 @@ coverage:
         threshold: 0.1
     patch:
       default:
-        target: 50%  # new contributions should have a coverage at least equal to 50%
-  
+        target: 50% # new contributions should have a coverage at least equal to 50%
+
 comment: false
 codecov:
   require_ci_to_pass: yes

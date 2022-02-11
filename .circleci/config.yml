@@ -56,7 +56,7 @@ jobs:
             . venv/bin/activate
             python -m  flake8 --ignore=E731,E501,E722,W503,E126,F401,E203 gradio test
       - codecov/upload:
-          file: 'coverage.xml'
+          file: "coverage.xml"
       - store_artifacts:
           path: /home/circleci/project/test/tmp
           destination: screenshots

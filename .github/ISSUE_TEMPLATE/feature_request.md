@@ -1,10 +1,9 @@
 ---
 name: Feature request
 about: Suggest an improvement or new feature or a new Guide for Gradio
-title: ''
-labels: ''
-assignees: ''
-
+title: ""
+labels: ""
+assignees: ""
 ---
 
 **Is your feature request related to a problem? Please describe.**
