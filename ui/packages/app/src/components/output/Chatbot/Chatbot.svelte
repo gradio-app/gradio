@@ -1,6 +1,5 @@
 <script lang="ts">
 	export let value: Array<string>;
-	export let theme: string;
 </script>
 
 <div class="overflow-y-auto h-64 border border-b-0 rounded-t-lg leading-tight">
