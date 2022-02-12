@@ -30,11 +30,15 @@ class InputComponent(Component):
     Input Component. All input components subclass this.
     """
 
-    def __init__(self, label: str, requires_permissions: bool = False):
+    def __init__(
+        self, label: str, requires_permissions: bool = False, optional: bool = False
+    ):
         """
         Constructs an input component.
         """
         self.set_interpret_parameters()
+        if optional is True:
+            label = InputComponent.label_as_optional(label)
         super().__init__(label, requires_permissions)
 
     def preprocess(self, x: Any) -> Any:
@@ -96,6 +100,10 @@ class InputComponent(Component):
         Returns a sample value of the input that would be accepted by the api. Used for api documentation.
         """
         pass
+
+    @staticmethod
+    def label_as_optional(label: str) -> str:
+        return f"{label}(Optional)"
 
 
 class Textbox(InputComponent):
@@ -248,16 +256,22 @@ class Number(InputComponent):
     Demos: tax_calculator, titanic_survival
     """
 
-    def __init__(self, default: Optional[float] = None, label: Optional[str] = None):
+    def __init__(
+        self,
+        default: Optional[float] = None,
+        label: Optional[str] = None,
+        optional: bool = False,
+    ):
         """
         Parameters:
         default (float): default value.
         label (str): component name in interface.
+        optional (bool):
         """
         self.default = default
         self.test_input = default if default is not None else 1
         self.interpret_by_tokens = False
-        super().__init__(label)
+        super().__init__(label, optional=optional)
 
     def get_template_context(self):
         return {"default": self.default, **super().get_template_context()}
@@ -590,7 +604,7 @@ class Radio(InputComponent):
 
     def __init__(
         self,
-        choices: List(str),
+        choices: List[str],
         type: str = "value",
         default: Optional[str] = None,
         label: Optional[str] = None,
@@ -772,7 +786,7 @@ class Image(InputComponent):
         self.invert_colors = invert_colors
         self.test_input = test_data.BASE64_IMAGE
         self.interpret_by_tokens = True
-        super().__init__(label, requires_permissions)
+        super().__init__(label, requires_permissions, optional=optional)
 
     @classmethod
     def get_shortcut_implementations(cls):
@@ -994,7 +1008,7 @@ class Video(InputComponent):
         self.type = type
         self.source = source
         self.optional = optional
-        super().__init__(label)
+        super().__init__(label, optional=optional)
 
     @classmethod
     def get_shortcut_implementations(cls):
@@ -1084,7 +1098,7 @@ class Audio(InputComponent):
         self.optional = optional
         self.test_input = test_data.BASE64_AUDIO
         self.interpret_by_tokens = True
-        super().__init__(label, requires_permissions)
+        super().__init__(label, requires_permissions, optional=optional)
 
     def get_template_context(self):
         return {
@@ -1296,7 +1310,7 @@ class File(InputComponent):
         self.type = type
         self.test_input = None
         self.optional = optional
-        super().__init__(label)
+        super().__init__(label, optional=optional)
 
     def get_template_context(self):
         return {
@@ -1509,7 +1523,7 @@ class Timeseries(InputComponent):
             y = [y]
         self.y = y
         self.optional = optional
-        super().__init__(label)
+        super().__init__(label, optional=optional)
 
     def get_template_context(self):
         return {
