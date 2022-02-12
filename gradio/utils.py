@@ -217,6 +217,8 @@ def get_config_file(interface: Interface) -> Dict[str, Any]:
         for iface, param in zip(config["input_components"], param_names):
             if not iface["label"]:
                 iface["label"] = param.replace("_", " ")
+                if iface["optional"]:
+                    iface["label"] += " (optional)"
         for i, iface in enumerate(config["output_components"]):
             outputs_per_function = int(
                 len(interface.output_components) / len(interface.predict)
