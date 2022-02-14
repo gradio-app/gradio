@@ -44,10 +44,10 @@
 			@apply bg-white dark:bg-gray-800 shadow h-3 transition hover:shadow-md;
 		}
 		.range::-webkit-slider-thumb {
-			@apply bg-gradient-to-b from-yellow-400 to-yellow-500 dark:from-red-500 dark:to-red-600 shadow;
+			@apply bg-gradient-to-b from-amber-400 to-amber-500 dark:from-red-500 dark:to-red-600 shadow;
 		}
 		.range::-moz-range-thumb {
-			@apply bg-gradient-to-b from-yellow-400 to-yellow-500 shadow;
+			@apply bg-gradient-to-b from-amber-400 to-amber-500 shadow;
 		}
 		.value {
 			@apply bg-gray-100 dark:bg-gray-600 font-semibold;

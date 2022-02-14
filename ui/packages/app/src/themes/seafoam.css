@@ -1,5 +1,5 @@
 .gradio-bg[theme="seafoam"] {
-	@apply bg-yellow-100 dark:bg-gray-700;
+	@apply bg-amber-100 dark:bg-gray-700;
 }
 .gradio-bg[theme="seafoam"] .gradio-interface {
 	.component-set {
