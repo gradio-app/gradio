@@ -39,7 +39,7 @@
 	.modify-upload[theme="default"] {
 		@apply m-1 flex gap-1;
 		.edit {
-			@apply bg-yellow-500 dark:bg-red-600 rounded shadow;
+			@apply bg-amber-500 dark:bg-red-600 rounded shadow;
 		}
 		.clear {
 			@apply bg-gray-50 dark:bg-gray-500 rounded shadow;
