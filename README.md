@@ -1,24 +1,25 @@
-[![CircleCI](https://circleci.com/gh/gradio-app/gradio.svg?style=svg)](https://circleci.com/gh/gradio-app/gradio) [![PyPI version](https://badge.fury.io/py/gradio.svg)](https://badge.fury.io/py/gradio) [![codecov](https://codecov.io/gh/gradio-app/gradio/branch/master/graph/badge.svg?token=NNVPX9KEGS)](https://codecov.io/gh/gradio-app/gradio) [![PyPI - Downloads](https://img.shields.io/pypi/dm/gradio)](https://pypi.org/project/gradio/) [![Twitter Follow](https://img.shields.io/twitter/follow/gradio.svg?style=social&label=Follow)](https://twitter.com/gradio)
+[![CircleCI](https://circleci.com/gh/gradio-app/gradio.svg?style=svg)](https://circleci.com/gh/gradio-app/gradio)  [![PyPI version](https://badge.fury.io/py/gradio.svg)](https://badge.fury.io/py/gradio)  [![codecov](https://codecov.io/gh/gradio-app/gradio/branch/master/graph/badge.svg?token=NNVPX9KEGS)](https://codecov.io/gh/gradio-app/gradio) [![PyPI - Downloads](https://img.shields.io/pypi/dm/gradio)](https://pypi.org/project/gradio/) [![Twitter Follow](https://img.shields.io/twitter/follow/gradio.svg?style=social&label=Follow)](https://twitter.com/gradio)
 
-# Welcome to Gradio
+#  Welcome to Gradio
 
-Quickly create beautiful user interfaces around your machine learning models. Gradio (pronounced GRAY-dee-oh) makes it easy for you to demo your model in your browser or let people "try it out" by dragging-and-dropping in their own images, pasting text, recording their own voice, etc. and seeing what the model outputs.
+Quickly create beautiful user interfaces around your machine learning models. Gradio (pronounced GRAY-dee-oh) makes it easy for you to demo your model in your browser or let people "try it out" by dragging-and-dropping in their own images, pasting text, recording their own voice, etc. and seeing what the model outputs.  
 
 ![Interface montage](website/homepage/src/assets/img/montage.gif)
 
 Gradio is useful for:
 
-- **Demoing** your machine learning models for clients / collaborators / users / students
+* **Demoing** your machine learning models for clients / collaborators / users / students
 
-- **Deploying** your models quickly with automatic shareable links and getting feedback on model performance
+* **Deploying** your models quickly with automatic shareable links and getting feedback on model performance
 
-- **Debugging** your model interactively during development using built-in manipulation and interpretation tools
+* **Debugging** your model interactively during development using built-in manipulation and interpretation tools
 
 **You can find an interactive version of the following Getting Started at [https://gradio.app/getting_started](https://gradio.app/getting_started).**
 
+
 ## Getting Started
 
-**Prerequisite**: Python 3.7+ and that's it!
+**Prerequisite**: Python 3.7+ and that's it! 
 
 ### Quick Start
 
@@ -30,7 +31,7 @@ To get Gradio running with a simple "Hello, World" example, follow these three s
 pip install gradio
 ```
 
-<span>2.</span> Run the code below as a Python script or in a Python notebook (or in a [colab notebook](https://colab.research.google.com/drive/18ODkJvyxHutTN0P5APWyGFO_xwNcgHDZ?usp=sharing)).
+<span>2.</span> Run the code below as a Python script or in a Python notebook (or in a  [colab notebook](https://colab.research.google.com/drive/18ODkJvyxHutTN0P5APWyGFO_xwNcgHDZ?usp=sharing)).
 
 ```python
 import gradio as gr
@@ -45,7 +46,7 @@ iface.launch()
 
 ```
 
-<span>3.</span> The interface below will appear automatically within the Python notebook, or pop in a browser on [http://localhost:7860](http://localhost:7860/) if running from a script.
+<span>3.</span> The interface below will appear automatically within the Python notebook, or pop in a browser on  [http://localhost:7860](http://localhost:7860/)  if running from a script.
 
 ![hello_world interface](demo/hello_world/screenshot.gif)
 
@@ -53,17 +54,17 @@ iface.launch()
 
 Gradio can wrap almost any Python function with an easy-to-use user interface. In the example above, we saw a simple text-based function. But the function could be anything from image enhancer to a tax calculator to (most commonly) the prediction function of a pretrained machine learning model.
 
-The core `Interface` class is initialized with three parameters:
+The core  `Interface`  class is initialized with three parameters:
 
-- `fn`: the function to wrap
-- `inputs`: the input component type(s), e.g. `"image"` or `"audio"` ([see docs for complete list](/docs))
-- `outputs`: the output component type(s) e.g. `"image"` or `"label"` ([see docs for complete list](/docs))
+-   `fn`: the function to wrap
+-   `inputs`: the input component type(s), e.g. `"image"` or `"audio"` ([see docs for complete list](/docs))
+-   `outputs`: the output component type(s) e.g. `"image"` or `"label"` ([see docs for complete list](/docs))
 
-With these three arguments, we can quickly create interfaces and `launch()` them. But what if you want to change how the UI components look or behave?
+With these three arguments, we can quickly create interfaces and  `launch()`  them. But what if you want to change how the UI components look or behave?
 
 ### Customizable Components
 
-Let's say we want to customize the input text field - for example, we wanted it to be larger and have a text hint. If we use the actual input class for `Textbox` instead of using the string shortcut, we have access to much more customizability. To see a list of all the components we support and how you can customize them, check out the [Docs](https://gradio.app/docs).
+Let's say we want to customize the input text field - for example, we wanted it to be larger and have a text hint. If we use the actual input class for  `Textbox`  instead of using the string shortcut, we have access to much more customizability. To see a list of all the components we support and how you can customize them, check out the [Docs](https://gradio.app/docs).
 
 ```python
 import gradio as gr
@@ -81,7 +82,6 @@ iface = gr.Interface(
 iface.launch()
 
 ```
-
 ![hello_world_2 interface](demo/hello_world_2/screenshot.gif)
 
 ### Multiple Inputs and Outputs
@@ -107,14 +107,13 @@ iface = gr.Interface(
 iface.launch()
 
 ```
-
 ![hello_world_3 interface](demo/hello_world_3/screenshot.gif)
 
-We simply wrap the components in a list. Each component in the `inputs` list corresponds to one of the parameters of the function, in order. Each component in the `outputs` list corresponds to one of the values returned by the function, again in order.
+We simply wrap the components in a list. Each component in the `inputs` list corresponds to one of the parameters of the function, in order. Each component in the `outputs` list corresponds to one of the values returned by the function, again in order. 
 
 ### Working with Images
 
-Let's try an image-to-image function. When using the `Image` component, your function will receive a numpy array of your specified size, with the shape `(width, height, 3)`, where the last dimension represents the RGB values. We'll return an image as well in the form of a numpy array.
+Let's try an image-to-image function. When using the  `Image`  component, your function will receive a numpy array of your specified size, with the shape  `(width, height, 3)`, where the last dimension represents the RGB values. We'll return an image as well in the form of a numpy array.
 
 ```python
 import numpy as np
@@ -136,10 +135,9 @@ iface = gr.Interface(sepia, gr.inputs.Image(shape=(200, 200)), "image")
 iface.launch()
 
 ```
-
 ![sepia_filter interface](demo/sepia_filter/screenshot.gif)
 
-Additionally, our `Image` input interface comes with an 'edit' button which opens tools for cropping, flipping, rotating, drawing over, and applying filters to images. We've found that manipulating images in this way will often reveal hidden flaws in a model.
+Additionally, our  `Image`  input interface comes with an 'edit' button which opens tools for cropping, flipping, rotating, drawing over, and applying filters to images. We've found that manipulating images in this way will often reveal hidden flaws in a model.
 
 In addition to images, Gradio supports other media input types, such as audio or video uploads, as well as many output components. Read about these in the [Docs](https://gradio.app/docs).
 
@@ -186,12 +184,11 @@ iface = gr.Interface(
 iface.launch()
 
 ```
-
 ![sales_projections interface](demo/sales_projections/screenshot.gif)
 
 ### Example Inputs
 
-You can provide example data that a user can easily load into the model. This can be helpful to demonstrate the types of inputs the model expects, as well as to provide a way to explore your dataset in conjunction with your model. To load example data, you provide a **nested list** to the `examples=` keyword argument of the Interface constructor. Each sublist within the outer list represents a data sample, and each element within the sublist represents an input for each input component. The format of example data for each component is specified in the [Docs](https://gradio.app/docs).
+You can provide example data that a user can easily load into the model. This can be helpful to demonstrate the types of inputs the model expects, as well as to provide a way to explore your dataset in conjunction with your model. To load example data, you provide a **nested list** to the  `examples=`  keyword argument of the Interface constructor. Each sublist within the outer list represents a data sample, and each element within the sublist represents an input for each input component. The format of example data for each component is specified in the  [Docs](https://gradio.app/docs).
 
 ```python
 import gradio as gr
@@ -226,7 +223,6 @@ iface = gr.Interface(
 iface.launch()
 
 ```
-
 ![calculator interface](demo/calculator/screenshot.gif)
 
 You can load a large dataset into the examples to browse and interact with the dataset through Gradio. The examples will be automatically paginated (you can configure this through the `examples_per_page` argument of Interface) and you can use CTRL + arrow keys to navigate through the examples quickly.
@@ -260,7 +256,6 @@ iface = gr.Interface(
 iface.launch()
 
 ```
-
 ![calculator_live interface](demo/calculator_live/screenshot.gif)
 
 Note there is no submit button, because the interface resubmits automatically on change.
@@ -269,7 +264,7 @@ Note there is no submit button, because the interface resubmits automatically on
 
 Your function may use data that persists beyond a single function call. If the data is something accessible to all function calls and all users, you can create a global variable outside the function call and access it inside the function. For example, you may load a large model outside the function and use it inside the function so that every function call does not need to reload the model.
 
-Another type of data persistence Gradio supports is session **state**, where data persists across multiple submits within a page load. However, data is _not_ shared between different users of your model. To store data in a session state, you need to do three things: (1) Pass in an extra parameter into your function, which represents the state of the interface. (2) At the end of the function, return the updated value of the state as an extra return value (3) Add the `'state'` input and `'state'` output components when creating your `Interface`. See the chatbot example below:
+Another type of data persistence Gradio supports is session **state**, where data persists across multiple submits within a page load. However, data is *not* shared between different users of your model. To store data in a session state, you need to do three things: (1) Pass in an extra parameter into your function, which represents the state of the interface. (2) At the end of the function, return the updated value of the state as an extra return value (3) Add the `'state'` input and `'state'` output components when creating your `Interface`. See the chatbot example below: 
 
 ```python
 import random
@@ -312,14 +307,13 @@ iface = gr.Interface(
 iface.launch()
 
 ```
-
 ![chatbot interface](demo/chatbot/screenshot.gif)
 
-Notice how the state persists across submits within each page, but the state is not shared between the two pages. Some more points to note: you can pass in a default value to the state parameter, which is used as the initial value of the state. The state must be a something that can be serialized to a JSON format (e.g. a dictionary, a list, or a single value. Typically, objects will not work).
+Notice how the state persists across submits within each page, but the state is not shared between the two pages. Some more points to note: you can pass in a default value to the state parameter, which is used as the initial value of the state. The state must be a something that can be serialized to a JSON format (e.g. a dictionary, a list, or a single value. Typically, objects will not work).  
 
 ### Flagging
 
-Underneath the output interfaces, there is a button marked "Flag". When a user testing your model sees input with interesting output, such as erroneous or unexpected model behaviour, they can flag the input for the interface creator to review. Within the directory provided by the `flagging_dir=` argument to the Interface constructor, a CSV file will log the flagged inputs. If the interface involves file data, such as for Image and Audio components, folders will be created to store those flagged data as well.
+Underneath the output interfaces, there is a button marked "Flag". When a user testing your model sees input with interesting output, such as erroneous or unexpected model behaviour, they can flag the input for the interface creator to review. Within the directory provided by the  `flagging_dir=`  argument to the Interface constructor, a CSV file will log the flagged inputs. If the interface involves file data, such as for Image and Audio components, folders will be created to store those flagged data as well.
 
 For example, with the calculator interface shown above, we would have the flagged data stored in the flagged directory shown below:
 
@@ -329,8 +323,7 @@ For example, with the calculator interface shown above, we would have the flagge
 |   +-- logs.csv
 ```
 
-_flagged/logs.csv_
-
+*flagged/logs.csv*
 ```csv
 num1,operation,num2,Output
 5,add,7,12
@@ -351,15 +344,14 @@ With the sepia interface shown above, we would have the flagged data stored in t
 |   |   +-- 1.png
 ```
 
-_flagged/logs.csv_
-
+*flagged/logs.csv*
 ```csv
 im,Output
 im/0.png,Output/0.png
 im/1.png,Output/1.png
 ```
 
-You can review these flagged inputs by manually exploring the flagging directory, or load them into the examples of the Gradio interface by pointing the `examples=` argument to the flagged directory. If you wish for the user to provide a reason for flagging, you can pass a list of strings to the `flagging_options` argument of Interface. Users will have to select one of the strings when flagging, which will be saved as an additional column to the CSV.
+You can review these flagged inputs by manually exploring the flagging directory, or load them into the examples of the Gradio interface by pointing the  `examples=`  argument to the flagged directory. If you wish for the user to provide a reason for flagging, you can pass a list of strings to the `flagging_options` argument of Interface. Users will have to select one of the strings when flagging, which will be saved as an additional column to the CSV.
 
 ### Sharing Interfaces Publicly
 
@@ -369,9 +361,9 @@ Interfaces can be easily shared publicly by setting `share=True` in the `launch(
 gr.Interface(classify_image, "image", "label").launch(share=True)
 ```
 
-This generates a public, shareable link that you can send to anybody! When you send this link, the user on the other side can try out the model in their browser. Because the processing happens on your device (as long as your device stays on!), you don't have to worry about any packaging any dependencies. If you're working out of colab notebook, a share link is always automatically created. It usually looks something like this: **XXXXX.gradio.app**. Although the link is served through a gradio link, we are only a proxy for your local server, and do not store any data sent through the interfaces.
+This generates a public, shareable link that you can send to anybody! When you send this link, the user on the other side can try out the model in their browser. Because the processing happens on your device (as long as your device stays on!), you don't have to worry about any packaging any dependencies. If you're working out of colab notebook, a share link is always automatically created. It usually looks something like this:  **XXXXX.gradio.app**. Although the link is served through a gradio link, we are only a proxy for your local server, and do not store any data sent through the interfaces.
 
-Keep in mind, however, that these links are publicly accessible, meaning that anyone can use your model for prediction! Therefore, make sure not to expose any sensitive information through the functions you write, or allow any critical changes to occur on your device. If you set `share=False` (the default), only a local link is created, which can be shared by [port-forwarding](https://www.ssh.com/ssh/tunneling/example) with specific users.
+Keep in mind, however, that these links are publicly accessible, meaning that anyone can use your model for prediction! Therefore, make sure not to expose any sensitive information through the functions you write, or allow any critical changes to occur on your device. If you set `share=False` (the default), only a local link is created, which can be shared by  [port-forwarding](https://www.ssh.com/ssh/tunneling/example)  with specific users. 
 
 Share links expire after 72 hours. For permanent hosting, see Hosting Gradio Apps on Spaces below.
 
@@ -379,12 +371,11 @@ Share links expire after 72 hours. For permanent hosting, see Hosting Gradio App
 
 ### Hosting Gradio Apps on Spaces
 
-Huggingface provides the infrastructure to permanently host your Gradio model on the internet, for free! You can either drag and drop a folder containing your Gradio model and all related files, or you can point HF Spaces to your Git repository and HP Spaces will pull the Gradio interface from there. See [Huggingface Spaces](http://huggingface.co/spaces/) for more information.
+Huggingface provides the infrastructure to permanently host your Gradio model on the internet, for free! You can either drag and drop a folder containing your Gradio model and all related files, or you can point HF Spaces to your Git repository and HP Spaces will pull the Gradio interface from there. See [Huggingface Spaces](http://huggingface.co/spaces/) for more information. 
 
 ![Hosting Demo](website/homepage/src/assets/img/hf_demo.gif)
 
 ## Advanced Features
-
 <span id="advanced-features"></span>
 
 Here, we go through several advanced functionalities that your Gradio demo can include without you needing to write much more code!
@@ -399,7 +390,7 @@ gr.Interface(fn=classify_image, inputs=image, outputs=label).launch(auth=("admin
 
 ### Interpreting your Predictions
 
-Most models are black boxes such that the internal logic of the function is hidden from the end user. To encourage transparency, we've made it very easy to add interpretation to your model by simply setting the `interpretation` keyword in the `Interface` class to `default`. This allows your users to understand what parts of the input are responsible for the output. Take a look at the simple interface below which shows an image classifier that also includes interpretation:
+Most models are black boxes such that the internal logic of the function is hidden from the end user. To encourage transparency, we've made it very easy to add interpretation to your model by  simply setting the `interpretation` keyword in the `Interface` class to `default`. This allows your users to understand what parts of the input are responsible for the output. Take a look at the simple interface below which shows an image classifier that also includes interpretation:
 
 ```python
 import requests
@@ -429,6 +420,7 @@ gr.Interface(
 ).launch()
 
 ```
+
 
 In addition to `default`, Gradio also includes [Shapley-based interpretation](https://christophm.github.io/interpretable-ml-book/shap.html), which provides more accurate interpretations, albeit usually with a slower runtime. To use this, simply set the `interpretation` parameter to `"shap"` (note: also make sure the python package `shap` is installed). Optionally, you can modify the the `num_shap` parameter, which controls the tradeoff between accuracy and runtime (increasing this value generally increases accuracy). Here is an example:
 
@@ -528,7 +520,7 @@ If you'd like to have more fine-grained control over any aspect of the app, you 
 
 ### Custom Flagging Options
 
-In some cases, you might like to provide your users or testers with _more_ than just a binary option to flag a sample. You can provide `flagging_options` that they select from a dropdown each time they click the flag button. This lets them provide additional feedback every time they flag a sample.
+In some cases, you might like to provide your users or testers with *more* than just a binary option to flag a sample. You can provide `flagging_options` that they select from a dropdown each time they click the flag button. This lets them provide additional feedback every time they flag a sample.
 
 Here's an example:
 
@@ -547,7 +539,7 @@ gr.Interface.load("huggingface/gpt2").launch();
 ```
 
 ```python
-gr.Interface.load("huggingface/EleutherAI/gpt-j-6B",
+gr.Interface.load("huggingface/EleutherAI/gpt-j-6B", 
     inputs=gr.inputs.Textbox(lines=5, label="Input Text")  # customizes the input component
 ).launch()
 ```
@@ -577,7 +569,7 @@ generator3 = gr.Interface.load("huggingface/EleutherAI/gpt-j-6B")
 gr.Parallel(generator1, generator2, generator3).launch()
 ```
 
-`Series` lets you put models and spaces in series, piping the output of one model into the input of the next model.
+`Series` lets you put models and spaces in series, piping the output of one model into the input of the next model. 
 
 ```python
 generator = gr.Interface.load("huggingface/gpt2")
@@ -598,23 +590,28 @@ gr.Interface(fn=classify_image, inputs=image, outputs=label).launch(enable_queue
 
 This sets up a queue of workers to handle the predictions and return the response to the front end. This is strongly recommended if you are planning on uploading your demo to Hugging Face Spaces (as described above) so that you can manage a large number of users simultaneously using your demo.
 
-## System Requirements:
+
+
+
+
+##  System Requirements:
 
 Gradio requires Python `3.7+` and has been tested on the latest versions of Windows, MacOS, and various common Linux distributions (e.g. Ubuntu). For Python package requirements, please see the `setup.py` file.
 
-## Contributing:
+##  Contributing:
 
 If you would like to contribute and your contribution is small, you can directly open a pull request (PR). If you would like to contribute a larger feature, we recommend first creating an issue with a proposed design for discussion. Please see our [contributing guidelines](https://github.com/gradio-app/gradio/blob/master/CONTRIBUTING.md) for more info.
 
-## License:
+##  License:
 
 Gradio is licensed under the Apache License 2.0
 
-## See more:
+
+##  See more:
 
 You can find many more examples as well as more info on usage on our website: www.gradio.app
 
-See, also, the accompanying paper: ["Gradio: Hassle-Free Sharing and Testing of ML Models in the Wild"](https://arxiv.org/pdf/1906.02569.pdf), _ICML HILL 2019_, and please use the citation below.
+See, also, the accompanying paper: ["Gradio: Hassle-Free Sharing and Testing of ML Models in the Wild"](https://arxiv.org/pdf/1906.02569.pdf), *ICML HILL 2019*, and please use the citation below.
 
 ```
 @article{abid2019gradio,
