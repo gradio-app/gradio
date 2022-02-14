@@ -8,6 +8,9 @@
 
 	let mode: "categories" | "scores";
 
+	if (color_map === null) {
+		color_map = {};
+	}
 	if (value.length > 0) {
 		for (let [_, label] of value) {
 			if (label !== null) {

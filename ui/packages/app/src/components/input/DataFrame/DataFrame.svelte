@@ -368,7 +368,7 @@
 		>
 		<button
 			on:click={add_row}
-			class="bg-yellow-500 hover:bg-yellow-400 dark:bg-red-700 dark:hover:bg-red-600 text-white shadow py-1 px-3 rounded transition focus:outline-none m-2 mr-0"
+			class="bg-amber-500 hover:bg-amber-400 dark:bg-red-700 dark:hover:bg-red-600 text-white shadow py-1 px-3 rounded transition focus:outline-none m-2 mr-0"
 			>New Row</button
 		>
 	</div>

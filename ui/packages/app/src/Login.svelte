@@ -17,7 +17,7 @@
 		<input class="p-2 block" type="password" name="password" />
 		<input
 			type="submit"
-			class="block bg-yellow-500 hover:bg-yellow-400 dark:hover:bg-yellow-600 transition px-4 py-2 rounded text-white font-semibold cursor-pointer mt-4"
+			class="block bg-amber-500 hover:bg-amber-400 dark:hover:bg-amber-600 transition px-4 py-2 rounded text-white font-semibold cursor-pointer mt-4"
 		/>
 	</form>
 </div>
