@@ -1,7 +1,6 @@
 # Building Gradio Website
 
 Run the following commands in order:
-
 - `pip install -r requirements.txt`
 - `npm install`
 - `npm run build`

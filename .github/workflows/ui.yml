@@ -2,7 +2,7 @@ name: gradio-ui
 
 on:
   push:
-    branches:
+    branches: 
       - "master"
     paths:
       - "ui/**"

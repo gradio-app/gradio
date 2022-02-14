@@ -1,11 +1,10 @@
 # Description
 
-Please include:
-
-- relevant motivation
-- a summary of the change
-- which issue is fixed.
-- any additional dependencies that are required for this change.
+Please include: 
+* relevant motivation
+* a summary of the change 
+* which issue is fixed. 
+* any additional dependencies that are required for this change.
 
 Fixes: # (issue)
 
