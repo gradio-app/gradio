@@ -1,5 +1,5 @@
-import { assert, describe, expect, test } from "vitest";
-import { prettyBytes, deepCopy, randInt } from "./helpers";
+import { assert, describe, test } from "vitest";
+import { prettyBytes, deepCopy, randInt, getNextColor } from "./helpers";
 
 describe("prettyBytes", () => {
 	test("handle B", () => {
@@ -69,12 +69,25 @@ describe("randInt", () => {
 
 	test("respects min and max", () => {
 		const n = randInt(0, 10);
-
-		assert.ok(n > 0 && n < 10);
+		assert.ok(n >= 0 && n <= 10);
 	});
 
 	test("respects min and max when negative", () => {
 		const n = randInt(-100, -10);
 		assert.ok(n > -100 && n < -10);
+	});
+});
+
+describe("getNextColor", () => {
+	test("returns a color", () => {
+		assert.equal(getNextColor(0), "rgba(255, 99, 132, 1)");
+	});
+
+	test("returns a color when index is very high", () => {
+		assert.ok(
+			getNextColor(999999999).match(
+				/rgba\([0-9]{1,3}, [0-9]{1,3}, [0-9]{1,3}, [0-9]\)/
+			)
+		);
 	});
 });
