@@ -2,14 +2,15 @@
 	import { tick } from "svelte";
 
 	export let headers: Array<string> = [];
-	export let values: Array<Array<string | number>> = [
-		["Frank", 32, "Male"],
-		["Beatrice", 99, "Female"],
-		["Simone", 999, "Male"]
-	];
+	export let values: Array<Array<string | number>> = [["", "", ""]];
+	export let default_data: Array<Array<string | number>> = [];
+
+	if ($$props.default) values = $$props.default;
 
 	export let setValue: (val: typeof values) => typeof values;
 	export let editable = true;
+
+	$: console.log($$props);
 
 	let id = 0;
 	let editing: boolean | number = false;
