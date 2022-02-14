@@ -1,5 +1,5 @@
 """
-This is the core file in the `gradio` package, and defines the Interface class,
+This is the core file in the `gradio` package, and defines  the Interface class,
 including various methods for constructing an interface and then launching it.
 """
 
