@@ -37,9 +37,11 @@
         max-width: 100%;
       }
 
-      .gradio-page .content {
-        padding: 0px !important;
-      }
+    .prose p>img {
+      margin: 0 auto;
+      width: 900px;
+      max-width: 100%;
+    }
 
       .gradio-page .footer {
         display: none !important;
@@ -101,7 +103,37 @@
       </p>
       {% endif %}
 
-      <div class="prose mt-6">{{ template_html|safe }}</div>
+<body class="bg-white text-gray-900 text-md sm:text-lg">
+  {{navbar_html|safe}}
+  <div class="container mx-auto max-w-4xl px-4 mb-12 mt-6" id="guide-template">
+    {% if spaces is not none %}
+    <div id='spaces-holder'>
+      <a href='https://hf.co/spaces' target='_blank'>
+        <img class="inline-block my-0 mx-auto w-5 max-w-full pb-1" src='/assets/img/spaces-logo.svg'>
+      </a>
+      <p class="m-0 inline text-lg font-normal">Related Spaces: </p>
+
+      {% for space in spaces %}
+      <div class='space-link inline-block m-1 px-1 rounded-md'>
+        <a href='{{space}}' target='_blank' class="no-underline">{{space[30:]}}</a>
+      </div>
+      {% endfor %}
+      </div>
+    {% endif %}
+
+    <div class="prose mt-6">
+      {{ template_html|safe }}
+    </div>
+  </div>
+  <footer class="container mx-auto p-4 flex justify-between items-center">
+    <img src="/assets/img/logo.svg" class="h-10">
+    <div class="flex gap-4">
+      <a class="hover:opacity-75 transition" href="https://twitter.com/Gradio">
+        <img src="/assets/img/twitter.svg" class="h-8">
+      </a>
+      <a class="hover:opacity-75 transition" href="https://github.com/gradio-app/gradio">
+        <img src="/assets/img/github.svg" class="h-8">
+      </a>
     </div>
     <footer class="container mx-auto p-4 flex justify-between items-center">
       <img src="/assets/img/logo.svg" class="h-10" />
@@ -142,6 +174,41 @@
             });
         });
       });
-    </script>
-  </body>
+    });
+
+
+    var spacesHolder, spaces;
+    spacesHolder = document.getElementById("spaces-holder");
+    spaces = spacesHolder.getElementsByTagName('div');
+
+    var backgrounds = ['rgba(255,254,188,0.3)',
+                       'rgba(255,205,188,0.3)',
+                       'rgba(255,188,188,0.3)',
+                       'rgba(194,255,169,0.3)',
+                       'rgba(169,255,237,0.3)',
+                       'rgba(182,169,255,0.3)',
+                       'rgba(255,183,245,0.3)']
+
+    function shuffleBackgrounds(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    shuffleBackgrounds(backgrounds);
+
+    color_counter = 0
+    for (let i = 0; i < spaces.length; i++) {
+      spaces[i].style.background = backgrounds[color_counter];
+      color_counter += 1
+      if (color_counter == backgrounds.length) {
+        color_counter = 0;
+      }
+    }
+
+  </script>
+
+</body>
+
 </html>
