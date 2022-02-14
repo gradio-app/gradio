@@ -1,5 +1,5 @@
-import { assert, describe, test } from "vitest";
-import { prettyBytes, deepCopy } from "./helpers";
+import { assert, describe, expect, test } from "vitest";
+import { prettyBytes, deepCopy, randInt } from "./helpers";
 
 describe("prettyBytes", () => {
 	test("handle B", () => {
@@ -59,5 +59,22 @@ describe("deepCopy", () => {
 		const copy = deepCopy(obj);
 		assert.ok(obj !== copy);
 		assert.deepEqual(obj, copy);
+	});
+});
+
+describe("randInt", () => {
+	test("returns a random number", () => {
+		assert.typeOf(randInt(0, 10), "number");
+	});
+
+	test("respects min and max", () => {
+		const n = randInt(0, 10);
+
+		assert.ok(n > 0 && n < 10);
+	});
+
+	test("respects min and max when negative", () => {
+		const n = randInt(-100, -10);
+		assert.ok(n > -100 && n < -10);
 	});
 });
