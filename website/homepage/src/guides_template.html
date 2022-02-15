@@ -56,6 +56,18 @@
       font-weight: 600;
     }
 
+    .anchor-img {
+      margin: 0 0 0 5px !important;
+    }
+
+    .anchor {
+      visibility: hidden;
+    }
+
+    .header:hover .anchor {
+      visibility: visible;
+    }
+
     .copy {
       padding-right: 1em;
       background: #f9fafb;
@@ -134,6 +146,22 @@
           });
       });
     });
+    function createAnchorTag(link) {
+            let a = document.createElement('a');
+            a.href = link;
+            a.classList.add("anchor");
+            let img = document.createElement('img');
+            img.classList.add("anchor-img", "w-7", "max-w-full", "inline-block", "mr-0", "ml-1")
+            img.src = "/assets/img/anchor.svg";
+            a.appendChild(img);
+            return a;
+        }
+    var headers = document.querySelectorAll("h1, h2, h3, h4, h5, h6");
+    for (let i = 0; i < headers.length; i++) {
+      headers[i].classList.add("header");
+      let link = '#' + headers[i].id;
+      headers[i].appendChild(createAnchorTag(link))
+    }
 
     function copyCode(elem) {
         var text = elem.parentElement.innerText;

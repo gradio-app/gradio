@@ -151,14 +151,7 @@ def render_guides():
         guide_output = guide_output.replace("<pre>", "<div class='code-block' style='display: flex'><pre>")
         guide_output = guide_output.replace("</pre>", f"</pre>{copy_button}</div>")
 
-        output_html = markdown2.markdown(guide_output, extras=["target-blank-links"])
-
-        for match in re.findall(r"<h3>([A-Za-z0-9 ]*)<\/h3>", output_html):
-            output_html = output_html.replace(
-                f"<h3>{match}</h3>",
-                f"<h3 id={match.lower().replace(' ', '_')}>{match}</h3>",
-            )
-
+        output_html = markdown2.markdown(guide_output, extras=["target-blank-links", "header-ids"])
         os.makedirs("generated", exist_ok=True)
         os.makedirs(os.path.join("generated", guide["name"]), exist_ok=True)
         with open(
