@@ -34,6 +34,7 @@ class InputComponent(Component):
         """
         Constructs an input component.
         """
+        self.component_type = "input"
         self.set_interpret_parameters()
         super().__init__(label, requires_permissions)
 
