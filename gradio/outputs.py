@@ -793,6 +793,7 @@ class Timeseries(OutputComponent):
     def restore_flagged(self, dir, data, encryption_key):
         return json.loads(data)
 
+
 class Chatbot(OutputComponent):
     """
     Component displays a chatbot output showing both user submitted messages and responses
@@ -825,7 +826,6 @@ class Chatbot(OutputComponent):
 
         """
         return y
-
 
 
 class State(OutputComponent):
