@@ -7,6 +7,7 @@
 	import ImageEditor from "../../utils/ImageEditor.svelte";
 	import Sketch from "../../utils/Sketch.svelte";
 	import Webcam from "../../utils/Webcam.svelte";
+	import { _ } from "svelte-i18n";
 	export let value: null | string;
 	export let setValue: (val: typeof value) => typeof value;
 	export let theme: string;
@@ -37,14 +38,15 @@
 
 <div class="input-image">
 	<div
-		class="image-preview w-full h-80 flex justify-center items-center dark:bg-gray-600 relative"
+		class="image-preview w-full h-60 flex justify-center items-center dark:bg-gray-600 relative"
 		class:bg-gray-200={value}
-		class:h-80={source !== "webcam"}
+		class:h-60={source !== "webcam"}
 	>
 		{#if source === "canvas"}
 			<ModifySketch
 				on:undo={() => sketch.undo()}
 				on:clear={() => sketch.clear()}
+				{static_src}
 			/>
 			<Sketch
 				{value}
@@ -59,9 +61,9 @@
 					include_file_metadata={false}
 					{theme}
 				>
-					Drop Image Here
-					<br />- or -<br />
-					Click to Upload
+					{$_("interface.drop_image")}
+					<br />- {$_("interface.or")} -<br />
+					{$_("interface.click_to_upload")}
 				</Upload>
 			{:else if source === "webcam"}
 				<Webcam on:capture={({ detail }) => setValue(detail)} {static_src} />

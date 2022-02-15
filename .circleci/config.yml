@@ -31,9 +31,10 @@ jobs:
       - run:
           name: Build frontend
           command: |
-            cd frontend
-            npm install
-            npm run build
+            npm i pnpm -g
+            cd ui
+            pnpm i --frozen-lockfile
+            pnpm build
       - run:
           command: |
             mkdir screenshots
@@ -42,6 +43,18 @@ jobs:
             . venv/bin/activate
             coverage run -m pytest
             coverage xml
+      - run:
+          command: |
+            . venv/bin/activate
+            python -m black --check gradio test
+      - run:
+          command: |
+            . venv/bin/activate
+            python -m isort --profile=black --check-only gradio test
+      - run:
+          command: |
+            . venv/bin/activate
+            python -m  flake8 --ignore=E731,E501,E722,W503,E126,F401,E203 gradio test
       - codecov/upload:
           file: 'coverage.xml'
       - store_artifacts:

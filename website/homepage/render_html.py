@@ -7,16 +7,22 @@ import re
 import markdown2
 import requests
 from jinja2 import Template
+from render_html_helpers import generate_meta_image
 
 from gradio.inputs import InputComponent
 from gradio.interface import Interface
 from gradio.outputs import OutputComponent
 
-from render_html_helpers import generate_meta_image
-
 GRADIO_DIR = "../../"
 GRADIO_GUIDES_DIR = os.path.join(GRADIO_DIR, "guides")
 GRADIO_DEMO_DIR = os.path.join(GRADIO_DIR, "demo")
+GRADIO_ASSETS_LIST = os.listdir(
+    os.path.join(GRADIO_DIR, "gradio", "templates", "frontend", "assets")
+)
+GRADIO_ASSETS = {
+    f"{asset.split('.')[0]}_{asset.split('.')[-1]}_file": asset
+    for asset in GRADIO_ASSETS_LIST
+}
 
 with open("src/navbar.html", encoding="utf-8") as navbar_file:
     navbar_html = navbar_file.read()
@@ -28,12 +34,17 @@ def render_index():
         tweets = json.load(tweets_file)
     star_request = requests.get("https://api.github.com/repos/gradio-app/gradio").json()
     star_count = (
-        "{:,}".format(star_request["stargazers_count"]) if "stargazers_count" in star_request else ""
+        "{:,}".format(star_request["stargazers_count"])
+        if "stargazers_count" in star_request
+        else ""
     )
     with open("src/index_template.html", encoding="utf-8") as template_file:
         template = Template(template_file.read())
         output_html = template.render(
-            tweets=tweets, star_count=star_count, navbar_html=navbar_html
+            tweets=tweets,
+            star_count=star_count,
+            navbar_html=navbar_html,
+            **GRADIO_ASSETS,
         )
     with open(
         os.path.join("generated", "index.html"), "w", encoding="utf-8"
@@ -43,7 +54,7 @@ def render_index():
 
 guides = []
 for guide in sorted(os.listdir(GRADIO_GUIDES_DIR)):
-    if guide.lower() in ["getting_started.md", "readme.md"]:
+    if guide.lower() == "readme.md":
         continue
     guide_name = guide[:-3]
     pretty_guide_name = " ".join(
@@ -64,7 +75,13 @@ for guide in sorted(os.listdir(GRADIO_GUIDES_DIR)):
         spaces = guide_content.split("related_spaces: ")[1].split("\n")[0].split(", ")
     url = f"https://gradio.app/{guide_name}/"
 
-    guide_content = "\n".join([line for line in guide_content.split("\n") if not (line.startswith("tags: ") or line.startswith("related_spaces: "))]) 
+    guide_content = "\n".join(
+        [
+            line
+            for line in guide_content.split("\n")
+            if not (line.startswith("tags: ") or line.startswith("related_spaces: "))
+        ]
+    )
 
     guides.append(
         {
@@ -101,6 +118,7 @@ def render_guides():
         code_tags = re.findall(r'\{\{ code\["([^\s]*)"\] \}\}', guide["content"])
         demo_names = re.findall(r'\{\{ demos\["([^\s]*)"\] \}\}', guide["content"])
         code, demos = {}, {}
+
         guide["content"] = (
             guide["content"]
             .replace("website/src/assets", "/assets")
@@ -137,14 +155,19 @@ def render_guides():
             guide_output,
         )
 
-        output_html = markdown2.markdown(guide_output, extras=["target-blank-links"])
+        copy_button = (
+            "<button class='copy flex float-right cursor-pointer rounded-l-none rounded-r mx-0 my-2' "
+            "onclick='copyCode(this)'><img class='copy-svg m0 w-7 flex-initial' "
+            "src='/assets/img/copy-grey.svg'><div class='flex-auto'></div></button>"
+        )
+        guide_output = guide_output.replace(
+            "<pre>", "<div class='code-block' style='display: flex'><pre>"
+        )
+        guide_output = guide_output.replace("</pre>", f"</pre>{copy_button}</div>")
 
-        for match in re.findall(r"<h3>([A-Za-z0-9 ]*)<\/h3>", output_html):
-            output_html = output_html.replace(
-                f"<h3>{match}</h3>",
-                f"<h3 id={match.lower().replace(' ', '_')}>{match}</h3>",
-            )
-
+        output_html = markdown2.markdown(
+            guide_output, extras=["target-blank-links", "header-ids"]
+        )
         os.makedirs("generated", exist_ok=True)
         os.makedirs(os.path.join("generated", guide["name"]), exist_ok=True)
         with open(
@@ -165,6 +188,7 @@ def render_guides():
                 guide_name=guide["name"],
                 spaces=guide["spaces"],
                 tags=guide["tags"],
+                **GRADIO_ASSETS,
             )
             generated_template.write(output_html)
 
@@ -300,7 +324,7 @@ def render_other():
             os.path.join("src/other_templates", template_filename)
         ) as template_file:
             template = Template(template_file.read())
-            output_html = template.render()
+            output_html = template.render(GRADIO_ASSETS)
         folder_name = template_filename[:-14]
         os.makedirs(os.path.join("generated", folder_name), exist_ok=True)
         with open(

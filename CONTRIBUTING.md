@@ -69,4 +69,13 @@ All PRs should be against `master`. Direct commits to master are blocked, and PR
 
 We ask that you make sure initial CI checks are passing before requesting a review. One of the Gradio maintainers will merge the PR when all the checks are passing.
 
+Do not forget the format the backend before pushing.
+```
+bash scripts/format_backend.sh
+```
+You can run the circleci checks locally as well. 
+```
+bash scripts/run_circleci.sh
+```
+
 *Could these guidelines be clearer? Feel free to open a PR to help us faciltiate open-source contributions!*

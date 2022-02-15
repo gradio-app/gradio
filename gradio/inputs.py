@@ -6,12 +6,11 @@ automatically added to a registry, which allows them to be easily referenced in 
 
 from __future__ import annotations
 
-import os
 import json
 import math
+import os
 import tempfile
 import warnings
-from numbers import Number
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
 import numpy as np

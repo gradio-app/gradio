@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Upload from "../../utils/Upload.svelte";
 	import Chart from "../../utils/Chart.svelte";
+	import { _ } from "svelte-i18n";
 
 	interface Data {
 		data: Array<Array<number>> | string;
@@ -57,7 +58,6 @@
 	}
 
 	function make_dict(x: XRow, y: Array<YRow>): Data {
-		console.log(x, y);
 		const headers = [];
 		const data = [];
 
@@ -85,6 +85,8 @@
 		setValue({ data: v as string });
 		return v;
 	}
+
+	$: _value = value == null ? null : _value;
 </script>
 
 {#if _value}
@@ -95,15 +97,15 @@
 		on:process={({ detail: { x, y } }) => setValue(make_dict(x, y))}
 	/>
 {/if}
-{#if !value}
+{#if value == null}
 	<Upload
 		filetype="text/csv"
 		load={handle_load}
 		include_file_metadata={false}
 		{theme}
 	>
-		Drop CSV Here
-		<br />- or -<br />
-		Click to Upload
+		{$_("interface.drop_csv")}
+		<br />- {$_("interface.or")} -<br />
+		{$_("interface.click_to_upload")}
 	</Upload>
 {/if}

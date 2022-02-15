@@ -16,6 +16,7 @@ with warnings.catch_warnings():
     warnings.simplefilter("ignore")  # Ignore pydub warning if ffmpeg is not installed
     from pydub import AudioSegment
 
+
 #########################
 # IMAGE PRE-PROCESSING
 #########################
@@ -336,12 +337,6 @@ def _convert(image, dtype, force_copy=False, uniform=False):
         """
         kind = a.dtype.kind
         if n > m and a.max() < 2**m:
-            mnew = int(np.ceil(m / 2) * 2)
-            if mnew > m:
-                dtype = "int{}".format(mnew)
-            else:
-                dtype = "uint{}".format(mnew)
-            n = int(np.ceil(n / 2) * 2)
             return a.astype(_dtype_bits(kind, m))
         elif n == m:
             return a.copy() if copy else a

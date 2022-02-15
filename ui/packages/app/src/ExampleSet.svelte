@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { input_component_map } from "./components/directory";
+	import { _ } from "svelte-i18n";
 
 	interface Component {
 		name: string;
@@ -19,7 +20,7 @@
 </script>
 
 <div class="examples" {theme}>
-	<h4 class="text-lg font-semibold my-2">Examples</h4>
+	<h4 class="text-lg font-semibold my-2">{$_("interface.examples")}</h4>
 	<div
 		class="examples-holder mt-4 inline-block max-w-full"
 		class:gallery
@@ -89,7 +90,7 @@
 					@apply border-gray-300 dark:border-gray-600;
 				}
 				tbody tr:hover {
-					@apply bg-yellow-500 dark:bg-red-700 text-white;
+					@apply bg-amber-500 dark:bg-red-700 text-white;
 				}
 			}
 		}
@@ -98,7 +99,7 @@
 				@apply shadow;
 			}
 			.example:hover {
-				@apply bg-yellow-500 text-white;
+				@apply bg-amber-500 text-white;
 			}
 		}
 	}
