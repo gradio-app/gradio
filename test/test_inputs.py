@@ -1,14 +1,12 @@
-from difflib import SequenceMatcher
 import json
 import os
 import tempfile
 import unittest
-from re import sub
+from difflib import SequenceMatcher
 
 import numpy as np
 import pandas
 import PIL
-from pydub import AudioSegment
 
 import gradio as gr
 
@@ -668,8 +666,8 @@ class TestDataframe(unittest.TestCase):
         self.assertEqual(iface.process([x_data])[0], [6])
         x_data = [["Tim"], ["Jon"], ["Sal"]]
 
-        def get_last(l):
-            return l[-1]
+        def get_last(my_list):
+            return my_list[-1]
 
         iface = gr.Interface(get_last, "list", "text")
         self.assertEqual(iface.process([x_data])[0], ["Sal"])

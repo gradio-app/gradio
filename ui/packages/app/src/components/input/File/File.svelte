@@ -3,6 +3,7 @@
 	import Upload from "../../utils/Upload.svelte";
 	import ModifyUpload from "../../utils/ModifyUpload.svelte";
 	import { prettyBytes } from "../../utils/helpers";
+	import { _ } from "svelte-i18n";
 
 	export let value: null | FileData;
 	export let setValue: (
@@ -15,9 +16,9 @@
 <div class="input-file" {theme}>
 	{#if value === null}
 		<Upload load={setValue} {theme}>
-			Drop File Here
-			<br />- or -<br />
-			Click to Upload
+			{$_("interface.drop_file")}
+			<br />- {$_("interface.or")} -<br />
+			{$_("interface.click_to_upload")}
 		</Upload>
 	{:else}
 		<div

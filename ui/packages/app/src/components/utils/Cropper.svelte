@@ -17,6 +17,10 @@
 		});
 
 		dispatch("crop", image);
+
+		return () => {
+			cropper.destroy();
+		};
 	});
 </script>
 

@@ -1,8 +1,6 @@
 import base64
 import json
 import re
-import tempfile
-from pydantic import MissingError
 
 import requests
 
@@ -252,7 +250,7 @@ def load_interface(name, src=None, api_key=None, alias=None):
         )  # Separate the source (e.g. "huggingface") from the repo name (e.g. "google/vit-base-patch16-224")
         assert (
             len(tokens) > 1
-        ), "Either `src` parameter must be provided, or `name` must be formatted as \{src\}/\{repo name\}"
+        ), "Either `src` parameter must be provided, or `name` must be formatted as {src}/{repo name}"
         src = tokens[0]
         name = "/".join(tokens[1:])
     assert src.lower() in repos, "parameter: src must be one of {}".format(repos.keys())
@@ -261,7 +259,7 @@ def load_interface(name, src=None, api_key=None, alias=None):
 
 
 def interface_params_from_config(config_dict):
-    ## instantiate input component and output component
+    # instantiate input component and output component
     config_dict["inputs"] = [
         inputs.get_input_instance(component)
         for component in config_dict["input_components"]

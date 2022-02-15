@@ -5,6 +5,7 @@
 	} from "./components/directory";
 	import { deepCopy } from "./components/utils/helpers";
 	import ExampleSet from "./ExampleSet.svelte";
+	import { _ } from "svelte-i18n";
 
 	interface Component {
 		name: string;
@@ -36,7 +37,6 @@
 	const default_inputs: Array<unknown> = input_components.map((component) =>
 		"default" in component ? component.default : null
 	);
-	console.log(default_inputs);
 	const default_outputs = new Array(output_components.length).fill(null);
 
 	let input_values: Array<unknown> = deepCopy(default_inputs);
@@ -47,7 +47,6 @@
 	let timer_diff = 0;
 	let avg_duration = Array.isArray(avg_durations) ? avg_durations[0] : null;
 	let expected_duration: number | null = null;
-	console.log({ interpretation_values });
 
 	const setValues = (index: number, value: unknown) => {
 		has_changed = true;
@@ -224,13 +223,13 @@
 					class="panel-button bg-gray-50 dark:bg-gray-700 flex-1 p-3 rounded transition font-semibold focus:outline-none"
 					on:click={clear}
 				>
-					Clear
+					{$_("interface.clear")}
 				</button>
 				<button
 					class="panel-button submit bg-gray-50 dark:bg-gray-700 flex-1 p-3 rounded transition font-semibold focus:outline-none"
 					on:click={submit}
 				>
-					Submit
+					{$_("interface.submit")}
 				</button>
 			</div>
 		</div>
@@ -274,8 +273,8 @@
 					</div>
 				{/if}
 				{#each output_components as output_component, i}
-					{#if output_values[i] !== null}
-						<div class="component" key={i}>
+					{#if output_values[i] !== null && output_component.name !== "state"}
+						<div class="component">
 							<div class="panel-header mb-1.5">{output_component.label}</div>
 							<svelte:component
 								this={output_component_map[output_component.name].component}
@@ -297,7 +296,7 @@
 						{#if interpret_mode}
 							Hide
 						{:else}
-							Interpret
+							{$_("interface.interpret")}
 						{/if}
 					</button>
 				{/if}
@@ -306,7 +305,7 @@
 						class="panel-button flag bg-gray-50 dark:bg-gray-700 flex-1 p-3 rounded transition font-semibold focus:outline-none"
 						on:click={flag}
 					>
-						Flag
+						{$_("interface.flag")}
 					</button>
 				{/if}
 			</div>
@@ -367,7 +366,7 @@
 			@apply text-gray-400 cursor-not-allowed;
 		}
 		.panel-button.submit {
-			@apply bg-yellow-500 hover:bg-yellow-400 dark:bg-red-700 dark:hover:bg-red-600 text-white;
+			@apply bg-amber-500 hover:bg-amber-400 dark:bg-red-700 dark:hover:bg-red-600 text-white;
 		}
 		.examples {
 			.examples-table-holder:not(.gallery) {
@@ -378,7 +377,7 @@
 						@apply border-gray-300 dark:border-gray-600;
 					}
 					tbody tr:hover {
-						@apply bg-yellow-500 dark:bg-red-700 text-white;
+						@apply bg-amber-500 dark:bg-red-700 text-white;
 					}
 				}
 			}
@@ -387,7 +386,7 @@
 					@apply shadow;
 				}
 				tbody td:hover {
-					@apply bg-yellow-500 text-white;
+					@apply bg-amber-500 text-white;
 				}
 			}
 		}

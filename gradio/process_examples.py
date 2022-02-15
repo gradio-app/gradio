@@ -6,7 +6,7 @@ from __future__ import annotations
 import csv
 import os
 import shutil
-from typing import Any, List, Tuple, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, List, Tuple
 
 from gradio.flagging import CSVLogger
 

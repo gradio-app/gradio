@@ -30,10 +30,9 @@
 					<div
 						class="confidence flex justify-end items-center overflow-hidden whitespace-nowrap h-7 mb-2 px-1"
 						style="min-width: calc(
-							{Math.round(confidence_set.confidence * 100)}
-							% - 12px)"
+							{Math.round(confidence_set.confidence * 100)}% - 12px)"
 					>
-						{Math.round(confidence_set.confidence * 100) + "%"}
+						{Math.round(confidence_set.confidence * 100)}%
 					</div>
 				{/each}
 			</div>
@@ -50,7 +49,7 @@
 			@apply font-mono box-border border-b-2 border-gray-300 bg-gray-200 dark:bg-gray-500 dark:border-gray-600 text-sm h-7 font-semibold rounded;
 		}
 		.confidence:first-child {
-			@apply border-yellow-600 bg-yellow-500 dark:bg-red-600 border-red-700 text-white;
+			@apply border-amber-600 bg-amber-500 dark:bg-red-600 border-red-700 text-white;
 		}
 	}
 </style>
