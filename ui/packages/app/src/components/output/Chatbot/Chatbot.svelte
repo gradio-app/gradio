@@ -28,10 +28,3 @@ import Html from '../Html/Html.svelte';
 		{/each}
 	</div>
 </div>
-
-
-
-
-
-<style lang="postcss">
-</style>
