@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { beforeUpdate, afterUpdate } from "svelte";
-	import Html from "../Html/Html.svelte";
 	export let value: Array<string>;
 	let div: HTMLDivElement;
 	let autoscroll: Boolean;
