@@ -28,7 +28,7 @@
 
     .prose p>img {
       margin: 0 auto;
-      width: 900px;
+      width: 600px;
       max-width: 100%;
     }
 
@@ -111,6 +111,23 @@
       </div>
       {% endfor %}
       </div>
+    <p class='mb-2 text-sm text-gray-500'>
+      <span class="italic">Related Spaces:</span>
+      {% for space in spaces %}
+        <a href='{{ space }}' target='_blank' class="hover:text-blue-500 transition">{{ space[30:] }}</a>
+        {% if not loop.last %}, {% endif %}
+      {% endfor %}
+    </p>
+    {% endif %}
+
+    {% if tags is not none %}
+    <p class='mb-2 text-sm text-gray-500'>
+      <span class="italic">Tags:</span>
+      {% for tag in tags %}
+        <span>{{ tag }}</span><!--
+     -->{% if not loop.last %}, {% endif %}
+      {% endfor %}
+    </p>
     {% endif %}
 
     <div class="prose mt-6">

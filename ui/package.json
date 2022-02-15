@@ -19,6 +19,7 @@
 		"prettier-plugin-svelte": "^2.6.0",
 		"svelte": "^3.46.3",
 		"svelte-check": "^2.4.1",
+		"svelte-i18n": "^3.3.13",
 		"vitest": "^0.3.2"
 	}
 }
