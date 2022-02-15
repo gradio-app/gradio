@@ -29,7 +29,7 @@
 </script>
 
 <div
-	class="video-preview w-full h-80 object-contain flex justify-center items-center  dark:bg-gray-600 relative"
+	class="video-preview w-full h-60 object-contain flex justify-center items-center dark:bg-gray-600 relative"
 	class:bg-gray-200={value}
 >
 	{#if value === null}

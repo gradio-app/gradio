@@ -61,10 +61,10 @@
 			@apply bg-gray-100 dark:bg-gray-400 transition;
 		}
 		.checkbox-item.selected {
-			@apply bg-yellow-500 dark:bg-red-600 text-white;
+			@apply bg-amber-500 dark:bg-red-600 text-white;
 		}
 		.selected .checkbox {
-			@apply bg-yellow-600 dark:bg-red-700;
+			@apply bg-amber-600 dark:bg-red-700;
 		}
 	}
 </style>
