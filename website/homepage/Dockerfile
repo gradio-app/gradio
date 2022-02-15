@@ -39,3 +39,6 @@ RUN mkdir ./gradio_static/
 RUN cp -r /gradio/gradio/templates/frontend/. ./gradio_static/
 RUN cp -r /gradio/website/homepage/dist/. ./
 RUN cp /gradio/website/homepage/nginx.conf /etc/nginx/conf.d/default.conf
+
+ENTRYPOINT ["nginx", "-g", "daemon off;"]
+
