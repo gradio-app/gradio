@@ -1,5 +1,5 @@
 .gradio-bg[theme="peach"] {
-	@apply bg-gradient-to-r from-red-50 to-yellow-100 dark:from-gray-900 dark:to-gray-800;
+	@apply bg-gradient-to-r from-red-50 to-amber-100 dark:from-gray-900 dark:to-gray-800;
 }
 .gradio-bg[theme="peach"] .gradio-interface {
 	.component-set {
@@ -15,14 +15,14 @@
 		@apply rounded-lg bg-white dark:bg-gray-800 shadow;
 	}
 	.panel-button.submit {
-		@apply text-white bg-gradient-to-tr from-red-500 to-yellow-400;
+		@apply text-white bg-gradient-to-tr from-red-500 to-amber-400;
 	}
 	.examples {
 		.examples-holder:not(.gallery) {
 			.examples-table {
 				@apply bg-white dark:bg-gray-800;
 				tbody tr:hover {
-					@apply bg-yellow-500 dark:bg-red-800;
+					@apply bg-amber-500 dark:bg-red-800;
 				}
 			}
 		}
@@ -31,7 +31,7 @@
 				@apply bg-white dark:bg-gray-800;
 			}
 			.example:hover {
-				@apply bg-yellow-500 dark:bg-red-800;
+				@apply bg-amber-500 dark:bg-red-800;
 			}
 		}
 	}
@@ -48,10 +48,10 @@
 			@apply bg-gray-50 dark:bg-gray-700 rounded-lg;
 		}
 		.range::-webkit-slider-thumb {
-			@apply bg-gradient-to-tr from-red-500 to-yellow-400 rounded-lg shadow-sm;
+			@apply bg-gradient-to-tr from-red-500 to-amber-400 rounded-lg shadow-sm;
 		}
 		.range::-moz-range-thumb {
-			@apply bg-gradient-to-tr from-red-500 to-yellow-400 rounded-lg shadow-sm;
+			@apply bg-gradient-to-tr from-red-500 to-amber-400 rounded-lg shadow-sm;
 		}
 		.value {
 			@apply font-semibold text-gray-500 dark:bg-gray-700 dark:text-gray-50;
@@ -62,7 +62,7 @@
 			@apply bg-gray-100 rounded-lg dark:bg-gray-700 dark:text-gray-50;
 		}
 		.radio-item.selected {
-			@apply bg-gradient-to-tr from-red-500 to-yellow-400 text-white shadow;
+			@apply bg-gradient-to-tr from-red-500 to-amber-400 text-white shadow;
 		}
 		.radio-circle {
 			@apply w-4 h-4 bg-white transition rounded-full box-border;
@@ -75,7 +75,7 @@
 			@apply bg-gray-100 rounded-lg dark:bg-gray-700 dark:text-gray-50;
 		}
 		.checkbox-item.selected {
-			@apply bg-gradient-to-tr from-red-500 to-yellow-400 text-white shadow;
+			@apply bg-gradient-to-tr from-red-500 to-amber-400 text-white shadow;
 		}
 		.selected .checkbox {
 			@apply bg-gray-200 bg-opacity-20;
@@ -102,7 +102,7 @@
 			@apply bg-gray-300 text-white dark:bg-gray-600 font-semibold rounded-lg;
 		}
 		.confidence:first-child {
-			@apply bg-gradient-to-tr from-red-500 to-yellow-400;
+			@apply bg-gradient-to-tr from-red-500 to-amber-400;
 		}
 	}
 }
