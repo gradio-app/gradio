@@ -16,8 +16,13 @@ from gradio.outputs import OutputComponent
 GRADIO_DIR = "../../"
 GRADIO_GUIDES_DIR = os.path.join(GRADIO_DIR, "guides")
 GRADIO_DEMO_DIR = os.path.join(GRADIO_DIR, "demo")
-GRADIO_ASSETS_LIST = os.listdir(os.path.join(GRADIO_DIR, "gradio", "templates", "frontend", "assets"))
-GRADIO_ASSETS = {f"{asset.split('.')[0]}_{asset.split('.')[-1]}_file": asset for asset in GRADIO_ASSETS_LIST}
+GRADIO_ASSETS_LIST = os.listdir(
+    os.path.join(GRADIO_DIR, "gradio", "templates", "frontend", "assets")
+)
+GRADIO_ASSETS = {
+    f"{asset.split('.')[0]}_{asset.split('.')[-1]}_file": asset
+    for asset in GRADIO_ASSETS_LIST
+}
 
 with open("src/navbar.html", encoding="utf-8") as navbar_file:
     navbar_html = navbar_file.read()
@@ -36,7 +41,10 @@ def render_index():
     with open("src/index_template.html", encoding="utf-8") as template_file:
         template = Template(template_file.read())
         output_html = template.render(
-            tweets=tweets, star_count=star_count, navbar_html=navbar_html, **GRADIO_ASSETS
+            tweets=tweets,
+            star_count=star_count,
+            navbar_html=navbar_html,
+            **GRADIO_ASSETS,
         )
     with open(
         os.path.join("generated", "index.html"), "w", encoding="utf-8"
@@ -147,13 +155,19 @@ def render_guides():
             guide_output,
         )
 
-        copy_button = "<button class='copy flex float-right cursor-pointer rounded-l-none rounded-r mx-0 my-2' " \
-                      "onclick='copyCode(this)'><img class='copy-svg m0 w-7 flex-initial' " \
-                      "src='/assets/img/copy-grey.svg'><div class='flex-auto'></div></button>"
-        guide_output = guide_output.replace("<pre>", "<div class='code-block' style='display: flex'><pre>")
+        copy_button = (
+            "<button class='copy flex float-right cursor-pointer rounded-l-none rounded-r mx-0 my-2' "
+            "onclick='copyCode(this)'><img class='copy-svg m0 w-7 flex-initial' "
+            "src='/assets/img/copy-grey.svg'><div class='flex-auto'></div></button>"
+        )
+        guide_output = guide_output.replace(
+            "<pre>", "<div class='code-block' style='display: flex'><pre>"
+        )
         guide_output = guide_output.replace("</pre>", f"</pre>{copy_button}</div>")
 
-        output_html = markdown2.markdown(guide_output, extras=["target-blank-links", "header-ids"])
+        output_html = markdown2.markdown(
+            guide_output, extras=["target-blank-links", "header-ids"]
+        )
         os.makedirs("generated", exist_ok=True)
         os.makedirs(os.path.join("generated", guide["name"]), exist_ok=True)
         with open(
@@ -174,7 +188,7 @@ def render_guides():
                 guide_name=guide["name"],
                 spaces=guide["spaces"],
                 tags=guide["tags"],
-                **GRADIO_ASSETS
+                **GRADIO_ASSETS,
             )
             generated_template.write(output_html)
 
