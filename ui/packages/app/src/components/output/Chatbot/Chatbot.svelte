@@ -1,12 +1,13 @@
 <script lang="ts">
-	import { beforeUpdate, afterUpdate } from 'svelte';
-import Html from '../Html/Html.svelte';
+	import { beforeUpdate, afterUpdate } from "svelte";
+	import Html from "../Html/Html.svelte";
 	export let value: Array<string>;
 	let div: HTMLDivElement;
 	let autoscroll: Boolean;
 
 	beforeUpdate(() => {
-		autoscroll = div && (div.offsetHeight + div.scrollTop) > (div.scrollHeight - 20);
+		autoscroll =
+			div && div.offsetHeight + div.scrollTop > div.scrollHeight - 20;
 	});
 
 	afterUpdate(() => {
@@ -14,7 +15,10 @@ import Html from '../Html/Html.svelte';
 	});
 </script>
 
-<div class="overflow-y-auto h-64 border border-b-0 rounded-t-lg leading-tight" bind:this={div}>
+<div
+	class="overflow-y-auto h-64 border border-b-0 rounded-t-lg leading-tight"
+	bind:this={div}
+>
 	<div class="flex flex-col items-end space-y-4 p-3">
 		{#each value as message}
 			<div
