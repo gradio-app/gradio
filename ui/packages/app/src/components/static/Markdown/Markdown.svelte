@@ -1,6 +1,6 @@
-<script>
-  export let content;
+<script lang="ts">
+  export let label: string;
 </script>
 
-<div>{@html content}</div>
+<div>{@html label}</div>
 
