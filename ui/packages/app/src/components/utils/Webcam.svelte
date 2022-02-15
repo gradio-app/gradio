@@ -66,3 +66,10 @@
 		/>
 	</button>
 </div>
+
+<style lang="postcss" global>
+	video {
+  -webkit-transform: scaleX(-1);
+  transform: scaleX(-1);
+}
+</style>
