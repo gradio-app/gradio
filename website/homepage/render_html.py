@@ -145,13 +145,13 @@ def render_guides():
             guide_output,
         )
 
-        output_html = markdown2.markdown(guide_output, extras=["target-blank-links", "header-ids"])
         copy_button = "<button class='copy flex float-right cursor-pointer rounded-l-none rounded-r mx-0 my-2' " \
                       "onclick='copyCode(this)'><img class='copy-svg m0 w-7 flex-initial' " \
                       "src='/assets/img/copy-grey.svg'><div class='flex-auto'></div></button>"
         guide_output = guide_output.replace("<pre>", "<div class='code-block' style='display: flex'><pre>")
         guide_output = guide_output.replace("</pre>", f"</pre>{copy_button}</div>")
 
+        output_html = markdown2.markdown(guide_output, extras=["target-blank-links", "header-ids"])
         os.makedirs("generated", exist_ok=True)
         os.makedirs(os.path.join("generated", guide["name"]), exist_ok=True)
         with open(
