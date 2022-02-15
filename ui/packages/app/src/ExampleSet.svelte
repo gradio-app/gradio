@@ -90,7 +90,7 @@
 					@apply border-gray-300 dark:border-gray-600;
 				}
 				tbody tr:hover {
-					@apply bg-yellow-500 dark:bg-red-700 text-white;
+					@apply bg-amber-500 dark:bg-red-700 text-white;
 				}
 			}
 		}
@@ -99,7 +99,7 @@
 				@apply shadow;
 			}
 			.example:hover {
-				@apply bg-yellow-500 text-white;
+				@apply bg-amber-500 text-white;
 			}
 		}
 	}

@@ -38,9 +38,9 @@
 
 <div class="input-image">
 	<div
-		class="image-preview w-full h-80 flex justify-center items-center dark:bg-gray-600 relative"
+		class="image-preview w-full h-60 flex justify-center items-center dark:bg-gray-600 relative"
 		class:bg-gray-200={value}
-		class:h-80={source !== "webcam"}
+		class:h-60={source !== "webcam"}
 	>
 		{#if source === "canvas"}
 			<ModifySketch
