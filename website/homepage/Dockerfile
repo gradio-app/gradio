@@ -29,7 +29,7 @@ COPY ./guides ./guides
 COPY ./demo ./demo
 WORKDIR /gradio/website/homepage
 ARG COLAB_NOTEBOOK_LINKS
-RUN mkdir generated dist
+RUN mkdir -p generated dist
 RUN echo $COLAB_NOTEBOOK_LINKS > generated/colab_links.json
 RUN npm install
 RUN npm run build
