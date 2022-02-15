@@ -42,6 +42,8 @@
 
     .prose .code,
     .prose pre {
+      width: 95%;
+      border-radius: 4px 0 0 4px;
       color: black;
       background: rgb(249, 250, 251);
     }
@@ -53,6 +55,34 @@
     .prose h1 {
       font-weight: 600;
     }
+
+    .anchor-img {
+      margin: 0 0 0 5px !important;
+    }
+
+    .anchor {
+      visibility: hidden;
+    }
+
+    .header:hover .anchor {
+      visibility: visible;
+    }
+
+    .copy {
+      padding-right: 1em;
+      background: #f9fafb;
+    }
+
+    .copy-svg {
+      visibility: hidden;
+      margin: 1em 0 0 0 !important;
+      width: 20px;
+    }
+
+    .code-block:hover .copy-svg {
+       visibility: visible;
+    }
+
   </style>
   <script async src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
   <script>
@@ -133,7 +163,31 @@
           });
       });
     });
+    function createAnchorTag(link) {
+            let a = document.createElement('a');
+            a.href = link;
+            a.classList.add("anchor");
+            let img = document.createElement('img');
+            img.classList.add("anchor-img", "w-7", "max-w-full", "inline-block", "mr-0", "ml-1")
+            img.src = "/assets/img/anchor.svg";
+            a.appendChild(img);
+            return a;
+        }
+    var headers = document.querySelectorAll("h1, h2, h3, h4, h5, h6");
+    for (let i = 0; i < headers.length; i++) {
+      headers[i].classList.add("header");
+      let link = '#' + headers[i].id;
+      headers[i].appendChild(createAnchorTag(link))
+    }
 
+    function copyCode(elem) {
+        var text = elem.parentElement.innerText;
+        navigator.clipboard.writeText(text);
+        elem.firstChild.src = "/assets/img/copy-orange.svg"
+        setTimeout(function(){
+          elem.firstChild.src = "/assets/img/copy-grey.svg"
+        }, 600);
+    };
 
     var spacesHolder, spaces;
     spacesHolder = document.getElementById("spaces-holder");

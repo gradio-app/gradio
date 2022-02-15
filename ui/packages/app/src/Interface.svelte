@@ -366,7 +366,7 @@
 			@apply text-gray-400 cursor-not-allowed;
 		}
 		.panel-button.submit {
-			@apply bg-yellow-500 hover:bg-yellow-400 dark:bg-red-700 dark:hover:bg-red-600 text-white;
+			@apply bg-amber-500 hover:bg-amber-400 dark:bg-red-700 dark:hover:bg-red-600 text-white;
 		}
 		.examples {
 			.examples-table-holder:not(.gallery) {
@@ -377,7 +377,7 @@
 						@apply border-gray-300 dark:border-gray-600;
 					}
 					tbody tr:hover {
-						@apply bg-yellow-500 dark:bg-red-700 text-white;
+						@apply bg-amber-500 dark:bg-red-700 text-white;
 					}
 				}
 			}
@@ -386,7 +386,7 @@
 					@apply shadow;
 				}
 				tbody td:hover {
-					@apply bg-yellow-500 text-white;
+					@apply bg-amber-500 text-white;
 				}
 			}
 		}

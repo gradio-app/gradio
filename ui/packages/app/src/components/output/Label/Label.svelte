@@ -49,7 +49,7 @@
 			@apply font-mono box-border border-b-2 border-gray-300 bg-gray-200 dark:bg-gray-500 dark:border-gray-600 text-sm h-7 font-semibold rounded;
 		}
 		.confidence:first-child {
-			@apply border-yellow-600 bg-yellow-500 dark:bg-red-600 border-red-700 text-white;
+			@apply border-amber-600 bg-amber-500 dark:bg-red-600 border-red-700 text-white;
 		}
 	}
 </style>

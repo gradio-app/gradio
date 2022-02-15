@@ -31,7 +31,7 @@
 			@apply w-4 h-4  rounded-full box-border;
 		}
 		.radio-item.selected {
-			@apply bg-yellow-500 dark:bg-red-600 text-white shadow;
+			@apply bg-amber-500 dark:bg-red-600 text-white shadow;
 		}
 	}
 </style>

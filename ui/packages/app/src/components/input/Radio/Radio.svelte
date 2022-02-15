@@ -27,13 +27,13 @@
 			@apply bg-gray-50 dark:bg-gray-400 border-4 border-gray-200 dark:border-gray-600;
 		}
 		.radio-item.selected {
-			@apply bg-yellow-500 dark:bg-red-600 text-white shadow;
+			@apply bg-amber-500 dark:bg-red-600 text-white shadow;
 		}
 		.radio-circle {
 			@apply w-4 h-4 bg-white transition rounded-full box-border;
 		}
 		.selected .radio-circle {
-			@apply border-yellow-600 dark:border-red-700;
+			@apply border-amber-600 dark:border-red-700;
 		}
 	}
 </style>
