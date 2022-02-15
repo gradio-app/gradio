@@ -16,6 +16,8 @@ from gradio.outputs import OutputComponent
 GRADIO_DIR = "../../"
 GRADIO_GUIDES_DIR = os.path.join(GRADIO_DIR, "guides")
 GRADIO_DEMO_DIR = os.path.join(GRADIO_DIR, "demo")
+GRADIO_ASSETS_LIST = os.listdir(os.path.join(GRADIO_DIR, "gradio", "templates", "frontend", "assets"))
+GRADIO_ASSETS = {f"{asset.split('.')[0]}_{asset.split('.')[-1]}_file": asset for asset in GRADIO_ASSETS_LIST}
 
 with open("src/navbar.html", encoding="utf-8") as navbar_file:
     navbar_html = navbar_file.read()
@@ -34,7 +36,7 @@ def render_index():
     with open("src/index_template.html", encoding="utf-8") as template_file:
         template = Template(template_file.read())
         output_html = template.render(
-            tweets=tweets, star_count=star_count, navbar_html=navbar_html
+            tweets=tweets, star_count=star_count, navbar_html=navbar_html, **GRADIO_ASSETS
         )
     with open(
         os.path.join("generated", "index.html"), "w", encoding="utf-8"
@@ -172,6 +174,7 @@ def render_guides():
                 guide_name=guide["name"],
                 spaces=guide["spaces"],
                 tags=guide["tags"],
+                **GRADIO_ASSETS
             )
             generated_template.write(output_html)
 
@@ -307,7 +310,7 @@ def render_other():
             os.path.join("src/other_templates", template_filename)
         ) as template_file:
             template = Template(template_file.read())
-            output_html = template.render()
+            output_html = template.render(GRADIO_ASSETS)
         folder_name = template_filename[:-14]
         os.makedirs(os.path.join("generated", folder_name), exist_ok=True)
         with open(
