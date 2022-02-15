@@ -67,5 +67,28 @@ class TestHuggingFaceDatasetSaver(unittest.TestCase):
             self.assertEqual(row_count, 2)  # 3 rows written including header
 
 
+class TestDisableFlagging(unittest.TestCase):
+    def test_flagging_no_permission_error_with_flagging_disabled(self):
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            os.chmod(tmpdirname, 0o444)  # Make directory read-only
+            nonwritable_path = os.path.join(
+                tmpdirname, 'flagging_dir')
+            
+            io = gr.Interface(
+                lambda x: x,
+                "text",
+                "text",
+                allow_flagging="never",
+                flagging_dir=nonwritable_path
+            )
+            try:
+                io.launch(prevent_thread_lock=True)
+            except PermissionError:
+                self.fail("launch() raised a PermissionError unexpectedly")
+            
+        io.close()
+            
+
+
 if __name__ == "__main__":
     unittest.main()
