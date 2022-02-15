@@ -3,8 +3,6 @@
 	export let theme: string;
 	export let depth: number;
 	export let collapsed = depth > 4;
-
-	$: console.log(value);
 </script>
 
 <div class="json-node inline" {theme}>

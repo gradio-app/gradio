@@ -1,0 +1,124 @@
+.gradio-bg[theme="huggingface"] {
+	@apply dark:bg-[#0b0f19];
+}
+
+.gradio-bg[theme="huggingface"] .gradio-interface {
+	.load-status {
+		@apply text-gray-700;
+	}
+	.component-set {
+		@apply from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 bg-gradient-to-br border border-gray-100 dark:border-none p-4 rounded-lg gap-3;
+	}
+	.panel-header {
+		@apply flex items-center text-sm text-gray-700 dark:text-gray-50 mb-1.5;
+	}
+	.panel-button {
+		@apply from-gray-50 hover:from-gray-100 to-gray-100 bg-gradient-to-b focus:ring-offset-indigo-300 dark:from-gray-700 dark:hover:from-gray-800 dark:to-gray-800 dark:focus:ring-offset-indigo-700 dark:border-none shadow-sm border rounded-lg;
+	}
+	.examples {
+		.examples-holder:not(.gallery) .examples-table {
+			@apply dark:from-gray-700 dark:to-gray-800 bg-gradient-to-br;
+			thead {
+				@apply border-gray-100 dark:border-gray-600;
+			}
+			tbody tr:hover {
+				@apply bg-indigo-500 dark:bg-indigo-900 text-white;
+			}
+		}
+		.examples-holder.gallery .examples-table {
+			.example:hover {
+				@apply bg-indigo-500 dark:bg-indigo-900 text-white;
+			}
+		}
+	}
+	/* Common Classes */
+	.modify-upload {
+		@apply p-1 gap-1;
+		button {
+			@apply rounded-full;
+		}
+		.edit {
+			@apply bg-indigo-400 hover:bg-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-400;
+		}
+		.clear {
+			@apply bg-gray-300 hover:bg-gray-400 dark:bg-gray-400 dark:hover:bg-gray-300;
+		}
+	}
+	/* Input Components */
+	.input-text {
+		@apply p-3 border rounded-lg shadow-inner outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-200 focus:shadow-inner placeholder-gray-400 dark:bg-gray-600 dark:placeholder-gray-100 dark:border-none;
+	}
+	.input-number {
+		@apply p-3 border rounded-lg shadow-inner outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-200 focus:shadow-inner placeholder-gray-400 dark:bg-gray-600 dark:placeholder-gray-100 dark:border-none;
+	}
+	.input-radio {
+		.radio-item {
+			@apply border bg-gradient-to-t from-gray-100 to-gray-50 text-gray-600 py-1.5 px-3 hover:to-gray-100 dark:text-gray-50 dark:from-gray-600 dark:to-gray-500 dark:hover:to-gray-600 dark:border-none;
+		}
+		.radio-item.selected {
+			@apply text-indigo-500 dark:text-white dark:from-indigo-600 dark:to-indigo-500;
+		}
+		.radio-circle {
+			@apply bg-white;
+		}
+		.selected .radio-circle {
+			@apply border-4 border-indigo-600 dark:border-indigo-400;
+		}
+	}
+	.input-checkbox-group,
+	.input-checkbox {
+		.checkbox-item {
+			@apply border bg-gradient-to-t from-gray-100 to-gray-50 hover:to-gray-100 text-gray-600 dark:text-gray-50 dark:from-gray-600 dark:to-gray-500 dark:hover:to-gray-600 dark:border-none py-1.5 px-3;
+		}
+		.checkbox-item.selected {
+			@apply text-indigo-500 dark:text-white dark:from-indigo-600 dark:to-indigo-500;
+		}
+		.selected .checkbox {
+			@apply bg-indigo-600 dark:bg-indigo-400;
+		}
+	}
+	.input-dropdown {
+		.selector {
+			@apply border bg-gradient-to-t from-gray-100 to-gray-50 text-gray-600 dark:text-gray-50 dark:from-gray-600 dark:to-gray-500 dark:hover:to-gray-600 dark:border-none py-1.5 px-3 hover:to-gray-100;
+		}
+		.dropdown-item {
+			@apply bg-gray-50 dark:bg-gray-500 hover:bg-gray-400 hover:text-gray-50 dark:hover:bg-indigo-600;
+		}
+	}
+	.input-slider {
+		@apply text-center;
+		.range {
+			@apply bg-white hover:bg-gray-100 dark:bg-gray-600 rounded-full border dark:border-none;
+		}
+		.range::-webkit-slider-thumb {
+			@apply border dark:bg-white bg-indigo-500 rounded-full shadow;
+		}
+		.range::-moz-range-thumb {
+			@apply border dark:bg-white bg-indigo-500 rounded-full shadow;
+		}
+		.value {
+			@apply bg-gray-100 text-gray-700 dark:text-gray-50 dark:bg-gray-600 dark:border-none shadow-inner;
+		}
+	}
+	.input-audio {
+		.start {
+			@apply bg-gradient-to-t border from-gray-100 to-gray-50 text-gray-600 py-1.5 px-3 hover:to-gray-100 dark:text-gray-50 dark:from-gray-600 dark:to-gray-500 dark:hover:to-gray-600 dark:border-none;
+		}
+		.stop {
+			@apply border border-red-200 bg-gradient-to-t from-red-200 to-red-50 text-red-600 py-1.5 px-3 hover:to-red-100 dark:from-red-700 dark:to-red-600 dark:text-red-100;
+		}
+	}
+	/* Output Components */
+	.output-text {
+		@apply p-3 border rounded-lg shadow-inner outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-200 focus:shadow-inner whitespace-pre-wrap dark:bg-gray-600 dark:border-none;
+	}
+	.output-label {
+		.output-class {
+			@apply hidden;
+		}
+		.confidence {
+			@apply bg-gradient-to-r from-indigo-200 to-indigo-500 dark:from-indigo-500 dark:to-indigo-700 rounded text-white;
+			color: transparent;
+		}
+	}
+}

@@ -44,7 +44,7 @@ def render_index():
 
 guides = []
 for guide in sorted(os.listdir(GRADIO_GUIDES_DIR)):
-    if guide.lower() in ["getting_started.md", "readme.md"]:
+    if guide.lower() == "readme.md":
         continue
     guide_name = guide[:-3]
     pretty_guide_name = " ".join(
@@ -108,6 +108,7 @@ def render_guides():
         code_tags = re.findall(r'\{\{ code\["([^\s]*)"\] \}\}', guide["content"])
         demo_names = re.findall(r'\{\{ demos\["([^\s]*)"\] \}\}', guide["content"])
         code, demos = {}, {}
+
         guide["content"] = (
             guide["content"]
             .replace("website/src/assets", "/assets")
@@ -145,6 +146,11 @@ def render_guides():
         )
 
         output_html = markdown2.markdown(guide_output, extras=["target-blank-links", "header-ids"])
+        copy_button = "<button class='copy flex float-right cursor-pointer rounded-l-none rounded-r mx-0 my-2' " \
+                      "onclick='copyCode(this)'><img class='copy-svg m0 w-7 flex-initial' " \
+                      "src='/assets/img/copy-grey.svg'><div class='flex-auto'></div></button>"
+        guide_output = guide_output.replace("<pre>", "<div class='code-block' style='display: flex'><pre>")
+        guide_output = guide_output.replace("</pre>", f"</pre>{copy_button}</div>")
 
         os.makedirs("generated", exist_ok=True)
         os.makedirs(os.path.join("generated", guide["name"]), exist_ok=True)

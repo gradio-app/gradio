@@ -1,32 +1,26 @@
 <script lang="ts">
-	import { getSaliencyColor } from "../../utils/helpers";
-
 	export let value: number;
-	export let interpretation: Array<number>;
+	export let setValue: (val: number) => number;
 	export let theme: string;
 	export let minimum: number;
 	export let maximum: number;
 	export let step: number;
+
+	function handle_input(event: Event) {
+		setValue(parseFloat((event.target as HTMLInputElement).value));
+	}
 </script>
 
 <div class="input-slider text-center" {theme}>
 	<input
 		type="range"
 		class="range w-full appearance-none transition rounded h-4"
-		disabled
+		on:input={handle_input}
 		{value}
 		min={minimum}
 		max={maximum}
 		{step}
 	/>
-	<div class="interpret_range flex">
-		{#each interpretation as interpret_value}
-			<div
-				class="flex-1 h-4"
-				style={"background-color: " + getSaliencyColor(interpret_value)}
-			/>
-		{/each}
-	</div>
 	<div class="value inline-block mx-auto mt-1 px-2 py-0.5 rounded">{value}</div>
 </div>
 

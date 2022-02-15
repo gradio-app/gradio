@@ -41,7 +41,7 @@
 			@apply shadow;
 		}
 		.dropdown-item {
-			@apply bg-white dark:bg-gray-800 hover:bg-yellow-500 dark:hover:bg-red-600 hover:text-gray-50 hover:font-semibold;
+			@apply bg-white dark:bg-gray-800 hover:bg-amber-500 dark:hover:bg-red-600 hover:text-gray-50 hover:font-semibold;
 		}
 	}
 </style>
