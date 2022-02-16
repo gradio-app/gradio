@@ -8,6 +8,4 @@ To add your language, do the following steps:
 2. Name the file after the language code (Here's a list: http://4umi.com/web/html/languagecodes.php)
 3. Please provide clear and complete translations. Take a look at the [`en.json`](https://github.com/gradio-app/gradio/blob/master/ui/packages/app/public/lang/en.json) file for the corresponding English text.
 
-**Example:** take a look at this [pull request which adds support for Urdu](https://github.com/gradio-app/gradio/pull/621/files)
-
 That's it!
