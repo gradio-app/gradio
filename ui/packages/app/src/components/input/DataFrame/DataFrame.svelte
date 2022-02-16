@@ -10,8 +10,6 @@
 	export let setValue: (val: typeof values) => typeof values;
 	export let editable = true;
 
-	$: console.log($$props);
-
 	let id = 0;
 	let editing: boolean | number = false;
 	let selected: boolean | number = false;
@@ -87,7 +85,6 @@
 		id: number
 	) {
 		let is_data;
-		console.log(event.key, data);
 		switch (event.key) {
 			case "ArrowRight":
 				if (editing) break;
