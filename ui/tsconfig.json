@@ -19,7 +19,7 @@
 		"baseUrl": ".",
 		"allowJs": true,
 		"checkJs": true,
-		"outDir": "dist"
+		"outDir": "dist"	
 	},
 	"exclude": ["**/dist/**/*", "**/public/**/*", "**/*.config.js", "dist"],
 	"include": ["**/*.d.ts", "**/*.js", "**/*.ts", "**/*.svelte"]
