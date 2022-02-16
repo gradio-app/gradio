@@ -684,7 +684,7 @@ class Interface:
 
         if self.enable_queue is None:
             self.enable_queue = enable_queue
-        if self.allow_flagging != "never": 
+        if self.allow_flagging != "never":
             self.flagging_callback.setup(self.flagging_dir)
 
         config = self.get_config_file()
