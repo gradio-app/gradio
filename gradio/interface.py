@@ -591,7 +591,7 @@ class Interface(Launchable):
                 continue
 
     def launch(self, **args):
-        if self.allow_flagging:
+        if self.allow_flagging != "never":
             self.flagging_callback.setup(self.flagging_dir)
         super().launch(**args)
 
