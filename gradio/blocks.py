@@ -1,17 +1,18 @@
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
-from gradio import context, utils
+from gradio import utils
+from gradio.context import Context
 from gradio.launchable import Launchable
 
 
 class Block:
     def __init__(self):
-        self._id = context.id
-        context.id += 1
-        if context.block is not None:
-            context.block.children.append(self)
-        if context.root_block is not None:
-            context.root_block.blocks[self._id] = self
+        self._id = Context.id
+        Context.id += 1
+        if Context.block is not None:
+            Context.block.children.append(self)
+        if Context.root_block is not None:
+            Context.root_block.blocks[self._id] = self
         self.events = []
 
     def click(self, fn, inputs, outputs):
@@ -19,8 +20,8 @@ class Block:
             inputs = [inputs]
         if not isinstance(outputs, list):
             outputs = [outputs]
-        context.root_block.fns.append(fn)
-        context.root_block.dependencies.append(
+        Context.root_block.fns.append(fn)
+        Context.root_block.dependencies.append(
             {
                 "targets": [self._id],
                 "trigger": "click",
@@ -36,11 +37,11 @@ class BlockContext(Block):
         super().__init__()
 
     def __enter__(self):
-        self.parent = context.block
-        context.block = self
+        self.parent = Context.block
+        Context.block = self
 
     def __exit__(self, *args):
-        context.block = self.parent
+        Context.block = self.parent
 
 
 class Row(BlockContext):
@@ -72,7 +73,7 @@ class Blocks(Launchable, BlockContext):
         self.theme = theme
 
         super().__init__()
-        context.root_block = self
+        Context.root_block = self
         self.blocks = {}
         self.fns = []
         self.dependencies = []
@@ -140,8 +141,8 @@ class Blocks(Launchable, BlockContext):
 
     def __enter__(self):
         BlockContext.__enter__(self)
-        context.root_block = self
+        Context.root_block = self
 
     def __exit__(self, *args):
         BlockContext.__exit__(self, *args)
-        context.root_block = self.parent
+        Context.root_block = self.parent
