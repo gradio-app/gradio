@@ -8,13 +8,15 @@ importers:
       prettier-plugin-svelte: ^2.6.0
       svelte: ^3.46.3
       svelte-check: ^2.4.1
+      svelte-i18n: ^3.3.13
       vitest: ^0.3.2
     dependencies:
       prettier: 2.5.1
       prettier-plugin-svelte: 2.6.0_prettier@2.5.1+svelte@3.46.3
       svelte: 3.46.3
       svelte-check: 2.4.1_svelte@3.46.3
-      vitest: 0.3.2
+      svelte-i18n: 3.3.13_svelte@3.46.3
+      vitest: 0.3.5
 
   packages/app:
     specifiers:
@@ -58,7 +60,7 @@ importers:
       postcss: 8.4.6
       postcss-nested: 5.0.6_postcss@8.4.6
       svelte: 3.46.3
-      tailwindcss: 3.0.19_autoprefixer@9.8.8+postcss@8.4.6
+      tailwindcss: 3.0.22_autoprefixer@9.8.8
       vite: 2.7.13
 
   packages/components:
@@ -86,6 +88,40 @@ packages:
       chalk: 2.4.2
       js-tokens: 4.0.0
     dev: true
+
+  /@formatjs/ecma402-abstract/1.11.3:
+    resolution: {integrity: sha512-kP/Buv5vVFMAYLHNvvUzr0lwRTU0u2WTy44Tqwku1X3C3lJ5dKqDCYVqA8wL+Y19Bq+MwHgxqd5FZJRCIsLRyQ==}
+    dependencies:
+      '@formatjs/intl-localematcher': 0.2.24
+      tslib: 2.3.1
+    dev: false
+
+  /@formatjs/fast-memoize/1.2.1:
+    resolution: {integrity: sha512-Rg0e76nomkz3vF9IPlKeV+Qynok0r7YZjL6syLz4/urSg0IbjPZCB/iYUMNsYA643gh4mgrX3T7KEIFIxJBQeg==}
+    dependencies:
+      tslib: 2.3.1
+    dev: false
+
+  /@formatjs/icu-messageformat-parser/2.0.18:
+    resolution: {integrity: sha512-vquIzsAJJmZ5jWVH8dEgUKcbG4yu3KqtyPet+q35SW5reLOvblkfeCXTRW2TpIwNXzdVqsJBwjbTiRiSU9JxwQ==}
+    dependencies:
+      '@formatjs/ecma402-abstract': 1.11.3
+      '@formatjs/icu-skeleton-parser': 1.3.5
+      tslib: 2.3.1
+    dev: false
+
+  /@formatjs/icu-skeleton-parser/1.3.5:
+    resolution: {integrity: sha512-Nhyo2/6kG7ZfgeEfo02sxviOuBcvtzH6SYUharj3DLCDJH3A/4OxkKcmx/2PWGX4bc6iSieh+FA94CsKDxnZBQ==}
+    dependencies:
+      '@formatjs/ecma402-abstract': 1.11.3
+      tslib: 2.3.1
+    dev: false
+
+  /@formatjs/intl-localematcher/0.2.24:
+    resolution: {integrity: sha512-K/HRGo6EMnCbhpth/y3u4rW4aXkmQNqRe1L2G+Y5jNr3v0gYhvaucV8WixNju/INAMbPBlbsRBRo/nfjnoOnxQ==}
+    dependencies:
+      tslib: 2.3.1
+    dev: false
 
   /@mapbox/node-pre-gyp/1.0.8:
     resolution: {integrity: sha512-CMGKi28CF+qlbXh26hDe6NxCd7amqeAzEqnS6IHeO6LoaKyM/n+Xw3HT1COdq8cuioOdlKdqn/hCmqPUOMOywg==}
@@ -717,6 +753,11 @@ packages:
     dev: false
     optional: true
 
+  /deepmerge/4.2.2:
+    resolution: {integrity: sha512-FJ3UgI4gIl+PHZm53knsuSFpE+nESMr7M4v9QcgB7S63Kj/6WqMiFQJpBBYz1Pt+66bZpP3Q7Lye0Oo9MPKEdg==}
+    engines: {node: '>=0.10.0'}
+    dev: false
+
   /defined/1.0.0:
     resolution: {integrity: sha1-yY2bzvdWdBiOEQlpFRGZ45sfppM=}
     dev: true
@@ -977,7 +1018,6 @@ packages:
 
   /estree-walker/2.0.2:
     resolution: {integrity: sha512-Rfkk/Mp/DL7JVje3u18FxFujQlTNR2q6QfMSMB7AvCBx91NGj/ba3kCfza0f6dVDbw7YlRf/nDrn7pQrCCyQ/w==}
-    dev: true
 
   /esutils/2.0.3:
     resolution: {integrity: sha512-kVscqXk4OCp68SZ0dkgEKVi6/8ij300KBWTJq32P/dYeWTSwK41WyTxalN1eRmA5Z9UU/LX9D7FWSmV9SAYx6g==}
@@ -1133,6 +1173,14 @@ packages:
       path-is-absolute: 1.0.1
     dev: false
 
+  /globalyzer/0.1.0:
+    resolution: {integrity: sha512-40oNTM9UfG6aBmuKxk/giHn5nQ8RVz/SS4Ir6zgzOv9/qC3kKZ9v4etGTcJbEl/NyVQH7FGU7d+X1egr57Md2Q==}
+    dev: false
+
+  /globrex/0.1.2:
+    resolution: {integrity: sha512-uHJgbwAMwNFf5mLst7IWLNg14x1CkeqglJb/K3doi4dw6q2IvAAmM/Y81kevy83wP+Sst+nutFTYOGg3d1lsxg==}
+    dev: false
+
   /graceful-fs/4.2.9:
     resolution: {integrity: sha512-NtNxqUcXgpW2iMrfqSfR73Glt39K+BLwWsPs94yR63v45T0Wbej7eRmL5cWfwEgqXnmjQp3zaJTshdRW/qC2ZQ==}
     dev: false
@@ -1238,6 +1286,15 @@ packages:
   /internmap/2.0.3:
     resolution: {integrity: sha512-5Hh7Y1wQbvY5ooGgPbDaL5iYLAPzMTUrjMulskHLH6wnv/A+1q5rgEaiuqEjB+oxGXIVZs1FF+R/KPN3ZSQYYg==}
     engines: {node: '>=12'}
+    dev: false
+
+  /intl-messageformat/9.11.4:
+    resolution: {integrity: sha512-77TSkNubIy/hsapz6LQpyR6OADcxhWdhSaboPb5flMaALCVkPvAIxr48AlPqaMl4r1anNcvR9rpLWVdwUY1IKg==}
+    dependencies:
+      '@formatjs/ecma402-abstract': 1.11.3
+      '@formatjs/fast-memoize': 1.2.1
+      '@formatjs/icu-messageformat-parser': 2.0.18
+      tslib: 2.3.1
     dev: false
 
   /ip-regex/2.1.0:
@@ -2118,6 +2175,21 @@ packages:
       svelte: 3.46.3
     dev: true
 
+  /svelte-i18n/3.3.13_svelte@3.46.3:
+    resolution: {integrity: sha512-RQM+ys4+Y9ztH//tX22H1UL2cniLNmIR+N4xmYygV6QpQ6EyQvloZiENRew8XrVzfvJ8HaE8NU6/yurLkl7z3g==}
+    engines: {node: '>= 11.15.0'}
+    hasBin: true
+    peerDependencies:
+      svelte: ^3.25.1
+    dependencies:
+      deepmerge: 4.2.2
+      estree-walker: 2.0.2
+      intl-messageformat: 9.11.4
+      sade: 1.8.1
+      svelte: 3.46.3
+      tiny-glob: 0.2.9
+    dev: false
+
   /svelte-preprocess/4.10.2_postcss@8.4.6+svelte@3.46.3:
     resolution: {integrity: sha512-aPpkCreSo8EL/y8kJSa1trhiX0oyAtTjlNNM7BNjRAsMJ8Yy2LtqHt0zyd4pQPXt+D4PzbO3qTjjio3kwOxDlA==}
     engines: {node: '>= 9.11.2'}
@@ -2233,13 +2305,12 @@ packages:
     dev: false
     optional: true
 
-  /tailwindcss/3.0.19_autoprefixer@9.8.8+postcss@8.4.6:
-    resolution: {integrity: sha512-rjsdfz/qZya5xQ0OVynEMETgWq1CacmftgMYeXXh6bRM5vxsNwRSbMJsCCIjq/w67om9VP/AFMolOwiE+5VKig==}
+  /tailwindcss/3.0.22_autoprefixer@9.8.8:
+    resolution: {integrity: sha512-F8lt74RlNZirnkaSk310+vGQta7c0/hgx7/bqxruM4wS9lp8oqV93lzavajC3VT0Lp4UUtUVIt8ifKcmGzkr0A==}
     engines: {node: '>=12.13.0'}
     hasBin: true
     peerDependencies:
       autoprefixer: ^10.0.2
-      postcss: ^8.0.9
     dependencies:
       arg: 5.0.1
       autoprefixer: 9.8.8
@@ -2279,6 +2350,13 @@ packages:
       yallist: 4.0.0
     dev: false
     optional: true
+
+  /tiny-glob/0.2.9:
+    resolution: {integrity: sha512-g/55ssRPUjShh+xkfx9UPDXqhckHEsHr4Vd9zX55oSdGZc/MD0m3sferOkwWtp98bv+kcVfEHtRJgBVJzelrzg==}
+    dependencies:
+      globalyzer: 0.1.0
+      globrex: 0.1.2
+    dev: false
 
   /tinypool/0.1.2:
     resolution: {integrity: sha512-fvtYGXoui2RpeMILfkvGIgOVkzJEGediv8UJt7TxdAOY8pnvUkFg/fkvqTfXG9Acc9S17Cnn1S4osDc2164guA==}
@@ -2326,6 +2404,10 @@ packages:
       punycode: 2.1.1
     dev: false
     optional: true
+
+  /tslib/2.3.1:
+    resolution: {integrity: sha512-77EbyPPpMz+FRFRuAFlWMtmgUWGe9UOG2Z25NqCwiIjRhOf5iKGuzSe5P2w1laq+FkRy4p+PCuVkJSGkzTEKVw==}
+    dev: false
 
   /tui-code-snippet/1.5.2:
     resolution: {integrity: sha512-6UqTlQaaC1KLcmC0HAoq5dtl1G4Fib+R+NC7pmaV7kiIlZ7JqKhUmnOoGRcreAyzd81UTK/vCvhrw9QJskpCFQ==}
@@ -2429,8 +2511,8 @@ packages:
     optionalDependencies:
       fsevents: 2.3.2
 
-  /vitest/0.3.2:
-    resolution: {integrity: sha512-Xc0u8BVPBdD029uDcLSYDvy1MFenC6V8WvTJOGdld6NNWgz/swgsMvwZNzftsDohmHLgDyck8A+TaQdDd1tNwA==}
+  /vitest/0.3.5:
+    resolution: {integrity: sha512-IIYupM5RAN9H44F5k/Yz0DEORHPJC8qwdi6sQmcdjrxqfxIHypq9PoutQQrW1WKW9O9yUNYG5VGHeHlqAXa9wg==}
     engines: {node: '>=14.14.0'}
     hasBin: true
     peerDependencies:

@@ -15,8 +15,7 @@ export function randInt(min: number, max: number): number {
 	return Math.floor(Math.random() * (max - min) + min);
 }
 
-export const getNextColor = (index: number, alpha?: number): string => {
-	alpha = alpha || 1;
+export const getNextColor = (index: number, alpha: number = 1): string => {
 	let default_colors = [
 		[255, 99, 132],
 		[54, 162, 235],
