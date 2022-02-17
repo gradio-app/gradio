@@ -4,9 +4,9 @@ import sveltePreprocess from "svelte-preprocess";
 
 // this is dupe config, gonna try fix this
 import tailwind from "tailwindcss";
-import nested from "postcss-nested";
-import autoprefix from "autoprefixer";
+import nested from "tailwindcss/nesting";
 
+//@ts-ignore
 export default defineConfig(({ mode }) => {
 	const production = mode === "production";
 
@@ -20,10 +20,15 @@ export default defineConfig(({ mode }) => {
 				? JSON.stringify("")
 				: JSON.stringify("http://localhost:7860/")
 		},
+		css: {
+			postcss: {
+				plugins: [nested, tailwind]
+			}
+		},
 		plugins: [
 			svelte({
 				preprocess: sveltePreprocess({
-					postcss: { plugins: [tailwind, nested, autoprefix] }
+					postcss: { plugins: [nested, tailwind] }
 				})
 			})
 		]
