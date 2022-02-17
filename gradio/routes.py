@@ -22,7 +22,6 @@ from fastapi.templating import Jinja2Templates
 from starlette.responses import RedirectResponse
 
 from gradio import encryptor, queueing, utils
-from gradio.process_examples import load_from_cache, process_example
 
 STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "templates/")
 STATIC_PATH_LIB = pkg_resources.resource_filename("gradio", "templates/frontend/static")
@@ -195,48 +194,16 @@ def api_docs(request: Request):
 @app.post("/api/predict/", dependencies=[Depends(login_check)])
 async def predict(request: Request, username: str = Depends(get_current_user)):
     body = await request.json()
-    flag_index = None
-
-    if body.get("example_id") is not None:
-        example_id = body["example_id"]
-        if app.launchable.cache_examples:
-            prediction = await run_in_threadpool(
-                load_from_cache, app.launchable, example_id
-            )
-            durations = None
-        else:
-            prediction, durations = await run_in_threadpool(
-                process_example, app.launchable, example_id
-            )
-    else:
-        raw_input = body["data"]
+    try:
+        output = await run_in_threadpool(
+            app.launchable.process_api, body, username
+        )
+    except BaseException as error:
         if app.launchable.show_error:
-            try:
-                prediction, durations = await run_in_threadpool(
-                    app.launchable.process, raw_input
-                )
-            except BaseException as error:
-                traceback.print_exc()
-                return JSONResponse(content={"error": str(error)}, status_code=500)
+            traceback.print_exc()
+            return JSONResponse(content={"error": str(error)}, status_code=500)
         else:
-            prediction, durations = await run_in_threadpool(
-                app.launchable.process, raw_input
-            )
-        if app.launchable.allow_flagging == "auto":
-            flag_index = await run_in_threadpool(
-                app.launchable.flagging_callback.flag,
-                app.launchable,
-                raw_input,
-                prediction,
-                flag_option="" if app.launchable.flagging_options else None,
-                username=username,
-            )
-    output = {
-        "data": prediction,
-        "durations": durations,
-        "avg_durations": app.launchable.config.get("avg_durations"),
-        "flag_index": flag_index,
-    }
+            raise error
     return output
 
 

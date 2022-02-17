@@ -56,14 +56,14 @@
 	const triggerTarget = (i: string) => {
 		event_listener_map[i].forEach((fn_index: number) => {
 			let dependency = dependencies[fn_index];
-			console.log("asdf");
-			console.log(fn_index);
-			console.log(dependency.inputs.map((i) => values[i]));
 			fn(
-				fn_index,
-				dependency.inputs.map((i) => values[i])
+				"predict",
+				{
+					"fn_index": fn_index,
+					"data": dependency.inputs.map((i) => values[i])
+				}
 			).then((output) => {
-				output.forEach((value, i) => {
+				output["data"].forEach((value, i) => {
 					values[dependency.outputs[i]] = value;
 				});
 			});
