@@ -21,14 +21,14 @@ with xray_blocks:
 			xray_scan = gr.inputs.Image()
 			xray_results = gr.outputs.JSON()
 		xray_run = gr.Button("Run")
-		xray_run.click(xray_model, inputs=xray_scan, outputs=xray_results)
+		xray_run.click(xray_model, inputs=[disease, xray_scan] , outputs=xray_results)
 
 	with gr.Tab("CT Scan"):
 		with gr.Row():
 			ct_scan = gr.inputs.Image()
 			ct_results = gr.outputs.JSON()
 		ct_run = gr.Button("Run")
-		ct_run.click(ct_model, inputs=ct_scan, outputs=ct_results)
+		ct_run.click(ct_model, inputs=[disease, ct_scan], outputs=ct_results)
 		
 	overall_probability = gr.outputs.Textbox()
 

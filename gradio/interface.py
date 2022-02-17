@@ -12,7 +12,8 @@ import re
 import time
 import warnings
 import weakref
-from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple, Dict
+from gradio.routes import predict
 
 from markdown_it import MarkdownIt
 from mdit_py_plugins.footnote import footnote_plugin
@@ -27,6 +28,7 @@ from gradio.inputs import get_input_instance
 from gradio.outputs import OutputComponent
 from gradio.outputs import State as o_State  # type: ignore
 from gradio.outputs import get_output_instance
+from gradio.process_examples import load_from_cache, process_example
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     import flask
@@ -536,6 +538,34 @@ class Interface(Launchable):
         else:
             return predictions
 
+    def process_api(self, data: Dict[str, Any], username: str=None) -> Dict[str, Any]:
+        flag_index = None
+        if data.get("example_id") is not None:
+            example_id = data["example_id"]
+            if self.cache_examples:
+                prediction = load_from_cache(self, example_id)
+                durations = None
+            else:
+                prediction, durations = process_example(self, example_id)
+        else:
+            raw_input = data["data"]
+            prediction, durations = self.process(raw_input)
+            if self.allow_flagging == "auto":
+                flag_index = self.flagging_callback.flag(
+                    self,
+                    raw_input,
+                    prediction,
+                    flag_option="" if self.flagging_options else None,
+                    username=username,
+                )
+
+        return {
+            "data": prediction,
+            "durations": durations,
+            "avg_durations": self.config.get("avg_durations"),
+            "flag_index": flag_index,
+        }
+
     def process(self, raw_input: List[Any]) -> Tuple[List[Any], List[float]]:
         """
         First preprocesses the input, then runs prediction using
@@ -594,7 +624,6 @@ class Interface(Launchable):
         if self.allow_flagging != "never":
             self.flagging_callback.setup(self.flagging_dir)
         super().launch(**args)
-
 
     def integrate(self, comet_ml=None, wandb=None, mlflow=None) -> None:
         """

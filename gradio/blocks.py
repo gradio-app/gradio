@@ -1,17 +1,17 @@
-from cProfile import run
 from gradio.launchable import Launchable
 from gradio import context, utils
-from numpy import isin
+from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple, Dict
+
 
 class Block:
     def __init__(self):
+        self._id = context.id
+        context.id += 1
         if context.block is not None:
             context.block.children.append(self)
         if context.root_block is not None:
-            context.root_block.blocks.append(self)
-        self._id = context.id
+            context.root_block.blocks[self._id] = self
         self.events = []
-        context.id += 1
 
     def click(self, fn, inputs, outputs):
         if not isinstance(inputs, list):
@@ -72,20 +72,41 @@ class Blocks(Launchable, BlockContext):
 
         super().__init__()
         context.root_block = self
-        self.blocks = []
+        self.blocks = {}
         self.fns = []
         self.dependencies = []
+    
+    def process_api(self, data: Dict[str, Any], username: str=None) -> Dict[str, Any]:
+        raw_input = data["data"]
+        fn_index = data["fn_index"]
+        fn = self.fns[fn_index]
+        dependency = self.dependencies[fn_index]
 
+        processed_input = [
+            self.blocks[input_id].preprocess(raw_input[i])
+            for i, input_id in enumerate(dependency["inputs"])
+        ]
+        predictions = fn(*processed_input)
+        if len(dependency["outputs"]) == 1:
+            predictions = (predictions, )
+        processed_output = [
+            self.blocks[output_id].postprocess(predictions[i])
+            if predictions[i] is not None
+            else None
+            for i, output_id in enumerate(dependency["outputs"])
+        ]
+        return {"data": processed_output}
+        
     def get_template_context(self):
         return {"type": "column"}
 
     def get_config_file(self):
         config = {"mode": "blocks", "components": [], "theme": self.theme}
-        for block in self.blocks:
+        for _id, block in self.blocks.items():
             if not isinstance(block, BlockContext):
                 config["components"].append(
                     {
-                        "id": block._id,
+                        "id": _id,
                         "type": block.component_type,
                         "props": block.get_template_context(),
                     }
