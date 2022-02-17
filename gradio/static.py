@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from gradio.component import Component
 
+
 class StaticComponent(Component):
     def __init__(self, label: str):
         self.component_type = "static"
@@ -16,6 +17,7 @@ class StaticComponent(Component):
 
 class Markdown(StaticComponent):
     pass
+
 
 class Button(StaticComponent):
     pass

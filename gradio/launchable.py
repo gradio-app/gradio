@@ -7,18 +7,18 @@ import time
 import webbrowser
 from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
 
-
-from gradio import networking, queueing  # type: ignore
-from gradio import encryptor, strings, utils
+from gradio import encryptor, networking, queueing, strings, utils  # type: ignore
 from gradio.process_examples import cache_interface_examples
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     import flask
 
+
 class Launchable:
     """
     Gradio launchables can be launched to serve content to a port.
     """
+
     def launch(
         self,
         inline: bool = None,
@@ -231,4 +231,3 @@ class Launchable:
             self.server.close()
             if self.enable_queue:
                 queueing.close()
-

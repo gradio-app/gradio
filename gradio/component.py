@@ -5,6 +5,7 @@ from typing import Any, Dict
 from gradio import processing_utils
 from gradio.blocks import Block
 
+
 class Component(Block):
     """
     A class for defining the methods that all gradio input and output components should have.

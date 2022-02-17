@@ -12,23 +12,23 @@ import re
 import time
 import warnings
 import weakref
-from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple, Dict
-from gradio.routes import predict
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
 from markdown_it import MarkdownIt
 from mdit_py_plugins.footnote import footnote_plugin
 
 from gradio import interpretation, utils
-from gradio.launchable import Launchable
 from gradio.external import load_from_pipeline, load_interface  # type: ignore
 from gradio.flagging import CSVLogger, FlaggingCallback  # type: ignore
 from gradio.inputs import InputComponent
 from gradio.inputs import State as i_State  # type: ignore
 from gradio.inputs import get_input_instance
+from gradio.launchable import Launchable
 from gradio.outputs import OutputComponent
 from gradio.outputs import State as o_State  # type: ignore
 from gradio.outputs import get_output_instance
 from gradio.process_examples import load_from_cache, process_example
+from gradio.routes import predict
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     import flask
@@ -538,7 +538,7 @@ class Interface(Launchable):
         else:
             return predictions
 
-    def process_api(self, data: Dict[str, Any], username: str=None) -> Dict[str, Any]:
+    def process_api(self, data: Dict[str, Any], username: str = None) -> Dict[str, Any]:
         flag_index = None
         if data.get("example_id") is not None:
             example_id = data["example_id"]
