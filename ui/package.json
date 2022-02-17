@@ -4,7 +4,7 @@
 	"description": "Gradio UI packages",
 	"scripts": {
 		"dev": "pnpm dev --filter @gradio/app",
-		"build": "pnpm build --filter @gradio/app",
+		"build": "pnpm build --filter @gradio/app --emptyOutDir",
 		"format:check": "prettier --check --plugin-search-dir=. .",
 		"format:write": "prettier --write --plugin-search-dir=. .",
 		"ts:check": "svelte-check --tsconfig tsconfig.json",
