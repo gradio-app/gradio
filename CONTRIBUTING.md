@@ -73,6 +73,9 @@ Do not forget the format the backend before pushing.
 ```
 bash scripts/format_backend.sh
 ```
+```
+bash scripts/format_frontend.sh
+```
 You can run the circleci checks locally as well. 
 ```
 bash scripts/run_circleci.sh
