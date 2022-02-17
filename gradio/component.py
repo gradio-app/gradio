@@ -1,6 +1,6 @@
 import os
 import shutil
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from gradio import processing_utils
 
@@ -49,7 +49,7 @@ class Component:
 
     def save_flagged_file(
         self, dir: str, label: str, data: Any, encryption_key: bool
-    ) -> str:
+    ) -> Optional[str]:
         """
         Saved flagged data (e.g. image or audio) as a file and returns filepath
         """
