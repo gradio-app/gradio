@@ -13,8 +13,8 @@
   <meta name="twitter:image" content="/assets/img/guides/{{ guide_name }}.png">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" type="image/png" href="/assets/img/logo.png">
-  <link href="/gradio_static/build/themes.css" rel="stylesheet">
-  <link href="/gradio_static/build/global.css" rel="stylesheet">
+  <link href="/gradio_static/assets/{{ index_css_file }}" rel="stylesheet">
+  <link href="/gradio_static/assets/{{ vendor_css_file }}" rel="stylesheet">
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/assets/prism.css">
   <style>
@@ -28,7 +28,7 @@
 
     .prose p>img {
       margin: 0 auto;
-      width: 900px;
+      width: 600px;
       max-width: 100%;
     }
 
@@ -42,6 +42,8 @@
 
     .prose .code,
     .prose pre {
+      width: 95%;
+      border-radius: 4px 0 0 4px;
       color: black;
       background: rgb(249, 250, 251);
     }
@@ -53,6 +55,34 @@
     .prose h1 {
       font-weight: 600;
     }
+
+    .anchor-img {
+      margin: 0 0 0 5px !important;
+    }
+
+    .anchor {
+      visibility: hidden;
+    }
+
+    .header:hover .anchor {
+      visibility: visible;
+    }
+
+    .copy {
+      padding-right: 1em;
+      background: #f9fafb;
+    }
+
+    .copy-svg {
+      visibility: hidden;
+      margin: 1em 0 0 0 !important;
+      width: 20px;
+    }
+
+    .code-block:hover .copy-svg {
+       visibility: visible;
+    }
+
   </style>
   <script async src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
   <script>
@@ -81,6 +111,23 @@
       </div>
       {% endfor %}
       </div>
+    <p class='mb-2 text-sm text-gray-500'>
+      <span class="italic">Related Spaces:</span>
+      {% for space in spaces %}
+        <a href='{{ space }}' target='_blank' class="hover:text-blue-500 transition">{{ space[30:] }}</a>
+        {% if not loop.last %}, {% endif %}
+      {% endfor %}
+    </p>
+    {% endif %}
+
+    {% if tags is not none %}
+    <p class='mb-2 text-sm text-gray-500'>
+      <span class="italic">Tags:</span>
+      {% for tag in tags %}
+        <span>{{ tag }}</span><!--
+     -->{% if not loop.last %}, {% endif %}
+      {% endfor %}
+    </p>
     {% endif %}
 
     <div class="prose mt-6">
@@ -102,7 +149,8 @@
   <script>
     window.gradio_mode = "website";
   </script>
-  <script defer id='gradio-library' src="/gradio_static/build/bundle.js"></script>
+  <script defer id="gradio-library" type="module" crossorigin src="/gradio_static/assets/{{ index_js_file }}"></script>
+  <link rel="modulepreload" href="/gradio_static/assets/{{ vendor_js_file }}" />
   <script>
     var demo_endpoint = "/demo";
     var demo_names = {{ demo_names| tojson }};
@@ -116,7 +164,31 @@
           });
       });
     });
+    function createAnchorTag(link) {
+            let a = document.createElement('a');
+            a.href = link;
+            a.classList.add("anchor");
+            let img = document.createElement('img');
+            img.classList.add("anchor-img", "w-7", "max-w-full", "inline-block", "mr-0", "ml-1")
+            img.src = "/assets/img/anchor.svg";
+            a.appendChild(img);
+            return a;
+        }
+    var headers = document.querySelectorAll("h1, h2, h3, h4, h5, h6");
+    for (let i = 0; i < headers.length; i++) {
+      headers[i].classList.add("header");
+      let link = '#' + headers[i].id;
+      headers[i].appendChild(createAnchorTag(link))
+    }
 
+    function copyCode(elem) {
+        var text = elem.parentElement.innerText;
+        navigator.clipboard.writeText(text);
+        elem.firstChild.src = "/assets/img/copy-orange.svg"
+        setTimeout(function(){
+          elem.firstChild.src = "/assets/img/copy-grey.svg"
+        }, 600);
+    };
 
     var spacesHolder, spaces;
     spacesHolder = document.getElementById("spaces-holder");

@@ -1,13 +1,11 @@
 <script lang="ts">
 	import { tick } from "svelte";
 
-	export let label = "Title";
 	export let headers: Array<string> = [];
-	export let values: Array<Array<string | number>> = [
-		["Frank", 32, "Male"],
-		["Beatrice", 99, "Female"],
-		["Simone", 999, "Male"]
-	];
+	export let values: Array<Array<string | number>> = [["", "", ""]];
+	export let default_data: Array<Array<string | number>> = [];
+
+	if ($$props.default) values = $$props.default;
 
 	export let setValue: (val: typeof values) => typeof values;
 	export let editable = true;
@@ -124,6 +122,20 @@
 					editing = false;
 				} else {
 					editing = id;
+				}
+				break;
+			case "Backspace":
+				if (!editable) break;
+				if (!editing) {
+					event.preventDefault();
+					data[i][j].value = "";
+				}
+				break;
+			case "Delete":
+				if (!editable) break;
+				if (!editing) {
+					event.preventDefault();
+					data[i][j].value = "";
 				}
 				break;
 			default:
@@ -271,8 +283,6 @@
 		};
 	};
 </script>
-
-<h4 id="title">{label}</h4>
 
 <div class="shadow overflow-hidden border-gray-200 rounded-sm relative">
 	<table

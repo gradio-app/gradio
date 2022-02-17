@@ -2,6 +2,7 @@
 	import Upload from "../../utils/Upload.svelte";
 	import ModifyUpload from "../../utils/ModifyUpload.svelte";
 	import { prettyBytes, playable } from "../../utils/helpers";
+	import { _ } from "svelte-i18n";
 
 	interface Data {
 		data: string;
@@ -39,9 +40,9 @@
 				load={handle_load}
 				{theme}
 			>
-				Drop Video Here
-				<br />- or -<br />
-				Click to Upload
+				{$_("interface.drop_video")}
+				<br />- {$_("interface.or")} -<br />
+				{$_("interface.click_to_upload")}
 			</Upload>
 		{/if}
 	{:else}

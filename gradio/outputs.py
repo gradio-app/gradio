@@ -794,6 +794,40 @@ class Timeseries(OutputComponent):
         return json.loads(data)
 
 
+class Chatbot(OutputComponent):
+    """
+    Component displays a chatbot output showing both user submitted messages and responses
+    Output type: List[Tuple[str, str]]
+    Demos: chatbot
+    """
+
+    def __init__(self, label: Optional[str] = None):
+        """
+        Parameters:
+        label (str): component name in interface (not used).
+        """
+        super().__init__(label)
+
+    def get_template_context(self):
+        return {**super().get_template_context()}
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "chatbot": {},
+        }
+
+    def postprocess(self, y):
+        """
+        Parameters:
+        y (List[Tuple[str, str]]): List of tuples representing the message and response
+        Returns:
+        (List[Tuple[str, str]]): Returns same list of tuples
+
+        """
+        return y
+
+
 class State(OutputComponent):
     """
     Special hidden component that stores state across runs of the interface.
