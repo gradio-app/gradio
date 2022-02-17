@@ -24,6 +24,7 @@ importers:
       '@types/d3-dsv': ^3.0.0
       '@types/d3-scale': ^4.0.2
       '@types/d3-shape': ^3.0.2
+      '@types/tailwindcss': ^3.0.8
       autoprefixer: ^9.8.8
       cropperjs: ^1.5.12
       d3-dsv: ^3.0.1
@@ -41,9 +42,6 @@ importers:
       tui-image-editor: ^3.15.2
       vite: ^2.7.13
     dependencies:
-      '@types/d3-dsv': 3.0.0
-      '@types/d3-scale': 4.0.2
-      '@types/d3-shape': 3.0.2
       autoprefixer: 9.8.8
       cropperjs: 1.5.12
       d3-dsv: 3.0.1
@@ -57,6 +55,10 @@ importers:
       tui-image-editor: 3.15.2
     devDependencies:
       '@sveltejs/vite-plugin-svelte': 1.0.0-next.36_svelte@3.46.3+vite@2.7.13
+      '@types/d3-dsv': 3.0.0
+      '@types/d3-scale': 4.0.2
+      '@types/d3-shape': 3.0.2
+      '@types/tailwindcss': 3.0.8
       postcss: 8.4.6
       postcss-nested: 5.0.6_postcss@8.4.6
       svelte: 3.46.3
@@ -202,27 +204,27 @@ packages:
 
   /@types/d3-dsv/3.0.0:
     resolution: {integrity: sha512-o0/7RlMl9p5n6FQDptuJVMxDf/7EDEv2SYEO/CwdG2tr1hTfUVi0Iavkk2ax+VpaQ/1jVhpnj5rq1nj8vwhn2A==}
-    dev: false
+    dev: true
 
   /@types/d3-path/3.0.0:
     resolution: {integrity: sha512-0g/A+mZXgFkQxN3HniRDbXMN79K3CdTpLsevj+PXiTcb2hVyvkZUBg37StmgCQkaD84cUJ4uaDAWq7UJOQy2Tg==}
-    dev: false
+    dev: true
 
   /@types/d3-scale/4.0.2:
     resolution: {integrity: sha512-Yk4htunhPAwN0XGlIwArRomOjdoBFXC3+kCxK2Ubg7I9shQlVSJy/pG/Ht5ASN+gdMIalpk8TJ5xV74jFsetLA==}
     dependencies:
       '@types/d3-time': 3.0.0
-    dev: false
+    dev: true
 
   /@types/d3-shape/3.0.2:
     resolution: {integrity: sha512-5+ButCmIfNX8id5seZ7jKj3igdcxx+S9IDBiT35fQGTLZUfkFgTv+oBH34xgeoWDKpWcMITSzBILWQtBoN5Piw==}
     dependencies:
       '@types/d3-path': 3.0.0
-    dev: false
+    dev: true
 
   /@types/d3-time/3.0.0:
     resolution: {integrity: sha512-sZLCdHvBUcNby1cB6Fd3ZBrABbjz3v1Vm90nysCQ6Vt7vd6e/h9Lt7SiJUoEX0l4Dzc7P5llKyhqSi1ycSf1Hg==}
-    dev: false
+    dev: true
 
   /@types/node/17.0.14:
     resolution: {integrity: sha512-SbjLmERksKOGzWzPNuW7fJM7fk3YXVTFiZWB/Hs99gwhk+/dnrQRPBQjPW9aO+fi1tAffi9PrwFvsmOKmDTyng==}
@@ -241,6 +243,10 @@ packages:
     dependencies:
       '@types/node': 17.0.14
     dev: false
+
+  /@types/tailwindcss/3.0.8:
+    resolution: {integrity: sha512-3BKgtrXdr+E/lsz79Hbkb8X3kjlbsgw1m0x/ewhff+cqN059GpFWHtYuLJd2ToDTeWZa3OE2V4KIo//PnOrKlQ==}
+    dev: true
 
   /abab/2.0.5:
     resolution: {integrity: sha512-9IK9EadsbHo6jLWIpxpR6pL0sazTXV6+SQv25ZB+F7Bj9mJNaOc4nCRabwd5M/JwmUa8idz6Eci6eKfJryPs6Q==}
