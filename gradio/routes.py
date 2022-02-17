@@ -195,9 +195,7 @@ def api_docs(request: Request):
 async def predict(request: Request, username: str = Depends(get_current_user)):
     body = await request.json()
     try:
-        output = await run_in_threadpool(
-            app.launchable.process_api, body, username
-        )
+        output = await run_in_threadpool(app.launchable.process_api, body, username)
     except BaseException as error:
         if app.launchable.show_error:
             traceback.print_exc()

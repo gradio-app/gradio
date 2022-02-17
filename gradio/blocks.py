@@ -1,6 +1,7 @@
-from gradio.launchable import Launchable
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
+
 from gradio import context, utils
-from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple, Dict
+from gradio.launchable import Launchable
 
 
 class Block:
@@ -75,8 +76,8 @@ class Blocks(Launchable, BlockContext):
         self.blocks = {}
         self.fns = []
         self.dependencies = []
-    
-    def process_api(self, data: Dict[str, Any], username: str=None) -> Dict[str, Any]:
+
+    def process_api(self, data: Dict[str, Any], username: str = None) -> Dict[str, Any]:
         raw_input = data["data"]
         fn_index = data["fn_index"]
         fn = self.fns[fn_index]
@@ -88,7 +89,7 @@ class Blocks(Launchable, BlockContext):
         ]
         predictions = fn(*processed_input)
         if len(dependency["outputs"]) == 1:
-            predictions = (predictions, )
+            predictions = (predictions,)
         processed_output = [
             self.blocks[output_id].postprocess(predictions[i])
             if predictions[i] is not None
@@ -96,14 +97,16 @@ class Blocks(Launchable, BlockContext):
             for i, output_id in enumerate(dependency["outputs"])
         ]
         return {"data": processed_output}
-        
+
     def get_template_context(self):
         return {"type": "column"}
 
     def get_config_file(self):
+        from gradio.component import Component
+
         config = {"mode": "blocks", "components": [], "theme": self.theme}
         for _id, block in self.blocks.items():
-            if not isinstance(block, BlockContext):
+            if isinstance(block, Component):
                 config["components"].append(
                     {
                         "id": _id,
@@ -111,6 +114,7 @@ class Blocks(Launchable, BlockContext):
                         "props": block.get_template_context(),
                     }
                 )
+
         def getLayout(block_context):
             if not isinstance(block_context, BlockContext):
                 return block_context._id
@@ -128,10 +132,8 @@ class Blocks(Launchable, BlockContext):
             if len(running_tabs):
                 children.append({"type": "tabset", "children": running_tabs})
                 running_tabs = []
-            return {
-                "children": children,
-                **block_context.get_template_context()
-            }
+            return {"children": children, **block_context.get_template_context()}
+
         config["layout"] = getLayout(self)
         config["dependencies"] = self.dependencies
         return config
