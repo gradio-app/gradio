@@ -200,7 +200,10 @@
 				{#each input_components as input_component, i}
 					{#if input_component.name !== "state"}
 						<div class="component" key={i}>
-							<div class="panel-header mb-1.5">{input_component.label}</div>
+							<div class="panel-header mb-1.5">
+								{input_component.label}{#if input_component.optional}
+									&nbsp;<em>(optional)</em>{/if}
+							</div>
 							<svelte:component
 								this={input_component_map[input_component.name][
 									interpret_mode ? "interpretation" : "component"

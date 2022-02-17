@@ -30,11 +30,14 @@ class InputComponent(Component):
     Input Component. All input components subclass this.
     """
 
-    def __init__(self, label: str, requires_permissions: bool = False):
+    def __init__(
+        self, label: str, requires_permissions: bool = False, optional: bool = False
+    ):
         """
         Constructs an input component.
         """
         self.set_interpret_parameters()
+        self.optional = optional
         super().__init__(label, requires_permissions)
 
     def preprocess(self, x: Any) -> Any:
@@ -96,6 +99,12 @@ class InputComponent(Component):
         Returns a sample value of the input that would be accepted by the api. Used for api documentation.
         """
         pass
+
+    def get_template_context(self):
+        return {
+            "optional": self.optional,
+            **super().get_template_context(),
+        }
 
 
 class Textbox(InputComponent):
@@ -248,16 +257,22 @@ class Number(InputComponent):
     Demos: tax_calculator, titanic_survival
     """
 
-    def __init__(self, default: Optional[float] = None, label: Optional[str] = None):
+    def __init__(
+        self,
+        default: Optional[float] = None,
+        label: Optional[str] = None,
+        optional: bool = False,
+    ):
         """
         Parameters:
         default (float): default value.
         label (str): component name in interface.
+        optional (bool): If True, the interface can be submitted with no value for this component.
         """
         self.default = default
         self.test_input = default if default is not None else 1
         self.interpret_by_tokens = False
-        super().__init__(label)
+        super().__init__(label, optional=optional)
 
     def get_template_context(self):
         return {"default": self.default, **super().get_template_context()}
@@ -268,13 +283,15 @@ class Number(InputComponent):
             "number": {},
         }
 
-    def preprocess(self, x: Number) -> float:
+    def preprocess(self, x: Optional[Number]) -> Optional[float]:
         """
         Parameters:
-        x (number): numeric input
+        x (string): numeric input as a string
         Returns:
         (float): number representing function input
         """
+        if self.optional and x is None:
+            return None
         return float(x)
 
     def preprocess_example(self, x: float) -> float:
@@ -445,7 +462,7 @@ class Checkbox(InputComponent):
             "checkbox": {},
         }
 
-    def preprocess(self, x):
+    def preprocess(self, x: bool) -> bool:
         """
         Parameters:
         x (bool): boolean input
@@ -519,7 +536,7 @@ class CheckboxGroup(InputComponent):
             **super().get_template_context(),
         }
 
-    def preprocess(self, x):
+    def preprocess(self, x: List[str]) -> List[str] | List[int]:
         """
         Parameters:
         x (List[str]): list of selected choices
@@ -590,7 +607,7 @@ class Radio(InputComponent):
 
     def __init__(
         self,
-        choices: List(str),
+        choices: List[str],
         type: str = "value",
         default: Optional[str] = None,
         label: Optional[str] = None,
@@ -616,7 +633,7 @@ class Radio(InputComponent):
             **super().get_template_context(),
         }
 
-    def preprocess(self, x):
+    def preprocess(self, x: str) -> str | int:
         """
         Parameters:
         x (str): selected choice
@@ -692,7 +709,7 @@ class Dropdown(InputComponent):
             **super().get_template_context(),
         }
 
-    def preprocess(self, x):
+    def preprocess(self, x: str) -> str | int:
         """
         Parameters:
         x (str): selected choice
@@ -768,11 +785,10 @@ class Image(InputComponent):
         requires_permissions = source == "webcam"
         self.tool = tool
         self.type = type
-        self.optional = optional
         self.invert_colors = invert_colors
         self.test_input = test_data.BASE64_IMAGE
         self.interpret_by_tokens = True
-        super().__init__(label, requires_permissions)
+        super().__init__(label, requires_permissions, optional=optional)
 
     @classmethod
     def get_shortcut_implementations(cls):
@@ -797,12 +813,12 @@ class Image(InputComponent):
             **super().get_template_context(),
         }
 
-    def preprocess(self, x):
+    def preprocess(self, x: Optional[str]) -> np.array | PIL.Image | str | None:
         """
         Parameters:
         x (str): base64 url data
         Returns:
-        (Union[numpy.array, PIL.Image, file-object]): image in requested format
+        (Union[numpy.array, PIL.Image, filepath]): image in requested format
         """
         if x is None:
             return x
@@ -993,8 +1009,7 @@ class Video(InputComponent):
         """
         self.type = type
         self.source = source
-        self.optional = optional
-        super().__init__(label)
+        super().__init__(label, optional=optional)
 
     @classmethod
     def get_shortcut_implementations(cls):
@@ -1012,7 +1027,7 @@ class Video(InputComponent):
     def preprocess_example(self, x):
         return {"name": x, "data": None, "is_example": True}
 
-    def preprocess(self, x):
+    def preprocess(self, x: Dict[str, str] | None) -> str | None:
         """
         Parameters:
         x (Dict[name: str, data: str]): JSON object with filename as 'name' property and base64 data as 'data' property
@@ -1081,10 +1096,9 @@ class Audio(InputComponent):
         self.source = source
         requires_permissions = source == "microphone"
         self.type = type
-        self.optional = optional
         self.test_input = test_data.BASE64_AUDIO
         self.interpret_by_tokens = True
-        super().__init__(label, requires_permissions)
+        super().__init__(label, requires_permissions, optional=optional)
 
     def get_template_context(self):
         return {
@@ -1104,12 +1118,12 @@ class Audio(InputComponent):
     def preprocess_example(self, x):
         return {"name": x, "data": None, "is_example": True}
 
-    def preprocess(self, x):
+    def preprocess(self, x: Dict[str, str] | None) -> Tuple[int, np.array] | str | None:
         """
         Parameters:
         x (Dict[name: str, data: str]): JSON object with filename as 'name' property and base64 data as 'data' property
         Returns:
-        (Union[Tuple[int, numpy.array], file-object, numpy.array]): audio in requested format
+        (Union[Tuple[int, numpy.array], str, numpy.array]): audio in requested format
         """
         if x is None:
             return x
@@ -1295,8 +1309,7 @@ class File(InputComponent):
         self.file_count = file_count
         self.type = type
         self.test_input = None
-        self.optional = optional
-        super().__init__(label)
+        super().__init__(label, optional=optional)
 
     def get_template_context(self):
         return {
@@ -1315,7 +1328,7 @@ class File(InputComponent):
     def preprocess_example(self, x):
         return {"name": x, "data": None, "is_example": True}
 
-    def preprocess(self, x):
+    def preprocess(self, x: List[Dict[str, str]] | None):
         """
         Parameters:
         x (List[Dict[name: str, data: str]]): List of JSON objects with filename as 'name' property and base64 data as 'data' property
@@ -1445,7 +1458,7 @@ class Dataframe(InputComponent):
             "list": {"type": "array", "col_count": 1},
         }
 
-    def preprocess(self, x):
+    def preprocess(self, x: List[List[str | Number | bool]]):
         """
         Parameters:
         x (List[List[Union[str, number, bool]]]): 2D array of str, numeric, or bool data
@@ -1508,8 +1521,7 @@ class Timeseries(InputComponent):
         if isinstance(y, str):
             y = [y]
         self.y = y
-        self.optional = optional
-        super().__init__(label)
+        super().__init__(label, optional=optional)
 
     def get_template_context(self):
         return {
@@ -1528,7 +1540,7 @@ class Timeseries(InputComponent):
     def preprocess_example(self, x):
         return {"name": x, "is_example": True}
 
-    def preprocess(self, x):
+    def preprocess(self, x: Dict | None) -> pd.DataFrame | None:
         """
         Parameters:
         x (Dict[data: List[List[Union[str, number, bool]]], headers: List[str], range: List[number]]): Dict with keys 'data': 2D array of str, numeric, or bool data, 'headers': list of strings for header names, 'range': optional two element list designating start of end of subrange.
