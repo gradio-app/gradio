@@ -99,7 +99,7 @@ class InputComponent(Component):
         Returns a sample value of the input that would be accepted by the api. Used for api documentation.
         """
         pass
-    
+
     def get_template_context(self):
         return {
             "optional": self.optional,

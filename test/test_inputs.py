@@ -146,13 +146,8 @@ class TestNumber(unittest.TestCase):
         )
         self.assertEqual(
             numeric_input.get_template_context(),
-            {
-                'default': None, 
-                'optional': True, 
-                'name': 'number', 
-                'label': None
-            }
-        )        
+            {"default": None, "optional": True, "name": "number", "label": None},
+        )
 
     def test_in_interface(self):
         iface = gr.Interface(lambda x: x**2, "number", "textbox")
@@ -188,8 +183,6 @@ class TestNumber(unittest.TestCase):
                 ]
             ],
         )
-
-        
 
 
 class TestSlider(unittest.TestCase):
@@ -275,10 +268,12 @@ class TestCheckbox(unittest.TestCase):
         bool_input = gr.inputs.Checkbox(default=True, label="Check Your Input")
         self.assertEqual(
             bool_input.get_template_context(),
-            {"default": True, 
-             "name": "checkbox",
-             "optional": False, 
-             "label": "Check Your Input"},
+            {
+                "default": True,
+                "name": "checkbox",
+                "optional": False,
+                "label": "Check Your Input",
+            },
         )
 
     def test_in_interface(self):
