@@ -104,7 +104,7 @@ iface = gr.Interface(
         gr.inputs.Audio(label="Audio", optional=True),
         gr.inputs.Audio(label="Microphone", source="microphone", optional=True),
         gr.inputs.File(label="File", optional=True),
-        gr.inputs.Dataframe(label="Dataframe"),
+        gr.inputs.Dataframe(label="Dataframe", headers=["Name", "Age", "Gender"]),
         gr.inputs.Timeseries(x="time", y=["price", "value"], optional=True),
     ],
     outputs=[
