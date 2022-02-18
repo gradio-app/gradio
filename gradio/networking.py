@@ -8,8 +8,8 @@ import os
 import socket
 import threading
 import time
-from typing import TYPE_CHECKING, Optional, Tuple
 import warnings
+from typing import TYPE_CHECKING, Optional, Tuple
 
 import fastapi
 import requests
