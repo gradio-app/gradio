@@ -49,9 +49,10 @@ def predict(input, history=[]):
 
     # generate a response 
     history = model.generate(bot_input_ids, max_length=1000, pad_token_id=tokenizer.eos_token_id).tolist()
+
     # convert the tokens to text, and then split the responses into lines
-    response = tokenizer.decode(history[0]).replace("<|endoftext|>", "\n")
-    
+    response = tokenizer.decode(history[0]).split("<|endoftext|>")
+    response = [(response[i], response[i+1]) for i in range(0, len(response)-1, 2)]  # convert to tuples of list
     return response, history
 ```
 
@@ -62,7 +63,7 @@ Let's break this down. The function takes two parameters:
 
 Then, the function tokenizes the input and concatenates it with the tokens corresponding to the previous user and bot responses. Then, this is fed into the pretrained model to get a prediction. Finally, we do some cleaning up so that we can return two values from our function:
 
-* `response`: which is a list of strings corresponding to all of the user and bot responses. This will be rendered as the output in the Gradio demo.
+* `response`: which is a list of tuples of strings corresponding to all of the user and bot responses. This will be rendered as the output in the Gradio demo.
 * `history` variable, which is the token representation of all of the user and bot responses. In stateful Gradio demos, we *must* return the updated state at the end of the function. 
 
 ## Step 3 — Creating a Gradio Interface
@@ -71,7 +72,7 @@ Now that we have our predictive function set up, we can create a Gradio Interfac
 
 In this case, our function takes in two values, a text input and a state input. The corresponding input components in `gradio` are `"text"` and `"state"`. 
 
-The function also returns two values. For now, we will display the list of responses as `"text"` and use the `"state"` output component type for the second return value.
+The function also returns two values. We will display the list of responses using the dedicated `"chatbot"` component and use the `"state"` output component type for the second return value.
 
 Note that the `"state"` input and output components are not displayed. 
 
@@ -87,56 +88,6 @@ This produces the following interface, which you can try right here in your brow
 
 <iframe src="https://hf.space/gradioiframe/abidlabs/chatbot-minimal/+" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
-## Step 4 — Styling Your Interface 
-
-The problem is that the output of the chatbot looks pretty ugly. No problem, we can make it prettier by using a little bit of CSS. First, we modify our function to return a string of HTML components, instead of just text:
-
-```python
-def predict(input, history=[]):
-    # tokenize the new input sentence
-    new_user_input_ids = tokenizer.encode(input + tokenizer.eos_token, return_tensors='pt')
-
-    # append the new user input tokens to the chat history
-    bot_input_ids = torch.cat([torch.LongTensor(history), new_user_input_ids], dim=-1)
-
-    # generate a response 
-    history = model.generate(bot_input_ids, max_length=1000, pad_token_id=tokenizer.eos_token_id).tolist()
-
-    # convert the tokens to text, and then split the responses into lines
-    response = tokenizer.decode(history[0]).split("<|endoftext|>")
-    response.remove("")
-    
-    # write some HTML
-    html = "<div class='chatbot'>"
-    for m, msg in enumerate(response):
-        cls = "user" if m%2 == 0 else "bot"
-        html += "<div class='msg {}'> {}</div>".format(cls, msg)
-    html += "</div>"
-    
-    return html, history
-```
-
-Now, we change the first output component to be `"html"` instead, since now we are returning a string of HTML code. We also include some custom css to make the output prettier using the `css` parameter. 
-
-```python
-import gradio as gr
-
-css = """
-.chatbox {display:flex;flex-direction:column}
-.msg {padding:4px;margin-bottom:4px;border-radius:4px;width:80%}
-.msg.user {background-color:cornflowerblue;color:white}
-.msg.bot {background-color:lightgray;align-self:self-end}
-"""
-
-gr.Interface(fn=predict,
-             inputs=[gr.inputs.Textbox(placeholder="How are you?"), "state"],
-             outputs=["html", "state"],
-             css=css).launch()
-```
-
-Notice that we have also added a placeholder to the input `text` component by instantiating the `gr.inputs.Textbox()` class and passing in a `placeholder` value, and now we are good to go! Try it out below:
-
-<iframe src="https://hf.space/gradioiframe/abidlabs/chatbot-stylized/+" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
 ----------
 
