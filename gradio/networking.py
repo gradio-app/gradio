@@ -4,14 +4,11 @@ creating tunnels.
 """
 from __future__ import annotations
 
-import http
-import json
 import os
 import socket
 import threading
 import time
-import urllib.parse
-import urllib.request
+import warnings
 from typing import TYPE_CHECKING, Optional, Tuple
 
 import fastapi
@@ -174,7 +171,9 @@ def url_ok(url: str) -> bool:
     try:
         for _ in range(5):
             time.sleep(0.500)
-            r = requests.head(url, timeout=3, verify=False)
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore")
+                r = requests.head(url, timeout=3, verify=False)
             if r.status_code in (200, 401, 302):  # 401 or 302 if auth is set
                 return True
     except (ConnectionError, requests.exceptions.ConnectionError):
