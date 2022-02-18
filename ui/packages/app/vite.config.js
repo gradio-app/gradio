@@ -11,6 +11,7 @@ export default defineConfig(({ mode }) => {
 	const production = mode === "production";
 
 	return {
+		base: "./",
 		build: {
 			outDir: "../../../gradio/templates/frontend"
 		},
