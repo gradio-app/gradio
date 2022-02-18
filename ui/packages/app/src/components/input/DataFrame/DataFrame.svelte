@@ -21,7 +21,7 @@
 	type Headers = Array<{ value: string; id: number }>;
 
 	function make_headers(_h: Array<string>): Headers {
-		if (_h.length === 0) {
+		if (!_h || _h.length === 0) {
 			return values[0].map((_, i) => {
 				const _id = ++id;
 				els[_id] = { cell: null, input: null };
