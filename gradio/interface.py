@@ -696,8 +696,12 @@ class Interface:
             cache_interface_examples(self)
 
         server_port, path_to_local_server, app, server = networking.start_server(
-            self, server_name, server_port, ssl_keyfile, ssl_certfile, 
-            ssl_keyfile_password
+            self,
+            server_name,
+            server_port,
+            ssl_keyfile,
+            ssl_certfile,
+            ssl_keyfile_password,
         )
 
         self.local_url = path_to_local_server
