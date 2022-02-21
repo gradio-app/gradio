@@ -146,7 +146,7 @@ class Interface:
         examples (Union[List[List[Any]], str]): sample inputs for the function; if provided, appears below the UI components and can be used to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided. If there are multiple input components and a directory is provided, a log.csv file must be present in the directory to link corresponding inputs.
         examples_per_page (int): If examples are provided, how many to display per page.
         live (bool): whether the interface should automatically reload on change in any of the inputs.
-        refresh_rate (float): the minimal amount of time, in seconds, between automatic reloads. 0 means reload whenever the input changes. Used only if live=True. 
+        refresh_rate (float): the minimal amount of time, in seconds, between automatic reloads. 0 means reload whenever the input changes. Used only if live=True.
         layout (str): Layout of input and output panels. "horizontal" arranges them as two columns of equal height, "unaligned" arranges them as two columns of unequal height, and "vertical" arranges them vertically.
         capture_session (bool): DEPRECATED. If True, captures the default graph and session (needed for Tensorflow 1.x)
         interpretation (Union[Callable, str]): function that provides interpretation explaining prediction output. Pass "default" to use simple built-in interpreter, "shap" to use a built-in shapley-based interpreter, or your own custom interpretation function.
@@ -699,8 +699,12 @@ class Interface:
             cache_interface_examples(self)
 
         server_port, path_to_local_server, app, server = networking.start_server(
-            self, server_name, server_port, ssl_keyfile, ssl_certfile, 
-            ssl_keyfile_password
+            self,
+            server_name,
+            server_port,
+            ssl_keyfile,
+            ssl_certfile,
+            ssl_keyfile_password,
         )
 
         self.local_url = path_to_local_server
