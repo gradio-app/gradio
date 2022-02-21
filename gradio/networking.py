@@ -76,6 +76,7 @@ def start_server(
     server_port: Optional[int] = None,
     ssl_keyfile: Optional[str] = None,
     ssl_certfile: Optional[str] = None,
+    ssl_keyfile_password: Optional[str] = None,
 ) -> Tuple[int, str, fastapi.FastAPI, threading.Thread, None]:
     """Launches a local server running the provided Interface
     Parameters:
@@ -85,6 +86,7 @@ def start_server(
     auth: If provided, username and password (or list of username-password tuples) required to access interface. Can also provide function that takes username and password and returns True if valid login.
     ssl_keyfile: If a path to a file is provided, will use this as the private key file to create a local server running on https.
     ssl_certfile: If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
+    ssl_keyfile_password (str): If a password is provided, will use this with the ssl certificate for https.
     """
     server_name = server_name or LOCALHOST_NAME
     # if port is not specified, search for first available port
@@ -147,6 +149,7 @@ def start_server(
         log_level="warning",
         ssl_keyfile=ssl_keyfile,
         ssl_certfile=ssl_certfile,
+        ssl_keyfile_password=ssl_keyfile_password,
     )
     server = Server(config=config)
     server.run_in_thread()

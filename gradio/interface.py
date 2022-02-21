@@ -629,6 +629,7 @@ class Interface:
         favicon_path: Optional[str] = None,
         ssl_keyfile: Optional[str] = None,
         ssl_certfile: Optional[str] = None,
+        ssl_keyfile_password: Optional[str] = None,
     ) -> Tuple[flask.Flask, str, str]:
         """
         Launches the webserver that serves the UI for the interface.
@@ -653,6 +654,7 @@ class Interface:
         favicon_path (str): If a path to a file (.png, .gif, or .ico) is provided, it will be used as the favicon for the web page.
         ssl_keyfile (str): If a path to a file is provided, will use this as the private key file to create a local server running on https.
         ssl_certfile (str): If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
+        ssl_keyfile_password (str): If a password is provided, will use this with the ssl certificate for https.
         Returns:
         app (flask.Flask): Flask app object
         path_to_local_server (str): Locally accessible link
@@ -694,7 +696,8 @@ class Interface:
             cache_interface_examples(self)
 
         server_port, path_to_local_server, app, server = networking.start_server(
-            self, server_name, server_port, ssl_keyfile, ssl_certfile
+            self, server_name, server_port, ssl_keyfile, ssl_certfile, 
+            ssl_keyfile_password
         )
 
         self.local_url = path_to_local_server
