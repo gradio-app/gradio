@@ -1,0 +1,18 @@
+{
+	"interface": {
+		"submit": "ثبت",
+		"clear": "پاک کردن",
+		"interpret": "تحلیل",
+		"flag": "علامت گذاری",
+		"examples": "مثال ها",
+		"drop_image": "تصویر را اینجا بیندازید",
+		"drop_video": "ویدیو را اینجا بیندازید",
+		"drop_audio": "فایل صوتی را اینجا بیندازید",
+		"drop_file": "فایل را اینجا بیندازید",
+		"drop_csv": "فایل CSV را اینجا بیندازید",
+		"or": "یا",
+		"click_to_upload": "برای آپلود کلیک کنید",
+		"view_api": "مشاهده api",
+		"built_with_Gradio": "ساخته شده با gradio"
+	}
+}
