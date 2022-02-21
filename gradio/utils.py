@@ -189,6 +189,7 @@ def get_config_file(interface: Interface) -> Dict[str, Any]:
         ],
         "function_count": len(interface.predict),
         "live": interface.live,
+        "refresh_rate": interface.refresh_rate,
         "examples_per_page": interface.examples_per_page,
         "layout": interface.layout,
         "show_input": interface.show_input,
