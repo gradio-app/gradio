@@ -22,6 +22,7 @@ setup(
         "markdown-it-py[linkify,plugins]",
         "matplotlib",
         "numpy",
+        "orjson",
         "pandas",
         "paramiko",
         "pillow",
