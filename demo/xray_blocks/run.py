@@ -3,7 +3,7 @@ import gradio as gr
 import random
 
 xray_model = lambda diseases, img: {disease: random.random() for disease in diseases}
-ct_model = lambda diseases, img: {disease: random.random() for disease in diseases}
+ct_model = lambda diseases, img: {disease: 0.1 for disease in diseases}
 
 xray_blocks = gr.Blocks()
 
