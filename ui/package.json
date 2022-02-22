@@ -3,6 +3,7 @@
 	"version": "0.0.1",
 	"description": "Gradio UI packages",
 	"scripts": {
+		"workbench": "pnpm dev --filter @gradio/workbench",
 		"dev": "pnpm dev --filter @gradio/app",
 		"build": "pnpm build --filter @gradio/app",
 		"format:check": "prettier --check --plugin-search-dir=. .",
@@ -15,11 +16,16 @@
 	"license": "ISC",
 	"private": true,
 	"dependencies": {
+		"autoprefixer": "^9.8.8",
+		"postcss": "^8.4.5",
+		"postcss-nested": "^5.0.6",
 		"prettier": "^2.5.1",
 		"prettier-plugin-svelte": "^2.6.0",
 		"svelte": "^3.46.3",
 		"svelte-check": "^2.4.1",
 		"svelte-i18n": "^3.3.13",
+		"svelte-preprocess": "^4.10.1",
+		"tailwindcss": "^3.0.23",
 		"vitest": "^0.3.2"
 	}
 }
