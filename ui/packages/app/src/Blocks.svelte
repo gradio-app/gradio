@@ -30,6 +30,8 @@
 	export let theme: string;
 	export let static_src: string;
 
+	$: console.log(components, layout, dependencies);
+
 	let values: Record<string, unknown> = {};
 	let component_id_map: Record<string, Component> = {};
 	let event_listener_map: Record<string, Array<number>> = {};
@@ -56,13 +58,10 @@
 	const triggerTarget = (i: string) => {
 		event_listener_map[i].forEach((fn_index: number) => {
 			let dependency = dependencies[fn_index];
-			fn(
-				"predict",
-				{
-					"fn_index": fn_index,
-					"data": dependency.inputs.map((i) => values[i])
-				}
-			).then((output) => {
+			fn("predict", {
+				fn_index: fn_index,
+				data: dependency.inputs.map((i) => values[i])
+			}).then((output) => {
 				output["data"].forEach((value, i) => {
 					values[dependency.outputs[i]] = value;
 				});
