@@ -4,14 +4,11 @@ creating tunnels.
 """
 from __future__ import annotations
 
-import http
-import json
 import os
 import socket
 import threading
 import time
-import urllib.parse
-import urllib.request
+import warnings
 from typing import TYPE_CHECKING, Optional, Tuple
 
 import fastapi
@@ -79,6 +76,7 @@ def start_server(
     server_port: Optional[int] = None,
     ssl_keyfile: Optional[str] = None,
     ssl_certfile: Optional[str] = None,
+    ssl_keyfile_password: Optional[str] = None,
 ) -> Tuple[int, str, fastapi.FastAPI, threading.Thread, None]:
     """Launches a local server running the provided Interface
     Parameters:
@@ -88,6 +86,7 @@ def start_server(
     auth: If provided, username and password (or list of username-password tuples) required to access interface. Can also provide function that takes username and password and returns True if valid login.
     ssl_keyfile: If a path to a file is provided, will use this as the private key file to create a local server running on https.
     ssl_certfile: If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
+    ssl_keyfile_password (str): If a password is provided, will use this with the ssl certificate for https.
     """
     server_name = server_name or LOCALHOST_NAME
     # if port is not specified, search for first available port
@@ -150,6 +149,7 @@ def start_server(
         log_level="warning",
         ssl_keyfile=ssl_keyfile,
         ssl_certfile=ssl_certfile,
+        ssl_keyfile_password=ssl_keyfile_password,
     )
     server = Server(config=config)
     server.run_in_thread()
@@ -174,7 +174,9 @@ def url_ok(url: str) -> bool:
     try:
         for _ in range(5):
             time.sleep(0.500)
-            r = requests.head(url, timeout=3, verify=False)
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore")
+                r = requests.head(url, timeout=3, verify=False)
             if r.status_code in (200, 401, 302):  # 401 or 302 if auth is set
                 return True
     except (ConnectionError, requests.exceptions.ConnectionError):
