@@ -14,24 +14,13 @@ def chat(message, history):
     else:
         response = "I don't know"
     history.append((message, response))
-    html = "<div class='chatbot'>"
-    for user_msg, resp_msg in history:
-        html += f"<div class='user_msg'>{user_msg}</div>"
-        html += f"<div class='resp_msg'>{resp_msg}</div>"
-    html += "</div>"
-    return html, history
+    return history, history
 
 
 iface = gr.Interface(
     chat,
     ["text", "state"],
-    ["html", "state"],
-    css="""
-    .chatbox {display:flex;flex-direction:column}
-    .user_msg, .resp_msg {padding:4px;margin-bottom:4px;border-radius:4px;width:80%}
-    .user_msg {background-color:cornflowerblue;color:white;align-self:start}
-    .resp_msg {background-color:lightgray;align-self:self-end}
-""",
+    ["chatbot", "state"],
     allow_screenshot=False,
     allow_flagging="never",
 )
