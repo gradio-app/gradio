@@ -9,8 +9,9 @@ import posixpath
 import secrets
 import traceback
 import urllib
-from typing import List, Optional, Type
+from typing import Any, List, Optional, Type
 
+import orjson
 import pkg_resources
 import uvicorn
 from fastapi import Depends, FastAPI, HTTPException, Request, status
@@ -38,7 +39,15 @@ GRADIO_BUILD_ROOT = "https://gradio.s3-us-west-2.amazonaws.com/{}/assets/".forma
     VERSION
 )
 
-app = FastAPI()
+
+class ORJSONResponse(JSONResponse):
+    media_type = "application/json"
+
+    def render(self, content: Any) -> bytes:
+        return orjson.dumps(content)
+
+
+app = FastAPI(default_response_class=ORJSONResponse)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -108,15 +117,16 @@ def main(request: Request, user: str = Depends(get_current_user)):
         config = app.interface.config
     else:
         config = {"auth_required": True, "auth_message": app.interface.auth_message}
-        
+
     try:
         return templates.TemplateResponse(
             "frontend/index.html", {"request": request, "config": config}
         )
     except TemplateNotFound:
-        raise ValueError("Did you install Gradio from source files? You need to build "
-                         "the frontend by running /scripts/build_frontend.sh")
-        
+        raise ValueError(
+            "Did you install Gradio from source files? You need to build "
+            "the frontend by running /scripts/build_frontend.sh"
+        )
 
 
 @app.get("/config/", dependencies=[Depends(login_check)])
