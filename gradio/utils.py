@@ -156,9 +156,9 @@ def readme_to_html(article: str) -> str:
 
 
 def show_tip(interface: Interface) -> None:
-    # Only show tip every other use.
     if interface.show_tips and random.random() < 0.5:
-        print(random.choice(gradio.strings.en.TIPS))
+        tip: str = random.choice(gradio.strings.en["TIPS"])
+        print(f"Tip: {tip}")
 
 
 def launch_counter() -> None:
