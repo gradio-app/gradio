@@ -156,7 +156,7 @@ def readme_to_html(article: str) -> str:
 
 
 def show_tip(interface: Interface) -> None:
-    if interface.show_tips and random.random() < 0.5:
+    if interface.show_tips and random.random() < 1.5:
         tip: str = random.choice(gradio.strings.en["TIPS"])
         print(f"Tip: {tip}")
 
