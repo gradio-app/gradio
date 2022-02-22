@@ -19,6 +19,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
+from jinja2.exceptions import TemplateNotFound
 from starlette.responses import RedirectResponse
 
 from gradio import encryptor, queueing, utils
@@ -107,10 +108,15 @@ def main(request: Request, user: str = Depends(get_current_user)):
         config = app.interface.config
     else:
         config = {"auth_required": True, "auth_message": app.interface.auth_message}
-
-    return templates.TemplateResponse(
-        "frontend/index.html", {"request": request, "config": config}
-    )
+        
+    try:
+        return templates.TemplateResponse(
+            "frontend/index.html", {"request": request, "config": config}
+        )
+    except TemplateNotFound:
+        raise ValueError("Did you install Gradio from source files? You need to build "
+                         "the frontend by running /scripts/build_frontend.sh")
+        
 
 
 @app.get("/config/", dependencies=[Depends(login_check)])
