@@ -5,14 +5,14 @@
 		"interpret": "Yorumla",
 		"flag": "Etiketle",
 		"examples": "örnekler",
-		"drop_image": "Resmi Buraya Bırak",
-		"drop_video": "Videoyu Buraya Bırak",
-		"drop_audio": "Kaydı Buraya Bırak",
-		"drop_file": "Dosyayı Buraya Bırak",
-		"drop_csv": "CSV'yi Buraya Bırak ",
+		"drop_image": "Resmi Buraya Sürükle",
+		"drop_video": "Videoyu Buraya Sürükle",
+		"drop_audio": "Kaydı Buraya Sürükle",
+		"drop_file": "Dosyayı Buraya Sürükle",
+		"drop_csv": "CSV'yi Buraya Sürükle",
 		"or": "veya",
 		"click_to_upload": "Yüklemek için Tıkla",
-		"view_api": "api'yi göster",
-		"built_with_Gradio": "gradio ile oluşturulmuş"
+		"view_api": "api'yi görüntüle",
+		"built_with_Gradio": "Gradio ile oluşturulmuştur"
 	}
 }
