@@ -1,13 +1,10 @@
 {
-	"name": "@gradio/audio",
+	"name": "@gradio/upload",
 	"version": "0.0.1",
 	"description": "Gradio UI packages",
 	"type": "module",
 	"main": "src/index.ts",
 	"author": "",
 	"license": "ISC",
-	"private": true,
-	"dependencies": {
-		"@gradio/upload": "workspace:^0.0.1"
-	}
+	"private": true
 }

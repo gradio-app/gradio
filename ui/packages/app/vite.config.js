@@ -4,7 +4,7 @@ import sveltePreprocess from "svelte-preprocess";
 
 // this is dupe config, gonna try fix this
 import tailwind from "tailwindcss";
-import nested from "postcss-nested";
+import nested from "tailwindcss/nesting";
 import autoprefix from "autoprefixer";
 
 export default defineConfig(({ mode }) => {

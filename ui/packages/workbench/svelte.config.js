@@ -11,7 +11,7 @@ const config = {
 	// for more information about preprocessors
 	preprocess: [
 		svelte_preprocess({
-			postcss: true
+			postcss: { plugins: [tailwind, nested, autoprefix] }
 		})
 	],
 
