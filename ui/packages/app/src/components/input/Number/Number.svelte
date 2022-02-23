@@ -3,16 +3,13 @@
 	export let setValue: (val: number) => number;
 	export let theme: string;
 
-	function handle_input(event: Event) {
-		setValue(parseFloat((event.target as HTMLInputElement).value));
-	}
+	$: setValue(value);
 </script>
 
 <input
 	type="number"
 	class="input-number w-full rounded box-border p-2 focus:outline-none appearance-none"
-	{value}
-	on:input={handle_input}
+	bind:value
 	{theme}
 />
 
