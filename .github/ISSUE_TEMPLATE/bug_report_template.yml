@@ -23,7 +23,7 @@ body:
     validations:
       required: true
   - type: textarea
-    id: logs
+    id: screenshot
     attributes:
       label: Screenshot
       description: "Please include a screenshot as it makes it much more clear"
