@@ -6,7 +6,7 @@ body:
     attributes:
       value: |
         Thanks for taking the time to fill out this bug report!
-  - type: textarea
+  - type: markdown
     id: bug-description
     attributes:
       label: Describe the bug
@@ -14,7 +14,7 @@ body:
       placeholder: Bug description
     validations:
       required: true
-  - type: textarea
+  - type: markdown
     id: reproduction
     attributes:
       label: Reproduction
@@ -22,19 +22,19 @@ body:
       placeholder: Reproduction
     validations:
       required: true
-  - type: textarea
+  - type: markdown
     id: screenshot
     attributes:
       label: Screenshot
       description: "Please include a screenshot as it makes it much more clear"
       render: shell
-  - type: textarea
+  - type: markdown
     id: logs
     attributes:
       label: Logs
       description: "Please include the logs if you can. You can get the logs with debug=True, ie: gradio.Interface.launch(debug=True)"
       render: shell
-  - type: textarea
+  - type: markdown
     id: system-info
     attributes:
       label: System Info
