@@ -3,8 +3,23 @@
 
 	export let value: Array<[string, string | number]>;
 	export let theme: string;
-	export let show_legend: boolean;
+	export let show_legend: boolean = true;
 	export let color_map: Record<string, string> = {};
+
+	let ctx: CanvasRenderingContext2D;
+
+	function name_to_rgba(name: string) {
+		if (!ctx) {
+			var canvas = document.createElement("canvas");
+			ctx = canvas.getContext("2d")!;
+		}
+
+		ctx.fillStyle = name;
+		ctx.fillRect(0, 0, 1, 1);
+		const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
+		ctx.clearRect(0, 0, 1, 1);
+		return `rgba(${r}, ${g}, ${b}, ${255 / a})`;
+	}
 
 	let mode: "categories" | "scores";
 
@@ -26,6 +41,15 @@
 			}
 		}
 	}
+
+	for (const col in color_map) {
+		const _c = color_map[col].trim();
+		if (_c.startsWith("rgba")) {
+			color_map[col] = color_map[col];
+		} else {
+			color_map[col] = name_to_rgba(color_map[col]);
+		}
+	}
 </script>
 
 <div class="output-highlightedtext" {theme}>
@@ -35,7 +59,7 @@
 				{#each Object.entries(color_map) as [category, color], i}
 					<div
 						class="category-label px-2 py-1 rounded text-white font-semibold"
-						style={"background-color" + color}
+						style={"background-color:" + color}
 					>
 						{category}
 					</div>
