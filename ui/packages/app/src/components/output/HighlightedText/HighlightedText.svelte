@@ -44,8 +44,11 @@
 
 	for (const col in color_map) {
 		const _c = color_map[col].trim();
-		if (_c.startsWith("rgba")) color_map[col] = color_map[col];
-		color_map[col] = name_to_rgba(color_map[col]);
+		if (_c.startsWith("rgba")) {
+			color_map[col] = color_map[col];
+		} else {
+			color_map[col] = name_to_rgba(color_map[col]);
+		}
 	}
 </script>
 
