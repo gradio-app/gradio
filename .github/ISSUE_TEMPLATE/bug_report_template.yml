@@ -1,6 +1,6 @@
 name: "\U0001F41E Bug report"
 description: Report a bug on Gradio
-labels: [ "triage: bug" ]
+labels: [ "bug" ]
 body:
   - type: markdown
     attributes:
