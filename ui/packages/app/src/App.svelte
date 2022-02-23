@@ -34,6 +34,7 @@
 	export let root: string;
 	export let space: string | undefined = undefined;
 	export let allow_flagging: string;
+	export let flagging_options: Array<string> | undefined = undefined;
 	export let allow_interpretation: boolean;
 	export let live: boolean;
 	export let queue: boolean;
@@ -69,6 +70,7 @@
 				{fn}
 				{root}
 				{allow_flagging}
+				{flagging_options}
 				{allow_interpretation}
 				{live}
 				{queue}
