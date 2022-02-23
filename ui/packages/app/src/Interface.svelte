@@ -19,6 +19,7 @@
 	export let examples: Array<Array<unknown>>;
 	export let root: string;
 	export let allow_flagging: string;
+	export let flagging_options: Array<string> | undefined = undefined;
 	export let allow_interpretation: boolean;
 	export let avg_durations: undefined | Array<number> = undefined;
 	export let live: boolean;
@@ -33,6 +34,7 @@
 	let has_changed = false;
 	let queue_index: number | null = null;
 	let initial_queue_index: number | null = null;
+	let just_flagged: boolean = false;
 
 	const default_inputs: Array<unknown> = input_components.map((component) =>
 		"default" in component ? component.default : null
@@ -156,12 +158,20 @@
 		state = "START";
 		stopTimer();
 	};
-	const flag = () => {
+	const flag = (flag_option: string | null) => {
+		let flag_data: Record<string, any> = {
+			input_data: input_values,
+			output_data: output_values
+		};
+		if (flag_option !== null) {
+			flag_data["flag_option"] = flag_option;
+		}
+		just_flagged = true;
+		setTimeout(() => {
+			just_flagged = false;
+		}, 500);
 		fn("flag", {
-			data: {
-				input_data: input_values,
-				output_data: output_values
-			}
+			data: flag_data
 		});
 	};
 	const interpret = () => {
@@ -304,12 +314,36 @@
 					</button>
 				{/if}
 				{#if allow_flagging !== "never"}
-					<button
-						class="panel-button flag bg-gray-50 dark:bg-gray-700 flex-1 p-3 rounded transition font-semibold focus:outline-none"
-						on:click={flag}
-					>
-						{$_("interface.flag")}
-					</button>
+					{#if flagging_options}
+						<button
+							class="panel-button group flag relative bg-gray-50 dark:bg-gray-700 flex-1 p-3 rounded transition font-semibold focus:outline-none"
+							class:just_flagged
+						>
+							{$_("interface.flag")} ▼
+							<div
+								class="flag-options hidden group-hover:block absolute top-8 left-0 bg-white border-gray-200 border-2 w-full dark:bg-gray-500 dark:border-none"
+							>
+								{#each flagging_options as option}
+									<div
+										class="flag-option p-2 transition"
+										on:click={() => {
+											flag(option);
+										}}
+									>
+										{option}
+									</div>
+								{/each}
+							</div>
+						</button>
+					{:else}
+						<button
+							class="panel-button flag bg-gray-50 dark:bg-gray-700 flex-1 p-3 rounded transition font-semibold focus:outline-none"
+							class:just_flagged
+							on:click={() => flag(null)}
+						>
+							{$_("interface.flag")}
+						</button>
+					{/if}
 				{/if}
 			</div>
 		</div>
@@ -352,6 +386,9 @@
 		}
 		animation: ld-breath 0.75s infinite linear;
 	}
+	.flag-option {
+		@apply hover:bg-gray-100;
+	}
 	.gradio-interface[theme="default"] {
 		.component-set {
 			@apply bg-gray-50 dark:bg-gray-700 dark:drop-shadow-xl shadow;
@@ -370,6 +407,9 @@
 		}
 		.panel-button.submit {
 			@apply bg-amber-500 hover:bg-amber-400 dark:bg-red-700 dark:hover:bg-red-600 text-white;
+		}
+		.panel-button.just_flagged {
+			@apply bg-red-300 hover:bg-red-300;
 		}
 		.examples {
 			.examples-table-holder:not(.gallery) {
@@ -393,7 +433,5 @@
 				}
 			}
 		}
-	}
-	.gradio-interface[theme="huggingface"] {
 	}
 </style>
