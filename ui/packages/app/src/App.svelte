@@ -94,9 +94,13 @@
 						: space}
 				</a>
 				built with
-				<a href="https://gradio.app" class="font-semibold">Gradio</a>, hosted on
-				<a href="https://huggingface.co/spaces" class="font-semibold"
-					>Hugging Face Spaces</a
+				<a href="https://gradio.app" target="_blank" class="font-semibold"
+					>Gradio</a
+				>, hosted on
+				<a
+					href="https://huggingface.co/spaces"
+					target="_blank"
+					class="font-semibold">Hugging Face Spaces</a
 				>.
 			</div>
 		{:else}
