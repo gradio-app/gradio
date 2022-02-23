@@ -47,7 +47,6 @@
 		if (_c.startsWith("rgba")) color_map[col] = color_map[col];
 		color_map[col] = name_to_rgba(color_map[col]);
 	}
-
 </script>
 
 <div class="output-highlightedtext" {theme}>
