@@ -1,0 +1,56 @@
+name: "\U0001F41E Bug report"
+description: Report a bug on Gradio
+labels: [ "triage: bug" ]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Describe the bug
+      description: A clear and concise description of what the bug is. If you intend to submit a PR for this issue, tell us in the description. Thanks!
+      placeholder: Bug description
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Please provide a link to a repo or REPL that can reproduce the problem you ran into.
+      placeholder: Reproduction
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Screenshot
+      description: "Please include a screenshot as it makes it much more clear"
+      render: shell
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: "Please include the logs if you can. You can get the logs with debug=True, ie: gradio.Interface.launch(debug=True)"
+      render: shell
+  - type: textarea
+    id: system-info
+    attributes:
+      label: System Info
+      description: Please share your system info with us, you can get the gradio version with `gradio__version__`
+      render: shell
+      placeholder: Gradio version, Operating System, Browser
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: Select the severity of this issue
+      options:
+        - annoyance
+        - critical
+        - blocker
+    validations:
+      required: true
