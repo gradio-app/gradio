@@ -1,0 +1,42 @@
+name: gradio-ui
+
+on:
+  push:
+    branches: 
+      - "master"
+    paths:
+      - "ui/**"
+  pull_request:
+    paths:
+      - "ui/**"
+
+defaults:
+  run:
+    working-directory: ./ui
+
+concurrency:
+  group: deploy-${{ github.ref }}-${{ github.event_name == 'push' || github.event.inputs.fire != null }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: static checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: npm i -g pnpm@6
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 16
+
+      - name: install dependencies
+        run: pnpm i --frozen-lockfile
+      - name: formatting check
+        run: pnpm format:check
+      - name: typecheck
+        run: pnpm ts:check
+        continue-on-error: true
+      - name: unit tests
+        run: pnpm test:run
+      - name: build
+        run: pnpm build
