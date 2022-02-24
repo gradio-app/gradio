@@ -5,7 +5,7 @@ except ImportError:
 
 setup(
     name="gradio",
-    version="2.8.2",
+    version="2.8.4",
     include_package_data=True,
     description="Python library for easily interacting with trained machine learning models",
     author="Abubakar Abid, Ali Abid, Ali Abdalla, Dawood Khan, Ahsen Khaliq",
