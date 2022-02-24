@@ -14,6 +14,7 @@ else
   if [[ $REPLY =~ ^[Yy]$ ]]
   then
     echo -n $new_version > gradio/version.txt
+    rm -rf gradio/templates/frontend
     cd ui
     npm run build
     cd ..
@@ -25,6 +26,5 @@ else
   python3 -m twine upload dist/*
   git add -A
   git commit -m "updated PyPi version to $new_version"
-  git push origin master
 fi
 
