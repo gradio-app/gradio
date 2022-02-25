@@ -62,12 +62,12 @@ export const output_component_map = {
 };
 
 export const static_component_map = {
-    "button": StaticButton,
-    "markdown": StaticMarkdown
-}
+	button: StaticButton,
+	markdown: StaticMarkdown
+};
 
 export const all_components_map = {
-    "input": input_component_map,
-    "output": output_component_map,
-    "static": static_component_map
-}
+	input: input_component_map,
+	output: output_component_map,
+	static: static_component_map
+};

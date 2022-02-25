@@ -56,13 +56,10 @@
 	const triggerTarget = (i: string) => {
 		event_listener_map[i].forEach((fn_index: number) => {
 			let dependency = dependencies[fn_index];
-			fn(
-				"predict",
-				{
-					"fn_index": fn_index,
-					"data": dependency.inputs.map((i) => values[i])
-				}
-			).then((output) => {
+			fn("predict", {
+				fn_index: fn_index,
+				data: dependency.inputs.map((i) => values[i])
+			}).then((output) => {
 				output["data"].forEach((value, i) => {
 					values[dependency.outputs[i]] = value;
 				});

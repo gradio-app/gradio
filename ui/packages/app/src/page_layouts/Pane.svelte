@@ -11,7 +11,6 @@
 		triggerTarget,
 		theme,
 		static_src;
-
 </script>
 
 <div class="flex gap-4" class:flex-col={type !== "row"}>

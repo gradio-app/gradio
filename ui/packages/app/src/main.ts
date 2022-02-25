@@ -1,5 +1,5 @@
 import App from "./App.svelte";
-import Blocks from "./Blocks.svelte"
+import Blocks from "./Blocks.svelte";
 import Login from "./Login.svelte";
 import { fn } from "./api";
 
@@ -101,12 +101,12 @@ window.launchGradio = (config: Config, element_query: string) => {
 			new Blocks({
 				target: target,
 				props: config
-			});	
+			});
 		} else {
 			new App({
 				target: target,
 				props: config
-			});	
+			});
 		}
 	}
 };
