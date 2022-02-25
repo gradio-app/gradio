@@ -71,6 +71,7 @@ class Blocks(Launchable, BlockContext):
         self.api_mode = False
         self.analytics_enabled = True
         self.theme = theme
+        self.requires_permissions = False  # TODO: needs to be implemented
 
         super().__init__()
         Context.root_block = self
