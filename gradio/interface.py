@@ -738,8 +738,7 @@ class Interface:
 
         if share:
             if self.is_space:
-                warnings.warn("Share is not supported when you are in Spaces")
-                raise RuntimeError
+                raise RuntimeError("Share is not supported when you are in Spaces")
             try:
                 share_url = networking.setup_tunnel(server_port, private_endpoint)
                 self.share_url = share_url
