@@ -3,4 +3,8 @@
 	import audio from "../assets/cantina.wav";
 </script>
 
-<Audio src={null} source="upload" />
+<h2>upload input</h2>
+<Audio value={null} source="upload" theme="default" name="" />
+
+<h1>microphone input</h1>
+<Audio value={null} source="microphone" theme="default" name="" />

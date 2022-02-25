@@ -1,0 +1,116 @@
+.gradio-bg[theme="seafoam"] {
+	@apply bg-amber-100 dark:bg-gray-700;
+}
+.gradio-bg[theme="seafoam"] .gradio-interface {
+	.component-set {
+		@apply p-0;
+	}
+	.component {
+		@apply p-2 transition bg-white dark:bg-gray-800 shadow-sm;
+	}
+	.component:hover .panel-header {
+		@apply text-green-400 text-base;
+	}
+	.panel-header {
+		@apply text-sm h-6 text-gray-400 dark:text-gray-200 transition-all font-semibold;
+	}
+	.panel-button {
+		@apply bg-gradient-to-t from-blue-400 to-green-300 dark:from-blue-500 hover:to-green-400 text-white shadow;
+	}
+	.examples {
+		.examples-holder:not(.gallery) {
+			.examples-table {
+				@apply dark:bg-gray-800;
+				tbody tr:hover {
+					@apply bg-blue-400 dark:bg-blue-500;
+				}
+			}
+		}
+		.examples-holder.gallery .examples-table {
+			.example {
+				@apply dark:bg-gray-800;
+			}
+			.example:hover {
+				@apply bg-blue-400 dark:bg-blue-500;
+			}
+		}
+	}
+
+	/* Common Classes */
+	.edit,
+	.clear {
+		@apply bg-gradient-to-t from-blue-400 to-green-300 dark:from-blue-500 hover:to-green-400 text-white;
+	}
+
+	/* Input Components */
+	.input-text {
+		@apply rounded-none bg-gray-50 text-blue-400 dark:bg-gray-700 dark:text-gray-50;
+	}
+	.input-number {
+		@apply rounded-none bg-gray-50 text-blue-400 dark:bg-gray-700 dark:text-gray-50;
+	}
+	.input-slider {
+		.range {
+			@apply bg-gray-50 dark:bg-gray-700 rounded-none;
+		}
+		.range::-webkit-slider-thumb {
+			@apply bg-gradient-to-t from-blue-400 to-green-300 dark:from-blue-500 shadow-sm;
+		}
+		.range::-moz-range-thumb {
+			@apply bg-gradient-to-t from-blue-400 to-green-300 dark:from-blue-500 shadow-sm;
+		}
+		.value {
+			@apply bg-gray-50 font-semibold text-blue-400 dark:bg-gray-700 dark:text-gray-50;
+		}
+	}
+	.input-radio {
+		.radio-item {
+			@apply bg-gray-50 text-blue-400 dark:bg-gray-700 dark:text-gray-50;
+		}
+		.radio-circle {
+			@apply bg-gray-50 dark:bg-gray-400 border-4 border-gray-200 dark:border-gray-600;
+		}
+		.radio-item.selected {
+			@apply bg-gradient-to-t from-blue-400 to-green-300 dark:from-blue-500 text-white shadow;
+		}
+		.radio-circle {
+			@apply w-4 h-4 bg-white transition rounded-full box-border;
+		}
+		.selected .radio-circle {
+			@apply border-gray-400 opacity-40;
+		}
+	}
+
+	.input-checkbox-group,
+	.input-checkbox {
+		.checkbox-item {
+			@apply bg-gray-50 text-blue-400 dark:bg-gray-700 dark:text-gray-50;
+		}
+		.checkbox-item.selected {
+			@apply bg-gradient-to-t from-blue-400 to-green-300 dark:from-blue-500 text-white shadow;
+		}
+		.selected .checkbox {
+			@apply bg-gray-400 bg-opacity-40;
+		}
+	}
+	.input-dropdown {
+		.selector {
+			@apply bg-gray-50 text-blue-400 dark:bg-gray-700 dark:text-gray-50;
+		}
+		.dropdown-menu {
+			@apply shadow;
+		}
+		.dropdown-item {
+			@apply bg-white dark:bg-gray-800 hover:bg-blue-400 hover:text-gray-50 hover:font-semibold;
+		}
+	}
+	/* Output Components */
+	.output-label {
+		.confidence {
+			@apply bg-gradient-to-t from-gray-400 to-gray-300 dark:from-gray-500 dark:to-gray-400 text-white rounded font-semibold;
+		}
+		.confidence:first-child {
+			@apply bg-gradient-to-t from-blue-400 to-green-300 dark:from-blue-500;
+		}
+	}
+}

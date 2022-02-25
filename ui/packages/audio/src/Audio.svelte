@@ -5,14 +5,14 @@
 	import { Upload, ModifyUpload } from "@gradio/upload";
 	//@ts-ignore
 	import Range from "svelte-range-slider-pips";
-	import { _ } from "svelte-i18n";
 
-	// export let value: null | Value;
-	export let src: null | string;
-	export let setValue: (val: typeof value) => typeof value;
+	export let value: null | { name: string; data: string } = null;
 	export let theme: string;
 	export let name: string;
 	export let source: "microphone" | "upload";
+	export let drop_text: string = "Drop an audio file";
+	export let or_text: string = "or";
+	export let upload_text: string = "click to upload";
 
 	let recording = false;
 	let recorder: MediaRecorder;
@@ -45,7 +45,10 @@
 		recorder.addEventListener("stop", async () => {
 			recording = false;
 			audio_blob = new Blob(audio_chunks, { type: "audio/wav" });
-
+			value = {
+				data: await blob_to_data_url(audio_blob),
+				name
+			};
 			dispatch("change", {
 				data: await blob_to_data_url(audio_blob),
 				name
@@ -63,7 +66,8 @@
 	}
 
 	onDestroy(() => {
-		if (recorder) {
+		console.log(recorder);
+		if (recorder && recorder.state !== "inactive") {
 			recorder.stop();
 		}
 	});
@@ -75,7 +79,7 @@
 	function clear() {
 		dispatch("change", { data: null, name: null });
 		mode = "";
-		src = "";
+		value = null;
 	}
 
 	function loaded(node: HTMLAudioElement) {
@@ -107,7 +111,7 @@
 		if (!value?.data) return;
 
 		dispatch("change", {
-			data: src,
+			data: value.data,
 			name,
 			crop_min: values[0],
 			crop_max: values[1]
@@ -116,7 +120,7 @@
 </script>
 
 <div class="input-audio">
-	{#if src === null}
+	{#if value === null}
 		{#if source === "microphone"}
 			{#if recording}
 				<button
@@ -137,19 +141,20 @@
 			<Upload
 				filetype="audio/*"
 				on:load={({ detail }) => (
-					(src = detail), dispatch("change", { data: detail })
+					(value = detail), dispatch("change", { data: detail })
 				)}
 				{theme}
 			>
-				{$_("interface.drop_audio")}
-				<br />- {$_("interface.or")} -<br />
-				{$_("interface.click_to_upload")}
+				{drop_text}
+				<br />- {or_text} -<br />
+				{upload_text}
 			</Upload>
 		{/if}
 	{:else}
 		<ModifyUpload
 			on:clear={clear}
 			on:edit={() => (mode = "edit")}
+			editable
 			absolute={false}
 			{theme}
 		/>
@@ -160,7 +165,7 @@
 			controls
 			bind:this={player}
 			preload="metadata"
-			{src}
+			src={value.data}
 		/>
 
 		{#if mode === "edit" && player?.duration}
@@ -175,6 +180,3 @@
 		{/if}
 	{/if}
 </div>
-
-<style lang="postcss">
-</style>
