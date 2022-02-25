@@ -329,9 +329,9 @@ class Interface:
             examples is None
             or isinstance(examples, str)
             or (
-            isinstance(examples, list)
-            and (len(examples) == 0 or isinstance(examples[0], list))
-        )
+                isinstance(examples, list)
+                and (len(examples) == 0 or isinstance(examples[0], list))
+            )
         ):
             self.examples = examples
         elif (
