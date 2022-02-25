@@ -1,5 +1,5 @@
 {
-	"name": "@gradio/audio",
+	"name": "@gradio/button",
 	"version": "0.0.1",
 	"description": "Gradio UI packages",
 	"type": "module",
@@ -8,7 +8,6 @@
 	"license": "ISC",
 	"private": true,
 	"dependencies": {
-		"@gradio/upload": "workspace:^0.0.1",
-		"svelte-range-slider-pips": "^2.0.1"
+		"@gradio/upload": "workspace:^0.0.1"
 	}
 }

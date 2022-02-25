@@ -41,13 +41,9 @@ importers:
       d3-shape: ^3.1.0
       lazy-brush: ^1.0.1
       mime-types: ^2.1.34
-      postcss: ^8.4.5
-      postcss-nested: ^5.0.6
       resize-observer-polyfill: ^1.5.1
-      svelte: ^3.46.3
-      svelte-preprocess: ^4.10.1
+      svelte-i18n: ^3.3.13
       svelte-range-slider-pips: ^2.0.1
-      tailwindcss: ^3.0.19
       tui-image-editor: ^3.15.2
       vite: ^2.7.13
     dependencies:
@@ -62,18 +58,22 @@ importers:
       lazy-brush: 1.0.1
       mime-types: 2.1.34
       resize-observer-polyfill: 1.5.1
-      svelte-preprocess: 4.10.2_postcss@8.4.6+svelte@3.46.3
+      svelte-i18n: 3.3.13_svelte@3.46.3
       svelte-range-slider-pips: 2.0.2
       tui-image-editor: 3.15.2
     devDependencies:
       '@sveltejs/vite-plugin-svelte': 1.0.0-next.36_svelte@3.46.3+vite@2.7.13
-      postcss: 8.4.6
-      postcss-nested: 5.0.6_postcss@8.4.6
-      svelte: 3.46.3
-      tailwindcss: 3.0.22_autoprefixer@9.8.8
       vite: 2.7.13
 
   packages/audio:
+    specifiers:
+      '@gradio/upload': workspace:^0.0.1
+      svelte-range-slider-pips: ^2.0.1
+    dependencies:
+      '@gradio/upload': link:../upload
+      svelte-range-slider-pips: 2.0.2
+
+  packages/button:
     specifiers:
       '@gradio/upload': workspace:^0.0.1
     dependencies:
@@ -82,9 +82,14 @@ importers:
   packages/components:
     specifiers: {}
 
+  packages/upload:
+    specifiers: {}
+
   packages/workbench:
     specifiers:
       '@gradio/audio': workspace:^0.0.1
+      '@gradio/button': workspace:^0.0.1
+      '@gradio/theme': workspace:^0.0.1
       '@sveltejs/adapter-auto': next
       '@sveltejs/kit': next
       autoprefixer: ^10.4.2
@@ -98,9 +103,11 @@ importers:
       typescript: ~4.5.4
     dependencies:
       '@gradio/audio': link:../audio
+      '@gradio/button': link:../button
+      '@gradio/theme': link:../theme
     devDependencies:
-      '@sveltejs/adapter-auto': 1.0.0-next.17
-      '@sveltejs/kit': 1.0.0-next.281_svelte@3.46.3
+      '@sveltejs/adapter-auto': 1.0.0-next.28
+      '@sveltejs/kit': 1.0.0-next.286_svelte@3.46.3
       autoprefixer: 10.4.2_postcss@8.4.6
       postcss: 8.4.6
       postcss-load-config: 3.1.1
@@ -214,36 +221,36 @@ packages:
       picomatch: 2.3.1
     dev: true
 
-  /@sveltejs/adapter-auto/1.0.0-next.17:
-    resolution: {integrity: sha512-jLMh+5whg9uSJkvAYyVhi4z4GpqWxSR/XhhFCUqDMYN2hMTGCBaB4ReUAHSYIFw3IPV7m318z9igXriOaL6agQ==}
+  /@sveltejs/adapter-auto/1.0.0-next.28:
+    resolution: {integrity: sha512-MuJUghh7HYXeThS1btsKJFZBN//DM5BmfTXhSBRN3MgKwDMF1XYvadNegZI2nIVzb9RQTh/al3jGKKZfBVHGEg==}
     dependencies:
-      '@sveltejs/adapter-cloudflare': 1.0.0-next.9
-      '@sveltejs/adapter-netlify': 1.0.0-next.44
-      '@sveltejs/adapter-vercel': 1.0.0-next.39
+      '@sveltejs/adapter-cloudflare': 1.0.0-next.14
+      '@sveltejs/adapter-netlify': 1.0.0-next.47
+      '@sveltejs/adapter-vercel': 1.0.0-next.44
     dev: true
 
-  /@sveltejs/adapter-cloudflare/1.0.0-next.9:
-    resolution: {integrity: sha512-xoPbFinqFbzphVf4rjGqU/6CC/QciXtXpBn6+hp4mChjX/9X5c/fxjkVGHPdpq6moTIfaZiMU/EUKtbBvyTBUw==}
+  /@sveltejs/adapter-cloudflare/1.0.0-next.14:
+    resolution: {integrity: sha512-vD0+LdVIZO5/758KZuWzM58JIAeY+r/YKgoRkMjP9IUx+w+MJ869EyzOT81u/xN7x6cX2Ilu+/M60BwjqSDA7g==}
     dependencies:
-      esbuild: 0.13.15
+      esbuild: 0.14.23
     dev: true
 
-  /@sveltejs/adapter-netlify/1.0.0-next.44:
-    resolution: {integrity: sha512-GY3w4K4gW+wXo6lGes7gFcPPaUt9kY2xCfhcNfwDvbOf0PsasZD5WatAPtEE9Xz5WTtQLEEgXljVMqsPkpb75Q==}
+  /@sveltejs/adapter-netlify/1.0.0-next.47:
+    resolution: {integrity: sha512-fyJ2UP14ViusPFMtnuXbLRxE9bQ3dQ7Aj5HkAddN4fgV1A15tGWthrSUOH0iozYmOYLu6AWvUxx9o01OhJbfZQ==}
     dependencies:
       '@iarna/toml': 2.2.5
-      esbuild: 0.13.15
+      esbuild: 0.14.23
       tiny-glob: 0.2.9
     dev: true
 
-  /@sveltejs/adapter-vercel/1.0.0-next.39:
-    resolution: {integrity: sha512-YOPGKIILm26h22GN4/iliXce61aTG3Dq5hX8xpDx0cNuCocv0OoLfIqiGpdyJ9NIMpjwXmpVoL4+nV+yh2wcSA==}
+  /@sveltejs/adapter-vercel/1.0.0-next.44:
+    resolution: {integrity: sha512-q0o7JG0pAam2lkkM5XiaLzYBGSRtOogjXpKYwpc7iiMuaSV4nzsnYlLxwbtib7ZJQzE1D32pPZQuvf5pAIqrmQ==}
     dependencies:
-      esbuild: 0.13.15
+      esbuild: 0.14.23
     dev: true
 
-  /@sveltejs/kit/1.0.0-next.281_svelte@3.46.3:
-    resolution: {integrity: sha512-IBEqbckzNmLGEFqi+4gG0XxNyQ/koO+OYK2fSjNZvRxLL9W1H4RhMRmEGdZGvPt1opBuqD0ErgdgmHMNO+B8XQ==}
+  /@sveltejs/kit/1.0.0-next.286_svelte@3.46.3:
+    resolution: {integrity: sha512-txWUYKLpZohHPCEYc3oYIByMnZe+d/FItMBiCNJbTLdKaDop+SfCOzBar+K9IgP2MTXSScILSkPOms845uhz0A==}
     engines: {node: '>=14.13'}
     hasBin: true
     peerDependencies:
@@ -2647,39 +2654,6 @@ packages:
     resolution: {integrity: sha512-9QNk5KwDF+Bvz+PyObkmSYjI5ksVUYtjW7AU22r2NKcfLJcXp96hkDWU3+XndOsUb+AQ9QhfzfCT2O+CNWT5Tw==}
     dev: false
     optional: true
-
-  /tailwindcss/3.0.22_autoprefixer@9.8.8:
-    resolution: {integrity: sha512-F8lt74RlNZirnkaSk310+vGQta7c0/hgx7/bqxruM4wS9lp8oqV93lzavajC3VT0Lp4UUtUVIt8ifKcmGzkr0A==}
-    engines: {node: '>=12.13.0'}
-    hasBin: true
-    peerDependencies:
-      autoprefixer: ^10.0.2
-    dependencies:
-      arg: 5.0.1
-      autoprefixer: 9.8.8
-      chalk: 4.1.2
-      chokidar: 3.5.3
-      color-name: 1.1.4
-      cosmiconfig: 7.0.1
-      detective: 5.2.0
-      didyoumean: 1.2.2
-      dlv: 1.1.3
-      fast-glob: 3.2.11
-      glob-parent: 6.0.2
-      is-glob: 4.0.3
-      normalize-path: 3.0.0
-      object-hash: 2.2.0
-      postcss: 8.4.6
-      postcss-js: 4.0.0_postcss@8.4.6
-      postcss-load-config: 3.1.1
-      postcss-nested: 5.0.6_postcss@8.4.6
-      postcss-selector-parser: 6.0.9
-      postcss-value-parser: 4.2.0
-      quick-lru: 5.1.1
-      resolve: 1.22.0
-    transitivePeerDependencies:
-      - ts-node
-    dev: true
 
   /tailwindcss/3.0.23_autoprefixer@10.4.2:
     resolution: {integrity: sha512-+OZOV9ubyQ6oI2BXEhzw4HrqvgcARY38xv3zKcjnWtMIZstEsXdI9xftd1iB7+RbOnj2HOEzkA0OyB5BaSxPQA==}

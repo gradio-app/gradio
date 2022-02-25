@@ -12,6 +12,7 @@
 		"test": "vitest dev",
 		"test:run": "vitest run"
 	},
+	"type": "module",
 	"author": "",
 	"license": "ISC",
 	"private": true,
