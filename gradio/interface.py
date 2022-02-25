@@ -623,7 +623,7 @@ class Interface(Launchable):
     def launch(self, **args):
         if self.allow_flagging != "never":
             self.flagging_callback.setup(self.flagging_dir)
-        super().launch(**args)
+        return super().launch(**args)
 
     def integrate(self, comet_ml=None, wandb=None, mlflow=None) -> None:
         """

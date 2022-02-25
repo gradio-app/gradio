@@ -1,5 +1,6 @@
 def test_context():
     from gradio.context import Context
+
     assert Context.id == 0
     Context.id += 1
     assert Context.id == 1
