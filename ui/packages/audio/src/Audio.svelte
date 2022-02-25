@@ -23,7 +23,7 @@
 	let inited = false;
 	let crop_values = [0, 100];
 
-	const dispatch = createEventDispatcher();
+	const dispatch = createEventDispatcher<{ change: Value }>();
 
 	function blob_to_data_url(blob: Blob): Promise<string> {
 		return new Promise((fulfill, reject) => {
@@ -77,7 +77,7 @@
 	};
 
 	function clear() {
-		dispatch("change", { data: null, name: null });
+		dispatch("change");
 		mode = "";
 		value = null;
 	}
@@ -117,6 +117,15 @@
 			crop_max: values[1]
 		});
 	}
+
+	function handle_load({
+		detail
+	}: {
+		detail: { data: string; name: string; size: number; is_example: boolean };
+	}) {
+		value = detail;
+		dispatch("change", { data: detail.data, name: detail.name });
+	}
 </script>
 
 <div class="input-audio">
@@ -138,13 +147,7 @@
 				</button>
 			{/if}
 		{:else if source === "upload"}
-			<Upload
-				filetype="audio/*"
-				on:load={({ detail }) => (
-					(value = detail), dispatch("change", { data: detail })
-				)}
-				{theme}
-			>
+			<Upload filetype="audio/*" on:load={handle_load} {theme}>
 				{drop_text}
 				<br />- {or_text} -<br />
 				{upload_text}
