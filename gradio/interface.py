@@ -123,7 +123,7 @@ class Interface:
         css: Optional[str] = None,
         height=None,
         width=None,
-        allow_screenshot: bool = True,
+        allow_screenshot: bool = False,
         allow_flagging: Optional[str] = None,
         flagging_options: List[str] = None,
         encrypt=None,
@@ -135,7 +135,7 @@ class Interface:
         enable_queue=None,
         api_mode=None,
         flagging_callback: FlaggingCallback = CSVLogger(),
-    ):
+    ):  # TODO: (faruk) Let's remove depreceated parameters in the version 3.0.0
         """
         Parameters:
         fn (Union[Callable, List[Callable]]): the function to wrap an interface around.
@@ -155,7 +155,7 @@ class Interface:
         thumbnail (str): path to image or src to use as display picture for models listed in gradio.app/hub
         theme (str): Theme to use - one of "default", "huggingface", "seafoam", "grass", "peach". Add "dark-" prefix, e.g. "dark-peach" for dark theme (or just "dark" for the default dark theme).
         css (str): custom css or path to custom css file to use with interface.
-        allow_screenshot (bool): if False, users will not see a button to take a screenshot of the interface.
+        allow_screenshot (bool): DEPRECEATED if False, users will not see a button to take a screenshot of the interface.
         allow_flagging (str): one of "never", "auto", or "manual". If "never" or "auto", users will not see a button to flag an input and output. If "manual", users will see a button to flag. If "auto", every prediction will be automatically flagged. If "manual", samples are flagged when the user clicks flag button. Can be set with environmental variable GRADIO_ALLOW_FLAGGING.
         flagging_options (List[str]): if provided, allows user to select from the list of options when flagging. Only applies if allow_flagging is "manual".
         encrypt (bool): DEPRECATED. If True, flagged data will be encrypted by key provided by creator at launch
@@ -215,6 +215,11 @@ class Interface:
         if verbose:
             warnings.warn(
                 "The `verbose` parameter in the `Interface`"
+                "is deprecated and has no effect."
+            )
+        if allow_screenshot:
+            warnings.warn(
+                "The `allow_screenshot` parameter in the `Interface`"
                 "is deprecated and has no effect."
             )
 
@@ -323,9 +328,9 @@ class Interface:
             examples is None
             or isinstance(examples, str)
             or (
-                isinstance(examples, list)
-                and (len(examples) == 0 or isinstance(examples[0], list))
-            )
+            isinstance(examples, list)
+            and (len(examples) == 0 or isinstance(examples[0], list))
+        )
         ):
             self.examples = examples
         elif (
