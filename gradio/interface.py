@@ -282,7 +282,7 @@ class Interface:
 
         self.thumbnail = thumbnail
         theme = theme if theme is not None else os.getenv("GRADIO_THEME", "default")
-        self.is_space = True if os.getenv("GRADIO_THEME") == "huggingface" else False
+        self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
         DEPRECATED_THEME_MAP = {
             "darkdefault": "default",
             "darkhuggingface": "dark-huggingface",
