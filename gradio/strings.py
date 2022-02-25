@@ -24,11 +24,12 @@ en = {
     "INLINE_DISPLAY_BELOW": "Interface loading below...",
     "MEDIA_PERMISSIONS_IN_COLAB": "Your interface requires microphone or webcam permissions - this may cause issues in Colab. Use the External URL in case of issues.",
     "TIPS": [
-        "You can add authentication to your app with the auth= kwarg in the launch command; for example: gr.Interface(...).launch(auth=('username', 'password'))",
-        "Let users specify why they flagged input with the flagging_options= kwarg; for example: gr.Interface(..., flagging_options=['too slow', 'incorrect output', 'other'])",
-        "You can show or hide the buttons for flagging, screenshots, and interpretation with the allow_*= kwargs; for example: gr.Interface(..., allow_screenshot=True, allow_flagging=False)",
+        "You can add authentication to your app with the `auth=` kwarg in the `launch()` command; for example: `gr.Interface(...).launch(auth=('username', 'password'))`",
+        "Let users specify why they flagged input with the `flagging_options=` kwarg; for example: `gr.Interface(..., flagging_options=['too slow', 'incorrect output', 'other'])`",
+        "You can show or hide the button for flagging with the `allow_flagging=` kwarg; for example: gr.Interface(..., allow_flagging=False)",
         "The inputs and outputs flagged by the users are stored in the flagging directory, specified by the flagging_dir= kwarg. You can view this data through the interface by setting the examples= kwarg to the flagging directory; for example gr.Interface(..., examples='flagged')",
-        "You can add a title and description to your interface using the title= and description= kwargs. The article= kwarg can be used to add markdown or HTML under the interface; for example gr.Interface(..., title='My app', description='Lorem ipsum')",
+        "You can add a title and description to your interface using the `title=` and `description=` kwargs. The `article=` kwarg can be used to add a description under the interface; for example gr.Interface(..., title='My app', description='Lorem ipsum'). Try using Markdown!",
+        "For a classification or regression model, set `interpretation='default'` to see why the model made a prediction.",
     ],
 }
 

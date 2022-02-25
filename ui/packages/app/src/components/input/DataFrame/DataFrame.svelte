@@ -21,7 +21,7 @@
 	type Headers = Array<{ value: string; id: number }>;
 
 	function make_headers(_h: Array<string>): Headers {
-		if (_h.length === 0) {
+		if (!_h || _h.length === 0) {
 			return values[0].map((_, i) => {
 				const _id = ++id;
 				els[_id] = { cell: null, input: null };
@@ -289,9 +289,9 @@
 		id="grid"
 		role="grid"
 		aria-labelledby="title"
-		class="min-w-full divide-y divide-gray-200 "
+		class="min-w-full divide-y divide-gray-200 dark:divide-gray-800"
 	>
-		<thead class="bg-gray-50">
+		<thead class="bg-gray-50 dark:bg-gray-800">
 			<tr>
 				{#each _headers as { value, id }, i (id)}
 					<th
@@ -300,13 +300,13 @@
 							dblclick: () => edit_header(id)
 						}}
 						aria-sort={get_sort_status(value, sort_by, sort_direction)}
-						class="relative after:absolute after:opacity-0 after:content-['▲'] after:ml-2 after:inset-y-0 after:h-[1.05rem] after:m-auto relative px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+						class="relative after:absolute after:opacity-0 after:content-['▲'] after:ml-2 after:inset-y-0 after:h-[1.05rem] after:m-auto relative px-6 py-3 text-left text-xs font-medium dark:text-gray-100 uppercase tracking-wider"
 						class:sorted={sort_by === i}
 						class:des={sort_by === i && sort_direction === "des"}
 					>
 						{#if header_edit === id}
 							<input
-								class="bg-transparent inset-y-0 left-6 w-full outline-none absolute p-0 w-3/4 text-xs font-medium text-gray-500 uppercase tracking-wider"
+								class="bg-transparent inset-y-0 left-6 w-full outline-none absolute p-0 w-3/4 text-xs font-medium text-gray-500 uppercase tracking-wider dark:bg-gray-600"
 								tabindex="-1"
 								bind:value
 								bind:this={els[id].input}
@@ -324,7 +324,9 @@
 					</th>
 				{/each}
 			</tr></thead
-		><tbody class="bg-white divide-y divide-gray-200">
+		><tbody
+			class="bg-white divide-y divide-gray-200 dark:divide-gray-500 dark:bg-gray-600"
+		>
 			{#each data as row, i (row)}
 				<tr>
 					{#each row as { value, id }, j (id)}
@@ -339,13 +341,15 @@
 								currentTarget.setAttribute("tabindex", "-1")}
 						>
 							<div
-								class:border-gray-600={selected === id}
 								class:border-transparent={selected !== id}
-								class="min-h-[3.3rem] px-5 py-3  border-[0.125rem]"
+								class="min-h-[3.3rem] px-5 py-3  border-[0.125rem] {selected ===
+								id
+									? 'border-gray-600 dark:border-gray-200'
+									: ''}"
 							>
 								{#if editing === id}
 									<input
-										class="w-full outline-none absolute p-0 w-3/4"
+										class="w-full outline-none absolute p-0 w-3/4 dark:bg-gray-600 dark:text-gray-50"
 										tabindex="-1"
 										bind:value
 										bind:this={els[id].input}

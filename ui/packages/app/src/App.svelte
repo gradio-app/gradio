@@ -34,6 +34,7 @@
 	export let root: string;
 	export let space: string | undefined = undefined;
 	export let allow_flagging: string;
+	export let flagging_options: Array<string> | undefined = undefined;
 	export let allow_interpretation: boolean;
 	export let live: boolean;
 	export let queue: boolean;
@@ -69,6 +70,7 @@
 				{fn}
 				{root}
 				{allow_flagging}
+				{flagging_options}
 				{allow_interpretation}
 				{live}
 				{queue}
@@ -92,9 +94,13 @@
 						: space}
 				</a>
 				built with
-				<a href="https://gradio.app" class="font-semibold">Gradio</a>, hosted on
-				<a href="https://huggingface.co/spaces" class="font-semibold"
-					>Hugging Face Spaces</a
+				<a href="https://gradio.app" target="_blank" class="font-semibold"
+					>Gradio</a
+				>, hosted on
+				<a
+					href="https://huggingface.co/spaces"
+					target="_blank"
+					class="font-semibold">Hugging Face Spaces</a
 				>.
 			</div>
 		{:else}

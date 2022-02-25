@@ -11,7 +11,7 @@
 	) => Array<string | FileData> | string | FileData | null;
 	export let filetype: string | undefined = undefined;
 	export let theme: string;
-	export let single_file: boolean = true;
+	export let file_count: "single" | "multiple" | "directory" = "single";
 	export let include_file_metadata = true;
 	let hidden_upload: HTMLInputElement;
 	let dragging = false;
@@ -29,7 +29,7 @@
 		if (!files.length || !window.FileReader) {
 			return;
 		}
-		if (single_file) {
+		if (file_count === "single") {
 			_files = [files[0]];
 		}
 		var all_file_data: Array<FileData | string> = [];
@@ -46,7 +46,7 @@
 					  }
 					: (this.result as string);
 				if (all_file_data.length === files.length) {
-					load(single_file ? all_file_data[0] : all_file_data);
+					load(file_count === "single" ? all_file_data[0] : all_file_data);
 				}
 			};
 		});
@@ -89,6 +89,9 @@
 		bind:this={hidden_upload}
 		on:change={loadFilesFromUpload}
 		accept={filetype}
+		multiple={file_count === "multiple" || undefined}
+		webkitdirectory={file_count === "directory" || undefined}
+		mozdirectory={file_count === "directory" || undefined}
 	/>
 </div>
 
