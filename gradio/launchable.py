@@ -85,18 +85,18 @@ class Launchable:
         self.auth_message = auth_message
         self.show_tips = show_tips
         self.show_error = show_error
-        self.height = self.height or height
-        self.width = width or width
+        self.height = height
+        self.width = width
         self.favicon_path = favicon_path
 
-        if self.encrypt is None:
+        if hasattr(self, "encrypt") and self.encrypt is None:
             self.encrypt = encrypt
-        if self.encrypt:
+        if hasattr(self, "encrypt") and self.encrypt:
             self.encryption_key = encryptor.get_key(
                 getpass.getpass("Enter key for encryption: ")
             )
 
-        if self.enable_queue is None:
+        if hasattr(self, "enable_queue") and self.enable_queue is None:
             self.enable_queue = enable_queue
 
         config = self.get_config_file()

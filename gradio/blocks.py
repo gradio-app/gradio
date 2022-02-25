@@ -72,6 +72,7 @@ class Blocks(Launchable, BlockContext):
         self.analytics_enabled = True
         self.theme = theme
         self.requires_permissions = False  # TODO: needs to be implemented
+        self.enable_queue = False
 
         super().__init__()
         Context.root_block = self
