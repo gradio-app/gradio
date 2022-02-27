@@ -91,7 +91,7 @@ def start_server(
     port: the port number the server is running on
     path_to_local_server: the complete address that the local server can be accessed at
     app: the FastAPI app object
-    server: the server object that is a subclass of uvicorn.Server (used to close the server)    
+    server: the server object that is a subclass of uvicorn.Server (used to close the server)
     """
     server_name = server_name or LOCALHOST_NAME
     # if port is not specified, search for first available port
