@@ -44,14 +44,14 @@ class TestInterfaceCustomParameters(unittest.TestCase):
         self.assertEqual(response.status_code, 500)
         self.assertTrue("error" in response.json())
         io.close()
-        
-        
+
+
 class TestStartServer(unittest.TestCase):
     def test_start_server(self):
         io = Interface(lambda x: x, "number", "number")
         port = networking.get_first_available_port(
-            networking.INITIAL_PORT_VALUE, 
-            networking.INITIAL_PORT_VALUE+networking.TRY_NUM_PORTS
+            networking.INITIAL_PORT_VALUE,
+            networking.INITIAL_PORT_VALUE + networking.TRY_NUM_PORTS,
         )
         _, local_path, _, server = networking.start_server(io, server_port=port)
         url = urllib.parse.urlparse(local_path)
