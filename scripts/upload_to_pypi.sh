@@ -5,7 +5,7 @@ if [ -z "$(ls | grep CONTRIBUTING.md)" ]; then
 else
   echo "Uploading to pypi"
   set -e
-  git pull origin master
+  git pull
   old_version=$(grep -Po "(?<=version=\")[^\"]+(?=\")" setup.py)
   echo "Current version is $old_version. New version?"
   read new_version
@@ -16,7 +16,8 @@ else
     echo -n $new_version > gradio/version.txt
     rm -rf gradio/templates/frontend
     cd ui
-    npm run build
+    pnpm i
+    pnpm build
     cd ..
     aws s3 cp gradio/templates/frontend s3://gradio/$new_version/ --recursive  # requires aws cli (contact maintainers for credentials)
   fi

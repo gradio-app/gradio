@@ -5,5 +5,6 @@ if [ -z "$(ls | grep CONTRIBUTING.md)" ]; then
 else
   echo "Running the frontend"
   cd ui
-  npm run dev
+  pnpm i
+  pnpm dev
 fi
