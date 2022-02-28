@@ -54,7 +54,7 @@ class TestStartServer(unittest.TestCase):
         io.show_error = True
         io.flagging_callback.setup(io.flagging_dir)
         io.auth = None
-        
+
         port = networking.get_first_available_port(
             networking.INITIAL_PORT_VALUE,
             networking.INITIAL_PORT_VALUE + networking.TRY_NUM_PORTS,
