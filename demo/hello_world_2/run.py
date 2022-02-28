@@ -11,5 +11,5 @@ iface = gr.Interface(
     outputs="text",
 )
 if __name__ == "__main__":
-    app, path_to_local_server, share_url = iface.launch()
+    app, local_url, share_url = iface.launch()
 
