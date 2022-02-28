@@ -77,7 +77,7 @@ def start_server(
     ssl_keyfile: Optional[str] = None,
     ssl_certfile: Optional[str] = None,
     ssl_keyfile_password: Optional[str] = None,
-) -> Tuple[int, str, fastapi.FastAPI, threading.Thread, None]:
+) -> Tuple[int, str, fastapi.FastAPI, Server]:
     """Launches a local server running the provided Interface
     Parameters:
     interface: The interface object to run on the server
@@ -87,6 +87,11 @@ def start_server(
     ssl_keyfile: If a path to a file is provided, will use this as the private key file to create a local server running on https.
     ssl_certfile: If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
     ssl_keyfile_password (str): If a password is provided, will use this with the ssl certificate for https.
+    Returns:
+    port: the port number the server is running on
+    path_to_local_server: the complete address that the local server can be accessed at
+    app: the FastAPI app object
+    server: the server object that is a subclass of uvicorn.Server (used to close the server)
     """
     server_name = server_name or LOCALHOST_NAME
     # if port is not specified, search for first available port
