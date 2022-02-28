@@ -72,7 +72,7 @@ Finally, we'll add one more parameter, the `examples`, which allows us to prepop
 ```python
 import gradio as gr
 
-gr.Interface(fn=predict, 
+gr.Interface(fn=classify_image, 
              inputs=gr.inputs.Image(shape=(224, 224)),
              outputs=gr.outputs.Label(num_top_classes=3),
              examples=["banana.jpg", "car.jpg"]).launch()
