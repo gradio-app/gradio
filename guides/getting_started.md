@@ -36,6 +36,11 @@ With these three arguments, we can quickly create interfaces and  `launch()`  th
 
 Let's say we want to customize the input text field - for example, we wanted it to be larger and have a text hint. If we use the actual input class for  `Textbox`  instead of using the string shortcut, we have access to much more customizability. To see a list of all the components we support and how you can customize them, check out the [Docs](https://gradio.app/docs).
 
+**Sidenote**: `launch()` method returns
+- FastAPI application 
+- Local URL
+- Public URL (if share=True)
+
 {{ code["hello_world_2"] }}
 {{ demos["hello_world_2"] }}
 
