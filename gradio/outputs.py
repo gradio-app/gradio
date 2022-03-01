@@ -32,6 +32,10 @@ class OutputComponent(Component):
     Output Component. All output components subclass this.
     """
 
+    def __init__(self, label: str):
+        self.component_type = "output"
+        super().__init__(label)
+
     def postprocess(self, y):
         """
         Any postprocessing needed to be performed on function output.

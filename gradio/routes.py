@@ -24,7 +24,6 @@ from jinja2.exceptions import TemplateNotFound
 from starlette.responses import RedirectResponse
 
 from gradio import encryptor, queueing, utils
-from gradio.process_examples import load_from_cache, process_example
 
 STATIC_TEMPLATE_LIB = pkg_resources.resource_filename("gradio", "templates/")
 STATIC_PATH_LIB = pkg_resources.resource_filename("gradio", "templates/frontend/static")
@@ -114,9 +113,9 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
 @app.get("/", response_class=HTMLResponse)
 def main(request: Request, user: str = Depends(get_current_user)):
     if app.auth is None or not (user is None):
-        config = app.interface.config
+        config = app.launchable.config
     else:
-        config = {"auth_required": True, "auth_message": app.interface.auth_message}
+        config = {"auth_required": True, "auth_message": app.launchable.auth_message}
 
     try:
         return templates.TemplateResponse(
@@ -132,12 +131,12 @@ def main(request: Request, user: str = Depends(get_current_user)):
 @app.get("/config/", dependencies=[Depends(login_check)])
 @app.get("/config", dependencies=[Depends(login_check)])
 def get_config():
-    return app.interface.config
+    return app.launchable.config
 
 
 @app.get("/static/{path:path}")
 def static_resource(path: str):
-    if app.interface.share:
+    if app.launchable.share:
         return RedirectResponse(GRADIO_STATIC_ROOT + path)
     else:
         static_file = safe_join(STATIC_PATH_LIB, path)
@@ -148,7 +147,7 @@ def static_resource(path: str):
 
 @app.get("/assets/{path:path}")
 def build_resource(path: str):
-    if app.interface.share:
+    if app.launchable.share:
         return RedirectResponse(GRADIO_BUILD_ROOT + path)
     else:
         build_file = safe_join(BUILD_PATH_LIB, path)
@@ -160,13 +159,13 @@ def build_resource(path: str):
 @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
 def file(path):
     if (
-        app.interface.encrypt
-        and isinstance(app.interface.examples, str)
-        and path.startswith(app.interface.examples)
+        app.launchable.encrypt
+        and isinstance(app.launchable.examples, str)
+        and path.startswith(app.launchable.examples)
     ):
         with open(safe_join(app.cwd, path), "rb") as encrypted_file:
             encrypted_data = encrypted_file.read()
-        file_data = encryptor.decrypt(app.interface.encryption_key, encrypted_data)
+        file_data = encryptor.decrypt(app.launchable.encryption_key, encrypted_data)
         return FileResponse(
             io.BytesIO(file_data), attachment_filename=os.path.basename(path)
         )
@@ -177,17 +176,17 @@ def file(path):
 @app.get("/api", response_class=HTMLResponse)  # Needed for Spaces
 @app.get("/api/", response_class=HTMLResponse)
 def api_docs(request: Request):
-    inputs = [type(inp) for inp in app.interface.input_components]
-    outputs = [type(out) for out in app.interface.output_components]
+    inputs = [type(inp) for inp in app.launchable.input_components]
+    outputs = [type(out) for out in app.launchable.output_components]
     input_types_doc, input_types = get_types(inputs, "input")
     output_types_doc, output_types = get_types(outputs, "output")
-    input_names = [type(inp).__name__ for inp in app.interface.input_components]
-    output_names = [type(out).__name__ for out in app.interface.output_components]
-    if app.interface.examples is not None:
-        sample_inputs = app.interface.examples[0]
+    input_names = [type(inp).__name__ for inp in app.launchable.input_components]
+    output_names = [type(out).__name__ for out in app.launchable.output_components]
+    if app.launchable.examples is not None:
+        sample_inputs = app.launchable.examples[0]
     else:
         sample_inputs = [
-            inp.generate_sample() for inp in app.interface.input_components
+            inp.generate_sample() for inp in app.launchable.input_components
         ]
     docs = {
         "inputs": input_names,
@@ -201,9 +200,9 @@ def api_docs(request: Request):
         "input_types_doc": input_types_doc,
         "output_types_doc": output_types_doc,
         "sample_inputs": sample_inputs,
-        "auth": app.interface.auth,
-        "local_login_url": urllib.parse.urljoin(app.interface.local_url, "login"),
-        "local_api_url": urllib.parse.urljoin(app.interface.local_url, "api/predict"),
+        "auth": app.launchable.auth,
+        "local_login_url": urllib.parse.urljoin(app.launchable.local_url, "login"),
+        "local_api_url": urllib.parse.urljoin(app.launchable.local_url, "api/predict"),
     }
     return templates.TemplateResponse("api_docs.html", {"request": request, **docs})
 
@@ -211,60 +210,26 @@ def api_docs(request: Request):
 @app.post("/api/predict/", dependencies=[Depends(login_check)])
 async def predict(request: Request, username: str = Depends(get_current_user)):
     body = await request.json()
-    flag_index = None
-
-    if body.get("example_id") is not None:
-        example_id = body["example_id"]
-        if app.interface.cache_examples:
-            prediction = await run_in_threadpool(
-                load_from_cache, app.interface, example_id
-            )
-            durations = None
+    try:
+        output = await run_in_threadpool(app.launchable.process_api, body, username)
+    except BaseException as error:
+        if app.launchable.show_error:
+            traceback.print_exc()
+            return JSONResponse(content={"error": str(error)}, status_code=500)
         else:
-            prediction, durations = await run_in_threadpool(
-                process_example, app.interface, example_id
-            )
-    else:
-        raw_input = body["data"]
-        if app.interface.show_error:
-            try:
-                prediction, durations = await run_in_threadpool(
-                    app.interface.process, raw_input
-                )
-            except BaseException as error:
-                traceback.print_exc()
-                return JSONResponse(content={"error": str(error)}, status_code=500)
-        else:
-            prediction, durations = await run_in_threadpool(
-                app.interface.process, raw_input
-            )
-        if app.interface.allow_flagging == "auto":
-            flag_index = await run_in_threadpool(
-                app.interface.flagging_callback.flag,
-                app.interface,
-                raw_input,
-                prediction,
-                flag_option="" if app.interface.flagging_options else None,
-                username=username,
-            )
-    output = {
-        "data": prediction,
-        "durations": durations,
-        "avg_durations": app.interface.config.get("avg_durations"),
-        "flag_index": flag_index,
-    }
+            raise error
     return output
 
 
 @app.post("/api/flag/", dependencies=[Depends(login_check)])
 async def flag(request: Request, username: str = Depends(get_current_user)):
-    if app.interface.analytics_enabled:
-        await utils.log_feature_analytics(app.interface.ip_address, "flag")
+    if app.launchable.analytics_enabled:
+        await utils.log_feature_analytics(app.launchable.ip_address, "flag")
     body = await request.json()
     data = body["data"]
     await run_in_threadpool(
-        app.interface.flagging_callback.flag,
-        app.interface,
+        app.launchable.flagging_callback.flag,
+        app.launchable,
         data["input_data"],
         data["output_data"],
         flag_option=data.get("flag_option"),
@@ -276,12 +241,12 @@ async def flag(request: Request, username: str = Depends(get_current_user)):
 
 @app.post("/api/interpret/", dependencies=[Depends(login_check)])
 async def interpret(request: Request):
-    if app.interface.analytics_enabled:
-        await utils.log_feature_analytics(app.interface.ip_address, "interpret")
+    if app.launchable.analytics_enabled:
+        await utils.log_feature_analytics(app.launchable.ip_address, "interpret")
     body = await request.json()
     raw_input = body["data"]
     interpretation_scores, alternative_outputs = await run_in_threadpool(
-        app.interface.interpret, raw_input
+        app.launchable.interpret, raw_input
     )
     return {
         "interpretation_scores": interpretation_scores,
@@ -368,20 +333,20 @@ def set_state(*args):
 if __name__ == "__main__":  # Run directly for debugging: python app.py
     from gradio import Interface
 
-    app.interface = Interface(
+    app.launchable = Interface(
         lambda x: "Hello, " + x, "text", "text", analytics_enabled=False
     )
-    app.interface.favicon_path = None
-    app.interface.config = app.interface.get_config_file()
-    app.interface.show_error = True
-    app.interface.flagging_callback.setup(app.interface.flagging_dir)
+    app.launchable.favicon_path = None
+    app.launchable.config = app.launchable.get_config_file()
+    app.launchable.show_error = True
+    app.launchable.flagging_callback.setup(app.launchable.flagging_dir)
     app.tokens = {}
 
     auth = True
     if auth:
-        app.interface.auth = ("a", "b")
+        app.launchable.auth = ("a", "b")
         app.auth = {"a": "b"}
-        app.interface.auth_message = None
+        app.launchable.auth_message = None
     else:
         app.auth = None
 
