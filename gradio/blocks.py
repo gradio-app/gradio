@@ -3,7 +3,9 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 from gradio import utils
 from gradio.context import Context
 from gradio.launchable import Launchable
-from gradio.component import Component
+
+if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
+    from gradio.component import Component
 
 
 class Block:
