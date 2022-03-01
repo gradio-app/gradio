@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 from gradio import utils
 from gradio.context import Context
 from gradio.launchable import Launchable
-
+from gradio.component import Component
 
 class Block:
     def __init__(self):
@@ -25,6 +25,62 @@ class Block:
             {
                 "targets": [self._id],
                 "trigger": "click",
+                "inputs": [block._id for block in inputs],
+                "outputs": [block._id for block in outputs],
+            }
+        )
+
+    def change(self, fn: str, inputs: List[Component], outputs: List[Component]) -> None:
+        """
+        Adds change event to the dependencies.
+
+        Whenever one of the inputs changes the function is triggered.
+
+        Parameters:
+            fn:
+            inputs:
+            outputs:
+
+        Returns: None
+
+        """
+        if not isinstance(inputs, list):
+            inputs = [inputs]
+        if not isinstance(outputs, list):
+            outputs = [outputs]
+        Context.root_block.fns.append(fn)
+        Context.root_block.dependencies.append(
+            {
+                "targets": [self._id],
+                "trigger": "change",
+                "inputs": [block._id for block in inputs],
+                "outputs": [block._id for block in outputs],
+            }
+        )
+
+    def save(self, fn: str, inputs: List[Component], outputs: List[Component]) -> None:
+        """
+        Adds save event to the dependencies.
+
+        Whenever one of the inputs is saved, function is triggered.
+
+        Parameters:
+            fn: function name
+            inputs: input list
+            outputs: output list
+
+        Returns: None
+
+        """
+        if not isinstance(inputs, list):
+            inputs = [inputs]
+        if not isinstance(outputs, list):
+            outputs = [outputs]
+        Context.root_block.fns.append(fn)
+        Context.root_block.dependencies.append(
+            {
+                "targets": [self._id],
+                "trigger": "save",
                 "inputs": [block._id for block in inputs],
                 "outputs": [block._id for block in outputs],
             }
