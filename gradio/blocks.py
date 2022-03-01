@@ -1,3 +1,4 @@
+import os
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
 from gradio import utils
@@ -33,7 +34,7 @@ class Block:
             }
         )
 
-    def change(self, fn: str, inputs: List[Component], outputs: List[Component]) -> None:
+    def change(self, fn: str, inputs: List["Component"], outputs: List["Component"]) -> None:
         """
         Adds change event to the component's dependencies.
 
@@ -61,7 +62,7 @@ class Block:
             }
         )
 
-    def save(self, fn: str, inputs: List[Component], outputs: List[Component]) -> None:
+    def save(self, fn: str, inputs: List["Component"], outputs: List["Component"]) -> None:
         """
         Adds save event to the component's dependencies.
 
@@ -132,6 +133,7 @@ class Blocks(Launchable, BlockContext):
         self.theme = theme
         self.requires_permissions = False  # TODO: needs to be implemented
         self.enable_queue = False
+        self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
 
         super().__init__()
         Context.root_block = self
