@@ -141,6 +141,8 @@ class Launchable:
             share = True
 
         if share:
+            if self.is_space:	
+                raise RuntimeError("Share is not supported when you are in Spaces")
             try:
                 share_url = networking.setup_tunnel(server_port, private_endpoint)
                 self.share_url = share_url
@@ -201,6 +203,7 @@ class Launchable:
             "api_mode": self.api_mode,
             "server_name": server_name,
             "server_port": server_port,
+            "is_spaces": self.is_space,
         }
         if self.analytics_enabled:
             utils.launch_analytics(data)
