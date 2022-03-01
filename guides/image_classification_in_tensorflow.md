@@ -1,15 +1,15 @@
 # Image Classification in TensorFlow and Keras
 
-related_spaces: abidlabs/tensorflow-image-classifier
+related_spaces: https://huggingface.co/spaces/abidlabs/keras-image-classifier
 tags: VISION, MOBILENET, TENSORFLOW
 
 ## Introduction
 
 Image classification is a central task in computer vision. Building better classifiers to classify what object is present in a picture is an active area of research, as it has applications stretching from traffic control systems to satellite imaging. 
 
-Such models are perfect to use with Gradio's *image* input component, so in this tutorial we will build a web demo to classify images using Gradio. We will be able to build the whole web application in Python, and will look like this (try one of the examples!):
+Such models are perfect to use with Gradio's *image* input component, so in this tutorial we will build a web demo to classify images using Gradio. We will be able to build the whole web application in Python, and it will look like this (try one of the examples!):
 
-<iframe src="https://hf.space/gradioiframe/abidlabs/tensorflow-image-classifier/+" frameBorder="0" height="450" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+<iframe src="https://hf.space/gradioiframe/abidlabs/tensorflow-image-classifier/+" frameBorder="0" height="660" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
 
 Let's get started!
@@ -20,7 +20,7 @@ Make sure you have the `gradio` Python package already [installed](/getting_star
 
 ## Step 1 — Setting up the Image Classification Model
 
-First, you will need a image classification model. For this tutorial, we will use a pretrained Mobile Net model, as it is easily downloadable from [Keras](https://keras.io/api/applications/mobilenet/). You can use a different pretrained model or train your own. 
+First, we will need an image classification model. For this tutorial, we will use a pretrained Mobile Net model, as it is easily downloadable from [Keras](https://keras.io/api/applications/mobilenet/). You can use a different pretrained model or train your own. 
 
 ```python
 import tensorflow as tf
@@ -32,7 +32,7 @@ This line automatically downloads the MobileNet model and weights using the Kera
 
 ## Step 2 — Defining a `predict` function
 
-Next, you will need to define a function that takes in the *user input*, which in this case is an image, and returns the prediction. The prediction should be returned as a dictionary whose keys are class name and values are confidence probabilities. We will load the class names from this [text file](https://git.io/JJkYN).
+Next, we will need to define a function that takes in the *user input*, which in this case is an image, and returns the prediction. The prediction should be returned as a dictionary whose keys are class name and values are confidence probabilities. We will load the class names from this [text file](https://git.io/JJkYN).
 
 In the case of our pretrained model, it will look like this:
 
@@ -51,7 +51,7 @@ def classify_image(inp):
   return confidences
 ```
 
-Let's break this down. The function takes one parameters:
+Let's break this down. The function takes one parameter:
 
 * `inp`: the input image as a `numpy` array
 
@@ -80,7 +80,7 @@ gr.Interface(fn=classify_image,
 
 This produces the following interface, which you can try right here in your browser (try uploading your own examples!):
 
-<iframe src="https://hf.space/gradioiframe/abidlabs/tensorflow-image-classifier/+" frameBorder="0" height="450" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+<iframe src="https://hf.space/gradioiframe/abidlabs/tensorflow-image-classifier/+" frameBorder="0" height="660" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
 ----------
 
