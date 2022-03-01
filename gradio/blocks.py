@@ -5,6 +5,7 @@ from gradio.context import Context
 from gradio.launchable import Launchable
 from gradio.component import Component
 
+
 class Block:
     def __init__(self):
         self._id = Context.id
@@ -32,14 +33,14 @@ class Block:
 
     def change(self, fn: str, inputs: List[Component], outputs: List[Component]) -> None:
         """
-        Adds change event to the dependencies.
+        Adds change event to the component's dependencies.
 
-        Whenever one of the inputs changes the function is triggered.
+        Whenever the component changes the function is triggered.
 
         Parameters:
-            fn:
-            inputs:
-            outputs:
+            fn: function name
+            inputs: input list
+            outputs: output list
 
         Returns: None
 
@@ -60,9 +61,9 @@ class Block:
 
     def save(self, fn: str, inputs: List[Component], outputs: List[Component]) -> None:
         """
-        Adds save event to the dependencies.
+        Adds save event to the component's dependencies.
 
-        Whenever one of the inputs is saved, function is triggered.
+        Whenever the component is saved the function is triggered.
 
         Parameters:
             fn: function name
