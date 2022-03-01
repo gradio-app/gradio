@@ -448,8 +448,8 @@ class Checkbox(InputComponent):
     """
 
     def __init__(
-        self, 
-        default: bool = False, 
+        self,
+        default: bool = False,
         label: Optional[str] = None,
         optional: bool = False,
     ):
@@ -1598,8 +1598,8 @@ class State(InputComponent):
     """
 
     def __init__(
-        self, 
-        label: str = None, 
+        self,
+        label: str = None,
         default: Any = None,
         optional: bool = False,
     ):
