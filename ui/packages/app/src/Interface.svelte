@@ -50,7 +50,7 @@
 	let avg_duration = Array.isArray(avg_durations) ? avg_durations[0] : null;
 	let expected_duration: number | null = null;
 
-	const setValues = (index: number, value: unknown) => {
+	const setValues = async (index: number, value: unknown) => {
 		has_changed = true;
 		input_values[index] = value;
 		if (live && state !== "PENDING") {
@@ -85,7 +85,7 @@
 		clearInterval(timer);
 	};
 
-	const submit = () => {
+	const submit = async () => {
 		if (state === "PENDING") {
 			return;
 		}
@@ -103,53 +103,55 @@
 		has_changed = false;
 		let submission_count_at_click = submission_count;
 		startTimer();
-		fn("predict", { data: input_values }, queue, queueCallback)
-			.then((output) => {
-				if (
-					state !== "PENDING" ||
-					submission_count_at_click !== submission_count
-				) {
-					return;
-				}
-				stopTimer();
-				output_values = output["data"];
-				for (let [i, value] of output_values.entries()) {
-					if (output_components[i].name === "state") {
-						for (let [j, input_component] of input_components.entries()) {
-							if (input_component.name === "state") {
-								input_values[j] = value;
-							}
-						}
+		let output: any;
+		try {
+			output = await fn(
+				"predict",
+				{ data: input_values },
+				queue,
+				queueCallback
+			);
+		} catch (e) {
+			if (
+				state !== "PENDING" ||
+				submission_count_at_click !== submission_count
+			) {
+				return;
+			}
+			stopTimer();
+			console.error(e);
+			state = "ERROR";
+			output_values = deepCopy(default_outputs);
+		}
+		if (state !== "PENDING" || submission_count_at_click !== submission_count) {
+			return;
+		}
+		stopTimer();
+		output_values = output["data"];
+		for (let [i, value] of output_values.entries()) {
+			if (output_components[i].name === "state") {
+				for (let [j, input_component] of input_components.entries()) {
+					if (input_component.name === "state") {
+						input_values[j] = value;
 					}
 				}
-				if ("durations" in output) {
-					last_duration = output["durations"][0];
-				}
-				if ("avg_durations" in output) {
-					avg_duration = output["avg_durations"][0];
-					if (queue && initial_queue_index) {
-						expected_duration = avg_duration * (initial_queue_index + 1);
-					} else {
-						expected_duration = avg_duration;
-					}
-				}
-				state = "COMPLETE";
-				if (live && has_changed) {
-					submit();
-				}
-			})
-			.catch((e) => {
-				if (
-					state !== "PENDING" ||
-					submission_count_at_click !== submission_count
-				) {
-					return;
-				}
-				stopTimer();
-				console.error(e);
-				state = "ERROR";
-				output_values = deepCopy(default_outputs);
-			});
+			}
+		}
+		if ("durations" in output) {
+			last_duration = output["durations"][0];
+		}
+		if ("avg_durations" in output) {
+			avg_duration = output["avg_durations"][0];
+			if (queue && initial_queue_index) {
+				expected_duration = avg_duration * (initial_queue_index + 1);
+			} else {
+				expected_duration = avg_duration;
+			}
+		}
+		state = "COMPLETE";
+		if (live && has_changed) {
+			await submit();
+		}
 	};
 	const clear = () => {
 		input_values = deepCopy(default_inputs);

@@ -9,6 +9,7 @@
 	import { _ } from "svelte-i18n";
 
 	export let value: null | Value;
+	export let live: boolean;
 	export let setValue: (val: typeof value) => typeof value;
 	export let theme: string;
 	export let name: string;
@@ -24,33 +25,48 @@
 	let player;
 	let inited = false;
 	let crop_values = [0, 100];
+	let converting_blob = false;
 
-	function blob_to_data_url(blob: Blob): Promise<string> {
-		return new Promise((fulfill, reject) => {
-			let reader = new FileReader();
-			reader.onerror = reject;
-			reader.onload = (e) => fulfill(reader.result as string);
-			reader.readAsDataURL(blob);
-		});
+	async function generate_data(): Promise<{
+		data: string;
+		name: string;
+		is_example: boolean;
+	}> {
+		function blob_to_data_url(blob: Blob): Promise<string> {
+			return new Promise((fulfill, reject) => {
+				let reader = new FileReader();
+				reader.onerror = reject;
+				reader.onload = (e) => fulfill(reader.result as string);
+				reader.readAsDataURL(blob);
+			});
+		}
+		audio_blob = new Blob(audio_chunks, { type: "audio/wav" });
+		return {
+			data: await blob_to_data_url(audio_blob),
+			name,
+			is_example
+		};
 	}
 
 	async function prepare_audio() {
 		const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 		recorder = new MediaRecorder(stream);
 
-		recorder.addEventListener("dataavailable", (event) => {
+		recorder.addEventListener("dataavailable", async (event) => {
 			audio_chunks.push(event.data);
+			if (live && !converting_blob) {
+				converting_blob = true;
+				await setValue(await generate_data());
+				converting_blob = false;
+			}
 		});
 
 		recorder.addEventListener("stop", async () => {
 			recording = false;
-			audio_blob = new Blob(audio_chunks, { type: "audio/wav" });
 
-			setValue({
-				data: await blob_to_data_url(audio_blob),
-				name,
-				is_example
-			});
+			if (!live) {
+				setValue(await generate_data());
+			}
 		});
 	}
 
@@ -117,7 +133,7 @@
 </script>
 
 <div class="input-audio">
-	{#if value === null}
+	{#if value === null || (source === "microphone" && live)}
 		{#if source === "microphone"}
 			{#if recording}
 				<button
