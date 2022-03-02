@@ -20,7 +20,7 @@ from gradio.routes import app
 from gradio.tunneling import create_tunnel
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
-    from gradio import Interface
+    from gradio.launchable import Launchable
 
 
 # By default, the local server will try to open on localhost, port 7860.
@@ -71,22 +71,27 @@ def get_first_available_port(initial: int, final: int) -> int:
 
 
 def start_server(
-    interface: Interface,
+    launchable: Launchable,
     server_name: Optional[str] = None,
     server_port: Optional[int] = None,
     ssl_keyfile: Optional[str] = None,
     ssl_certfile: Optional[str] = None,
     ssl_keyfile_password: Optional[str] = None,
-) -> Tuple[int, str, fastapi.FastAPI, threading.Thread, None]:
+) -> Tuple[int, str, fastapi.FastAPI, Server]:
     """Launches a local server running the provided Interface
     Parameters:
-    interface: The interface object to run on the server
+    launchable: The launchable object to run on the server
     server_name: to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME.
     server_port: will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT.
-    auth: If provided, username and password (or list of username-password tuples) required to access interface. Can also provide function that takes username and password and returns True if valid login.
+    auth: If provided, username and password (or list of username-password tuples) required to access launchable. Can also provide function that takes username and password and returns True if valid login.
     ssl_keyfile: If a path to a file is provided, will use this as the private key file to create a local server running on https.
     ssl_certfile: If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
-    ssl_keyfile_password (str): If a password is provided, will use this with the ssl certificate for https.
+    ssl_keyfile_password: If a password is provided, will use this with the ssl certificate for https.
+    Returns:
+    port: the port number the server is running on
+    path_to_local_server: the complete address that the local server can be accessed at
+    app: the FastAPI app object
+    server: the server object that is a subclass of uvicorn.Server (used to close the server)
     """
     server_name = server_name or LOCALHOST_NAME
     # if port is not specified, search for first available port
@@ -101,7 +106,7 @@ def start_server(
             s.close()
         except OSError:
             raise OSError(
-                "Port {} is in use. If a gradio.Interface is running on the port, you can close() it or gradio.close_all().".format(
+                "Port {} is in use. If a gradio.Launchable is running on the port, you can close() it or gradio.close_all().".format(
                     server_port
                 )
             )
@@ -118,7 +123,7 @@ def start_server(
     else:
         path_to_local_server = "http://{}:{}/".format(url_host_name, port)
 
-    auth = interface.auth
+    auth = launchable.auth
     if auth is not None:
         if not callable(auth):
             app.auth = {account[0]: account[1] for account in auth}
@@ -126,21 +131,21 @@ def start_server(
             app.auth = auth
     else:
         app.auth = None
-    app.interface = interface
+    app.launchable = launchable
     app.cwd = os.getcwd()
-    app.favicon_path = interface.favicon_path
+    app.favicon_path = launchable.favicon_path
     app.tokens = {}
 
-    if app.interface.enable_queue:
-        if auth is not None or app.interface.encrypt:
+    if app.launchable.enable_queue:
+        if auth is not None or app.launchable.encrypt:
             raise ValueError("Cannot queue with encryption or authentication enabled.")
         queueing.init()
         app.queue_thread = threading.Thread(
             target=queueing.queue_thread, args=(path_to_local_server,)
         )
         app.queue_thread.start()
-    if interface.save_to is not None:  # Used for selenium tests
-        interface.save_to["port"] = port
+    if launchable.save_to is not None:  # Used for selenium tests
+        launchable.save_to["port"] = port
 
     config = uvicorn.Config(
         app=app,
