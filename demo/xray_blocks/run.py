@@ -31,12 +31,8 @@ with xray_blocks:
         with gr.Row():
             ct_scan = gr.inputs.Image()
             ct_results = gr.outputs.JSON()
-            second_output = gr.outputs.JSON()
         ct_run = gr.Button("Run")
-        button_2 = gr.Button("Second Run")
-
         ct_run.click(ct_model, inputs=[disease, ct_scan], outputs=ct_results)
-        button_2.click(ct_model, inputs=[ct_results], outputs=second_output)
 
     overall_probability = gr.outputs.Textbox()
 
