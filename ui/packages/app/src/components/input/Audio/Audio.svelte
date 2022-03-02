@@ -128,7 +128,7 @@
 				</button>
 			{:else}
 				<button
-					class="p-2 rounded font-semibold bg-white dark:bg-gray-600 shadow transition hover:shadow-md bg-white dark:bg-gray-800"
+					class="p-2 rounded font-semibold shadow transition hover:shadow-md bg-white dark:bg-gray-800"
 					on:click={record}
 				>
 					Record

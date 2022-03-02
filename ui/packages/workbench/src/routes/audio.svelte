@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { Audio } from "@gradio/audio";
-	import audio from "../assets/cantina.wav";
 </script>
 
 <h2>upload input</h2>

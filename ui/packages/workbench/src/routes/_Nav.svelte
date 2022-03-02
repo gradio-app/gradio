@@ -3,7 +3,6 @@
 	const comp_routes = [
 		"Audio",
 		"Button",
-		"DataFrame",
 		"Carousel",
 		"Chatbot",
 		"Chart",
@@ -14,13 +13,10 @@
 		"Image",
 		"JSON",
 		"Label",
-		"Markdown",
-		"Tooltip",
+		"Table",
 		"Upload",
 		"Video"
 	].map((n) => [n, n.toLowerCase()]);
-
-	$: console.log($page.url);
 </script>
 
 <nav class="inline-block">

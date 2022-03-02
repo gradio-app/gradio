@@ -66,7 +66,6 @@
 	}
 
 	onDestroy(() => {
-		console.log(recorder);
 		if (recorder && recorder.state !== "inactive") {
 			recorder.stop();
 		}

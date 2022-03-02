@@ -1,17 +1,9 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	interface FileData {
-		name: string;
-		size: number;
-		data: string;
-		is_example: false;
-	}
+	import type { FileData } from "./types";
 
-	// export let load: (
-	// 	val: Array<string | FileData> | string | FileData | null
-	// ) => Array<string | FileData> | string | FileData | null;
 	export let filetype: string | undefined = undefined;
-	export let theme: string;
+	export let theme: string = "default";
 	export let single_file: boolean = true;
 	export let include_file_metadata = true;
 	let hidden_upload: HTMLInputElement;

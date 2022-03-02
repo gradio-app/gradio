@@ -79,17 +79,113 @@ importers:
     dependencies:
       '@gradio/upload': link:../upload
 
+  packages/carousel:
+    specifiers:
+      '@gradio/upload': workspace:^0.0.1
+    dependencies:
+      '@gradio/upload': link:../upload
+
+  packages/chart:
+    specifiers:
+      '@gradio/tooltip': workspace:^0.0.1
+      d3-dsv: ^3.0.1
+      d3-scale: ^4.0.2
+      d3-shape: ^3.1.0
+    dependencies:
+      '@gradio/tooltip': link:../tooltip
+      d3-dsv: 3.0.1
+      d3-scale: 4.0.2
+      d3-shape: 3.1.0
+
+  packages/chatbot:
+    specifiers: {}
+
   packages/components:
     specifiers: {}
 
+  packages/file:
+    specifiers:
+      '@gradio/upload': workspace:^0.0.1
+    dependencies:
+      '@gradio/upload': link:../upload
+
+  packages/form:
+    specifiers:
+      '@gradio/upload': workspace:^0.0.1
+    dependencies:
+      '@gradio/upload': link:../upload
+
+  packages/highlighted-text:
+    specifiers:
+      '@gradio/upload': workspace:^0.0.1
+    dependencies:
+      '@gradio/upload': link:../upload
+
+  packages/html:
+    specifiers:
+      '@gradio/upload': workspace:^0.0.1
+    dependencies:
+      '@gradio/upload': link:../upload
+
+  packages/image:
+    specifiers:
+      '@gradio/upload': workspace:^0.0.1
+      cropperjs: ^1.5.12
+      lazy-brush: ^1.0.1
+      resize-observer-polyfill: ^1.5.1
+      tui-image-editor: ^3.15.2
+    dependencies:
+      '@gradio/upload': link:../upload
+      cropperjs: 1.5.12
+      lazy-brush: 1.0.1
+      resize-observer-polyfill: 1.5.1
+      tui-image-editor: 3.15.2
+
+  packages/table:
+    specifiers:
+      '@gradio/upload': workspace:^0.0.1
+    dependencies:
+      '@gradio/upload': link:../upload
+
+  packages/theme:
+    specifiers:
+      '@gradio/upload': workspace:^0.0.1
+    dependencies:
+      '@gradio/upload': link:../upload
+
+  packages/tooltip:
+    specifiers:
+      '@gradio/upload': workspace:^0.0.1
+    dependencies:
+      '@gradio/upload': link:../upload
+
   packages/upload:
     specifiers: {}
+
+  packages/video:
+    specifiers:
+      '@gradio/upload': workspace:^0.0.1
+    dependencies:
+      '@gradio/upload': link:../upload
 
   packages/workbench:
     specifiers:
       '@gradio/audio': workspace:^0.0.1
       '@gradio/button': workspace:^0.0.1
+      '@gradio/carousel': workspace:^0.0.1
+      '@gradio/chart': workspace:^0.0.1
+      '@gradio/chatbot': workspace:^0.0.1
+      '@gradio/file': workspace:^0.0.1
+      '@gradio/form': workspace:^0.0.1
+      '@gradio/highlighted-text': workspace:^0.0.1
+      '@gradio/html': workspace:^0.0.1
+      '@gradio/image': workspace:^0.0.1
+      '@gradio/json': workspace:^0.0.1
+      '@gradio/label': workspace:^0.0.1
+      '@gradio/table': workspace:^0.0.1
       '@gradio/theme': workspace:^0.0.1
+      '@gradio/upload': workspace:^0.0.1
+      '@gradio/video': workspace:^0.0.1
       '@sveltejs/adapter-auto': next
       '@sveltejs/kit': next
       autoprefixer: ^10.4.2
@@ -104,10 +200,23 @@ importers:
     dependencies:
       '@gradio/audio': link:../audio
       '@gradio/button': link:../button
+      '@gradio/carousel': link:../carousel
+      '@gradio/chart': link:../chart
+      '@gradio/chatbot': link:../chatbot
+      '@gradio/file': link:../file
+      '@gradio/form': link:../form
+      '@gradio/highlighted-text': link:../highlighted-text
+      '@gradio/html': link:../html
+      '@gradio/image': link:../image
+      '@gradio/json': link:../json
+      '@gradio/label': link:../label
+      '@gradio/table': link:../table
       '@gradio/theme': link:../theme
+      '@gradio/upload': link:../upload
+      '@gradio/video': link:../video
     devDependencies:
-      '@sveltejs/adapter-auto': 1.0.0-next.28
-      '@sveltejs/kit': 1.0.0-next.286_svelte@3.46.3
+      '@sveltejs/adapter-auto': 1.0.0-next.30
+      '@sveltejs/kit': 1.0.0-next.288_svelte@3.46.3
       autoprefixer: 10.4.2_postcss@8.4.6
       postcss: 8.4.6
       postcss-load-config: 3.1.1
@@ -221,12 +330,12 @@ packages:
       picomatch: 2.3.1
     dev: true
 
-  /@sveltejs/adapter-auto/1.0.0-next.28:
-    resolution: {integrity: sha512-MuJUghh7HYXeThS1btsKJFZBN//DM5BmfTXhSBRN3MgKwDMF1XYvadNegZI2nIVzb9RQTh/al3jGKKZfBVHGEg==}
+  /@sveltejs/adapter-auto/1.0.0-next.30:
+    resolution: {integrity: sha512-kKKDvv2bwH66l/A97u26973OG3Zh7V1WlTKgkOr95Koo1/Y6rBhBfkz0Jw+WLzsZ+hcTzgIrcegtWVt+GQRJpw==}
     dependencies:
       '@sveltejs/adapter-cloudflare': 1.0.0-next.14
-      '@sveltejs/adapter-netlify': 1.0.0-next.47
-      '@sveltejs/adapter-vercel': 1.0.0-next.44
+      '@sveltejs/adapter-netlify': 1.0.0-next.49
+      '@sveltejs/adapter-vercel': 1.0.0-next.45
     dev: true
 
   /@sveltejs/adapter-cloudflare/1.0.0-next.14:
@@ -235,22 +344,22 @@ packages:
       esbuild: 0.14.23
     dev: true
 
-  /@sveltejs/adapter-netlify/1.0.0-next.47:
-    resolution: {integrity: sha512-fyJ2UP14ViusPFMtnuXbLRxE9bQ3dQ7Aj5HkAddN4fgV1A15tGWthrSUOH0iozYmOYLu6AWvUxx9o01OhJbfZQ==}
+  /@sveltejs/adapter-netlify/1.0.0-next.49:
+    resolution: {integrity: sha512-EYP0/eK1foC90fBNn6V9fP0ngrMF3MrkaNN+wCnMj0rHGKOKUzXlIeyPtGtQnDL9cqHac39pbPhSyMaMuWZF/w==}
     dependencies:
       '@iarna/toml': 2.2.5
       esbuild: 0.14.23
       tiny-glob: 0.2.9
     dev: true
 
-  /@sveltejs/adapter-vercel/1.0.0-next.44:
-    resolution: {integrity: sha512-q0o7JG0pAam2lkkM5XiaLzYBGSRtOogjXpKYwpc7iiMuaSV4nzsnYlLxwbtib7ZJQzE1D32pPZQuvf5pAIqrmQ==}
+  /@sveltejs/adapter-vercel/1.0.0-next.45:
+    resolution: {integrity: sha512-WoOMu4FSWjVeRiPq2NKfdZhobfOLmDykObZmm8JHptMDb0/I5SB+6wstzAeaNtQr2ZbQkUy0k7EX95riJifEEQ==}
     dependencies:
       esbuild: 0.14.23
     dev: true
 
-  /@sveltejs/kit/1.0.0-next.286_svelte@3.46.3:
-    resolution: {integrity: sha512-txWUYKLpZohHPCEYc3oYIByMnZe+d/FItMBiCNJbTLdKaDop+SfCOzBar+K9IgP2MTXSScILSkPOms845uhz0A==}
+  /@sveltejs/kit/1.0.0-next.288_svelte@3.46.3:
+    resolution: {integrity: sha512-6ky4CUFNGKoU1QV+fY2LOIB7atHdUCIMRx3pX21B2g9yZzQzkot0zHBrMMBSKF0/4Wx19PLEWrlGxlhakYmi8Q==}
     engines: {node: '>=14.13'}
     hasBin: true
     peerDependencies:

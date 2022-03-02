@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { FileData } from "./types";
 	import edit from "./edit.svg";
 	import clear from "./clear.svg";
 
@@ -8,8 +9,7 @@
 	export let theme: string;
 	export let absolute = true;
 
-	const dispatch =
-		createEventDispatcher<{ edit: undefined; clear: undefined }>();
+	const dispatch = createEventDispatcher<{ edit: FileData; clear: null }>();
 </script>
 
 <div
