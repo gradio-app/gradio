@@ -26,6 +26,9 @@ import OutputVideo from "./output/Video/config.js";
 import OutputTimeSeries from "./output/TimeSeries/config.js";
 import OutputChatbot from "./output/Chatbot/config.js";
 
+import StaticButton from "./static/Button/config.js";
+import StaticMarkdown from "./static/Markdown/config.js";
+
 export const input_component_map = {
 	audio: InputAudio,
 	checkbox: InputCheckbox,
@@ -56,4 +59,15 @@ export const output_component_map = {
 	timeseries: OutputTimeSeries,
 	video: OutputVideo,
 	chatbot: OutputChatbot
+};
+
+export const static_component_map = {
+	button: StaticButton,
+	markdown: StaticMarkdown
+};
+
+export const all_components_map = {
+	input: input_component_map,
+	output: output_component_map,
+	static: static_component_map
 };

@@ -3,9 +3,10 @@ import shutil
 from typing import Any, Dict, Optional
 
 from gradio import processing_utils
+from gradio.blocks import Block
 
 
-class Component:
+class Component(Block):
     """
     A class for defining the methods that all gradio input and output components should have.
     """
@@ -13,6 +14,7 @@ class Component:
     def __init__(self, label, requires_permissions=False):
         self.label = label
         self.requires_permissions = requires_permissions
+        super().__init__()
 
     def __str__(self):
         return self.__repr__()

@@ -36,6 +36,7 @@ class InputComponent(Component):
         """
         Constructs an input component.
         """
+        self.component_type = "input"
         self.set_interpret_parameters()
         self.optional = optional
         super().__init__(label, requires_permissions)
@@ -122,6 +123,7 @@ class Textbox(InputComponent):
         numeric: Optional[bool] = False,
         type: Optional[str] = "str",
         label: Optional[str] = None,
+        optional: bool = False,
     ):
         """
         Parameters:
@@ -131,6 +133,7 @@ class Textbox(InputComponent):
         numeric (bool): DEPRECATED. Whether the input should be parsed as a number instead of a string.
         type (str): DEPRECATED. Type of value to be returned by component. "str" returns a string, "number" returns a float value. Use Number component in place of number type.
         label (str): component name in interface.
+        optional (bool): this parameter is ignored.
         """
         self.lines = lines
         self.placeholder = placeholder
@@ -355,6 +358,7 @@ class Slider(InputComponent):
         step: Optional[float] = None,
         default: Optional[float] = None,
         label: Optional[str] = None,
+        optional: bool = False,
     ):
         """
         Parameters:
@@ -363,6 +367,7 @@ class Slider(InputComponent):
         step (float): increment between slider values.
         default (float): default value.
         label (str): component name in interface.
+        optional (bool): this parameter is ignored.
         """
         self.minimum = minimum
         self.maximum = maximum
@@ -442,11 +447,17 @@ class Checkbox(InputComponent):
     Demos: sentence_builder, titanic_survival
     """
 
-    def __init__(self, default: bool = False, label: Optional[str] = None):
+    def __init__(
+        self,
+        default: bool = False,
+        label: Optional[str] = None,
+        optional: bool = False,
+    ):
         """
         Parameters:
         label (str): component name in interface.
         default (bool): if True, checked by default.
+        optional (bool): this parameter is ignored.
         """
         self.test_input = True
         self.default = default
@@ -514,6 +525,7 @@ class CheckboxGroup(InputComponent):
         default: List[str] = [],
         type: str = "value",
         label: Optional[str] = None,
+        optional: bool = False,
     ):
         """
         Parameters:
@@ -521,6 +533,7 @@ class CheckboxGroup(InputComponent):
         default (List[str]): default selected list of options.
         type (str): Type of value to be returned by component. "value" returns the list of strings of the choices selected, "index" returns the list of indicies of the choices selected.
         label (str): component name in interface.
+        optional (bool): this parameter is ignored.
         """
         self.choices = choices
         self.default = default
@@ -611,6 +624,7 @@ class Radio(InputComponent):
         type: str = "value",
         default: Optional[str] = None,
         label: Optional[str] = None,
+        optional: bool = False,
     ):
         """
         Parameters:
@@ -618,6 +632,7 @@ class Radio(InputComponent):
         type (str): Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
         default (str): the button selected by default. If None, no button is selected by default.
         label (str): component name in interface.
+        optional (bool): this parameter is ignored.
         """
         self.choices = choices
         self.type = type
@@ -687,6 +702,7 @@ class Dropdown(InputComponent):
         type: str = "value",
         default: Optional[str] = None,
         label: Optional[str] = None,
+        optional: bool = False,
     ):
         """
         Parameters:
@@ -694,6 +710,7 @@ class Dropdown(InputComponent):
         type (str): Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
         default (str): default value selected in dropdown. If None, no value is selected by default.
         label (str): component name in interface.
+        optional (bool): this parameter is ignored.
         """
         self.choices = choices
         self.type = type
@@ -1400,6 +1417,7 @@ class Dataframe(InputComponent):
         default: Optional[List[List[Any]]] = None,
         type: str = "pandas",
         label: Optional[str] = None,
+        optional: bool = False,
     ):
         """
         Parameters:
@@ -1411,6 +1429,7 @@ class Dataframe(InputComponent):
         default (List[List[Any]]): Default value
         type (str): Type of value to be returned by component. "pandas" for pandas dataframe, "numpy" for numpy array, or "array" for a Python array.
         label (str): component name in interface.
+        optional (bool): this parameter is ignored.
         """
         self.headers = headers
         self.datatype = datatype
@@ -1578,11 +1597,17 @@ class State(InputComponent):
     Demos: chatbot
     """
 
-    def __init__(self, label: str = None, default: Any = None):
+    def __init__(
+        self,
+        label: str = None,
+        default: Any = None,
+        optional: bool = False,
+    ):
         """
         Parameters:
         label (str): component name in interface (not used).
         default (Any): the initial value of the state.
+        optional (bool): this parameter is ignored.
         """
 
         self.default = default
