@@ -34,7 +34,9 @@ class Block:
             }
         )
 
-    def change(self, fn: str, inputs: List["Component"], outputs: List["Component"]) -> None:
+    def change(
+        self, fn: str, inputs: List["Component"], outputs: List["Component"]
+    ) -> None:
         """
         Adds change event to the component's dependencies.
 
@@ -62,7 +64,9 @@ class Block:
             }
         )
 
-    def save(self, fn: str, inputs: List["Component"], outputs: List["Component"]) -> None:
+    def save(
+        self, fn: str, inputs: List["Component"], outputs: List["Component"]
+    ) -> None:
         """
         Adds save event to the component's dependencies.
 
