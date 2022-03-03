@@ -844,6 +844,8 @@ class State(OutputComponent):
         Parameters:
         label (str): component name in interface (not used).
         """
+        warnings.warn("The State output component will be deprecated. Please use the "
+                      "new Stateful component.")
         super().__init__(label)
 
     @classmethod

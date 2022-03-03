@@ -8,18 +8,17 @@ class StateHolder:
     state_dict: Dict[str, Any] = {}
     
     def __init__(self, id):
-        self.id = id
+        self.__id = id
         
     def __setattr__(self, name, value):
-        if name == "state":
-            StateHolder.state_dict[self.id] = value
-        else:
+        if name.startswith("_"):
             self.__dict__[name] = value
-            
+        else:
+            StateHolder.state_dict[(self.__id, name)] = value
 
     def __getattr__(self, name):
-        if name == "state":
-            return StateHolder.state_dict.get(self.id, None)
-        else:
+        if name.startswith("_"):
             return self.__dict__[name]
+        else:
+            return StateHolder.state_dict.get((self.__id, name), None)
             
