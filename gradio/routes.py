@@ -9,7 +9,7 @@ import posixpath
 import secrets
 import traceback
 import urllib
-from typing import Any, List, Optional, Type
+from typing import Any, Dict, List, Optional, Tuple, Type
 
 import orjson
 import pkg_resources
@@ -44,7 +44,7 @@ class ORJSONResponse(JSONResponse):
 
     def render(self, content: Any) -> bytes:
         return orjson.dumps(content)
-
+    
 
 app = FastAPI(default_response_class=ORJSONResponse)
 app.add_middleware(
@@ -53,6 +53,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.state_holder = {}
 
 templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 
@@ -210,8 +211,15 @@ def api_docs(request: Request):
 @app.post("/api/predict/", dependencies=[Depends(login_check)])
 async def predict(request: Request, username: str = Depends(get_current_user)):
     body = await request.json()
+    session_hash = body.get("session_hash", None)  # TODO(aliabid94): send from frontend
+    if app.launchable.stateful:
+        state = app.state_holder.get(session_hash, app.launchable.state_default)
+    
     try:
-        output = await run_in_threadpool(app.launchable.process_api, body, username)
+        output, updated_state = await run_in_threadpool(
+            app.launchable.process_api, body, username, state)
+        app.state_holder[session_hash] = updated_state
+        
     except BaseException as error:
         if app.launchable.show_error:
             traceback.print_exc()

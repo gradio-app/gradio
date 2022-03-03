@@ -176,6 +176,8 @@ class Interface(Launchable):
         if repeat_outputs_per_model:
             self.output_components *= len(fn)
 
+
+        self.stateful = False
         if sum(isinstance(i, i_State) for i in self.input_components) > 1:
             raise ValueError("Only one input component can be State.")
         if sum(isinstance(o, o_State) for o in self.output_components) > 1:
@@ -187,10 +189,23 @@ class Interface(Launchable):
             state_param_index = [
                 isinstance(i, i_State) for i in self.input_components
             ].index(True)
+            self.stateful = True
+            self.state_param_index = state_param_index
             state: i_State = self.input_components[state_param_index]
             if state.default is None:
                 default = utils.get_default_args(fn[0])[state_param_index]
                 state.default = default
+            self.state_default = state.default
+                
+        if sum(isinstance(i, o_State) for i in self.output_components) == 1:
+            state_return_index = [
+                isinstance(i, o_State) for i in self.output_components
+            ].index(True)
+            self.state_return_index = state_return_index
+        else:
+            raise ValueError("Exactly one input and one output component must be State")
+        
+
 
         if (
             interpretation is None
@@ -544,7 +559,12 @@ class Interface(Launchable):
         else:
             return predictions
 
-    def process_api(self, data: Dict[str, Any], username: str = None) -> Dict[str, Any]:
+    def process_api(
+        self, 
+        data: Dict[str, Any], 
+        username: str = None,
+        state: Any = None,
+    ) -> Dict[str, Any]:
         flag_index = None
         if data.get("example_id") is not None:
             example_id = data["example_id"]
@@ -555,6 +575,8 @@ class Interface(Launchable):
                 prediction, durations = process_example(self, example_id)
         else:
             raw_input = data["data"]
+            if self.stateful:
+                raw_input[self.state_param_index] = state
             prediction, durations = self.process(raw_input)
             if self.allow_flagging == "auto":
                 flag_index = self.flagging_callback.flag(
@@ -564,13 +586,17 @@ class Interface(Launchable):
                     flag_option="" if self.flagging_options else None,
                     username=username,
                 )
+            if self.stateful:
+                updated_state = prediction[self.state_return_index]
+            else: 
+                updated_state = None
 
         return {
             "data": prediction,
             "durations": durations,
             "avg_durations": self.config.get("avg_durations"),
             "flag_index": flag_index,
-        }
+        }, updated_state
 
     def process(self, raw_input: List[Any]) -> Tuple[List[Any], List[float]]:
         """
