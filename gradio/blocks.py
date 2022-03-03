@@ -73,6 +73,7 @@ class Blocks(Launchable, BlockContext):
         self.theme = theme
         self.requires_permissions = False  # TODO: needs to be implemented
         self.enable_queue = False
+        self.stateful = False  #TODO: implement state
 
         super().__init__()
         Context.root_block = self
@@ -80,7 +81,8 @@ class Blocks(Launchable, BlockContext):
         self.fns = []
         self.dependencies = []
 
-    def process_api(self, data: Dict[str, Any], username: str = None) -> Dict[str, Any]:
+    def process_api(self, data: Dict[str, Any], username: str = None, state=None) -> Dict[str, Any]:
+        #TODO: implement state
         raw_input = data["data"]
         fn_index = data["fn_index"]
         fn = self.fns[fn_index]
