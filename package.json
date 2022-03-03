@@ -1,0 +1,6 @@
+{
+	"dependencies": {
+		"three": "^0.138.2",
+		"vitest": "^0.5.9"
+	}
+}
