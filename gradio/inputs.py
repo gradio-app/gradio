@@ -1609,7 +1609,8 @@ class State(InputComponent):
         default (Any): the initial value of the state.
         optional (bool): this parameter is ignored.
         """
-
+        warnings.warn("The State input component will be deprecated. Please use the "
+                      "new Stateful component.")
         self.default = default
         super().__init__(label)
 
@@ -1621,6 +1622,40 @@ class State(InputComponent):
         return {
             "state": {},
         }
+        
+
+class Stateful(InputComponent):
+    """
+    Special hidden component that stores state across runs of the interface.
+    Input type: Any
+    Demos: chatbot
+    """
+
+    def __init__(
+        self,
+        label: str = None,
+        default: Any = None,
+        optional: bool = False,
+    ):
+        """
+        Parameters:
+        label (str): component name in interface (not used).
+        default (Any): the initial value of the state.
+        optional (bool): this parameter is ignored.
+        """
+
+        self.default = default
+        super().__init__(label)
+
+    def get_template_context(self):
+        return {"default": self.default, **super().get_template_context()}
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "stateful": {},
+        }
+
 
 
 def get_input_instance(iface: Interface):
