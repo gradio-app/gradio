@@ -1609,8 +1609,6 @@ class State(InputComponent):
         default (Any): the initial value of the state.
         optional (bool): this parameter is ignored.
         """
-        warnings.warn("The State input component will be deprecated. Please use the "
-                      "new Stateful component.")
         self.default = default
         super().__init__(label)
 
@@ -1622,7 +1620,7 @@ class State(InputComponent):
         return {
             "state": {},
         }
-        
+
 
 def get_input_instance(iface: Interface):
     if isinstance(iface, str):
