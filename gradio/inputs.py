@@ -1623,6 +1623,98 @@ class State(InputComponent):
         }
 
 
+class Model3D(InputComponent):
+    """
+    Used for 3d model output.
+    Input type: File object of type (.obj, glb, or .gltf)
+    Demos: model3d
+    """
+
+    def __init__(
+        self,
+        type: str = "file",
+        label: Optional[str] = None,
+        keep_filename: bool = True,
+        optional: bool = False,
+    ):
+        """
+        Parameters:
+        type (str): Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name, "binary" returns an bytes object.
+        label (str): component name in interface.
+        keep_filename (bool): DEPRECATED. Original filename always kept.
+        optional (bool): If True, the interface can be submitted with no uploaded image, in which case the input value is None.
+        """
+        self.type = type
+        self.test_input = None
+        super().__init__(label, optional=optional)
+
+    def get_template_context(self):
+        return {
+            "optional": self.optional,
+            **super().get_template_context(),
+        }
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "model3d": {},
+        }
+
+    def preprocess_example(self, x):
+        return {"name": x, "data": None, "is_example": True}
+
+    def preprocess(self, x: List[Dict[str, str]] | None):
+        """
+        Parameters:
+        x (List[Dict[name: str, data: str]]): List of JSON objects with filename as 'name' property and base64 data as 'data' property
+        Returns:
+        (Union[file-object, bytes, List[Union[file-object, bytes]]]): File objects in requested format
+        """
+        if x is None:
+            return None
+
+        file_name, data, is_example = (
+            x["name"],
+            x["data"],
+            x.get("is_example", False),
+        )
+        if self.type == "file":
+            if is_example:
+                return processing_utils.create_tmp_copy_of_file(file_name)
+            else:
+                return processing_utils.decode_base64_to_file(
+                    data, file_path=file_name
+                )
+        elif self.type == "bytes":
+            if is_example:
+                with open(file_name, "rb") as file_data:
+                    return file_data.read()
+            return processing_utils.decode_base64_to_binary(data)[0]
+        else:
+            raise ValueError(
+                "Unknown type: "
+                + str(self.type)
+                + ". Please choose from: 'file', 'bytes'."
+            )
+
+    def save_flagged(self, dir, label, data, encryption_key):
+        """
+        Returns: (List[List[Union[str, float]]]) 2D array
+        """
+        return json.dumps(data)
+
+    def save_flagged(self, dir, label, data, encryption_key):
+        """
+        Returns: (str) path to file
+        """
+        return self.save_flagged_file(
+            dir, label, None if data is None else data[0]["data"], encryption_key
+        )
+
+    # def generate_sample(self):
+    #     return test_data.BASE64_FILE
+
+
 def get_input_instance(iface: Interface):
     if isinstance(iface, str):
         shortcut = InputComponent.get_all_shortcut_implementations()[iface]
