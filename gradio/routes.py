@@ -21,6 +21,7 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from jinja2.exceptions import TemplateNotFound
+from pydantic import BaseModel
 from starlette.responses import RedirectResponse
 
 from gradio import encryptor, queueing, utils
@@ -59,6 +60,17 @@ app.state_holder = state_holder
 
 templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 
+
+###########
+# Data Models
+###########
+
+class PredictRequest(BaseModel):
+    session_hash: Optional[str]
+    example_id: Optional[int]
+    data: Any
+    state: Optional[Any]
+    
 
 ###########
 # Auth
@@ -211,15 +223,13 @@ def api_docs(request: Request):
 
 
 @app.post("/api/predict/", dependencies=[Depends(login_check)])
-async def predict(request: Request, username: str = Depends(get_current_user)):
-    body = await request.json()
-
+async def predict(body: PredictRequest, username: str = Depends(get_current_user)):
     if app.launchable.stateful:
-        session_hash = body.get("session_hash", None)
+        session_hash = body.session_hash
         state = app.state_holder.get(
             (session_hash, "state"), app.launchable.state_default
         )
-        body["state"] = state
+        body.state = state
     try:
         output = await run_in_threadpool(app.launchable.process_api, body, username)
         if app.launchable.stateful:
