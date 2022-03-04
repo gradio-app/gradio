@@ -853,20 +853,23 @@ class State(OutputComponent):
         }
 
 class Model3D(OutputComponent):
-    '''
+    """
     Used for 3d model output.
     Output type: filepath
     Demos: model3d
-    '''
+    """
 
     def __init__(self, clear_color=None, label=None):
-        '''
+        """
         Parameters:
         clear_color (List[r, g, b, a]): background color of scene
         label (str): component name in interface.
-        '''
+        """
         super().__init__(label)
         self.clear_color = clear_color
+    
+    def get_template_context(self):
+        return {**super().get_template_context()}
 
     @classmethod
     def get_shortcut_implementations(cls):
@@ -883,8 +886,6 @@ class Model3D(OutputComponent):
         (str): file extension
         (str): base64 url data
         """
-
-        # return processing_utils.encode_file_to_base64(y)
 
         if self.clear_color is None:
             self.clear_color = [0.2, 0.2, 0.2, 1.0]
