@@ -81,8 +81,7 @@ class Blocks(Launchable, BlockContext):
         self.fns = []
         self.dependencies = []
 
-    def process_api(self, data: Dict[str, Any], username: str = None, state=None) -> Dict[str, Any]:
-        #TODO: implement state
+    def process_api(self, data: Dict[str, Any], username: str = None) -> Dict[str, Any]:
         raw_input = data["data"]
         fn_index = data["fn_index"]
         fn = self.fns[fn_index]
