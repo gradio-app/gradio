@@ -202,8 +202,10 @@ class Interface(Launchable):
             ].index(True)
             self.state_return_index = state_return_index
         else:
-            raise ValueError("For a stateful interface, there must be exactly one State" 
-                             " input component and one State output component.")
+            raise ValueError(
+                "For a stateful interface, there must be exactly one State"
+                " input component and one State output component."
+            )
 
         if (
             interpretation is None
