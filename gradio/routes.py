@@ -44,7 +44,7 @@ class ORJSONResponse(JSONResponse):
 
     def render(self, content: Any) -> bytes:
         return orjson.dumps(content)
-    
+
 
 app = FastAPI(default_response_class=ORJSONResponse)
 app.add_middleware(
@@ -213,18 +213,19 @@ def api_docs(request: Request):
 @app.post("/api/predict/", dependencies=[Depends(login_check)])
 async def predict(request: Request, username: str = Depends(get_current_user)):
     body = await request.json()
-    
+
     if app.launchable.stateful:
         session_hash = body.get("session_hash", None)
-        state = app.state_holder.get((session_hash, "state"), app.launchable.state_default)
-        body['state'] = state
+        state = app.state_holder.get(
+            (session_hash, "state"), app.launchable.state_default
+        )
+        body["state"] = state
     try:
-        output = await run_in_threadpool(
-            app.launchable.process_api, body, username)
+        output = await run_in_threadpool(app.launchable.process_api, body, username)
         if app.launchable.stateful:
             updated_state = output.pop("updated_state")
             app.state_holder[(session_hash, "state")] = updated_state
-        
+
     except BaseException as error:
         if app.launchable.show_error:
             traceback.print_exc()

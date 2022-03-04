@@ -176,7 +176,6 @@ class Interface(Launchable):
         if repeat_outputs_per_model:
             self.output_components *= len(fn)
 
-
         self.stateful = False
         if sum(isinstance(i, i_State) for i in self.input_components) > 1:
             raise ValueError("Only one input component can be State.")
@@ -196,7 +195,7 @@ class Interface(Launchable):
                 default = utils.get_default_args(fn[0])[state_param_index]
                 state.default = default
             self.state_default = state.default
-                
+
         if sum(isinstance(i, o_State) for i in self.output_components) == 1:
             state_return_index = [
                 isinstance(i, o_State) for i in self.output_components
@@ -204,8 +203,6 @@ class Interface(Launchable):
             self.state_return_index = state_return_index
         else:
             raise ValueError("Exactly one input and one output component must be State")
-        
-
 
         if (
             interpretation is None
@@ -560,8 +557,8 @@ class Interface(Launchable):
             return predictions
 
     def process_api(
-        self, 
-        data: Dict[str, Any], 
+        self,
+        data: Dict[str, Any],
         username: str = None,
     ) -> Dict[str, Any]:
         flag_index = None
@@ -588,7 +585,7 @@ class Interface(Launchable):
                 )
             if self.stateful:
                 updated_state = prediction[self.state_return_index]
-            else: 
+            else:
                 updated_state = None
 
         return {
@@ -596,7 +593,7 @@ class Interface(Launchable):
             "durations": durations,
             "avg_durations": self.config.get("avg_durations"),
             "flag_index": flag_index,
-            "updated_state": updated_state
+            "updated_state": updated_state,
         }
 
     def process(self, raw_input: List[Any]) -> Tuple[List[Any], List[float]]:
