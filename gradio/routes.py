@@ -53,7 +53,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.state_holder = {}
+
+state_holder: Dict[Tuple[str, str], Any] = {}
+app.state_holder = state_holder
 
 templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 
@@ -211,14 +213,17 @@ def api_docs(request: Request):
 @app.post("/api/predict/", dependencies=[Depends(login_check)])
 async def predict(request: Request, username: str = Depends(get_current_user)):
     body = await request.json()
-    session_hash = body.get("session_hash", None)  # TODO(aliabid94): send from frontend
-    if app.launchable.stateful:
-        state = app.state_holder.get(session_hash, app.launchable.state_default)
     
+    if app.launchable.stateful:
+        session_hash = body.get("session_hash", None)
+        state = app.state_holder.get((session_hash, "state"), app.launchable.state_default)
+        body['state'] = state
     try:
-        output, updated_state = await run_in_threadpool(
-            app.launchable.process_api, body, username, state)
-        app.state_holder[session_hash] = updated_state
+        output = await run_in_threadpool(
+            app.launchable.process_api, body, username)
+        if app.launchable.stateful:
+            updated_state = output.pop("updated_state")
+            app.state_holder[(session_hash, "state")] = updated_state
         
     except BaseException as error:
         if app.launchable.show_error:

@@ -563,7 +563,6 @@ class Interface(Launchable):
         self, 
         data: Dict[str, Any], 
         username: str = None,
-        state: Any = None,
     ) -> Dict[str, Any]:
         flag_index = None
         if data.get("example_id") is not None:
@@ -576,6 +575,7 @@ class Interface(Launchable):
         else:
             raw_input = data["data"]
             if self.stateful:
+                state = data["state"]
                 raw_input[self.state_param_index] = state
             prediction, durations = self.process(raw_input)
             if self.allow_flagging == "auto":
@@ -596,7 +596,8 @@ class Interface(Launchable):
             "durations": durations,
             "avg_durations": self.config.get("avg_durations"),
             "flag_index": flag_index,
-        }, updated_state
+            "updated_state": updated_state
+        }
 
     def process(self, raw_input: List[Any]) -> Tuple[List[Any], List[float]]:
         """
