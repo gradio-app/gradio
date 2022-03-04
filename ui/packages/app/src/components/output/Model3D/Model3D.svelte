@@ -8,7 +8,7 @@
     
   let canvas: HTMLCanvasElement;
   let scene: BABYLON.Scene;
-  
+
   onMount(() => {
     const engine = new BABYLON.Engine(canvas, true);
     scene = new BABYLON.Scene(engine);
