@@ -21,7 +21,6 @@ class Component(Block):
     ):
         self.label = label
         self.requires_permissions = requires_permissions
-        self.component_type = "input"
         self.set_interpret_parameters()
         self.optional = optional
         self.input = False
@@ -207,6 +206,7 @@ class Textbox(Component):
         numeric: Optional[bool] = False,
         type: Optional[str] = "str",
         optional: bool = False,
+        component_type: str = "static",
     ):
         """
         Parameters:
@@ -215,7 +215,7 @@ class Textbox(Component):
         default (str): default text to provide in textarea.
         label (str): component name in interface.
         numeric (bool): DEPRECATED.
-        type (str): DEPRECATED.
+        type (str): DEPRECATED. However, currently supported in gr.outputs
         optional (bool): DEPRECATED
         """
         self.lines = lines
@@ -234,6 +234,7 @@ class Textbox(Component):
             )
         self.test_input = default
         self.interpret_by_tokens = True
+        self.component_type = component_type
         super().__init__(label)
 
     def get_template_context(self):
@@ -251,21 +252,12 @@ class Textbox(Component):
             "textbox": {"lines": 7},
         }
 
-    def preprocess(self, x: str) -> str | float:
+    def preprocess(self, x: str) -> str:
         """
         Parameters:
         x (str): text input
         """
-        if self.type == "str":
-            return x
-        elif self.type == "number":
-            return float(x)
-        else:
-            raise ValueError(
-                "Unknown type: "
-                + str(self.type)
-                + ". Please choose from: 'str', 'number'."
-            )
+        return x
 
     def preprocess_example(self, x: str) -> str:
         """
@@ -338,6 +330,13 @@ class Textbox(Component):
             y (str): text output
         Returns:
             str(y)
-
         """
-        return str(y)
+        # TODO: (faruk) Remove after type parameter is removed in version 3.0
+        if self.type == "str" or self.type == "auto":
+            return str(y)
+        elif self.type == "number":
+            return y
+        else:
+            raise ValueError(
+                "Unknown type: " + self.type + ". Please choose from: 'str', 'number'"
+            )

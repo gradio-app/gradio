@@ -25,6 +25,33 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio import Interface
 
 
+class Textbox(Textbox):
+
+    def __init__(
+        self,
+        lines: int = 1,
+        placeholder: Optional[str] = None,
+        default: str = "",
+        numeric: Optional[bool] = False,
+        type: Optional[str] = "str",
+        label: Optional[str] = None,
+        optional: bool = False,
+        component_type: str = "input",  # TODO: remove with the new config design
+    ):
+        # TODO: (faruk) Remove this file in version 3.0
+        warnings.warn("Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your component from gradio.components", DeprecationWarning)
+        super().__init__(
+            lines=lines,
+            placeholder=placeholder,
+            default=default,
+            numeric=numeric,
+            type=type,
+            label=label,
+            optional=optional,
+            component_type=component_type,
+        )
+
+
 class InputComponent(Component):
     """
     Input Component. All input components subclass this.
@@ -229,7 +256,7 @@ class Slider(InputComponent):
         if step is None:
             difference = maximum - minimum
             power = math.floor(math.log10(difference) - 2)
-            step = 10**power
+            step = 10 ** power
         self.step = step
         self.default = minimum if default is None else default
         self.test_input = self.default
@@ -922,7 +949,7 @@ class Video(InputComponent):
         file_name = file.name
         uploaded_format = file_name.split(".")[-1].lower()
         if self.type is not None and uploaded_format != self.type:
-            output_file_name = file_name[0 : file_name.rindex(".") + 1] + self.type
+            output_file_name = file_name[0: file_name.rindex(".") + 1] + self.type
             ff = FFmpeg(inputs={file_name: None}, outputs={output_file_name: None})
             ff.run()
             return output_file_name
