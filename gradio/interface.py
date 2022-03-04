@@ -202,7 +202,8 @@ class Interface(Launchable):
             ].index(True)
             self.state_return_index = state_return_index
         else:
-            raise ValueError("Exactly one input and one output component must be State")
+            raise ValueError("For a stateful interface, there must be exactly one State" 
+                             " input component and one State output component.")
 
         if (
             interpretation is None
@@ -556,11 +557,7 @@ class Interface(Launchable):
         else:
             return predictions
 
-    def process_api(
-        self,
-        data: Dict[str, Any],
-        username: str = None,
-    ) -> Dict[str, Any]:
+    def process_api(self, data: Dict[str, Any], username: str = None) -> Dict[str, Any]:
         flag_index = None
         if data.get("example_id") is not None:
             example_id = data["example_id"]
@@ -585,6 +582,7 @@ class Interface(Launchable):
                 )
             if self.stateful:
                 updated_state = prediction[self.state_return_index]
+                prediction[self.state_return_index] = None
             else:
                 updated_state = None
 
