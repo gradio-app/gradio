@@ -196,16 +196,16 @@ class Interface(Launchable):
                 state.default = default
             self.state_default = state.default
 
-        if sum(isinstance(i, o_State) for i in self.output_components) == 1:
-            state_return_index = [
-                isinstance(i, o_State) for i in self.output_components
-            ].index(True)
-            self.state_return_index = state_return_index
-        else:
-            raise ValueError(
-                "For a stateful interface, there must be exactly one State"
-                " input component and one State output component."
-            )
+            if sum(isinstance(i, o_State) for i in self.output_components) == 1:
+                state_return_index = [
+                    isinstance(i, o_State) for i in self.output_components
+                ].index(True)
+                self.state_return_index = state_return_index
+            else:
+                raise ValueError(
+                    "For a stateful interface, there must be exactly one State"
+                    " input component and one State output component."
+                )
 
         if (
             interpretation is None
