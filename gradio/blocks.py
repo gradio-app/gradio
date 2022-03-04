@@ -73,7 +73,7 @@ class Blocks(Launchable, BlockContext):
         self.theme = theme
         self.requires_permissions = False  # TODO: needs to be implemented
         self.enable_queue = False
-        self.stateful = False  #TODO: implement state
+        self.stateful = False  # TODO: implement state
 
         super().__init__()
         Context.root_block = self
