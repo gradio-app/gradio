@@ -88,6 +88,7 @@ class Launchable:
         self.height = height
         self.width = width
         self.favicon_path = favicon_path
+        self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
 
         if hasattr(self, "encrypt") and self.encrypt is None:
             self.encrypt = encrypt
