@@ -25,7 +25,7 @@ import OutputTextbox from "./output/Textbox/config.js";
 import OutputVideo from "./output/Video/config.js";
 import OutputTimeSeries from "./output/TimeSeries/config.js";
 import OutputChatbot from "./output/Chatbot/config.js";
-import OutputModel from "./output/Model/config.js";
+import OutputModel3D from "./output/Model3D/config.js";
 
 import StaticButton from "./static/Button/config.js";
 import StaticMarkdown from "./static/Markdown/config.js";
@@ -60,7 +60,7 @@ export const output_component_map = {
 	timeseries: OutputTimeSeries,
 	video: OutputVideo,
 	chatbot: OutputChatbot,
-	model: OutputModel
+	model3d: OutputModel3D
 };
 
 export const static_component_map = {

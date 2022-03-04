@@ -852,17 +852,17 @@ class State(OutputComponent):
             "state": {},
         }
 
-
-class Model(OutputComponent):
+class Model3D(OutputComponent):
     '''
     Used for 3d model output.
     Output type: filepath
-    Demos: hello_model
+    Demos: model3d
     '''
 
     def __init__(self, clear_color=None, label=None):
         '''
         Parameters:
+        clear_color (List[r, g, b, a]): background color of scene
         label (str): component name in interface.
         '''
         super().__init__(label)
@@ -871,7 +871,7 @@ class Model(OutputComponent):
     @classmethod
     def get_shortcut_implementations(cls):
         return {
-            "model": {},
+            "model3d": {},
         }
 
     def postprocess(self, y):
@@ -884,14 +884,16 @@ class Model(OutputComponent):
         (str): base64 url data
         """
 
+        # return processing_utils.encode_file_to_base64(y)
+
         if self.clear_color is None:
-            self.clear_color = [0.2, 0.2, 0.2]
+            self.clear_color = [0.2, 0.2, 0.2, 1.0]
 
         return {
             "name": os.path.basename(y),
             "extension": os.path.splitext(y)[1],
             "clearColor": self.clear_color,
-            "data": processing_utils.encode_file_to_base64(y, type="model"),
+            "data": processing_utils.encode_file_to_base64(y),
         }
 
     def deserialize(self, x):
