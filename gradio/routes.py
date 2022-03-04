@@ -65,12 +65,13 @@ templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 # Data Models
 ###########
 
+
 class PredictRequest(BaseModel):
     session_hash: Optional[str]
     example_id: Optional[int]
     data: Any
     state: Optional[Any]
-    
+
 
 ###########
 # Auth
