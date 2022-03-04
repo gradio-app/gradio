@@ -1609,7 +1609,7 @@ class State(InputComponent):
         default (Any): the initial value of the state.
         optional (bool): this parameter is ignored.
         """
-        
+
         self.default = default
         super().__init__(label)
 
