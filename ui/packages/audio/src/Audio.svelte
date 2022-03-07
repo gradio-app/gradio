@@ -1,6 +1,12 @@
-<script lang="ts">
-	import type { Value } from "./types";
+<script context="module" lang="ts">
+	import type { FileData } from "@gradio/upload";
+	export interface AudioData extends FileData {
+		crop_min?: number;
+		crop_max?: number;
+	}
+</script>
 
+<script lang="ts">
 	import { onDestroy, createEventDispatcher } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
 	//@ts-ignore
@@ -9,7 +15,7 @@
 	export let value: null | { name: string; data: string } = null;
 	export let theme: string;
 	export let name: string;
-	export let source: "microphone" | "upload";
+	export let source: "microphone" | "upload" | "none";
 	export let drop_text: string = "Drop an audio file";
 	export let or_text: string = "or";
 	export let upload_text: string = "click to upload";
@@ -23,7 +29,9 @@
 	let inited = false;
 	let crop_values = [0, 100];
 
-	const dispatch = createEventDispatcher<{ change: Value }>();
+	const dispatch = createEventDispatcher<{
+		change: AudioData;
+	}>();
 
 	function blob_to_data_url(blob: Blob): Promise<string> {
 		return new Promise((fulfill, reject) => {
