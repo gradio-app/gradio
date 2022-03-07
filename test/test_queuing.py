@@ -4,7 +4,7 @@ import os
 import unittest
 
 from gradio import queueing
-from gradio.routes import QueuePushRequest
+from gradio.routes import QueuePushBody
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -31,10 +31,10 @@ class TestQueuingActions(unittest.TestCase):
         queueing.close()
 
     def test_push_pop_status(self):
-        request = QueuePushRequest(data="test1", action="predict")
+        request = QueuePushBody(data="test1", action="predict")
         hash1, position = queueing.push(request)
         self.assertEquals(position, 0)
-        request = QueuePushRequest(data="test2", action="predict")
+        request = QueuePushBody(data="test2", action="predict")
         hash2, position = queueing.push(request)
         self.assertEquals(position, 1)
         status, position = queueing.get_status(hash2)
@@ -46,7 +46,7 @@ class TestQueuingActions(unittest.TestCase):
         self.assertEquals(action, "predict")
 
     def test_jobs(self):
-        request = QueuePushRequest(data="test1", action="predict")
+        request = QueuePushBody(data="test1", action="predict")
         hash1, _ = queueing.push(request)
         hash2, position = queueing.push(request)
         self.assertEquals(position, 1)
