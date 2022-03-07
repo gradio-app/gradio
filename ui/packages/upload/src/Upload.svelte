@@ -36,8 +36,7 @@
 					? {
 							name: f.name,
 							size: f.size,
-							data: this.result as string,
-							is_example: false
+							data: this.result as string
 					  }
 					: (this.result as string);
 				if (all_file_data.length === files.length) {
