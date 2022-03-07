@@ -14,12 +14,14 @@ let postData = async (url: string, body: unknown) => {
 };
 
 export const fn = async (
+	session_hash: string,
 	api_endpoint: string,
 	action: string,
 	data: Record<string, unknown>,
 	queue: boolean,
 	queue_callback: (pos: number | null, is_initial?: boolean) => void
 ) => {
+	data["session_hash"] = session_hash;
 	if (queue && ["predict", "interpret"].includes(action)) {
 		data["action"] = action;
 		const output = await postData(api_endpoint + "queue/push/", data);

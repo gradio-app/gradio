@@ -9,7 +9,7 @@ import posixpath
 import secrets
 import traceback
 import urllib
-from typing import Any, List, Optional, Type
+from typing import Any, Dict, List, Optional, Tuple, Type
 
 import orjson
 import pkg_resources
@@ -21,6 +21,7 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from jinja2.exceptions import TemplateNotFound
+from pydantic import BaseModel
 from starlette.responses import RedirectResponse
 
 from gradio import encryptor, queueing, utils
@@ -54,7 +55,46 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+state_holder: Dict[Tuple[str, str], Any] = {}
+app.state_holder = state_holder
+
 templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
+
+
+###########
+# Data Models
+###########
+
+
+class PredictBody(BaseModel):
+    session_hash: Optional[str]
+    example_id: Optional[int]
+    data: List[Any]
+    state: Optional[Any]
+
+
+class FlagData(BaseModel):
+    input_data: List[Any]
+    output_data: List[Any]
+    flag_option: Optional[str]
+    flag_index: Optional[int]
+
+
+class FlagBody(BaseModel):
+    data: FlagData
+
+
+class InterpretBody(BaseModel):
+    data: List[Any]
+
+
+class QueueStatusBody(BaseModel):
+    hash: str
+
+
+class QueuePushBody(BaseModel):
+    action: str
+    data: Any
 
 
 ###########
@@ -208,10 +248,19 @@ def api_docs(request: Request):
 
 
 @app.post("/api/predict/", dependencies=[Depends(login_check)])
-async def predict(request: Request, username: str = Depends(get_current_user)):
-    body = await request.json()
+async def predict(body: PredictBody, username: str = Depends(get_current_user)):
+    if app.launchable.stateful:
+        session_hash = body.session_hash
+        state = app.state_holder.get(
+            (session_hash, "state"), app.launchable.state_default
+        )
+        body.state = state
     try:
         output = await run_in_threadpool(app.launchable.process_api, body, username)
+        if app.launchable.stateful:
+            updated_state = output.pop("updated_state")
+            app.state_holder[(session_hash, "state")] = updated_state
+
     except BaseException as error:
         if app.launchable.show_error:
             traceback.print_exc()
@@ -222,29 +271,26 @@ async def predict(request: Request, username: str = Depends(get_current_user)):
 
 
 @app.post("/api/flag/", dependencies=[Depends(login_check)])
-async def flag(request: Request, username: str = Depends(get_current_user)):
+async def flag(body: FlagBody, username: str = Depends(get_current_user)):
     if app.launchable.analytics_enabled:
         await utils.log_feature_analytics(app.launchable.ip_address, "flag")
-    body = await request.json()
-    data = body["data"]
     await run_in_threadpool(
         app.launchable.flagging_callback.flag,
         app.launchable,
-        data["input_data"],
-        data["output_data"],
-        flag_option=data.get("flag_option"),
-        flag_index=data.get("flag_index"),
+        body.data.input_data,
+        body.data.output_data,
+        flag_option=body.data.flag_option,
+        flag_index=body.data.flag_index,
         username=username,
     )
     return {"success": True}
 
 
 @app.post("/api/interpret/", dependencies=[Depends(login_check)])
-async def interpret(request: Request):
+async def interpret(body: InterpretBody):
     if app.launchable.analytics_enabled:
         await utils.log_feature_analytics(app.launchable.ip_address, "interpret")
-    body = await request.json()
-    raw_input = body["data"]
+    raw_input = body.data
     interpretation_scores, alternative_outputs = await run_in_threadpool(
         app.launchable.interpret, raw_input
     )
@@ -255,18 +301,14 @@ async def interpret(request: Request):
 
 
 @app.post("/api/queue/push/", dependencies=[Depends(login_check)])
-async def queue_push(request: Request):
-    body = await request.json()
-    action = body["action"]
-    job_hash, queue_position = queueing.push(body, action)
+async def queue_push(body: QueuePushBody):
+    job_hash, queue_position = queueing.push(body)
     return {"hash": job_hash, "queue_position": queue_position}
 
 
 @app.post("/api/queue/status/", dependencies=[Depends(login_check)])
-async def queue_status(request: Request):
-    body = await request.json()
-    hash = body["hash"]
-    status, data = queueing.get_status(hash)
+async def queue_status(body: QueueStatusBody):
+    status, data = queueing.get_status(body.hash)
     return {"status": status, "data": data}
 
 

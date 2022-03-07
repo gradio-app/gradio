@@ -96,7 +96,8 @@ window.launchGradio = (config: Config, element_query: string) => {
 			config.dark = true;
 			target.classList.add("dark");
 		}
-		config.fn = fn.bind(null, config.root + "api/");
+		let session_hash = Math.random().toString(36).substring(2);
+		config.fn = fn.bind(null, session_hash, config.root + "api/");
 		if (config.mode === "blocks") {
 			new Blocks({
 				target: target,
