@@ -66,7 +66,7 @@ templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 ###########
 
 
-class PredictRequest(BaseModel):
+class PredictBody(BaseModel):
     session_hash: Optional[str]
     example_id: Optional[int]
     data: List[Any]
@@ -80,19 +80,19 @@ class FlagData(BaseModel):
     flag_index: Optional[int]
 
 
-class FlagRequest(BaseModel):
+class FlagBody(BaseModel):
     data: FlagData
 
 
-class InterpretRequest(BaseModel):
+class InterpretBody(BaseModel):
     data: List[Any]
 
 
-class QueueStatusRequest(BaseModel):
+class QueueStatusBody(BaseModel):
     hash: str
 
 
-class QueuePushRequest(BaseModel):
+class QueuePushBody(BaseModel):
     action: str
     data: Any
 
@@ -248,7 +248,7 @@ def api_docs(request: Request):
 
 
 @app.post("/api/predict/", dependencies=[Depends(login_check)])
-async def predict(body: PredictRequest, username: str = Depends(get_current_user)):
+async def predict(body: PredictBody, username: str = Depends(get_current_user)):
     if app.launchable.stateful:
         session_hash = body.session_hash
         state = app.state_holder.get(
@@ -271,7 +271,7 @@ async def predict(body: PredictRequest, username: str = Depends(get_current_user
 
 
 @app.post("/api/flag/", dependencies=[Depends(login_check)])
-async def flag(body: FlagRequest, username: str = Depends(get_current_user)):
+async def flag(body: FlagBody, username: str = Depends(get_current_user)):
     if app.launchable.analytics_enabled:
         await utils.log_feature_analytics(app.launchable.ip_address, "flag")
     await run_in_threadpool(
@@ -287,7 +287,7 @@ async def flag(body: FlagRequest, username: str = Depends(get_current_user)):
 
 
 @app.post("/api/interpret/", dependencies=[Depends(login_check)])
-async def interpret(body: InterpretRequest):
+async def interpret(body: InterpretBody):
     if app.launchable.analytics_enabled:
         await utils.log_feature_analytics(app.launchable.ip_address, "interpret")
     raw_input = body.data
@@ -301,13 +301,13 @@ async def interpret(body: InterpretRequest):
 
 
 @app.post("/api/queue/push/", dependencies=[Depends(login_check)])
-async def queue_push(body: QueuePushRequest):
+async def queue_push(body: QueuePushBody):
     job_hash, queue_position = queueing.push(body)
     return {"hash": job_hash, "queue_position": queue_position}
 
 
 @app.post("/api/queue/status/", dependencies=[Depends(login_check)])
-async def queue_status(body: QueueStatusRequest):
+async def queue_status(body: QueueStatusBody):
     status, data = queueing.get_status(body.hash)
     return {"status": status, "data": data}
 
