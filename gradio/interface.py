@@ -28,7 +28,7 @@ from gradio.outputs import OutputComponent
 from gradio.outputs import State as o_State  # type: ignore
 from gradio.outputs import get_output_instance
 from gradio.process_examples import load_from_cache, process_example
-from gradio.routes import PredictRequest
+from gradio.routes import PredictBody
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     import flask
@@ -559,7 +559,7 @@ class Interface(Launchable):
         else:
             return predictions
 
-    def process_api(self, data: PredictRequest, username: str = None) -> Dict[str, Any]:
+    def process_api(self, data: PredictBody, username: str = None) -> Dict[str, Any]:
         flag_index = None
         if data.example_id is not None:
             if self.cache_examples:
