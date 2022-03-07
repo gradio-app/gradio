@@ -9,7 +9,6 @@ import requests
 
 from gradio.routes import QueuePushBody
 
-
 DB_FILE = "gradio_queue.db"
 
 
@@ -110,8 +109,8 @@ def pop() -> Tuple[int, str, Dict, str]:
 
 
 def push(body: QueuePushBody) -> Tuple[str, int]:
-    action = body.action    
-    input_data = json.dumps({'data': body.data})
+    action = body.action
+    input_data = json.dumps({"data": body.data})
     hash = generate_hash()
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
