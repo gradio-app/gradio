@@ -1,69 +1,48 @@
 <script lang="ts">
-	import Upload from "../../utils/Upload.svelte";
-	import ModifyUpload from "../../utils/ModifyUpload.svelte";
-	import { prettyBytes, playable } from "../../utils/helpers";
+	import type { FileData } from "@gradio/upload";
+	import { playable } from "../utils/helpers";
+
+	import { Video } from "@gradio/video";
 	import { _ } from "svelte-i18n";
 
-	interface Data {
-		data: string;
-		name: string;
-		size: number;
-	}
-
-	interface FileData {
-		name: string;
-		size: number;
-		data: string;
-		is_example: false;
-	}
-
-	export let value: Data;
-	export let setValue: (val: null | Data) => null | Data;
+	export let value: FileData;
 	export let theme: string;
-	export let static_src: string;
 	export let source: string;
 
-	function handle_load(v: string | FileData | (string | FileData)[] | null) {
-		setValue(v as Data);
-		return v;
-	}
+	export let is_static: boolean;
 </script>
 
-<div
-	class="video-preview w-full h-60 object-contain flex justify-center items-center dark:bg-gray-600 relative"
-	class:bg-gray-200={value}
->
-	{#if value === null}
-		{#if source === "upload"}
-			<Upload
-				filetype="video/mp4,video/x-m4v,video/*"
-				load={handle_load}
-				{theme}
-			>
-				{$_("interface.drop_video")}
-				<br />- {$_("interface.or")} -<br />
-				{$_("interface.click_to_upload")}
-			</Upload>
-		{/if}
-	{:else}
-		<ModifyUpload clear={() => setValue(null)} {theme} {static_src} />
+{#if is_static}
+	<div
+		class="output-video w-full h-60 flex justify-center items-center bg-gray-200 dark:bg-gray-600 relative"
+	>
 		{#if playable(value.name)}
 			<!-- svelte-ignore a11y-media-has-caption -->
 			<video
-				class="w-full h-full object-contain bg-black"
+				class="video_preview w-full h-full object-contain"
 				controls
 				playsInline
 				preload="auto"
 				src={value.data}
 			/>
 		{:else}
-			<div class="file-name text-4xl p-6 break-all">{value.name}</div>
-			<div class="file-size text-2xl p-2">
-				{prettyBytes(value.size)}
-			</div>
+			<a
+				href={value.data}
+				download={value.name}
+				class="file-preview h-60 w-full flex flex-col justify-center items-center relative"
+			>
+				<div class="file-name text-4xl p-6 break-all">{value.name}</div>
+			</a>
 		{/if}
-	{/if}
-</div>
-
-<style lang="postcss">
-</style>
+	</div>
+{:else}
+	<Video
+		bind:value
+		{theme}
+		{source}
+		drop_text={$_("interface.drop_video")}
+		or_text={$_("interface.or")}
+		upload_text={$_("interface.click_to_upload")}
+		on:change
+	/>
+{/if}

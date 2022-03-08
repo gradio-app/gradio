@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { File } from "@gradio/file";
+	import { FileUpload } from "@gradio/file";
 </script>
 
-<File value={null} />
+<FileUpload value={null} />

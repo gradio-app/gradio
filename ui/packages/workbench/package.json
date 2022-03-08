@@ -36,6 +36,7 @@
 		"@gradio/json": "workspace:^0.0.1",
 		"@gradio/label": "workspace:^0.0.1",
 		"@gradio/table": "workspace:^0.0.1",
+		"@gradio/tabs": "workspace:^0.0.1",
 		"@gradio/theme": "workspace:^0.0.1",
 		"@gradio/upload": "workspace:^0.0.1",
 		"@gradio/video": "workspace:^0.0.1"

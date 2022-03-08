@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getObjectFitSize, getSaliencyColor } from "../../utils/helpers";
+	import { getObjectFitSize, getSaliencyColor } from "../utils/helpers";
 	import { afterUpdate } from "svelte";
 
 	export let value: string;

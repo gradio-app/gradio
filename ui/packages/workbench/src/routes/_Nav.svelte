@@ -14,6 +14,7 @@
 		"JSON",
 		"Label",
 		"Table",
+		"Tabs",
 		"Upload",
 		"Video"
 	].map((n) => [n, n.toLowerCase()]);

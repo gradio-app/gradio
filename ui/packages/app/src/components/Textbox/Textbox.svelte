@@ -1,32 +1,27 @@
 <script lang="ts">
+	import { TextBox } from "@gradio/form";
+
 	export let value: string;
-	export let setValue: (val: string) => string;
 	export let theme: string;
 	export let lines: number;
 	export let placeholder: string;
+
+	export let is_static: boolean;
 </script>
 
-{#if lines > 1}
-	<textarea
-		class="input-text w-full rounded box-border p-2 focus:outline-none appearance-none"
-		{value}
-		{placeholder}
-		on:input={(e) => setValue(e.target.value)}
+{#if is_static}
+	<div
+		class="output-text w-full bg-white dark:bg-gray-800 rounded box-border p-2 whitespace-pre-wrap"
 		{theme}
-	/>
+	>
+		{value}
+	</div>
 {:else}
-	<input
-		type="text"
-		class="input-text w-full rounded box-border p-2 focus:outline-none appearance-none"
-		{value}
-		{placeholder}
-		on:change={(e) => setValue(e.target.value)}
-		{theme}
-	/>
+	<TextBox bind:value {theme} {lines} {placeholder} on:change />
 {/if}
 
 <style lang="postcss" global>
-	.input-text[theme="default"] {
+	.output-text[theme="default"] {
 		@apply shadow transition hover:shadow-md dark:bg-gray-800;
 	}
 </style>
