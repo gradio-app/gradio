@@ -86,6 +86,8 @@
 			/>
 
 			<img class="w-full h-full object-contain" src={value} alt="" />
+		{:else}
+			<img class="w-full h-full object-contain" src={value} alt="" />
 		{/if}
 	</div>
 </div>
