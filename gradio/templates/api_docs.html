@@ -437,6 +437,14 @@
           <p>&emsp;&emsp;}</p>
         </div>
       </div>
+
+      <div class="hidden" id="related-methods-holder">
+        <h4 id="related">Related Methods: </h4>
+        <div class="json" id="related-methods"
+          <p>import gradio</p>
+        </div>
+      </div>
+
     </div>
   </main>
 
@@ -538,6 +546,42 @@
       $(`.demo-window[demo="${demo_num}"]`).show();
     })
 
+    var inputRelatedMethods = {
+      'Image': '  gradio.processing_utils.encode_url_or_file_to_base64(path)'
+    }
+
+    var outputRelatedMethods = {
+      'Image': '  gradio.processing_utils.decode_base64_to_file(encoding, encryption_key=None, file_path=None)'
+    }
+
+
+    var showRelated = false;
+
+    {% for i in range(len_inputs) %}
+    if ("{{inputs[i]}}" in inputRelatedMethods) {
+      showRelated = true;
+      let tag = document.createElement("p");
+      let text = document.createTextNode(inputRelatedMethods["{{inputs[i]}}"]);
+      tag.appendChild(text);
+      var element = document.getElementById("related-methods");
+      element.appendChild(tag);
+    }
+    {% endfor %}
+
+    {% for i in range(len_outputs) %}
+    if ("{{outputs[i]}}" in outputRelatedMethods) {
+      showRelated = true;
+      let tag = document.createElement("p");
+      let text = document.createTextNode(outputRelatedMethods["{{outputs[i]}}"]);
+      tag.appendChild(text);
+      var element = document.getElementById("related-methods");
+      element.appendChild(tag);
+    }
+    {% endfor %}
+
+    if (showRelated) {
+      $('#related-methods-holder').removeClass("hidden");
+    }
 
     var friendlyHttpStatus = {
       '200': 'OK',
