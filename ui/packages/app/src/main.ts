@@ -55,7 +55,6 @@ interface Config {
 }
 
 window.launchGradio = (config: Config, element_query: string) => {
-	console.log(1)
 	let target = document.querySelector(element_query);
 
 	if (!target) {
@@ -79,16 +78,12 @@ window.launchGradio = (config: Config, element_query: string) => {
 		style.innerHTML = config.css;
 		document.head.appendChild(style);
 	}
-	console.log(2)
-	console.log(config)
 	if (config.detail === "Not authenticated" || config.auth_required) {
-		console.log(3)
 		new Login({
 			target: target,
 			props: config
 		});
 	} else {
-		console.log(3.5)
 		let url = new URL(window.location.toString());
 		if (config.theme && config.theme.startsWith("dark")) {
 			target.classList.add("dark");
