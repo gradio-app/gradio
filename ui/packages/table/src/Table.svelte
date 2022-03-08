@@ -7,7 +7,6 @@
 
 	if ($$props.default) values = $$props.default;
 
-	// export let setValue: (val: typeof values) => typeof values;
 	export let editable = true;
 
 	const dispatch = createEventDispatcher<{ change: typeof values }>();

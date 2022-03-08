@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { createEventDispatcher } from "svelte";
 	import Cropper from "./Cropper.svelte";
 	import Sketch from "./Sketch.svelte";
 	import Webcam from "./Webcam.svelte";
@@ -33,7 +34,9 @@
 		mode = "view";
 	}
 
-	$: console.log(value, source);
+	const dispatch = createEventDispatcher<{ change: string | null }>();
+
+	$: dispatch("change", value);
 </script>
 
 <div class="input-image">

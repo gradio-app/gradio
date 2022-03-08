@@ -1,8 +1,8 @@
 <script lang="ts">
-	import type { AudioData } from "@gradio/upload";
+	import type { AudioData } from "@gradio/audio";
 
 	import { getSaliencyColor } from "../utils/helpers";
-	export let value: Value;
+	export let value: AudioData;
 	export let interpretation: Array<number>;
 	export let theme: string;
 </script>

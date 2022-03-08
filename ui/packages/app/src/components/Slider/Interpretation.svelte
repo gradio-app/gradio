@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getSaliencyColor } from "../../utils/helpers";
+	import { getSaliencyColor } from "../utils/helpers";
 
 	export let value: number;
 	export let interpretation: Array<number>;

@@ -1,28 +1,40 @@
 <script lang="ts">
-	import Upload from "../../utils/Upload.svelte";
-	import Chart from "../../utils/Chart.svelte";
+	import { Upload } from "@gradio/upload";
+	import type { FileData } from "@gradio/upload";
+	import { Chart } from "@gradio/chart";
 	import { _ } from "svelte-i18n";
 
+	function format_value(val: StaticData) {
+		return val.data.map((r) =>
+			r.reduce((acc, next, i) => ({ ...acc, [val.headers[i]]: next }), {})
+		);
+	}
+
+	interface StaticData {
+		data: Array<Array<number>>;
+		headers: Array<string>;
+	}
 	interface Data {
 		data: Array<Array<number>> | string;
 		headers?: Array<string>;
 	}
 
 	export let value: null | Data;
-	export let setValue: (val: Data) => Data;
 	export let theme: string;
 	export let y: Array<string>;
 	export let x: string;
+	export let is_static: boolean;
+
 	let _value: string | null;
 
 	function data_uri_to_blob(data_uri: string) {
-		var byte_str = atob(data_uri.split(",")[1]);
-		var mime_str = data_uri.split(",")[0].split(":")[1].split(";")[0];
+		const byte_str = atob(data_uri.split(",")[1]);
+		const mime_str = data_uri.split(",")[0].split(":")[1].split(";")[0];
 
-		var ab = new ArrayBuffer(byte_str.length);
-		var ia = new Uint8Array(ab);
+		const ab = new ArrayBuffer(byte_str.length);
+		const ia = new Uint8Array(ab);
 
-		for (var i = 0; i < byte_str.length; i++) {
+		for (let i = 0; i < byte_str.length; i++) {
 			ia[i] = byte_str.charCodeAt(i);
 		}
 
@@ -74,38 +86,37 @@
 		return { headers, data };
 	}
 
-	interface FileData {
-		name: string;
-		size: number;
-		data: string;
-		is_example: false;
-	}
-
 	function handle_load(v: string | FileData | (string | FileData)[] | null) {
-		setValue({ data: v as string });
+		value = { data: v as string };
+		// setValue({ data: v as string });
 		return v;
 	}
 
 	$: _value = value == null ? null : _value;
+	$: static_data = is_static && format_value(value as StaticData);
 </script>
 
-{#if _value}
-	<Chart
-		value={_value}
-		{y}
-		{x}
-		on:process={({ detail: { x, y } }) => setValue(make_dict(x, y))}
-	/>
-{/if}
-{#if value == null}
-	<Upload
-		filetype="text/csv"
-		load={handle_load}
-		include_file_metadata={false}
-		{theme}
-	>
-		{$_("interface.drop_csv")}
-		<br />- {$_("interface.or")} -<br />
-		{$_("interface.click_to_upload")}
-	</Upload>
+{#if is_static && static_data}
+	<Chart value={static_data} />
+{:else}
+	{#if _value}
+		<Chart
+			value={_value}
+			{y}
+			{x}
+			on:process={({ detail: { x, y } }) => (value = make_dict(x, y))}
+		/>
+	{/if}
+	{#if value == null}
+		<Upload
+			filetype="text/csv"
+			on:load={({ detail }) => handle_load(detail)}
+			include_file_metadata={false}
+			{theme}
+		>
+			{$_("interface.drop_csv")}
+			<br />- {$_("interface.or")} -<br />
+			{$_("interface.click_to_upload")}
+		</Upload>
+	{/if}
 {/if}
