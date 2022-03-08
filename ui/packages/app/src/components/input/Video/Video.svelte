@@ -46,7 +46,13 @@
 				{$_("interface.click_to_upload")}
 			</Upload>
 		{:else if source === "webcam"}
-			<Webcam mode="video" on:capture={({ detail }) => setValue(detail)} {static_src} />
+			<Webcam
+				mode="video"
+				on:capture={({ detail }) => {
+					setValue(detail);
+				}}
+				{static_src}
+			/>
 		{/if}
 	{:else}
 		<ModifyUpload clear={() => setValue(null)} {theme} {static_src} />
