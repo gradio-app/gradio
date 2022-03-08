@@ -51,6 +51,7 @@ interface Config {
 	space?: string;
 	detail: string;
 	dark: boolean;
+	auth_required: boolean;
 }
 
 window.launchGradio = (config: Config, element_query: string) => {
@@ -77,7 +78,7 @@ window.launchGradio = (config: Config, element_query: string) => {
 		style.innerHTML = config.css;
 		document.head.appendChild(style);
 	}
-	if (config.detail === "Not authenticated") {
+	if (config.detail === "Not authenticated" || config.auth_required) {
 		new Login({
 			target: target,
 			props: config
