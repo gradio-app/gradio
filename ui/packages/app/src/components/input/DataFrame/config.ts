@@ -1,5 +1,5 @@
 import Component from "./DataFrame.svelte";
-import ExampleComponent from "./Example.svelte"
+import ExampleComponent from "./Example.svelte";
 
 export default {
 	component: Component,
