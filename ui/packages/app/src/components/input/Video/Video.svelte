@@ -2,6 +2,7 @@
 	import Upload from "../../utils/Upload.svelte";
 	import ModifyUpload from "../../utils/ModifyUpload.svelte";
 	import { prettyBytes, playable } from "../../utils/helpers";
+	import Webcam from "../../utils/Webcam.svelte";
 	import { _ } from "svelte-i18n";
 
 	interface Data {
@@ -44,6 +45,14 @@
 				<br />- {$_("interface.or")} -<br />
 				{$_("interface.click_to_upload")}
 			</Upload>
+		{:else if source === "webcam"}
+			<Webcam
+				mode="video"
+				on:capture={({ detail }) => {
+					setValue(detail);
+				}}
+				{static_src}
+			/>
 		{/if}
 	{:else}
 		<ModifyUpload clear={() => setValue(null)} {theme} {static_src} />
