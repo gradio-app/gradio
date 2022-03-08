@@ -1,7 +1,9 @@
 # Using Hugging Face Integrations
 
 related_spaces: https://huggingface.co/spaces/osanseviero/helsinki_translation_en_es, https://huggingface.co/spaces/osanseviero/remove-bg-webcam, https://huggingface.co/spaces/mrm8488/GPT-J-6B, https://huggingface.co/spaces/akhaliq/T0pp, https://huggingface.co/spaces/osanseviero/mix_match_gradio
-tags: HUB, SPACES
+tags: HUB, SPACES, EMBED
+
+Contributed by <a href="https://huggingface.co/osanseviero">Omar Sanseviero</a> 🦙
 
 ## Introduction
 
@@ -79,7 +81,7 @@ You might notice that the first inference takes about 20 seconds. This happens s
 
 You can use the existing Spaces to tweak the UI or combine multiple demos. Let's find how to do this! First, let's take a look at an existing demo that does background removal. 
 
-This is a Gradio demo [already shared](https://huggingface.co/spaces/eugenesiow/remove-bg) by a community member. You can load an existing demo using `Interface` in a syntax similar to how it's done for the Inference API. It just takes two lines of code and with a prefix `spaces`.
+This is a Gradio demo [already shared](https://huggingface.co/spaces/eugenesiow/remove-bg) by a community member. You can load an existing demo using `Interface` in a syntax similar to how it's done for the Inference API. It just takes two lines of code and with the prefix `spaces`.
 
 ```python
 import gradio as gr
