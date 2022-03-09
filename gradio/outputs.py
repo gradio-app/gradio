@@ -30,11 +30,10 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 class Textbox(Textbox):
     def __init__(
         self, type: str = "auto", label: Optional[str] = None,
-        component_type: str = "output",  # TODO: remove with the new config design
     ):
         # TODO: (faruk) Remove this file in version 3.0
-        warnings.warn("Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your component from gradio.components", DeprecationWarning)
-        super().__init__(type=type, label=label, component_type=component_type)
+        warnings.warn("Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components", DeprecationWarning)
+        super().__init__(type=type, label=label)
 
 
 class OutputComponent(Component):

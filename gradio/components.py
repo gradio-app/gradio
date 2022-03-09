@@ -13,14 +13,19 @@ from gradio.blocks import Block
 
 class Component(Block):
     """
-    A base class for defining the methods that all gradio input and output components should have.
+    A base class for defining the methods that all gradio components should have.
     """
 
     def __init__(
-        self, label: str, requires_permissions: bool = False, optional: bool = False
+        self, *,
+        label: str, requires_permissions: bool = False,
+        **kwargs,
     ):
+        if 'optional' in kwargs:
+            warnings.warn("Usage of optional is deprecated, and it has no effect")
         self.label = label
         self.requires_permissions = requires_permissions
+
         self.set_interpret_parameters()
         super().__init__()
 
@@ -185,13 +190,11 @@ class Component(Block):
 
 class Textbox(Component):
     """
-    Component creates a textbox for user to enter input. Provides a string as an argument to the wrapped function.
+    Component creates a textbox for user to enter string input or display string output. Provides a string as an argument to the wrapped function.
     Input type: str
-    Demos: hello_world, diff_texts
+    Output type: str
 
-    Component creates a textbox to render output text or number.
-    Output type: Union[str, float, int]
-    Demos: hello_world, sentence_builder
+    Demos: hello_world, diff_texts, sentence_builder
     """
 
     def __init__(
@@ -201,38 +204,34 @@ class Textbox(Component):
         lines: int = 1,
         placeholder: Optional[str] = None,
         label: Optional[str] = None,
-        numeric: Optional[bool] = False,
-        type: Optional[str] = "str",
-        component_type: str = "static",
         **kwargs,
     ):
         """
         Parameters:
+        default (str): default text to provide in textarea.
         lines (int): number of line rows to provide in textarea.
         placeholder (str): placeholder hint to provide behind textarea.
-        default (str): default text to provide in textarea.
         label (str): component name in interface.
         numeric (bool): DEPRECATED.
-        type (str): DEPRECATED. However, currently supported in gr.outputs
+        type (str): DEPRECATED.
         """
-        self.lines = lines
-        self.placeholder = placeholder
-        self.default = default
-        self.type = "str"
-        if numeric:
+        if numeric in kwargs:
             warnings.warn(
                 "The 'numeric' type has been deprecated. Use the Number component instead.",
                 DeprecationWarning,
             )
-        if type:
+        if type in kwargs:
             warnings.warn(
                 "The 'type' parameter has been deprecated. Use the Number component instead if you need it.",
                 DeprecationWarning,
             )
+        default = float(default)
+        self.lines = lines
+        self.placeholder = placeholder
+        self.default = default
         self.test_input = default
         self.interpret_by_tokens = True
-        self.component_type = component_type
-        super().__init__(label=label)
+        super().__init__(label=label, **kwargs)
 
     def get_template_context(self):
         return {
@@ -249,19 +248,33 @@ class Textbox(Component):
             "textbox": {"lines": 7},
         }
 
-    def preprocess(self, x: str) -> str:
+    # Input Functionalities
+    def preprocess(self, x: str | None) -> Any:
         """
+        Any preprocessing needed to be performed on function input.
+        """
+        if x is None:
+            return None
+        else:
+            return str(x)
+
+    def serialize(self, x: Any, called_directly: bool) -> Any:
+        """
+        Convert from a human-readable version of the input (path of an image, URL of a video, etc.) into the interface to a serialized version (e.g. base64) to pass into an API. May do different things if the interface is called() vs. used via GUI.
         Parameters:
-        x (str): text input
+        x (Any): Input to interface
+        called_directly (bool): if true, the interface was called(), otherwise, it is being used via the GUI
         """
         return x
 
-    def preprocess_example(self, x: str) -> str:
+    def preprocess_example(self, x: str | None) -> Any:
         """
-        Returns:
-        (str): Text representing function input
+        Any preprocessing needed to be performed on an example before being passed to the main function.
         """
-        return x
+        if x is None:
+            return None
+        else:
+            return str(x)
 
     def set_interpret_parameters(
         self, separator: str = " ", replacement: Optional[str] = None
@@ -321,30 +334,30 @@ class Textbox(Component):
     def generate_sample(self) -> str:
         return "Hello World"
 
-    def postprocess(self, y: str):
+    # Output Functionalities
+    def postprocess(self, y: str | None):
         """
-        Parameters:
-            y (str): text output
-        Returns:
-            str(y)
+        Any postprocessing needed to be performed on function output.
         """
-        # TODO: (faruk) Remove after type parameter is removed in version 3.0
-        if self.type == "str" or self.type == "auto":
-            return str(y)
-        elif self.type == "number":
-            return y
+        if y is None:
+            return None
         else:
-            raise ValueError(
-                "Unknown type: " + self.type + ". Please choose from: 'str', 'number'"
-            )
+            return str(y)
+
+    def deserialize(self, x):
+        """
+        Convert from serialized output (e.g. base64 representation) from a call() to the interface to a human-readable version of the output (path of an image, etc.)
+        """
+        return x
 
 
 class Number(Component):
     """
-    Component creates a field for user to enter numeric input. Provides a number as an argument to the wrapped function.
+    Component creates a field for user to enter numeric input or display numeric output. Provides a number as an argument to the wrapped function.
     Can be used as an output as well.
 
     Input type: float
+    Output type: float
     Demos: tax_calculator, titanic_survival
     """
 
@@ -353,7 +366,6 @@ class Number(Component):
         default: Optional[float] = None,
         *,
         label: Optional[str] = None,
-        optional: bool = False,
     ):
         """
         Parameters:
@@ -361,10 +373,11 @@ class Number(Component):
         label (str): component name in interface.
         optional (bool): If True, the interface can be submitted with no value for this component.
         """
+        default = float(default)
         self.default = default
         self.test_input = default if default is not None else 1
         self.interpret_by_tokens = False
-        super().__init__(label, optional=optional)
+        super().__init__(label=label, **kwargs)
 
     def get_template_context(self):
         return {"default": self.default, **super().get_template_context()}
@@ -375,23 +388,26 @@ class Number(Component):
             "number": {},
         }
 
-    def preprocess(self, x: Optional[Number]) -> Optional[float]:
+    def preprocess(self, x: float | None) -> Optional[float]:
         """
         Parameters:
         x (string): numeric input as a string
         Returns:
         (float): number representing function input
         """
-        if self.optional and x is None:
+        if x is None:
             return None
         return float(x)
 
-    def preprocess_example(self, x: float) -> float:
+    def preprocess_example(self, x: float | None) -> float:
         """
         Returns:
         (float): Number representing function input
         """
-        return x
+        if x is None:
+            return None
+        else:
+            return float(x)
 
     def set_interpret_parameters(
         self, steps: int = 3, delta: float = 1, delta_type: str = "percent"
@@ -431,3 +447,19 @@ class Number(Component):
 
     def generate_sample(self) -> float:
         return 1.0
+
+    # Output Functionalities
+    def postprocess(self, y: float | None):
+        """
+        Any postprocessing needed to be performed on function output.
+        """
+        if y is None:
+            return None
+        else:
+            return float(y)
+
+    def deserialize(self, x):
+        """
+        Convert from serialized output (e.g. base64 representation) from a call() to the interface to a human-readable version of the output (path of an image, etc.)
+        """
+        return y
