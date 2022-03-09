@@ -28,7 +28,7 @@ from gradio.outputs import OutputComponent
 from gradio.outputs import State as o_State  # type: ignore
 from gradio.outputs import get_output_instance
 from gradio.process_examples import load_from_cache, process_example
-from gradio.routes import predict
+from gradio.routes import PredictBody
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     import flask
@@ -176,6 +176,7 @@ class Interface(Launchable):
         if repeat_outputs_per_model:
             self.output_components *= len(fn)
 
+        self.stateful = False
         if sum(isinstance(i, i_State) for i in self.input_components) > 1:
             raise ValueError("Only one input component can be State.")
         if sum(isinstance(o, o_State) for o in self.output_components) > 1:
@@ -187,10 +188,24 @@ class Interface(Launchable):
             state_param_index = [
                 isinstance(i, i_State) for i in self.input_components
             ].index(True)
+            self.stateful = True
+            self.state_param_index = state_param_index
             state: i_State = self.input_components[state_param_index]
             if state.default is None:
                 default = utils.get_default_args(fn[0])[state_param_index]
                 state.default = default
+            self.state_default = state.default
+
+            if sum(isinstance(i, o_State) for i in self.output_components) == 1:
+                state_return_index = [
+                    isinstance(i, o_State) for i in self.output_components
+                ].index(True)
+                self.state_return_index = state_return_index
+            else:
+                raise ValueError(
+                    "For a stateful interface, there must be exactly one State"
+                    " input component and one State output component."
+                )
 
         if (
             interpretation is None
@@ -280,7 +295,6 @@ class Interface(Launchable):
 
         self.thumbnail = thumbnail
         theme = theme if theme is not None else os.getenv("GRADIO_THEME", "default")
-        self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
         DEPRECATED_THEME_MAP = {
             "darkdefault": "default",
             "darkhuggingface": "dark-huggingface",
@@ -544,17 +558,19 @@ class Interface(Launchable):
         else:
             return predictions
 
-    def process_api(self, data: Dict[str, Any], username: str = None) -> Dict[str, Any]:
+    def process_api(self, data: PredictBody, username: str = None) -> Dict[str, Any]:
         flag_index = None
-        if data.get("example_id") is not None:
-            example_id = data["example_id"]
+        if data.example_id is not None:
             if self.cache_examples:
-                prediction = load_from_cache(self, example_id)
+                prediction = load_from_cache(self, data.example_id)
                 durations = None
             else:
-                prediction, durations = process_example(self, example_id)
+                prediction, durations = process_example(self, data.example_id)
         else:
-            raw_input = data["data"]
+            raw_input = data.data
+            if self.stateful:
+                state = data.state
+                raw_input[self.state_param_index] = state
             prediction, durations = self.process(raw_input)
             if self.allow_flagging == "auto":
                 flag_index = self.flagging_callback.flag(
@@ -564,12 +580,18 @@ class Interface(Launchable):
                     flag_option="" if self.flagging_options else None,
                     username=username,
                 )
+            if self.stateful:
+                updated_state = prediction[self.state_return_index]
+                prediction[self.state_return_index] = None
+            else:
+                updated_state = None
 
         return {
             "data": prediction,
             "durations": durations,
             "avg_durations": self.config.get("avg_durations"),
             "flag_index": flag_index,
+            "updated_state": updated_state,
         }
 
     def process(self, raw_input: List[Any]) -> Tuple[List[Any], List[float]]:
