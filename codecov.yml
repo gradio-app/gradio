@@ -10,9 +10,7 @@ coverage:
           - "gradio/"
         target: 80%
         threshold: 0.1
-    patch:
-      default:
-        target: 0%  # new contributions sometimes consist of code that does not need to be tested
+    patch: off
   
 comment: false
 codecov:
