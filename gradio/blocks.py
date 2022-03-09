@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 from gradio import utils
 from gradio.context import Context
 from gradio.launchable import Launchable
+from gradio.routes import PredictBody
 
 
 class Block:
@@ -81,9 +82,9 @@ class Blocks(Launchable, BlockContext):
         self.fns = []
         self.dependencies = []
 
-    def process_api(self, data: Dict[str, Any], username: str = None) -> Dict[str, Any]:
-        raw_input = data["data"]
-        fn_index = data["fn_index"]
+    def process_api(self, data: PredictBody, username: str = None) -> Dict[str, Any]:
+        raw_input = data.data
+        fn_index = data.fn_index
         fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
 
