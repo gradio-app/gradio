@@ -27,6 +27,7 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio import Interface
 
 
+# TODO: (faruk) Remove this file in version 3.0
 class Textbox(Textbox):
     def __init__(
         self,
