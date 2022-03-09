@@ -44,7 +44,6 @@ class Component(Block):
         return {
             "name": self.__class__.__name__.lower(),
             "label": self.label,
-            "optional": self.optional,
         }
 
     @classmethod
@@ -227,7 +226,7 @@ class Textbox(Component):
                 "The 'type' parameter has been deprecated. Use the Number component instead if you need it.",
                 DeprecationWarning,
             )
-        default = float(default)
+        default = str(default)
         self.lines = lines
         self.placeholder = placeholder
         self.default = default
