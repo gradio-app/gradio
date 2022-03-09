@@ -19,7 +19,7 @@ import PIL
 from ffmpy import FFmpeg
 
 from gradio import processing_utils, test_data
-from gradio.components import Component, Textbox
+from gradio.components import Component, Number, Textbox
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio import Interface
@@ -27,7 +27,6 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 # TODO: (faruk) Remove this file in version 3.0
 class Textbox(Textbox):
-
     def __init__(
         self,
         lines: int = 1,
@@ -38,7 +37,10 @@ class Textbox(Textbox):
         label: Optional[str] = None,
         optional: bool = False,
     ):
-        warnings.warn("Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your component from gradio.components", DeprecationWarning)
+        warnings.warn(
+            "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your component from gradio.components",
+            DeprecationWarning,
+        )
         super().__init__(
             lines=lines,
             placeholder=placeholder,
@@ -48,6 +50,32 @@ class Textbox(Textbox):
             label=label,
             optional=optional,
         )
+
+
+class Number(Number):
+    """
+    Component creates a field for user to enter numeric input. Provides a number as an argument to the wrapped function.
+    Input type: float
+    Demos: tax_calculator, titanic_survival
+    """
+
+    def __init__(
+        self,
+        default: Optional[float] = None,
+        label: Optional[str] = None,
+        optional: bool = False,
+    ):
+        """
+        Parameters:
+        default (float): default value.
+        label (str): component name in interface.
+        optional (bool): If True, the interface can be submitted with no value for this component.
+        """
+        warnings.warn(
+            "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your component from gradio.components",
+            DeprecationWarning,
+        )
+        super().__init__(default=default, label=label, optional=optional)
 
 
 class InputComponent(Component):
@@ -133,97 +161,6 @@ class InputComponent(Component):
         }
 
 
-class Number(InputComponent):
-    """
-    Component creates a field for user to enter numeric input. Provides a number as an argument to the wrapped function.
-    Input type: float
-    Demos: tax_calculator, titanic_survival
-    """
-
-    def __init__(
-        self,
-        default: Optional[float] = None,
-        label: Optional[str] = None,
-        optional: bool = False,
-    ):
-        """
-        Parameters:
-        default (float): default value.
-        label (str): component name in interface.
-        optional (bool): If True, the interface can be submitted with no value for this component.
-        """
-        self.default = default
-        self.test_input = default if default is not None else 1
-        self.interpret_by_tokens = False
-        super().__init__(label, optional=optional)
-
-    def get_template_context(self):
-        return {"default": self.default, **super().get_template_context()}
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "number": {},
-        }
-
-    def preprocess(self, x: Optional[Number]) -> Optional[float]:
-        """
-        Parameters:
-        x (string): numeric input as a string
-        Returns:
-        (float): number representing function input
-        """
-        if self.optional and x is None:
-            return None
-        return float(x)
-
-    def preprocess_example(self, x: float) -> float:
-        """
-        Returns:
-        (float): Number representing function input
-        """
-        return x
-
-    def set_interpret_parameters(
-        self, steps: int = 3, delta: float = 1, delta_type: str = "percent"
-    ):
-        """
-        Calculates interpretation scores of numeric values close to the input number.
-        Parameters:
-        steps (int): Number of nearby values to measure in each direction (above and below the input number).
-        delta (float): Size of step in each direction between nearby values.
-        delta_type (str): "percent" if delta step between nearby values should be a calculated as a percent, or "absolute" if delta should be a constant step change.
-        """
-        self.interpretation_steps = steps
-        self.interpretation_delta = delta
-        self.interpretation_delta_type = delta_type
-        return self
-
-    def get_interpretation_neighbors(self, x: Number) -> Tuple[List[float], Dict]:
-        x = float(x)
-        if self.interpretation_delta_type == "percent":
-            delta = 1.0 * self.interpretation_delta * x / 100
-        elif self.interpretation_delta_type == "absolute":
-            delta = self.interpretation_delta
-        negatives = (x + np.arange(-self.interpretation_steps, 0) * delta).tolist()
-        positives = (x + np.arange(1, self.interpretation_steps + 1) * delta).tolist()
-        return negatives + positives, {}
-
-    def get_interpretation_scores(
-        self, x: Number, neighbors: List[float], scores: List[float]
-    ) -> List[Tuple[float, float]]:
-        """
-        Returns:
-        (List[Tuple[float, float]]): Each tuple set represents a numeric value near the input and its corresponding interpretation score.
-        """
-        interpretation = list(zip(neighbors, scores))
-        interpretation.insert(int(len(interpretation) / 2), [x, None])
-        return interpretation
-
-    def generate_sample(self) -> float:
-        return 1.0
-
-
 class Slider(InputComponent):
     """
     Component creates a slider that ranges from `minimum` to `maximum`. Provides a number as an argument to the wrapped function.
@@ -254,7 +191,7 @@ class Slider(InputComponent):
         if step is None:
             difference = maximum - minimum
             power = math.floor(math.log10(difference) - 2)
-            step = 10 ** power
+            step = 10**power
         self.step = step
         self.default = minimum if default is None else default
         self.test_input = self.default
@@ -947,7 +884,7 @@ class Video(InputComponent):
         file_name = file.name
         uploaded_format = file_name.split(".")[-1].lower()
         if self.type is not None and uploaded_format != self.type:
-            output_file_name = file_name[0: file_name.rindex(".") + 1] + self.type
+            output_file_name = file_name[0 : file_name.rindex(".") + 1] + self.type
             ff = FFmpeg(inputs={file_name: None}, outputs={output_file_name: None})
             ff.run()
             return output_file_name
