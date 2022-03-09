@@ -19,7 +19,7 @@ import PIL
 from ffmpy import FFmpeg
 
 from gradio import processing_utils, test_data
-from gradio.component import Component, Textbox
+from gradio.components import Component, Textbox
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio import Interface

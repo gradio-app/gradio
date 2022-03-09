@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from gradio.component import Component
+from gradio.components import Component
 
 
 class StaticComponent(Component):
