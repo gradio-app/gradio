@@ -19,14 +19,12 @@ def reformat_freq(sr, y):
     if sr not in (
         48000,
         16000,
-    ):  # Deepspeech only supports 16k, (we hackily convert 48k -> 16k)
+    ):  # Deepspeech only supports 16k, (we convert 48k -> 16k)
         raise ValueError("Unsupported rate", sr)
     if sr == 48000:
         y = (
             ((y / max(np.max(y), 1)) * 32767)
-            .reshape((-1, 4))
-            .mean(axis=1)
-            .reshape((-1, 4))
+            .reshape((-1, 3))
             .mean(axis=1)
             .astype("int16")
         )
@@ -34,7 +32,7 @@ def reformat_freq(sr, y):
     return sr, y
 
 
-def transcribe_stream(speech, stream):
+def transcribe(speech, stream):
     _, y = reformat_freq(*speech)
     if stream is None:
         stream = model.createStream()
@@ -42,11 +40,4 @@ def transcribe_stream(speech, stream):
     text = stream.intermediateDecode()
     return text, stream
 
-def transcribe(speech):
-    _, y = reformat_freq(*speech)
-    stream = model.createStream()
-    stream.feedAudioContent(y)
-    text = stream.intermediateDecode()
-    return text
-
-gr.Interface(transcribe, ["microphone"], ["text"]).launch()
+gr.Interface(transcribe, ["microphone", "state"], ["text", "state"], live=True).launch()
