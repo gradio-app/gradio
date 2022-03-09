@@ -186,7 +186,9 @@ def api_docs(request: Request):
         example = app.launchable.examples[0]
         sample_inputs = []
         for index, example_input in enumerate(example):
-            sample_inputs.append(app.launchable.input_components[index].preprocess_example(example_input))
+            sample_inputs.append(
+                app.launchable.input_components[index].preprocess_example(example_input)
+            )
     else:
         sample_inputs = [
             inp.generate_sample() for inp in app.launchable.input_components

@@ -336,7 +336,7 @@ def _convert(image, dtype, force_copy=False, uniform=False):
             Output image array. Has the same kind as `a`.
         """
         kind = a.dtype.kind
-        if n > m and a.max() < 2**m:
+        if n > m and a.max() < 2 ** m:
             return a.astype(_dtype_bits(kind, m))
         elif n == m:
             return a.copy() if copy else a
@@ -353,11 +353,11 @@ def _convert(image, dtype, force_copy=False, uniform=False):
             # exact upscale to a multiple of `n` bits
             if copy:
                 b = np.empty(a.shape, _dtype_bits(kind, m))
-                np.multiply(a, (2**m - 1) // (2**n - 1), out=b, dtype=b.dtype)
+                np.multiply(a, (2 ** m - 1) // (2 ** n - 1), out=b, dtype=b.dtype)
                 return b
             else:
                 a = a.astype(_dtype_bits(kind, m, a.dtype.itemsize), copy=False)
-                a *= (2**m - 1) // (2**n - 1)
+                a *= (2 ** m - 1) // (2 ** n - 1)
                 return a
         else:
             # upscale to a multiple of `n` bits,
@@ -365,12 +365,12 @@ def _convert(image, dtype, force_copy=False, uniform=False):
             o = (m // n + 1) * n
             if copy:
                 b = np.empty(a.shape, _dtype_bits(kind, o))
-                np.multiply(a, (2**o - 1) // (2**n - 1), out=b, dtype=b.dtype)
+                np.multiply(a, (2 ** o - 1) // (2 ** n - 1), out=b, dtype=b.dtype)
                 b //= 2 ** (o - m)
                 return b
             else:
                 a = a.astype(_dtype_bits(kind, o, a.dtype.itemsize), copy=False)
-                a *= (2**o - 1) // (2**n - 1)
+                a *= (2 ** o - 1) // (2 ** n - 1)
                 a //= 2 ** (o - m)
                 return a
 

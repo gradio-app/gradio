@@ -374,7 +374,7 @@ class Slider(InputComponent):
         if step is None:
             difference = maximum - minimum
             power = math.floor(math.log10(difference) - 2)
-            step = 10**power
+            step = 10 ** power
         self.step = step
         self.default = minimum if default is None else default
         self.test_input = self.default
