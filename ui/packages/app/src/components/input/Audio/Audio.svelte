@@ -25,7 +25,8 @@
 	let player;
 	let inited = false;
 	let crop_values = [0, 100];
-	let converting_blob = false;
+	let submitting_data = false;
+	let record_interval;
 
 	async function generate_data(): Promise<{
 		data: string;
@@ -54,16 +55,15 @@
 
 		recorder.addEventListener("dataavailable", async (event) => {
 			audio_chunks.push(event.data);
-			if (live && !converting_blob) {
-				converting_blob = true;
+			if (live && !submitting_data) {
+				submitting_data = true;
 				await setValue(await generate_data());
-				converting_blob = false;
+				submitting_data = false;
+				audio_chunks = [];
 			}
 		});
 
 		recorder.addEventListener("stop", async () => {
-			recording = false;
-
 			if (!live) {
 				setValue(await generate_data());
 			}
@@ -77,6 +77,12 @@
 		if (!inited) await prepare_audio();
 
 		recorder.start();
+		if (live) {
+			record_interval = setInterval(() => {
+				recorder.stop();
+				recorder.start();
+			}, 1000)
+		}
 	}
 
 	onDestroy(() => {
@@ -86,7 +92,11 @@
 	});
 
 	const stop = () => {
+		recording = false;
 		recorder.stop();
+		if (live) {
+			clearInterval(record_interval);
+		}
 	};
 
 	function clear() {
