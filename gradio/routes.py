@@ -71,6 +71,7 @@ class PredictBody(BaseModel):
     example_id: Optional[int]
     data: List[Any]
     state: Optional[Any]
+    fn_index: Optional[int]
 
 
 class FlagData(BaseModel):
