@@ -17,11 +17,13 @@ class Component(Block):
     """
 
     def __init__(
-        self, *,
-        label: str, requires_permissions: bool = False,
+        self,
+        *,
+        label: str,
+        requires_permissions: bool = False,
         **kwargs,
     ):
-        if 'optional' in kwargs:
+        if "optional" in kwargs:
             warnings.warn("Usage of optional is deprecated, and it has no effect")
         self.label = label
         self.requires_permissions = requires_permissions
@@ -215,12 +217,12 @@ class Textbox(Component):
         numeric (bool): DEPRECATED.
         type (str): DEPRECATED.
         """
-        if numeric in kwargs:
+        if "numeric" in kwargs:
             warnings.warn(
                 "The 'numeric' type has been deprecated. Use the Number component instead.",
                 DeprecationWarning,
             )
-        if type in kwargs:
+        if "type" in kwargs:
             warnings.warn(
                 "The 'type' parameter has been deprecated. Use the Number component instead if you need it.",
                 DeprecationWarning,
@@ -366,6 +368,7 @@ class Number(Component):
         default: Optional[float] = None,
         *,
         label: Optional[str] = None,
+        **kwargs,
     ):
         """
         Parameters:
@@ -458,7 +461,7 @@ class Number(Component):
         else:
             return float(y)
 
-    def deserialize(self, x):
+    def deserialize(self, y):
         """
         Convert from serialized output (e.g. base64 representation) from a call() to the interface to a human-readable version of the output (path of an image, etc.)
         """

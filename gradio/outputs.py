@@ -29,10 +29,15 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 class Textbox(Textbox):
     def __init__(
-        self, type: str = "auto", label: Optional[str] = None,
+        self,
+        type: str = "auto",
+        label: Optional[str] = None,
     ):
         # TODO: (faruk) Remove this file in version 3.0
-        warnings.warn("Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components", DeprecationWarning)
+        warnings.warn(
+            "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
+            DeprecationWarning,
+        )
         super().__init__(type=type, label=label)
 
 
@@ -270,7 +275,7 @@ class Video(OutputComponent):
         """
         returned_format = y.split(".")[-1].lower()
         if self.type is not None and returned_format != self.type:
-            output_file_name = y[0: y.rindex(".") + 1] + self.type
+            output_file_name = y[0 : y.rindex(".") + 1] + self.type
             ff = FFmpeg(inputs={y: None}, outputs={output_file_name: None})
             ff.run()
             y = output_file_name
