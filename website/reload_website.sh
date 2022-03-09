@@ -7,6 +7,11 @@ git pull > /tmp/git_changes.txt
 if grep -q "Already up to date." /tmp/git_changes.txt; then
     echo "Already up to date. No reload."
 else
+    if grep -q "error" /tmp/git_changes.txt; then
+        LOGS=`cat /tmp/git_changes.txt`
+        curl -X POST -H 'Content-type: application/json' --data '{"text":":o: gradio.app is not tracking master\n\n Logs:\n```'"${LOGS}"'`"}'
+        https://hooks.slack.com/services/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
+    fi
     echo "Reloading..."
     if grep -q "demo/" /tmp/git_changes.txt; then
         cd upload_notebooks && python run.py && cd ..
