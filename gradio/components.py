@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+import math
 import os
 import shutil
 import warnings
@@ -320,7 +322,7 @@ class Textbox(Component):
         return masked_inputs
 
     def get_interpretation_scores(
-        self, x, neighbors, scores: List[float], tokens: List[str], masks=None
+        self, x, neighbors, scores: List[float], tokens: List[str], masks=None, **kwargs
     ) -> List[Tuple[str, float]]:
         """
         Returns:
@@ -373,7 +375,6 @@ class Number(Component):
         Parameters:
         default (float): default value.
         label (str): component name in interface.
-        optional (bool): If True, the interface can be submitted with no value for this component.
         """
         default = float(default)
         self.default = default
@@ -426,18 +427,20 @@ class Number(Component):
         self.interpretation_delta_type = delta_type
         return self
 
-    def get_interpretation_neighbors(self, x: Number) -> Tuple[List[float], Dict]:
+    def get_interpretation_neighbors(self, x: float) -> Tuple[List[float], Dict]:
         x = float(x)
         if self.interpretation_delta_type == "percent":
             delta = 1.0 * self.interpretation_delta * x / 100
         elif self.interpretation_delta_type == "absolute":
+            delta = self.interpretation_delta
+        else:
             delta = self.interpretation_delta
         negatives = (x + np.arange(-self.interpretation_steps, 0) * delta).tolist()
         positives = (x + np.arange(1, self.interpretation_steps + 1) * delta).tolist()
         return negatives + positives, {}
 
     def get_interpretation_scores(
-        self, x: Number, neighbors: List[float], scores: List[float]
+        self, x: Number, neighbors: List[float], scores: List[float], **kwargs
     ) -> List[Tuple[float, float]]:
         """
         Returns:
@@ -465,3 +468,434 @@ class Number(Component):
         Convert from serialized output (e.g. base64 representation) from a call() to the interface to a human-readable version of the output (path of an image, etc.)
         """
         return y
+
+
+class Slider(Component):
+    """
+    Component creates a slider that ranges from `minimum` to `maximum`. Provides a number as an argument to the wrapped function.
+
+    Input type: float
+    Demos: sentence_builder, generate_tone, titanic_survival
+    """
+
+    def __init__(
+        self,
+        default: Optional[float] = None,
+        *,
+        minimum: float = 0,
+        maximum: float = 100,
+        step: Optional[float] = None,
+        label: Optional[str] = None,
+        **kwargs,
+    ):
+        """
+        Parameters:
+        default (float): default value.
+        minimum (float): minimum value for slider.
+        maximum (float): maximum value for slider.
+        step (float): increment between slider values.
+        label (str): component name in interface.
+        """
+        self.minimum = minimum
+        self.maximum = maximum
+        if step is None:
+            difference = maximum - minimum
+            power = math.floor(math.log10(difference) - 2)
+            step = 10**power
+        self.step = step
+        self.default = minimum if default is None else default
+        self.test_input = self.default
+        self.interpret_by_tokens = False
+        super().__init__(label=label, **kwargs)
+
+    def get_template_context(self):
+        return {
+            "minimum": self.minimum,
+            "maximum": self.maximum,
+            "step": self.step,
+            "default": self.default,
+            **super().get_template_context(),
+        }
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "slider": {},
+        }
+
+    def preprocess(self, x: float) -> float:
+        """
+        Parameters:
+        x (number): numeric input
+        Returns:
+        (number): numeric input
+        """
+        return x
+
+    def preprocess_example(self, x: float) -> float:
+        """
+        Returns:
+        (float): Number representing function input
+        """
+        return x
+
+    def set_interpret_parameters(self, steps: int = 8) -> "Slider":
+        """
+        Calculates interpretation scores of numeric values ranging between the minimum and maximum values of the slider.
+        Parameters:
+        steps (int): Number of neighboring values to measure between the minimum and maximum values of the slider range.
+        """
+        self.interpretation_steps = steps
+        return self
+
+    def get_interpretation_neighbors(self, x) -> Tuple[object, dict]:
+        return (
+            np.linspace(self.minimum, self.maximum, self.interpretation_steps).tolist(),
+            {},
+        )
+
+    def get_interpretation_scores(
+        self, x, neighbors, scores: List[float], **kwargs
+    ) -> List[float]:
+        """
+        Returns:
+        (List[float]): Each value represents the score corresponding to an evenly spaced range of inputs between the minimum and maximum slider values.
+        """
+        return scores
+
+    def generate_sample(self) -> float:
+        return self.maximum
+
+        # Output Functionalities
+
+    def postprocess(self, y: float | None):
+        """
+        Any postprocessing needed to be performed on function output.
+        """
+        return y
+
+    def deserialize(self, y):
+        """
+        Convert from serialized output (e.g. base64 representation) from a call() to the interface to a human-readable version of the output (path of an image, etc.)
+        """
+        return y
+
+
+class Checkbox(Component):
+    """
+    Component creates a checkbox that can be set to `True` or `False`. Provides a boolean as an argument to the wrapped function.
+
+    Input type: bool
+    Output type: bool
+    Demos: sentence_builder, titanic_survival
+    """
+
+    def __init__(self, default: bool = False, *, label: Optional[str] = None, **kwargs):
+        """
+        Parameters:
+        default (bool): if True, checked by default.
+        label (str): component name in interface.
+        """
+        self.test_input = True
+        self.default = default
+        self.interpret_by_tokens = False
+        super().__init__(label=label, **kwargs)
+
+    def get_template_context(self):
+        return {"default": self.default, **super().get_template_context()}
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "checkbox": {},
+        }
+
+    def preprocess(self, x: bool) -> bool:
+        """
+        Parameters:
+        x (bool): boolean input
+        Returns:
+        (bool): boolean input
+        """
+        return x
+
+    def preprocess_example(self, x):
+        """
+        Returns:
+        (bool): Boolean representing function input
+        """
+        return x
+
+    def set_interpret_parameters(self):
+        """
+        Calculates interpretation score of the input by comparing the output against the output when the input is the inverse boolean value of x.
+        """
+        return self
+
+    def get_interpretation_neighbors(self, x):
+        return [not x], {}
+
+    def get_interpretation_scores(self, x, neighbors, scores, **kwargs):
+        """
+        Returns:
+        (Tuple[float, float]): The first value represents the interpretation score if the input is False, and the second if the input is True.
+        """
+        if x:
+            return scores[0], None
+        else:
+            return None, scores[0]
+
+    def generate_sample(self):
+        return True
+
+    # Output Functionalities
+    def postprocess(self, y):
+        """
+        Any postprocessing needed to be performed on function output.
+        """
+        return y
+
+    def deserialize(self, x):
+        """
+        Convert from serialized output (e.g. base64 representation) from a call() to the interface to a human-readable version of the output (path of an image, etc.)
+        """
+        return x
+
+
+class CheckboxGroup(Component):
+    """
+    Component creates a set of checkboxes of which a subset can be selected. Provides a list of strings representing the selected choices as an argument to the wrapped function.
+
+    Input type: Union[List[str], List[int]]
+    Demos: sentence_builder, titanic_survival, fraud_detector
+    """
+
+    def __init__(
+        self,
+        default: List[str] = None,
+        *,
+        choices: List[str],
+        type: str = "value",
+        label: Optional[str] = None,
+        **kwargs,
+    ):
+        """
+        Parameters:
+        default (List[str]): default selected list of options.
+        choices (List[str]): list of options to select from.
+        type (str): Type of value to be returned by component. "value" returns the list of strings of the choices selected, "index" returns the list of indicies of the choices selected.
+        label (str): component name in interface.
+        """
+        if (
+            default is None
+        ):  # Mutable parameters shall not be given as default parameters in the function.
+            default = []
+        self.choices = choices
+        self.default = default
+        self.type = type
+        self.test_input = self.choices
+        self.interpret_by_tokens = False
+        super().__init__(label=label, **kwargs)
+
+    def get_template_context(self):
+        return {
+            "choices": self.choices,
+            "default": self.default,
+            **super().get_template_context(),
+        }
+
+    def preprocess(self, x: List[str]) -> List[str] | List[int]:
+        """
+        Parameters:
+        x (List[str]): list of selected choices
+        Returns:
+        (Union[List[str], List[int]]): list of selected choices as strings or indices within choice list
+        """
+        if self.type == "value":
+            return x
+        elif self.type == "index":
+            return [self.choices.index(choice) for choice in x]
+        else:
+            raise ValueError(
+                "Unknown type: "
+                + str(self.type)
+                + ". Please choose from: 'value', 'index'."
+            )
+
+    def set_interpret_parameters(self):
+        """
+        Calculates interpretation score of each choice in the input by comparing the output against the outputs when each choice in the input is independently either removed or added.
+        """
+        return self
+
+    def get_interpretation_neighbors(self, x):
+        leave_one_out_sets = []
+        for choice in self.choices:
+            leave_one_out_set = list(x)
+            if choice in leave_one_out_set:
+                leave_one_out_set.remove(choice)
+            else:
+                leave_one_out_set.append(choice)
+            leave_one_out_sets.append(leave_one_out_set)
+        return leave_one_out_sets, {}
+
+    def get_interpretation_scores(self, x, neighbors, scores, **kwargs):
+        """
+        Returns:
+        (List[Tuple[float, float]]): For each tuple in the list, the first value represents the interpretation score if the input is False, and the second if the input is True.
+        """
+        final_scores = []
+        for choice, score in zip(self.choices, scores):
+            if choice in x:
+                score_set = [score, None]
+            else:
+                score_set = [None, score]
+            final_scores.append(score_set)
+        return final_scores
+
+    def save_flagged(self, dir, label, data, encryption_key):
+        """
+        Returns: (List[str]])
+        """
+        return json.dumps(data)
+
+    def restore_flagged(self, dir, data, encryption_key):
+        return json.loads(data)
+
+    def generate_sample(self):
+        return self.choices
+
+    # Output Functionalities
+    def postprocess(self, y):
+        """
+        Any postprocessing needed to be performed on function output.
+        """
+        return y
+
+    def deserialize(self, x):
+        """
+        Convert from serialized output (e.g. base64 representation) from a call() to the interface to a human-readable version of the output (path of an image, etc.)
+        """
+        return x
+
+
+class Radio(Component):
+    """
+    Component creates a set of radio buttons of which only one can be selected. Provides string representing selected choice as an argument to the wrapped function.
+
+    Input type: Union[str, int]
+    Demos: sentence_builder, tax_calculator, titanic_survival
+    """
+
+    def __init__(
+        self,
+        default: Optional[str] = None,
+        *,
+        choices: List[str],
+        type: str = "value",
+        label: Optional[str] = None,
+        **kwargs,
+    ):
+        """
+        Parameters:
+        default (str): the button selected by default. If None, no button is selected by default.
+        choices (List[str]): list of options to select from.
+        type (str): Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
+        label (str): component name in interface.
+        """
+        self.choices = choices
+        self.type = type
+        self.test_input = self.choices[0]
+        self.default = default if default is not None else self.choices[0]
+        self.interpret_by_tokens = False
+        super().__init__(label=label, **kwargs)
+
+    def get_template_context(self):
+        return {
+            "choices": self.choices,
+            "default": self.default,
+            **super().get_template_context(),
+        }
+
+    def preprocess(self, x: str) -> str | int:
+        """
+        Parameters:
+        x (str): selected choice
+        Returns:
+        (Union[str, int]): selected choice as string or index within choice list
+        """
+        if self.type == "value":
+            return x
+        elif self.type == "index":
+            return self.choices.index(x)
+        else:
+            raise ValueError(
+                "Unknown type: "
+                + str(self.type)
+                + ". Please choose from: 'value', 'index'."
+            )
+
+    def set_interpret_parameters(self):
+        """
+        Calculates interpretation score of each choice by comparing the output against each of the outputs when alternative choices are selected.
+        """
+        return self
+
+    def get_interpretation_neighbors(self, x):
+        choices = list(self.choices)
+        choices.remove(x)
+        return choices, {}
+
+    def get_interpretation_scores(self, x, neighbors, scores, **kwargs):
+        """
+        Returns:
+        (List[float]): Each value represents the interpretation score corresponding to each choice.
+        """
+        scores.insert(self.choices.index(x), None)
+        return scores
+
+    def generate_sample(self):
+        return self.choices[0]
+
+    # Output Functionalities
+    def postprocess(self, y):
+        """
+        Any postprocessing needed to be performed on function output.
+        """
+        return y
+
+    def deserialize(self, x):
+        """
+        Convert from serialized output (e.g. base64 representation) from a call() to the interface to a human-readable version of the output (path of an image, etc.)
+        """
+        return x
+
+
+class Dropdown(Radio):
+    """
+    Component creates a dropdown of which only one can be selected. Provides string representing selected choice as an argument to the wrapped function.
+
+    Input type: Union[str, int]
+    Demos: sentence_builder, filter_records, titanic_survival
+    """
+
+    def __init__(
+        self,
+        default: Optional[str] = None,
+        *,
+        choices: List[str],
+        type: str = "value",
+        label: Optional[str] = None,
+        **kwargs,
+    ):
+        """
+        Parameters:
+        choices (List[str]): list of options to select from.
+        type (str): Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
+        default (str): default value selected in dropdown. If None, no value is selected by default.
+        label (str): component name in interface.
+        """
+        # Everything is same with Dropdown and Radio, so let's make use of it :)
+        super().__init__(
+            default=default, choices=choices, type=type, label=label, **kwargs
+        )
