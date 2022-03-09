@@ -25,6 +25,7 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio import Interface
 
 
+# TODO: (faruk) Remove this file in version 3.0
 class Textbox(Textbox):
 
     def __init__(
@@ -36,9 +37,7 @@ class Textbox(Textbox):
         type: Optional[str] = "str",
         label: Optional[str] = None,
         optional: bool = False,
-        component_type: str = "input",  # TODO: remove with the new config design
     ):
-        # TODO: (faruk) Remove this file in version 3.0
         warnings.warn("Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your component from gradio.components", DeprecationWarning)
         super().__init__(
             lines=lines,
@@ -48,7 +47,6 @@ class Textbox(Textbox):
             type=type,
             label=label,
             optional=optional,
-            component_type=component_type,
         )
 
 
