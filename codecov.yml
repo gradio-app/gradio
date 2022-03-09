@@ -12,7 +12,7 @@ coverage:
         threshold: 0.1
     patch:
       default:
-        target: 50%  # new contributions should have a coverage at least equal to 50%
+        target: 0%  # new contributions sometimes consist of code that does not need to be tested
   
 comment: false
 codecov:
