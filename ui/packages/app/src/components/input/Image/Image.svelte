@@ -66,7 +66,11 @@
 					{$_("interface.click_to_upload")}
 				</Upload>
 			{:else if source === "webcam"}
-				<Webcam on:capture={({ detail }) => setValue(detail)} {static_src} />
+				<Webcam
+					mode="image"
+					on:capture={({ detail }) => setValue(detail)}
+					{static_src}
+				/>
 			{/if}
 		{:else if tool === "select"}
 			<Cropper image={value} on:crop={({ detail }) => setValue(detail)} />
@@ -85,6 +89,8 @@
 				{static_src}
 			/>
 
+			<img class="w-full h-full object-contain" src={value} alt="" />
+		{:else}
 			<img class="w-full h-full object-contain" src={value} alt="" />
 		{/if}
 	</div>

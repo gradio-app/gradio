@@ -51,6 +51,7 @@ interface Config {
 	space?: string;
 	detail: string;
 	dark: boolean;
+	auth_required: boolean;
 }
 
 window.launchGradio = (config: Config, element_query: string) => {
@@ -77,7 +78,7 @@ window.launchGradio = (config: Config, element_query: string) => {
 		style.innerHTML = config.css;
 		document.head.appendChild(style);
 	}
-	if (config.detail === "Not authenticated") {
+	if (config.detail === "Not authenticated" || config.auth_required) {
 		new Login({
 			target: target,
 			props: config
@@ -96,7 +97,8 @@ window.launchGradio = (config: Config, element_query: string) => {
 			config.dark = true;
 			target.classList.add("dark");
 		}
-		config.fn = fn.bind(null, config.root + "api/");
+		let session_hash = Math.random().toString(36).substring(2);
+		config.fn = fn.bind(null, session_hash, config.root + "api/");
 		if (config.mode === "blocks") {
 			new Blocks({
 				target: target,

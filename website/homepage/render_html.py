@@ -73,13 +73,19 @@ for guide in sorted(os.listdir(GRADIO_GUIDES_DIR)):
     spaces = None
     if "related_spaces: " in guide_content:
         spaces = guide_content.split("related_spaces: ")[1].split("\n")[0].split(", ")
+    title = guide_content.split("\n")[0]
+    contributor = None
+    if "Contributed by " in guide_content:
+        contributor = guide_content.split("Contributed by ")[1].split("\n")[0]
+
     url = f"https://gradio.app/{guide_name}/"
 
     guide_content = "\n".join(
         [
             line
             for line in guide_content.split("\n")
-            if not (line.startswith("tags: ") or line.startswith("related_spaces: "))
+            if not (line.startswith("tags: ") or line.startswith("related_spaces: ") or
+                    line.startswith("Contributed by ") or line == title)
         ]
     )
 
@@ -91,6 +97,7 @@ for guide in sorted(os.listdir(GRADIO_GUIDES_DIR)):
             "tags": tags,
             "spaces": spaces,
             "url": url,
+            "contributor": contributor
         }
     )
 
@@ -188,6 +195,7 @@ def render_guides():
                 guide_name=guide["name"],
                 spaces=guide["spaces"],
                 tags=guide["tags"],
+                contributor=guide["contributor"],
                 **GRADIO_ASSETS,
             )
             generated_template.write(output_html)
