@@ -178,7 +178,6 @@ class Blocks(Launchable, BlockContext):
                 config["components"].append(
                     {
                         "id": _id,
-                        "type": block.component_type,
                         "props": block.get_template_context(),
                     }
                 )

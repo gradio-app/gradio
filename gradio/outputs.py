@@ -48,7 +48,7 @@ class OutputComponent(Component):
 
     def __init__(self, label: str):
         self.component_type = "output"
-        super().__init__(label)
+        super().__init__(label=label)
 
     def postprocess(self, y):
         """

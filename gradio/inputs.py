@@ -92,7 +92,7 @@ class InputComponent(Component):
         self.component_type = "input"
         self.set_interpret_parameters()
         self.optional = optional
-        super().__init__(label, requires_permissions)
+        super().__init__(label=label, requires_permissions=requires_permissions)
 
     def preprocess(self, x: Any) -> Any:
         """
