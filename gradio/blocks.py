@@ -6,7 +6,7 @@ from gradio.context import Context
 from gradio.launchable import Launchable
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    from gradio.component import Component
+    from gradio.components import Component
 
 
 class Block:
@@ -170,7 +170,7 @@ class Blocks(Launchable, BlockContext):
         return {"type": "column"}
 
     def get_config_file(self):
-        from gradio.component import Component
+        from gradio.components import Component
 
         config = {"mode": "blocks", "components": [], "theme": self.theme}
         for _id, block in self.blocks.items():

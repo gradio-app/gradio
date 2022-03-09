@@ -22,9 +22,6 @@ class Component(Block):
         self.label = label
         self.requires_permissions = requires_permissions
         self.set_interpret_parameters()
-        self.optional = optional
-        self.input = False
-        self.output = False
         super().__init__()
 
     def __str__(self):
@@ -199,14 +196,15 @@ class Textbox(Component):
 
     def __init__(
         self,
+        default: str = "",
+        *,
         lines: int = 1,
         placeholder: Optional[str] = None,
-        default: str = "",
         label: Optional[str] = None,
         numeric: Optional[bool] = False,
         type: Optional[str] = "str",
-        optional: bool = False,
         component_type: str = "static",
+        **kwargs,
     ):
         """
         Parameters:
@@ -216,7 +214,6 @@ class Textbox(Component):
         label (str): component name in interface.
         numeric (bool): DEPRECATED.
         type (str): DEPRECATED. However, currently supported in gr.outputs
-        optional (bool): DEPRECATED
         """
         self.lines = lines
         self.placeholder = placeholder
@@ -235,7 +232,7 @@ class Textbox(Component):
         self.test_input = default
         self.interpret_by_tokens = True
         self.component_type = component_type
-        super().__init__(label)
+        super().__init__(label=label)
 
     def get_template_context(self):
         return {
@@ -340,3 +337,97 @@ class Textbox(Component):
             raise ValueError(
                 "Unknown type: " + self.type + ". Please choose from: 'str', 'number'"
             )
+
+
+class Number(Component):
+    """
+    Component creates a field for user to enter numeric input. Provides a number as an argument to the wrapped function.
+    Can be used as an output as well.
+
+    Input type: float
+    Demos: tax_calculator, titanic_survival
+    """
+
+    def __init__(
+        self,
+        default: Optional[float] = None,
+        *,
+        label: Optional[str] = None,
+        optional: bool = False,
+    ):
+        """
+        Parameters:
+        default (float): default value.
+        label (str): component name in interface.
+        optional (bool): If True, the interface can be submitted with no value for this component.
+        """
+        self.default = default
+        self.test_input = default if default is not None else 1
+        self.interpret_by_tokens = False
+        super().__init__(label, optional=optional)
+
+    def get_template_context(self):
+        return {"default": self.default, **super().get_template_context()}
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "number": {},
+        }
+
+    def preprocess(self, x: Optional[Number]) -> Optional[float]:
+        """
+        Parameters:
+        x (string): numeric input as a string
+        Returns:
+        (float): number representing function input
+        """
+        if self.optional and x is None:
+            return None
+        return float(x)
+
+    def preprocess_example(self, x: float) -> float:
+        """
+        Returns:
+        (float): Number representing function input
+        """
+        return x
+
+    def set_interpret_parameters(
+        self, steps: int = 3, delta: float = 1, delta_type: str = "percent"
+    ):
+        """
+        Calculates interpretation scores of numeric values close to the input number.
+        Parameters:
+        steps (int): Number of nearby values to measure in each direction (above and below the input number).
+        delta (float): Size of step in each direction between nearby values.
+        delta_type (str): "percent" if delta step between nearby values should be a calculated as a percent, or "absolute" if delta should be a constant step change.
+        """
+        self.interpretation_steps = steps
+        self.interpretation_delta = delta
+        self.interpretation_delta_type = delta_type
+        return self
+
+    def get_interpretation_neighbors(self, x: Number) -> Tuple[List[float], Dict]:
+        x = float(x)
+        if self.interpretation_delta_type == "percent":
+            delta = 1.0 * self.interpretation_delta * x / 100
+        elif self.interpretation_delta_type == "absolute":
+            delta = self.interpretation_delta
+        negatives = (x + np.arange(-self.interpretation_steps, 0) * delta).tolist()
+        positives = (x + np.arange(1, self.interpretation_steps + 1) * delta).tolist()
+        return negatives + positives, {}
+
+    def get_interpretation_scores(
+        self, x: Number, neighbors: List[float], scores: List[float]
+    ) -> List[Tuple[float, float]]:
+        """
+        Returns:
+        (List[Tuple[float, float]]): Each tuple set represents a numeric value near the input and its corresponding interpretation score.
+        """
+        interpretation = list(zip(neighbors, scores))
+        interpretation.insert(int(len(interpretation) / 2), [x, None])
+        return interpretation
+
+    def generate_sample(self) -> float:
+        return 1.0
