@@ -211,6 +211,29 @@
       color: grey !important;
       pointer-events: none;
     }
+    .copy {
+      float: right;
+      padding-right: 1em;
+      background: whitesmoke;
+      border: none !important;
+      cursor: pointer;
+    }
+
+    .float-left {
+      float:left;
+      width: 90%;
+      overflow: auto;
+    }
+
+    .copy-svg {
+      visibility: hidden;
+      margin: 1em 0 0 0 !important;
+      width: 20px;
+    }
+
+    .code-block:hover .copy-svg {
+       visibility: visible;
+    }
   </style>
 
   <meta property="og:url" content="https://gradio.app/" />
@@ -286,23 +309,31 @@
       </ul>
 
       <h4 id="payload">Payload: </h4>
-      <div class="json">
+      <div class="json code-block">
+        <div class="float-left">
         <p>&emsp;&emsp;{</p>
         <p>&emsp;&emsp;&emsp;&emsp;"data": [{%for i in range(0, len_inputs)%} <span>{{ input_types[i]
             }}</span>{% if i != len_inputs - 1 %} ,{% endif %}{%endfor%} ]</p>
         <p>&emsp;&emsp;}</p>
+        </div>
+        <button class="copy" onclick="copyCode(this)"><svg class="copy-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" style="fill: #808080;"><path d="M320 448v40c0 13.255-10.745 24-24 24H24c-13.255 0-24-10.745-24-24V120c0-13.255 10.745-24 24-24h72v296c0 30.879 25.121 56 56 56h168zm0-344V0H152c-13.255 0-24 10.745-24 24v368c0 13.255 10.745 24 24 24h272c13.255 0 24-10.745 24-24V128H344c-13.2 0-24-10.8-24-24zm120.971-31.029L375.029 7.029A24 24 0 0 0 358.059 0H352v96h96v-6.059a24 24 0 0 0-7.029-16.97z"/></svg>
+          <div></div></button>
       </div>
       {% if auth is not none %}
       <p>Note: This interface requires authentication. This means you will have to first post to the login api before you can post to the predict endpoint. See below for more info </p>
       {%  endif %}
       <h4 id="response">Response: </h4>
-      <div class="json">
+      <div class="json code-block">
+        <div class="float-left">
         <p>&emsp;&emsp;{</p>
         <p>&emsp;&emsp;&emsp;&emsp;"data": [{%for i in range(0, len_outputs)%} <span>{{ output_types[i]
             }}</span>{% if i != len_outputs - 1 %} ,{% endif %}{%endfor%} ],</p>
         <p>&emsp;&emsp;&emsp;&emsp;"durations": [ float ],   # the time taken for the prediction to complete</p>
         <p>&emsp;&emsp;&emsp;&emsp;"avg_durations": [ float ]    # the average time taken for all predictions so far (used to estimate the runtime)</p>
         <p>&emsp;&emsp;}</p>
+      </div>
+        <button class="copy" onclick="copyCode(this)"><svg class="copy-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" style="fill: #808080;"><path d="M320 448v40c0 13.255-10.745 24-24 24H24c-13.255 0-24-10.745-24-24V120c0-13.255 10.745-24 24-24h72v296c0 30.879 25.121 56 56 56h168zm0-344V0H152c-13.255 0-24 10.745-24 24v368c0 13.255 10.745 24 24 24h272c13.255 0 24-10.745 24-24V128H344c-13.2 0-24-10.8-24-24zm120.971-31.029L375.029 7.029A24 24 0 0 0 358.059 0H352v96h96v-6.059a24 24 0 0 0-7.029-16.97z"/></svg>
+          <div></div></button>
       </div>
       <h4 id="try-it">Try it (live demo): </h4>
 
@@ -325,16 +356,9 @@
 
 
 
-          <div class="json">
-            {% if auth is not none %}
-<!--              import requests-->
-
-<!--              sess = requests.session()-->
-<!--              sess.post(url='INTERFACE_URL/login', data={"username": "USERNAME", "password":"PASSWORD"})-->
-<!--              r = sess.post(url='INTERFACE_URL/api/predict/',json={"data":[INPUT]}, )-->
-<!--              -->
-<!--              print(r.json())-->
-
+          <div class="json code-block">
+            <div class="float-left">
+              {% if auth is not none %}
             <p class="syntax">import requests</p>
             <br>
             <p class="syntax">sess = requests.session()</p>
@@ -363,11 +387,15 @@
             <p>r.json()</p>
 
             {%  endif %}
+            </div>
+            <button class="copy" onclick="copyCode(this)"><svg class="copy-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" style="fill: #808080;"><path d="M320 448v40c0 13.255-10.745 24-24 24H24c-13.255 0-24-10.745-24-24V120c0-13.255 10.745-24 24-24h72v296c0 30.879 25.121 56 56 56h168zm0-344V0H152c-13.255 0-24 10.745-24 24v368c0 13.255 10.745 24 24 24h272c13.255 0 24-10.745 24-24V128H344c-13.2 0-24-10.8-24-24zm120.971-31.029L375.029 7.029A24 24 0 0 0 358.059 0H352v96h96v-6.059a24 24 0 0 0-7.029-16.97z"/></svg>
+          <div></div></button>
           </div>
 
         </div>
         <div class="demo-window" demo="2">
-          <div class="json">
+          <div class="json code-block">
+            <div class="float-left">
             {% if auth is not none %}
             <p class="syntax">curl -X POST&nbsp;-F 'username=USERNAME' -F 'password=PASSWORD' <span class="syntax" id="curl_syntax_url_login"></span>&nbsp;-c cookies.txt </p>
 
@@ -386,10 +414,14 @@
 
             {%  endif %}
           </div>
-
+          <button class="copy" onclick="copyCode(this)"><svg class="copy-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" style="fill: #808080;"><path d="M320 448v40c0 13.255-10.745 24-24 24H24c-13.255 0-24-10.745-24-24V120c0-13.255 10.745-24 24-24h72v296c0 30.879 25.121 56 56 56h168zm0-344V0H152c-13.255 0-24 10.745-24 24v368c0 13.255 10.745 24 24 24h272c13.255 0 24-10.745 24-24V128H344c-13.2 0-24-10.8-24-24zm120.971-31.029L375.029 7.029A24 24 0 0 0 358.059 0H352v96h96v-6.059a24 24 0 0 0-7.029-16.97z"/></svg>
+          <div></div></button>
         </div>
+        </div>
+
         <div class="demo-window" demo="3">
-          <div class="json">
+          <div class="json code-block">
+            <div class="float-left">
             {% if auth is not none %}
             <p class="syntax">// Will only work locally.</p>
             <br>
@@ -415,6 +447,9 @@
               console.log(json_response) })</p>
             </p>
             {%  endif %}
+            </div>
+            <button class="copy" onclick="copyCode(this)"><svg class="copy-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" style="fill: #808080;"><path d="M320 448v40c0 13.255-10.745 24-24 24H24c-13.255 0-24-10.745-24-24V120c0-13.255 10.745-24 24-24h72v296c0 30.879 25.121 56 56 56h168zm0-344V0H152c-13.255 0-24 10.745-24 24v368c0 13.255 10.745 24 24 24h272c13.255 0 24-10.745 24-24V128H344c-13.2 0-24-10.8-24-24zm120.971-31.029L375.029 7.029A24 24 0 0 0 358.059 0H352v96h96v-6.059a24 24 0 0 0-7.029-16.97z"/></svg>
+          <div></div></button>
           </div>
         </div>
       </div>
@@ -440,8 +475,12 @@
 
       <div class="hidden" id="related-methods-holder">
         <h4 id="related">Related Methods: </h4>
-        <div class="json" id="related-methods"
+        <div class="json code-block">
+        <div class="float-left" id="related-methods">
           <p>import gradio</p>
+        </div>
+          <button class="copy" onclick="copyCode(this)"><svg class="copy-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" style="fill: #808080;"><path d="M320 448v40c0 13.255-10.745 24-24 24H24c-13.255 0-24-10.745-24-24V120c0-13.255 10.745-24 24-24h72v296c0 30.879 25.121 56 56 56h168zm0-344V0H152c-13.255 0-24 10.745-24 24v368c0 13.255 10.745 24 24 24h272c13.255 0 24-10.745 24-24V128H344c-13.2 0-24-10.8-24-24zm120.971-31.029L375.029 7.029A24 24 0 0 0 358.059 0H352v96h96v-6.059a24 24 0 0 0-7.029-16.97z"/></svg>
+          <div></div></button>
         </div>
       </div>
 
@@ -582,6 +621,15 @@
     if (showRelated) {
       $('#related-methods-holder').removeClass("hidden");
     }
+
+    function copyCode(elem) {
+        var text = elem.parentElement.innerText;
+        navigator.clipboard.writeText(text);
+        elem.firstChild.style="fill: #eb9f59;"
+        setTimeout(function(){
+          elem.firstChild.style="fill: #808080;"
+        }, 600);
+    };
 
     var friendlyHttpStatus = {
       '200': 'OK',
