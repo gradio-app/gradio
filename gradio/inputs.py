@@ -7,7 +7,6 @@ automatically added to a registry, which allows them to be easily referenced in 
 from __future__ import annotations
 
 import json
-import math
 import os
 import tempfile
 import warnings
@@ -19,7 +18,16 @@ import PIL
 from ffmpy import FFmpeg
 
 from gradio import processing_utils, test_data
-from gradio.components import Component, Number, Textbox
+from gradio.components import (
+    Checkbox,
+    CheckboxGroup,
+    Component,
+    Dropdown,
+    Number,
+    Radio,
+    Slider,
+    Textbox,
+)
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio import Interface
@@ -76,6 +84,168 @@ class Number(Number):
             DeprecationWarning,
         )
         super().__init__(default=default, label=label, optional=optional)
+
+
+class Slider(Slider):
+    """
+    Component creates a slider that ranges from `minimum` to `maximum`. Provides a number as an argument to the wrapped function.
+    Input type: float
+    Demos: sentence_builder, generate_tone, titanic_survival
+    """
+
+    def __init__(
+        self,
+        minimum: float = 0,
+        maximum: float = 100,
+        step: Optional[float] = None,
+        default: Optional[float] = None,
+        label: Optional[str] = None,
+        optional: bool = False,
+    ):
+        """
+        Parameters:
+        minimum (float): minimum value for slider.
+        maximum (float): maximum value for slider.
+        step (float): increment between slider values.
+        default (float): default value.
+        label (str): component name in interface.
+        optional (bool): this parameter is ignored.
+        """
+        warnings.warn(
+            "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your component from gradio.components",
+            DeprecationWarning,
+        )
+
+        super().__init__(
+            label=label,
+            minimum=minimum,
+            maximum=maximum,
+            step=step,
+            default=default,
+            optional=optional,
+        )
+
+
+class Checkbox(Checkbox):
+    """
+    Component creates a checkbox that can be set to `True` or `False`. Provides a boolean as an argument to the wrapped function.
+    Input type: bool
+    Demos: sentence_builder, titanic_survival
+    """
+
+    def __init__(
+        self,
+        default: bool = False,
+        label: Optional[str] = None,
+        optional: bool = False,
+    ):
+        """
+        Parameters:
+        label (str): component name in interface.
+        default (bool): if True, checked by default.
+        optional (bool): this parameter is ignored.
+        """
+        warnings.warn(
+            "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your component from gradio.components",
+            DeprecationWarning,
+        )
+        super().__init__(label=label, default=default, optional=optional)
+
+
+class CheckboxGroup(CheckboxGroup):
+    """
+    Component creates a set of checkboxes of which a subset can be selected. Provides a list of strings representing the selected choices as an argument to the wrapped function.
+    Input type: Union[List[str], List[int]]
+    Demos: sentence_builder, titanic_survival, fraud_detector
+    """
+
+    def __init__(
+        self,
+        choices: List[str],
+        default: List[str] = [],
+        type: str = "value",
+        label: Optional[str] = None,
+        optional: bool = False,
+    ):
+        """
+        Parameters:
+        choices (List[str]): list of options to select from.
+        default (List[str]): default selected list of options.
+        type (str): Type of value to be returned by component. "value" returns the list of strings of the choices selected, "index" returns the list of indicies of the choices selected.
+        label (str): component name in interface.
+        optional (bool): this parameter is ignored.
+        """
+        warnings.warn(
+            "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your component from gradio.components",
+            DeprecationWarning,
+        )
+        super().__init__(
+            choices=choices, default=default, type=type, label=label, optional=optional
+        )
+
+
+class Radio(Radio):
+    """
+    Component creates a set of radio buttons of which only one can be selected. Provides string representing selected choice as an argument to the wrapped function.
+    Input type: Union[str, int]
+    Demos: sentence_builder, tax_calculator, titanic_survival
+    """
+
+    def __init__(
+        self,
+        choices: List[str],
+        type: str = "value",
+        default: Optional[str] = None,
+        label: Optional[str] = None,
+        optional: bool = False,
+    ):
+        """
+        Parameters:
+        choices (List[str]): list of options to select from.
+        type (str): Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
+        default (str): the button selected by default. If None, no button is selected by default.
+        label (str): component name in interface.
+        optional (bool): this parameter is ignored.
+        """
+        warnings.warn(
+            "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your component from gradio.components",
+            DeprecationWarning,
+        )
+        super().__init__(
+            choices=choices, type=type, default=default, label=label, optional=optional
+        )
+
+
+class Dropdown(Dropdown):
+    """
+    Component creates a dropdown of which only one can be selected. Provides string representing selected choice as an argument to the wrapped function.
+    Input type: Union[str, int]
+    Demos: sentence_builder, filter_records, titanic_survival
+    """
+
+    def __init__(
+        self,
+        choices: List[str],
+        type: str = "value",
+        default: Optional[str] = None,
+        label: Optional[str] = None,
+        optional: bool = False,
+    ):
+        """
+        Parameters:
+        choices (List[str]): list of options to select from.
+        type (str): Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
+        default (str): default value selected in dropdown. If None, no value is selected by default.
+        label (str): component name in interface.
+        optional (bool): this parameter is ignored.
+        """
+        warnings.warn(
+            "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your component from gradio.components",
+            DeprecationWarning,
+        )
+        super().__init__(
+            choices=choices, type=type, default=default, label=label, optional=optional
+        )
 
 
 class InputComponent(Component):
@@ -159,429 +329,6 @@ class InputComponent(Component):
             "optional": self.optional,
             **super().get_template_context(),
         }
-
-
-class Slider(InputComponent):
-    """
-    Component creates a slider that ranges from `minimum` to `maximum`. Provides a number as an argument to the wrapped function.
-    Input type: float
-    Demos: sentence_builder, generate_tone, titanic_survival
-    """
-
-    def __init__(
-        self,
-        minimum: float = 0,
-        maximum: float = 100,
-        step: Optional[float] = None,
-        default: Optional[float] = None,
-        label: Optional[str] = None,
-        optional: bool = False,
-    ):
-        """
-        Parameters:
-        minimum (float): minimum value for slider.
-        maximum (float): maximum value for slider.
-        step (float): increment between slider values.
-        default (float): default value.
-        label (str): component name in interface.
-        optional (bool): this parameter is ignored.
-        """
-        self.minimum = minimum
-        self.maximum = maximum
-        if step is None:
-            difference = maximum - minimum
-            power = math.floor(math.log10(difference) - 2)
-            step = 10**power
-        self.step = step
-        self.default = minimum if default is None else default
-        self.test_input = self.default
-        self.interpret_by_tokens = False
-        super().__init__(label)
-
-    def get_template_context(self):
-        return {
-            "minimum": self.minimum,
-            "maximum": self.maximum,
-            "step": self.step,
-            "default": self.default,
-            **super().get_template_context(),
-        }
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "slider": {},
-        }
-
-    def preprocess(self, x: Number) -> Number:
-        """
-        Parameters:
-        x (number): numeric input
-        Returns:
-        (number): numeric input
-        """
-        return x
-
-    def preprocess_example(self, x: Number) -> Number:
-        """
-        Returns:
-        (float): Number representing function input
-        """
-        return x
-
-    def set_interpret_parameters(self, steps: int = 8) -> None:
-        """
-        Calculates interpretation scores of numeric values ranging between the minimum and maximum values of the slider.
-        Parameters:
-        steps (int): Number of neighboring values to measure between the minimum and maximum values of the slider range.
-        """
-        self.interpretation_steps = steps
-        return self
-
-    def get_interpretation_neighbors(self, x) -> List[float]:
-        return (
-            np.linspace(self.minimum, self.maximum, self.interpretation_steps).tolist(),
-            {},
-        )
-
-    def get_interpretation_scores(
-        self, x, neighbors, scores: List[float]
-    ) -> List[float]:
-        """
-        Returns:
-        (List[float]): Each value represents the score corresponding to an evenly spaced range of inputs between the minimum and maximum slider values.
-        """
-        return scores
-
-    def generate_sample(self) -> float:
-        return self.maximum
-
-
-class Checkbox(InputComponent):
-    """
-    Component creates a checkbox that can be set to `True` or `False`. Provides a boolean as an argument to the wrapped function.
-    Input type: bool
-    Demos: sentence_builder, titanic_survival
-    """
-
-    def __init__(
-        self,
-        default: bool = False,
-        label: Optional[str] = None,
-        optional: bool = False,
-    ):
-        """
-        Parameters:
-        label (str): component name in interface.
-        default (bool): if True, checked by default.
-        optional (bool): this parameter is ignored.
-        """
-        self.test_input = True
-        self.default = default
-        self.interpret_by_tokens = False
-        super().__init__(label)
-
-    def get_template_context(self):
-        return {"default": self.default, **super().get_template_context()}
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "checkbox": {},
-        }
-
-    def preprocess(self, x: bool) -> bool:
-        """
-        Parameters:
-        x (bool): boolean input
-        Returns:
-        (bool): boolean input
-        """
-        return x
-
-    def preprocess_example(self, x):
-        """
-        Returns:
-        (bool): Boolean representing function input
-        """
-        return x
-
-    def set_interpret_parameters(self):
-        """
-        Calculates interpretation score of the input by comparing the output against the output when the input is the inverse boolean value of x.
-        """
-        return self
-
-    def get_interpretation_neighbors(self, x):
-        return [not x], {}
-
-    def get_interpretation_scores(self, x, neighbors, scores):
-        """
-        Returns:
-        (Tuple[float, float]): The first value represents the interpretation score if the input is False, and the second if the input is True.
-        """
-        if x:
-            return scores[0], None
-        else:
-            return None, scores[0]
-
-    def generate_sample(self):
-        return True
-
-
-class CheckboxGroup(InputComponent):
-    """
-    Component creates a set of checkboxes of which a subset can be selected. Provides a list of strings representing the selected choices as an argument to the wrapped function.
-    Input type: Union[List[str], List[int]]
-    Demos: sentence_builder, titanic_survival, fraud_detector
-    """
-
-    def __init__(
-        self,
-        choices: List[str],
-        default: List[str] = [],
-        type: str = "value",
-        label: Optional[str] = None,
-        optional: bool = False,
-    ):
-        """
-        Parameters:
-        choices (List[str]): list of options to select from.
-        default (List[str]): default selected list of options.
-        type (str): Type of value to be returned by component. "value" returns the list of strings of the choices selected, "index" returns the list of indicies of the choices selected.
-        label (str): component name in interface.
-        optional (bool): this parameter is ignored.
-        """
-        self.choices = choices
-        self.default = default
-        self.type = type
-        self.test_input = self.choices
-        self.interpret_by_tokens = False
-        super().__init__(label)
-
-    def get_template_context(self):
-        return {
-            "choices": self.choices,
-            "default": self.default,
-            **super().get_template_context(),
-        }
-
-    def preprocess(self, x: List[str]) -> List[str] | List[int]:
-        """
-        Parameters:
-        x (List[str]): list of selected choices
-        Returns:
-        (Union[List[str], List[int]]): list of selected choices as strings or indices within choice list
-        """
-        if self.type == "value":
-            return x
-        elif self.type == "index":
-            return [self.choices.index(choice) for choice in x]
-        else:
-            raise ValueError(
-                "Unknown type: "
-                + str(self.type)
-                + ". Please choose from: 'value', 'index'."
-            )
-
-    def set_interpret_parameters(self):
-        """
-        Calculates interpretation score of each choice in the input by comparing the output against the outputs when each choice in the input is independently either removed or added.
-        """
-        return self
-
-    def get_interpretation_neighbors(self, x):
-        leave_one_out_sets = []
-        for choice in self.choices:
-            leave_one_out_set = list(x)
-            if choice in leave_one_out_set:
-                leave_one_out_set.remove(choice)
-            else:
-                leave_one_out_set.append(choice)
-            leave_one_out_sets.append(leave_one_out_set)
-        return leave_one_out_sets, {}
-
-    def get_interpretation_scores(self, x, neighbors, scores):
-        """
-        Returns:
-        (List[Tuple[float, float]]): For each tuple in the list, the first value represents the interpretation score if the input is False, and the second if the input is True.
-        """
-        final_scores = []
-        for choice, score in zip(self.choices, scores):
-            if choice in x:
-                score_set = [score, None]
-            else:
-                score_set = [None, score]
-            final_scores.append(score_set)
-        return final_scores
-
-    def save_flagged(self, dir, label, data, encryption_key):
-        """
-        Returns: (List[str]])
-        """
-        return json.dumps(data)
-
-    def restore_flagged(self, dir, data, encryption_key):
-        return json.loads(data)
-
-    def generate_sample(self):
-        return self.choices
-
-
-class Radio(InputComponent):
-    """
-    Component creates a set of radio buttons of which only one can be selected. Provides string representing selected choice as an argument to the wrapped function.
-    Input type: Union[str, int]
-    Demos: sentence_builder, tax_calculator, titanic_survival
-    """
-
-    def __init__(
-        self,
-        choices: List[str],
-        type: str = "value",
-        default: Optional[str] = None,
-        label: Optional[str] = None,
-        optional: bool = False,
-    ):
-        """
-        Parameters:
-        choices (List[str]): list of options to select from.
-        type (str): Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
-        default (str): the button selected by default. If None, no button is selected by default.
-        label (str): component name in interface.
-        optional (bool): this parameter is ignored.
-        """
-        self.choices = choices
-        self.type = type
-        self.test_input = self.choices[0]
-        self.default = default if default is not None else self.choices[0]
-        self.interpret_by_tokens = False
-        super().__init__(label)
-
-    def get_template_context(self):
-        return {
-            "choices": self.choices,
-            "default": self.default,
-            **super().get_template_context(),
-        }
-
-    def preprocess(self, x: str) -> str | int:
-        """
-        Parameters:
-        x (str): selected choice
-        Returns:
-        (Union[str, int]): selected choice as string or index within choice list
-        """
-        if self.type == "value":
-            return x
-        elif self.type == "index":
-            return self.choices.index(x)
-        else:
-            raise ValueError(
-                "Unknown type: "
-                + str(self.type)
-                + ". Please choose from: 'value', 'index'."
-            )
-
-    def set_interpret_parameters(self):
-        """
-        Calculates interpretation score of each choice by comparing the output against each of the outputs when alternative choices are selected.
-        """
-        return self
-
-    def get_interpretation_neighbors(self, x):
-        choices = list(self.choices)
-        choices.remove(x)
-        return choices, {}
-
-    def get_interpretation_scores(self, x, neighbors, scores):
-        """
-        Returns:
-        (List[float]): Each value represents the interpretation score corresponding to each choice.
-        """
-        scores.insert(self.choices.index(x), None)
-        return scores
-
-    def generate_sample(self):
-        return self.choices[0]
-
-
-class Dropdown(InputComponent):
-    """
-    Component creates a dropdown of which only one can be selected. Provides string representing selected choice as an argument to the wrapped function.
-    Input type: Union[str, int]
-    Demos: sentence_builder, filter_records, titanic_survival
-    """
-
-    def __init__(
-        self,
-        choices: List[str],
-        type: str = "value",
-        default: Optional[str] = None,
-        label: Optional[str] = None,
-        optional: bool = False,
-    ):
-        """
-        Parameters:
-        choices (List[str]): list of options to select from.
-        type (str): Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
-        default (str): default value selected in dropdown. If None, no value is selected by default.
-        label (str): component name in interface.
-        optional (bool): this parameter is ignored.
-        """
-        self.choices = choices
-        self.type = type
-        self.test_input = self.choices[0]
-        self.default = default if default is not None else self.choices[0]
-        self.interpret_by_tokens = False
-        super().__init__(label)
-
-    def get_template_context(self):
-        return {
-            "choices": self.choices,
-            "default": self.default,
-            **super().get_template_context(),
-        }
-
-    def preprocess(self, x: str) -> str | int:
-        """
-        Parameters:
-        x (str): selected choice
-        Returns:
-        (Union[str, int]): selected choice as string or index within choice list
-        """
-        if self.type == "value":
-            return x
-        elif self.type == "index":
-            return self.choices.index(x)
-        else:
-            raise ValueError(
-                "Unknown type: "
-                + str(self.type)
-                + ". Please choose from: 'value', 'index'."
-            )
-
-    def set_interpret_parameters(self):
-        """
-        Calculates interpretation score of each choice by comparing the output against each of the outputs when alternative choices are selected.
-        """
-        return self
-
-    def get_interpretation_neighbors(self, x):
-        choices = list(self.choices)
-        choices.remove(x)
-        return choices, {}
-
-    def get_interpretation_scores(self, x, neighbors, scores):
-        """
-        Returns:
-        (List[float]): Each value represents the interpretation score corresponding to each choice.
-        """
-        scores.insert(self.choices.index(x), None)
-        return scores
-
-    def generate_sample(self):
-        return self.choices[0]
 
 
 class Image(InputComponent):
