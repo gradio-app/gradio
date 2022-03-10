@@ -84,8 +84,12 @@ for guide in sorted(os.listdir(GRADIO_GUIDES_DIR)):
         [
             line
             for line in guide_content.split("\n")
-            if not (line.startswith("tags: ") or line.startswith("related_spaces: ") or
-                    line.startswith("Contributed by ") or line == title)
+            if not (
+                line.startswith("tags: ")
+                or line.startswith("related_spaces: ")
+                or line.startswith("Contributed by ")
+                or line == title
+            )
         ]
     )
 
@@ -97,7 +101,7 @@ for guide in sorted(os.listdir(GRADIO_GUIDES_DIR)):
             "tags": tags,
             "spaces": spaces,
             "url": url,
-            "contributor": contributor
+            "contributor": contributor,
         }
     )
 
