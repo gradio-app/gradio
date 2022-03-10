@@ -22,6 +22,8 @@
   <noscript>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans&display=swap">
   </noscript>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans&display=swap">
+  <link rel="stylesheet" href="https://gradio.app/assets/prism.css">
 
   <style>
     html {
@@ -233,6 +235,13 @@
 
     .code-block:hover .copy-svg {
        visibility: visible;
+    }
+
+    pre {
+      float:left;
+      width: 90%;
+      overflow: auto !important;
+      background: inherit !important;
     }
   </style>
 
@@ -476,9 +485,7 @@
       <div class="hidden" id="related-methods-holder">
         <h4 id="related">Related Methods: </h4>
         <div class="json code-block">
-        <div class="float-left" id="related-methods">
-          <p>import gradio</p>
-        </div>
+          <pre><code class="language-python float-left" id="related-methods"></code></pre>
           <button class="copy" onclick="copyCode(this)"><svg class="copy-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" style="fill: #808080;"><path d="M320 448v40c0 13.255-10.745 24-24 24H24c-13.255 0-24-10.745-24-24V120c0-13.255 10.745-24 24-24h72v296c0 30.879 25.121 56 56 56h168zm0-344V0H152c-13.255 0-24 10.745-24 24v368c0 13.255 10.745 24 24 24h272c13.255 0 24-10.745 24-24V128H344c-13.2 0-24-10.8-24-24zm120.971-31.029L375.029 7.029A24 24 0 0 0 358.059 0H352v96h96v-6.059a24 24 0 0 0-7.029-16.97z"/></svg>
           <div></div></button>
         </div>
@@ -488,7 +495,6 @@
   </main>
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-
   <script>
     var len_inputs = {{ len_inputs }};
     var len_outputs = {{ len_outputs }};
@@ -587,40 +593,40 @@
 
     var inputRelatedMethods = {
       'Image': `# To convert your image file into the base64 format required by the API
-        gradio.processing_utils.encode_url_or_file_to_base64(path)`
+gr.processing_utils.encode_url_or_file_to_base64(path)
+
+`
     }
 
     var outputRelatedMethods = {
       'Image': `# To convert the base64 image returned by the API to an image file
-      gradio.processing_utils.decode_base64_to_file(encoding, encryption_key=None, file_path=None)`
+gr.processing_utils.decode_base64_to_file(encoding, encryption_key=None, file_path=None)
+
+`
     }
 
 
     var showRelated = false;
+    var relatedMethods = `import gradio as gr
+
+`
 
     {% for i in range(len_inputs) %}
     if ("{{inputs[i]}}" in inputRelatedMethods) {
       showRelated = true;
-      let tag = document.createElement("p");
-      let text = document.createTextNode(inputRelatedMethods["{{inputs[i]}}"]);
-      tag.appendChild(text);
-      var element = document.getElementById("related-methods");
-      element.appendChild(tag);
+      relatedMethods += inputRelatedMethods["{{inputs[i]}}"]
     }
     {% endfor %}
 
     {% for i in range(len_outputs) %}
     if ("{{outputs[i]}}" in outputRelatedMethods) {
       showRelated = true;
-      let tag = document.createElement("p");
-      let text = document.createTextNode(outputRelatedMethods["{{outputs[i]}}"]);
-      tag.appendChild(text);
-      var element = document.getElementById("related-methods");
-      element.appendChild(tag);
+      relatedMethods += outputRelatedMethods["{{outputs[i]}}"]
     }
     {% endfor %}
 
     if (showRelated) {
+      document.getElementById('related-methods').innerHTML = relatedMethods;
       $('#related-methods-holder').removeClass("hidden");
     }
 
@@ -678,6 +684,8 @@
     };
 
   </script>
+  <script src="https://gradio.app/assets/prism.js"></script>
+
 </body>
 
 </html>
