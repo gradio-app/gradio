@@ -7,8 +7,9 @@ from gradio.routes import PredictBody
 
 
 class Block:
-    def __init__(self):
+    def __init__(self, css=None):
         self._id = Context.id
+        self.css = css
         Context.id += 1
         if Context.block is not None:
             Context.block.children.append(self)
