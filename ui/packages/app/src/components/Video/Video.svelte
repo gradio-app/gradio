@@ -5,14 +5,14 @@
 	import { Video } from "@gradio/video";
 	import { _ } from "svelte-i18n";
 
-	export let value: FileData;
+	export let value: FileData | null = null;
 	export let theme: string;
 	export let source: string;
 
-	export let is_static: boolean;
+	export let mode: "static" | "dynamic";
 </script>
 
-{#if is_static}
+{#if mode === "static" && value}
 	<div
 		class="output-video w-full h-60 flex justify-center items-center bg-gray-200 dark:bg-gray-600 relative"
 	>

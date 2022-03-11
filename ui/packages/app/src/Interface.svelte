@@ -1,8 +1,4 @@
 <script lang="ts">
-	import {
-		input_component_map,
-		output_component_map
-	} from "./components/directory";
 	import { deepCopy } from "./components/utils/helpers";
 	import ExampleSet from "./ExampleSet.svelte";
 	import { _ } from "svelte-i18n";

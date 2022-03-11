@@ -39,7 +39,7 @@
 	$: dispatch("change", value);
 </script>
 
-<div class="input-image">
+<div class="input-image w-full">
 	<div
 		class="image-preview w-full h-60 flex justify-center items-center dark:bg-gray-600 relative"
 		class:bg-gray-200={value}

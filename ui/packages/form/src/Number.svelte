@@ -4,6 +4,7 @@
 
 	export let value: number = 0;
 	export let theme: string = "default";
+	export let disabled: boolean = false;
 
 	const dispatch = createEventDispatcher<{ change: number }>();
 

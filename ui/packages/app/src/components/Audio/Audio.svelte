@@ -2,14 +2,14 @@
 	import { Audio } from "@gradio/audio";
 	import type { FileData } from "@gradio/upload";
 
-	export let is_static: boolean;
-	export let value: null | FileData;
+	export let mode: "static" | "dynamic";
+	export let value: null | FileData = null;
 	export let theme: string;
 	export let name: string;
 	export let source: "microphone" | "upload";
 </script>
 
-{#if is_static}
+{#if mode === "static"}
 	<Audio
 		{value}
 		{theme}

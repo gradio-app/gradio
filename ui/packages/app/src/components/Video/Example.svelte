@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { playable } from "../../utils/helpers";
+	import { playable } from "../utils/helpers";
 
 	export let value: string;
 	export let examples_dir: string;
