@@ -31,7 +31,6 @@ from gradio.process_examples import load_from_cache, process_example
 from gradio.routes import PredictBody
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    import flask
     import transformers
 
 
