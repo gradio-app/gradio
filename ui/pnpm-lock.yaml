@@ -97,17 +97,10 @@ importers:
       '@types/d3-dsv': ^3.0.0
       '@types/d3-scale': ^4.0.2
       '@types/d3-shape': ^3.0.2
-<<<<<<< HEAD
-=======
-      '@types/tailwindcss': ^3.0.8
-      autoprefixer: ^9.8.8
-      cropperjs: ^1.5.12
->>>>>>> Blocks-Components
       d3-dsv: ^3.0.1
       d3-scale: ^4.0.2
       d3-shape: ^3.1.0
     dependencies:
-<<<<<<< HEAD
       '@gradio/tooltip': link:../tooltip
       d3-dsv: 3.0.1
       d3-scale: 4.0.2
@@ -144,9 +137,6 @@ importers:
       tui-image-editor: ^3.15.2
     dependencies:
       '@gradio/upload': link:../upload
-=======
-      autoprefixer: 9.8.8
->>>>>>> Blocks-Components
       cropperjs: 1.5.12
       lazy-brush: 1.0.1
       resize-observer-polyfill: 1.5.1
@@ -159,6 +149,9 @@ importers:
     specifiers: {}
 
   packages/table:
+    specifiers: {}
+
+  packages/tabs:
     specifiers: {}
 
   packages/theme:
@@ -225,17 +218,9 @@ importers:
       '@gradio/upload': link:../upload
       '@gradio/video': link:../video
     devDependencies:
-<<<<<<< HEAD
       '@sveltejs/adapter-auto': 1.0.0-next.31
-      '@sveltejs/kit': 1.0.0-next.294_svelte@3.46.3
+      '@sveltejs/kit': 1.0.0-next.295_svelte@3.46.3
       autoprefixer: 10.4.2_postcss@8.4.6
-=======
-      '@sveltejs/vite-plugin-svelte': 1.0.0-next.36_svelte@3.46.3+vite@2.7.13
-      '@types/d3-dsv': 3.0.0
-      '@types/d3-scale': 4.0.2
-      '@types/d3-shape': 3.0.2
-      '@types/tailwindcss': 3.0.8
->>>>>>> Blocks-Components
       postcss: 8.4.6
       postcss-load-config: 3.1.1
       svelte: 3.46.3
@@ -376,8 +361,8 @@ packages:
       esbuild: 0.14.23
     dev: true
 
-  /@sveltejs/kit/1.0.0-next.294_svelte@3.46.3:
-    resolution: {integrity: sha512-whTYeri/oaV672KErlhCAvAawlsnd8iu/MQmjdu85TApDYolLe8FDTg6GQ55+0IJbx1N7dOer/HopWzKudPgFA==}
+  /@sveltejs/kit/1.0.0-next.295_svelte@3.46.3:
+    resolution: {integrity: sha512-4pO/swXByhU+7bhNikTjh1d4QxAMP9TZ74p7sdPuyJf5cg7Zrfk1nBtaMt0R+8+5j1xfC/XWRcxa3WnhT9bQMA==}
     engines: {node: '>=14.13'}
     hasBin: true
     peerDependencies:
@@ -486,10 +471,6 @@ packages:
     resolution: {integrity: sha512-BPdoIt1lfJ6B7rw35ncdwBZrAssjcwzI5LByIrYs+tpXlj/CAkuVdRsgZDdP4lq5EjyWzwxZCqAoFyHKFwp32g==}
     dependencies:
       '@types/node': 17.0.14
-
-  /@types/tailwindcss/3.0.8:
-    resolution: {integrity: sha512-3BKgtrXdr+E/lsz79Hbkb8X3kjlbsgw1m0x/ewhff+cqN059GpFWHtYuLJd2ToDTeWZa3OE2V4KIo//PnOrKlQ==}
-    dev: true
 
   /abab/2.0.5:
     resolution: {integrity: sha512-9IK9EadsbHo6jLWIpxpR6pL0sazTXV6+SQv25ZB+F7Bj9mJNaOc4nCRabwd5M/JwmUa8idz6Eci6eKfJryPs6Q==}
