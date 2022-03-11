@@ -8,6 +8,7 @@
 	export let include_file_metadata = true;
 	let hidden_upload: HTMLInputElement;
 	let dragging = false;
+	let file_count;
 
 	const dispatch = createEventDispatcher();
 
