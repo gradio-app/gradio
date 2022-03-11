@@ -14,6 +14,7 @@ import warnings
 from numbers import Number
 from types import ModuleType
 from typing import TYPE_CHECKING, Dict, List, Optional
+from black import out
 
 import numpy as np
 import pandas as pd
@@ -851,6 +852,41 @@ class State(OutputComponent):
         return {
             "state": {},
         }
+
+class Plot(OutputComponent):
+    """
+    """
+
+    def __init__(self, type: str = None, label: Optional[str] = None):
+        """
+        Parameters:
+        label (str): component name in interface (not used).
+        """
+        self.type = type
+        super().__init__(label)
+
+    def get_template_context(self):
+        return {**super().get_template_context()}
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "plot": {},
+        }
+
+    def postprocess(self, y):
+        """
+        """
+        if self.type == 'plotly':
+            out_y = y.to_json()
+        elif self.type == 'matplotlib':
+            out_y = processing_utils.encode_plot_to_base64(y)
+        else:
+            raise ValueError(
+                    "Unknown type. Please choose from: 'plotly', 'matplotlib', 'bokeh'."
+                )
+        return {"type": self.type, "plot": out_y}
+
 
 
 def get_output_instance(iface: Interface):
