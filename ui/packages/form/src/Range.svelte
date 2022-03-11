@@ -5,6 +5,7 @@
 	export let minimum: number;
 	export let maximum: number;
 	export let step: number;
+	export let disabled: boolean = false;
 
 	const dispatch = createEventDispatcher<{ change: number }>();
 

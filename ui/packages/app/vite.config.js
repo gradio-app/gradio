@@ -5,7 +5,6 @@ import sveltePreprocess from "svelte-preprocess";
 // this is dupe config, gonna try fix this
 import tailwind from "tailwindcss";
 import nested from "tailwindcss/nesting";
-import autoprefix from "autoprefixer";
 
 export default defineConfig(({ mode }) => {
 	const production = mode === "production";
@@ -23,7 +22,7 @@ export default defineConfig(({ mode }) => {
 		plugins: [
 			svelte({
 				preprocess: sveltePreprocess({
-					postcss: { plugins: [tailwind, nested, autoprefix] }
+					postcss: { plugins: [tailwind, nested] }
 				})
 			})
 		]

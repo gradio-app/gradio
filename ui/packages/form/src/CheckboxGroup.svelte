@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	export let value: Array<string>;
-	export let choices: Array<string>;
 
+	export let value: Array<string> = [];
+	export let choices: Array<string>;
 	export let theme: string = "default";
+	export let disabled: boolean = false;
 
 	const dispatch = createEventDispatcher<{ change: Array<string> }>();
 

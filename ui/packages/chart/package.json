@@ -12,5 +12,10 @@
 		"d3-dsv": "^3.0.1",
 		"d3-scale": "^4.0.2",
 		"d3-shape": "^3.1.0"
+	},
+	"devDependencies": {
+		"@types/d3-dsv": "^3.0.0",
+		"@types/d3-scale": "^4.0.2",
+		"@types/d3-shape": "^3.0.2"
 	}
 }

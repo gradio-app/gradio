@@ -3,7 +3,7 @@
 </script>
 
 <script lang="ts">
-	import { setContext } from "svelte";
+	import { setContext, createEventDispatcher } from "svelte";
 	import { writable } from "svelte/store";
 
 	interface Tab {
@@ -14,6 +14,7 @@
 	const tabs: Array<Tab> = [];
 
 	const selected_tab = writable<false | object>(false);
+	const dispatch = createEventDispatcher<{ change: undefined }>();
 
 	setContext(TABS, {
 		register_tab: (tab: Tab) => {
@@ -30,9 +31,14 @@
 
 		selected_tab
 	});
+
+	function handle_click(id: object) {
+		$selected_tab = id;
+		dispatch("change");
+	}
 </script>
 
-<div class="flex flex-col">
+<div class="flex flex-col my-4">
 	<div class="flex">
 		{#each tabs as t, i}
 			{#if t.id === $selected_tab}
@@ -44,9 +50,7 @@
 			{:else}
 				<button
 					class="px-4 py-2 border-b-2 border-gray-200"
-					on:click={() => {
-						$selected_tab = t.id;
-					}}
+					on:click={() => handle_click(t.id)}
 				>
 					{t.name}
 				</button>

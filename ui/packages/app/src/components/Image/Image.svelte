@@ -1,15 +1,15 @@
 <script lang="ts">
 	import { Image } from "@gradio/image";
 
-	export let value: null | string;
+	export let value: null | string = null;
 	export let theme: string;
 	export let source: "canvas" | "webcam" | "upload" = "upload";
 	export let tool: "editor" | "select" = "editor";
 
-	export let is_static: boolean;
+	export let mode: "static" | "dynamic";
 </script>
 
-{#if is_static}
+{#if mode === "static"}
 	<div
 		class="output-image w-full h-60 flex justify-center items-center bg-gray-200 dark:bg-gray-600 relative"
 		{theme}

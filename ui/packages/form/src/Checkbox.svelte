@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
+
 	export let value: boolean;
+	export let disabled: boolean = false;
 	export let theme: string = "default";
 
 	const dispatch = createEventDispatcher<{ change: boolean }>();

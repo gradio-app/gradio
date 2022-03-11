@@ -1,6 +1,6 @@
 <script>
 	import TabSet from "./TabSet.svelte";
-	import { all_components_map } from "../components/directory";
+	// import { all_components_map } from "../components/directory";
 
 	export let component_id_map,
 		children,
@@ -11,11 +11,10 @@
 		triggerTarget,
 		theme,
 		static_src;
-
 </script>
 
 <div class="flex gap-4" class:flex-col={type !== "row"}>
-	{#each children as child}
+	<!-- {#each children as child}
 		{#if typeof child === "object"}
 			{#if child.type === "tabset"}
 				<TabSet
@@ -52,5 +51,5 @@
 				/>
 			</div>
 		{/if}
-	{/each}
+	{/each} -->
 </div>

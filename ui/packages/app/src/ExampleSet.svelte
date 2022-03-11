@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { input_component_map } from "./components/directory";
+	// import { input_component_map } from "./components/directory";
 	import { _ } from "svelte-i18n";
 
 	interface Component {
@@ -19,6 +19,7 @@
 	let gallery = input_components.length === 1;
 </script>
 
+<!-- 
 <div class="examples" {theme}>
 	<h4 class="text-lg font-semibold my-2">{$_("interface.examples")}</h4>
 	<div
@@ -103,4 +104,4 @@
 			}
 		}
 	}
-</style>
+</style> -->

@@ -4,6 +4,7 @@
 	export let value: string;
 	export let theme: string = "default";
 	export let choices: Array<string>;
+	export let disabled: boolean = false;
 
 	const dispatch = createEventDispatcher();
 

@@ -43,6 +43,7 @@ importers:
       '@gradio/json': workspace:^0.0.1
       '@gradio/label': workspace:^0.0.1
       '@gradio/table': workspace:^0.0.1
+      '@gradio/tabs': workspace:^0.0.1
       '@gradio/theme': workspace:^0.0.1
       '@gradio/upload': workspace:^0.0.1
       '@gradio/video': workspace:^0.0.1
@@ -65,6 +66,7 @@ importers:
       '@gradio/json': link:../json
       '@gradio/label': link:../label
       '@gradio/table': link:../table
+      '@gradio/tabs': link:../tabs
       '@gradio/theme': link:../theme
       '@gradio/upload': link:../upload
       '@gradio/video': link:../video
@@ -92,6 +94,9 @@ importers:
   packages/chart:
     specifiers:
       '@gradio/tooltip': workspace:^0.0.1
+      '@types/d3-dsv': ^3.0.0
+      '@types/d3-scale': ^4.0.2
+      '@types/d3-shape': ^3.0.2
       d3-dsv: ^3.0.1
       d3-scale: ^4.0.2
       d3-shape: ^3.1.0
@@ -100,6 +105,10 @@ importers:
       d3-dsv: 3.0.1
       d3-scale: 4.0.2
       d3-shape: 3.1.0
+    devDependencies:
+      '@types/d3-dsv': 3.0.0
+      '@types/d3-scale': 4.0.2
+      '@types/d3-shape': 3.0.2
 
   packages/chatbot:
     specifiers: {}
@@ -172,6 +181,7 @@ importers:
       '@gradio/json': workspace:^0.0.1
       '@gradio/label': workspace:^0.0.1
       '@gradio/table': workspace:^0.0.1
+      '@gradio/tabs': workspace:^0.0.1
       '@gradio/theme': workspace:^0.0.1
       '@gradio/upload': workspace:^0.0.1
       '@gradio/video': workspace:^0.0.1
@@ -200,12 +210,13 @@ importers:
       '@gradio/json': link:../json
       '@gradio/label': link:../label
       '@gradio/table': link:../table
+      '@gradio/tabs': link:../tabs
       '@gradio/theme': link:../theme
       '@gradio/upload': link:../upload
       '@gradio/video': link:../video
     devDependencies:
-      '@sveltejs/adapter-auto': 1.0.0-next.30
-      '@sveltejs/kit': 1.0.0-next.291_svelte@3.46.3
+      '@sveltejs/adapter-auto': 1.0.0-next.31
+      '@sveltejs/kit': 1.0.0-next.294_svelte@3.46.3
       autoprefixer: 10.4.2_postcss@8.4.6
       postcss: 8.4.6
       postcss-load-config: 3.1.1
@@ -319,36 +330,36 @@ packages:
       picomatch: 2.3.1
     dev: true
 
-  /@sveltejs/adapter-auto/1.0.0-next.30:
-    resolution: {integrity: sha512-kKKDvv2bwH66l/A97u26973OG3Zh7V1WlTKgkOr95Koo1/Y6rBhBfkz0Jw+WLzsZ+hcTzgIrcegtWVt+GQRJpw==}
+  /@sveltejs/adapter-auto/1.0.0-next.31:
+    resolution: {integrity: sha512-N1ZFGxulcSAOJrtdFR567diwbWKUvLrHZiUE9TiEvIahnndeRa50MF9LDg/CuIvpa6fHqz5K827XXrADlPAr9g==}
     dependencies:
-      '@sveltejs/adapter-cloudflare': 1.0.0-next.14
-      '@sveltejs/adapter-netlify': 1.0.0-next.49
-      '@sveltejs/adapter-vercel': 1.0.0-next.45
+      '@sveltejs/adapter-cloudflare': 1.0.0-next.15
+      '@sveltejs/adapter-netlify': 1.0.0-next.50
+      '@sveltejs/adapter-vercel': 1.0.0-next.46
     dev: true
 
-  /@sveltejs/adapter-cloudflare/1.0.0-next.14:
-    resolution: {integrity: sha512-vD0+LdVIZO5/758KZuWzM58JIAeY+r/YKgoRkMjP9IUx+w+MJ869EyzOT81u/xN7x6cX2Ilu+/M60BwjqSDA7g==}
+  /@sveltejs/adapter-cloudflare/1.0.0-next.15:
+    resolution: {integrity: sha512-kq3vNFpKmRVgAOfz4HrcleBnUADs++dfVF8S61EAFqNTEvGtOVdJKLql66Pe/uxlY0VxAp1dplxtEDf4/R70lQ==}
     dependencies:
       esbuild: 0.14.23
     dev: true
 
-  /@sveltejs/adapter-netlify/1.0.0-next.49:
-    resolution: {integrity: sha512-EYP0/eK1foC90fBNn6V9fP0ngrMF3MrkaNN+wCnMj0rHGKOKUzXlIeyPtGtQnDL9cqHac39pbPhSyMaMuWZF/w==}
+  /@sveltejs/adapter-netlify/1.0.0-next.50:
+    resolution: {integrity: sha512-lpHvjcHiC77SPyLp7OjhenJF9KYfKsXlmUua7icNh0Hc8SKtRQf0dn+a1Zy77AslikvOX7/4HZE8zPIyIvYYqw==}
     dependencies:
       '@iarna/toml': 2.2.5
       esbuild: 0.14.23
       tiny-glob: 0.2.9
     dev: true
 
-  /@sveltejs/adapter-vercel/1.0.0-next.45:
-    resolution: {integrity: sha512-WoOMu4FSWjVeRiPq2NKfdZhobfOLmDykObZmm8JHptMDb0/I5SB+6wstzAeaNtQr2ZbQkUy0k7EX95riJifEEQ==}
+  /@sveltejs/adapter-vercel/1.0.0-next.46:
+    resolution: {integrity: sha512-6Rwf3kZF6uX2JxDMoYgZWZe5TjVTTWZa57VukdNGjnlAT3CrfsEOBWyskX/8hx7AiYX5fucZaAtYPNZpUmueIA==}
     dependencies:
       esbuild: 0.14.23
     dev: true
 
-  /@sveltejs/kit/1.0.0-next.291_svelte@3.46.3:
-    resolution: {integrity: sha512-mFd1EJbxoyPGiomYwYhZnjNLPYahCC2gHfKvPetguL/7BCHcyUjjYQbwTTmjVxtgBs0oLzKVA9bt45gpr9JqBQ==}
+  /@sveltejs/kit/1.0.0-next.294_svelte@3.46.3:
+    resolution: {integrity: sha512-whTYeri/oaV672KErlhCAvAawlsnd8iu/MQmjdu85TApDYolLe8FDTg6GQ55+0IJbx1N7dOer/HopWzKudPgFA==}
     engines: {node: '>=14.13'}
     hasBin: true
     peerDependencies:
@@ -419,6 +430,30 @@ packages:
   /@types/chai/4.3.0:
     resolution: {integrity: sha512-/ceqdqeRraGolFTcfoXNiqjyQhZzbINDngeoAq9GoHa8PPK1yNzTaxWjA6BFWp5Ua9JpXEMSS4s5i9tS0hOJtw==}
     dev: false
+
+  /@types/d3-dsv/3.0.0:
+    resolution: {integrity: sha512-o0/7RlMl9p5n6FQDptuJVMxDf/7EDEv2SYEO/CwdG2tr1hTfUVi0Iavkk2ax+VpaQ/1jVhpnj5rq1nj8vwhn2A==}
+    dev: true
+
+  /@types/d3-path/3.0.0:
+    resolution: {integrity: sha512-0g/A+mZXgFkQxN3HniRDbXMN79K3CdTpLsevj+PXiTcb2hVyvkZUBg37StmgCQkaD84cUJ4uaDAWq7UJOQy2Tg==}
+    dev: true
+
+  /@types/d3-scale/4.0.2:
+    resolution: {integrity: sha512-Yk4htunhPAwN0XGlIwArRomOjdoBFXC3+kCxK2Ubg7I9shQlVSJy/pG/Ht5ASN+gdMIalpk8TJ5xV74jFsetLA==}
+    dependencies:
+      '@types/d3-time': 3.0.0
+    dev: true
+
+  /@types/d3-shape/3.0.2:
+    resolution: {integrity: sha512-5+ButCmIfNX8id5seZ7jKj3igdcxx+S9IDBiT35fQGTLZUfkFgTv+oBH34xgeoWDKpWcMITSzBILWQtBoN5Piw==}
+    dependencies:
+      '@types/d3-path': 3.0.0
+    dev: true
+
+  /@types/d3-time/3.0.0:
+    resolution: {integrity: sha512-sZLCdHvBUcNby1cB6Fd3ZBrABbjz3v1Vm90nysCQ6Vt7vd6e/h9Lt7SiJUoEX0l4Dzc7P5llKyhqSi1ycSf1Hg==}
+    dev: true
 
   /@types/node/17.0.14:
     resolution: {integrity: sha512-SbjLmERksKOGzWzPNuW7fJM7fk3YXVTFiZWB/Hs99gwhk+/dnrQRPBQjPW9aO+fi1tAffi9PrwFvsmOKmDTyng==}
