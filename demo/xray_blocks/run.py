@@ -8,21 +8,27 @@ ct_model = lambda diseases, img: {disease: 0.1 for disease in diseases}
 xray_blocks = gr.Blocks()
 
 with xray_blocks:
-    gr.Markdown("""
+    gr.Markdown(
+        """
 	# Detect Disease From Scan
 	With this model you can lorem ipsum
 	- ipsum 1
 	- ipsum 2
-	""")
-    disease = gr.inputs.CheckboxGroup(["Covid", "Malaria", "Lung Cancer"],
-                                      label="Disease to Scan For")
+	"""
+    )
+    disease = gr.inputs.CheckboxGroup(
+        ["Covid", "Malaria", "Lung Cancer"], label="Disease to Scan For"
+    )
 
     with gr.Tab("X-ray"):
         with gr.Row():
             xray_scan = gr.inputs.Image()
             xray_results = gr.outputs.JSON()
+            output_textbox = gr.outputs.Textbox()
+            input_textbox = gr.inputs.Textbox(default="Hello This Is a Input Textbox")
         xray_run = gr.Button("Run")
         xray_run.click(xray_model, inputs=[disease, xray_scan], outputs=xray_results)
+        xray_run.click(xray_model, inputs=[disease, xray_scan], outputs=output_textbox)
 
     with gr.Tab("CT Scan"):
         with gr.Row():
@@ -33,6 +39,6 @@ with xray_blocks:
 
     overall_probability = gr.outputs.Textbox()
 
-#TODO: remove later
+# TODO: remove later
 print(xray_blocks.get_config_file())
 xray_blocks.launch()

@@ -123,8 +123,9 @@ class TestTextbox(unittest.TestCase):
 
 class TestNumber(unittest.TestCase):
     def test_as_component(self):
-        numeric_input = gr.inputs.Number()
+        numeric_input = gr.inputs.Number(optional=True)
         self.assertEqual(numeric_input.preprocess(3), 3.0)
+        self.assertEqual(numeric_input.preprocess(None), None)
         self.assertEqual(numeric_input.preprocess_example(3), 3)
         self.assertEqual(numeric_input.serialize(3, True), 3)
         with tempfile.TemporaryDirectory() as tmpdirname:
@@ -142,6 +143,10 @@ class TestNumber(unittest.TestCase):
         self.assertEqual(
             numeric_input.get_interpretation_neighbors(1),
             ([0.97, 0.98, 0.99, 1.01, 1.02, 1.03], {}),
+        )
+        self.assertEqual(
+            numeric_input.get_template_context(),
+            {"default": None, "optional": True, "name": "number", "label": None},
         )
 
     def test_in_interface(self):
@@ -204,6 +209,7 @@ class TestSlider(unittest.TestCase):
                 "step": 1,
                 "default": 15,
                 "name": "slider",
+                "optional": False,
                 "label": "Slide Your Input",
             },
         )
@@ -262,7 +268,12 @@ class TestCheckbox(unittest.TestCase):
         bool_input = gr.inputs.Checkbox(default=True, label="Check Your Input")
         self.assertEqual(
             bool_input.get_template_context(),
-            {"default": True, "name": "checkbox", "label": "Check Your Input"},
+            {
+                "default": True,
+                "name": "checkbox",
+                "optional": False,
+                "label": "Check Your Input",
+            },
         )
 
     def test_in_interface(self):
@@ -301,6 +312,7 @@ class TestCheckboxGroup(unittest.TestCase):
             {
                 "choices": ["a", "b", "c"],
                 "default": ["a", "c"],
+                "optional": False,
                 "name": "checkboxgroup",
                 "label": "Check Your Inputs",
             },
@@ -349,6 +361,7 @@ class TestRadio(unittest.TestCase):
                 "default": "a",
                 "name": "radio",
                 "label": "Pick Your One Input",
+                "optional": False,
             },
         )
         with self.assertRaises(ValueError):
@@ -393,6 +406,7 @@ class TestDropdown(unittest.TestCase):
                 "default": "a",
                 "name": "dropdown",
                 "label": "Drop Your Input",
+                "optional": False,
             },
         )
         with self.assertRaises(ValueError):
@@ -651,6 +665,7 @@ class TestDataframe(unittest.TestCase):
                 "default": [[None, None, None], [None, None, None], [None, None, None]],
                 "name": "dataframe",
                 "label": "Dataframe Input",
+                "optional": False,
             },
         )
         dataframe_input = gr.inputs.Dataframe()

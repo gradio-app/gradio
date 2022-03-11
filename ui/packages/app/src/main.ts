@@ -101,12 +101,20 @@ window.launchGradio = (config: Config, element_query: string) => {
 			new Blocks({
 				target: target,
 				props: config
+<<<<<<< HEAD
 			});	
+=======
+			});
+>>>>>>> Blocks-Components
 		} else {
 			new App({
 				target: target,
 				props: config
+<<<<<<< HEAD
 			});	
+=======
+			});
+>>>>>>> Blocks-Components
 		}
 	}
 };

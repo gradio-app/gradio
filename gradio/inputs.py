@@ -19,10 +19,63 @@ import PIL
 from ffmpy import FFmpeg
 
 from gradio import processing_utils, test_data
-from gradio.component import Component
+from gradio.components import Component, Number, Textbox
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio import Interface
+
+
+# TODO: (faruk) Remove this file in version 3.0
+class Textbox(Textbox):
+    def __init__(
+        self,
+        lines: int = 1,
+        placeholder: Optional[str] = None,
+        default: str = "",
+        numeric: Optional[bool] = False,
+        type: Optional[str] = "str",
+        label: Optional[str] = None,
+        optional: bool = False,
+    ):
+        warnings.warn(
+            "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your component from gradio.components",
+            DeprecationWarning,
+        )
+        super().__init__(
+            lines=lines,
+            placeholder=placeholder,
+            default=default,
+            numeric=numeric,
+            type=type,
+            label=label,
+            optional=optional,
+        )
+
+
+class Number(Number):
+    """
+    Component creates a field for user to enter numeric input. Provides a number as an argument to the wrapped function.
+    Input type: float
+    Demos: tax_calculator, titanic_survival
+    """
+
+    def __init__(
+        self,
+        default: Optional[float] = None,
+        label: Optional[str] = None,
+        optional: bool = False,
+    ):
+        """
+        Parameters:
+        default (float): default value.
+        label (str): component name in interface.
+        optional (bool): If True, the interface can be submitted with no value for this component.
+        """
+        warnings.warn(
+            "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your component from gradio.components",
+            DeprecationWarning,
+        )
+        super().__init__(default=default, label=label, optional=optional)
 
 
 class InputComponent(Component):
@@ -30,13 +83,16 @@ class InputComponent(Component):
     Input Component. All input components subclass this.
     """
 
-    def __init__(self, label: str, requires_permissions: bool = False):
+    def __init__(
+        self, label: str, requires_permissions: bool = False, optional: bool = False
+    ):
         """
         Constructs an input component.
         """
         self.component_type = "input"
         self.set_interpret_parameters()
-        super().__init__(label, requires_permissions)
+        self.optional = optional
+        super().__init__(label=label, requires_permissions=requires_permissions)
 
     def preprocess(self, x: Any) -> Any:
         """
@@ -98,231 +154,11 @@ class InputComponent(Component):
         """
         pass
 
-
-class Textbox(InputComponent):
-    """
-    Component creates a textbox for user to enter input. Provides a string as an argument to the wrapped function.
-    Input type: str
-    Demos: hello_world, diff_texts
-    """
-
-    def __init__(
-        self,
-        lines: int = 1,
-        placeholder: Optional[str] = None,
-        default: str = "",
-        numeric: Optional[bool] = False,
-        type: Optional[str] = "str",
-        label: Optional[str] = None,
-    ):
-        """
-        Parameters:
-        lines (int): number of line rows to provide in textarea.
-        placeholder (str): placeholder hint to provide behind textarea.
-        default (str): default text to provide in textarea.
-        numeric (bool): DEPRECATED. Whether the input should be parsed as a number instead of a string.
-        type (str): DEPRECATED. Type of value to be returned by component. "str" returns a string, "number" returns a float value. Use Number component in place of number type.
-        label (str): component name in interface.
-        """
-        self.lines = lines
-        self.placeholder = placeholder
-        self.default = default
-        if numeric or type == "number":
-            warnings.warn(
-                "The 'numeric' type has been deprecated. Use the Number input component instead.",
-                DeprecationWarning,
-            )
-            self.type = "number"
-        else:
-            self.type = type
-        if default == "":
-            self.test_input = {
-                "str": "the quick brown fox jumped over the lazy dog",
-                "number": 786.92,
-            }.get(type)
-        else:
-            self.test_input = default
-        self.interpret_by_tokens = True
-        super().__init__(label)
-
     def get_template_context(self):
         return {
-            "lines": self.lines,
-            "placeholder": self.placeholder,
-            "default": self.default,
+            "optional": self.optional,
             **super().get_template_context(),
         }
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "text": {},
-            "textbox": {"lines": 7},
-        }
-
-    def preprocess(self, x: str) -> str | float:
-        """
-        Parameters:
-        x (str): text input
-        """
-        if self.type == "str":
-            return x
-        elif self.type == "number":
-            return float(x)
-        else:
-            raise ValueError(
-                "Unknown type: "
-                + str(self.type)
-                + ". Please choose from: 'str', 'number'."
-            )
-
-    def preprocess_example(self, x: str) -> str:
-        """
-        Returns:
-        (str): Text representing function input
-        """
-        return x
-
-    def set_interpret_parameters(
-        self, separator: str = " ", replacement: Optional[str] = None
-    ):
-        """
-        Calculates interpretation score of characters in input by splitting input into tokens, then using a "leave one out" method to calculate the score of each token by removing each token and measuring the delta of the output value.
-        Parameters:
-        separator (str): Separator to use to split input into tokens.
-        replacement (str): In the "leave one out" step, the text that the token should be replaced with. If None, the token is removed altogether.
-        """
-        self.interpretation_separator = separator
-        self.interpretation_replacement = replacement
-        return self
-
-    def tokenize(self, x: str) -> Tuple[List[str], List[str], None]:
-        """
-        Tokenizes an input string by dividing into "words" delimited by self.interpretation_separator
-        """
-        tokens = x.split(self.interpretation_separator)
-        leave_one_out_strings = []
-        for index in range(len(tokens)):
-            leave_one_out_set = list(tokens)
-            if self.interpretation_replacement is None:
-                leave_one_out_set.pop(index)
-            else:
-                leave_one_out_set[index] = self.interpretation_replacement
-            leave_one_out_strings.append(
-                self.interpretation_separator.join(leave_one_out_set)
-            )
-        return tokens, leave_one_out_strings, None
-
-    def get_masked_inputs(
-        self, tokens: List[str], binary_mask_matrix: List[List[int]]
-    ) -> List[str]:
-        """
-        Constructs partially-masked sentences for SHAP interpretation
-        """
-        masked_inputs = []
-        for binary_mask_vector in binary_mask_matrix:
-            masked_input = np.array(tokens)[np.array(binary_mask_vector, dtype=bool)]
-            masked_inputs.append(self.interpretation_separator.join(masked_input))
-        return masked_inputs
-
-    def get_interpretation_scores(
-        self, x, neighbors, scores: List[float], tokens: List[str], masks=None
-    ) -> List[Tuple[str, float]]:
-        """
-        Returns:
-        (List[Tuple[str, float]]): Each tuple set represents a set of characters and their corresponding interpretation score.
-        """
-        result = []
-        for token, score in zip(tokens, scores):
-            result.append((token, score))
-            result.append((self.interpretation_separator, 0))
-        return result
-
-    def generate_sample(self) -> str:
-        return "Hello World"
-
-
-class Number(InputComponent):
-    """
-    Component creates a field for user to enter numeric input. Provides a number as an argument to the wrapped function.
-    Input type: float
-    Demos: tax_calculator, titanic_survival
-    """
-
-    def __init__(self, default: Optional[float] = None, label: Optional[str] = None):
-        """
-        Parameters:
-        default (float): default value.
-        label (str): component name in interface.
-        """
-        self.default = default
-        self.test_input = default if default is not None else 1
-        self.interpret_by_tokens = False
-        super().__init__(label)
-
-    def get_template_context(self):
-        return {"default": self.default, **super().get_template_context()}
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "number": {},
-        }
-
-    def preprocess(self, x: Number) -> float:
-        """
-        Parameters:
-        x (number): numeric input
-        Returns:
-        (float): number representing function input
-        """
-        return float(x)
-
-    def preprocess_example(self, x: float) -> float:
-        """
-        Returns:
-        (float): Number representing function input
-        """
-        return x
-
-    def set_interpret_parameters(
-        self, steps: int = 3, delta: float = 1, delta_type: str = "percent"
-    ):
-        """
-        Calculates interpretation scores of numeric values close to the input number.
-        Parameters:
-        steps (int): Number of nearby values to measure in each direction (above and below the input number).
-        delta (float): Size of step in each direction between nearby values.
-        delta_type (str): "percent" if delta step between nearby values should be a calculated as a percent, or "absolute" if delta should be a constant step change.
-        """
-        self.interpretation_steps = steps
-        self.interpretation_delta = delta
-        self.interpretation_delta_type = delta_type
-        return self
-
-    def get_interpretation_neighbors(self, x: Number) -> Tuple[List[float], Dict]:
-        x = float(x)
-        if self.interpretation_delta_type == "percent":
-            delta = 1.0 * self.interpretation_delta * x / 100
-        elif self.interpretation_delta_type == "absolute":
-            delta = self.interpretation_delta
-        negatives = (x + np.arange(-self.interpretation_steps, 0) * delta).tolist()
-        positives = (x + np.arange(1, self.interpretation_steps + 1) * delta).tolist()
-        return negatives + positives, {}
-
-    def get_interpretation_scores(
-        self, x: Number, neighbors: List[float], scores: List[float]
-    ) -> List[Tuple[float, float]]:
-        """
-        Returns:
-        (List[Tuple[float, float]]): Each tuple set represents a numeric value near the input and its corresponding interpretation score.
-        """
-        interpretation = list(zip(neighbors, scores))
-        interpretation.insert(int(len(interpretation) / 2), [x, None])
-        return interpretation
-
-    def generate_sample(self) -> float:
-        return 1.0
 
 
 class Slider(InputComponent):
@@ -339,6 +175,7 @@ class Slider(InputComponent):
         step: Optional[float] = None,
         default: Optional[float] = None,
         label: Optional[str] = None,
+        optional: bool = False,
     ):
         """
         Parameters:
@@ -347,6 +184,7 @@ class Slider(InputComponent):
         step (float): increment between slider values.
         default (float): default value.
         label (str): component name in interface.
+        optional (bool): this parameter is ignored.
         """
         self.minimum = minimum
         self.maximum = maximum
@@ -426,11 +264,17 @@ class Checkbox(InputComponent):
     Demos: sentence_builder, titanic_survival
     """
 
-    def __init__(self, default: bool = False, label: Optional[str] = None):
+    def __init__(
+        self,
+        default: bool = False,
+        label: Optional[str] = None,
+        optional: bool = False,
+    ):
         """
         Parameters:
         label (str): component name in interface.
         default (bool): if True, checked by default.
+        optional (bool): this parameter is ignored.
         """
         self.test_input = True
         self.default = default
@@ -446,7 +290,7 @@ class Checkbox(InputComponent):
             "checkbox": {},
         }
 
-    def preprocess(self, x):
+    def preprocess(self, x: bool) -> bool:
         """
         Parameters:
         x (bool): boolean input
@@ -498,6 +342,7 @@ class CheckboxGroup(InputComponent):
         default: List[str] = [],
         type: str = "value",
         label: Optional[str] = None,
+        optional: bool = False,
     ):
         """
         Parameters:
@@ -505,6 +350,7 @@ class CheckboxGroup(InputComponent):
         default (List[str]): default selected list of options.
         type (str): Type of value to be returned by component. "value" returns the list of strings of the choices selected, "index" returns the list of indicies of the choices selected.
         label (str): component name in interface.
+        optional (bool): this parameter is ignored.
         """
         self.choices = choices
         self.default = default
@@ -520,7 +366,7 @@ class CheckboxGroup(InputComponent):
             **super().get_template_context(),
         }
 
-    def preprocess(self, x):
+    def preprocess(self, x: List[str]) -> List[str] | List[int]:
         """
         Parameters:
         x (List[str]): list of selected choices
@@ -591,10 +437,11 @@ class Radio(InputComponent):
 
     def __init__(
         self,
-        choices: List(str),
+        choices: List[str],
         type: str = "value",
         default: Optional[str] = None,
         label: Optional[str] = None,
+        optional: bool = False,
     ):
         """
         Parameters:
@@ -602,6 +449,7 @@ class Radio(InputComponent):
         type (str): Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
         default (str): the button selected by default. If None, no button is selected by default.
         label (str): component name in interface.
+        optional (bool): this parameter is ignored.
         """
         self.choices = choices
         self.type = type
@@ -617,7 +465,7 @@ class Radio(InputComponent):
             **super().get_template_context(),
         }
 
-    def preprocess(self, x):
+    def preprocess(self, x: str) -> str | int:
         """
         Parameters:
         x (str): selected choice
@@ -671,6 +519,7 @@ class Dropdown(InputComponent):
         type: str = "value",
         default: Optional[str] = None,
         label: Optional[str] = None,
+        optional: bool = False,
     ):
         """
         Parameters:
@@ -678,6 +527,7 @@ class Dropdown(InputComponent):
         type (str): Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
         default (str): default value selected in dropdown. If None, no value is selected by default.
         label (str): component name in interface.
+        optional (bool): this parameter is ignored.
         """
         self.choices = choices
         self.type = type
@@ -693,7 +543,7 @@ class Dropdown(InputComponent):
             **super().get_template_context(),
         }
 
-    def preprocess(self, x):
+    def preprocess(self, x: str) -> str | int:
         """
         Parameters:
         x (str): selected choice
@@ -769,11 +619,10 @@ class Image(InputComponent):
         requires_permissions = source == "webcam"
         self.tool = tool
         self.type = type
-        self.optional = optional
         self.invert_colors = invert_colors
         self.test_input = test_data.BASE64_IMAGE
         self.interpret_by_tokens = True
-        super().__init__(label, requires_permissions)
+        super().__init__(label, requires_permissions, optional=optional)
 
     @classmethod
     def get_shortcut_implementations(cls):
@@ -798,12 +647,12 @@ class Image(InputComponent):
             **super().get_template_context(),
         }
 
-    def preprocess(self, x):
+    def preprocess(self, x: Optional[str]) -> np.array | PIL.Image | str | None:
         """
         Parameters:
         x (str): base64 url data
         Returns:
-        (Union[numpy.array, PIL.Image, file-object]): image in requested format
+        (Union[numpy.array, PIL.Image, filepath]): image in requested format
         """
         if x is None:
             return x
@@ -994,8 +843,7 @@ class Video(InputComponent):
         """
         self.type = type
         self.source = source
-        self.optional = optional
-        super().__init__(label)
+        super().__init__(label, optional=optional)
 
     @classmethod
     def get_shortcut_implementations(cls):
@@ -1013,7 +861,7 @@ class Video(InputComponent):
     def preprocess_example(self, x):
         return {"name": x, "data": None, "is_example": True}
 
-    def preprocess(self, x):
+    def preprocess(self, x: Dict[str, str] | None) -> str | None:
         """
         Parameters:
         x (Dict[name: str, data: str]): JSON object with filename as 'name' property and base64 data as 'data' property
@@ -1082,10 +930,9 @@ class Audio(InputComponent):
         self.source = source
         requires_permissions = source == "microphone"
         self.type = type
-        self.optional = optional
         self.test_input = test_data.BASE64_AUDIO
         self.interpret_by_tokens = True
-        super().__init__(label, requires_permissions)
+        super().__init__(label, requires_permissions, optional=optional)
 
     def get_template_context(self):
         return {
@@ -1105,12 +952,12 @@ class Audio(InputComponent):
     def preprocess_example(self, x):
         return {"name": x, "data": None, "is_example": True}
 
-    def preprocess(self, x):
+    def preprocess(self, x: Dict[str, str] | None) -> Tuple[int, np.array] | str | None:
         """
         Parameters:
         x (Dict[name: str, data: str]): JSON object with filename as 'name' property and base64 data as 'data' property
         Returns:
-        (Union[Tuple[int, numpy.array], file-object, numpy.array]): audio in requested format
+        (Union[Tuple[int, numpy.array], str, numpy.array]): audio in requested format
         """
         if x is None:
             return x
@@ -1296,8 +1143,7 @@ class File(InputComponent):
         self.file_count = file_count
         self.type = type
         self.test_input = None
-        self.optional = optional
-        super().__init__(label)
+        super().__init__(label, optional=optional)
 
     def get_template_context(self):
         return {
@@ -1316,7 +1162,7 @@ class File(InputComponent):
     def preprocess_example(self, x):
         return {"name": x, "data": None, "is_example": True}
 
-    def preprocess(self, x):
+    def preprocess(self, x: List[Dict[str, str]] | None):
         """
         Parameters:
         x (List[Dict[name: str, data: str]]): List of JSON objects with filename as 'name' property and base64 data as 'data' property
@@ -1388,6 +1234,7 @@ class Dataframe(InputComponent):
         default: Optional[List[List[Any]]] = None,
         type: str = "pandas",
         label: Optional[str] = None,
+        optional: bool = False,
     ):
         """
         Parameters:
@@ -1399,6 +1246,7 @@ class Dataframe(InputComponent):
         default (List[List[Any]]): Default value
         type (str): Type of value to be returned by component. "pandas" for pandas dataframe, "numpy" for numpy array, or "array" for a Python array.
         label (str): component name in interface.
+        optional (bool): this parameter is ignored.
         """
         self.headers = headers
         self.datatype = datatype
@@ -1446,7 +1294,7 @@ class Dataframe(InputComponent):
             "list": {"type": "array", "col_count": 1},
         }
 
-    def preprocess(self, x):
+    def preprocess(self, x: List[List[str | Number | bool]]):
         """
         Parameters:
         x (List[List[Union[str, number, bool]]]): 2D array of str, numeric, or bool data
@@ -1509,8 +1357,7 @@ class Timeseries(InputComponent):
         if isinstance(y, str):
             y = [y]
         self.y = y
-        self.optional = optional
-        super().__init__(label)
+        super().__init__(label, optional=optional)
 
     def get_template_context(self):
         return {
@@ -1529,7 +1376,7 @@ class Timeseries(InputComponent):
     def preprocess_example(self, x):
         return {"name": x, "is_example": True}
 
-    def preprocess(self, x):
+    def preprocess(self, x: Dict | None) -> pd.DataFrame | None:
         """
         Parameters:
         x (Dict[data: List[List[Union[str, number, bool]]], headers: List[str], range: List[number]]): Dict with keys 'data': 2D array of str, numeric, or bool data, 'headers': list of strings for header names, 'range': optional two element list designating start of end of subrange.
@@ -1567,11 +1414,17 @@ class State(InputComponent):
     Demos: chatbot
     """
 
-    def __init__(self, label: str = None, default: Any = None):
+    def __init__(
+        self,
+        label: str = None,
+        default: Any = None,
+        optional: bool = False,
+    ):
         """
         Parameters:
         label (str): component name in interface (not used).
         default (Any): the initial value of the state.
+        optional (bool): this parameter is ignored.
         """
 
         self.default = default

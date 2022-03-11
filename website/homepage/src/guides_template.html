@@ -10,7 +10,7 @@
   <meta property="og:url" content="{{ url }}" />
   <meta property="og:image" content="/assets/img/guides/{{ guide_name }}.png" />
   <meta name="twitter:title" content="{{ title }}">
-  <meta name="twitter:image" content="/assets/img/guides/{{ guide_name }}.png">
+  <meta name="twitter:image" content="https://gradio.app/assets/img/guides/{{ guide_name }}.png">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" type="image/png" href="/assets/img/logo.png">
   <link href="/gradio_static/assets/{{ index_css_file }}" rel="stylesheet">
@@ -111,24 +111,7 @@
       </div>
       {% endfor %}
       </div>
-    <p class='mb-2 text-sm text-gray-500'>
-      <span class="italic">Related Spaces:</span>
-      {% for space in spaces %}
-        <a href='{{ space }}' target='_blank' class="hover:text-blue-500 transition">{{ space[30:] }}</a>
-        {% if not loop.last %}, {% endif %}
-      {% endfor %}
-    </p>
-    {% endif %}
-
-    {% if tags is not none %}
-    <p class='mb-2 text-sm text-gray-500'>
-      <span class="italic">Tags:</span>
-      {% for tag in tags %}
-        <span>{{ tag }}</span><!--
-     -->{% if not loop.last %}, {% endif %}
-      {% endfor %}
-    </p>
-    {% endif %}
+   {% endif %}
 
     <div class="prose mt-6">
       {{ template_html|safe }}
