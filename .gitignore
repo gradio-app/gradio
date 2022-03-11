@@ -38,6 +38,7 @@ demo/files/*.mp4
 *.bak
 workspace.code-workspace
 *.h5
+.vscode/
 
 # log files
 .pnpm-debug.log
