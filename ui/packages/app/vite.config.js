@@ -6,10 +6,12 @@ import sveltePreprocess from "svelte-preprocess";
 import tailwind from "tailwindcss";
 import nested from "tailwindcss/nesting";
 
+//@ts-ignore
 export default defineConfig(({ mode }) => {
 	const production = mode === "production";
 
 	return {
+		base: "./",
 		build: {
 			outDir: "../../../gradio/templates/frontend"
 		},
@@ -18,6 +20,11 @@ export default defineConfig(({ mode }) => {
 			BACKEND_URL: production
 				? JSON.stringify("")
 				: JSON.stringify("http://localhost:7860/")
+		},
+		css: {
+			postcss: {
+				plugins: [nested, tailwind]
+			}
 		},
 		plugins: [
 			svelte({

@@ -22,7 +22,7 @@
 	type Headers = Array<{ value: string; id: number }>;
 
 	function make_headers(_h: Array<string>): Headers {
-		if (_h.length === 0) {
+		if (!_h || _h.length === 0) {
 			return values[0].map((_, i) => {
 				const _id = ++id;
 				els[_id] = { cell: null, input: null };
@@ -293,9 +293,9 @@
 		id="grid"
 		role="grid"
 		aria-labelledby="title"
-		class="min-w-full divide-y divide-gray-200 "
+		class="min-w-full divide-y divide-gray-200 dark:divide-gray-800"
 	>
-		<thead class="bg-gray-50">
+		<thead class="bg-gray-50 dark:bg-gray-800">
 			<tr>
 				{#each _headers as { value, id }, i (id)}
 					<th
@@ -328,7 +328,9 @@
 					</th>
 				{/each}
 			</tr></thead
-		><tbody class="bg-white divide-y divide-gray-200">
+		><tbody
+			class="bg-white divide-y divide-gray-200 dark:divide-gray-500 dark:bg-gray-600"
+		>
 			{#each data as row, i (row)}
 				<tr>
 					{#each row as { value, id }, j (id)}
@@ -343,9 +345,11 @@
 								currentTarget.setAttribute("tabindex", "-1")}
 						>
 							<div
-								class:border-gray-600={selected === id}
 								class:border-transparent={selected !== id}
-								class="min-h-[3.3rem] px-5 py-3  border-[0.125rem]"
+								class="min-h-[3.3rem] px-5 py-3  border-[0.125rem] {selected ===
+								id
+									? 'border-gray-600 dark:border-gray-200'
+									: ''}"
 							>
 								{#if editing === id}
 									<input

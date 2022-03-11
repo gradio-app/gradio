@@ -19,7 +19,7 @@ iface = gr.Interface(
         ),
         gr.inputs.Textbox(lines=3, default="The fast brown fox jumps over lazy dogs."),
     ],
-    gr.outputs.HighlightedText(),
+    gr.outputs.HighlightedText(color_map={"+": "green", "-": "pink"}),
 )
 if __name__ == "__main__":
     iface.launch()

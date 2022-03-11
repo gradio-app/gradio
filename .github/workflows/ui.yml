@@ -14,6 +14,10 @@ defaults:
   run:
     working-directory: ./ui
 
+concurrency:
+  group: deploy-${{ github.ref }}-${{ github.event_name == 'push' || github.event.inputs.fire != null }}
+  cancel-in-progress: true
+
 jobs:
   check:
     name: static checks

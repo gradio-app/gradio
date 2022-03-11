@@ -41,6 +41,7 @@ class Launchable:
         favicon_path: Optional[str] = None,
         ssl_keyfile: Optional[str] = None,
         ssl_certfile: Optional[str] = None,
+        ssl_keyfile_password: Optional[str] = None,
     ) -> Tuple[flask.Flask, str, str]:
         """
         Launches the webserver that serves the UI for the interface.
@@ -65,6 +66,7 @@ class Launchable:
         favicon_path (str): If a path to a file (.png, .gif, or .ico) is provided, it will be used as the favicon for the web page.
         ssl_keyfile (str): If a path to a file is provided, will use this as the private key file to create a local server running on https.
         ssl_certfile (str): If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
+        ssl_keyfile_password (str): If a password is provided, will use this with the ssl certificate for https.
         Returns:
         app (flask.Flask): Flask app object
         path_to_local_server (str): Locally accessible link
@@ -87,13 +89,15 @@ class Launchable:
         self.width = width
         self.favicon_path = favicon_path
 
-        self.encrypt = encrypt
-        if self.encrypt:
+        if hasattr(self, "encrypt") and self.encrypt is None:
+            self.encrypt = encrypt
+        if hasattr(self, "encrypt") and self.encrypt:
             self.encryption_key = encryptor.get_key(
                 getpass.getpass("Enter key for encryption: ")
             )
 
-        self.enable_queue = enable_queue
+        if hasattr(self, "enable_queue") and self.enable_queue is None:
+            self.enable_queue = enable_queue
 
         config = self.get_config_file()
         self.config = config
@@ -102,7 +106,12 @@ class Launchable:
             cache_interface_examples(self)
 
         server_port, path_to_local_server, app, server = networking.start_server(
-            self, server_name, server_port, ssl_keyfile, ssl_certfile
+            self,
+            server_name,
+            server_port,
+            ssl_keyfile,
+            ssl_certfile,
+            ssl_keyfile_password,
         )
 
         self.local_url = path_to_local_server
@@ -132,6 +141,8 @@ class Launchable:
             share = True
 
         if share:
+            if self.is_space:
+                raise RuntimeError("Share is not supported when you are in Spaces")
             try:
                 share_url = networking.setup_tunnel(server_port, private_endpoint)
                 self.share_url = share_url
@@ -192,6 +203,7 @@ class Launchable:
             "api_mode": self.api_mode,
             "server_name": server_name,
             "server_port": server_port,
+            "is_spaces": self.is_space,
         }
         if self.analytics_enabled:
             utils.launch_analytics(data)

@@ -33,7 +33,7 @@
 		</Upload>
 	{:else}
 		<div
-			class="file-preview w-full flex flex-row flex-wrap justify-center items-center relative"
+			class="file-preview w-full flex flex-row flex-wrap justify-center items-center relative overflow-y-auto"
 		>
 			<ModifyUpload on:clear={handle_clear} {theme} />
 
@@ -55,6 +55,11 @@
 			<div class="file-size text-2xl p-2">
 				{prettyBytes(value.size || 0)}
 			</div>
+			{#if file_count === "single" && "size" in value}
+				<div class="file-size text-2xl p-2">
+					{prettyBytes(value.size)}
+				</div>
+			{/if}
 		</div>
 	{/if}
 </div>

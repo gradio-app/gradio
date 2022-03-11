@@ -3,7 +3,7 @@
 import os
 import unittest
 import unittest.mock as mock
-import urllib.request
+import urllib
 import warnings
 
 import aiohttp
@@ -44,6 +44,26 @@ class TestInterfaceCustomParameters(unittest.TestCase):
         self.assertEqual(response.status_code, 500)
         self.assertTrue("error" in response.json())
         io.close()
+
+
+class TestStartServer(unittest.TestCase):
+    def test_start_server(self):
+        io = Interface(lambda x: x, "number", "number")
+        io.favicon_path = None
+        io.config = io.get_config_file()
+        io.show_error = True
+        io.flagging_callback.setup(io.flagging_dir)
+        io.auth = None
+
+        port = networking.get_first_available_port(
+            networking.INITIAL_PORT_VALUE,
+            networking.INITIAL_PORT_VALUE + networking.TRY_NUM_PORTS,
+        )
+        _, local_path, _, server = networking.start_server(io, server_port=port)
+        url = urllib.parse.urlparse(local_path)
+        self.assertEquals(url.scheme, "http")
+        self.assertEquals(url.port, port)
+        server.close()
 
 
 class TestFlagging(unittest.TestCase):

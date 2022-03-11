@@ -24,7 +24,7 @@
 		if (!files.length || !window.FileReader) {
 			return;
 		}
-		if (single_file) {
+		if (file_count === "single") {
 			_files = [files[0]];
 		}
 		var all_file_data: Array<FileData | string> = [];
@@ -83,6 +83,9 @@
 		bind:this={hidden_upload}
 		on:change={loadFilesFromUpload}
 		accept={filetype}
+		multiple={file_count === "multiple" || undefined}
+		webkitdirectory={file_count === "directory" || undefined}
+		mozdirectory={file_count === "directory" || undefined}
 	/>
 </div>
 

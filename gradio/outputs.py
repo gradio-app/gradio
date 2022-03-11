@@ -21,10 +21,24 @@ import PIL
 from ffmpy import FFmpeg
 
 from gradio import processing_utils
-from gradio.component import Component
+from gradio.components import Component, Textbox
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio import Interface
+
+
+class Textbox(Textbox):
+    def __init__(
+        self,
+        type: str = "auto",
+        label: Optional[str] = None,
+    ):
+        # TODO: (faruk) Remove this file in version 3.0
+        warnings.warn(
+            "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
+            DeprecationWarning,
+        )
+        super().__init__(type=type, label=label)
 
 
 class OutputComponent(Component):
@@ -34,7 +48,7 @@ class OutputComponent(Component):
 
     def __init__(self, label: str):
         self.component_type = "output"
-        super().__init__(label)
+        super().__init__(label=label)
 
     def postprocess(self, y):
         """
@@ -47,50 +61,6 @@ class OutputComponent(Component):
         Convert from serialized output (e.g. base64 representation) from a call() to the interface to a human-readable version of the output (path of an image, etc.)
         """
         return x
-
-
-class Textbox(OutputComponent):
-    """
-    Component creates a textbox to render output text or number.
-    Output type: Union[str, float, int]
-    Demos: hello_world, sentence_builder
-    """
-
-    def __init__(self, type: str = "auto", label: Optional[str] = None):
-        """
-        Parameters:
-        type (str): Type of value to be passed to component. "str" expects a string, "number" expects a float value, "auto" detects return type.
-        label (str): component name in interface.
-        """
-        self.type = type
-        super().__init__(label)
-
-    def get_template_context(self):
-        return {**super().get_template_context()}
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "text": {"type": "str"},
-            "textbox": {"type": "str"},
-            "number": {"type": "number"},
-        }
-
-    def postprocess(self, y):
-        """
-        Parameters:
-        y (str): text output
-        Returns:
-        (Union[str, number]): output value
-        """
-        if self.type == "str" or self.type == "auto":
-            return str(y)
-        elif self.type == "number":
-            return y
-        else:
-            raise ValueError(
-                "Unknown type: " + self.type + ". Please choose from: 'str', 'number'"
-            )
 
 
 class Label(OutputComponent):
