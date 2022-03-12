@@ -7,100 +7,97 @@
 	import { tick } from "svelte";
 	setupi18n();
 
-	const json = {
-		mode: "blocks",
-		components: [
-			{
-				id: 1,
-				type: "markdown",
-				props: {
-					label:
-						"\n\t# Detect Disease From Scan\n\tWith this model you can lorem ipsum\n\t- ipsum 1\n\t- ipsum 2\n\t"
-				}
-			},
-			{
-				id: 2,
-				type: "checkboxgroup",
-				props: {
-					choices: ["Covid", "Malaria", "Lung Cancer"],
-					default: [],
-					label: "Disease to Scan For"
-				}
-			},
-			{ id: 3, type: "tabs" },
-			{ id: 4, type: "tabitem", props: { label: "X-ray" } },
-			{ id: 5, type: "row" },
-			{
-				id: 6,
-				type: "image",
-				props: {
-					image_mode: "RGB",
-					shape: null,
-					source: "upload",
-					tool: "editor",
-					optional: false,
-					label: null
-				}
-			},
-			{ id: 7, type: "json" },
-			{ id: 8, type: "button", props: { label: "Run" } },
-			{ id: 9, type: "tabitem", props: { label: "CT Scan" } },
-			{ id: 10, type: "row" },
+	// const json = {
+	// 	mode: "blocks",
+	// 	components: [
+	// 		{
+	// 			id: 1,
+	// 			type: "markdown",
+	// 			props: {
+	// 				label:
+	// 					"\n\t# Detect Disease From Scan\n\tWith this model you can lorem ipsum\n\t- ipsum 1\n\t- ipsum 2\n\t"
+	// 			}
+	// 		},
+	// 		{
+	// 			id: 2,
+	// 			type: "checkboxgroup",
+	// 			props: {
+	// 				choices: ["Covid", "Malaria", "Lung Cancer"],
+	// 				default: [],
+	// 				label: "Disease to Scan For"
+	// 			}
+	// 		},
+	// 		{ id: 3, type: "tabs" },
+	// 		{ id: 4, type: "tabitem", props: { label: "X-ray" } },
+	// 		{ id: 5, type: "row" },
+	// 		{
+	// 			id: 6,
+	// 			type: "image",
+	// 			props: {
+	// 				image_mode: "RGB",
+	// 				shape: null,
+	// 				source: "upload",
+	// 				tool: "editor",
+	// 				optional: false,
+	// 				label: null
+	// 			}
+	// 		},
+	// 		{ id: 7, type: "json" },
+	// 		{ id: 8, type: "button", props: { label: "Run" } },
+	// 		{ id: 9, type: "tabitem", props: { label: "CT Scan" } },
+	// 		{ id: 10, type: "row" },
 
-			{
-				id: 11,
-				type: "image",
-				props: {
-					image_mode: "RGB",
-					shape: null,
-					source: "upload",
-					tool: "editor",
-					optional: false,
-					label: null
-				}
-			},
-			{ id: 12, type: "json", props: { label: null } },
-			{ id: 13, type: "button", props: { label: "Run" } },
-			{ id: 14, type: "textbox", props: { label: null } }
-		],
-		theme: "default",
-		layout: {
-			children: [
-				{ id: 1 },
-				{ id: 2 },
-				{
-					id: 3,
-					children: [
-						{
-							id: 4,
-							children: [{ id: 5, children: [{ id: 6 }, { id: 7 }] }, { id: 8 }]
-						},
-						{
-							id: 9,
-							children: [
-								{ id: 10, children: [{ id: 11 }, { id: 12 }] },
-								{ id: 13 }
-							]
-						}
-					]
-				},
-				{ id: 14 }
-			],
-			type: "root"
-		},
-		dependencies: [
-			{ targets: [8], trigger: "click", inputs: [2, 6], outputs: [7] },
-			{ targets: [13], trigger: "click", inputs: [2, 11], outputs: [12] }
-		]
-	};
+	// 		{
+	// 			id: 11,
+	// 			type: "image",
+	// 			props: {
+	// 				image_mode: "RGB",
+	// 				shape: null,
+	// 				source: "upload",
+	// 				tool: "editor",
+	// 				optional: false,
+	// 				label: null
+	// 			}
+	// 		},
+	// 		{ id: 12, type: "json", props: { label: null } },
+	// 		{ id: 13, type: "button", props: { label: "Run" } },
+	// 		{ id: 14, type: "textbox", props: { label: null } }
+	// 	],
+	// 	theme: "default",
+	// 	layout: {
+	// 		children: [
+	// 			{ id: 1 },
+	// 			{ id: 2 },
+	// 			{
+	// 				id: 3,
+	// 				children: [
+	// 					{
+	// 						id: 4,
+	// 						children: [{ id: 5, children: [{ id: 6 }, { id: 7 }] }, { id: 8 }]
+	// 					},
+	// 					{
+	// 						id: 9,
+	// 						children: [
+	// 							{ id: 10, children: [{ id: 11 }, { id: 12 }] },
+	// 							{ id: 13 }
+	// 						]
+	// 					}
+	// 				]
+	// 			},
+	// 			{ id: 14 }
+	// 		],
+	// 		type: "root"
+	// 	},
+	// 	dependencies: [
+	// 		{ targets: [8], trigger: "click", inputs: [2, 6], outputs: [7] },
+	// 		{ targets: [13], trigger: "click", inputs: [2, 11], outputs: [12] }
+	// 	]
+	// };
 
-	const dynamic_ids = json.dependencies.reduce((acc, next) => {
-		next.inputs.forEach((i) => acc.add(i));
-		return acc;
-	}, new Set());
 
 	interface Component {
 		id: string;
+		type: string;
 		props: {
 			name: keyof typeof component_map;
 			[key: string]: unknown;
@@ -115,7 +112,7 @@
 
 	interface Dependency {
 		trigger: "click" | "change";
-		targets: Array<string>;
+		targets: Array<number>;
 		inputs: Array<string>;
 		outputs: Array<string>;
 	}
@@ -127,6 +124,11 @@
 	export let theme: string;
 	export let static_src: string;
 
+	const dynamic_ids = dependencies.reduce((acc, next) => {
+		next.inputs.forEach((i) => acc.add(i));
+		return acc;
+	}, new Set());
+
 	interface Instance {
 		props?: Record<string, unknown>;
 		id: number;
@@ -135,7 +137,7 @@
 		value?: unknown;
 	}
 
-	const instance_map = json.components.reduce((acc, next) => {
+	const instance_map = components.reduce((acc, next) => {
 		return {
 			...acc,
 			[next.id]: {
@@ -179,7 +181,7 @@
 
 	const component_set = new Set();
 	const _component_map = new Map();
-	json.components.forEach((c) => {
+	components.forEach((c) => {
 		const _c = load_component(c.type);
 		component_set.add(_c);
 		_component_map.set(c.type, _c);
@@ -187,7 +189,7 @@
 
 	let tree;
 	Promise.all(Array.from(component_set)).then((v) => {
-		Promise.all(json.layout.children.map((c) => walk_layout(c))).then((v) => {
+		Promise.all(layout.children.map((c) => walk_layout(c))).then((v) => {
 			// console.log(v);
 			tree = v;
 		});
@@ -236,7 +238,7 @@
 		console.log("mount", detail);
 		// console.log("boo");
 		await tick();
-		json.dependencies.forEach(({ targets, trigger, inputs, outputs }, i) => {
+		dependencies.forEach(({ targets, trigger, inputs, outputs }, i) => {
 			const target_instances: [number, Instance][] = targets.map((t) => [
 				t,
 				instance_map[t]
@@ -293,7 +295,7 @@
 				{props}
 				{children}
 				{instance_map}
-				theme={json.theme}
+				theme={theme}
 				on:mount={handle_mount}
 				on:destroy={({ detail }) => handle_destroy(detail)}
 			/>

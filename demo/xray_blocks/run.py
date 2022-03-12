@@ -20,25 +20,28 @@ with xray_blocks:
         ["Covid", "Malaria", "Lung Cancer"], label="Disease to Scan For"
     )
 
-    with gr.Tab("X-ray"):
-        with gr.Row():
-            xray_scan = gr.inputs.Image()
-            xray_results = gr.outputs.JSON()
-            output_textbox = gr.outputs.Textbox()
-            input_textbox = gr.inputs.Textbox(default="Hello This Is a Input Textbox")
-        xray_run = gr.Button("Run")
-        xray_run.click(xray_model, inputs=[disease, xray_scan], outputs=xray_results)
-        xray_run.click(xray_model, inputs=[disease, xray_scan], outputs=output_textbox)
+    with gr.Tabs():
+        with gr.TabItem("X-ray"):
+            with gr.Row():
+                xray_scan = gr.inputs.Image()
+                xray_results = gr.outputs.JSON()
+                output_textbox = gr.outputs.Textbox()
+                input_textbox = gr.inputs.Textbox(default="Hello This Is a Input Textbox")
+            xray_run = gr.Button("Run")
+            xray_run.click(xray_model, inputs=[disease, xray_scan], outputs=xray_results)
+            xray_run.click(xray_model, inputs=[disease, xray_scan], outputs=output_textbox)
 
-    with gr.Tab("CT Scan"):
-        with gr.Row():
-            ct_scan = gr.inputs.Image()
-            ct_results = gr.outputs.JSON()
-        ct_run = gr.Button("Run")
-        ct_run.click(ct_model, inputs=[disease, ct_scan], outputs=ct_results)
+        with gr.TabItem("CT Scan"):
+            with gr.Row():
+                ct_scan = gr.inputs.Image()
+                ct_results = gr.outputs.JSON()
+            ct_run = gr.Button("Run")
+            ct_run.click(ct_model, inputs=[disease, ct_scan], outputs=ct_results)
 
     overall_probability = gr.outputs.Textbox()
 
 # TODO: remove later
-print(xray_blocks.get_config_file())
+import json
+print(json.dumps(xray_blocks.get_config_file(), indent=2))
+    
 xray_blocks.launch()
