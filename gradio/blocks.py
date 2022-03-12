@@ -27,6 +27,7 @@ class Block:
         Context.root_block.fns.append(fn)
         Context.root_block.dependencies.append(
             {
+                "id": len(Context.root_block.dependencies),
                 "targets": [self._id],
                 "trigger": "click",
                 "inputs": [block._id for block in inputs],
@@ -112,19 +113,20 @@ class Row(BlockContext):
     def get_template_context(self):
         return {"type": "row"}
 
-
 class Column(BlockContext):
     def get_template_context(self):
         return {"type": "column"}
 
+class Tabs(BlockContext):
+    pass
 
-class Tab(BlockContext):
-    def __init__(self, name):
-        self.name = name
-        super(Tab, self).__init__()
+class TabItem(BlockContext):
+    def __init__(self, label):
+        self.label = label
+        super(TabItem, self).__init__()
 
     def get_template_context(self):
-        return {"type": "tab", "name": self.name}
+        return {"label": self.label}
 
 
 class Blocks(Launchable, BlockContext):
@@ -174,32 +176,21 @@ class Blocks(Launchable, BlockContext):
 
         config = {"mode": "blocks", "components": [], "theme": self.theme}
         for _id, block in self.blocks.items():
-            if isinstance(block, Component):
-                config["components"].append(
-                    {
-                        "id": _id,
-                        "props": block.get_template_context(),
-                    }
-                )
+            config["components"].append(
+                {
+                    "id": _id,
+                    "type": block.__class__.__name__.lower(),
+                    "props": block.get_template_context() if hasattr(block, "get_template_context") else None
+                }
+            )
 
-        def getLayout(block_context):
-            if not isinstance(block_context, BlockContext):
-                return block_context._id
+        def getLayout(block):
+            if not isinstance(block, BlockContext):
+                return {"id": block._id}
             children = []
-            running_tabs = []
-            for child in block_context.children:
-                if isinstance(child, Tab):
-                    running_tabs.append(getLayout(child))
-                    continue
-                if len(running_tabs):
-                    children.append({"type": "tabset", "children": running_tabs})
-                    running_tabs = []
-
+            for child in block.children:
                 children.append(getLayout(child))
-            if len(running_tabs):
-                children.append({"type": "tabset", "children": running_tabs})
-                running_tabs = []
-            return {"children": children, **block_context.get_template_context()}
+            return {"id": block._id, "children": children}
 
         config["layout"] = getLayout(self)
         config["dependencies"] = self.dependencies
