@@ -298,7 +298,7 @@ def santize_for_csv(data: str | List[str] | List[List[str]]):
     unsafe_prefixes = ("+", "=", "-", "@")
     warning_message = "Sanitizing flagged data by escaping cell contents that begin "
     "with one of the following characters: '+', '=', '-', '@'."
-    
+
     if isinstance(data, str):
         if data.startswith(unsafe_prefixes):
             warnings.warn(warning_message)
