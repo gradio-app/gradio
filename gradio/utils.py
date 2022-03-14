@@ -296,26 +296,28 @@ def santize_for_csv(data: str | List[str] | List[List[str]]):
         return "'" + item
 
     unsafe_prefixes = ("+", "=", "-", "@")
-
+    warning_message = "Sanitizing flagged data by escaping cell contents that begin "
+    "with one of the following characters: '+', '=', '-', '@'."
+    
     if isinstance(data, str):
         if data.startswith(unsafe_prefixes):
-            warnings.warn("Sanitizing flagged data by escaping cell contents")
+            warnings.warn(warning_message)
             return sanitize(data)
         return data
     elif isinstance(data, list) and isinstance(data[0], str):
         sanitized_data = copy.deepcopy(data)
-        for i, item in enumerate(data):
+        for index, item in enumerate(data):
             if item.startswith(unsafe_prefixes):
-                warnings.warn("Sanitizing flagged data by escaping cell contents")
-                sanitized_data[i] = sanitize(item)
+                warnings.warn(warning_message)
+                sanitized_data[index] = sanitize(item)
         return sanitized_data
     elif isinstance(data[0], list) and isinstance(data[0][0], str):
         sanitized_data = copy.deepcopy(data)
-        for s, sublist in enumerate(data):
-            for i, item in enumerate(sublist):
+        for outer_index, sublist in enumerate(data):
+            for inner_index, item in enumerate(sublist):
                 if item.startswith(unsafe_prefixes):
-                    warnings.warn("Sanitizing flagged data by escaping cell contents")
-                    sanitized_data[s][i] = sanitize(item)
+                    warnings.warn(warning_message)
+                    sanitized_data[outer_index][inner_index] = sanitize(item)
         return sanitized_data
     else:
         raise ValueError("Unsupported data type: " + str(type(data)))
