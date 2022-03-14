@@ -16,6 +16,7 @@ from gradio.utils import (
     launch_analytics,
     readme_to_html,
     version_check,
+    santize_for_csv,
 )
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
@@ -114,6 +115,25 @@ class TestIPAddress(unittest.TestCase):
         mock_get.side_effect = requests.ConnectionError()
         ip = get_local_ip_address()
         self.assertEqual(ip, "No internet connection")
+
+
+class TestSanitizeForCSV(unittest.TestCase):
+    def test_safe(self):
+        safe_data = santize_for_csv("abc")
+        self.assertEquals(safe_data, "abc")
+        safe_data = santize_for_csv(["def"])
+        self.assertEquals(safe_data, ["def"])
+        safe_data = santize_for_csv([["abc"]])
+        self.assertEquals(safe_data, [["abc"]])
+
+    def test_unsafe(self):
+        safe_data = santize_for_csv("=abc")
+        self.assertEquals(safe_data, "'=abc")
+        safe_data = santize_for_csv(["abc", "+abc"])
+        self.assertEquals(safe_data, ["abc", "'+abc"])
+        safe_data = santize_for_csv([["abc", "=abc"]])
+        self.assertEquals(safe_data, [["abc", "'=abc"]])
+
 
 
 if __name__ == "__main__":

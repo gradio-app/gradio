@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import csv
 import inspect
 import json
@@ -10,7 +11,7 @@ import os
 import random
 import warnings
 from distutils.version import StrictVersion
-from typing import TYPE_CHECKING, Any, Callable, Dict
+from typing import TYPE_CHECKING, Any, Callable, Dict, List
 
 import aiohttp
 import analytics
@@ -286,3 +287,35 @@ def get_default_args(func: Callable) -> Dict[str, Any]:
         v.default if v.default is not inspect.Parameter.empty else None
         for v in signature.parameters.values()
     ]
+
+
+def santize_for_csv(data: str | List[str] | List[List[str]]):
+    """ Sanitizes data so that it can be safely written to a CSV file. """
+    def sanitize(item):
+        return "'" + item
+        
+    unsafe_prefixes = ("+", "=", "-", "@")
+    
+    if isinstance(data, str):
+        if data.startswith(unsafe_prefixes):
+            warnings.warn("Sanitizing flagged data by escaping cell contents")
+            return sanitize(data)
+        return data
+    elif isinstance(data, list) and isinstance(data[0], str):
+        sanitized_data = copy.deepcopy(data)
+        for i, item in enumerate(data):
+            if item.startswith(unsafe_prefixes):
+                warnings.warn("Sanitizing flagged data by escaping cell contents")
+                sanitized_data[i] = sanitize(item)
+        return sanitized_data
+    elif isinstance(data[0], list) and isinstance(data[0][0], str):
+        sanitized_data = copy.deepcopy(data)
+        for s, sublist in enumerate(data):
+            for i, item in enumerate(sublist):
+                if item.startswith(unsafe_prefixes):
+                    warnings.warn("Sanitizing flagged data by escaping cell contents")
+                    sanitized_data[s][i] = sanitize(item)
+        return sanitized_data
+    else:
+        raise ValueError("Unsupported data type: " + str(type(data)))
+    
