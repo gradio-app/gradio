@@ -4,6 +4,7 @@ from gradio.components import Component
 
 # TODO: (faruk) Remove this file in version 3.0
 
+
 class StaticComponent(Component):
     def __init__(self, label: str):
         self.component_type = "static"
