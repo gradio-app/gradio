@@ -21,7 +21,7 @@ import PIL
 from ffmpy import FFmpeg
 
 from gradio import processing_utils
-from gradio.components import Component, Textbox
+from gradio.components import Component, Image, Textbox
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio import Interface
@@ -40,6 +40,33 @@ class Textbox(Textbox):
             DeprecationWarning,
         )
         super().__init__(type=type, label=label)
+
+
+class Image(Image):
+    """
+    Component displays an output image.
+    Output type: Union[numpy.array, PIL.Image, str, matplotlib.pyplot, Tuple[Union[numpy.array, PIL.Image, str], List[Tuple[str, float, float, float, float]]]]
+    Demos: image_mod, webcam
+    """
+
+    def __init__(
+        self, type: str = "auto", plot: bool = False, label: Optional[str] = None
+    ):
+        """
+        Parameters:
+        type (str): Type of value to be passed to component. "numpy" expects a numpy array with shape (width, height, 3), "pil" expects a PIL image object, "file" expects a file path to the saved image or a remote URL, "plot" expects a matplotlib.pyplot object, "auto" detects return type.
+        plot (bool): DEPRECATED. Whether to expect a plot to be returned by the function.
+        label (str): component name in interface.
+        """
+        if plot:
+            warnings.warn(
+                "The 'plot' parameter has been deprecated. Set parameter 'type' to 'plot' instead.",
+                DeprecationWarning,
+            )
+            self.type = "plot"
+        else:
+            self.type = type
+        super().__init__(label=label, type=type, plot=plot)
 
 
 class OutputComponent(Component):
@@ -166,85 +193,6 @@ class Label(OutputComponent):
             return self.postprocess(data)
         except ValueError:
             return data
-
-
-class Image(OutputComponent):
-    """
-    Component displays an output image.
-    Output type: Union[numpy.array, PIL.Image, str, matplotlib.pyplot, Tuple[Union[numpy.array, PIL.Image, str], List[Tuple[str, float, float, float, float]]]]
-    Demos: image_mod, webcam
-    """
-
-    def __init__(
-        self, type: str = "auto", plot: bool = False, label: Optional[str] = None
-    ):
-        """
-        Parameters:
-        type (str): Type of value to be passed to component. "numpy" expects a numpy array with shape (width, height, 3), "pil" expects a PIL image object, "file" expects a file path to the saved image or a remote URL, "plot" expects a matplotlib.pyplot object, "auto" detects return type.
-        plot (bool): DEPRECATED. Whether to expect a plot to be returned by the function.
-        label (str): component name in interface.
-        """
-        if plot:
-            warnings.warn(
-                "The 'plot' parameter has been deprecated. Set parameter 'type' to 'plot' instead.",
-                DeprecationWarning,
-            )
-            self.type = "plot"
-        else:
-            self.type = type
-        super().__init__(label)
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {"image": {}, "plot": {"type": "plot"}, "pil": {"type": "pil"}}
-
-    def postprocess(self, y):
-        """
-        Parameters:
-        y (Union[numpy.array, PIL.Image, str, matplotlib.pyplot, Tuple[Union[numpy.array, PIL.Image, str], List[Tuple[str, float, float, float, float]]]]): image in specified format
-        Returns:
-        (str): base64 url data
-        """
-        if self.type == "auto":
-            if isinstance(y, np.ndarray):
-                dtype = "numpy"
-            elif isinstance(y, PIL.Image.Image):
-                dtype = "pil"
-            elif isinstance(y, str):
-                dtype = "file"
-            elif isinstance(y, ModuleType):
-                dtype = "plot"
-            else:
-                raise ValueError(
-                    "Unknown type. Please choose from: 'numpy', 'pil', 'file', 'plot'."
-                )
-        else:
-            dtype = self.type
-        if dtype in ["numpy", "pil"]:
-            if dtype == "pil":
-                y = np.array(y)
-            out_y = processing_utils.encode_array_to_base64(y)
-        elif dtype == "file":
-            out_y = processing_utils.encode_url_or_file_to_base64(y)
-        elif dtype == "plot":
-            out_y = processing_utils.encode_plot_to_base64(y)
-        else:
-            raise ValueError(
-                "Unknown type: "
-                + dtype
-                + ". Please choose from: 'numpy', 'pil', 'file', 'plot'."
-            )
-        return out_y
-
-    def deserialize(self, x):
-        y = processing_utils.decode_base64_to_file(x).name
-        return y
-
-    def save_flagged(self, dir, label, data, encryption_key):
-        return self.save_flagged_file(dir, label, data, encryption_key)
-
-    def restore_flagged(self, dir, data, encryption_key):
-        return self.restore_flagged_file(dir, data, encryption_key)["data"]
 
 
 class Video(OutputComponent):
