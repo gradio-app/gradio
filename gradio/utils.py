@@ -290,12 +290,13 @@ def get_default_args(func: Callable) -> Dict[str, Any]:
 
 
 def santize_for_csv(data: str | List[str] | List[List[str]]):
-    """ Sanitizes data so that it can be safely written to a CSV file. """
+    """Sanitizes data so that it can be safely written to a CSV file."""
+
     def sanitize(item):
         return "'" + item
-        
+
     unsafe_prefixes = ("+", "=", "-", "@")
-    
+
     if isinstance(data, str):
         if data.startswith(unsafe_prefixes):
             warnings.warn("Sanitizing flagged data by escaping cell contents")
@@ -318,4 +319,3 @@ def santize_for_csv(data: str | List[str] | List[List[str]]):
         return sanitized_data
     else:
         raise ValueError("Unsupported data type: " + str(type(data)))
-    

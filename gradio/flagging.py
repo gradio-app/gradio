@@ -207,10 +207,12 @@ class CSVLogger(FlaggingCallback):
                     writer.writerow(headers)
                 writer.writerow(csv_data)
             with open(log_fp, "wb") as csvfile:
-                csvfile.write(utils.santize_for_csv(
-                    encryptor.encrypt(
-                        interface.encryption_key, output.getvalue().encode()
-                    ))
+                csvfile.write(
+                    utils.santize_for_csv(
+                        encryptor.encrypt(
+                            interface.encryption_key, output.getvalue().encode()
+                        )
+                    )
                 )
         else:
             if flag_index is None:
