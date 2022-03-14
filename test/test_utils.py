@@ -15,8 +15,8 @@ from gradio.utils import (
     json,
     launch_analytics,
     readme_to_html,
-    version_check,
     santize_for_csv,
+    version_check,
 )
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
@@ -133,7 +133,6 @@ class TestSanitizeForCSV(unittest.TestCase):
         self.assertEquals(safe_data, ["abc", "'+abc"])
         safe_data = santize_for_csv([["abc", "=abc"]])
         self.assertEquals(safe_data, [["abc", "'=abc"]])
-
 
 
 if __name__ == "__main__":
