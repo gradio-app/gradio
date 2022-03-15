@@ -1573,9 +1573,10 @@ class Audio(Component):
 
 class File(Component):
     """
-    Component accepts generic file uploads.
+    Component accepts generic file uploads and output..
 
     Input type: Union[file-object, bytes, List[Union[file-object, bytes]]]
+    Output type: Union[file-like, str]
     Demos: zip_to_json, zip_two_files
     """
 
@@ -1671,3 +1672,21 @@ class File(Component):
 
     def generate_sample(self):
         return test_data.BASE64_FILE
+
+    # Output Functionalities
+
+    def postprocess(self, y):
+        """
+        Parameters:
+        y (str): file path
+        Returns:
+        (Dict[name: str, size: number, data: str]): JSON object with key 'name' for filename, 'data' for base64 url, and 'size' for filesize in bytes
+        """
+        return {
+            "name": os.path.basename(y),
+            "size": os.path.getsize(y),
+            "data": processing_utils.encode_file_to_base64(y),
+        }
+
+    def restore_flagged(self, dir, data, encryption_key):
+        return self.restore_flagged_file(dir, data, encryption_key)

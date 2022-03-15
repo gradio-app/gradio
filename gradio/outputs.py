@@ -21,7 +21,7 @@ import PIL
 from ffmpy import FFmpeg
 
 from gradio import processing_utils
-from gradio.components import Audio, Component, Image, Textbox, Video
+from gradio.components import Audio, Component, File, Image, Textbox, Video
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio import Interface
@@ -103,6 +103,25 @@ class Audio(Audio):
             DeprecationWarning,
         )
         super().__init__(type=type, label=label)
+
+
+class File(File):
+    """
+    Used for file output.
+    Output type: Union[file-like, str]
+    Demos: zip_two_files
+    """
+
+    def __init__(self, label: Optional[str] = None):
+        """
+        Parameters:
+        label (str): component name in interface.
+        """
+        warnings.warn(
+            "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
+            DeprecationWarning,
+        )
+        super().__init__(label=label)
 
 
 class OutputComponent(Component):
@@ -396,46 +415,6 @@ class HTML(OutputComponent):
         return {
             "html": {},
         }
-
-
-class File(OutputComponent):
-    """
-    Used for file output.
-    Output type: Union[file-like, str]
-    Demos: zip_two_files
-    """
-
-    def __init__(self, label: Optional[str] = None):
-        """
-        Parameters:
-        label (str): component name in interface.
-        """
-        super().__init__(label)
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "file": {},
-        }
-
-    def postprocess(self, y):
-        """
-        Parameters:
-        y (str): file path
-        Returns:
-        (Dict[name: str, size: number, data: str]): JSON object with key 'name' for filename, 'data' for base64 url, and 'size' for filesize in bytes
-        """
-        return {
-            "name": os.path.basename(y),
-            "size": os.path.getsize(y),
-            "data": processing_utils.encode_file_to_base64(y),
-        }
-
-    def save_flagged(self, dir, label, data, encryption_key):
-        return self.save_flagged_file(dir, label, data["data"], encryption_key)
-
-    def restore_flagged(self, dir, data, encryption_key):
-        return self.restore_flagged_file(dir, data, encryption_key)
 
 
 class Dataframe(OutputComponent):
