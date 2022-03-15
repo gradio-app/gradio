@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 from gradio import utils
 from gradio.context import Context
 from gradio.launchable import Launchable
+from gradio.routes import PredictBody
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.component import Component
@@ -138,6 +139,7 @@ class Blocks(Launchable, BlockContext):
         self.requires_permissions = False  # TODO: needs to be implemented
         self.enable_queue = False
         self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
+        self.stateful = False  # TODO: implement state
 
         super().__init__()
         Context.root_block = self
@@ -145,9 +147,9 @@ class Blocks(Launchable, BlockContext):
         self.fns = []
         self.dependencies = []
 
-    def process_api(self, data: Dict[str, Any], username: str = None) -> Dict[str, Any]:
-        raw_input = data["data"]
-        fn_index = data["fn_index"]
+    def process_api(self, data: PredictBody, username: str = None) -> Dict[str, Any]:
+        raw_input = data.data
+        fn_index = data.fn_index
         fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
 

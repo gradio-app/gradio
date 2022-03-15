@@ -358,12 +358,12 @@
 									/>
 								{/if}
 								<span
-									class=" cursor-default w-full"
+									class="cursor-default w-full"
 									class:opacity-0={editing === id}
 									tabindex="-1"
 									role="button"
 								>
-									{value}
+									{value ?? ""}
 								</span>
 							</div>
 						</td>
