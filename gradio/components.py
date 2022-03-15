@@ -941,6 +941,15 @@ class Image(Component):
             output: Type of value to be passed to component. "numpy" expects a numpy array with shape (width, height, 3), "pil" expects a PIL image object, "file" expects a file path to the saved image or a remote URL, "plot" expects a matplotlib.pyplot object, "auto" detects return type.
         label (str): component name in interface.
         """
+        if "plot" in kwargs:
+            warnings.warn(
+                "The 'plot' parameter has been deprecated. Set parameter 'type' to 'plot' instead.",
+                DeprecationWarning,
+            )
+            self.type = "plot"
+        else:
+            self.type = type
+
         self.type = type
         self.shape = shape
         self.image_mode = image_mode
@@ -965,6 +974,8 @@ class Image(Component):
                     "shape": (28, 28),
                     "invert_colors": True,
                 },
+                "plot": {"type": "plot"},
+                "pil": {"type": "pil"},
             }
 
         def get_template_context(self):
@@ -1154,9 +1165,6 @@ class Image(Component):
             return test_data.BASE64_IMAGE
 
         # Output functions
-        @classmethod
-        def get_shortcut_implementations(cls):
-            return {"image": {}, "plot": {"type": "plot"}, "pil": {"type": "pil"}}
 
         def postprocess(self, y):
             """
@@ -1199,7 +1207,6 @@ class Image(Component):
         def deserialize(self, x):
             y = processing_utils.decode_base64_to_file(x).name
             return y
-
 
         def restore_flagged(self, dir, data, encryption_key):
             return self.restore_flagged_file(dir, data, encryption_key)["data"]
