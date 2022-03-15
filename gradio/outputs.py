@@ -21,7 +21,7 @@ import PIL
 from ffmpy import FFmpeg
 
 from gradio import processing_utils
-from gradio.components import Component, Image, Textbox, Video, Audio
+from gradio.components import Audio, Component, Image, Textbox, Video
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio import Interface
@@ -83,6 +83,8 @@ class Video(Video):
             DeprecationWarning,
         )
         super().__init__(label=label, type=type)
+
+
 class Audio(Audio):
     """
     Creates an audio player that plays the output audio.
@@ -101,7 +103,6 @@ class Audio(Audio):
             DeprecationWarning,
         )
         super().__init__(type=type, label=label)
-
 
 
 class OutputComponent(Component):
@@ -326,8 +327,6 @@ class HighlightedText(OutputComponent):
 
     def restore_flagged(self, dir, data, encryption_key):
         return json.loads(data)
-
-
 
 
 class JSON(OutputComponent):

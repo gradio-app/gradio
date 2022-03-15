@@ -19,6 +19,7 @@ from ffmpy import FFmpeg
 
 from gradio import processing_utils, test_data
 from gradio.components import (
+    Audio,
     Checkbox,
     CheckboxGroup,
     Component,
@@ -28,7 +29,6 @@ from gradio.components import (
     Radio,
     Slider,
     Textbox,
-    Audio
 )
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
