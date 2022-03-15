@@ -21,7 +21,16 @@ import PIL
 from ffmpy import FFmpeg
 
 from gradio import processing_utils
-from gradio.components import Audio, Component, Dataframe, File, Image, Textbox, Video
+from gradio.components import (
+    Audio,
+    Component,
+    Dataframe,
+    File,
+    Image,
+    Textbox,
+    Timeseries,
+    Video,
+)
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio import Interface
@@ -161,6 +170,29 @@ class Dataframe(Dataframe):
             type=type,
             label=label,
         )
+
+
+class Timeseries(Timeseries):
+    """
+    Component accepts pandas.DataFrame.
+    Output type: pandas.DataFrame
+    Demos: fraud_detector
+    """
+
+    def __init__(
+        self, x: str = None, y: str | List[str] = None, label: Optional[str] = None
+    ):
+        """
+        Parameters:
+        x (str): Column name of x (time) series. None if csv has no headers, in which case first column is x series.
+        y (Union[str, List[str]]): Column name of y series, or list of column names if multiple series. None if csv has no headers, in which case every column after first is a y series.
+        label (str): component name in interface.
+        """
+        warnings.warn(
+            "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
+            DeprecationWarning,
+        )
+        super().__init__(x=x, y=y, label=label)
 
 
 class OutputComponent(Component):
@@ -527,56 +559,6 @@ class Carousel(OutputComponent):
             ]
             for sample_set in json.loads(data)
         ]
-
-
-class Timeseries(OutputComponent):
-    """
-    Component accepts pandas.DataFrame.
-    Output type: pandas.DataFrame
-    Demos: fraud_detector
-    """
-
-    def __init__(
-        self, x: str = None, y: str | List[str] = None, label: Optional[str] = None
-    ):
-        """
-        Parameters:
-        x (str): Column name of x (time) series. None if csv has no headers, in which case first column is x series.
-        y (Union[str, List[str]]): Column name of y series, or list of column names if multiple series. None if csv has no headers, in which case every column after first is a y series.
-        label (str): component name in interface.
-        """
-        self.x = x
-        if isinstance(y, str):
-            y = [y]
-        self.y = y
-        super().__init__(label)
-
-    def get_template_context(self):
-        return {"x": self.x, "y": self.y, **super().get_template_context()}
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "timeseries": {},
-        }
-
-    def postprocess(self, y):
-        """
-        Parameters:
-        y (pandas.DataFrame): timeseries data
-        Returns:
-        (Dict[headers: List[str], data: List[List[Union[str, number]]]]): JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
-        """
-        return {"headers": y.columns.values.tolist(), "data": y.values.tolist()}
-
-    def save_flagged(self, dir, label, data, encryption_key):
-        """
-        Returns: (List[List[Union[str, float]]]) 2D array
-        """
-        return json.dumps(data)
-
-    def restore_flagged(self, dir, data, encryption_key):
-        return json.loads(data)
 
 
 class Chatbot(OutputComponent):
