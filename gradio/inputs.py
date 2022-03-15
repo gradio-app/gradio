@@ -278,6 +278,10 @@ class Image(Image):
         label (str): component name in interface.
         optional (bool): If True, the interface can be submitted with no uploaded image, in which case the input value is None.
         """
+        warnings.warn(
+            "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your component from gradio.components",
+            DeprecationWarning,
+        )
         super().__init__(
             shape=shape,
             image_mode=image_mode,
@@ -288,6 +292,35 @@ class Image(Image):
             label=label,
             optional=optional,
         )
+
+
+class Video(Component):
+    """
+    Component creates a video file upload that is converted to a file path.
+
+    Input type: filepath
+    Demos: video_flip
+    """
+
+    def __init__(
+        self,
+        type: Optional[str] = None,
+        source: str = "upload",
+        label: Optional[str] = None,
+        optional: bool = False,
+    ):
+        """
+        Parameters:
+        type (str): Type of video format to be returned by component, such as 'avi' or 'mp4'. If set to None, video will keep uploaded format.
+        source (str): Source of video. "upload" creates a box where user can drop an video file, "webcam" allows user to record a video from their webcam.
+        label (str): component name in interface.
+        optional (bool): If True, the interface can be submitted with no uploaded video, in which case the input value is None.
+        """
+        warnings.warn(
+            "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
+            DeprecationWarning,
+        )
+        super().__init__(type=type, source=source, label=label, optional=optional)
 
 
 class InputComponent(Component):
@@ -371,92 +404,6 @@ class InputComponent(Component):
             "optional": self.optional,
             **super().get_template_context(),
         }
-
-
-class Video(InputComponent):
-    """
-    Component creates a video file upload that is converted to a file path.
-    Input type: filepath
-    Demos: video_flip
-    """
-
-    def __init__(
-        self,
-        type: Optional[str] = None,
-        source: str = "upload",
-        label: Optional[str] = None,
-        optional: bool = False,
-    ):
-        """
-        Parameters:
-        type (str): Type of video format to be returned by component, such as 'avi' or 'mp4'. If set to None, video will keep uploaded format.
-        source (str): Source of video. "upload" creates a box where user can drop an video file, "webcam" allows user to record a video from their webcam.
-        label (str): component name in interface.
-        optional (bool): If True, the interface can be submitted with no uploaded video, in which case the input value is None.
-        """
-        self.type = type
-        self.source = source
-        super().__init__(label, optional=optional)
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "video": {},
-        }
-
-    def get_template_context(self):
-        return {
-            "source": self.source,
-            "optional": self.optional,
-            **super().get_template_context(),
-        }
-
-    def preprocess_example(self, x):
-        return {"name": x, "data": None, "is_example": True}
-
-    def preprocess(self, x: Dict[str, str] | None) -> str | None:
-        """
-        Parameters:
-        x (Dict[name: str, data: str]): JSON object with filename as 'name' property and base64 data as 'data' property
-        Returns:
-        (str): file path to video
-        """
-        if x is None:
-            return x
-        file_name, file_data, is_example = (
-            x["name"],
-            x["data"],
-            x.get("is_example", False),
-        )
-        if is_example:
-            file = processing_utils.create_tmp_copy_of_file(file_name)
-        else:
-            file = processing_utils.decode_base64_to_file(
-                file_data, file_path=file_name
-            )
-        file_name = file.name
-        uploaded_format = file_name.split(".")[-1].lower()
-        if self.type is not None and uploaded_format != self.type:
-            output_file_name = file_name[0 : file_name.rindex(".") + 1] + self.type
-            ff = FFmpeg(inputs={file_name: None}, outputs={output_file_name: None})
-            ff.run()
-            return output_file_name
-        else:
-            return file_name
-
-    def serialize(self, x, called_directly):
-        raise NotImplementedError()
-
-    def save_flagged(self, dir, label, data, encryption_key):
-        """
-        Returns: (str) path to video file
-        """
-        return self.save_flagged_file(
-            dir, label, None if data is None else data["data"], encryption_key
-        )
-
-    def generate_sample(self):
-        return test_data.BASE64_VIDEO
 
 
 class Audio(InputComponent):

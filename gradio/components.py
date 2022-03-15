@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import PIL
+from ffmpy import FFmpeg
 
 from gradio import processing_utils, test_data
 from gradio.blocks import Block
@@ -507,7 +508,7 @@ class Slider(Component):
         if step is None:
             difference = maximum - minimum
             power = math.floor(math.log10(difference) - 2)
-            step = 10**power
+            step = 10 ** power
         self.step = step
         self.default = minimum if default is None else default
         self.test_input = self.default
@@ -931,6 +932,7 @@ class Image(Component):
     ):
         """
         Parameters:
+        default(str): IGNORED
         shape (Tuple[int, int]): (width, height) shape to crop and resize image to; if None, matches input image size.
         image_mode (str): "RGB" if color, or "L" if black and white.
         invert_colors (bool): whether to invert the image as a preprocessing step.
@@ -1210,3 +1212,122 @@ class Image(Component):
 
         def restore_flagged(self, dir, data, encryption_key):
             return self.restore_flagged_file(dir, data, encryption_key)["data"]
+
+
+class Video(Component):
+    """
+    Component creates a video file upload that is converted to a file path.
+
+    Input type: filepath
+    Output type: filepath
+    Demos: video_flip
+    """
+
+    def __init__(
+        self,
+        default="",
+        *,
+        type: Optional[str] = None,
+        source: str = "upload",
+        label: Optional[str] = None,
+        optional: bool = False,
+    ):
+        """
+        Parameters:
+        default (str): IGNORED
+        type (str): Type of video format to be returned by component, such as 'avi' or 'mp4'. Use 'mp4' to ensure browser playability. If set to None, video will keep uploaded format.
+        source (str): Source of video. "upload" creates a box where user can drop an video file, "webcam" allows user to record a video from their webcam.
+        label (str): component name in interface.
+        optional (bool): If True, the interface can be submitted with no uploaded video, in which case the input value is None.
+        """
+        self.type = type
+        self.source = source
+        super().__init__(label=label, optional=optional)
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "video": {},
+            "playable_video": {"type": "mp4"},
+        }
+
+    def get_template_context(self):
+        return {
+            "source": self.source,
+            "optional": self.optional,
+            **super().get_template_context(),
+        }
+
+    def preprocess_example(self, x):
+        return {"name": x, "data": None, "is_example": True}
+
+    def preprocess(self, x: Dict[str, str] | None) -> str | None:
+        """
+        Parameters:
+        x (Dict[name: str, data: str]): JSON object with filename as 'name' property and base64 data as 'data' property
+        Returns:
+        (str): file path to video
+        """
+        if x is None:
+            return x
+        file_name, file_data, is_example = (
+            x["name"],
+            x["data"],
+            x.get("is_example", False),
+        )
+        if is_example:
+            file = processing_utils.create_tmp_copy_of_file(file_name)
+        else:
+            file = processing_utils.decode_base64_to_file(
+                file_data, file_path=file_name
+            )
+        file_name = file.name
+        uploaded_format = file_name.split(".")[-1].lower()
+        if self.type is not None and uploaded_format != self.type:
+            output_file_name = file_name[0: file_name.rindex(".") + 1] + self.type
+            ff = FFmpeg(inputs={file_name: None}, outputs={output_file_name: None})
+            ff.run()
+            return output_file_name
+        else:
+            return file_name
+
+    def serialize(self, x, called_directly):
+        raise NotImplementedError()
+
+    def save_flagged(self, dir, label, data, encryption_key):
+        """
+        Returns: (str) path to video file
+        """
+        return self.save_flagged_file(
+            dir, label, None if data is None else data["data"], encryption_key
+        )
+        # TODO: Might need to converge these two
+        #  Output save_flagged:
+        # return self.save_flagged_file(dir, label, data["data"], encryption_key)
+
+    def generate_sample(self):
+        return test_data.BASE64_VIDEO
+
+    def postprocess(self, y):
+        """
+        Parameters:
+        y (str): path to video
+        Returns:
+        (str): base64 url data
+        """
+        returned_format = y.split(".")[-1].lower()
+        if self.type is not None and returned_format != self.type:
+            output_file_name = y[0: y.rindex(".") + 1] + self.type
+            ff = FFmpeg(inputs={y: None}, outputs={output_file_name: None})
+            ff.run()
+            y = output_file_name
+        return {
+            "name": os.path.basename(y),
+            "data": processing_utils.encode_file_to_base64(y),
+        }
+
+    def deserialize(self, x):
+        return processing_utils.decode_base64_to_file(x).name
+
+    def restore_flagged(self, dir, data, encryption_key):
+        return self.restore_flagged_file(dir, data, encryption_key)
