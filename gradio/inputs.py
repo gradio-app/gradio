@@ -30,6 +30,7 @@ from gradio.components import (
     Number,
     Radio,
     Slider,
+    State,
     Textbox,
     Timeseries,
 )
@@ -467,90 +468,7 @@ class Timeseries(Timeseries):
         super().__init__(x=x, y=y, label=label, optional=optional)
 
 
-class InputComponent(Component):
-    """
-    Input Component. All input components subclass this.
-    """
-
-    def __init__(
-        self, label: str, requires_permissions: bool = False, optional: bool = False
-    ):
-        """
-        Constructs an input component.
-        """
-        self.component_type = "input"
-        self.set_interpret_parameters()
-        self.optional = optional
-        super().__init__(label=label, requires_permissions=requires_permissions)
-
-    def preprocess(self, x: Any) -> Any:
-        """
-        Any preprocessing needed to be performed on function input.
-        """
-        return x
-
-    def serialize(self, x: Any, called_directly: bool) -> Any:
-        """
-        Convert from a human-readable version of the input (path of an image, URL of a video, etc.) into the interface to a serialized version (e.g. base64) to pass into an API. May do different things if the interface is called() vs. used via GUI.
-        Parameters:
-        x (Any): Input to interface
-        called_directly (bool): if true, the interface was called(), otherwise, it is being used via the GUI
-        """
-        return x
-
-    def preprocess_example(self, x: Any) -> Any:
-        """
-        Any preprocessing needed to be performed on an example before being passed to the main function.
-        """
-        return x
-
-    def set_interpret_parameters(self):
-        """
-        Set any parameters for interpretation.
-        """
-        return self
-
-    def get_interpretation_neighbors(self, x: Any) -> Tuple[List[Any], Dict[Any], bool]:
-        """
-        Generates values similar to input to be used to interpret the significance of the input in the final output.
-        Parameters:
-        x (Any): Input to interface
-        Returns: (neighbor_values, interpret_kwargs, interpret_by_removal)
-        neighbor_values (List[Any]): Neighboring values to input x to compute for interpretation
-        interpret_kwargs (Dict[Any]): Keyword arguments to be passed to get_interpretation_scores
-        interpret_by_removal (bool): If True, returned neighbors are values where the interpreted subsection was removed. If False, returned neighbors are values where the interpreted subsection was modified to a different value.
-        """
-        pass
-
-    def get_interpretation_scores(
-        self, x: Any, neighbors: List[Any], scores: List[float], **kwargs
-    ) -> List[Any]:
-        """
-        Arrange the output values from the neighbors into interpretation scores for the interface to render.
-        Parameters:
-        x (Any): Input to interface
-        neighbors (List[Any]): Neighboring values to input x used for interpretation.
-        scores (List[float]): Output value corresponding to each neighbor in neighbors
-        kwargs (Dict[str, Any]): Any additional arguments passed from get_interpretation_neighbors.
-        Returns:
-        (List[Any]): Arrangement of interpretation scores for interfaces to render.
-        """
-        pass
-
-    def generate_sample(self) -> Any:
-        """
-        Returns a sample value of the input that would be accepted by the api. Used for api documentation.
-        """
-        pass
-
-    def get_template_context(self):
-        return {
-            "optional": self.optional,
-            **super().get_template_context(),
-        }
-
-
-class State(InputComponent):
+class State(State):
     """
     Special hidden component that stores state across runs of the interface.
     Input type: Any
@@ -569,9 +487,11 @@ class State(InputComponent):
         default (Any): the initial value of the state.
         optional (bool): this parameter is ignored.
         """
-
-        self.default = default
-        super().__init__(label)
+        warnings.warn(
+            "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
+            DeprecationWarning,
+        )
+        super().__init__(label=label, default=default, optional=optional)
 
     def get_template_context(self):
         return {"default": self.default, **super().get_template_context()}
@@ -581,26 +501,3 @@ class State(InputComponent):
         return {
             "state": {},
         }
-
-
-def get_input_instance(iface: Interface):
-    if isinstance(iface, str):
-        shortcut = InputComponent.get_all_shortcut_implementations()[iface]
-        return shortcut[0](**shortcut[1])
-    elif isinstance(
-        iface, dict
-    ):  # a dict with `name` as the input component type and other keys as parameters
-        name = iface.pop("name")
-        for component in InputComponent.__subclasses__():
-            if component.__name__.lower() == name:
-                break
-        else:
-            raise ValueError("No such InputComponent: {}".format(name))
-        return component(**iface)
-    elif isinstance(iface, InputComponent):
-        return iface
-    else:
-        raise ValueError(
-            "Input interface must be of type `str` or `dict` or "
-            "`InputComponent` but is {}".format(iface)
-        )

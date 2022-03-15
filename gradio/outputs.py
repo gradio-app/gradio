@@ -27,6 +27,7 @@ from gradio.components import (
     Dataframe,
     File,
     Image,
+    State,
     Textbox,
     Timeseries,
     Video,
@@ -193,6 +194,25 @@ class Timeseries(Timeseries):
             DeprecationWarning,
         )
         super().__init__(x=x, y=y, label=label)
+
+
+class State(State):
+    """
+    Special hidden component that stores state across runs of the interface.
+    Output type: Any
+    Demos: chatbot
+    """
+
+    def __init__(self, label: Optional[str] = None):
+        """
+        Parameters:
+        label (str): component name in interface (not used).
+        """
+        warnings.warn(
+            "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
+            DeprecationWarning,
+        )
+        super().__init__(label=label)
 
 
 class OutputComponent(Component):
@@ -593,27 +613,6 @@ class Chatbot(OutputComponent):
 
         """
         return y
-
-
-class State(OutputComponent):
-    """
-    Special hidden component that stores state across runs of the interface.
-    Output type: Any
-    Demos: chatbot
-    """
-
-    def __init__(self, label: Optional[str] = None):
-        """
-        Parameters:
-        label (str): component name in interface (not used).
-        """
-        super().__init__(label)
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "state": {},
-        }
 
 
 def get_output_instance(iface: Interface):
