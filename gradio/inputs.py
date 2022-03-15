@@ -28,6 +28,7 @@ from gradio.components import (
     Radio,
     Slider,
     Textbox,
+    Audio
 )
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
@@ -323,6 +324,34 @@ class Video(Component):
         super().__init__(type=type, source=source, label=label, optional=optional)
 
 
+class Audio(Audio):
+    """
+    Component accepts audio input files.
+    Input type: Union[Tuple[int, numpy.array], file-object, numpy.array]
+    Demos: main_note, reverse_audio, spectogram
+    """
+
+    def __init__(
+        self,
+        source: str = "upload",
+        type: str = "numpy",
+        label: str = None,
+        optional: bool = False,
+    ):
+        """
+        Parameters:
+        source (str): Source of audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input.
+        type (str): Type of value to be returned by component. "numpy" returns a 2-set tuple with an integer sample_rate and the data numpy.array of shape (samples, 2), "file" returns a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
+        label (str): component name in interface.
+        optional (bool): If True, the interface can be submitted with no uploaded audio, in which case the input value is None.
+        """
+        warnings.warn(
+            "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
+            DeprecationWarning,
+        )
+        super().__init__(source=source, type=type, label=label, optional=optional)
+
+
 class InputComponent(Component):
     """
     Input Component. All input components subclass this.
@@ -404,217 +433,6 @@ class InputComponent(Component):
             "optional": self.optional,
             **super().get_template_context(),
         }
-
-
-class Audio(InputComponent):
-    """
-    Component accepts audio input files.
-    Input type: Union[Tuple[int, numpy.array], file-object, numpy.array]
-    Demos: main_note, reverse_audio, spectogram
-    """
-
-    def __init__(
-        self,
-        source: str = "upload",
-        type: str = "numpy",
-        label: str = None,
-        optional: bool = False,
-    ):
-        """
-        Parameters:
-        source (str): Source of audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input.
-        type (str): Type of value to be returned by component. "numpy" returns a 2-set tuple with an integer sample_rate and the data numpy.array of shape (samples, 2), "file" returns a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
-        label (str): component name in interface.
-        optional (bool): If True, the interface can be submitted with no uploaded audio, in which case the input value is None.
-        """
-        self.source = source
-        requires_permissions = source == "microphone"
-        self.type = type
-        self.test_input = test_data.BASE64_AUDIO
-        self.interpret_by_tokens = True
-        super().__init__(label, requires_permissions, optional=optional)
-
-    def get_template_context(self):
-        return {
-            "source": self.source,
-            "optional": self.optional,
-            **super().get_template_context(),
-        }
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "audio": {},
-            "microphone": {"source": "microphone"},
-            "mic": {"source": "microphone"},
-        }
-
-    def preprocess_example(self, x):
-        return {"name": x, "data": None, "is_example": True}
-
-    def preprocess(self, x: Dict[str, str] | None) -> Tuple[int, np.array] | str | None:
-        """
-        Parameters:
-        x (Dict[name: str, data: str]): JSON object with filename as 'name' property and base64 data as 'data' property
-        Returns:
-        (Union[Tuple[int, numpy.array], str, numpy.array]): audio in requested format
-        """
-        if x is None:
-            return x
-        file_name, file_data, is_example = (
-            x["name"],
-            x["data"],
-            x.get("is_example", False),
-        )
-        crop_min, crop_max = x.get("crop_min", 0), x.get("crop_max", 100)
-        if is_example:
-            file_obj = processing_utils.create_tmp_copy_of_file(file_name)
-        else:
-            file_obj = processing_utils.decode_base64_to_file(
-                file_data, file_path=file_name
-            )
-        if crop_min != 0 or crop_max != 100:
-            sample_rate, data = processing_utils.audio_from_file(
-                file_obj.name, crop_min=crop_min, crop_max=crop_max
-            )
-            processing_utils.audio_to_file(sample_rate, data, file_obj.name)
-        if self.type == "file":
-            warnings.warn(
-                "The 'file' type has been deprecated. Set parameter 'type' to 'filepath' instead.",
-                DeprecationWarning,
-            )
-            return file_obj
-        elif self.type == "filepath":
-            return file_obj.name
-        elif self.type == "numpy":
-            return processing_utils.audio_from_file(file_obj.name)
-        else:
-            raise ValueError(
-                "Unknown type: "
-                + str(self.type)
-                + ". Please choose from: 'numpy', 'filepath'."
-            )
-
-    def serialize(self, x, called_directly):
-        if x is None:
-            return None
-        if self.type == "filepath" or called_directly:
-            name = x
-        elif self.type == "file":
-            warnings.warn(
-                "The 'file' type has been deprecated. Set parameter 'type' to 'filepath' instead.",
-                DeprecationWarning,
-            )
-            name = x.name
-        elif self.type == "numpy":
-            file = tempfile.NamedTemporaryFile(delete=False)
-            name = file.name
-            processing_utils.audio_to_file(x[0], x[1], name)
-        else:
-            raise ValueError(
-                "Unknown type: "
-                + str(self.type)
-                + ". Please choose from: 'numpy', 'filepath'."
-            )
-
-        file_data = processing_utils.encode_url_or_file_to_base64(name)
-        return {"name": name, "data": file_data, "is_example": False}
-
-    def set_interpret_parameters(self, segments=8):
-        """
-        Calculates interpretation score of audio subsections by splitting the audio into subsections, then using a "leave one out" method to calculate the score of each subsection by removing the subsection and measuring the delta of the output value.
-        Parameters:
-        segments (int): Number of interpretation segments to split audio into.
-        """
-        self.interpretation_segments = segments
-        return self
-
-    def tokenize(self, x):
-        if x.get("is_example"):
-            sample_rate, data = processing_utils.audio_from_file(x["name"])
-        else:
-            file_obj = processing_utils.decode_base64_to_file(x["data"])
-            sample_rate, data = processing_utils.audio_from_file(file_obj.name)
-        leave_one_out_sets = []
-        tokens = []
-        masks = []
-        duration = data.shape[0]
-        boundaries = np.linspace(0, duration, self.interpretation_segments + 1).tolist()
-        boundaries = [round(boundary) for boundary in boundaries]
-        for index in range(len(boundaries) - 1):
-            start, stop = boundaries[index], boundaries[index + 1]
-            masks.append((start, stop))
-
-            # Handle the leave one outs
-            leave_one_out_data = np.copy(data)
-            leave_one_out_data[start:stop] = 0
-            file = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
-            processing_utils.audio_to_file(sample_rate, leave_one_out_data, file.name)
-            out_data = processing_utils.encode_file_to_base64(file.name)
-            leave_one_out_sets.append(out_data)
-            file.close()
-            os.unlink(file.name)
-
-            # Handle the tokens
-            token = np.copy(data)
-            token[0:start] = 0
-            token[stop:] = 0
-            file = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
-            processing_utils.audio_to_file(sample_rate, token, file.name)
-            token_data = processing_utils.encode_file_to_base64(file.name)
-            file.close()
-            os.unlink(file.name)
-
-            tokens.append(token_data)
-        tokens = [{"name": "token.wav", "data": token} for token in tokens]
-        leave_one_out_sets = [
-            {"name": "loo.wav", "data": loo_set} for loo_set in leave_one_out_sets
-        ]
-        return tokens, leave_one_out_sets, masks
-
-    def get_masked_inputs(self, tokens, binary_mask_matrix):
-        # create a "zero input" vector and get sample rate
-        x = tokens[0]["data"]
-        file_obj = processing_utils.decode_base64_to_file(x)
-        sample_rate, data = processing_utils.audio_from_file(file_obj.name)
-        zero_input = np.zeros_like(data, dtype="int16")
-        # decode all of the tokens
-        token_data = []
-        for token in tokens:
-            file_obj = processing_utils.decode_base64_to_file(token["data"])
-            _, data = processing_utils.audio_from_file(file_obj.name)
-            token_data.append(data)
-        # construct the masked version
-        masked_inputs = []
-        for binary_mask_vector in binary_mask_matrix:
-            masked_input = np.copy(zero_input)
-            for t, b in zip(token_data, binary_mask_vector):
-                masked_input = masked_input + t * int(b)
-            file = tempfile.NamedTemporaryFile(delete=False)
-            processing_utils.audio_to_file(sample_rate, masked_input, file.name)
-            masked_data = processing_utils.encode_file_to_base64(file.name)
-            file.close()
-            os.unlink(file.name)
-            masked_inputs.append(masked_data)
-        return masked_inputs
-
-    def get_interpretation_scores(self, x, neighbors, scores, masks=None, tokens=None):
-        """
-        Returns:
-        (List[float]): Each value represents the interpretation score corresponding to an evenly spaced subsection of audio.
-        """
-        return list(scores)
-
-    def save_flagged(self, dir, label, data, encryption_key):
-        """
-        Returns: (str) path to audio file
-        """
-        return self.save_flagged_file(
-            dir, label, None if data is None else data["data"], encryption_key
-        )
-
-    def generate_sample(self):
-        return test_data.BASE64_AUDIO
 
 
 class File(InputComponent):
