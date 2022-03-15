@@ -21,7 +21,7 @@ import PIL
 from ffmpy import FFmpeg
 
 from gradio import processing_utils
-from gradio.components import Component, Image, Textbox
+from gradio.components import Component, Image, Textbox, Video
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio import Interface
@@ -63,6 +63,26 @@ class Image(Image):
             DeprecationWarning,
         )
         super().__init__(label=label, type=type, plot=plot)
+
+
+class Video(Video):
+    """
+    Used for video output.
+    Output type: filepath
+    Demos: video_flip
+    """
+
+    def __init__(self, type: Optional[str] = None, label: Optional[str] = None):
+        """
+        Parameters:
+        type (str): Type of video format to be passed to component, such as 'avi' or 'mp4'. Use 'mp4' to ensure browser playability. If set to None, video will keep returned format.
+        label (str): component name in interface.
+        """
+        warnings.warn(
+            "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
+            DeprecationWarning,
+        )
+        super().__init__(label=label, type=type)
 
 
 class OutputComponent(Component):
@@ -189,54 +209,6 @@ class Label(OutputComponent):
             return self.postprocess(data)
         except ValueError:
             return data
-
-
-class Video(OutputComponent):
-    """
-    Used for video output.
-    Output type: filepath
-    Demos: video_flip
-    """
-
-    def __init__(self, type: Optional[str] = None, label: Optional[str] = None):
-        """
-        Parameters:
-        type (str): Type of video format to be passed to component, such as 'avi' or 'mp4'. Use 'mp4' to ensure browser playability. If set to None, video will keep returned format.
-        label (str): component name in interface.
-        """
-        self.type = type
-        super().__init__(label)
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {"video": {}, "playable_video": {"type": "mp4"}}
-
-    def postprocess(self, y):
-        """
-        Parameters:
-        y (str): path to video
-        Returns:
-        (str): base64 url data
-        """
-        returned_format = y.split(".")[-1].lower()
-        if self.type is not None and returned_format != self.type:
-            output_file_name = y[0 : y.rindex(".") + 1] + self.type
-            ff = FFmpeg(inputs={y: None}, outputs={output_file_name: None})
-            ff.run()
-            y = output_file_name
-        return {
-            "name": os.path.basename(y),
-            "data": processing_utils.encode_file_to_base64(y),
-        }
-
-    def deserialize(self, x):
-        return processing_utils.decode_base64_to_file(x).name
-
-    def save_flagged(self, dir, label, data, encryption_key):
-        return self.save_flagged_file(dir, label, data["data"], encryption_key)
-
-    def restore_flagged(self, dir, data, encryption_key):
-        return self.restore_flagged_file(dir, data, encryption_key)
 
 
 class KeyValues(OutputComponent):
