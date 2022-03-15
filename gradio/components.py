@@ -1857,3 +1857,92 @@ class Dataframe(Component):
                 + self.type
                 + ". Please choose from: 'pandas', 'numpy', 'array'."
             )
+
+
+class Timeseries(Component):
+    """
+    Component accepts pandas.DataFrame uploaded as a timeseries csv file or as an output.
+
+    Input type: pandas.DataFrame
+    Output type: pandas.DataFrame
+    Demos: fraud_detector
+    """
+
+    def __init__(
+        self,
+        default=None,
+        *,
+        x: Optional[str] = None,
+        y: str | List[str] = None,
+        label: Optional[str] = None,
+        **kwargs,
+    ):
+        """
+        Parameters:
+        default: IGNORED
+        x (str): Column name of x (time) series. None if csv has no headers, in which case first column is x series.
+        y (Union[str, List[str]]): Column name of y series, or list of column names if multiple series. None if csv has no headers, in which case every column after first is a y series.
+        label (str): component name in interface.
+        """
+        self.x = x
+        if isinstance(y, str):
+            y = [y]
+        self.y = y
+        super().__init__(label=label, **kwargs)
+
+    def get_template_context(self):
+        return {
+            "x": self.x,
+            "y": self.y,
+            **super().get_template_context(),
+        }
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "timeseries": {},
+        }
+
+    def preprocess_example(self, x):
+        return {"name": x, "is_example": True}
+
+    def preprocess(self, x: Dict | None) -> pd.DataFrame | None:
+        """
+        Parameters:
+        x (Dict[data: List[List[Union[str, number, bool]]], headers: List[str], range: List[number]]): Dict with keys 'data': 2D array of str, numeric, or bool data, 'headers': list of strings for header names, 'range': optional two element list designating start of end of subrange.
+        Returns:
+        (pandas.DataFrame): Dataframe of timeseries data
+        """
+        if x is None:
+            return x
+        elif x.get("is_example"):
+            dataframe = pd.read_csv(x["name"])
+        else:
+            dataframe = pd.DataFrame(data=x["data"], columns=x["headers"])
+        if x.get("range") is not None:
+            dataframe = dataframe.loc[dataframe[self.x or 0] >= x["range"][0]]
+            dataframe = dataframe.loc[dataframe[self.x or 0] <= x["range"][1]]
+        return dataframe
+
+    def save_flagged(self, dir, label, data, encryption_key):
+        """
+        Returns: (List[List[Union[str, float]]]) 2D array
+        """
+        return json.dumps(data)
+
+    def restore_flagged(self, dir, data, encryption_key):
+        return json.loads(data)
+
+    def generate_sample(self):
+        return {"data": [[1] + [2] * len(self.y)] * 4, "headers": [self.x] + self.y}
+
+    # Output Functionalities
+
+    def postprocess(self, y):
+        """
+        Parameters:
+        y (pandas.DataFrame): timeseries data
+        Returns:
+        (Dict[headers: List[str], data: List[List[Union[str, number]]]]): JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
+        """
+        return {"headers": y.columns.values.tolist(), "data": y.values.tolist()}
