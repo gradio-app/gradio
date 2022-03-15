@@ -21,7 +21,7 @@ import PIL
 from ffmpy import FFmpeg
 
 from gradio import processing_utils
-from gradio.components import Component, Image, Textbox, Video
+from gradio.components import Component, Image, Textbox, Video, Audio
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio import Interface
@@ -83,6 +83,25 @@ class Video(Video):
             DeprecationWarning,
         )
         super().__init__(label=label, type=type)
+class Audio(Audio):
+    """
+    Creates an audio player that plays the output audio.
+    Output type: Union[Tuple[int, numpy.array], str]
+    Demos: generate_tone, reverse_audio
+    """
+
+    def __init__(self, type: str = "auto", label: Optional[str] = None):
+        """
+        Parameters:
+        type (str): Type of value to be passed to component. "numpy" returns a 2-set tuple with an integer sample_rate and the data as 16-bit int numpy.array of shape (samples, 2), "file" returns a temporary file path to the saved wav audio file, "auto" detects return type.
+        label (str): component name in interface.
+        """
+        warnings.warn(
+            "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
+            DeprecationWarning,
+        )
+        super().__init__(type=type, label=label)
+
 
 
 class OutputComponent(Component):
@@ -309,60 +328,6 @@ class HighlightedText(OutputComponent):
         return json.loads(data)
 
 
-class Audio(OutputComponent):
-    """
-    Creates an audio player that plays the output audio.
-    Output type: Union[Tuple[int, numpy.array], str]
-    Demos: generate_tone, reverse_audio
-    """
-
-    def __init__(self, type: str = "auto", label: Optional[str] = None):
-        """
-        Parameters:
-        type (str): Type of value to be passed to component. "numpy" returns a 2-set tuple with an integer sample_rate and the data as 16-bit int numpy.array of shape (samples, 2), "file" returns a temporary file path to the saved wav audio file, "auto" detects return type.
-        label (str): component name in interface.
-        """
-        self.type = type
-        super().__init__(label)
-
-    def get_template_context(self):
-        return {**super().get_template_context()}
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "audio": {},
-        }
-
-    def postprocess(self, y):
-        """
-        Parameters:
-        y (Union[Tuple[int, numpy.array], str]): audio data in requested format
-        Returns:
-        (str): base64 url data
-        """
-        if self.type in ["numpy", "file", "auto"]:
-            if self.type == "numpy" or (self.type == "auto" and isinstance(y, tuple)):
-                sample_rate, data = y
-                file = tempfile.NamedTemporaryFile(
-                    prefix="sample", suffix=".wav", delete=False
-                )
-                processing_utils.audio_to_file(sample_rate, data, file.name)
-                y = file.name
-            return processing_utils.encode_url_or_file_to_base64(y)
-        else:
-            raise ValueError(
-                "Unknown type: " + self.type + ". Please choose from: 'numpy', 'file'."
-            )
-
-    def deserialize(self, x):
-        return processing_utils.decode_base64_to_file(x).name
-
-    def save_flagged(self, dir, label, data, encryption_key):
-        return self.save_flagged_file(dir, label, data, encryption_key)
-
-    def restore_flagged(self, dir, data, encryption_key):
-        return self.restore_flagged_file(dir, data, encryption_key)["data"]
 
 
 class JSON(OutputComponent):
