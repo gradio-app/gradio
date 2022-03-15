@@ -58,14 +58,10 @@ class Image(Image):
         plot (bool): DEPRECATED. Whether to expect a plot to be returned by the function.
         label (str): component name in interface.
         """
-        if plot:
-            warnings.warn(
-                "The 'plot' parameter has been deprecated. Set parameter 'type' to 'plot' instead.",
-                DeprecationWarning,
-            )
-            self.type = "plot"
-        else:
-            self.type = type
+        warnings.warn(
+            "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
+            DeprecationWarning,
+        )
         super().__init__(label=label, type=type, plot=plot)
 
 
