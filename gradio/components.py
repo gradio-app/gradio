@@ -10,6 +10,7 @@ from types import ModuleType
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
+import pandas as pd
 import PIL
 from ffmpy import FFmpeg
 
@@ -1690,3 +1691,169 @@ class File(Component):
 
     def restore_flagged(self, dir, data, encryption_key):
         return self.restore_flagged_file(dir, data, encryption_key)
+
+
+class Dataframe(Component):
+    """
+    Component accepts or displays 2D input  through a spreadsheet interface.
+
+    Input or Output type: Union[pandas.DataFrame, numpy.array, List[Union[str, float]], List[List[Union[str, float]]]]
+    Demos: filter_records, matrix_transpose, tax_calculator
+    """
+
+    def __init__(
+        self,
+        default: Optional[List[List[Any]]] = None,
+        *,
+        headers: Optional[List[str]] = None,
+        row_count: int = 3,
+        col_count: Optional[int] = 3,
+        datatype: str | List[str] = "str",
+        col_width: int | List[int] = None,
+        type: str = "pandas",
+        label: Optional[str] = None,
+        max_rows: Optional[int] = 20,
+        max_cols: Optional[int] = None,
+        overflow_row_behaviour: str = "paginate",
+        **kwargs,
+    ):
+        """
+        Input Parameters:
+        default (List[List[Any]]): Default value
+        headers (List[str]): Header names to dataframe. If None, no headers are shown.
+        row_count (int): Limit number of rows for input.
+        col_count (int): Limit number of columns for input. If equal to 1, return data will be one-dimensional. Ignored if `headers` is provided.
+        datatype (Union[str, List[str]]): Datatype of values in sheet. Can be provided per column as a list of strings, or for the entire sheet as a single string. Valid datatypes are "str", "number", "bool", and "date".
+        col_width (Union[int, List[int]]): Width of columns in pixels. Can be provided as single value or list of values per column.
+        type (str): Type of value to be returned by component. "pandas" for pandas dataframe, "numpy" for numpy array, or "array" for a Python array.
+        label (str): component name in interface.
+
+        Output Parameters: #TODO:(faruk) might converge these in the future
+        headers (List[str]): Header names to dataframe. Only applicable if type is "numpy" or "array".
+        max_rows (int): Maximum number of rows to display at once. Set to None for infinite.
+        max_cols (int): Maximum number of columns to display at once. Set to None for infinite.
+        overflow_row_behaviour (str): If set to "paginate", will create pages for overflow rows. If set to "show_ends", will show initial and final rows and truncate middle rows.
+        type (str): Type of value to be passed to component. "pandas" for pandas dataframe, "numpy" for numpy array, or "array" for Python array, "auto" detects return type.
+        """
+        self.headers = headers
+        self.datatype = datatype
+        self.row_count = row_count
+        self.col_count = len(headers) if headers else col_count
+        self.col_width = col_width
+        self.type = type
+        self.default = (
+            default
+            if default is not None
+            else [[None for _ in range(self.col_count)] for _ in range(self.row_count)]
+        )
+        sample_values = {
+            "str": "abc",
+            "number": 786,
+            "bool": True,
+            "date": "02/08/1993",
+        }
+        column_dtypes = (
+            [datatype] * self.col_count if isinstance(datatype, str) else datatype
+        )
+        self.test_input = [
+            [sample_values[c] for c in column_dtypes] for _ in range(row_count)
+        ]
+        self.max_rows = max_rows
+        self.max_cols = max_cols
+        self.overflow_row_behaviour = overflow_row_behaviour
+        super().__init__(label=label, **kwargs)
+
+    def get_template_context(self):
+        return {
+            "headers": self.headers,
+            "datatype": self.datatype,
+            "row_count": self.row_count,
+            "col_count": self.col_count,
+            "col_width": self.col_width,
+            "default": self.default,
+            "max_rows": self.max_rows,
+            "max_cols": self.max_cols,
+            "overflow_row_behaviour": self.overflow_row_behaviour,
+            **super().get_template_context(),
+        }
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "dataframe": {"type": "pandas"},
+            "numpy": {"type": "numpy"},
+            "matrix": {"type": "array"},
+            "list": {"type": "array", "col_count": 1},
+        }
+
+    def preprocess(self, x: List[List[str | Number | bool]]):
+        """
+        Parameters:
+        x (List[List[Union[str, number, bool]]]): 2D array of str, numeric, or bool data
+        Returns:
+        (Union[pandas.DataFrame, numpy.array, List[Union[str, float]], List[List[Union[str, float]]]]): Dataframe in requested format
+        """
+        if self.type == "pandas":
+            if self.headers:
+                return pd.DataFrame(x, columns=self.headers)
+            else:
+                return pd.DataFrame(x)
+        if self.col_count == 1:
+            x = [row[0] for row in x]
+        if self.type == "numpy":
+            return np.array(x)
+        elif self.type == "array":
+            return x
+        else:
+            raise ValueError(
+                "Unknown type: "
+                + str(self.type)
+                + ". Please choose from: 'pandas', 'numpy', 'array'."
+            )
+
+    def save_flagged(self, dir, label, data, encryption_key):
+        """
+        Returns: (List[List[Union[str, float]]]) 2D array
+        """
+        return json.dumps(data)
+        # TODO: (faruk) output was dumping differently, how to converge?
+        # return json.dumps(data["data"])
+
+    def restore_flagged(self, dir, data, encryption_key):
+        return json.loads(data)
+        # TODO: (faruk) output was dumping differently, how to converge?
+        # return {"data": json.loads(data)}
+
+    def generate_sample(self):
+        return [[1, 2, 3], [4, 5, 6]]
+
+    def postprocess(self, y):
+        """
+        Parameters:
+        y (Union[pandas.DataFrame, numpy.array, List[Union[str, float]], List[List[Union[str, float]]]]): dataframe in given format
+        Returns:
+        (Dict[headers: List[str], data: List[List[Union[str, number]]]]): JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
+        """
+        if self.type == "auto":
+            if isinstance(y, pd.core.frame.DataFrame):
+                dtype = "pandas"
+            elif isinstance(y, np.ndarray):
+                dtype = "numpy"
+            elif isinstance(y, list):
+                dtype = "array"
+        else:
+            dtype = self.type
+        if dtype == "pandas":
+            return {"headers": list(y.columns), "data": y.values.tolist()}
+        elif dtype in ("numpy", "array"):
+            if dtype == "numpy":
+                y = y.tolist()
+            if len(y) == 0 or not isinstance(y[0], list):
+                y = [y]
+            return {"data": y}
+        else:
+            raise ValueError(
+                "Unknown type: "
+                + self.type
+                + ". Please choose from: 'pandas', 'numpy', 'array'."
+            )

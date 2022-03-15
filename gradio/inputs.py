@@ -23,6 +23,7 @@ from gradio.components import (
     Checkbox,
     CheckboxGroup,
     Component,
+    Dataframe,
     Dropdown,
     File,
     Image,
@@ -389,6 +390,50 @@ class File(File):
         )
 
 
+class Dataframe(Dataframe):
+    """
+    Component accepts 2D input through a spreadsheet interface.
+    Input type: Union[pandas.DataFrame, numpy.array, List[Union[str, float]], List[List[Union[str, float]]]]
+    Demos: filter_records, matrix_transpose, tax_calculator
+    """
+
+    def __init__(
+        self,
+        headers: Optional[List[str]] = None,
+        row_count: int = 3,
+        col_count: Optional[int] = 3,
+        datatype: str | List[str] = "str",
+        col_width: int | List[int] = None,
+        default: Optional[List[List[Any]]] = None,
+        type: str = "pandas",
+        label: Optional[str] = None,
+        optional: bool = False,
+    ):
+        """
+        Parameters:
+        headers (List[str]): Header names to dataframe. If None, no headers are shown.
+        row_count (int): Limit number of rows for input.
+        col_count (int): Limit number of columns for input. If equal to 1, return data will be one-dimensional. Ignored if `headers` is provided.
+        datatype (Union[str, List[str]]): Datatype of values in sheet. Can be provided per column as a list of strings, or for the entire sheet as a single string. Valid datatypes are "str", "number", "bool", and "date".
+        col_width (Union[int, List[int]]): Width of columns in pixels. Can be provided as single value or list of values per column.
+        default (List[List[Any]]): Default value
+        type (str): Type of value to be returned by component. "pandas" for pandas dataframe, "numpy" for numpy array, or "array" for a Python array.
+        label (str): component name in interface.
+        optional (bool): this parameter is ignored.
+        """
+        super().__init__(
+            headers=headers,
+            row_count=row_count,
+            col_count=col_count,
+            datatype=datatype,
+            col_width=col_width,
+            default=default,
+            type=type,
+            label=label,
+            optional=optional,
+        )
+
+
 class InputComponent(Component):
     """
     Input Component. All input components subclass this.
@@ -470,121 +515,6 @@ class InputComponent(Component):
             "optional": self.optional,
             **super().get_template_context(),
         }
-
-
-class Dataframe(InputComponent):
-    """
-    Component accepts 2D input through a spreadsheet interface.
-    Input type: Union[pandas.DataFrame, numpy.array, List[Union[str, float]], List[List[Union[str, float]]]]
-    Demos: filter_records, matrix_transpose, tax_calculator
-    """
-
-    def __init__(
-        self,
-        headers: Optional[List[str]] = None,
-        row_count: int = 3,
-        col_count: Optional[int] = 3,
-        datatype: str | List[str] = "str",
-        col_width: int | List[int] = None,
-        default: Optional[List[List[Any]]] = None,
-        type: str = "pandas",
-        label: Optional[str] = None,
-        optional: bool = False,
-    ):
-        """
-        Parameters:
-        headers (List[str]): Header names to dataframe. If None, no headers are shown.
-        row_count (int): Limit number of rows for input.
-        col_count (int): Limit number of columns for input. If equal to 1, return data will be one-dimensional. Ignored if `headers` is provided.
-        datatype (Union[str, List[str]]): Datatype of values in sheet. Can be provided per column as a list of strings, or for the entire sheet as a single string. Valid datatypes are "str", "number", "bool", and "date".
-        col_width (Union[int, List[int]]): Width of columns in pixels. Can be provided as single value or list of values per column.
-        default (List[List[Any]]): Default value
-        type (str): Type of value to be returned by component. "pandas" for pandas dataframe, "numpy" for numpy array, or "array" for a Python array.
-        label (str): component name in interface.
-        optional (bool): this parameter is ignored.
-        """
-        self.headers = headers
-        self.datatype = datatype
-        self.row_count = row_count
-        self.col_count = len(headers) if headers else col_count
-        self.col_width = col_width
-        self.type = type
-        self.default = (
-            default
-            if default is not None
-            else [[None for _ in range(self.col_count)] for _ in range(self.row_count)]
-        )
-        sample_values = {
-            "str": "abc",
-            "number": 786,
-            "bool": True,
-            "date": "02/08/1993",
-        }
-        column_dtypes = (
-            [datatype] * self.col_count if isinstance(datatype, str) else datatype
-        )
-        self.test_input = [
-            [sample_values[c] for c in column_dtypes] for _ in range(row_count)
-        ]
-
-        super().__init__(label)
-
-    def get_template_context(self):
-        return {
-            "headers": self.headers,
-            "datatype": self.datatype,
-            "row_count": self.row_count,
-            "col_count": self.col_count,
-            "col_width": self.col_width,
-            "default": self.default,
-            **super().get_template_context(),
-        }
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "dataframe": {"type": "pandas"},
-            "numpy": {"type": "numpy"},
-            "matrix": {"type": "array"},
-            "list": {"type": "array", "col_count": 1},
-        }
-
-    def preprocess(self, x: List[List[str | Number | bool]]):
-        """
-        Parameters:
-        x (List[List[Union[str, number, bool]]]): 2D array of str, numeric, or bool data
-        Returns:
-        (Union[pandas.DataFrame, numpy.array, List[Union[str, float]], List[List[Union[str, float]]]]): Dataframe in requested format
-        """
-        if self.type == "pandas":
-            if self.headers:
-                return pd.DataFrame(x, columns=self.headers)
-            else:
-                return pd.DataFrame(x)
-        if self.col_count == 1:
-            x = [row[0] for row in x]
-        if self.type == "numpy":
-            return np.array(x)
-        elif self.type == "array":
-            return x
-        else:
-            raise ValueError(
-                "Unknown type: "
-                + str(self.type)
-                + ". Please choose from: 'pandas', 'numpy', 'array'."
-            )
-
-    def save_flagged(self, dir, label, data, encryption_key):
-        """
-        Returns: (List[List[Union[str, float]]]) 2D array
-        """
-        return json.dumps(data)
-
-    def restore_flagged(self, dir, data, encryption_key):
-        return json.loads(data)
-
-    def generate_sample(self):
-        return [[1, 2, 3], [4, 5, 6]]
 
 
 class Timeseries(InputComponent):

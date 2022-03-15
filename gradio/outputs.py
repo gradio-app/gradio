@@ -21,7 +21,7 @@ import PIL
 from ffmpy import FFmpeg
 
 from gradio import processing_utils
-from gradio.components import Audio, Component, File, Image, Textbox, Video
+from gradio.components import Audio, Component, Dataframe, File, Image, Textbox, Video
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio import Interface
@@ -122,6 +122,45 @@ class File(File):
             DeprecationWarning,
         )
         super().__init__(label=label)
+
+
+class Dataframe(Dataframe):
+    """
+    Component displays 2D output through a spreadsheet interface.
+    Output type: Union[pandas.DataFrame, numpy.array, List[Union[str, float]], List[List[Union[str, float]]]]
+    Demos: filter_records, matrix_transpose, fraud_detector
+    """
+
+    def __init__(
+        self,
+        headers: Optional[List[str]] = None,
+        max_rows: Optional[int] = 20,
+        max_cols: Optional[int] = None,
+        overflow_row_behaviour: str = "paginate",
+        type: str = "auto",
+        label: Optional[str] = None,
+    ):
+        """
+        Parameters:
+        headers (List[str]): Header names to dataframe. Only applicable if type is "numpy" or "array".
+        max_rows (int): Maximum number of rows to display at once. Set to None for infinite.
+        max_cols (int): Maximum number of columns to display at once. Set to None for infinite.
+        overflow_row_behaviour (str): If set to "paginate", will create pages for overflow rows. If set to "show_ends", will show initial and final rows and truncate middle rows.
+        type (str): Type of value to be passed to component. "pandas" for pandas dataframe, "numpy" for numpy array, or "array" for Python array, "auto" detects return type.
+        label (str): component name in interface.
+        """
+        warnings.warn(
+            "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
+            DeprecationWarning,
+        )
+        super().__init__(
+            headers=headers,
+            max_rows=max_rows,
+            max_cols=max_cols,
+            overflow_row_behaviour=overflow_row_behaviour,
+            type=type,
+            label=label,
+        )
 
 
 class OutputComponent(Component):
@@ -415,94 +454,6 @@ class HTML(OutputComponent):
         return {
             "html": {},
         }
-
-
-class Dataframe(OutputComponent):
-    """
-    Component displays 2D output through a spreadsheet interface.
-    Output type: Union[pandas.DataFrame, numpy.array, List[Union[str, float]], List[List[Union[str, float]]]]
-    Demos: filter_records, matrix_transpose, fraud_detector
-    """
-
-    def __init__(
-        self,
-        headers: Optional[List[str]] = None,
-        max_rows: Optional[int] = 20,
-        max_cols: Optional[int] = None,
-        overflow_row_behaviour: str = "paginate",
-        type: str = "auto",
-        label: Optional[str] = None,
-    ):
-        """
-        Parameters:
-        headers (List[str]): Header names to dataframe. Only applicable if type is "numpy" or "array".
-        max_rows (int): Maximum number of rows to display at once. Set to None for infinite.
-        max_cols (int): Maximum number of columns to display at once. Set to None for infinite.
-        overflow_row_behaviour (str): If set to "paginate", will create pages for overflow rows. If set to "show_ends", will show initial and final rows and truncate middle rows.
-        type (str): Type of value to be passed to component. "pandas" for pandas dataframe, "numpy" for numpy array, or "array" for Python array, "auto" detects return type.
-        label (str): component name in interface.
-        """
-        self.headers = headers
-        self.max_rows = max_rows
-        self.max_cols = max_cols
-        self.overflow_row_behaviour = overflow_row_behaviour
-        self.type = type
-        super().__init__(label)
-
-    def get_template_context(self):
-        return {
-            "headers": self.headers,
-            "max_rows": self.max_rows,
-            "max_cols": self.max_cols,
-            "overflow_row_behaviour": self.overflow_row_behaviour,
-            **super().get_template_context(),
-        }
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "dataframe": {},
-            "numpy": {"type": "numpy"},
-            "matrix": {"type": "array"},
-            "list": {"type": "array"},
-        }
-
-    def postprocess(self, y):
-        """
-        Parameters:
-        y (Union[pandas.DataFrame, numpy.array, List[Union[str, float]], List[List[Union[str, float]]]]): dataframe in given format
-        Returns:
-        (Dict[headers: List[str], data: List[List[Union[str, number]]]]): JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
-        """
-        if self.type == "auto":
-            if isinstance(y, pd.core.frame.DataFrame):
-                dtype = "pandas"
-            elif isinstance(y, np.ndarray):
-                dtype = "numpy"
-            elif isinstance(y, list):
-                dtype = "array"
-        else:
-            dtype = self.type
-        if dtype == "pandas":
-            return {"headers": list(y.columns), "data": y.values.tolist()}
-        elif dtype in ("numpy", "array"):
-            if dtype == "numpy":
-                y = y.tolist()
-            if len(y) == 0 or not isinstance(y[0], list):
-                y = [y]
-            return {"data": y}
-        else:
-            raise ValueError(
-                "Unknown type: "
-                + self.type
-                + ". Please choose from: 'pandas', 'numpy', 'array'."
-            )
-
-    def save_flagged(self, dir, label, data, encryption_key):
-        return json.dumps(data["data"])
-
-    def restore_flagged(self, dir, data, encryption_key):
-        return {"data": json.loads(data)}
 
 
 class Carousel(OutputComponent):
