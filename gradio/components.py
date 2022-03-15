@@ -14,7 +14,7 @@ import pandas as pd
 import PIL
 from ffmpy import FFmpeg
 
-from gradio import processing_utils, test_data
+from gradio import Interface, processing_utils, test_data
 from gradio.blocks import Block
 
 
@@ -1946,3 +1946,56 @@ class Timeseries(Component):
         (Dict[headers: List[str], data: List[List[Union[str, number]]]]): JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
         """
         return {"headers": y.columns.values.tolist(), "data": y.values.tolist()}
+
+
+class State(Component):
+    """
+    Special hidden component that stores state across runs of the interface.
+
+    Input type: Any
+    Output type: Any
+    Demos: chatbot
+    """
+
+    def __init__(self, default: Any = None, *, label: str = None, **kwargs):
+        """
+        Parameters:
+        default (Any): the initial value of the state.
+        label (str): component name in interface (not used).
+        """
+        self.default = default
+        super().__init__(label=label, **kwargs)
+
+    def get_template_context(self):
+        return {"default": self.default, **super().get_template_context()}
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "state": {},
+        }
+
+
+def get_component_instance(iface: Interface):
+    # TODO: function may not work properly, and it needs updates regarding its design. See:
+    # https://github.com/gradio-app/gradio/issues/731
+    if isinstance(iface, str):
+        shortcut = Component.get_all_shortcut_implementations()[iface]
+        return shortcut[0](**shortcut[1])
+    elif isinstance(
+        iface, dict
+    ):  # a dict with `name` as the input component type and other keys as parameters
+        name = iface.pop("name")
+        for component in Component.__subclasses__():
+            if component.__name__.lower() == name:
+                break
+        else:
+            raise ValueError("No such InputComponent: {}".format(name))
+        return component(**iface)
+    elif isinstance(iface, Component):
+        return iface
+    else:
+        raise ValueError(
+            "Input interface must be of type `str` or `dict` or "
+            "`InputComponent` but is {}".format(iface)
+        )
