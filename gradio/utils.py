@@ -215,29 +215,34 @@ def get_config_file(interface: Interface) -> Dict[str, Any]:
     }
     try:
         param_names = inspect.getfullargspec(interface.predict[0])[0]
-        for iface, param in zip(config["input_components"], param_names):
+        for i, iface in enumerate(config["input_components"]):
             if not iface["label"]:
-                iface["label"] = param.replace("_", " ")
+                if i < len(param_names):
+                    iface["label"] = param_names[i].replace("_", " ")
+                else:
+                    iface["label"] = (
+                        f"input {i + 1}" 
+                        if len(config["input_components"]) > 1
+                        else "input"
+                    )
         for i, iface in enumerate(config["output_components"]):
             outputs_per_function = int(
                 len(interface.output_components) / len(interface.predict)
             )
             function_index = i // outputs_per_function
             component_index = i - function_index * outputs_per_function
-            ret_name = (
-                "Output " + str(component_index + 1)
-                if outputs_per_function > 1
-                else "Output"
-            )
             if iface["label"] is None:
-                iface["label"] = ret_name
+                iface["label"] = (
+                    f"output {component_index + 1}"
+                    if outputs_per_function > 1
+                    else "output"
+                )
             if len(interface.predict) > 1:
                 iface["label"] = (
                     interface.function_names[function_index].replace("_", " ")
                     + ": "
                     + iface["label"]
                 )
-
     except ValueError:
         pass
     if interface.examples is not None:
