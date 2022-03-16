@@ -3,4 +3,4 @@
 	export let value: Array<[string, string]>;
 </script>
 
-<ChatBot {value} />
+<ChatBot {value} on:change />

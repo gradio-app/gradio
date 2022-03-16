@@ -20,6 +20,9 @@
 	export let or_text: string = "or";
 	export let upload_text: string = "click to upload";
 
+	// TODO: make use of this
+	export let type: "normal" | "numpy" = "normal";
+
 	let recording = false;
 	let recorder: MediaRecorder;
 	let mode = "";
@@ -31,6 +34,10 @@
 
 	const dispatch = createEventDispatcher<{
 		change: AudioData;
+		edit: AudioData;
+		play: undefined;
+		pause: undefined;
+		ended: undefined;
 	}>();
 
 	function blob_to_data_url(blob: Blob): Promise<string> {
@@ -123,6 +130,8 @@
 			crop_min: values[0],
 			crop_max: values[1]
 		});
+
+		dispatch("edit");
 	}
 
 	function handle_load({
@@ -176,6 +185,9 @@
 			bind:this={player}
 			preload="metadata"
 			src={value.data}
+			on:play
+			on:pause
+			on:ended
 		/>
 
 		{#if mode === "edit" && player?.duration}
