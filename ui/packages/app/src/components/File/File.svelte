@@ -8,7 +8,7 @@
 </script>
 
 {#if mode === "static"}
-	<FileUpload bind:value {theme} on:change />
+	<FileUpload bind:value {theme} on:change on:clear />
 {:else if value}
 	<File {value} {theme} />
 {/if}

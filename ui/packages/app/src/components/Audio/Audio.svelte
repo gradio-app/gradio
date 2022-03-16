@@ -7,15 +7,21 @@
 	export let theme: string;
 	export let name: string;
 	export let source: "microphone" | "upload";
+	export let type: "normal" | "numpy" = "normal";
 </script>
 
-{#if mode === "static"}
+{#if mode === "dynamic"}
 	<Audio
 		{value}
 		{theme}
 		{name}
 		{source}
+		{type}
 		on:change={({ detail }) => (value = detail)}
+		on:edit
+		on:play
+		on:pause
+		on:ended
 	/>
 {:else if value}
 	<audio {theme} controls>

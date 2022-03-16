@@ -5,4 +5,4 @@
 	export let mode: "static" | "dynamic";
 </script>
 
-<Number bind:value {theme} on:change disabled={mode === "static"} />
+<Number bind:value {theme} disabled={mode === "static"} on:change on:submit />

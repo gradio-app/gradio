@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { createEventDispatcher } from "svelte";
 	import { Image } from "@gradio/image";
 
 	export let value: null | string = null;
@@ -7,6 +8,10 @@
 	export let tool: "editor" | "select" = "editor";
 
 	export let mode: "static" | "dynamic";
+
+	const dispatch = createEventDispatcher<{ change: undefined }>();
+
+	$: value, dispatch("change");
 </script>
 
 {#if mode === "static"}
@@ -18,5 +23,5 @@
 		<img class="w-full h-full object-contain" src={value} />
 	</div>
 {:else}
-	<Image bind:value {theme} {source} {tool} on:change />
+	<Image bind:value {theme} {source} {tool} on:edit on:clear on:change />
 {/if}

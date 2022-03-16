@@ -7,7 +7,8 @@
 	export let lines: number = 1;
 	export let placeholder: string = "";
 
-	const dispatch = createEventDispatcher<{ change: string }>();
+	const dispatch =
+		createEventDispatcher<{ change: string; submit: undefined }>();
 
 	type CustomInputEvent =
 		| (Event & {
@@ -21,7 +22,15 @@
 		dispatch("change", event?.target?.value);
 	}
 
+	function handle_keypress(e: KeyboardEvent) {
+		if (e.key === "Enter" && lines === 1) {
+			e.preventDefault();
+			dispatch("submit");
+		}
+	}
+
 	const debounced_handle_change = debounce(handle_change, 500);
+	const debounced_handle_keypress = debounce(handle_keypress, 500);
 </script>
 
 {#if lines > 1}
@@ -40,6 +49,7 @@
 		{placeholder}
 		on:input={debounced_handle_change}
 		{theme}
+		on:keypress={debounced_handle_keypress}
 	/>
 {/if}
 

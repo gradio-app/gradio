@@ -1,8 +1,10 @@
 <script lang="ts">
-	import { beforeUpdate, afterUpdate } from "svelte";
+	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
 	export let value: Array<[string, string]>;
 	let div: HTMLDivElement;
 	let autoscroll: Boolean;
+
+	const dispatch = createEventDispatcher<{ change: undefined }>();
 
 	beforeUpdate(() => {
 		autoscroll =
@@ -12,6 +14,8 @@
 	afterUpdate(() => {
 		if (autoscroll) div.scrollTo(0, div.scrollHeight);
 	});
+
+	$: value && dispatch("change");
 </script>
 
 <div

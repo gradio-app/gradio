@@ -27,14 +27,20 @@
 
 	function handle_clear({ detail }: CustomEvent<null>) {
 		value = null;
+		dispatch("clear");
 	}
 
 	function handle_save({ detail }: { detail: string }) {
 		value = detail;
 		mode = "view";
+		dispatch("edit");
 	}
 
-	const dispatch = createEventDispatcher<{ change: string | null }>();
+	const dispatch = createEventDispatcher<{
+		change: string | null;
+		edit: undefined;
+		clear: undefined;
+	}>();
 
 	$: dispatch("change", value);
 </script>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { createEventDispatcher } from "svelte";
 	import { Upload } from "@gradio/upload";
 	import type { FileData } from "@gradio/upload";
 	import { Chart } from "@gradio/chart";
@@ -9,6 +10,8 @@
 			r.reduce((acc, next, i) => ({ ...acc, [val.headers[i]]: next }), {})
 		);
 	}
+
+	const dispatch = createEventDispatcher<{ change: undefined }>();
 
 	interface StaticData {
 		data: Array<Array<number>>;
@@ -94,6 +97,8 @@
 
 	$: _value = value == null ? null : _value;
 	$: static_data = is_static && format_value(value as StaticData);
+
+	$: value, dispatch("change");
 </script>
 
 {#if is_static && static_data}
