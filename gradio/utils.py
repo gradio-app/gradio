@@ -221,7 +221,7 @@ def get_config_file(interface: Interface) -> Dict[str, Any]:
                     iface["label"] = param_names[i].replace("_", " ")
                 else:
                     iface["label"] = (
-                        f"input {i + 1}" 
+                        f"input {i + 1}"
                         if len(config["input_components"]) > 1
                         else "input"
                     )
