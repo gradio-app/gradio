@@ -330,7 +330,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
                 for i, component in enumerate(interface.input_components):
                     component_label = interface.config["input_components"][i][
                         "label"
-                    ] or "Input_{}".format(i)
+                    ] or "input_{}".format(i)
                     headers.append(component_label)
                     infos["flagged"]["features"][component_label] = {
                         "dtype": "string",
@@ -348,7 +348,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
                 for i, component in enumerate(interface.output_components):
                     component_label = interface.config["output_components"][i][
                         "label"
-                    ] or "Output_{}".format(i)
+                    ] or "output_{}".format(i)
                     headers.append(component_label)
                     infos["flagged"]["features"][component_label] = {
                         "dtype": "string",
@@ -377,7 +377,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             for i, component in enumerate(interface.input_components):
                 label = interface.config["input_components"][i][
                     "label"
-                ] or "Input_{}".format(i)
+                ] or "input_{}".format(i)
                 filepath = component.save_flagged(
                     self.dataset_dir, label, input_data[i], None
                 )
@@ -389,7 +389,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             for i, component in enumerate(interface.output_components):
                 label = interface.config["output_components"][i][
                     "label"
-                ] or "Output_{}".format(i)
+                ] or "output_{}".format(i)
                 filepath = (
                     component.save_flagged(
                         self.dataset_dir, label, output_data[i], None
