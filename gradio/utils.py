@@ -287,4 +287,3 @@ def get_default_args(func: Callable) -> Dict[str, Any]:
         v.default if v.default is not inspect.Parameter.empty else None
         for v in signature.parameters.values()
     ]
-

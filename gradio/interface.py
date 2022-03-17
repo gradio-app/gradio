@@ -585,8 +585,8 @@ class Interface(Launchable):
         else:
             updated_state = None
 
-        durations= durations
-        avg_durations= self.config.get("avg_durations")
+        durations = durations
+        avg_durations = self.config.get("avg_durations")
         response = {
             "data": prediction,
             "flag_index": flag_index,
