@@ -12,6 +12,7 @@
 	import "./themes/huggingface.css";
 	import "./themes/grass.css";
 	import "./themes/peach.css";
+	import "./themes/seafoam.css";
 	import "./themes/typography.min.css";
 	import { _ } from "svelte-i18n";
 	import { setupi18n } from "./i18n";
