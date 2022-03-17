@@ -1976,6 +1976,18 @@ class State(Component):
         }
 
 
+# Only Output Components
+
+
+# Static Components
+class Markdown(Component):
+    pass
+
+
+class Button(Component):
+    pass
+
+
 def get_component_instance(iface: Interface):
     # TODO: function may not work properly, and it needs updates regarding its design. See:
     # https://github.com/gradio-app/gradio/issues/731
