@@ -313,7 +313,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         infos = {"flagged": {"features": {}}}
 
         with open(self.log_file, "a", newline="") as csvfile:
-            writer = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC, quotechar="'")
+            writer = csv.writer(csvfile)
 
             # File previews for certain input and output types
             file_preview_types = {
