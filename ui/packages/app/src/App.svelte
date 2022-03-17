@@ -30,6 +30,7 @@
 	export let input_components: Array<Component>;
 	export let output_components: Array<Component>;
 	export let examples: Array<Array<unknown>>;
+	export let examples_per_page: number;
 	export let fn: (...args: any) => Promise<unknown>;
 	export let root: string;
 	export let space: string | undefined = undefined;
@@ -66,6 +67,7 @@
 				{input_components}
 				{output_components}
 				{examples}
+				{examples_per_page}
 				{theme}
 				{fn}
 				{root}
