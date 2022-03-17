@@ -509,7 +509,7 @@ class Slider(Component):
         if step is None:
             difference = maximum - minimum
             power = math.floor(math.log10(difference) - 2)
-            step = 10**power
+            step = 10 ** power
         self.step = step
         self.default = minimum if default is None else default
         self.test_input = self.default
@@ -1283,7 +1283,7 @@ class Video(Component):
         file_name = file.name
         uploaded_format = file_name.split(".")[-1].lower()
         if self.type is not None and uploaded_format != self.type:
-            output_file_name = file_name[0 : file_name.rindex(".") + 1] + self.type
+            output_file_name = file_name[0: file_name.rindex(".") + 1] + self.type
             ff = FFmpeg(inputs={file_name: None}, outputs={output_file_name: None})
             ff.run()
             return output_file_name
@@ -1313,7 +1313,7 @@ class Video(Component):
         """
         returned_format = y.split(".")[-1].lower()
         if self.type is not None and returned_format != self.type:
-            output_file_name = y[0 : y.rindex(".") + 1] + self.type
+            output_file_name = y[0: y.rindex(".") + 1] + self.type
             ff = FFmpeg(inputs={y: None}, outputs={output_file_name: None})
             ff.run()
             y = output_file_name
@@ -2376,12 +2376,14 @@ class Chatbot(Component):
 # Static Components
 class Markdown(Component):
     # TODO: might add default parameter to initilization, WDYT Ali Abid?
-    pass
+    def __init__(self, label):
+        super().__init__(label=label)
 
 
 class Button(Component):
     # TODO: might add default parameter to initilization, WDYT Ali Abid?
-    pass
+    def __init__(self, label):
+        super().__init__(label=label)
 
 
 # TODO: (faruk) does this take component or interface as a input?
