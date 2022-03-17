@@ -215,33 +215,33 @@ def get_config_file(interface: Interface) -> Dict[str, Any]:
     }
     try:
         param_names = inspect.getfullargspec(interface.predict[0])[0]
-        for i, iface in enumerate(config["input_components"]):
-            if not iface["label"]:
-                if i < len(param_names):
-                    iface["label"] = param_names[i].replace("_", " ")
+        for index, component in enumerate(config["input_components"]):
+            if not component["label"]:
+                if index < len(param_names):
+                    component["label"] = param_names[i].replace("_", " ")
                 else:
-                    iface["label"] = (
-                        f"input {i + 1}"
+                    component["label"] = (
+                        f"input {index + 1}"
                         if len(config["input_components"]) > 1
                         else "input"
                     )
-        for i, iface in enumerate(config["output_components"]):
+        for index, component in enumerate(config["output_components"]):
             outputs_per_function = int(
                 len(interface.output_components) / len(interface.predict)
             )
-            function_index = i // outputs_per_function
-            component_index = i - function_index * outputs_per_function
-            if iface["label"] is None:
-                iface["label"] = (
+            function_index = index // outputs_per_function
+            component_index = index - function_index * outputs_per_function
+            if component["label"] is None:
+                component["label"] = (
                     f"output {component_index + 1}"
                     if outputs_per_function > 1
                     else "output"
                 )
             if len(interface.predict) > 1:
-                iface["label"] = (
+                component["label"] = (
                     interface.function_names[function_index].replace("_", " ")
                     + ": "
-                    + iface["label"]
+                    + component["label"]
                 )
     except ValueError:
         pass
