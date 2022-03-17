@@ -13,6 +13,7 @@
 	import "./themes/grass.css";
 	import "./themes/peach.css";
 	import "./themes/seafoam.css";
+	import "./themes/typography.min.css";
 	import { _ } from "svelte-i18n";
 	import { setupi18n } from "./i18n";
 	setupi18n();
@@ -61,7 +62,7 @@
 				<h1 class="title text-center p-4 text-4xl">{title}</h1>
 			{/if}
 			{#if description}
-				<p class="description pb-4">{@html description}</p>
+				<p class="description prose pb-4">{@html description}</p>
 			{/if}
 			<Interface
 				{input_components}
