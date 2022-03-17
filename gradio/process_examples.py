@@ -54,7 +54,7 @@ def cache_interface_examples(interface: Interface) -> None:
 def load_from_cache(interface: Interface, example_id: int) -> List[Any]:
     """Loads a particular cached example for the interface."""
     with open(CACHE_FILE) as cache:
-        examples = list(csv.reader(cache))
+        examples = list(csv.reader(cache, quotechar="'"))
     example = examples[example_id + 1]  # +1 to adjust for header
     output = []
     for component, cell in zip(interface.output_components, example):
