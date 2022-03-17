@@ -2,7 +2,6 @@
 	export let value: number;
 	export let setValue: (val: number) => number;
 	export let theme: string;
-
 </script>
 
 <input
