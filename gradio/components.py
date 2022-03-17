@@ -1989,7 +1989,7 @@ class Label(Component):
 
     def __init__(
         self,
-        default="",
+        default: str = "",
         *,
         num_top_classes: Optional[int] = None,
         type: str = "auto",
@@ -2086,6 +2086,294 @@ class Label(Component):
             return data
 
 
+class KeyValues(Component):
+    """
+    Component displays a table representing values for multiple fields.
+    Output type: Union[Dict, List[Tuple[str, Union[str, int, float]]]]
+    Demos: text_analysis
+    """
+
+    def __init__(self, default: str = " ", *, label: Optional[str] = None, **kwargs):
+        """
+        Parameters:
+        default (str): IGNORED
+        label (str): component name in interface.
+        """
+        super().__init__(label=label, **kwargs)
+
+    def postprocess(self, y):
+        """
+        Parameters:
+        y (Union[Dict, List[Tuple[str, Union[str, int, float]]]]): dictionary or tuple list representing key value pairs
+        Returns:
+        (List[Tuple[str, Union[str, number]]]): list of key value pairs
+        """
+        if isinstance(y, dict):
+            return list(y.items())
+        elif isinstance(y, list):
+            return y
+        else:
+            raise ValueError(
+                "The `KeyValues` output interface expects an output that is a dictionary whose keys are "
+                "labels and values are corresponding values."
+            )
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "key_values": {},
+        }
+
+    def save_flagged(self, dir, label, data, encryption_key):
+        return json.dumps(data)
+
+    def restore_flagged(self, dir, data, encryption_key):
+        return json.loads(data)
+
+
+class HighlightedText(Component):
+    """
+    Component creates text that contains spans that are highlighted by category or numerical value.
+    Output is represent as a list of Tuple pairs, where the first element represents the span of text represented by the tuple, and the second element represents the category or value of the text.
+    Output type: List[Tuple[str, Union[float, str]]]
+    Demos: diff_texts, text_analysis
+    """
+
+    def __init__(
+        self,
+        default: str = "",
+        *,
+        color_map: Dict[str, str] = None,
+        label: Optional[str] = None,
+        show_legend: bool = False,
+        **kwargs,
+    ):
+        """
+        Parameters:
+        default (str): IGNORED
+        color_map (Dict[str, str]): Map between category and respective colors
+        label (str): component name in interface.
+        show_legend (bool): whether to show span categories in a separate legend or inline.
+        """
+        self.color_map = color_map
+        self.show_legend = show_legend
+        super().__init__(label=label, **kwargs)
+
+    def get_template_context(self):
+        return {
+            "color_map": self.color_map,
+            "show_legend": self.show_legend,
+            **super().get_template_context(),
+        }
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "highlight": {},
+        }
+
+    def postprocess(self, y):
+        """
+        Parameters:
+        y (Union[Dict, List[Tuple[str, Union[str, int, float]]]]): dictionary or tuple list representing key value pairs
+        Returns:
+        (List[Tuple[str, Union[str, number]]]): list of key value pairs
+
+        """
+        return y
+
+    def save_flagged(self, dir, label, data, encryption_key):
+        return json.dumps(data)
+
+    def restore_flagged(self, dir, data, encryption_key):
+        return json.loads(data)
+
+
+class JSON(Component):
+    """
+    Used for JSON output. Expects a JSON string or a Python object that is JSON serializable.
+    Output type: Union[str, Any]
+    Demos: zip_to_json
+    """
+
+    def __init__(self, default: str = "", *, label: Optional[str] = None, **kwargs):
+        """
+        Parameters:
+        default (str): IGNORED
+        label (str): component name in interface.
+        """
+        super().__init__(label=label, **kwargs)
+
+    def postprocess(self, y):
+        """
+        Parameters:
+        y (Union[Dict, List, str]): JSON output
+        Returns:
+        (Union[Dict, List]): JSON output
+        """
+        if isinstance(y, str):
+            return json.dumps(y)
+        else:
+            return y
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "json": {},
+        }
+
+    def save_flagged(self, dir, label, data, encryption_key):
+        return json.dumps(data)
+
+    def restore_flagged(self, dir, data, encryption_key):
+        return json.loads(data)
+
+
+class HTML(Component):
+    """
+    Used for HTML output. Expects an HTML valid string.
+    Output type: str
+    Demos: text_analysis
+    """
+
+    def __init__(self, default: str = "", label: Optional[str] = None, **kwargs):
+        """
+        Parameters:
+        default (str): IGNORED
+        label (str): component name in interface.
+        """
+        super().__init__(label=label, **kwargs)
+
+    def postprocess(self, x):
+        """
+        Parameters:
+        y (str): HTML output
+        Returns:
+        (str): HTML output
+        """
+        return x
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "html": {},
+        }
+
+
+class Carousel(Component):
+    """
+    Component displays a set of output components that can be scrolled through.
+    Output type: List[List[Any]]
+    Demos: disease_report
+    """
+
+    def __init__(
+        self,
+        default="",
+        *,
+        components: Component | List[Component],
+        label: Optional[str] = None,
+        **kwargs,
+    ):
+        """
+        Parameters:
+        default (str): IGNORED
+        components (Union[List[OutputComponent], OutputComponent]): Classes of component(s) that will be scrolled through.
+        label (str): component name in interface.
+        """
+        if not isinstance(components, list):
+            components = [components]
+        self.components = [
+            get_component_instance(component) for component in components
+        ]
+        super().__init__(label=label, **kwargs)
+
+    def get_template_context(self):
+        return {
+            "components": [
+                component.get_template_context() for component in self.components
+            ],
+            **super().get_template_context(),
+        }
+
+    def postprocess(self, y):
+        """
+        Parameters:
+        y (List[List[Any]]): carousel output
+        Returns:
+        (List[List[Any]]): 2D array, where each sublist represents one set of outputs or 'slide' in the carousel
+        """
+        if isinstance(y, list):
+            if len(y) != 0 and not isinstance(y[0], list):
+                y = [[z] for z in y]
+            output = []
+            for row in y:
+                output_row = []
+                for i, cell in enumerate(row):
+                    output_row.append(self.components[i].postprocess(cell))
+                output.append(output_row)
+            return output
+        else:
+            raise ValueError("Unknown type. Please provide a list for the Carousel.")
+
+    def save_flagged(self, dir, label, data, encryption_key):
+        return json.dumps(
+            [
+                [
+                    component.save_flagged(
+                        dir, f"{label}_{j}", data[i][j], encryption_key
+                    )
+                    for j, component in enumerate(self.components)
+                ]
+                for i, _ in enumerate(data)
+            ]
+        )
+
+    def restore_flagged(self, dir, data, encryption_key):
+        return [
+            [
+                component.restore_flagged(dir, sample, encryption_key)
+                for component, sample in zip(self.components, sample_set)
+            ]
+            for sample_set in json.loads(data)
+        ]
+
+
+class Chatbot(Component):
+    """
+    Component displays a chatbot output showing both user submitted messages and responses
+    Output type: List[Tuple[str, str]]
+    Demos: chatbot
+    """
+
+    def __init__(self, default="", *, label: Optional[str] = None, **kwargs):
+        """
+        Parameters:
+        default (str): IGNORED
+        label (str): component name in interface (not used).
+        """
+        super().__init__(label=label, **kwargs)
+
+    def get_template_context(self):
+        return {**super().get_template_context()}
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "chatbot": {},
+        }
+
+    def postprocess(self, y):
+        """
+        Parameters:
+        y (List[Tuple[str, str]]): List of tuples representing the message and response
+        Returns:
+        (List[Tuple[str, str]]): Returns same list of tuples
+
+        """
+        return y
+
+
 # Static Components
 class Markdown(Component):
     # TODO: might add default parameter to initilization, WDYT Ali Abid?
@@ -2093,9 +2381,13 @@ class Markdown(Component):
 
 
 class Button(Component):
+    # TODO: might add default parameter to initilization, WDYT Ali Abid?
     pass
 
 
+# TODO: (faruk) does this take component or interface as a input?
+# see this line in Carousel
+# self.components = [get_component_instance(component) for component in components]
 def get_component_instance(iface: Interface):
     # TODO: function may not work properly, and it needs updates regarding its design. See:
     # https://github.com/gradio-app/gradio/issues/731
@@ -2110,12 +2402,11 @@ def get_component_instance(iface: Interface):
             if component.__name__.lower() == name:
                 break
         else:
-            raise ValueError("No such InputComponent: {}".format(name))
+            raise ValueError(f"No such Component: {name}")
         return component(**iface)
     elif isinstance(iface, Component):
         return iface
     else:
         raise ValueError(
-            "Input interface must be of type `str` or `dict` or "
-            "`InputComponent` but is {}".format(iface)
+            f"Input interface must be of type `str` or `dict` or `InputComponent` but is {iface}"
         )

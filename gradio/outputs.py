@@ -22,11 +22,17 @@ from ffmpy import FFmpeg
 
 from gradio import processing_utils
 from gradio.components import (
+    HTML,
+    JSON,
     Audio,
+    Carousel,
+    Chatbot,
     Component,
     Dataframe,
     File,
+    HighlightedText,
     Image,
+    KeyValues,
     Label,
     State,
     Textbox,
@@ -242,29 +248,7 @@ class Label(Label):
         super().__init__(num_top_classes=num_top_classes, type=type, label=label)
 
 
-class OutputComponent(Component):
-    """
-    Output Component. All output components subclass this.
-    """
-
-    def __init__(self, label: str):
-        self.component_type = "output"
-        super().__init__(label=label)
-
-    def postprocess(self, y):
-        """
-        Any postprocessing needed to be performed on function output.
-        """
-        return y
-
-    def deserialize(self, x):
-        """
-        Convert from serialized output (e.g. base64 representation) from a call() to the interface to a human-readable version of the output (path of an image, etc.)
-        """
-        return x
-
-
-class KeyValues(OutputComponent):
+class KeyValues(KeyValues):
     """
     Component displays a table representing values for multiple fields.
     Output type: Union[Dict, List[Tuple[str, Union[str, int, float]]]]
@@ -276,39 +260,14 @@ class KeyValues(OutputComponent):
         Parameters:
         label (str): component name in interface.
         """
-        super().__init__(label)
-
-    def postprocess(self, y):
-        """
-        Parameters:
-        y (Union[Dict, List[Tuple[str, Union[str, int, float]]]]): dictionary or tuple list representing key value pairs
-        Returns:
-        (List[Tuple[str, Union[str, number]]]): list of key value pairs
-        """
-        if isinstance(y, dict):
-            return list(y.items())
-        elif isinstance(y, list):
-            return y
-        else:
-            raise ValueError(
-                "The `KeyValues` output interface expects an output that is a dictionary whose keys are "
-                "labels and values are corresponding values."
-            )
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "key_values": {},
-        }
-
-    def save_flagged(self, dir, label, data, encryption_key):
-        return json.dumps(data)
-
-    def restore_flagged(self, dir, data, encryption_key):
-        return json.loads(data)
+        warnings.warn(
+            "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
+            DeprecationWarning,
+        )
+        super().__init__(label=label)
 
 
-class HighlightedText(OutputComponent):
+class HighlightedText(HighlightedText):
     """
     Component creates text that contains spans that are highlighted by category or numerical value.
     Output is represent as a list of Tuple pairs, where the first element represents the span of text represented by the tuple, and the second element represents the category or value of the text.
@@ -328,41 +287,14 @@ class HighlightedText(OutputComponent):
         label (str): component name in interface.
         show_legend (bool): whether to show span categories in a separate legend or inline.
         """
-        self.color_map = color_map
-        self.show_legend = show_legend
-        super().__init__(label)
-
-    def get_template_context(self):
-        return {
-            "color_map": self.color_map,
-            "show_legend": self.show_legend,
-            **super().get_template_context(),
-        }
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "highlight": {},
-        }
-
-    def postprocess(self, y):
-        """
-        Parameters:
-        y (Union[Dict, List[Tuple[str, Union[str, int, float]]]]): dictionary or tuple list representing key value pairs
-        Returns:
-        (List[Tuple[str, Union[str, number]]]): list of key value pairs
-
-        """
-        return y
-
-    def save_flagged(self, dir, label, data, encryption_key):
-        return json.dumps(data)
-
-    def restore_flagged(self, dir, data, encryption_key):
-        return json.loads(data)
+        warnings.warn(
+            "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
+            DeprecationWarning,
+        )
+        super().__init__(color_map=color_map, label=label, show_legend=show_legend)
 
 
-class JSON(OutputComponent):
+class JSON(JSON):
     """
     Used for JSON output. Expects a JSON string or a Python object that is JSON serializable.
     Output type: Union[str, Any]
@@ -374,34 +306,14 @@ class JSON(OutputComponent):
         Parameters:
         label (str): component name in interface.
         """
-        super().__init__(label)
-
-    def postprocess(self, y):
-        """
-        Parameters:
-        y (Union[Dict, List, str]): JSON output
-        Returns:
-        (Union[Dict, List]): JSON output
-        """
-        if isinstance(y, str):
-            return json.dumps(y)
-        else:
-            return y
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "json": {},
-        }
-
-    def save_flagged(self, dir, label, data, encryption_key):
-        return json.dumps(data)
-
-    def restore_flagged(self, dir, data, encryption_key):
-        return json.loads(data)
+        warnings.warn(
+            "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
+            DeprecationWarning,
+        )
+        super().__init__(label=label)
 
 
-class HTML(OutputComponent):
+class HTML(HTML):
     """
     Used for HTML output. Expects an HTML valid string.
     Output type: str
@@ -413,25 +325,10 @@ class HTML(OutputComponent):
         Parameters:
         label (str): component name in interface.
         """
-        super().__init__(label)
-
-    def postprocess(self, x):
-        """
-        Parameters:
-        y (str): HTML output
-        Returns:
-        (str): HTML output
-        """
-        return x
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "html": {},
-        }
+        super().__init__(label=label)
 
 
-class Carousel(OutputComponent):
+class Carousel(Carousel):
     """
     Component displays a set of output components that can be scrolled through.
     Output type: List[List[Any]]
@@ -440,7 +337,7 @@ class Carousel(OutputComponent):
 
     def __init__(
         self,
-        components: OutputComponent | List[OutputComponent],
+        components: Component | List[Component],
         label: Optional[str] = None,
     ):
         """
@@ -448,10 +345,11 @@ class Carousel(OutputComponent):
         components (Union[List[OutputComponent], OutputComponent]): Classes of component(s) that will be scrolled through.
         label (str): component name in interface.
         """
-        if not isinstance(components, list):
-            components = [components]
-        self.components = [get_output_instance(component) for component in components]
-        super().__init__(label)
+        warnings.warn(
+            "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
+            DeprecationWarning,
+        )
+        super().__init__(label=label, components=components)
 
     def get_template_context(self):
         return {
@@ -504,7 +402,7 @@ class Carousel(OutputComponent):
         ]
 
 
-class Chatbot(OutputComponent):
+class Chatbot(Chatbot):
     """
     Component displays a chatbot output showing both user submitted messages and responses
     Output type: List[Tuple[str, str]]
@@ -516,7 +414,11 @@ class Chatbot(OutputComponent):
         Parameters:
         label (str): component name in interface (not used).
         """
-        super().__init__(label)
+        warnings.warn(
+            "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
+            DeprecationWarning,
+        )
+        super().__init__(label=label)
 
     def get_template_context(self):
         return {**super().get_template_context()}
@@ -536,25 +438,3 @@ class Chatbot(OutputComponent):
 
         """
         return y
-
-
-def get_output_instance(iface: Interface):
-    if isinstance(iface, str):
-        shortcut = OutputComponent.get_all_shortcut_implementations()[iface]
-        return shortcut[0](**shortcut[1])
-    # a dict with `name` as the output component type and other keys as parameters
-    elif isinstance(iface, dict):
-        name = iface.pop("name")
-        for component in OutputComponent.__subclasses__():
-            if component.__name__.lower() == name:
-                break
-        else:
-            raise ValueError("No such OutputComponent: {}".format(name))
-        return component(**iface)
-    elif isinstance(iface, OutputComponent):
-        return iface
-    else:
-        raise ValueError(
-            "Output interface must be of type `str` or `dict` or"
-            "`OutputComponent` but is {}".format(iface)
-        )
