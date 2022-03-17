@@ -98,7 +98,7 @@ class SimpleCSVLogger(FlaggingCallback):
             )
 
         with open(log_filepath, "a", newline="") as csvfile:
-            writer = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC)
+            writer = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC, quotechar="'")
             writer.writerow(csv_data)
 
         with open(log_filepath, "r") as csvfile:
@@ -185,7 +185,7 @@ class CSVLogger(FlaggingCallback):
             flag_col_index = header.index("flag")
             content[flag_index][flag_col_index] = flag_option
             output = io.StringIO()
-            writer = csv.writer(output)
+            writer = csv.writer(output, quoting=csv.QUOTE_NONNUMERIC, quotechar="'")
             writer.writerows(content)
             return output.getvalue()
 
@@ -201,7 +201,7 @@ class CSVLogger(FlaggingCallback):
                     if flag_index is not None:
                         file_content = replace_flag_at_index(file_content)
                     output.write(file_content)
-            writer = csv.writer(output)
+            writer = csv.writer(output, quoting=csv.QUOTE_NONNUMERIC, quotechar="'")
             if flag_index is None:
                 if is_new:
                     writer.writerow(headers)
@@ -215,7 +215,7 @@ class CSVLogger(FlaggingCallback):
         else:
             if flag_index is None:
                 with open(log_fp, "a", newline="") as csvfile:
-                    writer = csv.writer(csvfile)
+                    writer = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC, quotechar="'")
                     if is_new:
                         writer.writerow(headers)
                     writer.writerow(csv_data)
@@ -311,7 +311,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         infos = {"flagged": {"features": {}}}
 
         with open(self.log_file, "a", newline="") as csvfile:
-            writer = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC)
+            writer = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC, quotechar="'")
 
             # File previews for certain input and output types
             file_preview_types = {
