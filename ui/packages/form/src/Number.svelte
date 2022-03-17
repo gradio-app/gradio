@@ -6,13 +6,22 @@
 	export let theme: string = "default";
 	export let disabled: boolean = false;
 
-	const dispatch = createEventDispatcher<{ change: number }>();
+	const dispatch =
+		createEventDispatcher<{ change: number; submit: undefined }>();
 
 	function handle_change(n: number) {
 		dispatch("change", n);
 	}
 
+	function handle_keypress(e: KeyboardEvent) {
+		if (e.key === "Enter") {
+			e.preventDefault();
+			dispatch("submit");
+		}
+	}
+
 	const debounced_handle_change = debounce(handle_change, 500);
+	const debounced_handle_keypress = debounce(handle_keypress, 500);
 
 	$: debounced_handle_change(value);
 </script>
@@ -22,6 +31,7 @@
 	class="input-number w-full rounded box-border p-2 focus:outline-none appearance-none"
 	bind:value
 	{theme}
+	on:keypress={debounced_handle_keypress}
 />
 
 <style lang="postcss" global>

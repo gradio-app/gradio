@@ -17,7 +17,7 @@
 		{value}
 	</div>
 {:else}
-	<TextBox bind:value {theme} {lines} {placeholder} on:change />
+	<TextBox bind:value {theme} {lines} {placeholder} on:change on:submit />
 {/if}
 
 <style lang="postcss" global>

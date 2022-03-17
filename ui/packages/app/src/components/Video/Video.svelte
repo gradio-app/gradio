@@ -44,5 +44,8 @@
 		or_text={$_("interface.or")}
 		upload_text={$_("interface.click_to_upload")}
 		on:change
+		on:clear
+		on:play
+		on:pause
 	/>
 {/if}

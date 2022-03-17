@@ -4,6 +4,6 @@
 	export let theme: string;
 </script>
 
-<Carousel {theme}>
+<Carousel {theme} on:change>
 	<slot />
 </Carousel>

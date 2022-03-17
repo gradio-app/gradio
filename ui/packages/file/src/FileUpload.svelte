@@ -10,6 +10,7 @@
 	export let drop_text: string = "Drop an audio file";
 	export let or_text: string = "or";
 	export let upload_text: string = "click to upload";
+	let file_count: string;
 
 	function handle_upload({ detail }: CustomEvent<FileData>) {
 		value = detail;
@@ -17,9 +18,11 @@
 
 	function handle_clear({ detail }: CustomEvent<null>) {
 		value = null;
+		dispatch("clear");
 	}
 
-	const dispatch = createEventDispatcher<{ change: FileData | null }>();
+	const dispatch =
+		createEventDispatcher<{ change: FileData | null; clear: undefined }>();
 
 	$: dispatch("change", value);
 </script>
@@ -55,7 +58,7 @@
 			<div class="file-size text-2xl p-2">
 				{prettyBytes(value.size || 0)}
 			</div>
-			{#if file_count === "single" && "size" in value}
+			{#if file_count === "single" && value.size}
 				<div class="file-size text-2xl p-2">
 					{prettyBytes(value.size)}
 				</div>

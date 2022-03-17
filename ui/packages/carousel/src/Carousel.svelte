@@ -3,11 +3,14 @@
 </script>
 
 <script lang="ts">
-	import { setContext } from "svelte";
+	import { setContext, createEventDispatcher } from "svelte";
 	import { writable } from "svelte/store";
 
 	export let theme: string = "default";
 
+	const dispatch = createEventDispatcher<{
+		change: undefined;
+	}>();
 	const items = writable<Array<number>>([]);
 	const current = writable<number>();
 
@@ -33,10 +36,12 @@
 
 	const next = () => {
 		carousel_index = (carousel_index + 1) % $items.length;
+		dispatch("change");
 	};
 
 	const prev = () => {
 		carousel_index = (carousel_index - 1 + $items.length) % $items.length;
+		dispatch("change");
 	};
 </script>
 
