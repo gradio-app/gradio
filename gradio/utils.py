@@ -289,7 +289,7 @@ def get_default_args(func: Callable) -> Dict[str, Any]:
     ]
 
 
-def santize_for_csv(data: str | List[str] | List[List[str]]):
+def sanitize_for_csv(data: str | List[str] | List[List[str]]):
     """Sanitizes data so that it can be safely written to a CSV file."""
 
     def sanitize(item):
@@ -320,4 +320,4 @@ def santize_for_csv(data: str | List[str] | List[List[str]]):
                     sanitized_data[outer_index][inner_index] = sanitize(item)
         return sanitized_data
     else:
-        raise ValueError("Unsupported data type: " + str(type(data)))
+        return data

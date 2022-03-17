@@ -98,8 +98,8 @@ class SimpleCSVLogger(FlaggingCallback):
             )
 
         with open(log_filepath, "a", newline="") as csvfile:
-            writer = csv.writer(csvfile)
-            writer.writerow(utils.santize_for_csv(csv_data))
+            writer = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC)
+            writer.writerow(csv_data)
 
         with open(log_filepath, "r") as csvfile:
             line_count = len([None for row in csv.reader(csvfile)]) - 1
@@ -186,7 +186,7 @@ class CSVLogger(FlaggingCallback):
             content[flag_index][flag_col_index] = flag_option
             output = io.StringIO()
             writer = csv.writer(output)
-            writer.writerows(utils.santize_for_csv(content))
+            writer.writerows(content)
             return output.getvalue()
 
         if interface.encrypt:
@@ -200,7 +200,7 @@ class CSVLogger(FlaggingCallback):
                     file_content = decrypted_csv.decode()
                     if flag_index is not None:
                         file_content = replace_flag_at_index(file_content)
-                    output.write(utils.santize_for_csv(file_content))
+                    output.write(file_content)
             writer = csv.writer(output)
             if flag_index is None:
                 if is_new:
@@ -208,10 +208,8 @@ class CSVLogger(FlaggingCallback):
                 writer.writerow(csv_data)
             with open(log_fp, "wb") as csvfile:
                 csvfile.write(
-                    utils.santize_for_csv(
-                        encryptor.encrypt(
-                            interface.encryption_key, output.getvalue().encode()
-                        )
+                    encryptor.encrypt(
+                        interface.encryption_key, output.getvalue().encode()
                     )
                 )
         else:
@@ -219,8 +217,8 @@ class CSVLogger(FlaggingCallback):
                 with open(log_fp, "a", newline="") as csvfile:
                     writer = csv.writer(csvfile)
                     if is_new:
-                        writer.writerow(utils.santize_for_csv(headers))
-                    writer.writerow(utils.santize_for_csv(csv_data))
+                        writer.writerow(headers)
+                    writer.writerow(csv_data)
             else:
                 with open(log_fp) as csvfile:
                     file_content = csvfile.read()
@@ -228,7 +226,7 @@ class CSVLogger(FlaggingCallback):
                 with open(
                     log_fp, "w", newline=""
                 ) as csvfile:  # newline parameter needed for Windows
-                    csvfile.write(utils.santize_for_csv(file_content))
+                    csvfile.write(file_content)
         with open(log_fp, "r") as csvfile:
             line_count = len([None for row in csv.reader(csvfile)]) - 1
         return line_count
@@ -313,7 +311,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         infos = {"flagged": {"features": {}}}
 
         with open(self.log_file, "a", newline="") as csvfile:
-            writer = csv.writer(csvfile)
+            writer = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC)
 
             # File previews for certain input and output types
             file_preview_types = {
@@ -370,7 +368,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
                         "_type": "Value",
                     }
 
-                writer.writerow(utils.santize_for_csv(headers))
+                writer.writerow(headers)
 
             # Generate the row corresponding to the flagged sample
             csv_data = []
@@ -405,7 +403,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             if flag_option is not None:
                 csv_data.append(flag_option)
 
-            writer.writerow(utils.santize_for_csv(csv_data))
+            writer.writerow(csv_data)
 
         if is_new:
             json.dump(infos, open(self.infos_file, "w"))
