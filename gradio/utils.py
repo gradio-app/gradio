@@ -218,7 +218,7 @@ def get_config_file(interface: Interface) -> Dict[str, Any]:
         for index, component in enumerate(config["input_components"]):
             if not component["label"]:
                 if index < len(param_names):
-                    component["label"] = param_names[i].replace("_", " ")
+                    component["label"] = param_names[index].replace("_", " ")
                 else:
                     component["label"] = (
                         f"input {index + 1}"
