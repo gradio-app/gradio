@@ -12,7 +12,13 @@
 	export let or_text: string = "or";
 	export let upload_text: string = "click to upload";
 
-	const dispatch = createEventDispatcher<{ change: FileData | null }>();
+	const dispatch = createEventDispatcher<{
+		change: FileData | null;
+		clear: undefined;
+		play: undefined;
+		pause: undefined;
+		ended: undefined;
+	}>();
 
 	function handle_load({ detail }: CustomEvent<FileData | null>) {
 		dispatch("change", detail);
@@ -20,7 +26,7 @@
 	}
 
 	function handle_clear({ detail }: CustomEvent<FileData | null>) {
-		dispatch("change", null);
+		dispatch("clear");
 		value = null;
 	}
 </script>
@@ -51,8 +57,11 @@
 				playsInline
 				preload="auto"
 				src={value.data}
+				on:play
+				on:pause
+				on:ended
 			/>
-		{:else}
+		{:else if value.size}
 			<div class="file-name text-4xl p-6 break-all">{value.name}</div>
 			<div class="file-size text-2xl p-2">
 				{prettyBytes(value.size)}
