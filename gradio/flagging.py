@@ -215,7 +215,9 @@ class CSVLogger(FlaggingCallback):
         else:
             if flag_index is None:
                 with open(log_fp, "a", newline="") as csvfile:
-                    writer = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC, quotechar="'")
+                    writer = csv.writer(
+                        csvfile, quoting=csv.QUOTE_NONNUMERIC, quotechar="'"
+                    )
                     if is_new:
                         writer.writerow(headers)
                     writer.writerow(csv_data)
