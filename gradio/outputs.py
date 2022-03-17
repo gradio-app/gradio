@@ -27,6 +27,7 @@ from gradio.components import (
     Dataframe,
     File,
     Image,
+    Label,
     State,
     Textbox,
     Timeseries,
@@ -215,6 +216,32 @@ class State(State):
         super().__init__(label=label)
 
 
+class Label(Label):
+    """
+    Component outputs a classification label, along with confidence scores of top categories if provided. Confidence scores are represented as a dictionary mapping labels to scores between 0 and 1.
+    Output type: Union[Dict[str, float], str, int, float]
+    Demos: image_classifier, main_note, titanic_survival
+    """
+
+    def __init__(
+        self,
+        num_top_classes: Optional[int] = None,
+        type: str = "auto",
+        label: Optional[str] = None,
+    ):
+        """
+        Parameters:
+        num_top_classes (int): number of most confident classes to show.
+        type (str): Type of value to be passed to component. "value" expects a single out label, "confidences" expects a dictionary mapping labels to confidence scores, "auto" detects return type.
+        label (str): component name in interface.
+        """
+        warnings.warn(
+            "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
+            DeprecationWarning,
+        )
+        super().__init__(num_top_classes=num_top_classes, type=type, label=label)
+
+
 class OutputComponent(Component):
     """
     Output Component. All output components subclass this.
@@ -235,110 +262,6 @@ class OutputComponent(Component):
         Convert from serialized output (e.g. base64 representation) from a call() to the interface to a human-readable version of the output (path of an image, etc.)
         """
         return x
-
-
-class Label(OutputComponent):
-    """
-    Component outputs a classification label, along with confidence scores of top categories if provided. Confidence scores are represented as a dictionary mapping labels to scores between 0 and 1.
-    Output type: Union[Dict[str, float], str, int, float]
-    Demos: image_classifier, main_note, titanic_survival
-    """
-
-    CONFIDENCES_KEY = "confidences"
-
-    def __init__(
-        self,
-        num_top_classes: Optional[int] = None,
-        type: str = "auto",
-        label: Optional[str] = None,
-    ):
-        """
-        Parameters:
-        num_top_classes (int): number of most confident classes to show.
-        type (str): Type of value to be passed to component. "value" expects a single out label, "confidences" expects a dictionary mapping labels to confidence scores, "auto" detects return type.
-        label (str): component name in interface.
-        """
-        self.num_top_classes = num_top_classes
-        self.type = type
-        super().__init__(label)
-
-    def postprocess(self, y):
-        """
-        Parameters:
-        y (Dict[str, float]): dictionary mapping label to confidence value
-        Returns:
-        (Dict[label: str, confidences: List[Dict[label: str, confidence: number]]]): Object with key 'label' representing primary label, and key 'confidences' representing a list of label-confidence pairs
-        """
-        if self.type == "label" or (
-            self.type == "auto" and (isinstance(y, str) or isinstance(y, Number))
-        ):
-            return {"label": str(y)}
-        elif self.type == "confidences" or (
-            self.type == "auto" and isinstance(y, dict)
-        ):
-            sorted_pred = sorted(y.items(), key=operator.itemgetter(1), reverse=True)
-            if self.num_top_classes is not None:
-                sorted_pred = sorted_pred[: self.num_top_classes]
-            return {
-                "label": sorted_pred[0][0],
-                "confidences": [
-                    {"label": pred[0], "confidence": pred[1]} for pred in sorted_pred
-                ],
-            }
-        else:
-            raise ValueError(
-                "The `Label` output interface expects one of: a string label, or an int label, a "
-                "float label, or a dictionary whose keys are labels and values are confidences."
-            )
-
-    def deserialize(self, y):
-        # 5 cases: (1): {'label': 'lion'}, {'label': 'lion', 'confidences':...}, {'lion': 0.46, ...}, 'lion', '0.46'
-        if self.type == "label" or (
-            self.type == "auto"
-            and (
-                isinstance(y, str)
-                or isinstance(y, int)
-                or isinstance(y, float)
-                or ("label" in y and not ("confidences" in y.keys()))
-            )
-        ):
-            if isinstance(y, str) or isinstance(y, int) or isinstance(y, float):
-                return y
-            else:
-                return y["label"]
-        elif self.type == "confidences" or self.type == "auto":
-            if ("confidences" in y.keys()) and isinstance(y["confidences"], list):
-                return {k["label"]: k["confidence"] for k in y["confidences"]}
-            else:
-                return y
-        raise ValueError("Unable to deserialize output: {}".format(y))
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "label": {},
-        }
-
-    def save_flagged(self, dir, label, data, encryption_key):
-        """
-        Returns: (Union[str, Dict[str, number]]): Either a string representing the main category label, or a dictionary with category keys mapping to confidence levels.
-        """
-        if "confidences" in data:
-            return json.dumps(
-                {
-                    example["label"]: example["confidence"]
-                    for example in data["confidences"]
-                }
-            )
-        else:
-            return data["label"]
-
-    def restore_flagged(self, dir, data, encryption_key):
-        try:
-            data = json.loads(data)
-            return self.postprocess(data)
-        except ValueError:
-            return data
 
 
 class KeyValues(OutputComponent):
