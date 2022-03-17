@@ -15,7 +15,7 @@ import pandas as pd
 import PIL
 from ffmpy import FFmpeg
 
-from gradio import Interface, processing_utils, test_data
+from gradio import processing_utils, test_data
 from gradio.blocks import Block
 
 
@@ -2387,7 +2387,7 @@ class Button(Component):
 # TODO: (faruk) does this take component or interface as a input?
 # see this line in Carousel
 # self.components = [get_component_instance(component) for component in components]
-def get_component_instance(iface: Interface):
+def get_component_instance(iface: "Interface"):
     # TODO: function may not work properly, and it needs updates regarding its design. See:
     # https://github.com/gradio-app/gradio/issues/731
     if isinstance(iface, str):

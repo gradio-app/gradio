@@ -20,13 +20,9 @@ from mdit_py_plugins.footnote import footnote_plugin
 from gradio import interpretation, utils
 from gradio.external import load_from_pipeline, load_interface  # type: ignore
 from gradio.flagging import CSVLogger, FlaggingCallback  # type: ignore
-from gradio.inputs import InputComponent
 from gradio.inputs import State as i_State  # type: ignore
-from gradio.inputs import get_input_instance
 from gradio.launchable import Launchable
-from gradio.outputs import OutputComponent
 from gradio.outputs import State as o_State  # type: ignore
-from gradio.outputs import get_output_instance
 from gradio.process_examples import load_from_cache, process_example
 from gradio.routes import predict
 
