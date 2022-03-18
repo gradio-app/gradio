@@ -6,18 +6,9 @@ automatically added to a registry, which allows them to be easily referenced in 
 
 from __future__ import annotations
 
-import json
-import os
-import tempfile
 import warnings
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, List, Optional, Tuple
 
-import numpy as np
-import pandas as pd
-import PIL
-from ffmpy import FFmpeg
-
-from gradio import processing_utils, test_data
 from gradio.components import (
     Audio,
     Checkbox,
@@ -34,9 +25,6 @@ from gradio.components import (
     Textbox,
     Timeseries,
 )
-
-if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    from gradio import Interface
 
 
 # TODO: (faruk) Remove this file in version 3.0
