@@ -4,7 +4,7 @@ import re
 
 import requests
 
-from gradio import inputs, outputs
+from gradio import components
 
 
 def get_huggingface_interface(model_name, api_key, alias):
@@ -49,8 +49,8 @@ def get_huggingface_interface(model_name, api_key, alias):
     pipelines = {
         "audio-classification": {
             # example model: https://hf.co/ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition
-            "inputs": inputs.Audio(label="Input", source="upload", type="filepath"),
-            "outputs": outputs.Label(label="Class", type="confidences"),
+            "inputs": components.Audio(label="Input", source="upload", type="filepath"),
+            "outputs": components.Label(label="Class"),
             "preprocess": lambda i: base64.b64decode(
                 i["data"].split(",")[1]
             ),  # convert the base64 representation to binary
@@ -60,8 +60,8 @@ def get_huggingface_interface(model_name, api_key, alias):
         },
         "audio-to-audio": {
             # example model: https://hf.co/speechbrain/mtl-mimic-voicebank
-            "inputs": inputs.Audio(label="Input", source="upload", type="filepath"),
-            "outputs": outputs.Audio(label="Output"),
+            "inputs": components.Audio(label="Input", source="upload", type="filepath"),
+            "outputs": components.Audio(label="Output"),
             "preprocess": lambda i: base64.b64decode(
                 i["data"].split(",")[1]
             ),  # convert the base64 representation to binary
@@ -69,8 +69,8 @@ def get_huggingface_interface(model_name, api_key, alias):
         },
         "automatic-speech-recognition": {
             # example model: https://hf.co/jonatasgrosman/wav2vec2-large-xlsr-53-english
-            "inputs": inputs.Audio(label="Input", source="upload", type="filepath"),
-            "outputs": outputs.Textbox(label="Output"),
+            "inputs": components.Audio(label="Input", source="upload", type="filepath"),
+            "outputs": components.Textbox(label="Output"),
             "preprocess": lambda i: base64.b64decode(
                 i["data"].split(",")[1]
             ),  # convert the base64 representation to binary
@@ -78,21 +78,21 @@ def get_huggingface_interface(model_name, api_key, alias):
         },
         "feature-extraction": {
             # example model: hf.co/julien-c/distilbert-feature-extraction
-            "inputs": inputs.Textbox(label="Input"),
-            "outputs": outputs.Dataframe(label="Output"),
+            "inputs": components.Textbox(label="Input"),
+            "outputs": components.Dataframe(label="Output"),
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: r.json()[0],
         },
         "fill-mask": {
-            "inputs": inputs.Textbox(label="Input"),
-            "outputs": outputs.Label(label="Classification", type="confidences"),
+            "inputs": components.Textbox(label="Input"),
+            "outputs": components.Label(label="Classification"),
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: {i["token_str"]: i["score"] for i in r.json()},
         },
         "image-classification": {
             # Example: https://huggingface.co/google/vit-base-patch16-224
-            "inputs": inputs.Image(label="Input Image", type="filepath"),
-            "outputs": outputs.Label(label="Classification", type="confidences"),
+            "inputs": components.Image(label="Input Image", type="filepath"),
+            "outputs": components.Label(label="Classification"),
             "preprocess": lambda i: base64.b64decode(
                 i.split(",")[1]
             ),  # convert the base64 representation to binary
@@ -111,52 +111,52 @@ def get_huggingface_interface(model_name, api_key, alias):
         # TODO: also: support NER pipeline, object detection, table question answering
         "question-answering": {
             "inputs": [
-                inputs.Textbox(label="Context", lines=7),
-                inputs.Textbox(label="Question"),
+                components.Textbox(label="Context", lines=7),
+                components.Textbox(label="Question"),
             ],
-            "outputs": [outputs.Textbox(label="Answer"), outputs.Label(label="Score")],
+            "outputs": [components.Textbox(label="Answer"), components.Label(label="Score")],
             "preprocess": lambda c, q: {"inputs": {"context": c, "question": q}},
             "postprocess": lambda r: (r.json()["answer"], r.json()["score"]),
         },
         "summarization": {
-            "inputs": inputs.Textbox(label="Input"),
-            "outputs": outputs.Textbox(label="Summary"),
+            "inputs": components.Textbox(label="Input"),
+            "outputs": components.Textbox(label="Summary"),
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: r.json()[0]["summary_text"],
         },
         "text-classification": {
-            "inputs": inputs.Textbox(label="Input"),
-            "outputs": outputs.Label(label="Classification", type="confidences"),
+            "inputs": components.Textbox(label="Input"),
+            "outputs": components.Label(label="Classification", type="confidences"),
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: {
                 i["label"].split(", ")[0]: i["score"] for i in r.json()[0]
             },
         },
         "text-generation": {
-            "inputs": inputs.Textbox(label="Input"),
-            "outputs": outputs.Textbox(label="Output"),
+            "inputs": components.Textbox(label="Input"),
+            "outputs": components.Textbox(label="Output"),
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: r.json()[0]["generated_text"],
         },
         "text2text-generation": {
-            "inputs": inputs.Textbox(label="Input"),
-            "outputs": outputs.Textbox(label="Generated Text"),
+            "inputs": components.Textbox(label="Input"),
+            "outputs": components.Textbox(label="Generated Text"),
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: r.json()[0]["generated_text"],
         },
         "translation": {
-            "inputs": inputs.Textbox(label="Input"),
-            "outputs": outputs.Textbox(label="Translation"),
+            "inputs": components.Textbox(label="Input"),
+            "outputs": components.Textbox(label="Translation"),
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: r.json()[0]["translation_text"],
         },
         "zero-shot-classification": {
             "inputs": [
-                inputs.Textbox(label="Input"),
-                inputs.Textbox(label="Possible class names (" "comma-separated)"),
-                inputs.Checkbox(label="Allow multiple true classes"),
+                components.Textbox(label="Input"),
+                components.Textbox(label="Possible class names (" "comma-separated)"),
+                components.Checkbox(label="Allow multiple true classes"),
             ],
-            "outputs": outputs.Label(label="Classification", type="confidences"),
+            "outputs": components.Label(label="Classification", type="confidences"),
             "preprocess": lambda i, c, m: {
                 "inputs": i,
                 "parameters": {"candidate_labels": c, "multi_class": m},
@@ -169,16 +169,16 @@ def get_huggingface_interface(model_name, api_key, alias):
         "sentence-similarity": {
             # example model: hf.co/sentence-transformers/distilbert-base-nli-stsb-mean-tokens
             "inputs": [
-                inputs.Textbox(
+                components.Textbox(
                     label="Source Sentence", default="That is a happy person"
                 ),
-                inputs.Textbox(
+                components.Textbox(
                     lines=7,
                     label="Sentences to compare to",
                     placeholder="Separate each sentence by a newline",
                 ),
             ],
-            "outputs": outputs.Label(label="Classification", type="confidences"),
+            "outputs": components.Label(label="Classification"),
             "preprocess": lambda src, sentences: {
                 "inputs": {
                     "source_sentence": src,
@@ -191,15 +191,15 @@ def get_huggingface_interface(model_name, api_key, alias):
         },
         "text-to-speech": {
             # example model: hf.co/julien-c/ljspeech_tts_train_tacotron2_raw_phn_tacotron_g2p_en_no_space_train
-            "inputs": inputs.Textbox(label="Input"),
-            "outputs": outputs.Audio(label="Audio"),
+            "inputs": components.Textbox(label="Input"),
+            "outputs": components.Audio(label="Audio"),
             "preprocess": lambda x: {"inputs": x},
             "postprocess": encode_to_base64,
         },
         "text-to-image": {
             # example model: hf.co/osanseviero/BigGAN-deep-128
-            "inputs": inputs.Textbox(label="Input"),
-            "outputs": outputs.Image(label="Output"),
+            "inputs": components.Textbox(label="Input"),
+            "outputs": components.Image(label="Output"),
             "preprocess": lambda x: {"inputs": x},
             "postprocess": encode_to_base64,
         },
@@ -261,11 +261,11 @@ def load_interface(name, src=None, api_key=None, alias=None):
 def interface_params_from_config(config_dict):
     # instantiate input component and output component
     config_dict["inputs"] = [
-        inputs.get_input_instance(component)
+        components.get_component_instance(component)
         for component in config_dict["input_components"]
     ]
     config_dict["outputs"] = [
-        outputs.get_output_instance(component)
+        components.get_component_instance(component)
         for component in config_dict["output_components"]
     ]
     parameters = {
@@ -354,8 +354,8 @@ def load_from_pipeline(pipeline):
         pipeline, transformers.AudioClassificationPipeline
     ):
         pipeline_info = {
-            "inputs": inputs.Audio(label="Input", source="microphone", type="filepath"),
-            "outputs": outputs.Label(label="Class", type="confidences"),
+            "inputs": components.Audio(label="Input", source="microphone", type="filepath"),
+            "outputs": components.Label(label="Class"),
             "preprocess": lambda i: {"inputs": i},
             "postprocess": lambda r: {i["label"].split(", ")[0]: i["score"] for i in r},
         }
@@ -363,8 +363,8 @@ def load_from_pipeline(pipeline):
         pipeline, transformers.AutomaticSpeechRecognitionPipeline
     ):
         pipeline_info = {
-            "inputs": inputs.Audio(label="Input", source="microphone", type="filepath"),
-            "outputs": outputs.Textbox(label="Output"),
+            "inputs": components.Audio(label="Input", source="microphone", type="filepath"),
+            "outputs": components.Textbox(label="Output"),
             "preprocess": lambda i: {"inputs": i},
             "postprocess": lambda r: r["text"],
         }
@@ -372,8 +372,8 @@ def load_from_pipeline(pipeline):
         pipeline, transformers.FeatureExtractionPipeline
     ):
         pipeline_info = {
-            "inputs": inputs.Textbox(label="Input"),
-            "outputs": outputs.Dataframe(label="Output"),
+            "inputs": components.Textbox(label="Input"),
+            "outputs": components.Dataframe(label="Output"),
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: r[0],
         }
@@ -381,8 +381,8 @@ def load_from_pipeline(pipeline):
         pipeline, transformers.FillMaskPipeline
     ):
         pipeline_info = {
-            "inputs": inputs.Textbox(label="Input"),
-            "outputs": outputs.Label(label="Classification", type="confidences"),
+            "inputs": components.Textbox(label="Input"),
+            "outputs": components.Label(label="Classification"),
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: {i["token_str"]: i["score"] for i in r},
         }
@@ -390,8 +390,8 @@ def load_from_pipeline(pipeline):
         pipeline, transformers.ImageClassificationPipeline
     ):
         pipeline_info = {
-            "inputs": inputs.Image(label="Input Image", type="filepath"),
-            "outputs": outputs.Label(label="Classification", type="confidences"),
+            "inputs": components.Image(label="Input Image", type="filepath"),
+            "outputs": components.Label(label="Classification", type="confidences"),
             "preprocess": lambda i: {"images": i},
             "postprocess": lambda r: {i["label"].split(", ")[0]: i["score"] for i in r},
         }
@@ -400,10 +400,11 @@ def load_from_pipeline(pipeline):
     ):
         pipeline_info = {
             "inputs": [
-                inputs.Textbox(label="Context", lines=7),
-                inputs.Textbox(label="Question"),
+                components.Textbox(label="Context", lines=7),
+                components.Textbox(label="Question"),
             ],
-            "outputs": [outputs.Textbox(label="Answer"), outputs.Label(label="Score")],
+            "outputs": [components.Textbox(label="Answer"), 
+                        components.Label(label="Score")],
             "preprocess": lambda c, q: {"context": c, "question": q},
             "postprocess": lambda r: (r["answer"], r["score"]),
         }
@@ -411,8 +412,8 @@ def load_from_pipeline(pipeline):
         pipeline, transformers.SummarizationPipeline
     ):
         pipeline_info = {
-            "inputs": inputs.Textbox(label="Input", lines=7),
-            "outputs": outputs.Textbox(label="Summary"),
+            "inputs": components.Textbox(label="Input", lines=7),
+            "outputs": components.Textbox(label="Summary"),
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: r[0]["summary_text"],
         }
@@ -420,8 +421,8 @@ def load_from_pipeline(pipeline):
         pipeline, transformers.TextClassificationPipeline
     ):
         pipeline_info = {
-            "inputs": inputs.Textbox(label="Input"),
-            "outputs": outputs.Label(label="Classification", type="confidences"),
+            "inputs": components.Textbox(label="Input"),
+            "outputs": components.Label(label="Classification"),
             "preprocess": lambda x: [x],
             "postprocess": lambda r: {i["label"].split(", ")[0]: i["score"] for i in r},
         }
@@ -429,8 +430,8 @@ def load_from_pipeline(pipeline):
         pipeline, transformers.TextGenerationPipeline
     ):
         pipeline_info = {
-            "inputs": inputs.Textbox(label="Input"),
-            "outputs": outputs.Textbox(label="Output"),
+            "inputs": components.Textbox(label="Input"),
+            "outputs": components.Textbox(label="Output"),
             "preprocess": lambda x: {"text_inputs": x},
             "postprocess": lambda r: r[0]["generated_text"],
         }
@@ -438,8 +439,8 @@ def load_from_pipeline(pipeline):
         pipeline, transformers.TranslationPipeline
     ):
         pipeline_info = {
-            "inputs": inputs.Textbox(label="Input"),
-            "outputs": outputs.Textbox(label="Translation"),
+            "inputs": components.Textbox(label="Input"),
+            "outputs": components.Textbox(label="Translation"),
             "preprocess": lambda x: [x],
             "postprocess": lambda r: r[0]["translation_text"],
         }
@@ -447,8 +448,8 @@ def load_from_pipeline(pipeline):
         pipeline, transformers.Text2TextGenerationPipeline
     ):
         pipeline_info = {
-            "inputs": inputs.Textbox(label="Input"),
-            "outputs": outputs.Textbox(label="Generated Text"),
+            "inputs": components.Textbox(label="Input"),
+            "outputs": components.Textbox(label="Generated Text"),
             "preprocess": lambda x: [x],
             "postprocess": lambda r: r[0]["generated_text"],
         }
@@ -457,11 +458,11 @@ def load_from_pipeline(pipeline):
     ):
         pipeline_info = {
             "inputs": [
-                inputs.Textbox(label="Input"),
-                inputs.Textbox(label="Possible class names (" "comma-separated)"),
-                inputs.Checkbox(label="Allow multiple true classes"),
+                components.Textbox(label="Input"),
+                components.Textbox(label="Possible class names (" "comma-separated)"),
+                components.Checkbox(label="Allow multiple true classes"),
             ],
-            "outputs": outputs.Label(label="Classification", type="confidences"),
+            "outputs": components.Label(label="Classification"),
             "preprocess": lambda i, c, m: {
                 "sequences": i,
                 "candidate_labels": c,

@@ -13,18 +13,6 @@ import gradio as gr
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
-class InputComponent(unittest.TestCase):
-    def test_as_component(self):
-        input = gr.inputs.InputComponent(label="Test Input")
-        self.assertEqual(input.preprocess("Hello World!"), "Hello World!")
-        self.assertEqual(input.preprocess_example(["1", "2", "3"]), ["1", "2", "3"])
-        self.assertEqual(input.serialize(1, True), 1)
-        self.assertEqual(input.set_interpret_parameters(), input)
-        self.assertIsNone(input.get_interpretation_neighbors("Hi!"))
-        self.assertIsNone(input.get_interpretation_scores("Hi!", [], []))
-        self.assertIsNone(input.generate_sample())
-
-
 class TestTextbox(unittest.TestCase):
     def test_as_component(self):
         text_input = gr.inputs.Textbox()
