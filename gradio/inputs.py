@@ -7,13 +7,12 @@ automatically added to a registry, which allows them to be easily referenced in 
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING, Any, List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 from gradio.components import (
     Audio,
     Checkbox,
     CheckboxGroup,
-    Component,
     Dataframe,
     Dropdown,
     File,
@@ -24,10 +23,10 @@ from gradio.components import (
     State,
     Textbox,
     Timeseries,
+    Video,
 )
 
 
-# TODO: (faruk) Remove this file in version 3.0
 class Textbox(Textbox):
     def __init__(
         self,
@@ -287,7 +286,7 @@ class Image(Image):
         )
 
 
-class Video(Component):
+class Video(Video):
     """
     Component creates a video file upload that is converted to a file path.
 

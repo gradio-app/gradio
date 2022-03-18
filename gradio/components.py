@@ -2098,36 +2098,9 @@ class KeyValues(Component):
         default (str): IGNORED
         label (str): component name in interface.
         """
-        super().__init__(label=label, **kwargs)
-
-    def postprocess(self, y):
-        """
-        Parameters:
-        y (Union[Dict, List[Tuple[str, Union[str, int, float]]]]): dictionary or tuple list representing key value pairs
-        Returns:
-        (List[Tuple[str, Union[str, number]]]): list of key value pairs
-        """
-        if isinstance(y, dict):
-            return list(y.items())
-        elif isinstance(y, list):
-            return y
-        else:
-            raise ValueError(
-                "The `KeyValues` output interface expects an output that is a dictionary whose keys are "
-                "labels and values are corresponding values."
-            )
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "key_values": {},
-        }
-
-    def save_flagged(self, dir, label, data, encryption_key):
-        return json.dumps(data)
-
-    def restore_flagged(self, dir, data, encryption_key):
-        return json.loads(data)
+        raise DeprecationWarning(
+            "The KeyValues component is deprecated. Please use the DataFrame or JSON "
+            "components instead.")
 
 
 class HighlightedText(Component):
