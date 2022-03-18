@@ -3,7 +3,7 @@ import pkg_resources
 import gradio.components as components
 import gradio.inputs as inputs
 import gradio.outputs as outputs
-from gradio.blocks import Blocks, Column, Row, Tabs, TabItem
+from gradio.blocks import Blocks, Column, Row, TabItem, Tabs
 from gradio.flagging import (
     CSVLogger,
     FlaggingCallback,

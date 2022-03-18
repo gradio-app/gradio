@@ -113,12 +113,15 @@ class Row(BlockContext):
     def get_template_context(self):
         return {"type": "row"}
 
+
 class Column(BlockContext):
     def get_template_context(self):
         return {"type": "column"}
 
+
 class Tabs(BlockContext):
     pass
+
 
 class TabItem(BlockContext):
     def __init__(self, label):
@@ -180,7 +183,9 @@ class Blocks(Launchable, BlockContext):
                 {
                     "id": _id,
                     "type": block.__class__.__name__.lower(),
-                    "props": block.get_template_context() if hasattr(block, "get_template_context") else None
+                    "props": block.get_template_context()
+                    if hasattr(block, "get_template_context")
+                    else None,
                 }
             )
 

@@ -18,6 +18,7 @@ from markdown_it import MarkdownIt
 from mdit_py_plugins.footnote import footnote_plugin
 
 from gradio import interpretation, utils
+from gradio.components import Component, get_component_instance
 from gradio.external import load_from_pipeline, load_interface  # type: ignore
 from gradio.flagging import CSVLogger, FlaggingCallback  # type: ignore
 from gradio.inputs import State as i_State  # type: ignore
@@ -96,8 +97,8 @@ class Interface(Launchable):
     def __init__(
         self,
         fn: Callable | List[Callable],
-        inputs: str | InputComponent | List[str | InputComponent] = None,
-        outputs: str | OutputComponent | List[str | OutputComponent] = None,
+        inputs: str | Component | List[str | Component] = None,
+        outputs: str | Component | List[str | Component] = None,
         verbose: bool = False,
         examples: Optional[List[Any] | List[List[Any]] | str] = None,
         examples_per_page: int = 10,
@@ -167,8 +168,8 @@ class Interface(Launchable):
         if not isinstance(outputs, list):
             outputs = [outputs]
 
-        self.input_components = [get_input_instance(i) for i in inputs]
-        self.output_components = [get_output_instance(o) for o in outputs]
+        self.input_components = [get_component_instance(i) for i in inputs]
+        self.output_components = [get_component_instance(o) for o in outputs]
         if repeat_outputs_per_model:
             self.output_components *= len(fn)
 
