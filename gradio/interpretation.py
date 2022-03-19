@@ -198,7 +198,7 @@ def quantify_difference_in_label(interface, original_output, perturbed_output):
             score = diff(original_label, perturbed_label)
         return score
 
-    elif isinstance(output_component, (Textbox, Number)):
+    elif isinstance(output_component, Number):
         score = diff(post_original_output, post_perturbed_output)
         return score
 
