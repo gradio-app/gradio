@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import math
+import numbers
 import operator
 import os
 import shutil
@@ -2008,7 +2009,7 @@ class Label(Component):
         (Dict[label: str, confidences: List[Dict[label: str, confidence: number]]]): Object with key 'label' representing primary label, and key 'confidences' representing a list of label-confidence pairs
         """
         if self.type == "label" or (
-            self.type == "auto" and (isinstance(y, str) or isinstance(y, Number))
+            self.type == "auto" and (isinstance(y, (str, numbers.Number)))
         ):
             return {"label": str(y)}
         elif self.type == "confidences" or (
@@ -2026,7 +2027,8 @@ class Label(Component):
         else:
             raise ValueError(
                 "The `Label` output interface expects one of: a string label, or an int label, a "
-                "float label, or a dictionary whose keys are labels and values are confidences."
+                "float label, or a dictionary whose keys are labels and values are confidences. "
+                "Instead, got a {}".format(type(y))
             )
 
     def deserialize(self, y):
@@ -2034,13 +2036,11 @@ class Label(Component):
         if self.type == "label" or (
             self.type == "auto"
             and (
-                isinstance(y, str)
-                or isinstance(y, int)
-                or isinstance(y, float)
+                isinstance(y, (str, numbers.Number))
                 or ("label" in y and not ("confidences" in y.keys()))
             )
         ):
-            if isinstance(y, str) or isinstance(y, int) or isinstance(y, float):
+            if isinstance(y, (str, numbers.Number)):
                 return y
             else:
                 return y["label"]
