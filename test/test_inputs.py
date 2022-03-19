@@ -771,9 +771,9 @@ class TestTimeseries(unittest.TestCase):
 
 
 class TestNames(unittest.TestCase):
-    # this ensures that `inputs.get_input_instance()` works correctly when instantiating from components
+    # this ensures that `components.get_component_instance()` works correctly when instantiating from components
     def test_no_duplicate_uncased_names(self):
-        subclasses = gr.inputs.InputComponent.__subclasses__()
+        subclasses = gr.components.Component.__subclasses__()
         unique_subclasses_uncased = set([s.__name__.lower() for s in subclasses])
         self.assertEqual(len(subclasses), len(unique_subclasses_uncased))
 

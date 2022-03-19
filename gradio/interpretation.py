@@ -3,7 +3,7 @@ import math
 
 import numpy as np
 
-from gradio.components import Label, Textbox
+from gradio.components import Label, Textbox, Number
 
 
 def run_interpret(interface, raw_input):
@@ -198,7 +198,7 @@ def quantify_difference_in_label(interface, original_output, perturbed_output):
             score = diff(original_label, perturbed_label)
         return score
 
-    elif isinstance(output_component, Textbox):
+    elif isinstance(output_component, (Textbox, Number)):
         score = diff(post_original_output, post_perturbed_output)
         return score
 
