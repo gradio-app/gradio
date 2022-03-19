@@ -29,9 +29,6 @@ class TestTextbox(unittest.TestCase):
 
         with self.assertWarns(DeprecationWarning):
             numeric_text_input = gr.inputs.Textbox(type="number")
-        with self.assertRaises(ValueError):
-            wrong_type = gr.inputs.Textbox(type="unknown")
-            wrong_type.preprocess(0)
 
         self.assertEqual(
             text_input.tokenize("Hello World! Gradio speaking."),
@@ -634,6 +631,9 @@ class TestDataframe(unittest.TestCase):
                 "default": [[None, None, None], [None, None, None], [None, None, None]],
                 "name": "dataframe",
                 "label": "Dataframe Input",
+                "max_rows": 20,
+                "max_cols": None,
+                "overflow_row_behaviour": "paginate",                
             },
         )
         dataframe_input = gr.inputs.Dataframe()

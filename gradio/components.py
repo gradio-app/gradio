@@ -1208,9 +1208,6 @@ class Image(Component):
         y = processing_utils.decode_base64_to_file(x).name
         return y
 
-    def restore_flagged(self, dir, data, encryption_key):
-        return self.restore_flagged_file(dir, data, encryption_key)["data"]
-
 
 class Video(Component):
     """
@@ -1322,9 +1319,6 @@ class Video(Component):
 
     def deserialize(self, x):
         return processing_utils.decode_base64_to_file(x).name
-
-    def restore_flagged(self, dir, data, encryption_key):
-        return self.restore_flagged_file(dir, data, encryption_key)
 
 
 class Audio(Component):
@@ -1683,9 +1677,6 @@ class File(Component):
             "size": os.path.getsize(y),
             "data": processing_utils.encode_file_to_base64(y),
         }
-
-    def restore_flagged(self, dir, data, encryption_key):
-        return self.restore_flagged_file(dir, data, encryption_key)
 
 
 class Dataframe(Component):
