@@ -75,16 +75,12 @@ class TestHelperMethods(unittest.TestCase):
         diff = gradio.interpretation.diff("cat", "cat")
         self.assertEquals(diff, 0)
 
-    def test_quantify_difference_with_textbox(self):
-        iface = Interface(lambda text: text, ["textbox"], ["textbox"])
+    def test_quantify_difference_with_number(self):
+        iface = Interface(lambda text: text, ["textbox"], ["number"])
         diff = gradio.interpretation.quantify_difference_in_label(
-            iface, ["test"], ["test"]
+            iface, [4], [6]
         )
-        self.assertEquals(diff, 0)
-        diff = gradio.interpretation.quantify_difference_in_label(
-            iface, ["test"], ["test_diff"]
-        )
-        self.assertEquals(diff, 1)
+        self.assertEquals(diff, -2)
 
     def test_quantify_difference_with_label(self):
         iface = Interface(lambda text: len(text), ["textbox"], ["label"])
