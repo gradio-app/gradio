@@ -52,9 +52,7 @@ class Component(Block):
         """
         :return: a dictionary with context variables for the javascript file associated with the context
         """
-        return {
-            "label": self.label,
-        }
+        return {"name": self.__class__.__name__.lower(), "label": self.label}
 
     @classmethod
     def get_shortcut_implementations(cls):
