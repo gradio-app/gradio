@@ -29,7 +29,6 @@ class TestTextbox(unittest.TestCase):
 
         with self.assertWarns(DeprecationWarning):
             numeric_text_input = gr.inputs.Textbox(type="number")
-        self.assertEqual(numeric_text_input.preprocess("2"), 2.0)
         with self.assertRaises(ValueError):
             wrong_type = gr.inputs.Textbox(type="unknown")
             wrong_type.preprocess(0)
@@ -70,7 +69,7 @@ class TestTextbox(unittest.TestCase):
         iface = gr.Interface(
             lambda sentence: max([len(word) for word in sentence.split()]),
             gr.inputs.Textbox(),
-            gr.outputs.Textbox(),
+            "number",
             interpretation="default",
         )
         scores, alternative_outputs = iface.interpret(
@@ -105,7 +104,7 @@ class TestTextbox(unittest.TestCase):
         )
         self.assertEqual(
             alternative_outputs,
-            [[["8"], ["8"], ["8"], ["8"], ["8"], ["8"], ["8"], ["8"], ["8"], ["7"]]],
+            [[[8], [8], [8], [8], [8], [8], [8], [8], [8], [7]]],
         )
 
 
@@ -134,14 +133,14 @@ class TestNumber(unittest.TestCase):
         )
         self.assertEqual(
             numeric_input.get_template_context(),
-            {"default": None, "optional": True, "name": "number", "label": None},
+            {"default": None, "name": "number", "label": None},
         )
 
     def test_in_interface(self):
         iface = gr.Interface(lambda x: x**2, "number", "textbox")
         self.assertEqual(iface.process([2])[0], ["4.0"])
         iface = gr.Interface(
-            lambda x: x**2, "number", "textbox", interpretation="default"
+            lambda x: x**2, "number", "number", interpretation="default"
         )
         scores, alternative_outputs = iface.interpret([2])
         self.assertEqual(
@@ -162,12 +161,12 @@ class TestNumber(unittest.TestCase):
             alternative_outputs,
             [
                 [
-                    ["3.7636"],
-                    ["3.8415999999999997"],
-                    ["3.9204"],
-                    ["4.0804"],
-                    ["4.1616"],
-                    ["4.2436"],
+                    [3.7636],
+                    [3.8415999999999997],
+                    [3.9204],
+                    [4.0804],
+                    [4.1616],
+                    [4.2436],
                 ]
             ],
         )
@@ -197,7 +196,6 @@ class TestSlider(unittest.TestCase):
                 "step": 1,
                 "default": 15,
                 "name": "slider",
-                "optional": False,
                 "label": "Slide Your Input",
             },
         )
@@ -206,7 +204,7 @@ class TestSlider(unittest.TestCase):
         iface = gr.Interface(lambda x: x**2, "slider", "textbox")
         self.assertEqual(iface.process([2])[0], ["4"])
         iface = gr.Interface(
-            lambda x: x**2, "slider", "textbox", interpretation="default"
+            lambda x: x**2, "slider", "number", interpretation="default"
         )
         scores, alternative_outputs = iface.interpret([2])
         self.assertEqual(
@@ -228,14 +226,14 @@ class TestSlider(unittest.TestCase):
             alternative_outputs,
             [
                 [
-                    ["0.0"],
-                    ["204.08163265306123"],
-                    ["816.3265306122449"],
-                    ["1836.7346938775513"],
-                    ["3265.3061224489797"],
-                    ["5102.040816326531"],
-                    ["7346.938775510205"],
-                    ["10000.0"],
+                    [0.0],
+                    [204.08163265306123],
+                    [816.3265306122449],
+                    [1836.7346938775513],
+                    [3265.3061224489797],
+                    [5102.040816326531],
+                    [7346.938775510205],
+                    [10000.0],
                 ]
             ],
         )
@@ -259,23 +257,22 @@ class TestCheckbox(unittest.TestCase):
             {
                 "default": True,
                 "name": "checkbox",
-                "optional": False,
                 "label": "Check Your Input",
             },
         )
 
     def test_in_interface(self):
-        iface = gr.Interface(lambda x: 1 if x else 0, "checkbox", "textbox")
-        self.assertEqual(iface.process([True])[0], ["1"])
+        iface = gr.Interface(lambda x: 1 if x else 0, "checkbox", "number")
+        self.assertEqual(iface.process([True])[0], [1])
         iface = gr.Interface(
-            lambda x: 1 if x else 0, "checkbox", "textbox", interpretation="default"
+            lambda x: 1 if x else 0, "checkbox", "number", interpretation="default"
         )
         scores, alternative_outputs = iface.interpret([False])
         self.assertEqual(scores, [(None, 1.0)])
-        self.assertEqual(alternative_outputs, [[["1"]]])
+        self.assertEqual(alternative_outputs, [[[1]]])
         scores, alternative_outputs = iface.interpret([True])
         self.assertEqual(scores, [(-1.0, None)])
-        self.assertEqual(alternative_outputs, [[["0"]]])
+        self.assertEqual(alternative_outputs, [[[0]]])
 
 
 class TestCheckboxGroup(unittest.TestCase):
@@ -300,7 +297,6 @@ class TestCheckboxGroup(unittest.TestCase):
             {
                 "choices": ["a", "b", "c"],
                 "default": ["a", "c"],
-                "optional": False,
                 "name": "checkboxgroup",
                 "label": "Check Your Inputs",
             },
@@ -315,16 +311,6 @@ class TestCheckboxGroup(unittest.TestCase):
         self.assertEqual(iface.process([["a", "c"]])[0], ["a|c"])
         self.assertEqual(iface.process([[]])[0], [""])
         checkboxes_input = gr.inputs.CheckboxGroup(["a", "b", "c"], type="index")
-        iface = gr.Interface(
-            lambda x: "|".join(map(str, x)),
-            checkboxes_input,
-            "textbox",
-            interpretation="default",
-        )
-        self.assertEqual(iface.process([["a", "c"]])[0], ["0|2"])
-        scores, alternative_outputs = iface.interpret([["a", "c"]])
-        self.assertEqual(scores, [[[-1, None], [None, -1], [-1, None]]])
-        self.assertEqual(alternative_outputs, [[["2"], ["0|2|1"], ["0"]]])
 
 
 class TestRadio(unittest.TestCase):
@@ -349,7 +335,6 @@ class TestRadio(unittest.TestCase):
                 "default": "a",
                 "name": "radio",
                 "label": "Pick Your One Input",
-                "optional": False,
             },
         )
         with self.assertRaises(ValueError):
@@ -394,7 +379,6 @@ class TestDropdown(unittest.TestCase):
                 "default": "a",
                 "name": "dropdown",
                 "label": "Drop Your Input",
-                "optional": False,
             },
         )
         with self.assertRaises(ValueError):
@@ -445,7 +429,6 @@ class TestImage(unittest.TestCase):
                 "shape": None,
                 "source": "upload",
                 "tool": "editor",
-                "optional": False,
                 "name": "image",
                 "label": "Upload Your Image",
             },
@@ -489,7 +472,7 @@ class TestImage(unittest.TestCase):
             gr.processing_utils.decode_base64_to_image(output).size, (10, 30)
         )
         iface = gr.Interface(
-            lambda x: np.sum(x), image_input, "textbox", interpretation="default"
+            lambda x: np.sum(x), image_input, "number", interpretation="default"
         )
         scores, alternative_outputs = iface.interpret([img])
         self.assertEqual(scores, gr.test_data.SUM_PIXELS_INTERPRETATION["scores"])
@@ -511,7 +494,7 @@ class TestImage(unittest.TestCase):
         )
         image_input = gr.inputs.Image(shape=(30, 10))
         iface = gr.Interface(
-            lambda x: np.sum(x), image_input, "textbox", interpretation="default"
+            lambda x: np.sum(x), image_input, "number", interpretation="default"
         )
         self.assertIsNotNone(iface.interpret([img]))
 
@@ -600,7 +583,6 @@ class TestFile(unittest.TestCase):
             file_input.get_template_context(),
             {
                 "file_count": "single",
-                "optional": False,
                 "name": "file",
                 "label": "Upload Your File",
             },
@@ -652,7 +634,6 @@ class TestDataframe(unittest.TestCase):
                 "default": [[None, None, None], [None, None, None], [None, None, None]],
                 "name": "dataframe",
                 "label": "Dataframe Input",
-                "optional": False,
             },
         )
         dataframe_input = gr.inputs.Dataframe()
@@ -696,7 +677,6 @@ class TestVideo(unittest.TestCase):
             video_input.get_template_context(),
             {
                 "source": "upload",
-                "optional": False,
                 "name": "video",
                 "label": "Upload Your Video",
             },
@@ -742,7 +722,6 @@ class TestTimeseries(unittest.TestCase):
             {
                 "x": "time",
                 "y": ["retail"],
-                "optional": False,
                 "name": "timeseries",
                 "label": "Upload Your Timeseries",
             },
