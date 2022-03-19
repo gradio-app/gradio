@@ -542,7 +542,6 @@ class TestAudio(unittest.TestCase):
             audio_input.get_template_context(),
             {
                 "source": "upload",
-                "optional": False,
                 "name": "audio",
                 "label": "Upload Your Audio",
             },

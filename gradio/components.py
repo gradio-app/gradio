@@ -1567,9 +1567,6 @@ class Audio(Component):
     def deserialize(self, x):
         return processing_utils.decode_base64_to_file(x).name
 
-    def restore_flagged(self, dir, data, encryption_key):
-        return self.restore_flagged_file(dir, data, encryption_key)["data"]
-
 
 class File(Component):
     """
