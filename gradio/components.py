@@ -384,9 +384,8 @@ class Number(Component):
         default (float): default value.
         label (str): component name in interface.
         """
-        default = float(default)
-        self.default = default
-        self.test_input = default if default is not None else 1
+        self.default = float(default) if default is not None else None
+        self.test_input = self.default if self.default is not None else 1
         self.interpret_by_tokens = False
         super().__init__(label=label, **kwargs)
 
