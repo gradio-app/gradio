@@ -14,7 +14,7 @@ def calculator(num1, operation, num2):
 
 iface = gr.Interface(
     calculator,
-    ["number", gr.inputs.Radio(["add", "subtract", "multiply", "divide"]), "number"],
+    ["number", gr.Radio(["add", "subtract", "multiply", "divide"]), "number"],
     "number",
     examples=[
         [5, "add", 3],
