@@ -24,11 +24,7 @@ iface = gr.Interface(
     [
         "number",
         gr.inputs.Radio(["Single", "Married", "Divorced"]),
-        gr.inputs.Dataframe(
-            headers=["Item", "Cost", "Deduct"],
-            datatype=["str", "number", "bool"],
-            label="Assets Purchased this Year",
-        ),
+        gr.inputs.Dataframe(headers=["Item", "Cost", "Deduct"], datatype=["str", "number", "bool"], label="Assets Purchased this Year"),
     ],
     "number",
     # interpretation="default",  # Removed interpretation for dataframes

@@ -6,8 +6,8 @@ automatically added to a registry, which allows them to be easily referenced in 
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional
 import warnings
+from typing import Dict, List, Optional
 
 from gradio.components import (
     HTML,
@@ -28,6 +28,7 @@ from gradio.components import (
     Video,
 )
 
+
 class Textbox(Textbox):
     def __init__(
         self,
@@ -38,7 +39,7 @@ class Textbox(Textbox):
             "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
             DeprecationWarning,
         )
-        super().__init__(type=type, label=label)
+        super().__init__(label=label, type=type)
 
 
 class Image(Image):
@@ -61,7 +62,7 @@ class Image(Image):
             "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
             DeprecationWarning,
         )
-        super().__init__(label=label, type=type, plot=plot)
+        super().__init__(type=type, label=label, plot=plot)
 
 
 class Video(Video):
@@ -81,7 +82,7 @@ class Video(Video):
             "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
             DeprecationWarning,
         )
-        super().__init__(label=label, type=type)
+        super().__init__(type=type, label=label)
 
 
 class Audio(Audio):
@@ -154,11 +155,11 @@ class Dataframe(Dataframe):
         )
         super().__init__(
             headers=headers,
+            type=type,
+            label=label,
             max_rows=max_rows,
             max_cols=max_cols,
             overflow_row_behaviour=overflow_row_behaviour,
-            type=type,
-            label=label,
         )
 
 
@@ -331,7 +332,7 @@ class Carousel(Carousel):
             "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
             DeprecationWarning,
         )
-        super().__init__(label=label, components=components)
+        super().__init__(components=components, label=label)
 
 
 class Chatbot(Chatbot):
@@ -351,4 +352,3 @@ class Chatbot(Chatbot):
             DeprecationWarning,
         )
         super().__init__(label=label)
-

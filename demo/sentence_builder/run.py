@@ -8,10 +8,10 @@ def sentence_builder(quantity, animal, place, activity_list, morning):
 iface = gr.Interface(
     sentence_builder,
     [
-        gr.inputs.Slider(2, 20),
+        gr.inputs.Slider(2),
         gr.inputs.Dropdown(["cat", "dog", "bird"]),
         gr.inputs.Radio(["park", "zoo", "road"]),
-        gr.inputs.CheckboxGroup(["ran", "swam", "ate", "slept"]),
+        gr.inputs.CheckboxGroup(["ran", "swam", "ate", "slept"], choices=),
         gr.inputs.Checkbox(label="Is it the morning?"),
     ],
     "text",

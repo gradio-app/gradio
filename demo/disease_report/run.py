@@ -29,13 +29,11 @@ iface = gr.Interface(
     disease_report,
     [
         "image",
-        gr.inputs.CheckboxGroup(
-            ["Cancer", "Rash", "Heart Failure", "Stroke", "Diabetes", "Pneumonia"]
-        ),
+        gr.inputs.CheckboxGroup(["Cancer", "Rash", "Heart Failure", "Stroke", "Diabetes", "Pneumonia"], choices=),
         "checkbox",
     ],
     [
-        gr.outputs.Carousel(["text", "image"], label="Disease"),
+        gr.outputs.Carousel(["text", "image"], components=, label="Disease"),
         gr.outputs.File(label="Report"),
     ],
     title="Disease Report",

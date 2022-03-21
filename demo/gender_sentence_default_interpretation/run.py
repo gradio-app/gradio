@@ -16,7 +16,7 @@ def gender_of_sentence(sentence):
 
 iface = gr.Interface(
     fn=gender_of_sentence,
-    inputs=gr.inputs.Textbox(default="She went to his house to get her keys."),
+    inputs=gr.inputs.Textbox(default_value="She went to his house to get her keys."),
     outputs="label",
     interpretation="default",
 )

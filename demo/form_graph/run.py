@@ -28,14 +28,12 @@ iface = gr.Interface(
     plot_forecast,
     [
         gr.inputs.Radio([2025, 2030, 2035, 2040], label="Project to:"),
-        gr.inputs.CheckboxGroup(
-            ["Google", "Microsoft", "Gradio"], label="Company Selection"
-        ),
-        gr.inputs.Slider(1, 100, label="Noise Level"),
+        gr.inputs.CheckboxGroup(["Google", "Microsoft", "Gradio"], choices=, label="Company Selection"),
+        gr.inputs.Slider(1, label="Noise Level"),
         gr.inputs.Checkbox(label="Show Legend"),
         gr.inputs.Dropdown(["cross", "line", "circle"], label="Style"),
     ],
-    gr.outputs.Image(plot=True, label="forecast"),
+    gr.outputs.Image(label="forecast", plot=True),
 )
 
 if __name__ == "__main__":
