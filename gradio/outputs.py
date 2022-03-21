@@ -6,21 +6,9 @@ automatically added to a registry, which allows them to be easily referenced in 
 
 from __future__ import annotations
 
-import json
-import operator
-import os
-import tempfile
+from typing import Dict, List, Optional
 import warnings
-from numbers import Number
-from types import ModuleType
-from typing import TYPE_CHECKING, Dict, List, Optional
 
-import numpy as np
-import pandas as pd
-import PIL
-from ffmpy import FFmpeg
-
-from gradio import processing_utils
 from gradio.components import (
     HTML,
     JSON,
@@ -40,18 +28,12 @@ from gradio.components import (
     Video,
 )
 
-if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    from gradio import Interface
-
-
-# TODO: (faruk) Remove this file in version 3.0
 class Textbox(Textbox):
     def __init__(
         self,
         type: str = "auto",
         label: Optional[str] = None,
     ):
-        # TODO: (faruk) Remove this file in version 3.0
         warnings.warn(
             "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
             DeprecationWarning,
@@ -351,56 +333,6 @@ class Carousel(Carousel):
         )
         super().__init__(label=label, components=components)
 
-    def get_template_context(self):
-        return {
-            "components": [
-                component.get_template_context() for component in self.components
-            ],
-            **super().get_template_context(),
-        }
-
-    def postprocess(self, y):
-        """
-        Parameters:
-        y (List[List[Any]]): carousel output
-        Returns:
-        (List[List[Any]]): 2D array, where each sublist represents one set of outputs or 'slide' in the carousel
-        """
-        if isinstance(y, list):
-            if len(y) != 0 and not isinstance(y[0], list):
-                y = [[z] for z in y]
-            output = []
-            for row in y:
-                output_row = []
-                for i, cell in enumerate(row):
-                    output_row.append(self.components[i].postprocess(cell))
-                output.append(output_row)
-            return output
-        else:
-            raise ValueError("Unknown type. Please provide a list for the Carousel.")
-
-    def save_flagged(self, dir, label, data, encryption_key):
-        return json.dumps(
-            [
-                [
-                    component.save_flagged(
-                        dir, f"{label}_{j}", data[i][j], encryption_key
-                    )
-                    for j, component in enumerate(self.components)
-                ]
-                for i, _ in enumerate(data)
-            ]
-        )
-
-    def restore_flagged(self, dir, data, encryption_key):
-        return [
-            [
-                component.restore_flagged(dir, sample, encryption_key)
-                for component, sample in zip(self.components, sample_set)
-            ]
-            for sample_set in json.loads(data)
-        ]
-
 
 class Chatbot(Chatbot):
     """
@@ -420,21 +352,3 @@ class Chatbot(Chatbot):
         )
         super().__init__(label=label)
 
-    def get_template_context(self):
-        return {**super().get_template_context()}
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "chatbot": {},
-        }
-
-    def postprocess(self, y):
-        """
-        Parameters:
-        y (List[Tuple[str, str]]): List of tuples representing the message and response
-        Returns:
-        (List[Tuple[str, str]]): Returns same list of tuples
-
-        """
-        return y

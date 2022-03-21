@@ -6,23 +6,13 @@ automatically added to a registry, which allows them to be easily referenced in 
 
 from __future__ import annotations
 
-import json
-import os
-import tempfile
 import warnings
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
-import numpy as np
-import pandas as pd
-import PIL
-from ffmpy import FFmpeg
-
-from gradio import processing_utils, test_data
 from gradio.components import (
     Audio,
     Checkbox,
     CheckboxGroup,
-    Component,
     Dataframe,
     Dropdown,
     File,
@@ -33,13 +23,10 @@ from gradio.components import (
     State,
     Textbox,
     Timeseries,
+    Video,
 )
 
-if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    from gradio import Interface
 
-
-# TODO: (faruk) Remove this file in version 3.0
 class Textbox(Textbox):
     def __init__(
         self,
@@ -299,7 +286,7 @@ class Image(Image):
         )
 
 
-class Video(Component):
+class Video(Video):
     """
     Component creates a video file upload that is converted to a file path.
 
