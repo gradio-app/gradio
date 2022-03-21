@@ -11,6 +11,7 @@ import InputTextbox from "./input/Textbox/config.js";
 import InputVideo from "./input/Video/config.js";
 import InputDataFrame from "./input/DataFrame/config.js";
 import InputTimeSeries from "./input/TimeSeries/config.js";
+import InputModel3D from "./input/Model3D/config.js";
 
 import OutputAudio from "./output/Audio/config.js";
 import OutputCarousel from "./output/Carousel/config.js";
@@ -43,7 +44,8 @@ export const input_component_map = {
 	slider: InputSlider,
 	textbox: InputTextbox,
 	timeseries: InputTimeSeries,
-	video: InputVideo
+	video: InputVideo,
+	model3d: InputModel3D
 };
 
 export const output_component_map = {
