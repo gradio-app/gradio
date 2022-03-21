@@ -360,6 +360,26 @@ class Textbox(Component):
         """
         return x
 
+    def change(self, fn: str, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: function name
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
+    def submit(self, fn: str, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: function name
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("submit", fn, inputs, outputs)
+
 
 class Number(Component):
     """
@@ -475,6 +495,26 @@ class Number(Component):
         """
         return y
 
+    def change(self, fn: str, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: function name
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
+    def submit(self, fn: str, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: function name
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("submit", fn, inputs, outputs)
+
 
 class Slider(Component):
     """
@@ -586,6 +626,16 @@ class Slider(Component):
         """
         return y
 
+    def change(self, fn: str, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: function name
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
 
 class Checkbox(Component):
     """
@@ -666,6 +716,16 @@ class Checkbox(Component):
         Convert from serialized output (e.g. base64 representation) from a call() to the interface to a human-readable version of the output (path of an image, etc.)
         """
         return x
+
+    def change(self, fn: str, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: function name
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
 
 
 class CheckboxGroup(Component):
@@ -784,6 +844,16 @@ class CheckboxGroup(Component):
         """
         return x
 
+    def change(self, fn: str, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: function name
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
 
 class Radio(Component):
     """
@@ -875,6 +945,16 @@ class Radio(Component):
         Convert from serialized output (e.g. base64 representation) from a call() to the interface to a human-readable version of the output (path of an image, etc.)
         """
         return x
+
+    def change(self, fn: str, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: function name
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
 
 
 class Dropdown(Radio):
@@ -1208,6 +1288,36 @@ class Image(Component):
         y = processing_utils.decode_base64_to_file(x).name
         return y
 
+    def change(self, fn: str, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: function name
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
+    def edit(self, fn: str, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: function name
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("edit", fn, inputs, outputs)
+
+    def clear(self, fn: str, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: function name
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("clear", fn, inputs, outputs)
+
 
 class Video(Component):
     """
@@ -1319,6 +1429,56 @@ class Video(Component):
 
     def deserialize(self, x):
         return processing_utils.decode_base64_to_file(x).name
+
+    def change(self, fn: str, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: function name
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
+    def clear(self, fn: str, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: function name
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("clear", fn, inputs, outputs)
+
+    def play(self, fn: str, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: function name
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("play", fn, inputs, outputs)
+
+    def pause(self, fn: str, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: function name
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("pause", fn, inputs, outputs)
+
+    def stop(self, fn: str, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: function name
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("stop", fn, inputs, outputs)
 
 
 class Audio(Component):
@@ -1560,6 +1720,66 @@ class Audio(Component):
     def deserialize(self, x):
         return processing_utils.decode_base64_to_file(x).name
 
+    def change(self, fn: str, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: function name
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
+    def edit(self, fn: str, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: function name
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("edit", fn, inputs, outputs)
+
+    def clear(self, fn: str, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: function name
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("clear", fn, inputs, outputs)
+
+    def play(self, fn: str, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: function name
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("play", fn, inputs, outputs)
+
+    def pause(self, fn: str, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: function name
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("pause", fn, inputs, outputs)
+
+    def stop(self, fn: str, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: function name
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("stop", fn, inputs, outputs)
+
 
 class File(Component):
     """
@@ -1677,6 +1897,26 @@ class File(Component):
             "size": os.path.getsize(y),
             "data": processing_utils.encode_file_to_base64(y),
         }
+
+    def change(self, fn: str, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: function name
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
+    def clear(self, fn: str, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: function name
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("clear", fn, inputs, outputs)
 
 
 class Dataframe(Component):
@@ -1844,6 +2084,16 @@ class Dataframe(Component):
                 + ". Please choose from: 'pandas', 'numpy', 'array'."
             )
 
+    def change(self, fn: str, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: function name
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
 
 class Timeseries(Component):
     """
@@ -1932,6 +2182,16 @@ class Timeseries(Component):
         (Dict[headers: List[str], data: List[List[Union[str, number]]]]): JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
         """
         return {"headers": y.columns.values.tolist(), "data": y.values.tolist()}
+
+    def change(self, fn: str, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: function name
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
 
 
 class State(Component):
@@ -2069,6 +2329,16 @@ class Label(Component):
         except ValueError:
             return data
 
+    def change(self, fn: str, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: function name
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
 
 class KeyValues(Component):
     """
@@ -2085,7 +2355,8 @@ class KeyValues(Component):
         """
         raise DeprecationWarning(
             "The KeyValues component is deprecated. Please use the DataFrame or JSON "
-            "components instead.")
+            "components instead."
+        )
 
 
 class HighlightedText(Component):
@@ -2145,6 +2416,16 @@ class HighlightedText(Component):
     def restore_flagged(self, dir, data, encryption_key):
         return json.loads(data)
 
+    def change(self, fn: str, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: function name
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
 
 class JSON(Component):
     """
@@ -2185,6 +2466,16 @@ class JSON(Component):
     def restore_flagged(self, dir, data, encryption_key):
         return json.loads(data)
 
+    def change(self, fn: str, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: function name
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
 
 class HTML(Component):
     """
@@ -2215,6 +2506,16 @@ class HTML(Component):
         return {
             "html": {},
         }
+
+    def change(self, fn: str, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: function name
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
 
 
 class Carousel(Component):
@@ -2295,6 +2596,16 @@ class Carousel(Component):
             for sample_set in json.loads(data)
         ]
 
+    def change(self, fn: str, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: function name
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
 
 class Chatbot(Component):
     """
@@ -2330,6 +2641,16 @@ class Chatbot(Component):
         """
         return y
 
+    def change(self, fn: str, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: function name
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
 
 # Static Components
 class Markdown(Component):
@@ -2342,6 +2663,16 @@ class Button(Component):
     # TODO: might add default parameter to initilization, WDYT Ali Abid?
     def __init__(self, label):
         super().__init__(label=label)
+
+    def click(self, fn: str, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: function name
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("click", fn, inputs, outputs)
 
 
 # TODO: (faruk) does this take component or interface as a input?

@@ -19,77 +19,33 @@ class Block:
             Context.root_block.blocks[self._id] = self
         self.events = []
 
-    def click(self, fn, inputs, outputs):
-        if not isinstance(inputs, list):
-            inputs = [inputs]
-        if not isinstance(outputs, list):
-            outputs = [outputs]
-        Context.root_block.fns.append(fn)
-        Context.root_block.dependencies.append(
-            {
-                "id": len(Context.root_block.dependencies),
-                "targets": [self._id],
-                "trigger": "click",
-                "inputs": [block._id for block in inputs],
-                "outputs": [block._id for block in outputs],
-            }
-        )
-
-    def change(
-        self, fn: str, inputs: List["Component"], outputs: List["Component"]
+    def set_event_trigger(
+        self,
+        event_name: str,
+        fn: str,
+        inputs: List[Component],
+        outputs: List[Component],
     ) -> None:
         """
-        Adds change event to the component's dependencies.
-
-        Whenever the component changes the function is triggered.
-
+        Adds an event to the component's dependencies.
         Parameters:
+            event_name: event name
             fn: function name
             inputs: input list
             outputs: output list
-
         Returns: None
-
         """
+        # Support for singular parameter
         if not isinstance(inputs, list):
             inputs = [inputs]
         if not isinstance(outputs, list):
             outputs = [outputs]
+
         Context.root_block.fns.append(fn)
         Context.root_block.dependencies.append(
             {
                 "targets": [self._id],
-                "trigger": "change",
-                "inputs": [block._id for block in inputs],
-                "outputs": [block._id for block in outputs],
-            }
-        )
-
-    def save(
-        self, fn: str, inputs: List["Component"], outputs: List["Component"]
-    ) -> None:
-        """
-        Adds save event to the component's dependencies.
-
-        Whenever the component is saved the function is triggered.
-
-        Parameters:
-            fn: function name
-            inputs: input list
-            outputs: output list
-
-        Returns: None
-
-        """
-        if not isinstance(inputs, list):
-            inputs = [inputs]
-        if not isinstance(outputs, list):
-            outputs = [outputs]
-        Context.root_block.fns.append(fn)
-        Context.root_block.dependencies.append(
-            {
-                "targets": [self._id],
-                "trigger": "save",
+                "trigger": event_name,
                 "inputs": [block._id for block in inputs],
                 "outputs": [block._id for block in outputs],
             }
