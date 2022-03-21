@@ -14,10 +14,8 @@ def diff_texts(text1, text2):
 iface = gr.Interface(
     diff_texts,
     [
-        gr.inputs.Textbox(
-            lines=3, default="The quick brown fox jumped over the lazy dogs."
-        ),
-        gr.inputs.Textbox(lines=3, default="The fast brown fox jumps over lazy dogs."),
+        gr.inputs.Textbox(default_value="The quick brown fox jumped over the lazy dogs.", lines=3),
+        gr.inputs.Textbox(default_value="The fast brown fox jumps over lazy dogs.", lines=3),
     ],
     gr.outputs.HighlightedText(color_map={"+": "green", "-": "pink"}),
 )

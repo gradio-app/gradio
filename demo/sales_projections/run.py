@@ -26,10 +26,7 @@ def sales_projections(employee_data):
 
 iface = gr.Interface(
     sales_projections,
-    gr.inputs.Dataframe(
-        headers=["Name", "Jan Sales", "Feb Sales", "Mar Sales"],
-        default=[["Jon", 12, 14, 18], ["Alice", 14, 17, 2], ["Sana", 8, 9.5, 12]],
-    ),
+    gr.inputs.Dataframe(default_value=[["Jon", 12, 14, 18], ["Alice", 14, 17, 2], ["Sana", 8, 9.5, 12]], headers=["Name", "Jan Sales", "Feb Sales", "Mar Sales"]),
     ["dataframe", "plot", "numpy"],
     description="Enter sales figures for employees to predict sales trajectory over year.",
 )

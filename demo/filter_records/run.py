@@ -8,11 +8,7 @@ def filter_records(records, gender):
 iface = gr.Interface(
     filter_records,
     [
-        gr.inputs.Dataframe(
-            headers=["name", "age", "gender"],
-            datatype=["str", "number", "str"],
-            row_count=5,
-        ),
+        gr.inputs.Dataframe(headers=["name", "age", "gender"], row_count=5, datatype=["str", "number", "str"]),
         gr.inputs.Dropdown(["M", "F", "O"]),
     ],
     "dataframe",

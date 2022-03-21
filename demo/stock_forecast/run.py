@@ -26,12 +26,12 @@ iface = gr.Interface(
     stock_forecast,
     [
         gr.inputs.Radio([2025, 2030, 2035, 2040], label="Project to:"),
-        gr.inputs.CheckboxGroup(["Google", "Microsoft", "Gradio"]),
-        gr.inputs.Slider(1, 100),
+        gr.inputs.CheckboxGroup(["Google", "Microsoft", "Gradio"], choices=),
+        gr.inputs.Slider(1),
         "checkbox",
         gr.inputs.Dropdown(["cross", "line", "circle"], label="Style"),
     ],
-    gr.outputs.Image(plot=True, label="forecast"),
+    gr.outputs.Image(label="forecast", plot=True),
 )
 
 iface.test_launch()

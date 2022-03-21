@@ -16,9 +16,7 @@ with xray_blocks:
 	- ipsum 2
 	"""
     )
-    disease = gr.inputs.CheckboxGroup(
-        ["Covid", "Malaria", "Lung Cancer"], label="Disease to Scan For"
-    )
+    disease = gr.inputs.CheckboxGroup(["Covid", "Malaria", "Lung Cancer"], choices=, label="Disease to Scan For")
 
     with gr.Tabs():
         with gr.TabItem("X-ray"):
@@ -26,7 +24,7 @@ with xray_blocks:
                 xray_scan = gr.inputs.Image()
                 xray_results = gr.outputs.JSON()
                 output_textbox = gr.outputs.Textbox()
-                input_textbox = gr.inputs.Textbox(default="Hello This Is a Input Textbox")
+                input_textbox = gr.inputs.Textbox(default_value="Hello This Is a Input Textbox")
             xray_run = gr.Button("Run")
             xray_run.click(xray_model, inputs=[disease, xray_scan], outputs=xray_results)
             xray_run.click(xray_model, inputs=[disease, xray_scan], outputs=output_textbox)

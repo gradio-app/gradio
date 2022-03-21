@@ -43,12 +43,12 @@ class Textbox(Textbox):
             DeprecationWarning,
         )
         super().__init__(
+            default_value=default,
             lines=lines,
             placeholder=placeholder,
-            default=default,
+            label=label,
             numeric=numeric,
             type=type,
-            label=label,
             optional=optional,
         )
 
@@ -76,7 +76,7 @@ class Number(Number):
             "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your component from gradio.components",
             DeprecationWarning,
         )
-        super().__init__(default=default, label=label, optional=optional)
+        super().__init__(default_value=default, label=label, optional=optional)
 
 
 class Slider(Slider):
@@ -110,11 +110,11 @@ class Slider(Slider):
         )
 
         super().__init__(
-            label=label,
+            default_value=default,
             minimum=minimum,
             maximum=maximum,
             step=step,
-            default=default,
+            label=label,
             optional=optional,
         )
 
@@ -142,7 +142,7 @@ class Checkbox(Checkbox):
             "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your component from gradio.components",
             DeprecationWarning,
         )
-        super().__init__(label=label, default=default, optional=optional)
+        super().__init__(default_value=default, label=label, optional=optional)
 
 
 class CheckboxGroup(CheckboxGroup):
@@ -173,7 +173,11 @@ class CheckboxGroup(CheckboxGroup):
             DeprecationWarning,
         )
         super().__init__(
-            choices=choices, default=default, type=type, label=label, optional=optional
+            default_value=default,
+            choices=choices,
+            type=type,
+            label=label,
+            optional=optional,
         )
 
 
@@ -205,7 +209,11 @@ class Radio(Radio):
             DeprecationWarning,
         )
         super().__init__(
-            choices=choices, type=type, default=default, label=label, optional=optional
+            choices=choices,
+            type=type,
+            default_value=default,
+            label=label,
+            optional=optional,
         )
 
 
@@ -237,7 +245,11 @@ class Dropdown(Dropdown):
             DeprecationWarning,
         )
         super().__init__(
-            choices=choices, type=type, default=default, label=label, optional=optional
+            choices=choices,
+            type=type,
+            default_value=default,
+            label=label,
+            optional=optional,
         )
 
 
@@ -415,12 +427,12 @@ class Dataframe(Dataframe):
             DeprecationWarning,
         )
         super().__init__(
+            default_value=default,
             headers=headers,
             row_count=row_count,
             col_count=col_count,
             datatype=datatype,
             col_width=col_width,
-            default=default,
             type=type,
             label=label,
             optional=optional,
@@ -478,7 +490,7 @@ class State(State):
             "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
             DeprecationWarning,
         )
-        super().__init__(label=label, default=default, optional=optional)
+        super().__init__(default_value=default, label=label, optional=optional)
 
     def get_template_context(self):
         return {"default": self.default, **super().get_template_context()}
