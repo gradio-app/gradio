@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import math
+import numbers
 import operator
 import os
 import shutil
@@ -52,9 +53,7 @@ class Component(Block):
         """
         :return: a dictionary with context variables for the javascript file associated with the context
         """
-        return {
-            "label": self.label,
-        }
+        return {"name": self.__class__.__name__.lower(), "label": self.label}
 
     @classmethod
     def get_shortcut_implementations(cls):
@@ -384,9 +383,8 @@ class Number(Component):
         default (float): default value.
         label (str): component name in interface.
         """
-        default = float(default)
-        self.default = default
-        self.test_input = default if default is not None else 1
+        self.default = float(default) if default is not None else None
+        self.test_input = self.default if self.default is not None else 1
         self.interpret_by_tokens = False
         super().__init__(label=label, **kwargs)
 
@@ -509,7 +507,7 @@ class Slider(Component):
         if step is None:
             difference = maximum - minimum
             power = math.floor(math.log10(difference) - 2)
-            step = 10 ** power
+            step = 10**power
         self.step = step
         self.default = minimum if default is None else default
         self.test_input = self.default
@@ -1210,9 +1208,6 @@ class Image(Component):
         y = processing_utils.decode_base64_to_file(x).name
         return y
 
-    def restore_flagged(self, dir, data, encryption_key):
-        return self.restore_flagged_file(dir, data, encryption_key)["data"]
-
 
 class Video(Component):
     """
@@ -1283,7 +1278,7 @@ class Video(Component):
         file_name = file.name
         uploaded_format = file_name.split(".")[-1].lower()
         if self.type is not None and uploaded_format != self.type:
-            output_file_name = file_name[0: file_name.rindex(".") + 1] + self.type
+            output_file_name = file_name[0 : file_name.rindex(".") + 1] + self.type
             ff = FFmpeg(inputs={file_name: None}, outputs={output_file_name: None})
             ff.run()
             return output_file_name
@@ -1313,7 +1308,7 @@ class Video(Component):
         """
         returned_format = y.split(".")[-1].lower()
         if self.type is not None and returned_format != self.type:
-            output_file_name = y[0: y.rindex(".") + 1] + self.type
+            output_file_name = y[0 : y.rindex(".") + 1] + self.type
             ff = FFmpeg(inputs={y: None}, outputs={output_file_name: None})
             ff.run()
             y = output_file_name
@@ -1324,9 +1319,6 @@ class Video(Component):
 
     def deserialize(self, x):
         return processing_utils.decode_base64_to_file(x).name
-
-    def restore_flagged(self, dir, data, encryption_key):
-        return self.restore_flagged_file(dir, data, encryption_key)
 
 
 class Audio(Component):
@@ -1568,9 +1560,6 @@ class Audio(Component):
     def deserialize(self, x):
         return processing_utils.decode_base64_to_file(x).name
 
-    def restore_flagged(self, dir, data, encryption_key):
-        return self.restore_flagged_file(dir, data, encryption_key)["data"]
-
 
 class File(Component):
     """
@@ -1688,9 +1677,6 @@ class File(Component):
             "size": os.path.getsize(y),
             "data": processing_utils.encode_file_to_base64(y),
         }
-
-    def restore_flagged(self, dir, data, encryption_key):
-        return self.restore_flagged_file(dir, data, encryption_key)
 
 
 class Dataframe(Component):
@@ -2014,7 +2000,7 @@ class Label(Component):
         (Dict[label: str, confidences: List[Dict[label: str, confidence: number]]]): Object with key 'label' representing primary label, and key 'confidences' representing a list of label-confidence pairs
         """
         if self.type == "label" or (
-            self.type == "auto" and (isinstance(y, str) or isinstance(y, Number))
+            self.type == "auto" and (isinstance(y, (str, numbers.Number)))
         ):
             return {"label": str(y)}
         elif self.type == "confidences" or (
@@ -2032,7 +2018,8 @@ class Label(Component):
         else:
             raise ValueError(
                 "The `Label` output interface expects one of: a string label, or an int label, a "
-                "float label, or a dictionary whose keys are labels and values are confidences."
+                "float label, or a dictionary whose keys are labels and values are confidences. "
+                "Instead, got a {}".format(type(y))
             )
 
     def deserialize(self, y):
@@ -2040,13 +2027,11 @@ class Label(Component):
         if self.type == "label" or (
             self.type == "auto"
             and (
-                isinstance(y, str)
-                or isinstance(y, int)
-                or isinstance(y, float)
+                isinstance(y, (str, numbers.Number))
                 or ("label" in y and not ("confidences" in y.keys()))
             )
         ):
-            if isinstance(y, str) or isinstance(y, int) or isinstance(y, float):
+            if isinstance(y, (str, numbers.Number)):
                 return y
             else:
                 return y["label"]
@@ -2098,36 +2083,9 @@ class KeyValues(Component):
         default (str): IGNORED
         label (str): component name in interface.
         """
-        super().__init__(label=label, **kwargs)
-
-    def postprocess(self, y):
-        """
-        Parameters:
-        y (Union[Dict, List[Tuple[str, Union[str, int, float]]]]): dictionary or tuple list representing key value pairs
-        Returns:
-        (List[Tuple[str, Union[str, number]]]): list of key value pairs
-        """
-        if isinstance(y, dict):
-            return list(y.items())
-        elif isinstance(y, list):
-            return y
-        else:
-            raise ValueError(
-                "The `KeyValues` output interface expects an output that is a dictionary whose keys are "
-                "labels and values are corresponding values."
-            )
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "key_values": {},
-        }
-
-    def save_flagged(self, dir, label, data, encryption_key):
-        return json.dumps(data)
-
-    def restore_flagged(self, dir, data, encryption_key):
-        return json.loads(data)
+        raise DeprecationWarning(
+            "The KeyValues component is deprecated. Please use the DataFrame or JSON "
+            "components instead.")
 
 
 class HighlightedText(Component):
@@ -2389,7 +2347,7 @@ class Button(Component):
 # TODO: (faruk) does this take component or interface as a input?
 # see this line in Carousel
 # self.components = [get_component_instance(component) for component in components]
-def get_component_instance(iface: "Interface"):
+def get_component_instance(iface: Component):
     # TODO: function may not work properly, and it needs updates regarding its design. See:
     # https://github.com/gradio-app/gradio/issues/731
     if isinstance(iface, str):
