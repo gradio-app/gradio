@@ -943,9 +943,7 @@ class Image(Component):
         invert_colors (bool): whether to invert the image as a preprocessing step.
         source (str): Source of image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "canvas" defaults to a white image that can be edited and drawn upon with tools.
         tool (str): Tools used for editing. "editor" allows a full screen editor, "select" provides a cropping and zoom tool.
-        type (str): #TODO:(Faruk) combine the descriptions below
-            input:  Type of value to be returned by component. "numpy" returns a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" returns a PIL image object, "file" returns a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
-            output: Type of value to be passed to component. "numpy" expects a numpy array with shape (width, height, 3), "pil" expects a PIL image object, "file" expects a file path to the saved image or a remote URL, "plot" expects a matplotlib.pyplot object, "auto" detects return type.
+        type (str): Input Type of value to be returned by component. "numpy" returns a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" returns a PIL image object, "file" returns a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
         label (str): component name in interface.
         """
         if "plot" in kwargs:
@@ -958,6 +956,7 @@ class Image(Component):
             self.type = type
 
         self.type = type
+        self.output_type = "auto"
         self.shape = shape
         self.image_mode = image_mode
         self.source = source
@@ -1179,7 +1178,7 @@ class Image(Component):
         Returns:
         (str): base64 url data
         """
-        if self.type == "auto":
+        if self.output_type == "auto":
             if isinstance(y, np.ndarray):
                 dtype = "numpy"
             elif isinstance(y, PIL.Image.Image):
@@ -1193,7 +1192,7 @@ class Image(Component):
                     "Unknown type. Please choose from: 'numpy', 'pil', 'file', 'plot'."
                 )
         else:
-            dtype = self.type
+            dtype = self.output_type
         if dtype in ["numpy", "pil"]:
             if dtype == "pil":
                 y = np.array(y)
@@ -1350,12 +1349,13 @@ class Audio(Component):
         Parameters:
         default_value (str): IGNORED
         source (str): Source of audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input.
-        type (str): Type of value to be returned by component. "numpy" returns a 2-set tuple with an integer sample_rate and the data numpy.array of shape (samples, 2), "file" returns a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
+        type (str): Input type. Type of value to be returned by component. "numpy" returns a 2-set tuple with an integer sample_rate and the data numpy.array of shape (samples, 2), "file" returns a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
         label (str): component name in interface.
         """
         self.source = source
         requires_permissions = source == "microphone"
         self.type = type
+        self.output_type = "auto"
         self.test_input = test_data.BASE64_AUDIO
         self.interpret_by_tokens = True
         super().__init__(
@@ -1550,7 +1550,7 @@ class Audio(Component):
         Returns:
         (str): base64 url data
         """
-        if self.type in ["numpy", "file", "auto"]:
+        if self.output_type in ["numpy", "file", "auto"]:
             if self.type == "numpy" or (self.type == "auto" and isinstance(y, tuple)):
                 sample_rate, data = y
                 file = tempfile.NamedTemporaryFile(
@@ -1720,13 +1720,11 @@ class Dataframe(Component):
         col_width (Union[int, List[int]]): Width of columns in pixels. Can be provided as single value or list of values per column.
         type (str): Type of value to be returned by component. "pandas" for pandas dataframe, "numpy" for numpy array, or "array" for a Python array.
         label (str): component name in interface.
-
-        Output Parameters: #TODO:(faruk) might converge these in the future
+        Output Parameters:
         headers (List[str]): Header names to dataframe. Only applicable if type is "numpy" or "array".
         max_rows (int): Maximum number of rows to display at once. Set to None for infinite.
         max_cols (int): Maximum number of columns to display at once. Set to None for infinite.
         overflow_row_behaviour (str): If set to "paginate", will create pages for overflow rows. If set to "show_ends", will show initial and final rows and truncate middle rows.
-        type (str): Type of value to be passed to component. "pandas" for pandas dataframe, "numpy" for numpy array, or "array" for Python array, "auto" detects return type.
         """
         self.headers = headers
         self.datatype = datatype
@@ -1734,6 +1732,7 @@ class Dataframe(Component):
         self.col_count = len(headers) if headers else col_count
         self.col_width = col_width
         self.type = type
+        self.output_type = "auto"
         self.default = (
             default_value
             if default_value is not None
@@ -1827,7 +1826,7 @@ class Dataframe(Component):
         Returns:
         (Dict[headers: List[str], data: List[List[Union[str, number]]]]): JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
         """
-        if self.type == "auto":
+        if self.output_type == "auto":
             if isinstance(y, pd.core.frame.DataFrame):
                 dtype = "pandas"
             elif isinstance(y, np.ndarray):
@@ -1835,7 +1834,7 @@ class Dataframe(Component):
             elif isinstance(y, list):
                 dtype = "array"
         else:
-            dtype = self.type
+            dtype = self.output_type
         if dtype == "pandas":
             return {"headers": list(y.columns), "data": y.values.tolist()}
         elif dtype in ("numpy", "array"):
@@ -1984,7 +1983,6 @@ class Label(Component):
         default_value: str = "",
         *,
         num_top_classes: Optional[int] = None,
-        type: str = "auto",
         label: Optional[str] = None,
         **kwargs,
     ):
@@ -1992,11 +1990,11 @@ class Label(Component):
         Parameters:
         default_value(str): IGNORED
         num_top_classes (int): number of most confident classes to show.
-        type (str): Type of value to be passed to component. "value" expects a single out label, "confidences" expects a dictionary mapping labels to confidence scores, "auto" detects return type.
         label (str): component name in interface.
         """
         self.num_top_classes = num_top_classes
-        self.type = type
+        self.output_type = "auto"
+        self.type = "auto"
         super().__init__(label=label, **kwargs)
 
     def postprocess(self, y):
@@ -2006,12 +2004,12 @@ class Label(Component):
         Returns:
         (Dict[label: str, confidences: List[Dict[label: str, confidence: number]]]): Object with key 'label' representing primary label, and key 'confidences' representing a list of label-confidence pairs
         """
-        if self.type == "label" or (
-            self.type == "auto" and (isinstance(y, (str, numbers.Number)))
+        if self.output_type == "label" or (
+            self.output_type == "auto" and (isinstance(y, (str, numbers.Number)))
         ):
             return {"label": str(y)}
-        elif self.type == "confidences" or (
-            self.type == "auto" and isinstance(y, dict)
+        elif self.output_type == "confidences" or (
+            self.output_type == "auto" and isinstance(y, dict)
         ):
             sorted_pred = sorted(y.items(), key=operator.itemgetter(1), reverse=True)
             if self.num_top_classes is not None:
@@ -2031,8 +2029,8 @@ class Label(Component):
 
     def deserialize(self, y):
         # 5 cases: (1): {'label': 'lion'}, {'label': 'lion', 'confidences':...}, {'lion': 0.46, ...}, 'lion', '0.46'
-        if self.type == "label" or (
-            self.type == "auto"
+        if self.output_type == "label" or (
+            self.output_type == "auto"
             and (
                 isinstance(y, (str, numbers.Number))
                 or ("label" in y and not ("confidences" in y.keys()))
@@ -2042,7 +2040,7 @@ class Label(Component):
                 return y
             else:
                 return y["label"]
-        elif self.type == "confidences" or self.type == "auto":
+        elif self.output_type == "confidences" or self.output_type == "auto":
             if ("confidences" in y.keys()) and isinstance(y["confidences"], list):
                 return {k["label"]: k["confidence"] for k in y["confidences"]}
             else:
