@@ -203,7 +203,7 @@ def get_huggingface_interface(model_name, api_key, alias):
             "preprocess": lambda x: {"inputs": x},
             "postprocess": encode_to_base64,
         },
-         "token-classification": {
+        "token-classification": {
             # example model: hf.co/huggingface-course/bert-finetuned-ner
             "inputs": inputs.Textbox(label="Input"),
             "outputs": outputs.HighlightedText(label="Output"),
