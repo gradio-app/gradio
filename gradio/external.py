@@ -232,7 +232,9 @@ def get_huggingface_interface(model_name, api_key, alias):
                     response.status_code
                 )
             )
-        if p == "token-classification":  # Handle as a special case since HF API only returns the named entities and we need the input as well
+        if (
+            p == "token-classification"
+        ):  # Handle as a special case since HF API only returns the named entities and we need the input as well
             ner_groups = response.json()
             input_string = params[0]
             response = utils.format_ner_list(input_string, ner_groups)

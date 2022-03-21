@@ -10,13 +10,13 @@ import requests
 from gradio.utils import (
     colab_check,
     error_analytics,
+    format_ner_list,
     get_local_ip_address,
     ipython_check,
     json,
     launch_analytics,
     readme_to_html,
     version_check,
-    format_ner_list,
 )
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
@@ -120,26 +120,24 @@ class TestIPAddress(unittest.TestCase):
 class TestFormatNERList(unittest.TestCase):
     def test_format_ner_list_standard(self):
         string = "Wolfgang lives in Berlin"
-        groups = [{"entity_group": "PER", "start": 0, "end": 8}, 
-                  {"entity_group": "LOC", "start": 18, "end": 24}]
-        result = [('', None),
-                  ("Wolfgang", "PER"), 
-                  (" lives in ", None),
-                  ("Berlin", "LOC"),
-                  ('', None)]
-        self.assertEqual(
-            format_ner_list(string, groups),
-            result
-        )
+        groups = [
+            {"entity_group": "PER", "start": 0, "end": 8},
+            {"entity_group": "LOC", "start": 18, "end": 24},
+        ]
+        result = [
+            ("", None),
+            ("Wolfgang", "PER"),
+            (" lives in ", None),
+            ("Berlin", "LOC"),
+            ("", None),
+        ]
+        self.assertEqual(format_ner_list(string, groups), result)
 
     def test_format_ner_list_empty(self):
         string = "I live in a city"
         groups = []
         result = [("I live in a city", None)]
-        self.assertEqual(
-            format_ner_list(string, groups),
-            result
-        )
+        self.assertEqual(format_ner_list(string, groups), result)
 
 
 if __name__ == "__main__":
