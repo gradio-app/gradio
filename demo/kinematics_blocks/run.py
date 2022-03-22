@@ -18,9 +18,9 @@ def plot(v, a):
     plt.ylim(0, 60)
     return fig
 
-block = gr.Blocks()
+demo = gr.Blocks()
 
-with block:
+with demo:
     gr.Markdown("Let's do some kinematics! Choose the speed and angle to see the trajectory.")
     
     with gr.Row():
@@ -30,4 +30,5 @@ with block:
     btn = gr.Button("Run")
     btn.click(plot, [speed, angle], output)
 
-block.launch()
+if __name__ == "__main__":
+    demo.launch()

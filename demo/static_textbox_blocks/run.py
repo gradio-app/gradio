@@ -1,8 +1,10 @@
 import gradio as gr
 
-block = gr.Blocks()
+demo = gr.Blocks()
 
-with block:
+with demo:
     gr.Textbox("Hello")
+    gr.Number(5)
 
-block.launch()
+if __name__ == "__main__":
+    demo.launch()
