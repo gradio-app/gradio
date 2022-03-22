@@ -2075,27 +2075,6 @@ class Label(Component):
             return data
 
 
-class KeyValues(Component):
-    """
-    Component displays a table representing values for multiple fields.
-    Output type: Union[Dict, List[Tuple[str, Union[str, int, float]]]]
-    Demos: text_analysis
-    """
-
-    def __init__(
-        self, default_value: str = " ", *, label: Optional[str] = None, **kwargs
-    ):
-        """
-        Parameters:
-        default_value (str): IGNORED
-        label (str): component name in interface.
-        """
-        raise DeprecationWarning(
-            "The KeyValues component is deprecated. Please use the DataFrame or JSON "
-            "components instead."
-        )
-
-
 class HighlightedText(Component):
     """
     Component creates text that contains spans that are highlighted by category or numerical value.

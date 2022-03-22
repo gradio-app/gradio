@@ -20,7 +20,6 @@ from gradio.components import (
     File,
     HighlightedText,
     Image,
-    KeyValues,
     Label,
     State,
     Textbox,
@@ -231,23 +230,25 @@ class Label(Label):
         super().__init__(num_top_classes=num_top_classes, type=type, label=label)
 
 
-class KeyValues(KeyValues):
+class KeyValues:
     """
     Component displays a table representing values for multiple fields.
     Output type: Union[Dict, List[Tuple[str, Union[str, int, float]]]]
     Demos: text_analysis
     """
 
-    def __init__(self, label: Optional[str] = None):
+    def __init__(
+        self, default_value: str = " ", *, label: Optional[str] = None, **kwargs
+    ):
         """
         Parameters:
+        default_value (str): IGNORED
         label (str): component name in interface.
         """
-        warnings.warn(
-            "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-            DeprecationWarning,
+        raise DeprecationWarning(
+            "The KeyValues component is deprecated. Please use the DataFrame or JSON "
+            "components instead."
         )
-        super().__init__(label=label)
 
 
 class HighlightedText(HighlightedText):
