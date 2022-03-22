@@ -29,7 +29,9 @@ iface = gr.Interface(
     disease_report,
     [
         "image",
-        gr.inputs.CheckboxGroup(["Cancer", "Rash", "Heart Failure", "Stroke", "Diabetes", "Pneumonia"]),
+        gr.inputs.CheckboxGroup(
+            ["Cancer", "Rash", "Heart Failure", "Stroke", "Diabetes", "Pneumonia"]
+        ),
         "checkbox",
     ],
     [

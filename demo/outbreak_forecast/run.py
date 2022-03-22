@@ -30,7 +30,7 @@ def outbreak(r, month, countries, social_distancing):
 iface = gr.Interface(
     outbreak,
     [
-        gr.inputs.Slider(1, label="R", default=3.2),
+        gr.inputs.Slider(1, 4, default=3.2, label="R"),
         gr.inputs.Dropdown(
             ["January", "February", "March", "April", "May"], label="Month"
         ),
