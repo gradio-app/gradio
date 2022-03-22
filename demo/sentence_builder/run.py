@@ -11,7 +11,7 @@ iface = gr.Interface(
         gr.inputs.Slider(2),
         gr.inputs.Dropdown(["cat", "dog", "bird"]),
         gr.inputs.Radio(["park", "zoo", "road"]),
-        gr.inputs.CheckboxGroup(["ran", "swam", "ate", "slept"], choices=),
+        gr.inputs.CheckboxGroup(["ran", "swam", "ate", "slept"]),
         gr.inputs.Checkbox(label="Is it the morning?"),
     ],
     "text",
