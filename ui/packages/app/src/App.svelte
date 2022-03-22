@@ -26,6 +26,7 @@
 	export let description: string;
 	export let article: string;
 	export let theme: string;
+	export let style: string | null;
 	export let dark: boolean;
 	export let input_components: Array<Component>;
 	export let output_components: Array<Component>;

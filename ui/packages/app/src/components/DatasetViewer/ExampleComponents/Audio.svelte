@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Value } from "./types";
+	import type { Value } from "../../Audio/types";
 
 	export let value: Value;
 </script>
