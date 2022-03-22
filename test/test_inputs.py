@@ -183,7 +183,7 @@ class TestSlider(unittest.TestCase):
 
         self.assertIsInstance(slider_input.generate_sample(), int)
         slider_input = gr.inputs.Slider(
-            default_value=15, minimum=10, maximum=20, step=1, label="Slide Your Input"
+            default=15, minimum=10, maximum=20, step=1, label="Slide Your Input"
         )
         self.assertEqual(
             slider_input.get_template_context(),
@@ -248,7 +248,7 @@ class TestCheckbox(unittest.TestCase):
             restored = bool_input.restore_flagged(tmpdirname, to_save, None)
             self.assertEqual(restored, True)
         self.assertIsInstance(bool_input.generate_sample(), bool)
-        bool_input = gr.inputs.Checkbox(default_value=True, label="Check Your Input")
+        bool_input = gr.inputs.Checkbox(default=True, label="Check Your Input")
         self.assertEqual(
             bool_input.get_template_context(),
             {
@@ -287,7 +287,7 @@ class TestCheckboxGroup(unittest.TestCase):
             self.assertEqual(restored, ["a", "c"])
         self.assertIsInstance(checkboxes_input.generate_sample(), list)
         checkboxes_input = gr.inputs.CheckboxGroup(
-            default_value=["a", "c"], choices=["a", "b", "c"], label="Check Your Inputs"
+            default=["a", "c"], choices=["a", "b", "c"], label="Check Your Inputs"
         )
         self.assertEqual(
             checkboxes_input.get_template_context(),
@@ -323,7 +323,7 @@ class TestRadio(unittest.TestCase):
             self.assertEqual(restored, "a")
         self.assertIsInstance(radio_input.generate_sample(), str)
         radio_input = gr.inputs.Radio(
-            choices=["a", "b", "c"], default_value="a", label="Pick Your One Input"
+            choices=["a", "b", "c"], default="a", label="Pick Your One Input"
         )
         self.assertEqual(
             radio_input.get_template_context(),
@@ -367,7 +367,7 @@ class TestDropdown(unittest.TestCase):
             self.assertEqual(restored, "a")
         self.assertIsInstance(dropdown_input.generate_sample(), str)
         dropdown_input = gr.inputs.Dropdown(
-            choices=["a", "b", "c"], default_value="a", label="Drop Your Input"
+            choices=["a", "b", "c"], default="a", label="Drop Your Input"
         )
         self.assertEqual(
             dropdown_input.get_template_context(),
