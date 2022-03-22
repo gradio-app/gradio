@@ -1,0 +1,246 @@
+{
+    "mode": "blocks",
+    "components": [
+      {
+        "id": 1,
+        "type": "markdown",
+        "props": {
+          "label": "\n\t# Detect Disease From Scan\n\tWith this model you can lorem ipsum\n\t- ipsum 1\n\t- ipsum 2\n\t"
+        }
+      },
+      {
+        "id": 2,
+        "type": "checkboxgroup",
+        "props": {
+          "choices": [
+            "Covid",
+            "Malaria",
+            "Lung Cancer"
+          ],
+          "default": [],
+          "label": "Disease to Scan For"
+        }
+      },
+      {
+        "id": 3,
+        "type": "tabs",
+        "props": null
+      },
+      {
+        "id": 4,
+        "type": "tabitem",
+        "props": {
+          "label": "X-ray"
+        }
+      },
+      {
+        "id": 5,
+        "type": "row",
+        "props": {
+          "type": "row"
+        }
+      },
+      {
+        "id": 6,
+        "type": "image",
+        "props": {
+          "image_mode": "RGB",
+          "shape": null,
+          "source": "upload",
+          "tool": "editor",
+          "label": null
+        }
+      },
+      {
+        "id": 7,
+        "type": "json",
+        "props": {
+          "label": null
+        }
+      },
+      {
+        "id": 8,
+        "type": "textbox",
+        "props": {
+          "lines": 1,
+          "placeholder": null,
+          "default": "",
+          "label": null
+        }
+      },
+      {
+        "id": 9,
+        "type": "textbox",
+        "props": {
+          "lines": 1,
+          "placeholder": null,
+          "default": "Hello This Is a Input Textbox",
+          "label": null
+        }
+      },
+      {
+        "id": 10,
+        "type": "button",
+        "props": {
+          "label": "Run"
+        }
+      },
+      {
+        "id": 11,
+        "type": "tabitem",
+        "props": {
+          "label": "CT Scan"
+        }
+      },
+      {
+        "id": 12,
+        "type": "row",
+        "props": {
+          "type": "row"
+        }
+      },
+      {
+        "id": 13,
+        "type": "image",
+        "props": {
+          "image_mode": "RGB",
+          "shape": null,
+          "source": "upload",
+          "tool": "editor",
+          "label": null
+        }
+      },
+      {
+        "id": 14,
+        "type": "json",
+        "props": {
+          "label": null
+        }
+      },
+      {
+        "id": 15,
+        "type": "button",
+        "props": {
+          "label": "Run"
+        }
+      },
+      {
+        "id": 16,
+        "type": "textbox",
+        "props": {
+          "lines": 1,
+          "placeholder": null,
+          "default": "",
+          "label": null
+        }
+      }
+    ],
+    "theme": "default",
+    "layout": {
+      "id": 0,
+      "children": [
+        {
+          "id": 1
+        },
+        {
+          "id": 2
+        },
+        {
+          "id": 3,
+          "children": [
+            {
+              "id": 4,
+              "children": [
+                {
+                  "id": 5,
+                  "children": [
+                    {
+                      "id": 6
+                    },
+                    {
+                      "id": 7
+                    },
+                    {
+                      "id": 8
+                    },
+                    {
+                      "id": 9
+                    }
+                  ]
+                },
+                {
+                  "id": 10
+                }
+              ]
+            },
+            {
+              "id": 11,
+              "children": [
+                {
+                  "id": 12,
+                  "children": [
+                    {
+                      "id": 13
+                    },
+                    {
+                      "id": 14
+                    }
+                  ]
+                },
+                {
+                  "id": 15
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": 16
+        }
+      ]
+    },
+    "dependencies": [
+      {
+        "id": 0,
+        "targets": [
+          10
+        ],
+        "trigger": "click",
+        "inputs": [
+          2,
+          6
+        ],
+        "outputs": [
+          7
+        ]
+      },
+      {
+        "id": 1,
+        "targets": [
+          10
+        ],
+        "trigger": "click",
+        "inputs": [
+          2,
+          6
+        ],
+        "outputs": [
+          8
+        ]
+      },
+      {
+        "id": 2,
+        "targets": [
+          15
+        ],
+        "trigger": "click",
+        "inputs": [
+          2,
+          13
+        ],
+        "outputs": [
+          14
+        ]
+      }
+    ]
+  }

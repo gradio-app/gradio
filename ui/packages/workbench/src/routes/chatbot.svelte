@@ -7,8 +7,12 @@
 	];
 
 	setTimeout(() => {
-		messages = [...messages, ["message five", "message six"]];
+		messages = [...messages, ["message five", ""]];
 	}, 1000);
+
+	setTimeout(() => {
+		messages = [...messages, ["message five", "message six"]];
+	}, 2000);
 </script>
 
 <ChatBot value={messages} />
