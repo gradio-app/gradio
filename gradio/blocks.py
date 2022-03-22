@@ -76,7 +76,15 @@ class Column(BlockContext):
 
 
 class Tabs(BlockContext):
-    pass
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
 
 
 class TabItem(BlockContext):
