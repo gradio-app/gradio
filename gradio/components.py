@@ -1992,7 +1992,6 @@ class Label(Component):
         """
         self.num_top_classes = num_top_classes
         self.output_type = "auto"
-        self.type = "auto"
         super().__init__(label=label, **kwargs)
 
     def postprocess(self, y):
