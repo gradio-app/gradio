@@ -7,10 +7,11 @@
 		confidences?: Array<{ label: string; confidence: number }>;
 	};
 	export let theme: string;
+	export let style: string | null;
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
 	$: value, dispatch("change");
 </script>
 
-<Label {theme} {value} />
+<Label {theme} {style} {value} />

@@ -3,7 +3,7 @@ import math
 
 import numpy as np
 
-from gradio.components import Label, Textbox, Number
+from gradio.components import Label, Number, Textbox
 
 
 def run_interpret(interface, raw_input):

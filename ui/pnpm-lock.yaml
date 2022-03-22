@@ -42,6 +42,7 @@ importers:
       '@gradio/image': workspace:^0.0.1
       '@gradio/json': workspace:^0.0.1
       '@gradio/label': workspace:^0.0.1
+      '@gradio/markdown': workspace:^0.0.1
       '@gradio/table': workspace:^0.0.1
       '@gradio/tabs': workspace:^0.0.1
       '@gradio/theme': workspace:^0.0.1
@@ -65,6 +66,7 @@ importers:
       '@gradio/image': link:../image
       '@gradio/json': link:../json
       '@gradio/label': link:../label
+      '@gradio/markdown': link:../markdown
       '@gradio/table': link:../table
       '@gradio/tabs': link:../tabs
       '@gradio/theme': link:../theme
@@ -148,6 +150,9 @@ importers:
   packages/label:
     specifiers: {}
 
+  packages/markdown:
+    specifiers: {}
+
   packages/table:
     specifiers: {}
 
@@ -183,6 +188,7 @@ importers:
       '@gradio/image': workspace:^0.0.1
       '@gradio/json': workspace:^0.0.1
       '@gradio/label': workspace:^0.0.1
+      '@gradio/markdown': workspace:^0.0.1
       '@gradio/table': workspace:^0.0.1
       '@gradio/tabs': workspace:^0.0.1
       '@gradio/theme': workspace:^0.0.1
@@ -212,6 +218,7 @@ importers:
       '@gradio/image': link:../image
       '@gradio/json': link:../json
       '@gradio/label': link:../label
+      '@gradio/markdown': link:../markdown
       '@gradio/table': link:../table
       '@gradio/tabs': link:../tabs
       '@gradio/theme': link:../theme
