@@ -504,8 +504,8 @@ class Interface(Launchable):
         input_panel = add_component(panel_row, Column())
         input_ids = []
         for component in self.input_components:
-            input_id = add_component(input_panel, component)
-            input_ids.append(input_id["id"])
+            input_id = add_component(input_panel, component)["id"]
+            input_ids.append(input_id)
         input_panel_btns = add_component(input_panel, Row())
         submit_btn = add_component(input_panel_btns, Button("Submit"))
         clear_btn = add_component(input_panel_btns, Button("Clear"))
@@ -513,8 +513,8 @@ class Interface(Launchable):
         output_panel = add_component(panel_row, Column())
         output_ids = []
         for component in self.output_components:
-            output_id = add_component(output_panel, component)
-            output_ids.append(output_id["id"])
+            output_id = add_component(output_panel, component)["id"]
+            output_ids.append(output_id)
         output_panel_btns = add_component(output_panel, Row())
         flag_btn = add_component(output_panel_btns, Button("Flag"))
         dependencies.append(
@@ -644,17 +644,21 @@ class Interface(Launchable):
         }
 
     def process_api(self, data: Dict[str, Any], username: str = None) -> Dict[str, Any]:
+        class RequestApi():
+            SUBMIT = 0
+            CLEAR = 1
+            FLAG = 2
         raw_input = data["data"]
         fn_index = data["fn_index"]
-        if fn_index == 0:  # submit
+        if fn_index == RequestApi.SUBMIT:
             prediction, durations = self.process(raw_input)
             return {"data": prediction}
-        elif fn_index == 1:  # clear
+        elif fn_index == RequestApi.CLEAR:
             return {
                 "data": [None]
                 * (len(self.input_components) + len(self.output_components))
             }
-        elif fn_index == 2: # flag
+        elif fn_index == RequestApi.FLAG: # flag
             pass
 
     def process(self, raw_input: List[Any]) -> Tuple[List[Any], List[float]]:

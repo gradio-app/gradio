@@ -28,9 +28,9 @@ class Component(Block):
     def __init__(
         self,
         *,
-        label: str = None,
+        label: Optional[str] = None,
         requires_permissions: bool = False,
-        css: Dict = {},
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         if "optional" in kwargs:
@@ -40,7 +40,7 @@ class Component(Block):
             )
         self.label = label
         self.requires_permissions = requires_permissions
-        self.css = css
+        self.css = css if css is not None else {}
 
         self.set_interpret_parameters()
         super().__init__()
@@ -220,7 +220,7 @@ class Textbox(Component):
         lines: int = 1,
         placeholder: Optional[str] = None,
         label: Optional[str] = None,
-        css: Dict = {},
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -383,7 +383,7 @@ class Number(Component):
         default_value: Optional[float] = None,
         *,
         label: Optional[str] = None,
-        css: Dict = {},
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -500,7 +500,7 @@ class Slider(Component):
         maximum: float = 100,
         step: Optional[float] = None,
         label: Optional[str] = None,
-        css: Dict = {},
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -610,7 +610,7 @@ class Checkbox(Component):
         default_value: bool = False,
         *,
         label: Optional[str] = None,
-        css: Dict = {},
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -699,7 +699,7 @@ class CheckboxGroup(Component):
         choices: List[str],
         type: str = "value",
         label: Optional[str] = None,
-        css: Dict = {},
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -817,7 +817,7 @@ class Radio(Component):
         choices: List[str],
         type: str = "value",
         label: Optional[str] = None,
-        css: Dict = {},
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -910,7 +910,7 @@ class Dropdown(Radio):
         choices: List[str],
         type: str = "value",
         label: Optional[str] = None,
-        css: Dict = {},
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -950,7 +950,7 @@ class Image(Component):
         tool: str = "editor",
         type: str = "numpy",
         label: str = None,
-        css: Dict = {},
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -1248,7 +1248,7 @@ class Video(Component):
         type: Optional[str] = None,
         source: str = "upload",
         label: Optional[str] = None,
-        css: Dict = {},
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -1362,7 +1362,7 @@ class Audio(Component):
         source: str = "upload",
         type: str = "numpy",
         label: str = None,
-        css: Dict = {},
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -1604,7 +1604,7 @@ class File(Component):
         file_count: str = "single",
         type: str = "file",
         label: Optional[str] = None,
-        css: Dict = {},
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -1729,7 +1729,7 @@ class Dataframe(Component):
         max_rows: Optional[int] = 20,
         max_cols: Optional[int] = None,
         overflow_row_behaviour: str = "paginate",
-        css: Dict = {},
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -1889,7 +1889,7 @@ class Timeseries(Component):
         x: Optional[str] = None,
         y: str | List[str] = None,
         label: Optional[str] = None,
-        css: Dict = {},
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -1977,6 +1977,7 @@ class State(Component):
         default_value: Any = None,
         *,
         label: Optional[str] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -1985,7 +1986,7 @@ class State(Component):
         label (str): component name in interface (not used).
         """
         self.default = default_value
-        super().__init__(label=label, **kwargs)
+        super().__init__(label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {"default": self.default, **super().get_template_context()}
@@ -2013,7 +2014,7 @@ class Label(Component):
         *,
         num_top_classes: Optional[int] = None,
         label: Optional[str] = None,
-        css: Dict = {},
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -2117,7 +2118,7 @@ class KeyValues(Component):
         default_value: str = " ",
         *,
         label: Optional[str] = None,
-        css: Dict = {},
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -2146,7 +2147,7 @@ class HighlightedText(Component):
         color_map: Dict[str, str] = None,
         label: Optional[str] = None,
         show_legend: bool = False,
-        css: Dict = {},
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -2202,7 +2203,7 @@ class JSON(Component):
         default_value: str = "",
         *,
         label: Optional[str] = None,
-        css: Dict = {},
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -2248,7 +2249,7 @@ class HTML(Component):
         self,
         default_value: str = "",
         label: Optional[str] = None,
-        css: Dict = {},
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -2287,7 +2288,7 @@ class Carousel(Component):
         *,
         components: Component | List[Component],
         label: Optional[str] = None,
-        css: Dict = {},
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -2362,7 +2363,7 @@ class Chatbot(Component):
     """
 
     def __init__(
-        self, default_value="", *, label: Optional[str] = None, css: Dict = {}, **kwargs
+        self, default_value="", *, label: Optional[str] = None, css: Optional[Dict] = None, **kwargs
     ):
         """
         Parameters:
@@ -2398,7 +2399,7 @@ class Markdown(Component):
         default_value: str = "",
         *,
         label: Optional[str] = None,
-        css: Dict = {},
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         super().__init__(label=label, css=css, **kwargs)
@@ -2418,7 +2419,7 @@ class Button(Component):
         default_value: str = "",
         *,
         label: Optional[str] = None,
-        css: Dict = {},
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         super().__init__(label=label, css=css, **kwargs)
@@ -2437,7 +2438,7 @@ class DatasetViewer(Component):
         default_value: List[List[Any]],
         *,
         label: Optional[str] = None,
-        css: Dict = {},
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         super().__init__(label=label, css=css, **kwargs)
