@@ -222,8 +222,6 @@ class Textbox(Component):
         lines (int): number of line rows to provide in textarea.
         placeholder (str): placeholder hint to provide behind textarea.
         label (str): component name in interface.
-        numeric (bool): DEPRECATED.
-        type (str): DEPRECATED.
         """
         if "numeric" in kwargs:
             warnings.warn(
@@ -943,7 +941,7 @@ class Image(Component):
         invert_colors (bool): whether to invert the image as a preprocessing step.
         source (str): Source of image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "canvas" defaults to a white image that can be edited and drawn upon with tools.
         tool (str): Tools used for editing. "editor" allows a full screen editor, "select" provides a cropping and zoom tool.
-        type (str): Input Type of value to be returned by component. "numpy" returns a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" returns a PIL image object, "file" returns a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
+        type (str): The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
         label (str): component name in interface.
         """
         if "plot" in kwargs:
@@ -1349,7 +1347,7 @@ class Audio(Component):
         Parameters:
         default_value (str): IGNORED
         source (str): Source of audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input.
-        type (str): Input type. Type of value to be returned by component. "numpy" returns a 2-set tuple with an integer sample_rate and the data numpy.array of shape (samples, 2), "file" returns a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
+        type (str): The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
         label (str): component name in interface.
         """
         self.source = source
