@@ -20,6 +20,7 @@ from markdown_it import MarkdownIt
 from gradio import processing_utils, test_data
 from gradio.blocks import Block
 
+
 class Component(Block):
     """
     A base class for defining the methods that all gradio components should have.
@@ -898,7 +899,9 @@ class Radio(Component):
         self.choices = choices
         self.type = type
         self.test_input = self.choices[0]
-        self.default = default_selected if default_selected is not None else self.choices[0]
+        self.default = (
+            default_selected if default_selected is not None else self.choices[0]
+        )
         self.interpret_by_tokens = False
         super().__init__(label=label, css=css, **kwargs)
 
@@ -2670,7 +2673,12 @@ class Chatbot(Component):
     """
 
     def __init__(
-        self, default_value="", *, label: Optional[str] = None, css: Optional[Dict] = None, **kwargs
+        self,
+        default_value="",
+        *,
+        label: Optional[str] = None,
+        css: Optional[Dict] = None,
+        **kwargs,
     ):
         """
         Parameters:
@@ -2722,12 +2730,9 @@ class Markdown(Component):
         super().__init__(label=label, css=css, **kwargs)
         self.md = MarkdownIt()
         self.value = self.md.render(default_value)
-        
+
     def get_template_context(self):
-        return {
-            "value": self.value,
-            **super().get_template_context()
-        }
+        return {"value": self.value, **super().get_template_context()}
 
 
 class Button(Component):
@@ -2741,12 +2746,10 @@ class Button(Component):
     ):
         super().__init__(label=label, css=css, **kwargs)
         self.value = default_value
-        
+
     def get_template_context(self):
-        return {
-            "value": self.value,
-            **super().get_template_context()
-        }
+        return {"value": self.value, **super().get_template_context()}
+
 
 class DatasetViewer(Component):
     def __init__(
@@ -2761,12 +2764,12 @@ class DatasetViewer(Component):
         super().__init__(label=label, css=css, **kwargs)
         self.types = types
         self.value = default_value
-        
+
     def get_template_context(self):
         return {
             "types": [_type.__class__.__name__.lower() for _type in types],
             "value": self.value,
-            **super().get_template_context()
+            **super().get_template_context(),
         }
 
     def click(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
