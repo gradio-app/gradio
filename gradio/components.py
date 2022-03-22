@@ -9,7 +9,7 @@ import shutil
 import tempfile
 import warnings
 from types import ModuleType
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -360,20 +360,20 @@ class Textbox(Component):
         """
         return x
 
-    def change(self, fn: str, inputs: List[Component], outputs: List[Component]):
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
-            fn: function name
+            fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
         Returns: None
         """
         self.set_event_trigger("change", fn, inputs, outputs)
 
-    def submit(self, fn: str, inputs: List[Component], outputs: List[Component]):
+    def submit(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
-            fn: function name
+            fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
         Returns: None
@@ -495,20 +495,20 @@ class Number(Component):
         """
         return y
 
-    def change(self, fn: str, inputs: List[Component], outputs: List[Component]):
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
-            fn: function name
+            fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
         Returns: None
         """
         self.set_event_trigger("change", fn, inputs, outputs)
 
-    def submit(self, fn: str, inputs: List[Component], outputs: List[Component]):
+    def submit(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
-            fn: function name
+            fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
         Returns: None
@@ -626,10 +626,10 @@ class Slider(Component):
         """
         return y
 
-    def change(self, fn: str, inputs: List[Component], outputs: List[Component]):
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
-            fn: function name
+            fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
         Returns: None
@@ -717,10 +717,10 @@ class Checkbox(Component):
         """
         return x
 
-    def change(self, fn: str, inputs: List[Component], outputs: List[Component]):
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
-            fn: function name
+            fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
         Returns: None
@@ -844,10 +844,10 @@ class CheckboxGroup(Component):
         """
         return x
 
-    def change(self, fn: str, inputs: List[Component], outputs: List[Component]):
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
-            fn: function name
+            fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
         Returns: None
@@ -946,10 +946,10 @@ class Radio(Component):
         """
         return x
 
-    def change(self, fn: str, inputs: List[Component], outputs: List[Component]):
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
-            fn: function name
+            fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
         Returns: None
@@ -1288,30 +1288,30 @@ class Image(Component):
         y = processing_utils.decode_base64_to_file(x).name
         return y
 
-    def change(self, fn: str, inputs: List[Component], outputs: List[Component]):
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
-            fn: function name
+            fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
         Returns: None
         """
         self.set_event_trigger("change", fn, inputs, outputs)
 
-    def edit(self, fn: str, inputs: List[Component], outputs: List[Component]):
+    def edit(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
-            fn: function name
+            fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
         Returns: None
         """
         self.set_event_trigger("edit", fn, inputs, outputs)
 
-    def clear(self, fn: str, inputs: List[Component], outputs: List[Component]):
+    def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
-            fn: function name
+            fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
         Returns: None
@@ -1430,50 +1430,50 @@ class Video(Component):
     def deserialize(self, x):
         return processing_utils.decode_base64_to_file(x).name
 
-    def change(self, fn: str, inputs: List[Component], outputs: List[Component]):
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
-            fn: function name
+            fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
         Returns: None
         """
         self.set_event_trigger("change", fn, inputs, outputs)
 
-    def clear(self, fn: str, inputs: List[Component], outputs: List[Component]):
+    def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
-            fn: function name
+            fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
         Returns: None
         """
         self.set_event_trigger("clear", fn, inputs, outputs)
 
-    def play(self, fn: str, inputs: List[Component], outputs: List[Component]):
+    def play(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
-            fn: function name
+            fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
         Returns: None
         """
         self.set_event_trigger("play", fn, inputs, outputs)
 
-    def pause(self, fn: str, inputs: List[Component], outputs: List[Component]):
+    def pause(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
-            fn: function name
+            fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
         Returns: None
         """
         self.set_event_trigger("pause", fn, inputs, outputs)
 
-    def stop(self, fn: str, inputs: List[Component], outputs: List[Component]):
+    def stop(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
-            fn: function name
+            fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
         Returns: None
@@ -1720,60 +1720,60 @@ class Audio(Component):
     def deserialize(self, x):
         return processing_utils.decode_base64_to_file(x).name
 
-    def change(self, fn: str, inputs: List[Component], outputs: List[Component]):
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
-            fn: function name
+            fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
         Returns: None
         """
         self.set_event_trigger("change", fn, inputs, outputs)
 
-    def edit(self, fn: str, inputs: List[Component], outputs: List[Component]):
+    def edit(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
-            fn: function name
+            fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
         Returns: None
         """
         self.set_event_trigger("edit", fn, inputs, outputs)
 
-    def clear(self, fn: str, inputs: List[Component], outputs: List[Component]):
+    def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
-            fn: function name
+            fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
         Returns: None
         """
         self.set_event_trigger("clear", fn, inputs, outputs)
 
-    def play(self, fn: str, inputs: List[Component], outputs: List[Component]):
+    def play(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
-            fn: function name
+            fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
         Returns: None
         """
         self.set_event_trigger("play", fn, inputs, outputs)
 
-    def pause(self, fn: str, inputs: List[Component], outputs: List[Component]):
+    def pause(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
-            fn: function name
+            fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
         Returns: None
         """
         self.set_event_trigger("pause", fn, inputs, outputs)
 
-    def stop(self, fn: str, inputs: List[Component], outputs: List[Component]):
+    def stop(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
-            fn: function name
+            fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
         Returns: None
@@ -1898,20 +1898,20 @@ class File(Component):
             "data": processing_utils.encode_file_to_base64(y),
         }
 
-    def change(self, fn: str, inputs: List[Component], outputs: List[Component]):
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
-            fn: function name
+            fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
         Returns: None
         """
         self.set_event_trigger("change", fn, inputs, outputs)
 
-    def clear(self, fn: str, inputs: List[Component], outputs: List[Component]):
+    def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
-            fn: function name
+            fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
         Returns: None
@@ -2084,10 +2084,10 @@ class Dataframe(Component):
                 + ". Please choose from: 'pandas', 'numpy', 'array'."
             )
 
-    def change(self, fn: str, inputs: List[Component], outputs: List[Component]):
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
-            fn: function name
+            fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
         Returns: None
@@ -2183,10 +2183,10 @@ class Timeseries(Component):
         """
         return {"headers": y.columns.values.tolist(), "data": y.values.tolist()}
 
-    def change(self, fn: str, inputs: List[Component], outputs: List[Component]):
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
-            fn: function name
+            fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
         Returns: None
@@ -2329,10 +2329,10 @@ class Label(Component):
         except ValueError:
             return data
 
-    def change(self, fn: str, inputs: List[Component], outputs: List[Component]):
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
-            fn: function name
+            fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
         Returns: None
@@ -2416,10 +2416,10 @@ class HighlightedText(Component):
     def restore_flagged(self, dir, data, encryption_key):
         return json.loads(data)
 
-    def change(self, fn: str, inputs: List[Component], outputs: List[Component]):
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
-            fn: function name
+            fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
         Returns: None
@@ -2466,10 +2466,10 @@ class JSON(Component):
     def restore_flagged(self, dir, data, encryption_key):
         return json.loads(data)
 
-    def change(self, fn: str, inputs: List[Component], outputs: List[Component]):
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
-            fn: function name
+            fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
         Returns: None
@@ -2507,10 +2507,10 @@ class HTML(Component):
             "html": {},
         }
 
-    def change(self, fn: str, inputs: List[Component], outputs: List[Component]):
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
-            fn: function name
+            fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
         Returns: None
@@ -2596,10 +2596,10 @@ class Carousel(Component):
             for sample_set in json.loads(data)
         ]
 
-    def change(self, fn: str, inputs: List[Component], outputs: List[Component]):
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
-            fn: function name
+            fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
         Returns: None
@@ -2641,10 +2641,10 @@ class Chatbot(Component):
         """
         return y
 
-    def change(self, fn: str, inputs: List[Component], outputs: List[Component]):
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
-            fn: function name
+            fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
         Returns: None
@@ -2664,10 +2664,10 @@ class Button(Component):
     def __init__(self, label):
         super().__init__(label=label)
 
-    def click(self, fn: str, inputs: List[Component], outputs: List[Component]):
+    def click(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
-            fn: function name
+            fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
         Returns: None

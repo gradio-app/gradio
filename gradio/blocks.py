@@ -22,7 +22,7 @@ class Block:
     def set_event_trigger(
         self,
         event_name: str,
-        fn: str,
+        fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
     ) -> None:
@@ -30,7 +30,7 @@ class Block:
         Adds an event to the component's dependencies.
         Parameters:
             event_name: event name
-            fn: function name
+            fn: Callable function
             inputs: input list
             outputs: output list
         Returns: None
