@@ -3,9 +3,14 @@
 
 	export let interpretation: Array<[string, number]>;
 	export let theme: string;
+	export let style: string | null;
 </script>
 
-<div class="input-text w-full rounded box-border p-2 break-word" {theme}>
+<div
+	class="input-text w-full rounded box-border p-2 break-word"
+	{theme}
+	{style}
+>
 	{#each interpretation as [text, saliency]}
 		<span
 			class="textspan p-1 bg-opacity-20 dark:bg-opacity-80"

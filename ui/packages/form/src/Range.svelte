@@ -2,6 +2,7 @@
 	import { createEventDispatcher } from "svelte";
 	export let value: number;
 	export let theme: string;
+	export let style: string | null;
 	export let minimum: number;
 	export let maximum: number;
 	export let step: number;

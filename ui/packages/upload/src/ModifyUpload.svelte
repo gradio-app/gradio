@@ -7,6 +7,7 @@
 
 	export let editable: boolean = false;
 	export let theme: string;
+	export let style: string | null;
 	export let absolute = true;
 
 	const dispatch = createEventDispatcher<{ edit: FileData; clear: null }>();

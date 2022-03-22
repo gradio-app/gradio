@@ -14,6 +14,7 @@
 	export let examples_per_page: number;
 	export let input_components: Array<Component>;
 	export let theme: string;
+	export let style: string | null;
 
 	let selected_examples = examples;
 	let gallery = input_components.length === 1;

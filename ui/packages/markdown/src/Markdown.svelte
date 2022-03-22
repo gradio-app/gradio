@@ -1,14 +1,16 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import { JSON } from "@gradio/json";
+	import "./typography.css";
 
-	export let value: any;
-	export let theme: string;
-	export let style: string | null;
+
+	export let value: string;
+	export let theme: string = "default";
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
 	$: value, dispatch("change");
 </script>
 
-<JSON {theme} {style} {value} />
+<div class="output-markdown prose" {theme}>
+	{@html value}
+</div>
