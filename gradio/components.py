@@ -752,9 +752,9 @@ class CheckboxGroup(Component):
 
     def __init__(
         self,
-        default_value: List[str] = None,
-        *,
         choices: List[str],
+        *,
+        default_selected: List[str] = None,
         type: str = "value",
         label: Optional[str] = None,
         css: Optional[Dict] = None,
@@ -762,17 +762,17 @@ class CheckboxGroup(Component):
     ):
         """
         Parameters:
-        default_value (List[str]): default selected list of options.
         choices (List[str]): list of options to select from.
+        default_selected (List[str]): default selected list of options.
         type (str): Type of value to be returned by component. "value" returns the list of strings of the choices selected, "index" returns the list of indicies of the choices selected.
         label (str): component name in interface.
         """
         if (
-            default_value is None
+            default_selected is None
         ):  # Mutable parameters shall not be given as default parameters in the function.
-            default_value = []
+            default_selected = []
         self.choices = choices
-        self.default = default_value
+        self.default = default_selected
         self.type = type
         self.test_input = self.choices
         self.interpret_by_tokens = False
@@ -880,9 +880,9 @@ class Radio(Component):
 
     def __init__(
         self,
-        default_value: Optional[str] = None,
-        *,
         choices: List[str],
+        *,
+        default_selected: Optional[str] = None,
         type: str = "value",
         label: Optional[str] = None,
         css: Optional[Dict] = None,
@@ -890,15 +890,15 @@ class Radio(Component):
     ):
         """
         Parameters:
-        default_value (str): the button selected by default. If None, no button is selected by default.
         choices (List[str]): list of options to select from.
+        default_selected (str): the button selected by default. If None, no button is selected by default.
         type (str): Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
         label (str): component name in interface.
         """
         self.choices = choices
         self.type = type
         self.test_input = self.choices[0]
-        self.default = default_value if default_value is not None else self.choices[0]
+        self.default = default_selected if default_selected is not None else self.choices[0]
         self.interpret_by_tokens = False
         super().__init__(label=label, css=css, **kwargs)
 
@@ -983,9 +983,9 @@ class Dropdown(Radio):
 
     def __init__(
         self,
-        default_value: Optional[str] = None,
-        *,
         choices: List[str],
+        *,
+        default_selected: Optional[str] = None,
         type: str = "value",
         label: Optional[str] = None,
         css: Optional[Dict] = None,
@@ -993,14 +993,14 @@ class Dropdown(Radio):
     ):
         """
         Parameters:
-        default_value (str): default value selected in dropdown. If None, no value is selected by default.
         choices (List[str]): list of options to select from.
+        default_selected (str): default value selected in dropdown. If None, no value is selected by default.
         type (str): Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
         label (str): component name in interface.
         """
         # Everything is same with Dropdown and Radio, so let's make use of it :)
         super().__init__(
-            default_value=default_value,
+            default_selected=default_selected,
             choices=choices,
             type=type,
             label=label,
