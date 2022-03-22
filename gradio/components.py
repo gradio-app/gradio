@@ -15,10 +15,10 @@ import numpy as np
 import pandas as pd
 import PIL
 from ffmpy import FFmpeg
+from markdown_it import MarkdownIt
 
 from gradio import processing_utils, test_data
 from gradio.blocks import Block
-
 
 class Component(Block):
     """
@@ -28,8 +28,9 @@ class Component(Block):
     def __init__(
         self,
         *,
-        label: str,
+        label: str = None,
         requires_permissions: bool = False,
+        css: Dict = {},
         **kwargs,
     ):
         if "optional" in kwargs:
@@ -39,6 +40,7 @@ class Component(Block):
             )
         self.label = label
         self.requires_permissions = requires_permissions
+        self.css = css
 
         self.set_interpret_parameters()
         super().__init__()
@@ -53,7 +55,11 @@ class Component(Block):
         """
         :return: a dictionary with context variables for the javascript file associated with the context
         """
-        return {"name": self.__class__.__name__.lower(), "label": self.label}
+        return {
+            "name": self.__class__.__name__.lower(),
+            "label": self.label,
+            "css": self.css,
+        }
 
     @classmethod
     def get_shortcut_implementations(cls):
@@ -63,7 +69,7 @@ class Component(Block):
         return {}
 
     def save_flagged(
-        self, dir: str, label: str, data: Any, encryption_key: bool
+        self, dir: str, label: Optional[str], data: Any, encryption_key: bool
     ) -> Any:
         """
         Saves flagged data from component
@@ -77,7 +83,7 @@ class Component(Block):
         return data
 
     def save_flagged_file(
-        self, dir: str, label: str, data: Any, encryption_key: bool
+        self, dir: str, label: Optional[str], data: Any, encryption_key: bool
     ) -> Optional[str]:
         """
         Saved flagged data (e.g. image or audio) as a file and returns filepath
@@ -214,6 +220,7 @@ class Textbox(Component):
         lines: int = 1,
         placeholder: Optional[str] = None,
         label: Optional[str] = None,
+        css: Dict = {},
         **kwargs,
     ):
         """
@@ -241,7 +248,7 @@ class Textbox(Component):
         self.default = default_value
         self.test_input = default_value
         self.interpret_by_tokens = True
-        super().__init__(label=label, **kwargs)
+        super().__init__(label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
@@ -376,6 +383,7 @@ class Number(Component):
         default_value: Optional[float] = None,
         *,
         label: Optional[str] = None,
+        css: Dict = {},
         **kwargs,
     ):
         """
@@ -386,7 +394,7 @@ class Number(Component):
         self.default = float(default_value) if default_value is not None else None
         self.test_input = self.default if self.default is not None else 1
         self.interpret_by_tokens = False
-        super().__init__(label=label, **kwargs)
+        super().__init__(label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {"default": self.default, **super().get_template_context()}
@@ -492,6 +500,7 @@ class Slider(Component):
         maximum: float = 100,
         step: Optional[float] = None,
         label: Optional[str] = None,
+        css: Dict = {},
         **kwargs,
     ):
         """
@@ -512,7 +521,7 @@ class Slider(Component):
         self.default = minimum if default_value is None else default_value
         self.test_input = self.default
         self.interpret_by_tokens = False
-        super().__init__(label=label, **kwargs)
+        super().__init__(label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
@@ -597,7 +606,12 @@ class Checkbox(Component):
     """
 
     def __init__(
-        self, default_value: bool = False, *, label: Optional[str] = None, **kwargs
+        self,
+        default_value: bool = False,
+        *,
+        label: Optional[str] = None,
+        css: Dict = {},
+        **kwargs,
     ):
         """
         Parameters:
@@ -607,7 +621,7 @@ class Checkbox(Component):
         self.test_input = True
         self.default = default_value
         self.interpret_by_tokens = False
-        super().__init__(label=label, **kwargs)
+        super().__init__(label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {"default": self.default, **super().get_template_context()}
@@ -685,6 +699,7 @@ class CheckboxGroup(Component):
         choices: List[str],
         type: str = "value",
         label: Optional[str] = None,
+        css: Dict = {},
         **kwargs,
     ):
         """
@@ -703,7 +718,7 @@ class CheckboxGroup(Component):
         self.type = type
         self.test_input = self.choices
         self.interpret_by_tokens = False
-        super().__init__(label=label, **kwargs)
+        super().__init__(label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
@@ -802,6 +817,7 @@ class Radio(Component):
         choices: List[str],
         type: str = "value",
         label: Optional[str] = None,
+        css: Dict = {},
         **kwargs,
     ):
         """
@@ -816,7 +832,7 @@ class Radio(Component):
         self.test_input = self.choices[0]
         self.default = default_value if default_value is not None else self.choices[0]
         self.interpret_by_tokens = False
-        super().__init__(label=label, **kwargs)
+        super().__init__(label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
@@ -894,6 +910,7 @@ class Dropdown(Radio):
         choices: List[str],
         type: str = "value",
         label: Optional[str] = None,
+        css: Dict = {},
         **kwargs,
     ):
         """
@@ -933,6 +950,7 @@ class Image(Component):
         tool: str = "editor",
         type: str = "numpy",
         label: str = None,
+        css: Dict = {},
         **kwargs,
     ):
         """
@@ -1230,6 +1248,7 @@ class Video(Component):
         type: Optional[str] = None,
         source: str = "upload",
         label: Optional[str] = None,
+        css: Dict = {},
         **kwargs,
     ):
         """
@@ -1242,7 +1261,7 @@ class Video(Component):
         """
         self.type = type
         self.source = source
-        super().__init__(label=label, **kwargs)
+        super().__init__(label=label, css=css, **kwargs)
 
     @classmethod
     def get_shortcut_implementations(cls):
@@ -1343,6 +1362,7 @@ class Audio(Component):
         source: str = "upload",
         type: str = "numpy",
         label: str = None,
+        css: Dict = {},
         **kwargs,
     ):
         """
@@ -1584,6 +1604,7 @@ class File(Component):
         file_count: str = "single",
         type: str = "file",
         label: Optional[str] = None,
+        css: Dict = {},
         **kwargs,
     ):
         """
@@ -1598,7 +1619,7 @@ class File(Component):
         self.file_count = file_count
         self.type = type
         self.test_input = None
-        super().__init__(label=label, **kwargs)
+        super().__init__(label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
@@ -1708,6 +1729,7 @@ class Dataframe(Component):
         max_rows: Optional[int] = 20,
         max_cols: Optional[int] = None,
         overflow_row_behaviour: str = "paginate",
+        css: Dict = {},
         **kwargs,
     ):
         """
@@ -1753,7 +1775,7 @@ class Dataframe(Component):
         self.max_rows = max_rows
         self.max_cols = max_cols
         self.overflow_row_behaviour = overflow_row_behaviour
-        super().__init__(label=label, **kwargs)
+        super().__init__(label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
@@ -1867,6 +1889,7 @@ class Timeseries(Component):
         x: Optional[str] = None,
         y: str | List[str] = None,
         label: Optional[str] = None,
+        css: Dict = {},
         **kwargs,
     ):
         """
@@ -1880,7 +1903,7 @@ class Timeseries(Component):
         if isinstance(y, str):
             y = [y]
         self.y = y
-        super().__init__(label=label, **kwargs)
+        super().__init__(label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
@@ -1949,7 +1972,13 @@ class State(Component):
     Demos: chatbot
     """
 
-    def __init__(self, default_value: Any = None, *, label: str = None, **kwargs):
+    def __init__(
+        self,
+        default_value: Any = None,
+        *,
+        label: Optional[str] = None,
+        **kwargs,
+    ):
         """
         Parameters:
         default_value (Any): the initial value of the state.
@@ -1984,6 +2013,7 @@ class Label(Component):
         *,
         num_top_classes: Optional[int] = None,
         label: Optional[str] = None,
+        css: Dict = {},
         **kwargs,
     ):
         """
@@ -1995,7 +2025,7 @@ class Label(Component):
         self.num_top_classes = num_top_classes
         self.output_type = "auto"
         self.type = "auto"
-        super().__init__(label=label, **kwargs)
+        super().__init__(label=label, css=css, **kwargs)
 
     def postprocess(self, y):
         """
@@ -2083,7 +2113,12 @@ class KeyValues(Component):
     """
 
     def __init__(
-        self, default_value: str = " ", *, label: Optional[str] = None, **kwargs
+        self,
+        default_value: str = " ",
+        *,
+        label: Optional[str] = None,
+        css: Dict = {},
+        **kwargs,
     ):
         """
         Parameters:
@@ -2111,6 +2146,7 @@ class HighlightedText(Component):
         color_map: Dict[str, str] = None,
         label: Optional[str] = None,
         show_legend: bool = False,
+        css: Dict = {},
         **kwargs,
     ):
         """
@@ -2122,7 +2158,7 @@ class HighlightedText(Component):
         """
         self.color_map = color_map
         self.show_legend = show_legend
-        super().__init__(label=label, **kwargs)
+        super().__init__(label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
@@ -2162,14 +2198,19 @@ class JSON(Component):
     """
 
     def __init__(
-        self, default_value: str = "", *, label: Optional[str] = None, **kwargs
+        self,
+        default_value: str = "",
+        *,
+        label: Optional[str] = None,
+        css: Dict = {},
+        **kwargs,
     ):
         """
         Parameters:
         default_value (str): IGNORED
         label (str): component name in interface.
         """
-        super().__init__(label=label, **kwargs)
+        super().__init__(label=label, css=css, **kwargs)
 
     def postprocess(self, y):
         """
@@ -2203,13 +2244,19 @@ class HTML(Component):
     Demos: text_analysis
     """
 
-    def __init__(self, default_value: str = "", label: Optional[str] = None, **kwargs):
+    def __init__(
+        self,
+        default_value: str = "",
+        label: Optional[str] = None,
+        css: Dict = {},
+        **kwargs,
+    ):
         """
         Parameters:
         default_value (str): IGNORED
         label (str): component name in interface.
         """
-        super().__init__(label=label, **kwargs)
+        super().__init__(label=label, css=css, **kwargs)
 
     def postprocess(self, x):
         """
@@ -2240,6 +2287,7 @@ class Carousel(Component):
         *,
         components: Component | List[Component],
         label: Optional[str] = None,
+        css: Dict = {},
         **kwargs,
     ):
         """
@@ -2253,7 +2301,7 @@ class Carousel(Component):
         self.components = [
             get_component_instance(component) for component in components
         ]
-        super().__init__(label=label, **kwargs)
+        super().__init__(label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
@@ -2313,13 +2361,15 @@ class Chatbot(Component):
     Demos: chatbot
     """
 
-    def __init__(self, default_value="", *, label: Optional[str] = None, **kwargs):
+    def __init__(
+        self, default_value="", *, label: Optional[str] = None, css: Dict = {}, **kwargs
+    ):
         """
         Parameters:
         default_value (str): IGNORED
         label (str): component name in interface (not used).
         """
-        super().__init__(label=label, **kwargs)
+        super().__init__(label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {**super().get_template_context()}
@@ -2343,13 +2393,63 @@ class Chatbot(Component):
 
 # Static Components
 class Markdown(Component):
-    def __init__(self, default_value: str = "", *, label: str, **kwargs):
-        super().__init__(label=label, **kwargs)
+    def __init__(
+        self,
+        default_value: str = "",
+        *,
+        label: Optional[str] = None,
+        css: Dict = {},
+        **kwargs,
+    ):
+        super().__init__(label=label, css=css, **kwargs)
+        self.md = MarkdownIt()
+        self.value = self.md.render(default_value)
+        
+    def get_template_context(self):
+        return {
+            "value": self.value,
+            **super().get_template_context()
+        }
 
 
 class Button(Component):
-    def __init__(self, default_value: str = "", *, label: str, **kwargs):
-        super().__init__(label=label, **kwargs)
+    def __init__(
+        self,
+        default_value: str = "",
+        *,
+        label: Optional[str] = None,
+        css: Dict = {},
+        **kwargs,
+    ):
+        super().__init__(label=label, css=css, **kwargs)
+        self.value = default_value
+        
+    def get_template_context(self):
+        return {
+            "value": self.value,
+            **super().get_template_context()
+        }
+
+class DatasetViewer(Component):
+    def __init__(
+        self,
+        types: List[Component],
+        default_value: List[List[Any]],
+        *,
+        label: Optional[str] = None,
+        css: Dict = {},
+        **kwargs,
+    ):
+        super().__init__(label=label, css=css, **kwargs)
+        self.types = types
+        self.value = default_value
+        
+    def get_template_context(self):
+        return {
+            "types": [_type.__class__.__name__.lower() for _type in types],
+            "value": self.value,
+            **super().get_template_context()
+        }
 
 
 # TODO: (faruk) does this take component or interface as a input?

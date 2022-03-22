@@ -6,9 +6,10 @@
 	export let choices: Array<string>;
 
 	export let theme: string;
+	export let style: string | null;
 </script>
 
-<div class="input-checkbox-group flex flex-wrap gap-2" {theme}>
+<div class="input-checkbox-group flex flex-wrap gap-2" {theme} {style}>
 	{#each choices as choice, i}
 		<button
 			class="checkbox-item py-2 px-3 font-semibold rounded cursor-pointer flex items-center gap-1"
