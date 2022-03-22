@@ -5,9 +5,10 @@
 	export let value: AudioData;
 	export let interpretation: Array<number>;
 	export let theme: string;
+	export let style: string | null;
 </script>
 
-<div class="input-audio" {theme}>
+<div class="input-audio" {theme} {style}>
 	<audio class="w-full" controls>
 		<source src={value.data} />
 	</audio>

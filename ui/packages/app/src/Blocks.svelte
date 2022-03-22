@@ -12,6 +12,7 @@
 		type: string;
 		props: {
 			name: keyof typeof component_map;
+			css: Record<string, string>;
 			[key: string]: unknown;
 		};
 	}
@@ -34,6 +35,7 @@
 	export let layout: Layout;
 	export let dependencies: Array<Dependency>;
 	export let theme: string;
+	export let style: string | null;
 
 	const dynamic_ids = dependencies.reduce((acc, next) => {
 		next.inputs.forEach((i) => acc.add(i));
@@ -65,6 +67,7 @@
 				const c = await component_map[name]();
 				res({ name, component: c });
 			} catch (e) {
+				console.log(name)
 				rej(e);
 			}
 		});
@@ -143,8 +146,6 @@
 			return dep.filter((_id) => _id !== id);
 		});
 	}
-
-	$: console.log(handled_dependencies);
 </script>
 
 <div class="mx-auto container p-4">
