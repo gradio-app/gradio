@@ -16,7 +16,7 @@ with xray_blocks:
 	- ipsum 2
 	"""
     )
-    disease = gr.inputs.CheckboxGroup(["Covid", "Malaria", "Lung Cancer"], choices=, label="Disease to Scan For")
+    disease = gr.inputs.CheckboxGroup(["Covid", "Malaria", "Lung Cancer"],  label="Disease to Scan For")
 
     with gr.Tabs():
         with gr.TabItem("X-ray"):
