@@ -209,7 +209,7 @@ class Textbox(Component):
 
     def __init__(
         self,
-        default: str = "",
+        default_value: str = "",
         *,
         lines: int = 1,
         placeholder: Optional[str] = None,
@@ -218,12 +218,10 @@ class Textbox(Component):
     ):
         """
         Parameters:
-        default (str): default text to provide in textarea.
+        default_value (str): default text to provide in textarea.
         lines (int): number of line rows to provide in textarea.
         placeholder (str): placeholder hint to provide behind textarea.
         label (str): component name in interface.
-        numeric (bool): DEPRECATED.
-        type (str): DEPRECATED.
         """
         if "numeric" in kwargs:
             warnings.warn(
@@ -235,11 +233,11 @@ class Textbox(Component):
                 "The 'type' parameter has been deprecated. Use the Number component instead if you need it.",
                 DeprecationWarning,
             )
-        default = str(default)
+        default_value = str(default_value)
         self.lines = lines
         self.placeholder = placeholder
-        self.default = default
-        self.test_input = default
+        self.default = default_value
+        self.test_input = default_value
         self.interpret_by_tokens = True
         super().__init__(label=label, **kwargs)
 
@@ -393,17 +391,17 @@ class Number(Component):
 
     def __init__(
         self,
-        default: Optional[float] = None,
+        default_value: Optional[float] = None,
         *,
         label: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
-        default (float): default value.
+        default_value (float): default value.
         label (str): component name in interface.
         """
-        self.default = float(default) if default is not None else None
+        self.default = float(default_value) if default_value is not None else None
         self.test_input = self.default if self.default is not None else 1
         self.interpret_by_tokens = False
         super().__init__(label=label, **kwargs)
@@ -526,7 +524,7 @@ class Slider(Component):
 
     def __init__(
         self,
-        default: Optional[float] = None,
+        default_value: Optional[float] = None,
         *,
         minimum: float = 0,
         maximum: float = 100,
@@ -536,7 +534,7 @@ class Slider(Component):
     ):
         """
         Parameters:
-        default (float): default value.
+        default_value (float): default value.
         minimum (float): minimum value for slider.
         maximum (float): maximum value for slider.
         step (float): increment between slider values.
@@ -549,7 +547,7 @@ class Slider(Component):
             power = math.floor(math.log10(difference) - 2)
             step = 10**power
         self.step = step
-        self.default = minimum if default is None else default
+        self.default = minimum if default_value is None else default_value
         self.test_input = self.default
         self.interpret_by_tokens = False
         super().__init__(label=label, **kwargs)
@@ -646,14 +644,16 @@ class Checkbox(Component):
     Demos: sentence_builder, titanic_survival
     """
 
-    def __init__(self, default: bool = False, *, label: Optional[str] = None, **kwargs):
+    def __init__(
+        self, default_value: bool = False, *, label: Optional[str] = None, **kwargs
+    ):
         """
         Parameters:
-        default (bool): if True, checked by default.
+        default_value (bool): if True, checked by default.
         label (str): component name in interface.
         """
         self.test_input = True
-        self.default = default
+        self.default = default_value
         self.interpret_by_tokens = False
         super().__init__(label=label, **kwargs)
 
@@ -738,7 +738,7 @@ class CheckboxGroup(Component):
 
     def __init__(
         self,
-        default: List[str] = None,
+        default_value: List[str] = None,
         *,
         choices: List[str],
         type: str = "value",
@@ -747,17 +747,17 @@ class CheckboxGroup(Component):
     ):
         """
         Parameters:
-        default (List[str]): default selected list of options.
+        default_value (List[str]): default selected list of options.
         choices (List[str]): list of options to select from.
         type (str): Type of value to be returned by component. "value" returns the list of strings of the choices selected, "index" returns the list of indicies of the choices selected.
         label (str): component name in interface.
         """
         if (
-            default is None
+            default_value is None
         ):  # Mutable parameters shall not be given as default parameters in the function.
-            default = []
+            default_value = []
         self.choices = choices
-        self.default = default
+        self.default = default_value
         self.type = type
         self.test_input = self.choices
         self.interpret_by_tokens = False
@@ -865,7 +865,7 @@ class Radio(Component):
 
     def __init__(
         self,
-        default: Optional[str] = None,
+        default_value: Optional[str] = None,
         *,
         choices: List[str],
         type: str = "value",
@@ -874,7 +874,7 @@ class Radio(Component):
     ):
         """
         Parameters:
-        default (str): the button selected by default. If None, no button is selected by default.
+        default_value (str): the button selected by default. If None, no button is selected by default.
         choices (List[str]): list of options to select from.
         type (str): Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
         label (str): component name in interface.
@@ -882,7 +882,7 @@ class Radio(Component):
         self.choices = choices
         self.type = type
         self.test_input = self.choices[0]
-        self.default = default if default is not None else self.choices[0]
+        self.default = default_value if default_value is not None else self.choices[0]
         self.interpret_by_tokens = False
         super().__init__(label=label, **kwargs)
 
@@ -967,7 +967,7 @@ class Dropdown(Radio):
 
     def __init__(
         self,
-        default: Optional[str] = None,
+        default_value: Optional[str] = None,
         *,
         choices: List[str],
         type: str = "value",
@@ -976,14 +976,18 @@ class Dropdown(Radio):
     ):
         """
         Parameters:
+        default_value (str): default value selected in dropdown. If None, no value is selected by default.
         choices (List[str]): list of options to select from.
         type (str): Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
-        default (str): default value selected in dropdown. If None, no value is selected by default.
         label (str): component name in interface.
         """
         # Everything is same with Dropdown and Radio, so let's make use of it :)
         super().__init__(
-            default=default, choices=choices, type=type, label=label, **kwargs
+            default_value=default_value,
+            choices=choices,
+            type=type,
+            label=label,
+            **kwargs,
         )
 
 
@@ -998,7 +1002,7 @@ class Image(Component):
 
     def __init__(
         self,
-        default=None,
+        default_value=None,
         *,
         shape: Tuple[int, int] = None,
         image_mode: str = "RGB",
@@ -1011,15 +1015,13 @@ class Image(Component):
     ):
         """
         Parameters:
-        default(str): IGNORED
+        default_value(str): IGNORED
         shape (Tuple[int, int]): (width, height) shape to crop and resize image to; if None, matches input image size.
         image_mode (str): "RGB" if color, or "L" if black and white.
         invert_colors (bool): whether to invert the image as a preprocessing step.
         source (str): Source of image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "canvas" defaults to a white image that can be edited and drawn upon with tools.
         tool (str): Tools used for editing. "editor" allows a full screen editor, "select" provides a cropping and zoom tool.
-        type (str): #TODO:(Faruk) combine the descriptions below
-            input:  Type of value to be returned by component. "numpy" returns a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" returns a PIL image object, "file" returns a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
-            output: Type of value to be passed to component. "numpy" expects a numpy array with shape (width, height, 3), "pil" expects a PIL image object, "file" expects a file path to the saved image or a remote URL, "plot" expects a matplotlib.pyplot object, "auto" detects return type.
+        type (str): The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
         label (str): component name in interface.
         """
         if "plot" in kwargs:
@@ -1032,6 +1034,7 @@ class Image(Component):
             self.type = type
 
         self.type = type
+        self.output_type = "auto"
         self.shape = shape
         self.image_mode = image_mode
         self.source = source
@@ -1253,7 +1256,7 @@ class Image(Component):
         Returns:
         (str): base64 url data
         """
-        if self.type == "auto":
+        if self.output_type == "auto":
             if isinstance(y, np.ndarray):
                 dtype = "numpy"
             elif isinstance(y, PIL.Image.Image):
@@ -1267,7 +1270,7 @@ class Image(Component):
                     "Unknown type. Please choose from: 'numpy', 'pil', 'file', 'plot'."
                 )
         else:
-            dtype = self.type
+            dtype = self.output_type
         if dtype in ["numpy", "pil"]:
             if dtype == "pil":
                 y = np.array(y)
@@ -1330,7 +1333,7 @@ class Video(Component):
 
     def __init__(
         self,
-        default="",
+        default_value="",
         *,
         type: Optional[str] = None,
         source: str = "upload",
@@ -1339,7 +1342,7 @@ class Video(Component):
     ):
         """
         Parameters:
-        default (str): IGNORED
+        default_value (str): IGNORED
         type (str): Type of video format to be returned by component, such as 'avi' or 'mp4'. Use 'mp4' to ensure browser playability. If set to None, video will keep uploaded format.
         source (str): Source of video. "upload" creates a box where user can drop an video file, "webcam" allows user to record a video from their webcam.
         label (str): component name in interface.
@@ -1493,7 +1496,7 @@ class Audio(Component):
 
     def __init__(
         self,
-        default="",
+        default_value="",
         *,
         source: str = "upload",
         type: str = "numpy",
@@ -1502,13 +1505,15 @@ class Audio(Component):
     ):
         """
         Parameters:
+        default_value (str): IGNORED
         source (str): Source of audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input.
-        type (str): Type of value to be returned by component. "numpy" returns a 2-set tuple with an integer sample_rate and the data numpy.array of shape (samples, 2), "file" returns a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
+        type (str): The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
         label (str): component name in interface.
         """
         self.source = source
         requires_permissions = source == "microphone"
         self.type = type
+        self.output_type = "auto"
         self.test_input = test_data.BASE64_AUDIO
         self.interpret_by_tokens = True
         super().__init__(
@@ -1703,7 +1708,7 @@ class Audio(Component):
         Returns:
         (str): base64 url data
         """
-        if self.type in ["numpy", "file", "auto"]:
+        if self.output_type in ["numpy", "file", "auto"]:
             if self.type == "numpy" or (self.type == "auto" and isinstance(y, tuple)):
                 sample_rate, data = y
                 file = tempfile.NamedTemporaryFile(
@@ -1792,7 +1797,7 @@ class File(Component):
 
     def __init__(
         self,
-        default: str = "",
+        default_value: str = "",
         *,
         file_count: str = "single",
         type: str = "file",
@@ -1801,7 +1806,7 @@ class File(Component):
     ):
         """
         Parameters:
-        default (str): IGNORED
+        default_value (str): IGNORED
         file_count (str): if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
         type (str): Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name, "binary" returns an bytes object.
         label (str): component name in interface.
@@ -1929,7 +1934,7 @@ class Dataframe(Component):
 
     def __init__(
         self,
-        default: Optional[List[List[Any]]] = None,
+        default_value: Optional[List[List[Any]]] = None,
         *,
         headers: Optional[List[str]] = None,
         row_count: int = 3,
@@ -1945,7 +1950,7 @@ class Dataframe(Component):
     ):
         """
         Input Parameters:
-        default (List[List[Any]]): Default value
+        default_value (List[List[Any]]): Default value
         headers (List[str]): Header names to dataframe. If None, no headers are shown.
         row_count (int): Limit number of rows for input.
         col_count (int): Limit number of columns for input. If equal to 1, return data will be one-dimensional. Ignored if `headers` is provided.
@@ -1953,13 +1958,11 @@ class Dataframe(Component):
         col_width (Union[int, List[int]]): Width of columns in pixels. Can be provided as single value or list of values per column.
         type (str): Type of value to be returned by component. "pandas" for pandas dataframe, "numpy" for numpy array, or "array" for a Python array.
         label (str): component name in interface.
-
-        Output Parameters: #TODO:(faruk) might converge these in the future
+        Output Parameters:
         headers (List[str]): Header names to dataframe. Only applicable if type is "numpy" or "array".
         max_rows (int): Maximum number of rows to display at once. Set to None for infinite.
         max_cols (int): Maximum number of columns to display at once. Set to None for infinite.
         overflow_row_behaviour (str): If set to "paginate", will create pages for overflow rows. If set to "show_ends", will show initial and final rows and truncate middle rows.
-        type (str): Type of value to be passed to component. "pandas" for pandas dataframe, "numpy" for numpy array, or "array" for Python array, "auto" detects return type.
         """
         self.headers = headers
         self.datatype = datatype
@@ -1967,9 +1970,10 @@ class Dataframe(Component):
         self.col_count = len(headers) if headers else col_count
         self.col_width = col_width
         self.type = type
+        self.output_type = "auto"
         self.default = (
-            default
-            if default is not None
+            default_value
+            if default_value is not None
             else [[None for _ in range(self.col_count)] for _ in range(self.row_count)]
         )
         sample_values = {
@@ -2060,7 +2064,7 @@ class Dataframe(Component):
         Returns:
         (Dict[headers: List[str], data: List[List[Union[str, number]]]]): JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
         """
-        if self.type == "auto":
+        if self.output_type == "auto":
             if isinstance(y, pd.core.frame.DataFrame):
                 dtype = "pandas"
             elif isinstance(y, np.ndarray):
@@ -2068,7 +2072,7 @@ class Dataframe(Component):
             elif isinstance(y, list):
                 dtype = "array"
         else:
-            dtype = self.type
+            dtype = self.output_type
         if dtype == "pandas":
             return {"headers": list(y.columns), "data": y.values.tolist()}
         elif dtype in ("numpy", "array"):
@@ -2106,7 +2110,7 @@ class Timeseries(Component):
 
     def __init__(
         self,
-        default=None,
+        default_value=None,
         *,
         x: Optional[str] = None,
         y: str | List[str] = None,
@@ -2115,7 +2119,7 @@ class Timeseries(Component):
     ):
         """
         Parameters:
-        default: IGNORED
+        default_value: IGNORED
         x (str): Column name of x (time) series. None if csv has no headers, in which case first column is x series.
         y (Union[str, List[str]]): Column name of y series, or list of column names if multiple series. None if csv has no headers, in which case every column after first is a y series.
         label (str): component name in interface.
@@ -2203,13 +2207,13 @@ class State(Component):
     Demos: chatbot
     """
 
-    def __init__(self, default: Any = None, *, label: str = None, **kwargs):
+    def __init__(self, default_value: Any = None, *, label: str = None, **kwargs):
         """
         Parameters:
-        default (Any): the initial value of the state.
+        default_value (Any): the initial value of the state.
         label (str): component name in interface (not used).
         """
-        self.default = default
+        self.default = default_value
         super().__init__(label=label, **kwargs)
 
     def get_template_context(self):
@@ -2234,22 +2238,20 @@ class Label(Component):
 
     def __init__(
         self,
-        default: str = "",
+        default_value: str = "",
         *,
         num_top_classes: Optional[int] = None,
-        type: str = "auto",
         label: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
-        default(str): IGNORED
+        default_value(str): IGNORED
         num_top_classes (int): number of most confident classes to show.
-        type (str): Type of value to be passed to component. "value" expects a single out label, "confidences" expects a dictionary mapping labels to confidence scores, "auto" detects return type.
         label (str): component name in interface.
         """
         self.num_top_classes = num_top_classes
-        self.type = type
+        self.output_type = "auto"
         super().__init__(label=label, **kwargs)
 
     def postprocess(self, y):
@@ -2259,12 +2261,12 @@ class Label(Component):
         Returns:
         (Dict[label: str, confidences: List[Dict[label: str, confidence: number]]]): Object with key 'label' representing primary label, and key 'confidences' representing a list of label-confidence pairs
         """
-        if self.type == "label" or (
-            self.type == "auto" and (isinstance(y, (str, numbers.Number)))
+        if self.output_type == "label" or (
+            self.output_type == "auto" and (isinstance(y, (str, numbers.Number)))
         ):
             return {"label": str(y)}
-        elif self.type == "confidences" or (
-            self.type == "auto" and isinstance(y, dict)
+        elif self.output_type == "confidences" or (
+            self.output_type == "auto" and isinstance(y, dict)
         ):
             sorted_pred = sorted(y.items(), key=operator.itemgetter(1), reverse=True)
             if self.num_top_classes is not None:
@@ -2284,8 +2286,8 @@ class Label(Component):
 
     def deserialize(self, y):
         # 5 cases: (1): {'label': 'lion'}, {'label': 'lion', 'confidences':...}, {'lion': 0.46, ...}, 'lion', '0.46'
-        if self.type == "label" or (
-            self.type == "auto"
+        if self.output_type == "label" or (
+            self.output_type == "auto"
             and (
                 isinstance(y, (str, numbers.Number))
                 or ("label" in y and not ("confidences" in y.keys()))
@@ -2295,7 +2297,7 @@ class Label(Component):
                 return y
             else:
                 return y["label"]
-        elif self.type == "confidences" or self.type == "auto":
+        elif self.output_type == "confidences" or self.output_type == "auto":
             if ("confidences" in y.keys()) and isinstance(y["confidences"], list):
                 return {k["label"]: k["confidence"] for k in y["confidences"]}
             else:
@@ -2369,7 +2371,7 @@ class HighlightedText(Component):
 
     def __init__(
         self,
-        default: str = "",
+        default_value: str = "",
         *,
         color_map: Dict[str, str] = None,
         label: Optional[str] = None,
@@ -2378,7 +2380,7 @@ class HighlightedText(Component):
     ):
         """
         Parameters:
-        default (str): IGNORED
+        default_value (str): IGNORED
         color_map (Dict[str, str]): Map between category and respective colors
         label (str): component name in interface.
         show_legend (bool): whether to show span categories in a separate legend or inline.
@@ -2434,10 +2436,12 @@ class JSON(Component):
     Demos: zip_to_json
     """
 
-    def __init__(self, default: str = "", *, label: Optional[str] = None, **kwargs):
+    def __init__(
+        self, default_value: str = "", *, label: Optional[str] = None, **kwargs
+    ):
         """
         Parameters:
-        default (str): IGNORED
+        default_value (str): IGNORED
         label (str): component name in interface.
         """
         super().__init__(label=label, **kwargs)
@@ -2484,10 +2488,10 @@ class HTML(Component):
     Demos: text_analysis
     """
 
-    def __init__(self, default: str = "", label: Optional[str] = None, **kwargs):
+    def __init__(self, default_value: str = "", label: Optional[str] = None, **kwargs):
         """
         Parameters:
-        default (str): IGNORED
+        default_value (str): IGNORED
         label (str): component name in interface.
         """
         super().__init__(label=label, **kwargs)
@@ -2527,7 +2531,7 @@ class Carousel(Component):
 
     def __init__(
         self,
-        default="",
+        default_value="",
         *,
         components: Component | List[Component],
         label: Optional[str] = None,
@@ -2535,7 +2539,7 @@ class Carousel(Component):
     ):
         """
         Parameters:
-        default (str): IGNORED
+        default_value (str): IGNORED
         components (Union[List[OutputComponent], OutputComponent]): Classes of component(s) that will be scrolled through.
         label (str): component name in interface.
         """
@@ -2614,10 +2618,10 @@ class Chatbot(Component):
     Demos: chatbot
     """
 
-    def __init__(self, default="", *, label: Optional[str] = None, **kwargs):
+    def __init__(self, default_value="", *, label: Optional[str] = None, **kwargs):
         """
         Parameters:
-        default (str): IGNORED
+        default_value (str): IGNORED
         label (str): component name in interface (not used).
         """
         super().__init__(label=label, **kwargs)
@@ -2654,15 +2658,13 @@ class Chatbot(Component):
 
 # Static Components
 class Markdown(Component):
-    # TODO: might add default parameter to initilization, WDYT Ali Abid?
-    def __init__(self, label):
-        super().__init__(label=label)
+    def __init__(self, default_value: str = "", *, label: str, **kwargs):
+        super().__init__(label=label, **kwargs)
 
 
 class Button(Component):
-    # TODO: might add default parameter to initilization, WDYT Ali Abid?
-    def __init__(self, label):
-        super().__init__(label=label)
+    def __init__(self, default_value: str = "", *, label: str, **kwargs):
+        super().__init__(label=label, **kwargs)
 
     def click(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
