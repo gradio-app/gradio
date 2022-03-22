@@ -87,6 +87,16 @@ class TabItem(BlockContext):
     def get_template_context(self):
         return {"label": self.label}
 
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
 
 class Blocks(Launchable, BlockContext):
     def __init__(self, theme="default"):
