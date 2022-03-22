@@ -7,6 +7,7 @@
 
 	export let value: FileData | null = null;
 	export let theme: string;
+	export let style: string | null;
 	export let source: string;
 
 	export let mode: "static" | "dynamic";
@@ -39,6 +40,7 @@
 	<Video
 		bind:value
 		{theme}
+		{style}
 		{source}
 		drop_text={$_("interface.drop_video")}
 		or_text={$_("interface.or")}

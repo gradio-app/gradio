@@ -9,16 +9,16 @@ import shutil
 import tempfile
 import warnings
 from types import ModuleType
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
 import PIL
 from ffmpy import FFmpeg
+from markdown_it import MarkdownIt
 
 from gradio import processing_utils, test_data
 from gradio.blocks import Block
-
 
 class Component(Block):
     """
@@ -28,8 +28,9 @@ class Component(Block):
     def __init__(
         self,
         *,
-        label: str,
+        label: Optional[str] = None,
         requires_permissions: bool = False,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         if "optional" in kwargs:
@@ -39,6 +40,7 @@ class Component(Block):
             )
         self.label = label
         self.requires_permissions = requires_permissions
+        self.css = css if css is not None else {}
 
         self.set_interpret_parameters()
         super().__init__()
@@ -53,7 +55,11 @@ class Component(Block):
         """
         :return: a dictionary with context variables for the javascript file associated with the context
         """
-        return {"name": self.__class__.__name__.lower(), "label": self.label}
+        return {
+            "name": self.__class__.__name__.lower(),
+            "label": self.label,
+            "css": self.css,
+        }
 
     @classmethod
     def get_shortcut_implementations(cls):
@@ -63,7 +69,7 @@ class Component(Block):
         return {}
 
     def save_flagged(
-        self, dir: str, label: str, data: Any, encryption_key: bool
+        self, dir: str, label: Optional[str], data: Any, encryption_key: bool
     ) -> Any:
         """
         Saves flagged data from component
@@ -77,7 +83,7 @@ class Component(Block):
         return data
 
     def save_flagged_file(
-        self, dir: str, label: str, data: Any, encryption_key: bool
+        self, dir: str, label: Optional[str], data: Any, encryption_key: bool
     ) -> Optional[str]:
         """
         Saved flagged data (e.g. image or audio) as a file and returns filepath
@@ -209,21 +215,20 @@ class Textbox(Component):
 
     def __init__(
         self,
-        default: str = "",
+        default_value: str = "",
         *,
         lines: int = 1,
         placeholder: Optional[str] = None,
         label: Optional[str] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
         Parameters:
-        default (str): default text to provide in textarea.
+        default_value (str): default text to provide in textarea.
         lines (int): number of line rows to provide in textarea.
         placeholder (str): placeholder hint to provide behind textarea.
         label (str): component name in interface.
-        numeric (bool): DEPRECATED.
-        type (str): DEPRECATED.
         """
         if "numeric" in kwargs:
             warnings.warn(
@@ -235,13 +240,13 @@ class Textbox(Component):
                 "The 'type' parameter has been deprecated. Use the Number component instead if you need it.",
                 DeprecationWarning,
             )
-        default = str(default)
+        default_value = str(default_value)
         self.lines = lines
         self.placeholder = placeholder
-        self.default = default
-        self.test_input = default
+        self.default = default_value
+        self.test_input = default_value
         self.interpret_by_tokens = True
-        super().__init__(label=label, **kwargs)
+        super().__init__(label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
@@ -360,6 +365,26 @@ class Textbox(Component):
         """
         return x
 
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
+    def submit(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("submit", fn, inputs, outputs)
+
 
 class Number(Component):
     """
@@ -373,20 +398,21 @@ class Number(Component):
 
     def __init__(
         self,
-        default: Optional[float] = None,
+        default_value: Optional[float] = None,
         *,
         label: Optional[str] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
         Parameters:
-        default (float): default value.
+        default_value (float): default value.
         label (str): component name in interface.
         """
-        self.default = float(default) if default is not None else None
+        self.default = float(default_value) if default_value is not None else None
         self.test_input = self.default if self.default is not None else 1
         self.interpret_by_tokens = False
-        super().__init__(label=label, **kwargs)
+        super().__init__(label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {"default": self.default, **super().get_template_context()}
@@ -475,6 +501,26 @@ class Number(Component):
         """
         return y
 
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
+    def submit(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("submit", fn, inputs, outputs)
+
 
 class Slider(Component):
     """
@@ -486,17 +532,18 @@ class Slider(Component):
 
     def __init__(
         self,
-        default: Optional[float] = None,
+        default_value: Optional[float] = None,
         *,
         minimum: float = 0,
         maximum: float = 100,
         step: Optional[float] = None,
         label: Optional[str] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
         Parameters:
-        default (float): default value.
+        default_value (float): default value.
         minimum (float): minimum value for slider.
         maximum (float): maximum value for slider.
         step (float): increment between slider values.
@@ -509,10 +556,10 @@ class Slider(Component):
             power = math.floor(math.log10(difference) - 2)
             step = 10**power
         self.step = step
-        self.default = minimum if default is None else default
+        self.default = minimum if default_value is None else default_value
         self.test_input = self.default
         self.interpret_by_tokens = False
-        super().__init__(label=label, **kwargs)
+        super().__init__(label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
@@ -586,6 +633,16 @@ class Slider(Component):
         """
         return y
 
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
 
 class Checkbox(Component):
     """
@@ -596,16 +653,23 @@ class Checkbox(Component):
     Demos: sentence_builder, titanic_survival
     """
 
-    def __init__(self, default: bool = False, *, label: Optional[str] = None, **kwargs):
+    def __init__(
+        self,
+        default_value: bool = False,
+        *,
+        label: Optional[str] = None,
+        css: Optional[Dict] = None,
+        **kwargs,
+    ):
         """
         Parameters:
-        default (bool): if True, checked by default.
+        default_value (bool): if True, checked by default.
         label (str): component name in interface.
         """
         self.test_input = True
-        self.default = default
+        self.default = default_value
         self.interpret_by_tokens = False
-        super().__init__(label=label, **kwargs)
+        super().__init__(label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {"default": self.default, **super().get_template_context()}
@@ -667,6 +731,16 @@ class Checkbox(Component):
         """
         return x
 
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
 
 class CheckboxGroup(Component):
     """
@@ -678,30 +752,31 @@ class CheckboxGroup(Component):
 
     def __init__(
         self,
-        default: List[str] = None,
+        default_value: List[str] = None,
         *,
         choices: List[str],
         type: str = "value",
         label: Optional[str] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
         Parameters:
-        default (List[str]): default selected list of options.
+        default_value (List[str]): default selected list of options.
         choices (List[str]): list of options to select from.
         type (str): Type of value to be returned by component. "value" returns the list of strings of the choices selected, "index" returns the list of indicies of the choices selected.
         label (str): component name in interface.
         """
         if (
-            default is None
+            default_value is None
         ):  # Mutable parameters shall not be given as default parameters in the function.
-            default = []
+            default_value = []
         self.choices = choices
-        self.default = default
+        self.default = default_value
         self.type = type
         self.test_input = self.choices
         self.interpret_by_tokens = False
-        super().__init__(label=label, **kwargs)
+        super().__init__(label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
@@ -784,6 +859,16 @@ class CheckboxGroup(Component):
         """
         return x
 
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
 
 class Radio(Component):
     """
@@ -795,16 +880,17 @@ class Radio(Component):
 
     def __init__(
         self,
-        default: Optional[str] = None,
+        default_value: Optional[str] = None,
         *,
         choices: List[str],
         type: str = "value",
         label: Optional[str] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
         Parameters:
-        default (str): the button selected by default. If None, no button is selected by default.
+        default_value (str): the button selected by default. If None, no button is selected by default.
         choices (List[str]): list of options to select from.
         type (str): Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
         label (str): component name in interface.
@@ -812,9 +898,9 @@ class Radio(Component):
         self.choices = choices
         self.type = type
         self.test_input = self.choices[0]
-        self.default = default if default is not None else self.choices[0]
+        self.default = default_value if default_value is not None else self.choices[0]
         self.interpret_by_tokens = False
-        super().__init__(label=label, **kwargs)
+        super().__init__(label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
@@ -876,6 +962,16 @@ class Radio(Component):
         """
         return x
 
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
 
 class Dropdown(Radio):
     """
@@ -887,23 +983,28 @@ class Dropdown(Radio):
 
     def __init__(
         self,
-        default: Optional[str] = None,
+        default_value: Optional[str] = None,
         *,
         choices: List[str],
         type: str = "value",
         label: Optional[str] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
         Parameters:
+        default_value (str): default value selected in dropdown. If None, no value is selected by default.
         choices (List[str]): list of options to select from.
         type (str): Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
-        default (str): default value selected in dropdown. If None, no value is selected by default.
         label (str): component name in interface.
         """
         # Everything is same with Dropdown and Radio, so let's make use of it :)
         super().__init__(
-            default=default, choices=choices, type=type, label=label, **kwargs
+            default_value=default_value,
+            choices=choices,
+            type=type,
+            label=label,
+            **kwargs,
         )
 
 
@@ -918,7 +1019,7 @@ class Image(Component):
 
     def __init__(
         self,
-        default=None,
+        default_value=None,
         *,
         shape: Tuple[int, int] = None,
         image_mode: str = "RGB",
@@ -927,19 +1028,18 @@ class Image(Component):
         tool: str = "editor",
         type: str = "numpy",
         label: str = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
         Parameters:
-        default(str): IGNORED
+        default_value(str): IGNORED
         shape (Tuple[int, int]): (width, height) shape to crop and resize image to; if None, matches input image size.
         image_mode (str): "RGB" if color, or "L" if black and white.
         invert_colors (bool): whether to invert the image as a preprocessing step.
         source (str): Source of image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "canvas" defaults to a white image that can be edited and drawn upon with tools.
         tool (str): Tools used for editing. "editor" allows a full screen editor, "select" provides a cropping and zoom tool.
-        type (str): #TODO:(Faruk) combine the descriptions below
-            input:  Type of value to be returned by component. "numpy" returns a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" returns a PIL image object, "file" returns a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
-            output: Type of value to be passed to component. "numpy" expects a numpy array with shape (width, height, 3), "pil" expects a PIL image object, "file" expects a file path to the saved image or a remote URL, "plot" expects a matplotlib.pyplot object, "auto" detects return type.
+        type (str): The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
         label (str): component name in interface.
         """
         if "plot" in kwargs:
@@ -952,6 +1052,7 @@ class Image(Component):
             self.type = type
 
         self.type = type
+        self.output_type = "auto"
         self.shape = shape
         self.image_mode = image_mode
         self.source = source
@@ -1173,7 +1274,7 @@ class Image(Component):
         Returns:
         (str): base64 url data
         """
-        if self.type == "auto":
+        if self.output_type == "auto":
             if isinstance(y, np.ndarray):
                 dtype = "numpy"
             elif isinstance(y, PIL.Image.Image):
@@ -1187,7 +1288,7 @@ class Image(Component):
                     "Unknown type. Please choose from: 'numpy', 'pil', 'file', 'plot'."
                 )
         else:
-            dtype = self.type
+            dtype = self.output_type
         if dtype in ["numpy", "pil"]:
             if dtype == "pil":
                 y = np.array(y)
@@ -1208,6 +1309,36 @@ class Image(Component):
         y = processing_utils.decode_base64_to_file(x).name
         return y
 
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
+    def edit(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("edit", fn, inputs, outputs)
+
+    def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("clear", fn, inputs, outputs)
+
 
 class Video(Component):
     """
@@ -1220,16 +1351,17 @@ class Video(Component):
 
     def __init__(
         self,
-        default="",
+        default_value="",
         *,
         type: Optional[str] = None,
         source: str = "upload",
         label: Optional[str] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
         Parameters:
-        default (str): IGNORED
+        default_value (str): IGNORED
         type (str): Type of video format to be returned by component, such as 'avi' or 'mp4'. Use 'mp4' to ensure browser playability. If set to None, video will keep uploaded format.
         source (str): Source of video. "upload" creates a box where user can drop an video file, "webcam" allows user to record a video from their webcam.
         label (str): component name in interface.
@@ -1237,7 +1369,7 @@ class Video(Component):
         """
         self.type = type
         self.source = source
-        super().__init__(label=label, **kwargs)
+        super().__init__(label=label, css=css, **kwargs)
 
     @classmethod
     def get_shortcut_implementations(cls):
@@ -1320,6 +1452,56 @@ class Video(Component):
     def deserialize(self, x):
         return processing_utils.decode_base64_to_file(x).name
 
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
+    def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("clear", fn, inputs, outputs)
+
+    def play(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("play", fn, inputs, outputs)
+
+    def pause(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("pause", fn, inputs, outputs)
+
+    def stop(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("stop", fn, inputs, outputs)
+
 
 class Audio(Component):
     """
@@ -1333,22 +1515,25 @@ class Audio(Component):
 
     def __init__(
         self,
-        default="",
+        default_value="",
         *,
         source: str = "upload",
         type: str = "numpy",
         label: str = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
         Parameters:
+        default_value (str): IGNORED
         source (str): Source of audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input.
-        type (str): Type of value to be returned by component. "numpy" returns a 2-set tuple with an integer sample_rate and the data numpy.array of shape (samples, 2), "file" returns a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
+        type (str): The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
         label (str): component name in interface.
         """
         self.source = source
         requires_permissions = source == "microphone"
         self.type = type
+        self.output_type = "auto"
         self.test_input = test_data.BASE64_AUDIO
         self.interpret_by_tokens = True
         super().__init__(
@@ -1543,7 +1728,7 @@ class Audio(Component):
         Returns:
         (str): base64 url data
         """
-        if self.type in ["numpy", "file", "auto"]:
+        if self.output_type in ["numpy", "file", "auto"]:
             if self.type == "numpy" or (self.type == "auto" and isinstance(y, tuple)):
                 sample_rate, data = y
                 file = tempfile.NamedTemporaryFile(
@@ -1560,6 +1745,66 @@ class Audio(Component):
     def deserialize(self, x):
         return processing_utils.decode_base64_to_file(x).name
 
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
+    def edit(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("edit", fn, inputs, outputs)
+
+    def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("clear", fn, inputs, outputs)
+
+    def play(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("play", fn, inputs, outputs)
+
+    def pause(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("pause", fn, inputs, outputs)
+
+    def stop(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("stop", fn, inputs, outputs)
+
 
 class File(Component):
     """
@@ -1572,16 +1817,17 @@ class File(Component):
 
     def __init__(
         self,
-        default: str = "",
+        default_value: str = "",
         *,
         file_count: str = "single",
         type: str = "file",
         label: Optional[str] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
         Parameters:
-        default (str): IGNORED
+        default_value (str): IGNORED
         file_count (str): if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
         type (str): Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name, "binary" returns an bytes object.
         label (str): component name in interface.
@@ -1591,7 +1837,7 @@ class File(Component):
         self.file_count = file_count
         self.type = type
         self.test_input = None
-        super().__init__(label=label, **kwargs)
+        super().__init__(label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
@@ -1678,6 +1924,26 @@ class File(Component):
             "data": processing_utils.encode_file_to_base64(y),
         }
 
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
+    def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("clear", fn, inputs, outputs)
+
 
 class Dataframe(Component):
     """
@@ -1689,7 +1955,7 @@ class Dataframe(Component):
 
     def __init__(
         self,
-        default: Optional[List[List[Any]]] = None,
+        default_value: Optional[List[List[Any]]] = None,
         *,
         headers: Optional[List[str]] = None,
         row_count: int = 3,
@@ -1701,11 +1967,12 @@ class Dataframe(Component):
         max_rows: Optional[int] = 20,
         max_cols: Optional[int] = None,
         overflow_row_behaviour: str = "paginate",
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
         Input Parameters:
-        default (List[List[Any]]): Default value
+        default_value (List[List[Any]]): Default value
         headers (List[str]): Header names to dataframe. If None, no headers are shown.
         row_count (int): Limit number of rows for input.
         col_count (int): Limit number of columns for input. If equal to 1, return data will be one-dimensional. Ignored if `headers` is provided.
@@ -1713,13 +1980,11 @@ class Dataframe(Component):
         col_width (Union[int, List[int]]): Width of columns in pixels. Can be provided as single value or list of values per column.
         type (str): Type of value to be returned by component. "pandas" for pandas dataframe, "numpy" for numpy array, or "array" for a Python array.
         label (str): component name in interface.
-
-        Output Parameters: #TODO:(faruk) might converge these in the future
+        Output Parameters:
         headers (List[str]): Header names to dataframe. Only applicable if type is "numpy" or "array".
         max_rows (int): Maximum number of rows to display at once. Set to None for infinite.
         max_cols (int): Maximum number of columns to display at once. Set to None for infinite.
         overflow_row_behaviour (str): If set to "paginate", will create pages for overflow rows. If set to "show_ends", will show initial and final rows and truncate middle rows.
-        type (str): Type of value to be passed to component. "pandas" for pandas dataframe, "numpy" for numpy array, or "array" for Python array, "auto" detects return type.
         """
         self.headers = headers
         self.datatype = datatype
@@ -1727,9 +1992,10 @@ class Dataframe(Component):
         self.col_count = len(headers) if headers else col_count
         self.col_width = col_width
         self.type = type
+        self.output_type = "auto"
         self.default = (
-            default
-            if default is not None
+            default_value
+            if default_value is not None
             else [[None for _ in range(self.col_count)] for _ in range(self.row_count)]
         )
         sample_values = {
@@ -1747,7 +2013,7 @@ class Dataframe(Component):
         self.max_rows = max_rows
         self.max_cols = max_cols
         self.overflow_row_behaviour = overflow_row_behaviour
-        super().__init__(label=label, **kwargs)
+        super().__init__(label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
@@ -1820,7 +2086,7 @@ class Dataframe(Component):
         Returns:
         (Dict[headers: List[str], data: List[List[Union[str, number]]]]): JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
         """
-        if self.type == "auto":
+        if self.output_type == "auto":
             if isinstance(y, pd.core.frame.DataFrame):
                 dtype = "pandas"
             elif isinstance(y, np.ndarray):
@@ -1828,7 +2094,7 @@ class Dataframe(Component):
             elif isinstance(y, list):
                 dtype = "array"
         else:
-            dtype = self.type
+            dtype = self.output_type
         if dtype == "pandas":
             return {"headers": list(y.columns), "data": y.values.tolist()}
         elif dtype in ("numpy", "array"):
@@ -1844,6 +2110,16 @@ class Dataframe(Component):
                 + ". Please choose from: 'pandas', 'numpy', 'array'."
             )
 
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
 
 class Timeseries(Component):
     """
@@ -1856,16 +2132,17 @@ class Timeseries(Component):
 
     def __init__(
         self,
-        default=None,
+        default_value=None,
         *,
         x: Optional[str] = None,
         y: str | List[str] = None,
         label: Optional[str] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
         Parameters:
-        default: IGNORED
+        default_value: IGNORED
         x (str): Column name of x (time) series. None if csv has no headers, in which case first column is x series.
         y (Union[str, List[str]]): Column name of y series, or list of column names if multiple series. None if csv has no headers, in which case every column after first is a y series.
         label (str): component name in interface.
@@ -1874,7 +2151,7 @@ class Timeseries(Component):
         if isinstance(y, str):
             y = [y]
         self.y = y
-        super().__init__(label=label, **kwargs)
+        super().__init__(label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
@@ -1933,6 +2210,16 @@ class Timeseries(Component):
         """
         return {"headers": y.columns.values.tolist(), "data": y.values.tolist()}
 
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
 
 class State(Component):
     """
@@ -1943,14 +2230,21 @@ class State(Component):
     Demos: chatbot
     """
 
-    def __init__(self, default: Any = None, *, label: str = None, **kwargs):
+    def __init__(
+        self,
+        default_value: Any = None,
+        *,
+        label: Optional[str] = None,
+        css: Optional[Dict] = None,
+        **kwargs,
+    ):
         """
         Parameters:
-        default (Any): the initial value of the state.
+        default_value (Any): the initial value of the state.
         label (str): component name in interface (not used).
         """
-        self.default = default
-        super().__init__(label=label, **kwargs)
+        self.default = default_value
+        super().__init__(label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {"default": self.default, **super().get_template_context()}
@@ -1974,23 +2268,22 @@ class Label(Component):
 
     def __init__(
         self,
-        default: str = "",
+        default_value: str = "",
         *,
         num_top_classes: Optional[int] = None,
-        type: str = "auto",
         label: Optional[str] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
         Parameters:
-        default(str): IGNORED
+        default_value(str): IGNORED
         num_top_classes (int): number of most confident classes to show.
-        type (str): Type of value to be passed to component. "value" expects a single out label, "confidences" expects a dictionary mapping labels to confidence scores, "auto" detects return type.
         label (str): component name in interface.
         """
         self.num_top_classes = num_top_classes
-        self.type = type
-        super().__init__(label=label, **kwargs)
+        self.output_type = "auto"
+        super().__init__(label=label, css=css, **kwargs)
 
     def postprocess(self, y):
         """
@@ -1999,12 +2292,12 @@ class Label(Component):
         Returns:
         (Dict[label: str, confidences: List[Dict[label: str, confidence: number]]]): Object with key 'label' representing primary label, and key 'confidences' representing a list of label-confidence pairs
         """
-        if self.type == "label" or (
-            self.type == "auto" and (isinstance(y, (str, numbers.Number)))
+        if self.output_type == "label" or (
+            self.output_type == "auto" and (isinstance(y, (str, numbers.Number)))
         ):
             return {"label": str(y)}
-        elif self.type == "confidences" or (
-            self.type == "auto" and isinstance(y, dict)
+        elif self.output_type == "confidences" or (
+            self.output_type == "auto" and isinstance(y, dict)
         ):
             sorted_pred = sorted(y.items(), key=operator.itemgetter(1), reverse=True)
             if self.num_top_classes is not None:
@@ -2024,8 +2317,8 @@ class Label(Component):
 
     def deserialize(self, y):
         # 5 cases: (1): {'label': 'lion'}, {'label': 'lion', 'confidences':...}, {'lion': 0.46, ...}, 'lion', '0.46'
-        if self.type == "label" or (
-            self.type == "auto"
+        if self.output_type == "label" or (
+            self.output_type == "auto"
             and (
                 isinstance(y, (str, numbers.Number))
                 or ("label" in y and not ("confidences" in y.keys()))
@@ -2035,7 +2328,7 @@ class Label(Component):
                 return y
             else:
                 return y["label"]
-        elif self.type == "confidences" or self.type == "auto":
+        elif self.output_type == "confidences" or self.output_type == "auto":
             if ("confidences" in y.keys()) and isinstance(y["confidences"], list):
                 return {k["label"]: k["confidence"] for k in y["confidences"]}
             else:
@@ -2069,6 +2362,16 @@ class Label(Component):
         except ValueError:
             return data
 
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
 
 class KeyValues(Component):
     """
@@ -2077,7 +2380,14 @@ class KeyValues(Component):
     Demos: text_analysis
     """
 
-    def __init__(self, default: str = " ", *, label: Optional[str] = None, **kwargs):
+    def __init__(
+        self,
+        default_value: str = " ",
+        *,
+        label: Optional[str] = None,
+        css: Optional[Dict] = None,
+        **kwargs,
+    ):
         """
         Parameters:
         default (str): IGNORED
@@ -2085,7 +2395,8 @@ class KeyValues(Component):
         """
         raise DeprecationWarning(
             "The KeyValues component is deprecated. Please use the DataFrame or JSON "
-            "components instead.")
+            "components instead."
+        )
 
 
 class HighlightedText(Component):
@@ -2098,23 +2409,24 @@ class HighlightedText(Component):
 
     def __init__(
         self,
-        default: str = "",
+        default_value: str = "",
         *,
         color_map: Dict[str, str] = None,
         label: Optional[str] = None,
         show_legend: bool = False,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
         Parameters:
-        default (str): IGNORED
+        default_value (str): IGNORED
         color_map (Dict[str, str]): Map between category and respective colors
         label (str): component name in interface.
         show_legend (bool): whether to show span categories in a separate legend or inline.
         """
         self.color_map = color_map
         self.show_legend = show_legend
-        super().__init__(label=label, **kwargs)
+        super().__init__(label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
@@ -2145,6 +2457,16 @@ class HighlightedText(Component):
     def restore_flagged(self, dir, data, encryption_key):
         return json.loads(data)
 
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
 
 class JSON(Component):
     """
@@ -2153,13 +2475,20 @@ class JSON(Component):
     Demos: zip_to_json
     """
 
-    def __init__(self, default: str = "", *, label: Optional[str] = None, **kwargs):
+    def __init__(
+        self,
+        default_value: str = "",
+        *,
+        label: Optional[str] = None,
+        css: Optional[Dict] = None,
+        **kwargs,
+    ):
         """
         Parameters:
-        default (str): IGNORED
+        default_value (str): IGNORED
         label (str): component name in interface.
         """
-        super().__init__(label=label, **kwargs)
+        super().__init__(label=label, css=css, **kwargs)
 
     def postprocess(self, y):
         """
@@ -2185,6 +2514,16 @@ class JSON(Component):
     def restore_flagged(self, dir, data, encryption_key):
         return json.loads(data)
 
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
 
 class HTML(Component):
     """
@@ -2193,13 +2532,19 @@ class HTML(Component):
     Demos: text_analysis
     """
 
-    def __init__(self, default: str = "", label: Optional[str] = None, **kwargs):
+    def __init__(
+        self,
+        default_value: str = "",
+        label: Optional[str] = None,
+        css: Optional[Dict] = None,
+        **kwargs,
+    ):
         """
         Parameters:
-        default (str): IGNORED
+        default_value (str): IGNORED
         label (str): component name in interface.
         """
-        super().__init__(label=label, **kwargs)
+        super().__init__(label=label, css=css, **kwargs)
 
     def postprocess(self, x):
         """
@@ -2216,6 +2561,16 @@ class HTML(Component):
             "html": {},
         }
 
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
 
 class Carousel(Component):
     """
@@ -2226,15 +2581,16 @@ class Carousel(Component):
 
     def __init__(
         self,
-        default="",
+        default_value="",
         *,
         components: Component | List[Component],
         label: Optional[str] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
         Parameters:
-        default (str): IGNORED
+        default_value (str): IGNORED
         components (Union[List[OutputComponent], OutputComponent]): Classes of component(s) that will be scrolled through.
         label (str): component name in interface.
         """
@@ -2243,7 +2599,7 @@ class Carousel(Component):
         self.components = [
             get_component_instance(component) for component in components
         ]
-        super().__init__(label=label, **kwargs)
+        super().__init__(label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
@@ -2295,6 +2651,16 @@ class Carousel(Component):
             for sample_set in json.loads(data)
         ]
 
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
 
 class Chatbot(Component):
     """
@@ -2303,13 +2669,15 @@ class Chatbot(Component):
     Demos: chatbot
     """
 
-    def __init__(self, default="", *, label: Optional[str] = None, **kwargs):
+    def __init__(
+        self, default_value="", *, label: Optional[str] = None, css: Optional[Dict] = None, **kwargs
+    ):
         """
         Parameters:
-        default (str): IGNORED
+        default_value (str): IGNORED
         label (str): component name in interface (not used).
         """
-        super().__init__(label=label, **kwargs)
+        super().__init__(label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {**super().get_template_context()}
@@ -2330,18 +2698,86 @@ class Chatbot(Component):
         """
         return y
 
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
 
 # Static Components
 class Markdown(Component):
-    # TODO: might add default parameter to initilization, WDYT Ali Abid?
-    def __init__(self, label):
-        super().__init__(label=label)
+    def __init__(
+        self,
+        default_value: str = "",
+        *,
+        label: Optional[str] = None,
+        css: Optional[Dict] = None,
+        **kwargs,
+    ):
+        super().__init__(label=label, css=css, **kwargs)
+        self.md = MarkdownIt()
+        self.value = self.md.render(default_value)
+        
+    def get_template_context(self):
+        return {
+            "value": self.value,
+            **super().get_template_context()
+        }
 
 
 class Button(Component):
-    # TODO: might add default parameter to initilization, WDYT Ali Abid?
-    def __init__(self, label):
-        super().__init__(label=label)
+    def __init__(
+        self,
+        default_value: str = "",
+        *,
+        label: Optional[str] = None,
+        css: Optional[Dict] = None,
+        **kwargs,
+    ):
+        super().__init__(label=label, css=css, **kwargs)
+        self.value = default_value
+        
+    def get_template_context(self):
+        return {
+            "value": self.value,
+            **super().get_template_context()
+        }
+
+class DatasetViewer(Component):
+    def __init__(
+        self,
+        types: List[Component],
+        default_value: List[List[Any]],
+        *,
+        label: Optional[str] = None,
+        css: Optional[Dict] = None,
+        **kwargs,
+    ):
+        super().__init__(label=label, css=css, **kwargs)
+        self.types = types
+        self.value = default_value
+        
+    def get_template_context(self):
+        return {
+            "types": [_type.__class__.__name__.lower() for _type in types],
+            "value": self.value,
+            **super().get_template_context()
+        }
+
+    def click(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("click", fn, inputs, outputs)
 
 
 # TODO: (faruk) does this take component or interface as a input?

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { FileData } from "./types";
+	import type { FileData } from "../../File/types";
 	export let value: FileData;
 </script>
 

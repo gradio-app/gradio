@@ -14,6 +14,7 @@
 
 	export let value: null | { name: string; data: string } = null;
 	export let theme: string;
+	export let style: string | null;
 	export let name: string;
 	export let source: "microphone" | "upload" | "none";
 	export let drop_text: string = "Drop an audio file";

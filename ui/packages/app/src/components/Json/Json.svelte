@@ -4,10 +4,11 @@
 
 	export let value: any;
 	export let theme: string;
+	export let style: string | null;
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
 	$: value, dispatch("change");
 </script>
 
-<JSON {theme} {value} />
+<JSON {theme} {style} {value} />

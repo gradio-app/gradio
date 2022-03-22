@@ -49,7 +49,7 @@ def get_huggingface_interface(model_name, api_key, alias):
     pipelines = {
         "audio-classification": {
             # example model: https://hf.co/ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition
-            "inputs": components.Audio(label="Input", source="upload", type="filepath"),
+            "inputs": components.Audio(source="upload", type="filepath", label="Input"),
             "outputs": components.Label(label="Class"),
             "preprocess": lambda i: base64.b64decode(
                 i["data"].split(",")[1]
@@ -60,7 +60,7 @@ def get_huggingface_interface(model_name, api_key, alias):
         },
         "audio-to-audio": {
             # example model: https://hf.co/speechbrain/mtl-mimic-voicebank
-            "inputs": components.Audio(label="Input", source="upload", type="filepath"),
+            "inputs": components.Audio(source="upload", type="filepath", label="Input"),
             "outputs": components.Audio(label="Output"),
             "preprocess": lambda i: base64.b64decode(
                 i["data"].split(",")[1]
@@ -69,7 +69,7 @@ def get_huggingface_interface(model_name, api_key, alias):
         },
         "automatic-speech-recognition": {
             # example model: https://hf.co/jonatasgrosman/wav2vec2-large-xlsr-53-english
-            "inputs": components.Audio(label="Input", source="upload", type="filepath"),
+            "inputs": components.Audio(source="upload", type="filepath", label="Input"),
             "outputs": components.Textbox(label="Output"),
             "preprocess": lambda i: base64.b64decode(
                 i["data"].split(",")[1]
@@ -91,7 +91,7 @@ def get_huggingface_interface(model_name, api_key, alias):
         },
         "image-classification": {
             # Example: https://huggingface.co/google/vit-base-patch16-224
-            "inputs": components.Image(label="Input Image", type="filepath"),
+            "inputs": components.Image(type="filepath", label="Input Image"),
             "outputs": components.Label(label="Classification"),
             "preprocess": lambda i: base64.b64decode(
                 i.split(",")[1]
@@ -111,10 +111,13 @@ def get_huggingface_interface(model_name, api_key, alias):
         # TODO: also: support NER pipeline, object detection, table question answering
         "question-answering": {
             "inputs": [
-                components.Textbox(label="Context", lines=7),
+                components.Textbox(lines=7, label="Context"),
                 components.Textbox(label="Question"),
             ],
-            "outputs": [components.Textbox(label="Answer"), components.Label(label="Score")],
+            "outputs": [
+                components.Textbox(label="Answer"),
+                components.Label(label="Score"),
+            ],
             "preprocess": lambda c, q: {"inputs": {"context": c, "question": q}},
             "postprocess": lambda r: (r.json()["answer"], r.json()["score"]),
         },
@@ -126,7 +129,7 @@ def get_huggingface_interface(model_name, api_key, alias):
         },
         "text-classification": {
             "inputs": components.Textbox(label="Input"),
-            "outputs": components.Label(label="Classification", type="confidences"),
+            "outputs": components.Label(type="confidences", label="Classification"),
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: {
                 i["label"].split(", ")[0]: i["score"] for i in r.json()[0]
@@ -156,7 +159,7 @@ def get_huggingface_interface(model_name, api_key, alias):
                 components.Textbox(label="Possible class names (" "comma-separated)"),
                 components.Checkbox(label="Allow multiple true classes"),
             ],
-            "outputs": components.Label(label="Classification", type="confidences"),
+            "outputs": components.Label(type="confidences", label="Classification"),
             "preprocess": lambda i, c, m: {
                 "inputs": i,
                 "parameters": {"candidate_labels": c, "multi_class": m},
@@ -170,12 +173,12 @@ def get_huggingface_interface(model_name, api_key, alias):
             # example model: hf.co/sentence-transformers/distilbert-base-nli-stsb-mean-tokens
             "inputs": [
                 components.Textbox(
-                    label="Source Sentence", default="That is a happy person"
+                    default_value="That is a happy person", label="Source Sentence"
                 ),
                 components.Textbox(
                     lines=7,
-                    label="Sentences to compare to",
                     placeholder="Separate each sentence by a newline",
+                    label="Sentences to compare to",
                 ),
             ],
             "outputs": components.Label(label="Classification"),
@@ -354,7 +357,9 @@ def load_from_pipeline(pipeline):
         pipeline, transformers.AudioClassificationPipeline
     ):
         pipeline_info = {
-            "inputs": components.Audio(label="Input", source="microphone", type="filepath"),
+            "inputs": components.Audio(
+                source="microphone", type="filepath", label="Input"
+            ),
             "outputs": components.Label(label="Class"),
             "preprocess": lambda i: {"inputs": i},
             "postprocess": lambda r: {i["label"].split(", ")[0]: i["score"] for i in r},
@@ -363,7 +368,9 @@ def load_from_pipeline(pipeline):
         pipeline, transformers.AutomaticSpeechRecognitionPipeline
     ):
         pipeline_info = {
-            "inputs": components.Audio(label="Input", source="microphone", type="filepath"),
+            "inputs": components.Audio(
+                source="microphone", type="filepath", label="Input"
+            ),
             "outputs": components.Textbox(label="Output"),
             "preprocess": lambda i: {"inputs": i},
             "postprocess": lambda r: r["text"],
@@ -390,8 +397,8 @@ def load_from_pipeline(pipeline):
         pipeline, transformers.ImageClassificationPipeline
     ):
         pipeline_info = {
-            "inputs": components.Image(label="Input Image", type="filepath"),
-            "outputs": components.Label(label="Classification", type="confidences"),
+            "inputs": components.Image(type="filepath", label="Input Image"),
+            "outputs": components.Label(type="confidences", label="Classification"),
             "preprocess": lambda i: {"images": i},
             "postprocess": lambda r: {i["label"].split(", ")[0]: i["score"] for i in r},
         }
@@ -400,11 +407,13 @@ def load_from_pipeline(pipeline):
     ):
         pipeline_info = {
             "inputs": [
-                components.Textbox(label="Context", lines=7),
+                components.Textbox(lines=7, label="Context"),
                 components.Textbox(label="Question"),
             ],
-            "outputs": [components.Textbox(label="Answer"), 
-                        components.Label(label="Score")],
+            "outputs": [
+                components.Textbox(label="Answer"),
+                components.Label(label="Score"),
+            ],
             "preprocess": lambda c, q: {"context": c, "question": q},
             "postprocess": lambda r: (r["answer"], r["score"]),
         }
@@ -412,7 +421,7 @@ def load_from_pipeline(pipeline):
         pipeline, transformers.SummarizationPipeline
     ):
         pipeline_info = {
-            "inputs": components.Textbox(label="Input", lines=7),
+            "inputs": components.Textbox(lines=7, label="Input"),
             "outputs": components.Textbox(label="Summary"),
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: r[0]["summary_text"],

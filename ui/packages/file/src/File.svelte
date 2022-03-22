@@ -4,6 +4,7 @@
 
 	export let value: FileData;
 	export let theme: string;
+	export let style: string | null;
 </script>
 
 <a
