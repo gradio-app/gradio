@@ -77,9 +77,7 @@ class TestHelperMethods(unittest.TestCase):
 
     def test_quantify_difference_with_number(self):
         iface = Interface(lambda text: text, ["textbox"], ["number"])
-        diff = gradio.interpretation.quantify_difference_in_label(
-            iface, [4], [6]
-        )
+        diff = gradio.interpretation.quantify_difference_in_label(iface, [4], [6])
         self.assertEquals(diff, -2)
 
     def test_quantify_difference_with_label(self):
