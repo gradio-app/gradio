@@ -179,7 +179,7 @@ def render_guides():
         guide_output = guide_output.replace("</pre>", f"</pre>{copy_button}</div>")
 
         output_html = markdown2.markdown(
-            guide_output, extras=["target-blank-links", "header-ids"]
+            guide_output, extras=["target-blank-links", "header-ids", "tables"]
         )
         os.makedirs("generated", exist_ok=True)
         os.makedirs(os.path.join("generated", guide["name"]), exist_ok=True)
