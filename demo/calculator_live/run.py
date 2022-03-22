@@ -12,7 +12,7 @@ def calculator(num1, operation, num2):
         return num1 / num2
 
 
-demo = gr.Interface(
+iface = gr.Interface(
     calculator,
     ["number", gr.inputs.Radio(["add", "subtract", "multiply", "divide"]), "number"],
     "number",
@@ -20,4 +20,4 @@ demo = gr.Interface(
 )
 
 if __name__ == "__main__":
-    demo.launch()
+    iface.launch()
