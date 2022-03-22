@@ -20,7 +20,7 @@ iface = gr.Interface(
     [
         gr.inputs.Dropdown(notes, type="index"),
         gr.inputs.Slider(4, step=1),
-        gr.inputs.Textbox(default_value=1, label="Duration in seconds", type="number"),
+        gr.inputs.Textbox(default=1, label="Duration in seconds", type="number"),
     ],
     "audio",
 )

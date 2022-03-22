@@ -85,7 +85,7 @@ def fn(
 iface = gr.Interface(
     fn,
     inputs=[
-        gr.inputs.Textbox(default_value="Lorem ipsum", label="Textbox"),
+        gr.inputs.Textbox(default="Lorem ipsum", label="Textbox"),
         gr.inputs.Textbox(lines=3, placeholder="Type here..", label="Textbox 2"),
         gr.inputs.Number(label="Number", default_value=42),
         gr.inputs.Slider(default_value=15, minimum=10, maximum=20, label="Slider: 10 - 20"),
