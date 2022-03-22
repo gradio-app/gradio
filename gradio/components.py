@@ -16,6 +16,7 @@ import pandas as pd
 import PIL
 from ffmpy import FFmpeg
 from markdown_it import MarkdownIt
+import matplotlib.figure
 
 from gradio import processing_utils, test_data
 from gradio.blocks import Block
@@ -1284,7 +1285,7 @@ class Image(Component):
                 dtype = "pil"
             elif isinstance(y, str):
                 dtype = "file"
-            elif isinstance(y, ModuleType):
+            elif isinstance(y, (ModuleType, matplotlib.figure.Figure)):
                 dtype = "plot"
             else:
                 raise ValueError(
@@ -2749,6 +2750,16 @@ class Button(Component):
 
     def get_template_context(self):
         return {"value": self.value, **super().get_template_context()}
+
+    def click(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("click", fn, inputs, outputs)
 
 
 class DatasetViewer(Component):
