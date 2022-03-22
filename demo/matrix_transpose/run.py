@@ -9,7 +9,7 @@ def transpose(matrix):
 
 iface = gr.Interface(
     transpose,
-    gr.inputs.Dataframe(row_count=5, col_count=3, datatype="number", type="numpy"),
+    gr.inputs.Dataframe(type="numpy", datatype="number", row_count=5, col_count=3),
     "numpy",
     examples=[
         [np.zeros((3, 3)).tolist()],
