@@ -4,10 +4,11 @@
 	export let value: string;
 	export let interpretation: Array<number>;
 	export let theme: string;
+	export let style: string | null;
 	export let choices: Array<string>;
 </script>
 
-<div class="input-radio flex flex-wrap gap-2" {theme}>
+<div class="input-radio flex flex-wrap gap-2" {theme} {style}>
 	{#each choices as choice, i}
 		<button
 			class="radio-item py-2 px-3 font-semibold rounded cursor-pointer flex items-center gap-2"

@@ -4,6 +4,7 @@
 	export let value: string;
 	export let interpretation: Array<[number, number]>;
 	export let theme: string;
+	export let style: string | null;
 </script>
 
 <div class="input-number">

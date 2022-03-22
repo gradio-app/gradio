@@ -28,7 +28,7 @@ class TestTextbox(unittest.TestCase):
             self.assertEqual(restored, "Hello World!")
 
         with self.assertWarns(DeprecationWarning):
-            numeric_text_input = gr.inputs.Textbox(type="number")
+            _ = gr.inputs.Textbox(type="number")
 
         self.assertEqual(
             text_input.tokenize("Hello World! Gradio speaking."),
@@ -183,7 +183,7 @@ class TestSlider(unittest.TestCase):
 
         self.assertIsInstance(slider_input.generate_sample(), int)
         slider_input = gr.inputs.Slider(
-            minimum=10, maximum=20, step=1, default=15, label="Slide Your Input"
+            default=15, minimum=10, maximum=20, step=1, label="Slide Your Input"
         )
         self.assertEqual(
             slider_input.get_template_context(),
@@ -287,7 +287,7 @@ class TestCheckboxGroup(unittest.TestCase):
             self.assertEqual(restored, ["a", "c"])
         self.assertIsInstance(checkboxes_input.generate_sample(), list)
         checkboxes_input = gr.inputs.CheckboxGroup(
-            choices=["a", "b", "c"], default=["a", "c"], label="Check Your Inputs"
+            default=["a", "c"], choices=["a", "b", "c"], label="Check Your Inputs"
         )
         self.assertEqual(
             checkboxes_input.get_template_context(),
@@ -401,7 +401,7 @@ class TestImage(unittest.TestCase):
         img = gr.test_data.BASE64_IMAGE
         image_input = gr.inputs.Image()
         self.assertEqual(image_input.preprocess(img).shape, (68, 61, 3))
-        image_input = gr.inputs.Image(image_mode="L", shape=(25, 25))
+        image_input = gr.inputs.Image(shape=(25, 25), image_mode="L")
         self.assertEqual(image_input.preprocess(img).shape, (25, 25))
         image_input = gr.inputs.Image(shape=(30, 10), type="pil")
         self.assertEqual(image_input.preprocess(img).size, (30, 10))
@@ -633,7 +633,7 @@ class TestDataframe(unittest.TestCase):
                 "label": "Dataframe Input",
                 "max_rows": 20,
                 "max_cols": None,
-                "overflow_row_behaviour": "paginate",                
+                "overflow_row_behaviour": "paginate",
             },
         )
         dataframe_input = gr.inputs.Dataframe()

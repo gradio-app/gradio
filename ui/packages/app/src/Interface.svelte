@@ -12,6 +12,7 @@
 	export let input_components: Array<Component>;
 	export let output_components: Array<Component>;
 	export let theme: string;
+	export let style: string | null;
 	export let fn: (...args: any) => Promise<unknown>;
 	export let examples: Array<Array<unknown>>;
 	export let root: string;

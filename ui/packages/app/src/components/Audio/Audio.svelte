@@ -5,6 +5,7 @@
 	export let mode: "static" | "dynamic";
 	export let value: null | FileData = null;
 	export let theme: string;
+	export let style: string | null;
 	export let name: string;
 	export let source: "microphone" | "upload";
 	export let type: "normal" | "numpy" = "normal";
@@ -14,6 +15,7 @@
 	<Audio
 		{value}
 		{theme}
+		{style}
 		{name}
 		{source}
 		{type}
@@ -24,7 +26,7 @@
 		on:ended
 	/>
 {:else if value}
-	<audio {theme} controls>
+	<audio {theme} {style} controls>
 		<source src={value.data} />
 	</audio>
 {/if}

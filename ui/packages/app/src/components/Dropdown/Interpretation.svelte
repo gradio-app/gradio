@@ -4,10 +4,11 @@
 	export let value: string;
 	export let interpretation: Array<number>;
 	export let theme: string;
+	export let style: string | null;
 	export let choices: Array<string>;
 </script>
 
-<div class="input-dropdown" {theme}>
+<div class="input-dropdown" {theme} {style}>
 	<ul class="dropdown-menu">
 		{#each choices as choice, i}
 			<li

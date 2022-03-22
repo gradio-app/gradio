@@ -10,6 +10,6 @@
 	theme="string"
 	name="string"
 	source="microphone | upload"
-  on:change="{e.detail === value}"
+	on:change={e.detail === value}
 />
 ```

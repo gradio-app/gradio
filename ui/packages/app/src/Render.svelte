@@ -23,12 +23,20 @@
 
 		return () => dispatch("destroy", id);
 	});
+
+	let style =
+		"css" in props
+			? Object.entries(props.css)
+					.map((rule) => rule[0] + ": " + rule[1])
+					.join("; ")
+			: null;
 </script>
 
 <svelte:component
 	this={component}
 	bind:this={instance_map[id].instance}
 	bind:value={instance_map[id].value}
+	{style}
 	{...props}
 	{theme}
 >
