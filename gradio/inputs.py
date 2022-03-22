@@ -9,25 +9,23 @@ from __future__ import annotations
 import warnings
 from typing import Any, List, Optional, Tuple
 
-from gradio.components import (
-    Audio,
-    Checkbox,
-    CheckboxGroup,
-    Dataframe,
-    Dropdown,
-    File,
-    Image,
-    Number,
-    Radio,
-    Slider,
-    State,
-    Textbox,
-    Timeseries,
-    Video,
-)
+from gradio.components import Audio as C_Audio
+from gradio.components import Checkbox as C_Checkbox
+from gradio.components import CheckboxGroup as C_CheckboxGroup
+from gradio.components import Dataframe as C_Dataframe
+from gradio.components import Dropdown as C_Dropdown
+from gradio.components import File as C_File
+from gradio.components import Image as C_Image
+from gradio.components import Number as C_Number
+from gradio.components import Radio as C_Radio
+from gradio.components import Slider as C_Slider
+from gradio.components import State as C_State
+from gradio.components import Textbox as C_Textbox
+from gradio.components import Timeseries as C_Timeseries
+from gradio.components import Video as C_Video
 
 
-class Textbox(Textbox):
+class Textbox(C_Textbox):
     def __init__(
         self,
         lines: int = 1,
@@ -53,7 +51,7 @@ class Textbox(Textbox):
         )
 
 
-class Number(Number):
+class Number(C_Number):
     """
     Component creates a field for user to enter numeric input. Provides a number as an argument to the wrapped function.
     Input type: float
@@ -79,7 +77,7 @@ class Number(Number):
         super().__init__(default_value=default, label=label, optional=optional)
 
 
-class Slider(Slider):
+class Slider(C_Slider):
     """
     Component creates a slider that ranges from `minimum` to `maximum`. Provides a number as an argument to the wrapped function.
     Input type: float
@@ -119,7 +117,7 @@ class Slider(Slider):
         )
 
 
-class Checkbox(Checkbox):
+class Checkbox(C_Checkbox):
     """
     Component creates a checkbox that can be set to `True` or `False`. Provides a boolean as an argument to the wrapped function.
     Input type: bool
@@ -145,7 +143,7 @@ class Checkbox(Checkbox):
         super().__init__(default_value=default, label=label, optional=optional)
 
 
-class CheckboxGroup(CheckboxGroup):
+class CheckboxGroup(C_CheckboxGroup):
     """
     Component creates a set of checkboxes of which a subset can be selected. Provides a list of strings representing the selected choices as an argument to the wrapped function.
     Input type: Union[List[str], List[int]]
@@ -181,7 +179,7 @@ class CheckboxGroup(CheckboxGroup):
         )
 
 
-class Radio(Radio):
+class Radio(C_Radio):
     """
     Component creates a set of radio buttons of which only one can be selected. Provides string representing selected choice as an argument to the wrapped function.
     Input type: Union[str, int]
@@ -217,7 +215,7 @@ class Radio(Radio):
         )
 
 
-class Dropdown(Dropdown):
+class Dropdown(C_Dropdown):
     """
     Component creates a dropdown of which only one can be selected. Provides string representing selected choice as an argument to the wrapped function.
     Input type: Union[str, int]
@@ -253,7 +251,7 @@ class Dropdown(Dropdown):
         )
 
 
-class Image(Image):
+class Image(C_Image):
     """
     Component creates an image upload box with editing capabilities.
     Input type: Union[numpy.array, PIL.Image, file-object]
@@ -298,7 +296,7 @@ class Image(Image):
         )
 
 
-class Video(Video):
+class Video(C_Video):
     """
     Component creates a video file upload that is converted to a file path.
 
@@ -327,7 +325,7 @@ class Video(Video):
         super().__init__(type=type, source=source, label=label, optional=optional)
 
 
-class Audio(Audio):
+class Audio(C_Audio):
     """
     Component accepts audio input files.
     Input type: Union[Tuple[int, numpy.array], file-object, numpy.array]
@@ -355,7 +353,7 @@ class Audio(Audio):
         super().__init__(source=source, type=type, label=label, optional=optional)
 
 
-class File(File):
+class File(C_File):
     """
     Component accepts generic file uploads.
     Input type: Union[file-object, bytes, List[Union[file-object, bytes]]]
@@ -391,7 +389,7 @@ class File(File):
         )
 
 
-class Dataframe(Dataframe):
+class Dataframe(C_Dataframe):
     """
     Component accepts 2D input through a spreadsheet interface.
     Input type: Union[pandas.DataFrame, numpy.array, List[Union[str, float]], List[List[Union[str, float]]]]
@@ -439,7 +437,7 @@ class Dataframe(Dataframe):
         )
 
 
-class Timeseries(Timeseries):
+class Timeseries(C_Timeseries):
     """
     Component accepts pandas.DataFrame uploaded as a timeseries csv file.
     Input type: pandas.DataFrame
@@ -467,7 +465,7 @@ class Timeseries(Timeseries):
         super().__init__(x=x, y=y, label=label, optional=optional)
 
 
-class State(State):
+class State(C_State):
     """
     Special hidden component that stores state across runs of the interface.
     Input type: Any

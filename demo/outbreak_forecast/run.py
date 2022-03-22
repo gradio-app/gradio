@@ -30,11 +30,11 @@ def outbreak(r, month, countries, social_distancing):
 iface = gr.Interface(
     outbreak,
     [
-        gr.inputs.Slider(1, label="R", default_value=3.2),
+        gr.inputs.Slider(1, 4, default=3.2, label="R"),
         gr.inputs.Dropdown(
             ["January", "February", "March", "April", "May"], label="Month"
         ),
-        gr.inputs.CheckboxGroup(["USA", "Canada", "Mexico", "UK"], choices=, label="Countries"),
+        gr.inputs.CheckboxGroup(["USA", "Canada", "Mexico", "UK"], label="Countries"),
         gr.inputs.Checkbox(label="Social Distancing?"),
     ],
     "plot",

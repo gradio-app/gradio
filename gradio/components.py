@@ -9,7 +9,7 @@ import shutil
 import tempfile
 import warnings
 from types import ModuleType
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -229,8 +229,6 @@ class Textbox(Component):
         lines (int): number of line rows to provide in textarea.
         placeholder (str): placeholder hint to provide behind textarea.
         label (str): component name in interface.
-        numeric (bool): DEPRECATED.
-        type (str): DEPRECATED.
         """
         if "numeric" in kwargs:
             warnings.warn(
@@ -367,6 +365,26 @@ class Textbox(Component):
         """
         return x
 
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
+    def submit(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("submit", fn, inputs, outputs)
+
 
 class Number(Component):
     """
@@ -483,6 +501,26 @@ class Number(Component):
         """
         return y
 
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
+    def submit(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("submit", fn, inputs, outputs)
+
 
 class Slider(Component):
     """
@@ -595,6 +633,16 @@ class Slider(Component):
         """
         return y
 
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
 
 class Checkbox(Component):
     """
@@ -682,6 +730,16 @@ class Checkbox(Component):
         Convert from serialized output (e.g. base64 representation) from a call() to the interface to a human-readable version of the output (path of an image, etc.)
         """
         return x
+
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
 
 
 class CheckboxGroup(Component):
@@ -801,6 +859,16 @@ class CheckboxGroup(Component):
         """
         return x
 
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
 
 class Radio(Component):
     """
@@ -894,6 +962,16 @@ class Radio(Component):
         """
         return x
 
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
 
 class Dropdown(Radio):
     """
@@ -961,7 +1039,7 @@ class Image(Component):
         invert_colors (bool): whether to invert the image as a preprocessing step.
         source (str): Source of image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "canvas" defaults to a white image that can be edited and drawn upon with tools.
         tool (str): Tools used for editing. "editor" allows a full screen editor, "select" provides a cropping and zoom tool.
-        type (str): Input Type of value to be returned by component. "numpy" returns a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" returns a PIL image object, "file" returns a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
+        type (str): The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
         label (str): component name in interface.
         """
         if "plot" in kwargs:
@@ -1231,6 +1309,36 @@ class Image(Component):
         y = processing_utils.decode_base64_to_file(x).name
         return y
 
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
+    def edit(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("edit", fn, inputs, outputs)
+
+    def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("clear", fn, inputs, outputs)
+
 
 class Video(Component):
     """
@@ -1344,6 +1452,56 @@ class Video(Component):
     def deserialize(self, x):
         return processing_utils.decode_base64_to_file(x).name
 
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
+    def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("clear", fn, inputs, outputs)
+
+    def play(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("play", fn, inputs, outputs)
+
+    def pause(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("pause", fn, inputs, outputs)
+
+    def stop(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("stop", fn, inputs, outputs)
+
 
 class Audio(Component):
     """
@@ -1369,7 +1527,7 @@ class Audio(Component):
         Parameters:
         default_value (str): IGNORED
         source (str): Source of audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input.
-        type (str): Input type. Type of value to be returned by component. "numpy" returns a 2-set tuple with an integer sample_rate and the data numpy.array of shape (samples, 2), "file" returns a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
+        type (str): The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
         label (str): component name in interface.
         """
         self.source = source
@@ -1587,6 +1745,66 @@ class Audio(Component):
     def deserialize(self, x):
         return processing_utils.decode_base64_to_file(x).name
 
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
+    def edit(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("edit", fn, inputs, outputs)
+
+    def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("clear", fn, inputs, outputs)
+
+    def play(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("play", fn, inputs, outputs)
+
+    def pause(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("pause", fn, inputs, outputs)
+
+    def stop(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("stop", fn, inputs, outputs)
+
 
 class File(Component):
     """
@@ -1705,6 +1923,26 @@ class File(Component):
             "size": os.path.getsize(y),
             "data": processing_utils.encode_file_to_base64(y),
         }
+
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
+    def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("clear", fn, inputs, outputs)
 
 
 class Dataframe(Component):
@@ -1872,6 +2110,16 @@ class Dataframe(Component):
                 + ". Please choose from: 'pandas', 'numpy', 'array'."
             )
 
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
 
 class Timeseries(Component):
     """
@@ -1962,6 +2210,16 @@ class Timeseries(Component):
         """
         return {"headers": y.columns.values.tolist(), "data": y.values.tolist()}
 
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
 
 class State(Component):
     """
@@ -2025,7 +2283,6 @@ class Label(Component):
         """
         self.num_top_classes = num_top_classes
         self.output_type = "auto"
-        self.type = "auto"
         super().__init__(label=label, css=css, **kwargs)
 
     def postprocess(self, y):
@@ -2105,6 +2362,16 @@ class Label(Component):
         except ValueError:
             return data
 
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
 
 class KeyValues(Component):
     """
@@ -2123,7 +2390,7 @@ class KeyValues(Component):
     ):
         """
         Parameters:
-        default_value (str): IGNORED
+        default (str): IGNORED
         label (str): component name in interface.
         """
         raise DeprecationWarning(
@@ -2190,6 +2457,16 @@ class HighlightedText(Component):
     def restore_flagged(self, dir, data, encryption_key):
         return json.loads(data)
 
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
 
 class JSON(Component):
     """
@@ -2237,6 +2514,16 @@ class JSON(Component):
     def restore_flagged(self, dir, data, encryption_key):
         return json.loads(data)
 
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
 
 class HTML(Component):
     """
@@ -2273,6 +2560,16 @@ class HTML(Component):
         return {
             "html": {},
         }
+
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
 
 
 class Carousel(Component):
@@ -2354,6 +2651,16 @@ class Carousel(Component):
             for sample_set in json.loads(data)
         ]
 
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
 
 class Chatbot(Component):
     """
@@ -2390,6 +2697,16 @@ class Chatbot(Component):
 
         """
         return y
+
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
 
 
 # Static Components
@@ -2451,6 +2768,16 @@ class DatasetViewer(Component):
             "value": self.value,
             **super().get_template_context()
         }
+
+    def click(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("click", fn, inputs, outputs)
 
 
 # TODO: (faruk) does this take component or interface as a input?

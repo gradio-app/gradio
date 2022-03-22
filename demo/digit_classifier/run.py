@@ -18,7 +18,9 @@ def recognize_digit(image):
     return {str(i): prediction[i] for i in range(10)}
 
 
-im = gradio.inputs.Image(shape=(28, 28), image_mode="L", invert_colors=False, source="canvas")
+im = gradio.inputs.Image(
+    shape=(28, 28), image_mode="L", invert_colors=False, source="canvas"
+)
 
 iface = gr.Interface(
     recognize_digit,

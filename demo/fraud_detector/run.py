@@ -23,8 +23,10 @@ iface = gr.Interface(
     fraud_detector,
     [
         gr.inputs.Timeseries(x="time", y=["retail", "food", "other"]),
-        gr.inputs.CheckboxGroup(["retail", "food", "other"], choices=, default_value=["retail", "food", "other"]),
-        gr.inputs.Slider(1),
+        gr.inputs.CheckboxGroup(
+            ["retail", "food", "other"], default=["retail", "food", "other"]
+        ),
+        gr.inputs.Slider(1, 3),
     ],
     [
         "dataframe",
