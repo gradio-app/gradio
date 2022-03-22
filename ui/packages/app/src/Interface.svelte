@@ -2,6 +2,7 @@
 	import { deepCopy } from "./components/utils/helpers";
 	import ExampleSet from "./ExampleSet.svelte";
 	import { _ } from "svelte-i18n";
+	import { component_map } from "./components/directory";
 
 	interface Component {
 		name: string;
@@ -58,7 +59,7 @@
 	const setExampleId = async (example_id: number) => {
 		input_components.forEach(async (input_component, i) => {
 			const process_example =
-				input_component_map[input_component.name].process_example;
+				component_map[input_component.name].process_example;
 			if (process_example !== undefined) {
 				input_values[i] = await process_example(
 					examples[example_id][i],
@@ -212,7 +213,7 @@
 									&nbsp;<em>(optional)</em>{/if}
 							</div>
 							<svelte:component
-								this={input_component_map[input_component.name][
+								this={component_map[input_component.name][
 									interpret_mode ? "interpretation" : "component"
 								]}
 								{...input_component}
@@ -287,7 +288,7 @@
 						<div class="component">
 							<div class="panel-header mb-1.5">{output_component.label}</div>
 							<svelte:component
-								this={output_component_map[output_component.name].component}
+								this={component_map[output_component.name].component}
 								{...output_component}
 								{theme}
 								{static_src}
