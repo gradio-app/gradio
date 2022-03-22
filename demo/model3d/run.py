@@ -3,8 +3,10 @@ import gradio as gr
 
 
 def load_mesh(mesh_file_name):
-    file_dir = "model3d/files"
-    mesh_path = os.path.join(file_dir, mesh_file_name)
+    print("HIT!!!")
+    print(mesh_file_name)
+    # file_dir = "model3d/files"
+    # mesh_path = os.path.join(file_dir, mesh_file_name)
     return mesh_file_name
 
 
@@ -13,8 +15,8 @@ def load_mesh(mesh_file_name):
     # ]
 iface = gr.Interface(
     load_mesh,
-    inputs=["model3d"],
-    outputs=["model3d"]
+    "model3d",
+    "model3d"
 )
 
 if __name__ == "__main__":
