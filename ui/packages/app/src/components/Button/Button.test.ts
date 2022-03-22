@@ -1,6 +1,6 @@
 import { test, describe, assert, afterAll } from "vitest";
 import { spy } from "tinyspy";
-import { cleanup, fireEvent, render } from "@testing-library/svelte";
+import { cleanup, fireEvent, render } from "@gradio/tootils";
 
 import Button from "./Button.svelte";
 

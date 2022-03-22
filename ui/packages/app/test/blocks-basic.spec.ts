@@ -15,7 +15,8 @@ test("basic test", async ({ page }) => {
 	await mock_demo(page, "xray_blocks");
 
 	await page.goto("http://localhost:3000");
-
+	// await page.waitForSelector(".output-html");
 	const title = await page.locator(".output-html");
+	// console.log(await page.innerHTML("html"));
 	await expect(title).toContainText("Detect Disease From Scan");
 });

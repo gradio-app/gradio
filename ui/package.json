@@ -6,14 +6,16 @@
 		"workbench": "pnpm dev --filter @gradio/workbench",
 		"dev": "pnpm dev --filter @gradio/app",
 		"build": "pnpm build --filter @gradio/app --emptyOutDir",
+		"preview": "sirv ../gradio/templates/frontend --single --port=3000 --quiet",
+		
 		"format:check": "prettier --check --plugin-search-dir=. .",
 		"format:write": "prettier --write --plugin-search-dir=. .",
 		"ts:check": "svelte-check --tsconfig tsconfig.json",
 		"test": "vitest dev",
 		"test:run": "vitest run",
 		"test:browser": "pnpm test:browser --filter @gradio/app",
-		"preview": "sirv ../gradio/templates/frontend --single",
-		"test:browser:full": "run-p preview test:browser"
+		"test:browser:full": "run-p preview test:browser",
+		"test:browser:debug": "pnpm test:browser:debug --filter @gradio/app"
 	},
 	"type": "module",
 	"author": "",
@@ -23,6 +25,7 @@
 		"@gradio/tootils": "workspace:^0.0.1",
 		"@playwright/test": "^1.20.0",
 		"@sveltejs/vite-plugin-svelte": "^1.0.0-next.36",
+		"@testing-library/dom": "^8.11.3",
 		"@testing-library/svelte": "^3.1.0",
 		"autoprefixer": "^10.4.4",
 		"happy-dom": "^2.49.0",

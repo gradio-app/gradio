@@ -7,6 +7,7 @@ importers:
       '@gradio/tootils': workspace:^0.0.1
       '@playwright/test': ^1.20.0
       '@sveltejs/vite-plugin-svelte': ^1.0.0-next.36
+      '@testing-library/dom': ^8.11.3
       '@testing-library/svelte': ^3.1.0
       autoprefixer: ^10.4.4
       happy-dom: ^2.49.0
@@ -28,6 +29,7 @@ importers:
       '@gradio/tootils': link:packages/tootils
       '@playwright/test': 1.20.0
       '@sveltejs/vite-plugin-svelte': 1.0.0-next.36_svelte@3.46.3+vite@2.8.4
+      '@testing-library/dom': 8.11.3
       '@testing-library/svelte': 3.1.0_svelte@3.46.3
       autoprefixer: 10.4.4_postcss@8.4.6
       happy-dom: 2.49.0
@@ -1019,6 +1021,20 @@ packages:
       pretty-format: 26.6.2
     dev: false
 
+  /@testing-library/dom/8.11.3:
+    resolution: {integrity: sha512-9LId28I+lx70wUiZjLvi1DB/WT2zGOxUh46glrSNMaWVx849kKAluezVzZrXJfTKKoQTmEOutLes/bHg4Bj3aA==}
+    engines: {node: '>=12'}
+    dependencies:
+      '@babel/code-frame': 7.16.7
+      '@babel/runtime': 7.17.7
+      '@types/aria-query': 4.2.2
+      aria-query: 5.0.0
+      chalk: 4.1.2
+      dom-accessibility-api: 0.5.13
+      lz-string: 1.4.4
+      pretty-format: 27.5.1
+    dev: false
+
   /@testing-library/svelte/3.1.0_svelte@3.46.3:
     resolution: {integrity: sha512-xTN6v4xRLQb75GTJn2mrjSUJN4PkhpNZFjwvtdzbOTS6OvxMrkRdm6hFRGauwiFd0LPV7/SqdWbbtMAOC7a+Dg==}
     engines: {node: '>= 8'}
@@ -1267,6 +1283,11 @@ packages:
     dependencies:
       '@babel/runtime': 7.17.7
       '@babel/runtime-corejs3': 7.17.7
+    dev: false
+
+  /aria-query/5.0.0:
+    resolution: {integrity: sha512-V+SM7AbUwJ+EBnB8+DXs0hPZHO0W6pqBcc0dW90OwtVG02PswOu/teuARoLQjdDOH+t9pJgGnW5/Qmouf3gPJg==}
+    engines: {node: '>=6.0'}
     dev: false
 
   /array-equal/1.0.0:

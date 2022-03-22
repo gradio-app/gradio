@@ -1,6 +1,5 @@
 import { test, describe, assert, afterEach } from "vitest";
-import { cleanup, render } from "@testing-library/svelte";
-import { get_text } from "@gradio/tootils";
+import { cleanup, render, get_text } from "@gradio/tootils";
 
 import Chatbot from "./Chatbot.svelte";
 

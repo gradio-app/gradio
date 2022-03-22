@@ -1,22 +1,8 @@
 import { test, describe, assert, afterEach } from "vitest";
 import { spy } from "tinyspy";
-import { cleanup, fireEvent, render } from "@testing-library/svelte";
+import { cleanup, fireEvent, render } from "@gradio/tootils";
 
 import Carousel from "./Carousel.test.svelte";
-
-function mock(fn: (...args: any) => any = () => {}) {
-	const mock_meta = {
-		called: false,
-		called_times: 0
-	};
-
-	function func(...args: unknown[]) {
-		return fn(...args);
-	}
-
-	func.called = mock_meta.called;
-	func.called_times = mock_meta.called_times;
-}
 
 describe("Carousel + CarouselItem", () => {
 	afterEach(() => cleanup());
