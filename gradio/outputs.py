@@ -9,26 +9,24 @@ from __future__ import annotations
 import warnings
 from typing import Dict, List, Optional
 
-from gradio.components import (
-    HTML,
-    JSON,
-    Audio,
-    Carousel,
-    Chatbot,
-    Component,
-    Dataframe,
-    File,
-    HighlightedText,
-    Image,
-    Label,
-    State,
-    Textbox,
-    Timeseries,
-    Video,
-)
+from gradio.components import HTML as C_HTML
+from gradio.components import JSON as C_JSON
+from gradio.components import Audio as C_Audio
+from gradio.components import Carousel as C_Carousel
+from gradio.components import Chatbot as C_Chatbot
+from gradio.components import Component as Component
+from gradio.components import Dataframe as C_Dataframe
+from gradio.components import File as C_File
+from gradio.components import HighlightedText as C_HighlightedText
+from gradio.components import Image as C_Image
+from gradio.components import Label as C_Label
+from gradio.components import State as C_State
+from gradio.components import Textbox as C_Textbox
+from gradio.components import Timeseries as C_Timeseries
+from gradio.components import Video as C_Video
 
 
-class Textbox(Textbox):
+class Textbox(C_Textbox):
     def __init__(
         self,
         type: str = "auto",
@@ -41,7 +39,7 @@ class Textbox(Textbox):
         super().__init__(label=label, type=type)
 
 
-class Image(Image):
+class Image(C_Image):
     """
     Component displays an output image.
     Output type: Union[numpy.array, PIL.Image, str, matplotlib.pyplot, Tuple[Union[numpy.array, PIL.Image, str], List[Tuple[str, float, float, float, float]]]]
@@ -64,7 +62,7 @@ class Image(Image):
         super().__init__(type=type, label=label, plot=plot)
 
 
-class Video(Video):
+class Video(C_Video):
     """
     Used for video output.
     Output type: filepath
@@ -84,7 +82,7 @@ class Video(Video):
         super().__init__(type=type, label=label)
 
 
-class Audio(Audio):
+class Audio(C_Audio):
     """
     Creates an audio player that plays the output audio.
     Output type: Union[Tuple[int, numpy.array], str]
@@ -104,7 +102,7 @@ class Audio(Audio):
         super().__init__(type=type, label=label)
 
 
-class File(File):
+class File(C_File):
     """
     Used for file output.
     Output type: Union[file-like, str]
@@ -123,7 +121,7 @@ class File(File):
         super().__init__(label=label)
 
 
-class Dataframe(Dataframe):
+class Dataframe(C_Dataframe):
     """
     Component displays 2D output through a spreadsheet interface.
     Output type: Union[pandas.DataFrame, numpy.array, List[Union[str, float]], List[List[Union[str, float]]]]
@@ -162,7 +160,7 @@ class Dataframe(Dataframe):
         )
 
 
-class Timeseries(Timeseries):
+class Timeseries(C_Timeseries):
     """
     Component accepts pandas.DataFrame.
     Output type: pandas.DataFrame
@@ -185,7 +183,7 @@ class Timeseries(Timeseries):
         super().__init__(x=x, y=y, label=label)
 
 
-class State(State):
+class State(C_State):
     """
     Special hidden component that stores state across runs of the interface.
     Output type: Any
@@ -204,7 +202,7 @@ class State(State):
         super().__init__(label=label)
 
 
-class Label(Label):
+class Label(C_Label):
     """
     Component outputs a classification label, along with confidence scores of top categories if provided. Confidence scores are represented as a dictionary mapping labels to scores between 0 and 1.
     Output type: Union[Dict[str, float], str, int, float]
@@ -251,7 +249,7 @@ class KeyValues:
         )
 
 
-class HighlightedText(HighlightedText):
+class HighlightedText(C_HighlightedText):
     """
     Component creates text that contains spans that are highlighted by category or numerical value.
     Output is represent as a list of Tuple pairs, where the first element represents the span of text represented by the tuple, and the second element represents the category or value of the text.
@@ -278,7 +276,7 @@ class HighlightedText(HighlightedText):
         super().__init__(color_map=color_map, label=label, show_legend=show_legend)
 
 
-class JSON(JSON):
+class JSON(C_JSON):
     """
     Used for JSON output. Expects a JSON string or a Python object that is JSON serializable.
     Output type: Union[str, Any]
@@ -297,7 +295,7 @@ class JSON(JSON):
         super().__init__(label=label)
 
 
-class HTML(HTML):
+class HTML(C_HTML):
     """
     Used for HTML output. Expects an HTML valid string.
     Output type: str
@@ -312,7 +310,7 @@ class HTML(HTML):
         super().__init__(label=label)
 
 
-class Carousel(Carousel):
+class Carousel(C_Carousel):
     """
     Component displays a set of output components that can be scrolled through.
     Output type: List[List[Any]]
@@ -336,7 +334,7 @@ class Carousel(Carousel):
         super().__init__(components=components, label=label)
 
 
-class Chatbot(Chatbot):
+class Chatbot(C_Chatbot):
     """
     Component displays a chatbot output showing both user submitted messages and responses
     Output type: List[Tuple[str, str]]
