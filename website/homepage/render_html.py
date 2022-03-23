@@ -52,14 +52,17 @@ def render_index():
         generated_template.write(output_html)
 
 
+guide_files = ["getting_started.md"]
+all_guides = sorted(os.listdir(GRADIO_GUIDES_DIR))
+guide_files.extend([file for file in all_guides if file != "getting_started.md"])
 guides = []
-for guide in sorted(os.listdir(GRADIO_GUIDES_DIR)):
+for guide in guide_files:
     if guide.lower() == "readme.md":
         continue
     guide_name = guide[:-3]
     pretty_guide_name = " ".join(
         [
-            word.capitalize().replace("Ml", "ML").replace("Gan", "GAN")
+            word.capitalize().replace("Ml", "ML").replace("Gan", "GAN").replace("Api", "API")
             for word in guide_name.split("_")
         ]
     )
@@ -73,13 +76,23 @@ for guide in sorted(os.listdir(GRADIO_GUIDES_DIR)):
     spaces = None
     if "related_spaces: " in guide_content:
         spaces = guide_content.split("related_spaces: ")[1].split("\n")[0].split(", ")
+    title = guide_content.split("\n")[0]
+    contributor = None
+    if "Contributed by " in guide_content:
+        contributor = guide_content.split("Contributed by ")[1].split("\n")[0]
+
     url = f"https://gradio.app/{guide_name}/"
 
     guide_content = "\n".join(
         [
             line
             for line in guide_content.split("\n")
-            if not (line.startswith("tags: ") or line.startswith("related_spaces: "))
+            if not (
+                line.startswith("tags: ")
+                or line.startswith("related_spaces: ")
+                or line.startswith("Contributed by ")
+                or line == title
+            )
         ]
     )
 
@@ -91,15 +104,15 @@ for guide in sorted(os.listdir(GRADIO_GUIDES_DIR)):
             "tags": tags,
             "spaces": spaces,
             "url": url,
+            "contributor": contributor,
         }
     )
 
 
 def render_guides_main():
-    filtered_guides = [guide for guide in guides if guide["name"] != "getting_started"]
     with open("src/guides_main_template.html", encoding="utf-8") as template_file:
         template = Template(template_file.read())
-        output_html = template.render(guides=filtered_guides, navbar_html=navbar_html)
+        output_html = template.render(guides=guides, navbar_html=navbar_html)
     os.makedirs(os.path.join("generated", "guides"), exist_ok=True)
     with open(
         os.path.join("generated", "guides", "index.html"), "w", encoding="utf-8"
@@ -166,7 +179,7 @@ def render_guides():
         guide_output = guide_output.replace("</pre>", f"</pre>{copy_button}</div>")
 
         output_html = markdown2.markdown(
-            guide_output, extras=["target-blank-links", "header-ids"]
+            guide_output, extras=["target-blank-links", "header-ids", "tables"]
         )
         os.makedirs("generated", exist_ok=True)
         os.makedirs(os.path.join("generated", guide["name"]), exist_ok=True)
@@ -188,6 +201,7 @@ def render_guides():
                 guide_name=guide["name"],
                 spaces=guide["spaces"],
                 tags=guide["tags"],
+                contributor=guide["contributor"],
                 **GRADIO_ASSETS,
             )
             generated_template.write(output_html)
