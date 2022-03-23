@@ -34,6 +34,11 @@
     .prose .code, .prose pre {
       color: black;
     }
+    .navigation a.current {
+      border-radius: 3px;
+      padding-left: 5px;
+      background: #f6d2b2;
+    }
 
   </style>
   <script async src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
@@ -52,24 +57,24 @@
   {{navbar_html|safe}}
   <div class="container mx-auto px-4">
     <main class="container flex gap-4">
-      <div class="h-screen leading-relaxed sticky top-0 bg-gray-50 p-4 text-md overflow-y-auto hidden md:block" style="width: 64rem">
+      <div class="navigation h-screen leading-relaxed sticky top-0 bg-gray-50 p-4 text-md overflow-y-auto hidden md:block" style="width: 64rem">
         <a class="link mb-2 block" href="#creating_interfaces">Creating Interfaces</a>
         <a class="block thin-link" href="#interface">Interfaces</a>
         <a class="block thin-link" href="#launch">Launching</a>
         <a class="block thin-link" href="#load">Loading</a>
-        <a class="link my-2 block" href="#input_components">Input Components</h4>
+        <a class="link my-2 block" href="#input_components">Input Components</a>
         {% for input in docs["input"] %}
-        <a class="block thin-link" href="#i_{{ input["name"].lower() }}">{{ input["name"] }}</a>
+        <a class="block thin-link" href='#i_{{ input["name"].lower() }}'>{{ input["name"] }}</a>
         {% endfor %}
-        <a class="link my-2 block" href="#output_components">Output Components</h4>
+        <a class="link my-2 block" href="#output_components">Output Components</a>
           {% for output in docs["output"] %}
-        <a class="block thin-link" href="#o_{{ output["name"].lower() }}">{{ output["name"] }}</a>
+        <a class="block thin-link" href='#o_{{ output["name"].lower() }}'>{{ output["name"] }}</a>
         {% endfor %}
       </div>
-      <div class="leading-7 max-w-full">
+      <div class="docs leading-7 max-w-full" >
         <p class="bg-blue-200 border border-blue-600 px-4 py-2 rounded mb-4">If you are just getting started with Gradio, see the <a class="link" href="/getting_started">Getting Started</a> guide.</p>
         <h1 class="text-3xl font-semibold mb-4">Docs</h1>
-        <h2 id="creating_interfaces" class="text-2xl font-semibold mb-4">Creating Interfaces</h2>
+        <h2 id="creating_interfaces" class="section text-2xl font-semibold mb-4">Creating Interfaces</h2>
         <section class="flex flex-col gap-6">
           <div id="interface" class="func">
             <pre><code class='lang-python'>gradio.Interface(<!--
@@ -89,7 +94,7 @@
               {% endfor %}
             </ul>
           </div>
-          <div id="launch" class="func">
+          <div id="launch" class="section func">
             <pre><code class='lang-python'>gradio.Interface().launch(<!--
             -->{% for param in docs.launch["params"] %}<!--
               -->{% if param|length == 1 %}<!--
@@ -107,7 +112,7 @@
               {% endfor %}
             </ul>
           </div>
-          <div id="load" class="func">
+          <div id="load" class="section func">
             <pre><code class='lang-python'>gradio.Interface.load(<!--
             -->{% for param in docs.load["params"] %}<!--
               -->{% if param|length == 1 %}<!--
@@ -133,10 +138,10 @@
           </div>
         </section>
         {% for component_type in ('input', 'output') %}
-        <h2 id="{{ component_type }}_components" class="text-2xl font-semibold my-4">{{ component_type|capitalize }} Components</h2>
+        <h2 id="{{ component_type }}_components" class="section text-2xl font-semibold my-4">{{ component_type|capitalize }} Components</h2>
         <section class="flex flex-col gap-6">
           {% for func in docs[component_type] %}
-          <div id="{{ component_type[0] }}_{{ func["name"].lower() }}" class="func">
+          <div id='{{ component_type[0] }}_{{ func["name"].lower() }}' class="section func">
             <pre ><code class="lang-python">gradio.{{ component_type }}s.<span>{{ func["name"] }}(</span><!--
             -->{% for param in func["params"] %}<!--
               -->{% if param|length == 1 %}<!--
@@ -238,6 +243,30 @@
     </div>
   </footer>
   <script src="/assets/prism.js"></script>
+  <script>
+    // highlighting section in nav bar
+    let mainNavLinks = document.querySelectorAll(".navigation a");
+    let docsSections = document.querySelectorAll(".docs .section");
+    let lastId;
+    let cur = [];
+
+    window.addEventListener("scroll", event => {
+      let fromTop = window.scrollY;
+
+    mainNavLinks.forEach(link => {
+      let section = document.querySelector(link.hash);
+
+      if (
+        section.offsetTop <= fromTop &&
+        section.offsetTop + section.offsetHeight > fromTop
+      ) {
+        link.classList.add("current");
+      } else {
+        link.classList.remove("current");
+      }
+    });
+    });
+  </script>
 </body>
 
 </html>
