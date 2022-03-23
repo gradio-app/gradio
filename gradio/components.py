@@ -2765,21 +2765,25 @@ class Button(Component):
 class DatasetViewer(Component):
     def __init__(
         self,
-        types: List[Component],
-        default_value: List[List[Any]],
         *,
+        components: List[Component],
+        samples: List[List[Any]],
+        value: Optional[Number] = None,
         label: Optional[str] = None,
         css: Optional[Dict] = None,
         **kwargs,
     ):
         super().__init__(label=label, css=css, **kwargs)
-        self.types = types
-        self.value = default_value
+        self.components = components
+        self.headers = [c.label for c in components]
+        self.samples = samples
+        self.value = value
 
     def get_template_context(self):
         return {
-            "types": [_type.__class__.__name__.lower() for _type in types],
-            "value": self.value,
+            "components": [component.__class__.__name__.lower() for component in self.components],
+            "headers": self.headers,
+            "samples": self.samples,
             **super().get_template_context(),
         }
 

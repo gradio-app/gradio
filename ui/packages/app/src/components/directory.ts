@@ -8,6 +8,7 @@ export const component_map = {
 	checkboxgroup: () => import("./CheckboxGroup"),
 	column: () => import("./Column"),
 	dataframe: () => import("./DataFrame"),
+	datasetviewer: () => import("./DatasetViewer"),
 	dropdown: () => import("./Dropdown"),
 	file: () => import("./File"),
 	highlightedtext: () => import("./HighlightedText"),
