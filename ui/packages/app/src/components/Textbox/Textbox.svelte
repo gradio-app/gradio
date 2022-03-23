@@ -1,11 +1,13 @@
+<svelte:options accessors={true} />
+
 <script lang="ts">
 	import { TextBox } from "@gradio/form";
 
 	export let value: string = " ";
 	export let theme: string;
-	export let style: string | null;
+	export let style: string = "";
 	export let lines: number;
-	export let placeholder: string;
+	export let placeholder: string = "";
 
 	export let mode: "static" | "dynamic";
 </script>
