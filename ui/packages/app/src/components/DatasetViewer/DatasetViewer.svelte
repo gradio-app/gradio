@@ -13,5 +13,4 @@
 			<th>{header}</th>
 		{/each}
 	</thead>
-    
 </table>
