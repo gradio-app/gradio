@@ -10,9 +10,9 @@ on:
     paths:
       - "ui/**"
 
-defaults:
-  run:
-    working-directory: ui
+# defaults:
+#   run:
+#     working-directory: ui
 
 env:
   CI: true
