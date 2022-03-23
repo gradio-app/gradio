@@ -13,7 +13,7 @@ os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 class TestRoutes(unittest.TestCase):
     def setUp(self) -> None:
-        self.io = Interface(lambda x: x+x, "text", "text")
+        self.io = Interface(lambda x: x + x, "text", "text")
         self.app, _, _ = self.io.launch(prevent_thread_lock=True)
         self.client = TestClient(self.app)
 
@@ -37,8 +37,9 @@ class TestRoutes(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_predict_route(self):
-        response = self.client.post("/api/predict/", 
-                                    json={"data": ["test"], "fn_index": 0})
+        response = self.client.post(
+            "/api/predict/", json={"data": ["test"], "fn_index": 0}
+        )
         self.assertEqual(response.status_code, 200)
         output = dict(response.json())
         self.assertEqual(output["data"], ["testtest"])

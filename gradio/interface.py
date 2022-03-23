@@ -18,8 +18,8 @@ from markdown_it import MarkdownIt
 from mdit_py_plugins.footnote import footnote_plugin
 
 from gradio import interpretation, utils
-from gradio.components import Component, get_component_instance, Markdown, Button
-from gradio.blocks import BlockContext, Row, Column
+from gradio.blocks import BlockContext, Column, Row
+from gradio.components import Button, Component, Markdown, get_component_instance
 from gradio.external import load_from_pipeline, load_interface  # type: ignore
 from gradio.flagging import CSVLogger, FlaggingCallback  # type: ignore
 from gradio.inputs import State as i_State  # type: ignore
