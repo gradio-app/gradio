@@ -1663,45 +1663,80 @@ class Model3D(InputComponent):
     def preprocess_example(self, x):
         return {"name": x, "data": None, "is_example": True}
 
-    def preprocess(self, x: List[Dict[str, str]] | None):
+
+    def preprocess(self, x: Dict[str, str] | None) -> str | None:
         """
         Parameters:
-        x (List[Dict[name: str, data: str]]): List of JSON objects with filename as 'name' property and base64 data as 'data' property
+        x (Dict[name: str, data: str]): JSON object with filename as 'name' property and base64 data as 'data' property
         Returns:
-        (Union[file-object, bytes, List[Union[file-object, bytes]]]): File objects in requested format
+        (str): file path to video
         """
         if x is None:
-            return None
-
-        file_name, data, is_example = (
+            return x
+        file_name, file_data, is_example = (
             x["name"],
             x["data"],
             x.get("is_example", False),
         )
-        if self.type == "file":
-            if is_example:
-                return processing_utils.create_tmp_copy_of_file(file_name)
-            else:
-                return processing_utils.decode_base64_to_file(
-                    data, file_path=file_name
-                )
-        elif self.type == "bytes":
-            if is_example:
-                with open(file_name, "rb") as file_data:
-                    return file_data.read()
-            return processing_utils.decode_base64_to_binary(data)[0]
+        if is_example:
+            file = processing_utils.create_tmp_copy_of_file(file_name)
         else:
-            raise ValueError(
-                "Unknown type: "
-                + str(self.type)
-                + ". Please choose from: 'file', 'bytes'."
+            file = processing_utils.decode_base64_to_file(
+                file_data, file_path=file_name
             )
+        file_name = file.name
+        print("1111111")
+        print(file_name)
+        return file_name
+        # uploaded_format = file_name.split(".")[-1].lower()
+        # if self.type is not None and uploaded_format != self.type:
+        #     output_file_name = file_name[0 : file_name.rindex(".") + 1] + self.type
+        #     ff = FFmpeg(inputs={file_name: None}, outputs={output_file_name: None})
+        #     ff.run()
+        #     print("111111111111111")
+        #     print(output_file_name)
+        #     return output_file_name
+        # else:
+        #     print("22222222222222")
+        #     print(file_name)
+        #     return file_name
 
-    def save_flagged(self, dir, label, data, encryption_key):
-        """
-        Returns: (List[List[Union[str, float]]]) 2D array
-        """
-        return json.dumps(data)
+    # def preprocess(self, x: str | None):
+    #     print("HIT!!!")
+    #     print(x)
+    #     print("HIT!!!")
+    #     """
+    #     Parameters:
+    #     x (List[Dict[name: str, data: str]]): List of JSON objects with filename as 'name' property and base64 data as 'data' property
+    #     Returns:
+    #     (Union[file-object, bytes, List[Union[file-object, bytes]]]): File objects in requested format
+    #     """
+    #     if x is None:
+    #         return None
+
+    #     file_name, data, is_example = (
+    #         x["name"],
+    #         x["data"],
+    #         x.get("is_example", False),
+    #     )
+    #     if self.type == "file":
+    #         if is_example:
+    #             return processing_utils.create_tmp_copy_of_file(file_name)
+    #         else:
+    #             return processing_utils.decode_base64_to_file(
+    #                 data, file_path=file_name
+    #             )
+    #     elif self.type == "bytes":
+    #         if is_example:
+    #             with open(file_name, "rb") as file_data:
+    #                 return file_data.read()
+    #         return processing_utils.decode_base64_to_binary(data)[0]
+    #     else:
+    #         raise ValueError(
+    #             "Unknown type: "
+    #             + str(self.type)
+    #             + ". Please choose from: 'file', 'bytes'."
+    #         )
 
     def save_flagged(self, dir, label, data, encryption_key):
         """
