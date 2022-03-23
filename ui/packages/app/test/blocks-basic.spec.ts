@@ -32,7 +32,7 @@ test("renders the correct elements", async ({ page }) => {
 	await page.goto("http://localhost:3000");
 
 	const description = await page.locator(".output-html");
-	await expect(description).toContainText("Detect Disease From Scan");
+	await expect(description).toContainText("Detect Disease From Scn");
 
 	const checkboxes = await page.locator(".input-checkbox-group");
 	await expect(checkboxes).toContainText("Covid Malaria Lung Cancer");

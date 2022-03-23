@@ -6,7 +6,7 @@
 		"dev": "vite",
 		"build": "vite build",
 		"preview": "vite preview",
-		"test:browser": "pnpx playwright test test/ ",
+		"test:browser": "pnpx playwright test test/ --config=../../playwright.config.js",
 		"test:browser:debug": "pnpx playwright test test/ --debug"
 	},
 	"dependencies": {
