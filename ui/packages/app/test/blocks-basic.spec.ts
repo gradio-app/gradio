@@ -2,7 +2,6 @@ import { test, expect, Page } from "@playwright/test";
 
 function mock_demo(page: Page, demo: string) {
 	return page.route("http://localhost:7860/config", (route) => {
-		console.log("CONFIG_MOCK");
 		return route.fulfill({
 			headers: {
 				"Access-Control-Allow-Origin": "*"
@@ -14,7 +13,6 @@ function mock_demo(page: Page, demo: string) {
 
 function mock_api(page: Page, body: Array<unknown>) {
 	return page.route("http://localhost:7860/api/predict/", (route) => {
-		console.log("API_MOCK");
 		const id = JSON.parse(route.request().postData()!).fn_index;
 		return route.fulfill({
 			headers: {
