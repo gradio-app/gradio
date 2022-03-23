@@ -1623,7 +1623,7 @@ class State(InputComponent):
         }
 
 
-class Model3D(InputComponent):
+class Model3d(InputComponent):
     """
     Used for 3d model output.
     Input type: File object of type (.obj, glb, or .gltf)
@@ -1632,16 +1632,13 @@ class Model3D(InputComponent):
 
     def __init__(
         self,
-        type: str = "file",
         label: Optional[str] = None,
-        keep_filename: bool = True,
         optional: bool = False,
     ):
         """
         Parameters:
         type (str): Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name, "binary" returns an bytes object.
         label (str): component name in interface.
-        keep_filename (bool): DEPRECATED. Original filename always kept.
         optional (bool): If True, the interface can be submitted with no uploaded image, in which case the input value is None.
         """
         self.type = type
@@ -1669,7 +1666,7 @@ class Model3D(InputComponent):
         Parameters:
         x (Dict[name: str, data: str]): JSON object with filename as 'name' property and base64 data as 'data' property
         Returns:
-        (str): file path to video
+        (str): file path to 3D model
         """
         if x is None:
             return x
@@ -1685,70 +1682,15 @@ class Model3D(InputComponent):
                 file_data, file_path=file_name
             )
         file_name = file.name
-        print("1111111")
-        print(file_name)
         return file_name
-        # uploaded_format = file_name.split(".")[-1].lower()
-        # if self.type is not None and uploaded_format != self.type:
-        #     output_file_name = file_name[0 : file_name.rindex(".") + 1] + self.type
-        #     ff = FFmpeg(inputs={file_name: None}, outputs={output_file_name: None})
-        #     ff.run()
-        #     print("111111111111111")
-        #     print(output_file_name)
-        #     return output_file_name
-        # else:
-        #     print("22222222222222")
-        #     print(file_name)
-        #     return file_name
-
-    # def preprocess(self, x: str | None):
-    #     print("HIT!!!")
-    #     print(x)
-    #     print("HIT!!!")
-    #     """
-    #     Parameters:
-    #     x (List[Dict[name: str, data: str]]): List of JSON objects with filename as 'name' property and base64 data as 'data' property
-    #     Returns:
-    #     (Union[file-object, bytes, List[Union[file-object, bytes]]]): File objects in requested format
-    #     """
-    #     if x is None:
-    #         return None
-
-    #     file_name, data, is_example = (
-    #         x["name"],
-    #         x["data"],
-    #         x.get("is_example", False),
-    #     )
-    #     if self.type == "file":
-    #         if is_example:
-    #             return processing_utils.create_tmp_copy_of_file(file_name)
-    #         else:
-    #             return processing_utils.decode_base64_to_file(
-    #                 data, file_path=file_name
-    #             )
-    #     elif self.type == "bytes":
-    #         if is_example:
-    #             with open(file_name, "rb") as file_data:
-    #                 return file_data.read()
-    #         return processing_utils.decode_base64_to_binary(data)[0]
-    #     else:
-    #         raise ValueError(
-    #             "Unknown type: "
-    #             + str(self.type)
-    #             + ". Please choose from: 'file', 'bytes'."
-    #         )
 
     def save_flagged(self, dir, label, data, encryption_key):
         """
-        Returns: (str) path to file
+        Returns: (str) path to 3D model file
         """
         return self.save_flagged_file(
-            dir, label, None if data is None else data[0]["data"], encryption_key
+            dir, label, None if data is None else data["data"], encryption_key
         )
-
-    # def generate_sample(self):
-    #     return test_data.BASE64_FILE
-
 
 def get_input_instance(iface: Interface):
     if isinstance(iface, str):
