@@ -2,7 +2,6 @@
 	import { createEventDispatcher } from "svelte";
 	import "./typography.css";
 
-
 	export let value: string;
 	export let theme: string = "default";
 
