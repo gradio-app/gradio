@@ -9,6 +9,7 @@ importers:
       '@sveltejs/vite-plugin-svelte': ^1.0.0-next.36
       '@testing-library/dom': ^8.11.3
       '@testing-library/svelte': ^3.1.0
+      '@testing-library/user-event': ^13.5.0
       autoprefixer: ^10.4.4
       happy-dom: ^2.49.0
       npm-run-all: ^4.1.5
@@ -33,6 +34,7 @@ importers:
       '@sveltejs/vite-plugin-svelte': 1.0.0-next.36_svelte@3.46.3+vite@2.8.4
       '@testing-library/dom': 8.11.3
       '@testing-library/svelte': 3.1.0_svelte@3.46.3
+      '@testing-library/user-event': 13.5.0_@testing-library+dom@8.11.3
       autoprefixer: 10.4.4_postcss@8.4.6
       happy-dom: 2.49.0
       npm-run-all: 4.1.5
@@ -1048,6 +1050,16 @@ packages:
     dependencies:
       '@testing-library/dom': 7.31.2
       svelte: 3.46.3
+    dev: false
+
+  /@testing-library/user-event/13.5.0_@testing-library+dom@8.11.3:
+    resolution: {integrity: sha512-5Kwtbo3Y/NowpkbRuSepbyMFkZmHgD+vPzYB/RJ4oxt5Gj/avFFBYjhw27cqSVPVw/3a67NK1PbiIr9k4Gwmdg==}
+    engines: {node: '>=10', npm: '>=6'}
+    peerDependencies:
+      '@testing-library/dom': '>=7.21.4'
+    dependencies:
+      '@babel/runtime': 7.17.7
+      '@testing-library/dom': 8.11.3
     dev: false
 
   /@types/aria-query/4.2.2:
