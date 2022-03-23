@@ -18,8 +18,8 @@ from markdown_it import MarkdownIt
 from mdit_py_plugins.footnote import footnote_plugin
 
 from gradio import interpretation, utils
-from gradio.components import Component, get_component_instance, Markdown, Button
-from gradio.blocks import BlockContext, Row, Column
+from gradio.blocks import BlockContext, Column, Row
+from gradio.components import Button, Component, Markdown, get_component_instance
 from gradio.external import load_from_pipeline, load_interface  # type: ignore
 from gradio.flagging import CSVLogger, FlaggingCallback  # type: ignore
 from gradio.inputs import State as i_State  # type: ignore
@@ -644,10 +644,11 @@ class Interface(Launchable):
         }
 
     def process_api(self, data: Dict[str, Any], username: str = None) -> Dict[str, Any]:
-        class RequestApi():
+        class RequestApi:
             SUBMIT = 0
             CLEAR = 1
             FLAG = 2
+
         raw_input = data["data"]
         fn_index = data["fn_index"]
         if fn_index == RequestApi.SUBMIT:
@@ -658,7 +659,7 @@ class Interface(Launchable):
                 "data": [None]
                 * (len(self.input_components) + len(self.output_components))
             }
-        elif fn_index == RequestApi.FLAG: # flag
+        elif fn_index == RequestApi.FLAG:  # flag
             pass
 
     def process(self, raw_input: List[Any]) -> Tuple[List[Any], List[float]]:

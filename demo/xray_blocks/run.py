@@ -23,14 +23,11 @@ with xray_blocks:
             with gr.Row():
                 xray_scan = gr.components.Image()
                 xray_results = gr.components.JSON()
-                output_textbox = gr.components.Textbox()
-                input_textbox = gr.components.Textbox(default_value="Hello This Is a Input Textbox")
             xray_run = gr.Button("Run", css={
                 "background-color": "red",
                 "--hover-color": "orange"
             })
             xray_run.click(xray_model, inputs=[disease, xray_scan], outputs=xray_results)
-            xray_run.click(xray_model, inputs=[disease, xray_scan], outputs=output_textbox)
 
         with gr.TabItem("CT Scan"):
             with gr.Row():
@@ -41,8 +38,4 @@ with xray_blocks:
 
     overall_probability = gr.components.Textbox()
 
-# TODO: remove later
-import json
-print(json.dumps(xray_blocks.get_config_file(), indent=2))
-    
 xray_blocks.launch()
