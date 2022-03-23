@@ -194,7 +194,7 @@ class TestSlider(unittest.TestCase):
                 "default": 15,
                 "name": "slider",
                 "label": "Slide Your Input",
-                "css": {}
+                "css": {},
             },
         )
 
@@ -530,7 +530,7 @@ class TestAudio(unittest.TestCase):
                 "source": "upload",
                 "name": "audio",
                 "label": "Upload Your Audio",
-                "css": {}
+                "css": {},
             },
         )
         self.assertIsNone(audio_input.preprocess(None))
@@ -589,7 +589,7 @@ class TestFile(unittest.TestCase):
                 "file_count": "single",
                 "name": "file",
                 "label": "Upload Your File",
-                "css": {}
+                "css": {},
             },
         )
         self.assertIsNone(file_input.preprocess(None))

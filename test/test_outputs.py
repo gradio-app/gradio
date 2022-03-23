@@ -1,8 +1,8 @@
+import json
 import os
 import tempfile
 import unittest
 
-import json
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -16,10 +16,8 @@ class TestTextbox(unittest.TestCase):
     def test_in_interface(self):
         iface = gr.Interface(lambda x: x[-1], "textbox", gr.outputs.Textbox())
         self.assertEqual(iface.process(["Hello"])[0], ["o"])
-        iface = gr.Interface(
-            lambda x: x / 2, "number", gr.outputs.Textbox()
-        )
-        self.assertEqual(iface.process([10])[0], ['5.0'])
+        iface = gr.Interface(lambda x: x / 2, "number", gr.outputs.Textbox())
+        self.assertEqual(iface.process([10])[0], ["5.0"])
 
 
 class TestLabel(unittest.TestCase):
@@ -185,7 +183,7 @@ class TestHighlightedText(unittest.TestCase):
                 "name": "highlightedtext",
                 "label": None,
                 "show_legend": False,
-                "css": {}
+                "css": {},
             },
         )
         ht = {"pos": "Hello ", "neg": "World"}
@@ -232,10 +230,8 @@ class TestAudio(unittest.TestCase):
             )
         )
         self.assertEqual(
-            audio_output.get_template_context(), {"name": "audio", 
-                                                  "label": None,
-                                                  "source": "upload",
-                                                  "css": {}}
+            audio_output.get_template_context(),
+            {"name": "audio", "label": None, "source": "upload", "css": {}},
         )
         self.assertTrue(
             audio_output.deserialize(gr.test_data.BASE64_AUDIO["data"]).endswith(".wav")
@@ -363,7 +359,6 @@ class TestDataframe(unittest.TestCase):
                 "col_width": None,
                 "default": [[None, None, None], [None, None, None], [None, None, None]],
                 "name": "dataframe",
-                
             },
         )
         with self.assertRaises(ValueError):
@@ -373,14 +368,22 @@ class TestDataframe(unittest.TestCase):
             to_save = dataframe_output.save_flagged(
                 tmpdirname, "dataframe_output", output, None
             )
-            self.assertEqual(to_save, json.dumps({
-                "headers": ["num", "prime"],
-                "data": [[2, True], [3, True], [4, False]]
-                }))
+            self.assertEqual(
+                to_save,
+                json.dumps(
+                    {
+                        "headers": ["num", "prime"],
+                        "data": [[2, True], [3, True], [4, False]],
+                    }
+                ),
+            )
             self.assertEqual(
                 dataframe_output.restore_flagged(tmpdirname, to_save, None),
-                {"headers": ["num", "prime"],
-                "data": [[2, True], [3, True], [4, False]]})
+                {
+                    "headers": ["num", "prime"],
+                    "data": [[2, True], [3, True], [4, False]],
+                },
+            )
 
     def test_in_interface(self):
         def check_odd(array):
@@ -417,12 +420,18 @@ class TestCarousel(unittest.TestCase):
             carousel_output.get_template_context(),
             {
                 "components": [
-                    {"name": "textbox", "label": None, "default": "", "lines": 1,
-                     "css": {}, 'placeholder': None}
+                    {
+                        "name": "textbox",
+                        "label": None,
+                        "default": "",
+                        "lines": 1,
+                        "css": {},
+                        "placeholder": None,
+                    }
                 ],
                 "name": "carousel",
                 "label": "Disease",
-                "css": {}
+                "css": {},
             },
         )
         output = carousel_output.postprocess(["Hello World", "Bye World"])
@@ -473,13 +482,7 @@ class TestTimeseries(unittest.TestCase):
         timeseries_output = gr.outputs.Timeseries(label="Disease")
         self.assertEqual(
             timeseries_output.get_template_context(),
-            {
-                "x": None, 
-                "y": None, 
-                "name": "timeseries", 
-                "label": "Disease",
-                "css": {} 
-            },
+            {"x": None, "y": None, "name": "timeseries", "label": "Disease", "css": {}},
         )
         data = {"Name": ["Tom", "nick", "krish", "jack"], "Age": [20, 21, 19, 18]}
         df = pd.DataFrame(data)
