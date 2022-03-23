@@ -8,6 +8,7 @@
 	export let placeholder: string;
 
 	export let mode: "static" | "dynamic";
+	$: console.log(value);
 </script>
 
 {#if mode === "static"}
