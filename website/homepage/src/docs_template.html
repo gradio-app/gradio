@@ -40,6 +40,8 @@
       background: #f6d2b2;
     }
 
+
+
   </style>
   <script async src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
     <script>
@@ -71,7 +73,7 @@
         <a class="block thin-link" href='#o_{{ output["name"].lower() }}'>{{ output["name"] }}</a>
         {% endfor %}
       </div>
-      <div class="docs leading-7 max-w-full" >
+      <div class="docs leading-7 max-w-full" style="max-width: 50%">
         <p class="bg-blue-200 border border-blue-600 px-4 py-2 rounded mb-4">If you are just getting started with Gradio, see the <a class="link" href="/getting_started">Getting Started</a> guide.</p>
         <h1 class="text-3xl font-semibold mb-4">Docs</h1>
         <h2 id="creating_interfaces" class="section text-2xl font-semibold mb-4">Creating Interfaces</h2>
@@ -229,6 +231,36 @@
         </section>
         {% endfor %}
       </div>
+      <div class="demos-guides h-screen leading-relaxed sticky top-0 p-4 text-md overflow-y-auto hidden md:block" style="width: 64rem">
+        {% for component_type in ('input', 'output') %}
+        {% for func in docs[component_type] %}
+        <div class="demos hidden">
+        <a href='#{{component_type[0]}}_{{ func["name"].lower() }}'></a>
+        <h2 class="mb-2 block font-semibold">Demos</h2>
+        {% for demo in func["demos"] %}
+              <div class="flex-shrink-0 flex flex-col">
+                <div class="mb-2">
+                  <span class="italic">{{ demo }}:</span>
+                  <a class="demo_code link" target="_blank"
+                    href="{{ demo_links[demo] if demo in demo_links else '#'  }}"
+                    target="_blank">
+                    Open in Colab
+                  </a>
+                </div>
+                <div class="relative cursor-pointer flex-grow">
+                  <a href="{{ demo_links[demo] }}" target="_blank" class="absolute w-full h-full bg-gray-400 bg-opacity-10 hover:bg-opacity-0 group transition flex items-center justify-center">
+                    <img src="/assets/img/colab-badge.svg" class="opacity-60 group-hover:opacity-80 transition h-6">
+                  </a>
+                  <img style="width:420px"
+                    src="/assets/demo_screenshots/{{ demo }}.png">
+                </div>
+              </div>
+        {% endfor %}
+        </div>
+        {% endfor %}
+        {% endfor %}
+
+      </div>
     </main>
   </div>
   <footer class="container mx-auto p-4 flex justify-between items-center">
@@ -247,6 +279,7 @@
     // highlighting section in nav bar
     let mainNavLinks = document.querySelectorAll(".navigation a");
     let docsSections = document.querySelectorAll(".docs .section");
+    let demos = document.querySelectorAll(".docs .demos a");
     let lastId;
     let cur = [];
 
@@ -263,6 +296,19 @@
         link.classList.add("current");
       } else {
         link.classList.remove("current");
+      }
+    });
+
+    demos.forEach(link => {
+      let section = document.querySelector(link.hash);
+
+      if (
+        section.offsetTop <= fromTop &&
+        section.offsetTop + section.offsetHeight > fromTop
+      ) {
+        link.parentElement.classList.remove("hidden");
+      } else {
+        link.parentElement.classList.add("hidden");
       }
     });
     });
