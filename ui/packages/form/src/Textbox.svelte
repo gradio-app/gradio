@@ -19,6 +19,7 @@
 		  });
 
 	function handle_change(event: CustomInputEvent) {
+		value = event.target.value;
 		dispatch("change", event?.target?.value);
 	}
 
@@ -29,8 +30,8 @@
 		}
 	}
 
-	const debounced_handle_change = debounce(handle_change, 500);
-	const debounced_handle_keypress = debounce(handle_keypress, 500);
+	const debounced_handle_change = debounce(handle_change, 300);
+	const debounced_handle_keypress = debounce(handle_keypress, 300);
 </script>
 
 {#if lines > 1}
