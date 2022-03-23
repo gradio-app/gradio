@@ -26,7 +26,6 @@ jobs:
     name: static checks
     runs-on: ubuntu-latest
     steps:
-      - run: git config --global core.autocrlf false
       - uses: actions/checkout@v3
       - uses: pnpm/action-setup@v2.2.1
       - uses: actions/setup-node@v3
@@ -47,7 +46,6 @@ jobs:
   functional-test:
     runs-on: ubuntu-latest
     steps:
-      - run: git config --global core.autocrlf false
       - uses: actions/checkout@v3
       - uses: pnpm/action-setup@v2.2.1
         with:
