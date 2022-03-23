@@ -2,6 +2,7 @@
 
 related_spaces: https://huggingface.co/spaces/abidlabs/keras-image-classifier
 tags: VISION, MOBILENET, TENSORFLOW
+Docs: i_image, o_label
 
 ## Introduction
 

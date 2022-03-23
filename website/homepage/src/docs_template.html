@@ -34,9 +34,10 @@
     .prose .code, .prose pre {
       color: black;
     }
-    .navigation a.current {
+    .current {
       border-radius: 3px;
       padding-left: 5px;
+      padding-right: 5px;
       background: #f6d2b2;
     }
 
@@ -143,7 +144,8 @@
         <h2 id="{{ component_type }}_components" class="section text-2xl font-semibold my-4">{{ component_type|capitalize }} Components</h2>
         <section class="flex flex-col gap-6">
           {% for func in docs[component_type] %}
-          <div id='{{ component_type[0] }}_{{ func["name"].lower() }}' class="section func">
+          <h2 id='{{ component_type[0] }}_{{ func["name"].lower() }}' class="section text-xl font-semibold my-4">{{ func["name"] }}</h2>
+          <div class="section func">
             <pre ><code class="lang-python">gradio.{{ component_type }}s.<span>{{ func["name"] }}(</span><!--
             -->{% for param in func["params"] %}<!--
               -->{% if param|length == 1 %}<!--
@@ -204,48 +206,21 @@
               {% endfor %}
             </ul>
             {% endif %}
-            <h4 class="my-2 font-semibold">Demos</h4>
-            <div class="flex gap-4 overflow-x-auto pb-1">
-              {% for demo in func["demos"] %}
-              <div class="flex-shrink-0 flex flex-col">
-                <div class="mb-2">
-                  <span class="italic">{{ demo }}:</span>
-                  <a class="demo_code link" target="_blank"
-                    href="{{ demo_links[demo] if demo in demo_links else '#'  }}"
-                    target="_blank">
-                    Open in Colab
-                  </a>
-                </div>
-                <div class="relative cursor-pointer flex-grow">
-                  <a href="{{ demo_links[demo] }}" target="_blank" class="absolute w-full h-full bg-gray-400 bg-opacity-10 hover:bg-opacity-0 group transition flex items-center justify-center">
-                    <img src="/assets/img/colab-badge.svg" class="opacity-60 group-hover:opacity-80 transition h-6">
-                  </a>
-                  <img style="width:420px"
-                    src="/assets/demo_screenshots/{{ demo }}.png">
-                </div>
-              </div>
-              {% endfor %}
-            </div>
           </div>
           {% endfor %}
         </section>
         {% endfor %}
       </div>
-      <div class="demos-guides h-screen leading-relaxed sticky top-0 p-4 text-md overflow-y-auto hidden md:block" style="width: 64rem">
+      <div class="h-screen leading-relaxed sticky top-0 p-4 text-md overflow-y-auto hidden md:block" style="width: 64rem">
         {% for component_type in ('input', 'output') %}
         {% for func in docs[component_type] %}
-        <div class="demos hidden">
-        <a class="demo-tag hidden" href='#{{component_type[0]}}_{{ func["name"].lower() }}'></a>
-        <h2 class="mb-2 block font-semibold">Demos</h2>
+        <div class="demos-guides hidden">
+          <a class="demo-tag current inline-block" href='#{{component_type[0]}}_{{ func["name"].lower() }}'>{{ func["name"] }}</a>
+          <h2 class="my-2 block font-semibold">Demos</h2>
         {% for demo in func["demos"] %}
               <div class="flex-shrink-0 flex flex-col">
-                <div class="mb-2">
+                <div class="my-2">
                   <span class="italic">{{ demo }}:</span>
-                  <a class="demo_code link" target="_blank"
-                    href="{{ demo_links[demo] if demo in demo_links else '#'  }}"
-                    target="_blank">
-                    Open in Colab
-                  </a>
                 </div>
                 <div class="relative cursor-pointer flex-grow">
                   <a href="{{ demo_links[demo] }}" target="_blank" class="absolute w-full h-full bg-gray-400 bg-opacity-10 hover:bg-opacity-0 group transition flex items-center justify-center">
@@ -256,6 +231,25 @@
                 </div>
               </div>
         {% endfor %}
+          <h2 class="my-2 block font-semibold">Guides</h2>
+          {% if func["guides"] %}
+            <div class="guides-list">
+          {% for guide in func["guides"] %}
+
+          <a class="flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow my-4" target="_blank" href="/{{ guide.name }}">
+            <div class="flex flex-col p-4" style="
+          height: min-content;">
+              <h2 class="font-semibold group-hover:underline text-xl">{{ guide.pretty_name }}
+              </h2>
+            </div>
+          </a>
+
+          {% endfor %}
+            </div>
+          {% else %}
+          <a class="link" target="_blank" href="https://github.com/gradio-app/gradio/tree/master/guides" style="color: grey;">Contribute a guide for {{ func["name"]}}</a>
+          {% endif %}
+
         </div>
         {% endfor %}
         {% endfor %}
@@ -279,7 +273,7 @@
     // highlighting section in nav bar
     let mainNavLinks = document.querySelectorAll(".navigation a");
     let docsSections = document.querySelectorAll(".docs .section");
-    let demos = document.querySelectorAll(".demos-guides .demos .demo-tag");
+    let demos = document.querySelectorAll(".demos-guides .demo-tag");
     let lastId;
     let cur = [];
 
@@ -312,6 +306,44 @@
       }
     });
     });
+
+
+
+    var div, li, a;
+    guideLists = document.querySelectorAll(".guides-list");
+
+    guideLists.forEach(guideList => {
+      a = guideList.getElementsByTagName('a');
+
+      var backgrounds = ['linear-gradient(90deg, rgba(255,254,188,0.3) 0%, rgba(255,255,240,0.3) 100%)',
+                         'linear-gradient(90deg, rgba(255,205,188,0.3) 0%, rgba(255,253,253,0.3) 100%)',
+                         'linear-gradient(90deg, rgba(255,188,188,0.3) 0%, rgba(255,238,238,0.3) 100%)',
+                         'linear-gradient(90deg, rgba(194,255,169,0.3) 0%, rgba(243,255,238,0.3) 100%)',
+                         'linear-gradient(90deg, rgba(169,255,237,0.3) 0%, rgba(230,255,250,0.3) 100%)',
+                         'linear-gradient(90deg, rgba(182,169,255,0.3) 0%, rgba(237,234,255,0.3) 100%)',
+                         'linear-gradient(90deg, rgba(255,183,245,0.3) 0%, rgba(255,234,252,0.3) 100%)']
+
+      function shuffleBackgrounds(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+      }
+
+      shuffleBackgrounds(backgrounds);
+
+      color_counter = 0
+      for (let i = 0; i < a.length; i++) {
+        a[i].style.background = backgrounds[color_counter];
+        color_counter += 1
+        if (color_counter == backgrounds.length) {
+          color_counter = 0;
+        }
+      }
+      });
+
+
+
   </script>
 </body>
 
