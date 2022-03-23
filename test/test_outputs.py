@@ -11,13 +11,6 @@ import gradio as gr
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
-class OutputComponent(unittest.TestCase):
-    def test_as_component(self):
-        output = gr.outputs.OutputComponent(label="Test Input")
-        self.assertEqual(output.postprocess("Hello World!"), "Hello World!")
-        self.assertEqual(output.deserialize(1), 1)
-
-
 class TestTextbox(unittest.TestCase):
     def test_as_component(self):
         with self.assertRaises(ValueError):
@@ -189,36 +182,6 @@ class TestVideo(unittest.TestCase):
             self.assertEqual("video_output/1.mp4", to_save)
 
 
-class TestKeyValues(unittest.TestCase):
-    def test_as_component(self):
-        kv_output = gr.outputs.KeyValues()
-        kv_dict = {"a": 1, "b": 2}
-        kv_list = [("a", 1), ("b", 2)]
-        self.assertEqual(kv_output.postprocess(kv_dict), kv_list)
-        self.assertEqual(kv_output.postprocess(kv_list), kv_list)
-        with self.assertRaises(ValueError):
-            kv_output.postprocess(0)
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            to_save = kv_output.save_flagged(tmpdirname, "kv_output", kv_list, None)
-            self.assertEqual(to_save, '[["a", 1], ["b", 2]]')
-            self.assertEqual(
-                kv_output.restore_flagged(tmpdirname, to_save, None),
-                [["a", 1], ["b", 2]],
-            )
-
-    def test_in_interface(self):
-        def letter_distribution(word):
-            dist = {}
-            for letter in word:
-                dist[letter] = dist.get(letter, 0) + 1
-            return dist
-
-        iface = gr.Interface(letter_distribution, "text", "key_values")
-        self.assertListEqual(
-            iface.process(["alpaca"])[0][0], [("a", 3), ("l", 1), ("p", 1), ("c", 1)]
-        )
-
-
 class TestHighlightedText(unittest.TestCase):
     def test_as_component(self):
         ht_output = gr.outputs.HighlightedText(color_map={"pos": "green", "neg": "red"})
@@ -229,6 +192,7 @@ class TestHighlightedText(unittest.TestCase):
                 "name": "highlightedtext",
                 "label": None,
                 "show_legend": False,
+                "css": {}
             },
         )
         ht = {"pos": "Hello ", "neg": "World"}
@@ -399,6 +363,7 @@ class TestDataframe(unittest.TestCase):
                 "overflow_row_behaviour": "paginate",
                 "name": "dataframe",
                 "label": None,
+                "css": {}
             },
         )
         with self.assertRaises(ValueError):
@@ -451,6 +416,7 @@ class TestCarousel(unittest.TestCase):
                 "components": [{"name": "textbox", "label": None}],
                 "name": "carousel",
                 "label": "Disease",
+                "css": {}
             },
         )
         output = carousel_output.postprocess(["Hello World", "Bye World"])
@@ -501,7 +467,13 @@ class TestTimeseries(unittest.TestCase):
         timeseries_output = gr.outputs.Timeseries(label="Disease")
         self.assertEqual(
             timeseries_output.get_template_context(),
-            {"x": None, "y": None, "name": "timeseries", "label": "Disease"},
+            {
+                "x": None, 
+                "y": None, 
+                "name": "timeseries", 
+                "label": "Disease",
+                "css": {} 
+            },
         )
         data = {"Name": ["Tom", "nick", "krish", "jack"], "Age": [20, 21, 19, 18]}
         df = pd.DataFrame(data)
@@ -539,15 +511,6 @@ class TestTimeseries(unittest.TestCase):
                     "data": [["Tom", 20], ["nick", 21], ["krish", 19], ["jack", 18]],
                 },
             )
-
-
-class TestNames(unittest.TestCase):
-    def test_no_duplicate_uncased_names(
-        self,
-    ):  # this ensures that get_input_instance() works correctly when instantiating from components
-        subclasses = gr.outputs.OutputComponent.__subclasses__()
-        unique_subclasses_uncased = set([s.__name__.lower() for s in subclasses])
-        self.assertEqual(len(subclasses), len(unique_subclasses_uncased))
 
 
 if __name__ == "__main__":
