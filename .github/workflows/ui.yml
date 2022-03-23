@@ -27,8 +27,8 @@ jobs:
     name: static checks
     runs-on: ubuntu-latest
     steps:
-      - run: ls
       - uses: actions/checkout@v3
+      - run: ls
       - uses: pnpm/action-setup@v2.2.1
         with:
           version: 6
@@ -50,8 +50,8 @@ jobs:
   functional-test:
     runs-on: ubuntu-latest
     steps:
-      - run: pwd
       - uses: actions/checkout@v3
+      - run: pwd
       - uses: pnpm/action-setup@v2.2.1
         with:
           version: 6
