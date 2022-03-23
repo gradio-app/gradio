@@ -68,11 +68,7 @@ jobs:
           path: "~/.cache/ms-playwright"
           key: chromium-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
       - run: pnpm install --frozen-lockfile
-        env:
-          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: ${{ steps.browser_cache.outputs.cache-hit == 'true' }}
-      - name: install browsers
-        # if: steps.browser_cache.outputs.cache-hit == 'true'
-        run: pnpx playwright install chromium
+      - run: pnpx playwright install chromium
       - run: pnpm build
       - run: pnpm test:browser:full
       - name: Upload failed tests screenshots
@@ -80,5 +76,5 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           retention-days: 3
-          name: test-failure-${{ github.run_id }}-${{ matrix.os }}-${{ matrix.node-version }}
+          name: test-failure-${{ github.run_id }}
           path: test-results.tar.gz
