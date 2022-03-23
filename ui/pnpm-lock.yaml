@@ -12,10 +12,12 @@ importers:
       autoprefixer: ^10.4.4
       happy-dom: ^2.49.0
       npm-run-all: ^4.1.5
+      polka: ^1.0.0-next.22
       postcss: ^8.4.5
       postcss-nested: ^5.0.6
       prettier: ^2.5.1
       prettier-plugin-svelte: ^2.6.0
+      sirv: ^2.0.2
       sirv-cli: ^2.0.2
       svelte: ^3.46.3
       svelte-check: ^2.4.1
@@ -34,10 +36,12 @@ importers:
       autoprefixer: 10.4.4_postcss@8.4.6
       happy-dom: 2.49.0
       npm-run-all: 4.1.5
+      polka: 1.0.0-next.22
       postcss: 8.4.6
       postcss-nested: 5.0.6_postcss@8.4.6
       prettier: 2.5.1
       prettier-plugin-svelte: 2.6.0_prettier@2.5.1+svelte@3.46.3
+      sirv: 2.0.2
       sirv-cli: 2.0.2
       svelte: 3.46.3
       svelte-check: 2.4.1_postcss@8.4.6+svelte@3.46.3
@@ -3318,6 +3322,14 @@ packages:
     engines: {node: '>=12.13.0'}
     dev: false
 
+  /polka/1.0.0-next.22:
+    resolution: {integrity: sha512-a7tsZy5gFbJr0aUltZS97xCkbPglXuD67AMvTyZX7BTDBH384FWf0ZQF6rPvdutSxnO1vUlXM2zSLf5tCKk5RA==}
+    engines: {node: '>=8'}
+    dependencies:
+      '@polka/url': 1.0.0-next.21
+      trouter: 3.2.0
+    dev: false
+
   /postcss-js/4.0.0_postcss@8.4.6:
     resolution: {integrity: sha512-77QESFBwgX4irogGVPgQ5s07vLvFqWr228qZY+w6lW599cRlK/HmnlivnnVUxkjHnCu4J16PDMHcH+e+2HbvTQ==}
     engines: {node: ^12 || ^14 || >= 16}
@@ -3507,6 +3519,11 @@ packages:
 
   /regenerator-runtime/0.13.9:
     resolution: {integrity: sha512-p3VT+cOEgxFsRRA9X4lkI1E+k2/CtnKtU4gcxyaCUreilL/vqI6CdZ3wxVUx3UOUg+gnUOQQcRI7BmSI656MYA==}
+    dev: false
+
+  /regexparam/1.3.0:
+    resolution: {integrity: sha512-6IQpFBv6e5vz1QAqI+V4k8P2e/3gRrqfCJ9FI+O1FLQTO+Uz6RXZEZOPmTJ6hlGj7gkERzY5BRCv09whKP96/g==}
+    engines: {node: '>=6'}
     dev: false
 
   /request-promise-core/1.1.4_request@2.88.2:
@@ -4372,6 +4389,13 @@ packages:
       punycode: 2.1.1
     dev: false
     optional: true
+
+  /trouter/3.2.0:
+    resolution: {integrity: sha512-rLLXbhTObLy2MBVjLC+jTnoIKw99n0GuJs9ov10J870vDw5qhTurPzsDrudNtBf5w/CZ9ctZy2p2IMmhGcel2w==}
+    engines: {node: '>=6'}
+    dependencies:
+      regexparam: 1.3.0
+    dev: false
 
   /tslib/2.3.1:
     resolution: {integrity: sha512-77EbyPPpMz+FRFRuAFlWMtmgUWGe9UOG2Z25NqCwiIjRhOf5iKGuzSe5P2w1laq+FkRy4p+PCuVkJSGkzTEKVw==}

@@ -68,7 +68,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpx playwright install chromium
       - run: pnpm build
-      - run: pnpm test:browser:full
+      - run: pnpm test:browser
       - name: Upload failed tests screenshots
         if: failure()
         uses: actions/upload-artifact@v3
