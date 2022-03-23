@@ -9,13 +9,14 @@ on:
   pull_request:
     paths:
       - "ui/**"
-env:
-  CI: true
-  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
 
 defaults:
   run:
     working-directory: ./ui
+
+env:
+  CI: true
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
 
 concurrency:
   group: deploy-${{ github.ref }}-${{ github.event_name == 'push' || github.event.inputs.fire != null }}
