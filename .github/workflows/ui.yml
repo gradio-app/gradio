@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - run: ls
+      - run: pwd
       - uses: pnpm/action-setup@v2.2.1
         with:
           version: 6
