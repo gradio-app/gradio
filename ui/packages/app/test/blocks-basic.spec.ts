@@ -31,8 +31,8 @@ test("renders the correct elements", async ({ page }) => {
 	await mock_demo(page, "xray_blocks");
 	await page.goto("http://localhost:3000");
 
-	const description = await page.locator(".output-html");
-	await expect(description).toContainText("Detect Disease From Scn");
+	const description = await page.locator(".output-markdown");
+	await expect(description).toContainText("Detect Disease From Scan");
 
 	const checkboxes = await page.locator(".input-checkbox-group");
 	await expect(checkboxes).toContainText("Covid Malaria Lung Cancer");

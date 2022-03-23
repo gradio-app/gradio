@@ -1,3 +1,4 @@
+from textwrap import indent
 import gradio as gr
 
 import random
@@ -38,4 +39,5 @@ with xray_blocks:
 
     overall_probability = gr.components.Textbox()
 
+print(xray_blocks.get_config_file())
 xray_blocks.launch()

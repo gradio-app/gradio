@@ -6,7 +6,7 @@ import Button from "./Button.svelte";
 
 describe("Hello.svelte", () => {
 	afterAll(() => cleanup());
-	const { container, component } = render(Button, { label: "Click Me" });
+	const { container, component } = render(Button, { value: "Click Me" });
 
 	test("renders label text", () => {
 		assert.equal(container.innerText, "Click Me");
