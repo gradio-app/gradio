@@ -12,7 +12,7 @@ on:
 
 defaults:
   run:
-    working-directory: ./ui
+    working-directory: ui
 
 env:
   CI: true
