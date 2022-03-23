@@ -23,7 +23,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  static-check:
+  quick-checks:
     name: static checks
     runs-on: ubuntu-latest
     steps:
@@ -45,8 +45,6 @@ jobs:
         continue-on-error: true
       - name: unit tests
         run: pnpm test:run
-      - name: build
-        run: pnpm build
   functional-test:
     runs-on: ubuntu-latest
     steps:
