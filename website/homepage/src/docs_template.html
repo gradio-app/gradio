@@ -235,7 +235,7 @@
         {% for component_type in ('input', 'output') %}
         {% for func in docs[component_type] %}
         <div class="demos hidden">
-        <a href='#{{component_type[0]}}_{{ func["name"].lower() }}'></a>
+        <a class="demo-tag hidden" href='#{{component_type[0]}}_{{ func["name"].lower() }}'></a>
         <h2 class="mb-2 block font-semibold">Demos</h2>
         {% for demo in func["demos"] %}
               <div class="flex-shrink-0 flex flex-col">
@@ -279,7 +279,7 @@
     // highlighting section in nav bar
     let mainNavLinks = document.querySelectorAll(".navigation a");
     let docsSections = document.querySelectorAll(".docs .section");
-    let demos = document.querySelectorAll(".docs .demos a");
+    let demos = document.querySelectorAll(".demos-guides .demos .demo-tag");
     let lastId;
     let cur = [];
 
