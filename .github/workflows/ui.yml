@@ -77,4 +77,4 @@ jobs:
         with:
           retention-days: 3
           name: test-failure-${{ github.run_id }}
-          path: test-results.tar.gz
+          path: ui/packages/app/test-results
