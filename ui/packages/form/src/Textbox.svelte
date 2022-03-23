@@ -6,6 +6,7 @@
 	export let theme: string = "default";
 	export let lines: number = 1;
 	export let placeholder: string = "";
+	export let style = "";
 
 	const dispatch =
 		createEventDispatcher<{ change: string; submit: undefined }>();
@@ -41,6 +42,7 @@
 		{placeholder}
 		on:input={debounced_handle_change}
 		{theme}
+		{style}
 	/>
 {:else}
 	<input
@@ -51,6 +53,7 @@
 		on:input={debounced_handle_change}
 		{theme}
 		on:keypress={debounced_handle_keypress}
+		{style}
 	/>
 {/if}
 
