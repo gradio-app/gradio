@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import csv
 import inspect
 import json
@@ -10,7 +11,7 @@ import os
 import random
 import warnings
 from distutils.version import StrictVersion
-from typing import TYPE_CHECKING, Any, Callable, Dict
+from typing import TYPE_CHECKING, Any, Callable, Dict, List
 
 import aiohttp
 import analytics
@@ -214,29 +215,34 @@ def get_config_file(interface: Interface) -> Dict[str, Any]:
     }
     try:
         param_names = inspect.getfullargspec(interface.predict[0])[0]
-        for iface, param in zip(config["input_components"], param_names):
-            if not iface["label"]:
-                iface["label"] = param.replace("_", " ")
-        for i, iface in enumerate(config["output_components"]):
+        for index, component in enumerate(config["input_components"]):
+            if not component["label"]:
+                if index < len(param_names):
+                    component["label"] = param_names[index].replace("_", " ")
+                else:
+                    component["label"] = (
+                        f"input {index + 1}"
+                        if len(config["input_components"]) > 1
+                        else "input"
+                    )
+        for index, component in enumerate(config["output_components"]):
             outputs_per_function = int(
                 len(interface.output_components) / len(interface.predict)
             )
-            function_index = i // outputs_per_function
-            component_index = i - function_index * outputs_per_function
-            ret_name = (
-                "Output " + str(component_index + 1)
-                if outputs_per_function > 1
-                else "Output"
-            )
-            if iface["label"] is None:
-                iface["label"] = ret_name
+            function_index = index // outputs_per_function
+            component_index = index - function_index * outputs_per_function
+            if component["label"] is None:
+                component["label"] = (
+                    f"output {component_index + 1}"
+                    if outputs_per_function > 1
+                    else "output"
+                )
             if len(interface.predict) > 1:
-                iface["label"] = (
+                component["label"] = (
                     interface.function_names[function_index].replace("_", " ")
                     + ": "
-                    + iface["label"]
+                    + component["label"]
                 )
-
     except ValueError:
         pass
     if interface.examples is not None:
@@ -286,3 +292,20 @@ def get_default_args(func: Callable) -> Dict[str, Any]:
         v.default if v.default is not inspect.Parameter.empty else None
         for v in signature.parameters.values()
     ]
+
+
+def format_ner_list(input_string: str, ner_groups: Dict[str : str | int]):
+    if len(ner_groups) == 0:
+        return [(input_string, None)]
+
+    output = []
+    prev_end = 0
+
+    for group in ner_groups:
+        entity, start, end = group["entity_group"], group["start"], group["end"]
+        output.append((input_string[prev_end:start], None))
+        output.append((input_string[start:end], entity))
+        prev_end = end
+
+    output.append((input_string[end:], None))
+    return output
