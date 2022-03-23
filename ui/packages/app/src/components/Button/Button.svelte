@@ -2,7 +2,7 @@
 	import { Button } from "@gradio/button";
 
 	export let value: string;
-	export let style: string | null;
+	export let style: string = "";
 	export let variant: "primary" | "secondary" = "primary";
 </script>
 
