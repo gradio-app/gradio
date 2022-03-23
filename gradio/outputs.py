@@ -852,7 +852,7 @@ class State(OutputComponent):
             "state": {},
         }
 
-class Model3D(OutputComponent):
+class Model3d(OutputComponent):
     """
     Used for 3d model output.
     Output type: filepath

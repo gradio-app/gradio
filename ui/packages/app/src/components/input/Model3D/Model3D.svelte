@@ -1,15 +1,28 @@
 <script lang="ts">
-	import type { FileData } from "./types";
 	import Upload from "../../utils/Upload.svelte";
 	import { _ } from "svelte-i18n";
 
-	export let value: null | FileData | Array<FileData>;
-	export let setValue: (
-		val: Array<string | FileData> | string | FileData | null
-	) => Array<string | FileData> | string | FileData | null;
-	export let file_count: "single" | "multiple" | "directory";
+  interface Data {
+		data: string;
+		name: string;
+		size: number;
+	}
+
+	interface FileData {
+		name: string;
+		size: number;
+		data: string;
+		is_example: false;
+	}
+
+  export let value: Data;
+	export let setValue: (val: null | Data) => null | Data;
 	export let theme: string;
-	export let static_src: string;
+
+  function handle_load(v: string | FileData | (string | FileData)[] | null) {
+		setValue(v as Data);
+		return v;
+	}
 
 	import { onMount, afterUpdate} from 'svelte';
   import * as BABYLON from 'babylonjs';
@@ -46,8 +59,9 @@
     }, undefined, undefined, "." + value["name"].split(".")[1]);
   }
 </script>
+
 	{#if value === null}
-	<Upload load={setValue} {theme} {file_count}>
+	<Upload load={handle_load} {theme}>
 		{$_("interface.drop_file")}
 		<br />- {$_("interface.or")} -<br />
 		{$_("interface.click_to_upload")}
