@@ -71,7 +71,7 @@ jobs:
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: ${{ steps.browser_cache.outputs.cache-hit == 'true' }}
       - name: install browsers
-        if: steps.browser_cache.outputs.cache-hit == 'true'
+        # if: steps.browser_cache.outputs.cache-hit == 'true'
         run: pnpx playwright install chromium
       - run: pnpm build
       - run: pnpm test:browser:full
