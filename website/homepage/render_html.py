@@ -70,6 +70,10 @@ for guide in sorted(os.listdir(GRADIO_GUIDES_DIR)):
     if "tags: " in guide_content:
         tags = guide_content.split("tags: ")[1].split("\n")[0].split(", ")
 
+    docs = []
+    if "Docs: " in guide_content:
+        docs = guide_content.split("Docs: ")[1].split("\n")[0].split(", ")
+
     spaces = None
     if "related_spaces: " in guide_content:
         spaces = guide_content.split("related_spaces: ")[1].split("\n")[0].split(", ")
@@ -79,7 +83,13 @@ for guide in sorted(os.listdir(GRADIO_GUIDES_DIR)):
         [
             line
             for line in guide_content.split("\n")
-            if not (line.startswith("tags: ") or line.startswith("related_spaces: "))
+            if not (
+                line.startswith("tags: ")
+                or line.startswith("related_spaces: ")
+                or line.startswith("Contributed by ")
+                or line.startswith("Docs: ")
+                or line == title
+            )
         ]
     )
 
@@ -91,6 +101,8 @@ for guide in sorted(os.listdir(GRADIO_GUIDES_DIR)):
             "tags": tags,
             "spaces": spaces,
             "url": url,
+            "contributor": contributor,
+            "docs": docs
         }
     )
 
@@ -280,6 +292,12 @@ def render_docs():
 
     inputs = [get_class_documentation(cls) for cls in InputComponent.__subclasses__()]
     outputs = [get_class_documentation(cls) for cls in OutputComponent.__subclasses__()]
+
+    for inp in inputs:
+        inp["guides"] = [guide for guide in guides if f"i_{inp['name'].lower()}" in guide["docs"]]
+    for out in outputs:
+        out["guides"] = [guide for guide in guides if f"o_{out['name'].lower()}" in guide["docs"]]
+
     interface_params = get_function_documentation(Interface.__init__)
     interface = {
         "doc": inspect.getdoc(Interface),
@@ -297,6 +315,7 @@ def render_docs():
         "params_doc": load_params[2],
         "return_doc": load_params[3],
     }
+
     docs = {
         "input": inputs,
         "output": outputs,
