@@ -131,7 +131,42 @@
       border: none !important;
     }
 
+    #demos button {
+      border: solid 1px lightgray;
+      border-top-left-radius: 4px;
+      border-top-right-radius: 4px;
+      background: none;
+      font: inherit;
+      cursor: pointer;
+    }
 
+
+    #demo-nav {
+      display: flex;
+    }
+
+    .demo-link {
+      font-size: 1rem;
+      padding: 8px 16px 12px;
+      flex-grow: 1;
+    }
+
+    .demo-link.selected {
+      border: solid 1px lightgray;
+      border-bottom: none;
+      border-top-left-radius: 4px;
+      border-top-right-radius: 4px;
+      font-weight: bold;
+    }
+
+    .demo-link:not(.selected) {
+      border-bottom: solid 1px lightgray;
+    }
+
+    .selected {
+      border-bottom: none !important;
+      color: #ed9013;
+    }
 
 
   </style>
@@ -170,7 +205,8 @@
         <h1 class="text-3xl font-semibold mb-4">Docs</h1>
         <h2 id="creating_interfaces" class="section text-2xl font-semibold mb-4">Creating Interfaces</h2>
         <section class="flex flex-col">
-          <h2 id='interface' class="section text-xl font-semibold my-4">Interface</h2>
+          <div id='interface'>
+          <h2 id='interface-header' class="section text-xl font-semibold my-4">Interface</h2>
           <div class="func">
             <pre><code class='lang-python'>gradio.Interface(<!--
           -->{% for param in docs.interface["params"] %}<!--
@@ -189,7 +225,9 @@
               {% endfor %}
             </ul>
           </div>
-          <h2 id='launch' class="section text-xl font-semibold my-4">Launch</h2>
+          </div>
+          <div id='launch'>
+          <h2 id='launch-header' class="section text-xl font-semibold my-4">Launch</h2>
           <div class="section func">
             <pre><code class='lang-python'>gradio.Interface().launch(<!--
             -->{% for param in docs.launch["params"] %}<!--
@@ -208,7 +246,9 @@
               {% endfor %}
             </ul>
           </div>
-          <h2 id='load' class="section text-xl font-semibold my-4">Load</h2>
+          </div>
+          <div id='load'>
+          <h2 id='load-header' class="section text-xl font-semibold my-4">Load</h2>
           <div class="section func">
             <pre><code class='lang-python'>gradio.Interface.load(<!--
             -->{% for param in docs.load["params"] %}<!--
@@ -233,12 +273,14 @@
               {% endfor %}
             </ul>
           </div>
+          </div>
         </section>
         {% for component_type in ('input', 'output') %}
         <h2 id="{{ component_type }}_components" class="section text-2xl font-semibold my-4">{{ component_type|capitalize }} Components</h2>
         <section class="flex flex-col">
           {% for func in docs[component_type] %}
-          <h2 id='{{ component_type[0] }}_{{ func["name"].lower() }}' class="section text-xl font-semibold my-4">{{ func["name"] }}</h2>
+          <div id='{{ component_type[0] }}_{{ func["name"].lower() }}'>
+          <h2 id='{{ component_type[0] }}_{{ func["name"].lower() }}_header' class="section text-xl font-semibold my-4">{{ func["name"] }}</h2>
           <div class="section func">
             <pre ><code class="lang-python">gradio.{{ component_type }}s.<span>{{ func["name"] }}(</span><!--
             -->{% for param in func["params"] %}<!--
@@ -300,6 +342,7 @@
               {% endfor %}
             </ul>
             {% endif %}
+          </div>
           </div>
           {% endfor %}
         </section>
@@ -365,7 +408,27 @@
                     <img src="/assets/img/colab-badge.svg" class="inline h-6">
               </a>
                 <a class="close" onclick="hidePopup(this)">×</a>
-                <div class="code-block" style="display: flex"><pre class=" language-python"><code class=" language-python">{{ code }}</code></pre><button class="copy flex float-right cursor-pointer rounded-l-none rounded-r mx-0 my-2" onclick="copyCode(this)"><img class="copy-svg m0 w-7 flex-initial" src="/assets/img/copy-grey.svg"><div class="flex-auto"></div></button></div>
+
+
+              <div id="demos" style="height: 90%">
+                <div id="demo-nav">
+                  <button class="selected demo-link" id="{{ demo_name }}_code" onclick="showCode()">
+                    <div class="demo-long">Code</div>
+                  </button>
+                  <button class="selected demo-link" id="{{ demo_name }}_screenshot" onclick="showScreenshot()">
+                    <div class="demo-long">Interface</div>
+                  </button>
+                </div>
+              <div class="demo-code code-block flex"><pre class=" language-python"><code class=" language-python">{{ code }}</code></pre><button class="copy flex float-right cursor-pointer rounded-l-none rounded-r mx-0 my-2" onclick="copyCode(this)"><img class="copy-svg m0 w-7 flex-initial" src="/assets/img/copy-grey.svg"><div class="flex-auto"></div></button></div>
+              <div class="interface-screenshot hidden" style="height: 90%;">
+                <img style="max-height: 90%;"
+                    src="/assets/demo_screenshots/{{ demo_name }}.png">
+              </div>
+            </div>
+
+
+
+              </div>
             </div>
         </div>
       {% endfor %}
@@ -513,6 +576,37 @@
         }, 600);
     };
 
+    function showScreenshot() {
+       let screenshotElems = document.querySelectorAll(".interface-screenshot");
+       let codeElems = document.querySelectorAll(".demo-code");
+       codeElems.forEach(e => {
+        e.classList.add("hidden");
+        e.classList.remove("flex");
+        e.classList.remove("selected");
+       }
+       );
+       screenshotElems.forEach(e => {
+        e.classList.remove("hidden");
+        e.classList.add("selected");
+       }
+       );
+    }
+
+    function showCode() {
+       let screenshotElems = document.querySelectorAll(".interface-screenshot");
+       screenshotElems.forEach(e => {
+        e.classList.add("hidden");
+        e.classList.remove("selected");
+       }
+       );
+       let codeElems = document.querySelectorAll(".demo-code");
+       codeElems.forEach(e => {
+        e.classList.remove("hidden");
+        e.classList.add("flex");
+        e.classList.add("selected");
+       }
+       );
+    }
 
 
   </script>
