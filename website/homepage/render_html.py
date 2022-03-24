@@ -306,6 +306,22 @@ def render_docs():
     for out in outputs:
         out["guides"] = [guide for guide in guides if f"o_{out['name'].lower()}" in guide["docs"]]
 
+    demo_code = {}
+    demo_interface = {}
+    for component in inputs + outputs:
+        for code_src in component["demos"]:
+            with open(os.path.join(GRADIO_DEMO_DIR, code_src, "run.py")) as code_file:
+                python_code = code_file.read().replace(
+                    'if __name__ == "__main__":\n    iface.launch()', "iface.launch()"
+                )
+                demo_code[code_src] = (
+                        "<pre><code class='lang-python'>" + python_code + "</code></pre>"
+                )
+
+                demo_interface[code_src] = (
+                        "</div><div id='interface_" + code_src + "'></div><div class='prose'>"
+                )
+
     interface_params = get_function_documentation(Interface.__init__)
     interface = {
         "doc": inspect.getdoc(Interface),
@@ -330,7 +346,10 @@ def render_docs():
         "interface": interface,
         "launch": launch,
         "load": load,
+        "demo_code": demo_code,
+        "demo_interface": demo_interface
     }
+
     os.makedirs("generated", exist_ok=True)
     with open("src/docs_template.html") as template_file:
         template = Template(template_file.read())
