@@ -41,6 +41,18 @@
       background: #f6d2b2;
     }
 
+    .anchor-img {
+      margin: 0 0 0 5px !important;
+    }
+
+    .anchor {
+      visibility: hidden;
+    }
+
+    .header:hover .anchor {
+      visibility: visible;
+    }
+
 
 
   </style>
@@ -78,8 +90,9 @@
         <p class="bg-blue-200 border border-blue-600 px-4 py-2 rounded mb-4">If you are just getting started with Gradio, see the <a class="link" href="/getting_started">Getting Started</a> guide.</p>
         <h1 class="text-3xl font-semibold mb-4">Docs</h1>
         <h2 id="creating_interfaces" class="section text-2xl font-semibold mb-4">Creating Interfaces</h2>
-        <section class="flex flex-col gap-6">
-          <div id="interface" class="func">
+        <section class="flex flex-col">
+          <h2 id='interface' class="section text-xl font-semibold my-4">Interface</h2>
+          <div class="func">
             <pre><code class='lang-python'>gradio.Interface(<!--
           -->{% for param in docs.interface["params"] %}<!--
             -->{% if param|length == 1 %}<!--
@@ -97,7 +110,8 @@
               {% endfor %}
             </ul>
           </div>
-          <div id="launch" class="section func">
+          <h2 id='launch' class="section text-xl font-semibold my-4">Launch</h2>
+          <div class="section func">
             <pre><code class='lang-python'>gradio.Interface().launch(<!--
             -->{% for param in docs.launch["params"] %}<!--
               -->{% if param|length == 1 %}<!--
@@ -115,7 +129,8 @@
               {% endfor %}
             </ul>
           </div>
-          <div id="load" class="section func">
+          <h2 id='load' class="section text-xl font-semibold my-4">Load</h2>
+          <div class="section func">
             <pre><code class='lang-python'>gradio.Interface.load(<!--
             -->{% for param in docs.load["params"] %}<!--
               -->{% if param|length == 1 %}<!--
@@ -142,7 +157,7 @@
         </section>
         {% for component_type in ('input', 'output') %}
         <h2 id="{{ component_type }}_components" class="section text-2xl font-semibold my-4">{{ component_type|capitalize }} Components</h2>
-        <section class="flex flex-col gap-6">
+        <section class="flex flex-col">
           {% for func in docs[component_type] %}
           <h2 id='{{ component_type[0] }}_{{ func["name"].lower() }}' class="section text-xl font-semibold my-4">{{ func["name"] }}</h2>
           <div class="section func">
@@ -341,6 +356,45 @@
         }
       }
       });
+
+      function createAnchorTag(link) {
+            let a = document.createElement('a');
+            a.href = link;
+            a.classList.add("anchor");
+            let img = document.createElement('img');
+            img.classList.add("anchor-img", "w-7", "max-w-full", "inline-block", "mr-0", "ml-1")
+            img.src = "/assets/img/anchor.svg";
+            a.appendChild(img);
+            return a;
+        }
+    function createMobileAnchorTag(link) {
+            let a = document.createElement('a');
+            a.href = link;
+            a.style="text-decoration: none"
+            return a;
+    }
+    var headers = document.querySelectorAll("h2, h3");
+    function isTouchDevice() {
+            return (('ontouchstart' in window) ||
+               (navigator.maxTouchPoints > 0) ||
+               (navigator.msMaxTouchPoints > 0));
+          }
+
+    if (isTouchDevice()) {
+          for (let i = 0; i < headers.length; i++) {
+            let link = '#' + headers[i].id;
+            var parent = headers[i].parentNode;
+            var wrapper = createMobileAnchorTag(link);
+            parent.replaceChild(wrapper, headers[i]);
+            wrapper.appendChild(headers[i]);
+          }
+    } else {
+          for (let i = 0; i < headers.length; i++) {
+            headers[i].classList.add("header");
+            let link = '#' + headers[i].id;
+            headers[i].appendChild(createAnchorTag(link))
+          }
+    }
 
 
 
