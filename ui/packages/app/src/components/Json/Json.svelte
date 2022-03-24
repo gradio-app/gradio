@@ -9,6 +9,8 @@
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
 	$: value, dispatch("change");
+
+	if ($$props.default) value = $$props.default;
 </script>
 
 <JSON {theme} {style} {value} />
