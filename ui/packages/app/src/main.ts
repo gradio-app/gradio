@@ -114,7 +114,7 @@ window.launchGradio = (config: Config, element_query: string) => {
 };
 
 window.launchGradioFromSpaces = async (space: string, target: string) => {
-	const space_url = `https://huggingface.co/gradioiframe/${space}/+/`;
+	const space_url = `https://hf.space/embed/${space}/+/`;
 	let config = await fetch(space_url + "config");
 	let _config: Config = await config.json();
 	_config.root = space_url;
