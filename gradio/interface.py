@@ -186,9 +186,9 @@ class Interface(Launchable):
                 isinstance(i, i_State) for i in self.input_components
             ].index(True)
             state: i_State = self.input_components[state_param_index]
-            if state.default is None:
+            if state.default_value is None:
                 default = utils.get_default_args(fn[0])[state_param_index]
-                state.default = default
+                state.default_value = default
 
         if (
             interpretation is None
@@ -643,6 +643,7 @@ class Interface(Launchable):
             "flag_index": flag_index,
         }
 
+    # TODO: Remove duplicate process_api, Ali Abid what is it for?
     def process_api(self, data: Dict[str, Any], username: str = None) -> Dict[str, Any]:
         class RequestApi:
             SUBMIT = 0

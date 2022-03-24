@@ -489,12 +489,3 @@ class State(C_State):
             DeprecationWarning,
         )
         super().__init__(default_value=default, label=label, optional=optional)
-
-    def get_template_context(self):
-        return {"default": self.default, **super().get_template_context()}
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "state": {},
-        }
