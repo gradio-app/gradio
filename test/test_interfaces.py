@@ -53,13 +53,13 @@ class TestInterface(unittest.TestCase):
     #     interface = Interface(lambda x: 3 * x, "number", "number", examples=path)
     #     self.assertEqual(len(interface.get_config_file()["examples"]), 3)
 
-    def test_examples_not_valid_path(self):
-        with self.assertRaises(FileNotFoundError):
-            interface = Interface(
-                lambda x: x, "textbox", "label", examples="invalid-path"
-            )
-            interface.launch(prevent_thread_lock=True)
-            interface.close()
+    # def test_examples_not_valid_path(self):
+    #     with self.assertRaises(FileNotFoundError):
+    #         interface = Interface(
+    #             lambda x: x, "textbox", "label", examples="invalid-path"
+    #         )
+    #         interface.launch(prevent_thread_lock=True)
+    #         interface.close()
 
     def test_test_launch(self):
         with captured_output() as (out, err):
