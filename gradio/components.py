@@ -2780,7 +2780,7 @@ class DatasetViewer(Component):
 
     def get_template_context(self):
         return {
-            "types": [_type.__class__.__name__.lower() for _type in types],
+            "types": [_type.__class__.__name__.lower() for _type in self.types],
             "value": self.value,
             **super().get_template_context(),
         }
