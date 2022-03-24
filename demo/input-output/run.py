@@ -1,5 +1,4 @@
 import gradio as gr
-import numpy as np
 
 
 def image_mod(text):
