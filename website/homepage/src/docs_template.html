@@ -53,6 +53,85 @@
       visibility: visible;
     }
 
+    .overlay {
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0, 0, 0, 0.7);
+      transition: opacity 500ms;
+      opacity: 1;
+    }
+
+    .overlay:target {
+      opacity: 1;
+    }
+
+    .popup {
+      text-align: left;
+      margin: 5rem auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 5px;
+      width: 60%;
+      height: 60%;
+      position: relative;
+    }
+
+    .popup h2 {
+      margin-top: 0;
+      color: #333;
+      font-family: Tahoma, Arial, sans-serif;
+    }
+
+    .popup .close {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      transition: all 200ms;
+      font-size: 30px;
+      font-weight: bold;
+      text-decoration: none;
+      color: #333;
+      cursor: pointer;
+    }
+    .popup .close:hover {
+      color: #ec8f14;
+    }
+
+    .copy {
+      padding-right: 1em;
+      padding-left: 1em;
+      background: #f9fafb;
+    }
+
+    .copy-svg {
+      visibility: hidden;
+      margin: 1em 0 0 0 !important;
+      width: 20px;
+    }
+
+    .code-block:hover .copy-svg {
+       visibility: visible;
+    }
+
+    .code-block {
+      max-height: 90%;
+      overflow-y: auto;
+      overflow-x: auto;
+    }
+
+    .code,
+    pre {
+      width: 95%;
+      border-radius: 4px 0 0 4px;
+      color: black;
+      background: rgb(249, 250, 251);
+      border: none !important;
+    }
+
+
 
 
   </style>
@@ -72,7 +151,7 @@
   {{navbar_html|safe}}
   <div class="container mx-auto px-4">
     <main class="container flex gap-4">
-      <div class="navigation h-screen leading-relaxed sticky top-0 bg-gray-50 p-4 text-md overflow-y-auto hidden md:block" style="width: 64rem">
+      <div class="navigation h-screen leading-relaxed sticky top-0 bg-gray-50 p-4 text-md overflow-y-auto hidden md:block" style="width: 40rem">
         <a class="link mb-2 block" href="#creating_interfaces">Creating Interfaces</a>
         <a class="block thin-link" href="#interface">Interfaces</a>
         <a class="block thin-link" href="#launch">Launching</a>
@@ -238,9 +317,14 @@
                   <span class="italic">{{ demo }}:</span>
                 </div>
                 <div class="relative cursor-pointer flex-grow">
-                  <a href="{{ demo_links[demo] }}" target="_blank" class="absolute w-full h-full bg-gray-400 bg-opacity-10 hover:bg-opacity-0 group transition flex items-center justify-center">
-                    <img src="/assets/img/colab-badge.svg" class="opacity-60 group-hover:opacity-80 transition h-6">
-                  </a>
+                  <div class="absolute w-full h-full bg-gray-400 bg-opacity-10 hover:bg-opacity-0 group transition flex items-center justify-center">
+                    <a class="opacity-60 hover:opacity-80 transition px-1 inline-block rounded text-base" style='color: white; margin: 0.25rem; background: #636262; font-size: medium;' onclick="showPopup('#{{ demo }}')">
+                      View
+                    </a>
+                    <a href="{{ demo_links[demo] }}" target="_blank">
+                    <img src="/assets/img/colab-badge.svg" class="opacity-60 hover:opacity-80 transition h-6">
+                    </a>
+                  </div>
                   <img style="width:420px"
                     src="/assets/demo_screenshots/{{ demo }}.png">
                 </div>
@@ -262,14 +346,29 @@
           {% endfor %}
             </div>
           {% else %}
-          <a class="link" target="_blank" href="https://github.com/gradio-app/gradio/tree/master/guides" style="color: grey;">Contribute a guide for {{ func["name"]}}</a>
+          <p class="bg-blue-200 border border-blue-600 px-4 py-2 rounded mb-4"><a class="link" target="_blank" href="https://github.com/gradio-app/gradio/tree/master/guides">Contribute a guide about {{ func["name"] }}</a></p>
           {% endif %}
 
         </div>
+
         {% endfor %}
         {% endfor %}
 
       </div>
+      {% for demo_name, code in docs["demo_code"].items() %}
+        <div id="{{ demo_name }}" class="overlay hidden">
+            <div class="popup">
+              <p class="inline bg-blue-200 border border-blue-600 px-2 py-1 rounded mb-4">
+                <a class="link" target="_blank" href="https://github.com/gradio-app/gradio/blob/main/demo/{{ demo_name }}/run.py">See on Github</a>
+              </p>
+                <a class="inline" style="margin: 1em;" href="{{ demo_links[demo_name] }}" target="_blank">
+                    <img src="/assets/img/colab-badge.svg" class="inline h-6">
+              </a>
+                <a class="close" onclick="hidePopup(this)">×</a>
+                <div class="code-block" style="display: flex"><pre class=" language-python"><code class=" language-python">{{ code }}</code></pre><button class="copy flex float-right cursor-pointer rounded-l-none rounded-r mx-0 my-2" onclick="copyCode(this)"><img class="copy-svg m0 w-7 flex-initial" src="/assets/img/copy-grey.svg"><div class="flex-auto"></div></button></div>
+            </div>
+        </div>
+      {% endfor %}
     </main>
   </div>
   <footer class="container mx-auto p-4 flex justify-between items-center">
@@ -373,7 +472,7 @@
             a.style="text-decoration: none"
             return a;
     }
-    var headers = document.querySelectorAll("h2, h3");
+    var headers = document.querySelectorAll(".docs h2, .docs h3");
     function isTouchDevice() {
             return (('ontouchstart' in window) ||
                (navigator.maxTouchPoints > 0) ||
@@ -395,6 +494,24 @@
             headers[i].appendChild(createAnchorTag(link))
           }
     }
+
+    function hidePopup(elem) {
+        elem.parentElement.parentElement.classList.add("hidden");
+    }
+
+    function showPopup(id) {
+        let elem = document.querySelector(id);
+        elem.classList.remove("hidden");
+    }
+
+    function copyCode(elem) {
+        var text = elem.parentElement.innerText;
+        navigator.clipboard.writeText(text);
+        elem.firstChild.src = "/assets/img/copy-orange.svg"
+        setTimeout(function(){
+          elem.firstChild.src = "/assets/img/copy-grey.svg"
+        }, 600);
+    };
 
 
 
