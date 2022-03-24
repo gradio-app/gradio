@@ -7,6 +7,8 @@
 	export let mode: "static" | "dynamic";
 	export let theme: string;
 	export let style: string | null;
+
+	if ($$props.default) value = $$props.default;
 </script>
 
 <CheckboxGroup
