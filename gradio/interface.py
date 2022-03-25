@@ -6,6 +6,7 @@ including various methods for constructing an interface and then launching it.
 from __future__ import annotations
 
 import copy
+import inspect
 import os
 import random
 import re
@@ -18,8 +19,14 @@ from markdown_it import MarkdownIt
 from mdit_py_plugins.footnote import footnote_plugin
 
 from gradio import interpretation, utils
-from gradio.blocks import BlockContext, Column, Row
-from gradio.components import Button, Component, Markdown, get_component_instance
+from gradio.blocks import Block, BlockContext, Blocks, Column, Row
+from gradio.components import (
+    Button,
+    Component,
+    Dataset,
+    Markdown,
+    get_component_instance,
+)
 from gradio.external import load_from_pipeline, load_interface  # type: ignore
 from gradio.flagging import CSVLogger, FlaggingCallback  # type: ignore
 from gradio.inputs import State as i_State  # type: ignore
@@ -33,7 +40,7 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     import transformers
 
 
-class Interface(Launchable):
+class Interface(Blocks):
     """
     Gradio interfaces are created by constructing a `Interface` object
     with a locally-defined function, or with `Interface.load()` with the path
@@ -162,6 +169,8 @@ class Interface(Launchable):
         server_name (str): DEPRECATED. Name of the server to use for serving the interface - pass in launch() instead.
         server_port (int): DEPRECATED. Port of the server to use for serving the interface - pass in launch() instead.
         """
+        super().__init__()
+
         if not isinstance(fn, list):
             fn = [fn]
         if not isinstance(inputs, list):
@@ -447,9 +456,80 @@ class Interface(Launchable):
         if self.analytics_enabled:
             utils.initiated_analytics(data)
 
-        # Alert user if a more recent version of the library exists
         utils.version_check()
         Interface.instances.add(self)
+
+        param_names = inspect.getfullargspec(self.predict[0])[0]
+        for component, param_name in zip(self.input_components, param_names):
+            if component.label is None:
+                component.label = param_name
+        for i, component in enumerate(self.output_components):
+            if component.label is None:
+                component.label = "output_" + str(i)
+
+        if self.allow_flagging != "never":
+            self.flagging_callback.setup(
+                self.input_components + self.output_components, self.flagging_dir
+            )
+
+        with self:
+            if self.title:
+                Markdown(
+                    "<h1 style='text-align: center; margin-bottom: 1rem'>"
+                    + self.title
+                    + "</h1>"
+                )
+            if self.description:
+                Markdown(self.description)
+            with Row():
+                with Column(
+                    css={
+                        "background-color": "rgb(249,250,251)",
+                        "padding": "0.5rem",
+                        "border-radius": "0.5rem",
+                    }
+                ):
+                    for component in self.input_components:
+                        component.render()
+                    with Row():
+                        clear_btn = Button("Clear")
+                        submit_btn = Button("Submit")
+                with Column(
+                    css={
+                        "background-color": "rgb(249,250,251)",
+                        "padding": "0.5rem",
+                        "border-radius": "0.5rem",
+                    }
+                ):
+                    for component in self.output_components:
+                        component.render()
+                    with Row():
+                        flag_btn = Button("Flag")
+            submit_btn.click(
+                lambda *args: self.run_prediction(args, return_duration=False)[0]
+                if len(self.output_components) == 1
+                else self.run_prediction(args, return_duration=False),
+                self.input_components,
+                self.output_components,
+            )
+            clear_btn.click(
+                lambda: [None]
+                * (len(self.input_components) + len(self.output_components)),
+                [],
+                self.input_components + self.output_components,
+            )
+            if self.examples:
+                examples = Dataset(
+                    components=self.input_components, samples=self.examples
+                )
+                examples.click(
+                    lambda x: x, inputs=[examples], outputs=self.input_components
+                )
+            flag_btn.click(
+                lambda *flag_data: self.flagging_callback.flag(flag_data),
+                inputs=self.input_components + self.output_components,
+                outputs=[],
+            )
 
     def __call__(self, *params):
         if (
@@ -475,82 +555,6 @@ class Interface(Launchable):
         for component in self.output_components:
             repr += "\n|-{}".format(str(component))
         return repr
-
-    def get_config_file(self):
-        components = []
-        layout = {"id": 0, "children": []}
-        dependencies = []
-
-        def add_component(parent, component):
-            id = len(components) + 1
-            components.append(
-                {
-                    "id": len(components) + 1,
-                    "type": component.__class__.__name__.lower(),
-                    "props": component.get_template_context(),
-                }
-            )
-            layout_context = {"id": id}
-            if isinstance(component, BlockContext):
-                layout_context["children"] = []
-            parent["children"].append(layout_context)
-            return layout_context
-
-        if self.title:
-            add_component(layout, Markdown("<h1>" + self.title + "</h1>"))
-        if self.description:
-            add_component(layout, Markdown(self.description))
-        panel_row = add_component(layout, Row())
-        input_panel = add_component(panel_row, Column())
-        input_ids = []
-        for component in self.input_components:
-            input_id = add_component(input_panel, component)["id"]
-            input_ids.append(input_id)
-        input_panel_btns = add_component(input_panel, Row())
-        submit_btn = add_component(input_panel_btns, Button("Submit"))
-        clear_btn = add_component(input_panel_btns, Button("Clear"))
-
-        output_panel = add_component(panel_row, Column())
-        output_ids = []
-        for component in self.output_components:
-            output_id = add_component(output_panel, component)["id"]
-            output_ids.append(output_id)
-        output_panel_btns = add_component(output_panel, Row())
-        flag_btn = add_component(output_panel_btns, Button("Flag"))
-        dependencies.append(
-            {
-                "id": 0,
-                "trigger": "click",
-                "targets": [submit_btn["id"]],
-                "inputs": input_ids,
-                "outputs": output_ids,
-            }
-        )
-        dependencies.append(
-            {
-                "id": 1,
-                "trigger": "click",
-                "targets": [clear_btn["id"]],
-                "inputs": [],
-                "outputs": input_ids + output_ids,
-            }
-        )
-        dependencies.append(
-            {
-                "id": 2,
-                "trigger": "click",
-                "targets": [flag_btn["id"]],
-                "inputs": input_ids + output_ids,
-                "outputs": [],
-            }
-        )
-
-        return {
-            "mode": "blocks",
-            "components": components,
-            "layout": layout,
-            "dependencies": dependencies,
-        }
 
     def run_prediction(
         self,
@@ -615,25 +619,6 @@ class Interface(Launchable):
         else:
             return predictions
 
-    def process_api(self, data: Dict[str, Any], username: str = None) -> Dict[str, Any]:
-        class RequestApi:
-            SUBMIT = 0
-            CLEAR = 1
-            FLAG = 2
-
-        raw_input = data["data"]
-        fn_index = data["fn_index"]
-        if fn_index == RequestApi.SUBMIT:
-            prediction, durations = self.process(raw_input)
-            return {"data": prediction}
-        elif fn_index == RequestApi.CLEAR:
-            return {
-                "data": [None]
-                * (len(self.input_components) + len(self.output_components))
-            }
-        elif fn_index == RequestApi.FLAG:  # flag
-            pass
-
     def process(self, raw_input: List[Any]) -> Tuple[List[Any], List[float]]:
         """
         First preprocesses the input, then runs prediction using
@@ -657,7 +642,6 @@ class Interface(Launchable):
             else None
             for i, output_component in enumerate(self.output_components)
         ]
-
         avg_durations = []
         for i, duration in enumerate(durations):
             self.predict_durations[i][0] += duration
@@ -687,11 +671,6 @@ class Interface(Launchable):
                 self.process(raw_input)
                 print("PASSED")
                 continue
-
-    def launch(self, **args):
-        if self.allow_flagging != "never":
-            self.flagging_callback.setup(self.flagging_dir)
-        return super().launch(**args)
 
     def integrate(self, comet_ml=None, wandb=None, mlflow=None) -> None:
         """

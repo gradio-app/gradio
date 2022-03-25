@@ -2756,6 +2756,10 @@ class Chatbot(Component):
 
 # Static Components
 class Markdown(Component):
+    """
+    Used for Markdown output. Expects a valid string that is rendered into Markdown.
+    """
+
     def __init__(
         self,
         default_value: str = "",
@@ -2779,6 +2783,10 @@ class Markdown(Component):
 
 
 class Button(Component):
+    """
+    Used to create a button, that can be assigned arbitrary click() events.
+    """
+
     def __init__(
         self,
         default_value: str = "",
@@ -2810,24 +2818,34 @@ class Button(Component):
         self.set_event_trigger("click", fn, inputs, outputs)
 
 
-class DatasetViewer(Component):
+class Dataset(Component):
+    """
+    Used to create a output widget for showing datasets. Used to render the examples
+    box in the interface.
+    """
+
     def __init__(
         self,
-        types: List[Component],
-        default_value: List[List[Any]],
         *,
+        components: List[Component],
+        samples: List[List[Any]],
+        value: Optional[Number] = None,
         label: Optional[str] = None,
         css: Optional[Dict] = None,
         **kwargs,
     ):
         super().__init__(label=label, css=css, **kwargs)
-        self.types = types
-        self.default_value = default_value
+        self.components = components
+        self.headers = [c.label for c in components]
+        self.samples = samples
 
     def get_template_context(self):
         return {
-            "types": [_type.__class__.__name__.lower() for _type in self.types],
-            "default_value": self.default_value,
+            "components": [
+                component.__class__.__name__.lower() for component in self.components
+            ],
+            "headers": self.headers,
+            "samples": self.samples,
             **super().get_template_context(),
         }
 

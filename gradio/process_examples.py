@@ -41,11 +41,13 @@ def cache_interface_examples(interface: Interface) -> None:
             f"Cache at {os.path.abspath(CACHE_FILE)} not found. Caching now in '{CACHED_FOLDER}/' directory."
         )
         cache_logger = CSVLogger()
-        cache_logger.setup(CACHED_FOLDER)
+        cache_logger.setup(
+            interface.input_components + interface.output_components, CACHED_FOLDER
+        )
         for example_id, _ in enumerate(interface.examples):
             try:
                 prediction = process_example(interface, example_id)[0]
-                cache_logger.flag(interface, None, prediction)
+                cache_logger.flag(prediction)
             except Exception as e:
                 shutil.rmtree(CACHED_FOLDER)
                 raise e
