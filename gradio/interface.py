@@ -619,6 +619,7 @@ class Interface(Blocks):
         else:
             return predictions
 
+
     def process(self, raw_input: List[Any]) -> Tuple[List[Any], List[float]]:
         """
         First preprocesses the input, then runs prediction using

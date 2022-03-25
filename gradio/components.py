@@ -11,12 +11,12 @@ import warnings
 from types import ModuleType
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
+import matplotlib.figure
 import numpy as np
 import pandas as pd
 import PIL
 from ffmpy import FFmpeg
 from markdown_it import MarkdownIt
-import matplotlib.figure
 
 from gradio import processing_utils, test_data
 from gradio.blocks import Block
@@ -2097,6 +2097,8 @@ class Dataframe(Component):
                 dtype = "numpy"
             elif isinstance(y, list):
                 dtype = "array"
+            else:
+                raise ValueError("Cannot determine the type of DataFrame output.")
         else:
             dtype = self.output_type
         if dtype == "pandas":
