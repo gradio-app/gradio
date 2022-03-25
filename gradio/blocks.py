@@ -14,7 +14,7 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 class Block:
     def __init__(self):
         self.render()
-    
+
     def render(self):
         """
         Adds self into appropriate BlockContext
@@ -77,10 +77,7 @@ class BlockContext(Block):
         Context.block = self.parent
 
     def get_template_context(self):
-        return {
-            "css": self.css
-        }
-
+        return {"css": self.css}
 
 
 class Row(BlockContext):
