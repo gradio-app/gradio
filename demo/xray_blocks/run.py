@@ -17,18 +17,21 @@ with xray_blocks:
 	- ipsum 2
 	"""
     )
-    disease = gr.components.CheckboxGroup(choices=["Covid", "Malaria", "Lung Cancer"], label="Disease to Scan For")
+    disease = gr.components.CheckboxGroup(
+        choices=["Covid", "Malaria", "Lung Cancer"], label="Disease to Scan For"
+    )
 
     with gr.Tabs():
         with gr.TabItem("X-ray"):
             with gr.Row():
                 xray_scan = gr.components.Image()
                 xray_results = gr.components.JSON()
-            xray_run = gr.Button("Run", css={
-                "background-color": "red",
-                "--hover-color": "orange"
-            })
-            xray_run.click(xray_model, inputs=[disease, xray_scan], outputs=xray_results)
+            xray_run = gr.Button(
+                "Run", css={"background-color": "red", "--hover-color": "orange"}
+            )
+            xray_run.click(
+                xray_model, inputs=[disease, xray_scan], outputs=xray_results
+            )
 
         with gr.TabItem("CT Scan"):
             with gr.Row():
