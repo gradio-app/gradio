@@ -30,6 +30,7 @@
 		outputs: Array<string>;
 	}
 
+	export let root: string;
 	export let fn: (...args: any) => Promise<unknown>;
 	export let components: Array<Component>;
 	export let layout: Layout;
@@ -159,6 +160,7 @@
 				{children}
 				{instance_map}
 				{theme}
+				{root}
 				on:mount={handle_mount}
 				on:destroy={({ detail }) => handle_destroy(detail)}
 			/>

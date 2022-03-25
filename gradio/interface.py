@@ -23,7 +23,7 @@ from gradio.components import (
     Button,
     Component,
     Markdown,
-    DatasetViewer,
+    Dataset,
     get_component_instance,
 )
 from gradio.external import load_from_pipeline, load_interface  # type: ignore
@@ -40,7 +40,7 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     import transformers
 
 
-class Interface(Launchable):
+class Interface(Blocks):
     """
     Gradio interfaces are created by constructing a `Interface` object
     with a locally-defined function, or with `Interface.load()` with the path
@@ -169,6 +169,8 @@ class Interface(Launchable):
         server_name (str): DEPRECATED. Name of the server to use for serving the interface - pass in launch() instead.
         server_port (int): DEPRECATED. Port of the server to use for serving the interface - pass in launch() instead.
         """
+        super().__init__()
+
         if not isinstance(fn, list):
             fn = [fn]
         if not isinstance(inputs, list):
@@ -470,8 +472,7 @@ class Interface(Launchable):
                 self.input_components + self.output_components, self.flagging_dir
             )
 
-        self.blocks = Blocks()
-        with self.blocks:
+        with self:
             if self.title:
                 Markdown(
                     "<h1 style='text-align: center; margin-bottom: 1rem'>"
@@ -504,10 +505,6 @@ class Interface(Launchable):
                         Block.__init__(component)
                     with Row():
                         flag_btn = Button("Flag")
-            if self.examples:
-                examples = DatasetViewer(
-                    components=self.input_components, samples=self.examples
-                )
             submit_btn.click(
                 lambda *args: self.process(args)[0][0]
                 if len(self.output_components) == 1
@@ -521,9 +518,13 @@ class Interface(Launchable):
                 [],
                 self.input_components + self.output_components,
             )
-            examples.click(
-                lambda x: x, inputs=[examples], outputs=self.input_components
-            )
+            if self.examples:
+                examples = Dataset(
+                    components=self.input_components, samples=self.examples
+                )
+                examples.click(
+                    lambda x: x, inputs=[examples], outputs=self.input_components
+                )
             flag_btn.click(
                 lambda *flag_data: self.flagging_callback.flag(flag_data),
                 inputs=self.input_components + self.output_components,
@@ -554,9 +555,6 @@ class Interface(Launchable):
         for component in self.output_components:
             repr += "\n|-{}".format(str(component))
         return repr
-
-    def get_config_file(self):
-        return self.blocks.get_config_file()
 
     def run_prediction(
         self,
@@ -621,9 +619,6 @@ class Interface(Launchable):
         else:
             return predictions
 
-    def process_api(self, *args) -> Dict[str, Any]:
-        return self.blocks.process_api(*args)
-
     def process(self, raw_input: List[Any]) -> Tuple[List[Any], List[float]]:
         """
         First preprocesses the input, then runs prediction using
@@ -634,20 +629,9 @@ class Interface(Launchable):
         processed output: a list of processed  outputs to return as the prediction(s).
         duration: a list of time deltas measuring inference time for each prediction fn.
         """
-        processed_input = [
-            input_component.preprocess(raw_input[i])
-            for i, input_component in enumerate(self.input_components)
-        ]
         predictions, durations = self.run_prediction(
-            processed_input, return_duration=True
+            raw_input, return_duration=True
         )
-        processed_output = [
-            output_component.postprocess(predictions[i])
-            if predictions[i] is not None
-            else None
-            for i, output_component in enumerate(self.output_components)
-        ]
-
         avg_durations = []
         for i, duration in enumerate(durations):
             self.predict_durations[i][0] += duration
@@ -658,7 +642,7 @@ class Interface(Launchable):
         if hasattr(self, "config"):
             self.config["avg_durations"] = avg_durations
 
-        return processed_output, durations
+        return predictions, durations
 
     def interpret(self, raw_input: List[Any]) -> List[Any]:
         return interpretation.run_interpret(self, raw_input)

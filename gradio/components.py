@@ -2762,7 +2762,7 @@ class Button(Component):
         self.set_event_trigger("click", fn, inputs, outputs)
 
 
-class DatasetViewer(Component):
+class Dataset(Component):
     def __init__(
         self,
         *,

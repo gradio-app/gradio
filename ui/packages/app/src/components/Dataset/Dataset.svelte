@@ -6,7 +6,7 @@
 	export let headers: Array<string>;
 	export let samples: Array<Array<any>>;
 	export let value: Number | null = null;
-	export let samples_dir: string = "file/";
+	export let root: string;
 	export let samples_per_page: number = 10;
 
 	export let theme: string;
@@ -14,6 +14,7 @@
 
 	const dispatch = createEventDispatcher<{ click: number }>();
 
+	let samples_dir: string = root + "file/";
 	let sample_id: number | null = null;
 	let page = 0;
 	let gallery = headers.length === 1;
