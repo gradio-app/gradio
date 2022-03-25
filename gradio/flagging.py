@@ -297,11 +297,11 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
                         "_type": "Value",
                     }
                     if isinstance(component, tuple(file_preview_types)):
-                        headers.append(component_label + " file")
+                        headers.append(component.label + " file")
                         for _component, _type in file_preview_types.items():
                             if isinstance(component, _component):
                                 infos["flagged"]["features"][
-                                    component_label + " file"
+                                    component.label + " file"
                                 ] = {"_type": _type}
                                 break
 
