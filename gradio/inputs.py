@@ -171,7 +171,7 @@ class CheckboxGroup(C_CheckboxGroup):
             DeprecationWarning,
         )
         super().__init__(
-            default_value=default,
+            default_selected=default,
             choices=choices,
             type=type,
             label=label,
@@ -209,7 +209,7 @@ class Radio(C_Radio):
         super().__init__(
             choices=choices,
             type=type,
-            default_value=default,
+            default_selected=default,
             label=label,
             optional=optional,
         )
@@ -245,7 +245,7 @@ class Dropdown(C_Dropdown):
         super().__init__(
             choices=choices,
             type=type,
-            default_value=default,
+            default_selected=default,
             label=label,
             optional=optional,
         )
@@ -489,12 +489,3 @@ class State(C_State):
             DeprecationWarning,
         )
         super().__init__(default_value=default, label=label, optional=optional)
-
-    def get_template_context(self):
-        return {"default": self.default, **super().get_template_context()}
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "state": {},
-        }

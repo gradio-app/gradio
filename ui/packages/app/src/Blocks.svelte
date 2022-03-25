@@ -30,6 +30,7 @@
 		outputs: Array<string>;
 	}
 
+	export let root: string;
 	export let fn: (...args: any) => Promise<unknown>;
 	export let components: Array<Component>;
 	export let layout: Layout;
@@ -124,7 +125,6 @@
 				if (handled_dependencies[i]?.includes(id) || !instance) return;
 				// console.log(trigger, target_instances, instance);
 				instance?.$on(trigger, () => {
-					console.log("boo");
 					fn("predict", {
 						fn_index: i,
 						data: inputs.map((id) => instance_map[id].value)
@@ -160,6 +160,7 @@
 				{children}
 				{instance_map}
 				{theme}
+				{root}
 				on:mount={handle_mount}
 				on:destroy={({ detail }) => handle_destroy(detail)}
 			/>

@@ -1,3 +1,4 @@
+import json
 import os
 import tempfile
 import unittest
@@ -11,26 +12,12 @@ import gradio as gr
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
-class OutputComponent(unittest.TestCase):
-    def test_as_component(self):
-        output = gr.outputs.OutputComponent(label="Test Input")
-        self.assertEqual(output.postprocess("Hello World!"), "Hello World!")
-        self.assertEqual(output.deserialize(1), 1)
-
-
 class TestTextbox(unittest.TestCase):
-    def test_as_component(self):
-        with self.assertRaises(ValueError):
-            wrong_type = gr.outputs.Textbox(type="unknown")
-            wrong_type.postprocess(0)
-
     def test_in_interface(self):
         iface = gr.Interface(lambda x: x[-1], "textbox", gr.outputs.Textbox())
         self.assertEqual(iface.process(["Hello"])[0], ["o"])
-        iface = gr.Interface(
-            lambda x: x / 2, "number", gr.outputs.Textbox(type="number")
-        )
-        self.assertEqual(iface.process([10])[0], [5])
+        iface = gr.Interface(lambda x: x / 2, "number", gr.outputs.Textbox())
+        self.assertEqual(iface.process([10])[0], ["5.0"])
 
 
 class TestLabel(unittest.TestCase):
@@ -86,9 +73,6 @@ class TestLabel(unittest.TestCase):
                     ],
                 },
             )
-        with self.assertRaises(ValueError):
-            label_output = gr.outputs.Label(type="unknown")
-            label_output.deserialize([1, 2, 3])
 
     def test_in_interface(self):
         x_img = gr.test_data.BASE64_IMAGE
@@ -189,36 +173,6 @@ class TestVideo(unittest.TestCase):
             self.assertEqual("video_output/1.mp4", to_save)
 
 
-class TestKeyValues(unittest.TestCase):
-    def test_as_component(self):
-        kv_output = gr.outputs.KeyValues()
-        kv_dict = {"a": 1, "b": 2}
-        kv_list = [("a", 1), ("b", 2)]
-        self.assertEqual(kv_output.postprocess(kv_dict), kv_list)
-        self.assertEqual(kv_output.postprocess(kv_list), kv_list)
-        with self.assertRaises(ValueError):
-            kv_output.postprocess(0)
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            to_save = kv_output.save_flagged(tmpdirname, "kv_output", kv_list, None)
-            self.assertEqual(to_save, '[["a", 1], ["b", 2]]')
-            self.assertEqual(
-                kv_output.restore_flagged(tmpdirname, to_save, None),
-                [["a", 1], ["b", 2]],
-            )
-
-    def test_in_interface(self):
-        def letter_distribution(word):
-            dist = {}
-            for letter in word:
-                dist[letter] = dist.get(letter, 0) + 1
-            return dist
-
-        iface = gr.Interface(letter_distribution, "text", "key_values")
-        self.assertListEqual(
-            iface.process(["alpaca"])[0][0], [("a", 3), ("l", 1), ("p", 1), ("c", 1)]
-        )
-
-
 class TestHighlightedText(unittest.TestCase):
     def test_as_component(self):
         ht_output = gr.outputs.HighlightedText(color_map={"pos": "green", "neg": "red"})
@@ -229,6 +183,8 @@ class TestHighlightedText(unittest.TestCase):
                 "name": "highlightedtext",
                 "label": None,
                 "show_legend": False,
+                "css": {},
+                "default_value": "",
             },
         )
         ht = {"pos": "Hello ", "neg": "World"}
@@ -275,21 +231,25 @@ class TestAudio(unittest.TestCase):
             )
         )
         self.assertEqual(
-            audio_output.get_template_context(), {"name": "audio", "label": None}
+            audio_output.get_template_context(),
+            {
+                "name": "audio",
+                "label": None,
+                "source": "upload",
+                "css": {},
+                "default_value": None,
+            },
         )
-        with self.assertRaises(ValueError):
-            wrong_type = gr.outputs.Audio(type="unknown")
-            wrong_type.postprocess(y_audio.name)
         self.assertTrue(
             audio_output.deserialize(gr.test_data.BASE64_AUDIO["data"]).endswith(".wav")
         )
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = audio_output.save_flagged(
-                tmpdirname, "audio_output", gr.test_data.BASE64_AUDIO["data"], None
+                tmpdirname, "audio_output", gr.test_data.BASE64_AUDIO, None
             )
             self.assertEqual("audio_output/0.wav", to_save)
             to_save = audio_output.save_flagged(
-                tmpdirname, "audio_output", gr.test_data.BASE64_AUDIO["data"], None
+                tmpdirname, "audio_output", gr.test_data.BASE64_AUDIO, None
             )
             self.assertEqual("audio_output/1.wav", to_save)
 
@@ -367,11 +327,11 @@ class TestFile(unittest.TestCase):
         file_output = gr.outputs.File()
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = file_output.save_flagged(
-                tmpdirname, "file_output", gr.test_data.BASE64_FILE, None
+                tmpdirname, "file_output", [gr.test_data.BASE64_FILE], None
             )
             self.assertEqual("file_output/0", to_save)
             to_save = file_output.save_flagged(
-                tmpdirname, "file_output", gr.test_data.BASE64_FILE, None
+                tmpdirname, "file_output", [gr.test_data.BASE64_FILE], None
             )
             self.assertEqual("file_output/1", to_save)
 
@@ -399,6 +359,17 @@ class TestDataframe(unittest.TestCase):
                 "overflow_row_behaviour": "paginate",
                 "name": "dataframe",
                 "label": None,
+                "css": {},
+                "datatype": "str",
+                "row_count": 3,
+                "col_count": 3,
+                "col_width": None,
+                "default_value": [
+                    [None, None, None],
+                    [None, None, None],
+                    [None, None, None],
+                ],
+                "name": "dataframe",
             },
         )
         with self.assertRaises(ValueError):
@@ -408,10 +379,21 @@ class TestDataframe(unittest.TestCase):
             to_save = dataframe_output.save_flagged(
                 tmpdirname, "dataframe_output", output, None
             )
-            self.assertEqual(to_save, "[[2, true], [3, true], [4, false]]")
+            self.assertEqual(
+                to_save,
+                json.dumps(
+                    {
+                        "headers": ["num", "prime"],
+                        "data": [[2, True], [3, True], [4, False]],
+                    }
+                ),
+            )
             self.assertEqual(
                 dataframe_output.restore_flagged(tmpdirname, to_save, None),
-                {"data": [[2, True], [3, True], [4, False]]},
+                {
+                    "headers": ["num", "prime"],
+                    "data": [[2, True], [3, True], [4, False]],
+                },
             )
 
     def test_in_interface(self):
@@ -448,9 +430,19 @@ class TestCarousel(unittest.TestCase):
         self.assertEqual(
             carousel_output.get_template_context(),
             {
-                "components": [{"name": "textbox", "label": None}],
+                "components": [
+                    {
+                        "name": "textbox",
+                        "label": None,
+                        "default_value": "",
+                        "lines": 1,
+                        "css": {},
+                        "placeholder": None,
+                    }
+                ],
                 "name": "carousel",
                 "label": "Disease",
+                "css": {},
             },
         )
         output = carousel_output.postprocess(["Hello World", "Bye World"])
@@ -501,7 +493,14 @@ class TestTimeseries(unittest.TestCase):
         timeseries_output = gr.outputs.Timeseries(label="Disease")
         self.assertEqual(
             timeseries_output.get_template_context(),
-            {"x": None, "y": None, "name": "timeseries", "label": "Disease"},
+            {
+                "x": None,
+                "y": None,
+                "name": "timeseries",
+                "label": "Disease",
+                "css": {},
+                "default_value": None,
+            },
         )
         data = {"Name": ["Tom", "nick", "krish", "jack"], "Age": [20, 21, 19, 18]}
         df = pd.DataFrame(data)
@@ -539,15 +538,6 @@ class TestTimeseries(unittest.TestCase):
                     "data": [["Tom", 20], ["nick", 21], ["krish", 19], ["jack", 18]],
                 },
             )
-
-
-class TestNames(unittest.TestCase):
-    def test_no_duplicate_uncased_names(
-        self,
-    ):  # this ensures that get_input_instance() works correctly when instantiating from components
-        subclasses = gr.outputs.OutputComponent.__subclasses__()
-        unique_subclasses_uncased = set([s.__name__.lower() for s in subclasses])
-        self.assertEqual(len(subclasses), len(unique_subclasses_uncased))
 
 
 if __name__ == "__main__":

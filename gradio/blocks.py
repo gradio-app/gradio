@@ -13,6 +13,12 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 class Block:
     def __init__(self):
+        self.render()
+
+    def render(self):
+        """
+        Adds self into appropriate BlockContext
+        """
         self._id = Context.id
         Context.id += 1
         if Context.block is not None:
@@ -55,8 +61,12 @@ class Block:
 
 
 class BlockContext(Block):
-    def __init__(self):
+    def __init__(self, css: Optional[Dict[str, str]] = None):
+        """
+        css: Css rules to apply to block.
+        """
         self.children = []
+        self.css = css if css is not None else {}
         super().__init__()
 
     def __enter__(self):
@@ -66,18 +76,42 @@ class BlockContext(Block):
     def __exit__(self, *args):
         Context.block = self.parent
 
+    def get_template_context(self):
+        return {"css": self.css}
+
 
 class Row(BlockContext):
+    def __init__(self, css: Optional[str] = None):
+        """
+        css: Css rules to apply to block.
+        """
+        super().__init__(css)
+
     def get_template_context(self):
-        return {"type": "row"}
+        return {"type": "row", **super().get_template_context()}
 
 
 class Column(BlockContext):
+    def __init__(self, css: Optional[str] = None):
+        """
+        css: Css rules to apply to block.
+        """
+        super().__init__(css)
+
     def get_template_context(self):
-        return {"type": "column"}
+        return {
+            "type": "column",
+            **super().get_template_context(),
+        }
 
 
 class Tabs(BlockContext):
+    def __init__(self, css: Optional[dict] = None):
+        """
+        css: css rules to apply to block.
+        """
+        super().__init__(css)
+
     def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
@@ -90,12 +124,16 @@ class Tabs(BlockContext):
 
 
 class TabItem(BlockContext):
-    def __init__(self, label):
+    def __init__(self, label, css: Optional[str] = None):
+        """
+        css: Css rules to apply to block.
+        """
+        super().__init__(css)
         self.label = label
         super(TabItem, self).__init__()
 
     def get_template_context(self):
-        return {"label": self.label}
+        return {"label": self.label, **super().get_template_context()}
 
     def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """

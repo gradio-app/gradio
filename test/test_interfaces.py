@@ -47,19 +47,10 @@ class TestInterface(unittest.TestCase):
     def test_examples_valid_path(self):
         path = os.path.join(os.path.dirname(__file__), "test_data/flagged_with_log")
         interface = Interface(lambda x: 3 * x, "number", "number", examples=path)
-        self.assertEqual(len(interface.get_config_file()["examples"]), 2)
-
-        path = os.path.join(os.path.dirname(__file__), "test_data/flagged_no_log")
-        interface = Interface(lambda x: 3 * x, "number", "number", examples=path)
-        self.assertEqual(len(interface.get_config_file()["examples"]), 3)
-
-    def test_examples_not_valid_path(self):
-        with self.assertRaises(FileNotFoundError):
-            interface = Interface(
-                lambda x: x, "textbox", "label", examples="invalid-path"
-            )
-            interface.launch(prevent_thread_lock=True)
-            interface.close()
+        dataset_check = any(
+            [c["type"] == "dataset" for c in interface.get_config_file()["components"]]
+        )
+        self.assertTrue(dataset_check)
 
     def test_test_launch(self):
         with captured_output() as (out, err):
@@ -106,14 +97,6 @@ class TestInterface(unittest.TestCase):
         repr = str(Interface(prediction_fn, "textbox", "label")).split("\n")
         self.assertTrue(prediction_fn.__name__ in repr[0])
         self.assertEqual(len(repr[0]), len(repr[1]))
-
-    def test_interface_load(self):
-        io = Interface.load(
-            "models/distilbert-base-uncased-finetuned-sst-2-english",
-            alias="sentiment_classifier",
-        )
-        output = io("I am happy, I love you.")
-        self.assertGreater(output["POSITIVE"], 0.5)
 
     def test_interface_none_interp(self):
         interface = Interface(lambda x: x, "textbox", "label", interpretation=[None])
