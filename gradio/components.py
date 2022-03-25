@@ -1055,8 +1055,11 @@ class Image(Component):
         else:
             self.type = type
 
-        self.default_value = processing_utils.encode_url_or_file_to_base64(
-            default_value) if default_value else None
+        self.default_value = (
+            processing_utils.encode_url_or_file_to_base64(default_value)
+            if default_value
+            else None
+        )
         self.type = type
         self.output_type = "auto"
         self.shape = shape
@@ -1374,8 +1377,11 @@ class Video(Component):
         label (str): component name in interface.
         optional (bool): If True, the interface can be submitted with no uploaded video, in which case the input value is None.
         """
-        self.default_value = processing_utils.encode_url_or_file_to_base64(
-            default_value) if default_value else None
+        self.default_value = (
+            processing_utils.encode_url_or_file_to_base64(default_value)
+            if default_value
+            else None
+        )
         self.type = type
         self.source = source
         super().__init__(label=label, css=css, **kwargs)
@@ -1540,8 +1546,11 @@ class Audio(Component):
         type (str): The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
         label (str): component name in interface.
         """
-        self.default_value = processing_utils.encode_url_or_file_to_base64(
-            default_value) if default_value else None
+        self.default_value = (
+            processing_utils.encode_url_or_file_to_base64(default_value)
+            if default_value
+            else None
+        )
         self.source = source
         requires_permissions = source == "microphone"
         self.type = type
@@ -1847,8 +1856,11 @@ class File(Component):
         """
         if "keep_filename" in kwargs:
             warnings.warn("keep_filename is deprecated", DeprecationWarning)
-        self.default_value = processing_utils.encode_url_or_file_to_base64(
-            default_value) if default_value else None
+        self.default_value = (
+            processing_utils.encode_url_or_file_to_base64(default_value)
+            if default_value
+            else None
+        )
         self.file_count = file_count
         self.type = type
         self.test_input = None
@@ -2166,9 +2178,7 @@ class Timeseries(Component):
         label (str): component name in interface.
         """
         self.default_value = (
-            pd.read_csv(default_value)
-            if default_value is not None
-            else None
+            pd.read_csv(default_value) if default_value is not None else None
         )
         self.x = x
         if isinstance(y, str):
