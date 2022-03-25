@@ -1988,7 +1988,7 @@ class Dataframe(Component):
     ):
         """
         Input Parameters:
-        default_value (List[List[Any]]): Default value
+        default_value (List[List[Any]]): Default value as a pandas DataFrame. TODO: Add support for default value as a filepath
         headers (List[str]): Header names to dataframe. If None, no headers are shown.
         row_count (int): Limit number of rows for input.
         col_count (int): Limit number of columns for input. If equal to 1, return data will be one-dimensional. Ignored if `headers` is provided.
@@ -2150,7 +2150,7 @@ class Timeseries(Component):
 
     def __init__(
         self,
-        default_value: str = "",
+        default_value: Optional[str] = None,
         *,
         x: Optional[str] = None,
         y: str | List[str] = None,
@@ -2160,13 +2160,16 @@ class Timeseries(Component):
     ):
         """
         Parameters:
-        default_value: File path for the timeseries csv file.
+        default_value: File path for the timeseries csv file. TODO: Add support for default value as a pd.DataFrame
         x (str): Column name of x (time) series. None if csv has no headers, in which case first column is x series.
         y (Union[str, List[str]]): Column name of y series, or list of column names if multiple series. None if csv has no headers, in which case every column after first is a y series.
         label (str): component name in interface.
         """
-        # TODO: Probably incorrect
-        self.default_value = pd.DataFrame(default_value)
+        self.default_value = (
+            pd.read_csv(default_value)
+            if default_value is not None
+            else None
+        )
         self.x = x
         if isinstance(y, str):
             y = [y]
