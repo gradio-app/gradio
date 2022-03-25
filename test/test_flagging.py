@@ -8,6 +8,7 @@ import huggingface_hub
 import gradio as gr
 from gradio import flagging
 
+
 class TestDefaultFlagging(unittest.TestCase):
     def test_default_flagging_callback(self):
         with tempfile.TemporaryDirectory() as tmpdirname:
