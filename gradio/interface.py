@@ -492,8 +492,8 @@ class Interface(Blocks):
                     for component in self.input_components:
                         component.render()
                     with Row():
-                        submit_btn = Button("Submit")
                         clear_btn = Button("Clear")
+                        submit_btn = Button("Submit")
                 with Column(
                     css={
                         "background-color": "rgb(249,250,251)",
@@ -502,7 +502,7 @@ class Interface(Blocks):
                     }
                 ):
                     for component in self.output_components:
-                        Block.__init__(component)
+                        component.render()
                     with Row():
                         flag_btn = Button("Flag")
             submit_btn.click(
