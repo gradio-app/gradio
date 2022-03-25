@@ -2783,7 +2783,9 @@ class Dataset(Component):
 
     def get_template_context(self):
         return {
-            "components": [component.__class__.__name__.lower() for component in self.components],
+            "components": [
+                component.__class__.__name__.lower() for component in self.components
+            ],
             "headers": self.headers,
             "samples": self.samples,
             **super().get_template_context(),

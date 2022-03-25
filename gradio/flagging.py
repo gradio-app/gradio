@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from gradio.components import Component
 
+
 class FlaggingCallback(ABC):
     """
     An abstract class for defining the methods that any FlaggingCallback should have.
@@ -102,7 +103,12 @@ class CSVLogger(FlaggingCallback):
     Logs the input and output data to a CSV file. Supports encryption.
     """
 
-    def setup(self, components: List[Component], flagging_dir: str, encryption_key: Optional[str] = None):
+    def setup(
+        self,
+        components: List[Component],
+        flagging_dir: str,
+        encryption_key: Optional[str] = None,
+    ):
         self.components = components
         self.flagging_dir = flagging_dir
         self.encryption_key = encryption_key
@@ -136,10 +142,11 @@ class CSVLogger(FlaggingCallback):
             csv_data.append(username if username is not None else "")
             csv_data.append(str(datetime.datetime.now()))
             if is_new:
-                headers = [
-                    component.label
-                    for component in self.components
-                ] + ["flag", "username", "timestamp"]
+                headers = [component.label for component in self.components] + [
+                    "flag",
+                    "username",
+                    "timestamp",
+                ]
 
         def replace_flag_at_index(file_content):
             file_content = io.StringIO(file_content)
@@ -171,9 +178,7 @@ class CSVLogger(FlaggingCallback):
                 writer.writerow(csv_data)
             with open(log_fp, "wb") as csvfile:
                 csvfile.write(
-                    encryptor.encrypt(
-                        self.encryption_key, output.getvalue().encode()
-                    )
+                    encryptor.encrypt(self.encryption_key, output.getvalue().encode())
                 )
         else:
             if flag_index is None:
@@ -313,9 +318,13 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             # Generate the row corresponding to the flagged sample
             csv_data = []
             for component, sample in zip(self.components, flag_data):
-                filepath = component.save_flagged(
-                    self.dataset_dir, component.label, sample, None
-                ) if sample is not None else ""
+                filepath = (
+                    component.save_flagged(
+                        self.dataset_dir, component.label, sample, None
+                    )
+                    if sample is not None
+                    else ""
+                )
                 csv_data.append(filepath)
                 if isinstance(component, tuple(file_preview_types)):
                     csv_data.append(
