@@ -195,9 +195,9 @@ class Interface(Blocks):
                 isinstance(i, i_State) for i in self.input_components
             ].index(True)
             state: i_State = self.input_components[state_param_index]
-            if state.default is None:
+            if state.default_value is None:
                 default = utils.get_default_args(fn[0])[state_param_index]
-                state.default = default
+                state.default_value = default
 
         if (
             interpretation is None

@@ -130,7 +130,7 @@ class TestNumber(unittest.TestCase):
         )
         self.assertEqual(
             numeric_input.get_template_context(),
-            {"default": None, "name": "number", "label": None, "css": {}},
+            {"default_value": None, "name": "number", "label": None, "css": {}},
         )
 
     def test_in_interface(self):
@@ -191,7 +191,7 @@ class TestSlider(unittest.TestCase):
                 "minimum": 10,
                 "maximum": 20,
                 "step": 1,
-                "default": 15,
+                "default_value": 15,
                 "name": "slider",
                 "label": "Slide Your Input",
                 "css": {},
@@ -253,7 +253,7 @@ class TestCheckbox(unittest.TestCase):
         self.assertEqual(
             bool_input.get_template_context(),
             {
-                "default": True,
+                "default_value": True,
                 "name": "checkbox",
                 "label": "Check Your Input",
                 "css": {},
@@ -295,7 +295,7 @@ class TestCheckboxGroup(unittest.TestCase):
             checkboxes_input.get_template_context(),
             {
                 "choices": ["a", "b", "c"],
-                "default": ["a", "c"],
+                "default_value": ["a", "c"],
                 "name": "checkboxgroup",
                 "label": "Check Your Inputs",
                 "css": {},
@@ -332,7 +332,7 @@ class TestRadio(unittest.TestCase):
             radio_input.get_template_context(),
             {
                 "choices": ["a", "b", "c"],
-                "default": "a",
+                "default_value": "a",
                 "name": "radio",
                 "label": "Pick Your One Input",
                 "css": {},
@@ -377,7 +377,7 @@ class TestDropdown(unittest.TestCase):
             dropdown_input.get_template_context(),
             {
                 "choices": ["a", "b", "c"],
-                "default": "a",
+                "default_value": "a",
                 "name": "dropdown",
                 "label": "Drop Your Input",
                 "css": {},
@@ -434,6 +434,7 @@ class TestImage(unittest.TestCase):
                 "name": "image",
                 "label": "Upload Your Image",
                 "css": {},
+                "default_value": None,
             },
         )
         self.assertIsNone(image_input.preprocess(None))
@@ -531,6 +532,7 @@ class TestAudio(unittest.TestCase):
                 "name": "audio",
                 "label": "Upload Your Audio",
                 "css": {},
+                "default_value": None,
             },
         )
         self.assertIsNone(audio_input.preprocess(None))
@@ -590,6 +592,7 @@ class TestFile(unittest.TestCase):
                 "name": "file",
                 "label": "Upload Your File",
                 "css": {},
+                "default_value": None,
             },
         )
         self.assertIsNone(file_input.preprocess(None))
@@ -636,7 +639,11 @@ class TestDataframe(unittest.TestCase):
                 "row_count": 3,
                 "col_count": 3,
                 "col_width": None,
-                "default": [[None, None, None], [None, None, None], [None, None, None]],
+                "default_value": [
+                    [None, None, None],
+                    [None, None, None],
+                    [None, None, None],
+                ],
                 "name": "dataframe",
                 "label": "Dataframe Input",
                 "max_rows": 20,
@@ -689,6 +696,7 @@ class TestVideo(unittest.TestCase):
                 "name": "video",
                 "label": "Upload Your Video",
                 "css": {},
+                "default_value": None,
             },
         )
         self.assertIsNone(video_input.preprocess(None))
@@ -735,6 +743,7 @@ class TestTimeseries(unittest.TestCase):
                 "name": "timeseries",
                 "label": "Upload Your Timeseries",
                 "css": {},
+                "default_value": None,
             },
         )
         self.assertIsNone(timeseries_input.preprocess(None))

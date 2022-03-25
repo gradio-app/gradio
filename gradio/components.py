@@ -245,7 +245,7 @@ class Textbox(Component):
         default_value = str(default_value)
         self.lines = lines
         self.placeholder = placeholder
-        self.default = default_value
+        self.default_value = default_value
         self.test_input = default_value
         self.interpret_by_tokens = True
         super().__init__(label=label, css=css, **kwargs)
@@ -254,7 +254,7 @@ class Textbox(Component):
         return {
             "lines": self.lines,
             "placeholder": self.placeholder,
-            "default": self.default,
+            "default_value": self.default_value,
             **super().get_template_context(),
         }
 
@@ -411,13 +411,13 @@ class Number(Component):
         default_value (float): default value.
         label (str): component name in interface.
         """
-        self.default = float(default_value) if default_value is not None else None
-        self.test_input = self.default if self.default is not None else 1
+        self.default_value = float(default_value) if default_value is not None else None
+        self.test_input = self.default_value if self.default_value is not None else 1
         self.interpret_by_tokens = False
         super().__init__(label=label, css=css, **kwargs)
 
     def get_template_context(self):
-        return {"default": self.default, **super().get_template_context()}
+        return {"default_value": self.default_value, **super().get_template_context()}
 
     @classmethod
     def get_shortcut_implementations(cls):
@@ -558,8 +558,8 @@ class Slider(Component):
             power = math.floor(math.log10(difference) - 2)
             step = 10**power
         self.step = step
-        self.default = minimum if default_value is None else default_value
-        self.test_input = self.default
+        self.default_value = minimum if default_value is None else default_value
+        self.test_input = self.default_value
         self.interpret_by_tokens = False
         super().__init__(label=label, css=css, **kwargs)
 
@@ -568,7 +568,7 @@ class Slider(Component):
             "minimum": self.minimum,
             "maximum": self.maximum,
             "step": self.step,
-            "default": self.default,
+            "default_value": self.default_value,
             **super().get_template_context(),
         }
 
@@ -669,12 +669,12 @@ class Checkbox(Component):
         label (str): component name in interface.
         """
         self.test_input = True
-        self.default = default_value
+        self.default_value = default_value
         self.interpret_by_tokens = False
         super().__init__(label=label, css=css, **kwargs)
 
     def get_template_context(self):
-        return {"default": self.default, **super().get_template_context()}
+        return {"default_value": self.default_value, **super().get_template_context()}
 
     @classmethod
     def get_shortcut_implementations(cls):
@@ -774,7 +774,7 @@ class CheckboxGroup(Component):
         ):  # Mutable parameters shall not be given as default parameters in the function.
             default_selected = []
         self.choices = choices
-        self.default = default_selected
+        self.default_value = default_selected
         self.type = type
         self.test_input = self.choices
         self.interpret_by_tokens = False
@@ -783,7 +783,7 @@ class CheckboxGroup(Component):
     def get_template_context(self):
         return {
             "choices": self.choices,
-            "default": self.default,
+            "default_value": self.default_value,
             **super().get_template_context(),
         }
 
@@ -900,7 +900,7 @@ class Radio(Component):
         self.choices = choices
         self.type = type
         self.test_input = self.choices[0]
-        self.default = (
+        self.default_value = (
             default_selected if default_selected is not None else self.choices[0]
         )
         self.interpret_by_tokens = False
@@ -909,7 +909,7 @@ class Radio(Component):
     def get_template_context(self):
         return {
             "choices": self.choices,
-            "default": self.default,
+            "default_value": self.default_value,
             **super().get_template_context(),
         }
 
@@ -1023,7 +1023,7 @@ class Image(Component):
 
     def __init__(
         self,
-        default_value=None,
+        default_value: Optional[str] = None,
         *,
         shape: Tuple[int, int] = None,
         image_mode: str = "RGB",
@@ -1037,7 +1037,7 @@ class Image(Component):
     ):
         """
         Parameters:
-        default_value(str): IGNORED
+        default_value(str): A path or URL for the default value that Image component is going to take.
         shape (Tuple[int, int]): (width, height) shape to crop and resize image to; if None, matches input image size.
         image_mode (str): "RGB" if color, or "L" if black and white.
         invert_colors (bool): whether to invert the image as a preprocessing step.
@@ -1055,6 +1055,11 @@ class Image(Component):
         else:
             self.type = type
 
+        self.default_value = (
+            processing_utils.encode_url_or_file_to_base64(default_value)
+            if default_value
+            else None
+        )
         self.type = type
         self.output_type = "auto"
         self.shape = shape
@@ -1090,6 +1095,7 @@ class Image(Component):
             "shape": self.shape,
             "source": self.source,
             "tool": self.tool,
+            "default_value": self.default_value,
             **super().get_template_context(),
         }
 
@@ -1355,7 +1361,7 @@ class Video(Component):
 
     def __init__(
         self,
-        default_value="",
+        default_value: str = "",
         *,
         type: Optional[str] = None,
         source: str = "upload",
@@ -1365,12 +1371,17 @@ class Video(Component):
     ):
         """
         Parameters:
-        default_value (str): IGNORED
+        default_value(str): A path or URL for the default value that Video component is going to take.
         type (str): Type of video format to be returned by component, such as 'avi' or 'mp4'. Use 'mp4' to ensure browser playability. If set to None, video will keep uploaded format.
         source (str): Source of video. "upload" creates a box where user can drop an video file, "webcam" allows user to record a video from their webcam.
         label (str): component name in interface.
         optional (bool): If True, the interface can be submitted with no uploaded video, in which case the input value is None.
         """
+        self.default_value = (
+            processing_utils.encode_url_or_file_to_base64(default_value)
+            if default_value
+            else None
+        )
         self.type = type
         self.source = source
         super().__init__(label=label, css=css, **kwargs)
@@ -1385,6 +1396,7 @@ class Video(Component):
     def get_template_context(self):
         return {
             "source": self.source,
+            "default_value": self.default_value,
             **super().get_template_context(),
         }
 
@@ -1534,6 +1546,11 @@ class Audio(Component):
         type (str): The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
         label (str): component name in interface.
         """
+        self.default_value = (
+            processing_utils.encode_url_or_file_to_base64(default_value)
+            if default_value
+            else None
+        )
         self.source = source
         requires_permissions = source == "microphone"
         self.type = type
@@ -1547,6 +1564,7 @@ class Audio(Component):
     def get_template_context(self):
         return {
             "source": self.source,  # TODO: This did not exist in output template, careful here if an error arrives
+            "default_value": self.default_value,
             **super().get_template_context(),
         }
 
@@ -1831,13 +1849,18 @@ class File(Component):
     ):
         """
         Parameters:
-        default_value (str): IGNORED
+        default_value (str): Default value given as file path
         file_count (str): if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
         type (str): Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name, "binary" returns an bytes object.
         label (str): component name in interface.
         """
         if "keep_filename" in kwargs:
             warnings.warn("keep_filename is deprecated", DeprecationWarning)
+        self.default_value = (
+            processing_utils.encode_url_or_file_to_base64(default_value)
+            if default_value
+            else None
+        )
         self.file_count = file_count
         self.type = type
         self.test_input = None
@@ -1846,6 +1869,7 @@ class File(Component):
     def get_template_context(self):
         return {
             "file_count": self.file_count,
+            "default_value": self.default_value,
             **super().get_template_context(),
         }
 
@@ -1976,7 +2000,7 @@ class Dataframe(Component):
     ):
         """
         Input Parameters:
-        default_value (List[List[Any]]): Default value
+        default_value (List[List[Any]]): Default value as a pandas DataFrame. TODO: Add support for default value as a filepath
         headers (List[str]): Header names to dataframe. If None, no headers are shown.
         row_count (int): Limit number of rows for input.
         col_count (int): Limit number of columns for input. If equal to 1, return data will be one-dimensional. Ignored if `headers` is provided.
@@ -1997,7 +2021,7 @@ class Dataframe(Component):
         self.col_width = col_width
         self.type = type
         self.output_type = "auto"
-        self.default = (
+        self.default_value = (
             default_value
             if default_value is not None
             else [[None for _ in range(self.col_count)] for _ in range(self.row_count)]
@@ -2026,7 +2050,7 @@ class Dataframe(Component):
             "row_count": self.row_count,
             "col_count": self.col_count,
             "col_width": self.col_width,
-            "default": self.default,
+            "default_value": self.default_value,
             "max_rows": self.max_rows,
             "max_cols": self.max_cols,
             "overflow_row_behaviour": self.overflow_row_behaviour,
@@ -2138,7 +2162,7 @@ class Timeseries(Component):
 
     def __init__(
         self,
-        default_value=None,
+        default_value: Optional[str] = None,
         *,
         x: Optional[str] = None,
         y: str | List[str] = None,
@@ -2148,11 +2172,14 @@ class Timeseries(Component):
     ):
         """
         Parameters:
-        default_value: IGNORED
+        default_value: File path for the timeseries csv file. TODO: Add support for default value as a pd.DataFrame
         x (str): Column name of x (time) series. None if csv has no headers, in which case first column is x series.
         y (Union[str, List[str]]): Column name of y series, or list of column names if multiple series. None if csv has no headers, in which case every column after first is a y series.
         label (str): component name in interface.
         """
+        self.default_value = (
+            pd.read_csv(default_value) if default_value is not None else None
+        )
         self.x = x
         if isinstance(y, str):
             y = [y]
@@ -2163,6 +2190,7 @@ class Timeseries(Component):
         return {
             "x": self.x,
             "y": self.y,
+            "default_value": self.default_value,
             **super().get_template_context(),
         }
 
@@ -2249,11 +2277,11 @@ class State(Component):
         default_value (Any): the initial value of the state.
         label (str): component name in interface (not used).
         """
-        self.default = default_value
+        self.default_value = default_value
         super().__init__(label=label, css=css, **kwargs)
 
     def get_template_context(self):
-        return {"default": self.default, **super().get_template_context()}
+        return {"default_value": self.default_value, **super().get_template_context()}
 
     @classmethod
     def get_shortcut_implementations(cls):
@@ -2283,10 +2311,11 @@ class Label(Component):
     ):
         """
         Parameters:
-        default_value(str): IGNORED
+        default_value(str): Default string value
         num_top_classes (int): number of most confident classes to show.
         label (str): component name in interface.
         """
+        # TODO: Shall we have a default value for the label component?
         self.num_top_classes = num_top_classes
         self.output_type = "auto"
         super().__init__(label=label, css=css, **kwargs)
@@ -2425,11 +2454,12 @@ class HighlightedText(Component):
     ):
         """
         Parameters:
-        default_value (str): IGNORED
+        default_value (str): Default value
         color_map (Dict[str, str]): Map between category and respective colors
         label (str): component name in interface.
         show_legend (bool): whether to show span categories in a separate legend or inline.
         """
+        self.default_value = default_value
         self.color_map = color_map
         self.show_legend = show_legend
         super().__init__(label=label, css=css, **kwargs)
@@ -2438,6 +2468,7 @@ class HighlightedText(Component):
         return {
             "color_map": self.color_map,
             "show_legend": self.show_legend,
+            "default_value": self.default_value,
             **super().get_template_context(),
         }
 
@@ -2491,10 +2522,17 @@ class JSON(Component):
     ):
         """
         Parameters:
-        default_value (str): IGNORED
+        default_value (str): Default value
         label (str): component name in interface.
         """
+        self.default_value = json.dumps(default_value)
         super().__init__(label=label, css=css, **kwargs)
+
+    def get_template_context(self):
+        return {
+            "default_value": self.default_value,
+            **super().get_template_context(),
+        }
 
     def postprocess(self, y):
         """
@@ -2547,10 +2585,17 @@ class HTML(Component):
     ):
         """
         Parameters:
-        default_value (str): IGNORED
+        default_value (str): Default value
         label (str): component name in interface.
         """
+        self.default_value = default_value
         super().__init__(label=label, css=css, **kwargs)
+
+    def get_template_context(self):
+        return {
+            "default_value": self.default_value,
+            **super().get_template_context(),
+        }
 
     def postprocess(self, x):
         """
@@ -2600,6 +2645,7 @@ class Carousel(Component):
         components (Union[List[OutputComponent], OutputComponent]): Classes of component(s) that will be scrolled through.
         label (str): component name in interface.
         """
+        # TODO: Shall we havea default value in carousel?
         if not isinstance(components, list):
             components = [components]
         self.components = [
@@ -2685,13 +2731,14 @@ class Chatbot(Component):
     ):
         """
         Parameters:
-        default_value (str): IGNORED
+        default_value (str): Default value
         label (str): component name in interface (not used).
         """
+        self.default_value = default_value
         super().__init__(label=label, css=css, **kwargs)
 
     def get_template_context(self):
-        return {**super().get_template_context()}
+        return {"default_value": self.default_value, **super().get_template_context()}
 
     @classmethod
     def get_shortcut_implementations(cls):
@@ -2734,12 +2781,18 @@ class Markdown(Component):
         css: Optional[Dict] = None,
         **kwargs,
     ):
+        """
+        Parameters:
+        default_value (str): Default value
+        label (str): component name
+        css (dict): optional css parameters for the component
+        """
         super().__init__(label=label, css=css, **kwargs)
         self.md = MarkdownIt()
-        self.value = self.md.render(default_value)
+        self.default_value = self.md.render(default_value)
 
     def get_template_context(self):
-        return {"value": self.value, **super().get_template_context()}
+        return {"default_value": self.default_value, **super().get_template_context()}
 
 
 class Button(Component):
@@ -2755,11 +2808,17 @@ class Button(Component):
         css: Optional[Dict] = None,
         **kwargs,
     ):
+        """
+        Parameters:
+        default_value (str): Default value
+        label (str): component name
+        css (dict): optional css parameters for the component
+        """
         super().__init__(label=label, css=css, **kwargs)
-        self.value = default_value
+        self.default_value = default_value
 
     def get_template_context(self):
-        return {"value": self.value, **super().get_template_context()}
+        return {"default_value": self.default_value, **super().get_template_context()}
 
     def click(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
@@ -2792,7 +2851,6 @@ class Dataset(Component):
         self.components = components
         self.headers = [c.label for c in components]
         self.samples = samples
-        self.value = value
 
     def get_template_context(self):
         return {
