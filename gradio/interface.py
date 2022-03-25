@@ -6,6 +6,7 @@ including various methods for constructing an interface and then launching it.
 from __future__ import annotations
 
 import copy
+import inspect
 import os
 import random
 import re
@@ -18,12 +19,12 @@ from markdown_it import MarkdownIt
 from mdit_py_plugins.footnote import footnote_plugin
 
 from gradio import interpretation, utils
-from gradio.blocks import BlockContext, Block, Column, Row, Blocks
+from gradio.blocks import Block, BlockContext, Blocks, Column, Row
 from gradio.components import (
     Button,
     Component,
-    Markdown,
     Dataset,
+    Markdown,
     get_component_instance,
 )
 from gradio.external import load_from_pipeline, load_interface  # type: ignore
@@ -33,7 +34,6 @@ from gradio.launchable import Launchable
 from gradio.outputs import State as o_State  # type: ignore
 from gradio.process_examples import load_from_cache, process_example
 from gradio.routes import predict
-import inspect
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     import flask

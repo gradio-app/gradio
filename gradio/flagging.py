@@ -6,12 +6,10 @@ import io
 import json
 import os
 from abc import ABC, abstractmethod
-from typing import Any, List, Optional
+from typing import TYPE_CHECKING, Any, List, Optional
 
 import gradio as gr
 from gradio import encryptor
-from gradio import components
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from gradio.components import Component
