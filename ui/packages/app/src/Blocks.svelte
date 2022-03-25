@@ -68,7 +68,7 @@
 				const c = await component_map[name]();
 				res({ name, component: c });
 			} catch (e) {
-				console.log(name)
+				console.log(name);
 				rej(e);
 			}
 		});
