@@ -9,6 +9,7 @@ import warnings
 import aiohttp
 from fastapi.testclient import TestClient
 
+import gradio as gr
 from gradio import Interface, flagging, networking
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
@@ -52,7 +53,7 @@ class TestStartServer(unittest.TestCase):
         io.favicon_path = None
         io.config = io.get_config_file()
         io.show_error = True
-        io.flagging_callback.setup(io.flagging_dir)
+        io.flagging_callback.setup(gr.Number(), io.flagging_dir)
         io.auth = None
 
         port = networking.get_first_available_port(
