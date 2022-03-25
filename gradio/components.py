@@ -1056,7 +1056,7 @@ class Image(Component):
             self.type = type
 
         self.default_value = processing_utils.encode_url_or_file_to_base64(
-            default_value) if default_value is not None else None
+            default_value) if default_value else None
         self.type = type
         self.output_type = "auto"
         self.shape = shape
@@ -1071,7 +1071,8 @@ class Image(Component):
             label=label, requires_permissions=requires_permissions, **kwargs
         )
 
-    def get_shortcut_implementations(self):
+    @classmethod
+    def get_shortcut_implementations(cls):
         return {
             "image": {},
             "webcam": {"source": "webcam"},
@@ -1083,7 +1084,6 @@ class Image(Component):
             },
             "plot": {"type": "plot"},
             "pil": {"type": "pil"},
-            "default_value": self.default_value,
         }
 
     def get_template_context(self):
@@ -1375,7 +1375,7 @@ class Video(Component):
         optional (bool): If True, the interface can be submitted with no uploaded video, in which case the input value is None.
         """
         self.default_value = processing_utils.encode_url_or_file_to_base64(
-            default_value) if default_value is not None else None
+            default_value) if default_value else None
         self.type = type
         self.source = source
         super().__init__(label=label, css=css, **kwargs)
@@ -1541,7 +1541,7 @@ class Audio(Component):
         label (str): component name in interface.
         """
         self.default_value = processing_utils.encode_url_or_file_to_base64(
-            default_value) if default_value is not None else None
+            default_value) if default_value else None
         self.source = source
         requires_permissions = source == "microphone"
         self.type = type
@@ -1848,7 +1848,7 @@ class File(Component):
         if "keep_filename" in kwargs:
             warnings.warn("keep_filename is deprecated", DeprecationWarning)
         self.default_value = processing_utils.encode_url_or_file_to_base64(
-            default_value) if default_value is not None else None
+            default_value) if default_value else None
         self.file_count = file_count
         self.type = type
         self.test_input = None
