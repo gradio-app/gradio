@@ -2105,6 +2105,8 @@ class Dataframe(Component):
                 dtype = "numpy"
             elif isinstance(y, list):
                 dtype = "array"
+            else:
+                raise ValueError("Cannot determine the type of DataFrame output.")
         else:
             dtype = self.output_type
         if dtype == "pandas":
