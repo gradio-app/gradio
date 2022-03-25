@@ -245,7 +245,7 @@ class Textbox(Component):
         default_value = str(default_value)
         self.lines = lines
         self.placeholder = placeholder
-        self.default = default_value
+        self.default_value = default_value
         self.test_input = default_value
         self.interpret_by_tokens = True
         super().__init__(label=label, css=css, **kwargs)
@@ -254,7 +254,7 @@ class Textbox(Component):
         return {
             "lines": self.lines,
             "placeholder": self.placeholder,
-            "default": self.default,
+            "default_value": self.default_value,
             **super().get_template_context(),
         }
 
@@ -411,13 +411,13 @@ class Number(Component):
         default_value (float): default value.
         label (str): component name in interface.
         """
-        self.default = float(default_value) if default_value is not None else None
-        self.test_input = self.default if self.default is not None else 1
+        self.default_value = float(default_value) if default_value is not None else None
+        self.test_input = self.default_value if self.default_value is not None else 1
         self.interpret_by_tokens = False
         super().__init__(label=label, css=css, **kwargs)
 
     def get_template_context(self):
-        return {"default": self.default, **super().get_template_context()}
+        return {"default_value": self.default_value, **super().get_template_context()}
 
     @classmethod
     def get_shortcut_implementations(cls):
@@ -558,8 +558,8 @@ class Slider(Component):
             power = math.floor(math.log10(difference) - 2)
             step = 10**power
         self.step = step
-        self.default = minimum if default_value is None else default_value
-        self.test_input = self.default
+        self.default_value = minimum if default_value is None else default_value
+        self.test_input = self.default_value
         self.interpret_by_tokens = False
         super().__init__(label=label, css=css, **kwargs)
 
@@ -568,7 +568,7 @@ class Slider(Component):
             "minimum": self.minimum,
             "maximum": self.maximum,
             "step": self.step,
-            "default": self.default,
+            "default_value": self.default_value,
             **super().get_template_context(),
         }
 
@@ -669,12 +669,12 @@ class Checkbox(Component):
         label (str): component name in interface.
         """
         self.test_input = True
-        self.default = default_value
+        self.default_value = default_value
         self.interpret_by_tokens = False
         super().__init__(label=label, css=css, **kwargs)
 
     def get_template_context(self):
-        return {"default": self.default, **super().get_template_context()}
+        return {"default_value": self.default_value, **super().get_template_context()}
 
     @classmethod
     def get_shortcut_implementations(cls):
@@ -774,7 +774,7 @@ class CheckboxGroup(Component):
         ):  # Mutable parameters shall not be given as default parameters in the function.
             default_selected = []
         self.choices = choices
-        self.default = default_selected
+        self.default_value = default_selected
         self.type = type
         self.test_input = self.choices
         self.interpret_by_tokens = False
@@ -783,7 +783,7 @@ class CheckboxGroup(Component):
     def get_template_context(self):
         return {
             "choices": self.choices,
-            "default": self.default,
+            "default_value": self.default_value,
             **super().get_template_context(),
         }
 
@@ -900,7 +900,7 @@ class Radio(Component):
         self.choices = choices
         self.type = type
         self.test_input = self.choices[0]
-        self.default = (
+        self.default_value = (
             default_selected if default_selected is not None else self.choices[0]
         )
         self.interpret_by_tokens = False
@@ -909,7 +909,7 @@ class Radio(Component):
     def get_template_context(self):
         return {
             "choices": self.choices,
-            "default": self.default,
+            "default_value": self.default_value,
             **super().get_template_context(),
         }
 
@@ -1997,7 +1997,7 @@ class Dataframe(Component):
         self.col_width = col_width
         self.type = type
         self.output_type = "auto"
-        self.default = (
+        self.default_value = (
             default_value
             if default_value is not None
             else [[None for _ in range(self.col_count)] for _ in range(self.row_count)]
@@ -2026,7 +2026,7 @@ class Dataframe(Component):
             "row_count": self.row_count,
             "col_count": self.col_count,
             "col_width": self.col_width,
-            "default": self.default,
+            "default_value": self.default_value,
             "max_rows": self.max_rows,
             "max_cols": self.max_cols,
             "overflow_row_behaviour": self.overflow_row_behaviour,
@@ -2247,11 +2247,11 @@ class State(Component):
         default_value (Any): the initial value of the state.
         label (str): component name in interface (not used).
         """
-        self.default = default_value
+        self.default_value = default_value
         super().__init__(label=label, css=css, **kwargs)
 
     def get_template_context(self):
-        return {"default": self.default, **super().get_template_context()}
+        return {"default_value": self.default_value, **super().get_template_context()}
 
     @classmethod
     def get_shortcut_implementations(cls):

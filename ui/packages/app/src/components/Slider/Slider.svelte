@@ -9,7 +9,7 @@
 	export let step: number;
 	export let mode: "static" | "dynamic";
 
-	if ($$props.default) value = $$props.default;
+	if ($$props.default_value) value = $$props.default_value;
 </script>
 
 <Range
