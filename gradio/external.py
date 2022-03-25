@@ -301,8 +301,8 @@ def interface_params_from_config(config_dict):
 def get_spaces_interface(model_name, api_key, alias):
     space_url = "https://huggingface.co/spaces/{}".format(model_name)
     print("Fetching interface from: {}".format(space_url))
-    iframe_url = "https://huggingface.co/gradioiframe/{}/+".format(model_name)
-    api_url = "https://huggingface.co/gradioiframe/{}/api/predict/".format(model_name)
+    iframe_url = "https://hf.space/embed/{}/+".format(model_name)
+    api_url = "https://hf.space/embed/{}/api/predict/".format(model_name)
     headers = {"Content-Type": "application/json"}
 
     r = requests.get(iframe_url)
