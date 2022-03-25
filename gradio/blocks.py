@@ -106,9 +106,9 @@ class Column(BlockContext):
 
 
 class Tabs(BlockContext):
-    def __init__(self, css: Optional[str] = None):
+    def __init__(self, css: Optional[dict] = None):
         """
-        css: Css rules to apply to block.
+        css: css rules to apply to block.
         """
         super().__init__(css)
 

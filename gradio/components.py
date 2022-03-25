@@ -2722,6 +2722,9 @@ class Chatbot(Component):
 
 # Static Components
 class Markdown(Component):
+    """
+    Used for Markdown output. Expects a valid string that is rendered into Markdown.
+    """
     def __init__(
         self,
         default_value: str = "",
@@ -2739,6 +2742,9 @@ class Markdown(Component):
 
 
 class Button(Component):
+    """
+    Used to create a button, that can be assigned arbitrary click() events.
+    """
     def __init__(
         self,
         default_value: str = "",
@@ -2765,6 +2771,10 @@ class Button(Component):
 
 
 class Dataset(Component):
+    """
+    Used to create a output widget for showing datasets. Used to render the examples
+    box in the interface.
+    """
     def __init__(
         self,
         *,
