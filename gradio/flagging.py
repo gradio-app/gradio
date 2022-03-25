@@ -73,7 +73,7 @@ class SimpleCSVLogger(FlaggingCallback):
         username: Optional[str] = None,
     ) -> int:
         flagging_dir = self.flagging_dir
-        log_filepath = "{}/log.csv".format(flagging_dir)
+        log_filepath = os.path.join(flagging_dir, "log.csv")
 
         csv_data = []
         for component, sample in zip(self.components, flag_data):
@@ -120,8 +120,8 @@ class CSVLogger(FlaggingCallback):
         username: Optional[str] = None,
     ) -> int:
         flagging_dir = self.flagging_dir
-        log_fp = "{}/log.csv".format(flagging_dir)
-        is_new = not os.path.exists(log_fp)
+        log_filepath = os.path.join(flagging_dir, "log.csv")
+        is_new = not os.path.exists(log_filepath)
 
         if flag_index is None:
             csv_data = []
@@ -160,7 +160,7 @@ class CSVLogger(FlaggingCallback):
         if self.encryption_key:
             output = io.StringIO()
             if not is_new:
-                with open(log_fp, "rb") as csvfile:
+                with open(log_filepath, "rb") as csvfile:
                     encrypted_csv = csvfile.read()
                     decrypted_csv = encryptor.decrypt(
                         self.encryption_key, encrypted_csv
@@ -174,26 +174,26 @@ class CSVLogger(FlaggingCallback):
                 if is_new:
                     writer.writerow(headers)
                 writer.writerow(csv_data)
-            with open(log_fp, "wb") as csvfile:
+            with open(log_filepath, "wb") as csvfile:
                 csvfile.write(
                     encryptor.encrypt(self.encryption_key, output.getvalue().encode())
                 )
         else:
             if flag_index is None:
-                with open(log_fp, "a", newline="") as csvfile:
+                with open(log_filepath, "a", newline="") as csvfile:
                     writer = csv.writer(csvfile)
                     if is_new:
                         writer.writerow(headers)
                     writer.writerow(csv_data)
             else:
-                with open(log_fp) as csvfile:
+                with open(log_filepath) as csvfile:
                     file_content = csvfile.read()
                     file_content = replace_flag_at_index(file_content)
                 with open(
-                    log_fp, "w", newline=""
+                    log_filepath, "w", newline=""
                 ) as csvfile:  # newline parameter needed for Windows
                     csvfile.write(file_content)
-        with open(log_fp, "r") as csvfile:
+        with open(log_filepath, "r") as csvfile:
             line_count = len([None for row in csv.reader(csvfile)]) - 1
         return line_count
 
