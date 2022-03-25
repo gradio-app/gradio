@@ -184,6 +184,7 @@ class TestHighlightedText(unittest.TestCase):
                 "label": None,
                 "show_legend": False,
                 "css": {},
+                "default_value": "",
             },
         )
         ht = {"pos": "Hello ", "neg": "World"}
@@ -231,7 +232,13 @@ class TestAudio(unittest.TestCase):
         )
         self.assertEqual(
             audio_output.get_template_context(),
-            {"name": "audio", "label": None, "source": "upload", "css": {}},
+            {
+                "name": "audio",
+                "label": None,
+                "source": "upload",
+                "css": {},
+                "default_value": None,
+            },
         )
         self.assertTrue(
             audio_output.deserialize(gr.test_data.BASE64_AUDIO["data"]).endswith(".wav")
@@ -357,7 +364,11 @@ class TestDataframe(unittest.TestCase):
                 "row_count": 3,
                 "col_count": 3,
                 "col_width": None,
-                "default": [[None, None, None], [None, None, None], [None, None, None]],
+                "default_value": [
+                    [None, None, None],
+                    [None, None, None],
+                    [None, None, None],
+                ],
                 "name": "dataframe",
             },
         )
@@ -423,7 +434,7 @@ class TestCarousel(unittest.TestCase):
                     {
                         "name": "textbox",
                         "label": None,
-                        "default": "",
+                        "default_value": "",
                         "lines": 1,
                         "css": {},
                         "placeholder": None,
@@ -482,7 +493,14 @@ class TestTimeseries(unittest.TestCase):
         timeseries_output = gr.outputs.Timeseries(label="Disease")
         self.assertEqual(
             timeseries_output.get_template_context(),
-            {"x": None, "y": None, "name": "timeseries", "label": "Disease", "css": {}},
+            {
+                "x": None,
+                "y": None,
+                "name": "timeseries",
+                "label": "Disease",
+                "css": {},
+                "default_value": None,
+            },
         )
         data = {"Name": ["Tom", "nick", "krish", "jack"], "Age": [20, 21, 19, 18]}
         df = pd.DataFrame(data)
