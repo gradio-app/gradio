@@ -1,9 +1,17 @@
-def test_context():
-    from gradio.context import Context
+# import unittest
 
-    assert Context.id == 0
-    Context.id += 1
-    assert Context.id == 1
-    Context.root_block = {}
-    Context.root_block["1"] = 1
-    assert Context.root_block == {"1": 1}
+# from gradio.context import Context
+
+
+# class TestContext(unittest.TestCase):
+#     def test_context(self):
+#         self.assertEqual(Context.id, 0)
+#         Context.id += 1
+#         self.assertEqual(Context.id, 1)
+#         Context.root_block = {}
+#         Context.root_block["1"] = 1
+#         self.assertEqual(Context.root_block, {"1": 1})
+
+
+# if __name__ == "__main__":
+#     unittest.main()

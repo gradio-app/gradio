@@ -616,35 +616,6 @@ class Interface(Launchable):
             return predictions
 
     def process_api(self, data: Dict[str, Any], username: str = None) -> Dict[str, Any]:
-        flag_index = None
-        if data.get("example_id") is not None:
-            example_id = data["example_id"]
-            if self.cache_examples:
-                prediction = load_from_cache(self, example_id)
-                durations = None
-            else:
-                prediction, durations = process_example(self, example_id)
-        else:
-            raw_input = data["data"]
-            prediction, durations = self.process(raw_input)
-            if self.allow_flagging == "auto":
-                flag_index = self.flagging_callback.flag(
-                    self,
-                    raw_input,
-                    prediction,
-                    flag_option="" if self.flagging_options else None,
-                    username=username,
-                )
-
-        return {
-            "data": prediction,
-            "durations": durations,
-            "avg_durations": self.config.get("avg_durations"),
-            "flag_index": flag_index,
-        }
-
-    # TODO: Remove duplicate process_api, Ali Abid what is it for?
-    def process_api(self, data: Dict[str, Any], username: str = None) -> Dict[str, Any]:
         class RequestApi:
             SUBMIT = 0
             CLEAR = 1
