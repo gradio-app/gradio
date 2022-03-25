@@ -2,7 +2,7 @@
 	import { playable } from "../../utils/helpers";
 
 	export let value: string;
-	export let examples_dir: string;
+	export let samples_dir: string;
 	let video: HTMLVideoElement;
 </script>
 
@@ -14,7 +14,7 @@
 		on:mouseover={video.play}
 		on:mouseout={video.pause}
 		class="input-video-example h-24 max-w-none"
-		src={examples_dir + value}
+		src={samples_dir + value}
 	/>
 {:else}
 	<div class="input-video-example">{value}</div>
