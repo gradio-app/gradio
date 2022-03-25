@@ -101,7 +101,7 @@
 
 	$: value, dispatch("change");
 
-	if ($$props.default) value = $$props.default;
+	if ($$props.default_value) value = $$props.default_value;
 </script>
 
 {#if is_static && static_data}
