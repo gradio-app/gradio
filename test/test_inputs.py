@@ -130,7 +130,7 @@ class TestNumber(unittest.TestCase):
         )
         self.assertEqual(
             numeric_input.get_template_context(),
-            {"default": None, "name": "number", "label": None, "css": {}},
+            {"default_value": None, "name": "number", "label": None, "css": {}},
         )
 
     def test_in_interface(self):
@@ -191,7 +191,7 @@ class TestSlider(unittest.TestCase):
                 "minimum": 10,
                 "maximum": 20,
                 "step": 1,
-                "default": 15,
+                "default_value": 15,
                 "name": "slider",
                 "label": "Slide Your Input",
                 "css": {},
