@@ -13,6 +13,12 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 class Block:
     def __init__(self):
+        self.render()
+    
+    def render(self):
+        """
+        Adds self into appropriate BlockContext
+        """
         self._id = Context.id
         Context.id += 1
         if Context.block is not None:
@@ -55,7 +61,10 @@ class Block:
 
 
 class BlockContext(Block):
-    def __init__(self, css: Optional[str] = None):
+    def __init__(self, css: Optional[Dict[str, str]] = None):
+        """
+        css: Css rules to apply to block.
+        """
         self.children = []
         self.css = css if css is not None else {}
         super().__init__()
@@ -76,6 +85,9 @@ class BlockContext(Block):
 
 class Row(BlockContext):
     def __init__(self, css: Optional[str] = None):
+        """
+        css: Css rules to apply to block.
+        """
         super().__init__(css)
 
     def get_template_context(self):
@@ -84,6 +96,9 @@ class Row(BlockContext):
 
 class Column(BlockContext):
     def __init__(self, css: Optional[str] = None):
+        """
+        css: Css rules to apply to block.
+        """
         super().__init__(css)
 
     def get_template_context(self):
@@ -95,6 +110,9 @@ class Column(BlockContext):
 
 class Tabs(BlockContext):
     def __init__(self, css: Optional[str] = None):
+        """
+        css: Css rules to apply to block.
+        """
         super().__init__(css)
 
     def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
@@ -110,6 +128,9 @@ class Tabs(BlockContext):
 
 class TabItem(BlockContext):
     def __init__(self, label, css: Optional[str] = None):
+        """
+        css: Css rules to apply to block.
+        """
         super().__init__(css)
         self.label = label
         super(TabItem, self).__init__()

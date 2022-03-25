@@ -490,7 +490,7 @@ class Interface(Blocks):
                     }
                 ):
                     for component in self.input_components:
-                        Block.__init__(component)
+                        component.render()
                     with Row():
                         submit_btn = Button("Submit")
                         clear_btn = Button("Clear")
