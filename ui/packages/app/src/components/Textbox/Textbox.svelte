@@ -10,6 +10,8 @@
 	export let placeholder: string = "";
 
 	export let mode: "static" | "dynamic";
+
+	if ($$props.default_value) value = $$props.default_value;
 </script>
 
 {#if mode === "static"}
