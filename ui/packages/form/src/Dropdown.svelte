@@ -17,7 +17,7 @@
 	<button
 		class="selector py-2 px-3 font-semibold rounded inline-flex items-center"
 	>
-		{label}
+		{value || label || choices[0]}
 		<svg class="caret ml-2 fill-current h-4 w-4" viewBox="0 0 20 20">
 			<path
 				d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"

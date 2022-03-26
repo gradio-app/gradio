@@ -9,6 +9,8 @@
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
 	$: label, dispatch("change");
+
+	if ($$props.default) value = $$props.default;
 </script>
 
 <HTML {value} {theme} {style} on:change />

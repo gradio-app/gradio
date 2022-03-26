@@ -100,6 +100,8 @@
 	$: static_data = is_static && format_value(value as StaticData);
 
 	$: value, dispatch("change");
+
+	if ($$props.default_value) value = $$props.default_value;
 </script>
 
 {#if is_static && static_data}

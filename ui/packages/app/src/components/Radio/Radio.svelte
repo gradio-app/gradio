@@ -6,6 +6,8 @@
 	export let style: string | null;
 	export let choices: Array<string> = [];
 	export let mode: "static" | "dynamic";
+
+	if ($$props.default) value = $$props.default;
 </script>
 
 <Radio

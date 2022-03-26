@@ -8,6 +8,8 @@
 	export let maximum: number;
 	export let step: number;
 	export let mode: "static" | "dynamic";
+
+	if ($$props.default_value) value = $$props.default_value;
 </script>
 
 <Range
