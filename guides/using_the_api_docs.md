@@ -14,13 +14,13 @@ This button opens up interface-specific API docs. This will show you the predict
 
 Below is an (iframed) example: the API Docs of [this space](https://huggingface.co/spaces/aliabd/nubia).
 
-<iframe src="https://hf.space/gradioiframe/aliabd/nubia/api" frameBorder="5" height="725" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+<iframe src="https://hf.space/embed/aliabd/nubia/api" frameBorder="5" height="725" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
 
 It shows that there are 7 sections on the page
 
 * The predict **endpoint**: 
-    * Where to send the payload (`https://hf.space/gradioiframe/aliabd/nubia/+/api/predict/`). This is likely the most important piece of information as it defines where the request will be sent.
+    * Where to send the payload (`https://hf.space/embed/aliabd/nubia/+/api/predict/`). This is likely the most important piece of information as it defines where the request will be sent.
 * The **inputs** and their types
 * The **outputs** and their types
 * The **payload**: 
