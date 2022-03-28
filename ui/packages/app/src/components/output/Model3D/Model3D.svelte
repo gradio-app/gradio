@@ -45,10 +45,10 @@
 
 
 <div
-class="output-model w-full h-60 flex justify-center items-center bg-gray-200 dark:bg-gray-600 relative"
-{theme}
+	class="output-model w-full h-60 flex justify-center items-center bg-gray-200 dark:bg-gray-600 relative"
+	{theme}
 >
-<canvas class="w-full h-full object-fit" bind:this={canvas}></canvas>
+  <canvas class="w-full h-full object-contain" bind:this={canvas}></canvas>
 </div>
 
 <style lang="postcss">
