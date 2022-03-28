@@ -1,4 +1,4 @@
-import Component from "./Model3D.svelte";
+import Component from "./Model3d.svelte";
 import ExampleComponent from "./Example.svelte";
 import { loadAsData } from "../../utils/example_processors";
 

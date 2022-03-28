@@ -1637,11 +1637,9 @@ class Model3d(InputComponent):
     ):
         """
         Parameters:
-        type (str): Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name, "binary" returns an bytes object.
         label (str): component name in interface.
         optional (bool): If True, the interface can be submitted with no uploaded image, in which case the input value is None.
         """
-        self.type = type
         self.test_input = None
         super().__init__(label, optional=optional)
 
@@ -1684,6 +1682,9 @@ class Model3d(InputComponent):
         file_name = file.name
         return file_name
 
+    def serialize(self, x, called_directly):
+        raise NotImplementedError()
+
     def save_flagged(self, dir, label, data, encryption_key):
         """
         Returns: (str) path to 3D model file
@@ -1691,6 +1692,9 @@ class Model3d(InputComponent):
         return self.save_flagged_file(
             dir, label, None if data is None else data["data"], encryption_key
         )
+    
+    def generate_sample(self):
+        return test_data.BASE64_MODEL3D
 
 def get_input_instance(iface: Interface):
     if isinstance(iface, str):

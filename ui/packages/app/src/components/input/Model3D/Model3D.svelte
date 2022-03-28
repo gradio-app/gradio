@@ -61,13 +61,19 @@
 </script>
 
 	{#if value === null}
-	<Upload load={handle_load} {theme}>
+	<Upload load={handle_load} {theme}
+  filetype=".obj, .gltf, .glb">
 		{$_("interface.drop_file")}
 		<br />- {$_("interface.or")} -<br />
 		{$_("interface.click_to_upload")}
 	</Upload>
 	{:else}
-		<canvas class="w-full h-full object-fit" bind:this={canvas}></canvas>
+    <div
+    class="input-model w-full h-60 flex justify-center items-center bg-gray-200 dark:bg-gray-600 relative"
+    {theme}
+    >
+      <canvas class="w-full h-full object-contain" bind:this={canvas}></canvas>
+    </div>
 	{/if}
 
 <style lang="postcss">
