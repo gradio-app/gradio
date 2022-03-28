@@ -1,3 +1,4 @@
+import os
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
 from gradio import utils
@@ -5,10 +6,14 @@ from gradio.context import Context
 from gradio.launchable import Launchable
 from gradio.routes import PredictBody
 
+if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
+    from gradio.component import Component
+
 
 class Block:
-    def __init__(self):
+    def __init__(self, css=None):
         self._id = Context.id
+        self.css = css
         Context.id += 1
         if Context.block is not None:
             Context.block.children.append(self)
@@ -26,6 +31,66 @@ class Block:
             {
                 "targets": [self._id],
                 "trigger": "click",
+                "inputs": [block._id for block in inputs],
+                "outputs": [block._id for block in outputs],
+            }
+        )
+
+    def change(
+        self, fn: str, inputs: List["Component"], outputs: List["Component"]
+    ) -> None:
+        """
+        Adds change event to the component's dependencies.
+
+        Whenever the component changes the function is triggered.
+
+        Parameters:
+            fn: function name
+            inputs: input list
+            outputs: output list
+
+        Returns: None
+
+        """
+        if not isinstance(inputs, list):
+            inputs = [inputs]
+        if not isinstance(outputs, list):
+            outputs = [outputs]
+        Context.root_block.fns.append(fn)
+        Context.root_block.dependencies.append(
+            {
+                "targets": [self._id],
+                "trigger": "change",
+                "inputs": [block._id for block in inputs],
+                "outputs": [block._id for block in outputs],
+            }
+        )
+
+    def save(
+        self, fn: str, inputs: List["Component"], outputs: List["Component"]
+    ) -> None:
+        """
+        Adds save event to the component's dependencies.
+
+        Whenever the component is saved the function is triggered.
+
+        Parameters:
+            fn: function name
+            inputs: input list
+            outputs: output list
+
+        Returns: None
+
+        """
+        if not isinstance(inputs, list):
+            inputs = [inputs]
+        if not isinstance(outputs, list):
+            outputs = [outputs]
+        Context.root_block.fns.append(fn)
+        Context.root_block.dependencies.append(
+            {
+                "targets": [self._id],
+                "trigger": "save",
                 "inputs": [block._id for block in inputs],
                 "outputs": [block._id for block in outputs],
             }
@@ -74,6 +139,7 @@ class Blocks(Launchable, BlockContext):
         self.theme = theme
         self.requires_permissions = False  # TODO: needs to be implemented
         self.enable_queue = False
+        self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
         self.stateful = False  # TODO: implement state
 
         super().__init__()
