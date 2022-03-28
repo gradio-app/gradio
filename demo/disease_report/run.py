@@ -25,18 +25,18 @@ def disease_report(img, scan_for, generate_report):
     return results, report if generate_report else None
 
 
-iface = gr.Interface(
+demo = gr.Interface(
     disease_report,
     [
         "image",
-        gr.inputs.CheckboxGroup(
+        gr.CheckboxGroup(
             ["Cancer", "Rash", "Heart Failure", "Stroke", "Diabetes", "Pneumonia"]
         ),
         "checkbox",
     ],
     [
-        gr.outputs.Carousel(["text", "image"], label="Disease"),
-        gr.outputs.File(label="Report"),
+        gr.Carousel(["text", "image"], label="Disease"),
+        gr.File(label="Report"),
     ],
     title="Disease Report",
     description="Upload an Xray and select the diseases to scan for.",
@@ -46,4 +46,4 @@ iface = gr.Interface(
 )
 
 if __name__ == "__main__":
-    iface.launch()
+    demo.launch()
