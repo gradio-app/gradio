@@ -9,7 +9,7 @@ from abc import ABC, abstractmethod
 from typing import Any, List, Optional
 
 import gradio as gr
-from gradio import encryptor
+from gradio import encryptor, utils
 
 
 class FlaggingCallback(ABC):
@@ -98,7 +98,7 @@ class SimpleCSVLogger(FlaggingCallback):
             )
 
         with open(log_filepath, "a", newline="") as csvfile:
-            writer = csv.writer(csvfile)
+            writer = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC, quotechar="'")
             writer.writerow(csv_data)
 
         with open(log_filepath, "r") as csvfile:
@@ -185,7 +185,7 @@ class CSVLogger(FlaggingCallback):
             flag_col_index = header.index("flag")
             content[flag_index][flag_col_index] = flag_option
             output = io.StringIO()
-            writer = csv.writer(output)
+            writer = csv.writer(output, quoting=csv.QUOTE_NONNUMERIC, quotechar="'")
             writer.writerows(content)
             return output.getvalue()
 
@@ -201,7 +201,7 @@ class CSVLogger(FlaggingCallback):
                     if flag_index is not None:
                         file_content = replace_flag_at_index(file_content)
                     output.write(file_content)
-            writer = csv.writer(output)
+            writer = csv.writer(output, quoting=csv.QUOTE_NONNUMERIC, quotechar="'")
             if flag_index is None:
                 if is_new:
                     writer.writerow(headers)
@@ -215,7 +215,9 @@ class CSVLogger(FlaggingCallback):
         else:
             if flag_index is None:
                 with open(log_fp, "a", newline="") as csvfile:
-                    writer = csv.writer(csvfile)
+                    writer = csv.writer(
+                        csvfile, quoting=csv.QUOTE_NONNUMERIC, quotechar="'"
+                    )
                     if is_new:
                         writer.writerow(headers)
                     writer.writerow(csv_data)
@@ -328,7 +330,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
                 for i, component in enumerate(interface.input_components):
                     component_label = interface.config["input_components"][i][
                         "label"
-                    ] or "Input_{}".format(i)
+                    ] or "input_{}".format(i)
                     headers.append(component_label)
                     infos["flagged"]["features"][component_label] = {
                         "dtype": "string",
@@ -346,7 +348,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
                 for i, component in enumerate(interface.output_components):
                     component_label = interface.config["output_components"][i][
                         "label"
-                    ] or "Output_{}".format(i)
+                    ] or "output_{}".format(i)
                     headers.append(component_label)
                     infos["flagged"]["features"][component_label] = {
                         "dtype": "string",
@@ -375,7 +377,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             for i, component in enumerate(interface.input_components):
                 label = interface.config["input_components"][i][
                     "label"
-                ] or "Input_{}".format(i)
+                ] or "input_{}".format(i)
                 filepath = component.save_flagged(
                     self.dataset_dir, label, input_data[i], None
                 )
@@ -387,7 +389,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             for i, component in enumerate(interface.output_components):
                 label = interface.config["output_components"][i][
                     "label"
-                ] or "Output_{}".format(i)
+                ] or "output_{}".format(i)
                 filepath = (
                     component.save_flagged(
                         self.dataset_dir, label, output_data[i], None

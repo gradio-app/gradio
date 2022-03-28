@@ -17,6 +17,7 @@
 	export let theme: string;
 	export let fn: (...args: any) => Promise<unknown>;
 	export let examples: Array<Array<unknown>>;
+	export let examples_per_page: number;
 	export let root: string;
 	export let allow_flagging: string;
 	export let flagging_options: Array<string> | undefined = undefined;
@@ -50,8 +51,10 @@
 	let timer_diff = 0;
 	let avg_duration = Array.isArray(avg_durations) ? avg_durations[0] : null;
 	let expected_duration: number | null = null;
+	let example_id: number | null = null;
 
-	const setValues = async (index: number, value: unknown) => {
+	const setValues = (index: number, value: unknown) => {
+		example_id = null;
 		has_changed = true;
 		input_values[index] = value;
 		if (live && state !== "PENDING") {
@@ -59,7 +62,8 @@
 		}
 	};
 
-	const setExampleId = async (example_id: number) => {
+	const setExampleId = async (_id: number) => {
+		example_id = _id;
 		input_components.forEach(async (input_component, i) => {
 			const process_example =
 				input_component_map[input_component.name].process_example;
@@ -72,6 +76,7 @@
 				input_values[i] = examples[example_id][i];
 			}
 		});
+		example_id = _id;
 	};
 
 	const startTimer = () => {
@@ -108,7 +113,7 @@
 		try {
 			output = await fn(
 				"predict",
-				{ data: input_values, cleared: cleared_since_last_submit },
+				{ data: input_values, cleared: cleared_since_last_submit, example_id: example_id },
 				queue,
 				queueCallback
 			);
@@ -359,6 +364,8 @@
 	{#if examples}
 		<ExampleSet
 			{examples}
+			{examples_per_page}
+			{example_id}
 			{input_components}
 			{theme}
 			{examples_dir}
