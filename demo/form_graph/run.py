@@ -29,7 +29,7 @@ demo = gr.Interface(
         gr.CheckboxGroup(
             ["Google", "Microsoft", "Gradio"], label="Company Selection"
         ),
-        gr.Slider(1, 100, label="Noise Level"),
+        gr.Slider(minimum=1, maximum=100, label="Noise Level"),
         gr.Checkbox(label="Show Legend"),
         gr.Dropdown(["cross", "line", "circle"], label="Style"),
     ],
