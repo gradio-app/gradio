@@ -2,14 +2,13 @@
 	export let value: number;
 	export let setValue: (val: number) => number;
 	export let theme: string;
-
-	$: setValue(value);
 </script>
 
 <input
 	type="number"
 	class="input-number w-full rounded box-border p-2 focus:outline-none appearance-none"
-	bind:value
+	{value}
+	on:input={(e) => setValue(e.target.value)}
 	{theme}
 />
 
