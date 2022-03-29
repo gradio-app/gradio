@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { getNextColor } from "./utils";
 
-	export let value: Array<[string, string | number]>;
+	export let value: Array<[string, string | number]> = [];
 	export let theme: string = "default";
 	export let show_legend: boolean = false;
 	export let color_map: Record<string, string> = {};
@@ -51,6 +51,8 @@
 			}
 		}
 	}
+
+	correct_color_map();
 </script>
 
 <div class="output-highlightedtext" {theme}>
