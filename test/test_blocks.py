@@ -1,9 +1,9 @@
 import random
 import unittest
 
-import gradio as gr
-
 from test_data.blocks_configs import XRAY_CONFIG
+
+import gradio as gr
 
 
 class TestBlocks(unittest.TestCase):
@@ -51,7 +51,7 @@ class TestBlocks(unittest.TestCase):
                     )
 
             _ = gr.components.Textbox()
-            
+
         self.assertEqual(XRAY_CONFIG, xray_blocks.get_config_file())
 
 
