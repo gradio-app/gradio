@@ -42,7 +42,7 @@
 	{theme}
 	{root}
 >
-	{#if children.length}
+	{#if children && children.length}
 		{#each children as { component, id, props, children, has_modes }}
 			<svelte:self
 				{component}
