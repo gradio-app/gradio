@@ -31,7 +31,5 @@ demo = gr.Interface(
     capture_session=True,
 )
 
-demo.test_launch()
-
 if __name__ == "__main__":
     demo.launch()

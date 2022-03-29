@@ -24,7 +24,7 @@ demo = gr.Interface(
         gr.CheckboxGroup(
             ["retail", "food", "other"], default=["retail", "food", "other"]
         ),
-        gr.Slider(1, 3),
+        gr.Slider(minimum=1, maximum=3),
     ],
     [
         "dataframe",
