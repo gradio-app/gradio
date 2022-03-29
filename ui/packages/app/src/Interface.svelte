@@ -17,6 +17,7 @@
 	export let theme: string;
 	export let fn: (...args: any) => Promise<unknown>;
 	export let examples: Array<Array<unknown>>;
+	export let examples_per_page: number;
 	export let root: string;
 	export let allow_flagging: string;
 	export let flagging_options: Array<string> | undefined = undefined;
@@ -35,6 +36,7 @@
 	let queue_index: number | null = null;
 	let initial_queue_index: number | null = null;
 	let just_flagged: boolean = false;
+	let cleared_since_last_submit = false;
 
 	const default_inputs: Array<unknown> = input_components.map((component) =>
 		"default" in component ? component.default : null
@@ -49,16 +51,19 @@
 	let timer_diff = 0;
 	let avg_duration = Array.isArray(avg_durations) ? avg_durations[0] : null;
 	let expected_duration: number | null = null;
+	let example_id: number | null = null;
 
-	const setValues = (index: number, value: unknown) => {
+	const setValues = async (index: number, value: unknown) => {
+		example_id = null;
 		has_changed = true;
 		input_values[index] = value;
 		if (live && state !== "PENDING") {
-			submit();
+			await submit();
 		}
 	};
 
-	const setExampleId = async (example_id: number) => {
+	const setExampleId = async (_id: number) => {
+		example_id = _id;
 		input_components.forEach(async (input_component, i) => {
 			const process_example =
 				input_component_map[input_component.name].process_example;
@@ -71,6 +76,7 @@
 				input_values[i] = examples[example_id][i];
 			}
 		});
+		example_id = _id;
 	};
 
 	const startTimer = () => {
@@ -85,7 +91,7 @@
 		clearInterval(timer);
 	};
 
-	const submit = () => {
+	const submit = async () => {
 		if (state === "PENDING") {
 			return;
 		}
@@ -103,59 +109,67 @@
 		has_changed = false;
 		let submission_count_at_click = submission_count;
 		startTimer();
-		fn("predict", { data: input_values }, queue, queueCallback)
-			.then((output) => {
-				if (
-					state !== "PENDING" ||
-					submission_count_at_click !== submission_count
-				) {
-					return;
-				}
-				stopTimer();
-				output_values = output["data"];
-				for (let [i, value] of output_values.entries()) {
-					if (output_components[i].name === "state") {
-						for (let [j, input_component] of input_components.entries()) {
-							if (input_component.name === "state") {
-								input_values[j] = value;
-							}
-						}
+		let output: any;
+		try {
+			output = await fn(
+				"predict",
+				{
+					data: input_values,
+					cleared: cleared_since_last_submit,
+					example_id: example_id
+				},
+				queue,
+				queueCallback
+			);
+		} catch (e) {
+			if (
+				state !== "PENDING" ||
+				submission_count_at_click !== submission_count
+			) {
+				return;
+			}
+			stopTimer();
+			console.error(e);
+			state = "ERROR";
+			output_values = deepCopy(default_outputs);
+		}
+		if (state !== "PENDING" || submission_count_at_click !== submission_count) {
+			return;
+		}
+		stopTimer();
+		output_values = output["data"];
+		cleared_since_last_submit = false;
+		for (let [i, value] of output_values.entries()) {
+			if (output_components[i].name === "state") {
+				for (let [j, input_component] of input_components.entries()) {
+					if (input_component.name === "state") {
+						input_values[j] = value;
 					}
 				}
-				if ("durations" in output) {
-					last_duration = output["durations"][0];
-				}
-				if ("avg_durations" in output) {
-					avg_duration = output["avg_durations"][0];
-					if (queue && initial_queue_index) {
-						expected_duration = avg_duration * (initial_queue_index + 1);
-					} else {
-						expected_duration = avg_duration;
-					}
-				}
-				state = "COMPLETE";
-				if (live && has_changed) {
-					submit();
-				}
-			})
-			.catch((e) => {
-				if (
-					state !== "PENDING" ||
-					submission_count_at_click !== submission_count
-				) {
-					return;
-				}
-				stopTimer();
-				console.error(e);
-				state = "ERROR";
-				output_values = deepCopy(default_outputs);
-			});
+			}
+		}
+		if ("durations" in output) {
+			last_duration = output["durations"][0];
+		}
+		if ("avg_durations" in output) {
+			avg_duration = output["avg_durations"][0];
+			if (queue && initial_queue_index) {
+				expected_duration = avg_duration * (initial_queue_index + 1);
+			} else {
+				expected_duration = avg_duration;
+			}
+		}
+		state = "COMPLETE";
+		if (live && has_changed) {
+			await submit();
+		}
 	};
 	const clear = () => {
 		input_values = deepCopy(default_inputs);
 		output_values = deepCopy(default_outputs);
 		interpret_mode = false;
 		state = "START";
+		cleared_since_last_submit = true;
 		stopTimer();
 	};
 	const flag = (flag_option: string | null) => {
@@ -221,6 +235,7 @@
 								{...input_component}
 								{theme}
 								{static_src}
+								{live}
 								value={input_values[i]}
 								interpretation={interpret_mode
 									? interpretation_values[i]
@@ -238,19 +253,21 @@
 				>
 					{$_("interface.clear")}
 				</button>
-				<button
-					class="panel-button submit bg-gray-50 dark:bg-gray-700 flex-1 p-3 rounded transition font-semibold focus:outline-none"
-					on:click={submit}
-				>
-					{$_("interface.submit")}
-				</button>
+				{#if !live}
+					<button
+						class="panel-button submit bg-gray-50 dark:bg-gray-700 flex-1 p-3 rounded transition font-semibold focus:outline-none"
+						on:click={submit}
+					>
+						{$_("interface.submit")}
+					</button>
+				{/if}
 			</div>
 		</div>
 		<div class="panel flex-1">
 			<div
 				class="component-set p-2 rounded flex flex-col flex-1 gap-2 relative"
 				style="min-height: 36px"
-				class:opacity-50={state === "PENDING"}
+				class:opacity-50={state === "PENDING" && !live}
 			>
 				{#if state !== "START"}
 					<div class="state absolute right-2 flex items-center gap-0.5 text-xs">
@@ -351,6 +368,8 @@
 	{#if examples}
 		<ExampleSet
 			{examples}
+			{examples_per_page}
+			{example_id}
 			{input_components}
 			{theme}
 			{examples_dir}
