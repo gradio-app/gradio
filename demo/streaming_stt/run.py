@@ -1,6 +1,5 @@
 from deepspeech import Model
 import gradio as gr
-import scipy.io.wavfile
 import numpy as np
 
 model_file_path = "deepspeech-0.8.2-models.pbmm"
