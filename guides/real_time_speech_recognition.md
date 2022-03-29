@@ -38,67 +38,192 @@ p = pipeline("automatic-speech-recognition")
 
 That's it! By default, the automatic speech recognition model pipeline loads Facebook's `facebook/wav2vec2-base-960h` model.
 
-## Step 2 — Creating a Full-Context ASR Demo 
+## Step 2 — Creating a Full-Context ASR Demo with Transformers 
 
 We will start by creating a *full-context* ASR demo, in which the user speaks the full audio before using the ASR model to run inference. This is very easy with Gradio -- we simply create a function around the `pipeline` object above.
 
 We will use `gradio`'s built in `Audio` component, configured to take input from the user's microphone and return a filepath for the recorded audio. The output component will be a plain `Textbox`.
 
 ```python
-def predict(input, history=[]):
-    # tokenize the new input sentence
-    new_user_input_ids = tokenizer.encode(input + tokenizer.eos_token, return_tensors='pt')
+import gradio as gr
 
-    # append the new user input tokens to the chat history
-    bot_input_ids = torch.cat([torch.LongTensor(history), new_user_input_ids], dim=-1)
+def transcribe(audio):
+    text = p(audio)["text"]
+    return text
 
-    # generate a response 
-    history = model.generate(bot_input_ids, max_length=1000, pad_token_id=tokenizer.eos_token_id).tolist()
-
-    # convert the tokens to text, and then split the responses into lines
-    response = tokenizer.decode(history[0]).split("<|endoftext|>")
-    response = [(response[i], response[i+1]) for i in range(0, len(response)-1, 2)]  # convert to tuples of list
-    return response, history
+gr.Interface(
+    fn=transcribe, 
+    inputs=gr.inputs.Audio(source="microphone", type="filepath"), 
+    outputs="text").launch()
 ```
 
-Let's break this down. The function takes two parameters:
+So what's happening here? The `transcribe` function takes a single parameter, `audio`, which is a filepath to the audio file that the user has recorded. The `pipeline` object expects a filepath and converts it to text, which is returned to the frontend and displayed in a textbox. 
 
-* `input`: which is what the user enters (through the Gradio GUI) in a particular step of the conversation. 
-* `history`: which represents the **state**, consisting of the list of user and bot responses. To create a stateful Gradio demo, we *must* pass in a parameter to represent the state, and we set the default value of this parameter to be the initial value of the state (in this case, the empty list since this is what we would like the chat history to be at the start).
+Let's see it in action! (Record a short audio clip and then click submit):
 
-Then, the function tokenizes the input and concatenates it with the tokens corresponding to the previous user and bot responses. Then, this is fed into the pretrained model to get a prediction. Finally, we do some cleaning up so that we can return two values from our function:
+<iframe src="https://hf.space/gradioiframe/abidlabs/chatbot-minimal/+" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
-* `response`: which is a list of tuples of strings corresponding to all of the user and bot responses. This will be rendered as the output in the Gradio demo.
-* `history` variable, which is the token representation of all of the user and bot responses. In stateful Gradio demos, we *must* return the updated state at the end of the function. 
+## Step 3 — Creating a Streaming ASR Demo  with Transformers
 
-## Step 3 — Creating a Gradio Interface
+Ok great! We've built an ASR model that works well for short audio clips. However, if you are recording longer audio clips, you probably want a *streaming* interface, one that transcribes audio as the user speaks instead of just all-at-once at the end.
 
-Now that we have our predictive function set up, we can create a Gradio Interface around it. 
+The good news is that it's not too difficult to adapt the demo we just made to make it streaming, using the same `Wav2Vec2` model. 
 
-In this case, our function takes in two values, a text input and a state input. The corresponding input components in `gradio` are `"text"` and `"state"`. 
+The biggest change is that we must now introduce a `state` parameter, which holds the audio that has been *transcribed so far*. This allows us to only the latest chunk of audio and simply append it to the audio we previously transcribed. 
 
-The function also returns two values. We will display the list of responses using the dedicated `"chatbot"` component and use the `"state"` output component type for the second return value.
+When adding state to a Gradio demo, you need to do a total of 3 things:
+* Add a `state` parameter to the function
+* Return the updated `state` at the end of the function
+* Add the `"state"` components to the `inputs` and `outputs` in `Interface`
 
-Note that the `"state"` input and output components are not displayed. 
+Here's what the code looks like:
 
 ```python
 import gradio as gr
 
-gr.Interface(fn=predict,
-             inputs=["text", "state"],
-             outputs=["text", "state"]).launch()
+def transcribe(audio, state=""):
+    text = p(audio)["text"]
+    state += text + " "
+    return state, state
+
+gr.Interface(
+    fn=transcribe, 
+    inputs=[
+        gr.inputs.Audio(source="microphone", type="filepath"), 
+        "state"
+    ],
+    outputs=[
+        "textbox",
+        "state"
+    ]
+    outputs="text",
+    live=True).launch()
 ```
 
-This produces the following interface, which you can try right here in your browser (try typing in some simple greetings like "Hi!" to get started):
+Notice that we've also made one other change, which is that we've set `live=True`. This keeps the Gradio interface running constantly, so it automatically transcribes audio without the user having to repeatedly hit the submit button.
 
-<iframe src="https://hf.space/gradioiframe/abidlabs/chatbot-minimal/+" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+Let's see how it works!
 
+
+
+One thing that you may notice is that the transcription quality has dropped since the chunks of audio are so small, they lack the context to properly be transcribed. A "hacky" fix to this is to simply increase the runtime of the `transcribe()` function so that longer audio chunks are processed. We can do this by adding a `time.sleep()` inside the function, as shown below (we'll see a proper fix next) 
+
+```python
+from transformers import pipeline
+import gradio as gr
+import time
+
+p = pipeline("automatic-speech-recognition")
+
+def transcribe(audio, state=""):
+    time.sleep(2)
+    text = p(audio)["text"]
+    state += text + " "
+    return state, state
+
+gr.Interface(
+    fn=transcribe, 
+    inputs=[
+        gr.inputs.Audio(source="microphone", type="filepath"), 
+        "state"
+    ],
+    outputs=[
+        "textbox",
+        "state"
+    ]
+    outputs="text",
+    live=True).launch()
+```
+
+Try the demo below to see the difference!
+
+## Step 4 — Creating a Streaming ASR Demo with DeepSpeech
+
+You're not restricted to ASR models from the `transformers` library -- you can use your own models or models from other libraries. The `DeepSpeech` library contains models that are specifically designed to handle streaming audio data. These models perform really well with  streaming data as they are able to account for previous chunks of data when making 
+
+Going through the DeepSpeech library is beyond the scope of this Guide (check out their [excellent documentation here](https://deepspeech.readthedocs.io/en/r0.9/)), but you can use Gradio very similarly with a DeepSpeech ASR model as with a Transformers ASR model. 
+
+Here's a complete example (for Linux machines):
+
+First install the DeepSpeech library and download the pretrained models from the terminal:
+
+```
+wget https://github.com/mozilla/DeepSpeech/releases/download/v0.8.2/deepspeech-0.8.2-models.pbmm
+wget https://github.com/mozilla/DeepSpeech/releases/download/v0.8.2/deepspeech-0.8.2-models.scorer
+apt install libasound2-dev portaudio19-dev libportaudio2 libportaudiocpp0 ffmpeg
+pip install deepspeech==0.8.2
+```
+
+Then, create a similar `transcribe()` function as before:
+
+```python
+from deepspeech import Model
+import numpy as np
+
+model_file_path = "deepspeech-0.8.2-models.pbmm"
+lm_file_path = "deepspeech-0.8.2-models.scorer"
+beam_width = 100
+lm_alpha = 0.93
+lm_beta = 1.18
+
+model = Model(model_file_path)
+model.enableExternalScorer(lm_file_path)
+model.setScorerAlphaBeta(lm_alpha, lm_beta)
+model.setBeamWidth(beam_width)
+
+
+def reformat_freq(sr, y):
+    if sr not in (
+        48000,
+        16000,
+    ):  # Deepspeech only supports 16k, (we convert 48k -> 16k)
+        raise ValueError("Unsupported rate", sr)
+    if sr == 48000:
+        y = (
+            ((y / max(np.max(y), 1)) * 32767)
+            .reshape((-1, 3))
+            .mean(axis=1)
+            .astype("int16")
+        )
+        sr = 16000
+    return sr, y
+
+
+def transcribe(speech, stream):
+    _, y = reformat_freq(*speech)
+    if stream is None:
+        stream = model.createStream()
+    stream.feedAudioContent(y)
+    text = stream.intermediateDecode()
+    return text, stream
+
+```
+
+Then, create a Gradio Interface as before (the only difference being that the return type should be `numpy` instead of a `filepath` to be compatible with the DeepSpeech models)
+
+```python
+import gradio as gr
+
+gr.Interface(
+    fn=transcribe, 
+    inputs=[
+        gr.inputs.Audio(source="microphone", type="numpy"), 
+        "state"
+    ], 
+    outputs= [
+        "text", 
+        "state"
+    ], 
+    live=True).launch()
+```
+
+Running all of this should allow you to deploy your realtime ASR model with a nice GUI. Try it out and see how well it works for you.
 
 ----------
 
-And you're done! That's all the code you need to build an interface for your chatbot model. Here are some references that you may find useful:
 
-* Gradio's ["Getting Started" guide](https://gradio.app/getting_started/)
-* The final [chatbot demo](https://huggingface.co/spaces/abidlabs/chatbot-stylized) and [complete code](https://huggingface.co/spaces/abidlabs/chatbot-stylized/tree/main) (on Hugging Face Spaces)
+And you're done! That's all the code you need to build a web-based GUI for your ASR model. 
+
+Fun tip: you can share your ASR model instantly with others simply by setting `share=True` in `launch()`. 
 
 
