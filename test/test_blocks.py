@@ -2,7 +2,7 @@ import random
 
 import gradio as gr
 
-from .test_data.blocks_configs import XRAY_CONFIG
+from test_data.blocks_configs import XRAY_CONFIG
 
 
 class TestBlocks:
