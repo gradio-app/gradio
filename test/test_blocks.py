@@ -1,7 +1,15 @@
 import random
 import unittest
 
-from test_data.blocks_configs import XRAY_CONFIG
+try:
+    from .test_data.blocks_configs import XRAY_CONFIG  # for pytest
+except ImportError:
+    pass
+
+try:
+    from test_data.blocks_configs import XRAY_CONFIG  # for regular python
+except ImportError:
+    pass
 
 import gradio as gr
 
