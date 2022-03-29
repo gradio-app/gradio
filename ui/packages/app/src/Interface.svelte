@@ -53,12 +53,12 @@
 	let expected_duration: number | null = null;
 	let example_id: number | null = null;
 
-	const setValues = (index: number, value: unknown) => {
+	const setValues = async (index: number, value: unknown) => {
 		example_id = null;
 		has_changed = true;
 		input_values[index] = value;
 		if (live && state !== "PENDING") {
-			submit();
+			await submit();
 		}
 	};
 
