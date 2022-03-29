@@ -13,11 +13,11 @@ This tutorial will show how to take a pretrained speech to text model and deploy
 
 <iframe src="https://hf.space/gradioiframe/abidlabs/chatbot-stylized/+" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
-Chatbots are *stateful*, meaning that the model's prediction can change depending on how the user has previously interacted with the model. So, in this tutorial, we will also cover how to use **state** with Gradio demos. 
+Real-time ASR is inherently *stateful*, meaning that the model's predictions change depending on what words the user previously spoke. So, in this tutorial, we will also cover how to use **state** with Gradio demos. 
 
 ### Prerequisites
 
-Make sure you have the `gradio` Python package already [installed](/getting_started). To use a pretrained chatbot model, also install `transformers` and `torch`.
+Make sure you have the `gradio` Python package already [installed](/getting_started). You will also need a pretrained speech recognition model. In this tutorial, we will build demos from 2 ASR models: `transformers` (for this, pip install `transformers` and `torch`) and `deepspeech` (pip install ).
 
 ## Step 1 — Setting up the Chatbot Model
 
