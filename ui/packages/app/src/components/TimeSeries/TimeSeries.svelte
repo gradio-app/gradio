@@ -23,6 +23,7 @@
 	}
 
 	export let value: null | Data;
+	export let default_value: null | Data;
 	export let theme: string;
 	export let style: string | null;
 	export let y: Array<string>;
@@ -101,7 +102,7 @@
 
 	$: value, dispatch("change");
 
-	if ($$props.default_value) value = $$props.default_value;
+	if (default_value) value = default_value;
 </script>
 
 {#if is_static && static_data}

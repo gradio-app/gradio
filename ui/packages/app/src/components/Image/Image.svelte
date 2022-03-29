@@ -3,6 +3,7 @@
 	import { Image } from "@gradio/image";
 
 	export let value: null | string = null;
+	export let default_value: null | string = null;
 	export let theme: string;
 	export let style: string | null;
 	export let source: "canvas" | "webcam" | "upload" = "upload";
@@ -11,6 +12,8 @@
 	export let mode: "static" | "dynamic";
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
+
+	if (default_value) value = default_value;
 
 	$: value, dispatch("change");
 </script>
