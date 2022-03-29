@@ -9,7 +9,7 @@ Automatic speech recognition (ASR), the conversion of spoken speech to text, is 
 
 Using `gradio`, you can easily build a demo of your ASR model and share that with a testing team, or test it yourself by speaking through the microphone on your device.
 
-This tutorial will show how to take a pretrained speech to text model and deploy it with a Gradio interface. We will then make it ***real-time***, meaning that the audio model will convert speech as you speak. The real-time demo that we create will look something like this (try it!):
+This tutorial will show how to take a pretrained speech to text model and deploy it with a Gradio interface. We will start with a ***full-context*** model, in which the user speaks the entire audio before the prediction runs. Then we will adapt the demo to make it ***streaming***, meaning that the audio model will convert speech as you speak. The streaming demo that we create will look something like this (try it!):
 
 <iframe src="https://hf.space/gradioiframe/abidlabs/chatbot-stylized/+" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
@@ -17,27 +17,32 @@ Real-time ASR is inherently *stateful*, meaning that the model's predictions cha
 
 ### Prerequisites
 
-Make sure you have the `gradio` Python package already [installed](/getting_started). You will also need a pretrained speech recognition model. In this tutorial, we will build demos from 2 ASR models: `transformers` (for this, pip install `transformers` and `torch`) and `deepspeech` (pip install ).
+Make sure you have the `gradio` Python package already [installed](/getting_started). You will also need a pretrained speech recognition model. In this tutorial, we will build demos from 2 ASR libraries:
 
-## Step 1 — Setting up the Chatbot Model
+* Transformers (for this, `pip install transformers` and `pip install torch`) 
+* DeepSpeech (`pip install deepspeech==0.8.2`)
 
-First, you will need to have a chatbot model that you have either trained yourself or you will need to download a pretrained model. In this tutorial, we will use a pretrained chatbot model, `DialoGPT`, and its tokenizer from the [Hugging Face Hub](https://huggingface.co/microsoft/DialoGPT-medium), but you can replace this with your own model. 
+Make sure you have at least one of these installed so that you can follow along
 
-Here is the code to load `DialoGPT` from Hugging Face `transformers`.
+## Step 1 — Setting up the Transformers ASR Model
+
+First, you will need to have an ASR model that you have either trained yourself or you will need to download a pretrained model. In this tutorial, we will start by using a pretrained ASR model from the Hugging Face model, `Wav2Vec2`. 
+
+Here is the code to load `Wav2Vec2` from Hugging Face `transformers`.
 
 ```python
-from transformers import AutoModelForCausalLM, AutoTokenizer
-import torch
+from transformers import pipeline
 
-tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-medium")
-model = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-medium")
+p = pipeline("automatic-speech-recognition")
 ```
 
-## Step 2 — Defining a `predict` function
+That's it! By default, the automatic speech recognition model pipeline loads Facebook's `facebook/wav2vec2-base-960h` model.
 
-Next, you will need to define a function that takes in the *user input* as well as the previous *chat history* to generate a response.
+## Step 2 — Creating a Full-Context ASR Demo 
 
-In the case of our pretrained model, it will look like this:
+We will start by creating a *full-context* ASR demo, in which the user speaks the full audio before using the ASR model to run inference. This is very easy with Gradio -- we simply create a function around the `pipeline` object above.
+
+We will use `gradio`'s built in `Audio` component, configured to take input from the user's microphone and return a filepath for the recorded audio. The output component will be a plain `Textbox`.
 
 ```python
 def predict(input, history=[]):
