@@ -1,11 +1,15 @@
-from .test_data.blocks_configs import XRAY_CONFIG
-import gradio as gr
 import random
+
+import gradio as gr
+
+from .test_data.blocks_configs import XRAY_CONFIG
 
 
 class TestBlocks:
     def test_xray(self):
-        xray_model = lambda diseases, img: {disease: random.random() for disease in diseases}
+        xray_model = lambda diseases, img: {
+            disease: random.random() for disease in diseases
+        }
         ct_model = lambda diseases, img: {disease: 0.1 for disease in diseases}
 
         xray_blocks = gr.Blocks()
@@ -29,7 +33,8 @@ class TestBlocks:
                         xray_scan = gr.components.Image()
                         xray_results = gr.components.JSON()
                     xray_run = gr.Button(
-                        "Run", css={"background-color": "red", "--hover-color": "orange"}
+                        "Run",
+                        css={"background-color": "red", "--hover-color": "orange"},
                     )
                     xray_run.click(
                         xray_model, inputs=[disease, xray_scan], outputs=xray_results
@@ -40,8 +45,10 @@ class TestBlocks:
                         ct_scan = gr.components.Image()
                         ct_results = gr.components.JSON()
                     ct_run = gr.Button("Run")
-                    ct_run.click(ct_model, inputs=[disease, ct_scan], outputs=ct_results)
+                    ct_run.click(
+                        ct_model, inputs=[disease, ct_scan], outputs=ct_results
+                    )
 
-            overall_probability = gr.components.Textbox()
+            _ = gr.components.Textbox()
 
         assert XRAY_CONFIG == xray_blocks.get_config_file()
