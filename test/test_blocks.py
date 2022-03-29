@@ -1,11 +1,12 @@
 import random
+import unittest
 
 import gradio as gr
 
-from .test_data.blocks_configs import XRAY_CONFIG
+from test_data.blocks_configs import XRAY_CONFIG
 
 
-class TestBlocks:
+class TestBlocks(unittest.TestCase):
     def test_xray(self):
         xray_model = lambda diseases, img: {
             disease: random.random() for disease in diseases
@@ -51,4 +52,8 @@ class TestBlocks:
 
             _ = gr.components.Textbox()
 
-        assert XRAY_CONFIG == xray_blocks.get_config_file()
+        self.assertEqual(XRAY_CONFIG, xray_blocks.get_config_file())
+
+
+if __name__ == "__main__":
+    unittest.main()
