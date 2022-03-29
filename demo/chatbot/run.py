@@ -17,7 +17,7 @@ def chat(message, history):
     return history, history
 
 
-iface = gr.Interface(
+demo = gr.Interface(
     chat,
     ["text", "state"],
     ["chatbot", "state"],
@@ -25,4 +25,4 @@ iface = gr.Interface(
     allow_flagging="never",
 )
 if __name__ == "__main__":
-    iface.launch()
+    demo.launch()
