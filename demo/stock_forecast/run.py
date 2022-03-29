@@ -22,18 +22,17 @@ def stock_forecast(final_year, companies, noise, show_legend, point_style):
     return fig
 
 
-iface = gr.Interface(
+demo = gr.Interface(
     stock_forecast,
     [
-        gr.inputs.Radio([2025, 2030, 2035, 2040], label="Project to:"),
-        gr.inputs.CheckboxGroup(["Google", "Microsoft", "Gradio"]),
-        gr.inputs.Slider(1, 100),
+        gr.Radio([2025, 2030, 2035, 2040], label="Project to:"),
+        gr.CheckboxGroup(["Google", "Microsoft", "Gradio"]),
+        gr.Slider(minimum=1, maximum=100),
         "checkbox",
-        gr.inputs.Dropdown(["cross", "line", "circle"], label="Style"),
+        gr.Dropdown(["cross", "line", "circle"], label="Style"),
     ],
-    gr.outputs.Image(plot=True, label="forecast"),
+    gr.Image(plot=True, label="forecast"),
 )
 
-iface.test_launch()
 if __name__ == "__main__":
-    iface.launch()
+    demo.launch()

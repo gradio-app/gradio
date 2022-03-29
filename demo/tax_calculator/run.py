@@ -19,19 +19,18 @@ def tax_calculator(income, marital_status, assets):
     return round(total_tax)
 
 
-iface = gr.Interface(
+demo = gr.Interface(
     tax_calculator,
     [
         "number",
-        gr.inputs.Radio(["Single", "Married", "Divorced"]),
-        gr.inputs.Dataframe(
+        gr.Radio(["Single", "Married", "Divorced"]),
+        gr.Dataframe(
             headers=["Item", "Cost", "Deduct"],
             datatype=["str", "number", "bool"],
             label="Assets Purchased this Year",
         ),
     ],
     "number",
-    # interpretation="default",  # Removed interpretation for dataframes
     examples=[
         [10000, "Married", [["Car", 5000, False], ["Laptop", 800, True]]],
         [80000, "Single", [["Suit", 800, True], ["Watch", 1800, False]]],
@@ -39,4 +38,4 @@ iface = gr.Interface(
 )
 
 if __name__ == "__main__":
-    iface.launch()
+    demo.launch()

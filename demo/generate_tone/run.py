@@ -15,7 +15,7 @@ def generate_tone(note, octave, duration):
     return sr, audio
 
 
-iface = gr.Interface(
+demo = gr.Interface(
     generate_tone,
     [
         gr.inputs.Dropdown(notes, type="index"),
@@ -26,4 +26,4 @@ iface = gr.Interface(
 )
 
 if __name__ == "__main__":
-    iface.launch()
+    demo.launch()
