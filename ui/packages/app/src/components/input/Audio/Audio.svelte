@@ -21,6 +21,7 @@
 	let recorder: MediaRecorder;
 	let mode = "";
 	let audio_chunks: Array<Blob> = [];
+	let chunks_at_submit: number = 0;
 	let audio_blob;
 	let player;
 	let inited = false;
@@ -57,9 +58,10 @@
 			audio_chunks.push(event.data);
 			if (live && !submitting_data) {
 				submitting_data = true;
+				chunks_at_submit = audio_chunks.length;
 				await setValue(await generate_data());
 				submitting_data = false;
-				audio_chunks = [];
+				audio_chunks = audio_chunks.slice(chunks_at_submit);
 			}
 		});
 
