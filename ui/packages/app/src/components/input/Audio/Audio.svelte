@@ -83,7 +83,7 @@
 			record_interval = setInterval(() => {
 				recorder.stop();
 				recorder.start();
-			}, 1000)
+			}, 1000);
 		}
 	}
 
