@@ -1,6 +1,6 @@
 # Real Time Speech Recognition 
 
-related_spaces: 
+related_spaces: https://huggingface.co/spaces/abidlabs/streaming-asr-paused, https://huggingface.co/spaces/abidlabs/full-context-asr
 tags: ASR, SPEECH, STREAMING
 
 ## Introduction
@@ -9,7 +9,7 @@ Automatic speech recognition (ASR), the conversion of spoken speech to text, is 
 
 Using `gradio`, you can easily build a demo of your ASR model and share that with a testing team, or test it yourself by speaking through the microphone on your device.
 
-This tutorial will show how to take a pretrained speech to text model and deploy it with a Gradio interface. We will start with a ***full-context*** model, in which the user speaks the entire audio before the prediction runs. Then we will adapt the demo to make it ***streaming***, meaning that the audio model will convert speech as you speak. The streaming demo that we create will look something like this (try it!):
+This tutorial will show how to take a pretrained speech to text model and deploy it with a Gradio interface. We will start with a ***full-context*** model, in which the user speaks the entire audio before the prediction runs. Then we will adapt the demo to make it ***streaming***, meaning that the audio model will convert speech as you speak. The streaming demo that we create will look something like this (try it below or [in a new tab](https://huggingface.co/spaces/abidlabs/streaming-asr-paused)!):
 
 <iframe src="https://hf.space/gradioiframe/abidlabs/streaming-asr-paused/+" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
@@ -59,7 +59,7 @@ gr.Interface(
 
 So what's happening here? The `transcribe` function takes a single parameter, `audio`, which is a filepath to the audio file that the user has recorded. The `pipeline` object expects a filepath and converts it to text, which is returned to the frontend and displayed in a textbox. 
 
-Let's see it in action! (Record a short audio clip and then click submit):
+Let's see it in action! (Record a short audio clip and then click submit, or [open in a new tab](https://huggingface.co/spaces/abidlabs/full-context-asr)):
 
 <iframe src="https://hf.space/gradioiframe/abidlabs/full-context-asr/+" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
@@ -72,6 +72,7 @@ The good news is that it's not too difficult to adapt the demo we just made to m
 The biggest change is that we must now introduce a `state` parameter, which holds the audio that has been *transcribed so far*. This allows us to only the latest chunk of audio and simply append it to the audio we previously transcribed. 
 
 When adding state to a Gradio demo, you need to do a total of 3 things:
+
 * Add a `state` parameter to the function
 * Return the updated `state` at the end of the function
 * Add the `"state"` components to the `inputs` and `outputs` in `Interface`
@@ -101,7 +102,7 @@ gr.Interface(
 
 Notice that we've also made one other change, which is that we've set `live=True`. This keeps the Gradio interface running constantly, so it automatically transcribes audio without the user having to repeatedly hit the submit button.
 
-Let's see how it does!
+Let's see how it does (try below or [in a new tab](https://huggingface.co/spaces/abidlabs/streaming-asr))!
 
 <iframe src="https://hf.space/gradioiframe/abidlabs/streaming-asr/+" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
@@ -134,18 +135,18 @@ gr.Interface(
     live=True).launch()
 ```
 
-Try the demo below to see the difference!
+Try the demo below to see the difference (or [open in a new tab](https://huggingface.co/spaces/abidlabs/streaming-asr-paused))!
 
 <iframe src="https://hf.space/gradioiframe/abidlabs/streaming-asr-paused/+" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
 
 ## Step 4 — Creating a Streaming ASR Demo with DeepSpeech
 
-You're not restricted to ASR models from the `transformers` library -- you can use your own models or models from other libraries. The `DeepSpeech` library contains models that are specifically designed to handle streaming audio data. These models perform really well with  streaming data as they are able to account for previous chunks of data when making 
+You're not restricted to ASR models from the `transformers` library -- you can use your own models or models from other libraries. The `DeepSpeech` library contains models that are specifically designed to handle streaming audio data. These models perform really well with  streaming data as they are able to account for previous chunks of audio data when making predictions.
 
 Going through the DeepSpeech library is beyond the scope of this Guide (check out their [excellent documentation here](https://deepspeech.readthedocs.io/en/r0.9/)), but you can use Gradio very similarly with a DeepSpeech ASR model as with a Transformers ASR model. 
 
-Here's a complete example (for Linux machines):
+Here's a complete example (on Linux):
 
 First install the DeepSpeech library and download the pretrained models from the terminal:
 
