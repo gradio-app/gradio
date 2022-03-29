@@ -9,6 +9,7 @@
 	import { _ } from "svelte-i18n";
 
 	export let value: null | Value;
+	export let live: boolean;
 	export let setValue: (val: typeof value) => typeof value;
 	export let theme: string;
 	export let name: string;
@@ -20,37 +21,54 @@
 	let recorder: MediaRecorder;
 	let mode = "";
 	let audio_chunks: Array<Blob> = [];
+	let chunks_at_submit: number = 0;
 	let audio_blob;
 	let player;
 	let inited = false;
 	let crop_values = [0, 100];
+	let submitting_data = false;
+	let record_interval;
 
-	function blob_to_data_url(blob: Blob): Promise<string> {
-		return new Promise((fulfill, reject) => {
-			let reader = new FileReader();
-			reader.onerror = reject;
-			reader.onload = (e) => fulfill(reader.result as string);
-			reader.readAsDataURL(blob);
-		});
+	async function generate_data(): Promise<{
+		data: string;
+		name: string;
+		is_example: boolean;
+	}> {
+		function blob_to_data_url(blob: Blob): Promise<string> {
+			return new Promise((fulfill, reject) => {
+				let reader = new FileReader();
+				reader.onerror = reject;
+				reader.onload = (e) => fulfill(reader.result as string);
+				reader.readAsDataURL(blob);
+			});
+		}
+		audio_blob = new Blob(audio_chunks, { type: "audio/wav" });
+		return {
+			data: await blob_to_data_url(audio_blob),
+			name,
+			is_example
+		};
 	}
 
 	async function prepare_audio() {
 		const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 		recorder = new MediaRecorder(stream);
 
-		recorder.addEventListener("dataavailable", (event) => {
+		recorder.addEventListener("dataavailable", async (event) => {
 			audio_chunks.push(event.data);
+			if (live && !submitting_data) {
+				submitting_data = true;
+				chunks_at_submit = audio_chunks.length;
+				await setValue(await generate_data());
+				submitting_data = false;
+				audio_chunks = audio_chunks.slice(chunks_at_submit);
+			}
 		});
 
 		recorder.addEventListener("stop", async () => {
-			recording = false;
-			audio_blob = new Blob(audio_chunks, { type: "audio/wav" });
-
-			setValue({
-				data: await blob_to_data_url(audio_blob),
-				name,
-				is_example
-			});
+			if (!live) {
+				setValue(await generate_data());
+			}
 		});
 	}
 
@@ -61,6 +79,12 @@
 		if (!inited) await prepare_audio();
 
 		recorder.start();
+		if (live) {
+			record_interval = setInterval(() => {
+				recorder.stop();
+				recorder.start();
+			}, 1000);
+		}
 	}
 
 	onDestroy(() => {
@@ -70,7 +94,11 @@
 	});
 
 	const stop = () => {
+		recording = false;
 		recorder.stop();
+		if (live) {
+			clearInterval(record_interval);
+		}
 	};
 
 	function clear() {
@@ -117,7 +145,7 @@
 </script>
 
 <div class="input-audio">
-	{#if value === null}
+	{#if value === null || (source === "microphone" && live)}
 		{#if source === "microphone"}
 			{#if recording}
 				<button
