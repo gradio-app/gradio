@@ -27,17 +27,17 @@ def outbreak(r, month, countries, social_distancing):
     return plt
 
 
-iface = gr.Interface(
+demo = gr.Interface(
     outbreak,
     [
-        gr.inputs.Slider(1, 4, default=3.2, label="R"),
-        gr.inputs.Dropdown(
+        gr.Slider(minimum=1, maximum=4, default_value=3.2, label="R"),
+        gr.Dropdown(
             ["January", "February", "March", "April", "May"], label="Month"
         ),
-        gr.inputs.CheckboxGroup(["USA", "Canada", "Mexico", "UK"], label="Countries"),
-        gr.inputs.Checkbox(label="Social Distancing?"),
+        gr.CheckboxGroup(["USA", "Canada", "Mexico", "UK"], label="Countries"),
+        gr.Checkbox(label="Social Distancing?"),
     ],
     "plot",
 )
 if __name__ == "__main__":
-    iface.launch()
+    demo.launch()
