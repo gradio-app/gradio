@@ -7,6 +7,7 @@ def snap(image):
     return np.flipud(image)
 
 
-iface = gr.Interface(snap, gr.inputs.Image(source="webcam", tool=None), "image")
+demo = gr.Interface(snap, gr.Image(source="webcam", tool=None), "image")
+
 if __name__ == "__main__":
-    iface.launch()
+    demo.launch()
