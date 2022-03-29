@@ -4,12 +4,7 @@ import unittest
 try:
     from .test_data.blocks_configs import XRAY_CONFIG  # for pytest
 except ImportError:
-    pass
-
-try:
     from test_data.blocks_configs import XRAY_CONFIG  # for regular python
-except ImportError:
-    pass
 
 import gradio as gr
 
