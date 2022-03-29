@@ -113,7 +113,11 @@
 		try {
 			output = await fn(
 				"predict",
-				{ data: input_values, cleared: cleared_since_last_submit, example_id: example_id },
+				{
+					data: input_values,
+					cleared: cleared_since_last_submit,
+					example_id: example_id
+				},
 				queue,
 				queueCallback
 			);
