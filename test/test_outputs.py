@@ -12,6 +12,8 @@ import gradio as gr
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
+# TODO: Delete this file after confirming backwards compatibility works well.
+
 class TestTextbox(unittest.TestCase):
     def test_in_interface(self):
         iface = gr.Interface(lambda x: x[-1], "textbox", gr.outputs.Textbox())
