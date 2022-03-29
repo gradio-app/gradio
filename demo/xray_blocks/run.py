@@ -43,4 +43,4 @@ with xray_blocks:
     overall_probability = gr.components.Textbox()
 
 print(xray_blocks.get_config_file())
-#xray_blocks.launch()
+xray_blocks.launch()
