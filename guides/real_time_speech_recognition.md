@@ -11,7 +11,7 @@ Using `gradio`, you can easily build a demo of your ASR model and share that wit
 
 This tutorial will show how to take a pretrained speech to text model and deploy it with a Gradio interface. We will start with a ***full-context*** model, in which the user speaks the entire audio before the prediction runs. Then we will adapt the demo to make it ***streaming***, meaning that the audio model will convert speech as you speak. The streaming demo that we create will look something like this (try it!):
 
-<iframe src="https://hf.space/gradioiframe/abidlabs/chatbot-stylized/+" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+<iframe src="https://hf.space/gradioiframe/abidlabs/streaming-asr-paused/+" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
 Real-time ASR is inherently *stateful*, meaning that the model's predictions change depending on what words the user previously spoke. So, in this tutorial, we will also cover how to use **state** with Gradio demos. 
 
@@ -22,7 +22,7 @@ Make sure you have the `gradio` Python package already [installed](/getting_star
 * Transformers (for this, `pip install transformers` and `pip install torch`) 
 * DeepSpeech (`pip install deepspeech==0.8.2`)
 
-Make sure you have at least one of these installed so that you can follow along
+Make sure you have at least one of these installed so that you can follow along the tutorial. You will also need `ffmpeg` [installed on your system](https://www.ffmpeg.org/download.html), if you do not already have it, to process files from the microphone.
 
 ## Step 1 — Setting up the Transformers ASR Model
 
@@ -61,7 +61,7 @@ So what's happening here? The `transcribe` function takes a single parameter, `a
 
 Let's see it in action! (Record a short audio clip and then click submit):
 
-<iframe src="https://hf.space/gradioiframe/abidlabs/chatbot-minimal/+" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+<iframe src="https://hf.space/gradioiframe/abidlabs/full-context-asr/+" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
 ## Step 3 — Creating a Streaming ASR Demo  with Transformers
 
@@ -95,15 +95,15 @@ gr.Interface(
     outputs=[
         "textbox",
         "state"
-    ]
-    outputs="text",
+    ],
     live=True).launch()
 ```
 
 Notice that we've also made one other change, which is that we've set `live=True`. This keeps the Gradio interface running constantly, so it automatically transcribes audio without the user having to repeatedly hit the submit button.
 
-Let's see how it works!
+Let's see how it does!
 
+<iframe src="https://hf.space/gradioiframe/abidlabs/streaming-asr/+" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
 
 One thing that you may notice is that the transcription quality has dropped since the chunks of audio are so small, they lack the context to properly be transcribed. A "hacky" fix to this is to simply increase the runtime of the `transcribe()` function so that longer audio chunks are processed. We can do this by adding a `time.sleep()` inside the function, as shown below (we'll see a proper fix next) 
@@ -130,12 +130,14 @@ gr.Interface(
     outputs=[
         "textbox",
         "state"
-    ]
-    outputs="text",
+    ],
     live=True).launch()
 ```
 
 Try the demo below to see the difference!
+
+<iframe src="https://hf.space/gradioiframe/abidlabs/streaming-asr-paused/+" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+
 
 ## Step 4 — Creating a Streaming ASR Demo with DeepSpeech
 
