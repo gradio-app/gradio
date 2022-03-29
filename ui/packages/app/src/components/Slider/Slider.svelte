@@ -2,6 +2,8 @@
 	import { Range } from "@gradio/form";
 
 	export let value: number = 0;
+
+	export let default_value: number;
 	export let theme: string;
 	export let style: string | null;
 	export let minimum: number;
@@ -9,7 +11,7 @@
 	export let step: number;
 	export let mode: "static" | "dynamic";
 
-	if ($$props.default_value) value = $$props.default_value;
+	if (default_value) value = default_value;
 </script>
 
 <Range
