@@ -22,7 +22,7 @@ demo = gr.Interface(
     [
         gr.Timeseries(x="time", y=["retail", "food", "other"]),
         gr.CheckboxGroup(
-            ["retail", "food", "other"], default=["retail", "food", "other"]
+            ["retail", "food", "other"], default_selected=["retail", "food", "other"]
         ),
         gr.Slider(minimum=1, maximum=3),
     ],
