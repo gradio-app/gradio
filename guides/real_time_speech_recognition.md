@@ -149,7 +149,7 @@ Here's a complete example (for Linux machines):
 
 First install the DeepSpeech library and download the pretrained models from the terminal:
 
-```
+```bash
 wget https://github.com/mozilla/DeepSpeech/releases/download/v0.8.2/deepspeech-0.8.2-models.pbmm
 wget https://github.com/mozilla/DeepSpeech/releases/download/v0.8.2/deepspeech-0.8.2-models.scorer
 apt install libasound2-dev portaudio19-dev libportaudio2 libportaudiocpp0 ffmpeg
@@ -221,7 +221,7 @@ gr.Interface(
 
 Running all of this should allow you to deploy your realtime ASR model with a nice GUI. Try it out and see how well it works for you.
 
-----------
+--------------------------------------------
 
 
 And you're done! That's all the code you need to build a web-based GUI for your ASR model. 
