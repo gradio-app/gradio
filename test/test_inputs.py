@@ -3,13 +3,13 @@ import os
 import tempfile
 import unittest
 from difflib import SequenceMatcher
+from test.test_data import media_data
 
 import numpy as np
 import pandas
 import PIL
 
 import gradio as gr
-from test.test_data import media_data
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 

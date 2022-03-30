@@ -1,7 +1,7 @@
 import random
 import unittest
-
 from test.test_data.blocks_configs import XRAY_CONFIG
+
 import gradio as gr
 
 
