@@ -781,6 +781,7 @@ class TestTimeseries(unittest.TestCase):
             ],
         )
 
+
 class TestModel3d(unittest.TestCase):
     def test_as_component(self):
         model3d = gr.test_data.BASE64_MODEL3D
@@ -789,9 +790,13 @@ class TestModel3d(unittest.TestCase):
         self.assertIsInstance(output, str)
 
         with tempfile.TemporaryDirectory() as tmpdirname:
-            to_save = model3d_input.save_flagged(tmpdirname, "model3d_input", model3d, None)
+            to_save = model3d_input.save_flagged(
+                tmpdirname, "model3d_input", model3d, None
+            )
             self.assertEqual("model3d_input/0", to_save)
-            to_save = model3d_input.save_flagged(tmpdirname, "model3d_input", model3d, None)
+            to_save = model3d_input.save_flagged(
+                tmpdirname, "model3d_input", model3d, None
+            )
             self.assertEqual("model3d_input/1", to_save)
             restored = model3d_input.restore_flagged(tmpdirname, to_save, None)
             self.assertEqual(restored, "model3d_input/1")
@@ -817,7 +822,11 @@ class TestModel3d(unittest.TestCase):
     def test_in_interface(self):
         model3d = gr.test_data.BASE64_MODEL3D
         iface = gr.Interface(lambda x: x, "model3d", "model3d")
-        self.assertEqual(iface.process([model3d])[0][0]["data"], model3d["data"].replace("@file/gltf", ""))
+        self.assertEqual(
+            iface.process([model3d])[0][0]["data"],
+            model3d["data"].replace("@file/gltf", ""),
+        )
+
 
 class TestNames(unittest.TestCase):
     # this ensures that `inputs.get_input_instance()` works correctly when instantiating from components
