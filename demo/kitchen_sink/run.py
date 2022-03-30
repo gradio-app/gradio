@@ -82,48 +82,48 @@ def fn(
     )
 
 
-iface = gr.Interface(
+demo = gr.Interface(
     fn,
     inputs=[
-        gr.inputs.Textbox(default="Lorem ipsum", label="Textbox"),
-        gr.inputs.Textbox(lines=3, placeholder="Type here..", label="Textbox 2"),
-        gr.inputs.Number(label="Number", default=42),
-        gr.inputs.Slider(minimum=10, maximum=20, default=15, label="Slider: 10 - 20"),
-        gr.inputs.Slider(maximum=20, step=0.04, label="Slider: step @ 0.04"),
-        gr.inputs.Checkbox(label="Checkbox"),
-        gr.inputs.CheckboxGroup(
-            label="CheckboxGroup", choices=CHOICES, default=CHOICES[0:2]
+        gr.Textbox(default_value="Lorem ipsum", label="Textbox"),
+        gr.Textbox(lines=3, placeholder="Type here..", label="Textbox 2"),
+        gr.Number(label="Number", default=42),
+        gr.Slider(minimum=10, maximum=20, default_value=15, label="Slider: 10 - 20"),
+        gr.Slider(maximum=20, step=0.04, label="Slider: step @ 0.04"),
+        gr.Checkbox(label="Checkbox"),
+        gr.CheckboxGroup(
+            label="CheckboxGroup", choices=CHOICES, default_selected=CHOICES[0:2]
         ),
-        gr.inputs.Radio(label="Radio", choices=CHOICES, default=CHOICES[2]),
-        gr.inputs.Dropdown(label="Dropdown", choices=CHOICES),
-        gr.inputs.Image(label="Image", optional=True),
-        gr.inputs.Image(label="Image w/ Cropper", tool="select", optional=True),
-        gr.inputs.Image(label="Sketchpad", source="canvas", optional=True),
-        gr.inputs.Image(label="Webcam", source="webcam", optional=True),
-        gr.inputs.Video(label="Video", optional=True),
-        gr.inputs.Audio(label="Audio", optional=True),
-        gr.inputs.Audio(label="Microphone", source="microphone", optional=True),
-        gr.inputs.File(label="File", optional=True),
-        gr.inputs.Dataframe(label="Dataframe", headers=["Name", "Age", "Gender"]),
-        gr.inputs.Timeseries(x="time", y=["price", "value"], optional=True),
+        gr.Radio(label="Radio", choices=CHOICES, default_selected=CHOICES[2]),
+        gr.Dropdown(label="Dropdown", choices=CHOICES),
+        gr.Image(label="Image"),
+        gr.Image(label="Image w/ Cropper", tool="select"),
+        gr.Image(label="Sketchpad", source="canvas"),
+        gr.Image(label="Webcam", source="webcam"),
+        gr.Video(label="Video"),
+        gr.Audio(label="Audio"),
+        gr.Audio(label="Microphone", source="microphone"),
+        gr.File(label="File"),
+        gr.Dataframe(label="Dataframe", headers=["Name", "Age", "Gender"]),
+        gr.Timeseries(x="time", y=["price", "value"]),
     ],
     outputs=[
-        gr.outputs.Textbox(label="Textbox"),
-        gr.outputs.Label(label="Label"),
-        gr.outputs.Audio(label="Audio"),
-        gr.outputs.Image(label="Image"),
-        gr.outputs.Video(label="Video"),
-        gr.outputs.HighlightedText(
+        gr.Textbox(label="Textbox"),
+        gr.Label(label="Label"),
+        gr.Audio(label="Audio"),
+        gr.Image(label="Image"),
+        gr.Video(label="Video"),
+        gr.HighlightedText(
             label="HighlightedText", color_map={"punc": "pink", "test 0": "blue"}
         ),
-        gr.outputs.HighlightedText(label="HighlightedText", show_legend=True),
-        gr.outputs.JSON(label="JSON"),
-        gr.outputs.HTML(label="HTML"),
-        gr.outputs.File(label="File"),
-        gr.outputs.Dataframe(label="Dataframe"),
-        gr.outputs.Dataframe(label="Numpy", type="numpy"),
-        gr.outputs.Carousel("image", label="Carousel"),
-        gr.outputs.Timeseries(x="time", y=["price", "value"], label="Timeseries"),
+        gr.HighlightedText(label="HighlightedText", show_legend=True),
+        gr.JSON(label="JSON"),
+        gr.HTML(label="HTML"),
+        gr.File(label="File"),
+        gr.Dataframe(label="Dataframe"),
+        gr.Dataframe(label="Numpy"),
+        gr.Carousel(components="image", label="Carousel"),
+        gr.Timeseries(x="time", y=["price", "value"], label="Timeseries"),
     ],
     examples=[
         [
@@ -156,4 +156,4 @@ iface = gr.Interface(
 )
 
 if __name__ == "__main__":
-    iface.launch()
+    demo.launch()

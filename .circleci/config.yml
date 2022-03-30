@@ -41,11 +41,6 @@ jobs:
       - run:
           command: |
             . venv/bin/activate
-            coverage run -m pytest
-            coverage xml
-      - run:
-          command: |
-            . venv/bin/activate
             python -m black --check gradio test
       - run:
           command: |
@@ -55,6 +50,11 @@ jobs:
           command: |
             . venv/bin/activate
             python -m  flake8 --ignore=E731,E501,E722,W503,E126,F401,E203 gradio test
+      - run:
+          command: |
+            . venv/bin/activate
+            coverage run -m pytest
+            coverage xml
       - codecov/upload:
           file: 'coverage.xml'
       - store_artifacts:
