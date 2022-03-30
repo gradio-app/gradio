@@ -8,6 +8,7 @@ import os
 import shutil
 import tempfile
 import warnings
+from test.test_data import media_data
 from types import ModuleType
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
@@ -17,7 +18,6 @@ import pandas as pd
 import PIL
 from ffmpy import FFmpeg
 from markdown_it import MarkdownIt
-from test.test_data import media_data
 
 from gradio import processing_utils
 from gradio.blocks import Block
