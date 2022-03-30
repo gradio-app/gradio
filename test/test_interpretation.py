@@ -4,9 +4,9 @@ import unittest
 import numpy as np
 
 import gradio.interpretation
-import gradio.test_data
 from gradio import Interface
 from gradio.processing_utils import decode_base64_to_image
+from test.test_data import media_data
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -59,9 +59,9 @@ class TestCustom(unittest.TestCase):
         img_interface = Interface(
             max_pixel_value, "image", "label", interpretation=custom
         )
-        result = img_interface.interpret([gradio.test_data.BASE64_IMAGE])[0][0]
+        result = img_interface.interpret([media_data.BASE64_IMAGE])[0][0]
         expected_result = np.asarray(
-            decode_base64_to_image(gradio.test_data.BASE64_IMAGE).convert("RGB")
+            decode_base64_to_image(media_data.BASE64_IMAGE).convert("RGB")
         ).tolist()
         self.assertEqual(result, expected_result)
 

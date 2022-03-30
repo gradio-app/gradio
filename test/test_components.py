@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import PIL
-
+from test.test_data import media_data
 import gradio as gr
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
@@ -412,7 +412,7 @@ class TestDropdown(unittest.TestCase):
 
 class TestImage(unittest.TestCase):
     def test_as_component_as_input(self):
-        img = gr.test_data.BASE64_IMAGE
+        img = media_data.BASE64_IMAGE
         image_input = gr.Image()
         self.assertEqual(image_input.preprocess(img).shape, (68, 61, 3))
         image_input = gr.Image(shape=(25, 25), image_mode="L")
@@ -452,7 +452,7 @@ class TestImage(unittest.TestCase):
         image_input.preprocess(img)
         with self.assertWarns(DeprecationWarning):
             file_image = gr.Image(type="file")
-            file_image.preprocess(gr.test_data.BASE64_IMAGE)
+            file_image.preprocess(media_data.BASE64_IMAGE)
         file_image = gr.Image(type="filepath")
         self.assertIsInstance(file_image.preprocess(img), str)
         with self.assertRaises(ValueError):
@@ -473,7 +473,7 @@ class TestImage(unittest.TestCase):
         self.assertIsNotNone(image_input._segment_by_slic(img))
 
     def test_in_interface_as_input(self):
-        img = gr.test_data.BASE64_IMAGE
+        img = media_data.BASE64_IMAGE
         image_input = gr.Image()
         iface = gr.Interface(
             lambda x: PIL.Image.open(x).rotate(90, expand=True),
@@ -488,10 +488,10 @@ class TestImage(unittest.TestCase):
             lambda x: np.sum(x), image_input, "number", interpretation="default"
         )
         scores, alternative_outputs = iface.interpret([img])
-        self.assertEqual(scores, gr.test_data.SUM_PIXELS_INTERPRETATION["scores"])
+        self.assertEqual(scores, media_data.SUM_PIXELS_INTERPRETATION["scores"])
         self.assertEqual(
             alternative_outputs,
-            gr.test_data.SUM_PIXELS_INTERPRETATION["alternative_outputs"],
+            media_data.SUM_PIXELS_INTERPRETATION["alternative_outputs"],
         )
         iface = gr.Interface(
             lambda x: np.sum(x), image_input, "label", interpretation="shap"
@@ -499,11 +499,11 @@ class TestImage(unittest.TestCase):
         scores, alternative_outputs = iface.interpret([img])
         self.assertEqual(
             len(scores[0]),
-            len(gr.test_data.SUM_PIXELS_SHAP_INTERPRETATION["scores"][0]),
+            len(media_data.SUM_PIXELS_SHAP_INTERPRETATION["scores"][0]),
         )
         self.assertEqual(
             len(alternative_outputs[0]),
-            len(gr.test_data.SUM_PIXELS_SHAP_INTERPRETATION["alternative_outputs"][0]),
+            len(media_data.SUM_PIXELS_SHAP_INTERPRETATION["alternative_outputs"][0]),
         )
         image_input = gr.Image(shape=(30, 10))
         iface = gr.Interface(
@@ -512,7 +512,7 @@ class TestImage(unittest.TestCase):
         self.assertIsNotNone(iface.interpret([img]))
 
     def test_as_component_as_output(self):
-        y_img = gr.processing_utils.decode_base64_to_image(gr.test_data.BASE64_IMAGE)
+        y_img = gr.processing_utils.decode_base64_to_image(media_data.BASE64_IMAGE)
         image_output = gr.Image()
         self.assertTrue(
             image_output.postprocess(y_img).startswith(
@@ -542,11 +542,11 @@ class TestImage(unittest.TestCase):
         )
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = image_output.save_flagged(
-                tmpdirname, "image_output", gr.test_data.BASE64_IMAGE, None
+                tmpdirname, "image_output", media_data.BASE64_IMAGE, None
             )
             self.assertEqual("image_output/0.png", to_save)
             to_save = image_output.save_flagged(
-                tmpdirname, "image_output", gr.test_data.BASE64_IMAGE, None
+                tmpdirname, "image_output", media_data.BASE64_IMAGE, None
             )
             self.assertEqual("image_output/1.png", to_save)
 
@@ -562,7 +562,7 @@ class TestImage(unittest.TestCase):
 
 class TestAudio(unittest.TestCase):
     def test_as_component_as_input(self):
-        x_wav = gr.test_data.BASE64_AUDIO
+        x_wav = media_data.BASE64_AUDIO
         audio_input = gr.Audio()
         output = audio_input.preprocess(x_wav)
         self.assertEqual(output[0], 8000)
@@ -612,7 +612,7 @@ class TestAudio(unittest.TestCase):
         self.assertIsInstance(audio_input.serialize(x_wav, False), dict)
 
     def test_tokenize(self):
-        x_wav = gr.test_data.BASE64_AUDIO
+        x_wav = media_data.BASE64_AUDIO
         audio_input = gr.Audio()
         tokens, _, _ = audio_input.tokenize(x_wav)
         self.assertEquals(len(tokens), audio_input.interpretation_segments)
@@ -622,7 +622,7 @@ class TestAudio(unittest.TestCase):
 
     def test_as_component_as_output(self):
         y_audio = gr.processing_utils.decode_base64_to_file(
-            gr.test_data.BASE64_AUDIO["data"]
+            media_data.BASE64_AUDIO["data"]
         )
         audio_output = gr.Audio(type="file")
         self.assertTrue(
@@ -641,15 +641,15 @@ class TestAudio(unittest.TestCase):
             },
         )
         self.assertTrue(
-            audio_output.deserialize(gr.test_data.BASE64_AUDIO["data"]).endswith(".wav")
+            audio_output.deserialize(media_data.BASE64_AUDIO["data"]).endswith(".wav")
         )
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = audio_output.save_flagged(
-                tmpdirname, "audio_output", gr.test_data.BASE64_AUDIO, None
+                tmpdirname, "audio_output", media_data.BASE64_AUDIO, None
             )
             self.assertEqual("audio_output/0.wav", to_save)
             to_save = audio_output.save_flagged(
-                tmpdirname, "audio_output", gr.test_data.BASE64_AUDIO, None
+                tmpdirname, "audio_output", media_data.BASE64_AUDIO, None
             )
             self.assertEqual("audio_output/1.wav", to_save)
 
@@ -663,7 +663,7 @@ class TestAudio(unittest.TestCase):
 
 class TestFile(unittest.TestCase):
     def test_as_component_as_input(self):
-        x_file = gr.test_data.BASE64_FILE
+        x_file = media_data.BASE64_FILE
         file_input = gr.File()
         output = file_input.preprocess(x_file)
         self.assertIsInstance(output, tempfile._TemporaryFileWrapper)
@@ -697,7 +697,7 @@ class TestFile(unittest.TestCase):
         self.assertIsNotNone(file_input.preprocess(x_file))
 
     def test_in_interface_as_input(self):
-        x_file = gr.test_data.BASE64_FILE
+        x_file = media_data.BASE64_FILE
 
         def get_size_of_file(file_obj):
             return os.path.getsize(file_obj.name)
@@ -723,11 +723,11 @@ class TestFile(unittest.TestCase):
         file_output = gr.File()
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = file_output.save_flagged(
-                tmpdirname, "file_output", [gr.test_data.BASE64_FILE], None
+                tmpdirname, "file_output", [media_data.BASE64_FILE], None
             )
             self.assertEqual("file_output/0", to_save)
             to_save = file_output.save_flagged(
-                tmpdirname, "file_output", [gr.test_data.BASE64_FILE], None
+                tmpdirname, "file_output", [media_data.BASE64_FILE], None
             )
             self.assertEqual("file_output/1", to_save)
 
@@ -865,7 +865,7 @@ class TestDataframe(unittest.TestCase):
 
 class TestVideo(unittest.TestCase):
     def test_as_component_as_input(self):
-        x_video = gr.test_data.BASE64_VIDEO
+        x_video = media_data.BASE64_VIDEO
         video_input = gr.Video()
         output = video_input.preprocess(x_video)
         self.assertIsInstance(output, str)
@@ -899,7 +899,7 @@ class TestVideo(unittest.TestCase):
             video_input.serialize(x_video, True)
 
     def test_in_interface_as_input(self):
-        x_video = gr.test_data.BASE64_VIDEO
+        x_video = media_data.BASE64_VIDEO
         iface = gr.Interface(lambda x: x, "video", "playable_video")
         self.assertEqual(iface.process([x_video])[0][0]["data"], x_video["data"])
 
@@ -910,15 +910,15 @@ class TestVideo(unittest.TestCase):
             video_output.postprocess(y_vid)["data"].startswith("data:video/mp4;base64,")
         )
         self.assertTrue(
-            video_output.deserialize(gr.test_data.BASE64_VIDEO["data"]).endswith(".mp4")
+            video_output.deserialize(media_data.BASE64_VIDEO["data"]).endswith(".mp4")
         )
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = video_output.save_flagged(
-                tmpdirname, "video_output", gr.test_data.BASE64_VIDEO, None
+                tmpdirname, "video_output", media_data.BASE64_VIDEO, None
             )
             self.assertEqual("video_output/0.mp4", to_save)
             to_save = video_output.save_flagged(
-                tmpdirname, "video_output", gr.test_data.BASE64_VIDEO, None
+                tmpdirname, "video_output", media_data.BASE64_VIDEO, None
             )
             self.assertEqual("video_output/1.mp4", to_save)
 
@@ -1092,7 +1092,7 @@ class TestLabel(unittest.TestCase):
             )
 
     def test_in_interface(self):
-        x_img = gr.test_data.BASE64_IMAGE
+        x_img = media_data.BASE64_IMAGE
 
         def rgb_distribution(img):
             rgb_dist = np.mean(img, axis=(0, 1))
@@ -1227,8 +1227,8 @@ class TestCarousel(unittest.TestCase):
         self.assertEqual(
             output,
             [
-                ["Hello World", gr.test_data.BASE64_IMAGE],
-                ["Bye World", gr.test_data.BASE64_IMAGE],
+                ["Hello World", media_data.BASE64_IMAGE],
+                ["Bye World", media_data.BASE64_IMAGE],
             ],
         )
 
@@ -1277,7 +1277,7 @@ class TestCarousel(unittest.TestCase):
             return results
 
         iface = gr.Interface(report, gr.inputs.Image(type="numpy"), carousel_output)
-        result = iface.process([gr.test_data.BASE64_IMAGE])
+        result = iface.process([media_data.BASE64_IMAGE])
         self.assertTrue(result[0][0][0][0] == "Red")
         self.assertTrue(
             result[0][0][0][1].startswith("data:image/png;base64,iVBORw0KGgoAAA")

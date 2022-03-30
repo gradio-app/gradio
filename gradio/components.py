@@ -17,8 +17,9 @@ import pandas as pd
 import PIL
 from ffmpy import FFmpeg
 from markdown_it import MarkdownIt
+from test.test_data import media_data
 
-from gradio import processing_utils, test_data
+from gradio import processing_utils
 from gradio.blocks import Block
 
 
@@ -1068,7 +1069,7 @@ class Image(Component):
         requires_permissions = source == "webcam"
         self.tool = tool
         self.invert_colors = invert_colors
-        self.test_input = test_data.BASE64_IMAGE
+        self.test_input = media_data.BASE64_IMAGE
         self.interpret_by_tokens = True
         super().__init__(
             label=label, requires_permissions=requires_permissions, **kwargs
@@ -1273,7 +1274,7 @@ class Image(Component):
         return self.save_flagged_file(dir, label, data, encryption_key)
 
     def generate_sample(self):
-        return test_data.BASE64_IMAGE
+        return media_data.BASE64_IMAGE
 
     # Output functions
 
@@ -1445,7 +1446,7 @@ class Video(Component):
         )
 
     def generate_sample(self):
-        return test_data.BASE64_VIDEO
+        return media_data.BASE64_VIDEO
 
     def postprocess(self, y):
         """
@@ -1555,7 +1556,7 @@ class Audio(Component):
         requires_permissions = source == "microphone"
         self.type = type
         self.output_type = "auto"
-        self.test_input = test_data.BASE64_AUDIO
+        self.test_input = media_data.BASE64_AUDIO
         self.interpret_by_tokens = True
         super().__init__(
             label=label, requires_permissions=requires_permissions, **kwargs
@@ -1741,7 +1742,7 @@ class Audio(Component):
         )
 
     def generate_sample(self):
-        return test_data.BASE64_AUDIO
+        return media_data.BASE64_AUDIO
 
     def postprocess(self, y):
         """
@@ -1935,7 +1936,7 @@ class File(Component):
         )
 
     def generate_sample(self):
-        return test_data.BASE64_FILE
+        return media_data.BASE64_FILE
 
     # Output Functionalities
 
