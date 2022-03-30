@@ -2,11 +2,12 @@
 	import { Checkbox } from "@gradio/form";
 
 	export let value: boolean = false;
+	export let default_value: boolean = false;
 	export let theme: string;
 	export let style: string | null;
 	export let mode: "static" | "dynamic";
 
-	if ($$props.default) value = $$props.default;
+	if (default_value) value = default_value;
 </script>
 
 <Checkbox {theme} {style} bind:value on:change disabled={mode === "static"} />

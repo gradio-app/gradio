@@ -6,11 +6,14 @@
 	import { _ } from "svelte-i18n";
 
 	export let value: FileData | null = null;
+	export let default_value: FileData | null;
 	export let theme: string;
 	export let style: string | null;
 	export let source: string;
 
 	export let mode: "static" | "dynamic";
+
+	if (default_value) value = default_value;
 </script>
 
 {#if mode === "static" && value}

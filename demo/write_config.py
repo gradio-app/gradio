@@ -6,7 +6,7 @@ Example: python write_config.py calculator output.json
 Assumes:
 - The demo_name is a folder in this directory
 - The demo_name folder contains a run.py file 
-- The run.py which defines a Gradio Interface/Blocks instance called demo
+- The run.py file defines a Gradio Interface/Blocks instance called `demo`
 """
 
 from __future__ import annotations
