@@ -1278,7 +1278,6 @@ class TestCarousel(unittest.TestCase):
 
         iface = gr.Interface(report, gr.inputs.Image(type="numpy"), carousel_output)
         result = iface.process([gr.test_data.BASE64_IMAGE])
-        print(f"Hello {result[0][0][0][0]}")
         self.assertTrue(result[0][0][0][0] == "Red")
         self.assertTrue(
             result[0][0][0][1].startswith("data:image/png;base64,iVBORw0KGgoAAA")
