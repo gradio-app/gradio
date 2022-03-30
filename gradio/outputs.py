@@ -852,6 +852,7 @@ class State(OutputComponent):
             "state": {},
         }
 
+
 class Model3d(OutputComponent):
     """
     Used for 3d model output.
@@ -867,7 +868,7 @@ class Model3d(OutputComponent):
         """
         super().__init__(label)
         self.clear_color = clear_color
-    
+
     def get_template_context(self):
         return {**super().get_template_context()}
 
@@ -904,7 +905,7 @@ class Model3d(OutputComponent):
         """
         Returns: (str) path to model file
         """
-        return self.save_flagged_file(dir, label, data['data'], encryption_key)
+        return self.save_flagged_file(dir, label, data["data"], encryption_key)
 
 
 def get_output_instance(iface: Interface):

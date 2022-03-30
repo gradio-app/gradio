@@ -540,6 +540,7 @@ class TestTimeseries(unittest.TestCase):
                 },
             )
 
+
 class TestModel3d(unittest.TestCase):
     def test_as_component(self):
         model3d = "test/test_files/fox.gltf"

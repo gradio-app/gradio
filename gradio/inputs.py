@@ -1658,7 +1658,6 @@ class Model3d(InputComponent):
     def preprocess_example(self, x):
         return {"name": x, "data": None, "is_example": True}
 
-
     def preprocess(self, x: Dict[str, str] | None) -> str | None:
         """
         Parameters:
@@ -1692,9 +1691,10 @@ class Model3d(InputComponent):
         return self.save_flagged_file(
             dir, label, None if data is None else data["data"], encryption_key
         )
-    
+
     def generate_sample(self):
         return test_data.BASE64_MODEL3D
+
 
 def get_input_instance(iface: Interface):
     if isinstance(iface, str):
