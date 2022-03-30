@@ -1278,17 +1278,18 @@ class TestCarousel(unittest.TestCase):
 
         iface = gr.Interface(report, gr.inputs.Image(type="numpy"), carousel_output)
         result = iface.process([gr.test_data.BASE64_IMAGE])
-        self.assertTrue(result[0][0][0][0][0] == "Red")
-        self.assertEqual(
-            result[0][0][0][0][1].startswith("data:image/png;base64,iVBORw0KGgoAAA")
+        print(f"Hello {result[0][0][0][0]}")
+        self.assertTrue(result[0][0][0][0] == "Red")
+        self.assertTrue(
+            result[0][0][0][1].startswith("data:image/png;base64,iVBORw0KGgoAAA")
         )
-        self.assertTrue(result[0][0][0][1][0] == "Green")
-        self.assertEqual(
-            result[0][0][0][1][1].startswith("data:image/png;base64,iVBORw0KGgoAAA")
+        self.assertTrue(result[0][0][1][0] == "Green")
+        self.assertTrue(
+            result[0][0][1][1].startswith("data:image/png;base64,iVBORw0KGgoAAA")
         )
-        self.assertTrue(result[0][0][0][2][0] == "Blue")
-        self.assertEqual(
-            result[0][0][0][2][1].startswith("data:image/png;base64,iVBORw0KGgoAAA")
+        self.assertTrue(result[0][0][2][0] == "Blue")
+        self.assertTrue(
+            result[0][0][2][1].startswith("data:image/png;base64,iVBORw0KGgoAAA")
         )
 
     if __name__ == "__main__":
