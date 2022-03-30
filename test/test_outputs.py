@@ -6,7 +6,7 @@ import unittest
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
+from test.test_data import media_data
 import gradio as gr
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
@@ -78,7 +78,7 @@ class TestLabel(unittest.TestCase):
             )
 
     def test_in_interface(self):
-        x_img = gr.test_data.BASE64_IMAGE
+        x_img = media_data.BASE64_IMAGE
 
         def rgb_distribution(img):
             rgb_dist = np.mean(img, axis=(0, 1))
@@ -107,7 +107,7 @@ class TestLabel(unittest.TestCase):
 
 class TestImage(unittest.TestCase):
     def test_as_component(self):
-        y_img = gr.processing_utils.decode_base64_to_image(gr.test_data.BASE64_IMAGE)
+        y_img = gr.processing_utils.decode_base64_to_image(media_data.BASE64_IMAGE)
         image_output = gr.outputs.Image()
         self.assertTrue(
             image_output.postprocess(y_img).startswith(
@@ -137,11 +137,11 @@ class TestImage(unittest.TestCase):
         )
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = image_output.save_flagged(
-                tmpdirname, "image_output", gr.test_data.BASE64_IMAGE, None
+                tmpdirname, "image_output", media_data.BASE64_IMAGE, None
             )
             self.assertEqual("image_output/0.png", to_save)
             to_save = image_output.save_flagged(
-                tmpdirname, "image_output", gr.test_data.BASE64_IMAGE, None
+                tmpdirname, "image_output", media_data.BASE64_IMAGE, None
             )
             self.assertEqual("image_output/1.png", to_save)
 
@@ -163,15 +163,15 @@ class TestVideo(unittest.TestCase):
             video_output.postprocess(y_vid)["data"].startswith("data:video/mp4;base64,")
         )
         self.assertTrue(
-            video_output.deserialize(gr.test_data.BASE64_VIDEO["data"]).endswith(".mp4")
+            video_output.deserialize(media_data.BASE64_VIDEO["data"]).endswith(".mp4")
         )
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = video_output.save_flagged(
-                tmpdirname, "video_output", gr.test_data.BASE64_VIDEO, None
+                tmpdirname, "video_output", media_data.BASE64_VIDEO, None
             )
             self.assertEqual("video_output/0.mp4", to_save)
             to_save = video_output.save_flagged(
-                tmpdirname, "video_output", gr.test_data.BASE64_VIDEO, None
+                tmpdirname, "video_output", media_data.BASE64_VIDEO, None
             )
             self.assertEqual("video_output/1.mp4", to_save)
 
@@ -225,7 +225,7 @@ class TestHighlightedText(unittest.TestCase):
 class TestAudio(unittest.TestCase):
     def test_as_component(self):
         y_audio = gr.processing_utils.decode_base64_to_file(
-            gr.test_data.BASE64_AUDIO["data"]
+            media_data.BASE64_AUDIO["data"]
         )
         audio_output = gr.outputs.Audio(type="file")
         self.assertTrue(
@@ -244,15 +244,15 @@ class TestAudio(unittest.TestCase):
             },
         )
         self.assertTrue(
-            audio_output.deserialize(gr.test_data.BASE64_AUDIO["data"]).endswith(".wav")
+            audio_output.deserialize(media_data.BASE64_AUDIO["data"]).endswith(".wav")
         )
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = audio_output.save_flagged(
-                tmpdirname, "audio_output", gr.test_data.BASE64_AUDIO, None
+                tmpdirname, "audio_output", media_data.BASE64_AUDIO, None
             )
             self.assertEqual("audio_output/0.wav", to_save)
             to_save = audio_output.save_flagged(
-                tmpdirname, "audio_output", gr.test_data.BASE64_AUDIO, None
+                tmpdirname, "audio_output", media_data.BASE64_AUDIO, None
             )
             self.assertEqual("audio_output/1.wav", to_save)
 
@@ -330,11 +330,11 @@ class TestFile(unittest.TestCase):
         file_output = gr.outputs.File()
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = file_output.save_flagged(
-                tmpdirname, "file_output", [gr.test_data.BASE64_FILE], None
+                tmpdirname, "file_output", [media_data.BASE64_FILE], None
             )
             self.assertEqual("file_output/0", to_save)
             to_save = file_output.save_flagged(
-                tmpdirname, "file_output", [gr.test_data.BASE64_FILE], None
+                tmpdirname, "file_output", [media_data.BASE64_FILE], None
             )
             self.assertEqual("file_output/1", to_save)
 
@@ -422,8 +422,8 @@ class TestCarousel(unittest.TestCase):
         self.assertEqual(
             output,
             [
-                ["Hello World", gr.test_data.BASE64_IMAGE],
-                ["Bye World", gr.test_data.BASE64_IMAGE],
+                ["Hello World", media_data.BASE64_IMAGE],
+                ["Bye World", media_data.BASE64_IMAGE],
             ],
         )
 
@@ -471,7 +471,7 @@ class TestCarousel(unittest.TestCase):
 
         iface = gr.Interface(report, gr.inputs.Image(type="numpy"), carousel_output)
         self.assertEqual(
-            iface.process([gr.test_data.BASE64_IMAGE])[0],
+            iface.process([media_data.BASE64_IMAGE])[0],
             [
                 [
                     [
