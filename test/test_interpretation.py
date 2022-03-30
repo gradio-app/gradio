@@ -1,12 +1,12 @@
 import os
 import unittest
+from test.test_data import media_data
 
 import numpy as np
 
 import gradio.interpretation
 from gradio import Interface
 from gradio.processing_utils import decode_base64_to_image
-from test.test_data import media_data
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
