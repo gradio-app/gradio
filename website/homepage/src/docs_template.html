@@ -130,8 +130,11 @@
       background: rgb(249, 250, 251);
       border: none !important;
     }
+    .demo-code pre {
+      margin-top: 0;
+    }
 
-    #demos button {
+    .demo-link {
       border: solid 1px lightgray;
       border-top-left-radius: 4px;
       border-top-right-radius: 4px;
@@ -410,18 +413,18 @@
                 <a class="close" onclick="hidePopup(this)">×</a>
 
 
-              <div id="demos" style="height: 90%">
+              <div id="demos" class="mt-4" style="height: 90%">
                 <div id="demo-nav">
-                  <button class="selected demo-link" id="{{ demo_name }}_code" onclick="showCode()">
+                  <button class="selected code-button demo-link" id="{{ demo_name }}_code" onclick="showCode()">
                     <div class="demo-long">Code</div>
                   </button>
-                  <button class="selected demo-link" id="{{ demo_name }}_screenshot" onclick="showScreenshot()">
+                  <button class="demo-button demo-link" id="{{ demo_name }}_screenshot" onclick="showScreenshot()">
                     <div class="demo-long">Interface</div>
                   </button>
                 </div>
-              <div class="demo-code code-block flex"><pre class=" language-python"><code class=" language-python">{{ code }}</code></pre><button class="copy flex float-right cursor-pointer rounded-l-none rounded-r mx-0 my-2" onclick="copyCode(this)"><img class="copy-svg m0 w-7 flex-initial" src="/assets/img/copy-grey.svg"><div class="flex-auto"></div></button></div>
+              <div class="demo-code code-block flex"><pre class=" language-python"><code class=" language-python">{{ code }}</code></pre><button class="copy flex float-right cursor-pointer rounded-l-none rounded-r mx-0" onclick="copyCode(this)"><img class="copy-svg m0 w-7 flex-initial" src="/assets/img/copy-grey.svg"><div class="flex-auto"></div></button></div>
               <div class="interface-screenshot hidden" style="height: 90%;">
-                <img style="max-height: 90%;"
+                <img class="mt-4" style="max-height: 90%;"
                     src="/assets/demo_screenshots/{{ demo_name }}.png">
               </div>
             </div>
@@ -579,6 +582,8 @@
     function showScreenshot() {
        let screenshotElems = document.querySelectorAll(".interface-screenshot");
        let codeElems = document.querySelectorAll(".demo-code");
+       let codeButtonElems = document.querySelectorAll(".code-button");
+       let demoButtonElems = document.querySelectorAll(".demo-button");
        codeElems.forEach(e => {
         e.classList.add("hidden");
         e.classList.remove("flex");
@@ -590,20 +595,38 @@
         e.classList.add("selected");
        }
        );
+        codeButtonElems.forEach(e => {
+        e.classList.remove("selected");
+       }
+       );
+       demoButtonElems.forEach(e => {
+        e.classList.add("selected");
+       }
+       );
     }
 
     function showCode() {
        let screenshotElems = document.querySelectorAll(".interface-screenshot");
+       let codeElems = document.querySelectorAll(".demo-code");
+       let codeButtonElems = document.querySelectorAll(".code-button");
+       let demoButtonElems = document.querySelectorAll(".demo-button");
        screenshotElems.forEach(e => {
         e.classList.add("hidden");
         e.classList.remove("selected");
        }
        );
-       let codeElems = document.querySelectorAll(".demo-code");
        codeElems.forEach(e => {
         e.classList.remove("hidden");
         e.classList.add("flex");
         e.classList.add("selected");
+       }
+       );
+       codeButtonElems.forEach(e => {
+        e.classList.add("selected");
+       }
+       );
+       demoButtonElems.forEach(e => {
+        e.classList.remove("selected");
        }
        );
     }
