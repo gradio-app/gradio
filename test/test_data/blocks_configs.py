@@ -24,10 +24,9 @@ XRAY_CONFIG = {
         },
         {"id": 3, "type": "tabs", "props": {"css": {}}},
         {"id": 4, "type": "tabitem", "props": {"label": "X-ray", "css": {}}},
-        {"id": 5, "type": "tabitem", "props": {"label": "X-ray", "css": {}}},
-        {"id": 6, "type": "row", "props": {"type": "row", "css": {}}},
+        {"id": 5, "type": "row", "props": {"type": "row", "css": {}}},
         {
-            "id": 7,
+            "id": 6,
             "type": "image",
             "props": {
                 "image_mode": "RGB",
@@ -41,12 +40,12 @@ XRAY_CONFIG = {
             },
         },
         {
-            "id": 8,
+            "id": 7,
             "type": "json",
             "props": {"default_value": '""', "name": "json", "label": None, "css": {}},
         },
         {
-            "id": 9,
+            "id": 8,
             "type": "button",
             "props": {
                 "default_value": "Run",
@@ -55,11 +54,10 @@ XRAY_CONFIG = {
                 "css": {"background-color": "red", "--hover-color": "orange"},
             },
         },
-        {"id": 10, "type": "tabitem", "props": {"label": "CT Scan", "css": {}}},
-        {"id": 11, "type": "tabitem", "props": {"label": "CT Scan", "css": {}}},
-        {"id": 12, "type": "row", "props": {"type": "row", "css": {}}},
+        {"id": 9, "type": "tabitem", "props": {"label": "CT Scan", "css": {}}},
+        {"id": 10, "type": "row", "props": {"type": "row", "css": {}}},
         {
-            "id": 13,
+            "id": 11,
             "type": "image",
             "props": {
                 "image_mode": "RGB",
@@ -73,12 +71,12 @@ XRAY_CONFIG = {
             },
         },
         {
-            "id": 14,
+            "id": 12,
             "type": "json",
             "props": {"default_value": '""', "name": "json", "label": None, "css": {}},
         },
         {
-            "id": 15,
+            "id": 13,
             "type": "button",
             "props": {
                 "default_value": "Run",
@@ -88,7 +86,7 @@ XRAY_CONFIG = {
             },
         },
         {
-            "id": 16,
+            "id": 14,
             "type": "textbox",
             "props": {
                 "lines": 1,
@@ -110,40 +108,26 @@ XRAY_CONFIG = {
                 "id": 3,
                 "children": [
                     {
-                        "id": 5,
+                        "id": 4,
                         "children": [
-                            {"id": 6, "children": [{"id": 7}, {"id": 8}]},
-                            {"id": 9},
+                            {"id": 5, "children": [{"id": 6}, {"id": 7}]},
+                            {"id": 8},
                         ],
                     },
                     {
-                        "id": 5,
+                        "id": 9,
                         "children": [
-                            {"id": 6, "children": [{"id": 7}, {"id": 8}]},
-                            {"id": 9},
-                        ],
-                    },
-                    {
-                        "id": 11,
-                        "children": [
-                            {"id": 12, "children": [{"id": 13}, {"id": 14}]},
-                            {"id": 15},
-                        ],
-                    },
-                    {
-                        "id": 11,
-                        "children": [
-                            {"id": 12, "children": [{"id": 13}, {"id": 14}]},
-                            {"id": 15},
+                            {"id": 10, "children": [{"id": 11}, {"id": 12}]},
+                            {"id": 13},
                         ],
                     },
                 ],
             },
-            {"id": 16},
+            {"id": 14},
         ],
     },
     "dependencies": [
-        {"targets": [9], "trigger": "click", "inputs": [2, 7], "outputs": [8]},
-        {"targets": [15], "trigger": "click", "inputs": [2, 13], "outputs": [14]},
+        {"targets": [8], "trigger": "click", "inputs": [2, 6], "outputs": [7]},
+        {"targets": [13], "trigger": "click", "inputs": [2, 11], "outputs": [12]},
     ],
 }
