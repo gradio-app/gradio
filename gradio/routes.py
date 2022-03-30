@@ -72,6 +72,7 @@ class PredictBody(BaseModel):
     data: List[Any]
     state: Optional[Any]
     fn_index: Optional[int]
+    cleared: Optional[bool]
 
 
 class FlagData(BaseModel):
@@ -257,10 +258,13 @@ def api_docs(request: Request):
 async def predict(body: PredictBody, username: str = Depends(get_current_user)):
     if app.launchable.stateful:
         session_hash = body.session_hash
-        state = app.state_holder.get(
-            (session_hash, "state"), app.launchable.state_default
-        )
-        body.state = state
+        if body.cleared:
+            body.state = None
+        else:
+            state = app.state_holder.get(
+                (session_hash, "state"), app.launchable.state_default
+            )
+            body.state = state
     try:
         output = await run_in_threadpool(app.launchable.process_api, body, username)
         if app.launchable.stateful:
