@@ -543,7 +543,7 @@ class TestTimeseries(unittest.TestCase):
 
 class TestModel3d(unittest.TestCase):
     def test_as_component(self):
-        model3d = "test/test_files/fox.gltf"
+        model3d = "test/test_files/Fox.gltf"
         model3d_output = gr.outputs.Model3d()
         self.assertTrue(
             model3d_output.postprocess(model3d)["data"].startswith("data:;base64,")
