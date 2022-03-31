@@ -2820,7 +2820,7 @@ class Button(Component):
     def get_template_context(self):
         return {"default_value": self.default_value, **super().get_template_context()}
 
-    def click(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def click(self, fn: Callable, inputs: List[Component], outputs: List[Component], queue=False):
         """
         Parameters:
             fn: Callable function
@@ -2828,7 +2828,7 @@ class Button(Component):
             outputs: List of outputs
         Returns: None
         """
-        self.set_event_trigger("click", fn, inputs, outputs)
+        self.set_event_trigger("click", fn, inputs, outputs, queue=queue)
 
     def _click_no_preprocess(
         self, fn: Callable, inputs: List[Component], outputs: List[Component]

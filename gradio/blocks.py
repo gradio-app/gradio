@@ -33,7 +33,8 @@ class Block:
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
-        preprocess=True
+        preprocess=True,
+        queue=False
     ) -> None:
         """
         Adds an event to the component's dependencies.
@@ -57,6 +58,7 @@ class Block:
                 "trigger": event_name,
                 "inputs": [block._id for block in inputs],
                 "outputs": [block._id for block in outputs],
+                "queue": queue
             }
         )
 

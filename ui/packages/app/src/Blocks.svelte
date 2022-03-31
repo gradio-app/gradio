@@ -28,6 +28,7 @@
 		targets: Array<number>;
 		inputs: Array<string>;
 		outputs: Array<string>;
+		queue: boolean;
 	}
 
 	export let root: string;
@@ -114,7 +115,7 @@
 
 	async function handle_mount({ detail }) {
 		await tick();
-		dependencies.forEach(({ targets, trigger, inputs, outputs }, i) => {
+		dependencies.forEach(({ targets, trigger, inputs, outputs, queue }, i) => {
 			const target_instances: [number, Instance][] = targets.map((t) => [
 				t,
 				instance_map[t]
@@ -128,7 +129,7 @@
 					fn("predict", {
 						fn_index: i,
 						data: inputs.map((id) => instance_map[id].value)
-					}).then((output) => {
+					}, queue, () => {}).then((output) => {
 						output.data.forEach((value, i) => {
 							instance_map[outputs[i]].value = value;
 						});

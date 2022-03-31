@@ -530,6 +530,7 @@ class Interface(Blocks):
                     submit_fn,
                     self.input_components,
                     self.output_components,
+                    queue=self.enable_queue
                 )
             clear_btn.click(
                 lambda: [None]
