@@ -45,7 +45,7 @@ export const input_component_map = {
 	textbox: InputTextbox,
 	timeseries: InputTimeSeries,
 	video: InputVideo,
-	Image3D: InputImage3D
+	image3d: InputImage3D
 };
 
 export const output_component_map = {
@@ -62,7 +62,7 @@ export const output_component_map = {
 	timeseries: OutputTimeSeries,
 	video: OutputVideo,
 	chatbot: OutputChatbot,
-	Image3D: OutputImage3D
+	image3d: OutputImage3D
 };
 
 export const static_component_map = {
