@@ -4,4 +4,4 @@
 </script>
 
 <!-- svelte-ignore a11y-missing-attribute -->
-<img class="input-model3d-example h-24 max-w-none" src={examples_dir + value} />
+<img class="input-Image3D-example h-24 max-w-none" src={examples_dir + value} />
