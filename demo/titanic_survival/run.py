@@ -1,11 +1,7 @@
 import os
 
-import numpy as np
 import pandas as pd
-import sklearn
-from sklearn import preprocessing
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 
 import gradio as gr
@@ -88,20 +84,20 @@ def predict_survival(passenger_class, is_male, age, company, fare, embark_point)
     df = encode_age(df)
     df = encode_fare(df)
     pred = clf.predict_proba(df)[0]
-    return {"Perishes": pred[0], "Survives": pred[1]}
+    return {"Perishes": float(pred[0]), "Survives": float(pred[1])}
 
 
-iface = gr.Interface(
+demo = gr.Interface(
     predict_survival,
     [
-        gr.inputs.Dropdown(["first", "second", "third"], type="index"),
+        gr.Dropdown(["first", "second", "third"], type="index"),
         "checkbox",
-        gr.inputs.Slider(0, 80),
-        gr.inputs.CheckboxGroup(
+        gr.Slider(minimum=0, maximum=80),
+        gr.CheckboxGroup(
             ["Sibling", "Child"], label="Travelling with (select all)"
         ),
-        gr.inputs.Number(),
-        gr.inputs.Radio(["S", "C", "Q"], type="index"),
+        gr.Number(),
+        gr.Radio(["S", "C", "Q"], type="index"),
     ],
     "label",
     examples=[
@@ -113,4 +109,4 @@ iface = gr.Interface(
 )
 
 if __name__ == "__main__":
-    iface.launch()
+    demo.launch()

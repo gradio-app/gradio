@@ -3,9 +3,12 @@
 	import type { FileData } from "@gradio/upload";
 
 	export let value: null | FileData = null;
+	export let default_value: null | FileData = null;
 	export let theme: string;
 	export let style: string | null;
 	export let mode: "static" | "dynamic";
+
+	if (default_value) value = default_value;
 </script>
 
 {#if mode === "dynamic"}

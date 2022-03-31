@@ -12,7 +12,7 @@ def sepia(input_img):
     return sepia_img
 
 
-iface = gr.Interface(sepia, gr.inputs.Image(shape=(200, 200)), "image")
+demo = gr.Interface(sepia, gr.Image(shape=(200, 200)), "image")
 
 if __name__ == "__main__":
-    iface.launch()
+    demo.launch()

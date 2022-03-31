@@ -4,6 +4,7 @@
 	import { TextBox } from "@gradio/form";
 
 	export let value: string = " ";
+	export let default_value: string;
 	export let theme: string;
 	export let style: string = "";
 	export let lines: number;
@@ -11,7 +12,7 @@
 
 	export let mode: "static" | "dynamic";
 
-	if ($$props.default_value) value = $$props.default_value;
+	if (default_value) value = default_value;
 </script>
 
 {#if mode === "static"}

@@ -688,6 +688,10 @@ class Interface(Blocks):
         ]
 
     def test_launch(self) -> None:
+        """
+        Passes a few samples through the function to test if the inputs/outputs
+        components are consistent with the function parameter and return values.
+        """
         for predict_fn in self.predict:
             print("Test launch: {}()...".format(predict_fn.__name__), end=" ")
             raw_input = []

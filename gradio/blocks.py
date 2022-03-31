@@ -139,7 +139,6 @@ class TabItem(BlockContext):
         """
         super().__init__(visible, css)
         self.label = label
-        super(TabItem, self).__init__()
 
     def get_template_context(self):
         return {"label": self.label, **super().get_template_context()}

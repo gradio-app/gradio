@@ -8,9 +8,12 @@ examples = [
     ["The smooth Borealis basin in the Northern Hemisphere covers 40%"],
 ]
 
-gr.Interface.load(
+demo = gr.Interface.load(
     "huggingface/EleutherAI/gpt-j-6B",
-    inputs=gr.inputs.Textbox(lines=5, label="Input Text"),
+    inputs=gr.Textbox(lines=5, label="Input Text"),
     title=title,
     examples=examples,
-).launch()
+)
+
+if __name__ == "__main__":
+    demo.launch()

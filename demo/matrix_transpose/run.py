@@ -7,9 +7,9 @@ def transpose(matrix):
     return matrix.T
 
 
-iface = gr.Interface(
+demo = gr.Interface(
     transpose,
-    gr.inputs.Dataframe(type="numpy", datatype="number", row_count=5, col_count=3),
+    gr.Dataframe(type="numpy", datatype="number", row_count=5, col_count=3),
     "numpy",
     examples=[
         [np.zeros((3, 3)).tolist()],
@@ -20,7 +20,5 @@ iface = gr.Interface(
     ],
 )
 
-iface.test_launch()
-
 if __name__ == "__main__":
-    iface.launch()
+    demo.launch()
