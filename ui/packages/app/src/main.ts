@@ -123,7 +123,7 @@ window.launchGradioFromSpaces = async (space: string, target: string) => {
 
 async function get_config() {
 	if (BUILD_MODE === "dev" || location.origin === "http://localhost:3000") {
-		let config = await fetch(BACKEND_URL + "/config");
+		let config = await fetch(BACKEND_URL + "config");
 		config = await config.json();
 		return config;
 	} else {

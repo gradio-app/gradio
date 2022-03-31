@@ -504,7 +504,8 @@ class Interface(Blocks):
                                 )
                     with Row():
                         clear_btn = Button("Clear")
-                        submit_btn = Button("Submit")
+                        if not self.live:
+                            submit_btn = Button("Submit")
                 with Column(
                     css={
                         "background-color": "rgb(249,250,251)",
@@ -518,23 +519,28 @@ class Interface(Blocks):
                         flag_btn = Button("Flag")
                         if self.interpretation:
                             interpretation_btn = Button("Interpret")
-            submit_btn.click(
-                lambda *args: self.run_prediction(args, return_duration=False)[0]
+            submit_fn = (lambda *args: self.run_prediction(args, return_duration=False)[0]
                 if len(self.output_components) == 1
-                else self.run_prediction(args, return_duration=False),
-                self.input_components,
-                self.output_components,
-            )
+                else self.run_prediction(args, return_duration=False))
+            if self.live:
+                for component in self.input_components:
+                    component.change(submit_fn, self.input_components, self.output_components)
+            else:
+                submit_btn.click(
+                    submit_fn,
+                    self.input_components,
+                    self.output_components,
+                )
             clear_btn.click(
                 lambda: [None]
                 * (len(self.input_components) + len(self.output_components))
                 + [True]
-                + ([False] if self.interpret else []),
+                + ([False] if self.interpretation else []),
                 [],
                 self.input_components
                 + self.output_components
                 + [input_component_column]
-                + ([interpret_component_column] if self.interpret else []),
+                + ([interpret_component_column] if self.interpretation else []),
             )
             if self.examples:
                 examples = Dataset(
