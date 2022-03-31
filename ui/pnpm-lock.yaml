@@ -7,6 +7,7 @@ importers:
       '@gradio/tootils': workspace:^0.0.1
       '@playwright/test': ^1.20.0
       '@sveltejs/vite-plugin-svelte': ^1.0.0-next.36
+      '@tailwindcss/forms': ^0.5.0
       '@testing-library/dom': ^8.11.3
       '@testing-library/svelte': ^3.1.0
       '@testing-library/user-event': ^13.5.0
@@ -32,6 +33,7 @@ importers:
       '@gradio/tootils': link:packages/tootils
       '@playwright/test': 1.20.0
       '@sveltejs/vite-plugin-svelte': 1.0.0-next.36_svelte@3.46.3+vite@2.8.4
+      '@tailwindcss/forms': 0.5.0_tailwindcss@3.0.23
       '@testing-library/dom': 8.11.3
       '@testing-library/svelte': 3.1.0_svelte@3.46.3
       '@testing-library/user-event': 13.5.0_@testing-library+dom@8.11.3
@@ -198,6 +200,7 @@ importers:
 
   packages/workbench:
     specifiers:
+      '@gradio/atoms': workspace:^0.0.1
       '@gradio/audio': workspace:^0.0.1
       '@gradio/button': workspace:^0.0.1
       '@gradio/carousel': workspace:^0.0.1
@@ -228,6 +231,7 @@ importers:
       tslib: ^2.3.1
       typescript: ~4.5.4
     dependencies:
+      '@gradio/atoms': link:../atoms
       '@gradio/audio': link:../audio
       '@gradio/button': link:../button
       '@gradio/carousel': link:../carousel
@@ -248,7 +252,7 @@ importers:
       '@gradio/video': link:../video
     devDependencies:
       '@sveltejs/adapter-auto': 1.0.0-next.33
-      '@sveltejs/kit': 1.0.0-next.302_svelte@3.46.3
+      '@sveltejs/kit': 1.0.0-next.303_svelte@3.46.3
       autoprefixer: 10.4.2_postcss@8.4.6
       postcss: 8.4.6
       postcss-load-config: 3.1.1
@@ -974,8 +978,8 @@ packages:
       esbuild: 0.14.23
     dev: true
 
-  /@sveltejs/kit/1.0.0-next.302_svelte@3.46.3:
-    resolution: {integrity: sha512-+YUSU7uN5n8i0NOVRaBQgxbaCgFqn63YNudm8kqu27iaw8iCw9Ua6YuE0uMeAtYif+uSletFiMy73f55mMfJNQ==}
+  /@sveltejs/kit/1.0.0-next.303_svelte@3.46.3:
+    resolution: {integrity: sha512-WdxDc8OiF1WEd/bEza7CBdzA+3qIcCi1GKBj/gieKX9I3N8iDJt/Cg2POrLo9wQoJ47nZcAd1eOhfr7XEX1aIQ==}
     engines: {node: '>=14.13'}
     hasBin: true
     peerDependencies:
@@ -1013,6 +1017,15 @@ packages:
       vite: 2.8.4
     transitivePeerDependencies:
       - supports-color
+
+  /@tailwindcss/forms/0.5.0_tailwindcss@3.0.23:
+    resolution: {integrity: sha512-KzWugryEBFkmoaYcBE18rs6gthWCFHHO7cAZm2/hv3hwD67AzwP7udSCa22E7R1+CEJL/FfhYsJWrc0b1aeSzw==}
+    peerDependencies:
+      tailwindcss: '>=3.0.0 || >= 3.0.0-alpha.1'
+    dependencies:
+      mini-svg-data-uri: 1.4.4
+      tailwindcss: 3.0.23_autoprefixer@10.4.4
+    dev: false
 
   /@testing-library/dom/7.31.2:
     resolution: {integrity: sha512-3UqjCpey6HiTZT92vODYLPxTBWlM8ZOOjr3LX5F37/VRipW2M1kX6I/Cm4VXzteZqfGfagg8yXywpcOgQBlNsQ==}
@@ -2985,6 +2998,11 @@ packages:
   /min-indent/1.0.1:
     resolution: {integrity: sha512-I9jwMn07Sy/IwOj3zVkVik2JTvgpaykDZEigL6Rx6N9LbMywwUSMtxET+7lVoDLLd3O3IXwJwvuuns8UB/HeAg==}
     engines: {node: '>=4'}
+
+  /mini-svg-data-uri/1.4.4:
+    resolution: {integrity: sha512-r9deDe9p5FJUPZAk3A59wGH7Ii9YrjjWw0jmw/liSbHl2CHiyXj6FcDXDu2K3TjVAXqiJdaw3xxwlZZr9E6nHg==}
+    hasBin: true
+    dev: false
 
   /minimatch/3.0.4:
     resolution: {integrity: sha512-yJHVQEhyqPLUTgt9B83PXu6W3rx4MvvHvSUvToogpwoGDOUQ+yDrR0HRot+yOCdCO7u4hX3pWft6kWBBcqh0UA==}

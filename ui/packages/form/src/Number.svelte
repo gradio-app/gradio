@@ -5,6 +5,7 @@
 	export let value: number = 0;
 	export let theme: string = "default";
 	export let disabled: boolean = false;
+	export let label: string;
 
 	const dispatch =
 		createEventDispatcher<{ change: number; submit: undefined }>();
@@ -26,24 +27,16 @@
 	$: debounced_handle_change(value);
 </script>
 
-<input
-	type="number"
-	class="input-number w-full rounded box-border p-2 focus:outline-none appearance-none"
-	bind:value
-	{theme}
-	on:keypress={debounced_handle_keypress}
-/>
-
-<style lang="postcss" global>
-	input::-webkit-outer-spin-button,
-	input::-webkit-inner-spin-button {
-		-webkit-appearance: none;
-		margin: 0;
-	}
-	input[type="number"] {
-		-moz-appearance: textfield;
-	}
-	.input-number[theme="default"] {
-		@apply shadow transition hover:shadow-md dark:bg-gray-800;
-	}
-</style>
+<div class="gr-box bg-white">
+	<!-- svelte-ignore a11y-label-has-associated-control -->
+	<label class="block">
+		<span class="gr-label"> {label} </span>
+		<input
+			type="number"
+			class="gr-box gr-input"
+			bind:value
+			{theme}
+			on:keypress={debounced_handle_keypress}
+		/>
+	</label>
+</div>

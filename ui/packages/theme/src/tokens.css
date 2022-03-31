@@ -1,0 +1,15 @@
+.gr-box {
+	@apply border text-sm block w-full rounded-lg border-gray-200 shadow-sm p-3;
+}
+
+.gr-box-sm {
+	@apply flex items-center text-gray-700 text-sm space-x-2 border-gray-200 border py-1.5 px-3 rounded-lg cursor-pointer bg-white shadow-sm checked:shadow-inner;
+}
+
+.gr-input {
+	@apply focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 placeholder:text-gray-400;
+}
+
+.gr-label {
+	@apply text-gray-600 text-sm mb-2 block;
+}

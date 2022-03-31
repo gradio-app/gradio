@@ -7,25 +7,26 @@
 		TextBox,
 		Number
 	} from "@gradio/form";
+	import { Panel } from "@gradio/atoms";
 </script>
 
-<h2>TextBox</h2>
-<TextBox on:change={({ detail }) => console.log(detail)} />
+<Panel>
+	<TextBox on:change={({ detail }) => console.log(detail)} label="TextBox" />
 
-<h2>TextArea</h2>
-<TextBox lines={5} on:change={({ detail }) => console.log(detail)} />
+	<TextBox
+		label="TextArea"
+		lines={5}
+		on:change={({ detail }) => console.log(detail)}
+		placeholder="Type here..."
+	/>
 
-<h2>Number</h2>
-<Number on:change={({ detail }) => console.log(detail)} />
+	<Number label="Number" on:change={({ detail }) => console.log(detail)} />
 
-<h2>Radio</h2>
-<Radio choices={["true", "false"]} value={"true"} />
+	<Radio label="Radio" choices={["true", "false"]} value={"true"} />
 
-<h2>CheckBox</h2>
-<Checkbox value={false} />
+	<Checkbox label="Checkbox" value={false} />
 
-<h2>Checkbox Group</h2>
-<CheckboxGroup choices={["one", "two"]} value={[]} />
+	<CheckboxGroup label="CheckboxGroup" choices={["one", "two"]} value={[]} />
 
-<h2>Dropdown</h2>
-<Dropdown label={"choose"} choices={["one", "two", "three"]} />
+	<Dropdown label="Dropdown" choices={["one", "two", "three"]} />
+</Panel>

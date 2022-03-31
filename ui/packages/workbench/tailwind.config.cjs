@@ -5,8 +5,11 @@ module.exports = {
 	],
 
 	theme: {
-		extend: {}
+		extend: {},
+		fontFamily: {
+			sans: ["IBM Plex Sans", "system-ui"]
+		}
 	},
 
-	plugins: []
+	plugins: [require("@tailwindcss/forms")]
 };

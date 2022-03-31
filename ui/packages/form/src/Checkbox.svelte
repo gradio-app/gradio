@@ -3,7 +3,7 @@
 
 	export let value: boolean;
 	export let disabled: boolean = false;
-	export let theme: string = "default";
+	export let label: string;
 
 	const dispatch = createEventDispatcher<{ change: boolean }>();
 
@@ -13,52 +13,14 @@
 	}
 </script>
 
-<div class="input-checkbox inline-block" {theme} on:click={handle_change}>
-	<button
-		class="checkbox-item py-2 px-3 rounded cursor-pointer"
-		class:selected={value}
+<div class="gr-box bg-white">
+	<!-- svelte-ignore a11y-label-has-associated-control -->
+	<label class="gr-box-sm ">
+		<input
+			{disabled}
+			type="checkbox"
+			name="test"
+			class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-offset-0 focus:ring-blue-200 focus:ring-opacity-50"
+		/> <span class="ml-2">{label}</span></label
 	>
-		<div class="checkbox w-4 h-4 bg-white flex items-center justify-center">
-			<svg class="check opacity-0 h-3 w-4" viewBox="-10 -10 20 20">
-				<line
-					x1="-7.5"
-					y1="0"
-					x2="-2.5"
-					y2="5"
-					stroke="white"
-					stroke-width="4"
-					stroke-linecap="round"
-				/>
-				<line
-					x1="-2.5"
-					y1="5"
-					x2="7.5"
-					y2="-7.5"
-					stroke="white"
-					stroke-width="4"
-					stroke-linecap="round"
-				/>
-			</svg>
-		</div>
-	</button>
 </div>
-
-<style lang="postcss">
-	.selected .check {
-		@apply opacity-100;
-	}
-	.input-checkbox[theme="default"] {
-		.checkbox-item {
-			@apply bg-white dark:bg-gray-800 shadow transition hover:shadow-md;
-		}
-		.checkbox {
-			@apply bg-gray-100 dark:bg-gray-400 transition;
-		}
-		.checkbox-item.selected {
-			@apply bg-amber-500 dark:bg-red-600 text-white;
-		}
-		.selected .checkbox {
-			@apply bg-amber-600 dark:bg-red-700;
-		}
-	}
-</style>
