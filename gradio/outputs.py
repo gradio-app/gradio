@@ -853,11 +853,11 @@ class State(OutputComponent):
         }
 
 
-class Model3d(OutputComponent):
+class Image3D(OutputComponent):
     """
-    Used for 3d model output.
+    Used for 3d image model output.
     Output type: filepath
-    Demos: model3d
+    Demos: Image3D
     """
 
     def __init__(self, clear_color=None, label=None):
@@ -875,7 +875,7 @@ class Model3d(OutputComponent):
     @classmethod
     def get_shortcut_implementations(cls):
         return {
-            "model3d": {},
+            "Image3D": {},
         }
 
     def postprocess(self, y):

@@ -782,49 +782,49 @@ class TestTimeseries(unittest.TestCase):
         )
 
 
-class TestModel3d(unittest.TestCase):
+class TestImage3D(unittest.TestCase):
     def test_as_component(self):
-        model3d = gr.test_data.BASE64_MODEL3D
-        model3d_input = gr.inputs.Model3d()
-        output = model3d_input.preprocess(model3d)
+        Image3D = gr.test_data.BASE64_IMAGE3D
+        Image3D_input = gr.inputs.Image3D()
+        output = Image3D_input.preprocess(Image3D)
         self.assertIsInstance(output, str)
 
         with tempfile.TemporaryDirectory() as tmpdirname:
-            to_save = model3d_input.save_flagged(
-                tmpdirname, "model3d_input", model3d, None
+            to_save = Image3D_input.save_flagged(
+                tmpdirname, "Image3D_input", Image3D, None
             )
-            self.assertEqual("model3d_input/0", to_save)
-            to_save = model3d_input.save_flagged(
-                tmpdirname, "model3d_input", model3d, None
+            self.assertEqual("Image3D_input/0", to_save)
+            to_save = Image3D_input.save_flagged(
+                tmpdirname, "Image3D_input", Image3D, None
             )
-            self.assertEqual("model3d_input/1", to_save)
-            restored = model3d_input.restore_flagged(tmpdirname, to_save, None)
-            self.assertEqual(restored, "model3d_input/1")
+            self.assertEqual("Image3D_input/1", to_save)
+            restored = Image3D_input.restore_flagged(tmpdirname, to_save, None)
+            self.assertEqual(restored, "Image3D_input/1")
 
-        self.assertIsInstance(model3d_input.generate_sample(), dict)
-        model3d_input = gr.inputs.Model3d(label="Upload Your 3D Model")
+        self.assertIsInstance(Image3D_input.generate_sample(), dict)
+        Image3D_input = gr.inputs.Image3D(label="Upload Your 3D Image Model")
         self.assertEqual(
-            model3d_input.get_template_context(),
+            Image3D_input.get_template_context(),
             {
                 "optional": False,
-                "name": "model3d",
-                "label": "Upload Your 3D Model",
+                "name": "Image3D",
+                "label": "Upload Your 3D Image Model",
             },
         )
 
-        self.assertIsNone(model3d_input.preprocess(None))
-        model3d["is_example"] = True
-        self.assertIsNotNone(model3d_input.preprocess(model3d))
-        model3d_input = gr.inputs.Model3d()
+        self.assertIsNone(Image3D_input.preprocess(None))
+        Image3D["is_example"] = True
+        self.assertIsNotNone(Image3D_input.preprocess(Image3D))
+        Image3D_input = gr.inputs.Image3D()
         with self.assertRaises(NotImplementedError):
-            model3d_input.serialize(model3d, True)
+            Image3D_input.serialize(Image3D, True)
 
     def test_in_interface(self):
-        model3d = gr.test_data.BASE64_MODEL3D
-        iface = gr.Interface(lambda x: x, "model3d", "model3d")
+        Image3D = gr.test_data.BASE64_IMAGE3D
+        iface = gr.Interface(lambda x: x, "Image3D", "Image3D")
         self.assertEqual(
-            iface.process([model3d])[0][0]["data"],
-            model3d["data"].replace("@file/gltf", ""),
+            iface.process([Image3D])[0][0]["data"],
+            Image3D["data"].replace("@file/gltf", ""),
         )
 
 
