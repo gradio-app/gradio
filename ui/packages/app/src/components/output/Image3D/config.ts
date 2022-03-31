@@ -1,4 +1,4 @@
-import Component from "./Model3d.svelte";
+import Component from "./Image3D.svelte";
 
 export default {
 	component: Component
