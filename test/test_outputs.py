@@ -541,22 +541,22 @@ class TestTimeseries(unittest.TestCase):
             )
 
 
-class TestModel3d(unittest.TestCase):
+class TestImage3D(unittest.TestCase):
     def test_as_component(self):
-        model3d = "test/test_files/Fox.gltf"
-        model3d_output = gr.outputs.Model3d()
+        Image3D = "test/test_files/Fox.gltf"
+        Image3D_output = gr.outputs.Image3D()
         self.assertTrue(
-            model3d_output.postprocess(model3d)["data"].startswith("data:;base64,")
+            Image3D_output.postprocess(Image3D)["data"].startswith("data:;base64,")
         )
         with tempfile.TemporaryDirectory() as tmpdirname:
-            to_save = model3d_output.save_flagged(
-                tmpdirname, "model3d_output", gr.test_data.BASE64_MODEL3D, None
+            to_save = Image3D_output.save_flagged(
+                tmpdirname, "Image3D_output", gr.test_data.BASE64_IMAGE3D, None
             )
-            self.assertEqual("model3d_output/0", to_save)
-            to_save = model3d_output.save_flagged(
-                tmpdirname, "model3d_output", gr.test_data.BASE64_MODEL3D, None
+            self.assertEqual("Image3D_output/0", to_save)
+            to_save = Image3D_output.save_flagged(
+                tmpdirname, "Image3D_output", gr.test_data.BASE64_IMAGE3D, None
             )
-            self.assertEqual("model3d_output/1", to_save)
+            self.assertEqual("Image3D_output/1", to_save)
 
 
 class TestNames(unittest.TestCase):
