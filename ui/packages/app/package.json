@@ -7,7 +7,7 @@
 		"build": "vite build",
 		"preview": "vite preview",
 		"test:browser": "pnpx playwright test test/ --config=../../playwright.config.js",
-		"test:browser:debug": "pnpx playwright test test/ --debug"
+		"test:browser:debug": "pnpx playwright test test/ --debug --config=../../playwright.config.js"
 	},
 	"dependencies": {
 		"@gradio/audio": "workspace:^0.0.1",
