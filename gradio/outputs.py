@@ -889,6 +889,61 @@ class Plot(OutputComponent):
 
 
 
+class Image3D(OutputComponent):
+    """
+    Used for 3d image model output.
+    Output type: filepath
+    Demos: Image3D
+    """
+
+    def __init__(self, clear_color=None, label=None):
+        """
+        Parameters:
+        clear_color (List[r, g, b, a]): background color of scene
+        label (str): component name in interface.
+        """
+        super().__init__(label)
+        self.clear_color = clear_color
+
+    def get_template_context(self):
+        return {**super().get_template_context()}
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "Image3D": {},
+        }
+
+    def postprocess(self, y):
+        """
+        Parameters:
+        y (str): path to the model
+        Returns:
+        (str): file name
+        (str): file extension
+        (str): base64 url data
+        """
+
+        if self.clear_color is None:
+            self.clear_color = [0.2, 0.2, 0.2, 1.0]
+
+        return {
+            "name": os.path.basename(y),
+            "extension": os.path.splitext(y)[1],
+            "clearColor": self.clear_color,
+            "data": processing_utils.encode_file_to_base64(y),
+        }
+
+    def deserialize(self, x):
+        return processing_utils.decode_base64_to_file(x).name
+
+    def save_flagged(self, dir, label, data, encryption_key):
+        """
+        Returns: (str) path to model file
+        """
+        return self.save_flagged_file(dir, label, data["data"], encryption_key)
+
+
 def get_output_instance(iface: Interface):
     if isinstance(iface, str):
         shortcut = OutputComponent.get_all_shortcut_implementations()[iface]

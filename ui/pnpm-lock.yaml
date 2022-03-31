@@ -4,8 +4,11 @@ importers:
 
   .:
     specifiers:
-      '@bokeh/bokehjs': ^2.4.2
+      bokeh/bokehjs: ^2.4.2
       plotly.js-dist-min: ^2.10.1
+      types/three: ^0.138.0
+      babylonjs: ^4.2.1
+      babylonjs-loaders: ^4.2.1
       prettier: ^2.5.1
       prettier-plugin-svelte: ^2.6.0
       svelte: ^3.46.3
@@ -13,14 +16,18 @@ importers:
       svelte-i18n: ^3.3.13
       vitest: ^0.3.2
     dependencies:
-      '@bokeh/bokehjs': 2.4.2
+      bokeh/bokehjs: 2.4.2
       plotly.js-dist-min: 2.10.1
+      babylonjs: 4.2.1
+      babylonjs-loaders: 4.2.1
       prettier: 2.5.1
       prettier-plugin-svelte: 2.6.0_prettier@2.5.1+svelte@3.46.3
       svelte: 3.46.3
       svelte-check: 2.4.1_svelte@3.46.3
       svelte-i18n: 3.3.13_svelte@3.46.3
       vitest: 0.3.5
+    devDependencies:
+      '@types/three': 0.138.0
 
   packages/app:
     specifiers:
@@ -314,6 +321,10 @@ packages:
     resolution: {integrity: sha512-3BKgtrXdr+E/lsz79Hbkb8X3kjlbsgw1m0x/ewhff+cqN059GpFWHtYuLJd2ToDTeWZa3OE2V4KIo//PnOrKlQ==}
     dev: true
 
+  /@types/three/0.138.0:
+    resolution: {integrity: sha512-D8AoV7h2kbCfrv/DcebHOFh1WDwyus3HdooBkAwcBikXArdqnsQ38PQ85JCunnvun160oA9jz53GszF3zch3tg==}
+    dev: true
+
   /abab/2.0.5:
     resolution: {integrity: sha512-9IK9EadsbHo6jLWIpxpR6pL0sazTXV6+SQv25ZB+F7Bj9mJNaOc4nCRabwd5M/JwmUa8idz6Eci6eKfJryPs6Q==}
     dev: false
@@ -477,6 +488,21 @@ packages:
     resolution: {integrity: sha512-xh1Rl34h6Fi1DC2WWKfxUTVqRsNnr6LsKz2+hfwDxQJWmrx8+c7ylaqBMcHfl1U1r2dsifOvKX3LQuLNZ+XSvA==}
     dev: false
     optional: true
+
+  /babylonjs-gltf2interface/4.2.1:
+    resolution: {integrity: sha512-ZBfKgIoztO1x1nyf9aPQJ+WXmB6Kw0VlyxvcKchIixbICqeeExiN8nmjvypwXC4hl+5ZDMnUKQNrIhh7uzulnA==}
+    dev: false
+
+  /babylonjs-loaders/4.2.1:
+    resolution: {integrity: sha512-WLpbadXDyxbBQogU0SOrpwgAWN/DJ1xn5kCRD31NVoCbBIpvkdDIvzpRvze2esxrlv/KM8wbDu62ShJd6rQnVQ==}
+    dependencies:
+      babylonjs: 4.2.1
+      babylonjs-gltf2interface: 4.2.1
+    dev: false
+
+  /babylonjs/4.2.1:
+    resolution: {integrity: sha512-FQdJ2VTENUpUJQ30ddihwTjV6K94kglET0P7jV8OQzjA4eez3sotmG22Fn9+8yb069SA26KnrAGOI2sKMQ7BCw==}
+    dev: false
 
   /balanced-match/1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
