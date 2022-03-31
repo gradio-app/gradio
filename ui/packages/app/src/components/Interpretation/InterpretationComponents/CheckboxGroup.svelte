@@ -1,19 +1,18 @@
 <script lang="ts">
-	import { getSaliencyColor } from "../utils/helpers";
+	import { getSaliencyColor } from "../utils";
 
-	export let value: Array<string>;
+	export let original: Array<string>;
 	export let interpretation: Array<[number, number]>;
 	export let choices: Array<string>;
 
 	export let theme: string;
-	export let style: string | null;
 </script>
 
-<div class="input-checkbox-group flex flex-wrap gap-2" {theme} {style}>
+<div class="input-checkbox-group flex flex-wrap gap-2" {theme}>
 	{#each choices as choice, i}
 		<button
 			class="checkbox-item py-2 px-3 font-semibold rounded cursor-pointer flex items-center gap-1"
-			class:selected={value.includes(choice)}
+			class:selected={original.includes(choice)}
 		>
 			<div
 				class="checkbox w-4 h-4 bg-white flex items-center justify-center border border-gray-400 box-border"

@@ -25,6 +25,7 @@ from gradio.components import (
     Component,
     Dataset,
     Markdown,
+    Interpretation,
     get_component_instance,
 )
 from gradio.external import load_from_pipeline, load_interface  # type: ignore
@@ -489,8 +490,18 @@ class Interface(Blocks):
                         "border-radius": "0.5rem",
                     }
                 ):
-                    for component in self.input_components:
-                        component.render()
+                    input_component_column = Column()
+                    with input_component_column:
+                        for component in self.input_components:
+                            component.render()
+                    if self.interpretation:
+                        interpret_component_column = Column(visible=False)
+                        interpretation_set = []
+                        with interpret_component_column:
+                            for component in self.input_components:
+                                interpretation_set.append(
+                                    Interpretation(component)
+                                )
                     with Row():
                         clear_btn = Button("Clear")
                         submit_btn = Button("Submit")
@@ -505,6 +516,8 @@ class Interface(Blocks):
                         component.render()
                     with Row():
                         flag_btn = Button("Flag")
+                        if self.interpretation:
+                            interpretation_btn = Button("Interpret")
             submit_btn.click(
                 lambda *args: self.run_prediction(args, return_duration=False)[0]
                 if len(self.output_components) == 1
@@ -514,9 +527,14 @@ class Interface(Blocks):
             )
             clear_btn.click(
                 lambda: [None]
-                * (len(self.input_components) + len(self.output_components)),
+                * (len(self.input_components) + len(self.output_components))
+                + [True]
+                + ([False] if self.interpret else []),
                 [],
-                self.input_components + self.output_components,
+                self.input_components
+                + self.output_components
+                + [input_component_column]
+                + ([interpret_component_column] if self.interpret else []),
             )
             if self.examples:
                 examples = Dataset(
@@ -530,6 +548,13 @@ class Interface(Blocks):
                 inputs=self.input_components + self.output_components,
                 outputs=[],
             )
+            if self.interpretation:
+                interpretation_btn._click_no_preprocess(
+                    lambda *data: self.interpret(data) + [False, True],
+                    inputs=self.input_components + self.output_components,
+                    outputs=interpretation_set
+                    + [input_component_column, interpret_component_column],
+                )
 
     def __call__(self, *params):
         if (
@@ -655,7 +680,12 @@ class Interface(Blocks):
         return processed_output, durations
 
     def interpret(self, raw_input: List[Any]) -> List[Any]:
-        return interpretation.run_interpret(self, raw_input)
+        return [
+            {"original": raw_value, "interpretation": interpretation}
+            for interpretation, raw_value in zip(
+                interpretation.run_interpret(self, raw_input)[0], raw_input
+            )
+        ]
 
     def test_launch(self) -> None:
         for predict_fn in self.predict:
