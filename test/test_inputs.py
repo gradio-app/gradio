@@ -807,7 +807,7 @@ class TestImage3D(unittest.TestCase):
             Image3D_input.get_template_context(),
             {
                 "optional": False,
-                "name": "Image3D",
+                "name": "image3d",
                 "label": "Upload Your 3D Image Model",
             },
         )
