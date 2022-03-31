@@ -1693,7 +1693,7 @@ class Image3D(InputComponent):
         )
 
     def generate_sample(self):
-        return test_data.BASE64_MODEL3D
+        return test_data.BASE64_IMAGE3D
 
 
 def get_input_instance(iface: Interface):
