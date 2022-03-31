@@ -1623,11 +1623,11 @@ class State(InputComponent):
         }
 
 
-class Model3d(InputComponent):
+class Image3D(InputComponent):
     """
-    Used for 3d model output.
+    Used for 3D image model output.
     Input type: File object of type (.obj, glb, or .gltf)
-    Demos: model3d
+    Demos: Image3D
     """
 
     def __init__(
@@ -1652,7 +1652,7 @@ class Model3d(InputComponent):
     @classmethod
     def get_shortcut_implementations(cls):
         return {
-            "model3d": {},
+            "Image3D": {},
         }
 
     def preprocess_example(self, x):
@@ -1663,7 +1663,7 @@ class Model3d(InputComponent):
         Parameters:
         x (Dict[name: str, data: str]): JSON object with filename as 'name' property and base64 data as 'data' property
         Returns:
-        (str): file path to 3D model
+        (str): file path to 3D image model
         """
         if x is None:
             return x
@@ -1686,7 +1686,7 @@ class Model3d(InputComponent):
 
     def save_flagged(self, dir, label, data, encryption_key):
         """
-        Returns: (str) path to 3D model file
+        Returns: (str) path to 3D image model file
         """
         return self.save_flagged_file(
             dir, label, None if data is None else data["data"], encryption_key
