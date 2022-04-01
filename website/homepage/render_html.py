@@ -346,7 +346,7 @@ def render_docs():
     with open("src/docs_template.html") as template_file:
         template = Template(template_file.read())
         output_html = template.render(
-            docs=docs, demo_links=demo_links, navbar_html=navbar_html
+            docs=docs, demo_links=demo_links, navbar_html=navbar_html, **GRADIO_ASSETS
         )
     os.makedirs(os.path.join("generated", "docs"), exist_ok=True)
     with open(

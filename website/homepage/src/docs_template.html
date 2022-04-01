@@ -294,6 +294,10 @@
               -->{% endif %}<!--
               -->{% if not loop.last %}, {% endif %}<!--
             -->{% endfor %}<span>)</span></code></pre>
+            {% if ( component_type == 'input' and func["name"].lower() == 'textbox' ) %}
+            <iframe src="http://127.0.0.1:7860/" id="embedded-input-textbox" frameBorder="0" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+
+            {% endif %}
             <p class="mb-2">{{ func["doc"] }}</p>
             <p class="mb-2">{{ component_type|capitalize }} type: <span class="font-semibold">{{ func["type"] }}</span></p>
             <h4 class="font-semibold mb-2">Parameters</h4>
@@ -465,7 +469,7 @@
 
       if (
         section.offsetTop <= fromTop &&
-        section.offsetTop + section.offsetHeight > fromTop
+        section.offsetTop + section.offsetHeight*0.8 > fromTop
       ) {
         link.classList.add("current");
       } else {
@@ -630,7 +634,6 @@
        }
        );
     }
-
 
   </script>
 </body>
