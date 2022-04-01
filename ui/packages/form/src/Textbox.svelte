@@ -2,6 +2,8 @@
 	import { createEventDispatcher } from "svelte";
 	import { debounce } from "./utils";
 
+	import { BlockTitle, Box } from "@gradio/atoms";
+
 	export let value: string = "";
 	export let theme: string = "default";
 	export let lines: number = 1;
@@ -36,23 +38,25 @@
 	const debounced_handle_keypress = debounce(handle_keypress, 300);
 </script>
 
-<div class="gr-box bg-white">
+<Box>
 	<!-- svelte-ignore a11y-label-has-associated-control -->
 	<label class="block">
-		<span class="gr-label"> {label} </span>
+		<BlockTitle>{label}</BlockTitle>
+
 		{#if lines > 1}
 			<textarea
-				class="gr-box gr-input"
+				class="block gr-box gr-input w-full gr-text-input"
 				{value}
 				{placeholder}
 				on:input={debounced_handle_change}
 				{theme}
 				{style}
+				rows={lines}
 			/>
 		{:else}
 			<input
 				type="text"
-				class="gr-box gr-input"
+				class="gr-box gr-input w-full gr-text-input"
 				{value}
 				{placeholder}
 				on:input={debounced_handle_change}
@@ -62,4 +66,4 @@
 			/>
 		{/if}
 	</label>
-</div>
+</Box>

@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
+	import { BlockTitle } from "@gradio/atoms";
 
 	export let value: Array<string> = [];
 	export let choices: Array<string>;
-	export let theme: string = "default";
 	export let disabled: boolean = false;
 	export let label: string;
 
@@ -20,17 +20,18 @@
 	};
 </script>
 
-<fieldset class="gr-box bg-white flex">
-	<span class="gr-label"> {label} </span>
+<fieldset class="gr-box gr-panel">
+	<BlockTitle>{label}</BlockTitle>
 
 	<div class="flex flex-wrap gap-2">
 		{#each choices as choice, i}
-			<label class="gr-box-sm">
+			<label class="gr-box gr-box-sm ">
 				<input
+					{disabled}
 					on:change={() => toggleChoice(choice)}
 					type="checkbox"
 					name="test"
-					class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-offset-0 focus:ring-blue-200 focus:ring-opacity-50"
+					class="gr-check-radio rounded checked:shadow-inner"
 				/> <span class="ml-2">{choice}</span></label
 			>
 		{/each}

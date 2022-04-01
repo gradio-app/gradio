@@ -1,3 +1,3 @@
-<span class="text-gray-500 flex items-center mb-2 text-xs">
+<span class="text-gray-600 text-sm mb-2 block">
 	<slot />
 </span>

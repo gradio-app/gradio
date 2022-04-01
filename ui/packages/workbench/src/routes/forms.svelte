@@ -5,7 +5,8 @@
 		Dropdown,
 		Radio,
 		TextBox,
-		Number
+		Number,
+		Range
 	} from "@gradio/form";
 	import { Panel } from "@gradio/atoms";
 </script>
@@ -29,4 +30,5 @@
 	<CheckboxGroup label="CheckboxGroup" choices={["one", "two"]} value={[]} />
 
 	<Dropdown label="Dropdown" choices={["one", "two", "three"]} />
+	<Range label="Dropdown" choices={["one", "two", "three"]} />
 </Panel>

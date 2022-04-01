@@ -143,7 +143,10 @@ importers:
       '@gradio/upload': link:../upload
 
   packages/form:
-    specifiers: {}
+    specifiers:
+      '@gradio/atoms': workspace:^0.0.1
+    dependencies:
+      '@gradio/atoms': link:../atoms
 
   packages/highlighted-text:
     specifiers: {}

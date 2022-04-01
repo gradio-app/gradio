@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { debounce } from "./utils";
+	import { BlockTitle, Box } from "@gradio/atoms";
 
 	export let value: number = 0;
 	export let theme: string = "default";
@@ -27,16 +28,16 @@
 	$: debounced_handle_change(value);
 </script>
 
-<div class="gr-box bg-white">
+<Box>
 	<!-- svelte-ignore a11y-label-has-associated-control -->
 	<label class="block">
-		<span class="gr-label"> {label} </span>
+		<BlockTitle>{label}</BlockTitle>
 		<input
 			type="number"
-			class="gr-box gr-input"
+			class="gr-box gr-input w-full gr-text-input"
 			bind:value
 			{theme}
 			on:keypress={debounced_handle_keypress}
 		/>
 	</label>
-</div>
+</Box>
