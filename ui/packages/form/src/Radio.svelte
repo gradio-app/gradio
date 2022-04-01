@@ -3,19 +3,13 @@
 	import { BlockTitle, Box } from "@gradio/atoms";
 
 	export let value: string;
-	export let theme: string = "default";
 	export let choices: Array<string>;
 	export let disabled: boolean = false;
 	export let label: string;
 
 	const dispatch = createEventDispatcher();
 
-	function handle_change(choice: string) {
-		dispatch("change", choice);
-		value = choice;
-	}
-
-	$: console.log(value);
+	$: dispatch("change", value);
 </script>
 
 <fieldset class="gr-box gr-panel">

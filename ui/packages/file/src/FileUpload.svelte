@@ -29,7 +29,7 @@
 
 <div class="input-file" {theme}>
 	{#if value === null}
-		<Upload on:load={handle_upload} {theme}>
+		<Upload on:load={handle_upload} {theme} filetype="file">
 			{drop_text}
 			<br />- {or_text} -<br />
 			{upload_text}

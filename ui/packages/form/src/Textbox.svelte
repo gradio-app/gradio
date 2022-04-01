@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { debounce } from "./utils";
-
 	import { BlockTitle, Box } from "@gradio/atoms";
 
 	export let value: string = "";

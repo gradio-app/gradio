@@ -13,6 +13,8 @@
 	import "./themes/grass.css";
 	import "./themes/peach.css";
 	import "./themes/seafoam.css";
+
+	import * as _t from "@gradio/theme";
 	import { _ } from "svelte-i18n";
 	import { setupi18n } from "./i18n";
 	setupi18n();

@@ -4,7 +4,6 @@
 	import { BlockTitle, Box } from "@gradio/atoms";
 
 	export let value: number = 0;
-	export let theme: string = "default";
 	export let disabled: boolean = false;
 	export let label: string;
 
@@ -36,8 +35,8 @@
 			type="number"
 			class="gr-box gr-input w-full gr-text-input"
 			bind:value
-			{theme}
 			on:keypress={debounced_handle_keypress}
+			{disabled}
 		/>
 	</label>
 </Box>

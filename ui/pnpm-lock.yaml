@@ -193,7 +193,10 @@ importers:
     specifiers: {}
 
   packages/upload:
-    specifiers: {}
+    specifiers:
+      '@gradio/atoms': workspace:^0.0.1
+    dependencies:
+      '@gradio/atoms': link:../atoms
 
   packages/video:
     specifiers:
