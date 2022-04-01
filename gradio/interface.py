@@ -24,8 +24,8 @@ from gradio.components import (
     Button,
     Component,
     Dataset,
-    Markdown,
     Interpretation,
+    Markdown,
     get_component_instance,
 )
 from gradio.external import load_from_pipeline, load_interface  # type: ignore
@@ -499,9 +499,7 @@ class Interface(Blocks):
                         interpretation_set = []
                         with interpret_component_column:
                             for component in self.input_components:
-                                interpretation_set.append(
-                                    Interpretation(component)
-                                )
+                                interpretation_set.append(Interpretation(component))
                     with Row():
                         clear_btn = Button("Clear")
                         if not self.live:
@@ -519,18 +517,22 @@ class Interface(Blocks):
                         flag_btn = Button("Flag")
                         if self.interpretation:
                             interpretation_btn = Button("Interpret")
-            submit_fn = (lambda *args: self.run_prediction(args, return_duration=False)[0]
+            submit_fn = (
+                lambda *args: self.run_prediction(args, return_duration=False)[0]
                 if len(self.output_components) == 1
-                else self.run_prediction(args, return_duration=False))
+                else self.run_prediction(args, return_duration=False)
+            )
             if self.live:
                 for component in self.input_components:
-                    component.change(submit_fn, self.input_components, self.output_components)
+                    component.change(
+                        submit_fn, self.input_components, self.output_components
+                    )
             else:
                 submit_btn.click(
                     submit_fn,
                     self.input_components,
                     self.output_components,
-                    queue=self.enable_queue
+                    queue=self.enable_queue,
                 )
             clear_btn.click(
                 lambda: [None]

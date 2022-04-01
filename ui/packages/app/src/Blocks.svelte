@@ -126,10 +126,15 @@
 				if (handled_dependencies[i]?.includes(id) || !instance) return;
 				// console.log(trigger, target_instances, instance);
 				instance?.$on(trigger, () => {
-					fn("predict", {
-						fn_index: i,
-						data: inputs.map((id) => instance_map[id].value)
-					}, queue, () => {}).then((output) => {
+					fn(
+						"predict",
+						{
+							fn_index: i,
+							data: inputs.map((id) => instance_map[id].value)
+						},
+						queue,
+						() => {}
+					).then((output) => {
 						output.data.forEach((value, i) => {
 							instance_map[outputs[i]].value = value;
 						});

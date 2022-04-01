@@ -2820,7 +2820,13 @@ class Button(Component):
     def get_template_context(self):
         return {"default_value": self.default_value, **super().get_template_context()}
 
-    def click(self, fn: Callable, inputs: List[Component], outputs: List[Component], queue=False):
+    def click(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        queue=False,
+    ):
         """
         Parameters:
             fn: Callable function

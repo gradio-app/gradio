@@ -34,7 +34,7 @@ class Block:
         inputs: List[Component],
         outputs: List[Component],
         preprocess=True,
-        queue=False
+        queue=False,
     ) -> None:
         """
         Adds an event to the component's dependencies.
@@ -58,7 +58,7 @@ class Block:
                 "trigger": event_name,
                 "inputs": [block._id for block in inputs],
                 "outputs": [block._id for block in outputs],
-                "queue": queue
+                "queue": queue,
             }
         )
 
@@ -81,13 +81,11 @@ class BlockContext(Block):
         Context.block = self.parent
 
     def get_template_context(self):
-        return {
-            "css": self.css,
-            "default_value": self.visible
-        }
+        return {"css": self.css, "default_value": self.visible}
 
     def postprocess(self, y):
         return y
+
 
 class Row(BlockContext):
     def __init__(self, visible: bool = True, css: Optional[Dict[str, str]] = None):
