@@ -1,3 +1,4 @@
+import copy
 import json
 import os
 import tempfile
@@ -563,7 +564,7 @@ class TestImage(unittest.TestCase):
 
 class TestAudio(unittest.TestCase):
     def test_as_component_as_input(self):
-        x_wav = media_data.BASE64_AUDIO
+        x_wav = copy.deepcopy(media_data.BASE64_AUDIO)
         audio_input = gr.Audio()
         output = audio_input.preprocess(x_wav)
         self.assertEqual(output[0], 8000)
