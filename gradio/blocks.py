@@ -72,6 +72,7 @@ class BlockContext(Block):
     def __enter__(self):
         self.parent = Context.block
         Context.block = self
+        return self
 
     def __exit__(self, *args):
         Context.block = self.parent
@@ -217,6 +218,7 @@ class Blocks(Launchable, BlockContext):
     def __enter__(self):
         BlockContext.__enter__(self)
         Context.root_block = self
+        return self
 
     def __exit__(self, *args):
         BlockContext.__exit__(self, *args)
