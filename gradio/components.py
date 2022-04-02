@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 import json
 import math
 import numbers
@@ -2789,7 +2790,8 @@ class Markdown(Component):
         """
         super().__init__(label=label, css=css, **kwargs)
         self.md = MarkdownIt()
-        self.default_value = self.md.render(default_value)
+        unindented_default_value = inspect.cleandoc(default_value)
+        self.default_value = self.md.render(unindented_default_value)
 
     def get_template_context(self):
         return {"default_value": self.default_value, **super().get_template_context()}
