@@ -6,6 +6,7 @@ import InterpretationSlider from "./InterpretationComponents/Slider.svelte";
 import InterpretationRadio from "./InterpretationComponents/Radio.svelte";
 import InterpretationImage from "./InterpretationComponents/Image.svelte";
 import InterpretationAudio from "./InterpretationComponents/Audio.svelte";
+import InterpretationTextbox from "./InterpretationComponents/Textbox.svelte";
 
 export const component_map = {
 	audio: InterpretationAudio,
@@ -15,5 +16,6 @@ export const component_map = {
 	number: InterpretationNumber,
 	slider: InterpretationSlider,
 	radio: InterpretationRadio,
-	image: InterpretationImage
+	image: InterpretationImage,
+	textbox: InterpretationTextbox
 };

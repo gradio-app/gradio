@@ -69,6 +69,8 @@ predictions = clf.predict(X_test)
 
 
 def predict_survival(passenger_class, is_male, age, company, fare, embark_point):
+    if passenger_class is None or embark_point is None:
+        return None
     df = pd.DataFrame.from_dict(
         {
             "Pclass": [passenger_class + 1],

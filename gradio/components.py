@@ -923,7 +923,10 @@ class Radio(Component):
         if self.type == "value":
             return x
         elif self.type == "index":
-            return self.choices.index(x)
+            if x is None:
+                return None
+            else:
+                return self.choices.index(x)
         else:
             raise ValueError(
                 "Unknown type: "

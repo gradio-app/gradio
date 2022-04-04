@@ -535,8 +535,12 @@ class Interface(Blocks):
                     queue=self.enable_queue,
                 )
             clear_btn.click(
-                lambda: [None]
-                * (len(self.input_components) + len(self.output_components))
+                lambda: [
+                    component.default_value
+                    if hasattr(component, "default_value")
+                    else None
+                    for component in self.input_components + self.output_components
+                ]
                 + [True]
                 + ([False] if self.interpretation else []),
                 [],
