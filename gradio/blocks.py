@@ -215,11 +215,13 @@ class Blocks(Launchable, BlockContext):
 
     def __enter__(self):
         BlockContext.__enter__(self)
-        Context.root_block = (
-            self  # TODO: replace with creating new root block instead of overriding
-        )
+        if Context.block is None:  # If starting a new Blocks context
+            Context.root_block.append(self)
+        else:  # If creating this Blocks inside a Block
+            pass
         return self
 
     def __exit__(self, *args):
         BlockContext.__exit__(self, *args)
         Context.root_block = self.parent
+        Context.block = None
