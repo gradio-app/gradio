@@ -1,17 +1,10 @@
 <script lang="ts">
-	import type { AudioData } from "@gradio/audio";
-
-	import { getSaliencyColor } from "../utils/helpers";
-	export let value: AudioData;
+	import { getSaliencyColor } from "../utils";
 	export let interpretation: Array<number>;
 	export let theme: string;
-	export let style: string | null;
 </script>
 
-<div class="input-audio" {theme} {style}>
-	<audio class="w-full" controls>
-		<source src={value.data} />
-	</audio>
+<div class="input-audio" {theme}>
 	<div class="interpret_range flex">
 		{#each interpretation as interpret_value}
 			<div

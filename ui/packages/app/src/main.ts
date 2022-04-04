@@ -21,6 +21,7 @@ interface Component {
 }
 
 interface Config {
+	auth_required: boolean | undefined;
 	allow_flagging: string;
 	allow_interpretation: boolean;
 	allow_screenshot: boolean;
@@ -78,7 +79,7 @@ window.launchGradio = (config: Config, element_query: string) => {
 		style.innerHTML = config.css;
 		document.head.appendChild(style);
 	}
-	if (config.detail === "Not authenticated") {
+	if (config.detail === "Not authenticated" || config.auth_required) {
 		new Login({
 			target: target,
 			props: config
@@ -123,7 +124,7 @@ window.launchGradioFromSpaces = async (space: string, target: string) => {
 
 async function get_config() {
 	if (BUILD_MODE === "dev" || location.origin === "http://localhost:3000") {
-		let config = await fetch(BACKEND_URL + "/config");
+		let config = await fetch(BACKEND_URL + "config");
 		config = await config.json();
 		return config;
 	} else {

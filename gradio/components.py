@@ -923,7 +923,10 @@ class Radio(Component):
         if self.type == "value":
             return x
         elif self.type == "index":
-            return self.choices.index(x)
+            if x is None:
+                return None
+            else:
+                return self.choices.index(x)
         else:
             raise ValueError(
                 "Unknown type: "
@@ -2820,7 +2823,13 @@ class Button(Component):
     def get_template_context(self):
         return {"default_value": self.default_value, **super().get_template_context()}
 
-    def click(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def click(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        queue=False,
+    ):
         """
         Parameters:
             fn: Callable function
@@ -2828,7 +2837,19 @@ class Button(Component):
             outputs: List of outputs
         Returns: None
         """
-        self.set_event_trigger("click", fn, inputs, outputs)
+        self.set_event_trigger("click", fn, inputs, outputs, queue=queue)
+
+    def _click_no_preprocess(
+        self, fn: Callable, inputs: List[Component], outputs: List[Component]
+    ):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("click", fn, inputs, outputs, preprocess=False)
 
 
 class Dataset(Component):
@@ -2871,6 +2892,29 @@ class Dataset(Component):
         Returns: None
         """
         self.set_event_trigger("click", fn, inputs, outputs)
+
+
+class Interpretation(Component):
+    """
+    Used to create an interpretation widget for a component.
+    """
+
+    def __init__(
+        self,
+        component: Component,
+        *,
+        label: Optional[str] = None,
+        css: Optional[Dict] = None,
+        **kwargs,
+    ):
+        super().__init__(label=label, css=css, **kwargs)
+        self.component = component
+
+    def get_template_context(self):
+        return {
+            "component": self.component.__class__.__name__.lower(),
+            "component_props": self.component.get_template_context(),
+        }
 
 
 # TODO: (faruk) does this take component or interface as a input?

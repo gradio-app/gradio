@@ -1,4 +1,4 @@
-export const component_map = {
+export const component_map: Record<string, any> = {
 	audio: () => import("./Audio"),
 	button: () => import("./Button"),
 	carousel: () => import("./Carousel"),
@@ -14,6 +14,7 @@ export const component_map = {
 	highlightedtext: () => import("./HighlightedText"),
 	html: () => import("./HTML"),
 	image: () => import("./Image"),
+	interpretation: () => import("./Interpretation"),
 	json: () => import("./Json"),
 	label: () => import("./Label"),
 	number: () => import("./Number"),
