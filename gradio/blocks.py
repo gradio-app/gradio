@@ -159,10 +159,15 @@ class Blocks(Launchable, BlockContext):
         self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
 
         super().__init__()
-        Context.root_block = self
+        if Context.root_block is None:
+            Context.root_block = self
         self.blocks = {}
         self.fns = []
         self.dependencies = []
+        
+    def render(self):
+        self._id = Context.id
+        Context.id += 1
 
     def process_api(self, data: Dict[str, Any], username: str = None) -> Dict[str, Any]:
         raw_input = data["data"]
@@ -215,13 +220,11 @@ class Blocks(Launchable, BlockContext):
 
     def __enter__(self):
         BlockContext.__enter__(self)
-        if Context.block is None:  # If starting a new Blocks context
-            Context.root_block.append(self)
-        else:  # If creating this Blocks inside a Block
-            pass
+        if Context.block is None: 
+            Context.root_block = self
         return self
 
     def __exit__(self, *args):
         BlockContext.__exit__(self, *args)
-        Context.root_block = self.parent
+        Context.root_block = None
         Context.block = None
