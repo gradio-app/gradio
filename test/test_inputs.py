@@ -151,6 +151,7 @@ class TestNumber(unittest.TestCase):
             ],
         )
 
+
 class TestSlider(unittest.TestCase):
     def test_as_component(self):
         slider_input = gr.inputs.Slider()
