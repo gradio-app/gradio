@@ -16,7 +16,7 @@ import requests
 import uvicorn
 
 from gradio import queueing
-from gradio.routes import app
+from gradio.routes import create_app
 from gradio.tunneling import create_tunnel
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
@@ -124,6 +124,8 @@ def start_server(
         path_to_local_server = "http://{}:{}/".format(url_host_name, port)
 
     auth = launchable.auth
+    app = create_app()
+    
     if auth is not None:
         if not callable(auth):
             app.auth = {account[0]: account[1] for account in auth}
