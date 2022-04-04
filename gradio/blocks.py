@@ -215,7 +215,9 @@ class Blocks(Launchable, BlockContext):
 
     def __enter__(self):
         BlockContext.__enter__(self)
-        Context.root_block = self  # TODO: replace with creating new root block instead of overriding
+        Context.root_block = (
+            self  # TODO: replace with creating new root block instead of overriding
+        )
         return self
 
     def __exit__(self, *args):
