@@ -20,8 +20,9 @@ def classify_image(inp):
 image = gr.Image(shape=(224, 224))
 label = gr.Label(num_top_classes=3)
 
-demo = gr.Interface(fn=classify_image, inputs=image, outputs=label, 
-                    interpretation="default")
+demo = gr.Interface(
+    fn=classify_image, inputs=image, outputs=label, interpretation="default"
+)
 
 if __name__ == "__main__":
     demo.launch()

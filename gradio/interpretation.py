@@ -153,7 +153,7 @@ def run_interpret(interface, raw_input):
                 scores.append(None)
                 alternative_outputs.append([])
             else:
-                raise ValueError("Uknown intepretation method: {}".format(interp))
+                raise ValueError("Unknown intepretation method: {}".format(interp))
         return scores, alternative_outputs
     else:  # custom interpretation function
         processed_input = [
