@@ -9,8 +9,6 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 
 class Context:
-    root_block: List[
-        Block
-    ] = None  # The list of roots for all Blocks that are defined in this session.
-    block: Block = None  # The current block that all children should be added to.
+    root_block: List[Block] = None  # List of roots for all Blocks defined in the session.
+    block: Block = None  # The current block that all children should be added to. 
     id = 0  # Running id to uniquely refer to any block that gets defined
