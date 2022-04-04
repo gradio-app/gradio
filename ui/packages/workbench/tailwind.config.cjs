@@ -1,7 +1,7 @@
 module.exports = {
 	content: [
 		"./src/**/*.{html,js,svelte,ts}",
-		"**/@gradio/**/*.{html,js,svelte,ts}"
+		"**/@gradio/**/*.{html,js,svelte,ts,css}"
 	],
 
 	theme: {

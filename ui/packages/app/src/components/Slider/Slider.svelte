@@ -3,6 +3,7 @@
 
 	export let value: number = 0;
 
+	export let label: string;
 	export let default_value: number;
 	export let theme: string;
 	export let style: string | null;
@@ -16,6 +17,7 @@
 
 <Range
 	bind:value
+	{label}
 	{theme}
 	{style}
 	{minimum}

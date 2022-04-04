@@ -3,6 +3,10 @@ import Blocks from "./Blocks.svelte";
 import Login from "./Login.svelte";
 import { fn } from "./api";
 
+import * as t from "@gradio/theme";
+
+console.log("HELLO", t);
+
 interface CustomWindow extends Window {
 	gradio_mode: "app" | "website";
 	launchGradio: Function;

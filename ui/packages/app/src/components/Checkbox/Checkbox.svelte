@@ -3,11 +3,11 @@
 
 	export let value: boolean = false;
 	export let default_value: boolean = false;
-	export let theme: string;
 	export let style: string | null;
+	export let label: string;
 	export let mode: "static" | "dynamic";
 
 	if (default_value) value = default_value;
 </script>
 
-<Checkbox {theme} {style} bind:value on:change disabled={mode === "static"} />
+<Checkbox {style} {label} bind:value on:change disabled={mode === "static"} />

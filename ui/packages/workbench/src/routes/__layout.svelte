@@ -21,7 +21,7 @@
 <div class="flex p-2">
 	<Nav />
 
-	<main class="gradio-bg ml-5 w-full" theme="default">
+	<main class="gradio-bg ml-5 w-full">
 		<div class="gradio-interface">
 			<slot />
 		</div>
