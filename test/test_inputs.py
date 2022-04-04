@@ -69,7 +69,7 @@ class TestTextbox(unittest.TestCase):
             "number",
             interpretation="default",
         )
-        scores, alternative_outputs = iface.interpret(
+        scores = iface.interpret(
             ["Return the length of the longest word in this sentence"]
         )
         self.assertEqual(
@@ -98,10 +98,6 @@ class TestTextbox(unittest.TestCase):
                     (" ", 0),
                 ]
             ],
-        )
-        self.assertEqual(
-            alternative_outputs,
-            [[[8], [8], [8], [8], [8], [8], [8], [8], [8], [7]]],
         )
 
 
@@ -139,7 +135,7 @@ class TestNumber(unittest.TestCase):
         iface = gr.Interface(
             lambda x: x**2, "number", "number", interpretation="default"
         )
-        scores, alternative_outputs = iface.interpret([2])
+        scores = iface.interpret([2])
         self.assertEqual(
             scores,
             [
@@ -154,20 +150,6 @@ class TestNumber(unittest.TestCase):
                 ]
             ],
         )
-        self.assertEqual(
-            alternative_outputs,
-            [
-                [
-                    [3.7636],
-                    [3.8415999999999997],
-                    [3.9204],
-                    [4.0804],
-                    [4.1616],
-                    [4.2436],
-                ]
-            ],
-        )
-
 
 class TestSlider(unittest.TestCase):
     def test_as_component(self):
@@ -204,7 +186,7 @@ class TestSlider(unittest.TestCase):
         iface = gr.Interface(
             lambda x: x**2, "slider", "number", interpretation="default"
         )
-        scores, alternative_outputs = iface.interpret([2])
+        scores = iface.interpret([2])
         self.assertEqual(
             scores,
             [
@@ -217,21 +199,6 @@ class TestSlider(unittest.TestCase):
                     5098.040816326531,
                     7342.938775510205,
                     9996.0,
-                ]
-            ],
-        )
-        self.assertEqual(
-            alternative_outputs,
-            [
-                [
-                    [0.0],
-                    [204.08163265306123],
-                    [816.3265306122449],
-                    [1836.7346938775513],
-                    [3265.3061224489797],
-                    [5102.040816326531],
-                    [7346.938775510205],
-                    [10000.0],
                 ]
             ],
         )
@@ -266,12 +233,10 @@ class TestCheckbox(unittest.TestCase):
         iface = gr.Interface(
             lambda x: 1 if x else 0, "checkbox", "number", interpretation="default"
         )
-        scores, alternative_outputs = iface.interpret([False])
+        scores = iface.interpret([False])
         self.assertEqual(scores, [(None, 1.0)])
-        self.assertEqual(alternative_outputs, [[[1]]])
-        scores, alternative_outputs = iface.interpret([True])
+        scores = iface.interpret([True])
         self.assertEqual(scores, [(-1.0, None)])
-        self.assertEqual(alternative_outputs, [[[0]]])
 
 
 class TestCheckboxGroup(unittest.TestCase):
@@ -351,9 +316,8 @@ class TestRadio(unittest.TestCase):
             lambda x: 2 * x, radio_input, "number", interpretation="default"
         )
         self.assertEqual(iface.process(["c"])[0], [4])
-        scores, alternative_outputs = iface.interpret(["b"])
+        scores = iface.interpret(["b"])
         self.assertEqual(scores, [[-2.0, None, 2.0]])
-        self.assertEqual(alternative_outputs, [[[0], [4]]])
 
 
 class TestDropdown(unittest.TestCase):
@@ -396,9 +360,8 @@ class TestDropdown(unittest.TestCase):
             lambda x: 2 * x, dropdown, "number", interpretation="default"
         )
         self.assertEqual(iface.process(["c"])[0], [4])
-        scores, alternative_outputs = iface.interpret(["b"])
+        scores = iface.interpret(["b"])
         self.assertEqual(scores, [[-2.0, None, 2.0]])
-        self.assertEqual(alternative_outputs, [[[0], [4]]])
 
 
 class TestImage(unittest.TestCase):
@@ -478,23 +441,15 @@ class TestImage(unittest.TestCase):
         iface = gr.Interface(
             lambda x: np.sum(x), image_input, "number", interpretation="default"
         )
-        scores, alternative_outputs = iface.interpret([img])
+        scores = iface.interpret([img])
         self.assertEqual(scores, gr.test_data.SUM_PIXELS_INTERPRETATION["scores"])
-        self.assertEqual(
-            alternative_outputs,
-            gr.test_data.SUM_PIXELS_INTERPRETATION["alternative_outputs"],
-        )
         iface = gr.Interface(
             lambda x: np.sum(x), image_input, "label", interpretation="shap"
         )
-        scores, alternative_outputs = iface.interpret([img])
+        scores = iface.interpret([img])
         self.assertEqual(
             len(scores[0]),
             len(gr.test_data.SUM_PIXELS_SHAP_INTERPRETATION["scores"][0]),
-        )
-        self.assertEqual(
-            len(alternative_outputs[0]),
-            len(gr.test_data.SUM_PIXELS_SHAP_INTERPRETATION["alternative_outputs"][0]),
         )
         image_input = gr.inputs.Image(shape=(30, 10))
         iface = gr.Interface(

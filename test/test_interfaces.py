@@ -100,7 +100,7 @@ class TestInterface(unittest.TestCase):
 
     def test_interface_none_interp(self):
         interface = Interface(lambda x: x, "textbox", "label", interpretation=[None])
-        scores, alternative_outputs = interface.interpret(["quickest brown fox"])
+        scores = interface.interpret(["quickest brown fox"])
         self.assertIsNone(scores[0])
 
     @mock.patch("webbrowser.open")
