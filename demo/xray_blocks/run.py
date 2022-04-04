@@ -9,7 +9,7 @@ demo = gr.Blocks()
 
 with demo:
     gr.Markdown(
-"""
+        """
 # Detect Disease From Scan
 With this model you can lorem ipsum
 - ipsum 1
