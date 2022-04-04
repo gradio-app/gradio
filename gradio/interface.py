@@ -13,13 +13,13 @@ import re
 import time
 import warnings
 import weakref
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
 
 from markdown_it import MarkdownIt
 from mdit_py_plugins.footnote import footnote_plugin
 
 from gradio import interpretation, utils
-from gradio.blocks import Block, BlockContext, Blocks, Column, Row
+from gradio.blocks import Blocks, Column, Row
 from gradio.components import (
     Button,
     Component,
@@ -30,13 +30,9 @@ from gradio.components import (
 from gradio.external import load_from_pipeline, load_interface  # type: ignore
 from gradio.flagging import CSVLogger, FlaggingCallback  # type: ignore
 from gradio.inputs import State as i_State  # type: ignore
-from gradio.launchable import Launchable
 from gradio.outputs import State as o_State  # type: ignore
-from gradio.process_examples import load_from_cache, process_example
-from gradio.routes import predict
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    import flask
     import transformers
 
 
