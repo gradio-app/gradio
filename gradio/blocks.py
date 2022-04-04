@@ -189,8 +189,6 @@ class Blocks(Launchable, BlockContext):
         return {"type": "column"}
 
     def get_config_file(self):
-        from gradio.components import Component
-
         config = {"mode": "blocks", "components": [], "theme": self.theme}
         for _id, block in self.blocks.items():
             config["components"].append(
@@ -217,7 +215,7 @@ class Blocks(Launchable, BlockContext):
 
     def __enter__(self):
         BlockContext.__enter__(self)
-        Context.root_block = self
+        Context.root_block = self  # TODO: replace with creating new root block instead of overriding
         return self
 
     def __exit__(self, *args):
