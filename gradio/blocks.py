@@ -12,7 +12,9 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 
 class Block:
-    def __init__(self):
+    def __init__(self, without_rendering=False):
+        if without_rendering:
+            return
         self.render()
 
     def render(self):
@@ -159,8 +161,6 @@ class Blocks(Launchable, BlockContext):
         self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
 
         super().__init__()
-        if Context.root_block is None:
-            Context.root_block = self
         self.blocks = {}
         self.fns = []
         self.dependencies = []
@@ -219,12 +219,15 @@ class Blocks(Launchable, BlockContext):
         return config
 
     def __enter__(self):
-        BlockContext.__enter__(self)
         if Context.block is None: 
             Context.root_block = self
+        self.parent = Context.block
+        Context.block = self
         return self
 
     def __exit__(self, *args):
-        BlockContext.__exit__(self, *args)
-        Context.root_block = None
-        Context.block = None
+        Context.block = self.parent
+        if self.parent is None:
+            Context.root_block = None
+        else:
+            self.parent.children.extend(self.children)

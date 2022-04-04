@@ -34,6 +34,7 @@ class Component(Block):
         label: Optional[str] = None,
         requires_permissions: bool = False,
         css: Optional[Dict] = None,
+        without_rendering: bool = False,
         **kwargs,
     ):
         if "optional" in kwargs:
@@ -46,7 +47,7 @@ class Component(Block):
         self.css = css if css is not None else {}
 
         self.set_interpret_parameters()
-        super().__init__()
+        super().__init__(without_rendering=without_rendering)
 
     def __str__(self):
         return self.__repr__()
@@ -2883,7 +2884,7 @@ def get_component_instance(iface: Component):
     # https://github.com/gradio-app/gradio/issues/731
     if isinstance(iface, str):
         shortcut = Component.get_all_shortcut_implementations()[iface]
-        return shortcut[0](**shortcut[1])
+        return shortcut[0](**shortcut[1], without_rendering=True)
     elif isinstance(
         iface, dict
     ):  # a dict with `name` as the input component type and other keys as parameters
@@ -2893,7 +2894,7 @@ def get_component_instance(iface: Component):
                 break
         else:
             raise ValueError(f"No such Component: {name}")
-        return component(**iface)
+        return component(**iface, without_rendering=True)
     elif isinstance(iface, Component):
         return iface
     else:

@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
 from markdown_it import MarkdownIt
 from mdit_py_plugins.footnote import footnote_plugin
 
-from gradio import interpretation, utils
+from gradio import interpretation, utils, context
 from gradio.blocks import Blocks, Column, Row
 from gradio.components import (
     Button,
@@ -173,12 +173,12 @@ class Interface(Blocks):
             inputs = [inputs]
         if not isinstance(outputs, list):
             outputs = [outputs]
-
+            
         self.input_components = [get_component_instance(i) for i in inputs]
         self.output_components = [get_component_instance(o) for o in outputs]
         if repeat_outputs_per_model:
             self.output_components *= len(fn)
-
+        
         if sum(isinstance(i, i_State) for i in self.input_components) > 1:
             raise ValueError("Only one input component can be State.")
         if sum(isinstance(o, o_State) for o in self.output_components) > 1:
@@ -207,7 +207,7 @@ class Interface(Blocks):
             ]
         else:
             raise ValueError("Invalid value for parameter: interpretation")
-
+        
         self.predict = fn
         self.predict_durations = [[0, 0]] * len(fn)
         self.function_names = [func.__name__ for func in fn]
