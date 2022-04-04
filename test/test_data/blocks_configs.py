@@ -22,9 +22,17 @@ XRAY_CONFIG = {
                 "css": {},
             },
         },
-        {"id": 3, "type": "tabs", "props": {"css": {}}},
-        {"id": 4, "type": "tabitem", "props": {"label": "X-ray", "css": {}}},
-        {"id": 5, "type": "row", "props": {"type": "row", "css": {}}},
+        {"id": 3, "type": "tabs", "props": {"css": {}, "default_value": True}},
+        {
+            "id": 4,
+            "type": "tabitem",
+            "props": {"label": "X-ray", "css": {}, "default_value": True},
+        },
+        {
+            "id": 5,
+            "type": "row",
+            "props": {"type": "row", "css": {}, "default_value": True},
+        },
         {
             "id": 6,
             "type": "image",
@@ -54,8 +62,16 @@ XRAY_CONFIG = {
                 "css": {"background-color": "red", "--hover-color": "orange"},
             },
         },
-        {"id": 9, "type": "tabitem", "props": {"label": "CT Scan", "css": {}}},
-        {"id": 10, "type": "row", "props": {"type": "row", "css": {}}},
+        {
+            "id": 9,
+            "type": "tabitem",
+            "props": {"label": "CT Scan", "css": {}, "default_value": True},
+        },
+        {
+            "id": 10,
+            "type": "row",
+            "props": {"type": "row", "css": {}, "default_value": True},
+        },
         {
             "id": 11,
             "type": "image",
@@ -127,7 +143,19 @@ XRAY_CONFIG = {
         ],
     },
     "dependencies": [
-        {"targets": [8], "trigger": "click", "inputs": [2, 6], "outputs": [7]},
-        {"targets": [13], "trigger": "click", "inputs": [2, 11], "outputs": [12]},
+        {
+            "targets": [8],
+            "trigger": "click",
+            "inputs": [2, 6],
+            "outputs": [7],
+            "queue": False,
+        },
+        {
+            "targets": [13],
+            "trigger": "click",
+            "inputs": [2, 11],
+            "outputs": [12],
+            "queue": False,
+        },
     ],
 }

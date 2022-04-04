@@ -17,12 +17,14 @@ class TestDefault(unittest.TestCase):
         text_interface = Interface(
             max_word_len, "textbox", "label", interpretation="default"
         )
-        interpretation = text_interface.interpret(["quickest brown fox"])[0][0]
+        interpretation = text_interface.interpret(["quickest brown fox"])[0][
+            "interpretation"
+        ]
         self.assertGreater(
-            interpretation[1], 0
+            interpretation[0][1], 0
         )  # Checks to see if the first word has >0 score.
         self.assertEqual(
-            interpretation[1], 0
+            interpretation[-1][1], 0
         )  # Checks to see if the last word has 0 score.
 
 
@@ -32,7 +34,9 @@ class TestShapley(unittest.TestCase):
         text_interface = Interface(
             max_word_len, "textbox", "label", interpretation="shapley"
         )
-        interpretation = text_interface.interpret(["quickest brown fox"])[0][0]
+        interpretation = text_interface.interpret(["quickest brown fox"])[0][
+            "interpretation"
+        ][0]
         self.assertGreater(
             interpretation[1], 0
         )  # Checks to see if the first word has >0 score.
@@ -45,7 +49,9 @@ class TestCustom(unittest.TestCase):
         text_interface = Interface(
             max_word_len, "textbox", "label", interpretation=custom
         )
-        result = text_interface.interpret(["quickest brown fox"])[0][0]
+        result = text_interface.interpret(["quickest brown fox"])[0]["interpretation"][
+            0
+        ]
         self.assertEqual(
             result[1], 1
         )  # Checks to see if the first letter has score of 1.
@@ -56,7 +62,9 @@ class TestCustom(unittest.TestCase):
         img_interface = Interface(
             max_pixel_value, "image", "label", interpretation=custom
         )
-        result = img_interface.interpret([gradio.test_data.BASE64_IMAGE])[0]
+        result = img_interface.interpret([gradio.test_data.BASE64_IMAGE])[0][
+            "interpretation"
+        ]
         expected_result = np.asarray(
             decode_base64_to_image(gradio.test_data.BASE64_IMAGE).convert("RGB")
         ).tolist()
