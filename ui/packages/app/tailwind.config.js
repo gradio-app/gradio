@@ -1,13 +1,22 @@
 const production = !process.env.ROLLUP_WATCH;
 module.exports = {
-	content: ["./src/**/*.svelte"],
+	content: [
+		"./src/**/*.{html,js,svelte,ts}",
+		"**/@gradio/**/*.{html,js,svelte,ts,css}"
+	],
+
+	theme: {
+		extend: {},
+		fontFamily: {
+			mono: ["monospace"],
+			sans: ["IBM Plex Sans", "system-ui"]
+		}
+	},
 	mode: "jit",
 	darkMode: "class", // or 'media' or 'class'
-	theme: {
-		extend: {}
-	},
+
 	variants: {
 		extend: {}
 	},
-	plugins: []
+	plugins: [require("@tailwindcss/forms")]
 };

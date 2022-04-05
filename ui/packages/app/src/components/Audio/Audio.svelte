@@ -9,6 +9,7 @@
 	export let name: string;
 	export let source: "microphone" | "upload";
 	export let type: "normal" | "numpy" = "normal";
+	export let label: string;
 </script>
 
 {#if mode === "dynamic"}
