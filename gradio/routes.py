@@ -53,6 +53,7 @@ templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 # Auth
 ###########
 
+
 def create_app() -> FastAPI:
 
     app = FastAPI(default_response_class=ORJSONResponse)
@@ -63,13 +64,11 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-
     @app.get("/user")
     @app.get("/user/")
     def get_current_user(request: Request) -> Optional[str]:
         token = request.cookies.get("access-token")
         return app.tokens.get(token)
-
 
     @app.get("/login_check")
     @app.get("/login_check/")
@@ -80,13 +79,11 @@ def create_app() -> FastAPI:
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
         )
 
-
     @app.get("/token")
     @app.get("/token/")
     def get_token(request: Request) -> Optional[str]:
         token = request.cookies.get("access-token")
         return {"token": token, "user": app.tokens.get(token)}
-
 
     @app.post("/login")
     @app.post("/login/")
@@ -105,11 +102,9 @@ def create_app() -> FastAPI:
         else:
             raise HTTPException(status_code=400, detail="Incorrect credentials.")
 
-
     ###############
     # Main Routes
     ###############
-
 
     @app.head("/", response_class=HTMLResponse)
     @app.get("/", response_class=HTMLResponse)
@@ -117,7 +112,10 @@ def create_app() -> FastAPI:
         if app.auth is None or not (user is None):
             config = app.launchable.config
         else:
-            config = {"auth_required": True, "auth_message": app.launchable.auth_message}
+            config = {
+                "auth_required": True,
+                "auth_message": app.launchable.auth_message,
+            }
 
         try:
             return templates.TemplateResponse(
@@ -129,12 +127,10 @@ def create_app() -> FastAPI:
                 "the frontend by running /scripts/build_frontend.sh"
             )
 
-
     @app.get("/config/", dependencies=[Depends(login_check)])
     @app.get("/config", dependencies=[Depends(login_check)])
     def get_config():
         return app.launchable.config
-
 
     @app.get("/static/{path:path}")
     def static_resource(path: str):
@@ -146,7 +142,6 @@ def create_app() -> FastAPI:
             return FileResponse(static_file)
         raise HTTPException(status_code=404, detail="Static file not found")
 
-
     @app.get("/assets/{path:path}")
     def build_resource(path: str):
         if app.launchable.share:
@@ -156,7 +151,6 @@ def create_app() -> FastAPI:
         if build_file is not None:
             return FileResponse(build_file)
         raise HTTPException(status_code=404, detail="Build file not found")
-
 
     @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
     def file(path):
@@ -173,7 +167,6 @@ def create_app() -> FastAPI:
             )
         else:
             return FileResponse(safe_join(app.cwd, path))
-
 
     @app.get("/api", response_class=HTMLResponse)  # Needed for Spaces
     @app.get("/api/", response_class=HTMLResponse)
@@ -204,10 +197,11 @@ def create_app() -> FastAPI:
             "sample_inputs": sample_inputs,
             "auth": app.launchable.auth,
             "local_login_url": urllib.parse.urljoin(app.launchable.local_url, "login"),
-            "local_api_url": urllib.parse.urljoin(app.launchable.local_url, "api/predict"),
+            "local_api_url": urllib.parse.urljoin(
+                app.launchable.local_url, "api/predict"
+            ),
         }
         return templates.TemplateResponse("api_docs.html", {"request": request, **docs})
-
 
     @app.post("/api/predict/", dependencies=[Depends(login_check)])
     async def predict(request: Request, username: str = Depends(get_current_user)):
@@ -221,7 +215,6 @@ def create_app() -> FastAPI:
             else:
                 raise error
         return output
-
 
     @app.post("/api/flag/", dependencies=[Depends(login_check)])
     async def flag(request: Request, username: str = Depends(get_current_user)):
@@ -240,7 +233,6 @@ def create_app() -> FastAPI:
         )
         return {"success": True}
 
-
     @app.post("/api/interpret/", dependencies=[Depends(login_check)])
     async def interpret(request: Request):
         if app.launchable.analytics_enabled:
@@ -255,14 +247,12 @@ def create_app() -> FastAPI:
             "alternative_outputs": alternative_outputs,
         }
 
-
     @app.post("/api/queue/push/", dependencies=[Depends(login_check)])
     async def queue_push(request: Request):
         body = await request.json()
         action = body["action"]
         job_hash, queue_position = queueing.push(body, action)
         return {"hash": job_hash, "queue_position": queue_position}
-
 
     @app.post("/api/queue/status/", dependencies=[Depends(login_check)])
     async def queue_status(request: Request):
@@ -272,6 +262,7 @@ def create_app() -> FastAPI:
         return {"status": status, "data": data}
 
     return app
+
 
 ########
 # Helper functions
@@ -331,4 +322,3 @@ def set_state(*args):
         "as both an input and output component. Please see the getting started"
         "guide for more information."
     )
-

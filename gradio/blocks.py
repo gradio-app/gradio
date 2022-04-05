@@ -173,7 +173,7 @@ class Blocks(Launchable, BlockContext):
         self.blocks = {}
         self.fns = []
         self.dependencies = []
-        
+
     def render(self):
         self._id = Context.id
         Context.id += 1
@@ -231,7 +231,7 @@ class Blocks(Launchable, BlockContext):
         return config
 
     def __enter__(self):
-        if Context.block is None: 
+        if Context.block is None:
             Context.root_block = self
         self.parent = Context.block
         Context.block = self

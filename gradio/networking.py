@@ -125,7 +125,7 @@ def start_server(
 
     auth = launchable.auth
     app = create_app()
-    
+
     if auth is not None:
         if not callable(auth):
             app.auth = {account[0]: account[1] for account in auth}

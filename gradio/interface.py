@@ -18,8 +18,8 @@ from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
 from markdown_it import MarkdownIt
 from mdit_py_plugins.footnote import footnote_plugin
 
-from gradio import interpretation, utils, context
-from gradio.blocks import Blocks, Column, Row, Tabs, TabItem
+from gradio import context, interpretation, utils
+from gradio.blocks import Blocks, Column, Row, TabItem, Tabs
 from gradio.components import (
     Button,
     Component,
@@ -174,12 +174,12 @@ class Interface(Blocks):
             inputs = [inputs]
         if not isinstance(outputs, list):
             outputs = [outputs]
-            
+
         self.input_components = [get_component_instance(i) for i in inputs]
         self.output_components = [get_component_instance(o) for o in outputs]
         if repeat_outputs_per_model:
             self.output_components *= len(fn)
-        
+
         if sum(isinstance(i, i_State) for i in self.input_components) > 1:
             raise ValueError("Only one input component can be State.")
         if sum(isinstance(o, o_State) for o in self.output_components) > 1:
@@ -208,7 +208,7 @@ class Interface(Blocks):
             ]
         else:
             raise ValueError("Invalid value for parameter: interpretation")
-        
+
         self.predict = fn
         self.predict_durations = [[0, 0]] * len(fn)
         self.function_names = [func.__name__ for func in fn]
@@ -771,9 +771,7 @@ class Interface(Blocks):
 
 class TabbedInterface(Blocks):
     def __init__(
-        self, 
-        interface_list: List[Interface], 
-        tab_names: Optional[List[str]]=None
+        self, interface_list: List[Interface], tab_names: Optional[List[str]] = None
     ):
         if tab_names is None:
             tab_names = ["Tab {}".format(i) for i in range(len(interface_list))]
@@ -785,21 +783,23 @@ class TabbedInterface(Blocks):
                     tab_name,
                 ) in zip(interface_list, tab_names):
                     with TabItem(label=tab_name):
-                        Interface(fn=interface.predict,
-                                  inputs=interface.input_components,
-                                  outputs=interface.output_components,
-                                  examples=interface.examples,
-                                  examples_per_page=interface.examples_per_page,
-                                  live=interface.live,
-                                  layout=interface.layout,
-                                  interpretation=interface.interpretation,
-                                  num_shap=interface.num_shap,
-                                  title=interface.title,
-                                  description=interface.description,
-                                  article=interface.article,
-                                  allow_flagging=interface.allow_flagging,
-                                  flagging_options=interface.flagging_options,
-                                  flagging_dir=interface.flagging_dir)
+                        Interface(
+                            fn=interface.predict,
+                            inputs=interface.input_components,
+                            outputs=interface.output_components,
+                            examples=interface.examples,
+                            examples_per_page=interface.examples_per_page,
+                            live=interface.live,
+                            layout=interface.layout,
+                            interpretation=interface.interpretation,
+                            num_shap=interface.num_shap,
+                            title=interface.title,
+                            description=interface.description,
+                            article=interface.article,
+                            allow_flagging=interface.allow_flagging,
+                            flagging_options=interface.flagging_options,
+                            flagging_dir=interface.flagging_dir,
+                        )
 
 
 def close_all(verbose: bool = True) -> None:
