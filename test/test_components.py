@@ -183,10 +183,10 @@ class TestNumber(unittest.TestCase):
         """
         Interface, process, interpret
         """
-        iface = gr.Interface(lambda x: x ** 2, "number", "textbox")
+        iface = gr.Interface(lambda x: x**2, "number", "textbox")
         self.assertEqual(iface.process([2])[0], ["4.0"])
         iface = gr.Interface(
-            lambda x: x ** 2, "number", "number", interpretation="default"
+            lambda x: x**2, "number", "number", interpretation="default"
         )
         scores, alternative_outputs = iface.interpret([2])
         self.assertEqual(
@@ -224,7 +224,7 @@ class TestNumber(unittest.TestCase):
         iface = gr.Interface(lambda x: int(x) ** 2, "textbox", "number")
         self.assertEqual(iface.process([2])[0], [4.0])
         iface = gr.Interface(
-            lambda x: x ** 2, "number", "number", interpretation="default"
+            lambda x: x**2, "number", "number", interpretation="default"
         )
         scores, alternative_outputs = iface.interpret([2])
         self.assertEqual(
@@ -294,10 +294,10 @@ class TestSlider(unittest.TestCase):
         """ "
         Interface, process, interpret
         """
-        iface = gr.Interface(lambda x: x ** 2, "slider", "textbox")
+        iface = gr.Interface(lambda x: x**2, "slider", "textbox")
         self.assertEqual(iface.process([2])[0], ["4"])
         iface = gr.Interface(
-            lambda x: x ** 2, "slider", "number", interpretation="default"
+            lambda x: x**2, "slider", "number", interpretation="default"
         )
         scores, alternative_outputs = iface.interpret([2])
         self.assertEqual(
