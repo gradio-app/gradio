@@ -1,14 +1,14 @@
 import gradio as gr
-import numpy as np
 
-def image_mod(img):
-    return np.flipud(img)
+
+def image_mod(text):
+    return text[::-1]
 
 
 demo = gr.Blocks()
 
 with demo:
-    text = gr.Image()
+    text = gr.Textbox()
     btn = gr.Button("Run")
     btn.click(image_mod, text, text)
 
