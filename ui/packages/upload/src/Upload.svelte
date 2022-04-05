@@ -9,7 +9,7 @@
 	export let dragging = false;
 
 	let hidden_upload: HTMLInputElement;
-	let file_count;
+	let file_count: "multiple" | "directory" | "single";
 
 	const dispatch = createEventDispatcher();
 
