@@ -12,7 +12,9 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 
 class Block:
-    def __init__(self):
+    def __init__(self, without_rendering=False):
+        if without_rendering:
+            return
         self.render()
 
     def render(self):
@@ -168,10 +170,13 @@ class Blocks(Launchable, BlockContext):
         self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
 
         super().__init__()
-        Context.root_block = self
         self.blocks = {}
         self.fns = []
         self.dependencies = []
+
+    def render(self):
+        self._id = Context.id
+        Context.id += 1
 
     def process_api(self, data: Dict[str, Any], username: str = None) -> Dict[str, Any]:
         raw_input = data["data"]
@@ -201,8 +206,6 @@ class Blocks(Launchable, BlockContext):
         return {"type": "column"}
 
     def get_config_file(self):
-        from gradio.components import Component
-
         config = {"mode": "blocks", "components": [], "theme": self.theme}
         for _id, block in self.blocks.items():
             config["components"].append(
@@ -228,10 +231,15 @@ class Blocks(Launchable, BlockContext):
         return config
 
     def __enter__(self):
-        BlockContext.__enter__(self)
-        Context.root_block = self
+        if Context.block is None:
+            Context.root_block = self
+        self.parent = Context.block
+        Context.block = self
         return self
 
     def __exit__(self, *args):
-        BlockContext.__exit__(self, *args)
-        Context.root_block = self.parent
+        Context.block = self.parent
+        if self.parent is None:
+            Context.root_block = None
+        else:
+            self.parent.children.extend(self.children)
