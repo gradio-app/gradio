@@ -63,7 +63,7 @@ class TestCustom(unittest.TestCase):
         img_interface = Interface(
             max_pixel_value, "image", "label", interpretation=custom
         )
-        result = img_interface.interpret([deepcopy(gradio.test_data.BASE64_IMAGE)])[0][
+        result = img_interface.interpret([deepcopy(media_data.BASE64_IMAGE)])[0][
             "interpretation"
         ]
         expected_result = np.asarray(
