@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
+	import { BlockTitle } from "@gradio/atoms";
 
 	export let value: Array<string> = [];
 	export let choices: Array<string>;
-	export let theme: string = "default";
 	export let disabled: boolean = false;
+	export let label: string;
 
 	const dispatch = createEventDispatcher<{ change: Array<string> }>();
 
@@ -19,39 +20,25 @@
 	};
 </script>
 
-<div class="input-checkbox-group flex flex-wrap gap-2" {theme}>
-	{#each choices as choice, i}
-		<button
-			class="checkbox-item py-2 px-3 font-semibold rounded cursor-pointer flex items-center gap-2"
-			class:selected={value.includes(choice)}
-			on:click={() => toggleChoice(choice)}
-		>
-			<div class="checkbox w-4 h-4 bg-white flex items-center justify-center">
-				<svg class="check opacity-0 h-3 w-4" viewBox="-10 -10 20 20">
-					<line
-						x1="-7.5"
-						y1="0"
-						x2="-2.5"
-						y2="5"
-						stroke="white"
-						stroke-width="4"
-						stroke-linecap="round"
-					/>
-					<line
-						x1="-2.5"
-						y1="5"
-						x2="7.5"
-						y2="-7.5"
-						stroke="white"
-						stroke-width="4"
-						stroke-linecap="round"
-					/>
-				</svg>
-			</div>
-			{choice}
-		</button>
-	{/each}
-</div>
+<fieldset
+	class="gr-box overflow-hidden border-solid border border-gray-200 gr-panel"
+>
+	<BlockTitle>{label}</BlockTitle>
+
+	<div class="flex flex-wrap gap-2">
+		{#each choices as choice, i}
+			<label class="gr-box gr-box-sm ">
+				<input
+					{disabled}
+					on:change={() => toggleChoice(choice)}
+					type="checkbox"
+					name="test"
+					class="gr-check-radio rounded checked:shadow-inner"
+				/> <span class="ml-2">{choice}</span></label
+			>
+		{/each}
+	</div>
+</fieldset>
 
 <style lang="postcss">
 	.selected .check {

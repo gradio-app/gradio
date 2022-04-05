@@ -9,11 +9,13 @@
 <script lang="ts">
 	import { onDestroy, createEventDispatcher } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
+	import { Block, BlockLabel } from "@gradio/atoms";
 	//@ts-ignore
 	import Range from "svelte-range-slider-pips";
 
+	import audio_icon from "./music.svg";
+
 	export let value: null | { name: string; data: string } = null;
-	export let theme: string;
 	export let style: string | null;
 	export let name: string;
 	export let source: "microphone" | "upload" | "none";
@@ -143,28 +145,35 @@
 		value = detail;
 		dispatch("change", { data: detail.data, name: detail.name });
 	}
+
+	export let dragging = false;
 </script>
 
-<div class="input-audio">
+<Block
+	variant={value === null && source === "upload" ? "dashed" : "solid"}
+	color={dragging ? "green" : "grey"}
+	padding={false}
+>
+	<BlockLabel image={audio_icon} label={"Audio"} />
 	{#if value === null}
 		{#if source === "microphone"}
 			{#if recording}
 				<button
-					class="p-2 rounded font-semibold bg-red-200 text-red-500 dark:bg-red-600 dark:text-red-100 shadow transition hover:shadow-md"
+					class="ml-2 mt-8 mb-2 p-2 rounded font-semibold bg-red-200 text-red-500 dark:bg-red-600 dark:text-red-100 shadow transition hover:shadow-md"
 					on:click={stop}
 				>
 					Stop Recording
 				</button>
 			{:else}
 				<button
-					class="p-2 rounded font-semibold shadow transition hover:shadow-md bg-white dark:bg-gray-800"
+					class="ml-2 mt-8 mb-2 p-2 rounded font-semibold shadow transition hover:shadow-md bg-white dark:bg-gray-800"
 					on:click={record}
 				>
 					Record
 				</button>
 			{/if}
 		{:else if source === "upload"}
-			<Upload filetype="audio/*" on:load={handle_load} {theme}>
+			<Upload filetype="audio/*" on:load={handle_load} bind:dragging>
 				{drop_text}
 				<br />- {or_text} -<br />
 				{upload_text}
@@ -176,7 +185,6 @@
 			on:edit={() => (mode = "edit")}
 			editable
 			absolute={false}
-			{theme}
 		/>
 
 		<audio
@@ -202,4 +210,4 @@
 			/>
 		{/if}
 	{/if}
-</div>
+</Block>
