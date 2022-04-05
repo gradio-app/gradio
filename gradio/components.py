@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 import json
 import math
 import numbers
@@ -35,6 +36,7 @@ class Component(Block):
         label: Optional[str] = None,
         requires_permissions: bool = False,
         css: Optional[Dict] = None,
+        without_rendering: bool = False,
         **kwargs,
     ):
         if "optional" in kwargs:
@@ -47,7 +49,7 @@ class Component(Block):
         self.css = css if css is not None else {}
 
         self.set_interpret_parameters()
-        super().__init__()
+        super().__init__(without_rendering=without_rendering)
 
     def __str__(self):
         return self.__repr__()
@@ -925,7 +927,10 @@ class Radio(Component):
         if self.type == "value":
             return x
         elif self.type == "index":
-            return self.choices.index(x)
+            if x is None:
+                return None
+            else:
+                return self.choices.index(x)
         else:
             raise ValueError(
                 "Unknown type: "
@@ -2791,7 +2796,8 @@ class Markdown(Component):
         """
         super().__init__(label=label, css=css, **kwargs)
         self.md = MarkdownIt()
-        self.default_value = self.md.render(default_value)
+        unindented_default_value = inspect.cleandoc(default_value)
+        self.default_value = self.md.render(unindented_default_value)
 
     def get_template_context(self):
         return {"default_value": self.default_value, **super().get_template_context()}
@@ -2822,7 +2828,13 @@ class Button(Component):
     def get_template_context(self):
         return {"default_value": self.default_value, **super().get_template_context()}
 
-    def click(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def click(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        queue=False,
+    ):
         """
         Parameters:
             fn: Callable function
@@ -2830,7 +2842,19 @@ class Button(Component):
             outputs: List of outputs
         Returns: None
         """
-        self.set_event_trigger("click", fn, inputs, outputs)
+        self.set_event_trigger("click", fn, inputs, outputs, queue=queue)
+
+    def _click_no_preprocess(
+        self, fn: Callable, inputs: List[Component], outputs: List[Component]
+    ):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("click", fn, inputs, outputs, preprocess=False)
 
 
 class Dataset(Component):
@@ -2875,6 +2899,29 @@ class Dataset(Component):
         self.set_event_trigger("click", fn, inputs, outputs)
 
 
+class Interpretation(Component):
+    """
+    Used to create an interpretation widget for a component.
+    """
+
+    def __init__(
+        self,
+        component: Component,
+        *,
+        label: Optional[str] = None,
+        css: Optional[Dict] = None,
+        **kwargs,
+    ):
+        super().__init__(label=label, css=css, **kwargs)
+        self.component = component
+
+    def get_template_context(self):
+        return {
+            "component": self.component.__class__.__name__.lower(),
+            "component_props": self.component.get_template_context(),
+        }
+
+
 # TODO: (faruk) does this take component or interface as a input?
 # see this line in Carousel
 # self.components = [get_component_instance(component) for component in components]
@@ -2883,7 +2930,7 @@ def get_component_instance(iface: Component):
     # https://github.com/gradio-app/gradio/issues/731
     if isinstance(iface, str):
         shortcut = Component.get_all_shortcut_implementations()[iface]
-        return shortcut[0](**shortcut[1])
+        return shortcut[0](**shortcut[1], without_rendering=True)
     elif isinstance(
         iface, dict
     ):  # a dict with `name` as the input component type and other keys as parameters
@@ -2893,7 +2940,7 @@ def get_component_instance(iface: Component):
                 break
         else:
             raise ValueError(f"No such Component: {name}")
-        return component(**iface)
+        return component(**iface, without_rendering=True)
     elif isinstance(iface, Component):
         return iface
     else:

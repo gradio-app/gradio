@@ -1,21 +1,20 @@
 <script lang="ts">
-	import { getSaliencyColor } from "../utils/helpers";
+	import { getSaliencyColor } from "../utils";
 
-	export let value: number;
+	export let original: number;
 	export let interpretation: Array<number>;
 	export let theme: string;
-	export let style: string | null;
 	export let minimum: number;
 	export let maximum: number;
 	export let step: number;
 </script>
 
-<div class="input-slider text-center" {theme} {style}>
+<div class="input-slider text-center" {theme}>
 	<input
 		type="range"
 		class="range w-full appearance-none transition rounded h-4"
 		disabled
-		{value}
+		{original}
 		min={minimum}
 		max={maximum}
 		{step}
@@ -28,7 +27,9 @@
 			/>
 		{/each}
 	</div>
-	<div class="value inline-block mx-auto mt-1 px-2 py-0.5 rounded">{value}</div>
+	<div class="original inline-block mx-auto mt-1 px-2 py-0.5 rounded">
+		{original}
+	</div>
 </div>
 
 <style lang="postcss">

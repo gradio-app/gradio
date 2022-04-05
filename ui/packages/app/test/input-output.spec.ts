@@ -1,7 +1,7 @@
 import { test, expect, Page } from "@playwright/test";
 
 function mock_demo(page: Page, demo: string) {
-	return page.route("http://localhost:7860/config", (route) => {
+	return page.route("**/config", (route) => {
 		return route.fulfill({
 			headers: {
 				"Access-Control-Allow-Origin": "*"
@@ -12,7 +12,7 @@ function mock_demo(page: Page, demo: string) {
 }
 
 function mock_api(page: Page, body: Array<unknown>) {
-	return page.route("http://localhost:7860/api/predict/", (route) => {
+	return page.route("**/api/predict/", (route) => {
 		const id = JSON.parse(route.request().postData()!).fn_index;
 		return route.fulfill({
 			headers: {
@@ -35,10 +35,7 @@ test("a component acts as both input and output", async ({ page }) => {
 
 	await textbox.fill("hello world");
 
-	await Promise.all([
-		button.click(),
-		page.waitForResponse("http://localhost:7860/api/predict/")
-	]);
+	await Promise.all([button.click(), page.waitForResponse("**/api/predict/")]);
 
 	await expect(await page.inputValue(".input-text")).toEqual("world hello");
 });

@@ -1,14 +1,13 @@
 <script lang="ts">
-	import { getSaliencyColor } from "../utils/helpers";
+	import { getSaliencyColor } from "../utils";
 
-	export let value: string;
+	export let original: string;
 	export let interpretation: Array<number>;
 	export let theme: string;
-	export let style: string | null;
 	export let choices: Array<string>;
 </script>
 
-<div class="input-dropdown" {theme} {style}>
+<div class="input-dropdown" {theme}>
 	<ul class="dropdown-menu">
 		{#each choices as choice, i}
 			<li

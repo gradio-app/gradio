@@ -5,11 +5,10 @@ import random
 xray_model = lambda diseases, img: {disease: random.random() for disease in diseases}
 ct_model = lambda diseases, img: {disease: 0.1 for disease in diseases}
 
-demo = gr.Blocks()
 
-with demo:
+with gr.Blocks() as demo:
     gr.Markdown(
-"""
+        """
 # Detect Disease From Scan
 With this model you can lorem ipsum
 - ipsum 1
