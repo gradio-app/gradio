@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import { BlockTitle, Box } from "@gradio/atoms";
+	import { BlockTitle } from "@gradio/atoms";
 
 	export let value: string;
 	export let choices: Array<string>;

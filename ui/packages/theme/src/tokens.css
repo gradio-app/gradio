@@ -1,8 +1,7 @@
 .gr-box {
 	@apply text-gray-700 
 	text-sm 
-	border-gray-200 
-	border 
+	relative 
 	rounded-lg 
 	bg-white 
 	shadow-sm;
@@ -14,7 +13,8 @@
 	focus:ring-blue-200 
 	focus:ring-opacity-50 
 	placeholder:text-gray-400
-	checked:shadow-inner;
+	checked:shadow-inner
+	border-gray-200;
 }
 
 .gr-label {

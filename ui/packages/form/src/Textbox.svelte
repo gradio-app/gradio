@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { debounce } from "./utils";
-	import { BlockTitle, Box } from "@gradio/atoms";
+	import { BlockTitle, Block } from "@gradio/atoms";
 
 	export let value: string = "";
 	export let theme: string = "default";
@@ -37,7 +37,7 @@
 	const debounced_handle_keypress = debounce(handle_keypress, 300);
 </script>
 
-<Box>
+<Block>
 	<!-- svelte-ignore a11y-label-has-associated-control -->
 	<label class="block">
 		<BlockTitle>{label}</BlockTitle>
@@ -65,4 +65,4 @@
 			/>
 		{/if}
 	</label>
-</Box>
+</Block>

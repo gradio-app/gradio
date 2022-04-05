@@ -1,5 +1,9 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
+	import { Block, BlockLabel } from "@gradio/atoms";
+	import image_icon from "./image.svg";
+	import sketch_icon from "./sketch.svg";
+
 	import Cropper from "./Cropper.svelte";
 	import Sketch from "./Sketch.svelte";
 	import Webcam from "./Webcam.svelte";
@@ -9,6 +13,7 @@
 	import { Upload, ModifyUpload } from "@gradio/upload";
 
 	export let value: null | string;
+	export let label: string;
 
 	export let theme: string = "default";
 	export let source: "canvas" | "webcam" | "upload" = "upload";
@@ -43,14 +48,23 @@
 	}>();
 
 	$: dispatch("change", value);
+
+	let dragging = false;
+
+	$: console.log(dragging, value);
 </script>
 
-<div class="input-image w-full">
-	<div
-		class="image-preview w-full h-60 flex justify-center items-center dark:bg-gray-600 relative"
-		class:bg-gray-200={value}
-		class:h-60={source !== "webcam"}
-	>
+<Block
+	variant={value === null && source === "upload" ? "dashed" : "solid"}
+	color={dragging ? "green" : "grey"}
+	padding={false}
+>
+	<BlockLabel
+		image={source === "canvas" ? sketch_icon : image_icon}
+		label={label || source === "canvas" ? "Sketch" : "Image"}
+	/>
+
+	<div class:bg-gray-200={value} class:h-60={source !== "webcam"}>
 		{#if source === "canvas"}
 			<ModifySketch
 				on:undo={() => sketch.undo()}
@@ -60,6 +74,7 @@
 		{:else if value === null}
 			{#if source === "upload"}
 				<Upload
+					bind:dragging
 					filetype="image/x-png,image/gif,image/jpeg"
 					on:load={handle_upload}
 					include_file_metadata={false}
@@ -92,7 +107,7 @@
 			<img class="w-full h-full object-contain" src={value} alt="" />
 		{/if}
 	</div>
-</div>
+</Block>
 
 <style lang="postcss">
 	:global(.image_editor_buttons) {

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 
-	import { BlockTitle, Box } from "@gradio/atoms";
+	import { BlockTitle, Block } from "@gradio/atoms";
 
 	export let value: boolean;
 	export let disabled: boolean = false;
@@ -15,7 +15,7 @@
 	}
 </script>
 
-<Box>
+<Block>
 	<!-- svelte-ignore a11y-label-has-associated-control -->
 	<BlockTitle>{label}</BlockTitle>
 	<label class="w-auto gr-box-sm gr-box inline-block">
@@ -27,4 +27,4 @@
 		/>
 		<span class="ml-2">{label}</span></label
 	>
-</Box>
+</Block>

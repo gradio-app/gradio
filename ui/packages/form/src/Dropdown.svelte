@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import { Box, BlockTitle } from "@gradio/atoms";
+	import { Block, BlockTitle } from "@gradio/atoms";
 
 	export let label: string;
 	export let value: string | undefined = undefined;
@@ -11,7 +11,7 @@
 	$: dispatch("change", value);
 </script>
 
-<Box>
+<Block>
 	<label>
 		<BlockTitle>{label}</BlockTitle>
 		<select class="gr-box gr-input w-full" bind:value>
@@ -20,4 +20,4 @@
 			{/each}
 		</select>
 	</label>
-</Box>
+</Block>

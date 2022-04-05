@@ -4,7 +4,7 @@
 
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import { Box, BlockTitle } from "@gradio/atoms";
+	import { Block, BlockTitle } from "@gradio/atoms";
 
 	export let value: number = 0;
 	export let style: string | null;
@@ -21,7 +21,7 @@
 	$: dispatch("change", value);
 </script>
 
-<Box>
+<Block>
 	<div class="w-full flex flex-col">
 		<div class="flex justify-between">
 			<label for={id}>
@@ -42,4 +42,4 @@
 		{step}
 		{disabled}
 	/>
-</Box>
+</Block>

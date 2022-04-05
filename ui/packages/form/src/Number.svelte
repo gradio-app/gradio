@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { debounce } from "./utils";
-	import { BlockTitle, Box } from "@gradio/atoms";
+	import { BlockTitle, Block } from "@gradio/atoms";
 
 	export let value: number = 0;
 	export let disabled: boolean = false;
@@ -27,7 +27,7 @@
 	$: debounced_handle_change(value);
 </script>
 
-<Box>
+<Block>
 	<!-- svelte-ignore a11y-label-has-associated-control -->
 	<label class="block">
 		<BlockTitle>{label}</BlockTitle>
@@ -39,4 +39,4 @@
 			{disabled}
 		/>
 	</label>
-</Box>
+</Block>
