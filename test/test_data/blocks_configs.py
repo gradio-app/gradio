@@ -5,7 +5,7 @@ XRAY_CONFIG = {
             "id": 1,
             "type": "markdown",
             "props": {
-                "default_value": "<pre><code>        # Detect Disease From Scan\n        With this model you can lorem ipsum\n        - ipsum 1\n        - ipsum 2\n</code></pre>\n",
+                "default_value": "<h1>Detect Disease From Scan</h1>\n<p>With this model you can lorem ipsum</p>\n<ul>\n<li>ipsum 1</li>\n<li>ipsum 2</li>\n</ul>\n",
                 "name": "markdown",
                 "label": None,
                 "css": {},
