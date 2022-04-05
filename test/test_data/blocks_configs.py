@@ -1,4 +1,4 @@
-XRAY_CONFIG ={
+XRAY_CONFIG = {
 	'mode': 'blocks',
 	'components': [{
 		'id': 1,
@@ -23,21 +23,24 @@ XRAY_CONFIG ={
 		'id': 3,
 		'type': 'tabs',
 		'props': {
-			'css': {}
+			'css': {},
+			'default_value': True
 		}
 	}, {
 		'id': 4,
 		'type': 'tabitem',
 		'props': {
 			'label': 'X-ray',
-			'css': {}
+			'css': {},
+			'default_value': True
 		}
 	}, {
 		'id': 5,
 		'type': 'row',
 		'props': {
 			'type': 'row',
-			'css': {}
+			'css': {},
+			'default_value': True
 		}
 	}, {
 		'id': 6,
@@ -78,14 +81,16 @@ XRAY_CONFIG ={
 		'type': 'tabitem',
 		'props': {
 			'label': 'CT Scan',
-			'css': {}
+			'css': {},
+			'default_value': True
 		}
 	}, {
 		'id': 10,
 		'type': 'row',
 		'props': {
 			'type': 'row',
-			'css': {}
+			'css': {},
+			'default_value': True
 		}
 	}, {
 		'id': 11,
@@ -172,11 +177,13 @@ XRAY_CONFIG ={
 		'targets': [8],
 		'trigger': 'click',
 		'inputs': [2, 6],
-		'outputs': [7]
+		'outputs': [7],
+		'queue': False
 	}, {
 		'targets': [13],
 		'trigger': 'click',
 		'inputs': [2, 11],
-		'outputs': [12]
+		'outputs': [12],
+		'queue': False
 	}]
 }

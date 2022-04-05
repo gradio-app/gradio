@@ -69,6 +69,8 @@ predictions = clf.predict(X_test)
 
 
 def predict_survival(passenger_class, is_male, age, company, fare, embark_point):
+    if passenger_class is None or embark_point is None:
+        return None
     df = pd.DataFrame.from_dict(
         {
             "Pclass": [passenger_class + 1],
@@ -93,9 +95,7 @@ demo = gr.Interface(
         gr.Dropdown(["first", "second", "third"], type="index"),
         "checkbox",
         gr.Slider(minimum=0, maximum=80),
-        gr.CheckboxGroup(
-            ["Sibling", "Child"], label="Travelling with (select all)"
-        ),
+        gr.CheckboxGroup(["Sibling", "Child"], label="Travelling with (select all)"),
         gr.Number(),
         gr.Radio(["S", "C", "Q"], type="index"),
     ],
@@ -106,6 +106,7 @@ demo = gr.Interface(
         ["third", True, 30, ["Child"], 20, "S"],
     ],
     interpretation="default",
+    live=True,
 )
 
 if __name__ == "__main__":

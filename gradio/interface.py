@@ -24,6 +24,7 @@ from gradio.components import (
     Button,
     Component,
     Dataset,
+    Interpretation,
     Markdown,
     get_component_instance,
 )
@@ -485,11 +486,20 @@ class Interface(Blocks):
                         "border-radius": "0.5rem",
                     }
                 ):
-                    for component in self.input_components:
-                        component.render()
+                    input_component_column = Column()
+                    with input_component_column:
+                        for component in self.input_components:
+                            component.render()
+                    if self.interpretation:
+                        interpret_component_column = Column(visible=False)
+                        interpretation_set = []
+                        with interpret_component_column:
+                            for component in self.input_components:
+                                interpretation_set.append(Interpretation(component))
                     with Row():
                         clear_btn = Button("Clear")
-                        submit_btn = Button("Submit")
+                        if not self.live:
+                            submit_btn = Button("Submit")
                 with Column(
                     css={
                         "background-color": "rgb(249,250,251)",
@@ -501,18 +511,39 @@ class Interface(Blocks):
                         component.render()
                     with Row():
                         flag_btn = Button("Flag")
-            submit_btn.click(
+                        if self.interpretation:
+                            interpretation_btn = Button("Interpret")
+            submit_fn = (
                 lambda *args: self.run_prediction(args, return_duration=False)[0]
                 if len(self.output_components) == 1
-                else self.run_prediction(args, return_duration=False),
-                self.input_components,
-                self.output_components,
+                else self.run_prediction(args, return_duration=False)
             )
+            if self.live:
+                for component in self.input_components:
+                    component.change(
+                        submit_fn, self.input_components, self.output_components
+                    )
+            else:
+                submit_btn.click(
+                    submit_fn,
+                    self.input_components,
+                    self.output_components,
+                    queue=self.enable_queue,
+                )
             clear_btn.click(
-                lambda: [None]
-                * (len(self.input_components) + len(self.output_components)),
+                lambda: [
+                    component.default_value
+                    if hasattr(component, "default_value")
+                    else None
+                    for component in self.input_components + self.output_components
+                ]
+                + [True]
+                + ([False] if self.interpretation else []),
                 [],
-                self.input_components + self.output_components,
+                self.input_components
+                + self.output_components
+                + [input_component_column]
+                + ([interpret_component_column] if self.interpretation else []),
             )
             if self.examples:
                 examples = Dataset(
@@ -526,7 +557,14 @@ class Interface(Blocks):
                 inputs=self.input_components + self.output_components,
                 outputs=[],
             )
-            
+            if self.interpretation:
+                interpretation_btn._click_no_preprocess(
+                    lambda *data: self.interpret(data) + [False, True],
+                    inputs=self.input_components + self.output_components,
+                    outputs=interpretation_set
+                    + [input_component_column, interpret_component_column],
+                )
+
     def __call__(self, *params):
         if (
             self.api_mode
@@ -651,7 +689,12 @@ class Interface(Blocks):
         return processed_output, durations
 
     def interpret(self, raw_input: List[Any]) -> List[Any]:
-        return interpretation.run_interpret(self, raw_input)
+        return [
+            {"original": raw_value, "interpretation": interpretation}
+            for interpretation, raw_value in zip(
+                interpretation.run_interpret(self, raw_input)[0], raw_input
+            )
+        ]
 
     def test_launch(self) -> None:
         """
