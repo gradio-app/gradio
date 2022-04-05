@@ -21,6 +21,6 @@
 	$: value, dispatch("change");
 </script>
 
-{#if value !== undefined}
+{#if value !== undefined && value !== null}
 	<Label {theme} {style} {value} />
 {/if}

@@ -2,7 +2,7 @@
 	"name": "@gradio/workbench",
 	"version": "0.0.1",
 	"scripts": {
-		"dev": "svelte-kit dev",
+		"dev": "svelte-kit dev --port 3002",
 		"build": "svelte-kit build",
 		"preview": "svelte-kit preview",
 		"check": "svelte-check --tsconfig ./tsconfig.json",
@@ -23,6 +23,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@gradio/atoms": "workspace:^0.0.1",
 		"@gradio/audio": "workspace:^0.0.1",
 		"@gradio/button": "workspace:^0.0.1",
 		"@gradio/carousel": "workspace:^0.0.1",

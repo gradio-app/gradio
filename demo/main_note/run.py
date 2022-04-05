@@ -37,7 +37,7 @@ def main_note(audio):
         if pitch not in volume_per_pitch:
             volume_per_pitch[pitch] = 0
         volume_per_pitch[pitch] += 1.0 * volume / total_volume
-    volume_per_pitch = {k:float(v) for k,v in volume_per_pitch.items()}
+    volume_per_pitch = {k: float(v) for k, v in volume_per_pitch.items()}
     return volume_per_pitch
 
 

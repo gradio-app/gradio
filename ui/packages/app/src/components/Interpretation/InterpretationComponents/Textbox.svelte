@@ -1,16 +1,11 @@
 <script lang="ts">
-	import { getSaliencyColor } from "../../utils/helpers";
+	import { getSaliencyColor } from "../utils";
 
 	export let interpretation: Array<[string, number]>;
 	export let theme: string;
-	export let style: string | null;
 </script>
 
-<div
-	class="input-text w-full rounded box-border p-2 break-word"
-	{theme}
-	{style}
->
+<div class="input-text w-full rounded box-border p-2 break-word" {theme}>
 	{#each interpretation as [text, saliency]}
 		<span
 			class="textspan p-1 bg-opacity-20 dark:bg-opacity-80"

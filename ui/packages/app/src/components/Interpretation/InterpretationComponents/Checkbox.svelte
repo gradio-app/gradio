@@ -1,16 +1,15 @@
 <script lang="ts">
-	import { getSaliencyColor } from "../utils/helpers";
+	import { getSaliencyColor } from "../utils";
 
-	export let value: boolean;
+	export let original: boolean;
 	export let interpretation: [number, number];
 	export let theme: string;
-	export let style: string | null;
 </script>
 
-<div class="input-checkbox inline-block" {theme} {style}>
+<div class="input-checkbox inline-block" {theme}>
 	<button
 		class="checkbox-item py-2 px-3 rounded cursor-pointer flex gap-1"
-		class:selected={value}
+		class:selected={original}
 	>
 		<div
 			class="checkbox w-4 h-4 bg-white flex items-center justify-center border border-gray-400 box-border"

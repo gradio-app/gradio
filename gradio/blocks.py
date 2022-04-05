@@ -12,7 +12,9 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 
 class Block:
-    def __init__(self):
+    def __init__(self, without_rendering=False):
+        if without_rendering:
+            return
         self.render()
 
     def render(self):
@@ -33,6 +35,8 @@ class Block:
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
+        preprocess=True,
+        queue=False,
     ) -> None:
         """
         Adds an event to the component's dependencies.
@@ -49,54 +53,60 @@ class Block:
         if not isinstance(outputs, list):
             outputs = [outputs]
 
-        Context.root_block.fns.append(fn)
+        Context.root_block.fns.append((fn, preprocess))
         Context.root_block.dependencies.append(
             {
                 "targets": [self._id],
                 "trigger": event_name,
                 "inputs": [block._id for block in inputs],
                 "outputs": [block._id for block in outputs],
+                "queue": queue,
             }
         )
 
 
 class BlockContext(Block):
-    def __init__(self, css: Optional[Dict[str, str]] = None):
+    def __init__(self, visible: bool = True, css: Optional[Dict[str, str]] = None):
         """
         css: Css rules to apply to block.
         """
         self.children = []
         self.css = css if css is not None else {}
+        self.visible = visible
         super().__init__()
 
     def __enter__(self):
         self.parent = Context.block
         Context.block = self
+        return self
 
     def __exit__(self, *args):
         Context.block = self.parent
 
     def get_template_context(self):
-        return {"css": self.css}
+        return {"css": self.css, "default_value": self.visible}
+
+    def postprocess(self, y):
+        return y
 
 
 class Row(BlockContext):
-    def __init__(self, css: Optional[str] = None):
+    def __init__(self, visible: bool = True, css: Optional[Dict[str, str]] = None):
         """
         css: Css rules to apply to block.
         """
-        super().__init__(css)
+        super().__init__(visible, css)
 
     def get_template_context(self):
         return {"type": "row", **super().get_template_context()}
 
 
 class Column(BlockContext):
-    def __init__(self, css: Optional[str] = None):
+    def __init__(self, visible: bool = True, css: Optional[Dict[str, str]] = None):
         """
         css: Css rules to apply to block.
         """
-        super().__init__(css)
+        super().__init__(visible, css)
 
     def get_template_context(self):
         return {
@@ -106,11 +116,11 @@ class Column(BlockContext):
 
 
 class Tabs(BlockContext):
-    def __init__(self, css: Optional[dict] = None):
+    def __init__(self, visible: bool = True, css: Optional[Dict[str, str]] = None):
         """
         css: css rules to apply to block.
         """
-        super().__init__(css)
+        super().__init__(visible, css)
 
     def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
@@ -124,13 +134,14 @@ class Tabs(BlockContext):
 
 
 class TabItem(BlockContext):
-    def __init__(self, label, css: Optional[str] = None):
+    def __init__(
+        self, label, visible: bool = True, css: Optional[Dict[str, str]] = None
+    ):
         """
         css: Css rules to apply to block.
         """
-        super().__init__(css)
+        super().__init__(visible, css)
         self.label = label
-        super(TabItem, self).__init__()
 
     def get_template_context(self):
         return {"label": self.label, **super().get_template_context()}
@@ -159,22 +170,28 @@ class Blocks(Launchable, BlockContext):
         self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
 
         super().__init__()
-        Context.root_block = self
         self.blocks = {}
         self.fns = []
         self.dependencies = []
 
+    def render(self):
+        self._id = Context.id
+        Context.id += 1
+
     def process_api(self, data: Dict[str, Any], username: str = None) -> Dict[str, Any]:
         raw_input = data["data"]
         fn_index = data["fn_index"]
-        fn = self.fns[fn_index]
+        fn, preprocess = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
 
-        processed_input = [
-            self.blocks[input_id].preprocess(raw_input[i])
-            for i, input_id in enumerate(dependency["inputs"])
-        ]
-        predictions = fn(*processed_input)
+        if preprocess:
+            processed_input = [
+                self.blocks[input_id].preprocess(raw_input[i])
+                for i, input_id in enumerate(dependency["inputs"])
+            ]
+            predictions = fn(*processed_input)
+        else:
+            predictions = fn(*raw_input)
         if len(dependency["outputs"]) == 1:
             predictions = (predictions,)
         processed_output = [
@@ -189,8 +206,6 @@ class Blocks(Launchable, BlockContext):
         return {"type": "column"}
 
     def get_config_file(self):
-        from gradio.components import Component
-
         config = {"mode": "blocks", "components": [], "theme": self.theme}
         for _id, block in self.blocks.items():
             config["components"].append(
@@ -216,9 +231,15 @@ class Blocks(Launchable, BlockContext):
         return config
 
     def __enter__(self):
-        BlockContext.__enter__(self)
-        Context.root_block = self
+        if Context.block is None:
+            Context.root_block = self
+        self.parent = Context.block
+        Context.block = self
+        return self
 
     def __exit__(self, *args):
-        BlockContext.__exit__(self, *args)
-        Context.root_block = self.parent
+        Context.block = self.parent
+        if self.parent is None:
+            Context.root_block = None
+        else:
+            self.parent.children.extend(self.children)

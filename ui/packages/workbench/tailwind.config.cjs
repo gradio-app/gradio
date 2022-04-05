@@ -1,12 +1,15 @@
 module.exports = {
 	content: [
 		"./src/**/*.{html,js,svelte,ts}",
-		"**/@gradio/**/*.{html,js,svelte,ts}"
+		"**/@gradio/**/*.{html,js,svelte,ts,css}"
 	],
 
 	theme: {
-		extend: {}
+		extend: {},
+		fontFamily: {
+			sans: ["IBM Plex Sans", "system-ui"]
+		}
 	},
 
-	plugins: []
+	plugins: [require("@tailwindcss/forms")]
 };
