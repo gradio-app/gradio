@@ -12,6 +12,11 @@ jobs:
       - restore_cache:
           key: deps1-{{ .Branch }}-{{ checksum "gradio.egg-info/requires.txt" }}
       - run:
+          name: Install ffmpeg
+          command: |
+            sudo apt update
+            sudo apt install ffmpeg -y
+      - run:
           name: Install Python deps in a venv
           command: |
             python3 -m venv venv
