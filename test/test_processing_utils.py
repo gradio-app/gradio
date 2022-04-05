@@ -1,7 +1,10 @@
 import os
 import tempfile
 import unittest
+from copy import deepcopy
+from test.test_data import media_data
 
+import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 
@@ -13,7 +16,7 @@ os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 class ImagePreprocessing(unittest.TestCase):
     def test_decode_base64_to_image(self):
         output_image = gr.processing_utils.decode_base64_to_image(
-            gr.test_data.BASE64_IMAGE
+            deepcopy(media_data.BASE64_IMAGE)
         )
         self.assertIsInstance(output_image, Image.Image)
 
@@ -21,33 +24,34 @@ class ImagePreprocessing(unittest.TestCase):
         output_base64 = gr.processing_utils.encode_url_or_file_to_base64(
             "test/test_data/test_image.png"
         )
-        self.assertEquals(output_base64, gr.test_data.BASE64_IMAGE)
+        self.assertEquals(output_base64, deepcopy(media_data.BASE64_IMAGE))
 
     def test_encode_file_to_base64(self):
         output_base64 = gr.processing_utils.encode_file_to_base64(
             "test/test_data/test_image.png"
         )
-        self.assertEquals(output_base64, gr.test_data.BASE64_IMAGE)
+        self.assertEquals(output_base64, deepcopy(media_data.BASE64_IMAGE))
 
     def test_encode_url_to_base64(self):
         output_base64 = gr.processing_utils.encode_url_to_base64(
             "https://raw.githubusercontent.com/gradio-app/gradio/master/test"
             "/test_data/test_image.png"
         )
-        self.assertEqual(output_base64, gr.test_data.BASE64_IMAGE)
+        self.assertEqual(output_base64, deepcopy(media_data.BASE64_IMAGE))
 
-    # Commented out because this is throwing errors on Windows. Possibly due to different matplotlib behavior on Windows?
-    # def test_encode_plot_to_base64(self):
-    #     plt.plot([1, 2, 3, 4])
-    #     output_base64 = gr.processing_utils.encode_plot_to_base64(plt)
-    #     self.assertEqual(output_base64, gr.test_data.BASE64_PLT_IMG)
+    def test_encode_plot_to_base64(self):
+        plt.plot([1, 2, 3, 4])
+        output_base64 = gr.processing_utils.encode_plot_to_base64(plt)
+        self.assertTrue(
+            output_base64.startswith("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAo")
+        )
 
     def test_encode_array_to_base64(self):
         img = Image.open("test/test_data/test_image.png")
         img = img.convert("RGB")
         numpy_data = np.asarray(img, dtype=np.uint8)
         output_base64 = gr.processing_utils.encode_array_to_base64(numpy_data)
-        self.assertEqual(output_base64, gr.test_data.ARRAY_TO_BASE64_IMAGE)
+        self.assertEqual(output_base64, deepcopy(media_data.ARRAY_TO_BASE64_IMAGE))
 
     def test_resize_and_crop(self):
         img = Image.open("test/test_data/test_image.png")
@@ -75,11 +79,15 @@ class AudioPreprocessing(unittest.TestCase):
 
 class OutputPreprocessing(unittest.TestCase):
     def test_decode_base64_to_binary(self):
-        binary = gr.processing_utils.decode_base64_to_binary(gr.test_data.BASE64_IMAGE)
-        self.assertEqual(gr.test_data.BINARY_IMAGE, binary)
+        binary = gr.processing_utils.decode_base64_to_binary(
+            deepcopy(media_data.BASE64_IMAGE)
+        )
+        self.assertEqual(deepcopy(media_data.BINARY_IMAGE), binary)
 
     def test_decode_base64_to_file(self):
-        temp_file = gr.processing_utils.decode_base64_to_file(gr.test_data.BASE64_IMAGE)
+        temp_file = gr.processing_utils.decode_base64_to_file(
+            deepcopy(media_data.BASE64_IMAGE)
+        )
         self.assertIsInstance(temp_file, tempfile._TemporaryFileWrapper)
 
     def test_create_tmp_copy_of_file(self):
