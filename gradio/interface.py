@@ -769,39 +769,6 @@ class Interface(Blocks):
             utils.integration_analytics(data)
 
 
-class TabbedInterface(Blocks):
-    def __init__(
-        self, interface_list: List[Interface], tab_names: Optional[List[str]] = None
-    ):
-        if tab_names is None:
-            tab_names = ["Tab {}".format(i) for i in range(len(interface_list))]
-        super().__init__()
-        with self:
-            with Tabs():
-                for (
-                    interface,
-                    tab_name,
-                ) in zip(interface_list, tab_names):
-                    with TabItem(label=tab_name):
-                        Interface(
-                            fn=interface.predict,
-                            inputs=interface.input_components,
-                            outputs=interface.output_components,
-                            examples=interface.examples,
-                            examples_per_page=interface.examples_per_page,
-                            live=interface.live,
-                            layout=interface.layout,
-                            interpretation=interface.interpretation,
-                            num_shap=interface.num_shap,
-                            title=interface.title,
-                            description=interface.description,
-                            article=interface.article,
-                            allow_flagging=interface.allow_flagging,
-                            flagging_options=interface.flagging_options,
-                            flagging_dir=interface.flagging_dir,
-                        )
-
-
 def close_all(verbose: bool = True) -> None:
     for io in Interface.get_instances():
         io.close(verbose)
