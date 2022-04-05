@@ -98,39 +98,36 @@ class TestTextbox(unittest.TestCase):
             "number",
             interpretation="default",
         )
-        scores, alternative_outputs = iface.interpret(
+        print(iface.interpret(
             ["Return the length of the longest word in this sentence"]
-        )
+        ))
+        scores = iface.interpret(
+            ["Return the length of the longest word in this sentence"]
+        )[0]["interpretation"]
         self.assertEqual(
             scores,
             [
-                [
-                    ("Return", 0.0),
-                    (" ", 0),
-                    ("the", 0.0),
-                    (" ", 0),
-                    ("length", 0.0),
-                    (" ", 0),
-                    ("of", 0.0),
-                    (" ", 0),
-                    ("the", 0.0),
-                    (" ", 0),
-                    ("longest", 0.0),
-                    (" ", 0),
-                    ("word", 0.0),
-                    (" ", 0),
-                    ("in", 0.0),
-                    (" ", 0),
-                    ("this", 0.0),
-                    (" ", 0),
-                    ("sentence", 1.0),
-                    (" ", 0),
-                ]
+                ("Return", 0.0),
+                (" ", 0),
+                ("the", 0.0),
+                (" ", 0),
+                ("length", 0.0),
+                (" ", 0),
+                ("of", 0.0),
+                (" ", 0),
+                ("the", 0.0),
+                (" ", 0),
+                ("longest", 0.0),
+                (" ", 0),
+                ("word", 0.0),
+                (" ", 0),
+                ("in", 0.0),
+                (" ", 0),
+                ("this", 0.0),
+                (" ", 0),
+                ("sentence", 1.0),
+                (" ", 0),
             ],
-        )
-        self.assertEqual(
-            alternative_outputs,
-            [[[8], [8], [8], [8], [8], [8], [8], [8], [8], [7]]],
         )
 
     def test_in_interface_as_output(self):
