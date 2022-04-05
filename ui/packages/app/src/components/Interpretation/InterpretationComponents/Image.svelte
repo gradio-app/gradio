@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { getObjectFitSize, getSaliencyColor } from "../utils/helpers";
+	import { getSaliencyColor, getObjectFitSize } from "../utils";
 	import { afterUpdate } from "svelte";
 
-	export let value: string;
+	export let original: string;
 	export let interpretation: Array<Array<number>>;
 	export let shape: undefined | [number, number];
 
@@ -70,7 +70,11 @@
 			<canvas bind:this={saliency_layer} />
 		</div>
 		<!-- svelte-ignore a11y-missing-attribute -->
-		<img class="w-full h-full object-contain" bind:this={image} src={value} />
+		<img
+			class="w-full h-full object-contain"
+			bind:this={image}
+			src={original}
+		/>
 	</div>
 </div>
 

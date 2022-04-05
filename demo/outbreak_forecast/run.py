@@ -31,9 +31,7 @@ demo = gr.Interface(
     outbreak,
     [
         gr.Slider(minimum=1, maximum=4, default_value=3.2, label="R"),
-        gr.Dropdown(
-            ["January", "February", "March", "April", "May"], label="Month"
-        ),
+        gr.Dropdown(["January", "February", "March", "April", "May"], label="Month"),
         gr.CheckboxGroup(["USA", "Canada", "Mexico", "UK"], label="Countries"),
         gr.Checkbox(label="Social Distancing?"),
     ],

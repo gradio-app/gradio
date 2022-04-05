@@ -4,6 +4,7 @@ import gradio as gr
 def image_mod(text):
     return text[::-1]
 
+
 demo = gr.Blocks()
 
 with demo:

@@ -8,7 +8,7 @@ ct_model = lambda diseases, img: {disease: 0.1 for disease in diseases}
 
 with gr.Blocks() as demo:
     gr.Markdown(
-"""
+        """
 # Detect Disease From Scan
 With this model you can lorem ipsum
 - ipsum 1
