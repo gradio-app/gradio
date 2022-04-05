@@ -17,13 +17,13 @@ os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 """
 Tests are divided into two
-1. test_component_functionalities are unit tests that check essential functions of a component, the functions that are checked are documented in the docstring.
+1. test_component_functions are unit tests that check essential functions of a component, the functions that are checked are documented in the docstring.
 2. test_in_interface_... are functional tests that check a component's functionalities inside an Interface. Please do not use Interface.launch() in this file, as it slow downs the tests.
 """
 
 
 class TestTextbox(unittest.TestCase):
-    def test_component_functionalities(self):
+    def test_component_functions(self):
         """
         Preprocess, postprocess, serialize, save_flagged, restore_flagged, tokenize, generate_sample, get_template_context
         """
@@ -139,7 +139,7 @@ class TestTextbox(unittest.TestCase):
 
 
 class TestNumber(unittest.TestCase):
-    def test_component_functionalities(self):
+    def test_component_functions(self):
         """
         Preprocess, postprocess, serialize, save_flagged, restore_flagged, generate_sample, set_interpret_parameters, get_interpretation_neighbors, get_template_context
 
@@ -221,7 +221,7 @@ class TestNumber(unittest.TestCase):
 
 
 class TestSlider(unittest.TestCase):
-    def test_component_functionalities(self):
+    def test_component_functions(self):
         """
         Preprocess, postprocess, serialize, save_flagged, restore_flagged, generate_sample, get_template_context
         """
@@ -280,7 +280,7 @@ class TestSlider(unittest.TestCase):
 
 
 class TestCheckbox(unittest.TestCase):
-    def test_component_functionalities(self):
+    def test_component_functions(self):
         """
         Preprocess, postprocess, serialize, generate_sample, get_template_context
         """
@@ -322,7 +322,7 @@ class TestCheckbox(unittest.TestCase):
 
 
 class TestCheckboxGroup(unittest.TestCase):
-    def test_component_functionalities(self):
+    def test_component_functions(self):
         """
         Preprocess, preprocess_example, serialize, save_flagged, restore_flagged, generate_sample, get_template_context
         """
@@ -369,7 +369,7 @@ class TestCheckboxGroup(unittest.TestCase):
 
 
 class TestRadio(unittest.TestCase):
-    def test_component_functionalities(self):
+    def test_component_functions(self):
         """
         Preprocess, preprocess_example, serialize, save_flagged, generate_sample, get_template_context
 
@@ -418,7 +418,7 @@ class TestRadio(unittest.TestCase):
 
 
 class TestImage(unittest.TestCase):
-    def test_component_functionalities(self):
+    def test_component_functions(self):
         """
         Preprocess, postprocess, serialize, save_flagged, restore_flagged, generate_sample, get_template_context, _segment_by_slic
         type: pil, file, filepath, numpy
@@ -577,7 +577,7 @@ class TestImage(unittest.TestCase):
 
 
 class TestAudio(unittest.TestCase):
-    def test_component_functionalities(self):
+    def test_component_functions(self):
         """
         Preprocess, postprocess serialize, save_flagged, restore_flagged, generate_sample, get_template_context, deserialize
         type: filepath, numpy, file
@@ -692,7 +692,7 @@ class TestAudio(unittest.TestCase):
 
 
 class TestFile(unittest.TestCase):
-    def test_component_functionalities(self):
+    def test_component_functions(self):
         """
         Preprocess, serialize, save_flagged, restore_flagged, generate_sample, get_template_context, default_value
         """
@@ -779,7 +779,7 @@ class TestFile(unittest.TestCase):
 
 
 class TestDataframe(unittest.TestCase):
-    def test_component_functionalities(self):
+    def test_component_functions(self):
         """
         Preprocess, serialize, save_flagged, restore_flagged, generate_sample, get_template_context
         """
@@ -919,7 +919,7 @@ class TestDataframe(unittest.TestCase):
 
 
 class TestVideo(unittest.TestCase):
-    def test_component_functionalities(self):
+    def test_component_functions(self):
         """
         Preprocess, serialize, deserialize, save_flagged, restore_flagged, generate_sample, get_template_context
         """
@@ -991,7 +991,7 @@ class TestVideo(unittest.TestCase):
 
 
 class TestTimeseries(unittest.TestCase):
-    def test_component_functionalities(self):
+    def test_component_functions(self):
         """
         Preprocess, postprocess, save_flagged, restore_flagged, generate_sample, get_template_context,
         """
@@ -1114,7 +1114,7 @@ class TestNames(unittest.TestCase):
 
 
 class TestLabel(unittest.TestCase):
-    def test_component_functionalities(self):
+    def test_component_functions(self):
         """
         Process, postprocess, deserialize, save_flagged, restore_flagged
         """
@@ -1207,7 +1207,7 @@ class TestLabel(unittest.TestCase):
 
 
 class TestHighlightedText(unittest.TestCase):
-    def test_component_functionalities(self):
+    def test_component_functions(self):
         """
         get_template_context, save_flagged, restore_flagged
         """
@@ -1260,7 +1260,7 @@ class TestHighlightedText(unittest.TestCase):
 
 
 class TestJSON(unittest.TestCase):
-    def test_component_functionalities(self):
+    def test_component_functions(self):
         """
         Postprocess, save_flagged, restore_flagged
         """
@@ -1309,7 +1309,7 @@ class TestJSON(unittest.TestCase):
 
 
 class TestHTML(unittest.TestCase):
-    def test_component_functionalities(self):
+    def test_component_functions(self):
         """
         Get_template_context
         """
@@ -1337,7 +1337,7 @@ class TestHTML(unittest.TestCase):
 
 
 class TestCarousel(unittest.TestCase):
-    def test_component_functionalities(self):
+    def test_component_functions(self):
         """
         Postprocess, get_template_context, save_flagged, restore_flagged
         """
