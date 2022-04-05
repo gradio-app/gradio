@@ -12,7 +12,9 @@
 	$: dispatch("change", value);
 </script>
 
-<fieldset class="gr-box gr-panel">
+<fieldset
+	class="gr-box overflow-hidden border-solid border border-gray-200 gr-panel"
+>
 	<BlockTitle>{label}</BlockTitle>
 
 	<div class="flex flex-wrap gap-2">

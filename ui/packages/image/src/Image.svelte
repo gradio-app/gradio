@@ -15,7 +15,6 @@
 	export let value: null | string;
 	export let label: string;
 
-	export let theme: string = "default";
 	export let source: "canvas" | "webcam" | "upload" = "upload";
 	export let tool: "editor" | "select" = "editor";
 
@@ -50,8 +49,6 @@
 	$: dispatch("change", value);
 
 	let dragging = false;
-
-	$: console.log(dragging, value);
 </script>
 
 <Block
@@ -78,7 +75,6 @@
 					filetype="image/x-png,image/gif,image/jpeg"
 					on:load={handle_upload}
 					include_file_metadata={false}
-					{theme}
 				>
 					{drop_text}
 					<br />- {or_text} -<br />
@@ -101,7 +97,6 @@
 				on:edit={() => (mode = "edit")}
 				on:clear={handle_clear}
 				editable
-				{theme}
 			/>
 
 			<img class="w-full h-full object-contain" src={value} alt="" />

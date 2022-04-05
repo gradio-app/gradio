@@ -2,14 +2,17 @@
 	import { createEventDispatcher } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
 	import type { FileData } from "@gradio/upload";
+	import { Block, BlockLabel } from "@gradio/atoms";
+
 	import { prettyBytes } from "./utils";
+	import file_icon from "./file.svg";
 
 	export let value: null | FileData;
 
-	export let theme: string = "default";
-	export let drop_text: string = "Drop an audio file";
+	export let drop_text: string = "Drop a file file";
 	export let or_text: string = "or";
 	export let upload_text: string = "click to upload";
+	export let label: string = "";
 	let file_count: string;
 
 	function handle_upload({ detail }: CustomEvent<FileData>) {
@@ -25,11 +28,18 @@
 		createEventDispatcher<{ change: FileData | null; clear: undefined }>();
 
 	$: dispatch("change", value);
+	let dragging = false;
 </script>
 
-<div class="input-file" {theme}>
+<Block
+	variant={value === null ? "dashed" : "solid"}
+	color={dragging ? "green" : "grey"}
+	padding={false}
+>
+	<BlockLabel image={file_icon} label={label || "File"} />
+
 	{#if value === null}
-		<Upload on:load={handle_upload} {theme} filetype="file">
+		<Upload on:load={handle_upload} filetype="file" bind:dragging>
 			{drop_text}
 			<br />- {or_text} -<br />
 			{upload_text}
@@ -38,7 +48,7 @@
 		<div
 			class="file-preview w-full flex flex-row flex-wrap justify-center items-center relative overflow-y-auto"
 		>
-			<ModifyUpload on:clear={handle_clear} {theme} />
+			<ModifyUpload on:clear={handle_clear} />
 
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
@@ -65,10 +75,4 @@
 			{/if}
 		</div>
 	{/if}
-</div>
-
-<style lang="postcss">
-	.input-file[theme="default"] .file-preview {
-		@apply h-60;
-	}
-</style>
+</Block>

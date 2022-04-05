@@ -102,9 +102,11 @@ importers:
 
   packages/audio:
     specifiers:
+      '@gradio/atoms': workspace:^0.0.1
       '@gradio/upload': workspace:^0.0.1
       svelte-range-slider-pips: ^2.0.1
     dependencies:
+      '@gradio/atoms': link:../atoms
       '@gradio/upload': link:../upload
       svelte-range-slider-pips: 2.0.2
 
@@ -138,8 +140,10 @@ importers:
 
   packages/file:
     specifiers:
+      '@gradio/atoms': workspace:^0.0.1
       '@gradio/upload': workspace:^0.0.1
     dependencies:
+      '@gradio/atoms': link:../atoms
       '@gradio/upload': link:../upload
 
   packages/form:
@@ -202,8 +206,10 @@ importers:
 
   packages/video:
     specifiers:
+      '@gradio/atoms': workspace:^0.0.1
       '@gradio/upload': workspace:^0.0.1
     dependencies:
+      '@gradio/atoms': link:../atoms
       '@gradio/upload': link:../upload
 
   packages/workbench:

@@ -2,11 +2,15 @@
 	import { createEventDispatcher } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
 	import type { FileData } from "@gradio/upload";
+	import { Block, BlockLabel } from "@gradio/atoms";
+
 	import { prettyBytes, playable } from "./utils";
+	import video_icon from "./video.svg";
 
 	export let value: FileData | null = null;
 	export let theme: string = "default";
 	export let source: string;
+	export let label: string;
 
 	export let drop_text: string = "Drop a video file";
 	export let or_text: string = "or";
@@ -29,15 +33,20 @@
 		dispatch("clear");
 		value = null;
 	}
+
+	let dragging = false;
 </script>
 
-<div
-	class="video-preview w-full h-60 object-contain flex justify-center items-center relative"
-	class:bg-gray-200={value}
+<Block
+	variant={value === null && source === "upload" ? "dashed" : "solid"}
+	color={dragging ? "green" : "grey"}
+	padding={false}
 >
+	<BlockLabel image={video_icon} label={label || "Video"} />
 	{#if value === null}
 		{#if source === "upload"}
 			<Upload
+				bind:dragging
 				filetype="video/mp4,video/x-m4v,video/*"
 				on:load={handle_load}
 				{theme}
@@ -68,4 +77,4 @@
 			</div>
 		{/if}
 	{/if}
-</div>
+</Block>
