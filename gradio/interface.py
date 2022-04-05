@@ -589,7 +589,7 @@ class Interface(Blocks):
         for component in self.output_components:
             repr += "\n|-{}".format(str(component))
         return repr
-    
+
     def render_basic_interface(self):
         Interface(
             fn=self.predict,
@@ -607,7 +607,7 @@ class Interface(Blocks):
             allow_flagging=self.allow_flagging,
             flagging_options=self.flagging_options,
             flagging_dir=self.flagging_dir,
-        )        
+        )
 
     def run_prediction(
         self,
