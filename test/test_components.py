@@ -1389,8 +1389,8 @@ class TestCarousel(unittest.TestCase):
                 tmpdirname, "carousel_output", output, None
             )
             self.assertEqual(to_save, '[["Hello World"], ["Bye World"]]')
-            restored = carousel_output.restore_flagged(tmpdirname, output, None)
-            self.assertEqual(None, restored)
+            restored = carousel_output.restore_flagged(tmpdirname, to_save, None)
+            self.assertEqual(output, restored)
 
     def test_in_interface(self):
         """
