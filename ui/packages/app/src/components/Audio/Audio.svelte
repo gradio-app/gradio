@@ -3,7 +3,7 @@
 	import type { FileData } from "@gradio/upload";
 
 	export let mode: "static" | "dynamic";
-	export let value: null | FileData = null;
+	export let value: null | FileData | string = null;
 	export let theme: string;
 	export let style: string | null;
 	export let name: string;
@@ -28,6 +28,6 @@
 	/>
 {:else if value}
 	<audio {theme} {style} controls>
-		<source src={value.data} />
+		<source src={typeof value === "string" ? value : value.data} />
 	</audio>
 {/if}

@@ -15,7 +15,7 @@
 
 	import audio_icon from "./music.svg";
 
-	export let value: null | { name: string; data: string } = null;
+	export let value: null | { name: string; data: string } | string = null;
 	export let style: string | null;
 	export let name: string;
 	export let source: "microphone" | "upload" | "none";
@@ -125,7 +125,7 @@
 	}: {
 		detail: { values: [number, number] };
 	}) {
-		if (!value?.data) return;
+		if (typeof value === "string" || !value?.data) return;
 
 		dispatch("change", {
 			data: value.data,
@@ -193,7 +193,7 @@
 			controls
 			bind:this={player}
 			preload="metadata"
-			src={value.data}
+			src={typeof value === "string" ? value : value.data}
 			on:play
 			on:pause
 			on:ended
