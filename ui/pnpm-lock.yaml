@@ -4,11 +4,11 @@ importers:
 
   .:
     specifiers:
-      bokeh/bokehjs: ^2.4.2
-      plotly.js-dist-min: ^2.10.1
-      types/three: ^0.138.0
+      '@bokeh/bokehjs': ^2.4.2
+      '@types/three': ^0.138.0
       babylonjs: ^4.2.1
       babylonjs-loaders: ^4.2.1
+      plotly.js-dist-min: ^2.10.1
       prettier: ^2.5.1
       prettier-plugin-svelte: ^2.6.0
       svelte: ^3.46.3
@@ -16,10 +16,10 @@ importers:
       svelte-i18n: ^3.3.13
       vitest: ^0.3.2
     dependencies:
-      bokeh/bokehjs: 2.4.2
-      plotly.js-dist-min: 2.10.1
+      '@bokeh/bokehjs': 2.4.2
       babylonjs: 4.2.1
       babylonjs-loaders: 4.2.1
+      plotly.js-dist-min: 2.10.1
       prettier: 2.5.1
       prettier-plugin-svelte: 2.6.0_prettier@2.5.1+svelte@3.46.3
       svelte: 3.46.3
