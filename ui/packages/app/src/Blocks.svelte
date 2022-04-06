@@ -39,6 +39,8 @@
 	export let theme: string;
 	export let style: string | null;
 
+	console.log(components);
+
 	const dynamic_ids = dependencies.reduce((acc, next) => {
 		next.inputs.forEach((i) => acc.add(i));
 		return acc;

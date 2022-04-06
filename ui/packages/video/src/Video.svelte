@@ -3,6 +3,7 @@
 	import { Upload, ModifyUpload } from "@gradio/upload";
 	import type { FileData } from "@gradio/upload";
 	import { Block, BlockLabel } from "@gradio/atoms";
+	import { Webcam } from "@gradio/image";
 
 	import { prettyBytes, playable } from "./utils";
 	import video_icon from "./video.svg";
@@ -35,6 +36,8 @@
 	}
 
 	let dragging = false;
+
+	$: console.log(value, source);
 </script>
 
 <Block
@@ -55,6 +58,8 @@
 				<br />- {or_text} -<br />
 				{upload_text}
 			</Upload>
+		{:else if source === "webcam"}
+			<Webcam mode="video" on:capture={({ detail }) => (value = detail)} />
 		{/if}
 	{:else}
 		<ModifyUpload on:clear={handle_clear} {theme} />
