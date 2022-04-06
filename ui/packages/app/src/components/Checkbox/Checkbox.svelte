@@ -8,6 +8,8 @@
 	export let mode: "static" | "dynamic";
 
 	if (default_value) value = default_value;
+
+	$: console.log($$props);
 </script>
 
 <Checkbox {style} {label} bind:value on:change disabled={mode === "static"} />

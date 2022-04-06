@@ -18,9 +18,9 @@
 
 <Block>
 	<!-- svelte-ignore a11y-label-has-associated-control -->
-	<BlockTitle>{label}</BlockTitle>
-	<label class="w-auto gr-box-sm gr-box inline-block">
+	<label class="">
 		<input
+			bind:checked={value}
 			{disabled}
 			type="checkbox"
 			name="test"
