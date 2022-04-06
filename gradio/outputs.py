@@ -14,11 +14,11 @@ import warnings
 from numbers import Number
 from types import ModuleType
 from typing import TYPE_CHECKING, Dict, List, Optional
-from black import out
 
 import numpy as np
 import pandas as pd
 import PIL
+from black import out
 from ffmpy import FFmpeg
 
 from gradio import processing_utils
@@ -853,6 +853,7 @@ class State(OutputComponent):
             "state": {},
         }
 
+
 class Plot(OutputComponent):
     """
     Used for plot output.
@@ -886,10 +887,10 @@ class Plot(OutputComponent):
         (str): plot type
         (str): plot base64 or json
         """
-        if self.type == 'plotly':
+        if self.type == "plotly":
             dtype = "plotly"
             out_y = y.to_json()
-        elif self.type == 'matplotlib':
+        elif self.type == "matplotlib":
             dtype = "matplotlib"
             out_y = processing_utils.encode_plot_to_base64(y)
         elif self.type == "auto":
@@ -901,8 +902,8 @@ class Plot(OutputComponent):
                 out_y = y.to_json()
         else:
             raise ValueError(
-                    "Unknown type. Please choose from: 'plotly', 'matplotlib', 'bokeh'."
-                )
+                "Unknown type. Please choose from: 'plotly', 'matplotlib', 'bokeh'."
+            )
         return {"type": dtype, "plot": out_y}
 
     def deserialize(self, x):
@@ -911,7 +912,6 @@ class Plot(OutputComponent):
 
     def save_flagged(self, dir, label, data, encryption_key):
         return self.save_flagged_file(dir, label, data, encryption_key)
-
 
 
 class Image3D(OutputComponent):
