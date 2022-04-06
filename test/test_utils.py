@@ -16,6 +16,13 @@ from gradio.utils import (
     launch_analytics,
     readme_to_html,
     version_check,
+    assert_configs_are_equivalent_besides_ids
+)
+
+from gradio.test_data.blocks_configs import (
+    XRAY_CONFIG, 
+    XRAY_CONFIG_DIFF_IDS,
+    XRAY_CONFIG_WITH_MISTAKE
 )
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
@@ -115,6 +122,20 @@ class TestIPAddress(unittest.TestCase):
         ip = get_local_ip_address()
         self.assertEqual(ip, "No internet connection")
 
+
+class TestAssertConfigsEquivalent(unittest.TestCase):
+    def test_same_configs(self):
+        self.assertTrue(assert_configs_are_equivalent_besides_ids(
+            XRAY_CONFIG, XRAY_CONFIG))
+        
+    def test_equivalent_configs(self):
+        self.assertTrue(assert_configs_are_equivalent_besides_ids(
+            XRAY_CONFIG, XRAY_CONFIG_DIFF_IDS))
+
+    def test_different_configs(self):
+        with self.assertRaises(AssertionError):
+            assert_configs_are_equivalent_besides_ids(
+                XRAY_CONFIG_WITH_MISTAKE, XRAY_CONFIG)
 
 if __name__ == "__main__":
     unittest.main()

@@ -8,7 +8,7 @@ import mlflow
 import requests
 import wandb
 
-from gradio.interface import Interface, close_all, os
+from gradio.interface import Interface, TabbedInterface, close_all, os
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -182,6 +182,13 @@ class TestInterface(unittest.TestCase):
         interface.analytics_enabled = True
         interface.integrate(mlflow=mlflow)
         mock_post.assert_called_once()
+
+class TestTabbedInterface(unittest.TestCase):
+    def test_tabbed_interface_config_matches_manual_tab(self):
+        interface1 = Interface(lambda x: x, "textbox", "textbox")
+        interface2 = Interface(lambda x: x, "image", "image")
+        
+        interface = TabbedInterface()
 
 
 if __name__ == "__main__":
