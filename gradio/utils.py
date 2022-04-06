@@ -317,7 +317,7 @@ def assert_configs_are_equivalent_besides_ids(config1, config2):
         
     for d1, d2 in zip(config1["dependencies"], config2["dependencies"]):
         for t1, t2 in zip(d1["targets"], d2["targets"]):
-            assert mapping[t1] == t2, "{} does not match {}".format(mapping[t1], t2)
+            assert mapping[t1] == t2, "{} does not match {}".format(d1, d2)
         assert d1["trigger"] == d2["trigger"], "{} does not match {}".format(d1, d2)
         for i1, i2 in zip(d1["inputs"], d2["inputs"]):
             assert mapping[i1] == i2, "{} does not match {}".format(d1, d2)
