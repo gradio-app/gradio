@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
-	import { debounce } from "./utils";
+	import { createEventDispatcher, tick } from "svelte";
 	import { BlockTitle, Block } from "@gradio/atoms";
 
 	export let value: string = "";
@@ -13,28 +12,20 @@
 	const dispatch =
 		createEventDispatcher<{ change: string; submit: undefined }>();
 
-	type CustomInputEvent =
-		| (Event & {
-				target: EventTarget & HTMLTextAreaElement;
-		  })
-		| (Event & {
-				target: EventTarget & HTMLInputElement;
-		  });
-
-	function handle_change(event: CustomInputEvent) {
-		value = event.target.value;
-		dispatch("change", event?.target?.value);
+	function handle_change(val: string) {
+		dispatch("change", val);
 	}
 
-	function handle_keypress(e: KeyboardEvent) {
+	async function handle_keypress(e: KeyboardEvent) {
+		await tick();
+
 		if (e.key === "Enter" && lines === 1) {
 			e.preventDefault();
 			dispatch("submit");
 		}
 	}
 
-	const debounced_handle_change = debounce(handle_change, 300);
-	const debounced_handle_keypress = debounce(handle_keypress, 300);
+	$: handle_change(value);
 </script>
 
 <Block>
@@ -45,9 +36,8 @@
 		{#if lines > 1}
 			<textarea
 				class="block gr-box gr-input w-full gr-text-input"
-				{value}
+				bind:value
 				{placeholder}
-				on:input={debounced_handle_change}
 				{theme}
 				{style}
 				rows={lines}
@@ -56,11 +46,10 @@
 			<input
 				type="text"
 				class="gr-box gr-input w-full gr-text-input"
-				{value}
 				{placeholder}
-				on:input={debounced_handle_change}
+				bind:value
 				{theme}
-				on:keypress={debounced_handle_keypress}
+				on:keypress={handle_keypress}
 				{style}
 			/>
 		{/if}

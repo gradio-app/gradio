@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
-	import { debounce } from "./utils";
+	import { createEventDispatcher, tick } from "svelte";
 	import { BlockTitle, Block } from "@gradio/atoms";
 
 	export let value: number = 0;
@@ -14,17 +13,16 @@
 		dispatch("change", n);
 	}
 
-	function handle_keypress(e: KeyboardEvent) {
+	async function handle_keypress(e: KeyboardEvent) {
+		await tick();
+
 		if (e.key === "Enter") {
 			e.preventDefault();
 			dispatch("submit");
 		}
 	}
 
-	const debounced_handle_change = debounce(handle_change, 500);
-	const debounced_handle_keypress = debounce(handle_keypress, 500);
-
-	$: debounced_handle_change(value);
+	$: handle_change(value);
 </script>
 
 <Block>
@@ -35,7 +33,7 @@
 			type="number"
 			class="gr-box gr-input w-full gr-text-input"
 			bind:value
-			on:keypress={debounced_handle_keypress}
+			on:keypress={handle_keypress}
 			{disabled}
 		/>
 	</label>
