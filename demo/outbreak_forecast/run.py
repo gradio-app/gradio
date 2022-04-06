@@ -51,7 +51,7 @@ def outbreak(plot_type, r, month, countries, social_distancing):
             x = x_values,
             y = y_values
         ))
-        fig = px.line(df, x="Days Since Day 0", y="Cases")
+        fig = px.line(df)
         return fig
 
 

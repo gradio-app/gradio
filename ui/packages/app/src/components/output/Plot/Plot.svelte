@@ -18,7 +18,7 @@
   <div id="plotDiv"></div>
 {:else}
   <div
-  class="output-image w-full h-60 flex justify-center items-center bg-gray-200 dark:bg-gray-600 relative"
+  class="output-image w-full h-60 flex justify-center items-center dark:bg-gray-600 relative"
   {theme}
   >
   <!-- svelte-ignore a11y-missing-attribute -->
