@@ -639,21 +639,106 @@
     document.querySelector("#gradio-library").addEventListener('load', function () {
     var target, config
 
-    {% for component_type in ('input', 'output') %}
-          {% for func in docs[component_type] %}
-          target = '#{{ component_type[0] }}_{{ func["name"].lower() }}_component'
-          config = {
-                          mode: "blocks",
-                          components: [
-                            {id: 1, name: '{{ func["name"].lower() }}', props: {
-                            }}
-                          ],
-                          layout: [{id: 1}],
-                          dependencies: []
-                        }
-          window.launchGradio(config, target);
-          {% endfor %}
+    {% for func in docs["input"] %}
+
+      target = '#i_{{ func["name"].lower() }}_component'
+      config = {
+          "mode": "blocks",
+          "components": [
+            {
+              "id": 1,
+              "type": "{{ func["name"].lower() }}",
+              "props": {
+              "label": "input"
+              }
+            },
+            {
+              "id": 2,
+              "type": "textbox",
+              "props": {},
+            },
+              {
+              "id": 3,
+              "type": "button",
+              "props": {}
+            },
+          ],
+          "theme": "default",
+          "layout": {
+            "id": 0, "children": [
+                {"id": 1}
+                ]
+          },
+          "dependencies": [
+              {
+              "targets": [
+                3
+              ],
+              "trigger": "click",
+              "inputs": [
+                1
+              ],
+              "outputs": [
+                2
+              ],
+              "queue": false
+            },
+          ]
+        }
+      window.launchGradio(config, target);
     {% endfor %}
+
+
+    {% for func in docs["output"] %}
+
+      target = '#o_{{ func["name"].lower() }}_component'
+      config = {
+          "mode": "blocks",
+          "components": [
+            {
+              "id": 2,
+              "type": "{{ func["name"].lower() }}",
+              "props": {
+              "label": "output"
+              }
+            },
+            {
+              "id": 1,
+              "type": "textbox",
+              "props": {},
+            },
+              {
+              "id": 3,
+              "type": "button",
+              "props": {}
+            },
+          ],
+          "theme": "default",
+          "layout": {
+            "id": 0, "children": [
+                {"id": 1}
+                ]
+          },
+          "dependencies": [
+              {
+              "targets": [
+                3
+              ],
+              "trigger": "click",
+              "inputs": [
+                1
+              ],
+              "outputs": [
+                2
+              ],
+              "queue": false
+            },
+          ]
+        }
+      window.launchGradio(config, target);
+    {% endfor %}
+
+
     })
 
   </script>

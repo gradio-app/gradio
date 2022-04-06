@@ -9,9 +9,12 @@ import requests
 from jinja2 import Template
 from render_html_helpers import generate_meta_image
 
-from gradio.inputs import InputComponent
+import gradio.inputs
+import gradio.outputs
+
+# from gradio.inputs import InputComponent
 from gradio.interface import Interface
-from gradio.outputs import OutputComponent
+# from gradio.outputs import OutputComponent
 
 GRADIO_DIR = "../../"
 GRADIO_GUIDES_DIR = os.path.join(GRADIO_DIR, "guides")
@@ -77,6 +80,12 @@ for guide in sorted(os.listdir(GRADIO_GUIDES_DIR)):
     spaces = None
     if "related_spaces: " in guide_content:
         spaces = guide_content.split("related_spaces: ")[1].split("\n")[0].split(", ")
+
+    title = guide_content.split("\n")[0]
+    contributor = None
+    if "Contributed by " in guide_content:
+        contributor = guide_content.split("Contributed by ")[1].split("\n")[0]
+
     url = f"https://gradio.app/{guide_name}/"
 
     guide_content = "\n".join(
@@ -290,8 +299,13 @@ def render_docs():
 
         return inp
 
-    inputs = [get_class_documentation(cls) for cls in InputComponent.__subclasses__()]
-    outputs = [get_class_documentation(cls) for cls in OutputComponent.__subclasses__()]
+    inputs = [get_class_documentation(cls[1]) for cls in inspect.getmembers(gradio.inputs, inspect.isclass)
+              if cls[1].__module__ == gradio.inputs.__name__]
+    outputs = [get_class_documentation(cls[1]) for cls in inspect.getmembers(gradio.outputs, inspect.isclass)
+              if (cls[1].__module__ == gradio.outputs.__name__)  and (cls[0] not in ["KeyValues"])]
+
+    # inputs = [get_class_documentation(cls) for cls in InputComponent.__subclasses__()]
+    # outputs = [get_class_documentation(cls) for cls in OutputComponent.__subclasses__()]
 
     for inp in inputs:
         inp["guides"] = [guide for guide in guides if f"i_{inp['name'].lower()}" in guide["docs"]]
