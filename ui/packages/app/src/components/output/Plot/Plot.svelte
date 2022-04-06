@@ -2,13 +2,14 @@
 	export let value: string;
   export let theme: string;
   import { onMount } from 'svelte';
+  import { afterUpdate } from 'svelte';
   import Plotly from 'plotly.js-dist-min';
 
-  onMount(() => {
+  afterUpdate(() => {
     if (value['type'] == 'plotly') {
       let plotObj = JSON.parse(value['plot'])
       let plotDiv = document.getElementById('plotDiv');			
-      let Plot = new Plotly.newPlot(plotDiv, plotObj['data'], plotObj['layout']);
+      Plotly.newPlot(plotDiv, plotObj['data'], plotObj['layout']);
     }
   });
 </script>

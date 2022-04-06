@@ -855,12 +855,16 @@ class State(OutputComponent):
 
 class Plot(OutputComponent):
     """
+    Used for plot output.
+    Output type: matplotlib plt or plotly figure
+    Demos: outbreak_forecast
     """
 
     def __init__(self, type: str = None, label: Optional[str] = None):
         """
         Parameters:
-        label (str): component name in interface (not used).
+        type (str): type of plot (matplotlib, plotly)
+        label (str): component name in interface.
         """
         self.type = type
         super().__init__(label)
@@ -876,16 +880,37 @@ class Plot(OutputComponent):
 
     def postprocess(self, y):
         """
+        Parameters:
+        y (str): plot data
+        Returns:
+        (str): plot type
+        (str): plot base64 or json
         """
         if self.type == 'plotly':
+            dtype = "plotly"
             out_y = y.to_json()
         elif self.type == 'matplotlib':
+            dtype = "matplotlib"
             out_y = processing_utils.encode_plot_to_base64(y)
+        elif self.type == "auto":
+            if isinstance(y, ModuleType):
+                dtype = "matplotlib"
+                out_y = processing_utils.encode_plot_to_base64(y)
+            else:
+                dtype = "plotly"
+                out_y = y.to_json()
         else:
             raise ValueError(
                     "Unknown type. Please choose from: 'plotly', 'matplotlib', 'bokeh'."
                 )
-        return {"type": self.type, "plot": out_y}
+        return {"type": dtype, "plot": out_y}
+
+    def deserialize(self, x):
+        y = processing_utils.decode_base64_to_file(x).name
+        return y
+
+    def save_flagged(self, dir, label, data, encryption_key):
+        return self.save_flagged_file(dir, label, data, encryption_key)
 
 
 
