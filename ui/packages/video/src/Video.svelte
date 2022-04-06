@@ -36,8 +36,6 @@
 	}
 
 	let dragging = false;
-
-	$: console.log(value, source);
 </script>
 
 <Block
