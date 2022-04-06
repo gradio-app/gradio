@@ -20,6 +20,8 @@
   <meta name="twitter:image" content="https://gradio.app/static/home/img/social-cheetah.jpg">  
 
   <link rel="icon" type="image/png" href="/assets/img/logo.png">
+  <link href="/gradio_static/assets/{{ index_css_file }}" rel="stylesheet">
+  <link href="/gradio_static/assets/{{ vendor_css_file }}" rel="stylesheet">
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/assets/prism.css">
   <style>
@@ -294,10 +296,7 @@
               -->{% endif %}<!--
               -->{% if not loop.last %}, {% endif %}<!--
             -->{% endfor %}<span>)</span></code></pre>
-            {% if ( component_type == 'input' and func["name"].lower() == 'textbox' ) %}
-            <iframe src="http://127.0.0.1:7860/" id="embedded-input-textbox" frameBorder="0" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
-
-            {% endif %}
+            <div id='{{ component_type[0] }}_{{ func["name"].lower() }}_component'></div>
             <p class="mb-2">{{ func["doc"] }}</p>
             <p class="mb-2">{{ component_type|capitalize }} type: <span class="font-semibold">{{ func["type"] }}</span></p>
             <h4 class="font-semibold mb-2">Parameters</h4>
@@ -453,6 +452,8 @@
     </div>
   </footer>
   <script src="/assets/prism.js"></script>
+  <script defer id="gradio-library" type="module" crossorigin src="/gradio_static/assets/{{ index_js_file }}"></script>
+  <link rel="modulepreload" href="/gradio_static/assets/{{ vendor_js_file }}" />
   <script>
     // highlighting section in nav bar
     let mainNavLinks = document.querySelectorAll(".navigation a");
@@ -634,6 +635,26 @@
        }
        );
     }
+
+    document.querySelector("#gradio-library").addEventListener('load', function () {
+    var target, config
+
+    {% for component_type in ('input', 'output') %}
+          {% for func in docs[component_type] %}
+          target = '#{{ component_type[0] }}_{{ func["name"].lower() }}_component'
+          config = {
+                          mode: "blocks",
+                          components: [
+                            {id: 1, name: '{{ func["name"].lower() }}', props: {
+                            }}
+                          ],
+                          layout: [{id: 1}],
+                          dependencies: []
+                        }
+          window.launchGradio(config, target);
+          {% endfor %}
+    {% endfor %}
+    })
 
   </script>
 </body>
