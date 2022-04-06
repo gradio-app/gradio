@@ -3,9 +3,9 @@
 <script lang="ts">
 	import { TextBox } from "@gradio/form";
 
+	export let label: string;
 	export let value: string = " ";
-	export let default_value: string;
-	export let theme: string;
+	export let default_value: string | false = false;
 	export let style: string = "";
 	export let lines: number;
 	export let placeholder: string = "";
@@ -18,7 +18,6 @@
 {#if mode === "static"}
 	<div
 		class="output-text w-full bg-white dark:bg-gray-800 rounded box-border p-2 whitespace-pre-wrap"
-		{theme}
 		{style}
 	>
 		{value}
@@ -26,7 +25,7 @@
 {:else}
 	<TextBox
 		bind:value
-		{theme}
+		{label}
 		{style}
 		{lines}
 		{placeholder}

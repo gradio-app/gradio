@@ -32,7 +32,7 @@ test("renders the correct elements", async ({ page }) => {
 	const description = await page.locator(".output-markdown");
 	await expect(description).toContainText("Detect Disease From Scan");
 
-	const checkboxes = await page.locator(".input-checkbox-group");
+	const checkboxes = await page.locator("data-testid=checkbox-group");
 	await expect(checkboxes).toContainText("Covid Malaria Lung Cancer");
 
 	const tabs = await page.locator("button", { hasText: /X-ray|CT Scan/ });
@@ -58,8 +58,11 @@ test("can run an api request and display the data", async ({ page }) => {
 
 	await page.goto("http://localhost:3000");
 
-	await page.locator('button:has-text("Covid")').click();
-	await page.locator('button:has-text("Lung Cancer")').click();
+	// await page.locator('button:has-text("Covid")').click();
+	// await page.locator('button:has-text("Lung Cancer")').click();
+
+	await page.check("label:has-text('Covid')");
+	await page.check("label:has-text('Lung Cancer')");
 
 	const run_button = await page.locator("button", { hasText: /Run/ });
 
@@ -69,10 +72,5 @@ test("can run an api request and display the data", async ({ page }) => {
 	]);
 
 	const json = await page.locator(".output-json");
-	await expect(await json.innerText()).toContain(
-		`{
-Covid: 0.75,
-Lung Cancer: 0.25
-}`
-	);
+	await expect(json).toContainText(`Covid: 0.75, Lung Cancer: 0.25`);
 });
