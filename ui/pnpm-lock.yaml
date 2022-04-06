@@ -207,9 +207,11 @@ importers:
   packages/video:
     specifiers:
       '@gradio/atoms': workspace:^0.0.1
+      '@gradio/image': workspace:^0.0.1
       '@gradio/upload': workspace:^0.0.1
     dependencies:
       '@gradio/atoms': link:../atoms
+      '@gradio/image': link:../image
       '@gradio/upload': link:../upload
 
   packages/workbench:
