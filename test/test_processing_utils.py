@@ -22,13 +22,13 @@ class ImagePreprocessing(unittest.TestCase):
 
     def test_encode_url_or_file_to_base64(self):
         output_base64 = gr.processing_utils.encode_url_or_file_to_base64(
-            "test/test_data/test_image.png"
+            "gradio/test_data/test_image.png"
         )
         self.assertEquals(output_base64, deepcopy(media_data.BASE64_IMAGE))
 
     def test_encode_file_to_base64(self):
         output_base64 = gr.processing_utils.encode_file_to_base64(
-            "test/test_data/test_image.png"
+            "gradio/test_data/test_image.png"
         )
         self.assertEquals(output_base64, deepcopy(media_data.BASE64_IMAGE))
 
@@ -47,14 +47,14 @@ class ImagePreprocessing(unittest.TestCase):
         )
 
     def test_encode_array_to_base64(self):
-        img = Image.open("test/test_data/test_image.png")
+        img = Image.open("gradio/test_data/test_image.png")
         img = img.convert("RGB")
         numpy_data = np.asarray(img, dtype=np.uint8)
         output_base64 = gr.processing_utils.encode_array_to_base64(numpy_data)
         self.assertEqual(output_base64, deepcopy(media_data.ARRAY_TO_BASE64_IMAGE))
 
     def test_resize_and_crop(self):
-        img = Image.open("test/test_data/test_image.png")
+        img = Image.open("gradio/test_data/test_image.png")
         new_img = gr.processing_utils.resize_and_crop(img, (20, 20))
         self.assertEqual(new_img.size, (20, 20))
         self.assertRaises(
@@ -66,12 +66,12 @@ class ImagePreprocessing(unittest.TestCase):
 
 class AudioPreprocessing(unittest.TestCase):
     def test_audio_from_file(self):
-        audio = gr.processing_utils.audio_from_file("test/test_data/test_audio.wav")
+        audio = gr.processing_utils.audio_from_file("gradio/test_data/test_audio.wav")
         self.assertEqual(audio[0], 22050)
         self.assertIsInstance(audio[1], np.ndarray)
 
     def test_audio_to_file(self):
-        audio = gr.processing_utils.audio_from_file("test/test_data/test_audio.wav")
+        audio = gr.processing_utils.audio_from_file("gradio/test_data/test_audio.wav")
         gr.processing_utils.audio_to_file(audio[0], audio[1], "test_audio_to_file")
         self.assertTrue(os.path.exists("test_audio_to_file"))
         os.remove("test_audio_to_file")
