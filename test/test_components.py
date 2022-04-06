@@ -4,7 +4,6 @@ import tempfile
 import unittest
 from copy import deepcopy
 from difflib import SequenceMatcher
-from test.test_data import media_data
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -12,6 +11,7 @@ import pandas as pd
 import PIL
 
 import gradio as gr
+from gradio.test_data import media_data
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 

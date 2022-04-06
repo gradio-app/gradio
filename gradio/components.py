@@ -10,7 +10,6 @@ import shutil
 import tempfile
 import warnings
 from copy import deepcopy
-from test.test_data import media_data
 from types import ModuleType
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
@@ -23,6 +22,7 @@ from markdown_it import MarkdownIt
 
 from gradio import processing_utils
 from gradio.blocks import Block
+from gradio.test_data import media_data
 
 
 class Component(Block):

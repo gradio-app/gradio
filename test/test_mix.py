@@ -23,7 +23,7 @@ class TestSeries(unittest.TestCase):
         io1 = gr.Interface.load("spaces/abidlabs/image-identity")
         io2 = gr.Interface.load("spaces/abidlabs/image-classifier")
         series = mix.Series(io1, io2)
-        output = series("test/test_data/lion.jpg")
+        output = series("gradio/test_data/lion.jpg")
         self.assertGreater(output["lion"], 0.5)
 
 

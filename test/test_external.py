@@ -195,7 +195,7 @@ class TestLoadInterface(unittest.TestCase):
         )
         io = gr.Interface(**interface_info)
         io.api_mode = True
-        output = io("test/test_data/lion.jpg")
+        output = io("gradio/test_data/lion.jpg")
         self.assertGreater(output["lion"], 0.5)
 
     def test_translation_model(self):
@@ -218,7 +218,7 @@ class TestLoadInterface(unittest.TestCase):
         )
         io = gr.Interface(**interface_info)
         io.api_mode = True
-        output = io("test/test_data/test_audio.wav")
+        output = io("gradio/test_data/test_audio.wav")
         self.assertIsNotNone(output)
 
     def test_text_to_image_model(self):
@@ -238,7 +238,7 @@ class TestLoadInterface(unittest.TestCase):
         interface_info = gr.external.load_interface("spaces/abidlabs/image-identity")
         io = gr.Interface(**interface_info)
         io.api_mode = True
-        output = io("test/test_data/lion.jpg")
+        output = io("gradio/test_data/lion.jpg")
         assertIsFile(output)
 
 
