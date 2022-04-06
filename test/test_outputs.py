@@ -2,13 +2,13 @@ import json
 import os
 import tempfile
 import unittest
-from test.test_data import media_data
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
 import gradio as gr
+from gradio.test_data import media_data
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 

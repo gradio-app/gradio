@@ -25,7 +25,7 @@
 >
 	<BlockTitle>{label}</BlockTitle>
 
-	<div class="flex flex-wrap gap-2">
+	<div class="flex flex-wrap gap-2" data-testid="checkbox-group">
 		{#each choices as choice, i}
 			<label class="gr-box gr-box-sm ">
 				<input
