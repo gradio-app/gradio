@@ -2,13 +2,13 @@ import os
 import tempfile
 import unittest
 from copy import deepcopy
-from test.test_data import media_data
 
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 
 import gradio as gr
+from gradio.test_data import media_data
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 

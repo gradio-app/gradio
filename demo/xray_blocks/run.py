@@ -41,4 +41,5 @@ With this model you can lorem ipsum
     overall_probability = gr.Textbox()
 
 if __name__ == "__main__":
-    demo.launch()
+    print(demo.get_config_file())
+    #demo.launch()

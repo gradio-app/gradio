@@ -45,7 +45,9 @@ class TestInterface(unittest.TestCase):
             Interface(lambda x: x, examples=1234)
 
     def test_examples_valid_path(self):
-        path = os.path.join(os.path.dirname(__file__), "test_data/flagged_with_log")
+        path = os.path.join(
+            os.path.dirname(__file__), "../gradio/test_data/flagged_with_log"
+        )
         interface = Interface(lambda x: 3 * x, "number", "number", examples=path)
         dataset_check = any(
             [c["type"] == "dataset" for c in interface.get_config_file()["components"]]
