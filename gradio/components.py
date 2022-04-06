@@ -225,7 +225,7 @@ class Textbox(Component):
         *,
         lines: int = 1,
         placeholder: Optional[str] = None,
-        label: Optional[str] = None,
+        label: Optional[str] = "Textbox",
         css: Optional[Dict] = None,
         **kwargs,
     ):
