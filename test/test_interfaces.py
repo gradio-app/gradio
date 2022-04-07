@@ -8,8 +8,8 @@ import mlflow
 import requests
 import wandb
 
+from gradio.blocks import Blocks, TabItem, Tabs
 from gradio.interface import Interface, TabbedInterface, close_all, os
-from gradio.blocks import Blocks, Tabs, TabItem
 from gradio.utils import assert_configs_are_equivalent_besides_ids
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
@@ -185,11 +185,12 @@ class TestInterface(unittest.TestCase):
         interface.integrate(mlflow=mlflow)
         mock_post.assert_called_once()
 
+
 class TestTabbedInterface(unittest.TestCase):
     def test_tabbed_interface_config_matches_manual_tab(self):
         interface1 = Interface(lambda x: x, "textbox", "textbox")
         interface2 = Interface(lambda x: x, "image", "image")
-        
+
         with Blocks() as demo:
             with Tabs():
                 with TabItem(label="tab1"):
@@ -200,10 +201,12 @@ class TestTabbedInterface(unittest.TestCase):
         interface3 = Interface(lambda x: x, "textbox", "textbox")
         interface4 = Interface(lambda x: x, "image", "image")
         tabbed_interface = TabbedInterface([interface3, interface4], ["tab1", "tab2"])
-        
-        self.assertTrue(assert_configs_are_equivalent_besides_ids(
-            demo.get_config_file(), tabbed_interface.get_config_file()
-        ))
+
+        self.assertTrue(
+            assert_configs_are_equivalent_besides_ids(
+                demo.get_config_file(), tabbed_interface.get_config_file()
+            )
+        )
 
 
 if __name__ == "__main__":
