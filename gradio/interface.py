@@ -166,7 +166,7 @@ class Interface(Blocks):
         server_name (str): DEPRECATED. Name of the server to use for serving the interface - pass in launch() instead.
         server_port (int): DEPRECATED. Port of the server to use for serving the interface - pass in launch() instead.
         """
-        super().__init__()
+        super().__init__(analytics_enabled=analytics_enabled, mode="interface")
 
         if not isinstance(fn, list):
             fn = [fn]
@@ -394,7 +394,6 @@ class Interface(Blocks):
         self.share = None
         self.share_url = None
         self.local_url = None
-        self.ip_address = utils.get_local_ip_address()
 
         if show_tips is not None:
             warnings.warn(
