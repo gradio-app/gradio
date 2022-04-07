@@ -20,8 +20,10 @@
   <meta name="twitter:image" content="https://gradio.app/static/home/img/social-cheetah.jpg">  
 
   <link rel="icon" type="image/png" href="/assets/img/logo.png">
-  <link href="/gradio_static/assets/{{ index_css_file }}" rel="stylesheet">
-  <link href="/gradio_static/assets/{{ vendor_css_file }}" rel="stylesheet">
+  <script defer id="gradio-library" type="module" crossorigin src="/gradio_static/assets/index.d5467699.js"></script>
+  <link rel="stylesheet" href="/gradio_static/assets/index.e209fdc1.css">
+<!--  <link href="/gradio_static/assets/{{ index_css_file }}" rel="stylesheet">-->
+<!--  <link href="/gradio_static/assets/{{ vendor_css_file }}" rel="stylesheet">-->
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/assets/prism.css">
   <style>
@@ -452,8 +454,8 @@
     </div>
   </footer>
   <script src="/assets/prism.js"></script>
-  <script defer id="gradio-library" type="module" crossorigin src="/gradio_static/assets/{{ index_js_file }}"></script>
-  <link rel="modulepreload" href="/gradio_static/assets/{{ vendor_js_file }}" />
+<!--  <script defer id="gradio-library" type="module" crossorigin src="/gradio_static/assets/{{ index_js_file }}"></script>-->
+<!--  <link rel="modulepreload" href="/gradio_static/assets/{{ vendor_js_file }}" />-->
   <script>
     // highlighting section in nav bar
     let mainNavLinks = document.querySelectorAll(".navigation a");
@@ -641,6 +643,8 @@
 
     {% for func in docs["input"] %}
 
+      {% if not func["name"].lower() in ['checkboxgroup', 'dropdown', 'radio', 'state'] %}
+
       target = '#i_{{ func["name"].lower() }}_component'
       config = {
           "mode": "blocks",
@@ -686,10 +690,12 @@
           ]
         }
       window.launchGradio(config, target);
+      {% endif %}
     {% endfor %}
 
 
     {% for func in docs["output"] %}
+          {% if not func["name"].lower() in ['carousel', 'state'] %}
 
       target = '#o_{{ func["name"].lower() }}_component'
       config = {
@@ -716,7 +722,7 @@
           "theme": "default",
           "layout": {
             "id": 0, "children": [
-                {"id": 1}
+                {"id": 2}
                 ]
           },
           "dependencies": [
@@ -736,6 +742,7 @@
           ]
         }
       window.launchGradio(config, target);
+        {% endif %}
     {% endfor %}
 
 
