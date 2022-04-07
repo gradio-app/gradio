@@ -9,6 +9,7 @@ import requests
 import wandb
 
 from gradio.interface import Interface, TabbedInterface, close_all, os
+from gradio.blocks import Blocks, Tabs, TabItem
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -187,7 +188,12 @@ class TestTabbedInterface(unittest.TestCase):
     def test_tabbed_interface_config_matches_manual_tab(self):
         interface1 = Interface(lambda x: x, "textbox", "textbox")
         interface2 = Interface(lambda x: x, "image", "image")
-        
+        with Blocks() as demo:
+            with Tabs():
+                with TabItem(label="tab1"):
+                    interface1.render_basic_interface()
+                with TabItem(label="tab2"):
+                    interface2.render_basic_interface()
         interface = TabbedInterface()
 
 
