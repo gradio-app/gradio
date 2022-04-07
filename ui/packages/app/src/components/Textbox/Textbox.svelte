@@ -20,6 +20,7 @@
 	{label}
 	{style}
 	{lines}
+	autoheight={mode === "static"}
 	{placeholder}
 	on:change
 	on:submit
