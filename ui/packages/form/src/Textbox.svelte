@@ -28,7 +28,9 @@
 
 	$: handle_change(value);
 
-	function resize(event: Event | { target: HTMLTextAreaElement }) {
+	async function resize(event: Event | { target: HTMLTextAreaElement }) {
+		await tick();
+
 		const target = event.target as HTMLTextAreaElement;
 		target.style.height = "1px";
 		target.style.height = +target.scrollHeight + "px";
