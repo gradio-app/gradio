@@ -7,6 +7,7 @@
 	export let theme: string;
 	export let style: string | null;
 	export let mode: "static" | "dynamic";
+	export let static_src: string;
 
 	if (default_value) value = default_value;
 </script>

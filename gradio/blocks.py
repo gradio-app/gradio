@@ -36,6 +36,7 @@ class Block:
         inputs: List[Component],
         outputs: List[Component],
         preprocess=True,
+        postprocess=True,
         queue=False,
     ) -> None:
         """
@@ -53,7 +54,7 @@ class Block:
         if not isinstance(outputs, list):
             outputs = [outputs]
 
-        Context.root_block.fns.append((fn, preprocess))
+        Context.root_block.fns.append((fn, preprocess, postprocess))
         Context.root_block.dependencies.append(
             {
                 "targets": [self._id],
@@ -181,7 +182,7 @@ class Blocks(Launchable, BlockContext):
     def process_api(self, data: Dict[str, Any], username: str = None) -> Dict[str, Any]:
         raw_input = data["data"]
         fn_index = data["fn_index"]
-        fn, preprocess = self.fns[fn_index]
+        fn, preprocess, postprocess = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
 
         if preprocess:
@@ -194,13 +195,14 @@ class Blocks(Launchable, BlockContext):
             predictions = fn(*raw_input)
         if len(dependency["outputs"]) == 1:
             predictions = (predictions,)
-        processed_output = [
-            self.blocks[output_id].postprocess(predictions[i])
-            if predictions[i] is not None
-            else None
-            for i, output_id in enumerate(dependency["outputs"])
-        ]
-        return {"data": processed_output}
+        if postprocess:
+            predictions = [
+                self.blocks[output_id].postprocess(predictions[i])
+                if predictions[i] is not None
+                else None
+                for i, output_id in enumerate(dependency["outputs"])
+            ]
+        return {"data": predictions}
 
     def get_template_context(self):
         return {"type": "column"}

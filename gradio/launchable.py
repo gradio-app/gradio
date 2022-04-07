@@ -8,7 +8,6 @@ import webbrowser
 from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
 
 from gradio import encryptor, networking, queueing, strings, utils  # type: ignore
-from gradio.process_examples import cache_interface_examples
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     import flask
@@ -33,11 +32,11 @@ class Launchable:
         server_name: Optional[str] = None,
         server_port: Optional[int] = None,
         show_tips: bool = False,
-        enable_queue: bool = False,
+        enable_queue: bool = None,
         height: int = 500,
         width: int = 900,
         encrypt: bool = False,
-        cache_examples: bool = False,
+        cache_examples: bool = None,
         favicon_path: Optional[str] = None,
         ssl_keyfile: Optional[str] = None,
         ssl_certfile: Optional[str] = None,
@@ -58,11 +57,11 @@ class Launchable:
         server_port (int): will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT.
         server_name (str): to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME.
         show_tips (bool): if True, will occasionally show tips about new Gradio features
-        enable_queue (bool): if True, inference requests will be served through a queue instead of with parallel threads. Required for longer inference times (> 1min) to prevent timeout.
+        enable_queue (bool): DEPRECATED.
         width (int): The width in pixels of the iframe element containing the interface (used if inline=True)
         height (int): The height in pixels of the iframe element containing the interface (used if inline=True)
         encrypt (bool): If True, flagged data will be encrypted by key provided by creator at launch
-        cache_examples (bool): If True, examples outputs will be processed and cached in a folder, and will be used if a user uses an example input.
+        cache_examples (bool): DEPRECATED.
         favicon_path (str): If a path to a file (.png, .gif, or .ico) is provided, it will be used as the favicon for the web page.
         ssl_keyfile (str): If a path to a file is provided, will use this as the private key file to create a local server running on https.
         ssl_certfile (str): If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
@@ -73,7 +72,15 @@ class Launchable:
         share_url (str): Publicly accessible link (if share=True)
         """
         self.config = self.get_config_file()
-        self.cache_examples = cache_examples
+        if cache_examples is not None:
+            raise DeprecationWarning(
+                "cache_examples argument has been moved to the Interface class constructor. Please use there."
+            )
+        if enable_queue is not None:
+            raise DeprecationWarning(
+                "enable_queue argument has been moved to the Interface class constructor. Please use there."
+            )
+
         if (
             auth
             and not callable(auth)
@@ -96,14 +103,8 @@ class Launchable:
                 getpass.getpass("Enter key for encryption: ")
             )
 
-        if hasattr(self, "enable_queue") and self.enable_queue is None:
-            self.enable_queue = enable_queue
-
         config = self.get_config_file()
         self.config = config
-
-        if self.cache_examples:
-            cache_interface_examples(self)
 
         server_port, path_to_local_server, app, server = networking.start_server(
             self,

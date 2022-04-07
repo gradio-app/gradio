@@ -10,6 +10,7 @@
 	export let theme: string;
 	export let style: string | null;
 	export let source: string;
+	export let examples_dir: string;
 
 	export let mode: "static" | "dynamic";
 
@@ -27,7 +28,7 @@
 				controls
 				playsInline
 				preload="auto"
-				src={value.data}
+				src={value.data || examples_dir + value.name}
 			/>
 		{:else}
 			<a
@@ -45,6 +46,7 @@
 		{theme}
 		{style}
 		{source}
+		{examples_dir}
 		drop_text={$_("interface.drop_video")}
 		or_text={$_("interface.or")}
 		upload_text={$_("interface.click_to_upload")}

@@ -2,6 +2,7 @@
 	import { onMount, createEventDispatcher } from "svelte";
 
 	export let root: string;
+	export let examples_dir: string;
 	export let component;
 	export let instance_map;
 	export let id: number;
@@ -41,6 +42,7 @@
 	{...props}
 	{theme}
 	{root}
+	{examples_dir}
 >
 	{#if children && children.length}
 		{#each children as { component, id, props, children, has_modes }}
@@ -50,6 +52,7 @@
 				{props}
 				{theme}
 				{root}
+				{examples_dir}
 				{instance_map}
 				{children}
 				{dynamic_ids}

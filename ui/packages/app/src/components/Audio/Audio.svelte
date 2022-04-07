@@ -10,6 +10,7 @@
 	export let source: "microphone" | "upload";
 	export let type: "normal" | "numpy" = "normal";
 	export let label: string;
+	export let examples_dir: string;
 </script>
 
 {#if mode === "dynamic"}
@@ -20,6 +21,7 @@
 		{name}
 		{source}
 		{type}
+		{examples_dir}
 		on:change={({ detail }) => (value = detail)}
 		on:edit
 		on:play
@@ -28,6 +30,6 @@
 	/>
 {:else if value}
 	<audio {theme} {style} controls>
-		<source src={value.data} />
+		<source src={value.data || examples_dir + value.name} />
 	</audio>
 {/if}

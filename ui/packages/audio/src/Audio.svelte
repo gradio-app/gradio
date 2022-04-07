@@ -22,6 +22,7 @@
 	export let drop_text: string = "Drop an audio file";
 	export let or_text: string = "or";
 	export let upload_text: string = "click to upload";
+	export let examples_dir: string;
 
 	// TODO: make use of this
 	export let type: "normal" | "numpy" = "normal";
@@ -193,7 +194,7 @@
 			controls
 			bind:this={player}
 			preload="metadata"
-			src={value.data}
+			src={value.data || examples_dir + value.name}
 			on:play
 			on:pause
 			on:ended
