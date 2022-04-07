@@ -32,6 +32,7 @@
 				<input
 					{disabled}
 					on:change={() => toggleChoice(choice)}
+					checked={value.includes(choice)}
 					type="checkbox"
 					name="test"
 					class="gr-check-radio rounded checked:shadow-inner"

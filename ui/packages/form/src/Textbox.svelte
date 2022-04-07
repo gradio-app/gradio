@@ -7,6 +7,8 @@
 	export let placeholder: string = "";
 	export let label: string;
 	export let style: string;
+	export let disabled = false;
+	export let autoheight: boolean = false;
 
 	const dispatch =
 		createEventDispatcher<{ change: string; submit: undefined }>();
@@ -25,6 +27,30 @@
 	}
 
 	$: handle_change(value);
+
+	async function resize(event: Event | { target: HTMLTextAreaElement }) {
+		await tick();
+
+		const target = event.target as HTMLTextAreaElement;
+		target.style.height = "1px";
+		target.style.height = +target.scrollHeight + "px";
+	}
+
+	function text_area_resize(
+		el: HTMLTextAreaElement,
+		{ enabled, value }: { enabled: boolean; value: string }
+	) {
+		if (!enabled) return;
+
+		resize({ target: el });
+		el.style.overflow = "hidden";
+		el.addEventListener("input", resize);
+
+		return {
+			destroy: () => el.removeEventListener("input", resize),
+			update: () => resize({ target: el })
+		};
+	}
 </script>
 
 <Block>
@@ -32,13 +58,15 @@
 	<label class="block">
 		<BlockTitle>{label}</BlockTitle>
 
-		{#if lines > 1}
+		{#if autoheight || lines > 1}
 			<textarea
+				use:text_area_resize={{ enabled: autoheight, value }}
 				class="block gr-box gr-input w-full gr-text-input"
 				bind:value
 				{placeholder}
 				{style}
-				rows={lines}
+				rows={autoheight ? null : lines}
+				{disabled}
 			/>
 		{:else}
 			<input
@@ -48,6 +76,7 @@
 				bind:value
 				on:keypress={handle_keypress}
 				{style}
+				{disabled}
 			/>
 		{/if}
 	</label>

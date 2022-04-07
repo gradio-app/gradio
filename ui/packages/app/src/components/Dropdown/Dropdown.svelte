@@ -6,7 +6,16 @@
 	export let style: string = "";
 	export let choices: Array<string>;
 
+	export let mode: "static" | "dynamic";
+
 	if (default_value) value = default_value;
 </script>
 
-<Dropdown bind:value {style} {choices} {label} on:change />
+<Dropdown
+	bind:value
+	{style}
+	{choices}
+	{label}
+	on:change
+	disabled={mode === "static"}
+/>
