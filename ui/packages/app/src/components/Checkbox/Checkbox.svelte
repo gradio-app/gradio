@@ -3,7 +3,7 @@
 
 	export let value: boolean = false;
 	export let default_value: boolean = false;
-	export let style: string | null;
+	export let style: string = "";
 	export let label: string;
 	export let mode: "static" | "dynamic";
 

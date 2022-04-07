@@ -5,6 +5,7 @@
 	export let theme: string = "default";
 	export let show_legend: boolean = false;
 	export let color_map: Record<string, string> = {};
+	export let style: string;
 
 	let ctx: CanvasRenderingContext2D;
 

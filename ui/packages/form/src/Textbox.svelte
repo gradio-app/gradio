@@ -3,11 +3,10 @@
 	import { BlockTitle, Block } from "@gradio/atoms";
 
 	export let value: string = "";
-	export let theme: string = "default";
 	export let lines: number = 1;
 	export let placeholder: string = "";
-	export let style = "";
 	export let label: string;
+	export let style: string;
 
 	const dispatch =
 		createEventDispatcher<{ change: string; submit: undefined }>();
@@ -38,7 +37,6 @@
 				class="block gr-box gr-input w-full gr-text-input"
 				bind:value
 				{placeholder}
-				{theme}
 				{style}
 				rows={lines}
 			/>
@@ -48,7 +46,6 @@
 				class="gr-box gr-input w-full gr-text-input"
 				{placeholder}
 				bind:value
-				{theme}
 				on:keypress={handle_keypress}
 				{style}
 			/>

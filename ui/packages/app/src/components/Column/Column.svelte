@@ -1,8 +1,9 @@
 <script lang="ts">
 	export let value: boolean = true;
+	export let default_value: boolean;
 	export let style: string = "";
 
-	if ($$props.default) value = $$props.default;
+	if (default_value) value = default_value;
 </script>
 
 <div {style} class:hidden={!value} class="flex flex-1 flex-col gap-4">

@@ -8,11 +8,12 @@
 	import file_icon from "./file.svg";
 
 	export let value: null | FileData;
-
 	export let drop_text: string = "Drop a file file";
 	export let or_text: string = "or";
 	export let upload_text: string = "click to upload";
 	export let label: string = "";
+	export let style: string;
+
 	let file_count: string;
 
 	function handle_upload({ detail }: CustomEvent<FileData>) {

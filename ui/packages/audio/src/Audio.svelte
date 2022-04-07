@@ -16,6 +16,7 @@
 	import audio_icon from "./music.svg";
 
 	export let value: null | { name: string; data: string } = null;
+	export let label: string;
 	export let style: string | null;
 	export let name: string;
 	export let source: "microphone" | "upload" | "none";
@@ -125,7 +126,7 @@
 	}: {
 		detail: { values: [number, number] };
 	}) {
-		if (!value?.data) return;
+		if (!value) return;
 
 		dispatch("change", {
 			data: value.data,
@@ -154,7 +155,7 @@
 	color={dragging ? "green" : "grey"}
 	padding={false}
 >
-	<BlockLabel image={audio_icon} label={"Audio"} />
+	<BlockLabel image={audio_icon} label={label || "Audio"} />
 	{#if value === null}
 		{#if source === "microphone"}
 			{#if recording}

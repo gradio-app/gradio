@@ -6,6 +6,7 @@
 	export let choices: Array<string>;
 	export let disabled: boolean = false;
 	export let label: string;
+	export let style: string;
 
 	const dispatch = createEventDispatcher();
 

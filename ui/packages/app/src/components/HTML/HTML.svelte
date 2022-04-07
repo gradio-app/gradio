@@ -5,8 +5,7 @@
 	export let label: string;
 	export let value: string;
 	export let default_value: string;
-	export let theme: string;
-	export let style: string | null;
+	export let style: string = "";
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
@@ -15,4 +14,4 @@
 	if (default_value) value = default_value;
 </script>
 
-<HTML {value} {theme} {style} on:change />
+<HTML {value} {style} on:change />
