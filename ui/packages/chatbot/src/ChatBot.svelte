@@ -1,6 +1,9 @@
 <script lang="ts">
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
+
 	export let value: Array<[string, string]>;
+	export let style: string = "";
+
 	let div: HTMLDivElement;
 	let autoscroll: Boolean;
 
