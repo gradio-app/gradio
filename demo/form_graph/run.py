@@ -1,5 +1,3 @@
-import random
-
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -24,19 +22,17 @@ def plot_forecast(final_year, companies, noise, show_legend, point_style):
     return fig
 
 
-iface = gr.Interface(
+demo = gr.Interface(
     plot_forecast,
     [
-        gr.inputs.Radio([2025, 2030, 2035, 2040], label="Project to:"),
-        gr.inputs.CheckboxGroup(
-            ["Google", "Microsoft", "Gradio"], label="Company Selection"
-        ),
-        gr.inputs.Slider(1, 100, label="Noise Level"),
-        gr.inputs.Checkbox(label="Show Legend"),
-        gr.inputs.Dropdown(["cross", "line", "circle"], label="Style"),
+        gr.Radio([2025, 2030, 2035, 2040], label="Project to:"),
+        gr.CheckboxGroup(["Google", "Microsoft", "Gradio"], label="Company Selection"),
+        gr.Slider(minimum=1, maximum=100, label="Noise Level"),
+        gr.Checkbox(label="Show Legend"),
+        gr.Dropdown(["cross", "line", "circle"], label="Style"),
     ],
-    gr.outputs.Image(plot=True, label="forecast"),
+    gr.Image(plot=True, label="forecast"),
 )
 
 if __name__ == "__main__":
-    iface.launch()
+    demo.launch()

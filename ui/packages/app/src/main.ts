@@ -3,6 +3,8 @@ import Blocks from "./Blocks.svelte";
 import Login from "./Login.svelte";
 import { fn } from "./api";
 
+import * as t from "@gradio/theme";
+
 interface CustomWindow extends Window {
 	gradio_mode: "app" | "website";
 	launchGradio: Function;
@@ -12,6 +14,7 @@ interface CustomWindow extends Window {
 
 declare let window: CustomWindow;
 declare let BACKEND_URL: string;
+declare let BACKEND_URL_TEST: string;
 declare let BUILD_MODE: string;
 
 interface Component {
@@ -20,6 +23,7 @@ interface Component {
 }
 
 interface Config {
+	auth_required: boolean | undefined;
 	allow_flagging: string;
 	allow_interpretation: boolean;
 	allow_screenshot: boolean;
@@ -77,7 +81,7 @@ window.launchGradio = (config: Config, element_query: string) => {
 		style.innerHTML = config.css;
 		document.head.appendChild(style);
 	}
-	if (config.detail === "Not authenticated") {
+	if (config.detail === "Not authenticated" || config.auth_required) {
 		new Login({
 			target: target,
 			props: config

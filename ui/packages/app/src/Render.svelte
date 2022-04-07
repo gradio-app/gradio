@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount, createEventDispatcher } from "svelte";
 
+	export let root: string;
 	export let component;
 	export let instance_map;
 	export let id: number;
@@ -39,14 +40,16 @@
 	{style}
 	{...props}
 	{theme}
+	{root}
 >
-	{#if children.length}
+	{#if children && children.length}
 		{#each children as { component, id, props, children, has_modes }}
 			<svelte:self
 				{component}
 				{id}
 				{props}
 				{theme}
+				{root}
 				{instance_map}
 				{children}
 				{dynamic_ids}

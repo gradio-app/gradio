@@ -5,27 +5,76 @@
 		Dropdown,
 		Radio,
 		TextBox,
-		Number
+		Number,
+		Range
 	} from "@gradio/form";
+	import { Panel } from "@gradio/atoms";
 </script>
 
-<h2>TextBox</h2>
-<TextBox on:change={({ detail }) => console.log(detail)} />
+<Panel>
+	<TextBox on:change={({ detail }) => console.log(detail)} label="TextBox" />
 
-<h2>TextArea</h2>
-<TextBox lines={5} on:change={({ detail }) => console.log(detail)} />
+	<TextBox
+		label="TextArea"
+		lines={5}
+		on:change={({ detail }) => console.log(detail)}
+		placeholder="Type here..."
+	/>
 
-<h2>Number</h2>
-<Number on:change={({ detail }) => console.log(detail)} />
+	<Number label="Number" on:change={({ detail }) => console.log(detail)} />
 
-<h2>Radio</h2>
-<Radio choices={["true", "false"]} value={"true"} />
+	<Radio label="Radio" choices={["true", "false"]} value={"true"} />
 
-<h2>CheckBox</h2>
-<Checkbox value={false} />
+	<Checkbox label="Checkbox" value={false} />
 
-<h2>Checkbox Group</h2>
-<CheckboxGroup choices={["one", "two"]} value={[]} />
+	<CheckboxGroup label="CheckboxGroup" choices={["one", "two"]} value={[]} />
 
-<h2>Dropdown</h2>
-<Dropdown label={"choose"} choices={["one", "two", "three"]} />
+	<Dropdown label="Dropdown" choices={["one", "two", "three"]} />
+	<Range label="Dropdown" />
+
+	<TextBox
+		on:change={({ detail }) => console.log(detail)}
+		label="Static TextBox"
+		disabled
+		value="Some text"
+	/>
+
+	<TextBox
+		label="Static TextArea"
+		lines={5}
+		on:change={({ detail }) => console.log(detail)}
+		placeholder="Type here..."
+		disabled
+		value={`Some longer text.
+Some more.
+
+And more.`}
+	/>
+
+	<Number
+		label="Number"
+		on:change={({ detail }) => console.log(detail)}
+		disabled
+		value={10}
+	/>
+
+	<Radio label="Radio" choices={["true", "false"]} value={"true"} disabled />
+
+	<Checkbox label="Checkbox" value={false} disabled />
+
+	<CheckboxGroup
+		label="CheckboxGroup"
+		choices={["one", "two"]}
+		value={["one"]}
+		disabled
+	/>
+
+	<Dropdown
+		label="Dropdown"
+		choices={["one", "two", "three"]}
+		value="three"
+		disabled
+	/>
+
+	<Range label="Dropdown" value={27} disabled />
+</Panel>

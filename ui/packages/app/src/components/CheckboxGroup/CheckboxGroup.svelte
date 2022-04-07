@@ -2,18 +2,21 @@
 	import { CheckboxGroup } from "@gradio/form";
 
 	export let value: Array<string> = [];
+	export let default_value: Array<string> = [];
 	export let choices: Array<string>;
 
 	export let mode: "static" | "dynamic";
-	export let theme: string;
 	export let style: string | null;
+	export let label: string;
+
+	if (default_value) value = default_value;
 </script>
 
 <CheckboxGroup
 	bind:value
 	{choices}
-	{theme}
 	{style}
+	{label}
 	on:change
 	disabled={mode === "static"}
 />

@@ -9,26 +9,26 @@ describe("Textbox", () => {
 	afterEach(() => cleanup());
 
 	test("renders provided value", () => {
-		const { container } = render(Textbox, {
-			theme: "default",
+		const { container, getByLabelText } = render(Textbox, {
 			lines: 1,
 			mode: "dynamic",
-			value: "hello world"
+			value: "hello world",
+			label: "Textbox"
 		});
 
-		const item: HTMLInputElement = container.querySelector(".input-text ")!;
+		const item: HTMLInputElement = getByLabelText("Textbox");
 		assert.equal(item.value, "hello world");
 	});
 
 	test("changing the text should update the value", async () => {
-		const { container, component } = render(Textbox, {
-			theme: "default",
+		const { component, getByLabelText } = render(Textbox, {
 			lines: 1,
 			mode: "dynamic",
-			value: ""
+			value: "",
+			label: "Textbox"
 		});
 
-		const item: HTMLInputElement = container.querySelector(".input-text ")!;
+		const item: HTMLInputElement = getByLabelText("Textbox");
 
 		const mock = spy();
 		component.$on("change", mock);
@@ -46,15 +46,15 @@ describe("Textbox", () => {
 	});
 
 	test("component should respect placeholder", async () => {
-		const { container, component } = render(Textbox, {
-			theme: "default",
+		const { getByLabelText } = render(Textbox, {
 			lines: 1,
 			mode: "dynamic",
 			value: "",
-			placeholder: "placeholder text"
+			placeholder: "placeholder text",
+			label: "Textbox"
 		});
 
-		const item: HTMLInputElement = container.querySelector(".input-text ")!;
+		const item: HTMLInputElement = getByLabelText("Textbox");
 		assert.equal(item.placeholder, "placeholder text");
 	});
 });

@@ -1,64 +1,83 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
-	import { debounce } from "./utils";
+	import { createEventDispatcher, tick } from "svelte";
+	import { BlockTitle, Block } from "@gradio/atoms";
 
 	export let value: string = "";
-	export let theme: string = "default";
 	export let lines: number = 1;
 	export let placeholder: string = "";
-	export let style = "";
+	export let label: string;
+	export let style: string;
+	export let disabled = false;
+	export let autoheight: boolean = false;
 
 	const dispatch =
 		createEventDispatcher<{ change: string; submit: undefined }>();
 
-	type CustomInputEvent =
-		| (Event & {
-				target: EventTarget & HTMLTextAreaElement;
-		  })
-		| (Event & {
-				target: EventTarget & HTMLInputElement;
-		  });
-
-	function handle_change(event: CustomInputEvent) {
-		value = event.target.value;
-		dispatch("change", event?.target?.value);
+	function handle_change(val: string) {
+		dispatch("change", val);
 	}
 
-	function handle_keypress(e: KeyboardEvent) {
+	async function handle_keypress(e: KeyboardEvent) {
+		await tick();
+
 		if (e.key === "Enter" && lines === 1) {
 			e.preventDefault();
 			dispatch("submit");
 		}
 	}
 
-	const debounced_handle_change = debounce(handle_change, 300);
-	const debounced_handle_keypress = debounce(handle_keypress, 300);
+	$: handle_change(value);
+
+	async function resize(event: Event | { target: HTMLTextAreaElement }) {
+		await tick();
+
+		const target = event.target as HTMLTextAreaElement;
+		target.style.height = "1px";
+		target.style.height = +target.scrollHeight + "px";
+	}
+
+	function text_area_resize(
+		el: HTMLTextAreaElement,
+		{ enabled, value }: { enabled: boolean; value: string }
+	) {
+		if (!enabled) return;
+
+		resize({ target: el });
+		el.style.overflow = "hidden";
+		el.addEventListener("input", resize);
+
+		return {
+			destroy: () => el.removeEventListener("input", resize),
+			update: () => resize({ target: el })
+		};
+	}
 </script>
 
-{#if lines > 1}
-	<textarea
-		class="input-text w-full rounded box-border p-2 focus:outline-none appearance-none"
-		{value}
-		{placeholder}
-		on:input={debounced_handle_change}
-		{theme}
-		{style}
-	/>
-{:else}
-	<input
-		type="text"
-		class="input-text w-full rounded box-border p-2 focus:outline-none appearance-none"
-		{value}
-		{placeholder}
-		on:input={debounced_handle_change}
-		{theme}
-		on:keypress={debounced_handle_keypress}
-		{style}
-	/>
-{/if}
+<Block>
+	<!-- svelte-ignore a11y-label-has-associated-control -->
+	<label class="block">
+		<BlockTitle>{label}</BlockTitle>
 
-<style lang="postcss" global>
-	.input-text[theme="default"] {
-		@apply shadow transition hover:shadow-md dark:bg-gray-800;
-	}
-</style>
+		{#if autoheight || lines > 1}
+			<textarea
+				use:text_area_resize={{ enabled: autoheight, value }}
+				class="block gr-box gr-input w-full gr-text-input"
+				bind:value
+				{placeholder}
+				{style}
+				rows={autoheight ? null : lines}
+				{disabled}
+			/>
+		{:else}
+			<input
+				type="text"
+				class="gr-box gr-input w-full gr-text-input"
+				{placeholder}
+				bind:value
+				on:keypress={handle_keypress}
+				{style}
+				{disabled}
+			/>
+		{/if}
+	</label>
+</Block>

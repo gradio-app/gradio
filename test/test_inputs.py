@@ -1,3 +1,4 @@
+import copy
 import json
 import os
 import tempfile
@@ -9,8 +10,11 @@ import pandas
 import PIL
 
 import gradio as gr
+from gradio.test_data import media_data
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
+
+# TODO: Delete this file after confirming backwards compatibility works well.
 
 
 class TestTextbox(unittest.TestCase):
@@ -69,39 +73,33 @@ class TestTextbox(unittest.TestCase):
             "number",
             interpretation="default",
         )
-        scores, alternative_outputs = iface.interpret(
+        scores = iface.interpret(
             ["Return the length of the longest word in this sentence"]
-        )
+        )[0]["interpretation"]
         self.assertEqual(
             scores,
             [
-                [
-                    ("Return", 0.0),
-                    (" ", 0),
-                    ("the", 0.0),
-                    (" ", 0),
-                    ("length", 0.0),
-                    (" ", 0),
-                    ("of", 0.0),
-                    (" ", 0),
-                    ("the", 0.0),
-                    (" ", 0),
-                    ("longest", 0.0),
-                    (" ", 0),
-                    ("word", 0.0),
-                    (" ", 0),
-                    ("in", 0.0),
-                    (" ", 0),
-                    ("this", 0.0),
-                    (" ", 0),
-                    ("sentence", 1.0),
-                    (" ", 0),
-                ]
+                ("Return", 0.0),
+                (" ", 0),
+                ("the", 0.0),
+                (" ", 0),
+                ("length", 0.0),
+                (" ", 0),
+                ("of", 0.0),
+                (" ", 0),
+                ("the", 0.0),
+                (" ", 0),
+                ("longest", 0.0),
+                (" ", 0),
+                ("word", 0.0),
+                (" ", 0),
+                ("in", 0.0),
+                (" ", 0),
+                ("this", 0.0),
+                (" ", 0),
+                ("sentence", 1.0),
+                (" ", 0),
             ],
-        )
-        self.assertEqual(
-            alternative_outputs,
-            [[[8], [8], [8], [8], [8], [8], [8], [8], [8], [7]]],
         )
 
 
@@ -130,7 +128,7 @@ class TestNumber(unittest.TestCase):
         )
         self.assertEqual(
             numeric_input.get_template_context(),
-            {"default": None, "name": "number", "label": None, "css": {}},
+            {"default_value": None, "name": "number", "label": None, "css": {}},
         )
 
     def test_in_interface(self):
@@ -139,32 +137,17 @@ class TestNumber(unittest.TestCase):
         iface = gr.Interface(
             lambda x: x**2, "number", "number", interpretation="default"
         )
-        scores, alternative_outputs = iface.interpret([2])
+        scores = iface.interpret([2])[0]["interpretation"]
         self.assertEqual(
             scores,
             [
-                [
-                    (1.94, -0.23640000000000017),
-                    (1.96, -0.15840000000000032),
-                    (1.98, -0.07960000000000012),
-                    [2, None],
-                    (2.02, 0.08040000000000003),
-                    (2.04, 0.16159999999999997),
-                    (2.06, 0.24359999999999982),
-                ]
-            ],
-        )
-        self.assertEqual(
-            alternative_outputs,
-            [
-                [
-                    [3.7636],
-                    [3.8415999999999997],
-                    [3.9204],
-                    [4.0804],
-                    [4.1616],
-                    [4.2436],
-                ]
+                (1.94, -0.23640000000000017),
+                (1.96, -0.15840000000000032),
+                (1.98, -0.07960000000000012),
+                [2, None],
+                (2.02, 0.08040000000000003),
+                (2.04, 0.16159999999999997),
+                (2.06, 0.24359999999999982),
             ],
         )
 
@@ -191,7 +174,7 @@ class TestSlider(unittest.TestCase):
                 "minimum": 10,
                 "maximum": 20,
                 "step": 1,
-                "default": 15,
+                "default_value": 15,
                 "name": "slider",
                 "label": "Slide Your Input",
                 "css": {},
@@ -204,35 +187,18 @@ class TestSlider(unittest.TestCase):
         iface = gr.Interface(
             lambda x: x**2, "slider", "number", interpretation="default"
         )
-        scores, alternative_outputs = iface.interpret([2])
+        scores = iface.interpret([2])[0]["interpretation"]
         self.assertEqual(
             scores,
             [
-                [
-                    -4.0,
-                    200.08163265306123,
-                    812.3265306122449,
-                    1832.7346938775513,
-                    3261.3061224489797,
-                    5098.040816326531,
-                    7342.938775510205,
-                    9996.0,
-                ]
-            ],
-        )
-        self.assertEqual(
-            alternative_outputs,
-            [
-                [
-                    [0.0],
-                    [204.08163265306123],
-                    [816.3265306122449],
-                    [1836.7346938775513],
-                    [3265.3061224489797],
-                    [5102.040816326531],
-                    [7346.938775510205],
-                    [10000.0],
-                ]
+                -4.0,
+                200.08163265306123,
+                812.3265306122449,
+                1832.7346938775513,
+                3261.3061224489797,
+                5098.040816326531,
+                7342.938775510205,
+                9996.0,
             ],
         )
 
@@ -253,7 +219,7 @@ class TestCheckbox(unittest.TestCase):
         self.assertEqual(
             bool_input.get_template_context(),
             {
-                "default": True,
+                "default_value": True,
                 "name": "checkbox",
                 "label": "Check Your Input",
                 "css": {},
@@ -266,12 +232,10 @@ class TestCheckbox(unittest.TestCase):
         iface = gr.Interface(
             lambda x: 1 if x else 0, "checkbox", "number", interpretation="default"
         )
-        scores, alternative_outputs = iface.interpret([False])
-        self.assertEqual(scores, [(None, 1.0)])
-        self.assertEqual(alternative_outputs, [[[1]]])
-        scores, alternative_outputs = iface.interpret([True])
-        self.assertEqual(scores, [(-1.0, None)])
-        self.assertEqual(alternative_outputs, [[[0]]])
+        scores = iface.interpret([False])[0]["interpretation"]
+        self.assertEqual(scores, (None, 1.0))
+        scores = iface.interpret([True])[0]["interpretation"]
+        self.assertEqual(scores, (-1.0, None))
 
 
 class TestCheckboxGroup(unittest.TestCase):
@@ -295,7 +259,7 @@ class TestCheckboxGroup(unittest.TestCase):
             checkboxes_input.get_template_context(),
             {
                 "choices": ["a", "b", "c"],
-                "default": ["a", "c"],
+                "default_value": ["a", "c"],
                 "name": "checkboxgroup",
                 "label": "Check Your Inputs",
                 "css": {},
@@ -332,7 +296,7 @@ class TestRadio(unittest.TestCase):
             radio_input.get_template_context(),
             {
                 "choices": ["a", "b", "c"],
-                "default": "a",
+                "default_value": "a",
                 "name": "radio",
                 "label": "Pick Your One Input",
                 "css": {},
@@ -351,9 +315,8 @@ class TestRadio(unittest.TestCase):
             lambda x: 2 * x, radio_input, "number", interpretation="default"
         )
         self.assertEqual(iface.process(["c"])[0], [4])
-        scores, alternative_outputs = iface.interpret(["b"])
-        self.assertEqual(scores, [[-2.0, None, 2.0]])
-        self.assertEqual(alternative_outputs, [[[0], [4]]])
+        scores = iface.interpret(["b"])[0]["interpretation"]
+        self.assertEqual(scores, [-2.0, None, 2.0])
 
 
 class TestDropdown(unittest.TestCase):
@@ -377,7 +340,7 @@ class TestDropdown(unittest.TestCase):
             dropdown_input.get_template_context(),
             {
                 "choices": ["a", "b", "c"],
-                "default": "a",
+                "default_value": "a",
                 "name": "dropdown",
                 "label": "Drop Your Input",
                 "css": {},
@@ -396,14 +359,13 @@ class TestDropdown(unittest.TestCase):
             lambda x: 2 * x, dropdown, "number", interpretation="default"
         )
         self.assertEqual(iface.process(["c"])[0], [4])
-        scores, alternative_outputs = iface.interpret(["b"])
-        self.assertEqual(scores, [[-2.0, None, 2.0]])
-        self.assertEqual(alternative_outputs, [[[0], [4]]])
+        scores = iface.interpret(["b"])[0]["interpretation"]
+        self.assertEqual(scores, [-2.0, None, 2.0])
 
 
 class TestImage(unittest.TestCase):
     def test_as_component(self):
-        img = gr.test_data.BASE64_IMAGE
+        img = media_data.BASE64_IMAGE
         image_input = gr.inputs.Image()
         self.assertEqual(image_input.preprocess(img).shape, (68, 61, 3))
         image_input = gr.inputs.Image(shape=(25, 25), image_mode="L")
@@ -434,6 +396,7 @@ class TestImage(unittest.TestCase):
                 "name": "image",
                 "label": "Upload Your Image",
                 "css": {},
+                "default_value": None,
             },
         )
         self.assertIsNone(image_input.preprocess(None))
@@ -442,7 +405,7 @@ class TestImage(unittest.TestCase):
         image_input.preprocess(img)
         with self.assertWarns(DeprecationWarning):
             file_image = gr.inputs.Image(type="file")
-            file_image.preprocess(gr.test_data.BASE64_IMAGE)
+            file_image.preprocess(media_data.BASE64_IMAGE)
         file_image = gr.inputs.Image(type="filepath")
         self.assertIsInstance(file_image.preprocess(img), str)
         with self.assertRaises(ValueError):
@@ -463,7 +426,7 @@ class TestImage(unittest.TestCase):
         self.assertIsNotNone(image_input._segment_by_slic(img))
 
     def test_in_interface(self):
-        img = gr.test_data.BASE64_IMAGE
+        img = media_data.BASE64_IMAGE
         image_input = gr.inputs.Image()
         iface = gr.Interface(
             lambda x: PIL.Image.open(x).rotate(90, expand=True),
@@ -477,23 +440,15 @@ class TestImage(unittest.TestCase):
         iface = gr.Interface(
             lambda x: np.sum(x), image_input, "number", interpretation="default"
         )
-        scores, alternative_outputs = iface.interpret([img])
-        self.assertEqual(scores, gr.test_data.SUM_PIXELS_INTERPRETATION["scores"])
-        self.assertEqual(
-            alternative_outputs,
-            gr.test_data.SUM_PIXELS_INTERPRETATION["alternative_outputs"],
-        )
+        scores = iface.interpret([img])[0]["interpretation"]
+        self.assertEqual(scores, media_data.SUM_PIXELS_INTERPRETATION["scores"][0])
         iface = gr.Interface(
             lambda x: np.sum(x), image_input, "label", interpretation="shap"
         )
-        scores, alternative_outputs = iface.interpret([img])
+        scores = iface.interpret([img])[0]["interpretation"]
         self.assertEqual(
             len(scores[0]),
-            len(gr.test_data.SUM_PIXELS_SHAP_INTERPRETATION["scores"][0]),
-        )
-        self.assertEqual(
-            len(alternative_outputs[0]),
-            len(gr.test_data.SUM_PIXELS_SHAP_INTERPRETATION["alternative_outputs"][0]),
+            len(media_data.SUM_PIXELS_SHAP_INTERPRETATION["scores"][0][0]),
         )
         image_input = gr.inputs.Image(shape=(30, 10))
         iface = gr.Interface(
@@ -504,7 +459,7 @@ class TestImage(unittest.TestCase):
 
 class TestAudio(unittest.TestCase):
     def test_as_component(self):
-        x_wav = gr.test_data.BASE64_AUDIO
+        x_wav = copy.deepcopy(media_data.BASE64_AUDIO)
         audio_input = gr.inputs.Audio()
         output = audio_input.preprocess(x_wav)
         self.assertEqual(output[0], 8000)
@@ -531,6 +486,7 @@ class TestAudio(unittest.TestCase):
                 "name": "audio",
                 "label": "Upload Your Audio",
                 "css": {},
+                "default_value": None,
             },
         )
         self.assertIsNone(audio_input.preprocess(None))
@@ -553,7 +509,7 @@ class TestAudio(unittest.TestCase):
         self.assertIsInstance(audio_input.serialize(x_wav, False), dict)
 
     def test_tokenize(self):
-        x_wav = gr.test_data.BASE64_AUDIO
+        x_wav = media_data.BASE64_AUDIO
         audio_input = gr.inputs.Audio()
         tokens, _, _ = audio_input.tokenize(x_wav)
         self.assertEquals(len(tokens), audio_input.interpretation_segments)
@@ -564,7 +520,7 @@ class TestAudio(unittest.TestCase):
 
 class TestFile(unittest.TestCase):
     def test_as_component(self):
-        x_file = gr.test_data.BASE64_FILE
+        x_file = media_data.BASE64_FILE
         file_input = gr.inputs.File()
         output = file_input.preprocess(x_file)
         self.assertIsInstance(output, tempfile._TemporaryFileWrapper)
@@ -590,6 +546,7 @@ class TestFile(unittest.TestCase):
                 "name": "file",
                 "label": "Upload Your File",
                 "css": {},
+                "default_value": None,
             },
         )
         self.assertIsNone(file_input.preprocess(None))
@@ -597,7 +554,7 @@ class TestFile(unittest.TestCase):
         self.assertIsNotNone(file_input.preprocess(x_file))
 
     def test_in_interface(self):
-        x_file = gr.test_data.BASE64_FILE
+        x_file = media_data.BASE64_FILE
 
         def get_size_of_file(file_obj):
             return os.path.getsize(file_obj.name)
@@ -636,7 +593,11 @@ class TestDataframe(unittest.TestCase):
                 "row_count": 3,
                 "col_count": 3,
                 "col_width": None,
-                "default": [[None, None, None], [None, None, None], [None, None, None]],
+                "default_value": [
+                    [None, None, None],
+                    [None, None, None],
+                    [None, None, None],
+                ],
                 "name": "dataframe",
                 "label": "Dataframe Input",
                 "max_rows": 20,
@@ -667,7 +628,7 @@ class TestDataframe(unittest.TestCase):
 
 class TestVideo(unittest.TestCase):
     def test_as_component(self):
-        x_video = gr.test_data.BASE64_VIDEO
+        x_video = media_data.BASE64_VIDEO
         video_input = gr.inputs.Video()
         output = video_input.preprocess(x_video)
         self.assertIsInstance(output, str)
@@ -689,6 +650,7 @@ class TestVideo(unittest.TestCase):
                 "name": "video",
                 "label": "Upload Your Video",
                 "css": {},
+                "default_value": None,
             },
         )
         self.assertIsNone(video_input.preprocess(None))
@@ -700,7 +662,7 @@ class TestVideo(unittest.TestCase):
             video_input.serialize(x_video, True)
 
     def test_in_interface(self):
-        x_video = gr.test_data.BASE64_VIDEO
+        x_video = media_data.BASE64_VIDEO
         iface = gr.Interface(lambda x: x, "video", "playable_video")
         self.assertEqual(iface.process([x_video])[0][0]["data"], x_video["data"])
 
@@ -735,6 +697,7 @@ class TestTimeseries(unittest.TestCase):
                 "name": "timeseries",
                 "label": "Upload Your Timeseries",
                 "css": {},
+                "default_value": None,
             },
         )
         self.assertIsNone(timeseries_input.preprocess(None))

@@ -3,14 +3,16 @@
 	import { HighlightedText } from "@gradio/highlighted-text";
 
 	export let value: Array<[string, string | number]>;
-	export let theme: string;
-	export let style: string | null;
+	export let default_value: Array<[string, string | number]>;
+	export let style: string = "";
 	export let show_legend: boolean;
 	export let color_map: Record<string, string> = {};
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
+	if (default_value) value = default_value;
+
 	$: value, dispatch("change");
 </script>
 
-<HighlightedText {value} {theme} {style} {show_legend} {color_map} />
+<HighlightedText {value} {style} {show_legend} {color_map} />

@@ -40,26 +40,19 @@ class TestInterface(unittest.TestCase):
         close_all()
         interface.close.assert_called()
 
-    # def test_examples_invalid_input(self):
-    #     with self.assertRaises(ValueError):
-    #         Interface(lambda x: x, examples=1234)
+    def test_examples_invalid_input(self):
+        with self.assertRaises(ValueError):
+            Interface(lambda x: x, examples=1234)
 
-    # def test_examples_valid_path(self):
-    #     path = os.path.join(os.path.dirname(__file__), "test_data/flagged_with_log")
-    #     interface = Interface(lambda x: 3 * x, "number", "number", examples=path)
-    #     self.assertEqual(len(interface.get_config_file()["examples"]), 2)
-
-    #     path = os.path.join(os.path.dirname(__file__), "test_data/flagged_no_log")
-    #     interface = Interface(lambda x: 3 * x, "number", "number", examples=path)
-    #     self.assertEqual(len(interface.get_config_file()["examples"]), 3)
-
-    # def test_examples_not_valid_path(self):
-    #     with self.assertRaises(FileNotFoundError):
-    #         interface = Interface(
-    #             lambda x: x, "textbox", "label", examples="invalid-path"
-    #         )
-    #         interface.launch(prevent_thread_lock=True)
-    #         interface.close()
+    def test_examples_valid_path(self):
+        path = os.path.join(
+            os.path.dirname(__file__), "../gradio/test_data/flagged_with_log"
+        )
+        interface = Interface(lambda x: 3 * x, "number", "number", examples=path)
+        dataset_check = any(
+            [c["type"] == "dataset" for c in interface.get_config_file()["components"]]
+        )
+        self.assertTrue(dataset_check)
 
     def test_test_launch(self):
         with captured_output() as (out, err):
@@ -109,8 +102,8 @@ class TestInterface(unittest.TestCase):
 
     def test_interface_none_interp(self):
         interface = Interface(lambda x: x, "textbox", "label", interpretation=[None])
-        scores, alternative_outputs = interface.interpret(["quickest brown fox"])
-        self.assertIsNone(scores[0])
+        scores = interface.interpret(["quickest brown fox"])[0]["interpretation"]
+        self.assertIsNone(scores)
 
     @mock.patch("webbrowser.open")
     def test_interface_browser(self, mock_browser):

@@ -1,48 +1,35 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
+	import { BlockTitle } from "@gradio/atoms";
 
 	export let value: string;
-	export let theme: string = "default";
 	export let choices: Array<string>;
 	export let disabled: boolean = false;
+	export let label: string;
+	export let style: string;
 
 	const dispatch = createEventDispatcher();
 
-	function handle_change(choice: string) {
-		dispatch("change", choice);
-		value = choice;
-	}
+	$: dispatch("change", value);
 </script>
 
-<div class="input-radio flex flex-wrap gap-2" {theme}>
-	{#each choices as choice}
-		<button
-			class="radio-item py-2 px-3 font-semibold rounded cursor-pointer flex items-center gap-2"
-			class:selected={value === choice}
-			on:click={() => handle_change(choice)}
-		>
-			<div class="radio-circle w-4 h-4 rounded-full box-border" />
-			{choice}
-		</button>
-	{/each}
-</div>
+<fieldset
+	class="gr-box overflow-hidden border-solid border border-gray-200 gr-panel"
+>
+	<BlockTitle>{label}</BlockTitle>
 
-<style lang="postcss">
-	.input-radio[theme="default"] {
-		.radio-item {
-			@apply bg-white dark:bg-gray-800 shadow transition hover:shadow-md;
-		}
-		.radio-circle {
-			@apply bg-gray-50 dark:bg-gray-400 border-4 border-gray-200 dark:border-gray-600;
-		}
-		.radio-item.selected {
-			@apply bg-amber-500 dark:bg-red-600 text-white shadow;
-		}
-		.radio-circle {
-			@apply w-4 h-4 bg-white transition rounded-full box-border;
-		}
-		.selected .radio-circle {
-			@apply border-amber-600 dark:border-red-700;
-		}
-	}
-</style>
+	<div class="flex flex-wrap gap-2">
+		{#each choices as choice, i}
+			<label class="gr-box gr-box-sm ">
+				<input
+					{disabled}
+					bind:group={value}
+					type="radio"
+					name="test"
+					class="rounded-full gr-check-radio "
+					value={choice}
+				/> <span class="ml-2">{choice}</span></label
+			>
+		{/each}
+	</div>
+</fieldset>

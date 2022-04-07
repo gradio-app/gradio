@@ -2,17 +2,22 @@
 	import { Range } from "@gradio/form";
 
 	export let value: number = 0;
-	export let theme: string;
-	export let style: string | null;
+
+	export let label: string;
+	export let default_value: number;
+
+	export let style: string = "";
 	export let minimum: number;
 	export let maximum: number;
 	export let step: number;
 	export let mode: "static" | "dynamic";
+
+	if (default_value) value = default_value;
 </script>
 
 <Range
 	bind:value
-	{theme}
+	{label}
 	{style}
 	{minimum}
 	{maximum}

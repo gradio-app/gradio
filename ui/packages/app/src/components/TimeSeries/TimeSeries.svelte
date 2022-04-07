@@ -23,6 +23,7 @@
 	}
 
 	export let value: null | Data;
+	export let default_value: null | Data;
 	export let theme: string;
 	export let style: string | null;
 	export let y: Array<string>;
@@ -100,6 +101,8 @@
 	$: static_data = is_static && format_value(value as StaticData);
 
 	$: value, dispatch("change");
+
+	if (default_value) value = default_value;
 </script>
 
 {#if is_static && static_data}
