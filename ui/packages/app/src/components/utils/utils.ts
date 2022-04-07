@@ -1,3 +1,5 @@
+import type { FileData } from "@gradio/upload";
+
 interface XYValue {
 	x: number;
 	y: number;
@@ -89,4 +91,12 @@ export function get_color(): string {
 	const [r, g, b] = default_colors[c++];
 
 	return `rgb(${r},${g},${b})`;
+}
+
+export function prefixFileWithURL(filedata: FileData, root: string): FileData {
+	if (filedata.name) {
+		filedata = {...filedata};
+		filedata.name = root + "file/"
+	} 
+	return filedata;
 }
