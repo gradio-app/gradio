@@ -2160,7 +2160,7 @@ class Dataframe(Component):
 
 class Timeseries(Component):
     """
-    Component accepts pandas.DataFrame uploaded as a timeseries csv file or as an output.
+    Component accepts pandas.DataFrame uploaded as a timeseries csv file or renders a dataframe consisting of a time series as output.
 
     Input type: pandas.DataFrame
     Output type: pandas.DataFrame
