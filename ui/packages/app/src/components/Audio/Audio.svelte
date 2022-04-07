@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Audio } from "@gradio/audio";
 	import type { FileData } from "@gradio/upload";
-	import { prefixFileWithURL } from "../utils/utils";
+	import { setFilenameSource } from "../utils/utils";
 
 	export let mode: "static" | "dynamic";
 	export let value: null | FileData = null;
@@ -13,12 +13,12 @@
 	export let label: string;
 	export let root: string;
 
-	$: prefixedValue = value === null ? null : prefixFileWithURL(value, root);
+	$: valueWithSource = value === null ? null : setFilenameSource(value, root);
 </script>
 
 {#if mode === "dynamic"}
 	<Audio
-		value={prefixedValue}
+		value={valueWithSource}
 		{theme}
 		{style}
 		{name}
@@ -30,8 +30,8 @@
 		on:pause
 		on:ended
 	/>
-{:else if prefixedValue}
+{:else if valueWithSource}
 	<audio {theme} {style} controls>
-		<source src={prefixedValue.data || prefixedValue.name} />
+		<source src={valueWithSource.name} />
 	</audio>
 {/if}

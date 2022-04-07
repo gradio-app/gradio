@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { FileData } from "@gradio/upload";
 	import { playable } from "../utils/helpers";
-	import { prefixFileWithURL } from "../utils/utils";
+	import { setFilenameSource } from "../utils/utils";
 
 	import { Video } from "@gradio/video";
 	import { _ } from "svelte-i18n";
@@ -16,35 +16,35 @@
 	export let mode: "static" | "dynamic";
 
 	if (default_value) value = default_value;
-	$: prefixedValue = value === null ? null : prefixFileWithURL(value, root);
+	$: valueWithSource = value === null ? null : setFilenameSource(value, root);
 </script>
 
-{#if mode === "static" && prefixedValue}
+{#if mode === "static" && valueWithSource}
 	<div
 		class="output-video w-full h-60 flex justify-center items-center bg-gray-200 dark:bg-gray-600 relative"
 	>
-		{#if playable(prefixedValue.name)}
+		{#if playable(valueWithSource.name)}
 			<!-- svelte-ignore a11y-media-has-caption -->
 			<video
 				class="video_preview w-full h-full object-contain"
 				controls
 				playsInline
 				preload="auto"
-				src={prefixedValue.data || prefixedValue.name}
+				src={valueWithSource.name}
 			/>
 		{:else}
 			<a
-				href={prefixedValue.data}
-				download={prefixedValue.name}
+				href={valueWithSource.data}
+				download={valueWithSource.name}
 				class="file-preview h-60 w-full flex flex-col justify-center items-center relative"
 			>
-				<div class="file-name text-4xl p-6 break-all">{prefixedValue.name}</div>
+				<div class="file-name text-4xl p-6 break-all">{valueWithSource.name}</div>
 			</a>
 		{/if}
 	</div>
 {:else}
 	<Video
-		bind:value={prefixedValue}
+		bind:value={valueWithSource}
 		{theme}
 		{style}
 		{source}

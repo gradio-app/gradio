@@ -193,7 +193,7 @@
 			controls
 			bind:this={player}
 			preload="metadata"
-			src={value.data || value.name}
+			src={value.name}
 			on:play
 			on:pause
 			on:ended

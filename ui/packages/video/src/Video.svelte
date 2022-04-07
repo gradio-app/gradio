@@ -68,7 +68,7 @@
 				controls
 				playsInline
 				preload="auto"
-				src={value.data || value.name}
+				src={value.name}
 				on:play
 				on:pause
 				on:ended
