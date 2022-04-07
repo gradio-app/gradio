@@ -12,9 +12,7 @@ class TestBlocks(unittest.TestCase):
         }
         ct_model = lambda diseases, img: {disease: 0.1 for disease in diseases}
 
-        xray_blocks = gr.Blocks()
-
-        with xray_blocks:
+        with gr.Blocks() as demo:
             gr.components.Markdown(
                 """
             # Detect Disease From Scan
@@ -48,10 +46,10 @@ class TestBlocks(unittest.TestCase):
                     ct_run.click(
                         ct_model, inputs=[disease, ct_scan], outputs=ct_results
                     )
+            textbox = gr.components.Textbox()
+            demo.load(lambda x: x, [], [textbox])
 
-            _ = gr.components.Textbox()
-
-        self.assertEqual(XRAY_CONFIG, xray_blocks.get_config_file())
+        self.assertEqual(XRAY_CONFIG, demo.get_config_file())
 
 
 if __name__ == "__main__":
