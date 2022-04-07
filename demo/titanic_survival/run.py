@@ -106,7 +106,7 @@ demo = gr.Interface(
         ["third", True, 30, ["Child"], 20, "S"],
     ],
     interpretation="default",
-    cache_examples=True,
+    live=True,
 )
 
 if __name__ == "__main__":
