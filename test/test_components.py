@@ -678,7 +678,27 @@ class TestAudio(unittest.TestCase):
         similarity = SequenceMatcher(a=x_wav["data"], b=x_new).ratio()
         self.assertGreater(similarity, 0.9)
 
-    # TODO: add test_in_interface_as_input
+    def test_in_interface(self):
+        def reverse_audio(audio):
+            sr, data = audio
+            return (sr, np.flipud(data))
+
+        iface = gr.Interface(reverse_audio, "audio", "audio")
+        reversed_data = iface.process([deepcopy(media_data.BASE64_AUDIO)])[0][0]
+        reversed_input = {"name": "fake_name", "data": reversed_data}
+        self.assertTrue(reversed_data.startswith("data:audio/wav;base64,UklGRgA/"))
+        self.assertTrue(
+            iface.process([deepcopy(media_data.BASE64_AUDIO)])[0][0].startswith(
+                "data:audio/wav;base64,UklGRgA/"
+            )
+        )
+        self.maxDiff = None
+        reversed_reversed_data = iface.process([reversed_input])[0][0]
+        similarity = SequenceMatcher(
+            a=reversed_reversed_data, b=media_data.BASE64_AUDIO["data"]
+        ).ratio()
+        self.assertGreater(similarity, 0.99)
+
     def test_in_interface_as_output(self):
         """
         Interface, process
@@ -842,7 +862,10 @@ class TestDataframe(unittest.TestCase):
         )
         self.assertDictEqual(
             output,
-            {"headers": ["num", "prime"], "data": [[2, True], [3, True], [4, False]]},
+            {
+                "headers": ["num", "prime"],
+                "data": [[2, True], [3, True], [4, False]],
+            },
         )
         self.assertEqual(
             dataframe_output.get_template_context(),
@@ -979,15 +1002,13 @@ class TestVideo(unittest.TestCase):
             )
             self.assertEqual("video_output/1.mp4", to_save)
 
-    def test_in_interface_as_input(self):
+    def test_in_interface(self):
         """
         Interface, process
         """
         x_video = deepcopy(media_data.BASE64_VIDEO)
         iface = gr.Interface(lambda x: x, "video", "playable_video")
         self.assertEqual(iface.process([x_video])[0][0]["data"], x_video["data"])
-
-    # TODO: test_in_interface_as_output
 
 
 class TestTimeseries(unittest.TestCase):
@@ -1078,13 +1099,16 @@ class TestTimeseries(unittest.TestCase):
                 timeseries_output.restore_flagged(tmpdirname, to_save, None),
                 {
                     "headers": ["Name", "Age"],
-                    "data": [["Tom", 20], ["nick", 21], ["krish", 19], ["jack", 18]],
+                    "data": [
+                        ["Tom", 20],
+                        ["nick", 21],
+                        ["krish", 19],
+                        ["jack", 18],
+                    ],
                 },
             )
 
-    # TODO: test_in_interface_as_input
-
-    def test_in_interface_as_output(self):
+    def test_in_interface_as_input(self):
         """
         Interface, process
         """
@@ -1099,7 +1123,41 @@ class TestTimeseries(unittest.TestCase):
             [
                 {
                     "headers": ["time", "retail", "food", "other"],
-                    "data": [[1, 2, 2, 2], [1, 2, 2, 2], [1, 2, 2, 2], [1, 2, 2, 2]],
+                    "data": [
+                        [1, 2, 2, 2],
+                        [1, 2, 2, 2],
+                        [1, 2, 2, 2],
+                        [1, 2, 2, 2],
+                    ],
+                }
+            ],
+        )
+
+    def test_in_interface_as_output(self):
+        """
+        Interface, process
+        """
+        timeseries_output = gr.Timeseries(x="time", y=["retail", "food", "other"])
+        iface = gr.Interface(lambda x: x, "dataframe", timeseries_output)
+        df = pd.DataFrame(
+            {
+                "time": [1, 2, 3, 4],
+                "retail": [1, 2, 3, 2],
+                "food": [1, 2, 3, 2],
+                "other": [1, 2, 4, 2],
+            }
+        )
+        self.assertEqual(
+            iface.process([df])[0],
+            [
+                {
+                    "headers": ["time", "retail", "food", "other"],
+                    "data": [
+                        [1, 1, 1, 1],
+                        [2, 2, 2, 2],
+                        [3, 3, 3, 4],
+                        [4, 2, 2, 2],
+                    ],
                 }
             ],
         )
