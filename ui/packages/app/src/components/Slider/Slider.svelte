@@ -5,8 +5,8 @@
 
 	export let label: string;
 	export let default_value: number;
-	export let theme: string;
-	export let style: string | null;
+
+	export let style: string = "";
 	export let minimum: number;
 	export let maximum: number;
 	export let step: number;
@@ -18,7 +18,6 @@
 <Range
 	bind:value
 	{label}
-	{theme}
 	{style}
 	{minimum}
 	{maximum}

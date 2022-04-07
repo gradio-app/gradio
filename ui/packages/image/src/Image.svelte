@@ -14,6 +14,7 @@
 
 	export let value: null | string;
 	export let label: string;
+	export let style: string;
 
 	export let source: "canvas" | "webcam" | "upload" = "upload";
 	export let tool: "editor" | "select" = "editor";
