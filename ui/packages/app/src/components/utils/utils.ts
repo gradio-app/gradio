@@ -92,13 +92,3 @@ export function get_color(): string {
 
 	return `rgb(${r},${g},${b})`;
 }
-
-export function setFilenameSource(filedata: FileData, root: string): FileData {
-	filedata = {...filedata};
-	if (filedata.name) {
-		filedata.name = root + "file/" + filedata.name;
-	} else {
-		filedata.name = filedata.data;
-	}
-	return filedata;
-}

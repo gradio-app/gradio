@@ -1,19 +1,29 @@
 <script lang="ts">
 	import { File, FileUpload } from "@gradio/file";
 	import type { FileData } from "@gradio/upload";
+	import { normalise_file } from "@gradio/upload";
 
 	export let value: null | FileData = null;
 	export let default_value: null | FileData = null;
 	export let theme: string;
-	export let style: string | null;
+	export let style: string = "";
 	export let mode: "static" | "dynamic";
-	export let static_src: string;
+	export let root: string;
 
 	if (default_value) value = default_value;
+
+	let _value: null | FileData;
+	$: _value = normalise_file(value, root);
 </script>
 
 {#if mode === "dynamic"}
-	<FileUpload bind:value {theme} {style} on:change on:clear />
-{:else if value}
-	<File {value} {theme} {style} />
+	<FileUpload
+		value={_value}
+		on:change={({ detail }) => (value = detail)}
+		{style}
+		on:change
+		on:clear
+	/>
+{:else if _value}
+	<File value={_value} {theme} {style} />
 {/if}

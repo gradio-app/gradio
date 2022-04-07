@@ -5,6 +5,7 @@
 	export let value: number = 0;
 	export let disabled: boolean = false;
 	export let label: string;
+	export let style: string;
 
 	const dispatch =
 		createEventDispatcher<{ change: number; submit: undefined }>();

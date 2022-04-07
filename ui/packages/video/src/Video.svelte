@@ -12,6 +12,7 @@
 	export let theme: string = "default";
 	export let source: string;
 	export let label: string;
+	export let style: string;
 
 	export let drop_text: string = "Drop a video file";
 	export let or_text: string = "or";
@@ -68,7 +69,7 @@
 				controls
 				playsInline
 				preload="auto"
-				src={value.name}
+				src={value.data}
 				on:play
 				on:pause
 				on:ended
