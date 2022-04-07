@@ -35,8 +35,8 @@ class Block:
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
-        preprocess=True,
-        postprocess=True,
+        preprocess: bool = True,
+        postprocess: bool = True,
         queue=False,
     ) -> None:
         """
@@ -46,6 +46,8 @@ class Block:
             fn: Callable function
             inputs: input list
             outputs: output list
+            preprocess: whether to run the preprocess methods of components
+            postprocess: whether to run the postprocess methods of components
         Returns: None
         """
         # Support for singular parameter
