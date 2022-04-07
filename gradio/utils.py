@@ -303,11 +303,11 @@ def assert_configs_are_equivalent_besides_ids(config1, config2):
         c1.pop("id")
         c2.pop("id")
         assert c1 == c2, "{} does not match {}".format(c1, c2)
-    
+        
     def same_children_recursive(children1, chidren2, mapping):
         for child1, child2 in zip(children1, chidren2):
             assert mapping[child1["id"]] == child2["id"], "{} does not match {}".format(child1, child2)
-            if "children" in child1:
+            if "children" in child1 or "children" in child2:
                 same_children_recursive(child1["children"], child2["children"], mapping)
         
         
