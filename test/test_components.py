@@ -1139,10 +1139,14 @@ class TestTimeseries(unittest.TestCase):
         """
         timeseries_output = gr.Timeseries(x="time", y=["retail", "food", "other"])
         iface = gr.Interface(lambda x: x, "dataframe", timeseries_output)
-        df = pd.DataFrame({"time": [1, 2, 3, 4], 
-                           "retail": [1, 2, 3, 2],
-                           "food": [1, 2, 3, 2],
-                           "other": [1, 2, 4, 2]})
+        df = pd.DataFrame(
+            {
+                "time": [1, 2, 3, 4],
+                "retail": [1, 2, 3, 2],
+                "food": [1, 2, 3, 2],
+                "other": [1, 2, 4, 2],
+            }
+        )
         self.assertEqual(
             iface.process([df])[0],
             [
