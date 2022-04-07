@@ -158,11 +158,13 @@ class TabItem(BlockContext):
 
 
 class Blocks(Launchable, BlockContext):
-    def __init__(self, 
-                 theme: str = "default", 
-                 analytics_enabled: Optional[bool] = None,
-                 mode: str = "blocks"):
-        
+    def __init__(
+        self,
+        theme: str = "default",
+        analytics_enabled: Optional[bool] = None,
+        mode: str = "blocks",
+    ):
+
         # Cleanup shared parameters with Interface
         self.save_to = None
         self.ip_address = utils.get_local_ip_address()
@@ -180,7 +182,7 @@ class Blocks(Launchable, BlockContext):
             if analytics_enabled is not None
             else os.getenv("GRADIO_ANALYTICS_ENABLED", "True") == "True"
         )
-        
+
         super().__init__()
         self.blocks = {}
         self.fns = []

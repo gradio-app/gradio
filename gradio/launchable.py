@@ -204,7 +204,7 @@ class Launchable:
             "server_name": server_name,
             "server_port": server_port,
             "is_spaces": self.is_space if hasattr(self, "is_space") else "",
-            "mode": self.mode if hasattr(self, "mode") else ""
+            "mode": self.mode if hasattr(self, "mode") else "",
         }
         if self.analytics_enabled:
             utils.launch_analytics(data)
