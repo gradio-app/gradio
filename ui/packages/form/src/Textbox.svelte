@@ -37,7 +37,6 @@
 				class="block gr-box gr-input w-full gr-text-input"
 				bind:value
 				{placeholder}
-				{theme}
 				{style}
 				rows={lines}
 			/>
@@ -47,7 +46,6 @@
 				class="gr-box gr-input w-full gr-text-input"
 				{placeholder}
 				bind:value
-				{theme}
 				on:keypress={handle_keypress}
 				{style}
 			/>
