@@ -1,3 +1,5 @@
+# This demo needs to be run from the /demo/ folder.
+
 import random
 import time
 
@@ -5,7 +7,7 @@ import gradio as gr
 
 def fake_gan(*args):
     time.sleep(2)
-    return "fake" + str(random.randint(0, 5)) + ".jpg"
+    return "fake_gan/fake" + str(random.randint(0, 5)) + ".jpg"
 
 demo = gr.Interface(
     fn = fake_gan,
@@ -16,7 +18,7 @@ demo = gr.Interface(
         gr.Number(label="Seed"),
         gr.Number(label="Respacing"),
     ],
-    outputs = gr.Image("Generated Image"),
+    outputs = gr.Image(label="Generated Image"),
 )
 
 
