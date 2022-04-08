@@ -24,10 +24,10 @@
 	}
 
 	interface Dependency {
-		trigger: "click" | "change";
+		trigger: string;
 		targets: Array<number>;
-		inputs: Array<string>;
-		outputs: Array<string>;
+		inputs: Array<number>;
+		outputs: Array<number>;
 		queue: boolean;
 	}
 
@@ -120,6 +120,32 @@
 				t,
 				instance_map[t]
 			]);
+
+			// page events
+			if (
+				targets.length === 0 &&
+				!handled_dependencies[i]?.includes(-1) &&
+				trigger === "load" &&
+				// check all input + output elements are on the page
+				outputs.every((v) => instance_map[v].instance) &&
+				inputs.every((v) => instance_map[v].instance)
+			) {
+				fn(
+					"predict",
+					{
+						fn_index: i,
+						data: inputs.map((id) => instance_map[id].value)
+					},
+					queue,
+					() => {}
+				).then((output) => {
+					output.data.forEach((value, i) => {
+						instance_map[outputs[i]].value = value;
+					});
+				});
+
+				handled_dependencies[i] = [-1];
+			}
 
 			target_instances.forEach(([id, { instance }]: [number, Instance]) => {
 				// console.log(id, handled_dependencies[i]?.includes(id) || !instance);
