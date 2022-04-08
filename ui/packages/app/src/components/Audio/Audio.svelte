@@ -33,7 +33,7 @@
 		on:pause
 		on:ended
 		drop_text={$_("interface.drop_audio")}
-		or_text={$_("interface.or")}
+		or_text={$_("or")}
 		upload_text={$_("interface.click_to_upload")}
 	/>
 {:else if _value}

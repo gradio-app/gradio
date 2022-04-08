@@ -23,7 +23,7 @@
 		on:change
 		on:clear
 		drop_text={$_("interface.drop_file")}
-		or_text={$_("interface.or")}
+		or_text={$_("or")}
 		upload_text={$_("interface.click_to_upload")}
 	/>
 {:else if _value}

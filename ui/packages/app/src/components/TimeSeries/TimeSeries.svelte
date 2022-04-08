@@ -123,7 +123,7 @@
 			{style}
 		>
 			{$_("interface.drop_csv")}
-			<br />- {$_("interface.or")} -<br />
+			<br />- {$_("or")} -<br />
 			{$_("interface.click_to_upload")}
 		</Upload>
 	{/if}

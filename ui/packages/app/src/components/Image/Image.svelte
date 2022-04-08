@@ -38,7 +38,7 @@
 		on:change
 		{label}
 		drop_text={$_("interface.drop_image")}
-		or_text={$_("interface.or")}
+		or_text={$_("or")}
 		upload_text={$_("interface.click_to_upload")}
 	/>
 {/if}

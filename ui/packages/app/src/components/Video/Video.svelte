@@ -51,7 +51,7 @@
 		{style}
 		{source}
 		drop_text={$_("interface.drop_video")}
-		or_text={$_("interface.or")}
+		or_text={$_("or")}
 		upload_text={$_("interface.click_to_upload")}
 		on:change
 		on:clear
