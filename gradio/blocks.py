@@ -158,16 +158,30 @@ class TabItem(BlockContext):
 
 
 class Blocks(Launchable, BlockContext):
-    def __init__(self, theme="default"):
+    def __init__(
+        self,
+        theme: str = "default",
+        analytics_enabled: Optional[bool] = None,
+        mode: str = "blocks",
+    ):
+
         # Cleanup shared parameters with Interface
         self.save_to = None
         self.ip_address = utils.get_local_ip_address()
         self.api_mode = False
-        self.analytics_enabled = True
         self.theme = theme
         self.requires_permissions = False  # TODO: needs to be implemented
         self.enable_queue = False
         self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
+        self.mode = mode
+
+        # For analytics_enabled and allow_flagging: (1) first check for
+        # parameter, (2) check for env variable, (3) default to True/"manual"
+        self.analytics_enabled = (
+            analytics_enabled
+            if analytics_enabled is not None
+            else os.getenv("GRADIO_ANALYTICS_ENABLED", "True") == "True"
+        )
 
         super().__init__()
         self.blocks = {}
