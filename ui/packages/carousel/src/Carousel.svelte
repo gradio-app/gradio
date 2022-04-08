@@ -6,7 +6,7 @@
 	import { setContext, createEventDispatcher } from "svelte";
 	import { writable } from "svelte/store";
 
-	export let theme: string = "default";
+	export let style: string = "";
 
 	const dispatch = createEventDispatcher<{
 		change: undefined;
@@ -45,7 +45,7 @@
 	};
 </script>
 
-<div class="output-carousel flex flex-col gap-2" {theme}>
+<div class="output-carousel flex flex-col gap-2">
 	<slot />
 
 	<div class="carousel-control flex gap-4 justify-center items-center my-1">

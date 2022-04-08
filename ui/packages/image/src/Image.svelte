@@ -13,8 +13,8 @@
 	import { Upload, ModifyUpload } from "@gradio/upload";
 
 	export let value: null | string;
-	export let label: string;
-	export let style: string;
+	export let label: string | undefined = undefined;
+	export let style: string = "";
 
 	export let source: "canvas" | "webcam" | "upload" = "upload";
 	export let tool: "editor" | "select" = "editor";

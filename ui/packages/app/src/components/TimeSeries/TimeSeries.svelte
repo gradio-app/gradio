@@ -24,8 +24,7 @@
 
 	export let value: null | Data;
 	export let default_value: null | Data;
-	export let theme: string;
-	export let style: string | null;
+	export let style: string = "";
 	export let y: Array<string>;
 	export let x: string;
 	export let is_static: boolean;
@@ -121,7 +120,6 @@
 			filetype="text/csv"
 			on:load={({ detail }) => handle_load(detail)}
 			include_file_metadata={false}
-			{theme}
 			{style}
 		>
 			{$_("interface.drop_csv")}

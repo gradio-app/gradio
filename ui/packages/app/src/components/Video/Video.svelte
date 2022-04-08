@@ -9,7 +9,6 @@
 	export let value: FileData | null | string = null;
 	export let label: string;
 	export let default_value: FileData | null;
-	export let theme: string;
 	export let style: string = "";
 	export let source: string;
 
