@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
 import getpass
 import os
 import sys
@@ -14,10 +15,19 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     import flask
 
 
-class Launchable:
+class Launchable(ABC):
     """
     Gradio launchables can be launched to serve content to a port.
     """
+    def __init__(self) -> None:
+        self.status = "OFF"
+        self.ip_address = utils.get_local_ip_address()
+        self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
+        self.mode = "launchable"  # Can be overridden by child classes to be more specific
+
+    @abstractmethod
+    def get_config_file(self):
+        pass
 
     def launch(
         self,
@@ -104,21 +114,25 @@ class Launchable:
 
         if self.cache_examples:
             cache_interface_examples(self)
-
-        server_port, path_to_local_server, app, server = networking.start_server(
-            self,
-            server_name,
-            server_port,
-            ssl_keyfile,
-            ssl_certfile,
-            ssl_keyfile_password,
-        )
+            
+        if self.status == "RUNNING":
+            self.server_app.launchable = self
+            # TODO: configure auth and the other things that might need to be setup
+        else:
+            server_port, path_to_local_server, app, server = networking.start_server(
+                self,
+                server_name,
+                server_port,
+                ssl_keyfile,
+                ssl_certfile,
+                ssl_keyfile_password,
+            )
 
         self.local_url = path_to_local_server
         self.server_port = server_port
-        self.status = "RUNNING"
         self.server_app = app
         self.server = server
+        self.status = "RUNNING"
 
         utils.launch_counter()
 
@@ -197,16 +211,15 @@ class Launchable:
             "is_google_colab": is_colab,
             "is_sharing_on": share,
             "share_url": share_url,
-            "ip_address": self.ip_address if hasattr(self, "ip_address") else "",
+            "ip_address": self.ip_address,
             "enable_queue": self.enable_queue,
             "show_tips": self.show_tips,
-            "api_mode": self.api_mode if hasattr(self, "api_mode") else "",
             "server_name": server_name,
             "server_port": server_port,
-            "is_spaces": self.is_space if hasattr(self, "is_space") else "",
-            "mode": self.mode if hasattr(self, "mode") else "",
+            "is_spaces": self.is_space,
+            "mode": self.mode,
         }
-        if self.analytics_enabled:
+        if hasattr(self, "analytics_enabled") and self.analytics_enabled:
             utils.launch_analytics(data)
 
         utils.show_tip(self)
