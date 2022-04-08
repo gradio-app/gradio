@@ -7,6 +7,9 @@ from gradio.test_data.blocks_configs import XRAY_CONFIG
 
 class TestBlocks(unittest.TestCase):
     def test_xray(self):
+        def fake_func():
+            return "Hello There"
+
         xray_model = lambda diseases, img: {
             disease: random.random() for disease in diseases
         }
@@ -47,7 +50,7 @@ class TestBlocks(unittest.TestCase):
                         ct_model, inputs=[disease, ct_scan], outputs=ct_results
                     )
             textbox = gr.components.Textbox()
-            demo.load(lambda x: x, [], [textbox])
+            demo.load(fake_func, [], [textbox])
 
         self.assertEqual(XRAY_CONFIG, demo.get_config_file())
 
