@@ -3,10 +3,11 @@
 		label: string;
 		confidences?: Array<{ label: string; confidence: number }>;
 	};
-	export let theme: string = "default";
+
+	export let style: string = "";
 </script>
 
-<div class="output-label" {theme}>
+<div class="output-label">
 	<div
 		class="output-class font-bold text-2xl py-6 px-4 flex-grow flex items-center justify-center"
 		class:no-confidence={!("confidences" in value)}

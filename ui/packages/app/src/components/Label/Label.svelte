@@ -11,8 +11,8 @@
 		label: string;
 		confidences?: Array<{ label: string; confidence: number }>;
 	};
-	export let theme: string;
-	export let style: string | null;
+
+	export let style: string = "";
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
@@ -22,5 +22,5 @@
 </script>
 
 {#if value !== undefined && value !== null}
-	<Label {theme} {style} {value} />
+	<Label {style} {value} />
 {/if}

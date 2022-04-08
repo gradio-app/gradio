@@ -13,8 +13,8 @@
 	import { Upload, ModifyUpload } from "@gradio/upload";
 
 	export let value: null | string;
-	export let label: string;
-	export let style: string;
+	export let label: string | undefined = undefined;
+	export let style: string = "";
 
 	export let source: "canvas" | "webcam" | "upload" = "upload";
 	export let tool: "editor" | "select" = "editor";
@@ -50,8 +50,6 @@
 	$: dispatch("change", value);
 
 	let dragging = false;
-
-	$: console.log($$props);
 </script>
 
 <Block
@@ -61,7 +59,7 @@
 >
 	<BlockLabel
 		image={source === "canvas" ? sketch_icon : image_icon}
-		label={label || source === "canvas" ? "Sketch" : "Image"}
+		label={label || (source === "canvas" ? "Sketch" : "Image")}
 	/>
 
 	<div class:bg-gray-200={value} class:h-60={source !== "webcam"}>

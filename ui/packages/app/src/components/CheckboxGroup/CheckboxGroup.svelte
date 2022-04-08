@@ -6,7 +6,7 @@
 	export let choices: Array<string>;
 
 	export let mode: "static" | "dynamic";
-	export let style: string | null;
+	export let style: string = "";
 	export let label: string;
 
 	if (default_value) value = default_value;

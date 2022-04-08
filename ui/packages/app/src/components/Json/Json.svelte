@@ -4,8 +4,7 @@
 
 	export let value: any;
 	export let default_value: any;
-	export let theme: string;
-	export let style: string | null;
+	export let style: string = "";
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
@@ -14,4 +13,4 @@
 	if (default_value) value = default_value;
 </script>
 
-<JSON {theme} {style} {value} />
+<JSON {style} {value} />

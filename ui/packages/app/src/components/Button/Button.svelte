@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Button } from "@gradio/button";
+	import { _ } from "svelte-i18n";
 
 	export let value: string;
 	export let default_value: string;
@@ -10,5 +11,5 @@
 </script>
 
 <Button {variant} {style} on:click>
-	{value}
+	{$_(value)}
 </Button>

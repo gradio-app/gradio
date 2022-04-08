@@ -4,7 +4,7 @@
 	export let label: string;
 	export let value: string = "";
 	export let default_value: string;
-	export let style: string | null;
+	export let style: string = "";
 	export let choices: Array<string> = [];
 	export let mode: "static" | "dynamic";
 

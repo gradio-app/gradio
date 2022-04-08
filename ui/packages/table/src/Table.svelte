@@ -4,6 +4,7 @@
 	export let headers: Array<string> = [];
 	export let values: Array<Array<string | number>> = [["", "", ""]];
 	// export let default_data: Array<Array<string | number>> = [];
+	export let style: string = "";
 
 	if ($$props.default) values = $$props.default;
 

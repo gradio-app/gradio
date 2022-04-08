@@ -1,18 +1,18 @@
 {
 	"interface": {
-		"submit": "提交",
-		"clear": "清除",
-		"interpret": "解释",
-		"flag": "标记",
-		"examples": "示例",
 		"drop_image": "拖放图片至此处",
 		"drop_video": "拖放视频至此处",
 		"drop_audio": "拖放音频至此处",
 		"drop_file": "拖放文件至此处",
 		"drop_csv": "拖放CSV至此处",
-		"or": "或",
 		"click_to_upload": "点击上传",
 		"view_api": "查看API",
 		"built_with_Gradio": "使用Gradio构建"
-	}
+	},
+	"Submit": "提交",
+	"Clear": "清除",
+	"Interpret": "解释",
+	"Flag": "标记",
+	"Examples": "示例",
+	"or": "或"
 }

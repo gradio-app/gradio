@@ -11,6 +11,8 @@
 	export let x: string | undefined = undefined;
 	export let y: Array<string> | undefined = undefined;
 
+	export let style: string = "";
+
 	const dispatch = createEventDispatcher();
 
 	$: ({ x: _x, y: _y } =

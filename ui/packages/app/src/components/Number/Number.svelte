@@ -5,8 +5,7 @@
 	export let value: number = 0;
 	export let default_value: number;
 
-	export let theme: string;
-	export let style: string | null;
+	export let style: string = "";
 
 	export let mode: "static" | "dynamic";
 

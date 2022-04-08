@@ -9,7 +9,6 @@
 	export let value: FileData | null | string = null;
 	export let label: string;
 	export let default_value: FileData | null;
-	export let theme: string;
 	export let style: string = "";
 	export let source: string;
 
@@ -52,7 +51,7 @@
 		{style}
 		{source}
 		drop_text={$_("interface.drop_video")}
-		or_text={$_("interface.or")}
+		or_text={$_("or")}
 		upload_text={$_("interface.click_to_upload")}
 		on:change
 		on:clear

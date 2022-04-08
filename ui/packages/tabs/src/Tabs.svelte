@@ -11,6 +11,8 @@
 		id: object;
 	}
 
+	export let style: string = "";
+
 	const tabs: Array<Tab> = [];
 
 	const selected_tab = writable<false | object>(false);
