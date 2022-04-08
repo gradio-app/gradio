@@ -6,6 +6,7 @@
 	export let choices: Array<string>;
 	export let disabled: boolean = false;
 	export let label: string;
+	export let style: string;
 
 	const dispatch = createEventDispatcher<{ change: Array<string> }>();
 
@@ -31,6 +32,7 @@
 				<input
 					{disabled}
 					on:change={() => toggleChoice(choice)}
+					checked={value.includes(choice)}
 					type="checkbox"
 					name="test"
 					class="gr-check-radio rounded checked:shadow-inner"

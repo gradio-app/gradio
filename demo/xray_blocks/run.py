@@ -24,9 +24,7 @@ With this model you can lorem ipsum
             with gr.Row():
                 xray_scan = gr.Image()
                 xray_results = gr.JSON()
-            xray_run = gr.Button(
-                "Run", css={"background-color": "red", "--hover-color": "orange"}
-            )
+            xray_run = gr.Button("Run")
             xray_run.click(
                 xray_model, inputs=[disease, xray_scan], outputs=xray_results
             )

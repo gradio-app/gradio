@@ -1,2 +1,2 @@
 export { default as Component } from "./Dropdown.svelte";
-export const modes = ["dynamic"];
+export const modes = ["static", "dynamic"];
