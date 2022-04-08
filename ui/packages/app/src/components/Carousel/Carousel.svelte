@@ -1,10 +1,9 @@
 <script lang="ts">
 	import { Carousel } from "@gradio/carousel";
 
-	export let theme: string;
-	export let style: string | null;
+	export let style: string = "";
 </script>
 
-<Carousel {theme} {style} on:change>
+<Carousel {style} on:change>
 	<slot />
 </Carousel>

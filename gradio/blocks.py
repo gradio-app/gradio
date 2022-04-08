@@ -38,6 +38,7 @@ class Block:
         preprocess: bool = True,
         postprocess: bool = True,
         queue=False,
+        no_target: bool = False,
     ) -> None:
         """
         Adds an event to the component's dependencies.
@@ -48,6 +49,7 @@ class Block:
             outputs: output list
             preprocess: whether to run the preprocess methods of components
             postprocess: whether to run the postprocess methods of components
+            no_target: if True, sets "targets" to [], used for Blocks "load" event
         Returns: None
         """
         # Support for singular parameter
@@ -59,7 +61,7 @@ class Block:
         Context.root_block.fns.append((fn, preprocess, postprocess))
         Context.root_block.dependencies.append(
             {
-                "targets": [self._id],
+                "targets": [self._id] if not no_target else [],
                 "trigger": event_name,
                 "inputs": [block._id for block in inputs],
                 "outputs": [block._id for block in outputs],
@@ -261,3 +263,19 @@ class Blocks(Launchable, BlockContext):
             Context.root_block = None
         else:
             self.parent.children.extend(self.children)
+
+    def load(
+        self, fn: Callable, inputs: List[Component], outputs: List[Component]
+    ) -> None:
+        """
+        Adds an event for when the demo loads in the browser.
+
+        Parameters:
+            fn: Callable function
+            inputs: input list
+            outputs: output list
+        Returns: None
+        """
+        self.set_event_trigger(
+            event_name="load", fn=fn, inputs=inputs, outputs=outputs, no_target=True
+        )
