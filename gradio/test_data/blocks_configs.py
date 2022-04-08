@@ -157,6 +157,13 @@ XRAY_CONFIG = {
             "outputs": [12],
             "queue": False,
         },
+        {
+            "targets": [],
+            "trigger": "load",
+            "inputs": [],
+            "outputs": [14],
+            "queue": False,
+        },
     ],
 }
 
