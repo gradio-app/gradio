@@ -590,6 +590,25 @@ class Interface(Blocks):
             repr += "\n|-{}".format(str(component))
         return repr
 
+    def render_basic_interface(self):
+        Interface(
+            fn=self.predict,
+            inputs=self.input_components,
+            outputs=self.output_components,
+            examples=self.examples,
+            examples_per_page=self.examples_per_page,
+            live=self.live,
+            layout=self.layout,
+            interpretation=self.interpretation,
+            num_shap=self.num_shap,
+            title=self.title,
+            description=self.description,
+            article=self.article,
+            allow_flagging=self.allow_flagging,
+            flagging_options=self.flagging_options,
+            flagging_dir=self.flagging_dir,
+        )
+
     def run_prediction(
         self,
         processed_input: List[Any],
@@ -767,6 +786,20 @@ class Interface(Blocks):
         if self.analytics_enabled and analytics_integration:
             data = {"integration": analytics_integration}
             utils.integration_analytics(data)
+
+
+class TabbedInterface(Blocks):
+    def __init__(
+        self, interface_list: List[Interface], tab_names: Optional[List[str]] = None
+    ):
+        if tab_names is None:
+            tab_names = ["Tab {}".format(i) for i in range(len(interface_list))]
+        super().__init__()
+        with self:
+            with Tabs():
+                for (interface, tab_name) in zip(interface_list, tab_names):
+                    with TabItem(label=tab_name):
+                        interface.render_basic_interface()
 
 
 def close_all(verbose: bool = True) -> None:
