@@ -15,4 +15,3 @@ export function normalise_file(
 	}
 	return file;
 }
-
