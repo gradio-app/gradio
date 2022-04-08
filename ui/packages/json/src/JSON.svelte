@@ -2,11 +2,11 @@
 	import JSONNode from "./JSONNode.svelte";
 
 	export let value: any = {};
-	export let theme: string = "default";
+	export let style: string = "";
 </script>
 
-<div class="output-json font-mono leading-relaxed w-full" {theme}>
-	<JSONNode {value} depth={0} {theme} />
+<div class="output-json font-mono leading-relaxed w-full">
+	<JSONNode {value} depth={0} />
 </div>
 
 <style lang="postcss" global>

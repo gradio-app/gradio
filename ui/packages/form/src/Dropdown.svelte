@@ -5,7 +5,7 @@
 	export let label: string;
 	export let value: string | undefined = undefined;
 	export let choices: Array<string>;
-	export let style: string;
+	export let style: string = "";
 	export let disabled: boolean = false;
 
 	const dispatch = createEventDispatcher<{ change: string }>();

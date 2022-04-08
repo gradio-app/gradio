@@ -6,7 +6,7 @@
 	export let lines: number = 1;
 	export let placeholder: string = "";
 	export let label: string;
-	export let style: string;
+	export let style: string = "";
 	export let disabled = false;
 	export let autoheight: boolean = false;
 

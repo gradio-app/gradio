@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { Image } from "@gradio/image";
+	import { _ } from "svelte-i18n";
 
 	export let value: null | string = null;
 	export let default_value: null | string = null;
@@ -36,5 +37,8 @@
 		on:clear
 		on:change
 		{label}
+		drop_text={$_("interface.drop_image")}
+		or_text={$_("or")}
+		upload_text={$_("interface.click_to_upload")}
 	/>
 {/if}

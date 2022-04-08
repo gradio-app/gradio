@@ -4,13 +4,11 @@
 	export let component: string;
 	export let component_props: Record<string, any>;
 	export let value: any;
-	export let theme: string;
 </script>
 
 {#if value}
 	<svelte:component
 		this={component_map[component]}
-		{theme}
 		{...component_props}
 		original={value.original}
 		interpretation={value.interpretation}
