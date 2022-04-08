@@ -197,13 +197,14 @@ class Launchable:
             "is_google_colab": is_colab,
             "is_sharing_on": share,
             "share_url": share_url,
-            "ip_address": self.ip_address,
+            "ip_address": self.ip_address if hasattr(self, "ip_address") else "",
             "enable_queue": self.enable_queue,
             "show_tips": self.show_tips,
-            "api_mode": self.api_mode,
+            "api_mode": self.api_mode if hasattr(self, "api_mode") else "",
             "server_name": server_name,
             "server_port": server_port,
-            "is_spaces": self.is_space,
+            "is_spaces": self.is_space if hasattr(self, "is_space") else "",
+            "mode": self.mode if hasattr(self, "mode") else "",
         }
         if self.analytics_enabled:
             utils.launch_analytics(data)
