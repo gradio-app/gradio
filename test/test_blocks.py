@@ -51,7 +51,6 @@ class TestBlocks(unittest.TestCase):
 
             _ = gr.components.Textbox()
 
-        # print(xray_blocks.get_config_file())
         self.assertEqual(XRAY_CONFIG, xray_blocks.get_config_file())
 
 
