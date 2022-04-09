@@ -5,6 +5,11 @@ import ExampleCheckboxGroup from "./ExampleComponents/CheckboxGroup.svelte";
 import ExampleSlider from "./ExampleComponents/Slider.svelte";
 import ExampleRadio from "./ExampleComponents/Radio.svelte";
 import ExampleImage from "./ExampleComponents/Image.svelte";
+import ExampleTextbox from "./ExampleComponents/Textbox.svelte";
+import ExampleAudio from "./ExampleComponents/Audio.svelte";
+import ExampleVideo from "./ExampleComponents/Video.svelte";
+import ExampleFile from "./ExampleComponents/File.svelte";
+import ExampleDataframe from "./ExampleComponents/Dataframe.svelte";
 
 export const component_map = {
 	dropdown: ExampleDropdown,
@@ -13,5 +18,10 @@ export const component_map = {
 	number: ExampleNumber,
 	slider: ExampleSlider,
 	radio: ExampleRadio,
-	image: ExampleImage
+	image: ExampleImage,
+	textbox: ExampleTextbox,
+	audio: ExampleAudio,
+	video: ExampleVideo,
+	file: ExampleFile,
+	dataframe: ExampleDataframe
 };

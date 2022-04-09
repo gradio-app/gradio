@@ -32,6 +32,7 @@ from gradio.external import load_from_pipeline, load_interface  # type: ignore
 from gradio.flagging import CSVLogger, FlaggingCallback  # type: ignore
 from gradio.inputs import State as i_State  # type: ignore
 from gradio.outputs import State as o_State  # type: ignore
+from gradio.process_examples import cache_interface_examples, load_from_cache
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     import transformers
@@ -106,6 +107,7 @@ class Interface(Blocks):
         outputs: str | Component | List[str | Component] = None,
         verbose: bool = False,
         examples: Optional[List[Any] | List[List[Any]] | str] = None,
+        cache_examples: bool = False,
         examples_per_page: int = 10,
         live: bool = False,
         layout: str = "unaligned",
@@ -166,7 +168,7 @@ class Interface(Blocks):
         server_name (str): DEPRECATED. Name of the server to use for serving the interface - pass in launch() instead.
         server_port (int): DEPRECATED. Port of the server to use for serving the interface - pass in launch() instead.
         """
-        super().__init__()
+        super().__init__(analytics_enabled=analytics_enabled, mode="interface")
 
         if not isinstance(fn, list):
             fn = [fn]
@@ -394,7 +396,6 @@ class Interface(Blocks):
         self.share = None
         self.share_url = None
         self.local_url = None
-        self.ip_address = utils.get_local_ip_address()
 
         if show_tips is not None:
             warnings.warn(
@@ -406,13 +407,6 @@ class Interface(Blocks):
         )
 
         self.enable_queue = enable_queue
-        if self.enable_queue is not None:
-            warnings.warn(
-                "The `enable_queue` parameter in the `Interface`"
-                "will be deprecated and may not work properly. "
-                "Please use the `enable_queue` parameter in "
-                "`launch()` instead"
-            )
 
         self.favicon_path = None
         self.height = height
@@ -463,6 +457,10 @@ class Interface(Blocks):
         for i, component in enumerate(self.output_components):
             if component.label is None:
                 component.label = "output_" + str(i)
+
+        self.cache_examples = cache_examples
+        if cache_examples:
+            cache_interface_examples(self)
 
         if self.allow_flagging != "never":
             self.flagging_callback.setup(
@@ -547,11 +545,32 @@ class Interface(Blocks):
             )
             if self.examples:
                 examples = Dataset(
-                    components=self.input_components, samples=self.examples
+                    components=self.input_components,
+                    samples=self.examples,
+                    type="index",
                 )
-                examples.click(
-                    lambda x: x, inputs=[examples], outputs=self.input_components
+
+                def load_example(example_id):
+                    processed_examples = [
+                        component.preprocess_example(sample)
+                        for component, sample in zip(
+                            self.input_components, self.examples[example_id]
+                        )
+                    ]
+                    if self.cache_examples:
+                        processed_examples += load_from_cache(self, example_id)
+                    if len(processed_examples) == 1:
+                        return processed_examples[0]
+                    else:
+                        return processed_examples
+
+                examples._click_no_postprocess(
+                    load_example,
+                    inputs=[examples],
+                    outputs=self.input_components
+                    + (self.output_components if self.cache_examples else []),
                 )
+
             flag_btn.click(
                 lambda *flag_data: self.flagging_callback.flag(flag_data),
                 inputs=self.input_components + self.output_components,
@@ -589,6 +608,25 @@ class Interface(Blocks):
         for component in self.output_components:
             repr += "\n|-{}".format(str(component))
         return repr
+
+    def render_basic_interface(self):
+        Interface(
+            fn=self.predict,
+            inputs=self.input_components,
+            outputs=self.output_components,
+            examples=self.examples,
+            examples_per_page=self.examples_per_page,
+            live=self.live,
+            layout=self.layout,
+            interpretation=self.interpretation,
+            num_shap=self.num_shap,
+            title=self.title,
+            description=self.description,
+            article=self.article,
+            allow_flagging=self.allow_flagging,
+            flagging_options=self.flagging_options,
+            flagging_dir=self.flagging_dir,
+        )
 
     def run_prediction(
         self,
@@ -767,6 +805,20 @@ class Interface(Blocks):
         if self.analytics_enabled and analytics_integration:
             data = {"integration": analytics_integration}
             utils.integration_analytics(data)
+
+
+class TabbedInterface(Blocks):
+    def __init__(
+        self, interface_list: List[Interface], tab_names: Optional[List[str]] = None
+    ):
+        if tab_names is None:
+            tab_names = ["Tab {}".format(i) for i in range(len(interface_list))]
+        super().__init__()
+        with self:
+            with Tabs():
+                for (interface, tab_name) in zip(interface_list, tab_names):
+                    with TabItem(label=tab_name):
+                        interface.render_basic_interface()
 
 
 def close_all(verbose: bool = True) -> None:

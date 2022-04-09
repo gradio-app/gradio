@@ -35,8 +35,10 @@ class Block:
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
-        preprocess=True,
+        preprocess: bool = True,
+        postprocess: bool = True,
         queue=False,
+        no_target: bool = False,
     ) -> None:
         """
         Adds an event to the component's dependencies.
@@ -45,6 +47,9 @@ class Block:
             fn: Callable function
             inputs: input list
             outputs: output list
+            preprocess: whether to run the preprocess methods of components
+            postprocess: whether to run the postprocess methods of components
+            no_target: if True, sets "targets" to [], used for Blocks "load" event
         Returns: None
         """
         # Support for singular parameter
@@ -53,10 +58,10 @@ class Block:
         if not isinstance(outputs, list):
             outputs = [outputs]
 
-        Context.root_block.fns.append((fn, preprocess))
+        Context.root_block.fns.append((fn, preprocess, postprocess))
         Context.root_block.dependencies.append(
             {
-                "targets": [self._id],
+                "targets": [self._id] if not no_target else [],
                 "trigger": event_name,
                 "inputs": [block._id for block in inputs],
                 "outputs": [block._id for block in outputs],
@@ -158,16 +163,30 @@ class TabItem(BlockContext):
 
 
 class Blocks(Launchable, BlockContext):
-    def __init__(self, theme="default"):
+    def __init__(
+        self,
+        theme: str = "default",
+        analytics_enabled: Optional[bool] = None,
+        mode: str = "blocks",
+    ):
+
         # Cleanup shared parameters with Interface
         self.save_to = None
         self.ip_address = utils.get_local_ip_address()
         self.api_mode = False
-        self.analytics_enabled = True
         self.theme = theme
         self.requires_permissions = False  # TODO: needs to be implemented
         self.enable_queue = False
         self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
+        self.mode = mode
+
+        # For analytics_enabled and allow_flagging: (1) first check for
+        # parameter, (2) check for env variable, (3) default to True/"manual"
+        self.analytics_enabled = (
+            analytics_enabled
+            if analytics_enabled is not None
+            else os.getenv("GRADIO_ANALYTICS_ENABLED", "True") == "True"
+        )
 
         super().__init__()
         self.blocks = {}
@@ -181,7 +200,7 @@ class Blocks(Launchable, BlockContext):
     def process_api(self, data: Dict[str, Any], username: str = None) -> Dict[str, Any]:
         raw_input = data["data"]
         fn_index = data["fn_index"]
-        fn, preprocess = self.fns[fn_index]
+        fn, preprocess, postprocess = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
 
         if preprocess:
@@ -194,13 +213,14 @@ class Blocks(Launchable, BlockContext):
             predictions = fn(*raw_input)
         if len(dependency["outputs"]) == 1:
             predictions = (predictions,)
-        processed_output = [
-            self.blocks[output_id].postprocess(predictions[i])
-            if predictions[i] is not None
-            else None
-            for i, output_id in enumerate(dependency["outputs"])
-        ]
-        return {"data": processed_output}
+        if postprocess:
+            predictions = [
+                self.blocks[output_id].postprocess(predictions[i])
+                if predictions[i] is not None
+                else None
+                for i, output_id in enumerate(dependency["outputs"])
+            ]
+        return {"data": predictions}
 
     def get_template_context(self):
         return {"type": "column"}
@@ -243,3 +263,19 @@ class Blocks(Launchable, BlockContext):
             Context.root_block = None
         else:
             self.parent.children.extend(self.children)
+
+    def load(
+        self, fn: Callable, inputs: List[Component], outputs: List[Component]
+    ) -> None:
+        """
+        Adds an event for when the demo loads in the browser.
+
+        Parameters:
+            fn: Callable function
+            inputs: input list
+            outputs: output list
+        Returns: None
+        """
+        self.set_event_trigger(
+            event_name="load", fn=fn, inputs=inputs, outputs=outputs, no_target=True
+        )
