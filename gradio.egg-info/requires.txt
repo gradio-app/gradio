@@ -14,3 +14,4 @@ python-multipart
 pydub
 requests
 uvicorn
+Jinja2

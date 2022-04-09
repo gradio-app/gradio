@@ -31,5 +31,6 @@ setup(
         "pydub",
         "requests",
         "uvicorn",
+        "Jinja2"
     ],
 )
