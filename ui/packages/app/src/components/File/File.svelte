@@ -8,6 +8,7 @@
 	export let default_value: null | FileData = null;
 	export let style: string = "";
 	export let mode: "static" | "dynamic";
+	export let static_src: string;
 
 	if (default_value) value = default_value;
 

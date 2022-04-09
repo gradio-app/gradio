@@ -38,6 +38,7 @@
 	export let dependencies: Array<Dependency>;
 	export let theme: string;
 	export let style: string | null;
+	let examples_dir = root + "file/";
 
 	const dynamic_ids = dependencies.reduce((acc, next) => {
 		next.inputs.forEach((i) => acc.add(i));
@@ -193,6 +194,7 @@
 				{instance_map}
 				{theme}
 				{root}
+				{examples_dir}
 				on:mount={handle_mount}
 				on:destroy={({ detail }) => handle_destroy(detail)}
 			/>

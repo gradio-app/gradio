@@ -9,9 +9,10 @@
 	import video_icon from "./video.svg";
 
 	export let value: FileData | null = null;
+	export let theme: string = "default";
 	export let source: string;
-	export let label: string | undefined = undefined;
-	export let style: string = "";
+	export let label: string;
+	export let examples_dir: string;
 
 	export let drop_text: string = "Drop a video file";
 	export let or_text: string = "or";
@@ -50,6 +51,7 @@
 				bind:dragging
 				filetype="video/mp4,video/x-m4v,video/*"
 				on:load={handle_load}
+				{theme}
 			>
 				{drop_text}
 				<br />- {or_text} -<br />
@@ -59,7 +61,7 @@
 			<Webcam mode="video" on:capture={({ detail }) => (value = detail)} />
 		{/if}
 	{:else}
-		<ModifyUpload on:clear={handle_clear} />
+		<ModifyUpload on:clear={handle_clear} {theme} />
 		{#if playable(value.name)}
 			<!-- svelte-ignore a11y-media-has-caption -->
 			<video
@@ -67,7 +69,7 @@
 				controls
 				playsInline
 				preload="auto"
-				src={value.data}
+				src={value.data || examples_dir + value.name}
 				on:play
 				on:pause
 				on:ended
