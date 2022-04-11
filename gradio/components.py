@@ -2950,23 +2950,23 @@ class Interpretation(Component):
         }
 
 
-def get_component_instance(component: str | dict | Component):
-    if isinstance(component, str):
-        shortcut = Component.get_all_shortcut_implementations()[component]
+def get_component_instance(comp: str | dict | Component):
+    if isinstance(comp, str):
+        shortcut = Component.get_all_shortcut_implementations()[comp]
         return shortcut[0](**shortcut[1], without_rendering=True)
     elif isinstance(
-        component, dict
+        comp, dict
     ):  # a dict with `name` as the input component type and other keys as parameters
-        name = component.pop("name")
+        name = comp.pop("name")
         for component in Component.__subclasses__():
             if component.__name__.lower() == name:
                 break
         else:
             raise ValueError(f"No such Component: {name}")
-        return component(**component, without_rendering=True)
-    elif isinstance(component, Component):
-        return component
+        return component(**comp, without_rendering=True)
+    elif isinstance(comp, Component):
+        return comp
     else:
         raise ValueError(
-            f"Component must provided as a `str` or `dict` or `Component` but is {component}"
+            f"Component must provided as a `str` or `dict` or `Component` but is {comp}"
         )
