@@ -140,7 +140,7 @@ iface3.launch()
 
 Although both models are generative, you can see that the way both models behave is very different. That's a powerful application of `Parallel`!
 
-## Creating spaces with python
+## Creating Spaces with python
 
 Making use of the [huggingface_hub client library](https://github.com/huggingface/huggingface_hub/tree/main/src/huggingface_hub) library you can create new spaces or models. You can do this even in a Gradio space! You can find an example space [here](https://huggingface.co/spaces/farukozderim/Model-Comparator-Space-Builder). This space creates a new space comparing different models or spaces with the support of Gradio `load` and `Parallel`. Now you can try creating cool spaces with all kinds of functionality 😎.
 
