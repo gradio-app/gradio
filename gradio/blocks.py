@@ -194,6 +194,8 @@ class Blocks(BlockContext):
         self.mode = mode
         
         self.is_running = False
+        self.share_url = None
+        
         self.ip_address = utils.get_local_ip_address()
         self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
         
@@ -380,8 +382,7 @@ class Blocks(BlockContext):
             
         if self.is_running:
             self.server_app.launchable = self
-            print(f"Already running on port {self.server_port}. Use close() to stop and change launch() parameters.")
-            # TODO: configure auth and the other things that might need to be setup, also redisplay iframe, etc.
+            print(f"Rerunning server... use `close()` to stop if you need to change `launch()` parameters.\n----")
         else:
             server_port, path_to_local_server, app, server = networking.start_server(
                 self,
@@ -424,7 +425,7 @@ class Blocks(BlockContext):
                 if self.share_url is None:
                     share_url = networking.setup_tunnel(self.server_port, private_endpoint)
                     self.share_url = share_url
-                print(strings.en["SHARE_LINK_DISPLAY"].format(share_url))
+                print(strings.en["SHARE_LINK_DISPLAY"].format(self.share_url))
                 if private_endpoint:
                     print(strings.en["PRIVATE_LINK_MESSAGE"])
                 else:
@@ -432,17 +433,17 @@ class Blocks(BlockContext):
             except RuntimeError:
                 if self.analytics_enabled:
                     utils.error_analytics(self.ip_address, "Not able to set up tunnel")
-                share_url = None
+                self.share_url = None
                 share = False
                 print(strings.en["COULD_NOT_GET_SHARE_LINK"])
         else:
             print(strings.en["PUBLIC_SHARE_TRUE"])
-            share_url = None
+            self.share_url = None
 
         self.share = share
 
         if inbrowser:
-            link = share_url if share else self.local_url
+            link = self.share_url if share else self.local_url
             webbrowser.open(link)
 
         # Check if running in a Python notebook in which case, display inline
@@ -458,9 +459,9 @@ class Blocks(BlockContext):
                 from IPython.display import IFrame, display  # type: ignore
 
                 if share:
-                    while not networking.url_ok(share_url):
+                    while not networking.url_ok(self.share_url):
                         time.sleep(1)
-                    display(IFrame(share_url, width=self.width, height=self.height))
+                    display(IFrame(self.share_url, width=self.width, height=self.height))
                 else:
                     display(
                         IFrame(
@@ -474,7 +475,7 @@ class Blocks(BlockContext):
             "launch_method": "browser" if inbrowser else "inline",
             "is_google_colab": is_colab,
             "is_sharing_on": share,
-            "share_url": share_url,
+            "share_url": self.share_url,
             "ip_address": self.ip_address,
             "enable_queue": self.enable_queue,
             "show_tips": self.show_tips,
@@ -496,7 +497,7 @@ class Blocks(BlockContext):
         if not prevent_thread_lock and not is_in_interactive_mode:
             self.block_thread()
 
-        return self.server_app, self.local_url, share_url
+        return self.server_app, self.local_url, self.share_url
 
     def close(self, verbose: bool = True) -> None:
         """
@@ -504,6 +505,7 @@ class Blocks(BlockContext):
         """
         try:
             self.server.close()
+            self.is_running = False
             if verbose:
                 print("Closing server running on port: {}".format(self.server_port))
         except (AttributeError, OSError):  # can't close if not running
