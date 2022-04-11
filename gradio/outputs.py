@@ -887,12 +887,13 @@ class Plot(OutputComponent):
         (str): plot type
         (str): plot base64 or json
         """
+        dtype = self.type
         if self.type == "plotly":
-            dtype = "plotly"
             out_y = y.to_json()
         elif self.type == "matplotlib":
-            dtype = "matplotlib"
             out_y = processing_utils.encode_plot_to_base64(y)
+        elif self.type == "bokeh":
+            out_y = y.to_json()
         elif self.type == "auto":
             if isinstance(y, ModuleType):
                 dtype = "matplotlib"

@@ -1,7 +1,24 @@
+<svelte:head>
+ <script src="https://cdn.bokeh.org/bokeh/release/bokeh-2.0.1.min.js"></script>
+ <script src="https://cdn.pydata.org/bokeh/release/bokeh-widgets-1.3.4.min.js"></script>
+ <script src="https://cdn.pydata.org/bokeh/release/bokeh-tables-1.3.4.min.js"></script>
+ <script src="https://cdn.pydata.org/bokeh/release/bokeh-gl-1.3.4.min.js"></script>
+ <script src="https://cdn.pydata.org/bokeh/release/bokeh-api-1.3.4.min.js"></script>
+ <script src="https://cdn.pydata.org/bokeh/release/bokeh-api-1.3.4.min.js"></script>
+</svelte:head>
+
+<script lang="ts" context="module">
+  interface CustomWindow extends Window {
+	  Bokeh: any
+  }
+
+  declare let window: CustomWindow;
+</script>
+
 <script lang="ts">
+
 	export let value: string;
 	export let theme: string;
-	import { onMount } from "svelte";
 	import { afterUpdate } from "svelte";
 	import Plotly from "plotly.js-dist-min";
 
@@ -10,11 +27,18 @@
 			let plotObj = JSON.parse(value["plot"]);
 			let plotDiv = document.getElementById("plotDiv");
 			Plotly.newPlot(plotDiv, plotObj["data"], plotObj["layout"]);
-		}
+		} else if (value["type"] == "bokeh") {
+      let plotObj = JSON.parse(value["plot"]);
+      console.log("Hit!!!")
+      console.log(plotObj)
+      // let plotDiv = document.getElementById("plotDiv");
+      window.Bokeh.embed.embed_item(plotObj, "plotDiv");
+    }
 	});
+
 </script>
 
-{#if value["type"] == "plotly"}
+{#if value["type"] == "plotly" || value["type"] == "bokeh" }
 	<div id="plotDiv" />
 {:else}
 	<div
