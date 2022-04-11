@@ -6,6 +6,7 @@ including various methods for constructing an interface and then launching it.
 from __future__ import annotations
 
 import copy
+import csv
 import inspect
 import os
 import random
@@ -13,7 +14,6 @@ import re
 import time
 import warnings
 import weakref
-import csv
 from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
 
 from markdown_it import MarkdownIt

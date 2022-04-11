@@ -1,5 +1,4 @@
 import requests
-
 import tensorflow as tf
 
 import gradio as gr
