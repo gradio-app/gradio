@@ -1758,7 +1758,7 @@ class Audio(Component):
         (str): base64 url data
         """
         if self.output_type in ["numpy", "file", "auto"]:
-            if self.type == "numpy" or (self.type == "auto" and isinstance(y, tuple)):
+            if self.output_type == "numpy" or (self.output_type == "auto" and isinstance(y, tuple)):
                 sample_rate, data = y
                 file = tempfile.NamedTemporaryFile(
                     prefix="sample", suffix=".wav", delete=False
@@ -2922,28 +2922,23 @@ class Interpretation(Component):
         }
 
 
-# TODO: (faruk) does this take component or interface as a input?
-# see this line in Carousel
-# self.components = [get_component_instance(component) for component in components]
-def get_component_instance(iface: Component):
-    # TODO: function may not work properly, and it needs updates regarding its design. See:
-    # https://github.com/gradio-app/gradio/issues/731
-    if isinstance(iface, str):
-        shortcut = Component.get_all_shortcut_implementations()[iface]
+def get_component_instance(component: str | dict | Component):
+    if isinstance(component, str):
+        shortcut = Component.get_all_shortcut_implementations()[component]
         return shortcut[0](**shortcut[1], without_rendering=True)
     elif isinstance(
-        iface, dict
+        component, dict
     ):  # a dict with `name` as the input component type and other keys as parameters
-        name = iface.pop("name")
+        name = component.pop("name")
         for component in Component.__subclasses__():
             if component.__name__.lower() == name:
                 break
         else:
             raise ValueError(f"No such Component: {name}")
-        return component(**iface, without_rendering=True)
-    elif isinstance(iface, Component):
-        return iface
+        return component(**component, without_rendering=True)
+    elif isinstance(component, Component):
+        return component
     else:
         raise ValueError(
-            f"Input interface must be of type `str` or `dict` or `InputComponent` but is {iface}"
+            f"Component must provided as a `str` or `dict` or `Component` but is {component}"
         )
