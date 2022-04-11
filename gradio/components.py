@@ -1280,9 +1280,7 @@ class Image(Component):
         return self.save_flagged_file(dir, label, data, encryption_key)
 
     def restore_flagged(self, dir, data, encryption_key):
-        return processing_utils.encode_file_to_base64(
-            os.path.join(dir, data), encryption_key=encryption_key
-        )
+        return os.path.join(dir, data)
 
     def generate_sample(self):
         return deepcopy(media_data.BASE64_IMAGE)

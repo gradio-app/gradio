@@ -13,6 +13,7 @@ import re
 import time
 import warnings
 import weakref
+import csv
 from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
 
 from markdown_it import MarkdownIt
@@ -329,19 +330,48 @@ class Interface(Blocks):
                 self.css = css_file.read()
         else:
             self.css = css
-        if (
-            examples is None
-            or isinstance(examples, str)
-            or (
-                isinstance(examples, list)
-                and (len(examples) == 0 or isinstance(examples[0], list))
-            )
+        if examples is None or (
+            isinstance(examples, list)
+            and (len(examples) == 0 or isinstance(examples[0], list))
         ):
             self.examples = examples
         elif (
             isinstance(examples, list) and len(self.input_components) == 1
         ):  # If there is only one input component, examples can be provided as a regular list instead of a list of lists
             self.examples = [[e] for e in examples]
+        elif isinstance(examples, str):
+            if not os.path.exists(examples):
+                raise FileNotFoundError(
+                    "Could not find examples directory: " + examples
+                )
+            log_file = os.path.join(examples, "log.csv")
+            if not os.path.exists(log_file):
+                if len(self.input_components) == 1:
+                    exampleset = [
+                        [os.path.join(examples, item)] for item in os.listdir(examples)
+                    ]
+                else:
+                    raise FileNotFoundError(
+                        "Could not find log file (required for multiple inputs): "
+                        + log_file
+                    )
+            else:
+                with open(log_file) as logs:
+                    exampleset = list(csv.reader(logs))
+                    exampleset = exampleset[1:]  # remove header
+            for i, example in enumerate(exampleset):
+                for j, (component, cell) in enumerate(
+                    zip(
+                        self.input_components + self.output_components,
+                        example,
+                    )
+                ):
+                    exampleset[i][j] = component.restore_flagged(
+                        examples,
+                        cell,
+                        None,
+                    )
+            self.examples = exampleset
         else:
             raise ValueError(
                 "Examples argument must either be a directory or a nested "
@@ -571,7 +601,7 @@ class Interface(Blocks):
                     + (self.output_components if self.cache_examples else []),
                 )
 
-            flag_btn.click(
+            flag_btn._click_no_preprocess(
                 lambda *flag_data: self.flagging_callback.flag(flag_data),
                 inputs=self.input_components + self.output_components,
                 outputs=[],
