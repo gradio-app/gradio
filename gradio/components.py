@@ -1758,7 +1758,9 @@ class Audio(Component):
         (str): base64 url data
         """
         if self.output_type in ["numpy", "file", "auto"]:
-            if self.output_type == "numpy" or (self.output_type == "auto" and isinstance(y, tuple)):
+            if self.output_type == "numpy" or (
+                self.output_type == "auto" and isinstance(y, tuple)
+            ):
                 sample_rate, data = y
                 file = tempfile.NamedTemporaryFile(
                     prefix="sample", suffix=".wav", delete=False
