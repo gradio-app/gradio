@@ -189,11 +189,11 @@
 
 </head>
 
-<body class="bg-white text-gray-900 text-md sm:text-lg">
+<body class="bg-white text-gray-900 text-md">
   {{navbar_html|safe}}
-  <div class="container mx-auto px-4">
-    <main class="container flex gap-4">
-      <div class="navigation h-screen leading-relaxed sticky top-0 bg-gray-50 p-4 text-md overflow-y-auto hidden md:block" style="width: 40rem">
+  <div class="mx-auto" style="width:100%">
+    <main class="flex gap-4">
+      <div class="navigation h-screen leading-relaxed sticky top-0 bg-gray-50 p-4 text-md overflow-y-auto hidden md:block" style="width: 25rem">
         <a class="link mb-2 block" href="#creating_interfaces">Creating Interfaces</a>
         <a class="block thin-link" href="#interface">Interfaces</a>
         <a class="block thin-link" href="#launch">Launching</a>
@@ -207,7 +207,7 @@
         <a class="block thin-link" href='#o_{{ output["name"].lower() }}'>{{ output["name"] }}</a>
         {% endfor %}
       </div>
-      <div class="docs leading-7 max-w-full" style="max-width: 50%">
+      <div class="docs leading-7 max-w-full" style="max-width: 52%">
         <p class="bg-blue-200 border border-blue-600 px-4 py-2 rounded mb-4">If you are just getting started with Gradio, see the <a class="link" href="/getting_started">Getting Started</a> guide.</p>
         <h1 class="text-3xl font-semibold mb-4">Docs</h1>
         <h2 id="creating_interfaces" class="section text-2xl font-semibold mb-4">Creating Interfaces</h2>
@@ -356,7 +356,7 @@
         </section>
         {% endfor %}
       </div>
-      <div class="h-screen leading-relaxed sticky top-0 p-4 text-md overflow-y-auto hidden md:block" style="width: 64rem">
+      <div class="h-screen leading-relaxed sticky top-0 p-4 text-md overflow-y-auto hidden md:block bg-gray-50" style="width: 50rem">
         {% for component_type in ('input', 'output') %}
         {% for func in docs[component_type] %}
         <div class="demos-guides hidden">
