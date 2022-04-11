@@ -142,7 +142,7 @@ Although both models are generative, you can see that the way both models behave
 
 ## Creating Spaces with python
 
-Making use of the [huggingface_hub client library](https://github.com/huggingface/huggingface_hub/tree/main/src/huggingface_hub) library you can create new Spaces or model repositories. You can do this even in a Gradio Space! You can find an example space [here](https://huggingface.co/spaces/farukozderim/Model-Comparator-Space-Builder). This Space creates a new Space comparing different models or spaces with the support of Gradio `load` and `Parallel`. Now you can try creating cool spaces with all kinds of functionality 😎.
+Making use of the [huggingface_hub client library](https://huggingface.co/docs/huggingface_hub/index) library you can create new Spaces or model repositories. You can do this even in a Gradio Space! You can find an example space [here](https://huggingface.co/spaces/farukozderim/Model-Comparator-Space-Builder). This Space creates a new Space comparing different models or spaces with the support of Gradio `load` and `Parallel`. Now you can try creating cool spaces with all kinds of functionality 😎.
 
 ```python
 from huggingface_hub import (
