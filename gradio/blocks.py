@@ -384,7 +384,7 @@ class Blocks(BlockContext):
         if self.is_running:
             self.server_app.launchable = self
             print(
-                f"Rerunning server... use `close()` to stop if you need to change `launch()` parameters.\n----"
+                "Rerunning server... use `close()` to stop if you need to change `launch()` parameters.\n----"
             )
         else:
             server_port, path_to_local_server, app, server = networking.start_server(

@@ -3,15 +3,13 @@
 	import { prettyBytes } from "./utils";
 
 	export let value: FileData;
-	export let theme: string;
-	export let style: string | null;
+	export let style: string = "";
 </script>
 
 <a
 	class="output-file w-full h-full flex flex-row flex-wrap justify-center items-center relative"
 	href={value.data}
 	download={value.name}
-	{theme}
 >
 	<svg
 		xmlns="http://www.w3.org/2000/svg"

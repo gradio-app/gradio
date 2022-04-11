@@ -1,18 +1,18 @@
 {
 	"interface": {
-		"submit": "Zend in",
-		"clear": "Wis",
-		"interpret": "Interpreteer",
-		"flag": "Vlag",
-		"examples": "Voorbeelden",
 		"drop_image": "Sleep een Afbeelding hier",
 		"drop_video": "Sleep een Video hier",
 		"drop_audio": "Sleep een Geluidsbestand hier",
 		"drop_file": "Sleep een Document hier",
 		"drop_csv": "Sleep een CSV hier",
-		"or": "of",
 		"click_to_upload": "Klik om the Uploaden",
 		"view_api": "zie de api",
 		"built_with_Gradio": "gemaakt met gradio"
-	}
+	},
+	"Submit": "Zend in",
+	"Clear": "Wis",
+	"Interpret": "Interpreteer",
+	"Flag": "Vlag",
+	"Examples": "Voorbeelden",
+	"or": "of"
 }
