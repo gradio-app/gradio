@@ -225,7 +225,6 @@ class Interface(Blocks):
                 "is deprecated and has no effect."
             )
 
-        self.status = "OFF"
         self.live = live
         self.layout = layout
         self.show_input = show_input
