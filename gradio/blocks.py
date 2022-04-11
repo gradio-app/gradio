@@ -42,7 +42,8 @@ class Block:
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
-        preprocess=True,
+        preprocess: bool = True,
+        postprocess: bool = True,
         queue=False,
         no_target: bool = False,
     ) -> None:
@@ -53,6 +54,8 @@ class Block:
             fn: Callable function
             inputs: input list
             outputs: output list
+            preprocess: whether to run the preprocess methods of components
+            postprocess: whether to run the postprocess methods of components
             no_target: if True, sets "targets" to [], used for Blocks "load" event
         Returns: None
         """
@@ -62,7 +65,7 @@ class Block:
         if not isinstance(outputs, list):
             outputs = [outputs]
 
-        Context.root_block.fns.append((fn, preprocess))
+        Context.root_block.fns.append((fn, preprocess, postprocess))
         Context.root_block.dependencies.append(
             {
                 "targets": [self._id] if not no_target else [],
@@ -208,7 +211,7 @@ class Blocks(BlockContext):
     def process_api(self, data: Dict[str, Any], username: str = None) -> Dict[str, Any]:
         raw_input = data["data"]
         fn_index = data["fn_index"]
-        fn, preprocess = self.fns[fn_index]
+        fn, preprocess, postprocess = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
 
         if preprocess:
@@ -221,13 +224,14 @@ class Blocks(BlockContext):
             predictions = fn(*raw_input)
         if len(dependency["outputs"]) == 1:
             predictions = (predictions,)
-        processed_output = [
-            self.blocks[output_id].postprocess(predictions[i])
-            if predictions[i] is not None
-            else None
-            for i, output_id in enumerate(dependency["outputs"])
-        ]
-        return {"data": processed_output}
+        if postprocess:
+            predictions = [
+                self.blocks[output_id].postprocess(predictions[i])
+                if predictions[i] is not None
+                else None
+                for i, output_id in enumerate(dependency["outputs"])
+            ]
+        return {"data": predictions}
 
     def get_template_context(self):
         return {"type": "column"}

@@ -62,7 +62,7 @@
 					class="sample cursor-pointer p-2 rounded bg-gray-50 dark:bg-gray-700 transition"
 					class:selected={i + page * samples_per_page === sample_id}
 					on:click={() => {
-						value = samples[i];
+						value = i;
 						dispatch("click", i + page * samples_per_page);
 					}}
 				>
@@ -94,7 +94,7 @@
 						class="cursor-pointer transition"
 						class:selected={i + page * samples_per_page === sample_id}
 						on:click={() => {
-							value = samples[i];
+							value = i;
 							dispatch("click", i + page * samples_per_page);
 						}}
 					>

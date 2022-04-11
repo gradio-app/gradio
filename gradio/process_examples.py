@@ -41,9 +41,7 @@ def cache_interface_examples(interface: Interface) -> None:
             f"Cache at {os.path.abspath(CACHE_FILE)} not found. Caching now in '{CACHED_FOLDER}/' directory."
         )
         cache_logger = CSVLogger()
-        cache_logger.setup(
-            interface.input_components + interface.output_components, CACHED_FOLDER
-        )
+        cache_logger.setup(interface.output_components, CACHED_FOLDER)
         for example_id, _ in enumerate(interface.examples):
             try:
                 prediction = process_example(interface, example_id)[0]
@@ -56,7 +54,7 @@ def cache_interface_examples(interface: Interface) -> None:
 def load_from_cache(interface: Interface, example_id: int) -> List[Any]:
     """Loads a particular cached example for the interface."""
     with open(CACHE_FILE) as cache:
-        examples = list(csv.reader(cache, quotechar="'"))
+        examples = list(csv.reader(cache))
     example = examples[example_id + 1]  # +1 to adjust for header
     output = []
     for component, cell in zip(interface.output_components, example):

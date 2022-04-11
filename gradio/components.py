@@ -89,7 +89,7 @@ class Component(Block):
         return data
 
     def save_flagged_file(
-        self, dir: str, label: Optional[str], data: Any, encryption_key: bool
+        self, dir: str, label: str, data: Any, encryption_key: bool
     ) -> Optional[str]:
         """
         Saved flagged data (e.g. image or audio) as a file and returns filepath
@@ -1278,6 +1278,9 @@ class Image(Component):
         Returns: (str) path to image file
         """
         return self.save_flagged_file(dir, label, data, encryption_key)
+
+    def restore_flagged(self, dir, data, encryption_key):
+        return os.path.join(dir, data)
 
     def generate_sample(self):
         return deepcopy(media_data.BASE64_IMAGE)
@@ -2868,13 +2871,14 @@ class Dataset(Component):
         *,
         components: List[Component],
         samples: List[List[Any]],
-        value: Optional[Number] = None,
+        type: str = "values",
         label: Optional[str] = None,
         css: Optional[Dict] = None,
         **kwargs,
     ):
         super().__init__(label=label, css=css, **kwargs)
         self.components = components
+        self.type = type
         self.headers = [c.label for c in components]
         self.samples = samples
 
@@ -2885,8 +2889,18 @@ class Dataset(Component):
             ],
             "headers": self.headers,
             "samples": self.samples,
+            "type": self.type,
             **super().get_template_context(),
         }
+
+    def preprocess(self, x: Any) -> Any:
+        """
+        Any preprocessing needed to be performed on function input.
+        """
+        if self.type == "index":
+            return x
+        elif self.type == "values":
+            return self.samples[x]
 
     def click(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
@@ -2897,6 +2911,18 @@ class Dataset(Component):
         Returns: None
         """
         self.set_event_trigger("click", fn, inputs, outputs)
+
+    def _click_no_postprocess(
+        self, fn: Callable, inputs: List[Component], outputs: List[Component]
+    ):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("click", fn, inputs, outputs, postprocess=False)
 
 
 class Interpretation(Component):

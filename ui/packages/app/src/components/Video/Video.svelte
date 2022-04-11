@@ -11,13 +11,14 @@
 	export let default_value: FileData | null;
 	export let style: string = "";
 	export let source: string;
+	export let root: string;
 
 	export let mode: "static" | "dynamic";
 
 	if (default_value) value = default_value;
 
 	let _value: null | FileData;
-	$: _value = normalise_file(value);
+	$: _value = normalise_file(value, root);
 </script>
 
 {#if mode === "static" && _value}
