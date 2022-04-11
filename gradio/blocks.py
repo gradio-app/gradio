@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import os
+import enum
 import getpass
 import os
 import sys
@@ -71,7 +71,6 @@ class Block:
                 "queue": queue,
             }
         )
-
 
 class BlockContext(Block):
     def __init__(self, visible: bool = True, css: Optional[Dict[str, str]] = None):
@@ -194,10 +193,9 @@ class Blocks(BlockContext):
         self.dependencies = []
         self.mode = mode
         
-        self.status = "OFF"
+        self.is_running = False
         self.ip_address = utils.get_local_ip_address()
         self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
-        self.mode = "blocks"  # Can be overridden by child classes to be more specific
         
 
     def render(self):
@@ -285,7 +283,14 @@ class Blocks(BlockContext):
         self.set_event_trigger(
             event_name="load", fn=fn, inputs=inputs, outputs=outputs, no_target=True
         )
-
+        
+    def clear(self):
+        """Resets the layout of the Blocks object."""
+        self.blocks = {}
+        self.fns = []
+        self.dependencies = []
+        self.children = []
+        return self
 
     def launch(
         self,
@@ -336,9 +341,9 @@ class Blocks(BlockContext):
         ssl_certfile (str): If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
         ssl_keyfile_password (str): If a password is provided, will use this with the ssl certificate for https.
         Returns:
-        app (flask.Flask): Flask app object
-        path_to_local_server (str): Locally accessible link
-        share_url (str): Publicly accessible link (if share=True)
+        app (FastAPI): FastAPI app object that is running the demo
+        local_url (str): Locally accessible link to the demo
+        share_url (str): Publicly accessible link to the demo (if share=True, otherwise None)
         """
         self.config = self.get_config_file()
         self.cache_examples = cache_examples
@@ -373,9 +378,10 @@ class Blocks(BlockContext):
         if self.cache_examples:
             cache_interface_examples(self)
             
-        if self.status == "RUNNING":
+        if self.is_running:
             self.server_app.launchable = self
-            # TODO: configure auth and the other things that might need to be setup
+            print(f"Already running on port {self.server_port}. Use close() to stop and change launch() parameters.")
+            # TODO: configure auth and the other things that might need to be setup, also redisplay iframe, etc.
         else:
             server_port, path_to_local_server, app, server = networking.start_server(
                 self,
@@ -385,19 +391,18 @@ class Blocks(BlockContext):
                 ssl_certfile,
                 ssl_keyfile_password,
             )
-
-        self.local_url = path_to_local_server
-        self.server_port = server_port
-        self.server_app = app
-        self.server = server
-        self.status = "RUNNING"
+            self.local_url = path_to_local_server
+            self.server_port = server_port
+            self.server_app = app
+            self.server = server
+            self.is_running = True
 
         utils.launch_counter()
 
         # If running in a colab or not able to access localhost,
         # automatically create a shareable link.
         is_colab = utils.colab_check()
-        if is_colab or not (networking.url_ok(path_to_local_server)):
+        if is_colab or not (networking.url_ok(self.local_url)):
             share = True
             if is_colab:
                 if debug:
@@ -405,7 +410,7 @@ class Blocks(BlockContext):
                 else:
                     print(strings.en["COLAB_DEBUG_FALSE"])
         else:
-            print(strings.en["RUNNING_LOCALLY"].format(path_to_local_server))
+            print(strings.en["RUNNING_LOCALLY"].format(self.local_url))
         if is_colab and self.requires_permissions:
             print(strings.en["MEDIA_PERMISSIONS_IN_COLAB"])
 
@@ -416,8 +421,9 @@ class Blocks(BlockContext):
             if self.is_space:
                 raise RuntimeError("Share is not supported when you are in Spaces")
             try:
-                share_url = networking.setup_tunnel(server_port, private_endpoint)
-                self.share_url = share_url
+                if self.share_url is None:
+                    share_url = networking.setup_tunnel(self.server_port, private_endpoint)
+                    self.share_url = share_url
                 print(strings.en["SHARE_LINK_DISPLAY"].format(share_url))
                 if private_endpoint:
                     print(strings.en["PRIVATE_LINK_MESSAGE"])
@@ -436,7 +442,7 @@ class Blocks(BlockContext):
         self.share = share
 
         if inbrowser:
-            link = share_url if share else path_to_local_server
+            link = share_url if share else self.local_url
             webbrowser.open(link)
 
         # Check if running in a Python notebook in which case, display inline
@@ -458,7 +464,7 @@ class Blocks(BlockContext):
                 else:
                     display(
                         IFrame(
-                            path_to_local_server, width=self.width, height=self.height
+                            self.local_url, width=self.width, height=self.height
                         )
                     )
             except ImportError:
@@ -490,7 +496,7 @@ class Blocks(BlockContext):
         if not prevent_thread_lock and not is_in_interactive_mode:
             self.block_thread()
 
-        return app, path_to_local_server, share_url
+        return self.server_app, self.local_url, share_url
 
     def close(self, verbose: bool = True) -> None:
         """
