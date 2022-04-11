@@ -215,6 +215,18 @@ def render_guides():
 
 
 def render_docs():
+    os.makedirs("generated", exist_ok=True)
+    with open("src/docs_template.html") as template_file:
+        template = Template(template_file.read())
+        output_html = template.render(navbar_html=navbar_html, **GRADIO_ASSETS)
+    os.makedirs(os.path.join("generated", "docs"), exist_ok=True)
+    with open(
+            os.path.join("generated", "docs", "index.html"), "w"
+    ) as generated_template:
+        generated_template.write(output_html)
+
+
+def render_reference():
     if os.path.exists("generated/colab_links.json"):
         with open("generated/colab_links.json") as demo_links_file:
             try:
@@ -357,14 +369,14 @@ def render_docs():
     }
 
     os.makedirs("generated", exist_ok=True)
-    with open("src/docs_template.html") as template_file:
+    with open("src/reference_template.html") as template_file:
         template = Template(template_file.read())
         output_html = template.render(
             docs=docs, demo_links=demo_links, navbar_html=navbar_html, **GRADIO_ASSETS
         )
-    os.makedirs(os.path.join("generated", "docs"), exist_ok=True)
+    os.makedirs(os.path.join("generated", "docs", "reference"), exist_ok=True)
     with open(
-        os.path.join("generated", "docs", "index.html"), "w"
+        os.path.join("generated", "docs", "reference", "index.html"), "w"
     ) as generated_template:
         generated_template.write(output_html)
 
@@ -390,4 +402,5 @@ if __name__ == "__main__":
     render_guides_main()
     render_guides()
     render_docs()
+    render_reference()
     render_other()
