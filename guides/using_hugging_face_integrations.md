@@ -142,7 +142,7 @@ Although both models are generative, you can see that the way both models behave
 
 ## Creating Spaces with python
 
-Making use of the [huggingface_hub client library](https://github.com/huggingface/huggingface_hub/tree/main/src/huggingface_hub) library you can create new spaces or models. You can do this even in a Gradio space! You can find an example space [here](https://huggingface.co/spaces/farukozderim/Model-Comparator-Space-Builder). This space creates a new space comparing different models or spaces with the support of Gradio `load` and `Parallel`. Now you can try creating cool spaces with all kinds of functionality 😎.
+Making use of the [huggingface_hub client library](https://github.com/huggingface/huggingface_hub/tree/main/src/huggingface_hub) library you can create new Spaces or model repositories. You can do this even in a Gradio Space! You can find an example space [here](https://huggingface.co/spaces/farukozderim/Model-Comparator-Space-Builder). This Space creates a new Space comparing different models or spaces with the support of Gradio `load` and `Parallel`. Now you can try creating cool spaces with all kinds of functionality 😎.
 
 ```python
 from huggingface_hub import (
@@ -160,7 +160,7 @@ file_url = upload_file(
     token=hf_token,
 )
 ```
-Here `create_repo` creates a gradio repo with the target name under a specific account using that account's Write Token. `repo_name` gets the full repo name of the related repo. Finally `upload_file` uploads a file inside the repo with the name `app.py`.
+Here, `create_repo` creates a gradio repo with the target name under a specific account using that account's Write Token. `repo_name` gets the full repo name of the related repo. Finally `upload_file` uploads a file inside the repo with the name `app.py`.
 
 <iframe src="https://hf.space/embed/farukozderim/Model-Comparator-Space-Builder/+" frameBorder="0" height=800" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
