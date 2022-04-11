@@ -175,6 +175,9 @@
       color: #ed9013;
     }
 
+    strong {
+      font-weight: 600;
+    }
 
   </style>
   <script async src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
@@ -225,12 +228,20 @@
             -->{% if not loop.last %}, {% endif %}<!--
           -->{% endfor %})</code></pre>
             <p class="mb-2">{{ docs.interface["doc"] }}</p>
-            <h4 class="font-semibold mb-2">Parameters</h4>
-            <ul class="list-disc list-inside">
-              {% for param in docs.interface["params_doc"] %}
-              <li><span class="font-semibold">{{ param[0] }}</span> <em>({{ param[1] }})</em> - {{ param[2] }}</li>
-              {% endfor %}
-            </ul>
+            <table style="width: 100%; margin:1rem;">
+              <thead style="text-align:left;">
+                <tr>
+                <th style="font-weight: 600;">Parameter</th>
+                <th style="font-weight: 600;">Description</th>
+                </tr>
+            </thead><tbody style="text-align:left; vertical-align: top;">
+            {% for param in docs.interface["params_doc"] %}
+              <tr>
+              <td><code class=“prettyprint”>{{ param[0] }}</code></td>
+                <td><p><strong>{{ param[1] }}</strong></p><p>{{ param[2] }}</p></td>
+              </tr>
+            {% endfor %}
+              </tbody></table>
           </div>
           </div>
           <div id='launch'>
@@ -246,12 +257,20 @@
               -->{% if not loop.last %}, {% endif %}<!--
             -->{% endfor %})</code></pre>
             <p class="mb-2">Launches the webserver that serves the UI for the interface.</p>
-            <h4 class="font-semibold mb-2">Parameters</h4>
-            <ul class="list-disc list-inside">
-              {% for param in docs.launch["params_doc"] %}
-              <li><span class="font-semibold">{{ param[0] }}</span> <em>({{ param[1] }})</em> - {{ param[2] }}</li>
-              {% endfor %}
-            </ul>
+            <table style="width: 100%; margin:1rem;">
+              <thead style="text-align:left;">
+                <tr>
+                <th style="font-weight: 600;">Parameter</th>
+                <th style="font-weight: 600;">Description</th>
+                </tr>
+            </thead><tbody style="text-align:left; vertical-align: top;">
+            {% for param in docs.launch["params_doc"] %}
+              <tr>
+              <td><code class=“prettyprint”>{{ param[0] }}</code></td>
+                <td><p><strong>{{ param[1] }}</strong></p><p>{{ param[2] }}</p></td>
+              </tr>
+            {% endfor %}
+              </tbody></table>
           </div>
           </div>
           <div id='load'>
@@ -267,12 +286,20 @@
               -->{% if not loop.last %}, {% endif %}<!--
             -->{% endfor %})</code></pre>
             <p class="mb-2">Class method to construct an Interface from an external source repository, such as huggingface.</p>
-            <h4 class="font-semibold mb-2">Parameters</h4>
-            <ul class="list-disc list-inside">
-              {% for param in docs.load["params_doc"] %}
-              <li><span class="font-semibold">{{ param[0] }}</span> <em>({{ param[1] }})</em> - {{ param[2] }}</li>
-              {% endfor %}
-            </ul>
+            <table style="width: 100%; margin:1rem;">
+              <thead style="text-align:left;">
+                <tr>
+                <th style="font-weight: 600;">Parameter</th>
+                <th style="font-weight: 600;">Description</th>
+                </tr>
+            </thead><tbody style="text-align:left; vertical-align: top;">
+            {% for param in docs.load["params_doc"] %}
+              <tr>
+              <td><code class=“prettyprint”>{{ param[0] }}</code></td>
+                <td><p><strong>{{ param[1] }}</strong></p><p>{{ param[2] }}</p></td>
+              </tr>
+            {% endfor %}
+              </tbody></table>
             <h4 class="font-semibold mb-2">Returns</h4>
             <ul class="list-disc list-inside">
               {% for ret in docs.load["return_doc"] %}
@@ -301,12 +328,20 @@
             <div id='{{ component_type[0] }}_{{ func["name"].lower() }}_component'></div>
             <p class="mb-2">{{ func["doc"] }}</p>
             <p class="mb-2">{{ component_type|capitalize }} type: <span class="font-semibold">{{ func["type"] }}</span></p>
-            <h4 class="font-semibold mb-2">Parameters</h4>
-            <ul class="list-disc list-inside">
+            <table style="width: 100%; margin:1rem;">
+              <thead style="text-align:left;">
+                <tr>
+                <th style="font-weight: 600;">Parameter</th>
+                <th style="font-weight: 600;">Description</th>
+                </tr>
+            </thead><tbody style="text-align:left; vertical-align: top;">
               {% for param in func["params_doc"] %}
-              <li><span class="font-semibold">{{ param[0] }}</span> <em>({{ param[1] }})</em> - {{ param[2] }}</li>
-              {% endfor %}
-            </ul>
+              <tr>
+              <td><code class=“prettyprint”>{{ param[0] }}</code></td>
+                <td><p><strong>{{ param[1] }}</strong></p><p>{{ param[2] }}</p></td>
+              </tr>
+            {% endfor %}
+              </tbody></table>
             {% if func["shortcuts"]|length %}
             <h4 class="my-2 font-semibold">String Shortcuts</h4>
             <ul class="list-disc list-inside">
