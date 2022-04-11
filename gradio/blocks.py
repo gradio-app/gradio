@@ -5,16 +5,17 @@ import getpass
 import os
 import sys
 import time
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 import webbrowser
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
 from gradio import encryptor, networking, queueing, strings, utils
 from gradio.context import Context
 from gradio.process_examples import cache_interface_examples
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    from gradio.components import Component
     from fastapi.applications import FastAPI
+
+    from gradio.components import Component
 
 
 class Block:
@@ -71,6 +72,7 @@ class Block:
                 "queue": queue,
             }
         )
+
 
 class BlockContext(Block):
     def __init__(self, visible: bool = True, css: Optional[Dict[str, str]] = None):
@@ -192,13 +194,12 @@ class Blocks(BlockContext):
         self.fns = []
         self.dependencies = []
         self.mode = mode
-        
+
         self.is_running = False
         self.share_url = None
-        
+
         self.ip_address = utils.get_local_ip_address()
         self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
-        
 
     def render(self):
         self._id = Context.id
@@ -285,7 +286,7 @@ class Blocks(BlockContext):
         self.set_event_trigger(
             event_name="load", fn=fn, inputs=inputs, outputs=outputs, no_target=True
         )
-        
+
     def clear(self):
         """Resets the layout of the Blocks object."""
         self.blocks = {}
@@ -379,10 +380,12 @@ class Blocks(BlockContext):
 
         if self.cache_examples:
             cache_interface_examples(self)
-            
+
         if self.is_running:
             self.server_app.launchable = self
-            print(f"Rerunning server... use `close()` to stop if you need to change `launch()` parameters.\n----")
+            print(
+                f"Rerunning server... use `close()` to stop if you need to change `launch()` parameters.\n----"
+            )
         else:
             server_port, path_to_local_server, app, server = networking.start_server(
                 self,
@@ -423,7 +426,9 @@ class Blocks(BlockContext):
                 raise RuntimeError("Share is not supported when you are in Spaces")
             try:
                 if self.share_url is None:
-                    share_url = networking.setup_tunnel(self.server_port, private_endpoint)
+                    share_url = networking.setup_tunnel(
+                        self.server_port, private_endpoint
+                    )
                     self.share_url = share_url
                 print(strings.en["SHARE_LINK_DISPLAY"].format(self.share_url))
                 if private_endpoint:
@@ -461,12 +466,12 @@ class Blocks(BlockContext):
                 if share:
                     while not networking.url_ok(self.share_url):
                         time.sleep(1)
-                    display(IFrame(self.share_url, width=self.width, height=self.height))
+                    display(
+                        IFrame(self.share_url, width=self.width, height=self.height)
+                    )
                 else:
                     display(
-                        IFrame(
-                            self.local_url, width=self.width, height=self.height
-                        )
+                        IFrame(self.local_url, width=self.width, height=self.height)
                     )
             except ImportError:
                 pass

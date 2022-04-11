@@ -197,9 +197,7 @@ def create_app() -> FastAPI:
             "sample_inputs": sample_inputs,
             "auth": app.blocks.auth,
             "local_login_url": urllib.parse.urljoin(app.blocks.local_url, "login"),
-            "local_api_url": urllib.parse.urljoin(
-                app.blocks.local_url, "api/predict"
-            ),
+            "local_api_url": urllib.parse.urljoin(app.blocks.local_url, "api/predict"),
         }
         return templates.TemplateResponse("api_docs.html", {"request": request, **docs})
 
