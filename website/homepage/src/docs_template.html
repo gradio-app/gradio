@@ -179,6 +179,14 @@
       font-weight: 600;
     }
 
+     .tags-holder {
+      text-align: left;
+      font-size: small;
+      font-weight: 300;
+      color: #5a5a5a;
+    }
+
+
   </style>
   <script async src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
     <script>
@@ -416,7 +424,7 @@
                 </div>
               </div>
         {% endfor %}
-          <h2 class="my-2 block font-semibold">Guides</h2>
+          <h2 class="my-2 block font-semibold">Step-by-step Guides</h2>
           {% if func["guides"] %}
             <div class="guides-list">
           {% for guide in func["guides"] %}
@@ -426,6 +434,14 @@
           height: min-content;">
               <h2 class="font-semibold group-hover:underline text-xl">{{ guide.pretty_name }}
               </h2>
+              <div class="tags-holder">
+            <p>
+              {% for tag in guide.tags %}
+                {{ tag }}<!--
+             -->{% if not loop.last %}, {% endif %}
+              {% endfor %}
+            </p>
+          </div>
             </div>
           </a>
 
