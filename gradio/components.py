@@ -2038,18 +2038,16 @@ class Dataframe(Component):
             "number": 0,
             "bool": False,
             "date": "01/01/1970",
-        }        
+        }
         column_dtypes = (
             [datatype] * self.col_count if isinstance(datatype, str) else datatype
         )
         self.test_input = [
             [default_values[c] for c in column_dtypes] for _ in range(row_count)
-        ]        
+        ]
         self.default_value = (
-            default_value
-            if default_value is not None
-            else self.test_input
-        )        
+            default_value if default_value is not None else self.test_input
+        )
         self.max_rows = max_rows
         self.max_cols = max_cols
         self.overflow_row_behaviour = overflow_row_behaviour
