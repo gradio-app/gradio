@@ -40,7 +40,7 @@ test("renders the correct elements", async ({ page }) => {
 });
 
 test("can run an api request and display the data", async ({ page }) => {
-	await mock_demo(page, "xray_blocks");
+	await mock_demo(page, "blocks_xray");
 	await mock_api(page, [
 		[
 			{
