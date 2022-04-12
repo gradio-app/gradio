@@ -24,7 +24,9 @@ function find_pkg(dir: string = __dirname): string | undefined {
 }
 
 async function mock_demo(page: Page, demo: string) {
-	console.log(find_pkg());
+	console.log(
+		fs.readdirSync(path.resolve(find_pkg(), "..", "..", "..", "demo"))
+	);
 	return page.route("**/config", (route) => {
 		return route.fulfill({
 			headers: {
