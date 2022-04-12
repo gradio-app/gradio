@@ -1,6 +1,4 @@
 import { test, expect, Page } from "@playwright/test";
-import fs from "fs";
-import path from "path";
 
 async function mock_demo(page: Page, demo: string) {
 	return page.route("**/config", (route) => {
@@ -59,9 +57,6 @@ test("can run an api request and display the data", async ({ page }) => {
 	]);
 
 	await page.goto("http://localhost:3000");
-
-	// await page.locator('button:has-text("Covid")').click();
-	// await page.locator('button:has-text("Lung Cancer")').click();
 
 	await page.check("label:has-text('Covid')");
 	await page.check("label:has-text('Lung Cancer')");
