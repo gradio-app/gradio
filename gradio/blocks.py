@@ -214,6 +214,14 @@ class Blocks(BlockContext):
         username: str = None,
         state: Optional[Dict[int, any]] = None,
     ) -> Dict[str, Any]:
+        """
+        Processes API calls from the frontend.
+        Parameters:
+            data: data recieved from the frontend
+            username: name of user if authentication is set up
+            state: data stored from stateful components for session
+        Returns: None
+        """
         raw_input = data["data"]
         fn_index = data["fn_index"]
         session_hash = data["session_hash"]
@@ -248,7 +256,7 @@ class Blocks(BlockContext):
                     )
             else:
                 output = predictions
-        return {"data": predictions}
+        return {"data": output}
 
     def get_template_context(self):
         return {"type": "column"}

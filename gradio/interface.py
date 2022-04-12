@@ -180,7 +180,9 @@ class Interface(Blocks):
             outputs = [outputs]
 
         if "state" in inputs or "state" in outputs:
-            if len([i for i in inputs if i == "state"]) != 1 or len([o for o in outputs if o == "state"]) != 1:
+            state_input_count = len([i for i in inputs if i == "state"])
+            state_output_count = len([o for o in outputs if o == "state"])
+            if state_input_count != 1 or state_output_count != 1:
                 raise ValueError("If using 'state', there must be exactly one state input and one state output.")
             default = utils.get_default_args(fn[0])[inputs.index("state")]
             state_variable = Variable(default_value=default)
