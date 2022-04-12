@@ -1,6 +1,6 @@
 import { test, expect, Page } from "@playwright/test";
 
-async function mock_demo(page: Page, demo: string) {
+function mock_demo(page: Page, demo: string) {
 	return page.route("**/config", (route) => {
 		return route.fulfill({
 			headers: {
