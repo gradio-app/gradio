@@ -2,31 +2,7 @@ import { test, expect, Page } from "@playwright/test";
 import fs from "fs";
 import path from "path";
 
-function find_pkg(dir: string = __dirname): string | undefined {
-	console.log("HI", dir);
-	const files = fs.readdirSync(dir);
-	for (let i = 0; i < files.length; i++) {
-		const f = files[i];
-		if (f.endsWith("package.json")) {
-			return dir;
-		} else if (fs.statSync(path.join(dir, f)).isDirectory()) {
-			// return find_pkg(path.join(__dirname, f));
-		}
-	}
-
-	const new_dir = dir
-		.split("/")
-		.filter((_, i, arr) => i !== arr.length - 1)
-		.join("/");
-
-	if (new_dir === "") return;
-	return find_pkg(new_dir);
-}
-
 async function mock_demo(page: Page, demo: string) {
-	console.log(
-		fs.readdirSync(path.resolve(find_pkg(), "..", "..", "..", "demo"))
-	);
 	return page.route("**/config", (route) => {
 		return route.fulfill({
 			headers: {
@@ -52,7 +28,7 @@ function mock_api(page: Page, body: Array<unknown>) {
 }
 
 test("renders the correct elements", async ({ page }) => {
-	await mock_demo(page, "xray_blocks");
+	await mock_demo(page, "blocks_xray");
 	await page.goto("http://localhost:3000");
 
 	const description = await page.locator(".output-markdown");
