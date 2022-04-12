@@ -1,4 +1,5 @@
 # A Blocks implementation of https://erlj.notion.site/Neural-Instrument-Cloning-from-very-few-samples-2cf41d8b630842ee8c7eb55036a1bfd6
+# Needs to be run from the demo\blocks_neural_instrument_coding folder
 
 import gradio as gr
 from gradio.components import Markdown as m
@@ -118,4 +119,4 @@ with demo.clear():
 
 
 if __name__ == "__main__":
-    demo.launch(share=True)
+    demo.launch()
