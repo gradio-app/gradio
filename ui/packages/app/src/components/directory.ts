@@ -26,5 +26,6 @@ export const component_map: Record<string, any> = {
 	tabitem: () => import("./TabItem"),
 	textbox: () => import("./Textbox"),
 	timeseries: () => import("./TimeSeries"),
-	video: () => import("./Video")
+	video: () => import("./Video"),
+	variable: () => import("./Variable")
 };
