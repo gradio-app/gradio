@@ -209,7 +209,7 @@
 		<a href="https://gradio.app" target="_blank" rel="noreferrer">
 			{$_("interface.built_with_Gradio")}
 			<img
-				class="h-5 inline-block"
+				class="h-5 inline-block pb-0.5"
 				src="{static_src}/static/img/logo.svg"
 				alt="logo"
 			/>
