@@ -6,8 +6,6 @@
 	// export let default_data: Array<Array<string | number>> = [];
 	export let style: string = "";
 
-	if ($$props.default) values = $$props.default;
-
 	export let editable = true;
 
 	const dispatch = createEventDispatcher<{ change: typeof values }>();
@@ -38,25 +36,38 @@
 		}
 	}
 
-	let _headers = make_headers(headers);
+	function process_data(_values: Array<Array<string | number>>) {
+		return (
+			_values.map((x) =>
+				x.map((n) => {
+					const _id = ++id;
+					els[id] = { input: null, cell: null };
+					return { value: n, id: _id };
+				})
+			) || [
+				Array(headers.length)
+					.fill(0)
 
-	let data = values.map((x) =>
-		x.map((n) => {
-			const _id = ++id;
-			els[id] = { input: null, cell: null };
-			return { value: n, id: _id };
-		})
-	) || [
-		Array(headers.length)
-			.fill(0)
+					.map((_) => {
+						const _id = ++id;
+						els[id] = { input: null, cell: null };
 
-			.map((_) => {
-				const _id = ++id;
-				els[id] = { input: null, cell: null };
+						return { value: "", id: _id };
+					})
+			]
+		);
+	}
 
-				return { value: "", id: _id };
-			})
-	];
+	$: _headers = make_headers(headers);
+
+	let data: Array<Array<{ id: number; value: string | number }>> = [[]];
+
+	let old_val: undefined | Array<Array<string | number>> = undefined;
+
+	$: if (values !== old_val) {
+		data = process_data(values);
+		old_val = values;
+	}
 
 	$: dispatch(
 		"change",
