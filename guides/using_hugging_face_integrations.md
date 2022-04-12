@@ -1,9 +1,9 @@
 # Using Hugging Face Integrations
 
-related_spaces: https://huggingface.co/spaces/osanseviero/helsinki_translation_en_es, https://huggingface.co/spaces/osanseviero/remove-bg-webcam, https://huggingface.co/spaces/mrm8488/GPT-J-6B, https://huggingface.co/spaces/akhaliq/T0pp, https://huggingface.co/spaces/osanseviero/mix_match_gradio
+related_spaces: https://huggingface.co/spaces/farukozderim/Model-Comparator-Space-Builder, https://huggingface.co/spaces/osanseviero/helsinki_translation_en_es, https://huggingface.co/spaces/osanseviero/remove-bg-webcam, https://huggingface.co/spaces/mrm8488/GPT-J-6B, https://huggingface.co/spaces/akhaliq/T0pp, https://huggingface.co/spaces/osanseviero/mix_match_gradio
 tags: HUB, SPACES, EMBED
 
-Contributed by <a href="https://huggingface.co/osanseviero">Omar Sanseviero</a> 🦙
+Contributed by <a href="https://huggingface.co/osanseviero">Omar Sanseviero</a> 🦙 and <a href="https://huggingface.co/farukozderim">Ömer Faruk Özdemir</a>
 
 ## Introduction
 
@@ -139,6 +139,31 @@ iface3.launch()
 <iframe src="https://hf.space/embed/osanseviero/mix_match_gradio/+" frameBorder="0" height="450" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
 Although both models are generative, you can see that the way both models behave is very different. That's a powerful application of `Parallel`!
+
+## Creating Spaces with python
+
+Making use of the [huggingface_hub client library](https://huggingface.co/docs/huggingface_hub/index) library you can create new Spaces or model repositories. You can do this even in a Gradio Space! You can find an example space [here](https://huggingface.co/spaces/farukozderim/Model-Comparator-Space-Builder). This Space creates a new Space comparing different models or spaces with the support of Gradio `load` and `Parallel`. Now you can try creating cool spaces with all kinds of functionality 😎.
+
+```python
+from huggingface_hub import (
+    create_repo,
+    get_full_repo_name,
+    upload_file,
+)
+create_repo(name=target_space_name, token=hf_token, repo_type="space", space_sdk="gradio")
+repo_name = get_full_repo_name(model_id=target_space_name, token=hf_token)
+file_url = upload_file(
+    path_or_fileobj="file.txt",
+    path_in_repo="app.py",
+    repo_id=repo_name,
+    repo_type="space",
+    token=hf_token,
+)
+```
+Here, `create_repo` creates a gradio repo with the target name under a specific account using that account's Write Token. `repo_name` gets the full repo name of the related repo. Finally `upload_file` uploads a file inside the repo with the name `app.py`.
+
+<iframe src="https://hf.space/embed/farukozderim/Model-Comparator-Space-Builder/+" frameBorder="0" height=800" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+
 
 ## Embedding your Space demo on other websites
 
