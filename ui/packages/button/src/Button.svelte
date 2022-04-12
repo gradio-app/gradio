@@ -6,13 +6,17 @@
 <button
 	on:click
 	{style}
-	class="{variant} flex-1 px-4 py-2 bg-gray-100 rounded transition"
+	class="btn-{variant} shadow-sm bg-gradient-to-br py-2 px-4 rounded-lg border font-semibold flex-1 active:shadow-inner bg-white"
 >
 	<slot />
 </button>
 
 <style lang="postcss">
-	button {
-		@apply hover:bg-gray-200;
+	.btn-primary {
+		@apply from-orange-100/70 to-orange-200/80 hover:to-orange-100/95 text-orange-700 border-orange-200/30;
+	}
+
+	.btn-secondary {
+		@apply from-gray-100/70 to-gray-200/80 hover:to-gray-100/95 text-gray-700 border-gray-200/30;
 	}
 </style>
