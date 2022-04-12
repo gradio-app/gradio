@@ -206,7 +206,7 @@
 	}
 </script>
 
-<div class="mx-auto container p-4">
+<div class="mx-auto container space-y-4 px-4 py-6">
 	{#if tree}
 		{#each tree as { component, id, props, children, has_modes }}
 			<Render

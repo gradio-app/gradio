@@ -13,7 +13,7 @@
 </script>
 
 {#if $current === id}
-	<div class="component">
+	<div class="component min-h-[200px] border rounded-lg">
 		{#if label}
 			<div class="panel-header">{label}</div>
 		{/if}

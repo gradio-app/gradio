@@ -45,13 +45,13 @@
 	};
 </script>
 
-<div class="output-carousel flex flex-col gap-2">
+<div class="output-carousel flex flex-col rounded-lg overflow-hidden">
 	<slot />
 
-	<div class="carousel-control flex gap-4 justify-center items-center my-1">
-		<button on:click={prev}>
+	<div class="carousel-control flex gap-4 justify-center items-center my-1 text-xs">
+		<button on:click={prev} class="flex items-center justify-center h-6 w-6 hover:text-orange-600">
 			<svg
-				class="caret h-3 mt-0.5 fill-current"
+				class="caret h-2 mt-0.5 fill-current"
 				viewBox="0 0 9.1457395 15.999842"
 			>
 				<path
@@ -60,14 +60,14 @@
 			</svg>
 		</button>
 		<div
-			class="carousel_index text-xl text-center font-semibold"
+			class="carousel_index text-center font-semibold"
 			style="min-width: 60px"
 		>
 			{carousel_index + 1} / {$items.length}
 		</div>
-		<button on:click={next}>
+		<button on:click={next} class="flex items-center justify-center h-6 w-6  hover:text-orange-600">
 			<svg
-				class="caret h-3 mt-0.5 fill-current"
+				class="caret h-2 mt-0.5 fill-current"
 				viewBox="0 0 9.1457395 15.999842"
 				transform="scale(-1, 1)"
 			>
