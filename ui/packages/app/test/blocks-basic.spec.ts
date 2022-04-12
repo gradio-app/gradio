@@ -1,6 +1,8 @@
 import { test, expect, Page } from "@playwright/test";
+import fs from "fs";
 
 function mock_demo(page: Page, demo: string) {
+	console.log(fs.readdirSync(`../../../demo/${demo}`));
 	return page.route("**/config", (route) => {
 		return route.fulfill({
 			headers: {
