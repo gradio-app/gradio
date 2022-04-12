@@ -246,7 +246,7 @@
             </thead><tbody style="text-align:left; vertical-align: top;">
             {% for param in docs.interface["params_doc"] %}
               <tr>
-              <td><code class=“prettyprint”>{{ param[0] }}</code></td>
+                <td><code class=“prettyprint”>{{ param[0] }}</code></td>
                 <td><p><strong>{{ param[1] }}</strong></p><p>{{ param[2] }}</p></td>
               </tr>
             {% endfor %}
@@ -337,19 +337,26 @@
             <div id='{{ component_type[0] }}_{{ func["name"].lower() }}_component'></div>
             <p class="mb-2">{{ func["doc"] }}</p>
             <p class="mb-2">{{ component_type|capitalize }} type: <span class="font-semibold">{{ func["type"] }}</span></p>
-            <table style="width: 100%; margin:1rem;">
+            <table style="width: 100%; margin:1rem;" id='{{ component_type[0] }}_{{ func["name"].lower() }}_component_table'>
               <thead style="text-align:left;">
                 <tr>
                 <th style="font-weight: 600;">Parameter</th>
                 <th style="font-weight: 600;">Description</th>
+                <th style="font-weight: 600;">Try it!</th>
                 </tr>
             </thead><tbody style="text-align:left; vertical-align: top;">
               {% for param in func["params_doc"] %}
               <tr>
-              <td><code class=“prettyprint”>{{ param[0] }}</code></td>
+                <td><code class=“prettyprint”>{{ param[0] }}</code></td>
                 <td><p><strong>{{ param[1] }}</strong></p><p>{{ param[2] }}</p></td>
+                <td><input type="text" autocomplete="off" id='{{ component_type[0] }}_{{ func["name"].lower() }}_component_param_{{ param[0] }}'></td>
               </tr>
             {% endfor %}
+            <tr>
+                <td></td>
+                <td></td>
+                <td><button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onclick="update('{{ component_type[0] }}_{{ func['name'].lower() }}_component','{{ func['name'].lower() }}')" >UPDATE</button></td>
+            </tr>
               </tbody></table>
             {% if func["shortcuts"]|length %}
             <h4 class="my-2 font-semibold">String Shortcuts</h4>
@@ -627,57 +634,6 @@
         }, 600);
     };
 
-    function showScreenshot() {
-       let screenshotElems = document.querySelectorAll(".interface-screenshot");
-       let codeElems = document.querySelectorAll(".demo-code");
-       let codeButtonElems = document.querySelectorAll(".code-button");
-       let demoButtonElems = document.querySelectorAll(".demo-button");
-       codeElems.forEach(e => {
-        e.classList.add("hidden");
-        e.classList.remove("flex");
-        e.classList.remove("selected");
-       }
-       );
-       screenshotElems.forEach(e => {
-        e.classList.remove("hidden");
-        e.classList.add("selected");
-       }
-       );
-        codeButtonElems.forEach(e => {
-        e.classList.remove("selected");
-       }
-       );
-       demoButtonElems.forEach(e => {
-        e.classList.add("selected");
-       }
-       );
-    }
-
-    function showCode() {
-       let screenshotElems = document.querySelectorAll(".interface-screenshot");
-       let codeElems = document.querySelectorAll(".demo-code");
-       let codeButtonElems = document.querySelectorAll(".code-button");
-       let demoButtonElems = document.querySelectorAll(".demo-button");
-       screenshotElems.forEach(e => {
-        e.classList.add("hidden");
-        e.classList.remove("selected");
-       }
-       );
-       codeElems.forEach(e => {
-        e.classList.remove("hidden");
-        e.classList.add("flex");
-        e.classList.add("selected");
-       }
-       );
-       codeButtonElems.forEach(e => {
-        e.classList.add("selected");
-       }
-       );
-       demoButtonElems.forEach(e => {
-        e.classList.remove("selected");
-       }
-       );
-    }
 
     document.querySelector("#gradio-library").addEventListener('load', function () {
     var target, config
@@ -788,6 +744,61 @@
 
 
     })
+
+     function update(id, type) {
+       let query = "#" + id + "_table input"
+       let inputs = document.querySelectorAll(query);
+       var props = {}
+       for (let i = 0; i < inputs.length; i++) {
+        props[inputs[i].id.split("_param_")[1]] = document.getElementById(inputs[i].id).value;
+       }
+       config = {
+          "mode": "blocks",
+          "components": [
+            {
+              "id": 1,
+              "type": type,
+              "props": props
+            },
+            {
+              "id": 2,
+              "type": "textbox",
+              "props": {},
+            },
+              {
+              "id": 3,
+              "type": "button",
+              "props": {}
+            },
+          ],
+          "theme": "default",
+          "layout": {
+            "id": 0, "children": [
+                {"id": 1}
+                ]
+          },
+          "dependencies": [
+              {
+              "targets": [
+                3
+              ],
+              "trigger": "click",
+              "inputs": [
+                1
+              ],
+              "outputs": [
+                2
+              ],
+              "queue": false
+            },
+          ]
+        }
+      let target = "#" + id
+      let current = document.querySelector(target);
+      current.innerHTML=""
+      window.launchGradio(config, target);
+     }
+
 
   </script>
 </body>
