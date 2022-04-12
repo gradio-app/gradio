@@ -5,7 +5,8 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import plotly.express as px
-import bokeh as bk
+import bokeh.plotting as bk
+from bokeh.embed import json_item
 import pandas as pd
 
 import gradio as gr
@@ -66,7 +67,9 @@ def outbreak(plot_type, r, month, countries, social_distancing):
         p.line(x, y, legend_label="Temp.", line_width=2)
 
         # show the results
-        return p
+        item_text = json_item(p, "plotDiv")
+        return item_text
+
 
 
 iface = gr.Interface(

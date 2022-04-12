@@ -893,7 +893,7 @@ class Plot(OutputComponent):
         elif self.type == "matplotlib":
             out_y = processing_utils.encode_plot_to_base64(y)
         elif self.type == "bokeh":
-            out_y = y.to_json()
+            out_y = json.dumps(y)
         elif self.type == "auto":
             if isinstance(y, ModuleType):
                 dtype = "matplotlib"
