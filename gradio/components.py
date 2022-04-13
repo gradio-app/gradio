@@ -132,6 +132,8 @@ class Component(Block):
             True, found_class or
             False, None
         """
+        # Make it suitable with class names
+        str_shortcut = str_shortcut.replace("_", "")
         for sub_cls in cls.__subclasses__():
             if sub_cls.__name__.lower() == str_shortcut:
                 return True, sub_cls

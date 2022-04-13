@@ -1,12 +1,7 @@
-from gradio.components import Audio as C_Audio
-from gradio.components import Dataframe as C_Dataframe
-from gradio.components import File as C_File
-from gradio.components import Image as C_Image
-from gradio.components import Textbox as C_Textbox
-from gradio.components import Video as C_Video
+from gradio import components
 
 
-class Text(C_Textbox):
+class Text(components.Textbox):
     def __init__(self, **kwargs):
         """
         Custom component
@@ -16,7 +11,7 @@ class Text(C_Textbox):
         super().__init__(lines=1, **kwargs)
 
 
-class TextArea(C_Textbox):
+class TextArea(components.Textbox):
     def __init__(self, **kwargs):
         """
         Custom component
@@ -26,7 +21,7 @@ class TextArea(C_Textbox):
         super().__init__(lines=7, **kwargs)
 
 
-class Webcam(C_Image):
+class Webcam(components.Image):
     def __init__(self, **kwargs):
         """
         Custom component
@@ -36,7 +31,7 @@ class Webcam(C_Image):
         super().__init__(source="webcam", **kwargs)
 
 
-class Sketchpad(C_Image):
+class Sketchpad(components.Image):
     def __init__(self, **kwargs):
         """
         Custom component
@@ -52,7 +47,7 @@ class Sketchpad(C_Image):
         )
 
 
-class Plot(C_Image):
+class Plot(components.Image):
     def __init__(self, **kwargs):
         """
         Custom component
@@ -62,7 +57,7 @@ class Plot(C_Image):
         super().__init__(type="plot", **kwargs)
 
 
-class Pil(C_Image):
+class Pil(components.Image):
     def __init__(self, **kwargs):
         """
         Custom component
@@ -72,7 +67,7 @@ class Pil(C_Image):
         super().__init__(type="pil", **kwargs)
 
 
-class PlayableVideo(C_Video):
+class PlayableVideo(components.Video):
     def __init__(self, **kwargs):
         """
         Custom component
@@ -82,7 +77,7 @@ class PlayableVideo(C_Video):
         super().__init__(type="mp4", **kwargs)
 
 
-class Microphone(C_Audio):
+class Microphone(components.Audio):
     def __init__(self, **kwargs):
         """
         Custom component
@@ -92,7 +87,7 @@ class Microphone(C_Audio):
         super().__init__(source="microphone", **kwargs)
 
 
-class Mic(C_Audio):
+class Mic(components.Audio):
     def __init__(self, **kwargs):
         """
         Custom component
@@ -102,7 +97,7 @@ class Mic(C_Audio):
         super().__init__(source="microphone", **kwargs)
 
 
-class Files(C_File):
+class Files(components.File):
     def __init__(self, **kwargs):
         """
         Custom component
@@ -112,7 +107,7 @@ class Files(C_File):
         super().__init__(file_count="multiple", **kwargs)
 
 
-class Numpy(C_Dataframe):
+class Numpy(components.Dataframe):
     def __init__(self, **kwargs):
         """
         Custom component
@@ -122,7 +117,7 @@ class Numpy(C_Dataframe):
         super().__init__(type="numpy", **kwargs)
 
 
-class Matrix(C_Dataframe):
+class Matrix(components.Dataframe):
     def __init__(self, **kwargs):
         """
         Custom component
@@ -132,7 +127,7 @@ class Matrix(C_Dataframe):
         super().__init__(type="array", **kwargs)
 
 
-class List(C_Dataframe):
+class List(components.Dataframe):
     def __init__(self, **kwargs):
         """
         Custom component
@@ -140,3 +135,13 @@ class List(C_Dataframe):
         """
         self.is_template = True
         super().__init__(type="array", col_count=1, **kwargs)
+
+
+class Highlight(components.HighlightedText):
+    def __init__(self, **kwargs):
+        """
+        Custom component
+        @param kwargs:
+        """
+        self.is_template = True
+        super().__init__(**kwargs)
