@@ -898,6 +898,9 @@ class Plot(OutputComponent):
             if isinstance(y, ModuleType):
                 dtype = "matplotlib"
                 out_y = processing_utils.encode_plot_to_base64(y)
+            elif isinstance(y, dict):
+                dtype = "bokeh"
+                out_y = json.dumps(y)
             else:
                 dtype = "plotly"
                 out_y = y.to_json()
