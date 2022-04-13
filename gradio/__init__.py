@@ -29,6 +29,7 @@ from gradio.components import (
     Textbox,
     Timeseries,
     Video,
+    Model3D,
 )
 from gradio.flagging import (
     CSVLogger,
