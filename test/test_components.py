@@ -82,7 +82,7 @@ class TestTextbox(unittest.TestCase):
                 "name": "textbox",
                 "label": None,
                 "css": {},
-                "interactive": None,                
+                "interactive": None,
             },
         )
         self.assertIsInstance(text_input.generate_sample(), str)
@@ -171,8 +171,13 @@ class TestNumber(unittest.TestCase):
         )
         self.assertEqual(
             numeric_input.get_template_context(),
-            {"default_value": None, "name": "number", "label": None, "css": {},
-             "interactive": None},
+            {
+                "default_value": None,
+                "name": "number",
+                "label": None,
+                "css": {},
+                "interactive": None,
+            },
         )
 
     def test_in_interface_as_input(self):
@@ -1245,7 +1250,12 @@ class TestLabel(unittest.TestCase):
 
         self.assertEqual(
             label_output.get_template_context(),
-            {"name": "label", "label": None, "css": {}, "interactive": None,},
+            {
+                "name": "label",
+                "label": None,
+                "css": {},
+                "interactive": None,
+            },
         )
 
     def test_in_interface(self):
@@ -1352,8 +1362,13 @@ class TestJSON(unittest.TestCase):
             )
         self.assertEqual(
             js_output.get_template_context(),
-            {"css": {}, "default_value": '""', "label": None, "name": "json",
-             "interactive": None,},
+            {
+                "css": {},
+                "default_value": '""',
+                "label": None,
+                "name": "json",
+                "interactive": None,
+            },
         )
 
     def test_in_interface(self):

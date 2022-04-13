@@ -53,8 +53,13 @@ XRAY_CONFIG = {
         {
             "id": 7,
             "type": "json",
-            "props": {"default_value": '""', "name": "json", "label": None, "css": {},
-                      "interactive": None,},
+            "props": {
+                "default_value": '""',
+                "name": "json",
+                "label": None,
+                "css": {},
+                "interactive": None,
+            },
         },
         {
             "id": 8,
@@ -95,8 +100,13 @@ XRAY_CONFIG = {
         {
             "id": 12,
             "type": "json",
-            "props": {"default_value": '""', "name": "json", "label": None, "css": {},
-                      "interactive": None,},
+            "props": {
+                "default_value": '""',
+                "name": "json",
+                "label": None,
+                "css": {},
+                "interactive": None,
+            },
         },
         {
             "id": 13,
@@ -231,7 +241,13 @@ XRAY_CONFIG_DIFF_IDS = {
         {
             "id": 7,
             "type": "json",
-            "props": {"default_value": '""', "name": "json", "label": None, "css": {}, "interactive": None,},
+            "props": {
+                "default_value": '""',
+                "name": "json",
+                "label": None,
+                "css": {},
+                "interactive": None,
+            },
         },
         {
             "id": 8888,
@@ -272,8 +288,13 @@ XRAY_CONFIG_DIFF_IDS = {
         {
             "id": 12,
             "type": "json",
-            "props": {"default_value": '""', "name": "json", "label": None, "css": {},
-                      "interactive": None,},
+            "props": {
+                "default_value": '""',
+                "name": "json",
+                "label": None,
+                "css": {},
+                "interactive": None,
+            },
         },
         {
             "id": 13,
@@ -401,8 +422,13 @@ XRAY_CONFIG_WITH_MISTAKE = {
         {
             "id": 7,
             "type": "json",
-            "props": {"default_value": '""', "name": "json", "label": None, "css": {},
-                      "interactive": None,},
+            "props": {
+                "default_value": '""',
+                "name": "json",
+                "label": None,
+                "css": {},
+                "interactive": None,
+            },
         },
         {
             "id": 8,
@@ -443,8 +469,13 @@ XRAY_CONFIG_WITH_MISTAKE = {
         {
             "id": 12,
             "type": "json",
-            "props": {"default_value": '""', "name": "json", "label": None, "css": {},
-                      "interactive": None,},
+            "props": {
+                "default_value": '""',
+                "name": "json",
+                "label": None,
+                "css": {},
+                "interactive": None,
+            },
         },
         {
             "id": 13,

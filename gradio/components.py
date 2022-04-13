@@ -67,7 +67,7 @@ class Component(Block):
             "name": self.__class__.__name__.lower(),
             "label": self.label,
             "css": self.css,
-            "interactive": self.interactive
+            "interactive": self.interactive,
         }
 
     @classmethod
