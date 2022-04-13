@@ -12,14 +12,14 @@
 	export let style: string = "";
 	export let is_static: boolean;
 
-	let values = value;
-
 	if (default_value) value = default_value;
 
 	$: {
 		if (!Array.isArray(value)) {
 			if (Array.isArray(value.headers)) headers = value.headers;
-			value = value.data;
+
+			value =
+				value.data.length === 0 ? [Array(headers.length).fill("")] : value.data;
 		} else {
 			value = value;
 		}

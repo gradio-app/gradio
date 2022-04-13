@@ -2,7 +2,7 @@
 	import { createEventDispatcher, tick } from "svelte";
 
 	export let headers: Array<string> = [];
-	export let values: Array<Array<string | number>> = [["", "", ""]];
+	export let values: Array<Array<string | number>> = [[]];
 
 	export let style: string = "";
 
@@ -35,8 +35,6 @@
 		}
 	}
 
-	$: console.log(headers);
-
 	function process_data(_values: Array<Array<string | number>>) {
 		return (
 			_values.map((x, i) =>
@@ -65,14 +63,24 @@
 		if (!is_equal(headers, old_headers)) {
 			_headers = make_headers(headers);
 			old_headers = headers;
-			if (typeof editing === "string")
-				tick().then(() => {
-					els[editing as string]?.input?.focus();
-				});
-			else if (typeof selected === "string")
-				tick().then(() => {
-					els[selected as string]?.input?.focus();
-				});
+			refresh_focus();
+		}
+	}
+
+	$: if (!is_equal(values, old_val)) {
+		data = process_data(values);
+		old_val = values;
+
+		refresh_focus();
+	}
+
+	async function refresh_focus() {
+		if (typeof editing === "string") {
+			await tick();
+			els[editing as string]?.input?.focus();
+		} else if (typeof selected === "string") {
+			await tick();
+			els[selected as string]?.input?.focus();
 		}
 	}
 
@@ -91,20 +99,6 @@
 				return _arr === arr2?.[i];
 			}
 		});
-	}
-
-	$: if (!is_equal(values, old_val)) {
-		const new_data = process_data(values);
-		data = new_data;
-		old_val = values;
-		if (typeof editing === "string")
-			tick().then(() => {
-				els[editing as string]?.input?.focus();
-			});
-		else if (typeof selected === "string")
-			tick().then(() => {
-				els[selected as string]?.input?.focus();
-			});
 	}
 
 	$: dispatch(
@@ -259,8 +253,6 @@
 	}
 
 	let header_edit: string | boolean;
-
-	$: console.log(header_edit);
 
 	async function edit_header(_id: string, select?: boolean) {
 		if (!editable) return;
