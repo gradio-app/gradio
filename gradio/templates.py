@@ -6,6 +6,16 @@ from gradio.components import Textbox as C_Textbox
 from gradio.components import Video as C_Video
 
 
+class Text(C_Textbox):
+    def __init__(self, **kwargs):
+        """
+        Custom component
+        @param kwargs:
+        """
+        self.is_template = True
+        super().__init__(lines=1, **kwargs)
+
+
 class TextArea(C_Textbox):
     def __init__(self, **kwargs):
         """
@@ -82,7 +92,17 @@ class Microphone(C_Audio):
         super().__init__(source="microphone", **kwargs)
 
 
-class C_Files(C_File):
+class Mic(C_Audio):
+    def __init__(self, **kwargs):
+        """
+        Custom component
+        @param kwargs:
+        """
+        self.is_template = True
+        super().__init__(source="microphone", **kwargs)
+
+
+class Files(C_File):
     def __init__(self, **kwargs):
         """
         Custom component
