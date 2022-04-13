@@ -21,7 +21,7 @@ export const fn = async (
 	queue: boolean,
 	queue_callback: (pos: number | null, is_initial?: boolean) => void
 ) => {
-	data["session_hash"] = session_hash
+	data["session_hash"] = session_hash;
 	if (queue && ["predict", "interpret"].includes(action)) {
 		data["action"] = action;
 		const output = await postData(api_endpoint + "queue/push/", data);
