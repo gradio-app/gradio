@@ -189,6 +189,7 @@ class TestHighlightedText(unittest.TestCase):
                 "show_legend": False,
                 "css": {},
                 "default_value": "",
+                "interactive": None,
             },
         )
         ht = {"pos": "Hello ", "neg": "World"}
@@ -242,6 +243,7 @@ class TestAudio(unittest.TestCase):
                 "source": "upload",
                 "css": {},
                 "default_value": None,
+                "interactive": None,
             },
         )
         self.assertTrue(
@@ -374,7 +376,7 @@ class TestDataframe(unittest.TestCase):
                     ["", "", ""],
                 ],
                 "name": "dataframe",
-                "interactive": False,
+                "interactive": None,
             },
         )
         with self.assertRaises(ValueError):
@@ -443,11 +445,13 @@ class TestCarousel(unittest.TestCase):
                         "lines": 1,
                         "css": {},
                         "placeholder": None,
+                        "interactive": None,
                     }
                 ],
                 "name": "carousel",
                 "label": "Disease",
                 "css": {},
+                "interactive": None,
             },
         )
         output = carousel_output.postprocess(["Hello World", "Bye World"])
@@ -505,6 +509,7 @@ class TestTimeseries(unittest.TestCase):
                 "label": "Disease",
                 "css": {},
                 "default_value": None,
+                "interactive": None,
             },
         )
         data = {"Name": ["Tom", "nick", "krish", "jack"], "Age": [20, 21, 19, 18]}
