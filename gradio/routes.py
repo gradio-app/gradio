@@ -63,6 +63,7 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    app.state_holder = {}
 
     @app.get("/user")
     @app.get("/user/")
@@ -110,11 +111,11 @@ def create_app() -> FastAPI:
     @app.get("/", response_class=HTMLResponse)
     def main(request: Request, user: str = Depends(get_current_user)):
         if app.auth is None or not (user is None):
-            config = app.launchable.config
+            config = app.blocks.config
         else:
             config = {
                 "auth_required": True,
-                "auth_message": app.launchable.auth_message,
+                "auth_message": app.blocks.auth_message,
             }
 
         try:
@@ -130,11 +131,11 @@ def create_app() -> FastAPI:
     @app.get("/config/", dependencies=[Depends(login_check)])
     @app.get("/config", dependencies=[Depends(login_check)])
     def get_config():
-        return app.launchable.config
+        return app.blocks.config
 
     @app.get("/static/{path:path}")
     def static_resource(path: str):
-        if app.launchable.share:
+        if app.blocks.share:
             return RedirectResponse(GRADIO_STATIC_ROOT + path)
         else:
             static_file = safe_join(STATIC_PATH_LIB, path)
@@ -144,7 +145,7 @@ def create_app() -> FastAPI:
 
     @app.get("/assets/{path:path}")
     def build_resource(path: str):
-        if app.launchable.share:
+        if app.blocks.share:
             return RedirectResponse(GRADIO_BUILD_ROOT + path)
         else:
             build_file = safe_join(BUILD_PATH_LIB, path)
@@ -155,13 +156,13 @@ def create_app() -> FastAPI:
     @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
     def file(path):
         if (
-            app.launchable.encrypt
-            and isinstance(app.launchable.examples, str)
-            and path.startswith(app.launchable.examples)
+            app.blocks.encrypt
+            and isinstance(app.blocks.examples, str)
+            and path.startswith(app.blocks.examples)
         ):
             with open(safe_join(app.cwd, path), "rb") as encrypted_file:
                 encrypted_data = encrypted_file.read()
-            file_data = encryptor.decrypt(app.launchable.encryption_key, encrypted_data)
+            file_data = encryptor.decrypt(app.blocks.encryption_key, encrypted_data)
             return FileResponse(
                 io.BytesIO(file_data), attachment_filename=os.path.basename(path)
             )
@@ -171,17 +172,17 @@ def create_app() -> FastAPI:
     @app.get("/api", response_class=HTMLResponse)  # Needed for Spaces
     @app.get("/api/", response_class=HTMLResponse)
     def api_docs(request: Request):
-        inputs = [type(inp) for inp in app.launchable.input_components]
-        outputs = [type(out) for out in app.launchable.output_components]
+        inputs = [type(inp) for inp in app.blocks.input_components]
+        outputs = [type(out) for out in app.blocks.output_components]
         input_types_doc, input_types = get_types(inputs, "input")
         output_types_doc, output_types = get_types(outputs, "output")
-        input_names = [type(inp).__name__ for inp in app.launchable.input_components]
-        output_names = [type(out).__name__ for out in app.launchable.output_components]
-        if app.launchable.examples is not None:
-            sample_inputs = app.launchable.examples[0]
+        input_names = [type(inp).__name__ for inp in app.blocks.input_components]
+        output_names = [type(out).__name__ for out in app.blocks.output_components]
+        if app.blocks.examples is not None:
+            sample_inputs = app.blocks.examples[0]
         else:
             sample_inputs = [
-                inp.generate_sample() for inp in app.launchable.input_components
+                inp.generate_sample() for inp in app.blocks.input_components
             ]
         docs = {
             "inputs": input_names,
@@ -195,21 +196,34 @@ def create_app() -> FastAPI:
             "input_types_doc": input_types_doc,
             "output_types_doc": output_types_doc,
             "sample_inputs": sample_inputs,
-            "auth": app.launchable.auth,
-            "local_login_url": urllib.parse.urljoin(app.launchable.local_url, "login"),
-            "local_api_url": urllib.parse.urljoin(
-                app.launchable.local_url, "api/predict"
-            ),
+            "auth": app.blocks.auth,
+            "local_login_url": urllib.parse.urljoin(app.blocks.local_url, "login"),
+            "local_api_url": urllib.parse.urljoin(app.blocks.local_url, "api/predict"),
         }
         return templates.TemplateResponse("api_docs.html", {"request": request, **docs})
 
     @app.post("/api/predict/", dependencies=[Depends(login_check)])
     async def predict(request: Request, username: str = Depends(get_current_user)):
         body = await request.json()
+        if "session_hash" in body:
+            if body["session_hash"] not in app.state_holder:
+                app.state_holder[body["session_hash"]] = {
+                    _id: getattr(block, "default_value", None)
+                    for _id, block in app.blocks.blocks.items()
+                    if getattr(block, "stateful", False)
+                }
+            session_state = app.state_holder[body["session_hash"]]
+        else:
+            session_state = {}
         try:
-            output = await run_in_threadpool(app.launchable.process_api, body, username)
+            output = await run_in_threadpool(
+                app.blocks.process_api,
+                body,
+                username,
+                session_state,
+            )
         except BaseException as error:
-            if app.launchable.show_error:
+            if app.blocks.show_error:
                 traceback.print_exc()
                 return JSONResponse(content={"error": str(error)}, status_code=500)
             else:
@@ -218,13 +232,13 @@ def create_app() -> FastAPI:
 
     @app.post("/api/flag/", dependencies=[Depends(login_check)])
     async def flag(request: Request, username: str = Depends(get_current_user)):
-        if app.launchable.analytics_enabled:
-            await utils.log_feature_analytics(app.launchable.ip_address, "flag")
+        if app.blocks.analytics_enabled:
+            await utils.log_feature_analytics(app.blocks.ip_address, "flag")
         body = await request.json()
         data = body["data"]
         await run_in_threadpool(
-            app.launchable.flagging_callback.flag,
-            app.launchable,
+            app.blocks.flagging_callback.flag,
+            app.blocks,
             data["input_data"],
             data["output_data"],
             flag_option=data.get("flag_option"),
@@ -235,12 +249,12 @@ def create_app() -> FastAPI:
 
     @app.post("/api/interpret/", dependencies=[Depends(login_check)])
     async def interpret(request: Request):
-        if app.launchable.analytics_enabled:
-            await utils.log_feature_analytics(app.launchable.ip_address, "interpret")
+        if app.blocks.analytics_enabled:
+            await utils.log_feature_analytics(app.blocks.ip_address, "interpret")
         body = await request.json()
         raw_input = body["data"]
         interpretation_scores, alternative_outputs = await run_in_threadpool(
-            app.launchable.interpret, raw_input
+            app.blocks.interpret, raw_input
         )
         return {
             "interpretation_scores": interpretation_scores,
@@ -310,15 +324,13 @@ def get_types(cls_set: List[Type], component: str):
 
 def get_state():
     raise DeprecationWarning(
-        "This function is deprecated. To create stateful demos, pass 'state'"
-        "as both an input and output component. Please see the getting started"
-        "guide for more information."
+        "This function is deprecated. To create stateful demos, use the Variable"
+        " component. Please see the getting started for more information."
     )
 
 
 def set_state(*args):
     raise DeprecationWarning(
-        "This function is deprecated. To create stateful demos, pass 'state'"
-        "as both an input and output component. Please see the getting started"
-        "guide for more information."
+        "This function is deprecated. To create stateful demos, use the Variable"
+        " component. Please see the getting started for more information."
     )

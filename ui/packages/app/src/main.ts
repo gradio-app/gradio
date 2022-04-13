@@ -1,4 +1,3 @@
-import App from "./App.svelte";
 import Blocks from "./Blocks.svelte";
 import Login from "./Login.svelte";
 import { fn } from "./api";
@@ -100,18 +99,12 @@ window.launchGradio = (config: Config, element_query: string) => {
 			config.dark = true;
 			target.classList.add("dark");
 		}
-		config.fn = fn.bind(null, config.root + "api/");
-		if (config.mode === "blocks") {
-			new Blocks({
-				target: target,
-				props: config
-			});
-		} else {
-			new App({
-				target: target,
-				props: config
-			});
-		}
+		let session_hash = Math.random().toString(36).substring(2);
+		config.fn = fn.bind(null, session_hash, config.root + "api/");
+		new Blocks({
+			target: target,
+			props: config
+		});
 	}
 };
 

@@ -380,7 +380,7 @@ class TestImage(unittest.TestCase):
             to_save = image_input.save_flagged(tmpdirname, "image_input", img, None)
             self.assertEqual("image_input/1.png", to_save)
             restored = image_input.restore_flagged(tmpdirname, to_save, None)
-            self.assertEqual(restored, "image_input/1.png")
+            self.assertEqual(restored, os.path.join(tmpdirname, "image_input/1.png"))
 
         self.assertIsInstance(image_input.generate_sample(), str)
         image_input = gr.inputs.Image(
@@ -594,9 +594,9 @@ class TestDataframe(unittest.TestCase):
                 "col_count": 3,
                 "col_width": None,
                 "default_value": [
-                    [None, None, None],
-                    [None, None, None],
-                    [None, None, None],
+                    ["", "", ""],
+                    ["", "", ""],
+                    ["", "", ""],
                 ],
                 "name": "dataframe",
                 "label": "Dataframe Input",

@@ -6,6 +6,7 @@ including various methods for constructing an interface and then launching it.
 from __future__ import annotations
 
 import copy
+import csv
 import inspect
 import os
 import random
@@ -26,12 +27,14 @@ from gradio.components import (
     Dataset,
     Interpretation,
     Markdown,
+    Variable,
     get_component_instance,
 )
 from gradio.external import load_from_pipeline, load_interface  # type: ignore
 from gradio.flagging import CSVLogger, FlaggingCallback  # type: ignore
 from gradio.inputs import State as i_State  # type: ignore
 from gradio.outputs import State as o_State  # type: ignore
+from gradio.process_examples import cache_interface_examples, load_from_cache
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     import transformers
@@ -106,6 +109,7 @@ class Interface(Blocks):
         outputs: str | Component | List[str | Component] = None,
         verbose: bool = False,
         examples: Optional[List[Any] | List[List[Any]] | str] = None,
+        cache_examples: bool = False,
         examples_per_page: int = 10,
         live: bool = False,
         layout: str = "unaligned",
@@ -175,26 +179,22 @@ class Interface(Blocks):
         if not isinstance(outputs, list):
             outputs = [outputs]
 
+        if "state" in inputs or "state" in outputs:
+            state_input_count = len([i for i in inputs if i == "state"])
+            state_output_count = len([o for o in outputs if o == "state"])
+            if state_input_count != 1 or state_output_count != 1:
+                raise ValueError(
+                    "If using 'state', there must be exactly one state input and one state output."
+                )
+            default = utils.get_default_args(fn[0])[inputs.index("state")]
+            state_variable = Variable(default_value=default)
+            inputs[inputs.index("state")] = state_variable
+            outputs[outputs.index("state")] = state_variable
+
         self.input_components = [get_component_instance(i) for i in inputs]
         self.output_components = [get_component_instance(o) for o in outputs]
         if repeat_outputs_per_model:
             self.output_components *= len(fn)
-
-        if sum(isinstance(i, i_State) for i in self.input_components) > 1:
-            raise ValueError("Only one input component can be State.")
-        if sum(isinstance(o, o_State) for o in self.output_components) > 1:
-            raise ValueError("Only one output component can be State.")
-
-        if sum(isinstance(i, i_State) for i in self.input_components) == 1:
-            if len(fn) > 1:
-                raise ValueError("State cannot be used with multiple functions.")
-            state_param_index = [
-                isinstance(i, i_State) for i in self.input_components
-            ].index(True)
-            state: i_State = self.input_components[state_param_index]
-            if state.default_value is None:
-                default = utils.get_default_args(fn[0])[state_param_index]
-                state.default_value = default
 
         if (
             interpretation is None
@@ -225,7 +225,6 @@ class Interface(Blocks):
                 "is deprecated and has no effect."
             )
 
-        self.status = "OFF"
         self.live = live
         self.layout = layout
         self.show_input = show_input
@@ -327,19 +326,48 @@ class Interface(Blocks):
                 self.css = css_file.read()
         else:
             self.css = css
-        if (
-            examples is None
-            or isinstance(examples, str)
-            or (
-                isinstance(examples, list)
-                and (len(examples) == 0 or isinstance(examples[0], list))
-            )
+        if examples is None or (
+            isinstance(examples, list)
+            and (len(examples) == 0 or isinstance(examples[0], list))
         ):
             self.examples = examples
         elif (
             isinstance(examples, list) and len(self.input_components) == 1
         ):  # If there is only one input component, examples can be provided as a regular list instead of a list of lists
             self.examples = [[e] for e in examples]
+        elif isinstance(examples, str):
+            if not os.path.exists(examples):
+                raise FileNotFoundError(
+                    "Could not find examples directory: " + examples
+                )
+            log_file = os.path.join(examples, "log.csv")
+            if not os.path.exists(log_file):
+                if len(self.input_components) == 1:
+                    exampleset = [
+                        [os.path.join(examples, item)] for item in os.listdir(examples)
+                    ]
+                else:
+                    raise FileNotFoundError(
+                        "Could not find log file (required for multiple inputs): "
+                        + log_file
+                    )
+            else:
+                with open(log_file) as logs:
+                    exampleset = list(csv.reader(logs))
+                    exampleset = exampleset[1:]  # remove header
+            for i, example in enumerate(exampleset):
+                for j, (component, cell) in enumerate(
+                    zip(
+                        self.input_components + self.output_components,
+                        example,
+                    )
+                ):
+                    exampleset[i][j] = component.restore_flagged(
+                        examples,
+                        cell,
+                        None,
+                    )
+            self.examples = exampleset
         else:
             raise ValueError(
                 "Examples argument must either be a directory or a nested "
@@ -405,13 +433,6 @@ class Interface(Blocks):
         )
 
         self.enable_queue = enable_queue
-        if self.enable_queue is not None:
-            warnings.warn(
-                "The `enable_queue` parameter in the `Interface`"
-                "will be deprecated and may not work properly. "
-                "Please use the `enable_queue` parameter in "
-                "`launch()` instead"
-            )
 
         self.favicon_path = None
         self.height = height
@@ -462,6 +483,10 @@ class Interface(Blocks):
         for i, component in enumerate(self.output_components):
             if component.label is None:
                 component.label = "output_" + str(i)
+
+        self.cache_examples = cache_examples
+        if cache_examples:
+            cache_interface_examples(self)
 
         if self.allow_flagging != "never":
             self.flagging_callback.setup(
@@ -546,12 +571,33 @@ class Interface(Blocks):
             )
             if self.examples:
                 examples = Dataset(
-                    components=self.input_components, samples=self.examples
+                    components=self.input_components,
+                    samples=self.examples,
+                    type="index",
                 )
-                examples.click(
-                    lambda x: x, inputs=[examples], outputs=self.input_components
+
+                def load_example(example_id):
+                    processed_examples = [
+                        component.preprocess_example(sample)
+                        for component, sample in zip(
+                            self.input_components, self.examples[example_id]
+                        )
+                    ]
+                    if self.cache_examples:
+                        processed_examples += load_from_cache(self, example_id)
+                    if len(processed_examples) == 1:
+                        return processed_examples[0]
+                    else:
+                        return processed_examples
+
+                examples._click_no_postprocess(
+                    load_example,
+                    inputs=[examples],
+                    outputs=self.input_components
+                    + (self.output_components if self.cache_examples else []),
                 )
-            flag_btn.click(
+
+            flag_btn._click_no_preprocess(
                 lambda *flag_data: self.flagging_callback.flag(flag_data),
                 inputs=self.input_components + self.output_components,
                 outputs=[],

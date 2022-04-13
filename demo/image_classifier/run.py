@@ -20,12 +20,10 @@ def classify_image(inp):
 image = gr.Image(shape=(224, 224))
 label = gr.Label(num_top_classes=3)
 
-demo = gr.Interface(
+gr.Interface(
     fn=classify_image,
     inputs=image,
-    outputs=label,
+    outputs="image",
     examples=[["images/cheetah1.jpg"], ["images/lion.jpg"]],
-)
-
-if __name__ == "__main__":
-    demo.launch()
+    cache_examples=True,
+).launch()

@@ -26,7 +26,7 @@ function mock_api(page: Page, body: Array<unknown>) {
 }
 
 test("renders the correct elements", async ({ page }) => {
-	await mock_demo(page, "xray_blocks");
+	await mock_demo(page, "blocks_xray");
 	await page.goto("http://localhost:3000");
 
 	const description = await page.locator(".output-markdown");
@@ -40,7 +40,7 @@ test("renders the correct elements", async ({ page }) => {
 });
 
 test("can run an api request and display the data", async ({ page }) => {
-	await mock_demo(page, "xray_blocks");
+	await mock_demo(page, "blocks_xray");
 	await mock_api(page, [
 		[
 			{
@@ -57,9 +57,6 @@ test("can run an api request and display the data", async ({ page }) => {
 	]);
 
 	await page.goto("http://localhost:3000");
-
-	// await page.locator('button:has-text("Covid")').click();
-	// await page.locator('button:has-text("Lung Cancer")').click();
 
 	await page.check("label:has-text('Covid')");
 	await page.check("label:has-text('Lung Cancer')");

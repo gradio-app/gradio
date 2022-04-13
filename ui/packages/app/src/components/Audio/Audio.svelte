@@ -12,11 +12,12 @@
 	export let source: "microphone" | "upload";
 	export let type: "normal" | "numpy" = "normal";
 	export let label: string;
+	export let root: string;
 
 	if (default_value) value = default_value;
 
 	let _value: null | FileData;
-	$: _value = normalise_file(value);
+	$: _value = normalise_file(value, root);
 </script>
 
 {#if mode === "dynamic"}

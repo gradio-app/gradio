@@ -89,7 +89,7 @@ class Component(Block):
         return data
 
     def save_flagged_file(
-        self, dir: str, label: Optional[str], data: Any, encryption_key: bool
+        self, dir: str, label: str, data: Any, encryption_key: bool
     ) -> Optional[str]:
         """
         Saved flagged data (e.g. image or audio) as a file and returns filepath
@@ -208,6 +208,17 @@ class Component(Block):
         Convert from serialized output (e.g. base64 representation) from a call() to the interface to a human-readable version of the output (path of an image, etc.)
         """
         return x
+
+    @staticmethod
+    def update(**kwargs) -> dict:
+        """
+        Updates component parameters
+
+        @param kwargs: Updating component parameters
+        @return: Updated component parameters
+        """
+        kwargs["__type__"] = "update"
+        return kwargs
 
 
 class Textbox(Component):
@@ -1279,6 +1290,9 @@ class Image(Component):
         """
         return self.save_flagged_file(dir, label, data, encryption_key)
 
+    def restore_flagged(self, dir, data, encryption_key):
+        return os.path.join(dir, data)
+
     def generate_sample(self):
         return deepcopy(media_data.BASE64_IMAGE)
 
@@ -1758,7 +1772,9 @@ class Audio(Component):
         (str): base64 url data
         """
         if self.output_type in ["numpy", "file", "auto"]:
-            if self.type == "numpy" or (self.type == "auto" and isinstance(y, tuple)):
+            if self.output_type == "numpy" or (
+                self.output_type == "auto" and isinstance(y, tuple)
+            ):
                 sample_rate, data = y
                 file = tempfile.NamedTemporaryFile(
                     prefix="sample", suffix=".wav", delete=False
@@ -2028,23 +2044,21 @@ class Dataframe(Component):
         self.col_width = col_width
         self.type = type
         self.output_type = "auto"
-        self.default_value = (
-            default_value
-            if default_value is not None
-            else [[None for _ in range(self.col_count)] for _ in range(self.row_count)]
-        )
-        sample_values = {
-            "str": "abc",
-            "number": 786,
-            "bool": True,
-            "date": "02/08/1993",
+        default_values = {
+            "str": "",
+            "number": 0,
+            "bool": False,
+            "date": "01/01/1970",
         }
         column_dtypes = (
             [datatype] * self.col_count if isinstance(datatype, str) else datatype
         )
         self.test_input = [
-            [sample_values[c] for c in column_dtypes] for _ in range(row_count)
+            [default_values[c] for c in column_dtypes] for _ in range(row_count)
         ]
+        self.default_value = (
+            default_value if default_value is not None else self.test_input
+        )
         self.max_rows = max_rows
         self.max_cols = max_cols
         self.overflow_row_behaviour = overflow_row_behaviour
@@ -2262,7 +2276,7 @@ class Timeseries(Component):
         self.set_event_trigger("change", fn, inputs, outputs)
 
 
-class State(Component):
+class Variable(Component):
     """
     Special hidden component that stores state across runs of the interface.
 
@@ -2274,9 +2288,6 @@ class State(Component):
     def __init__(
         self,
         default_value: Any = None,
-        *,
-        label: Optional[str] = None,
-        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -2285,7 +2296,8 @@ class State(Component):
         label (str): component name in interface (not used).
         """
         self.default_value = default_value
-        super().__init__(label=label, css=css, **kwargs)
+        self.stateful = True
+        super().__init__(**kwargs)
 
     def get_template_context(self):
         return {"default_value": self.default_value, **super().get_template_context()}
@@ -2868,13 +2880,14 @@ class Dataset(Component):
         *,
         components: List[Component],
         samples: List[List[Any]],
-        value: Optional[Number] = None,
+        type: str = "values",
         label: Optional[str] = None,
         css: Optional[Dict] = None,
         **kwargs,
     ):
         super().__init__(label=label, css=css, **kwargs)
         self.components = components
+        self.type = type
         self.headers = [c.label for c in components]
         self.samples = samples
 
@@ -2885,8 +2898,18 @@ class Dataset(Component):
             ],
             "headers": self.headers,
             "samples": self.samples,
+            "type": self.type,
             **super().get_template_context(),
         }
+
+    def preprocess(self, x: Any) -> Any:
+        """
+        Any preprocessing needed to be performed on function input.
+        """
+        if self.type == "index":
+            return x
+        elif self.type == "values":
+            return self.samples[x]
 
     def click(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
@@ -2897,6 +2920,18 @@ class Dataset(Component):
         Returns: None
         """
         self.set_event_trigger("click", fn, inputs, outputs)
+
+    def _click_no_postprocess(
+        self, fn: Callable, inputs: List[Component], outputs: List[Component]
+    ):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("click", fn, inputs, outputs, postprocess=False)
 
 
 class Interpretation(Component):
@@ -2922,28 +2957,23 @@ class Interpretation(Component):
         }
 
 
-# TODO: (faruk) does this take component or interface as a input?
-# see this line in Carousel
-# self.components = [get_component_instance(component) for component in components]
-def get_component_instance(iface: Component):
-    # TODO: function may not work properly, and it needs updates regarding its design. See:
-    # https://github.com/gradio-app/gradio/issues/731
-    if isinstance(iface, str):
-        shortcut = Component.get_all_shortcut_implementations()[iface]
+def get_component_instance(comp: str | dict | Component):
+    if isinstance(comp, str):
+        shortcut = Component.get_all_shortcut_implementations()[comp]
         return shortcut[0](**shortcut[1], without_rendering=True)
     elif isinstance(
-        iface, dict
+        comp, dict
     ):  # a dict with `name` as the input component type and other keys as parameters
-        name = iface.pop("name")
+        name = comp.pop("name")
         for component in Component.__subclasses__():
             if component.__name__.lower() == name:
                 break
         else:
             raise ValueError(f"No such Component: {name}")
-        return component(**iface, without_rendering=True)
-    elif isinstance(iface, Component):
-        return iface
+        return component(**comp, without_rendering=True)
+    elif isinstance(comp, Component):
+        return comp
     else:
         raise ValueError(
-            f"Input interface must be of type `str` or `dict` or `InputComponent` but is {iface}"
+            f"Component must provided as a `str` or `dict` or `Component` but is {comp}"
         )

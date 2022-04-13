@@ -369,9 +369,9 @@ class TestDataframe(unittest.TestCase):
                 "col_count": 3,
                 "col_width": None,
                 "default_value": [
-                    [None, None, None],
-                    [None, None, None],
-                    [None, None, None],
+                    ["", "", ""],
+                    ["", "", ""],
+                    ["", "", ""],
                 ],
                 "name": "dataframe",
             },
