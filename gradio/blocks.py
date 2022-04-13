@@ -253,8 +253,8 @@ class Blocks(BlockContext):
                         if predictions[i] is not None
                         else None
                     )
-            else:
-                output = predictions
+        else:
+            output = predictions
         return {"data": output}
 
     def get_template_context(self):
