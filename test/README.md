@@ -1,4 +1,4 @@
-# Backend Testing Guideline
+# Backend Testing Guidelines
 
 - All the tests should test Backend functionalities. Frontend functionalities and e2e tests are done in Frontend.
 - Make use of pytest fixtures whenever it is possible. With fixtures, objects with high initialize durations are reused within tests, ex. a client session.
