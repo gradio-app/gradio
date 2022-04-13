@@ -36,6 +36,13 @@ class Block:
             Context.root_block.blocks[self._id] = self
         self.events = []
 
+    def get_block_name(self):
+        return (
+            self.__class__.__base__.__name__.lower()
+            if hasattr(self, "is_template")
+            else self.__class__.__name__.lower()
+        )
+
     def set_event_trigger(
         self,
         event_name: str,
@@ -266,7 +273,11 @@ class Blocks(BlockContext):
             config["components"].append(
                 {
                     "id": _id,
-                    "type": block.__class__.__name__.lower(),
+                    "type": (
+                        block.__class__.__base__.__name__.lower()
+                        if hasattr(block, "is_template")
+                        else block.__class__.__name__.lower()
+                    ),
                     "props": block.get_template_context()
                     if hasattr(block, "get_template_context")
                     else None,
