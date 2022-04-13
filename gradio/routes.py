@@ -55,7 +55,6 @@ templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 
 
 def create_app() -> FastAPI:
-
     app = FastAPI(default_response_class=ORJSONResponse)
     app.add_middleware(
         CORSMiddleware,
@@ -175,8 +174,8 @@ def create_app() -> FastAPI:
         outputs = [type(out) for out in app.blocks.output_components]
         input_types_doc, input_types = get_types(inputs, "input")
         output_types_doc, output_types = get_types(outputs, "output")
-        input_names = [type(inp).__name__ for inp in app.blocks.input_components]
-        output_names = [type(out).__name__ for out in app.blocks.output_components]
+        input_names = [inp.get_block_name() for inp in app.blocks.input_components]
+        output_names = [out.get_block_name() for out in app.blocks.output_components]
         if app.blocks.examples is not None:
             sample_inputs = app.blocks.examples[0]
         else:
