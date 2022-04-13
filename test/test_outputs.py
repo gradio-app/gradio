@@ -374,6 +374,7 @@ class TestDataframe(unittest.TestCase):
                     ["", "", ""],
                 ],
                 "name": "dataframe",
+                "interactive": False,
             },
         )
         with self.assertRaises(ValueError):
