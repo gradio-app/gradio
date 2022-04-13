@@ -9,6 +9,7 @@ XRAY_CONFIG = {
                 "name": "markdown",
                 "label": None,
                 "css": {},
+                "interactive": None,
             },
         },
         {
@@ -20,6 +21,7 @@ XRAY_CONFIG = {
                 "name": "checkboxgroup",
                 "label": "Disease to Scan For",
                 "css": {},
+                "interactive": None,
             },
         },
         {"id": 3, "type": "tabs", "props": {"css": {}, "default_value": True}},
@@ -45,12 +47,14 @@ XRAY_CONFIG = {
                 "name": "image",
                 "label": None,
                 "css": {},
+                "interactive": None,
             },
         },
         {
             "id": 7,
             "type": "json",
-            "props": {"default_value": '""', "name": "json", "label": None, "css": {}},
+            "props": {"default_value": '""', "name": "json", "label": None, "css": {},
+                      "interactive": None,},
         },
         {
             "id": 8,
@@ -60,6 +64,7 @@ XRAY_CONFIG = {
                 "name": "button",
                 "label": None,
                 "css": {"background-color": "red", "--hover-color": "orange"},
+                "interactive": None,
             },
         },
         {
@@ -84,12 +89,14 @@ XRAY_CONFIG = {
                 "name": "image",
                 "label": None,
                 "css": {},
+                "interactive": None,
             },
         },
         {
             "id": 12,
             "type": "json",
-            "props": {"default_value": '""', "name": "json", "label": None, "css": {}},
+            "props": {"default_value": '""', "name": "json", "label": None, "css": {},
+                      "interactive": None,},
         },
         {
             "id": 13,
@@ -99,6 +106,7 @@ XRAY_CONFIG = {
                 "name": "button",
                 "label": None,
                 "css": {},
+                "interactive": None,
             },
         },
         {
@@ -111,6 +119,7 @@ XRAY_CONFIG = {
                 "name": "textbox",
                 "label": None,
                 "css": {},
+                "interactive": None,
             },
         },
     ],
