@@ -3,7 +3,7 @@
 
 	export let headers: Array<string> = [];
 	export let values: Array<Array<string | number>> = [["", "", ""]];
-	// export let default_data: Array<Array<string | number>> = [];
+
 	export let style: string = "";
 
 	export let editable = true;
@@ -11,8 +11,8 @@
 	const dispatch = createEventDispatcher<{ change: typeof values }>();
 
 	let id = 0;
-	let editing: boolean | number = false;
-	let selected: boolean | number = false;
+	let editing: boolean | string = false;
+	let selected: boolean | string = false;
 	let els: Record<
 		string,
 		{ cell: null | HTMLTableCellElement; input: null | HTMLInputElement }
@@ -38,21 +38,21 @@
 
 	function process_data(_values: Array<Array<string | number>>) {
 		return (
-			_values.map((x) =>
-				x.map((n) => {
-					const _id = ++id;
+			_values.map((x, i) =>
+				x.map((n, j) => {
+					const id = `${i}-${j}`;
 					els[id] = { input: null, cell: null };
-					return { value: n, id: _id };
+					return { value: n, id };
 				})
 			) || [
 				Array(headers.length)
 					.fill(0)
 
-					.map((_) => {
-						const _id = ++id;
+					.map((_, j) => {
+						const id = `0-${j}`;
 						els[id] = { input: null, cell: null };
 
-						return { value: "", id: _id };
+						return { value: "", id: `0-${j}` };
 					})
 			]
 		);
@@ -60,13 +60,34 @@
 
 	$: _headers = make_headers(headers);
 
-	let data: Array<Array<{ id: number; value: string | number }>> = [[]];
+	let data: Array<Array<{ id: string; value: string | number }>> = [[]];
 
 	let old_val: undefined | Array<Array<string | number>> = undefined;
 
-	$: if (values !== old_val) {
-		data = process_data(values);
+	function is_equal(
+		arr: Array<Array<string | number>>,
+		arr2: Array<Array<string | number>> | undefined
+	) {
+		if (!arr2) return false;
+		return arr.every((_arr, i) =>
+			_arr.every((item, j) => {
+				return item === arr2?.[i]?.[j];
+			})
+		);
+	}
+
+	$: if (!is_equal(values, old_val)) {
+		const new_data = process_data(values);
+		data = new_data;
 		old_val = values;
+		if (typeof editing === "string")
+			tick().then(() => {
+				els[editing as string]?.input?.focus();
+			});
+		else if (typeof selected === "string")
+			tick().then(() => {
+				els[selected as string]?.input?.focus();
+			});
 	}
 
 	$: dispatch(
@@ -86,7 +107,7 @@
 		}
 	}
 
-	async function start_edit(id: number) {
+	async function start_edit(id: string) {
 		if (!editable) return;
 		editing = id;
 		await tick();
@@ -98,7 +119,7 @@
 		event: KeyboardEvent,
 		i: number,
 		j: number,
-		id: number
+		id: string
 	) {
 		let is_data;
 		switch (event.key) {
@@ -159,12 +180,14 @@
 		}
 	}
 
-	async function handle_cell_click(id: number) {
+	async function handle_cell_click(id: string) {
+		if (editing === id) return;
+		if (selected === id) return;
 		editing = false;
 		selected = id;
 	}
 
-	async function set_focus(id: number | boolean, type: "edit" | "select") {
+	async function set_focus(id: string | boolean, type: "edit" | "select") {
 		if (type === "edit" && typeof id == "number") {
 			await tick();
 			els[id].input?.focus();
@@ -245,8 +268,8 @@
 
 	function add_row() {
 		data.push(
-			headers.map(() => {
-				const _id = ++id;
+			headers.map((_, i) => {
+				const _id = `${data.length}-${i}`;
 				els[_id] = { cell: null, input: null };
 				return { id: _id, value: "" };
 			})
@@ -256,7 +279,7 @@
 
 	async function add_col() {
 		for (let i = 0; i < data.length; i++) {
-			const _id = ++id;
+			const _id = `${i}-${data[i].length}`;
 			els[_id] = { cell: null, input: null };
 			data[i].push({ id: _id, value: "" });
 		}
@@ -372,15 +395,16 @@
 										on:blur={({ currentTarget }) =>
 											currentTarget.setAttribute("tabindex", "-1")}
 									/>
+								{:else}
+									<span
+										class=" cursor-default w-full"
+										class:opacity-0={editing === id}
+										tabindex="-1"
+										role="button"
+									>
+										{value}
+									</span>
 								{/if}
-								<span
-									class=" cursor-default w-full"
-									class:opacity-0={editing === id}
-									tabindex="-1"
-									role="button"
-								>
-									{value}
-								</span>
 							</div>
 						</td>
 					{/each}
