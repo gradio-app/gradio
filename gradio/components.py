@@ -209,6 +209,17 @@ class Component(Block):
         """
         return x
 
+    @staticmethod
+    def update(**kwargs) -> dict:
+        """
+        Updates component parameters
+
+        @param kwargs: Updating component parameters
+        @return: Updated component parameters
+        """
+        kwargs["__type__"] = "update"
+        return kwargs
+
 
 class Textbox(Component):
     """
