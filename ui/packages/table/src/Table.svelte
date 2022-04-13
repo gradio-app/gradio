@@ -2,61 +2,104 @@
 	import { createEventDispatcher, tick } from "svelte";
 
 	export let headers: Array<string> = [];
-	export let values: Array<Array<string | number>> = [["", "", ""]];
-	// export let default_data: Array<Array<string | number>> = [];
-	export let style: string = "";
+	export let values: Array<Array<string | number>> = [[]];
 
-	if ($$props.default) values = $$props.default;
+	export let style: string = "";
 
 	export let editable = true;
 
 	const dispatch = createEventDispatcher<{ change: typeof values }>();
 
-	let id = 0;
-	let editing: boolean | number = false;
-	let selected: boolean | number = false;
+	let editing: boolean | string = false;
+	let selected: boolean | string = false;
 	let els: Record<
 		string,
 		{ cell: null | HTMLTableCellElement; input: null | HTMLInputElement }
 	> = {};
 
-	type Headers = Array<{ value: string; id: number }>;
+	type Headers = Array<{ value: string; id: string }>;
 
 	function make_headers(_h: Array<string>): Headers {
 		if (!_h || _h.length === 0) {
 			return values[0].map((_, i) => {
-				const _id = ++id;
+				const _id = `h-${i}`;
 				els[_id] = { cell: null, input: null };
 				return { id: _id, value: JSON.stringify(i + 1) };
 			});
 		} else {
-			return _h.map((h) => {
-				const _id = ++id;
+			return _h.map((h, i) => {
+				const _id = `h-${i}`;
 				els[_id] = { cell: null, input: null };
 				return { id: _id, value: h };
 			});
 		}
 	}
 
+	function process_data(_values: Array<Array<string | number>>) {
+		return (
+			_values.map((x, i) =>
+				x.map((n, j) => {
+					const id = `${i}-${j}`;
+					els[id] = { input: null, cell: null };
+					return { value: n, id };
+				})
+			) || [
+				Array(headers.length)
+					.fill(0)
+
+					.map((_, j) => {
+						const id = `0-${j}`;
+						els[id] = { input: null, cell: null };
+
+						return { value: "", id: `0-${j}` };
+					})
+			]
+		);
+	}
+
 	let _headers = make_headers(headers);
+	let old_headers: Array<string> | undefined;
+	$: {
+		if (!is_equal(headers, old_headers)) {
+			_headers = make_headers(headers);
+			old_headers = headers;
+			refresh_focus();
+		}
+	}
 
-	let data = values.map((x) =>
-		x.map((n) => {
-			const _id = ++id;
-			els[id] = { input: null, cell: null };
-			return { value: n, id: _id };
-		})
-	) || [
-		Array(headers.length)
-			.fill(0)
+	$: if (!is_equal(values, old_val)) {
+		data = process_data(values);
+		old_val = values;
 
-			.map((_) => {
-				const _id = ++id;
-				els[id] = { input: null, cell: null };
+		refresh_focus();
+	}
 
-				return { value: "", id: _id };
-			})
-	];
+	async function refresh_focus() {
+		if (typeof editing === "string") {
+			await tick();
+			els[editing as string]?.input?.focus();
+		} else if (typeof selected === "string") {
+			await tick();
+			els[selected as string]?.input?.focus();
+		}
+	}
+
+	let data: Array<Array<{ id: string; value: string | number }>> = [[]];
+
+	let old_val: undefined | Array<Array<string | number>> = undefined;
+
+	function is_equal(arr: Array<any>, arr2: Array<any> | undefined) {
+		if (!arr2) return false;
+		return arr.every((_arr, i) => {
+			if (Array.isArray(_arr)) {
+				return _arr.every((item, j) => {
+					return item === arr2?.[i]?.[j];
+				});
+			} else {
+				return _arr === arr2?.[i];
+			}
+		});
+	}
 
 	$: dispatch(
 		"change",
@@ -75,7 +118,7 @@
 		}
 	}
 
-	async function start_edit(id: number) {
+	async function start_edit(id: string) {
 		if (!editable) return;
 		editing = id;
 		await tick();
@@ -87,7 +130,7 @@
 		event: KeyboardEvent,
 		i: number,
 		j: number,
-		id: number
+		id: string
 	) {
 		let is_data;
 		switch (event.key) {
@@ -148,12 +191,14 @@
 		}
 	}
 
-	async function handle_cell_click(id: number) {
+	async function handle_cell_click(id: string) {
+		if (editing === id) return;
+		if (selected === id) return;
 		editing = false;
 		selected = id;
 	}
 
-	async function set_focus(id: number | boolean, type: "edit" | "select") {
+	async function set_focus(id: string | boolean, type: "edit" | "select") {
 		if (type === "edit" && typeof id == "number") {
 			await tick();
 			els[id].input?.focus();
@@ -207,9 +252,9 @@
 		sort(col, sort_direction);
 	}
 
-	let header_edit: number | boolean;
+	let header_edit: string | boolean;
 
-	async function edit_header(_id: number, select?: boolean) {
+	async function edit_header(_id: string, select?: boolean) {
 		if (!editable) return;
 		header_edit = _id;
 		await tick();
@@ -234,8 +279,8 @@
 
 	function add_row() {
 		data.push(
-			headers.map(() => {
-				const _id = ++id;
+			headers.map((_, i) => {
+				const _id = `${data.length}-${i}`;
 				els[_id] = { cell: null, input: null };
 				return { id: _id, value: "" };
 			})
@@ -245,12 +290,12 @@
 
 	async function add_col() {
 		for (let i = 0; i < data.length; i++) {
-			const _id = ++id;
+			const _id = `${i}-${data[i].length}`;
 			els[_id] = { cell: null, input: null };
 			data[i].push({ id: _id, value: "" });
 		}
 
-		const _id = ++id;
+		const _id = `h-${headers.length}`;
 		els[_id] = { cell: null, input: null };
 		_headers.push({ id: _id, value: `Header ${_headers.length + 1}` });
 
@@ -319,13 +364,14 @@
 								on:blur={({ currentTarget }) =>
 									currentTarget.setAttribute("tabindex", "-1")}
 							/>
+						{:else}
+							<span
+								tabindex="-1"
+								role="button"
+								class="min-h-full"
+								class:opacity-0={header_edit === id}>{value}</span
+							>
 						{/if}
-						<span
-							tabindex="-1"
-							role="button"
-							class="min-h-full"
-							class:opacity-0={header_edit === id}>{value}</span
-						>
 					</th>
 				{/each}
 			</tr></thead
@@ -361,15 +407,16 @@
 										on:blur={({ currentTarget }) =>
 											currentTarget.setAttribute("tabindex", "-1")}
 									/>
+								{:else}
+									<span
+										class=" cursor-default w-full"
+										class:opacity-0={editing === id}
+										tabindex="-1"
+										role="button"
+									>
+										{value}
+									</span>
 								{/if}
-								<span
-									class=" cursor-default w-full"
-									class:opacity-0={editing === id}
-									tabindex="-1"
-									role="button"
-								>
-									{value}
-								</span>
 							</div>
 						</td>
 					{/each}

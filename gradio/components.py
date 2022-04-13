@@ -2044,23 +2044,21 @@ class Dataframe(Component):
         self.col_width = col_width
         self.type = type
         self.output_type = "auto"
-        self.default_value = (
-            default_value
-            if default_value is not None
-            else [[None for _ in range(self.col_count)] for _ in range(self.row_count)]
-        )
-        sample_values = {
-            "str": "abc",
-            "number": 786,
-            "bool": True,
-            "date": "02/08/1993",
+        default_values = {
+            "str": "",
+            "number": 0,
+            "bool": False,
+            "date": "01/01/1970",
         }
         column_dtypes = (
             [datatype] * self.col_count if isinstance(datatype, str) else datatype
         )
         self.test_input = [
-            [sample_values[c] for c in column_dtypes] for _ in range(row_count)
+            [default_values[c] for c in column_dtypes] for _ in range(row_count)
         ]
+        self.default_value = (
+            default_value if default_value is not None else self.test_input
+        )
         self.max_rows = max_rows
         self.max_cols = max_cols
         self.overflow_row_behaviour = overflow_row_behaviour
