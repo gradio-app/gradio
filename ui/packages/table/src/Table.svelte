@@ -10,7 +10,6 @@
 
 	const dispatch = createEventDispatcher<{ change: typeof values }>();
 
-	let id = 0;
 	let editing: boolean | string = false;
 	let selected: boolean | string = false;
 	let els: Record<
@@ -18,23 +17,25 @@
 		{ cell: null | HTMLTableCellElement; input: null | HTMLInputElement }
 	> = {};
 
-	type Headers = Array<{ value: string; id: number }>;
+	type Headers = Array<{ value: string; id: string }>;
 
 	function make_headers(_h: Array<string>): Headers {
 		if (!_h || _h.length === 0) {
 			return values[0].map((_, i) => {
-				const _id = ++id;
+				const _id = `h-${i}`;
 				els[_id] = { cell: null, input: null };
 				return { id: _id, value: JSON.stringify(i + 1) };
 			});
 		} else {
-			return _h.map((h) => {
-				const _id = ++id;
+			return _h.map((h, i) => {
+				const _id = `h-${i}`;
 				els[_id] = { cell: null, input: null };
 				return { id: _id, value: h };
 			});
 		}
 	}
+
+	$: console.log(headers);
 
 	function process_data(_values: Array<Array<string | number>>) {
 		return (
@@ -58,22 +59,38 @@
 		);
 	}
 
-	$: _headers = make_headers(headers);
+	let _headers = make_headers(headers);
+	let old_headers: Array<string> | undefined;
+	$: {
+		if (!is_equal(headers, old_headers)) {
+			_headers = make_headers(headers);
+			old_headers = headers;
+			if (typeof editing === "string")
+				tick().then(() => {
+					els[editing as string]?.input?.focus();
+				});
+			else if (typeof selected === "string")
+				tick().then(() => {
+					els[selected as string]?.input?.focus();
+				});
+		}
+	}
 
 	let data: Array<Array<{ id: string; value: string | number }>> = [[]];
 
 	let old_val: undefined | Array<Array<string | number>> = undefined;
 
-	function is_equal(
-		arr: Array<Array<string | number>>,
-		arr2: Array<Array<string | number>> | undefined
-	) {
+	function is_equal(arr: Array<any>, arr2: Array<any> | undefined) {
 		if (!arr2) return false;
-		return arr.every((_arr, i) =>
-			_arr.every((item, j) => {
-				return item === arr2?.[i]?.[j];
-			})
-		);
+		return arr.every((_arr, i) => {
+			if (Array.isArray(_arr)) {
+				return _arr.every((item, j) => {
+					return item === arr2?.[i]?.[j];
+				});
+			} else {
+				return _arr === arr2?.[i];
+			}
+		});
 	}
 
 	$: if (!is_equal(values, old_val)) {
@@ -241,9 +258,11 @@
 		sort(col, sort_direction);
 	}
 
-	let header_edit: number | boolean;
+	let header_edit: string | boolean;
 
-	async function edit_header(_id: number, select?: boolean) {
+	$: console.log(header_edit);
+
+	async function edit_header(_id: string, select?: boolean) {
 		if (!editable) return;
 		header_edit = _id;
 		await tick();
@@ -284,7 +303,7 @@
 			data[i].push({ id: _id, value: "" });
 		}
 
-		const _id = ++id;
+		const _id = `h-${headers.length}`;
 		els[_id] = { cell: null, input: null };
 		_headers.push({ id: _id, value: `Header ${_headers.length + 1}` });
 
@@ -353,13 +372,14 @@
 								on:blur={({ currentTarget }) =>
 									currentTarget.setAttribute("tabindex", "-1")}
 							/>
+						{:else}
+							<span
+								tabindex="-1"
+								role="button"
+								class="min-h-full"
+								class:opacity-0={header_edit === id}>{value}</span
+							>
 						{/if}
-						<span
-							tabindex="-1"
-							role="button"
-							class="min-h-full"
-							class:opacity-0={header_edit === id}>{value}</span
-						>
 					</th>
 				{/each}
 			</tr></thead
