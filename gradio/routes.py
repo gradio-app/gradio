@@ -205,18 +205,22 @@ def create_app() -> FastAPI:
     @app.post("/api/predict/", dependencies=[Depends(login_check)])
     async def predict(request: Request, username: str = Depends(get_current_user)):
         body = await request.json()
-        if body["session_hash"] not in app.state_holder:
-            app.state_holder[body["session_hash"]] = {
-                _id: getattr(block, "default_value", None)
-                for _id, block in app.blocks.blocks.items()
-                if getattr(block, "stateful", False)
-            }
+        if "session_hash" in body:
+            if body["session_hash"] not in app.state_holder:
+                app.state_holder[body["session_hash"]] = {
+                    _id: getattr(block, "default_value", None)
+                    for _id, block in app.blocks.blocks.items()
+                    if getattr(block, "stateful", False)
+                }
+            session_state = app.state_holder[body["session_hash"]]
+        else:
+            session_state = {}
         try:
             output = await run_in_threadpool(
                 app.blocks.process_api,
                 body,
                 username,
-                app.state_holder[body["session_hash"]],
+                session_state,
             )
         except BaseException as error:
             if app.blocks.show_error:
