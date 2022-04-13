@@ -21,26 +21,26 @@
 	$: _value = normalise_file(value, root);
 </script>
 
-{#if mode === "static" && _value}
+{#if mode === "static"}
 	<div
 		class="output-video w-full h-60 flex justify-center items-center bg-gray-200 dark:bg-gray-600 relative"
 	>
-		{#if playable(_value.data)}
+		{#if _value && playable(_value?.data)}
 			<!-- svelte-ignore a11y-media-has-caption -->
 			<video
 				class="video_preview w-full h-full object-contain"
 				controls
 				playsInline
 				preload="auto"
-				src={_value.data}
+				src={_value?.data}
 			/>
 		{:else}
 			<a
-				href={_value.data}
-				download={_value.name}
+				href={_value?.data}
+				download={_value?.name}
 				class="file-preview h-60 w-full flex flex-col justify-center items-center relative"
 			>
-				<div class="file-name text-4xl p-6 break-all">{_value.name}</div>
+				<div class="file-name text-4xl p-6 break-all">{_value?.name}</div>
 			</a>
 		{/if}
 	</div>
