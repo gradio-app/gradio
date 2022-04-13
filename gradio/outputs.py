@@ -20,9 +20,9 @@ from gradio.components import File as C_File
 from gradio.components import HighlightedText as C_HighlightedText
 from gradio.components import Image as C_Image
 from gradio.components import Label as C_Label
-from gradio.components import Variable as C_State
 from gradio.components import Textbox as C_Textbox
 from gradio.components import Timeseries as C_Timeseries
+from gradio.components import Variable as C_State
 from gradio.components import Video as C_Video
 
 

@@ -1,5 +1,6 @@
-import gradio as gr
 import random
+
+import gradio as gr
 
 demo = gr.Blocks()
 

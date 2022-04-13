@@ -19,9 +19,9 @@ from gradio.components import Image as C_Image
 from gradio.components import Number as C_Number
 from gradio.components import Radio as C_Radio
 from gradio.components import Slider as C_Slider
-from gradio.components import Variable as C_Variable
 from gradio.components import Textbox as C_Textbox
 from gradio.components import Timeseries as C_Timeseries
+from gradio.components import Variable as C_Variable
 from gradio.components import Video as C_Video
 
 
