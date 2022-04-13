@@ -55,7 +55,7 @@ class Component(Block):
         return self.__repr__()
 
     def __repr__(self):
-        return f"{type(self).get_block_name()} (label={self.label})"
+        return f"{self.get_block_name()} (label={self.label})"
 
     def get_template_context(self):
         """
