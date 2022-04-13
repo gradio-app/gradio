@@ -36,7 +36,14 @@ class Block:
             Context.root_block.blocks[self._id] = self
         self.events = []
 
-    def get_block_name(self):
+    def get_block_name(self) -> str:
+        """
+        Gets block's class name.
+
+        If it is template component it gets the parent's class name.
+
+        @return: class name
+        """
         return (
             self.__class__.__base__.__name__.lower()
             if hasattr(self, "is_template")
@@ -273,11 +280,7 @@ class Blocks(BlockContext):
             config["components"].append(
                 {
                     "id": _id,
-                    "type": (
-                        block.__class__.__base__.__name__.lower()
-                        if hasattr(block, "is_template")
-                        else block.__class__.__name__.lower()
-                    ),
+                    "type": (block.get_block_name()),
                     "props": block.get_template_context()
                     if hasattr(block, "get_template_context")
                     else None,
