@@ -224,7 +224,6 @@ class Blocks(BlockContext):
         """
         raw_input = data["data"]
         fn_index = data["fn_index"]
-        session_hash = data["session_hash"]
         fn, preprocess, postprocess = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
 
