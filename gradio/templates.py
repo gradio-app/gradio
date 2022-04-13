@@ -1,7 +1,7 @@
-from gradio.components import Audio, Dataframe, File, Image, Textbox, Video
+from gradio.components import Audio as C_Audio, Dataframe as C_Dataframe, File as C_File, Image as C_Image, Textbox as C_Textbox, Video as C_Video
 
 
-class HugeTextbox(Textbox):
+class TextArea(C_Textbox):
     def __init__(self, **kwargs):
         """
         Custom component
@@ -10,7 +10,7 @@ class HugeTextbox(Textbox):
         super().__init__(lines=7, **kwargs)
 
 
-class Webcam(Image):
+class Webcam(C_Image):
     def __init__(self, **kwargs):
         """
         Custom component
@@ -19,7 +19,7 @@ class Webcam(Image):
         super().__init__(source="webcam", **kwargs)
 
 
-class Sketchpad(Image):
+class Sketchpad(C_Image):
     def __init__(self, **kwargs):
         """
         Custom component
@@ -34,7 +34,7 @@ class Sketchpad(Image):
         )
 
 
-class Plot(Image):
+class Plot(C_Image):
     def __init__(self, **kwargs):
         """
         Custom component
@@ -43,7 +43,7 @@ class Plot(Image):
         super().__init__(type="plot", **kwargs)
 
 
-class Pil(Image):
+class Pil(C_Image):
     def __init__(self, **kwargs):
         """
         Custom component
@@ -52,7 +52,7 @@ class Pil(Image):
         super().__init__(type="pil", **kwargs)
 
 
-class PlayableVideo(Video):
+class PlayableVideo(C_Video):
     def __init__(self, **kwargs):
         """
         Custom component
@@ -61,7 +61,7 @@ class PlayableVideo(Video):
         super().__init__(type="mp4", **kwargs)
 
 
-class Microphone(Audio):
+class Microphone(C_Audio):
     def __init__(self, **kwargs):
         """
         Custom component
@@ -70,7 +70,7 @@ class Microphone(Audio):
         super().__init__(source="microphone", **kwargs)
 
 
-class Files(File):
+class C_Files(C_File):
     def __init__(self, **kwargs):
         """
         Custom component
@@ -79,7 +79,7 @@ class Files(File):
         super().__init__(file_count="multiple", **kwargs)
 
 
-class Numpy(Dataframe):
+class Numpy(C_Dataframe):
     def __init__(self, **kwargs):
         """
         Custom component
@@ -88,7 +88,7 @@ class Numpy(Dataframe):
         super().__init__(type="numpy", **kwargs)
 
 
-class Matrix(Dataframe):
+class Matrix(C_Dataframe):
     def __init__(self, **kwargs):
         """
         Custom component
@@ -97,7 +97,7 @@ class Matrix(Dataframe):
         super().__init__(type="array", **kwargs)
 
 
-class List(Dataframe):
+class List(C_Dataframe):
     def __init__(self, **kwargs):
         """
         Custom component
