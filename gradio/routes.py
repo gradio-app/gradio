@@ -63,6 +63,7 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    app.state_holder = {}
 
     @app.get("/user")
     @app.get("/user/")
@@ -204,8 +205,23 @@ def create_app() -> FastAPI:
     @app.post("/api/predict/", dependencies=[Depends(login_check)])
     async def predict(request: Request, username: str = Depends(get_current_user)):
         body = await request.json()
+        if "session_hash" in body:
+            if body["session_hash"] not in app.state_holder:
+                app.state_holder[body["session_hash"]] = {
+                    _id: getattr(block, "default_value", None)
+                    for _id, block in app.blocks.blocks.items()
+                    if getattr(block, "stateful", False)
+                }
+            session_state = app.state_holder[body["session_hash"]]
+        else:
+            session_state = {}
         try:
-            output = await run_in_threadpool(app.blocks.process_api, body, username)
+            output = await run_in_threadpool(
+                app.blocks.process_api,
+                body,
+                username,
+                session_state,
+            )
         except BaseException as error:
             if app.blocks.show_error:
                 traceback.print_exc()
@@ -308,15 +324,13 @@ def get_types(cls_set: List[Type], component: str):
 
 def get_state():
     raise DeprecationWarning(
-        "This function is deprecated. To create stateful demos, pass 'state'"
-        "as both an input and output component. Please see the getting started"
-        "guide for more information."
+        "This function is deprecated. To create stateful demos, use the Variable"
+        " component. Please see the getting started for more information."
     )
 
 
 def set_state(*args):
     raise DeprecationWarning(
-        "This function is deprecated. To create stateful demos, pass 'state'"
-        "as both an input and output component. Please see the getting started"
-        "guide for more information."
+        "This function is deprecated. To create stateful demos, use the Variable"
+        " component. Please see the getting started for more information."
     )
