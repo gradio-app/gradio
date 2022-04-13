@@ -208,30 +208,54 @@ class Blocks(BlockContext):
         self._id = Context.id
         Context.id += 1
 
-    def process_api(self, data: Dict[str, Any], username: str = None) -> Dict[str, Any]:
+    def process_api(
+        self,
+        data: Dict[str, Any],
+        username: str = None,
+        state: Optional[Dict[int, any]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Processes API calls from the frontend.
+        Parameters:
+            data: data recieved from the frontend
+            username: name of user if authentication is set up
+            state: data stored from stateful components for session
+        Returns: None
+        """
         raw_input = data["data"]
         fn_index = data["fn_index"]
         fn, preprocess, postprocess = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
 
         if preprocess:
-            processed_input = [
-                self.blocks[input_id].preprocess(raw_input[i])
-                for i, input_id in enumerate(dependency["inputs"])
-            ]
+            processed_input = []
+            for i, input_id in enumerate(dependency["inputs"]):
+                block = self.blocks[input_id]
+                if getattr(block, "stateful", False):
+                    processed_input.append(state.get(input_id))
+                else:
+                    processed_input.append(block.preprocess(raw_input[i]))
             predictions = fn(*processed_input)
         else:
             predictions = fn(*raw_input)
         if len(dependency["outputs"]) == 1:
             predictions = (predictions,)
         if postprocess:
-            predictions = [
-                self.blocks[output_id].postprocess(predictions[i])
-                if predictions[i] is not None
-                else None
-                for i, output_id in enumerate(dependency["outputs"])
-            ]
-        return {"data": predictions}
+            output = []
+            for i, output_id in enumerate(dependency["outputs"]):
+                block = self.blocks[output_id]
+                if getattr(block, "stateful", False):
+                    state[output_id] = predictions[i]
+                    output.append(None)
+                else:
+                    output.append(
+                        block.postprocess(predictions[i])
+                        if predictions[i] is not None
+                        else None
+                    )
+            else:
+                output = predictions
+        return {"data": output}
 
     def get_template_context(self):
         return {"type": "column"}

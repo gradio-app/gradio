@@ -19,9 +19,9 @@ from gradio.components import Image as C_Image
 from gradio.components import Number as C_Number
 from gradio.components import Radio as C_Radio
 from gradio.components import Slider as C_Slider
-from gradio.components import State as C_State
 from gradio.components import Textbox as C_Textbox
 from gradio.components import Timeseries as C_Timeseries
+from gradio.components import Variable as C_Variable
 from gradio.components import Video as C_Video
 
 
@@ -465,7 +465,7 @@ class Timeseries(C_Timeseries):
         super().__init__(x=x, y=y, label=label, optional=optional)
 
 
-class State(C_State):
+class State(C_Variable):
     """
     Special hidden component that stores state across runs of the interface.
     Input type: Any
@@ -476,7 +476,6 @@ class State(C_State):
         self,
         label: str = None,
         default: Any = None,
-        optional: bool = False,
     ):
         """
         Parameters:
@@ -485,7 +484,7 @@ class State(C_State):
         optional (bool): this parameter is ignored.
         """
         warnings.warn(
-            "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
+            "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import this component as gr.Variable from gradio.components",
             DeprecationWarning,
         )
-        super().__init__(default_value=default, label=label, optional=optional)
+        super().__init__(default_value=default, label=label)

@@ -27,6 +27,7 @@ from gradio.components import (
     Dataset,
     Interpretation,
     Markdown,
+    Variable,
     get_component_instance,
 )
 from gradio.external import load_from_pipeline, load_interface  # type: ignore
@@ -178,26 +179,22 @@ class Interface(Blocks):
         if not isinstance(outputs, list):
             outputs = [outputs]
 
+        if "state" in inputs or "state" in outputs:
+            state_input_count = len([i for i in inputs if i == "state"])
+            state_output_count = len([o for o in outputs if o == "state"])
+            if state_input_count != 1 or state_output_count != 1:
+                raise ValueError(
+                    "If using 'state', there must be exactly one state input and one state output."
+                )
+            default = utils.get_default_args(fn[0])[inputs.index("state")]
+            state_variable = Variable(default_value=default)
+            inputs[inputs.index("state")] = state_variable
+            outputs[outputs.index("state")] = state_variable
+
         self.input_components = [get_component_instance(i) for i in inputs]
         self.output_components = [get_component_instance(o) for o in outputs]
         if repeat_outputs_per_model:
             self.output_components *= len(fn)
-
-        if sum(isinstance(i, i_State) for i in self.input_components) > 1:
-            raise ValueError("Only one input component can be State.")
-        if sum(isinstance(o, o_State) for o in self.output_components) > 1:
-            raise ValueError("Only one output component can be State.")
-
-        if sum(isinstance(i, i_State) for i in self.input_components) == 1:
-            if len(fn) > 1:
-                raise ValueError("State cannot be used with multiple functions.")
-            state_param_index = [
-                isinstance(i, i_State) for i in self.input_components
-            ].index(True)
-            state: i_State = self.input_components[state_param_index]
-            if state.default_value is None:
-                default = utils.get_default_args(fn[0])[state_param_index]
-                state.default_value = default
 
         if (
             interpretation is None

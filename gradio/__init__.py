@@ -25,9 +25,9 @@ from gradio.components import (
     Number,
     Radio,
     Slider,
-    State,
     Textbox,
     Timeseries,
+    Variable,
     Video,
 )
 from gradio.flagging import (

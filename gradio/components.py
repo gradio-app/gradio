@@ -2267,7 +2267,7 @@ class Timeseries(Component):
         self.set_event_trigger("change", fn, inputs, outputs)
 
 
-class State(Component):
+class Variable(Component):
     """
     Special hidden component that stores state across runs of the interface.
 
@@ -2279,9 +2279,6 @@ class State(Component):
     def __init__(
         self,
         default_value: Any = None,
-        *,
-        label: Optional[str] = None,
-        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -2290,7 +2287,8 @@ class State(Component):
         label (str): component name in interface (not used).
         """
         self.default_value = default_value
-        super().__init__(label=label, css=css, **kwargs)
+        self.stateful = True
+        super().__init__(**kwargs)
 
     def get_template_context(self):
         return {"default_value": self.default_value, **super().get_template_context()}
