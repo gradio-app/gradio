@@ -19,13 +19,17 @@ from gradio.interface import Interface
 GRADIO_DIR = "../../"
 GRADIO_GUIDES_DIR = os.path.join(GRADIO_DIR, "guides")
 GRADIO_DEMO_DIR = os.path.join(GRADIO_DIR, "demo")
-GRADIO_ASSETS_LIST = os.listdir(
-    os.path.join(GRADIO_DIR, "gradio", "templates", "frontend", "assets")
-)
-GRADIO_ASSETS = {
-    f"{asset.split('.')[0]}_{asset.split('.')[-1]}_file": asset
-    for asset in GRADIO_ASSETS_LIST
-}
+try:
+    GRADIO_ASSETS_LIST = os.listdir(
+        os.path.join(GRADIO_DIR, "gradio", "templates", "frontend", "assets")
+    )
+    GRADIO_ASSETS = {
+        f"{asset.split('.')[0]}_{asset.split('.')[-1]}_file": asset
+        for asset in GRADIO_ASSETS_LIST
+    }
+except (OSError, FileNotFoundError):
+    print("Could not find gradio assets")
+    GRADIO_ASSETS = {}
 
 with open("src/navbar.html", encoding="utf-8") as navbar_file:
     navbar_html = navbar_file.read()
