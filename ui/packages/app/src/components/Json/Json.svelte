@@ -2,7 +2,7 @@
 	import { createEventDispatcher } from "svelte";
 	import { JSON } from "@gradio/json";
 
-	export let value: any;
+	export let value: any = {};
 	export let default_value: any;
 	export let style: string = "";
 

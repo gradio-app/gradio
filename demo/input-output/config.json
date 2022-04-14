@@ -6,21 +6,23 @@
       "type": "textbox",
       "props": {
         "lines": 1,
-        "placeholder": "None",
-        "default": "",
+        "placeholder": null,
+        "default_value": "",
         "name": "textbox",
-        "label": "None",
-        "css": {}
+        "label": "Input-Output",
+        "css": {},
+        "interactive": null
       }
     },
     {
       "id": 2,
       "type": "button",
       "props": {
-        "value": "Run",
+        "default_value": "Run",
         "name": "button",
-        "label": "None",
-        "css": {}
+        "label": null,
+        "css": {},
+        "interactive": null
       }
     }
   ],
@@ -41,7 +43,8 @@
       "targets": [2],
       "trigger": "click",
       "inputs": [1],
-      "outputs": [1]
+      "outputs": [1],
+      "queue": false
     }
   ]
 }

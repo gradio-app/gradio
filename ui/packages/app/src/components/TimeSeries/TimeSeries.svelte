@@ -2,8 +2,11 @@
 	import { createEventDispatcher } from "svelte";
 	import { Upload } from "@gradio/upload";
 	import type { FileData } from "@gradio/upload";
+	import { Block, BlockLabel } from "@gradio/atoms";
 	import { Chart } from "@gradio/chart";
 	import { _ } from "svelte-i18n";
+
+	import chart_icon from "./chart.svg";
 
 	function format_value(val: StaticData) {
 		return val.data.map((r) =>
@@ -27,7 +30,8 @@
 	export let style: string = "";
 	export let y: Array<string>;
 	export let x: string;
-	export let is_static: boolean;
+	export let mode: "static" | "dynamic";
+	export let label: string;
 
 	let _value: string | null;
 
@@ -97,25 +101,33 @@
 	}
 
 	$: _value = value == null ? null : _value;
-	$: static_data = is_static && format_value(value as StaticData);
+	$: static_data =
+		mode === "static" && value && format_value(value as StaticData);
 
 	$: value, dispatch("change");
 
 	if (default_value) value = default_value;
 </script>
 
-{#if is_static && static_data}
-	<Chart value={static_data} />
-{:else}
-	{#if _value}
+<Block variant={"solid"} color={"grey"} padding={false}>
+	<BlockLabel image={chart_icon} label={label || "TimeSeries"} />
+
+	{#if mode === "static"}
+		{#if static_data}
+			<Chart value={static_data} />
+		{:else}
+			<div class="min-h-[16rem] flex justify-center items-center">
+				<img src={chart_icon} alt="" class="h-10 opacity-30" />
+			</div>
+		{/if}
+	{:else if _value}
 		<Chart
 			value={_value}
 			{y}
 			{x}
 			on:process={({ detail: { x, y } }) => (value = make_dict(x, y))}
 		/>
-	{/if}
-	{#if value == null}
+	{:else if value === null}
 		<Upload
 			filetype="text/csv"
 			on:load={({ detail }) => handle_load(detail)}
@@ -127,4 +139,4 @@
 			{$_("interface.click_to_upload")}
 		</Upload>
 	{/if}
-{/if}
+</Block>

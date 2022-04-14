@@ -3,7 +3,7 @@
 	import { HTML } from "@gradio/html";
 
 	export let label: string;
-	export let value: string;
+	export let value: string = "";
 	export let default_value: string;
 	export let style: string = "";
 

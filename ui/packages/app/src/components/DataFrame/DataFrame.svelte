@@ -8,16 +8,14 @@
 	export let headers: Headers = [];
 	export let value: Data | { data: Data; headers: Headers } = [["", "", ""]];
 	export let default_value: Array<Array<string | number>> = [["", "", ""]];
-
 	export let style: string = "";
-	export let is_static: boolean;
+	export let mode: "static" | "dynamic";
 
 	if (default_value) value = default_value;
 
 	$: {
 		if (!Array.isArray(value)) {
 			if (Array.isArray(value.headers)) headers = value.headers;
-
 			value =
 				value.data.length === 0 ? [Array(headers.length).fill("")] : value.data;
 		} else {
@@ -30,7 +28,6 @@
 	async function handle_change({ detail }) {
 		value = detail;
 		await tick();
-
 		dispatch("change", detail);
 	}
 </script>
@@ -40,5 +37,5 @@
 	{headers}
 	{style}
 	on:change={handle_change}
-	editable={!is_static}
+	editable={mode === "dynamic"}
 />

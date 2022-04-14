@@ -5,10 +5,11 @@
       "id": 1,
       "type": "markdown",
       "props": {
-        "value": "<pre><code># Detect Disease From Scan\nWith this model you can lorem ipsum\n- ipsum 1\n- ipsum 2\n</code></pre>\n",
+        "default_value": "<h1>Detect Disease From Scan</h1>\n<p>With this model you can lorem ipsum</p>\n<ul>\n<li>ipsum 1</li>\n<li>ipsum 2</li>\n</ul>\n",
         "name": "markdown",
         "label": null,
-        "css": {}
+        "css": {},
+        "interactive": null
       }
     },
     {
@@ -16,15 +17,39 @@
       "type": "checkboxgroup",
       "props": {
         "choices": ["Covid", "Malaria", "Lung Cancer"],
-        "default": [],
+        "default_value": [],
         "name": "checkboxgroup",
         "label": "Disease to Scan For",
-        "css": {}
+        "css": {},
+        "interactive": null
       }
     },
-    { "id": 3, "type": "tabs", "props": null },
-    { "id": 4, "type": "tabitem", "props": { "label": "X-ray" } },
-    { "id": 5, "type": "row", "props": { "type": "row" } },
+    {
+      "id": 3,
+      "type": "tabs",
+      "props": {
+        "css": {},
+        "default_value": true
+      }
+    },
+    {
+      "id": 4,
+      "type": "tabitem",
+      "props": {
+        "label": "X-ray",
+        "css": {},
+        "default_value": true
+      }
+    },
+    {
+      "id": 5,
+      "type": "row",
+      "props": {
+        "type": "row",
+        "css": {},
+        "default_value": true
+      }
+    },
     {
       "id": 6,
       "type": "image",
@@ -33,28 +58,53 @@
         "shape": null,
         "source": "upload",
         "tool": "editor",
+        "default_value": null,
         "name": "image",
         "label": null,
-        "css": {}
+        "css": {},
+        "interactive": null
       }
     },
     {
       "id": 7,
       "type": "json",
-      "props": { "name": "json", "label": null, "css": {} }
+      "props": {
+        "default_value": "\"\"",
+        "name": "json",
+        "label": null,
+        "css": {},
+        "interactive": null
+      }
     },
     {
       "id": 8,
       "type": "button",
       "props": {
-        "value": "Run",
+        "default_value": "Run",
         "name": "button",
         "label": null,
-        "css": { "background-color": "red", "--hover-color": "orange" }
+        "css": {},
+        "interactive": null
       }
     },
-    { "id": 9, "type": "tabitem", "props": { "label": "CT Scan" } },
-    { "id": 10, "type": "row", "props": { "type": "row" } },
+    {
+      "id": 9,
+      "type": "tabitem",
+      "props": {
+        "label": "CT Scan",
+        "css": {},
+        "default_value": true
+      }
+    },
+    {
+      "id": 10,
+      "type": "row",
+      "props": {
+        "type": "row",
+        "css": {},
+        "default_value": true
+      }
+    },
     {
       "id": 11,
       "type": "image",
@@ -63,20 +113,34 @@
         "shape": null,
         "source": "upload",
         "tool": "editor",
+        "default_value": null,
         "name": "image",
         "label": null,
-        "css": {}
+        "css": {},
+        "interactive": null
       }
     },
     {
       "id": 12,
       "type": "json",
-      "props": { "name": "json", "label": null, "css": {} }
+      "props": {
+        "default_value": "\"\"",
+        "name": "json",
+        "label": null,
+        "css": {},
+        "interactive": null
+      }
     },
     {
       "id": 13,
       "type": "button",
-      "props": { "value": "Run", "name": "button", "label": null, "css": {} }
+      "props": {
+        "default_value": "Run",
+        "name": "button",
+        "label": null,
+        "css": {},
+        "interactive": null
+      }
     },
     {
       "id": 14,
@@ -84,10 +148,11 @@
       "props": {
         "lines": 1,
         "placeholder": null,
-        "default": "",
+        "default_value": "",
         "name": "textbox",
         "label": null,
-        "css": {}
+        "css": {},
+        "interactive": null
       }
     }
   ],
@@ -95,32 +160,74 @@
   "layout": {
     "id": 0,
     "children": [
-      { "id": 1 },
-      { "id": 2 },
+      {
+        "id": 1
+      },
+      {
+        "id": 2
+      },
       {
         "id": 3,
         "children": [
           {
             "id": 4,
             "children": [
-              { "id": 5, "children": [{ "id": 6 }, { "id": 7 }] },
-              { "id": 8 }
+              {
+                "id": 5,
+                "children": [
+                  {
+                    "id": 6
+                  },
+                  {
+                    "id": 7
+                  }
+                ]
+              },
+              {
+                "id": 8
+              }
             ]
           },
           {
             "id": 9,
             "children": [
-              { "id": 10, "children": [{ "id": 11 }, { "id": 12 }] },
-              { "id": 13 }
+              {
+                "id": 10,
+                "children": [
+                  {
+                    "id": 11
+                  },
+                  {
+                    "id": 12
+                  }
+                ]
+              },
+              {
+                "id": 13
+              }
             ]
           }
         ]
       },
-      { "id": 14 }
+      {
+        "id": 14
+      }
     ]
   },
   "dependencies": [
-    { "targets": [8], "trigger": "click", "inputs": [2, 6], "outputs": [7] },
-    { "targets": [13], "trigger": "click", "inputs": [2, 11], "outputs": [12] }
+    {
+      "targets": [8],
+      "trigger": "click",
+      "inputs": [2, 6],
+      "outputs": [7],
+      "queue": false
+    },
+    {
+      "targets": [13],
+      "trigger": "click",
+      "inputs": [2, 11],
+      "outputs": [12],
+      "queue": false
+    }
   ]
 }
