@@ -19,7 +19,6 @@ import matplotlib
 import numpy as np
 import pandas as pd
 import PIL
-from black import out
 from ffmpy import FFmpeg
 
 from gradio import processing_utils
