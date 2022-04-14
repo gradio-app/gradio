@@ -57,14 +57,14 @@ class Component(Block):
         return self.__repr__()
 
     def __repr__(self):
-        return f"{type(self).__name__} (label={self.label})"
+        return f"{self.get_block_name()} (label={self.label})"
 
     def get_template_context(self):
         """
         :return: a dictionary with context variables for the javascript file associated with the context
         """
         return {
-            "name": self.__class__.__name__.lower(),
+            "name": self.get_block_name(),
             "label": self.label,
             "css": self.css,
             "interactive": self.interactive,
@@ -2896,9 +2896,7 @@ class Dataset(Component):
 
     def get_template_context(self):
         return {
-            "components": [
-                component.__class__.__name__.lower() for component in self.components
-            ],
+            "components": [component.get_block_name() for component in self.components],
             "headers": self.headers,
             "samples": self.samples,
             "type": self.type,
@@ -2955,7 +2953,7 @@ class Interpretation(Component):
 
     def get_template_context(self):
         return {
-            "component": self.component.__class__.__name__.lower(),
+            "component": self.component.get_block_name(),
             "component_props": self.component.get_template_context(),
         }
 

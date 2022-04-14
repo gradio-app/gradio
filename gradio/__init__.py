@@ -4,6 +4,7 @@ import gradio.components as components
 import gradio.inputs as inputs
 import gradio.outputs as outputs
 import gradio.processing_utils
+import gradio.templates as Templates
 from gradio.blocks import Blocks, Column, Row, TabItem, Tabs
 from gradio.components import (
     HTML,
