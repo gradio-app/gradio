@@ -14,8 +14,8 @@ import warnings
 from numbers import Number
 from types import ModuleType
 from typing import TYPE_CHECKING, Dict, List, Optional
-import matplotlib
 
+import matplotlib
 import numpy as np
 import pandas as pd
 import PIL
