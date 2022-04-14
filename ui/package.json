@@ -20,9 +20,10 @@
 		"svelte": "^3.46.3",
 		"svelte-check": "^2.4.1",
 		"svelte-i18n": "^3.3.13",
+		"vitest": "^0.3.2",
+		"plotly.js-dist-min": "^2.10.1",
 		"babylonjs": "^4.2.1",
-		"babylonjs-loaders": "^4.2.1",
-		"vitest": "^0.3.2"
+		"babylonjs-loaders": "^4.2.1"
 	},
 	"devDependencies": {
 		"@types/three": "^0.138.0"
