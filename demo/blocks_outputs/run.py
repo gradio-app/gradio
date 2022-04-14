@@ -20,7 +20,7 @@ with gr.Blocks() as demo:
     label = gr.Label()
     highlight = gr.HighlightedText()
     # layout components are static only
-    # carousel doesn't work like the others
+    # carousel doesn't work like other components
     # carousel = gr.Carousel()
 
 
