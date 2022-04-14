@@ -870,7 +870,10 @@ class Image3D(OutputComponent):
         self.clear_color = clear_color
 
     def get_template_context(self):
-        return {**super().get_template_context()}
+        return {
+            "clearColor": self.clear_color,
+            **super().get_template_context(),
+        }
 
     @classmethod
     def get_shortcut_implementations(cls):
@@ -893,8 +896,6 @@ class Image3D(OutputComponent):
 
         return {
             "name": os.path.basename(y),
-            "extension": os.path.splitext(y)[1],
-            "clearColor": self.clear_color,
             "data": processing_utils.encode_file_to_base64(y),
         }
 
@@ -906,6 +907,9 @@ class Image3D(OutputComponent):
         Returns: (str) path to model file
         """
         return self.save_flagged_file(dir, label, data["data"], encryption_key)
+
+    def restore_flagged(self, dir, data, encryption_key):
+        return self.restore_flagged_file(dir, data, encryption_key)
 
 
 def get_output_instance(iface: Interface):
