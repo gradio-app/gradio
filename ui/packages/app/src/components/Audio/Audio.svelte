@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Audio } from "@gradio/audio";
+	import { Audio, StaticAudio } from "@gradio/audio";
 	import type { FileData } from "@gradio/upload";
 	import { normalise_file } from "@gradio/upload";
 	import { _ } from "svelte-i18n";
@@ -18,6 +18,8 @@
 
 	let _value: null | FileData;
 	$: _value = normalise_file(value, root);
+
+	$: console.log($$props);
 </script>
 
 {#if mode === "dynamic"}
@@ -37,8 +39,6 @@
 		or_text={$_("or")}
 		upload_text={$_("interface.click_to_upload")}
 	/>
-{:else if _value}
-	<audio {style} controls>
-		<source src={_value.data} />
-	</audio>
+{:else}
+	<StaticAudio value={_value} name={_value?.name || "audio_file"} {label} />
 {/if}
