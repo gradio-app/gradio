@@ -11,7 +11,6 @@ import inspect
 import os
 import random
 import re
-import time
 import warnings
 import weakref
 from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
@@ -28,6 +27,7 @@ from gradio.components import (
     Interpretation,
     Markdown,
     Variable,
+    FunctionStatus,
     get_component_instance,
 )
 from gradio.external import load_from_pipeline, load_interface  # type: ignore
@@ -531,6 +531,7 @@ class Interface(Blocks):
                         "border-radius": "0.5rem",
                     }
                 ):
+                    status_tracker = FunctionStatus(cover_container=True)
                     for component in self.output_components:
                         component.render()
                     with Row():
@@ -538,9 +539,9 @@ class Interface(Blocks):
                         if self.interpretation:
                             interpretation_btn = Button("Interpret")
             submit_fn = (
-                lambda *args: self.run_prediction(args, return_duration=False)[0]
+                lambda *args: self.run_prediction(args)[0]
                 if len(self.output_components) == 1
-                else self.run_prediction(args, return_duration=False)
+                else self.run_prediction(args)
             )
             if self.live:
                 for component in self.input_components:
@@ -553,6 +554,7 @@ class Interface(Blocks):
                     self.input_components,
                     self.output_components,
                     queue=self.enable_queue,
+                    status_tracker=status_tracker,
                 )
             clear_btn.click(
                 lambda: [
@@ -608,6 +610,7 @@ class Interface(Blocks):
                     inputs=self.input_components + self.output_components,
                     outputs=interpretation_set
                     + [input_component_column, interpret_component_column],
+                    status_tracker=status_tracker
                 )
 
     def __call__(self, *params):
@@ -657,20 +660,16 @@ class Interface(Blocks):
     def run_prediction(
         self,
         processed_input: List[Any],
-        return_duration: bool = False,
         called_directly: bool = False,
     ) -> List[Any] | Tuple[List[Any], List[float]]:
         """
         Runs the prediction function with the given (already processed) inputs.
         Parameters:
         processed_input (list): A list of processed inputs.
-        return_duration (bool): Whether to return the duration of the prediction.
         called_directly (bool): Whether the prediction is being called
             directly (i.e. as a function, not through the GUI).
         Returns:
         predictions (list): A list of predictions (not post-processed).
-        durations (list): A list of durations for each prediction
-            (only returned if `return_duration` is True).
         """
         if self.api_mode:  # Serialize the input
             processed_input = [
@@ -678,18 +677,15 @@ class Interface(Blocks):
                 for i, input_component in enumerate(self.input_components)
             ]
         predictions = []
-        durations = []
         output_component_counter = 0
 
         for predict_fn in self.predict:
-            start = time.time()
             if self.capture_session and self.session is not None:  # For TF 1.x
                 graph, sess = self.session
                 with graph.as_default(), sess.as_default():
                     prediction = predict_fn(*processed_input)
             else:
                 prediction = predict_fn(*processed_input)
-            duration = time.time() - start
 
             if len(self.output_components) == len(self.predict):
                 prediction = [prediction]
@@ -709,13 +705,9 @@ class Interface(Blocks):
                     )
                     output_component_counter += 1
 
-            durations.append(duration)
             predictions.extend(prediction)
 
-        if return_duration:
-            return predictions, durations
-        else:
-            return predictions
+        return predictions
 
     def process(self, raw_input: List[Any]) -> Tuple[List[Any], List[float]]:
         """
@@ -731,9 +723,7 @@ class Interface(Blocks):
             input_component.preprocess(raw_input[i])
             for i, input_component in enumerate(self.input_components)
         ]
-        predictions, durations = self.run_prediction(
-            processed_input, return_duration=True
-        )
+        predictions = self.run_prediction(processed_input)
         processed_output = [
             output_component.postprocess(predictions[i])
             if predictions[i] is not None
@@ -747,8 +737,6 @@ class Interface(Blocks):
             avg_durations.append(
                 self.predict_durations[i][0] / self.predict_durations[i][1]
             )
-        if hasattr(self, "config"):
-            self.config["avg_durations"] = avg_durations
 
         return processed_output, durations
 

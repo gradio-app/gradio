@@ -29,6 +29,8 @@
 		inputs: Array<number>;
 		outputs: Array<number>;
 		queue: boolean;
+		status_tracker: number | null;
+		status?: string;
 	}
 
 	export let root: string;
@@ -112,37 +114,49 @@
 	});
 
 	let handled_dependencies: Array<number[]> = [];
+	let status_tracker_values: Record<number, string> = {};
+
+	let setStatus = (dependency_index: number, status: string) => {
+		dependencies[dependency_index].status = status;
+		let status_tracker_id = dependencies[dependency_index].status_tracker;
+		if (status_tracker_id !== null) {
+			status_tracker_values[status_tracker_id] = status;
+		}
+	};
 
 	async function handle_mount({ detail }) {
 		await tick();
-		dependencies.forEach(({ targets, trigger, inputs, outputs, queue }, i) => {
-			const target_instances: [number, Instance][] = targets.map((t) => [
-				t,
-				instance_map[t]
-			]);
+		dependencies.forEach((dependency, i) => {
+			const target_instances: [number, Instance][] = dependency.targets.map(
+				(t) => [t, instance_map[t]]
+			);
 
 			// page events
 			if (
-				targets.length === 0 &&
+				dependency.targets.length === 0 &&
 				!handled_dependencies[i]?.includes(-1) &&
-				trigger === "load" &&
+				dependency.trigger === "load" &&
 				// check all input + output elements are on the page
-				outputs.every((v) => instance_map[v].instance) &&
-				inputs.every((v) => instance_map[v].instance)
+				dependency.outputs.every((v) => instance_map[v].instance) &&
+				dependency.inputs.every((v) => instance_map[v].instance)
 			) {
 				fn(
 					"predict",
 					{
 						fn_index: i,
-						data: inputs.map((id) => instance_map[id].value)
+						data: dependency.inputs.map((id) => instance_map[id].value)
 					},
-					queue,
+					dependency.queue,
 					() => {}
-				).then((output) => {
-					output.data.forEach((value, i) => {
-						instance_map[outputs[i]].value = value;
+				)
+					.then((output) => {
+						output.data.forEach((value, i) => {
+							instance_map[outputs[i]].value = value;
+						});
+					})
+					.catch((error) => {
+						console.error(error);
 					});
-				});
 
 				handled_dependencies[i] = [-1];
 			}
@@ -151,20 +165,30 @@
 				// console.log(id, handled_dependencies[i]?.includes(id) || !instance);
 				if (handled_dependencies[i]?.includes(id) || !instance) return;
 				// console.log(trigger, target_instances, instance);
-				instance?.$on(trigger, () => {
+				instance?.$on(dependency.trigger, () => {
+					if (dependency.status === "pending") {
+						return;
+					} 
+					setStatus(i, "pending");
 					fn(
 						"predict",
 						{
 							fn_index: i,
-							data: inputs.map((id) => instance_map[id].value)
+							data: dependency.inputs.map((id) => instance_map[id].value)
 						},
-						queue,
+						dependency.queue,
 						() => {}
-					).then((output) => {
-						output.data.forEach((value, i) => {
-							instance_map[outputs[i]].value = value;
+					)
+						.then((output) => {
+							setStatus(i, "complete");
+							output.data.forEach((value, i) => {
+								instance_map[dependency.outputs[i]].value = value;
+							});
+						})
+						.catch((error) => {
+							setStatus(i, "error");
+							console.error(error);
 						});
-					});
 				});
 
 				if (!handled_dependencies[i]) handled_dependencies[i] = [];
@@ -193,6 +217,7 @@
 				{instance_map}
 				{theme}
 				{root}
+				{status_tracker_values}
 				on:mount={handle_mount}
 				on:destroy={({ detail }) => handle_destroy(detail)}
 			/>

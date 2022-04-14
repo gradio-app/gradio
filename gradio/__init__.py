@@ -29,6 +29,7 @@ from gradio.components import (
     Timeseries,
     Variable,
     Video,
+    FunctionStatus
 )
 from gradio.flagging import (
     CSVLogger,
