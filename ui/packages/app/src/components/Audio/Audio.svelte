@@ -18,8 +18,6 @@
 
 	let _value: null | FileData;
 	$: _value = normalise_file(value, root);
-
-	$: console.log($$props);
 </script>
 
 {#if mode === "dynamic"}

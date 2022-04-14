@@ -29,8 +29,6 @@
 			name: name,
 			data: value?.data
 		});
-
-	console.log("static");
 </script>
 
 <Block variant={"solid"} color={"grey"} padding={false}>

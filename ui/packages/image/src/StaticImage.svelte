@@ -13,8 +13,6 @@
 	}>();
 
 	$: value && dispatch("change", value);
-
-	console.log("static");
 </script>
 
 <Block variant={"solid"} color={"grey"} padding={false}>
