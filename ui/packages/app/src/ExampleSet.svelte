@@ -15,8 +15,38 @@
 	export let input_components: Array<Component>;
 	export let theme: string;
 
-	let selected_examples = examples;
+	let page = 0;
 	let gallery = input_components.length === 1;
+	let paginate = examples.length > examples_per_page;
+
+	let selected_examples: Array<Array<unknown>>;
+	let page_count: number;
+	let visible_pages: Array<number> = [];
+	$: {
+		if (paginate) {
+			visible_pages = [];
+			selected_examples = examples.slice(
+				page * examples_per_page,
+				(page + 1) * examples_per_page
+			);
+			page_count = Math.ceil(examples.length / examples_per_page);
+			[0, page, page_count - 1].forEach((anchor) => {
+				for (let i = anchor - 2; i <= anchor + 2; i++) {
+					if (i >= 0 && i < page_count && !visible_pages.includes(i)) {
+						if (
+							visible_pages.length > 0 &&
+							i - visible_pages[visible_pages.length - 1] > 1
+						) {
+							visible_pages.push(-1);
+						}
+						visible_pages.push(i);
+					}
+				}
+			});
+		} else {
+			selected_examples = examples.slice();
+		}
+	}
 </script>
 
 <div class="examples" {theme}>
@@ -31,7 +61,8 @@
 				{#each selected_examples as example_row, i}
 					<button
 						class="example cursor-pointer p-2 rounded bg-gray-50 dark:bg-gray-700 transition"
-						on:click={() => setExampleId(i)}
+						class:selected={i + page * examples_per_page === example_id}
+						on:click={() => setExampleId(i + page * examples_per_page)}
 					>
 						<svelte:component
 							this={input_component_map[input_components[0].name].example}
@@ -59,8 +90,8 @@
 					{#each selected_examples as example_row, i}
 						<tr
 							class="cursor-pointer transition"
-							class:selected={i === example_id}
-							on:click={() => setExampleId(i)}
+							class:selected={i + page * examples_per_page === example_id}
+							on:click={() => setExampleId(i + page * examples_per_page)}
 						>
 							{#each example_row as example_cell, j}
 								<td class="py-2 px-4">
@@ -78,6 +109,24 @@
 			</table>
 		{/if}
 	</div>
+	{#if paginate}
+		<div class="flex gap-2 items-center mt-4">
+			Pages:
+			{#each visible_pages as visible_page}
+				{#if visible_page === -1}
+					<div>...</div>
+				{:else}
+					<button
+						class="page"
+						class:font-bold={page === visible_page}
+						on:click={() => (page = visible_page)}
+					>
+						{visible_page + 1}
+					</button>
+				{/if}
+			{/each}
+		</div>
+	{/if}
 </div>
 
 <style lang="postcss" global>
@@ -101,6 +150,12 @@
 			.example:hover {
 				@apply bg-amber-500 text-white;
 			}
+		}
+		.examples-table tr.selected {
+			@apply font-semibold;
+		}
+		.page {
+			@apply py-1 px-2 bg-gray-100 dark:bg-gray-700 rounded;
 		}
 	}
 </style>

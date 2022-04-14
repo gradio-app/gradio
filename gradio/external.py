@@ -4,7 +4,7 @@ import re
 
 import requests
 
-from gradio import inputs, outputs
+from gradio import inputs, outputs, utils
 
 
 def get_huggingface_interface(model_name, api_key, alias):
@@ -203,6 +203,13 @@ def get_huggingface_interface(model_name, api_key, alias):
             "preprocess": lambda x: {"inputs": x},
             "postprocess": encode_to_base64,
         },
+        "token-classification": {
+            # example model: hf.co/huggingface-course/bert-finetuned-ner
+            "inputs": inputs.Textbox(label="Input"),
+            "outputs": outputs.HighlightedText(label="Output"),
+            "preprocess": lambda x: {"inputs": x},
+            "postprocess": lambda r: r,  # Handled as a special case in query_huggingface_api()
+        },
     }
 
     if p is None or not (p in pipelines):
@@ -225,6 +232,12 @@ def get_huggingface_interface(model_name, api_key, alias):
                     response.status_code
                 )
             )
+        if (
+            p == "token-classification"
+        ):  # Handle as a special case since HF API only returns the named entities and we need the input as well
+            ner_groups = response.json()
+            input_string = params[0]
+            response = utils.format_ner_list(input_string, ner_groups)
         output = pipeline["postprocess"](response)
         return output
 
@@ -288,8 +301,8 @@ def interface_params_from_config(config_dict):
 def get_spaces_interface(model_name, api_key, alias):
     space_url = "https://huggingface.co/spaces/{}".format(model_name)
     print("Fetching interface from: {}".format(space_url))
-    iframe_url = "https://huggingface.co/gradioiframe/{}/+".format(model_name)
-    api_url = "https://huggingface.co/gradioiframe/{}/api/predict/".format(model_name)
+    iframe_url = "https://hf.space/embed/{}/+".format(model_name)
+    api_url = "https://hf.space/embed/{}/api/predict/".format(model_name)
     headers = {"Content-Type": "application/json"}
 
     r = requests.get(iframe_url)

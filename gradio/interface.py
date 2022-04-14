@@ -31,7 +31,6 @@ from gradio.process_examples import load_from_cache, process_example
 from gradio.routes import PredictBody
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    import flask
     import transformers
 
 
@@ -580,19 +579,24 @@ class Interface(Launchable):
                     flag_option="" if self.flagging_options else None,
                     username=username,
                 )
-            if self.stateful:
-                updated_state = prediction[self.state_return_index]
-                prediction[self.state_return_index] = None
-            else:
-                updated_state = None
+        if self.stateful:
+            updated_state = prediction[self.state_return_index]
+            prediction[self.state_return_index] = None
+        else:
+            updated_state = None
 
-        return {
+        durations = durations
+        avg_durations = self.config.get("avg_durations")
+        response = {
             "data": prediction,
-            "durations": durations,
-            "avg_durations": self.config.get("avg_durations"),
             "flag_index": flag_index,
             "updated_state": updated_state,
         }
+        if durations is not None:
+            response["durations"] = durations
+        if avg_durations is not None:
+            response["avg_durations"] = avg_durations
+        return response
 
     def process(self, raw_input: List[Any]) -> Tuple[List[Any], List[float]]:
         """

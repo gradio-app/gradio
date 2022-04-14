@@ -11,6 +11,7 @@ import InputTextbox from "./input/Textbox/config.js";
 import InputVideo from "./input/Video/config.js";
 import InputDataFrame from "./input/DataFrame/config.js";
 import InputTimeSeries from "./input/TimeSeries/config.js";
+import InputImage3D from "./input/Image3D/config.js";
 
 import OutputAudio from "./output/Audio/config.js";
 import OutputCarousel from "./output/Carousel/config.js";
@@ -26,6 +27,7 @@ import OutputVideo from "./output/Video/config.js";
 import OutputTimeSeries from "./output/TimeSeries/config.js";
 import OutputChatbot from "./output/Chatbot/config.js";
 import OutputPlot from "./output/Plot/config.js";
+import OutputImage3D from "./output/Image3D/config.js";
 
 import StaticButton from "./static/Button/config.js";
 import StaticMarkdown from "./static/Markdown/config.js";
@@ -43,7 +45,8 @@ export const input_component_map = {
 	slider: InputSlider,
 	textbox: InputTextbox,
 	timeseries: InputTimeSeries,
-	video: InputVideo
+	video: InputVideo,
+	image3d: InputImage3D
 };
 
 export const output_component_map = {
@@ -60,7 +63,8 @@ export const output_component_map = {
 	timeseries: OutputTimeSeries,
 	video: OutputVideo,
 	chatbot: OutputChatbot,
-	plot: OutputPlot
+	plot: OutputPlot,
+	image3d: OutputImage3D
 };
 
 export const static_component_map = {

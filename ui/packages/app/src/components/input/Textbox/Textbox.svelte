@@ -11,6 +11,7 @@
 		class="input-text w-full rounded box-border p-2 focus:outline-none appearance-none"
 		{value}
 		{placeholder}
+		rows={lines}
 		on:input={(e) => setValue(e.target.value)}
 		{theme}
 	/>

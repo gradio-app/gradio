@@ -13,6 +13,7 @@
 	import "./themes/grass.css";
 	import "./themes/peach.css";
 	import "./themes/seafoam.css";
+	import "./themes/typography.min.css";
 	import { _ } from "svelte-i18n";
 	import { setupi18n } from "./i18n";
 	setupi18n();
@@ -30,6 +31,7 @@
 	export let input_components: Array<Component>;
 	export let output_components: Array<Component>;
 	export let examples: Array<Array<unknown>>;
+	export let examples_per_page: number;
 	export let fn: (...args: any) => Promise<unknown>;
 	export let root: string;
 	export let space: string | undefined = undefined;
@@ -60,12 +62,13 @@
 				<h1 class="title text-center p-4 text-4xl">{title}</h1>
 			{/if}
 			{#if description}
-				<p class="description pb-4">{@html description}</p>
+				<p class="description prose max-w-none pb-4">{@html description}</p>
 			{/if}
 			<Interface
 				{input_components}
 				{output_components}
 				{examples}
+				{examples_per_page}
 				{theme}
 				{fn}
 				{root}

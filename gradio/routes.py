@@ -72,6 +72,7 @@ class PredictBody(BaseModel):
     data: List[Any]
     state: Optional[Any]
     fn_index: Optional[int]
+    cleared: Optional[bool]
 
 
 class FlagData(BaseModel):
@@ -223,8 +224,13 @@ def api_docs(request: Request):
     output_types_doc, output_types = get_types(outputs, "output")
     input_names = [type(inp).__name__ for inp in app.launchable.input_components]
     output_names = [type(out).__name__ for out in app.launchable.output_components]
-    if app.launchable.examples is not None:
-        sample_inputs = app.launchable.examples[0]
+    if isinstance(app.launchable.examples, list):
+        example = app.launchable.examples[0]
+        sample_inputs = []
+        for index, example_input in enumerate(example):
+            sample_inputs.append(
+                app.launchable.input_components[index].preprocess_example(example_input)
+            )
     else:
         sample_inputs = [
             inp.generate_sample() for inp in app.launchable.input_components
@@ -252,10 +258,13 @@ def api_docs(request: Request):
 async def predict(body: PredictBody, username: str = Depends(get_current_user)):
     if app.launchable.stateful:
         session_hash = body.session_hash
-        state = app.state_holder.get(
-            (session_hash, "state"), app.launchable.state_default
-        )
-        body.state = state
+        if body.cleared:
+            body.state = None
+        else:
+            state = app.state_holder.get(
+                (session_hash, "state"), app.launchable.state_default
+            )
+            body.state = state
     try:
         output = await run_in_threadpool(app.launchable.process_api, body, username)
         if app.launchable.stateful:

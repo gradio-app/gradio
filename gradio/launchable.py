@@ -11,7 +11,7 @@ from gradio import encryptor, networking, queueing, strings, utils  # type: igno
 from gradio.process_examples import cache_interface_examples
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    import flask
+    import fastapi
 
 
 class Launchable:
@@ -42,7 +42,7 @@ class Launchable:
         ssl_keyfile: Optional[str] = None,
         ssl_certfile: Optional[str] = None,
         ssl_keyfile_password: Optional[str] = None,
-    ) -> Tuple[flask.Flask, str, str]:
+    ) -> Tuple[fastapi.FastAPI, str, str]:
         """
         Launches the webserver that serves the UI for the interface.
         Parameters:
@@ -68,7 +68,7 @@ class Launchable:
         ssl_certfile (str): If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
         ssl_keyfile_password (str): If a password is provided, will use this with the ssl certificate for https.
         Returns:
-        app (flask.Flask): Flask app object
+        app (fastapi.FastAPI): FastAPI app object
         path_to_local_server (str): Locally accessible link
         share_url (str): Publicly accessible link (if share=True)
         """

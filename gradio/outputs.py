@@ -14,11 +14,12 @@ import warnings
 from numbers import Number
 from types import ModuleType
 from typing import TYPE_CHECKING, Dict, List, Optional
-from black import out
 
+import matplotlib
 import numpy as np
 import pandas as pd
 import PIL
+from black import out
 from ffmpy import FFmpeg
 
 from gradio import processing_utils
@@ -853,14 +854,19 @@ class State(OutputComponent):
             "state": {},
         }
 
+
 class Plot(OutputComponent):
     """
+    Used for plot output.
+    Output type: matplotlib plt or plotly figure
+    Demos: outbreak_forecast
     """
 
     def __init__(self, type: str = None, label: Optional[str] = None):
         """
         Parameters:
-        label (str): component name in interface (not used).
+        type (str): type of plot (matplotlib, plotly)
+        label (str): component name in interface.
         """
         self.type = type
         super().__init__(label)
@@ -876,17 +882,96 @@ class Plot(OutputComponent):
 
     def postprocess(self, y):
         """
+        Parameters:
+        y (str): plot data
+        Returns:
+        (str): plot type
+        (str): plot base64 or json
         """
-        if self.type == 'plotly':
+        dtype = self.type
+        if self.type == "plotly":
             out_y = y.to_json()
-        elif self.type == 'matplotlib':
+        elif self.type == "matplotlib":
             out_y = processing_utils.encode_plot_to_base64(y)
+        elif self.type == "bokeh":
+            out_y = json.dumps(y)
+        elif self.type == "auto":
+            if isinstance(y, (ModuleType, matplotlib.pyplot.Figure)):
+                dtype = "matplotlib"
+                out_y = processing_utils.encode_plot_to_base64(y)
+            elif isinstance(y, dict):
+                dtype = "bokeh"
+                out_y = json.dumps(y)
+            else:
+                dtype = "plotly"
+                out_y = y.to_json()
         else:
             raise ValueError(
-                    "Unknown type. Please choose from: 'plotly', 'matplotlib', 'bokeh'."
-                )
-        return {"type": self.type, "plot": out_y}
+                "Unknown type. Please choose from: 'plotly', 'matplotlib', 'bokeh'."
+            )
+        return {"type": dtype, "plot": out_y}
 
+    def deserialize(self, x):
+        y = processing_utils.decode_base64_to_file(x).name
+        return y
+
+    def save_flagged(self, dir, label, data, encryption_key):
+        return self.save_flagged_file(dir, label, data, encryption_key)
+
+
+class Image3D(OutputComponent):
+    """
+    Used for 3d image model output.
+    Output type: filepath
+    Demos: Image3D
+    """
+
+    def __init__(self, clear_color=None, label=None):
+        """
+        Parameters:
+        clear_color (List[r, g, b, a]): background color of scene
+        label (str): component name in interface.
+        """
+        super().__init__(label)
+        self.clear_color = clear_color
+
+    def get_template_context(self):
+        return {**super().get_template_context()}
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "Image3D": {},
+        }
+
+    def postprocess(self, y):
+        """
+        Parameters:
+        y (str): path to the model
+        Returns:
+        (str): file name
+        (str): file extension
+        (str): base64 url data
+        """
+
+        if self.clear_color is None:
+            self.clear_color = [0.2, 0.2, 0.2, 1.0]
+
+        return {
+            "name": os.path.basename(y),
+            "extension": os.path.splitext(y)[1],
+            "clearColor": self.clear_color,
+            "data": processing_utils.encode_file_to_base64(y),
+        }
+
+    def deserialize(self, x):
+        return processing_utils.decode_base64_to_file(x).name
+
+    def save_flagged(self, dir, label, data, encryption_key):
+        """
+        Returns: (str) path to model file
+        """
+        return self.save_flagged_file(dir, label, data["data"], encryption_key)
 
 
 def get_output_instance(iface: Interface):

@@ -1623,6 +1623,79 @@ class State(InputComponent):
         }
 
 
+class Image3D(InputComponent):
+    """
+    Used for 3D image model output.
+    Input type: File object of type (.obj, glb, or .gltf)
+    Demos: Image3D
+    """
+
+    def __init__(
+        self,
+        label: Optional[str] = None,
+        optional: bool = False,
+    ):
+        """
+        Parameters:
+        label (str): component name in interface.
+        optional (bool): If True, the interface can be submitted with no uploaded image, in which case the input value is None.
+        """
+        self.test_input = None
+        super().__init__(label, optional=optional)
+
+    def get_template_context(self):
+        return {
+            "optional": self.optional,
+            **super().get_template_context(),
+        }
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "Image3D": {},
+        }
+
+    def preprocess_example(self, x):
+        return {"name": x, "data": None, "is_example": True}
+
+    def preprocess(self, x: Dict[str, str] | None) -> str | None:
+        """
+        Parameters:
+        x (Dict[name: str, data: str]): JSON object with filename as 'name' property and base64 data as 'data' property
+        Returns:
+        (str): file path to 3D image model
+        """
+        if x is None:
+            return x
+        file_name, file_data, is_example = (
+            x["name"],
+            x["data"],
+            x.get("is_example", False),
+        )
+        if is_example:
+            file = processing_utils.create_tmp_copy_of_file(file_name)
+        else:
+            file = processing_utils.decode_base64_to_file(
+                file_data, file_path=file_name
+            )
+        file_name = file.name
+        return file_name
+
+    def serialize(self, x, called_directly):
+        raise NotImplementedError()
+
+    def save_flagged(self, dir, label, data, encryption_key):
+        """
+        Returns: (str) path to 3D image model file
+        """
+        return self.save_flagged_file(
+            dir, label, None if data is None else data["data"], encryption_key
+        )
+
+    def generate_sample(self):
+        return test_data.BASE64_IMAGE3D
+
+
 def get_input_instance(iface: Interface):
     if isinstance(iface, str):
         shortcut = InputComponent.get_all_shortcut_implementations()[iface]

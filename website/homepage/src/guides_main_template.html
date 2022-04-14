@@ -122,18 +122,6 @@
     </div>
 
     <div id="guide-list" class="grid grid-cols-1 lg:grid-cols-3 gap-12 pt-12">
-
-      <a class="flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow" href="/getting_started">
-        <div class="flex flex-col p-4" style="
-      height: min-content;">
-          <h2 class="font-semibold group-hover:underline text-xl">Getting Started
-          </h2>
-          <div class="tags-holder">
-          </div>
-        </div>
-      </a>
-
-
       {% for guide in guides %}
       <a class="flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow" href="/{{ guide.name }}">
         <div class="flex flex-col p-4" style="
@@ -141,12 +129,14 @@
           <h2 class="font-semibold group-hover:underline text-xl">{{ guide.pretty_name }}
           </h2>
           <div class="tags-holder">
+            {% if guide.tags is not none %}
             <p>
               {% for tag in guide.tags %}
                 {{ tag }}<!--
              -->{% if not loop.last %}, {% endif %}
               {% endfor %}
             </p>
+            {% endif %}
           </div>
         </div>
       </a>
@@ -232,7 +222,7 @@
       if (txtValue.toUpperCase().indexOf(filter) > -1 || guideContent.toUpperCase().indexOf(filter) > -1) {
         a[{{ loop.index - 1}}].style.display = "";
       } else {
-        a[{{ loop.index - 1 }}].style.display = "none";
+        a[{{ loop.index - 1}}].style.display = "none";
         counter++;
       }
     {% endfor %}

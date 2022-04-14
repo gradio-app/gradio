@@ -10,9 +10,7 @@ coverage:
           - "gradio/"
         target: 80%
         threshold: 0.1
-    patch:
-      default:
-        target: 50%  # new contributions should have a coverage at least equal to 50%
+    patch: off
   
 comment: false
 codecov:
