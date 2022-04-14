@@ -128,7 +128,13 @@ class TestNumber(unittest.TestCase):
         )
         self.assertEqual(
             numeric_input.get_template_context(),
-            {"default_value": None, "name": "number", "label": None, "css": {}},
+            {
+                "default_value": None,
+                "name": "number",
+                "label": None,
+                "css": {},
+                "interactive": None,
+            },
         )
 
     def test_in_interface(self):
@@ -178,6 +184,7 @@ class TestSlider(unittest.TestCase):
                 "name": "slider",
                 "label": "Slide Your Input",
                 "css": {},
+                "interactive": None,
             },
         )
 
@@ -223,6 +230,7 @@ class TestCheckbox(unittest.TestCase):
                 "name": "checkbox",
                 "label": "Check Your Input",
                 "css": {},
+                "interactive": None,
             },
         )
 
@@ -263,6 +271,7 @@ class TestCheckboxGroup(unittest.TestCase):
                 "name": "checkboxgroup",
                 "label": "Check Your Inputs",
                 "css": {},
+                "interactive": None,
             },
         )
         with self.assertRaises(ValueError):
@@ -300,6 +309,7 @@ class TestRadio(unittest.TestCase):
                 "name": "radio",
                 "label": "Pick Your One Input",
                 "css": {},
+                "interactive": None,
             },
         )
         with self.assertRaises(ValueError):
@@ -344,6 +354,7 @@ class TestDropdown(unittest.TestCase):
                 "name": "dropdown",
                 "label": "Drop Your Input",
                 "css": {},
+                "interactive": None,
             },
         )
         with self.assertRaises(ValueError):
@@ -397,6 +408,7 @@ class TestImage(unittest.TestCase):
                 "label": "Upload Your Image",
                 "css": {},
                 "default_value": None,
+                "interactive": None,
             },
         )
         self.assertIsNone(image_input.preprocess(None))
@@ -487,6 +499,7 @@ class TestAudio(unittest.TestCase):
                 "label": "Upload Your Audio",
                 "css": {},
                 "default_value": None,
+                "interactive": None,
             },
         )
         self.assertIsNone(audio_input.preprocess(None))
@@ -547,6 +560,7 @@ class TestFile(unittest.TestCase):
                 "label": "Upload Your File",
                 "css": {},
                 "default_value": None,
+                "interactive": None,
             },
         )
         self.assertIsNone(file_input.preprocess(None))
@@ -604,6 +618,7 @@ class TestDataframe(unittest.TestCase):
                 "max_cols": None,
                 "overflow_row_behaviour": "paginate",
                 "css": {},
+                "interactive": None,
             },
         )
         dataframe_input = gr.inputs.Dataframe()
@@ -651,6 +666,7 @@ class TestVideo(unittest.TestCase):
                 "label": "Upload Your Video",
                 "css": {},
                 "default_value": None,
+                "interactive": None,
             },
         )
         self.assertIsNone(video_input.preprocess(None))
@@ -698,6 +714,7 @@ class TestTimeseries(unittest.TestCase):
                 "label": "Upload Your Timeseries",
                 "css": {},
                 "default_value": None,
+                "interactive": None,
             },
         )
         self.assertIsNone(timeseries_input.preprocess(None))

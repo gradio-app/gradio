@@ -82,6 +82,7 @@ class TestTextbox(unittest.TestCase):
                 "name": "textbox",
                 "label": None,
                 "css": {},
+                "interactive": None,
             },
         )
         self.assertIsInstance(text_input.generate_sample(), str)
@@ -170,7 +171,13 @@ class TestNumber(unittest.TestCase):
         )
         self.assertEqual(
             numeric_input.get_template_context(),
-            {"default_value": None, "name": "number", "label": None, "css": {}},
+            {
+                "default_value": None,
+                "name": "number",
+                "label": None,
+                "css": {},
+                "interactive": None,
+            },
         )
 
     def test_in_interface_as_input(self):
@@ -251,6 +258,7 @@ class TestSlider(unittest.TestCase):
                 "name": "slider",
                 "label": "Slide Your Input",
                 "css": {},
+                "interactive": None,
             },
         )
 
@@ -303,6 +311,7 @@ class TestCheckbox(unittest.TestCase):
                 "name": "checkbox",
                 "label": "Check Your Input",
                 "css": {},
+                "interactive": None,
             },
         )
 
@@ -351,6 +360,7 @@ class TestCheckboxGroup(unittest.TestCase):
                 "name": "checkboxgroup",
                 "label": "Check Your Inputs",
                 "css": {},
+                "interactive": None,
             },
         )
         with self.assertRaises(ValueError):
@@ -395,6 +405,7 @@ class TestRadio(unittest.TestCase):
                 "name": "radio",
                 "label": "Pick Your One Input",
                 "css": {},
+                "interactive": None,
             },
         )
         with self.assertRaises(ValueError):
@@ -455,6 +466,7 @@ class TestImage(unittest.TestCase):
                 "label": "Upload Your Image",
                 "css": {},
                 "default_value": None,
+                "interactive": None,
             },
         )
         self.assertIsNone(image_input.preprocess(None))
@@ -610,6 +622,7 @@ class TestAudio(unittest.TestCase):
                 "label": "Upload Your Audio",
                 "css": {},
                 "default_value": None,
+                "interactive": None,
             },
         )
         self.assertIsNone(audio_input.preprocess(None))
@@ -649,6 +662,7 @@ class TestAudio(unittest.TestCase):
                 "source": "upload",
                 "css": {},
                 "default_value": None,
+                "interactive": None,
             },
         )
         self.assertTrue(
@@ -743,6 +757,7 @@ class TestFile(unittest.TestCase):
                 "label": "Upload Your File",
                 "css": {},
                 "default_value": None,
+                "interactive": None,
             },
         )
         self.assertIsNone(file_input.preprocess(None))
@@ -842,6 +857,7 @@ class TestDataframe(unittest.TestCase):
                 "max_cols": None,
                 "overflow_row_behaviour": "paginate",
                 "css": {},
+                "interactive": None,
             },
         )
         dataframe_input = gr.Dataframe()
@@ -886,6 +902,7 @@ class TestDataframe(unittest.TestCase):
                     ["", "", ""],
                     ["", "", ""],
                 ],
+                "interactive": None,
             },
         )
         with self.assertRaises(ValueError):
@@ -969,6 +986,7 @@ class TestVideo(unittest.TestCase):
                 "label": "Upload Your Video",
                 "css": {},
                 "default_value": None,
+                "interactive": None,
             },
         )
         self.assertIsNone(video_input.preprocess(None))
@@ -1045,6 +1063,7 @@ class TestTimeseries(unittest.TestCase):
                 "label": "Upload Your Timeseries",
                 "css": {},
                 "default_value": None,
+                "interactive": None,
             },
         )
         self.assertIsNone(timeseries_input.preprocess(None))
@@ -1064,6 +1083,7 @@ class TestTimeseries(unittest.TestCase):
                 "label": "Disease",
                 "css": {},
                 "default_value": None,
+                "interactive": None,
             },
         )
         data = {"Name": ["Tom", "nick", "krish", "jack"], "Age": [20, 21, 19, 18]}
@@ -1230,7 +1250,12 @@ class TestLabel(unittest.TestCase):
 
         self.assertEqual(
             label_output.get_template_context(),
-            {"name": "label", "label": None, "css": {}},
+            {
+                "name": "label",
+                "label": None,
+                "css": {},
+                "interactive": None,
+            },
         )
 
     def test_in_interface(self):
@@ -1279,6 +1304,7 @@ class TestHighlightedText(unittest.TestCase):
                 "show_legend": False,
                 "css": {},
                 "default_value": "",
+                "interactive": None,
             },
         )
         ht = {"pos": "Hello ", "neg": "World"}
@@ -1336,7 +1362,13 @@ class TestJSON(unittest.TestCase):
             )
         self.assertEqual(
             js_output.get_template_context(),
-            {"css": {}, "default_value": '""', "label": None, "name": "json"},
+            {
+                "css": {},
+                "default_value": '""',
+                "label": None,
+                "name": "json",
+                "interactive": None,
+            },
         )
 
     def test_in_interface(self):
@@ -1378,6 +1410,7 @@ class TestHTML(unittest.TestCase):
                 "default_value": "#Welcome onboard",
                 "label": "HTML Input",
                 "name": "html",
+                "interactive": None,
             },
             html_component.get_template_context(),
         )
@@ -1431,11 +1464,13 @@ class TestCarousel(unittest.TestCase):
                         "lines": 1,
                         "css": {},
                         "placeholder": None,
+                        "interactive": None,
                     }
                 ],
                 "name": "carousel",
                 "label": "Disease",
                 "css": {},
+                "interactive": None,
             },
         )
         output = carousel_output.postprocess(["Hello World", "Bye World"])
