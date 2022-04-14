@@ -124,7 +124,7 @@ class Component(Block):
         return {"name": file, "data": data}
 
     @classmethod
-    def get_component_shortcut(cls, str_shortcut: str) -> (bool, Optional[Component]):
+    def get_component_shortcut(cls, str_shortcut: str) -> Optional[Component]:
         """
         Creates a component, where class name equals to str_shortcut.
 
@@ -137,12 +137,12 @@ class Component(Block):
         str_shortcut = str_shortcut.replace("_", "")
         for sub_cls in cls.__subclasses__():
             if sub_cls.__name__.lower() == str_shortcut:
-                return True, sub_cls()
+                return sub_cls()
             # For template components
             for sub_sub_cls in sub_cls.__subclasses__():
                 if sub_sub_cls.__name__.lower() == str_shortcut:
-                    return True, sub_sub_cls()
-        return False, None
+                    return sub_sub_cls()
+        return None
 
     # Input Functionalities
     def preprocess(self, x: Any) -> Any:
@@ -567,7 +567,7 @@ class Slider(Component):
         if step is None:
             difference = maximum - minimum
             power = math.floor(math.log10(difference) - 2)
-            step = 10**power
+            step = 10 ** power
         self.step = step
         self.default_value = minimum if default_value is None else default_value
         self.test_input = self.default_value
@@ -1409,7 +1409,7 @@ class Video(Component):
         file_name = file.name
         uploaded_format = file_name.split(".")[-1].lower()
         if self.type is not None and uploaded_format != self.type:
-            output_file_name = file_name[0 : file_name.rindex(".") + 1] + self.type
+            output_file_name = file_name[0: file_name.rindex(".") + 1] + self.type
             ff = FFmpeg(inputs={file_name: None}, outputs={output_file_name: None})
             ff.run()
             return output_file_name
@@ -1439,7 +1439,7 @@ class Video(Component):
         """
         returned_format = y.split(".")[-1].lower()
         if self.type is not None and returned_format != self.type:
-            output_file_name = y[0 : y.rindex(".") + 1] + self.type
+            output_file_name = y[0: y.rindex(".") + 1] + self.type
             ff = FFmpeg(inputs={y: None}, outputs={output_file_name: None})
             ff.run()
             y = output_file_name
@@ -2860,8 +2860,8 @@ def component(str_shortcut: str) -> (bool, Optional[Component]):
         True, found_class or
         False, None
     """
-    does_exist, component = Component.get_component_shortcut(str_shortcut)
-    if not does_exist:
+    component = Component.get_component_shortcut(str_shortcut)
+    if component is None:
         raise ValueError(f"No such component: {str_shortcut}")
     else:
         return component
@@ -2869,8 +2869,8 @@ def component(str_shortcut: str) -> (bool, Optional[Component]):
 
 def get_component_instance(comp: str | dict | Component):
     if isinstance(comp, str):
-        does_exist, component = Component.get_component_shortcut(comp)
-        if not does_exist:
+        component = Component.get_component_shortcut(comp)
+        if component is None:
             raise ValueError(f"No such component: {comp}")
         else:
             return component
