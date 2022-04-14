@@ -387,14 +387,14 @@ class Textbox(Component):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
-        status_tracker: Optional[FunctionStatus] = None,
+        status_tracker: Optional[StatusTracker] = None,
     ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
-            status: FunctionStatus to visualize function progress
+            status: StatusTracker to visualize function progress
         Returns: None
         """
         self.set_event_trigger(
@@ -406,14 +406,14 @@ class Textbox(Component):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
-        status_tracker: Optional[FunctionStatus] = None,
+        status_tracker: Optional[StatusTracker] = None,
     ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
-            status: FunctionStatus to visualize function progress
+            status: StatusTracker to visualize function progress
         Returns: None
         """
         self.set_event_trigger(
@@ -541,14 +541,14 @@ class Number(Component):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
-        status_tracker: Optional[FunctionStatus] = None,
+        status_tracker: Optional[StatusTracker] = None,
     ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
-            status: FunctionStatus to visualize function progress
+            status: StatusTracker to visualize function progress
         Returns: None
         """
         self.set_event_trigger(
@@ -560,14 +560,14 @@ class Number(Component):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
-        status_tracker: Optional[FunctionStatus] = None,
+        status_tracker: Optional[StatusTracker] = None,
     ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
-            status: FunctionStatus to visualize function progress
+            status: StatusTracker to visualize function progress
         Returns: None
         """
         self.set_event_trigger(
@@ -691,14 +691,14 @@ class Slider(Component):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
-        status_tracker: Optional[FunctionStatus] = None,
+        status_tracker: Optional[StatusTracker] = None,
     ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
-            status: FunctionStatus to visualize function progress
+            status: StatusTracker to visualize function progress
         Returns: None
         """
         self.set_event_trigger(
@@ -798,14 +798,14 @@ class Checkbox(Component):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
-        status_tracker: Optional[FunctionStatus] = None,
+        status_tracker: Optional[StatusTracker] = None,
     ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
-            status: FunctionStatus to visualize function progress
+            status: StatusTracker to visualize function progress
         Returns: None
         """
         self.set_event_trigger(
@@ -935,14 +935,14 @@ class CheckboxGroup(Component):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
-        status_tracker: Optional[FunctionStatus] = None,
+        status_tracker: Optional[StatusTracker] = None,
     ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
-            status: FunctionStatus to visualize function progress
+            status: StatusTracker to visualize function progress
         Returns: None
         """
         self.set_event_trigger(
@@ -1052,14 +1052,14 @@ class Radio(Component):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
-        status_tracker: Optional[FunctionStatus] = None,
+        status_tracker: Optional[StatusTracker] = None,
     ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
-            status: FunctionStatus to visualize function progress
+            status: StatusTracker to visualize function progress
         Returns: None
         """
         self.set_event_trigger(
@@ -1417,14 +1417,14 @@ class Image(Component):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
-        status_tracker: Optional[FunctionStatus] = None,
+        status_tracker: Optional[StatusTracker] = None,
     ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
-            status: FunctionStatus to visualize function progress
+            status: StatusTracker to visualize function progress
         Returns: None
         """
         self.set_event_trigger(
@@ -1575,14 +1575,14 @@ class Video(Component):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
-        status_tracker: Optional[FunctionStatus] = None,
+        status_tracker: Optional[StatusTracker] = None,
     ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
-            status: FunctionStatus to visualize function progress
+            status: StatusTracker to visualize function progress
         Returns: None
         """
         self.set_event_trigger(
@@ -1885,14 +1885,14 @@ class Audio(Component):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
-        status_tracker: Optional[FunctionStatus] = None,
+        status_tracker: Optional[StatusTracker] = None,
     ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
-            status: FunctionStatus to visualize function progress
+            status: StatusTracker to visualize function progress
         Returns: None
         """
         self.set_event_trigger(
@@ -2079,14 +2079,14 @@ class File(Component):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
-        status_tracker: Optional[FunctionStatus] = None,
+        status_tracker: Optional[StatusTracker] = None,
     ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
-            status: FunctionStatus to visualize function progress
+            status: StatusTracker to visualize function progress
         Returns: None
         """
         self.set_event_trigger(
@@ -2276,14 +2276,14 @@ class Dataframe(Component):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
-        status_tracker: Optional[FunctionStatus] = None,
+        status_tracker: Optional[StatusTracker] = None,
     ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
-            status: FunctionStatus to visualize function progress
+            status: StatusTracker to visualize function progress
         Returns: None
         """
         self.set_event_trigger(
@@ -2389,14 +2389,14 @@ class Timeseries(Component):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
-        status_tracker: Optional[FunctionStatus] = None,
+        status_tracker: Optional[StatusTracker] = None,
     ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
-            status: FunctionStatus to visualize function progress
+            status: StatusTracker to visualize function progress
         Returns: None
         """
         self.set_event_trigger(
@@ -2549,14 +2549,14 @@ class Label(Component):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
-        status_tracker: Optional[FunctionStatus] = None,
+        status_tracker: Optional[StatusTracker] = None,
     ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
-            status: FunctionStatus to visualize function progress
+            status: StatusTracker to visualize function progress
         Returns: None
         """
         self.set_event_trigger(
@@ -2655,14 +2655,14 @@ class HighlightedText(Component):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
-        status_tracker: Optional[FunctionStatus] = None,
+        status_tracker: Optional[StatusTracker] = None,
     ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
-            status: FunctionStatus to visualize function progress
+            status: StatusTracker to visualize function progress
         Returns: None
         """
         self.set_event_trigger(
@@ -2728,14 +2728,14 @@ class JSON(Component):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
-        status_tracker: Optional[FunctionStatus] = None,
+        status_tracker: Optional[StatusTracker] = None,
     ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
-            status: FunctionStatus to visualize function progress
+            status: StatusTracker to visualize function progress
         Returns: None
         """
         self.set_event_trigger(
@@ -2791,14 +2791,14 @@ class HTML(Component):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
-        status_tracker: Optional[FunctionStatus] = None,
+        status_tracker: Optional[StatusTracker] = None,
     ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
-            status: FunctionStatus to visualize function progress
+            status: StatusTracker to visualize function progress
         Returns: None
         """
         self.set_event_trigger(
@@ -2891,14 +2891,14 @@ class Carousel(Component):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
-        status_tracker: Optional[FunctionStatus] = None,
+        status_tracker: Optional[StatusTracker] = None,
     ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
-            status: FunctionStatus to visualize function progress
+            status: StatusTracker to visualize function progress
         Returns: None
         """
         self.set_event_trigger(
@@ -2953,14 +2953,14 @@ class Chatbot(Component):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
-        status_tracker: Optional[FunctionStatus] = None,
+        status_tracker: Optional[StatusTracker] = None,
     ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
-            status: FunctionStatus to visualize function progress
+            status: StatusTracker to visualize function progress
         Returns: None
         """
         self.set_event_trigger(
@@ -3028,14 +3028,14 @@ class Button(Component):
         inputs: List[Component],
         outputs: List[Component],
         queue=False,
-        status_tracker: Optional[FunctionStatus] = None,
+        status_tracker: Optional[StatusTracker] = None,
     ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
-            status: FunctionStatus to visualize function progress
+            status: StatusTracker to visualize function progress
         Returns: None
         """
         self.set_event_trigger(
@@ -3052,14 +3052,14 @@ class Button(Component):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
-        status_tracker: Optional[FunctionStatus] = None,
+        status_tracker: Optional[StatusTracker] = None,
     ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
-            status: FunctionStatus to visualize function progress
+            status: StatusTracker to visualize function progress
         Returns: None
         """
         self.set_event_trigger(
@@ -3119,14 +3119,14 @@ class Dataset(Component):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
-        status_tracker: Optional[FunctionStatus] = None,
+        status_tracker: Optional[StatusTracker] = None,
     ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
-            status: FunctionStatus to visualize function progress
+            status: StatusTracker to visualize function progress
         Returns: None
         """
         self.set_event_trigger(
@@ -3138,14 +3138,14 @@ class Dataset(Component):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
-        status_tracker: Optional[FunctionStatus] = None,
+        status_tracker: Optional[StatusTracker] = None,
     ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
-            status: FunctionStatus to visualize function progress
+            status: StatusTracker to visualize function progress
         Returns: None
         """
         self.set_event_trigger(
@@ -3203,9 +3203,9 @@ def get_component_instance(comp: str | dict | Component):
         )
 
 
-class FunctionStatus(Component):
+class StatusTracker(Component):
     """
-    Used to indicate status of a function call. Event listeners can bind to a FunctionStatus with 'status=' keyword argument.
+    Used to indicate status of a function call. Event listeners can bind to a StatusTracker with 'status=' keyword argument.
     """
 
     def __init__(

@@ -15,7 +15,7 @@ from gradio.process_examples import cache_interface_examples
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from fastapi.applications import FastAPI
 
-    from gradio.components import Component, FunctionStatus
+    from gradio.components import Component, StatusTracker
 
 
 class Block:
@@ -46,7 +46,7 @@ class Block:
         postprocess: bool = True,
         queue=False,
         no_target: bool = False,
-        status_tracker: Optional[FunctionStatus] = None,
+        status_tracker: Optional[StatusTracker] = None,
     ) -> None:
         """
         Adds an event to the component's dependencies.
@@ -58,7 +58,7 @@ class Block:
             preprocess: whether to run the preprocess methods of components
             postprocess: whether to run the postprocess methods of components
             no_target: if True, sets "targets" to [], used for Blocks "load" event
-            status: FunctionStatus to visualize function progress
+            status: StatusTracker to visualize function progress
         Returns: None
         """
         # Support for singular parameter

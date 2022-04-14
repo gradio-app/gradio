@@ -27,7 +27,7 @@ from gradio.components import (
     Interpretation,
     Markdown,
     Variable,
-    FunctionStatus,
+    StatusTracker,
     get_component_instance,
 )
 from gradio.external import load_from_pipeline, load_interface  # type: ignore
@@ -531,7 +531,7 @@ class Interface(Blocks):
                         "border-radius": "0.5rem",
                     }
                 ):
-                    status_tracker = FunctionStatus(cover_container=True)
+                    status_tracker = StatusTracker(cover_container=True)
                     for component in self.output_components:
                         component.render()
                     with Row():
