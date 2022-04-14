@@ -12,7 +12,6 @@ class Text(components.Textbox):
 
 
 class TextArea(components.Textbox):
-
     def __init__(self, **kwargs):
         """
         Custom component
@@ -23,7 +22,6 @@ class TextArea(components.Textbox):
 
 
 class Webcam(components.Image):
-
     def __init__(self, **kwargs):
         """
         Custom component
@@ -34,7 +32,6 @@ class Webcam(components.Image):
 
 
 class Sketchpad(components.Image):
-
     def __init__(self, **kwargs):
         """
         Custom component
@@ -51,7 +48,6 @@ class Sketchpad(components.Image):
 
 
 class Plot(components.Image):
-
     def __init__(self, **kwargs):
         """
         Custom component
@@ -62,7 +58,6 @@ class Plot(components.Image):
 
 
 class Pil(components.Image):
-
     def __init__(self, **kwargs):
         """
         Custom component
@@ -73,7 +68,6 @@ class Pil(components.Image):
 
 
 class PlayableVideo(components.Video):
-
     def __init__(self, **kwargs):
         """
         Custom component
@@ -84,7 +78,6 @@ class PlayableVideo(components.Video):
 
 
 class Microphone(components.Audio):
-
     def __init__(self, **kwargs):
         """
         Custom component
@@ -143,8 +136,9 @@ class List(components.Dataframe):
         self.is_template = True
         super().__init__(type="array", col_count=1, **kwargs)
 
+
 class Highlight(components.HighlightedText):
-    def __init__(self, **kwargs):x
+    def __init__(self, **kwargs):
         """
         Custom component
         @param kwargs:
