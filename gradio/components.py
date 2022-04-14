@@ -567,7 +567,7 @@ class Slider(Component):
         if step is None:
             difference = maximum - minimum
             power = math.floor(math.log10(difference) - 2)
-            step = 10 ** power
+            step = 10**power
         self.step = step
         self.default_value = minimum if default_value is None else default_value
         self.test_input = self.default_value
@@ -1409,7 +1409,7 @@ class Video(Component):
         file_name = file.name
         uploaded_format = file_name.split(".")[-1].lower()
         if self.type is not None and uploaded_format != self.type:
-            output_file_name = file_name[0: file_name.rindex(".") + 1] + self.type
+            output_file_name = file_name[0 : file_name.rindex(".") + 1] + self.type
             ff = FFmpeg(inputs={file_name: None}, outputs={output_file_name: None})
             ff.run()
             return output_file_name
@@ -1439,7 +1439,7 @@ class Video(Component):
         """
         returned_format = y.split(".")[-1].lower()
         if self.type is not None and returned_format != self.type:
-            output_file_name = y[0: y.rindex(".") + 1] + self.type
+            output_file_name = y[0 : y.rindex(".") + 1] + self.type
             ff = FFmpeg(inputs={y: None}, outputs={output_file_name: None})
             ff.run()
             y = output_file_name
