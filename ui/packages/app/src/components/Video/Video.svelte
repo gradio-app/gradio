@@ -22,7 +22,7 @@
 </script>
 
 {#if mode === "static"}
-	style<StaticVideo value={_value} {label} {style} />
+	<StaticVideo value={_value} {label} {style} />
 {:else}
 	<Video
 		value={_value}
