@@ -14,6 +14,7 @@ import warnings
 from numbers import Number
 from types import ModuleType
 from typing import TYPE_CHECKING, Dict, List, Optional
+import matplotlib
 
 import numpy as np
 import pandas as pd
@@ -895,7 +896,7 @@ class Plot(OutputComponent):
         elif self.type == "bokeh":
             out_y = json.dumps(y)
         elif self.type == "auto":
-            if isinstance(y, ModuleType):
+            if isinstance(y, (ModuleType, matplotlib.pyplot.Figure)):
                 dtype = "matplotlib"
                 out_y = processing_utils.encode_plot_to_base64(y)
             elif isinstance(y, dict):
