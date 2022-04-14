@@ -1,12 +1,11 @@
 import gradio as gr
-from gradio import Templates
-
 
 def greet(name):
     return "Hello " + name + "!!"
 
 
-demo = gr.Interface(fn=greet, inputs=Templates.TextArea(), outputs=Templates.TextArea())
+demo = gr.Interface(fn=greet, inputs=gr.component("textarea"), outputs=gr.component("textarea"))
+
 
 if __name__ == "__main__":
     demo.launch()
