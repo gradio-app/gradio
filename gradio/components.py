@@ -37,6 +37,7 @@ class Component(Block):
         requires_permissions: bool = False,
         css: Optional[Dict] = None,
         without_rendering: bool = False,
+        interactive: Optional[bool] = None,
         **kwargs,
     ):
         if "optional" in kwargs:
@@ -47,6 +48,7 @@ class Component(Block):
         self.label = label
         self.requires_permissions = requires_permissions
         self.css = css if css is not None else {}
+        self.interactive = interactive
 
         self.set_interpret_parameters()
         super().__init__(without_rendering=without_rendering)
@@ -65,6 +67,7 @@ class Component(Block):
             "name": self.__class__.__name__.lower(),
             "label": self.label,
             "css": self.css,
+            "interactive": self.interactive,
         }
 
     @classmethod

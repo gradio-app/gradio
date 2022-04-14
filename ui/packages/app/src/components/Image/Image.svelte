@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import { Image } from "@gradio/image";
+	import { Image, StaticImage } from "@gradio/image";
 	import { _ } from "svelte-i18n";
 
 	export let value: null | string = null;
@@ -20,13 +20,7 @@
 </script>
 
 {#if mode === "static"}
-	<div
-		class="output-image w-full h-60 flex justify-center items-center bg-gray-200 dark:bg-gray-600 relative"
-		{style}
-	>
-		<!-- svelte-ignore a11y-missing-attribute -->
-		<img class="w-full h-full object-contain" src={value} />
-	</div>
+	<StaticImage {value} {label} {style} />
 {:else}
 	<Image
 		bind:value
