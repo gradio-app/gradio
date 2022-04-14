@@ -3,4 +3,3 @@ jinja2
 requests
 pydrive
 pycairo
-gradio
