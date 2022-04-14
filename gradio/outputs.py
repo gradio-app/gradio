@@ -211,12 +211,12 @@ class Image(OutputComponent):
         """
         Parameters:
         type (str): Type of value to be passed to component. "numpy" expects a numpy array with shape (width, height, 3), "pil" expects a PIL image object, "file" expects a file path to the saved image or a remote URL, "plot" expects a matplotlib.pyplot object, "auto" detects return type.
-        plot (bool): DEPRECATED. Whether to expect a plot to be returned by the function.
+        plot (bool): DEPRECATED (Use the new 'plot' component). Whether to expect a plot to be returned by the function.
         label (str): component name in interface.
         """
         if plot:
             warnings.warn(
-                "The 'plot' parameter has been deprecated. Set parameter 'type' to 'plot' instead.",
+                "The 'plot' parameter has been deprecated. Use the new 'plot' component instead.",
                 DeprecationWarning,
             )
             self.type = "plot"
