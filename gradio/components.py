@@ -121,11 +121,9 @@ class Component(Block):
         return {"name": file, "data": data}
 
     @classmethod
-    def get_str_shortcut_component(
-        cls, str_shortcut: str
-    ) -> (bool, Optional[Component]):
+    def get_component_shortcut(cls, str_shortcut: str) -> (bool, Optional[Component]):
         """
-        Gets component class, where class name equals to str_shortcut.
+        Creates a component, where class name equals to str_shortcut.
 
         @param str_shortcut: string shortcut of a component
         @return:
@@ -136,11 +134,11 @@ class Component(Block):
         str_shortcut = str_shortcut.replace("_", "")
         for sub_cls in cls.__subclasses__():
             if sub_cls.__name__.lower() == str_shortcut:
-                return True, sub_cls
+                return True, sub_cls()
             # For template components
             for sub_sub_cls in sub_cls.__subclasses__():
                 if sub_sub_cls.__name__.lower() == str_shortcut:
-                    return True, sub_sub_cls
+                    return True, sub_sub_cls()
         return False, None
 
     # Input Functionalities
@@ -2850,13 +2848,29 @@ class Interpretation(Component):
         }
 
 
+def component(str_shortcut: str) -> (bool, Optional[Component]):
+    """
+    Creates a component, where class name equals to str_shortcut.
+
+    @param str_shortcut: string shortcut of a component
+    @return:
+        True, found_class or
+        False, None
+    """
+    does_exist, component = Component.get_component_shortcut(str_shortcut)
+    if not does_exist:
+        raise ValueError(f"No such component: {str_shortcut}")
+    else:
+        return component
+
+
 def get_component_instance(comp: str | dict | Component):
     if isinstance(comp, str):
-        does_exist, component_class = Component.get_str_shortcut_component(comp)
+        does_exist, component = Component.get_component_shortcut(comp)
         if not does_exist:
             raise ValueError(f"No such component: {comp}")
         else:
-            return component_class()
+            return component
     elif isinstance(
         comp, dict
     ):  # a dict with `name` as the input component type and other keys as parameters
