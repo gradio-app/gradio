@@ -296,6 +296,7 @@ def render_reference():
         doc = inspect.getdoc(cls)
         doc_lines = doc.split("\n")
         inp["doc"] = "\n".join(doc_lines[:-2])
+        print(doc_lines[-2])
         inp["type"] = doc_lines[-2].split("type: ")[-1]
         inp["demos"] = doc_lines[-1][7:].split(", ")
         _, inp["params"], inp["params_doc"], _ = get_function_documentation(
