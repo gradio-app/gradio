@@ -7,6 +7,7 @@ importers:
       '@types/three': ^0.138.0
       babylonjs: ^4.2.1
       babylonjs-loaders: ^4.2.1
+      plotly.js-dist-min: ^2.10.1
       prettier: ^2.5.1
       prettier-plugin-svelte: ^2.6.0
       svelte: ^3.46.3
@@ -16,6 +17,7 @@ importers:
     dependencies:
       babylonjs: 4.2.1
       babylonjs-loaders: 4.2.1
+      plotly.js-dist-min: 2.10.1
       prettier: 2.5.1
       prettier-plugin-svelte: 2.6.0_prettier@2.5.1+svelte@3.46.3
       svelte: 3.46.3
@@ -1765,6 +1767,10 @@ packages:
   /picomatch/2.3.1:
     resolution: {integrity: sha512-JU3teHTNjmE2VCGFzuY8EXzCDVwEqB2a8fsIvwaStHhAWJEeVd1o1QD80CU6+ZdEXXSLbSsuLwJjkCBWqRQUVA==}
     engines: {node: '>=8.6'}
+
+  /plotly.js-dist-min/2.10.1:
+    resolution: {integrity: sha512-H0ls1C2uu2U+qWw76djo4/zOGtUKfMILwFhu7tCOaG/wH5ypujrYGCH03N9SQVf1SXcctTfW57USf8LmagSiPQ==}
+    dev: false
 
   /pn/1.1.0:
     resolution: {integrity: sha512-2qHaIQr2VLRFoxe2nASzsV6ef4yOOH+Fi9FBOVH6cqeSgUnoyySPZkxzLuzd+RYOQTRpROA0ztTMqxROKSb/nA==}

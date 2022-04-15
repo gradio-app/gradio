@@ -1,7 +1,6 @@
 <script lang="ts">
-	export let value: string;
-	export let examples_dir: string;
+	import type { FileData } from "./types";
+	export let value: FileData;
 </script>
 
-<!-- svelte-ignore a11y-missing-attribute -->
-<img class="input-Image3D-example h-24 max-w-none" src={examples_dir + value} />
+<div class="input-image3D-example">{value}</div>
