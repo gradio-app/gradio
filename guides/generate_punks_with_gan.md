@@ -22,7 +22,7 @@ Make sure you have the `gradio` Python package already [installed](/getting_star
 
 ## GANs: a very brief introduction
 
-Originally proposed in [Goodfellow et al. 2014](https://arxiv.org/abs/1406.2661), GANs are made up of neural networks which compete with the intention of outsmarting each other. One network, known as the *generator* is responsible for generating images. The other network, the *discriminator*, receives an image at a time from the generator along with a **real** image from the training data set. The discriminator then has to guess: which image is the fake?
+Originally proposed in [Goodfellow et al. 2014](https://arxiv.org/abs/1406.2661), GANs are made up of neural networks which compete with the intention of outsmarting each other. One network, known as the *generator*, is responsible for generating images. The other network, the *discriminator*, receives an image at a time from the generator along with a **real** image from the training data set. The discriminator then has to guess: which image is the fake?
 
 The generator is constantly training to create images which are trickier for the discriminator to identify, while the discriminator raises the bar for the generator every time it correctly detects a fake. As the networks engage in this competitive (*adversarial!*) relationship, the images that get generated improve to the point where they become indistinguishable to human eyes!
 
@@ -88,7 +88,7 @@ def predict(seed):
     return 'punks.png'
 ```
 
-We're giving our `predict` function a `seed` parameter, so that we can fix the random tensor generation with a seed so that we can reproduce punks if we want to see them again by passing in the same seed.
+We're giving our `predict` function a `seed` parameter, so that we can fix the random tensor generation with a seed. We'll then be able to reproduce punks if we want to see them again by passing in the same seed.
 
 *Note!* Our model needs an input tensor of dimensions 100x1x1 for to do a single inference, or (BatchSize)x100x1x1 for generating a batch of images. In this demo we'll start by generating 4 punks at a time.
 
