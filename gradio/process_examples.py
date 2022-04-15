@@ -26,8 +26,8 @@ def process_example(
         interface.input_components[i].preprocess_example(example)
         for i, example in enumerate(example_set)
     ]
-    prediction, durations = interface.process(raw_input)
-    return prediction, durations
+    prediction = interface.process(raw_input)
+    return prediction
 
 
 def cache_interface_examples(interface: Interface) -> None:
@@ -44,7 +44,7 @@ def cache_interface_examples(interface: Interface) -> None:
         cache_logger.setup(interface.output_components, CACHED_FOLDER)
         for example_id, _ in enumerate(interface.examples):
             try:
-                prediction = process_example(interface, example_id)[0]
+                prediction = process_example(interface, example_id)
                 cache_logger.flag(prediction)
             except Exception as e:
                 shutil.rmtree(CACHED_FOLDER)
