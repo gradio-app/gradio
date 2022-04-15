@@ -1,6 +1,7 @@
 <script lang="ts">
 	export let value: string;
 	export let theme: string;
+	export let clearColor: Array;
 
 	import { onMount, afterUpdate } from "svelte";
 	import * as BABYLON from "babylonjs";
@@ -13,7 +14,6 @@
 		const engine = new BABYLON.Engine(canvas, true);
 		scene = new BABYLON.Scene(engine);
 		scene.createDefaultCameraOrLight();
-		const clearColor = value["clearColor"];
 		scene.clearColor = new BABYLON.Color4(
 			clearColor[0],
 			clearColor[1],
@@ -51,7 +51,7 @@
 			},
 			undefined,
 			undefined,
-			value["extension"]
+			"." + value["name"].split(".")[1]
 		);
 	}
 </script>
