@@ -212,7 +212,7 @@ def file(path):
             io.BytesIO(file_data), attachment_filename=os.path.basename(path)
         )
     else:
-        return FileResponse(safe_join(app.cwd, path))
+        return FileResponse(app.cwd, path)
 
 
 @app.get("/api", response_class=HTMLResponse)  # Needed for Spaces
