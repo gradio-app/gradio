@@ -22,6 +22,14 @@ Tests are divided into two
 """
 
 
+class TestComponent(unittest.TestCase):
+    def test_component_functions(self):
+        """
+        component
+        """
+        assert isinstance(gr.component("text"), gr.templates.Text)
+
+
 class TestTextbox(unittest.TestCase):
     def test_component_functions(self):
         """
