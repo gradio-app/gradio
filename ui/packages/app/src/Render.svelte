@@ -10,6 +10,7 @@
 	export let theme;
 	export let dynamic_ids: Set<number>;
 	export let has_modes: boolean;
+	export let status_tracker_values: Record<number, string>;
 
 	const dispatch = createEventDispatcher<{ mount: number; destroy: number }>();
 
@@ -46,6 +47,7 @@
 	{style}
 	{...props}
 	{root}
+	tracked_status={status_tracker_values[id]}
 >
 	{#if children && children.length}
 		{#each children as { component, id, props, children, has_modes }}
@@ -59,6 +61,7 @@
 				{children}
 				{dynamic_ids}
 				{has_modes}
+				{status_tracker_values}
 				on:destroy
 				on:mount
 			/>

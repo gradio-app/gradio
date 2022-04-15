@@ -168,6 +168,7 @@ XRAY_CONFIG = {
             "inputs": [2, 6],
             "outputs": [7],
             "queue": False,
+            "status_tracker": None,
         },
         {
             "targets": [13],
@@ -175,6 +176,7 @@ XRAY_CONFIG = {
             "inputs": [2, 11],
             "outputs": [12],
             "queue": False,
+            "status_tracker": None,
         },
         {
             "targets": [],
@@ -182,6 +184,7 @@ XRAY_CONFIG = {
             "inputs": [],
             "outputs": [14],
             "queue": False,
+            "status_tracker": None,
         },
     ],
 }
@@ -356,6 +359,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "inputs": [22, 6],
             "outputs": [7],
             "queue": False,
+            "status_tracker": None,
         },
         {
             "targets": [13],
@@ -363,6 +367,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "inputs": [22, 11],
             "outputs": [12],
             "queue": False,
+            "status_tracker": None,
         },
     ],
 }
@@ -537,6 +542,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "inputs": [2, 6],
             "outputs": [7],
             "queue": False,
+            "status_tracker": None,
         },
         {
             "targets": [13],
@@ -544,6 +550,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "inputs": [2, 11],
             "outputs": [12],
             "queue": False,
+            "status_tracker": None,
         },
     ],
 }
