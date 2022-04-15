@@ -9,8 +9,8 @@ import posixpath
 import secrets
 import traceback
 import urllib
-from typing import Any, Dict, List, Optional, Tuple, Type
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple, Type
 
 import orjson
 import pkg_resources
@@ -213,9 +213,8 @@ def file(path):
             io.BytesIO(file_data), attachment_filename=os.path.basename(path)
         )
     else:
-        if Path(app.cwd) in Path(path).parents:
-            path = str(Path(path).relative_to(app.cwd))
-        return FileResponse(safe_join(app.cwd, path))
+        if Path(app.cwd).resolve() in Path(path).resolve().parents:
+            return FileResponse(Path(path).resolve())
 
 
 @app.get("/api", response_class=HTMLResponse)  # Needed for Spaces
@@ -336,7 +335,7 @@ def safe_join(directory: str, path: str) -> Optional[str]:
     _os_alt_seps: List[str] = list(
         sep for sep in [os.path.sep, os.path.altsep] if sep is not None and sep != "/"
     )
-    
+
     if path != "":
         filename = posixpath.normpath(path)
 
