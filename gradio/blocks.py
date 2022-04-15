@@ -71,8 +71,9 @@ class Block:
             outputs: output list
             preprocess: whether to run the preprocess methods of components
             postprocess: whether to run the postprocess methods of components
+            queue: if True, will store multiple calls in queue and run in order instead of in parallel with multiple threads
             no_target: if True, sets "targets" to [], used for Blocks "load" event
-            status: StatusTracker to visualize function progress
+            status_tracker: StatusTracker to visualize function progress
         Returns: None
         """
         # Support for singular parameter

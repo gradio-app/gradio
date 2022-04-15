@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { onDestroy } from "svelte";
+
 	export let style: string = "";
 	export let cover_container: bool = false;
 	export let eta: number | null = null;
@@ -12,7 +14,7 @@
 	let timer_start = 0;
 	let timer_diff = 0;
 
-	const startTimer = () => {
+	const start_timer = () => {
 		timer_start = Date.now();
 		timer_diff = 0;
 		timer = setInterval(() => {
@@ -20,18 +22,21 @@
 		}, 100);
 	};
 
-	const stopTimer = () => {
+	const stop_timer = () => {
 		clearInterval(timer);
 	};
 
+	onDestroy(() => {
+		if (timer) stop_timer();
+	});
+
 	$: {
 		if (tracked_status === "pending") {
-			startTimer();
+			start_timer();
 		} else {
-			stopTimer();
+			stop_timer();
 		}
 	}
-
 </script>
 
 {#if tracked_status === "pending"}
@@ -62,15 +67,7 @@
 
 <style lang="postcss">
 	.cover_container {
-		position: absolute;
-		width: 100%;
-		height: 100%;
-		z-index: 1;
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: center;
-		background-color: rgba(255, 255, 255, 0.4);
+		@apply absolute top-0 left-0 w-full h-full z-10 flex flex-col justify-center items-center bg-gray-100 bg-opacity-25;
 	}
 	@keyframes blink {
 		0% {

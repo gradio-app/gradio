@@ -117,7 +117,7 @@
 	let handled_dependencies: Array<number[]> = [];
 	let status_tracker_values: Record<number, string> = {};
 
-	let setStatus = (dependency_index: number, status: string) => {
+	let set_status = (dependency_index: number, status: string) => {
 		dependencies[dependency_index].status = status;
 		let status_tracker_id = dependencies[dependency_index].status_tracker;
 		if (status_tracker_id !== null) {
@@ -127,27 +127,27 @@
 
 	async function handle_mount({ detail }) {
 		await tick();
-		dependencies.forEach((dependency, i) => {
-			const target_instances: [number, Instance][] = dependency.targets.map(
+		dependencies.forEach(({targets, trigger, inputs, outputs, queue}, i) => {
+			const target_instances: [number, Instance][] = targets.map(
 				(t) => [t, instance_map[t]]
 			);
 
 			// page events
 			if (
-				dependency.targets.length === 0 &&
+				targets.length === 0 &&
 				!handled_dependencies[i]?.includes(-1) &&
-				dependency.trigger === "load" &&
+				trigger === "load" &&
 				// check all input + output elements are on the page
-				dependency.outputs.every((v) => instance_map[v].instance) &&
-				dependency.inputs.every((v) => instance_map[v].instance)
+				outputs.every((v) => instance_map[v].instance) &&
+				inputs.every((v) => instance_map[v].instance)
 			) {
 				fn(
 					"predict",
 					{
 						fn_index: i,
-						data: dependency.inputs.map((id) => instance_map[id].value)
+						data: inputs.map((id) => instance_map[id].value)
 					},
-					dependency.queue,
+					queue,
 					() => {}
 				)
 					.then((output) => {
@@ -166,28 +166,28 @@
 				// console.log(id, handled_dependencies[i]?.includes(id) || !instance);
 				if (handled_dependencies[i]?.includes(id) || !instance) return;
 				// console.log(trigger, target_instances, instance);
-				instance?.$on(dependency.trigger, () => {
-					if (dependency.status === "pending") {
+				instance?.$on(trigger, () => {
+					if (status === "pending") {
 						return;
 					} 
-					setStatus(i, "pending");
+					set_status(i, "pending");
 					fn(
 						"predict",
 						{
 							fn_index: i,
-							data: dependency.inputs.map((id) => instance_map[id].value)
+							data: inputs.map((id) => instance_map[id].value)
 						},
-						dependency.queue,
+						queue,
 						() => {}
 					)
 						.then((output) => {
-							setStatus(i, "complete");
+							set_status(i, "complete");
 							output.data.forEach((value, i) => {
-								instance_map[dependency.outputs[i]].value = value;
+								instance_map[outputs[i]].value = value;
 							});
 						})
 						.catch((error) => {
-							setStatus(i, "error");
+							set_status(i, "error");
 							console.error(error);
 						});
 				});
