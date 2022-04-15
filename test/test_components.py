@@ -583,9 +583,7 @@ class TestImage(unittest.TestCase):
             return np.random.randint(0, 256, (width, height, 3))
 
         iface = gr.Interface(generate_noise, ["slider", "slider"], "image")
-        self.assertTrue(
-            iface.process([10, 20])[0].startswith("data:image/png;base64")
-        )
+        self.assertTrue(iface.process([10, 20])[0].startswith("data:image/png;base64"))
 
 
 class TestAudio(unittest.TestCase):
@@ -953,9 +951,7 @@ class TestDataframe(unittest.TestCase):
             return array % 2 == 0
 
         iface = gr.Interface(check_odd, "numpy", "numpy")
-        self.assertEqual(
-            iface.process([[2, 3, 4]])[0], {"data": [[True, False, True]]}
-        )
+        self.assertEqual(iface.process([[2, 3, 4]])[0], {"data": [[True, False, True]]})
 
 
 class TestVideo(unittest.TestCase):
