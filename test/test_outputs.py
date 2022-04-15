@@ -19,9 +19,9 @@ os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 class TestTextbox(unittest.TestCase):
     def test_in_interface(self):
         iface = gr.Interface(lambda x: x[-1], "textbox", gr.outputs.Textbox())
-        self.assertEqual(iface.process(["Hello"])[0], ["o"])
+        self.assertEqual(iface.process(["Hello"]), ["o"])
         iface = gr.Interface(lambda x: x / 2, "number", gr.outputs.Textbox())
-        self.assertEqual(iface.process([10])[0], ["5.0"])
+        self.assertEqual(iface.process([10]), ["5.0"])
 
 
 class TestLabel(unittest.TestCase):
@@ -92,7 +92,7 @@ class TestLabel(unittest.TestCase):
             }
 
         iface = gr.Interface(rgb_distribution, "image", "label")
-        output = iface.process([x_img])[0][0]
+        output = iface.process([x_img])[0]
         self.assertDictEqual(
             output,
             {
@@ -152,7 +152,7 @@ class TestImage(unittest.TestCase):
 
         iface = gr.Interface(generate_noise, ["slider", "slider"], "image")
         self.assertTrue(
-            iface.process([10, 20])[0][0].startswith("data:image/png;base64")
+            iface.process([10, 20])[0].startswith("data:image/png;base64")
         )
 
 
@@ -219,7 +219,7 @@ class TestHighlightedText(unittest.TestCase):
 
         iface = gr.Interface(highlight_vowels, "text", "highlight")
         self.assertListEqual(
-            iface.process(["Helloooo"])[0][0],
+            iface.process(["Helloooo"])[0],
             [("H", "non"), ("e", "vowel"), ("ll", "non"), ("oooo", "vowel")],
         )
 
@@ -264,7 +264,7 @@ class TestAudio(unittest.TestCase):
             return 48000, np.random.randint(-256, 256, (duration, 3)).astype(np.int32)
 
         iface = gr.Interface(generate_noise, "slider", "audio")
-        self.assertTrue(iface.process([100])[0][0].startswith("data:audio/wav;base64"))
+        self.assertTrue(iface.process([100])[0].startswith("data:audio/wav;base64"))
 
 
 class TestJSON(unittest.TestCase):
@@ -302,7 +302,7 @@ class TestJSON(unittest.TestCase):
             ["O", 20],
             ["F", 30],
         ]
-        self.assertDictEqual(iface.process([y_data])[0][0], {"M": 35, "F": 25, "O": 20})
+        self.assertDictEqual(iface.process([y_data])[0], {"M": 35, "F": 25, "O": 20})
 
 
 class TestHTML(unittest.TestCase):
@@ -311,7 +311,7 @@ class TestHTML(unittest.TestCase):
             return "<strong>" + text + "</strong>"
 
         iface = gr.Interface(bold_text, "text", "html")
-        self.assertEqual(iface.process(["test"])[0][0], "<strong>test</strong>")
+        self.assertEqual(iface.process(["test"])[0], "<strong>test</strong>")
 
 
 class TestFile(unittest.TestCase):
@@ -323,7 +323,7 @@ class TestFile(unittest.TestCase):
 
         iface = gr.Interface(write_file, "text", "file")
         self.assertDictEqual(
-            iface.process(["hello world"])[0][0],
+            iface.process(["hello world"])[0],
             {
                 "name": "test.txt",
                 "size": 11,
@@ -409,7 +409,7 @@ class TestDataframe(unittest.TestCase):
 
         iface = gr.Interface(check_odd, "numpy", "numpy")
         self.assertEqual(
-            iface.process([[2, 3, 4]])[0][0], {"data": [[True, False, True]]}
+            iface.process([[2, 3, 4]])[0], {"data": [[True, False, True]]}
         )
 
 
@@ -477,7 +477,7 @@ class TestCarousel(unittest.TestCase):
 
         iface = gr.Interface(report, gr.inputs.Image(type="numpy"), carousel_output)
         self.assertEqual(
-            iface.process([media_data.BASE64_IMAGE])[0],
+            iface.process([media_data.BASE64_IMAGE]),
             [
                 [
                     [

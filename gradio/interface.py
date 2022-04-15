@@ -624,7 +624,7 @@ class Interface(Blocks):
         ):  # skip the preprocessing/postprocessing if sending to a remote API
             output = self.run_prediction(params, called_directly=True)
         else:
-            output, _ = self.process(params)
+            output = self.process(params)
         return output[0] if len(output) == 1 else output
 
     def __str__(self):
@@ -735,15 +735,7 @@ class Interface(Blocks):
             else None
             for i, output_component in enumerate(self.output_components)
         ]
-        avg_durations = []
-        for i, duration in enumerate(durations):
-            self.predict_durations[i][0] += duration
-            self.predict_durations[i][1] += 1
-            avg_durations.append(
-                self.predict_durations[i][0] / self.predict_durations[i][1]
-            )
-
-        return processed_output, durations
+        return processed_output
 
     def interpret(self, raw_input: List[Any]) -> List[Any]:
         return [
