@@ -15,7 +15,7 @@
 </script>
 
 {#if $selected_tab === id}
-	<div class="p-2 border-2 border-t-0 border-gray-200">
+	<div class="p-2 border-2 border-t-0 border-gray-200 relative">
 		<slot />
 	</div>
 {/if}

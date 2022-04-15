@@ -11,6 +11,7 @@ export const component_map: Record<string, any> = {
 	dataset: () => import("./Dataset"),
 	dropdown: () => import("./Dropdown"),
 	file: () => import("./File"),
+	statustracker: () => import("./StatusTracker"),
 	highlightedtext: () => import("./HighlightedText"),
 	html: () => import("./HTML"),
 	image: () => import("./Image"),

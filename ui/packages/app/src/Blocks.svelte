@@ -29,6 +29,8 @@
 		inputs: Array<number>;
 		outputs: Array<number>;
 		queue: boolean;
+		status_tracker: number | null;
+		status?: string;
 	}
 
 	export let root: string;
@@ -113,6 +115,15 @@
 	});
 
 	let handled_dependencies: Array<number[]> = [];
+	let status_tracker_values: Record<number, string> = {};
+
+	let set_status = (dependency_index: number, status: string) => {
+		dependencies[dependency_index].status = status;
+		let status_tracker_id = dependencies[dependency_index].status_tracker;
+		if (status_tracker_id !== null) {
+			status_tracker_values[status_tracker_id] = status;
+		}
+	};
 
 	async function handle_mount({ detail }) {
 		await tick();
@@ -139,11 +150,15 @@
 					},
 					queue,
 					() => {}
-				).then((output) => {
-					output.data.forEach((value, i) => {
-						instance_map[outputs[i]].value = value;
+				)
+					.then((output) => {
+						output.data.forEach((value, i) => {
+							instance_map[outputs[i]].value = value;
+						});
+					})
+					.catch((error) => {
+						console.error(error);
 					});
-				});
 
 				handled_dependencies[i] = [-1];
 			}
@@ -153,6 +168,10 @@
 				if (handled_dependencies[i]?.includes(id) || !instance) return;
 				// console.log(trigger, target_instances, instance);
 				instance?.$on(trigger, () => {
+					if (status === "pending") {
+						return;
+					}
+					set_status(i, "pending");
 					fn(
 						"predict",
 						{
@@ -161,11 +180,17 @@
 						},
 						queue,
 						() => {}
-					).then((output) => {
-						output.data.forEach((value, i) => {
-							instance_map[outputs[i]].value = value;
+					)
+						.then((output) => {
+							set_status(i, "complete");
+							output.data.forEach((value, i) => {
+								instance_map[outputs[i]].value = value;
+							});
+						})
+						.catch((error) => {
+							set_status(i, "error");
+							console.error(error);
 						});
-					});
 				});
 
 				if (!handled_dependencies[i]) handled_dependencies[i] = [];
@@ -194,6 +219,7 @@
 				{instance_map}
 				{theme}
 				{root}
+				{status_tracker_values}
 				on:mount={handle_mount}
 				on:destroy={({ detail }) => handle_destroy(detail)}
 			/>

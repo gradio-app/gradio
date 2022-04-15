@@ -387,25 +387,43 @@ class Textbox(Component):
         """
         return x
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("change", fn, inputs, outputs)
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker
+        )
 
-    def submit(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def submit(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("submit", fn, inputs, outputs)
+        self.set_event_trigger(
+            "submit", fn, inputs, outputs, status_tracker=status_tracker
+        )
 
 
 class Number(Component):
@@ -517,25 +535,43 @@ class Number(Component):
         """
         return y
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("change", fn, inputs, outputs)
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker
+        )
 
-    def submit(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def submit(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("submit", fn, inputs, outputs)
+        self.set_event_trigger(
+            "submit", fn, inputs, outputs, status_tracker=status_tracker
+        )
 
 
 class Slider(Component):
@@ -643,15 +679,24 @@ class Slider(Component):
         """
         return y
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("change", fn, inputs, outputs)
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker
+        )
 
 
 class Checkbox(Component):
@@ -735,15 +780,24 @@ class Checkbox(Component):
         """
         return x
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("change", fn, inputs, outputs)
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker
+        )
 
 
 class CheckboxGroup(Component):
@@ -863,15 +917,24 @@ class CheckboxGroup(Component):
         """
         return x
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("change", fn, inputs, outputs)
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker
+        )
 
 
 class Radio(Component):
@@ -971,15 +1034,24 @@ class Radio(Component):
         """
         return x
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("change", fn, inputs, outputs)
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker
+        )
 
 
 class Dropdown(Radio):
@@ -1312,15 +1384,24 @@ class Image(Component):
         y = processing_utils.decode_base64_to_file(x).name
         return y
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("change", fn, inputs, outputs)
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker
+        )
 
     def edit(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
@@ -1454,15 +1535,24 @@ class Video(Component):
     def deserialize(self, x):
         return processing_utils.decode_base64_to_file(x).name
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("change", fn, inputs, outputs)
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker
+        )
 
     def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
@@ -1747,15 +1837,24 @@ class Audio(Component):
     def deserialize(self, x):
         return processing_utils.decode_base64_to_file(x).name
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("change", fn, inputs, outputs)
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker
+        )
 
     def edit(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
@@ -1925,15 +2024,24 @@ class File(Component):
             "data": processing_utils.encode_file_to_base64(y),
         }
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("change", fn, inputs, outputs)
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker
+        )
 
     def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
@@ -2102,15 +2210,24 @@ class Dataframe(Component):
                 + ". Please choose from: 'pandas', 'numpy', 'array'."
             )
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("change", fn, inputs, outputs)
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker
+        )
 
 
 class Timeseries(Component):
@@ -2200,15 +2317,24 @@ class Timeseries(Component):
         """
         return {"headers": y.columns.values.tolist(), "data": y.values.tolist()}
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("change", fn, inputs, outputs)
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker
+        )
 
 
 class Variable(Component):
@@ -2339,15 +2465,24 @@ class Label(Component):
         except ValueError:
             return data
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("change", fn, inputs, outputs)
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker
+        )
 
 
 class KeyValues(Component):
@@ -2430,15 +2565,24 @@ class HighlightedText(Component):
     def restore_flagged(self, dir, data, encryption_key):
         return json.loads(data)
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("change", fn, inputs, outputs)
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker
+        )
 
 
 class JSON(Component):
@@ -2488,15 +2632,24 @@ class JSON(Component):
     def restore_flagged(self, dir, data, encryption_key):
         return json.loads(data)
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("change", fn, inputs, outputs)
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker
+        )
 
 
 class HTML(Component):
@@ -2536,15 +2689,24 @@ class HTML(Component):
         """
         return x
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("change", fn, inputs, outputs)
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker
+        )
 
 
 class Carousel(Component):
@@ -2627,15 +2789,24 @@ class Carousel(Component):
             for sample_set in json.loads(data)
         ]
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("change", fn, inputs, outputs)
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker
+        )
 
 
 class Chatbot(Component):
@@ -2674,15 +2845,24 @@ class Chatbot(Component):
         """
         return y
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("change", fn, inputs, outputs)
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker
+        )
 
 
 # Static Components
@@ -2745,27 +2925,48 @@ class Button(Component):
         inputs: List[Component],
         outputs: List[Component],
         queue=False,
+        status_tracker: Optional[StatusTracker] = None,
     ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("click", fn, inputs, outputs, queue=queue)
+        self.set_event_trigger(
+            "click",
+            fn,
+            inputs,
+            outputs,
+            queue=queue,
+            status_tracker=status_tracker,
+        )
 
     def _click_no_preprocess(
-        self, fn: Callable, inputs: List[Component], outputs: List[Component]
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
     ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("click", fn, inputs, outputs, preprocess=False)
+        self.set_event_trigger(
+            "click",
+            fn,
+            inputs,
+            outputs,
+            preprocess=False,
+            status_tracker=status_tracker,
+        )
 
 
 class Dataset(Component):
@@ -2808,27 +3009,48 @@ class Dataset(Component):
         elif self.type == "values":
             return self.samples[x]
 
-    def click(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        Returns: None
-        """
-        self.set_event_trigger("click", fn, inputs, outputs)
-
-    def _click_no_postprocess(
-        self, fn: Callable, inputs: List[Component], outputs: List[Component]
+    def click(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
     ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("click", fn, inputs, outputs, postprocess=False)
+        self.set_event_trigger(
+            "click", fn, inputs, outputs, status_tracker=status_tracker
+        )
+
+    def _click_no_postprocess(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+            status: StatusTracker to visualize function progress
+        Returns: None
+        """
+        self.set_event_trigger(
+            "click",
+            fn,
+            inputs,
+            outputs,
+            postprocess=False,
+            status_tracker=status_tracker,
+        )
 
 
 class Interpretation(Component):
@@ -2893,3 +3115,32 @@ def get_component_instance(comp: str | dict | Component):
         raise ValueError(
             f"Component must provided as a `str` or `dict` or `Component` but is {comp}"
         )
+
+
+class StatusTracker(Component):
+    """
+    Used to indicate status of a function call. Event listeners can bind to a StatusTracker with 'status=' keyword argument.
+    """
+
+    def __init__(
+        self,
+        *,
+        cover_container: bool = False,
+        label: Optional[str] = None,
+        css: Optional[Dict] = None,
+        **kwargs,
+    ):
+        """
+        Parameters:
+        cover_container (bool): If True, will expand to cover parent container while function pending.
+        label (str): component name
+        css (dict): optional css parameters for the component
+        """
+        super().__init__(label=label, css=css, **kwargs)
+        self.cover_container = cover_container
+
+    def get_template_context(self):
+        return {
+            "cover_container": self.cover_container,
+            **super().get_template_context(),
+        }

@@ -25,6 +25,7 @@ from gradio.components import (
     Number,
     Radio,
     Slider,
+    StatusTracker,
     Textbox,
     Timeseries,
     Variable,
