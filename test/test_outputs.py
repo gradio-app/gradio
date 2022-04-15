@@ -552,11 +552,11 @@ class TestImage3D(unittest.TestCase):
             to_save = Image3D_output.save_flagged(
                 tmpdirname, "Image3D_output", gr.test_data.BASE64_IMAGE3D, None
             )
-            self.assertEqual("Image3D_output/0", to_save)
+            self.assertEqual("Image3D_output/0.gltf", to_save)
             to_save = Image3D_output.save_flagged(
                 tmpdirname, "Image3D_output", gr.test_data.BASE64_IMAGE3D, None
             )
-            self.assertEqual("Image3D_output/1", to_save)
+            self.assertEqual("Image3D_output/1.gltf", to_save)
 
 
 class TestNames(unittest.TestCase):
