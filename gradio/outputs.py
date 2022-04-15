@@ -893,7 +893,7 @@ class Image3D(OutputComponent):
 
         if self.clear_color is None:
             self.clear_color = [0.2, 0.2, 0.2, 1.0]
-        
+
         return {
             "name": os.path.basename(y),
             "data": processing_utils.encode_file_to_base64(y),
@@ -906,8 +906,9 @@ class Image3D(OutputComponent):
         """
         Returns: (str) path to model file
         """
-        return self.save_flagged_file(dir, label, data["data"], encryption_key,
-                                      data["name"])
+        return self.save_flagged_file(
+            dir, label, data["data"], encryption_key, data["name"]
+        )
 
     def restore_flagged(self, dir, data, encryption_key):
         return self.restore_flagged_file(dir, data, encryption_key)

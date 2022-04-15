@@ -50,7 +50,11 @@ class Component(Block):
         return data
 
     def save_flagged_file(
-        self, dir: str, label: str, data: Any, encryption_key: bool,
+        self,
+        dir: str,
+        label: str,
+        data: Any,
+        encryption_key: bool,
         file_path: Optional[str] = None,
     ) -> Optional[str]:
         """
