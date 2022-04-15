@@ -251,6 +251,7 @@ class Textbox(Component):
         default_value: str = "",
         *,
         lines: int = 1,
+        max_lines: int = 100,
         placeholder: Optional[str] = None,
         label: Optional[str] = None,
         css: Optional[Dict] = None,
@@ -259,7 +260,8 @@ class Textbox(Component):
         """
         Parameters:
         default_value (str): default text to provide in textarea.
-        lines (int): number of line rows to provide in textarea.
+        lines (int): minimum number of line rows to provide in textarea.
+        max_lines (int): maximum number of line rows to provide in textarea.
         placeholder (str): placeholder hint to provide behind textarea.
         label (str): component name in interface.
         """
@@ -275,6 +277,7 @@ class Textbox(Component):
             )
         default_value = str(default_value)
         self.lines = lines
+        self.max_lines = max_lines
         self.placeholder = placeholder
         self.default_value = default_value
         self.test_input = default_value
@@ -284,6 +287,7 @@ class Textbox(Component):
     def get_template_context(self):
         return {
             "lines": self.lines,
+            "max_lines": self.max_lines,
             "placeholder": self.placeholder,
             "default_value": self.default_value,
             **super().get_template_context(),
@@ -610,7 +614,7 @@ class Slider(Component):
         if step is None:
             difference = maximum - minimum
             power = math.floor(math.log10(difference) - 2)
-            step = 10**power
+            step = 10 ** power
         self.step = step
         self.default_value = minimum if default_value is None else default_value
         self.test_input = self.default_value
@@ -1497,7 +1501,7 @@ class Video(Component):
         file_name = file.name
         uploaded_format = file_name.split(".")[-1].lower()
         if self.type is not None and uploaded_format != self.type:
-            output_file_name = file_name[0 : file_name.rindex(".") + 1] + self.type
+            output_file_name = file_name[0: file_name.rindex(".") + 1] + self.type
             ff = FFmpeg(inputs={file_name: None}, outputs={output_file_name: None})
             ff.run()
             return output_file_name
@@ -1527,7 +1531,7 @@ class Video(Component):
         """
         returned_format = y.split(".")[-1].lower()
         if self.type is not None and returned_format != self.type:
-            output_file_name = y[0 : y.rindex(".") + 1] + self.type
+            output_file_name = y[0: y.rindex(".") + 1] + self.type
             ff = FFmpeg(inputs={y: None}, outputs={output_file_name: None})
             ff.run()
             y = output_file_name
