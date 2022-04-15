@@ -40,6 +40,7 @@
 	export let dependencies: Array<Dependency>;
 	export let theme: string;
 	export let style: string | null;
+	export let static_src: string;
 
 	const dynamic_ids = dependencies.reduce((acc, next) => {
 		next.inputs.forEach((i) => acc.add(i));
@@ -223,4 +224,20 @@
 			/>
 		{/each}
 	{/if}
+</div>
+<div
+	class="gradio-page container mx-auto flex flex-col box-border flex-grow text-gray-700 dark:text-gray-50"
+>
+	<div
+		class="footer flex-shrink-0 inline-flex gap-2.5 items-center text-gray-400 justify-center py-2"
+	>
+		<a href="https://gradio.app" target="_blank" rel="noreferrer">
+			{$_("interface.built_with_Gradio")}
+			<img
+				class="h-5 inline-block pb-0.5"
+				src="{static_src}/static/img/logo.svg"
+				alt="logo"
+			/>
+		</a>
+	</div>
 </div>

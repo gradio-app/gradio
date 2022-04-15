@@ -8,7 +8,7 @@ def image_mod(text):
 demo = gr.Blocks()
 
 with demo:
-    text = gr.Textbox()
+    text = gr.Textbox(label="Input-Output")
     btn = gr.Button("Run")
     btn.click(image_mod, text, text)
 

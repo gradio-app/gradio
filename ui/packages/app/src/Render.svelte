@@ -14,10 +14,16 @@
 
 	const dispatch = createEventDispatcher<{ mount: number; destroy: number }>();
 
-	if (has_modes && dynamic_ids.has(id)) {
-		props.mode = "dynamic";
-	} else if (has_modes) {
-		props.mode = "static";
+	if (has_modes) {
+		if (props.interactive === false) {
+			props.mode = "static";
+		} else if (props.interactive === true) {
+			props.mode = "dynamic";
+		} else if (props.interactive === null && dynamic_ids.has(id)) {
+			props.mode = "dynamic";
+		} else {
+			props.mode = "static";
+		}
 	}
 
 	onMount(() => {
@@ -41,7 +47,6 @@
 	bind:value={instance_map[id].value}
 	{style}
 	{...props}
-	{theme}
 	{root}
 	tracked_status={status_tracker_values[id]}
 >
