@@ -1,8 +1,8 @@
-import os.path
 import gradio as gr
-
+import time
 
 def load_mesh(mesh_file_name):
+    time.sleep(2)
     return mesh_file_name
 
 iface = gr.Interface(

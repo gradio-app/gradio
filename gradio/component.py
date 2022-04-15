@@ -50,14 +50,15 @@ class Component(Block):
         return data
 
     def save_flagged_file(
-        self, dir: str, label: str, data: Any, encryption_key: bool
+        self, dir: str, label: str, data: Any, encryption_key: bool,
+        file_path: Optional[str] = None,
     ) -> Optional[str]:
         """
         Saved flagged data (e.g. image or audio) as a file and returns filepath
         """
         if data is None:
             return None
-        file = processing_utils.decode_base64_to_file(data, encryption_key)
+        file = processing_utils.decode_base64_to_file(data, encryption_key, file_path)
         label = "".join([char for char in label if char.isalnum() or char in "._- "])
         old_file_name = file.name
         output_dir = os.path.join(dir, label)
