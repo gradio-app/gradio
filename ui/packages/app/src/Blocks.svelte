@@ -127,10 +127,11 @@
 
 	async function handle_mount({ detail }) {
 		await tick();
-		dependencies.forEach(({targets, trigger, inputs, outputs, queue}, i) => {
-			const target_instances: [number, Instance][] = targets.map(
-				(t) => [t, instance_map[t]]
-			);
+		dependencies.forEach(({ targets, trigger, inputs, outputs, queue }, i) => {
+			const target_instances: [number, Instance][] = targets.map((t) => [
+				t,
+				instance_map[t]
+			]);
 
 			// page events
 			if (
@@ -169,7 +170,7 @@
 				instance?.$on(trigger, () => {
 					if (status === "pending") {
 						return;
-					} 
+					}
 					set_status(i, "pending");
 					fn(
 						"predict",

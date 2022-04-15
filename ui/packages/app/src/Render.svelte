@@ -10,7 +10,7 @@
 	export let theme;
 	export let dynamic_ids: Set<number>;
 	export let has_modes: boolean;
-	export let status_tracker_values: Record<number, string>
+	export let status_tracker_values: Record<number, string>;
 
 	const dispatch = createEventDispatcher<{ mount: number; destroy: number }>();
 
@@ -38,7 +38,6 @@
 					.map((rule) => rule[0] + ": " + rule[1])
 					.join("; ")
 			: null;
-	
 </script>
 
 <svelte:component

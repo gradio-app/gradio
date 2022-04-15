@@ -26,8 +26,8 @@ from gradio.components import (
     Dataset,
     Interpretation,
     Markdown,
-    Variable,
     StatusTracker,
+    Variable,
     get_component_instance,
 )
 from gradio.external import load_from_pipeline, load_interface  # type: ignore
@@ -615,7 +615,7 @@ class Interface(Blocks):
                     inputs=self.input_components + self.output_components,
                     outputs=interpretation_set
                     + [input_component_column, interpret_component_column],
-                    status_tracker=status_tracker
+                    status_tracker=status_tracker,
                 )
 
     def __call__(self, *params):

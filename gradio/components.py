@@ -3137,4 +3137,7 @@ class StatusTracker(Component):
         self.cover_container = cover_container
 
     def get_template_context(self):
-        return {"cover_container": self.cover_container, **super().get_template_context()}
+        return {
+            "cover_container": self.cover_container,
+            **super().get_template_context(),
+        }
