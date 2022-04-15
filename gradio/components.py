@@ -133,6 +133,9 @@ class Component(Block):
             True, found_class or
             False, None
         """
+        # If we do not import templates Python cannot recognize grandchild classes names.
+        import gradio.templates
+
         # Make it suitable with class names
         str_shortcut = str_shortcut.replace("_", "")
         for sub_cls in cls.__subclasses__():
