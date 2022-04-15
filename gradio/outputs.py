@@ -15,6 +15,7 @@ from numbers import Number
 from types import ModuleType
 from typing import TYPE_CHECKING, Dict, List, Optional
 
+import matplotlib
 import numpy as np
 import pandas as pd
 import PIL
@@ -210,12 +211,12 @@ class Image(OutputComponent):
         """
         Parameters:
         type (str): Type of value to be passed to component. "numpy" expects a numpy array with shape (width, height, 3), "pil" expects a PIL image object, "file" expects a file path to the saved image or a remote URL, "plot" expects a matplotlib.pyplot object, "auto" detects return type.
-        plot (bool): DEPRECATED. Whether to expect a plot to be returned by the function.
+        plot (bool): DEPRECATED (Use the new 'plot' component). Whether to expect a plot to be returned by the function.
         label (str): component name in interface.
         """
         if plot:
             warnings.warn(
-                "The 'plot' parameter has been deprecated. Set parameter 'type' to 'plot' instead.",
+                "The 'plot' parameter has been deprecated. Use the new 'plot' component instead.",
                 DeprecationWarning,
             )
             self.type = "plot"
@@ -853,6 +854,70 @@ class State(OutputComponent):
         }
 
 
+class Plot(OutputComponent):
+    """
+    Used for plot output.
+    Output type: matplotlib plt or plotly figure
+    Demos: outbreak_forecast
+    """
+
+    def __init__(self, type: str = None, label: Optional[str] = None):
+        """
+        Parameters:
+        type (str): type of plot (matplotlib, plotly)
+        label (str): component name in interface.
+        """
+        self.type = type
+        super().__init__(label)
+
+    def get_template_context(self):
+        return {**super().get_template_context()}
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "plot": {},
+        }
+
+    def postprocess(self, y):
+        """
+        Parameters:
+        y (str): plot data
+        Returns:
+        (str): plot type
+        (str): plot base64 or json
+        """
+        dtype = self.type
+        if self.type == "plotly":
+            out_y = y.to_json()
+        elif self.type == "matplotlib":
+            out_y = processing_utils.encode_plot_to_base64(y)
+        elif self.type == "bokeh":
+            out_y = json.dumps(y)
+        elif self.type == "auto":
+            if isinstance(y, (ModuleType, matplotlib.pyplot.Figure)):
+                dtype = "matplotlib"
+                out_y = processing_utils.encode_plot_to_base64(y)
+            elif isinstance(y, dict):
+                dtype = "bokeh"
+                out_y = json.dumps(y)
+            else:
+                dtype = "plotly"
+                out_y = y.to_json()
+        else:
+            raise ValueError(
+                "Unknown type. Please choose from: 'plotly', 'matplotlib', 'bokeh'."
+            )
+        return {"type": dtype, "plot": out_y}
+
+    def deserialize(self, x):
+        y = processing_utils.decode_base64_to_file(x).name
+        return y
+
+    def save_flagged(self, dir, label, data, encryption_key):
+        return self.save_flagged_file(dir, label, data, encryption_key)
+
+
 class Image3D(OutputComponent):
     """
     Used for 3d image model output.
@@ -870,7 +935,10 @@ class Image3D(OutputComponent):
         self.clear_color = clear_color
 
     def get_template_context(self):
-        return {**super().get_template_context()}
+        return {
+            "clearColor": self.clear_color,
+            **super().get_template_context(),
+        }
 
     @classmethod
     def get_shortcut_implementations(cls):
@@ -893,8 +961,6 @@ class Image3D(OutputComponent):
 
         return {
             "name": os.path.basename(y),
-            "extension": os.path.splitext(y)[1],
-            "clearColor": self.clear_color,
             "data": processing_utils.encode_file_to_base64(y),
         }
 
@@ -905,7 +971,12 @@ class Image3D(OutputComponent):
         """
         Returns: (str) path to model file
         """
-        return self.save_flagged_file(dir, label, data["data"], encryption_key)
+        return self.save_flagged_file(
+            dir, label, data["data"], encryption_key, data["name"]
+        )
+
+    def restore_flagged(self, dir, data, encryption_key):
+        return self.restore_flagged_file(dir, data, encryption_key)
 
 
 def get_output_instance(iface: Interface):
