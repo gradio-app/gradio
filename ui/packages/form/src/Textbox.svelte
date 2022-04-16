@@ -42,9 +42,11 @@
 	) {
 		if (!enabled) return;
 
-		resize({ target: el });
 		el.style.overflow = "hidden";
 		el.addEventListener("input", resize);
+
+		if (!value.trim()) return;
+		resize({ target: el });
 
 		return {
 			destroy: () => el.removeEventListener("input", resize),
@@ -65,7 +67,7 @@
 				bind:value
 				{placeholder}
 				{style}
-				rows={autoheight ? null : lines}
+				rows={lines}
 				{disabled}
 			/>
 		{:else}

@@ -8639,4 +8639,5 @@ FILE_TEMPLATE_CONTEXT = {
     "name": "file",
     "label": None,
     "css": {},
+    "interactive": None,
 }

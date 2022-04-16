@@ -11,6 +11,7 @@ export const component_map: Record<string, any> = {
 	dataset: () => import("./Dataset"),
 	dropdown: () => import("./Dropdown"),
 	file: () => import("./File"),
+	statustracker: () => import("./StatusTracker"),
 	highlightedtext: () => import("./HighlightedText"),
 	html: () => import("./HTML"),
 	image: () => import("./Image"),
@@ -27,5 +28,9 @@ export const component_map: Record<string, any> = {
 	textbox: () => import("./Textbox"),
 	timeseries: () => import("./TimeSeries"),
 	video: () => import("./Video"),
+<<<<<<< HEAD
 	model3d: () => import("./Model3D")
+=======
+	variable: () => import("./Variable")
+>>>>>>> blocks-dev
 };

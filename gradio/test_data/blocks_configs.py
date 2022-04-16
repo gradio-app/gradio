@@ -9,6 +9,7 @@ XRAY_CONFIG = {
                 "name": "markdown",
                 "label": None,
                 "css": {},
+                "interactive": None,
             },
         },
         {
@@ -20,6 +21,7 @@ XRAY_CONFIG = {
                 "name": "checkboxgroup",
                 "label": "Disease to Scan For",
                 "css": {},
+                "interactive": None,
             },
         },
         {"id": 3, "type": "tabs", "props": {"css": {}, "default_value": True}},
@@ -45,12 +47,19 @@ XRAY_CONFIG = {
                 "name": "image",
                 "label": None,
                 "css": {},
+                "interactive": None,
             },
         },
         {
             "id": 7,
             "type": "json",
-            "props": {"default_value": '""', "name": "json", "label": None, "css": {}},
+            "props": {
+                "default_value": '""',
+                "name": "json",
+                "label": None,
+                "css": {},
+                "interactive": None,
+            },
         },
         {
             "id": 8,
@@ -60,6 +69,7 @@ XRAY_CONFIG = {
                 "name": "button",
                 "label": None,
                 "css": {"background-color": "red", "--hover-color": "orange"},
+                "interactive": None,
             },
         },
         {
@@ -84,12 +94,19 @@ XRAY_CONFIG = {
                 "name": "image",
                 "label": None,
                 "css": {},
+                "interactive": None,
             },
         },
         {
             "id": 12,
             "type": "json",
-            "props": {"default_value": '""', "name": "json", "label": None, "css": {}},
+            "props": {
+                "default_value": '""',
+                "name": "json",
+                "label": None,
+                "css": {},
+                "interactive": None,
+            },
         },
         {
             "id": 13,
@@ -99,6 +116,7 @@ XRAY_CONFIG = {
                 "name": "button",
                 "label": None,
                 "css": {},
+                "interactive": None,
             },
         },
         {
@@ -111,6 +129,7 @@ XRAY_CONFIG = {
                 "name": "textbox",
                 "label": None,
                 "css": {},
+                "interactive": None,
             },
         },
     ],
@@ -149,6 +168,7 @@ XRAY_CONFIG = {
             "inputs": [2, 6],
             "outputs": [7],
             "queue": False,
+            "status_tracker": None,
         },
         {
             "targets": [13],
@@ -156,6 +176,7 @@ XRAY_CONFIG = {
             "inputs": [2, 11],
             "outputs": [12],
             "queue": False,
+            "status_tracker": None,
         },
         {
             "targets": [],
@@ -163,6 +184,7 @@ XRAY_CONFIG = {
             "inputs": [],
             "outputs": [14],
             "queue": False,
+            "status_tracker": None,
         },
     ],
 }
@@ -178,6 +200,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "name": "markdown",
                 "label": None,
                 "css": {},
+                "interactive": None,
             },
         },
         {
@@ -189,6 +212,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "name": "checkboxgroup",
                 "label": "Disease to Scan For",
                 "css": {},
+                "interactive": None,
             },
         },
         {"id": 3, "type": "tabs", "props": {"css": {}, "default_value": True}},
@@ -214,12 +238,19 @@ XRAY_CONFIG_DIFF_IDS = {
                 "name": "image",
                 "label": None,
                 "css": {},
+                "interactive": None,
             },
         },
         {
             "id": 7,
             "type": "json",
-            "props": {"default_value": '""', "name": "json", "label": None, "css": {}},
+            "props": {
+                "default_value": '""',
+                "name": "json",
+                "label": None,
+                "css": {},
+                "interactive": None,
+            },
         },
         {
             "id": 8888,
@@ -229,6 +260,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "name": "button",
                 "label": None,
                 "css": {"background-color": "red", "--hover-color": "orange"},
+                "interactive": None,
             },
         },
         {
@@ -253,12 +285,19 @@ XRAY_CONFIG_DIFF_IDS = {
                 "name": "image",
                 "label": None,
                 "css": {},
+                "interactive": None,
             },
         },
         {
             "id": 12,
             "type": "json",
-            "props": {"default_value": '""', "name": "json", "label": None, "css": {}},
+            "props": {
+                "default_value": '""',
+                "name": "json",
+                "label": None,
+                "css": {},
+                "interactive": None,
+            },
         },
         {
             "id": 13,
@@ -268,6 +307,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "name": "button",
                 "label": None,
                 "css": {},
+                "interactive": None,
             },
         },
         {
@@ -280,6 +320,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "name": "textbox",
                 "label": None,
                 "css": {},
+                "interactive": None,
             },
         },
     ],
@@ -318,6 +359,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "inputs": [22, 6],
             "outputs": [7],
             "queue": False,
+            "status_tracker": None,
         },
         {
             "targets": [13],
@@ -325,6 +367,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "inputs": [22, 11],
             "outputs": [12],
             "queue": False,
+            "status_tracker": None,
         },
     ],
 }
@@ -340,6 +383,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "name": "markdown",
                 "label": None,
                 "css": {},
+                "interactive": None,
             },
         },
         {
@@ -351,6 +395,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "name": "checkboxgroup",
                 "label": "Disease to Scan For",
                 "css": {},
+                "interactive": None,
             },
         },
         {"id": 3, "type": "tabs", "props": {"css": {}, "default_value": True}},
@@ -376,12 +421,19 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "name": "image",
                 "label": None,
                 "css": {},
+                "interactive": None,
             },
         },
         {
             "id": 7,
             "type": "json",
-            "props": {"default_value": '""', "name": "json", "label": None, "css": {}},
+            "props": {
+                "default_value": '""',
+                "name": "json",
+                "label": None,
+                "css": {},
+                "interactive": None,
+            },
         },
         {
             "id": 8,
@@ -391,6 +443,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "name": "button",
                 "label": None,
                 "css": {"background-color": "red", "--hover-color": "orange"},
+                "interactive": None,
             },
         },
         {
@@ -415,12 +468,19 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "name": "image",
                 "label": None,
                 "css": {},
+                "interactive": None,
             },
         },
         {
             "id": 12,
             "type": "json",
-            "props": {"default_value": '""', "name": "json", "label": None, "css": {}},
+            "props": {
+                "default_value": '""',
+                "name": "json",
+                "label": None,
+                "css": {},
+                "interactive": None,
+            },
         },
         {
             "id": 13,
@@ -430,6 +490,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "name": "button",
                 "label": None,
                 "css": {},
+                "interactive": None,
             },
         },
         {
@@ -442,6 +503,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "name": "textbox",
                 "label": None,
                 "css": {},
+                "interactive": None,
             },
         },
     ],
@@ -480,6 +542,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "inputs": [2, 6],
             "outputs": [7],
             "queue": False,
+            "status_tracker": None,
         },
         {
             "targets": [13],
@@ -487,6 +550,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "inputs": [2, 11],
             "outputs": [12],
             "queue": False,
+            "status_tracker": None,
         },
     ],
 }

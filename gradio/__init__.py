@@ -25,11 +25,13 @@ from gradio.components import (
     Number,
     Radio,
     Slider,
-    State,
+    StatusTracker,
     Textbox,
     Timeseries,
+    Variable,
     Video,
     Model3D,
+    component,
 )
 from gradio.flagging import (
     CSVLogger,

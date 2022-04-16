@@ -58,6 +58,7 @@ importers:
 
   packages/app:
     specifiers:
+      '@gradio/atoms': workspace:^0.0.1
       '@gradio/audio': workspace:^0.0.1
       '@gradio/button': workspace:^0.0.1
       '@gradio/carousel': workspace:^0.0.1
@@ -80,6 +81,7 @@ importers:
       mime-types: ^2.1.34
       svelte-i18n: ^3.3.13
     dependencies:
+      '@gradio/atoms': link:../atoms
       '@gradio/audio': link:../audio
       '@gradio/button': link:../button
       '@gradio/carousel': link:../carousel
@@ -287,7 +289,11 @@ importers:
       '@gradio/video': link:../video
     devDependencies:
       '@sveltejs/adapter-auto': 1.0.0-next.34
+<<<<<<< HEAD
       '@sveltejs/kit': 1.0.0-next.311_svelte@3.46.3
+=======
+      '@sveltejs/kit': 1.0.0-next.312_svelte@3.46.3
+>>>>>>> blocks-dev
       autoprefixer: 10.4.2_postcss@8.4.6
       postcss: 8.4.6
       postcss-load-config: 3.1.1
@@ -1014,8 +1020,13 @@ packages:
       esbuild: 0.14.31
     dev: true
 
+<<<<<<< HEAD
   /@sveltejs/kit/1.0.0-next.311_svelte@3.46.3:
     resolution: {integrity: sha512-OkRIi0XBXcs16J+H+6fgOeFYxKu05gamY08KHAQ5cohjymUODGWIwaIfwAuNkZAcEEr8Vh2ejp4UcaxNzD53lQ==}
+=======
+  /@sveltejs/kit/1.0.0-next.312_svelte@3.46.3:
+    resolution: {integrity: sha512-l07ct0FJQnt+y3/NSEBvHKDKVE/7syYQnFhCVZ6H+4LEYRtTNybFxUTC8jA3xpZwPqJLZz1X+Tt+Sa8ZMuVzDg==}
+>>>>>>> blocks-dev
     engines: {node: '>=14.13'}
     hasBin: true
     peerDependencies:

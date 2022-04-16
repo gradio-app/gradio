@@ -37,6 +37,7 @@ class Component(Block):
         requires_permissions: bool = False,
         css: Optional[Dict] = None,
         without_rendering: bool = False,
+        interactive: Optional[bool] = None,
         **kwargs,
     ):
         if "optional" in kwargs:
@@ -47,6 +48,7 @@ class Component(Block):
         self.label = label
         self.requires_permissions = requires_permissions
         self.css = css if css is not None else {}
+        self.interactive = interactive
 
         self.set_interpret_parameters()
         super().__init__(without_rendering=without_rendering)
@@ -55,24 +57,18 @@ class Component(Block):
         return self.__repr__()
 
     def __repr__(self):
-        return f"{type(self).__name__} (label={self.label})"
+        return f"{self.get_block_name()} (label={self.label})"
 
     def get_template_context(self):
         """
         :return: a dictionary with context variables for the javascript file associated with the context
         """
         return {
-            "name": self.__class__.__name__.lower(),
+            "name": self.get_block_name(),
             "label": self.label,
             "css": self.css,
+            "interactive": self.interactive,
         }
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        """
-        Return dictionary of shortcut implementations
-        """
-        return {}
 
     def save_flagged(
         self, dir: str, label: Optional[str], data: Any, encryption_key: bool
@@ -128,12 +124,28 @@ class Component(Block):
         return {"name": file, "data": data}
 
     @classmethod
-    def get_all_shortcut_implementations(cls):
-        shortcuts = {}
+    def get_component_shortcut(cls, str_shortcut: str) -> Optional[Component]:
+        """
+        Creates a component, where class name equals to str_shortcut.
+
+        @param str_shortcut: string shortcut of a component
+        @return:
+            True, found_class or
+            False, None
+        """
+        # If we do not import templates Python cannot recognize grandchild classes names.
+        import gradio.templates
+
+        # Make it suitable with class names
+        str_shortcut = str_shortcut.replace("_", "")
         for sub_cls in cls.__subclasses__():
-            for shortcut, parameters in sub_cls.get_shortcut_implementations().items():
-                shortcuts[shortcut] = (sub_cls, parameters)
-        return shortcuts
+            if sub_cls.__name__.lower() == str_shortcut:
+                return sub_cls()
+            # For template components
+            for sub_sub_cls in sub_cls.__subclasses__():
+                if sub_sub_cls.__name__.lower() == str_shortcut:
+                    return sub_sub_cls()
+        return None
 
     # Input Functionalities
     def preprocess(self, x: Any) -> Any:
@@ -209,6 +221,17 @@ class Component(Block):
         """
         return x
 
+    @staticmethod
+    def update(**kwargs) -> dict:
+        """
+        Updates component parameters
+
+        @param kwargs: Updating component parameters
+        @return: Updated component parameters
+        """
+        kwargs["__type__"] = "update"
+        return kwargs
+
 
 class Textbox(Component):
     """
@@ -260,13 +283,6 @@ class Textbox(Component):
             "placeholder": self.placeholder,
             "default_value": self.default_value,
             **super().get_template_context(),
-        }
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "text": {},
-            "textbox": {"lines": 7},
         }
 
     # Input Functionalities
@@ -371,25 +387,43 @@ class Textbox(Component):
         """
         return x
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("change", fn, inputs, outputs)
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker
+        )
 
-    def submit(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def submit(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("submit", fn, inputs, outputs)
+        self.set_event_trigger(
+            "submit", fn, inputs, outputs, status_tracker=status_tracker
+        )
 
 
 class Number(Component):
@@ -422,12 +456,6 @@ class Number(Component):
 
     def get_template_context(self):
         return {"default_value": self.default_value, **super().get_template_context()}
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "number": {},
-        }
 
     def preprocess(self, x: float | None) -> Optional[float]:
         """
@@ -507,25 +535,43 @@ class Number(Component):
         """
         return y
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("change", fn, inputs, outputs)
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker
+        )
 
-    def submit(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def submit(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("submit", fn, inputs, outputs)
+        self.set_event_trigger(
+            "submit", fn, inputs, outputs, status_tracker=status_tracker
+        )
 
 
 class Slider(Component):
@@ -574,12 +620,6 @@ class Slider(Component):
             "step": self.step,
             "default_value": self.default_value,
             **super().get_template_context(),
-        }
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "slider": {},
         }
 
     def preprocess(self, x: float) -> float:
@@ -639,15 +679,24 @@ class Slider(Component):
         """
         return y
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("change", fn, inputs, outputs)
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker
+        )
 
 
 class Checkbox(Component):
@@ -679,12 +728,6 @@ class Checkbox(Component):
 
     def get_template_context(self):
         return {"default_value": self.default_value, **super().get_template_context()}
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "checkbox": {},
-        }
 
     def preprocess(self, x: bool) -> bool:
         """
@@ -737,15 +780,24 @@ class Checkbox(Component):
         """
         return x
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("change", fn, inputs, outputs)
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker
+        )
 
 
 class CheckboxGroup(Component):
@@ -865,15 +917,24 @@ class CheckboxGroup(Component):
         """
         return x
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("change", fn, inputs, outputs)
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker
+        )
 
 
 class Radio(Component):
@@ -973,15 +1034,24 @@ class Radio(Component):
         """
         return x
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("change", fn, inputs, outputs)
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker
+        )
 
 
 class Dropdown(Radio):
@@ -1080,21 +1150,6 @@ class Image(Component):
         super().__init__(
             label=label, requires_permissions=requires_permissions, **kwargs
         )
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "image": {},
-            "webcam": {"source": "webcam"},
-            "sketchpad": {
-                "image_mode": "L",
-                "source": "canvas",
-                "shape": (28, 28),
-                "invert_colors": True,
-            },
-            "plot": {"type": "plot"},
-            "pil": {"type": "pil"},
-        }
 
     def get_template_context(self):
         return {
@@ -1329,15 +1384,24 @@ class Image(Component):
         y = processing_utils.decode_base64_to_file(x).name
         return y
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("change", fn, inputs, outputs)
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker
+        )
 
     def edit(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
@@ -1395,13 +1459,6 @@ class Video(Component):
         self.type = type
         self.source = source
         super().__init__(label=label, css=css, **kwargs)
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "video": {},
-            "playable_video": {"type": "mp4"},
-        }
 
     def get_template_context(self):
         return {
@@ -1478,15 +1535,24 @@ class Video(Component):
     def deserialize(self, x):
         return processing_utils.decode_base64_to_file(x).name
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("change", fn, inputs, outputs)
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker
+        )
 
     def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
@@ -1576,14 +1642,6 @@ class Audio(Component):
             "source": self.source,  # TODO: This did not exist in output template, careful here if an error arrives
             "default_value": self.default_value,
             **super().get_template_context(),
-        }
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "audio": {},
-            "microphone": {"source": "microphone"},
-            "mic": {"source": "microphone"},
         }
 
     def preprocess_example(self, x):
@@ -1779,15 +1837,24 @@ class Audio(Component):
     def deserialize(self, x):
         return processing_utils.decode_base64_to_file(x).name
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("change", fn, inputs, outputs)
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker
+        )
 
     def edit(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
@@ -1885,13 +1952,6 @@ class File(Component):
             **super().get_template_context(),
         }
 
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "file": {},
-            "files": {"file_count": "multiple"},
-        }
-
     def preprocess_example(self, x):
         return {"name": x, "data": None, "is_example": True}
 
@@ -1964,15 +2024,24 @@ class File(Component):
             "data": processing_utils.encode_file_to_base64(y),
         }
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("change", fn, inputs, outputs)
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker
+        )
 
     def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
@@ -2033,23 +2102,21 @@ class Dataframe(Component):
         self.col_width = col_width
         self.type = type
         self.output_type = "auto"
-        self.default_value = (
-            default_value
-            if default_value is not None
-            else [[None for _ in range(self.col_count)] for _ in range(self.row_count)]
-        )
-        sample_values = {
-            "str": "abc",
-            "number": 786,
-            "bool": True,
-            "date": "02/08/1993",
+        default_values = {
+            "str": "",
+            "number": 0,
+            "bool": False,
+            "date": "01/01/1970",
         }
         column_dtypes = (
             [datatype] * self.col_count if isinstance(datatype, str) else datatype
         )
         self.test_input = [
-            [sample_values[c] for c in column_dtypes] for _ in range(row_count)
+            [default_values[c] for c in column_dtypes] for _ in range(row_count)
         ]
+        self.default_value = (
+            default_value if default_value is not None else self.test_input
+        )
         self.max_rows = max_rows
         self.max_cols = max_cols
         self.overflow_row_behaviour = overflow_row_behaviour
@@ -2067,15 +2134,6 @@ class Dataframe(Component):
             "max_cols": self.max_cols,
             "overflow_row_behaviour": self.overflow_row_behaviour,
             **super().get_template_context(),
-        }
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "dataframe": {"type": "pandas"},
-            "numpy": {"type": "numpy"},
-            "matrix": {"type": "array"},
-            "list": {"type": "array", "col_count": 1},
         }
 
     def preprocess(self, x: List[List[str | Number | bool]]):
@@ -2152,15 +2210,24 @@ class Dataframe(Component):
                 + ". Please choose from: 'pandas', 'numpy', 'array'."
             )
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("change", fn, inputs, outputs)
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker
+        )
 
 
 class Timeseries(Component):
@@ -2204,12 +2271,6 @@ class Timeseries(Component):
             "y": self.y,
             "default_value": self.default_value,
             **super().get_template_context(),
-        }
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "timeseries": {},
         }
 
     def preprocess_example(self, x):
@@ -2256,18 +2317,27 @@ class Timeseries(Component):
         """
         return {"headers": y.columns.values.tolist(), "data": y.values.tolist()}
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("change", fn, inputs, outputs)
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker
+        )
 
 
-class State(Component):
+class Variable(Component):
     """
     Special hidden component that stores state across runs of the interface.
 
@@ -2279,9 +2349,6 @@ class State(Component):
     def __init__(
         self,
         default_value: Any = None,
-        *,
-        label: Optional[str] = None,
-        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -2290,16 +2357,11 @@ class State(Component):
         label (str): component name in interface (not used).
         """
         self.default_value = default_value
-        super().__init__(label=label, css=css, **kwargs)
+        self.stateful = True
+        super().__init__(**kwargs)
 
     def get_template_context(self):
         return {"default_value": self.default_value, **super().get_template_context()}
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "state": {},
-        }
 
 
 # Only Output Components
@@ -2382,12 +2444,6 @@ class Label(Component):
                 return y
         raise ValueError("Unable to deserialize output: {}".format(y))
 
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "label": {},
-        }
-
     def save_flagged(self, dir, label, data, encryption_key):
         """
         Returns: (Union[str, Dict[str, number]]): Either a string representing the main category label, or a dictionary with category keys mapping to confidence levels.
@@ -2409,15 +2465,24 @@ class Label(Component):
         except ValueError:
             return data
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("change", fn, inputs, outputs)
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker
+        )
 
 
 class KeyValues(Component):
@@ -2484,12 +2549,6 @@ class HighlightedText(Component):
             **super().get_template_context(),
         }
 
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "highlight": {},
-        }
-
     def postprocess(self, y):
         """
         Parameters:
@@ -2506,15 +2565,24 @@ class HighlightedText(Component):
     def restore_flagged(self, dir, data, encryption_key):
         return json.loads(data)
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("change", fn, inputs, outputs)
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker
+        )
 
 
 class JSON(Component):
@@ -2558,27 +2626,30 @@ class JSON(Component):
         else:
             return y
 
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "json": {},
-        }
-
     def save_flagged(self, dir, label, data, encryption_key):
         return json.dumps(data)
 
     def restore_flagged(self, dir, data, encryption_key):
         return json.loads(data)
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("change", fn, inputs, outputs)
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker
+        )
 
 
 class HTML(Component):
@@ -2618,21 +2689,24 @@ class HTML(Component):
         """
         return x
 
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "html": {},
-        }
-
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("change", fn, inputs, outputs)
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker
+        )
 
 
 class Carousel(Component):
@@ -2715,15 +2789,24 @@ class Carousel(Component):
             for sample_set in json.loads(data)
         ]
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("change", fn, inputs, outputs)
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker
+        )
 
 
 class Chatbot(Component):
@@ -2752,12 +2835,6 @@ class Chatbot(Component):
     def get_template_context(self):
         return {"default_value": self.default_value, **super().get_template_context()}
 
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "chatbot": {},
-        }
-
     def postprocess(self, y):
         """
         Parameters:
@@ -2768,15 +2845,24 @@ class Chatbot(Component):
         """
         return y
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("change", fn, inputs, outputs)
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker
+        )
 
 
 class Model3D(Component):
@@ -2971,27 +3057,48 @@ class Button(Component):
         inputs: List[Component],
         outputs: List[Component],
         queue=False,
+        status_tracker: Optional[StatusTracker] = None,
     ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("click", fn, inputs, outputs, queue=queue)
+        self.set_event_trigger(
+            "click",
+            fn,
+            inputs,
+            outputs,
+            queue=queue,
+            status_tracker=status_tracker,
+        )
 
     def _click_no_preprocess(
-        self, fn: Callable, inputs: List[Component], outputs: List[Component]
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
     ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("click", fn, inputs, outputs, preprocess=False)
+        self.set_event_trigger(
+            "click",
+            fn,
+            inputs,
+            outputs,
+            preprocess=False,
+            status_tracker=status_tracker,
+        )
 
 
 class Dataset(Component):
@@ -3018,9 +3125,7 @@ class Dataset(Component):
 
     def get_template_context(self):
         return {
-            "components": [
-                component.__class__.__name__.lower() for component in self.components
-            ],
+            "components": [component.get_block_name() for component in self.components],
             "headers": self.headers,
             "samples": self.samples,
             "type": self.type,
@@ -3036,27 +3141,48 @@ class Dataset(Component):
         elif self.type == "values":
             return self.samples[x]
 
-    def click(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        Returns: None
-        """
-        self.set_event_trigger("click", fn, inputs, outputs)
-
-    def _click_no_postprocess(
-        self, fn: Callable, inputs: List[Component], outputs: List[Component]
+    def click(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
     ):
         """
         Parameters:
             fn: Callable function
             inputs: List of inputs
             outputs: List of outputs
+            status: StatusTracker to visualize function progress
         Returns: None
         """
-        self.set_event_trigger("click", fn, inputs, outputs, postprocess=False)
+        self.set_event_trigger(
+            "click", fn, inputs, outputs, status_tracker=status_tracker
+        )
+
+    def _click_no_postprocess(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+            status: StatusTracker to visualize function progress
+        Returns: None
+        """
+        self.set_event_trigger(
+            "click",
+            fn,
+            inputs,
+            outputs,
+            postprocess=False,
+            status_tracker=status_tracker,
+        )
 
 
 class Interpretation(Component):
@@ -3077,15 +3203,34 @@ class Interpretation(Component):
 
     def get_template_context(self):
         return {
-            "component": self.component.__class__.__name__.lower(),
+            "component": self.component.get_block_name(),
             "component_props": self.component.get_template_context(),
         }
 
 
+def component(str_shortcut: str) -> (bool, Optional[Component]):
+    """
+    Creates a component, where class name equals to str_shortcut.
+
+    @param str_shortcut: string shortcut of a component
+    @return:
+        True, found_class or
+        False, None
+    """
+    component = Component.get_component_shortcut(str_shortcut)
+    if component is None:
+        raise ValueError(f"No such component: {str_shortcut}")
+    else:
+        return component
+
+
 def get_component_instance(comp: str | dict | Component):
     if isinstance(comp, str):
-        shortcut = Component.get_all_shortcut_implementations()[comp]
-        return shortcut[0](**shortcut[1], without_rendering=True)
+        component = Component.get_component_shortcut(comp)
+        if component is None:
+            raise ValueError(f"No such component: {comp}")
+        else:
+            return component
     elif isinstance(
         comp, dict
     ):  # a dict with `name` as the input component type and other keys as parameters
@@ -3102,3 +3247,32 @@ def get_component_instance(comp: str | dict | Component):
         raise ValueError(
             f"Component must provided as a `str` or `dict` or `Component` but is {comp}"
         )
+
+
+class StatusTracker(Component):
+    """
+    Used to indicate status of a function call. Event listeners can bind to a StatusTracker with 'status=' keyword argument.
+    """
+
+    def __init__(
+        self,
+        *,
+        cover_container: bool = False,
+        label: Optional[str] = None,
+        css: Optional[Dict] = None,
+        **kwargs,
+    ):
+        """
+        Parameters:
+        cover_container (bool): If True, will expand to cover parent container while function pending.
+        label (str): component name
+        css (dict): optional css parameters for the component
+        """
+        super().__init__(label=label, css=css, **kwargs)
+        self.cover_container = cover_container
+
+    def get_template_context(self):
+        return {
+            "cover_container": self.cover_container,
+            **super().get_template_context(),
+        }

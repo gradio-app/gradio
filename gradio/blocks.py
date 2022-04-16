@@ -15,7 +15,7 @@ from gradio.process_examples import cache_interface_examples
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from fastapi.applications import FastAPI
 
-    from gradio.components import Component
+    from gradio.components import Component, StatusTracker
 
 
 class Block:
@@ -36,6 +36,20 @@ class Block:
             Context.root_block.blocks[self._id] = self
         self.events = []
 
+    def get_block_name(self) -> str:
+        """
+        Gets block's class name.
+
+        If it is template component it gets the parent's class name.
+
+        @return: class name
+        """
+        return (
+            self.__class__.__base__.__name__.lower()
+            if hasattr(self, "is_template")
+            else self.__class__.__name__.lower()
+        )
+
     def set_event_trigger(
         self,
         event_name: str,
@@ -46,6 +60,7 @@ class Block:
         postprocess: bool = True,
         queue=False,
         no_target: bool = False,
+        status_tracker: Optional[StatusTracker] = None,
     ) -> None:
         """
         Adds an event to the component's dependencies.
@@ -56,7 +71,9 @@ class Block:
             outputs: output list
             preprocess: whether to run the preprocess methods of components
             postprocess: whether to run the postprocess methods of components
+            queue: if True, will store multiple calls in queue and run in order instead of in parallel with multiple threads
             no_target: if True, sets "targets" to [], used for Blocks "load" event
+            status_tracker: StatusTracker to visualize function progress
         Returns: None
         """
         # Support for singular parameter
@@ -65,7 +82,7 @@ class Block:
         if not isinstance(outputs, list):
             outputs = [outputs]
 
-        Context.root_block.fns.append((fn, preprocess, postprocess))
+        Context.root_block.fns.append(BlockFunction(fn, preprocess, postprocess))
         Context.root_block.dependencies.append(
             {
                 "targets": [self._id] if not no_target else [],
@@ -73,6 +90,9 @@ class Block:
                 "inputs": [block._id for block in inputs],
                 "outputs": [block._id for block in outputs],
                 "queue": queue,
+                "status_tracker": status_tracker._id
+                if status_tracker is not None
+                else None,
             }
         )
 
@@ -169,6 +189,15 @@ class TabItem(BlockContext):
         self.set_event_trigger("change", fn, inputs, outputs)
 
 
+class BlockFunction:
+    def __init__(self, fn: Callable, preprocess: bool, postprocess: bool):
+        self.fn = fn
+        self.preprocess = preprocess
+        self.postprocess = postprocess
+        self.total_runtime = 0
+        self.total_runs = 0
+
+
 class Blocks(BlockContext):
     def __init__(
         self,
@@ -194,7 +223,7 @@ class Blocks(BlockContext):
 
         super().__init__()
         self.blocks = {}
-        self.fns = []
+        self.fns: List[BlockFunction] = []
         self.dependencies = []
         self.mode = mode
 
@@ -208,30 +237,62 @@ class Blocks(BlockContext):
         self._id = Context.id
         Context.id += 1
 
-    def process_api(self, data: Dict[str, Any], username: str = None) -> Dict[str, Any]:
+    def process_api(
+        self,
+        data: Dict[str, Any],
+        username: str = None,
+        state: Optional[Dict[int, any]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Processes API calls from the frontend.
+        Parameters:
+            data: data recieved from the frontend
+            username: name of user if authentication is set up
+            state: data stored from stateful components for session
+        Returns: None
+        """
         raw_input = data["data"]
         fn_index = data["fn_index"]
-        fn, preprocess, postprocess = self.fns[fn_index]
+        block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
 
-        if preprocess:
-            processed_input = [
-                self.blocks[input_id].preprocess(raw_input[i])
-                for i, input_id in enumerate(dependency["inputs"])
-            ]
-            predictions = fn(*processed_input)
+        if block_fn.preprocess:
+            processed_input = []
+            for i, input_id in enumerate(dependency["inputs"]):
+                block = self.blocks[input_id]
+                if getattr(block, "stateful", False):
+                    processed_input.append(state.get(input_id))
+                else:
+                    processed_input.append(block.preprocess(raw_input[i]))
         else:
-            predictions = fn(*raw_input)
+            processed_input = raw_input
+        start = time.time()
+        predictions = block_fn.fn(*processed_input)
+        duration = time.time() - start
+        block_fn.total_runtime += duration
+        block_fn.total_runs += 1
         if len(dependency["outputs"]) == 1:
             predictions = (predictions,)
-        if postprocess:
-            predictions = [
-                self.blocks[output_id].postprocess(predictions[i])
-                if predictions[i] is not None
-                else None
-                for i, output_id in enumerate(dependency["outputs"])
-            ]
-        return {"data": predictions}
+        if block_fn.postprocess:
+            output = []
+            for i, output_id in enumerate(dependency["outputs"]):
+                block = self.blocks[output_id]
+                if getattr(block, "stateful", False):
+                    state[output_id] = predictions[i]
+                    output.append(None)
+                else:
+                    output.append(
+                        block.postprocess(predictions[i])
+                        if predictions[i] is not None
+                        else None
+                    )
+        else:
+            output = predictions
+        return {
+            "data": output,
+            "duration": duration,
+            "average_duration": block_fn.total_runtime / block_fn.total_runs,
+        }
 
     def get_template_context(self):
         return {"type": "column"}
@@ -242,7 +303,7 @@ class Blocks(BlockContext):
             config["components"].append(
                 {
                     "id": _id,
-                    "type": block.__class__.__name__.lower(),
+                    "type": (block.get_block_name()),
                     "props": block.get_template_context()
                     if hasattr(block, "get_template_context")
                     else None,

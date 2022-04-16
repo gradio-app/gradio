@@ -29,6 +29,8 @@
 		inputs: Array<number>;
 		outputs: Array<number>;
 		queue: boolean;
+		status_tracker: number | null;
+		status?: string;
 	}
 
 	export let root: string;
@@ -38,6 +40,7 @@
 	export let dependencies: Array<Dependency>;
 	export let theme: string;
 	export let style: string | null;
+	export let static_src: string;
 
 	const dynamic_ids = dependencies.reduce((acc, next) => {
 		next.inputs.forEach((i) => acc.add(i));
@@ -112,6 +115,15 @@
 	});
 
 	let handled_dependencies: Array<number[]> = [];
+	let status_tracker_values: Record<number, string> = {};
+
+	let set_status = (dependency_index: number, status: string) => {
+		dependencies[dependency_index].status = status;
+		let status_tracker_id = dependencies[dependency_index].status_tracker;
+		if (status_tracker_id !== null) {
+			status_tracker_values[status_tracker_id] = status;
+		}
+	};
 
 	async function handle_mount({ detail }) {
 		await tick();
@@ -138,11 +150,15 @@
 					},
 					queue,
 					() => {}
-				).then((output) => {
-					output.data.forEach((value, i) => {
-						instance_map[outputs[i]].value = value;
+				)
+					.then((output) => {
+						output.data.forEach((value, i) => {
+							instance_map[outputs[i]].value = value;
+						});
+					})
+					.catch((error) => {
+						console.error(error);
 					});
-				});
 
 				handled_dependencies[i] = [-1];
 			}
@@ -152,6 +168,10 @@
 				if (handled_dependencies[i]?.includes(id) || !instance) return;
 				// console.log(trigger, target_instances, instance);
 				instance?.$on(trigger, () => {
+					if (status === "pending") {
+						return;
+					}
+					set_status(i, "pending");
 					fn(
 						"predict",
 						{
@@ -160,11 +180,17 @@
 						},
 						queue,
 						() => {}
-					).then((output) => {
-						output.data.forEach((value, i) => {
-							instance_map[outputs[i]].value = value;
+					)
+						.then((output) => {
+							set_status(i, "complete");
+							output.data.forEach((value, i) => {
+								instance_map[outputs[i]].value = value;
+							});
+						})
+						.catch((error) => {
+							set_status(i, "error");
+							console.error(error);
 						});
-					});
 				});
 
 				if (!handled_dependencies[i]) handled_dependencies[i] = [];
@@ -193,9 +219,26 @@
 				{instance_map}
 				{theme}
 				{root}
+				{status_tracker_values}
 				on:mount={handle_mount}
 				on:destroy={({ detail }) => handle_destroy(detail)}
 			/>
 		{/each}
 	{/if}
+</div>
+<div
+	class="gradio-page container mx-auto flex flex-col box-border flex-grow text-gray-700 dark:text-gray-50"
+>
+	<div
+		class="footer flex-shrink-0 inline-flex gap-2.5 items-center text-gray-400 justify-center py-2"
+	>
+		<a href="https://gradio.app" target="_blank" rel="noreferrer">
+			{$_("interface.built_with_Gradio")}
+			<img
+				class="h-5 inline-block pb-0.5"
+				src="{static_src}/static/img/logo.svg"
+				alt="logo"
+			/>
+		</a>
+	</div>
 </div>

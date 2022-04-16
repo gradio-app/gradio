@@ -10,6 +10,7 @@
 		"test:browser:debug": "pnpx playwright test test/ --debug --config=../../playwright.config.js"
 	},
 	"dependencies": {
+		"@gradio/atoms": "workspace:^0.0.1",
 		"@gradio/audio": "workspace:^0.0.1",
 		"@gradio/button": "workspace:^0.0.1",
 		"@gradio/carousel": "workspace:^0.0.1",
