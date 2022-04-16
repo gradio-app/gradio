@@ -161,10 +161,17 @@
 			<div class="mt-6 p-2">
 				{#if recording}
 					<button
-						class="rounded-lg border border-red-100 px-3 py-1 shadow-sm flex items-center bg-red-500/10 animate-pulse"
+						class="rounded-lg border border-red-100 px-3 py-1 shadow-sm flex items-center bg-red-500/10"
 						on:click={stop}
 					>
-						<div class="h-1 w-1 rounded-full bg-red-500 mr-2 flex-none" />
+						<span class="flex h-1.5 w-1.5 relative mr-2">
+							<span
+								class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"
+							/>
+							<span
+								class="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"
+							/>
+						</span>
 						<div class="whitespace-nowrap text-red-500">Stop recording</div>
 					</button>
 				{:else}
@@ -172,7 +179,11 @@
 						class="rounded-lg border px-3 py-1 shadow-sm flex items-center hover:bg-gray-50"
 						on:click={record}
 					>
-						<div class="h-1 w-1 rounded-full bg-red-500 mr-2 flex-none" />
+						<span class="flex h-1.5 w-1.5 relative mr-2">
+							<span
+								class="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"
+							/>
+						</span>
 						<div class="whitespace-nowrap">Record from microphone</div>
 					</button>
 				{/if}
