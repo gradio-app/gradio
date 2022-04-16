@@ -17,11 +17,11 @@
 	/>
 </svelte:head>
 
-<h1 class="font-mono p-4 text-lg text-right">workbench</h1>
-<div class="flex p-2">
+<h1 class="font-semibold px-6 py-2 border-b">workbench</h1>
+<div class="flex pt-6">
 	<Nav />
 
-	<main class="gradio-bg ml-5 w-full">
+	<main class="gradio-bg px-6 w-full">
 		<div class="gradio-interface">
 			<slot />
 		</div>

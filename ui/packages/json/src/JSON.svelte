@@ -5,7 +5,9 @@
 	export let style: string = "";
 </script>
 
-<div class="output-json font-mono leading-relaxed w-full">
+<div
+	class="output-json font-mono leading-relaxed w-full border py-2 px-2.5 rounded-lg"
+>
 	<JSONNode {value} depth={0} />
 </div>
 

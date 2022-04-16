@@ -4,10 +4,16 @@
 </script>
 
 <Carousel>
+	<CarouselItem label="zaeeaz">
+		<img src="http://placehold.jp/150x1500.png" alt="" />
+	</CarouselItem>
+	<CarouselItem label="zaeeaz">
+		<img src="http://placehold.jp/1500x400.png" alt="" />
+	</CarouselItem>
 	<CarouselItem>
 		<h1>hello</h1>
 	</CarouselItem>
-	<CarouselItem>
+	<CarouselItem label="zaeeaz">
 		<img src={cheetah} alt="" />
 	</CarouselItem>
 </Carousel>
