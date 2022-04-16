@@ -12,7 +12,10 @@
 					collapsed = false;
 				}}
 			>
-				<span class="bg-gray-50 px-2 text-gray-700">+ {value.length} children</span>
+				<span
+					class="bg-gray-50 hover:bg-gray-100 px-1 border rounded text-gray-700"
+					>expand {value.length} children</span
+				>
 			</button>
 		{:else}
 			[

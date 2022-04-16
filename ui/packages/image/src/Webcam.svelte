@@ -103,8 +103,7 @@
 	<video bind:this={video_source} class=" h-full w-full" />
 	<button
 		on:click={mode === "image" ? take_picture : take_recording}
-		style="background-color: #333;"
-		class="rounded-full w-10 h-10 flex justify-center items-center absolute inset-x-0 bottom-2 m-auto drop-shadow-lg"
+		class="rounded-full w-10 h-10 flex justify-center items-center absolute inset-x-0 bottom-4 m-auto drop-shadow-lg bg-black/90"
 	>
 		{#if mode === "video"}
 			{#if recording}

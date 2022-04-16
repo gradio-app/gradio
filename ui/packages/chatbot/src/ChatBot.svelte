@@ -29,13 +29,13 @@
 		{#each value as message}
 			<div
 				data-testid="bot"
-				class="px-3.5 py-2 rounded-full rounded-br-none bg-yellow-500 text-white ml-7"
+				class="px-3 py-2 rounded-[22px] rounded-br-none bg-orange-500 text-white ml-7"
 			>
 				{message[0]}
 			</div>
 			<div
 				data-testid="user"
-				class="px-3.5 py-2 rounded-full rounded-bl-none place-self-start bg-gray-200 dark:bg-gray-850 dark:text-gray-200 mr-7"
+				class="px-3 py-2 rounded-[22px] rounded-bl-none place-self-start bg-gray-200 mr-7 text-gray-800"
 			>
 				{message[1]}
 			</div>
