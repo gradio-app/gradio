@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { FileData } from "@gradio/upload";
   import { normalise_file } from "@gradio/upload";
-	import { Model3D } from "@gradio/model3D";
+	import { Model3D, Model3DUpload } from "@gradio/model3D";
 	import { _ } from "svelte-i18n";
 
 	export let value: null | FileData = null;
@@ -16,16 +16,17 @@
   $: _value = normalise_file(value, root);
 </script>
 
+{console.log(mode)}
+
 {#if mode === "static"}
-	<div
+	<Model3D value={_value} {style} />
+	<!-- <div
 		class="output-model3D w-full h-60 flex justify-center items-center bg-gray-200 dark:bg-gray-600 relative"
 		{style}
 	>
-		<!-- svelte-ignore a11y-missing-attribute -->
-		<img class="w-full h-full object-contain" src={_value} />
-	</div>
+	</div> -->
 {:else}
-	<Model3D
+	<Model3DUpload
     value={_value}
     on:change={({ detail }) => (value = detail)}
     {style}

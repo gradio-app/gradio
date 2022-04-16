@@ -6,7 +6,7 @@ def load_mesh(mesh_file_name):
     return mesh_file_name
 
 inputs = gr.Model3D()
-outputs = gr.Label(num_top_classes=3)
+outputs = gr.Model3D()
 
 iface = gr.Interface(fn=load_mesh, inputs=inputs, outputs=outputs)
 
