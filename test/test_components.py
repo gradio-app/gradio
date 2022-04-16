@@ -85,6 +85,7 @@ class TestTextbox(unittest.TestCase):
             text_input.get_template_context(),
             {
                 "lines": 1,
+                "max_lines": 100,
                 "placeholder": None,
                 "default_value": "",
                 "name": "textbox",
