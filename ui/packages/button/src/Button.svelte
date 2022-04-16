@@ -13,7 +13,7 @@
 
 <style lang="postcss">
 	.btn-primary {
-		@apply from-orange-100/70 to-orange-200/80 hover:to-orange-100/95 text-orange-700 border-orange-200/30;
+		@apply from-orange-100/70 to-orange-200/80 hover:to-orange-100/95 text-orange-600 border-orange-200/30;
 	}
 
 	.btn-secondary {
