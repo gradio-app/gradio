@@ -31,6 +31,7 @@ from gradio.components import (
     Variable,
     Video,
     Model3D,
+    Plot,
     component,
 )
 from gradio.flagging import (

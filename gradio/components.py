@@ -85,14 +85,14 @@ class Component(Block):
         return data
 
     def save_flagged_file(
-        self, dir: str, label: str, data: Any, encryption_key: bool
+        self, dir: str, label: str, data: Any, encryption_key: bool, file_path: Optional[str] = None,
     ) -> Optional[str]:
         """
         Saved flagged data (e.g. image or audio) as a file and returns filepath
         """
         if data is None:
             return None
-        file = processing_utils.decode_base64_to_file(data, encryption_key)
+        file = processing_utils.decode_base64_to_file(data, encryption_key, file_path)
         label = "".join([char for char in label if char.isalnum() or char in "._- "])
         old_file_name = file.name
         output_dir = os.path.join(dir, label)
@@ -2888,7 +2888,10 @@ class Model3D(Component):
         super().__init__(label=label, css=css, **kwargs)
 
     def get_template_context(self):
-        return {**super().get_template_context()}
+        return {
+            "clearColor": self.clear_color,
+            **super().get_template_context(),
+        }
 
     @classmethod
     def get_shortcut_implementations(cls):
@@ -2953,8 +2956,6 @@ class Model3D(Component):
 
         return {
             "name": os.path.basename(y),
-            "extension": os.path.splitext(y)[1],
-            "clearColor": self.clear_color,
             "data": processing_utils.encode_file_to_base64(y),
         }
 
@@ -2965,7 +2966,12 @@ class Model3D(Component):
         """
         Returns: (str) path to model file
         """
-        return self.save_flagged_file(dir, label, data["data"], encryption_key)
+        return self.save_flagged_file(
+            dir, label, data["data"], encryption_key, data["name"]
+        )
+    
+    def restore_flagged(self, dir, data, encryption_key):
+        return self.restore_flagged_file(dir, data, encryption_key)
 
     def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
@@ -3184,6 +3190,94 @@ class Dataset(Component):
             status_tracker=status_tracker,
         )
 
+class Plot(Component):
+    """
+    Used for plot output.
+    Output type: matplotlib plt, plotly figure, or Bokeh fig (json_item format)
+    Demos: outbreak_forecast
+    """
+    def __init__(
+        self,
+        type: str = None,         
+        label: str = None,
+        css: Optional[Dict] = None,
+        **kwargs,):
+        """
+        Parameters:
+        type (str): type of plot (matplotlib, plotly)
+        label (str): component name in interface.
+        """
+        self.type = type
+        super().__init__(label=label, css=css, **kwargs)
+
+    def get_template_context(self):
+        return {**super().get_template_context()}
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "plot": {},
+        }
+
+    def postprocess(self, y):
+        """
+        Parameters:
+        y (str): plot data
+        Returns:
+        (str): plot type
+        (str): plot base64 or json
+        """
+        dtype = self.type
+        if self.type == "plotly":
+            out_y = y.to_json()
+        elif self.type == "matplotlib":
+            out_y = processing_utils.encode_plot_to_base64(y)
+        elif self.type == "bokeh":
+            out_y = json.dumps(y)
+        elif self.type == "auto":
+            if isinstance(y, (ModuleType, matplotlib.pyplot.Figure)):
+                dtype = "matplotlib"
+                out_y = processing_utils.encode_plot_to_base64(y)
+            elif isinstance(y, dict):
+                dtype = "bokeh"
+                out_y = json.dumps(y)
+            else:
+                dtype = "plotly"
+                out_y = y.to_json()
+        else:
+            raise ValueError(
+                "Unknown type. Please choose from: 'plotly', 'matplotlib', 'bokeh'."
+            )
+        return {"type": dtype, "plot": out_y}
+
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+            status: StatusTracker to visualize function progress
+        Returns: None
+        """
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker
+        )
+
+    def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("clear", fn, inputs, outputs)
 
 class Interpretation(Component):
     """

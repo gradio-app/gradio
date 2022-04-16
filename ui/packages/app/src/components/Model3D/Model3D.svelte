@@ -9,6 +9,7 @@
 	export let style: string = "";
 	export let mode: "static" | "dynamic";
 	export let root: string;
+	export let clearColor: [];
 
 	if (default_value) value = default_value;
 
@@ -16,16 +17,7 @@
   $: _value = normalise_file(value, root);
 </script>
 
-{console.log(mode)}
-
-{#if mode === "static"}
-	<Model3D value={_value} {style} />
-	<!-- <div
-		class="output-model3D w-full h-60 flex justify-center items-center bg-gray-200 dark:bg-gray-600 relative"
-		{style}
-	>
-	</div> -->
-{:else}
+{#if mode === "dynamic"}
 	<Model3DUpload
     value={_value}
     on:change={({ detail }) => (value = detail)}
@@ -36,4 +28,6 @@
     or_text={$_("or")}
     upload_text={$_("interface.click_to_upload")}
 	/>
+{:else if _value}
+	<Model3D value={_value} clearColor={clearColor} {style} />
 {/if}

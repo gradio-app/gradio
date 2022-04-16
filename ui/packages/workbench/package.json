@@ -42,6 +42,7 @@
 		"@gradio/theme": "workspace:^0.0.1",
 		"@gradio/upload": "workspace:^0.0.1",
 		"@gradio/video": "workspace:^0.0.1",
-		"@gradio/model3D": "workspace:^0.0.1"
+		"@gradio/model3D": "workspace:^0.0.1",
+		"@gradio/plot": "workspace:^0.0.1"
 	}
 }
