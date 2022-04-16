@@ -85,7 +85,12 @@ class Component(Block):
         return data
 
     def save_flagged_file(
-        self, dir: str, label: str, data: Any, encryption_key: bool, file_path: Optional[str] = None,
+        self,
+        dir: str,
+        label: str,
+        data: Any,
+        encryption_key: bool,
+        file_path: Optional[str] = None,
     ) -> Optional[str]:
         """
         Saved flagged data (e.g. image or audio) as a file and returns filepath
@@ -2874,11 +2879,12 @@ class Model3D(Component):
     """
 
     def __init__(
-        self, 
-        clear_color=None,         
+        self,
+        clear_color=None,
         label: str = None,
         css: Optional[Dict] = None,
-        **kwargs,):
+        **kwargs,
+    ):
         """
         Parameters:
         clear_color (List[r, g, b, a]): background color of scene
@@ -2969,7 +2975,7 @@ class Model3D(Component):
         return self.save_flagged_file(
             dir, label, data["data"], encryption_key, data["name"]
         )
-    
+
     def restore_flagged(self, dir, data, encryption_key):
         return self.restore_flagged_file(dir, data, encryption_key)
 
@@ -3002,6 +3008,7 @@ class Model3D(Component):
         Returns: None
         """
         self.set_event_trigger("clear", fn, inputs, outputs)
+
 
 # Static Components
 class Markdown(Component):
@@ -3190,18 +3197,21 @@ class Dataset(Component):
             status_tracker=status_tracker,
         )
 
+
 class Plot(Component):
     """
     Used for plot output.
     Output type: matplotlib plt, plotly figure, or Bokeh fig (json_item format)
     Demos: outbreak_forecast
     """
+
     def __init__(
         self,
-        type: str = None,         
+        type: str = None,
         label: str = None,
         css: Optional[Dict] = None,
-        **kwargs,):
+        **kwargs,
+    ):
         """
         Parameters:
         type (str): type of plot (matplotlib, plotly)
@@ -3278,6 +3288,7 @@ class Plot(Component):
         Returns: None
         """
         self.set_event_trigger("clear", fn, inputs, outputs)
+
 
 class Interpretation(Component):
     """

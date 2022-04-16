@@ -22,7 +22,9 @@ from gradio.components import (
     KeyValues,
     Label,
     Markdown,
+    Model3D,
     Number,
+    Plot,
     Radio,
     Slider,
     StatusTracker,
@@ -30,8 +32,6 @@ from gradio.components import (
     Timeseries,
     Variable,
     Video,
-    Model3D,
-    Plot,
     component,
 )
 from gradio.flagging import (
