@@ -353,7 +353,7 @@
 		<tbody class="overflow-scroll">
 			{#each data as row, i (row)}
 				<tr
-					class="border-b last:border-none divide-x dark:divide-gray-800 space-x-4 odd:bg-gray-50 dark:odd:bg-gray-900 group hover:cursor-pointer focus:bg-gradient-to-b focus:from-blue-100 dark:focus:from-blue-900 focus:to-blue-50 dark:focus:to-gray-900 hover:bg-gray-100 dark:hover:bg-gray-900 focus:odd:bg-white"
+					class="border-b last:border-none divide-x dark:divide-gray-800 space-x-4 odd:bg-gray-50 dark:odd:bg-gray-900 group focus:bg-gradient-to-b focus:from-blue-100 dark:focus:from-blue-900 focus:to-blue-50 dark:focus:to-gray-900 hover:bg-gray-100 dark:hover:bg-gray-900 focus:odd:bg-white"
 				>
 					{#each row as { value, id }, j (id)}
 						<td
@@ -463,11 +463,7 @@
 </div>
 {#if editable}
 	<div class="flex justify-end ">
-		<button
-			on:click={add_col}
-			class="hover:bg-gray-100 dark:hover:bg-gray-600 shadow  py-1 px-3 rounded transition  focus:outline-none m-2 mr-0"
-			>New Column</button
-		>
+		<button on:click={add_col} class="btn btn-sm">New Column</button>
 		<button
 			on:click={add_row}
 			class="bg-amber-500 hover:bg-amber-400 dark:bg-red-700 dark:hover:bg-red-600 text-white shadow py-1 px-3 rounded transition focus:outline-none m-2 mr-0"
