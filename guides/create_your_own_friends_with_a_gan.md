@@ -1,6 +1,6 @@
 # Create Your Own Friends with a GAN
 
-related_spaces: https://huggingface.co/spaces/NimaBoscarino/cryptopunks, https://huggingface.co/nateraw/cryptopunks-gan
+related_spaces: https://huggingface.co/spaces/NimaBoscarino/cryptopunks, https://huggingface.co/spaces/nateraw/cryptopunks-generator
 tags: GAN, IMAGE, HUB
 
 Contributed by <a href="https://huggingface.co/NimaBoscarino">Nima Boscarino</a> and <a href="https://huggingface.co/nateraw">Nate Raw</a>
@@ -14,7 +14,7 @@ Generative Adversarial Networks, often known just as *GANs*, are a specific clas
 
 Today we'll briefly look at the high-level intuition behind GANs, and then we'll build a small demo around a pre-trained GAN to see what all the fuss is about. Here's a peek at what we're going to be putting together:
 
-<iframe src="https://hf.space/embed/NimaBoscarino/cryptopunks/+" frameBorder="0" height="450" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+<iframe src="https://hf.space/embed/NimaBoscarino/cryptopunks/+" frameBorder="0" height="590" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
 ### Prerequisites
 
@@ -90,7 +90,7 @@ def predict(seed):
 
 We're giving our `predict` function a `seed` parameter, so that we can fix the random tensor generation with a seed. We'll then be able to reproduce punks if we want to see them again by passing in the same seed.
 
-*Note!* Our model needs an input tensor of dimensions 100x1x1 for to do a single inference, or (BatchSize)x100x1x1 for generating a batch of images. In this demo we'll start by generating 4 punks at a time.
+*Note!* Our model needs an input tensor of dimensions 100x1x1 to do a single inference, or (BatchSize)x100x1x1 for generating a batch of images. In this demo we'll start by generating 4 punks at a time.
 
 ## Step 3 — Creating a Gradio interface
 
@@ -125,7 +125,8 @@ gr.Interface(
         gr.inputs.Slider(label='Seed', minimum=0, maximum=1000, default=42),
         gr.inputs.Slider(label='Number of Punks', minimum=4, maximum=64, step=1, default=10), # Adding another slider!
     ],
-    # ...etc.
+    outputs="image",
+).launch()
 ```
 
 The new input will be passed to our `predict()` function, so we have to make some changes to that function to accept a new parameter:
@@ -139,7 +140,7 @@ def predict(seed, num_punks):
     return 'punks.png'
 ```
 
-When you start up your Gradio app again, you should see a second slider that'll let you control the number of punks!
+When you relaunch your interface, you should see a second slider that'll let you control the number of punks!
 
 ## Step 5 - Polishing it up
 
@@ -157,7 +158,7 @@ gr.Interface(
 
 The `examples` parameter takes a list of lists, where each item in the sublists is ordered in the same order that we've listed the `inputs`. So in our case, `[seed, num_punks]`. Give it a try!
 
-You can also try adding a `title`, `description`, and `article` to the `gr.Interface`. Each of those parameters accepts a string, so try it out and see what happens 👀 `article` will also accept HTML, which we'll explore in a future guide!
+You can also try adding a `title`, `description`, and `article` to the `gr.Interface`. Each of those parameters accepts a string, so try it out and see what happens 👀 `article` will also accept HTML, as [explored in a previous guide](./adding_rich_descriptions_to_your_demo)!
 
 ----------
 
