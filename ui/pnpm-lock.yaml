@@ -72,6 +72,8 @@ importers:
       '@gradio/json': workspace:^0.0.1
       '@gradio/label': workspace:^0.0.1
       '@gradio/markdown': workspace:^0.0.1
+      '@gradio/model3D': workspace:^0.0.1
+      '@gradio/plot': workspace:^0.0.1
       '@gradio/table': workspace:^0.0.1
       '@gradio/tabs': workspace:^0.0.1
       '@gradio/theme': workspace:^0.0.1
@@ -94,6 +96,8 @@ importers:
       '@gradio/json': link:../json
       '@gradio/label': link:../label
       '@gradio/markdown': link:../markdown
+      '@gradio/model3D': link:../model3D
+      '@gradio/plot': link:../plot
       '@gradio/table': link:../table
       '@gradio/tabs': link:../tabs
       '@gradio/theme': link:../theme
@@ -188,6 +192,24 @@ importers:
   packages/markdown:
     specifiers: {}
 
+  packages/model3D:
+    specifiers:
+      '@gradio/atoms': workspace:^0.0.1
+      '@gradio/upload': workspace:^0.0.1
+      babylonjs: ^4.2.1
+      babylonjs-loaders: ^4.2.1
+    dependencies:
+      '@gradio/atoms': link:../atoms
+      '@gradio/upload': link:../upload
+      babylonjs: 4.2.2
+      babylonjs-loaders: 4.2.2
+
+  packages/plot:
+    specifiers:
+      plotly.js-dist-min: ^2.10.1
+    dependencies:
+      plotly.js-dist-min: 2.11.1
+
   packages/table:
     specifiers: {}
 
@@ -235,6 +257,8 @@ importers:
       '@gradio/json': workspace:^0.0.1
       '@gradio/label': workspace:^0.0.1
       '@gradio/markdown': workspace:^0.0.1
+      '@gradio/model3D': workspace:^0.0.1
+      '@gradio/plot': workspace:^0.0.1
       '@gradio/table': workspace:^0.0.1
       '@gradio/tabs': workspace:^0.0.1
       '@gradio/theme': workspace:^0.0.1
@@ -266,6 +290,8 @@ importers:
       '@gradio/json': link:../json
       '@gradio/label': link:../label
       '@gradio/markdown': link:../markdown
+      '@gradio/model3D': link:../model3D
+      '@gradio/plot': link:../plot
       '@gradio/table': link:../table
       '@gradio/tabs': link:../tabs
       '@gradio/theme': link:../theme
@@ -273,7 +299,7 @@ importers:
       '@gradio/video': link:../video
     devDependencies:
       '@sveltejs/adapter-auto': 1.0.0-next.34
-      '@sveltejs/kit': 1.0.0-next.312_svelte@3.46.3
+      '@sveltejs/kit': 1.0.0-next.314_svelte@3.46.3
       autoprefixer: 10.4.2_postcss@8.4.6
       postcss: 8.4.6
       postcss-load-config: 3.1.1
@@ -1000,8 +1026,8 @@ packages:
       esbuild: 0.14.31
     dev: true
 
-  /@sveltejs/kit/1.0.0-next.312_svelte@3.46.3:
-    resolution: {integrity: sha512-l07ct0FJQnt+y3/NSEBvHKDKVE/7syYQnFhCVZ6H+4LEYRtTNybFxUTC8jA3xpZwPqJLZz1X+Tt+Sa8ZMuVzDg==}
+  /@sveltejs/kit/1.0.0-next.314_svelte@3.46.3:
+    resolution: {integrity: sha512-EkXjEd30XO8+AydBLARxAtI6Ak8V0KFSEJ07sNsrkGq9J70sWPL7yGenhGaeq6S852XZAqeyWd6uGQZmQLR4Wg==}
     engines: {node: '>=14.13'}
     hasBin: true
     peerDependencies:
@@ -1418,6 +1444,21 @@ packages:
     resolution: {integrity: sha512-jZVI+s9Zg3IqA/kdi0i6UDCybUI3aSBLnglhYbSSjKlV7yF1F/5LWv8MakQmvYpnbJDS6fcBL2KzHSxNCMtWSQ==}
     dependencies:
       object.assign: 4.1.2
+    dev: false
+
+  /babylonjs-gltf2interface/4.2.2:
+    resolution: {integrity: sha512-LCQgW1lM+EpKK4yWMiPEgi6ONwJ7W4JrSu3t9JixNRgvnic72OnN2f0bt91rE30EJr1ZaokvkXD/aEiBp/Juyg==}
+    dev: false
+
+  /babylonjs-loaders/4.2.2:
+    resolution: {integrity: sha512-IuShR5N4zkDMzKEGsCZ0uZDCn07BLLj8LlKwyiSwFR1V9KxAALkt2INTMCdXjuWELTcZEALZlyO85mKJ2pDPHw==}
+    dependencies:
+      babylonjs: 4.2.2
+      babylonjs-gltf2interface: 4.2.2
+    dev: false
+
+  /babylonjs/4.2.2:
+    resolution: {integrity: sha512-p7mTi6+nLuWJTLbwxEJxLOh/QMHMV2KA0bviEoQSK5VtsAq1F0JghoOZYRs4aEqAZF/deFPWvMQk1vbXJ+4eEA==}
     dev: false
 
   /balanced-match/1.0.2:
@@ -3370,6 +3411,10 @@ packages:
       - bufferutil
       - supports-color
       - utf-8-validate
+    dev: false
+
+  /plotly.js-dist-min/2.11.1:
+    resolution: {integrity: sha512-F9WWNht0D3yBLZGHbLoJNfvplXvy+GUPSsA/lCbMuYd/UwzSu6Vmyprxlps9Einw1LDS1hYBrJeioK0lE3ieXA==}
     dev: false
 
   /pn/1.1.0:
