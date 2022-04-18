@@ -17,6 +17,7 @@ defaults:
 env:
   CI: true
   PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+  NODE_OPTIONS: "--max-old-space-size=4096"
 
 concurrency:
   group: deploy-${{ github.ref }}-${{ github.event_name == 'push' || github.event.inputs.fire != null }}

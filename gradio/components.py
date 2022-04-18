@@ -85,14 +85,19 @@ class Component(Block):
         return data
 
     def save_flagged_file(
-        self, dir: str, label: str, data: Any, encryption_key: bool
+        self,
+        dir: str,
+        label: str,
+        data: Any,
+        encryption_key: bool,
+        file_path: Optional[str] = None,
     ) -> Optional[str]:
         """
         Saved flagged data (e.g. image or audio) as a file and returns filepath
         """
         if data is None:
             return None
-        file = processing_utils.decode_base64_to_file(data, encryption_key)
+        file = processing_utils.decode_base64_to_file(data, encryption_key, file_path)
         label = "".join([char for char in label if char.isalnum() or char in "._- "])
         old_file_name = file.name
         output_dir = os.path.join(dir, label)
@@ -2865,6 +2870,138 @@ class Chatbot(Component):
         )
 
 
+class Model3D(Component):
+    """
+    Component creates a 3D Model component with input and output capabilities.
+    Input type: File object of type (.obj, glb, or .gltf)
+    Output type: filepath
+    Demos: Model3D
+    """
+
+    def __init__(
+        self,
+        clear_color=None,
+        label: str = None,
+        css: Optional[Dict] = None,
+        **kwargs,
+    ):
+        """
+        Parameters:
+        clear_color (List[r, g, b, a]): background color of scene
+        label (str): component name in interface.
+        """
+        self.clear_color = clear_color
+        super().__init__(label=label, css=css, **kwargs)
+
+    def get_template_context(self):
+        return {
+            "clearColor": self.clear_color,
+            **super().get_template_context(),
+        }
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "Model3D": {},
+        }
+
+    def preprocess_example(self, x):
+        return {"name": x, "data": None, "is_example": True}
+
+    def preprocess(self, x: Dict[str, str] | None) -> str | None:
+        """
+        Parameters:
+        x (Dict[name: str, data: str]): JSON object with filename as 'name' property and base64 data as 'data' property
+        Returns:
+        (str): file path to 3D image model
+        """
+        if x is None:
+            return x
+        file_name, file_data, is_example = (
+            x["name"],
+            x["data"],
+            x.get("is_example", False),
+        )
+        if is_example:
+            file = processing_utils.create_tmp_copy_of_file(file_name)
+        else:
+            file = processing_utils.decode_base64_to_file(
+                file_data, file_path=file_name
+            )
+        file_name = file.name
+        return file_name
+
+    def serialize(self, x, called_directly):
+        raise NotImplementedError()
+
+    def save_flagged(self, dir, label, data, encryption_key):
+        """
+        Returns: (str) path to 3D image model file
+        """
+        return self.save_flagged_file(
+            dir, label, None if data is None else data["data"], encryption_key
+        )
+
+    def generate_sample(self):
+        return media_data.BASE64_MODEL3D
+
+    # Output functions
+
+    def postprocess(self, y):
+        """
+        Parameters:
+        y (str): path to the model
+        Returns:
+        (str): file name
+        (str): file extension
+        (str): base64 url data
+        """
+
+        if self.clear_color is None:
+            self.clear_color = [0.2, 0.2, 0.2, 1.0]
+
+        return {
+            "name": os.path.basename(y),
+            "data": processing_utils.encode_file_to_base64(y),
+        }
+
+    def deserialize(self, x):
+        return processing_utils.decode_base64_to_file(x).name
+
+    def restore_flagged(self, dir, data, encryption_key):
+        return self.restore_flagged_file(dir, data, encryption_key)
+
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
+    def edit(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("edit", fn, inputs, outputs)
+
+    def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("clear", fn, inputs, outputs)
+
+
 # Static Components
 class Markdown(Component):
     """
@@ -3051,6 +3188,98 @@ class Dataset(Component):
             postprocess=False,
             status_tracker=status_tracker,
         )
+
+
+class Plot(Component):
+    """
+    Used for plot output.
+    Output type: matplotlib plt, plotly figure, or Bokeh fig (json_item format)
+    Demos: outbreak_forecast
+    """
+
+    def __init__(
+        self,
+        type: str = None,
+        label: str = None,
+        css: Optional[Dict] = None,
+        **kwargs,
+    ):
+        """
+        Parameters:
+        type (str): type of plot (matplotlib, plotly)
+        label (str): component name in interface.
+        """
+        self.type = type
+        super().__init__(label=label, css=css, **kwargs)
+
+    def get_template_context(self):
+        return {**super().get_template_context()}
+
+    @classmethod
+    def get_shortcut_implementations(cls):
+        return {
+            "plot": {},
+        }
+
+    def postprocess(self, y):
+        """
+        Parameters:
+        y (str): plot data
+        Returns:
+        (str): plot type
+        (str): plot base64 or json
+        """
+        dtype = self.type
+        if self.type == "plotly":
+            out_y = y.to_json()
+        elif self.type == "matplotlib":
+            out_y = processing_utils.encode_plot_to_base64(y)
+        elif self.type == "bokeh":
+            out_y = json.dumps(y)
+        elif self.type == "auto":
+            if isinstance(y, (ModuleType, matplotlib.pyplot.Figure)):
+                dtype = "matplotlib"
+                out_y = processing_utils.encode_plot_to_base64(y)
+            elif isinstance(y, dict):
+                dtype = "bokeh"
+                out_y = json.dumps(y)
+            else:
+                dtype = "plotly"
+                out_y = y.to_json()
+        else:
+            raise ValueError(
+                "Unknown type. Please choose from: 'plotly', 'matplotlib', 'bokeh'."
+            )
+        return {"type": dtype, "plot": out_y}
+
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+            status: StatusTracker to visualize function progress
+        Returns: None
+        """
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker
+        )
+
+    def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("clear", fn, inputs, outputs)
 
 
 class Interpretation(Component):
