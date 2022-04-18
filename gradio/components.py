@@ -2968,13 +2968,6 @@ class Model3D(Component):
     def deserialize(self, x):
         return processing_utils.decode_base64_to_file(x).name
 
-    def save_flagged(self, dir, label, data, encryption_key):
-        """
-        Returns: (str) path to model file
-        """
-        return self.save_flagged_file(
-            dir, label, data["data"], encryption_key, data["name"]
-        )
 
     def restore_flagged(self, dir, data, encryption_key):
         return self.restore_flagged_file(dir, data, encryption_key)
