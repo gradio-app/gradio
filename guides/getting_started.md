@@ -1,6 +1,6 @@
 ## Quickstart
 
-**Prerequisite**: Python 3.7+ and that's it! 
+**Prerequisite**: Gradio requires Python 3.7+, that's it! 
 
 ### Introduction
 
