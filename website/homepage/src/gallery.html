@@ -1,0 +1,138 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Gradio Gallery</title>
+  <meta name="description" content="A gallery of awesome Gradio apps to serve as inspiration for your demo!">
+  <meta name="author" content="Abubakar Abid">
+  <meta property="og:title" content="Gradio Gallery">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://gradio.app/gallery">
+  <meta property="og:description" content="How to use Gradio">
+  <meta property="og:image" content="/assets/img/guides/guides-meta.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:creator" content="@teamGradio">
+  <meta name="twitter:title" content="Gradio Guides">
+  <meta name="twitter:description" content="How to use Gradio">
+  <meta name="twitter:image" content="https://gradio.app/assets/img/guides/guides-meta.png">
+
+  <link rel="icon" type="image/png" href="/assets/img/logo.png">
+  <link href="/gradio_static/static/bundle.css" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/assets/prism.css">
+  <style>
+    html {
+      font-size: 16px !important;
+    }
+    .search-for-tags {
+      width: 100%;
+      position: relative;
+      display: flex;
+    }
+    .searchTerm {
+      width: 100%;
+      border: 1px solid #bebfc3;
+      padding: 5px;
+      height: 50px;
+      border-radius: 25px;
+      outline: none;
+      color: #9ca3af;
+      text-align: center;
+      font-size: large;
+    }
+
+    .searchTerm:focus{
+      color: #101827;
+    }
+
+    .wrap-for-search{
+      padding-top: 20px;
+      margin: auto;
+    }
+
+    #no-guides-found {
+      text-align: center;
+      color: #9ca3af;
+      font-size: larger;
+    }
+
+    .counter-box {
+        width: 100%;
+        color: #ec8f14;
+    }
+
+    .counter{
+        padding-left: 4px;
+        padding-right: 4px;
+      }
+
+    .counter-parent {
+      text-align: center;
+      font-size: smaller;
+    }
+    .counter-child {
+      display: inline-block;
+    }
+
+    .tags-holder {
+      text-align: left;
+      font-size: small;
+      font-weight: 300;
+      color: #5a5a5a;
+    }
+
+  </style>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag('js', new Date());
+      gtag('config', 'UA-156449732-1');
+    </script>
+</head>
+
+<body class="bg-white text-gray-900 text-md sm:text-lg">
+  {{navbar_html|safe}}
+  <div class="container mx-auto px-4">
+    <main class="container flex gap-4">
+      <div class="h-screen leading-relaxed sticky top-0 bg-gray-50 p-4 text-md overflow-y-auto hidden md:block" style="width: 64rem">
+        <a class="link mb-2 block" href="#nlp">🖊️ NLP and Text</a>
+        <a class="link mb-2 block" href="#speech">🎵 Speech and Audio</a>
+        <a class="link mb-2 block" href="#vision">📷 Computer Vision</a>
+        <a class="link mb-2 block" href="#science">🔬 Science and Math</a>
+        <a class="link my-2 block" href="#medicine">🩺 Biology and Medicine</h4>
+        <a class="link my-2 block" href="#fun">🎉 Fun</h4>
+      </div>
+      <div class="leading-7 max-w-full">
+        <h1 class="text-3xl font-semibold mb-4">Gradio Gallery</h1>
+        <h2 id="nlp" class="text-2xl font-semibold mb-4">NLP and Text</h2>
+        <h2 id="nlp" class="text-2xl font-semibold mb-4">Speech and Audio</h2>
+        <section class="flex flex-col gap-6">
+          <div id="interface" class="func">
+            <p class="mb-2"></p>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+  <footer class="container mx-auto p-4 flex justify-between items-center">
+    <img src="/assets/img/logo.svg" class="h-10">
+    <div class="flex gap-4">
+      <a class="hover:opacity-75 transition" href="https://twitter.com/Gradio">
+        <img src="/assets/img/twitter.svg" class="h-8">
+      </a>
+      <a class="hover:opacity-75 transition" href="https://github.com/gradio-app/gradio">
+        <img src="/assets/img/github.svg" class="h-8">
+      </a>
+    </div>
+  </footer>
+  <script src="/assets/prism.js"></script>
+</body>
+
+</html>
