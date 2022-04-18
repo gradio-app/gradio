@@ -15,6 +15,10 @@ Gradio lets users demo their machine learning models as a web app all in python 
 
 for more info see: https://gradio.app/
 
+### Hugging Face Spaces
+
+Hugging Face Spaces is a free hosting option for Gradio demos on Hugging Face. Spaces comes with 3 sdks, Gradio, Streamlit and Static HTML demos. Spaces can be public or private and the workflow is similar to github repos. 
+
 ## How did HF help ONNX model zoo?
 
 
