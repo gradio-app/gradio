@@ -124,6 +124,7 @@ XRAY_CONFIG = {
             "type": "textbox",
             "props": {
                 "lines": 1,
+                "max_lines": 100,
                 "placeholder": None,
                 "default_value": "",
                 "name": "textbox",
