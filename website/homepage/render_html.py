@@ -124,6 +124,17 @@ def render_guides_main():
         generated_template.write(output_html)
 
 
+def render_gallery():
+    with open("src/gallery.html", encoding="utf-8") as template_file:
+        template = Template(template_file.read())
+        output_html = template.render(navbar_html=navbar_html)
+    os.makedirs(os.path.join("generated", "gallery"), exist_ok=True)
+    with open(
+        os.path.join("generated", "gallery", "index.html"), "w", encoding="utf-8"
+    ) as generated_template:
+        generated_template.write(output_html)
+
+
 def render_guides():
     for guide in guides:
         generate_meta_image(guide)
@@ -352,4 +363,5 @@ if __name__ == "__main__":
     render_guides_main()
     render_guides()
     render_docs()
+    render_gallery()
     render_other()
