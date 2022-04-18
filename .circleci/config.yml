@@ -8,6 +8,8 @@ jobs:
       - image: circleci/python:3.9.2-browsers
     steps:
       - checkout
+      - run: 
+          command: echo export NODE_OPTIONS="--max-old-space-size=8192"
       - run: mkdir test-reports
       - restore_cache:
           key: deps1-{{ .Branch }}-{{ checksum "gradio.egg-info/requires.txt" }}
