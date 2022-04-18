@@ -1,8 +1,28 @@
-## Getting Started
+## Quickstart
 
 **Prerequisite**: Python 3.7+ and that's it! 
 
-### Quick Start
+### Introduction
+
+Gradio is a Python library that allows you to quickly build machine learning demos, data science dashboards, or other kinds of web apps, **entirely in Python**. These web apps can be launched from wherever you use Python (jupyter notebooks, colab notebooks, Python terminal, etc.) and shared with anyone instantly using Gradio's auto-generated share links.
+
+To offer both simplicity and more powerful and flexible control for advanced web apps, Gradio offers two different APIs to users:
+
+* `gradio.Interface`: a high-level API that allows you to create a machine learning demo simply by specifying a list of inputs and outputs. It often takes just a few lines of Python to create a fully usable and share machine learning demo.
+
+* `gradio.Blocks`: a low-level API that allows you to have full control over the data flows and layout of your application. You can build very complex, multi-step applications using Blocks.
+
+This Quickstart focuses on the high-level `gradio.Interface` API. For more information on Blocks, read our dedicated guide.
+
+### What Problem is Gradio Solving?
+
+One of the best ways to share your machine learning model, API, or data science workflow with others is to create a web-based *interactive demo* that allows your users or colleagues to try out the demo with their inputs and visualize the outputs. These web-based demos are great as they allow *anyone who can use a browser* (not just technical people) to understand what you've built.
+
+However, creating such web-based demos has traditionally been difficult, as you needed to know backend frameworks (like Flask or Django) to serve your web app, containerization tools (like Docker), databases to store data or users, and front end web development (HTML, CSS, JavaScript) to build a GUI for your demo.
+
+Gradio lets you do all of this, directly in Python. And usually in just a few lines of code! So let's get started.
+
+### Getting Started
 
 To get Gradio running with a simple "Hello, World" example, follow these three steps:
 
