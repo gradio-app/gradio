@@ -25,6 +25,8 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="/assets/prism.css">
   <link href="http://fonts.cdnfonts.com/css/product-sans" rel="stylesheet">
+  <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro' rel='stylesheet' type='text/css'>
+
   <script async src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -34,35 +36,88 @@
       gtag('js', new Date());
       gtag('config', 'UA-156449732-1');
     </script>
+
+  <style>
+
+    body {
+      background: linear-gradient(180deg, #FFFFFF 1.95%, #EFF1F4 24.62%, #EFF1F4 77.68%, #FFFFFF 98.32%);
+    }
+
+    .header-section {
+      background: linear-gradient(0deg, rgba(246,247,248,1) 25%, rgba(255,211,160,0.25) 100%);
+    }
+
+    .header-text {
+      margin-top: 90px;
+      font-family: 'Source Sans Pro', sans-serif;
+      font-weight: 700;
+      color: #37332F;
+      font-size: 60px;
+      line-height: 105%;
+      max-width: 47%;
+    }
+
+    .subheader-text {
+      margin-top: 15px;
+      margin-bottom: 15px;
+      font-family: 'Source Sans Pro', sans-serif;
+      font-weight: 600;
+      color: #787E86;
+      font-size: 20px;
+      line-height: 135%;
+      max-width: 40%;
+    }
+
+    .gs-button {
+      margin: auto;
+      padding: 0 25px 0 25px;
+      background: linear-gradient(82.4deg, #FF8F27 -12.66%, #FFB627 66.87%, #FFF27E 108.9%);
+      border-radius: 31px;
+      font-family: 'Product Sans', sans-serif;
+      color: #FFFFFF;
+      font-size: 14px;
+      filter: drop-shadow(0px 6px 35px rgba(255, 187, 84, 0.4));
+      height: 28px;
+    }
+
+    .arrow-left {
+      margin-left: 8px !important;
+      margin: auto;
+      width: 0;
+      height: 0;
+      border-top: 7px solid transparent;
+      border-bottom: 7px solid transparent;
+      border-right:7px solid #e5e5e5;
+    }
+
+  </style>
 </head>
 
 <body class="bg-white text-gray-900 text-md sm:text-lg">
   {{navbar_html|safe}}
   <section
-    class="flex flex-col gap-8 items-center justify-center p-4 bg-opacity-20 bg-cover bg-center"
-    style="background-image: url('/assets/img/gallery.png');">
-    <div class="max-w-3xl mx-auto p-2 text-center text-4xl leading-snug md:text-6xl md:leading-snug font-semibold">
-      Build &amp; share delightful machine learning apps
+    class="header-section flex flex-col gap-8 items-center justify-center p-4 bg-opacity-20 bg-cover bg-center">
+    <div class="header-text max-w-3xl mx-auto p-2 text-center text-4xl leading-snug md:text-6xl md:leading-snug font-semibold">
+      Build &amp; Share Delightful Machine Learning Apps
     </div>
-    <p class="font-semibold text-center text-2xl leading-relaxed max-w-3xl text-gray-500">Gradio is the fastest way to demo your machine learning model with a friendly web interface so that anyone can use it, anywhere! </p>
-    <div class="flex justify-center ">
-      <a class="border shadow border-gray-300 bg-gradient-to-b from-gray-50 to-gray-100 hover:to-gray-200 transition rounded inline-flex gap-2 items-center justify-center px-3 py-2 rounded-r-none"
+    <p class="subheader-text font-semibold text-center text-2xl leading-relaxed max-w-3xl text-gray-500">Gradio is the fastest way to demo your machine learning model with a friendly web interface so that anyone can use it, anywhere! </p>
+
+
+    <div class="justify-center flex">
+      <a class="gs-button font-semibold" href="/getting_started">Get Started</a>
+      <div class="arrow-left"></div>
+      <a class="border shadow bg-gradient-to-b from-gray-50 to-gray-100 hover:to-gray-200 transition rounded inline-flex gap-2 items-center justify-center px-2 py-1"
         href="https://github.com/gradio-app/gradio-UI" target="_blank"
-        aria-label="Star gradio-app/gradio-UI on GitHub">
-        <svg version="1.1" class="h-6" viewBox="0 0 14 16" class="inline" aria-hidden="true">
+        aria-label="Star gradio-app/gradio-UI on GitHub"
+        style="height: 28px;">
+        <svg version="1.1" viewBox="0 0 14 16" class="inline" aria-hidden="true"
+        style="height: 1.25rem;">
           <path fill-rule="evenodd"
             d="M14 6l-4.9-.64L7 1 4.9 5.36 0 6l3.6 3.26L2.67 14 7 11.67 11.33 14l-.93-4.74L14 6z"></path>
         </svg>
-        <span class="text-md">Star</span>
+        <span id="star-count" class="transition preloaded-star-count"
+        style="font-size: 15px;">{{ star_count }}</span>
       </a>
-      <a class="font-semibold border shadow bg-white border-gray-300 hover:border-gray-400 transition hover:text-blue-600 rounded px-3 py-2 rounded-l-none border-l-0"
-        href="https://github.com/gradio-app/gradio/stargazers" target="_blank" aria-label="3902 stargazers on GitHub">
-        <span id="star-count" class="transition preloaded-star-count">{{ star_count }}</span>
-      </a>
-    </div>
-    <div class="text-xl text-center">
-      <a class="font-semibold transition hover:text-blue-600" href="/getting_started">Get Started</a>
-       with 5 lines of pure Python
     </div>
   </section>
   <div class="container mx-auto p-4">
