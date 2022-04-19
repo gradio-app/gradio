@@ -18,20 +18,16 @@ def recognize_digit(image):
     return {str(i): prediction[i] for i in range(10)}
 
 
-im = gradio.inputs.Image(
-    shape=(28, 28), image_mode="L", invert_colors=False, source="canvas"
-)
+im = gradio.Image(shape=(28, 28), image_mode="L", invert_colors=False, source="canvas")
 
-iface = gr.Interface(
+demo = gr.Interface(
     recognize_digit,
     im,
-    gradio.outputs.Label(num_top_classes=3),
+    gradio.Label(num_top_classes=3),
     live=True,
     interpretation="default",
     capture_session=True,
 )
 
-iface.test_launch()
-
 if __name__ == "__main__":
-    iface.launch()
+    demo.launch()

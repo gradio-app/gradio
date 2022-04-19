@@ -1,18 +1,18 @@
 {
 	"interface": {
-		"submit": "Absenden",
-		"clear": "Löschen",
-		"interpret": "Ersteller",
-		"flag": "Flag",
-		"examples": "Beispiele",
 		"drop_image": "Bild hier ablegen",
 		"drop_video": "Video hier ablegen",
 		"drop_audio": "Audio hier ablegen",
 		"drop_file": "Datei hier ablegen",
 		"drop_csv": "CSV Datei hier ablegen",
-		"or": "oder",
 		"click_to_upload": "Hochladen",
 		"view_api": "API anschauen",
 		"built_with_Gradio": "Mit Gradio erstellt"
-	}
+	},
+	"Submit": "Absenden",
+	"Clear": "Löschen",
+	"Interpret": "Ersteller",
+	"Flag": "Flag",
+	"Examples": "Beispiele",
+	"or": "oder"
 }

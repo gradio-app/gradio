@@ -6,10 +6,13 @@ import io
 import json
 import os
 from abc import ABC, abstractmethod
-from typing import Any, List, Optional
+from typing import TYPE_CHECKING, Any, List, Optional
 
 import gradio as gr
 from gradio import encryptor, utils
+
+if TYPE_CHECKING:
+    from gradio.components import Component
 
 
 class FlaggingCallback(ABC):
@@ -18,11 +21,12 @@ class FlaggingCallback(ABC):
     """
 
     @abstractmethod
-    def setup(self, flagging_dir: str):
+    def setup(self, components: List[Component], flagging_dir: str):
         """
         This method should be overridden and ensure that everything is set up correctly for flag().
         This method gets called once at the beginning of the Interface.launch() method.
         Parameters:
+        components: Set of components that will provide flagged data.
         flagging_dir: A string, typically containing the path to the directory where the flagging file should be storied (provided as an argument to Interface.__init__()).
         """
         pass
@@ -30,9 +34,7 @@ class FlaggingCallback(ABC):
     @abstractmethod
     def flag(
         self,
-        interface: gr.Interface,
-        input_data: List[Any],
-        output_data: List[Any],
+        flag_data: List[Any],
         flag_option: Optional[str] = None,
         flag_index: Optional[int] = None,
         username: Optional[str] = None,
@@ -42,8 +44,7 @@ class FlaggingCallback(ABC):
         This gets called every time the <flag> button is pressed.
         Parameters:
         interface: The Interface object that is being used to launch the flagging interface.
-        input_data: The input data to be flagged.
-        output_data: The output data to be flagged.
+        flag_data: The data to be flagged.
         flag_option (optional): In the case that flagging_options are provided, the flag option that is being used.
         flag_index (optional): The index of the sample that is being flagged.
         username (optional): The username of the user that is flagging the data, if logged in.
@@ -59,42 +60,30 @@ class SimpleCSVLogger(FlaggingCallback):
     provided for illustrative purposes.
     """
 
-    def setup(self, flagging_dir: str):
+    def setup(self, components: List[Component], flagging_dir: str):
+        self.components = components
         self.flagging_dir = flagging_dir
         os.makedirs(flagging_dir, exist_ok=True)
 
     def flag(
         self,
-        interface: gr.Interface,
-        input_data: List[Any],
-        output_data: List[Any],
+        flag_data: List[Any],
         flag_option: Optional[str] = None,
         flag_index: Optional[int] = None,
         username: Optional[str] = None,
     ) -> int:
         flagging_dir = self.flagging_dir
-        log_filepath = "{}/log.csv".format(flagging_dir)
+        log_filepath = os.path.join(flagging_dir, "log.csv")
 
         csv_data = []
-        for i, input in enumerate(interface.input_components):
+        for component, sample in zip(self.components, flag_data):
             csv_data.append(
-                input.save_flagged(
+                component.save_flagged(
                     flagging_dir,
-                    interface.config["input_components"][i]["label"],
-                    input_data[i],
+                    component.label,
+                    sample,
                     None,
                 )
-            )
-        for i, output in enumerate(interface.output_components):
-            csv_data.append(
-                output.save_flagged(
-                    flagging_dir,
-                    interface.config["output_components"][i]["label"],
-                    output_data[i],
-                    None,
-                )
-                if output_data[i] is not None
-                else ""
             )
 
         with open(log_filepath, "a", newline="") as csvfile:
@@ -112,71 +101,50 @@ class CSVLogger(FlaggingCallback):
     Logs the input and output data to a CSV file. Supports encryption.
     """
 
-    def setup(self, flagging_dir: str):
+    def setup(
+        self,
+        components: List[Component],
+        flagging_dir: str,
+        encryption_key: Optional[str] = None,
+    ):
+        self.components = components
         self.flagging_dir = flagging_dir
+        self.encryption_key = encryption_key
         os.makedirs(flagging_dir, exist_ok=True)
 
     def flag(
         self,
-        interface: gr.Interface,
-        input_data: List[Any],
-        output_data: List[Any],
+        flag_data: List[Any],
         flag_option: Optional[str] = None,
         flag_index: Optional[int] = None,
         username: Optional[str] = None,
     ) -> int:
         flagging_dir = self.flagging_dir
-        log_fp = "{}/log.csv".format(flagging_dir)
-        encryption_key = interface.encryption_key if interface.encrypt else None
-        is_new = not os.path.exists(log_fp)
-        output_only_mode = input_data is None
+        log_filepath = os.path.join(flagging_dir, "log.csv")
+        is_new = not os.path.exists(log_filepath)
 
         if flag_index is None:
             csv_data = []
-            if not output_only_mode:
-                for i, input in enumerate(interface.input_components):
-                    csv_data.append(
-                        input.save_flagged(
-                            flagging_dir,
-                            interface.config["input_components"][i]["label"],
-                            input_data[i],
-                            encryption_key,
-                        )
-                    )
-            for i, output in enumerate(interface.output_components):
+            for component, sample in zip(self.components, flag_data):
                 csv_data.append(
-                    output.save_flagged(
+                    component.save_flagged(
                         flagging_dir,
-                        interface.config["output_components"][i]["label"],
-                        output_data[i],
-                        encryption_key,
+                        component.label,
+                        sample,
+                        self.encryption_key,
                     )
-                    if output_data[i] is not None
+                    if sample is not None
                     else ""
                 )
-            if not output_only_mode:
-                if flag_option is not None:
-                    csv_data.append(flag_option)
-                if username is not None:
-                    csv_data.append(username)
-                csv_data.append(str(datetime.datetime.now()))
+            csv_data.append(flag_option if flag_option is not None else "")
+            csv_data.append(username if username is not None else "")
+            csv_data.append(str(datetime.datetime.now()))
             if is_new:
-                headers = []
-                if not output_only_mode:
-                    headers += [
-                        interface["label"]
-                        for interface in interface.config["input_components"]
-                    ]
-                headers += [
-                    interface["label"]
-                    for interface in interface.config["output_components"]
+                headers = [component.label for component in self.components] + [
+                    "flag",
+                    "username",
+                    "timestamp",
                 ]
-                if not output_only_mode:
-                    if interface.flagging_options is not None:
-                        headers.append("flag")
-                    if username is not None:
-                        headers.append("username")
-                    headers.append("timestamp")
 
         def replace_flag_at_index(file_content):
             file_content = io.StringIO(file_content)
@@ -189,13 +157,13 @@ class CSVLogger(FlaggingCallback):
             writer.writerows(content)
             return output.getvalue()
 
-        if interface.encrypt:
+        if self.encryption_key:
             output = io.StringIO()
             if not is_new:
-                with open(log_fp, "rb") as csvfile:
+                with open(log_filepath, "rb") as csvfile:
                     encrypted_csv = csvfile.read()
                     decrypted_csv = encryptor.decrypt(
-                        interface.encryption_key, encrypted_csv
+                        self.encryption_key, encrypted_csv
                     )
                     file_content = decrypted_csv.decode()
                     if flag_index is not None:
@@ -206,15 +174,13 @@ class CSVLogger(FlaggingCallback):
                 if is_new:
                     writer.writerow(headers)
                 writer.writerow(csv_data)
-            with open(log_fp, "wb") as csvfile:
+            with open(log_filepath, "wb") as csvfile:
                 csvfile.write(
-                    encryptor.encrypt(
-                        interface.encryption_key, output.getvalue().encode()
-                    )
+                    encryptor.encrypt(self.encryption_key, output.getvalue().encode())
                 )
         else:
             if flag_index is None:
-                with open(log_fp, "a", newline="") as csvfile:
+                with open(log_filepath, "a", newline="") as csvfile:
                     writer = csv.writer(
                         csvfile, quoting=csv.QUOTE_NONNUMERIC, quotechar="'"
                     )
@@ -222,14 +188,14 @@ class CSVLogger(FlaggingCallback):
                         writer.writerow(headers)
                     writer.writerow(csv_data)
             else:
-                with open(log_fp) as csvfile:
+                with open(log_filepath) as csvfile:
                     file_content = csvfile.read()
                     file_content = replace_flag_at_index(file_content)
                 with open(
-                    log_fp, "w", newline=""
+                    log_filepath, "w", newline=""
                 ) as csvfile:  # newline parameter needed for Windows
                     csvfile.write(file_content)
-        with open(log_fp, "r") as csvfile:
+        with open(log_filepath, "r") as csvfile:
             line_count = len([None for row in csv.reader(csvfile)]) - 1
         return line_count
 
@@ -266,7 +232,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
         self.dataset_private = private
         self.verbose = verbose
 
-    def setup(self, flagging_dir: str):
+    def setup(self, components: List[Component], flagging_dir: str):
         """
         Params:
         flagging_dir (str): local directory where the dataset is cloned,
@@ -287,6 +253,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             exist_ok=True,
         )
         self.path_to_dataset_repo = path_to_dataset_repo  # e.g. "https://huggingface.co/datasets/abidlabs/test-audio-10"
+        self.components = components
         self.flagging_dir = flagging_dir
         self.dataset_dir = os.path.join(flagging_dir, self.dataset_name)
         self.repo = huggingface_hub.Repository(
@@ -302,9 +269,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
 
     def flag(
         self,
-        interface: gr.Interface,
-        input_data: List[Any],
-        output_data: List[Any],
+        flag_data: List[Any],
         flag_option: Optional[str] = None,
         flag_index: Optional[int] = None,
         username: Optional[str] = None,
@@ -327,84 +292,42 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             if is_new:
                 headers = []
 
-                for i, component in enumerate(interface.input_components):
-                    component_label = interface.config["input_components"][i][
-                        "label"
-                    ] or "input_{}".format(i)
-                    headers.append(component_label)
-                    infos["flagged"]["features"][component_label] = {
+                for component, sample in zip(self.components, flag_data):
+                    headers.append(component.label)
+                    headers.append(component.label)
+                    infos["flagged"]["features"][component.label] = {
                         "dtype": "string",
                         "_type": "Value",
                     }
                     if isinstance(component, tuple(file_preview_types)):
-                        headers.append(component_label + " file")
+                        headers.append(component.label + " file")
                         for _component, _type in file_preview_types.items():
                             if isinstance(component, _component):
                                 infos["flagged"]["features"][
-                                    component_label + " file"
+                                    component.label + " file"
                                 ] = {"_type": _type}
                                 break
 
-                for i, component in enumerate(interface.output_components):
-                    component_label = interface.config["output_components"][i][
-                        "label"
-                    ] or "output_{}".format(i)
-                    headers.append(component_label)
-                    infos["flagged"]["features"][component_label] = {
-                        "dtype": "string",
-                        "_type": "Value",
-                    }
-                    if isinstance(component, tuple(file_preview_types)):
-                        headers.append(component_label + " file")
-                        for _component, _type in file_preview_types.items():
-                            if isinstance(component, _component):
-                                infos["flagged"]["features"][
-                                    component_label + " file"
-                                ] = {"_type": _type}
-                                break
-
-                if interface.flagging_options is not None:
-                    headers.append("flag")
-                    infos["flagged"]["features"]["flag"] = {
-                        "dtype": "string",
-                        "_type": "Value",
-                    }
+                headers.append("flag")
+                infos["flagged"]["features"]["flag"] = {
+                    "dtype": "string",
+                    "_type": "Value",
+                }
 
                 writer.writerow(headers)
 
             # Generate the row corresponding to the flagged sample
             csv_data = []
-            for i, component in enumerate(interface.input_components):
-                label = interface.config["input_components"][i][
-                    "label"
-                ] or "input_{}".format(i)
+            for component, sample in zip(self.components, flag_data):
                 filepath = component.save_flagged(
-                    self.dataset_dir, label, input_data[i], None
+                    self.dataset_dir, component.label, sample, None
                 )
                 csv_data.append(filepath)
                 if isinstance(component, tuple(file_preview_types)):
                     csv_data.append(
                         "{}/resolve/main/{}".format(self.path_to_dataset_repo, filepath)
                     )
-            for i, component in enumerate(interface.output_components):
-                label = interface.config["output_components"][i][
-                    "label"
-                ] or "output_{}".format(i)
-                filepath = (
-                    component.save_flagged(
-                        self.dataset_dir, label, output_data[i], None
-                    )
-                    if output_data[i] is not None
-                    else ""
-                )
-                csv_data.append(filepath)
-                if isinstance(component, tuple(file_preview_types)):
-                    csv_data.append(
-                        "{}/resolve/main/{}".format(self.path_to_dataset_repo, filepath)
-                    )
-            if flag_option is not None:
-                csv_data.append(flag_option)
-
+            csv_data.append(flag_option if flag_option is not None else "")
             writer.writerow(csv_data)
 
         if is_new:

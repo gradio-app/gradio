@@ -1,0 +1,21 @@
+{
+	"name": "@gradio/chart",
+	"version": "0.0.1",
+	"description": "Gradio UI packages",
+	"type": "module",
+	"main": "src/index.ts",
+	"author": "",
+	"license": "ISC",
+	"private": true,
+	"dependencies": {
+		"@gradio/tooltip": "workspace:^0.0.1",
+		"d3-dsv": "^3.0.1",
+		"d3-scale": "^4.0.2",
+		"d3-shape": "^3.1.0"
+	},
+	"devDependencies": {
+		"@types/d3-dsv": "^3.0.0",
+		"@types/d3-scale": "^4.0.2",
+		"@types/d3-shape": "^3.0.2"
+	}
+}
