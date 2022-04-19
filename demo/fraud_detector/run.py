@@ -1,7 +1,5 @@
 import random
 
-import pandas as pd
-
 import gradio as gr
 
 
@@ -19,20 +17,20 @@ def fraud_detector(card_activity, categories, sensitivity):
     )
 
 
-iface = gr.Interface(
+demo = gr.Interface(
     fraud_detector,
     [
-        gr.inputs.Timeseries(x="time", y=["retail", "food", "other"]),
-        gr.inputs.CheckboxGroup(
-            ["retail", "food", "other"], default=["retail", "food", "other"]
+        gr.Timeseries(x="time", y=["retail", "food", "other"]),
+        gr.CheckboxGroup(
+            ["retail", "food", "other"], default_selected=["retail", "food", "other"]
         ),
-        gr.inputs.Slider(1, 3),
+        gr.Slider(minimum=1, maximum=3),
     ],
     [
         "dataframe",
-        gr.outputs.Timeseries(x="time", y=["retail", "food", "other"]),
-        gr.outputs.Label(label="Fraud Level"),
+        gr.Timeseries(x="time", y=["retail", "food", "other"]),
+        gr.Label(label="Fraud Level"),
     ],
 )
 if __name__ == "__main__":
-    iface.launch()
+    demo.launch()

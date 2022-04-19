@@ -1,6 +1,6 @@
 version: 2.1
 orbs:
-  codecov: codecov/codecov@3.1.1
+  codecov: codecov/codecov@3.2.2
   node: circleci/node@4.7.0
 jobs:
   build:
@@ -11,6 +11,11 @@ jobs:
       - run: mkdir test-reports
       - restore_cache:
           key: deps1-{{ .Branch }}-{{ checksum "gradio.egg-info/requires.txt" }}
+      - run:
+          name: Install ffmpeg
+          command: |
+            sudo apt update
+            sudo apt install ffmpeg -y
       - run:
           name: Install Python deps in a venv
           command: |
@@ -41,11 +46,6 @@ jobs:
       - run:
           command: |
             . venv/bin/activate
-            coverage run -m pytest
-            coverage xml
-      - run:
-          command: |
-            . venv/bin/activate
             python -m black --check gradio test
       - run:
           command: |
@@ -55,6 +55,11 @@ jobs:
           command: |
             . venv/bin/activate
             python -m  flake8 --ignore=E731,E501,E722,W503,E126,F401,E203 gradio test
+      - run:
+          command: |
+            . venv/bin/activate
+            coverage run -m pytest
+            coverage xml
       - codecov/upload:
           file: 'coverage.xml'
       - store_artifacts:

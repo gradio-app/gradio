@@ -20,6 +20,10 @@ def predict(inp):
     return {labels[i]: float(prediction[i]) for i in range(1000)}
 
 
-inputs = gr.inputs.Image()
-outputs = gr.outputs.Label(num_top_classes=3)
-gr.Interface(fn=predict, inputs=inputs, outputs=outputs).launch()
+inputs = gr.Image()
+outputs = gr.Label(num_top_classes=3)
+
+demo = gr.Interface(fn=predict, inputs=inputs, outputs=outputs)
+
+if __name__ == "__main__":
+    demo.launch()
