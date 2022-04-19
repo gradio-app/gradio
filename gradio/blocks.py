@@ -117,7 +117,7 @@ class BlockContext(Block):
 
     def get_template_context(self):
         return {
-            "css": self.css if self.css is not None else {},
+            "css": self.css,
             "default_value": self.visible,
         }
 
