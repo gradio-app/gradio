@@ -11,16 +11,16 @@ importers:
       '@testing-library/dom': ^8.11.3
       '@testing-library/svelte': ^3.1.0
       '@testing-library/user-event': ^13.5.0
+      '@types/three': ^0.138.0
       autoprefixer: ^10.4.4
+      babylonjs: ^4.2.1
+      babylonjs-loaders: ^4.2.1
       happy-dom: ^2.49.0
       npm-run-all: ^4.1.5
+      plotly.js-dist-min: ^2.10.1
       polka: ^1.0.0-next.22
       postcss: ^8.4.5
       postcss-nested: ^5.0.6
-      '@types/three': ^0.138.0
-      babylonjs: ^4.2.1
-      babylonjs-loaders: ^4.2.1
-      plotly.js-dist-min: ^2.10.1
       prettier: ^2.5.1
       prettier-plugin-svelte: ^2.6.0
       sirv: ^2.0.2
@@ -32,7 +32,7 @@ importers:
       tailwindcss: ^3.0.23
       tinyspy: ^0.3.0
       vite: ^2.9.1
-      vitest: ^0.7.4
+      vitest: ^0.3.2
     dependencies:
       '@gradio/tootils': link:packages/tootils
       '@playwright/test': 1.20.0
@@ -42,14 +42,14 @@ importers:
       '@testing-library/svelte': 3.1.0_svelte@3.46.3
       '@testing-library/user-event': 13.5.0_@testing-library+dom@8.11.3
       autoprefixer: 10.4.4_postcss@8.4.6
+      babylonjs: 4.2.2
+      babylonjs-loaders: 4.2.2
       happy-dom: 2.49.0
       npm-run-all: 4.1.5
+      plotly.js-dist-min: 2.11.1
       polka: 1.0.0-next.22
       postcss: 8.4.6
       postcss-nested: 5.0.6_postcss@8.4.6
-      babylonjs: 4.2.1
-      babylonjs-loaders: 4.2.1
-      plotly.js-dist-min: 2.10.1
       prettier: 2.5.1
       prettier-plugin-svelte: 2.6.0_prettier@2.5.1+svelte@3.46.3
       sirv: 2.0.2
@@ -61,8 +61,7 @@ importers:
       tailwindcss: 3.0.23_autoprefixer@10.4.4
       tinyspy: 0.3.0
       vite: 2.9.1
-      vitest: 0.7.4_happy-dom@2.49.0
-      vitest: 0.3.5
+      vitest: 0.3.6_happy-dom@2.49.0
     devDependencies:
       '@types/three': 0.138.0
 
@@ -309,7 +308,7 @@ importers:
       '@gradio/video': link:../video
     devDependencies:
       '@sveltejs/adapter-auto': 1.0.0-next.34
-      '@sveltejs/kit': 1.0.0-next.314_svelte@3.46.3
+      '@sveltejs/kit': 1.0.0-next.315_svelte@3.46.3
       autoprefixer: 10.4.2_postcss@8.4.6
       postcss: 8.4.6
       postcss-load-config: 3.1.1
@@ -1036,8 +1035,8 @@ packages:
       esbuild: 0.14.31
     dev: true
 
-  /@sveltejs/kit/1.0.0-next.314_svelte@3.46.3:
-    resolution: {integrity: sha512-EkXjEd30XO8+AydBLARxAtI6Ak8V0KFSEJ07sNsrkGq9J70sWPL7yGenhGaeq6S852XZAqeyWd6uGQZmQLR4Wg==}
+  /@sveltejs/kit/1.0.0-next.315_svelte@3.46.3:
+    resolution: {integrity: sha512-f6ufqd9z6uicOOr1eSIclm4TonwoRtw0kuIYrDatYSZtu/081kZ5r0Vj6sXDI6tFI1kctoRzPtFECXf5zkZvlw==}
     engines: {node: '>=14.13'}
     hasBin: true
     peerDependencies:
@@ -1229,6 +1228,10 @@ packages:
     resolution: {integrity: sha512-Hl219/BT5fLAaz6NDkSuhzasy49dwQS/DSdu4MdggFB8zcXv7vflBI3xp7FEmkmdDkBUI2bPUNeMttp2knYdxw==}
     dev: false
 
+  /@types/three/0.138.0:
+    resolution: {integrity: sha512-D8AoV7h2kbCfrv/DcebHOFh1WDwyus3HdooBkAwcBikXArdqnsQ38PQ85JCunnvun160oA9jz53GszF3zch3tg==}
+    dev: true
+
   /@types/yargs-parser/21.0.0:
     resolution: {integrity: sha512-iO9ZQHkZxHn4mSakYV0vFHAVDyEOIJQrV2uZ06HxEPcx+mt8swXoZHIbaaJ2crJYFfErySgktuTZ3BeLz+XmFA==}
     dev: false
@@ -1252,10 +1255,6 @@ packages:
       '@types/node': 17.0.14
     dev: false
     optional: true
-
-  /@types/three/0.138.0:
-    resolution: {integrity: sha512-D8AoV7h2kbCfrv/DcebHOFh1WDwyus3HdooBkAwcBikXArdqnsQ38PQ85JCunnvun160oA9jz53GszF3zch3tg==}
-    dev: true
 
   /abab/2.0.5:
     resolution: {integrity: sha512-9IK9EadsbHo6jLWIpxpR6pL0sazTXV6+SQv25ZB+F7Bj9mJNaOc4nCRabwd5M/JwmUa8idz6Eci6eKfJryPs6Q==}
@@ -1454,7 +1453,6 @@ packages:
     dev: false
     optional: true
 
-<<<<<<< HEAD
   /babel-plugin-dynamic-import-node/2.3.3:
     resolution: {integrity: sha512-jZVI+s9Zg3IqA/kdi0i6UDCybUI3aSBLnglhYbSSjKlV7yF1F/5LWv8MakQmvYpnbJDS6fcBL2KzHSxNCMtWSQ==}
     dependencies:
@@ -1474,21 +1472,6 @@ packages:
 
   /babylonjs/4.2.2:
     resolution: {integrity: sha512-p7mTi6+nLuWJTLbwxEJxLOh/QMHMV2KA0bviEoQSK5VtsAq1F0JghoOZYRs4aEqAZF/deFPWvMQk1vbXJ+4eEA==}
-=======
-  /babylonjs-gltf2interface/4.2.1:
-    resolution: {integrity: sha512-ZBfKgIoztO1x1nyf9aPQJ+WXmB6Kw0VlyxvcKchIixbICqeeExiN8nmjvypwXC4hl+5ZDMnUKQNrIhh7uzulnA==}
-    dev: false
-
-  /babylonjs-loaders/4.2.1:
-    resolution: {integrity: sha512-WLpbadXDyxbBQogU0SOrpwgAWN/DJ1xn5kCRD31NVoCbBIpvkdDIvzpRvze2esxrlv/KM8wbDu62ShJd6rQnVQ==}
-    dependencies:
-      babylonjs: 4.2.1
-      babylonjs-gltf2interface: 4.2.1
-    dev: false
-
-  /babylonjs/4.2.1:
-    resolution: {integrity: sha512-FQdJ2VTENUpUJQ30ddihwTjV6K94kglET0P7jV8OQzjA4eez3sotmG22Fn9+8yb069SA26KnrAGOI2sKMQ7BCw==}
->>>>>>> main
     dev: false
 
   /balanced-match/1.0.2:
@@ -3391,7 +3374,6 @@ packages:
     resolution: {integrity: sha512-JU3teHTNjmE2VCGFzuY8EXzCDVwEqB2a8fsIvwaStHhAWJEeVd1o1QD80CU6+ZdEXXSLbSsuLwJjkCBWqRQUVA==}
     engines: {node: '>=8.6'}
 
-<<<<<<< HEAD
   /pidtree/0.3.1:
     resolution: {integrity: sha512-qQbW94hLHEqCg7nhby4yRC7G2+jYHY4Rguc2bjw7Uug4GIJuu1tvf2uHaZv5Q8zdt+WKJ6qK1FOI6amaWUo5FA==}
     engines: {node: '>=0.10'}
@@ -3446,10 +3428,6 @@ packages:
 
   /plotly.js-dist-min/2.11.1:
     resolution: {integrity: sha512-F9WWNht0D3yBLZGHbLoJNfvplXvy+GUPSsA/lCbMuYd/UwzSu6Vmyprxlps9Einw1LDS1hYBrJeioK0lE3ieXA==}
-=======
-  /plotly.js-dist-min/2.10.1:
-    resolution: {integrity: sha512-H0ls1C2uu2U+qWw76djo4/zOGtUKfMILwFhu7tCOaG/wH5ypujrYGCH03N9SQVf1SXcctTfW57USf8LmagSiPQ==}
->>>>>>> main
     dev: false
 
   /pn/1.1.0:
@@ -4497,6 +4475,11 @@ packages:
     engines: {node: '>=14.0.0'}
     dev: false
 
+  /tinyspy/0.2.10:
+    resolution: {integrity: sha512-Qij6rGWCDjWIejxCXXVi6bNgvrYBp3PbqC4cBP/0fD6WHDOHCw09Zd13CsxrDqSR5PFq01WeqDws8t5lz5sH0A==}
+    engines: {node: '>=14.0.0'}
+    dev: false
+
   /tinyspy/0.3.0:
     resolution: {integrity: sha512-c5uFHqtUp74R2DJE3/Efg0mH5xicmgziaQXMm/LvuuZn3RdpADH32aEGDRyCzObXT1DNfwDMqRQ/Drh1MlO12g==}
     engines: {node: '>=14.0.0'}
@@ -4679,8 +4662,8 @@ packages:
     optionalDependencies:
       fsevents: 2.3.2
 
-  /vitest/0.7.4_happy-dom@2.49.0:
-    resolution: {integrity: sha512-6kyJ/YZJFVj/zEVVHFyvLvAZlbg05yAyJrk7oP+FOCFanGRYK7bBEz4qsIpNHxX+dlf5vRkbBDjpdXzGL7udeA==}
+  /vitest/0.3.6_happy-dom@2.49.0:
+    resolution: {integrity: sha512-EzlAmGHDh/sQhzKeqDtEae6nlFM5pJKJefj5P2eUUmg6DcXL2Xj365M7eN29P2tMofzs+qZD/LW+d2wopfNl0g==}
     engines: {node: '>=14.14.0'}
     hasBin: true
     peerDependencies:
@@ -4704,7 +4687,7 @@ packages:
       happy-dom: 2.49.0
       local-pkg: 0.4.1
       tinypool: 0.1.2
-      tinyspy: 0.3.0
+      tinyspy: 0.2.10
       vite: 2.9.1
     transitivePeerDependencies:
       - less

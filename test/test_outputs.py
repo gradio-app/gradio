@@ -546,8 +546,6 @@ class TestTimeseries(unittest.TestCase):
             )
 
 
-<<<<<<< HEAD
-=======
 class TestImage3D(unittest.TestCase):
     def test_as_component(self):
         Image3D = "test/test_files/Fox.gltf"
@@ -575,6 +573,5 @@ class TestNames(unittest.TestCase):
         self.assertEqual(len(subclasses), len(unique_subclasses_uncased))
 
 
->>>>>>> main
 if __name__ == "__main__":
     unittest.main()
