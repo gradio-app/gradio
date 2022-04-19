@@ -102,6 +102,7 @@ window.launchGradio = (config: Config, element_query: string) => {
 		}
 		let session_hash = Math.random().toString(36).substring(2);
 		config.fn = fn.bind(null, session_hash, config.root + "api/");
+		console.log("new Blocks Hit!")
 		new Blocks({
 			target: target,
 			props: config
@@ -130,6 +131,7 @@ async function get_config() {
 
 if (window.gradio_mode == "app") {
 	get_config().then((config) => {
+		console.log("Launching Gradio")
 		window.launchGradio(config, "#root");
 	});
 }
