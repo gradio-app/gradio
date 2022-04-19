@@ -1075,6 +1075,15 @@
 .prose-pink a code {
 	color: #db2777;
 }
+.dark .prose { 
+	color: #daddd8;
+}
+.dark .prose a {
+	color: #ffffff;
+}
+.dark :is(h1, h2, h3, h4) {
+	color: #ffffff;
+}
 @media (min-width: 640px) {
 	.sm\:prose {
 		color: #374151;
