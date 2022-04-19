@@ -3,7 +3,7 @@ import math
 
 import numpy as np
 
-from gradio.outputs import Label, Textbox
+from gradio.components import Label, Number, Textbox
 
 
 def run_interpret(interface, raw_input):
@@ -153,7 +153,7 @@ def run_interpret(interface, raw_input):
                 scores.append(None)
                 alternative_outputs.append([])
             else:
-                raise ValueError("Uknown intepretation method: {}".format(interp))
+                raise ValueError("Unknown intepretation method: {}".format(interp))
         return scores, alternative_outputs
     else:  # custom interpretation function
         processed_input = [
@@ -198,7 +198,7 @@ def quantify_difference_in_label(interface, original_output, perturbed_output):
             score = diff(original_label, perturbed_label)
         return score
 
-    elif isinstance(output_component, Textbox):
+    elif isinstance(output_component, Number):
         score = diff(post_original_output, post_perturbed_output)
         return score
 

@@ -49,24 +49,17 @@ def outbreak(plot_type, r, month, countries, social_distancing):
         item_text = json_item(p, "plotDiv")
         return item_text
 
+inputs = [
+        gr.Dropdown(["Matplotlib", "Plotly", "Bokeh"], label="Plot Type"),
+        gr.Slider(minimum=1, maximum=4, default_value=3.2, label="R"),
+        gr.Dropdown(["January", "February", "March", "April", "May"], label="Month"),
+        gr.CheckboxGroup(["USA", "Canada", "Mexico", "UK"], label="Countries"),
+        gr.Checkbox(label="Social Distancing?"),
+    ]
+outputs = gr.Plot(type="auto")
 
+demo = gr.Interface(fn=outbreak, inputs=inputs, outputs=outputs)
 
-iface = gr.Interface(
-    outbreak,
-    [
-        gr.inputs.Dropdown(
-            ["Matplotlib", "Plotly", "Bokeh"], label="Plot Type"
-        ),
-        gr.inputs.Slider(1, 4, default=3.2, label="R"),
-        gr.inputs.Dropdown(
-            ["January", "February", "March", "April", "May"], label="Month"
-        ),
-        gr.inputs.CheckboxGroup(["USA", "Canada", "Mexico", "UK"], label="Countries",
-                                default=["USA", "Canada"]),
-        gr.inputs.Checkbox(label="Social Distancing?"),
-    ],
-    gr.outputs.Plot(type="auto"),
-)
 
 if __name__ == "__main__":
-    iface.launch()
+    demo.launch()

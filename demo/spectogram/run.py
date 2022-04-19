@@ -16,8 +16,7 @@ def spectrogram(audio):
     return plt
 
 
-iface = gr.Interface(spectrogram, "audio", "plot")
+demo = gr.Interface(spectrogram, "audio", "plot")
 
-iface.test_launch()
 if __name__ == "__main__":
-    iface.launch()
+    demo.launch()

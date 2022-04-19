@@ -1,0 +1,50 @@
+.gr-box {
+	@apply text-gray-700 
+	text-sm 
+	relative 
+	rounded-lg 
+	bg-white 
+	shadow-sm;
+}
+
+.gr-input {
+	@apply focus:border-blue-300 
+	focus:ring 
+	focus:ring-blue-200 
+	focus:ring-opacity-50 
+	placeholder:text-gray-400
+	checked:shadow-inner
+	border-gray-200;
+}
+
+.gr-label {
+	@apply text-gray-600 text-sm mb-2 block;
+}
+
+.gr-panel {
+	@apply py-2.5 px-3;
+}
+
+.gr-box-sm {
+	@apply space-x-2 border py-1.5 px-3;
+}
+
+.gr-text-input {
+	@apply p-2.5;
+}
+
+.gr-check-radio {
+	@apply border-gray-300 
+	text-blue-600 
+	shadow-sm 
+	focus:border-blue-300 
+	focus:ring 
+	focus:ring-offset-0 
+	focus:ring-blue-200 
+	focus:ring-opacity-50;
+}
+
+.gr-checkbox {
+	@apply rounded 
+	checked:shadow-inner;
+}
