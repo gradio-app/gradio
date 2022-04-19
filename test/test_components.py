@@ -11,7 +11,7 @@ import pandas as pd
 import PIL
 
 import gradio as gr
-from gradio.test_data import media_data
+from gradio import media_data
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
