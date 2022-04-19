@@ -1,6 +1,0 @@
-Stanford Bunny:
-https://graphics.stanford.edu/data/3Dscanrep/
-https://graphics.stanford.edu/~mdfisher/Data/Meshes/bunny.obj
-
-Duck & Fox:
-https://github.com/KhronosGroup/glTF-Sample-Models

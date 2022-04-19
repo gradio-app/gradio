@@ -10,6 +10,7 @@ import ExampleAudio from "./ExampleComponents/Audio.svelte";
 import ExampleVideo from "./ExampleComponents/Video.svelte";
 import ExampleFile from "./ExampleComponents/File.svelte";
 import ExampleDataframe from "./ExampleComponents/Dataframe.svelte";
+import ExampleModel3D from "./ExampleComponents/Model3D.svelte";
 
 export const component_map = {
 	dropdown: ExampleDropdown,
@@ -23,5 +24,6 @@ export const component_map = {
 	audio: ExampleAudio,
 	video: ExampleVideo,
 	file: ExampleFile,
-	dataframe: ExampleDataframe
+	dataframe: ExampleDataframe,
+	model3D: ExampleModel3D
 };
