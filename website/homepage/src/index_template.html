@@ -90,6 +90,31 @@
       border-right:7px solid #e5e5e5;
     }
 
+    .hr-text {
+      color: #C9CDD6;
+      font-family: 'Product Sans';
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    hr {
+      margin: auto;
+      width: 40%;
+      border-top: 1px solid #C9CDD6;
+    }
+
+    .big-padding {
+      padding-left: 200px;
+      padding-right: 200px
+    }
+
+    .logo {
+      opacity: 0.5;
+      filter: grayscale(1);
+      max-width: 100%;
+      height: 27px;
+    }
+
   </style>
 </head>
 
@@ -197,25 +222,29 @@ iface <span class="token operator">=</span> gr<span class="token punctuation">.<
       <div id="demo_anime" class="w-full"></div>
     </div>
   </div>
-  <section class="w-full py-8 mb-12 bg-gradient-to-tr from-gray-50 to-gray-200 shadow-inner">
-    <div class="container mx-auto mb-2 text-center text-gray-600">
-      Used by machine learning teams big and small
-      <div class="mt-8 grid grid-cols-3 md:grid-cols-5 gap-x-3 sm:gap-x-4 gap-y-8 justify-center justify-items-center">
-        <img class="sm:h-5 h-4" src="/assets/img/logos/google.svg">
-        <img class="sm:h-5 h-4" src="/assets/img/logos/amazon.svg">
-        <img class="sm:h-5 h-4" src="/assets/img/logos/fb.svg">
-        <img class="sm:h-5 h-4" src="/assets/img/logos/cisco.svg">
-        <img class="sm:h-5 h-4" src="/assets/img/logos/twitter.svg">
-        <img class="sm:h-5 h-4" src="/assets/img/logos/vmware.svg">
-        <img class="sm:h-5 h-4" src="/assets/img/logos/huggingface.svg">
-        <img class="sm:h-5 h-4" src="/assets/img/logos/siemens.svg">
-        <img class="sm:h-5 h-4" src="/assets/img/logos/mit-svg-50.png">
-        <img class="sm:h-5 h-4" src="/assets/img/logos/stanford.svg">
-        <img class="sm:h-5 h-4" src="/assets/img/logos/uipath.svg">
-        <img class="sm:h-5 h-4" src="/assets/img/logos/unifyid.svg">
-        <img class="sm:h-5 h-4" src="/assets/img/logos/humaniseai.svg">
-        <img class="sm:h-5 h-4" src="/assets/img/logos/factmata.svg">
-        <img class="sm:h-5 h-4" src="/assets/img/logos/wns.png">
+  <section class="big-padding w-full py-8 mb-12">
+    <div class="container mx-auto my-4 text-center text-gray-600 flex">
+      <hr>
+      <p class="hr-text">Used by</p>
+      <hr>
+    </div>
+      <div class="mt-8 grid grid-cols-3 md:grid-cols-5 gap-x-3 sm:gap-x-4 gap-y-8 justify-center justify-items-center"
+      style="row-gap: 3rem">
+        <img class="logo sm:h-5 h-4" src="/assets/img/logos/google.svg">
+        <img class="logo sm:h-5 h-4" src="/assets/img/logos/amazon.svg">
+        <img class="logo sm:h-5 h-4" src="/assets/img/logos/fb.svg">
+        <img class="logo sm:h-5 h-4" src="/assets/img/logos/cisco.svg">
+        <img class="logo sm:h-5 h-4" src="/assets/img/logos/twitter.svg">
+        <img class="logo sm:h-5 h-4" src="/assets/img/logos/vmware.svg">
+        <img class="logo sm:h-5 h-4" src="/assets/img/logos/huggingface.svg">
+        <img class="logo sm:h-5 h-4" src="/assets/img/logos/siemens.svg">
+        <img class="logo sm:h-5 h-4" src="/assets/img/logos/mit-svg-50.png">
+        <img class="logo sm:h-5 h-4" src="/assets/img/logos/stanford.svg">
+        <img class="logo sm:h-5 h-4" src="/assets/img/logos/uipath.svg">
+        <img class="logo sm:h-5 h-4" src="/assets/img/logos/unifyid.svg">
+        <img class="logo sm:h-5 h-4" src="/assets/img/logos/humaniseai.svg">
+        <img class="logo sm:h-5 h-4" src="/assets/img/logos/factmata.svg">
+        <img class="logo sm:h-5 h-4" src="/assets/img/logos/wns.png">
       </div>
     </div>
   </section>
