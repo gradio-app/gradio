@@ -6,35 +6,41 @@ including various methods for constructing an interface and then launching it.
 from __future__ import annotations
 
 import copy
+import csv
+import inspect
 import os
 import random
 import re
-import time
 import warnings
 import weakref
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
 
 from markdown_it import MarkdownIt
 from mdit_py_plugins.footnote import footnote_plugin
 
-from gradio import interpretation, utils
+from gradio import context, interpretation, utils
+from gradio.blocks import Blocks, Column, Row, TabItem, Tabs
+from gradio.components import (
+    Button,
+    Component,
+    Dataset,
+    Interpretation,
+    Markdown,
+    StatusTracker,
+    Variable,
+    get_component_instance,
+)
 from gradio.external import load_from_pipeline, load_interface  # type: ignore
 from gradio.flagging import CSVLogger, FlaggingCallback  # type: ignore
-from gradio.inputs import InputComponent
 from gradio.inputs import State as i_State  # type: ignore
-from gradio.inputs import get_input_instance
-from gradio.launchable import Launchable
-from gradio.outputs import OutputComponent
 from gradio.outputs import State as o_State  # type: ignore
-from gradio.outputs import get_output_instance
-from gradio.process_examples import load_from_cache, process_example
-from gradio.routes import PredictBody
+from gradio.process_examples import cache_interface_examples, load_from_cache
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     import transformers
 
 
-class Interface(Launchable):
+class Interface(Blocks):
     """
     Gradio interfaces are created by constructing a `Interface` object
     with a locally-defined function, or with `Interface.load()` with the path
@@ -99,10 +105,11 @@ class Interface(Launchable):
     def __init__(
         self,
         fn: Callable | List[Callable],
-        inputs: str | InputComponent | List[str | InputComponent] = None,
-        outputs: str | OutputComponent | List[str | OutputComponent] = None,
+        inputs: str | Component | List[str | Component] = None,
+        outputs: str | Component | List[str | Component] = None,
         verbose: bool = False,
         examples: Optional[List[Any] | List[List[Any]] | str] = None,
+        cache_examples: bool = False,
         examples_per_page: int = 10,
         live: bool = False,
         layout: str = "unaligned",
@@ -163,6 +170,8 @@ class Interface(Launchable):
         server_name (str): DEPRECATED. Name of the server to use for serving the interface - pass in launch() instead.
         server_port (int): DEPRECATED. Port of the server to use for serving the interface - pass in launch() instead.
         """
+        super().__init__(analytics_enabled=analytics_enabled, mode="interface")
+
         if not isinstance(fn, list):
             fn = [fn]
         if not isinstance(inputs, list):
@@ -170,41 +179,27 @@ class Interface(Launchable):
         if not isinstance(outputs, list):
             outputs = [outputs]
 
-        self.input_components = [get_input_instance(i) for i in inputs]
-        self.output_components = [get_output_instance(o) for o in outputs]
+        if "state" in inputs or "state" in outputs:
+            state_input_count = len([i for i in inputs if i == "state"])
+            state_output_count = len([o for o in outputs if o == "state"])
+            if state_input_count != 1 or state_output_count != 1:
+                raise ValueError(
+                    "If using 'state', there must be exactly one state input and one state output."
+                )
+            default = utils.get_default_args(fn[0])[inputs.index("state")]
+            state_variable = Variable(default_value=default)
+            inputs[inputs.index("state")] = state_variable
+            outputs[outputs.index("state")] = state_variable
+
+        self.input_components = [get_component_instance(i) for i in inputs]
+        self.output_components = [get_component_instance(o) for o in outputs]
+        for o in self.output_components:
+            o.interactive = (
+                False  # Force output components to be treated as non-interactive
+            )
+
         if repeat_outputs_per_model:
             self.output_components *= len(fn)
-
-        self.stateful = False
-        if sum(isinstance(i, i_State) for i in self.input_components) > 1:
-            raise ValueError("Only one input component can be State.")
-        if sum(isinstance(o, o_State) for o in self.output_components) > 1:
-            raise ValueError("Only one output component can be State.")
-
-        if sum(isinstance(i, i_State) for i in self.input_components) == 1:
-            if len(fn) > 1:
-                raise ValueError("State cannot be used with multiple functions.")
-            state_param_index = [
-                isinstance(i, i_State) for i in self.input_components
-            ].index(True)
-            self.stateful = True
-            self.state_param_index = state_param_index
-            state: i_State = self.input_components[state_param_index]
-            if state.default is None:
-                default = utils.get_default_args(fn[0])[state_param_index]
-                state.default = default
-            self.state_default = state.default
-
-            if sum(isinstance(i, o_State) for i in self.output_components) == 1:
-                state_return_index = [
-                    isinstance(i, o_State) for i in self.output_components
-                ].index(True)
-                self.state_return_index = state_return_index
-            else:
-                raise ValueError(
-                    "For a stateful interface, there must be exactly one State"
-                    " input component and one State output component."
-                )
 
         if (
             interpretation is None
@@ -235,7 +230,6 @@ class Interface(Launchable):
                 "is deprecated and has no effect."
             )
 
-        self.status = "OFF"
         self.live = live
         self.layout = layout
         self.show_input = show_input
@@ -294,6 +288,7 @@ class Interface(Launchable):
 
         self.thumbnail = thumbnail
         theme = theme if theme is not None else os.getenv("GRADIO_THEME", "default")
+        self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
         DEPRECATED_THEME_MAP = {
             "darkdefault": "default",
             "darkhuggingface": "dark-huggingface",
@@ -336,19 +331,48 @@ class Interface(Launchable):
                 self.css = css_file.read()
         else:
             self.css = css
-        if (
-            examples is None
-            or isinstance(examples, str)
-            or (
-                isinstance(examples, list)
-                and (len(examples) == 0 or isinstance(examples[0], list))
-            )
+        if examples is None or (
+            isinstance(examples, list)
+            and (len(examples) == 0 or isinstance(examples[0], list))
         ):
             self.examples = examples
         elif (
             isinstance(examples, list) and len(self.input_components) == 1
         ):  # If there is only one input component, examples can be provided as a regular list instead of a list of lists
             self.examples = [[e] for e in examples]
+        elif isinstance(examples, str):
+            if not os.path.exists(examples):
+                raise FileNotFoundError(
+                    "Could not find examples directory: " + examples
+                )
+            log_file = os.path.join(examples, "log.csv")
+            if not os.path.exists(log_file):
+                if len(self.input_components) == 1:
+                    exampleset = [
+                        [os.path.join(examples, item)] for item in os.listdir(examples)
+                    ]
+                else:
+                    raise FileNotFoundError(
+                        "Could not find log file (required for multiple inputs): "
+                        + log_file
+                    )
+            else:
+                with open(log_file) as logs:
+                    exampleset = list(csv.reader(logs))
+                    exampleset = exampleset[1:]  # remove header
+            for i, example in enumerate(exampleset):
+                for j, (component, cell) in enumerate(
+                    zip(
+                        self.input_components + self.output_components,
+                        example,
+                    )
+                ):
+                    exampleset[i][j] = component.restore_flagged(
+                        examples,
+                        cell,
+                        None,
+                    )
+            self.examples = exampleset
         else:
             raise ValueError(
                 "Examples argument must either be a directory or a nested "
@@ -403,7 +427,6 @@ class Interface(Launchable):
         self.share = None
         self.share_url = None
         self.local_url = None
-        self.ip_address = utils.get_local_ip_address()
 
         if show_tips is not None:
             warnings.warn(
@@ -415,13 +438,6 @@ class Interface(Launchable):
         )
 
         self.enable_queue = enable_queue
-        if self.enable_queue is not None:
-            warnings.warn(
-                "The `enable_queue` parameter in the `Interface`"
-                "will be deprecated and may not work properly. "
-                "Please use the `enable_queue` parameter in "
-                "`launch()` instead"
-            )
 
         self.favicon_path = None
         self.height = height
@@ -462,9 +478,145 @@ class Interface(Launchable):
         if self.analytics_enabled:
             utils.initiated_analytics(data)
 
-        # Alert user if a more recent version of the library exists
         utils.version_check()
         Interface.instances.add(self)
+
+        param_names = inspect.getfullargspec(self.predict[0])[0]
+        for component, param_name in zip(self.input_components, param_names):
+            if component.label is None:
+                component.label = param_name
+        for i, component in enumerate(self.output_components):
+            if component.label is None:
+                component.label = "output_" + str(i)
+
+        self.cache_examples = cache_examples
+        if cache_examples:
+            cache_interface_examples(self)
+
+        if self.allow_flagging != "never":
+            self.flagging_callback.setup(
+                self.input_components + self.output_components, self.flagging_dir
+            )
+
+        with self:
+            if self.title:
+                Markdown(
+                    "<h1 style='text-align: center; margin-bottom: 1rem'>"
+                    + self.title
+                    + "</h1>"
+                )
+            if self.description:
+                Markdown(self.description)
+            with Row():
+                with Column(
+                    css={
+                        "background-color": "rgb(249,250,251)",
+                        "padding": "0.5rem",
+                        "border-radius": "0.5rem",
+                    }
+                ):
+                    input_component_column = Column()
+                    with input_component_column:
+                        for component in self.input_components:
+                            component.render()
+                    if self.interpretation:
+                        interpret_component_column = Column(visible=False)
+                        interpretation_set = []
+                        with interpret_component_column:
+                            for component in self.input_components:
+                                interpretation_set.append(Interpretation(component))
+                    with Row():
+                        clear_btn = Button("Clear")
+                        if not self.live:
+                            submit_btn = Button("Submit")
+                with Column(
+                    css={
+                        "background-color": "rgb(249,250,251)",
+                        "padding": "0.5rem",
+                        "border-radius": "0.5rem",
+                    }
+                ):
+                    status_tracker = StatusTracker(cover_container=True)
+                    for component in self.output_components:
+                        component.render()
+                    with Row():
+                        flag_btn = Button("Flag")
+                        if self.interpretation:
+                            interpretation_btn = Button("Interpret")
+            submit_fn = (
+                lambda *args: self.run_prediction(args)[0]
+                if len(self.output_components) == 1
+                else self.run_prediction(args)
+            )
+            if self.live:
+                for component in self.input_components:
+                    component.change(
+                        submit_fn, self.input_components, self.output_components
+                    )
+            else:
+                submit_btn.click(
+                    submit_fn,
+                    self.input_components,
+                    self.output_components,
+                    queue=self.enable_queue,
+                    status_tracker=status_tracker,
+                )
+            clear_btn.click(
+                lambda: [
+                    component.default_value
+                    if hasattr(component, "default_value")
+                    else None
+                    for component in self.input_components + self.output_components
+                ]
+                + [True]
+                + ([False] if self.interpretation else []),
+                [],
+                self.input_components
+                + self.output_components
+                + [input_component_column]
+                + ([interpret_component_column] if self.interpretation else []),
+            )
+            if self.examples:
+                examples = Dataset(
+                    components=self.input_components,
+                    samples=self.examples,
+                    type="index",
+                )
+
+                def load_example(example_id):
+                    processed_examples = [
+                        component.preprocess_example(sample)
+                        for component, sample in zip(
+                            self.input_components, self.examples[example_id]
+                        )
+                    ]
+                    if self.cache_examples:
+                        processed_examples += load_from_cache(self, example_id)
+                    if len(processed_examples) == 1:
+                        return processed_examples[0]
+                    else:
+                        return processed_examples
+
+                examples._click_no_postprocess(
+                    load_example,
+                    inputs=[examples],
+                    outputs=self.input_components
+                    + (self.output_components if self.cache_examples else []),
+                )
+
+            flag_btn._click_no_preprocess(
+                lambda *flag_data: self.flagging_callback.flag(flag_data),
+                inputs=self.input_components + self.output_components,
+                outputs=[],
+            )
+            if self.interpretation:
+                interpretation_btn._click_no_preprocess(
+                    lambda *data: self.interpret(data) + [False, True],
+                    inputs=self.input_components + self.output_components,
+                    outputs=interpretation_set
+                    + [input_component_column, interpret_component_column],
+                    status_tracker=status_tracker,
+                )
 
     def __call__(self, *params):
         if (
@@ -472,7 +624,7 @@ class Interface(Launchable):
         ):  # skip the preprocessing/postprocessing if sending to a remote API
             output = self.run_prediction(params, called_directly=True)
         else:
-            output, _ = self.process(params)
+            output = self.process(params)
         return output[0] if len(output) == 1 else output
 
     def __str__(self):
@@ -491,26 +643,38 @@ class Interface(Launchable):
             repr += "\n|-{}".format(str(component))
         return repr
 
-    def get_config_file(self):
-        return utils.get_config_file(self)
+    def render_basic_interface(self):
+        Interface(
+            fn=self.predict,
+            inputs=self.input_components,
+            outputs=self.output_components,
+            examples=self.examples,
+            examples_per_page=self.examples_per_page,
+            live=self.live,
+            layout=self.layout,
+            interpretation=self.interpretation,
+            num_shap=self.num_shap,
+            title=self.title,
+            description=self.description,
+            article=self.article,
+            allow_flagging=self.allow_flagging,
+            flagging_options=self.flagging_options,
+            flagging_dir=self.flagging_dir,
+        )
 
     def run_prediction(
         self,
         processed_input: List[Any],
-        return_duration: bool = False,
         called_directly: bool = False,
     ) -> List[Any] | Tuple[List[Any], List[float]]:
         """
         Runs the prediction function with the given (already processed) inputs.
         Parameters:
         processed_input (list): A list of processed inputs.
-        return_duration (bool): Whether to return the duration of the prediction.
         called_directly (bool): Whether the prediction is being called
             directly (i.e. as a function, not through the GUI).
         Returns:
         predictions (list): A list of predictions (not post-processed).
-        durations (list): A list of durations for each prediction
-            (only returned if `return_duration` is True).
         """
         if self.api_mode:  # Serialize the input
             processed_input = [
@@ -518,18 +682,15 @@ class Interface(Launchable):
                 for i, input_component in enumerate(self.input_components)
             ]
         predictions = []
-        durations = []
         output_component_counter = 0
 
         for predict_fn in self.predict:
-            start = time.time()
             if self.capture_session and self.session is not None:  # For TF 1.x
                 graph, sess = self.session
                 with graph.as_default(), sess.as_default():
                     prediction = predict_fn(*processed_input)
             else:
                 prediction = predict_fn(*processed_input)
-            duration = time.time() - start
 
             if len(self.output_components) == len(self.predict):
                 prediction = [prediction]
@@ -549,54 +710,9 @@ class Interface(Launchable):
                     )
                     output_component_counter += 1
 
-            durations.append(duration)
             predictions.extend(prediction)
 
-        if return_duration:
-            return predictions, durations
-        else:
-            return predictions
-
-    def process_api(self, data: PredictBody, username: str = None) -> Dict[str, Any]:
-        flag_index = None
-        if data.example_id is not None:
-            if self.cache_examples:
-                prediction = load_from_cache(self, data.example_id)
-                durations = None
-            else:
-                prediction, durations = process_example(self, data.example_id)
-        else:
-            raw_input = data.data
-            if self.stateful:
-                state = data.state
-                raw_input[self.state_param_index] = state
-            prediction, durations = self.process(raw_input)
-            if self.allow_flagging == "auto":
-                flag_index = self.flagging_callback.flag(
-                    self,
-                    raw_input,
-                    prediction,
-                    flag_option="" if self.flagging_options else None,
-                    username=username,
-                )
-        if self.stateful:
-            updated_state = prediction[self.state_return_index]
-            prediction[self.state_return_index] = None
-        else:
-            updated_state = None
-
-        durations = durations
-        avg_durations = self.config.get("avg_durations")
-        response = {
-            "data": prediction,
-            "flag_index": flag_index,
-            "updated_state": updated_state,
-        }
-        if durations is not None:
-            response["durations"] = durations
-        if avg_durations is not None:
-            response["avg_durations"] = avg_durations
-        return response
+        return predictions
 
     def process(self, raw_input: List[Any]) -> Tuple[List[Any], List[float]]:
         """
@@ -612,32 +728,28 @@ class Interface(Launchable):
             input_component.preprocess(raw_input[i])
             for i, input_component in enumerate(self.input_components)
         ]
-        predictions, durations = self.run_prediction(
-            processed_input, return_duration=True
-        )
+        predictions = self.run_prediction(processed_input)
         processed_output = [
             output_component.postprocess(predictions[i])
             if predictions[i] is not None
             else None
             for i, output_component in enumerate(self.output_components)
         ]
-
-        avg_durations = []
-        for i, duration in enumerate(durations):
-            self.predict_durations[i][0] += duration
-            self.predict_durations[i][1] += 1
-            avg_durations.append(
-                self.predict_durations[i][0] / self.predict_durations[i][1]
-            )
-        if hasattr(self, "config"):
-            self.config["avg_durations"] = avg_durations
-
-        return processed_output, durations
+        return processed_output
 
     def interpret(self, raw_input: List[Any]) -> List[Any]:
-        return interpretation.run_interpret(self, raw_input)
+        return [
+            {"original": raw_value, "interpretation": interpretation}
+            for interpretation, raw_value in zip(
+                interpretation.run_interpret(self, raw_input)[0], raw_input
+            )
+        ]
 
     def test_launch(self) -> None:
+        """
+        Passes a few samples through the function to test if the inputs/outputs
+        components are consistent with the function parameter and return values.
+        """
         for predict_fn in self.predict:
             print("Test launch: {}()...".format(predict_fn.__name__), end=" ")
             raw_input = []
@@ -651,11 +763,6 @@ class Interface(Launchable):
                 self.process(raw_input)
                 print("PASSED")
                 continue
-
-    def launch(self, **args):
-        if self.allow_flagging != "never":
-            self.flagging_callback.setup(self.flagging_dir)
-        return super().launch(**args)
 
     def integrate(self, comet_ml=None, wandb=None, mlflow=None) -> None:
         """
@@ -709,6 +816,20 @@ class Interface(Launchable):
         if self.analytics_enabled and analytics_integration:
             data = {"integration": analytics_integration}
             utils.integration_analytics(data)
+
+
+class TabbedInterface(Blocks):
+    def __init__(
+        self, interface_list: List[Interface], tab_names: Optional[List[str]] = None
+    ):
+        if tab_names is None:
+            tab_names = ["Tab {}".format(i) for i in range(len(interface_list))]
+        super().__init__()
+        with self:
+            with Tabs():
+                for (interface, tab_name) in zip(interface_list, tab_names):
+                    with TabItem(label=tab_name):
+                        interface.render_basic_interface()
 
 
 def close_all(verbose: bool = True) -> None:

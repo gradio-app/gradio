@@ -14,9 +14,9 @@ class TestDefaultFlagging(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdirname:
             io = gr.Interface(lambda x: x, "text", "text", flagging_dir=tmpdirname)
             io.launch(prevent_thread_lock=True)
-            row_count = io.flagging_callback.flag(io, ["test"], ["test"])
+            row_count = io.flagging_callback.flag(["test", "test"])
             self.assertEqual(row_count, 1)  # 2 rows written including header
-            row_count = io.flagging_callback.flag(io, ["test"], ["test"])
+            row_count = io.flagging_callback.flag(["test", "test"])
             self.assertEqual(row_count, 2)  # 3 rows written including header
         io.close()
 
@@ -32,9 +32,9 @@ class TestSimpleFlagging(unittest.TestCase):
                 flagging_callback=flagging.SimpleCSVLogger(),
             )
             io.launch(prevent_thread_lock=True)
-            row_count = io.flagging_callback.flag(io, ["test"], ["test"])
+            row_count = io.flagging_callback.flag(["test", "test"])
             self.assertEqual(row_count, 0)  # no header in SimpleCSVLogger
-            row_count = io.flagging_callback.flag(io, ["test"], ["test"])
+            row_count = io.flagging_callback.flag(["test", "test"])
             self.assertEqual(row_count, 1)  # no header in SimpleCSVLogger
         io.close()
 
@@ -45,7 +45,7 @@ class TestHuggingFaceDatasetSaver(unittest.TestCase):
         huggingface_hub.Repository = MagicMock()
         flagger = flagging.HuggingFaceDatasetSaver("test", "test")
         with tempfile.TemporaryDirectory() as tmpdirname:
-            flagger.setup(tmpdirname)
+            flagger.setup([gr.Audio, gr.Textbox], tmpdirname)
         huggingface_hub.create_repo.assert_called_once()
 
     def test_saver_flag(self):
@@ -61,9 +61,9 @@ class TestHuggingFaceDatasetSaver(unittest.TestCase):
             )
             os.mkdir(os.path.join(tmpdirname, "test"))
             io.launch(prevent_thread_lock=True)
-            row_count = io.flagging_callback.flag(io, ["test"], ["test"])
+            row_count = io.flagging_callback.flag(["test", "test"])
             self.assertEqual(row_count, 1)  # 2 rows written including header
-            row_count = io.flagging_callback.flag(io, ["test"], ["test"])
+            row_count = io.flagging_callback.flag(["test", "test"])
             self.assertEqual(row_count, 2)  # 3 rows written including header
 
 

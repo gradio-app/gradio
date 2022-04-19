@@ -24,9 +24,9 @@ def sales_projections(employee_data):
     return employee_data, plt.gcf(), regression_values
 
 
-iface = gr.Interface(
+demo = gr.Interface(
     sales_projections,
-    gr.inputs.Dataframe(
+    gr.Dataframe(
         headers=["Name", "Jan Sales", "Feb Sales", "Mar Sales"],
         default=[["Jon", 12, 14, 18], ["Alice", 14, 17, 2], ["Sana", 8, 9.5, 12]],
     ),
@@ -34,4 +34,4 @@ iface = gr.Interface(
     description="Enter sales figures for employees to predict sales trajectory over year.",
 )
 if __name__ == "__main__":
-    iface.launch()
+    demo.launch()

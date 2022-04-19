@@ -26,9 +26,9 @@ def text_analysis(text):
     return pos_tokens, pos_count, html
 
 
-iface = gr.Interface(
+demo = gr.Interface(
     text_analysis,
-    gr.inputs.Textbox(placeholder="Enter sentence here..."),
+    gr.Textbox(placeholder="Enter sentence here..."),
     ["highlight", "key_values", "html"],
     examples=[
         ["What a beautiful morning for a walk!"],
@@ -36,6 +36,5 @@ iface = gr.Interface(
     ],
 )
 
-iface.test_launch()
 if __name__ == "__main__":
-    iface.launch()
+    demo.launch()

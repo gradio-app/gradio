@@ -1,18 +1,18 @@
 {
 	"interface": {
-		"submit": "Submit",
-		"clear": "Clear",
-		"interpret": "Interpret",
-		"flag": "Flag",
-		"examples": "Examples",
 		"drop_image": "Drop Image Here",
 		"drop_video": "Drop Video Here",
 		"drop_audio": "Drop Audio Here",
 		"drop_file": "Drop File Here",
 		"drop_csv": "Drop CSV Here",
-		"or": "or",
 		"click_to_upload": "Click to Upload",
 		"view_api": "view the api",
 		"built_with_Gradio": "built with gradio"
-	}
+	},
+	"Submit": "Submit",
+	"Clear": "Clear",
+	"Interpret": "Interpret",
+	"Flag": "Flag",
+	"Examples": "Examples",
+	"or": "or"
 }

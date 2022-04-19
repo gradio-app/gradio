@@ -1,5 +1,3 @@
-import re
-
 import gradio as gr
 
 male_words, female_words = ["he", "his", "him"], ["she", "hers", "her"]
@@ -14,11 +12,12 @@ def gender_of_sentence(sentence):
     return {"male": male_count / total, "female": female_count / total}
 
 
-iface = gr.Interface(
+demo = gr.Interface(
     fn=gender_of_sentence,
-    inputs=gr.inputs.Textbox(default="She went to his house to get her keys."),
+    inputs=gr.Textbox(default="She went to his house to get her keys."),
     outputs="label",
     interpretation="default",
 )
+
 if __name__ == "__main__":
-    iface.launch()
+    demo.launch()
