@@ -337,14 +337,47 @@
 <div class="overflow-hidden rounded-lg relative border">
 	<table class="table-auto font-mono w-full text-gray-900 text-sm">
 		<thead class="sticky top-0 left-0 right-0 bg-white shadow-sm z-10">
-			<tr class="border-b divide-x dark:divide-gray-800 text-left">
+			<tr class="border-b divide-x dark:divide-gray-800 text-left group">
 				{#each _headers as { value, id }, i (id)}
-					<th
-						class="p-2 outline-none focus-within:ring-1 ring-orange-500 ring-inset first:rounded-tl-lg last:rounded-tr-lg"
-						contenteditable={editable}
-						on:input={(e) => (value = e.target.innerText)}
-					>
-						{value}
+					<th class="p-0 relative">
+						<div
+							class="flex outline-none focus-within:ring-1 ring-orange-500 focus-within:bg-orange-50 ring-inset {i ===
+							0
+								? 'rounded-tl-lg'
+								: i === _headers.length - 1
+								? 'rounded-tr-lg'
+								: ''}"
+						>
+							<div
+								class="py-2 pl-2 flex-1 outline-none"
+								contenteditable={editable}
+								on:input={(e) => (value = e.target.innerText)}
+							>
+								{value}
+							</div>
+							<div
+								class="flex items-center justify-center p-2 cursor-pointer !visible leading-snug transform transition-all {sort_by !==
+								i
+									? 'text-gray-200 hover:text-gray-500'
+									: 'text-orange-500'} {sort_by === i &&
+								sort_direction === 'des'
+									? '-scale-y-[1]'
+									: ''}"
+								class:text-gray-200={sort_by !== i}
+								on:click={() => handle_sort(i)}
+							>
+								<svg
+									width="1em"
+									height="1em"
+									class="fill-current text-[10px]"
+									viewBox="0 0 9 7"
+									fill="none"
+									xmlns="http://www.w3.org/2000/svg"
+								>
+									<path d="M4.49999 0L8.3971 6.75H0.602875L4.49999 0Z" />
+								</svg>
+							</div>
+						</div>
 					</th>
 				{/each}
 			</tr>
@@ -353,11 +386,11 @@
 		<tbody class="overflow-scroll">
 			{#each data as row, i (row)}
 				<tr
-					class="border-b last:border-none divide-x dark:divide-gray-800 space-x-4 odd:bg-gray-50 dark:odd:bg-gray-900 group focus:bg-gradient-to-b focus:from-blue-100 dark:focus:from-blue-900 focus:to-blue-50 dark:focus:to-gray-900 hover:bg-gray-100 dark:hover:bg-gray-900 focus:odd:bg-white"
+					class="border-b last:border-none divide-x dark:divide-gray-800 space-x-4 odd:bg-gray-50 dark:odd:bg-gray-900 group focus:bg-gradient-to-b focus:from-blue-100 dark:focus:from-blue-900 focus:to-blue-50 dark:focus:to-gray-900 focus:odd:bg-white"
 				>
 					{#each row as { value, id }, j (id)}
 						<td
-							class="p-2 outline-none focus-within:ring-1 ring-orange-500 ring-inset"
+							class="p-2 outline-none focus-within:ring-1 ring-orange-500 ring-inset focus-within:bg-orange-50"
 							contenteditable={editable}
 							on:input={(e) => (value = e.target.innerText)}
 						>
@@ -368,9 +401,10 @@
 			{/each}
 		</tbody>
 	</table>
+</div>
 
-	<div class="h-32" />
-
+<div class="h-32" />
+<div>
 	<table
 		id="grid"
 		role="grid"
