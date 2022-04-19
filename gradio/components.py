@@ -47,11 +47,10 @@ class Component(Block):
             )
         self.label = label
         self.requires_permissions = requires_permissions
-        self.css = css if css is not None else {}
         self.interactive = interactive
 
         self.set_interpret_parameters()
-        super().__init__(without_rendering=without_rendering)
+        super().__init__(without_rendering=without_rendering, css=css)
 
     def __str__(self):
         return self.__repr__()

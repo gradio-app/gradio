@@ -20,7 +20,7 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 class Block:
     def __init__(self, without_rendering=False, css=None):
-        self.css = css
+        self.css = css if css is not None else {}
         if without_rendering:
             return
         self.render()
@@ -104,9 +104,8 @@ class BlockContext(Block):
         css: Css rules to apply to block.
         """
         self.children = []
-        self.css = css
         self.visible = visible
-        super().__init__()
+        super().__init__(css=css)
 
     def __enter__(self):
         self.parent = Context.block
@@ -117,7 +116,10 @@ class BlockContext(Block):
         Context.block = self.parent
 
     def get_template_context(self):
-        return {"css": self.css, "default_value": self.visible}
+        return {
+            "css": self.css if self.css is not None else {},
+            "default_value": self.visible,
+        }
 
     def postprocess(self, y):
         return y
