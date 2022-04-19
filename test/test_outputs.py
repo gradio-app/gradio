@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 import gradio as gr
-from gradio.test_data import media_data
+from gradio import media_data
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
