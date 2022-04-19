@@ -1,9 +1,9 @@
 # Using Hugging Face Integrations
 
-related_spaces: https://huggingface.co/spaces/osanseviero/helsinki_translation_en_es, https://huggingface.co/spaces/osanseviero/remove-bg-webcam, https://huggingface.co/spaces/mrm8488/GPT-J-6B, https://huggingface.co/spaces/akhaliq/T0pp, https://huggingface.co/spaces/osanseviero/mix_match_gradio
+related_spaces: https://huggingface.co/spaces/farukozderim/Model-Comparator-Space-Builder, https://huggingface.co/spaces/osanseviero/helsinki_translation_en_es, https://huggingface.co/spaces/osanseviero/remove-bg-webcam, https://huggingface.co/spaces/mrm8488/GPT-J-6B, https://huggingface.co/spaces/akhaliq/T0pp, https://huggingface.co/spaces/osanseviero/mix_match_gradio
 tags: HUB, SPACES, EMBED
 
-Contributed by <a href="https://huggingface.co/osanseviero">Omar Sanseviero</a> 🦙
+Contributed by <a href="https://huggingface.co/osanseviero">Omar Sanseviero</a> 🦙 and <a href="https://huggingface.co/farukozderim">Ömer Faruk Özdemir</a>
 
 ## Introduction
 
@@ -39,7 +39,7 @@ iface.launch()
 
 The previous code produces the following interface, which you can try right here in your browser: 
 
-<iframe src="https://hf.space/gradioiframe/osanseviero/helsinki_translation_en_es/+" frameBorder="0" height="450" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+<iframe src="https://hf.space/embed/osanseviero/helsinki_translation_en_es/+" frameBorder="0" height="450" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
 This demo requires installing four libraries: gradio, torch, transformers, and sentencepiece. Apart from that, this is a Gradio with the structure you're used to! The demo is a usual Gradio `Interface` with a prediction function, a specified input, and a specified output. The prediction function executes the `pipeline` function with the given input, retrieves the first (and only) translation result, and returns the `translation_text` field, which you're interested in.
 
@@ -91,7 +91,7 @@ gr.Interface.load("spaces/eugenesiow/remove-bg").launch()
 
 The code snippet above will load the same interface as the corresponding Space demo.
 
-<iframe src="https://hf.space/gradioiframe/eugenesiow/remove-bg/+" frameBorder="0" height="900" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+<iframe src="https://hf.space/embed/eugenesiow/remove-bg/+" frameBorder="0" height="900" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
 
 You can change UI elements, such as the title or theme, but also change the expected type. The previous Space expected users to upload images. What if you would like users to have their webcam and remove the background from there? You can load the Space but change the source of input as follows:
@@ -107,7 +107,7 @@ gr.Interface.load(
 
 The code above generates the following demo.
 
-<iframe src="https://hf.space/gradioiframe/osanseviero/remove-bg-webcam/+" frameBorder="0" height="600" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+<iframe src="https://hf.space/embed/osanseviero/remove-bg-webcam/+" frameBorder="0" height="600" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
 As you can see, the demo looks the same, but it uses a webcam input instead of user-uploaded images.
 
@@ -136,16 +136,41 @@ iface3.launch()
 
 `iface1` and `iface2` are loading existing Spaces. Then, with `Parallel`, you can run the interfaces parallelly. When you click submit, you will get the output for both interfaces. This is how the demo looks like:
 
-<iframe src="https://hf.space/gradioiframe/osanseviero/mix_match_gradio/+" frameBorder="0" height="450" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+<iframe src="https://hf.space/embed/osanseviero/mix_match_gradio/+" frameBorder="0" height="450" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
 Although both models are generative, you can see that the way both models behave is very different. That's a powerful application of `Parallel`!
+
+## Creating Spaces with python
+
+Making use of the [huggingface_hub client library](https://huggingface.co/docs/huggingface_hub/index) library you can create new Spaces or model repositories. You can do this even in a Gradio Space! You can find an example space [here](https://huggingface.co/spaces/farukozderim/Model-Comparator-Space-Builder). This Space creates a new Space comparing different models or spaces with the support of Gradio `load` and `Parallel`. Now you can try creating cool spaces with all kinds of functionality 😎.
+
+```python
+from huggingface_hub import (
+    create_repo,
+    get_full_repo_name,
+    upload_file,
+)
+create_repo(name=target_space_name, token=hf_token, repo_type="space", space_sdk="gradio")
+repo_name = get_full_repo_name(model_id=target_space_name, token=hf_token)
+file_url = upload_file(
+    path_or_fileobj="file.txt",
+    path_in_repo="app.py",
+    repo_id=repo_name,
+    repo_type="space",
+    token=hf_token,
+)
+```
+Here, `create_repo` creates a gradio repo with the target name under a specific account using that account's Write Token. `repo_name` gets the full repo name of the related repo. Finally `upload_file` uploads a file inside the repo with the name `app.py`.
+
+<iframe src="https://hf.space/embed/farukozderim/Model-Comparator-Space-Builder/+" frameBorder="0" height="800" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+
 
 ## Embedding your Space demo on other websites
 
 Throughout this guide, you've seen there are Gradio demos embedded. You can also do this on own website! The first step is to create a Space with the demo you want to showcase. You can embed it in your HTML code, as shown in the following self-contained example.
 
 ```bash
-&lt;iframe src="https://hf.space/gradioiframe/osanseviero/mix_match_gradio/+" frameBorder="0" height="450" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"&gt;&lt;/iframe&gt;
+&lt;iframe src="https://hf.space/embed/osanseviero/mix_match_gradio/+" frameBorder="0" height="450" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"&gt;&lt;/iframe&gt;
 ```
 
 ## Recap

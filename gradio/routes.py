@@ -62,6 +62,7 @@ class PredictBody(BaseModel):
     data: List[Any]
     state: Optional[Any]
     fn_index: Optional[int]
+    cleared: Optional[bool]
 
 
 class FlagData(BaseModel):
@@ -304,7 +305,6 @@ def safe_join(directory: str, path: str) -> Optional[str]:
         or filename.startswith("../")
     ):
         return None
-
     return posixpath.join(directory, filename)
 
 

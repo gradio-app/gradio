@@ -5,7 +5,7 @@ if [ -z "$(ls | grep CONTRIBUTING.md)" ]; then
 else
   echo "Uploading to pypi"
   set -e
-  git pull origin master
+  git pull origin main
   old_version=$(grep -Po "(?<=version=\")[^\"]+(?=\")" setup.py)
   echo "Current version is $old_version. New version?"
   read new_version
