@@ -386,11 +386,11 @@
 		<tbody class="overflow-scroll">
 			{#each data as row, i (row)}
 				<tr
-					class="border-b last:border-none divide-x dark:divide-gray-800 space-x-4 odd:bg-gray-50 dark:odd:bg-gray-900 group focus:bg-gradient-to-b focus:from-blue-100 dark:focus:from-blue-900 focus:to-blue-50 dark:focus:to-gray-900 focus:odd:bg-white"
+					class="group border-b last:border-none divide-x dark:divide-gray-800 space-x-4 odd:bg-gray-50 dark:odd:bg-gray-900 group focus:bg-gradient-to-b focus:from-blue-100 dark:focus:from-blue-900 focus:to-blue-50 dark:focus:to-gray-900 focus:odd:bg-white"
 				>
 					{#each row as { value, id }, j (id)}
 						<td
-							class="p-2 outline-none focus-within:ring-1 ring-orange-500 ring-inset focus-within:bg-orange-50"
+							class="p-2 outline-none focus-within:ring-1 ring-orange-500 ring-inset focus-within:bg-orange-50 group-last:first:rounded-bl-lg group-last:last:rounded-br-lg"
 							contenteditable={editable}
 							on:input={(e) => (value = e.target.innerText)}
 						>
@@ -402,6 +402,16 @@
 		</tbody>
 	</table>
 </div>
+{#if editable}
+	<div class="flex justify-end ">
+		<button on:click={add_col} class="btn btn-sm">New Column</button>
+		<button
+			on:click={add_row}
+			class="bg-amber-500 hover:bg-amber-400 dark:bg-red-700 dark:hover:bg-red-600 text-white shadow py-1 px-3 rounded transition focus:outline-none m-2 mr-0"
+			>New Row</button
+		>
+	</div>
+{/if}
 
 <div class="h-32" />
 <div>
