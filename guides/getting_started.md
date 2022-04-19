@@ -37,6 +37,7 @@ With these three arguments, we can quickly create interfaces and  `launch()`  th
 Let's say we want to customize the input text field - for example, we wanted it to be larger and have a text hint. If we use the actual input class for  `Textbox`  instead of using the string shortcut, we have access to much more customizability. To see a list of all the components we support and how you can customize them, check out the [Docs](https://gradio.app/docs).
 
 **Sidenote**: `Interface.launch()` method returns 3 values:
+
 1. `app`, which is the FastAPI application that is powering the Gradio demo
 2. `local_url`, which is the local address of the server
 3. `share_url`, which is the public address for this demo (it is generated if `share=True` more [on this later](https://gradio.app/getting_started/#sharing-interfaces-publicly))
@@ -161,7 +162,7 @@ Share links expire after 72 hours. For permanent hosting, see Hosting Gradio App
 
 ### Hosting Gradio Apps on Spaces
 
-Huggingface provides the infrastructure to permanently host your Gradio model on the internet, for free! You can either drag and drop a folder containing your Gradio model and all related files, or you can point HF Spaces to your Git repository and HP Spaces will pull the Gradio interface from there. See [Huggingface Spaces](http://huggingface.co/spaces/) for more information. 
+Huggingface provides the infrastructure to permanently host your Gradio model on the internet, for free! You can either drag and drop a folder containing your Gradio model and all related files, or you can point HF Spaces to your Git repository and HF Spaces will pull the Gradio interface from there. See [Huggingface Spaces](http://huggingface.co/spaces/) for more information. 
 
 ![Hosting Demo](/assets/img/hf_demo.gif)
 
