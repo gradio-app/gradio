@@ -1,3 +1,4 @@
+import asyncio
 import ipaddress
 import os
 import unittest
@@ -5,6 +6,7 @@ import unittest.mock as mock
 import warnings
 
 import pkg_resources
+import pytest
 import requests
 
 from gradio.test_data.blocks_configs import (
@@ -13,6 +15,7 @@ from gradio.test_data.blocks_configs import (
     XRAY_CONFIG_WITH_MISTAKE,
 )
 from gradio.utils import (
+    Http,
     assert_configs_are_equivalent_besides_ids,
     colab_check,
     error_analytics,
@@ -24,13 +27,13 @@ from gradio.utils import (
     version_check,
 )
 
+pytest_plugins = ("pytest_asyncio",)
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
 class TestUtils(unittest.TestCase):
     @mock.patch("pkg_resources.require")
     def test_should_fail_with_distribution_not_found(self, mock_require):
-
         mock_require.side_effect = pkg_resources.DistributionNotFound()
 
         with warnings.catch_warnings(record=True) as w:
@@ -43,7 +46,6 @@ class TestUtils(unittest.TestCase):
 
     @mock.patch("requests.get")
     def test_should_warn_with_unable_to_parse(self, mock_get):
-
         mock_get.side_effect = json.decoder.JSONDecodeError("Expecting value", "", 0)
 
         with warnings.catch_warnings(record=True) as w:
@@ -55,7 +57,6 @@ class TestUtils(unittest.TestCase):
 
     @mock.patch("requests.Response.json")
     def test_should_warn_url_not_having_version(self, mock_json):
-
         mock_json.return_value = {"foo": "bar"}
 
         with warnings.catch_warnings(record=True) as w:
@@ -67,7 +68,6 @@ class TestUtils(unittest.TestCase):
 
     @mock.patch("requests.post")
     def test_error_analytics_doesnt_crash_on_connection_error(self, mock_post):
-
         mock_post.side_effect = requests.ConnectionError()
         error_analytics("placeholder", "placeholder")
         mock_post.assert_called()
@@ -138,6 +138,36 @@ class TestAssertConfigsEquivalent(unittest.TestCase):
             assert_configs_are_equivalent_besides_ids(
                 XRAY_CONFIG_WITH_MISTAKE, XRAY_CONFIG
             )
+
+
+class TestHttp:
+    @pytest.mark.asyncio
+    async def test_get(self):
+        r_status, r_json = await Http.request("get", "http://headers.jsontest.com/")
+        assert r_json["Accept"] == "*/*"
+        assert r_json["Host"] == "headers.jsontest.com"
+
+    @pytest.mark.asyncio
+    async def test_post(self):
+        r_status, r_json = await Http.request(
+            method="post",
+            url="https://reqres.in/api/users",
+            json={"name": "morpheus", "job": "leader"},
+        )
+        assert r_status == 201
+        assert r_json["job"] == "leader"
+        assert r_json["name"] == "morpheus"
+
+    @pytest.mark.asyncio
+    async def test_get_client(self):
+        from httpx import AsyncClient
+
+        client = AsyncClient()
+        response = await client.get("http://headers.jsontest.com/")
+        response_json = response.json()
+        assert response_json["Accept"] == "*/*"
+        assert response_json["Host"] == "headers.jsontest.com"
+        await client.aclose()
 
 
 if __name__ == "__main__":

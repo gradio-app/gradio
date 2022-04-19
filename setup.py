@@ -26,6 +26,7 @@ setup(
         "pandas",
         "paramiko",
         "pillow",
+        "pydantic",
         "pycryptodome",
         "python-multipart",
         "pydub",
