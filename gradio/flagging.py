@@ -9,7 +9,7 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, List, Optional
 
 import gradio as gr
-from gradio import encryptor
+from gradio import encryptor, utils
 
 if TYPE_CHECKING:
     from gradio.components import Component
@@ -87,7 +87,7 @@ class SimpleCSVLogger(FlaggingCallback):
             )
 
         with open(log_filepath, "a", newline="") as csvfile:
-            writer = csv.writer(csvfile)
+            writer = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC, quotechar="'")
             writer.writerow(csv_data)
 
         with open(log_filepath, "r") as csvfile:
@@ -153,7 +153,7 @@ class CSVLogger(FlaggingCallback):
             flag_col_index = header.index("flag")
             content[flag_index][flag_col_index] = flag_option
             output = io.StringIO()
-            writer = csv.writer(output)
+            writer = csv.writer(output, quoting=csv.QUOTE_NONNUMERIC, quotechar="'")
             writer.writerows(content)
             return output.getvalue()
 
@@ -169,7 +169,7 @@ class CSVLogger(FlaggingCallback):
                     if flag_index is not None:
                         file_content = replace_flag_at_index(file_content)
                     output.write(file_content)
-            writer = csv.writer(output)
+            writer = csv.writer(output, quoting=csv.QUOTE_NONNUMERIC, quotechar="'")
             if flag_index is None:
                 if is_new:
                     writer.writerow(headers)
@@ -181,7 +181,9 @@ class CSVLogger(FlaggingCallback):
         else:
             if flag_index is None:
                 with open(log_filepath, "a", newline="") as csvfile:
-                    writer = csv.writer(csvfile)
+                    writer = csv.writer(
+                        csvfile, quoting=csv.QUOTE_NONNUMERIC, quotechar="'"
+                    )
                     if is_new:
                         writer.writerow(headers)
                     writer.writerow(csv_data)
@@ -292,6 +294,7 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
 
                 for component, sample in zip(self.components, flag_data):
                     headers.append(component.label)
+                    headers.append(component.label)
                     infos["flagged"]["features"][component.label] = {
                         "dtype": "string",
                         "_type": "Value",
@@ -316,12 +319,8 @@ class HuggingFaceDatasetSaver(FlaggingCallback):
             # Generate the row corresponding to the flagged sample
             csv_data = []
             for component, sample in zip(self.components, flag_data):
-                filepath = (
-                    component.save_flagged(
-                        self.dataset_dir, component.label, sample, None
-                    )
-                    if sample is not None
-                    else ""
+                filepath = component.save_flagged(
+                    self.dataset_dir, component.label, sample, None
                 )
                 csv_data.append(filepath)
                 if isinstance(component, tuple(file_preview_types)):
