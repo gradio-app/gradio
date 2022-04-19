@@ -53,7 +53,8 @@ inputs = [
         gr.Dropdown(["Matplotlib", "Plotly", "Bokeh"], label="Plot Type"),
         gr.Slider(minimum=1, maximum=4, default_value=3.2, label="R"),
         gr.Dropdown(["January", "February", "March", "April", "May"], label="Month"),
-        gr.CheckboxGroup(["USA", "Canada", "Mexico", "UK"], label="Countries"),
+        gr.CheckboxGroup(["USA", "Canada", "Mexico", "UK"], label="Countries", 
+                         default_selected=["USA", "Canada"]),
         gr.Checkbox(label="Social Distancing?"),
     ]
 outputs = gr.Plot(type="auto")
