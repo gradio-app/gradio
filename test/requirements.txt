@@ -8,22 +8,22 @@ absl-py==1.0.0
     # via
     #   tensorboard
     #   tensorflow
-alembic==1.7.6
+alembic==1.7.7
     # via mlflow
 asttokens==2.0.5
     # via stack-data
 astunparse==1.6.3
     # via tensorflow
+asyncio==3.4.3
+    # via -r requirements.in
 attrs==21.4.0
     # via
     #   jsonschema
     #   pytest
 backcall==0.2.0
     # via ipython
-black==22.1.0
-    # via
-    #   -r requirements.in
-    #   ipython
+black==22.3.0
+    # via -r requirements.in
 cachetools==5.0.0
     # via google-auth
 certifi==2021.10.8
@@ -34,9 +34,9 @@ certifi==2021.10.8
     #   urllib3
 cffi==1.15.0
     # via cryptography
-charset-normalizer==2.0.11
+charset-normalizer==2.0.12
     # via requests
-click==8.0.3
+click==8.1.2
     # via
     #   black
     #   databricks-cli
@@ -48,19 +48,19 @@ cloudpickle==2.0.0
     # via
     #   mlflow
     #   shap
-comet-ml==3.25.0
+comet-ml==3.28.3
     # via -r requirements.in
 configobj==5.0.6
     # via everett
-coverage[toml]==6.3.1
+coverage[toml]==6.3.2
     # via
     #   -r requirements.in
     #   pytest-cov
-cryptography==36.0.1
+cryptography==36.0.2
     # via
     #   pyopenssl
     #   urllib3
-databricks-cli==0.16.4
+databricks-cli==0.16.6
     # via mlflow
 decorator==5.1.1
     # via ipython
@@ -68,21 +68,21 @@ docker==5.0.3
     # via mlflow
 docker-pycreds==0.4.0
     # via wandb
-dulwich==0.20.32
+dulwich==0.20.35
     # via comet-ml
 entrypoints==0.4
     # via mlflow
 everett[ini]==3.0.0
     # via comet-ml
-executing==0.8.2
+executing==0.8.3
     # via stack-data
-filelock==3.4.2
+filelock==3.6.0
     # via
     #   huggingface-hub
     #   transformers
 flake8==4.0.1
     # via -r requirements.in
-flask==2.0.2
+flask==2.1.1
     # via
     #   mlflow
     #   prometheus-flask-exporter
@@ -92,11 +92,11 @@ gast==0.5.3
     # via tensorflow
 gitdb==4.0.9
     # via gitpython
-gitpython==3.1.26
+gitpython==3.1.27
     # via
     #   mlflow
     #   wandb
-google-auth==2.6.0
+google-auth==2.6.5
     # via
     #   google-auth-oauthlib
     #   tensorboard
@@ -106,7 +106,7 @@ google-pasta==0.2.0
     # via tensorflow
 greenlet==1.1.2
     # via sqlalchemy
-grpcio==1.43.0
+grpcio==1.44.0
     # via
     #   tensorboard
     #   tensorflow
@@ -114,7 +114,7 @@ gunicorn==20.1.0
     # via mlflow
 h5py==3.6.0
     # via tensorflow
-huggingface-hub==0.4.0
+huggingface-hub==0.5.1
     # via
     #   -r requirements.in
     #   transformers
@@ -122,23 +122,24 @@ idna==3.3
     # via
     #   requests
     #   urllib3
-imageio==2.14.1
+imageio==2.17.0
     # via scikit-image
-importlib-metadata==4.10.1
+importlib-metadata==4.11.3
     # via
+    #   flask
     #   markdown
     #   mlflow
 iniconfig==1.1.1
     # via pytest
-ipython==8.0.1
+ipython==8.2.0
     # via -r requirements.in
 isort==5.10.1
     # via -r requirements.in
-itsdangerous==2.0.1
+itsdangerous==2.1.2
     # via flask
 jedi==0.18.1
     # via ipython
-jinja2==3.0.3
+jinja2==3.1.1
     # via flask
 joblib==1.1.0
     # via
@@ -154,11 +155,11 @@ libclang==13.0.0
     # via tensorflow
 llvmlite==0.38.0
     # via numba
-mako==1.1.6
+mako==1.2.0
     # via alembic
 markdown==3.3.6
     # via tensorboard
-markupsafe==2.0.1
+markupsafe==2.1.1
     # via
     #   jinja2
     #   mako
@@ -166,15 +167,15 @@ matplotlib-inline==0.1.3
     # via ipython
 mccabe==0.6.1
     # via flake8
-mlflow==1.23.1
+mlflow==1.25.1
     # via -r requirements.in
 mypy-extensions==0.4.3
     # via black
-networkx==2.6.3
+networkx==2.8
     # via scikit-image
 numba==0.55.1
     # via shap
-numpy==1.21.5
+numpy==1.21.6
     # via
     #   h5py
     #   imageio
@@ -195,7 +196,9 @@ numpy==1.21.5
 nvidia-ml-py3==7.352.0
     # via comet-ml
 oauthlib==3.2.0
-    # via requests-oauthlib
+    # via
+    #   databricks-cli
+    #   requests-oauthlib
 opt-einsum==3.3.0
     # via tensorflow
 packaging==21.3
@@ -206,7 +209,7 @@ packaging==21.3
     #   scikit-image
     #   shap
     #   transformers
-pandas==1.4.0
+pandas==1.4.2
     # via
     #   mlflow
     #   shap
@@ -220,23 +223,23 @@ pexpect==4.8.0
     # via ipython
 pickleshare==0.7.5
     # via ipython
-pillow==9.0.1
+pillow==9.1.0
     # via
     #   imageio
     #   scikit-image
-platformdirs==2.4.1
+platformdirs==2.5.2
     # via black
 pluggy==1.0.0
     # via pytest
-prometheus-client==0.13.1
+prometheus-client==0.14.1
     # via prometheus-flask-exporter
-prometheus-flask-exporter==0.18.7
+prometheus-flask-exporter==0.20.1
     # via mlflow
 promise==2.3
     # via wandb
-prompt-toolkit==3.0.26
+prompt-toolkit==3.0.29
     # via ipython
-protobuf==3.19.4
+protobuf==3.20.0
     # via
     #   mlflow
     #   tensorboard
@@ -264,27 +267,32 @@ pyflakes==2.4.0
     # via flake8
 pygments==2.11.2
     # via ipython
+pyjwt==2.3.0
+    # via databricks-cli
 pyopenssl==22.0.0
     # via urllib3
-pyparsing==3.0.7
+pyparsing==3.0.8
     # via packaging
 pyrsistent==0.18.1
     # via jsonschema
-pytest==7.0.0
+pytest==7.1.1
     # via
     #   -r requirements.in
+    #   pytest-asyncio
     #   pytest-cov
+pytest-asyncio==0.18.3
+    # via -r requirements.in
 pytest-cov==3.0.0
     # via -r requirements.in
 python-dateutil==2.8.2
     # via
     #   pandas
     #   wandb
-pytz==2021.3
+pytz==2022.1
     # via
     #   mlflow
     #   pandas
-pywavelets==1.2.0
+pywavelets==1.3.0
     # via scikit-image
 pyyaml==6.0
     # via
@@ -294,7 +302,7 @@ pyyaml==6.0
     #   wandb
 querystring-parser==1.2.4
     # via mlflow
-regex==2022.1.18
+regex==2022.3.15
     # via
     #   sacremoses
     #   transformers
@@ -316,9 +324,9 @@ requests-toolbelt==0.9.1
     # via comet-ml
 rsa==4.8
     # via google-auth
-sacremoses==0.0.47
+sacremoses==0.0.49
     # via transformers
-scikit-image==0.19.1
+scikit-image==0.19.2
     # via -r requirements.in
 scikit-learn==1.0.2
     # via shap
@@ -332,7 +340,9 @@ selenium==4.0.0a6.post2
     # via -r requirements.in
 semantic-version==2.9.0
     # via comet-ml
-sentry-sdk==1.5.4
+sentry-sdk==1.5.10
+    # via wandb
+setproctitle==1.2.3
     # via wandb
 shap==0.40.0
     # via -r requirements.in
@@ -361,13 +371,13 @@ slicer==0.0.7
     # via shap
 smmap==5.0.0
     # via gitdb
-sqlalchemy==1.4.31
+sqlalchemy==1.4.35
     # via
     #   alembic
     #   mlflow
 sqlparse==0.4.2
     # via mlflow
-stack-data==0.1.4
+stack-data==0.2.0
     # via ipython
 tabulate==0.8.9
     # via databricks-cli
@@ -382,25 +392,23 @@ tensorflow==2.8.0
 tensorflow-io-gcs-filesystem==0.24.0
     # via tensorflow
 termcolor==1.1.0
-    # via
-    #   tensorflow
-    #   yaspin
+    # via tensorflow
 tf-estimator-nightly==2.8.0.dev2021122109
     # via tensorflow
 threadpoolctl==3.1.0
     # via scikit-learn
-tifffile==2022.2.2
+tifffile==2022.4.8
     # via scikit-image
-tokenizers==0.11.4
+tokenizers==0.12.1
     # via transformers
-tomli==2.0.0
+tomli==2.0.1
     # via
     #   black
     #   coverage
     #   pytest
-torch==1.10.2
+torch==1.11.0
     # via -r requirements.in
-tqdm==4.62.3
+tqdm==4.64.0
     # via
     #   huggingface-hub
     #   sacremoses
@@ -410,29 +418,29 @@ traitlets==5.1.1
     # via
     #   ipython
     #   matplotlib-inline
-transformers==4.16.2
+transformers==4.18.0
     # via -r requirements.in
-typing-extensions==4.0.1
+typing-extensions==4.2.0
     # via
     #   black
     #   huggingface-hub
     #   tensorflow
     #   torch
-urllib3[secure]==1.26.8
+urllib3[secure]==1.26.9
     # via
     #   dulwich
     #   requests
     #   selenium
     #   sentry-sdk
-wandb==0.12.10
+wandb==0.12.14
     # via -r requirements.in
 wcwidth==0.2.5
     # via prompt-toolkit
-websocket-client==1.2.3
+websocket-client==1.3.2
     # via
     #   comet-ml
     #   docker
-werkzeug==2.0.2
+werkzeug==2.1.1
     # via
     #   flask
     #   tensorboard
@@ -440,15 +448,13 @@ wheel==0.37.1
     # via
     #   astunparse
     #   tensorboard
-wrapt==1.13.3
+wrapt==1.14.0
     # via
     #   comet-ml
     #   tensorflow
 wurlitzer==3.0.2
     # via comet-ml
-yaspin==2.1.0
-    # via wandb
-zipp==3.7.0
+zipp==3.8.0
     # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
