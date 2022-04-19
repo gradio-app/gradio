@@ -361,7 +361,8 @@ class Http:
     A class that shares an AsyncClient which sends and handles network requests.
     Further different functionalities can be gathered within this class.
     - Client configurations
-    - Error types and error handling
+    - Response validation
+    - Support error types and error handling
     - Client stop/restart
     """
 
