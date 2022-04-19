@@ -741,7 +741,7 @@ class TestTimeseries(unittest.TestCase):
 
 class TestImage3D(unittest.TestCase):
     def test_as_component(self):
-        Image3D = gr.test_data.BASE64_IMAGE3D
+        Image3D = media_data.BASE64_MODEL3D
         Image3D_input = gr.inputs.Image3D()
         output = Image3D_input.preprocess(Image3D)
         self.assertIsInstance(output, str)
@@ -777,7 +777,7 @@ class TestImage3D(unittest.TestCase):
             Image3D_input.serialize(Image3D, True)
 
     def test_in_interface(self):
-        Image3D = gr.test_data.BASE64_IMAGE3D
+        Image3D = media_data.BASE64_MODEL3D
         iface = gr.Interface(lambda x: x, "Image3D", "Image3D")
         self.assertEqual(
             iface.process([Image3D])[0][0]["data"],
