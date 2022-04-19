@@ -6,6 +6,7 @@ tags: ONNX
 
 ## What is ONNX Model Zoo?
 
+Open Neural Network Exchange (ONNX) is an open standard format for representing machine learning models. ONNX is supported by a community of partners who have implemented it in many frameworks and tools. The ONNX model zoo is a collection of pre-trained, state-of-the-art models in the ONNX format. More details on the ONNX model zoo github: https://github.com/onnx/models
 
 ## What is HF Spaces & Gradio?
 
