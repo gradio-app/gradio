@@ -29,7 +29,7 @@ def text_analysis(text):
 demo = gr.Interface(
     text_analysis,
     gr.Textbox(placeholder="Enter sentence here..."),
-    ["highlight", "key_values", "html"],
+    ["highlight", "json", "html"],
     examples=[
         ["What a beautiful morning for a walk!"],
         ["It was the best of times, it was the worst of times."],
