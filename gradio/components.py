@@ -22,7 +22,7 @@ from markdown_it import MarkdownIt
 
 from gradio import processing_utils
 from gradio.blocks import Block
-from gradio.test_data import media_data
+from gradio import media_data
 
 
 class Component(Block):

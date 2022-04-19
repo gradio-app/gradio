@@ -1,1 +1,1 @@
-import gradio.test_data.media_data as media_data
+import gradio.media_data as media_data

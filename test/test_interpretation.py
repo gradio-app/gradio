@@ -7,7 +7,7 @@ import numpy as np
 import gradio.interpretation
 from gradio import Interface
 from gradio.processing_utils import decode_base64_to_image
-from gradio.test_data import media_data
+from gradio import media_data
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
