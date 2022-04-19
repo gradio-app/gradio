@@ -5,9 +5,8 @@ from copy import deepcopy
 import numpy as np
 
 import gradio.interpretation
-from gradio import Interface
+from gradio import Interface, media_data
 from gradio.processing_utils import decode_base64_to_image
-from gradio.test_data import media_data
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
