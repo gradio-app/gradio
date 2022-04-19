@@ -319,6 +319,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "placeholder": None,
                 "default_value": "",
                 "name": "textbox",
+                "max_lines": 100,
                 "label": None,
                 "css": {},
                 "interactive": None,
