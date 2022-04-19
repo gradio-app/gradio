@@ -114,6 +114,10 @@ gr.Interface(
 ).launch()
 ```
 
+Launching the inferface should present you with something like this:
+
+<iframe src="https://hf.space/embed/NimaBoscarino/cryptopunks-1/+" frameBorder="0" height="590" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+
 ## Step 4 — Even more punks!
 
 Generating 4 punks at a time is a good start, but maybe we'd like to control how many we want to make each time. Adding more inputs to our Gradio interface is as simple as adding another item to the `inputs` list that we pass to `gr.Interface`:
@@ -160,6 +164,62 @@ The `examples` parameter takes a list of lists, where each item in the sublists 
 
 You can also try adding a `title`, `description`, and `article` to the `gr.Interface`. Each of those parameters accepts a string, so try it out and see what happens 👀 `article` will also accept HTML, as [explored in a previous guide](./adding_rich_descriptions_to_your_demo)!
 
+When you're all done, you may end up with something like this:
+
+<iframe src="https://hf.space/embed/NimaBoscarino/cryptopunks/+" frameBorder="0" height="590" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+
+For reference, here is our full code:
+
+```python
+import torch
+from torch import nn
+from huggingface_hub import hf_hub_download
+from torchvision.utils import save_image
+import gradio as gr
+
+class Generator(nn.Module):
+    # Refer to the link below for explanations about nc, nz, and ngf
+    # https://pytorch.org/tutorials/beginner/dcgan_faces_tutorial.html#inputs
+    def __init__(self, nc=4, nz=100, ngf=64):
+        super(Generator, self).__init__()
+        self.network = nn.Sequential(
+            nn.ConvTranspose2d(nz, ngf * 4, 3, 1, 0, bias=False),
+            nn.BatchNorm2d(ngf * 4),
+            nn.ReLU(True),
+            nn.ConvTranspose2d(ngf * 4, ngf * 2, 3, 2, 1, bias=False),
+            nn.BatchNorm2d(ngf * 2),
+            nn.ReLU(True),
+            nn.ConvTranspose2d(ngf * 2, ngf, 4, 2, 0, bias=False),
+            nn.BatchNorm2d(ngf),
+            nn.ReLU(True),
+            nn.ConvTranspose2d(ngf, nc, 4, 2, 1, bias=False),
+            nn.Tanh(),
+        )
+
+    def forward(self, input):
+        output = self.network(input)
+        return output
+
+model = Generator()
+weights_path = hf_hub_download('nateraw/cryptopunks-gan', 'generator.pth')
+model.load_state_dict(torch.load(weights_path, map_location=torch.device('cpu'))) # Use 'cuda' if you have a GPU available
+
+def predict(seed, num_punks):
+    torch.manual_seed(seed)
+    z = torch.randn(num_punks, 100, 1, 1)
+    punks = model(z)
+    save_image(punks, "punks.png", normalize=True)
+    return 'punks.png'
+
+gr.Interface(
+    predict,
+    inputs=[
+        gr.inputs.Slider(label='Seed', minimum=0, maximum=1000, default=42),
+        gr.inputs.Slider(label='Number of Punks', minimum=4, maximum=64, step=1, default=10),
+    ],
+    outputs="image",
+).launch(cache_examples=True)
+```
 ----------
 
 Congratulations! You've built out your very own GAN-powered CryptoPunks generator, with a fancy Gradio interface that makes it easy for anyone to use. Now you can [scour the Hub for more GANs](https://huggingface.co/models?other=gan) (or train your own) and continue making even more awesome demos 🤗
