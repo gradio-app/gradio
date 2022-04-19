@@ -763,8 +763,10 @@ class TestImage3D(unittest.TestCase):
         self.assertEqual(
             Image3D_input.get_template_context(),
             {
-                "optional": False,
+                "clearColor": None,
                 "name": "image3d",
+                "css": {},
+                "interactive": None,
                 "label": "Upload Your 3D Image Model",
             },
         )
@@ -778,7 +780,7 @@ class TestImage3D(unittest.TestCase):
 
     def test_in_interface(self):
         Image3D = media_data.BASE64_MODEL3D
-        iface = gr.Interface(lambda x: x, "Model3D", "Model3D")
+        iface = gr.Interface(lambda x: x, "model3d", "model3d")
         self.assertEqual(
             iface.process([Image3D])[0]["data"],
             Image3D["data"].replace("@file/gltf", ""),

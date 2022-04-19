@@ -2898,12 +2898,6 @@ class Model3D(Component):
             **super().get_template_context(),
         }
 
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "Model3D": {},
-        }
-
     def preprocess_example(self, x):
         return {"name": x, "data": None, "is_example": True}
 
@@ -3213,12 +3207,6 @@ class Plot(Component):
 
     def get_template_context(self):
         return {**super().get_template_context()}
-
-    @classmethod
-    def get_shortcut_implementations(cls):
-        return {
-            "plot": {},
-        }
 
     def postprocess(self, y):
         """
