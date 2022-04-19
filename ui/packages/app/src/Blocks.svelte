@@ -206,7 +206,7 @@
 	}
 </script>
 
-<div class="mx-auto container p-4">
+<div class="mx-auto container p-4 dark:bg-gray-950">
 	{#if tree}
 		{#each tree as { component, id, props, children, has_modes }}
 			<Render
