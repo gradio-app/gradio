@@ -1,4 +1,5 @@
 # Don't forget to run bash scripts/create_test_requirements.sh from unix or wsl when you update this file.
+asyncio
 IPython
 comet_ml
 coverage
@@ -12,6 +13,7 @@ pytest
 wandb
 huggingface_hub
 pytest-cov
+pytest-asyncio
 black
 isort
 flake8

@@ -12,12 +12,14 @@ import random
 import warnings
 from copy import deepcopy
 from distutils.version import StrictVersion
-from typing import TYPE_CHECKING, Any, Callable, Dict, List
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional
 
 import aiohttp
 import analytics
 import pkg_resources
 import requests
+from httpx import AsyncClient
+from pydantic import BaseModel
 
 import gradio
 
@@ -352,3 +354,48 @@ def format_ner_list(input_string: str, ner_groups: Dict[str : str | int]):
 
     output.append((input_string[end:], None))
     return output
+
+
+class Http:
+    """
+    A class that shares an AsyncClient which sends and handles network requests.
+    Further different functionalities can be gathered within this class.
+    - Client configurations
+    - Error types and error handling
+    - Client stop/restart
+    """
+
+    client = AsyncClient()
+
+    @classmethod
+    async def request(
+        cls,
+        method: str,
+        url: str,
+        json: dict = None,
+        validation_model: Optional[BaseModel] = None,
+        **kwargs,
+    ) -> (int, dict):
+        """
+        Wrapper function for AsyncClient request.
+        Parameters:
+            method: GET, POST etc.
+            url: URL
+            json: json payload
+            validation_model: Validation model
+            kwargs: any additional kwargs
+        Returns:
+        """
+        # TODO: Might add exception handling
+        response = await cls.client.request(
+            method=method.lower(), url=url, json=json, **kwargs
+        )
+        if response.status_code == 200:
+            data = response.json()
+            if validation_model is not None:
+                # TODO: Do validation and if it fails raise an error
+                raise NotImplementedError("Validation handling is not implemented yet")
+        else:
+            # TODO: Raise error or retry a few times
+            return response.status_code, response.json()
+        return response.status_code, data

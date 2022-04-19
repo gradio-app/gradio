@@ -1,5 +1,6 @@
 analytics-python
 aiohttp
+httpx
 fastapi
 ffmpy
 markdown-it-py[linkify,plugins]
@@ -9,6 +10,7 @@ orjson
 pandas
 paramiko
 pillow
+pydantic
 pycryptodome
 python-multipart
 pydub

@@ -17,6 +17,7 @@ setup(
     install_requires=[
         "analytics-python",
         "aiohttp",
+        "httpx",
         "fastapi",
         "ffmpy",
         "markdown-it-py[linkify,plugins]",
@@ -26,6 +27,7 @@ setup(
         "pandas",
         "paramiko",
         "pillow",
+        "pydantic",
         "pycryptodome",
         "python-multipart",
         "pydub",
