@@ -24,8 +24,8 @@ class TestHuggingFaceModelAPI(unittest.TestCase):
             alias=model_type,
         )
         self.assertEqual(interface_info["fn"].__name__, model_type)
-        self.assertIsInstance(interface_info["inputs"], gr.inputs.Audio)
-        self.assertIsInstance(interface_info["outputs"], gr.outputs.Audio)
+        self.assertIsInstance(interface_info["inputs"], gr.components.Audio)
+        self.assertIsInstance(interface_info["outputs"], gr.components.Audio)
 
     def test_question_answering(self):
         model_type = "question-answering"
@@ -33,8 +33,8 @@ class TestHuggingFaceModelAPI(unittest.TestCase):
             "lysandre/tiny-vit-random", api_key=None, alias=model_type
         )
         self.assertEqual(interface_info["fn"].__name__, model_type)
-        self.assertIsInstance(interface_info["inputs"], gr.inputs.Image)
-        self.assertIsInstance(interface_info["outputs"], gr.outputs.Label)
+        self.assertIsInstance(interface_info["inputs"], gr.components.Image)
+        self.assertIsInstance(interface_info["outputs"], gr.components.Label)
 
     def test_text_generation(self):
         model_type = "text_generation"
@@ -42,8 +42,8 @@ class TestHuggingFaceModelAPI(unittest.TestCase):
             "gpt2", api_key=None, alias=model_type
         )
         self.assertEqual(interface_info["fn"].__name__, model_type)
-        self.assertIsInstance(interface_info["inputs"], gr.inputs.Textbox)
-        self.assertIsInstance(interface_info["outputs"], gr.outputs.Textbox)
+        self.assertIsInstance(interface_info["inputs"], gr.components.Textbox)
+        self.assertIsInstance(interface_info["outputs"], gr.components.Textbox)
 
     def test_summarization(self):
         model_type = "summarization"
@@ -51,8 +51,8 @@ class TestHuggingFaceModelAPI(unittest.TestCase):
             "facebook/bart-large-cnn", api_key=None, alias=model_type
         )
         self.assertEqual(interface_info["fn"].__name__, model_type)
-        self.assertIsInstance(interface_info["inputs"], gr.inputs.Textbox)
-        self.assertIsInstance(interface_info["outputs"], gr.outputs.Textbox)
+        self.assertIsInstance(interface_info["inputs"], gr.components.Textbox)
+        self.assertIsInstance(interface_info["outputs"], gr.components.Textbox)
 
     def test_translation(self):
         model_type = "translation"
@@ -60,8 +60,8 @@ class TestHuggingFaceModelAPI(unittest.TestCase):
             "facebook/bart-large-cnn", api_key=None, alias=model_type
         )
         self.assertEqual(interface_info["fn"].__name__, model_type)
-        self.assertIsInstance(interface_info["inputs"], gr.inputs.Textbox)
-        self.assertIsInstance(interface_info["outputs"], gr.outputs.Textbox)
+        self.assertIsInstance(interface_info["inputs"], gr.components.Textbox)
+        self.assertIsInstance(interface_info["outputs"], gr.components.Textbox)
 
     def test_text2text_generation(self):
         model_type = "text2text-generation"
@@ -69,8 +69,8 @@ class TestHuggingFaceModelAPI(unittest.TestCase):
             "sshleifer/tiny-mbart", api_key=None, alias=model_type
         )
         self.assertEqual(interface_info["fn"].__name__, model_type)
-        self.assertIsInstance(interface_info["inputs"], gr.inputs.Textbox)
-        self.assertIsInstance(interface_info["outputs"], gr.outputs.Textbox)
+        self.assertIsInstance(interface_info["inputs"], gr.components.Textbox)
+        self.assertIsInstance(interface_info["outputs"], gr.components.Textbox)
 
     def test_text_classification(self):
         model_type = "text-classification"
@@ -80,8 +80,8 @@ class TestHuggingFaceModelAPI(unittest.TestCase):
             alias=model_type,
         )
         self.assertEqual(interface_info["fn"].__name__, model_type)
-        self.assertIsInstance(interface_info["inputs"], gr.inputs.Textbox)
-        self.assertIsInstance(interface_info["outputs"], gr.outputs.Label)
+        self.assertIsInstance(interface_info["inputs"], gr.components.Textbox)
+        self.assertIsInstance(interface_info["outputs"], gr.components.Label)
 
     def test_fill_mask(self):
         model_type = "fill-mask"
@@ -89,8 +89,8 @@ class TestHuggingFaceModelAPI(unittest.TestCase):
             "bert-base-uncased", api_key=None, alias=model_type
         )
         self.assertEqual(interface_info["fn"].__name__, model_type)
-        self.assertIsInstance(interface_info["inputs"], gr.inputs.Textbox)
-        self.assertIsInstance(interface_info["outputs"], gr.outputs.Label)
+        self.assertIsInstance(interface_info["inputs"], gr.components.Textbox)
+        self.assertIsInstance(interface_info["outputs"], gr.components.Label)
 
     def test_zero_shot_classification(self):
         model_type = "zero-shot-classification"
@@ -98,10 +98,10 @@ class TestHuggingFaceModelAPI(unittest.TestCase):
             "facebook/bart-large-mnli", api_key=None, alias=model_type
         )
         self.assertEqual(interface_info["fn"].__name__, model_type)
-        self.assertIsInstance(interface_info["inputs"][0], gr.inputs.Textbox)
-        self.assertIsInstance(interface_info["inputs"][1], gr.inputs.Textbox)
-        self.assertIsInstance(interface_info["inputs"][2], gr.inputs.Checkbox)
-        self.assertIsInstance(interface_info["outputs"], gr.outputs.Label)
+        self.assertIsInstance(interface_info["inputs"][0], gr.components.Textbox)
+        self.assertIsInstance(interface_info["inputs"][1], gr.components.Textbox)
+        self.assertIsInstance(interface_info["inputs"][2], gr.components.Checkbox)
+        self.assertIsInstance(interface_info["outputs"], gr.components.Label)
 
     def test_automatic_speech_recognition(self):
         model_type = "automatic-speech-recognition"
@@ -109,8 +109,8 @@ class TestHuggingFaceModelAPI(unittest.TestCase):
             "facebook/wav2vec2-base-960h", api_key=None, alias=model_type
         )
         self.assertEqual(interface_info["fn"].__name__, model_type)
-        self.assertIsInstance(interface_info["inputs"], gr.inputs.Audio)
-        self.assertIsInstance(interface_info["outputs"], gr.outputs.Textbox)
+        self.assertIsInstance(interface_info["inputs"], gr.components.Audio)
+        self.assertIsInstance(interface_info["outputs"], gr.components.Textbox)
 
     def test_image_classification(self):
         model_type = "image-classification"
@@ -118,8 +118,8 @@ class TestHuggingFaceModelAPI(unittest.TestCase):
             "google/vit-base-patch16-224", api_key=None, alias=model_type
         )
         self.assertEqual(interface_info["fn"].__name__, model_type)
-        self.assertIsInstance(interface_info["inputs"], gr.inputs.Image)
-        self.assertIsInstance(interface_info["outputs"], gr.outputs.Label)
+        self.assertIsInstance(interface_info["inputs"], gr.components.Image)
+        self.assertIsInstance(interface_info["outputs"], gr.components.Label)
 
     def test_feature_extraction(self):
         model_type = "feature-extraction"
@@ -129,8 +129,8 @@ class TestHuggingFaceModelAPI(unittest.TestCase):
             alias=model_type,
         )
         self.assertEqual(interface_info["fn"].__name__, model_type)
-        self.assertIsInstance(interface_info["inputs"], gr.inputs.Textbox)
-        self.assertIsInstance(interface_info["outputs"], gr.outputs.Dataframe)
+        self.assertIsInstance(interface_info["inputs"], gr.components.Textbox)
+        self.assertIsInstance(interface_info["outputs"], gr.components.Dataframe)
 
     def test_sentence_similarity(self):
         model_type = "text-to-speech"
@@ -140,8 +140,8 @@ class TestHuggingFaceModelAPI(unittest.TestCase):
             alias=model_type,
         )
         self.assertEqual(interface_info["fn"].__name__, model_type)
-        self.assertIsInstance(interface_info["inputs"], gr.inputs.Textbox)
-        self.assertIsInstance(interface_info["outputs"], gr.outputs.Audio)
+        self.assertIsInstance(interface_info["inputs"], gr.components.Textbox)
+        self.assertIsInstance(interface_info["outputs"], gr.components.Audio)
 
     def test_text_to_speech(self):
         model_type = "text-to-speech"
@@ -151,8 +151,8 @@ class TestHuggingFaceModelAPI(unittest.TestCase):
             alias=model_type,
         )
         self.assertEqual(interface_info["fn"].__name__, model_type)
-        self.assertIsInstance(interface_info["inputs"], gr.inputs.Textbox)
-        self.assertIsInstance(interface_info["outputs"], gr.outputs.Audio)
+        self.assertIsInstance(interface_info["inputs"], gr.components.Textbox)
+        self.assertIsInstance(interface_info["outputs"], gr.components.Audio)
 
     def test_text_to_image(self):
         model_type = "text-to-image"
@@ -160,15 +160,15 @@ class TestHuggingFaceModelAPI(unittest.TestCase):
             "osanseviero/BigGAN-deep-128", api_key=None, alias=model_type
         )
         self.assertEqual(interface_info["fn"].__name__, model_type)
-        self.assertIsInstance(interface_info["inputs"], gr.inputs.Textbox)
-        self.assertIsInstance(interface_info["outputs"], gr.outputs.Image)
+        self.assertIsInstance(interface_info["inputs"], gr.components.Textbox)
+        self.assertIsInstance(interface_info["outputs"], gr.components.Image)
 
     def test_english_to_spanish(self):
         interface_info = gr.external.get_spaces_interface(
             "abidlabs/english_to_spanish", api_key=None, alias=None
         )
-        self.assertIsInstance(interface_info["inputs"][0], gr.inputs.Textbox)
-        self.assertIsInstance(interface_info["outputs"][0], gr.outputs.Textbox)
+        self.assertIsInstance(interface_info["inputs"][0], gr.components.Textbox)
+        self.assertIsInstance(interface_info["outputs"][0], gr.components.Textbox)
 
 
 class TestLoadInterface(unittest.TestCase):
@@ -176,8 +176,8 @@ class TestLoadInterface(unittest.TestCase):
         interface_info = gr.external.load_interface(
             "spaces/abidlabs/english_to_spanish"
         )
-        self.assertIsInstance(interface_info["inputs"][0], gr.inputs.Textbox)
-        self.assertIsInstance(interface_info["outputs"][0], gr.outputs.Textbox)
+        self.assertIsInstance(interface_info["inputs"][0], gr.components.Textbox)
+        self.assertIsInstance(interface_info["outputs"][0], gr.components.Textbox)
 
     def test_sentiment_model(self):
         interface_info = gr.external.load_interface(
@@ -195,7 +195,7 @@ class TestLoadInterface(unittest.TestCase):
         )
         io = gr.Interface(**interface_info)
         io.api_mode = True
-        output = io("test/test_data/lion.jpg")
+        output = io("gradio/test_data/lion.jpg")
         self.assertGreater(output["lion"], 0.5)
 
     def test_translation_model(self):
@@ -203,7 +203,7 @@ class TestLoadInterface(unittest.TestCase):
         io = gr.Interface(**interface_info)
         io.api_mode = True
         output = io("My name is Sarah and I live in London")
-        self.assertEquals(output, "Mein Name ist Sarah und ich lebe in London")
+        self.assertEqual(output, "Mein Name ist Sarah und ich lebe in London")
 
     def test_numerical_to_label_space(self):
         interface_info = gr.external.load_interface("spaces/abidlabs/titanic-survival")
@@ -218,7 +218,7 @@ class TestLoadInterface(unittest.TestCase):
         )
         io = gr.Interface(**interface_info)
         io.api_mode = True
-        output = io("test/test_data/test_audio.wav")
+        output = io("gradio/test_data/test_audio.wav")
         self.assertIsNotNone(output)
 
     def test_text_to_image_model(self):
@@ -238,7 +238,7 @@ class TestLoadInterface(unittest.TestCase):
         interface_info = gr.external.load_interface("spaces/abidlabs/image-identity")
         io = gr.Interface(**interface_info)
         io.api_mode = True
-        output = io("test/test_data/lion.jpg")
+        output = io("gradio/test_data/lion.jpg")
         assertIsFile(output)
 
 

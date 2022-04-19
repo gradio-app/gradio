@@ -8,7 +8,9 @@ import mlflow
 import requests
 import wandb
 
-from gradio.interface import Interface, close_all, os
+from gradio.blocks import Blocks, TabItem, Tabs
+from gradio.interface import Interface, TabbedInterface, close_all, os
+from gradio.utils import assert_configs_are_equivalent_besides_ids
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -45,21 +47,14 @@ class TestInterface(unittest.TestCase):
             Interface(lambda x: x, examples=1234)
 
     def test_examples_valid_path(self):
-        path = os.path.join(os.path.dirname(__file__), "test_data/flagged_with_log")
+        path = os.path.join(
+            os.path.dirname(__file__), "../gradio/test_data/flagged_with_log"
+        )
         interface = Interface(lambda x: 3 * x, "number", "number", examples=path)
-        self.assertEqual(len(interface.get_config_file()["examples"]), 2)
-
-        path = os.path.join(os.path.dirname(__file__), "test_data/flagged_no_log")
-        interface = Interface(lambda x: 3 * x, "number", "number", examples=path)
-        self.assertEqual(len(interface.get_config_file()["examples"]), 3)
-
-    def test_examples_not_valid_path(self):
-        with self.assertRaises(FileNotFoundError):
-            interface = Interface(
-                lambda x: x, "textbox", "label", examples="invalid-path"
-            )
-            interface.launch(prevent_thread_lock=True)
-            interface.close()
+        dataset_check = any(
+            [c["type"] == "dataset" for c in interface.get_config_file()["components"]]
+        )
+        self.assertTrue(dataset_check)
 
     def test_test_launch(self):
         with captured_output() as (out, err):
@@ -107,18 +102,10 @@ class TestInterface(unittest.TestCase):
         self.assertTrue(prediction_fn.__name__ in repr[0])
         self.assertEqual(len(repr[0]), len(repr[1]))
 
-    def test_interface_load(self):
-        io = Interface.load(
-            "models/distilbert-base-uncased-finetuned-sst-2-english",
-            alias="sentiment_classifier",
-        )
-        output = io("I am happy, I love you.")
-        self.assertGreater(output["POSITIVE"], 0.5)
-
     def test_interface_none_interp(self):
         interface = Interface(lambda x: x, "textbox", "label", interpretation=[None])
-        scores, alternative_outputs = interface.interpret(["quickest brown fox"])
-        self.assertIsNone(scores[0])
+        scores = interface.interpret(["quickest brown fox"])[0]["interpretation"]
+        self.assertIsNone(scores)
 
     @mock.patch("webbrowser.open")
     def test_interface_browser(self, mock_browser):
@@ -197,6 +184,29 @@ class TestInterface(unittest.TestCase):
         interface.analytics_enabled = True
         interface.integrate(mlflow=mlflow)
         mock_post.assert_called_once()
+
+
+class TestTabbedInterface(unittest.TestCase):
+    def test_tabbed_interface_config_matches_manual_tab(self):
+        interface1 = Interface(lambda x: x, "textbox", "textbox")
+        interface2 = Interface(lambda x: x, "image", "image")
+
+        with Blocks() as demo:
+            with Tabs():
+                with TabItem(label="tab1"):
+                    interface1.render_basic_interface()
+                with TabItem(label="tab2"):
+                    interface2.render_basic_interface()
+
+        interface3 = Interface(lambda x: x, "textbox", "textbox")
+        interface4 = Interface(lambda x: x, "image", "image")
+        tabbed_interface = TabbedInterface([interface3, interface4], ["tab1", "tab2"])
+
+        self.assertTrue(
+            assert_configs_are_equivalent_besides_ids(
+                demo.get_config_file(), tabbed_interface.get_config_file()
+            )
+        )
 
 
 if __name__ == "__main__":

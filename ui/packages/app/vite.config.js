@@ -4,7 +4,7 @@ import sveltePreprocess from "svelte-preprocess";
 
 // this is dupe config, gonna try fix this
 import tailwind from "tailwindcss";
-import nested from "tailwindcss/nesting";
+import nested from "tailwindcss/nesting/index.js";
 
 //@ts-ignore
 export default defineConfig(({ mode }) => {
@@ -28,10 +28,15 @@ export default defineConfig(({ mode }) => {
 		},
 		plugins: [
 			svelte({
+				hot: !process.env.VITEST,
 				preprocess: sveltePreprocess({
-					postcss: { plugins: [nested, tailwind] }
+					postcss: { plugins: [tailwind, nested] }
 				})
 			})
-		]
+		],
+		test: {
+			environment: "happy-dom",
+			include: ["**/*.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"]
+		}
 	};
 });

@@ -1,3 +1,4 @@
+import json
 import os
 import tempfile
 import unittest
@@ -7,30 +8,20 @@ import numpy as np
 import pandas as pd
 
 import gradio as gr
+from gradio.test_data import media_data
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 
-class OutputComponent(unittest.TestCase):
-    def test_as_component(self):
-        output = gr.outputs.OutputComponent(label="Test Input")
-        self.assertEqual(output.postprocess("Hello World!"), "Hello World!")
-        self.assertEqual(output.deserialize(1), 1)
+# TODO: Delete this file after confirming backwards compatibility works well.
 
 
 class TestTextbox(unittest.TestCase):
-    def test_as_component(self):
-        with self.assertRaises(ValueError):
-            wrong_type = gr.outputs.Textbox(type="unknown")
-            wrong_type.postprocess(0)
-
     def test_in_interface(self):
         iface = gr.Interface(lambda x: x[-1], "textbox", gr.outputs.Textbox())
-        self.assertEqual(iface.process(["Hello"])[0], ["o"])
-        iface = gr.Interface(
-            lambda x: x / 2, "number", gr.outputs.Textbox(type="number")
-        )
-        self.assertEqual(iface.process([10])[0], [5])
+        self.assertEqual(iface.process(["Hello"]), ["o"])
+        iface = gr.Interface(lambda x: x / 2, "number", gr.outputs.Textbox())
+        self.assertEqual(iface.process([10]), ["5.0"])
 
 
 class TestLabel(unittest.TestCase):
@@ -86,12 +77,9 @@ class TestLabel(unittest.TestCase):
                     ],
                 },
             )
-        with self.assertRaises(ValueError):
-            label_output = gr.outputs.Label(type="unknown")
-            label_output.deserialize([1, 2, 3])
 
     def test_in_interface(self):
-        x_img = gr.test_data.BASE64_IMAGE
+        x_img = media_data.BASE64_IMAGE
 
         def rgb_distribution(img):
             rgb_dist = np.mean(img, axis=(0, 1))
@@ -104,7 +92,7 @@ class TestLabel(unittest.TestCase):
             }
 
         iface = gr.Interface(rgb_distribution, "image", "label")
-        output = iface.process([x_img])[0][0]
+        output = iface.process([x_img])[0]
         self.assertDictEqual(
             output,
             {
@@ -120,7 +108,7 @@ class TestLabel(unittest.TestCase):
 
 class TestImage(unittest.TestCase):
     def test_as_component(self):
-        y_img = gr.processing_utils.decode_base64_to_image(gr.test_data.BASE64_IMAGE)
+        y_img = gr.processing_utils.decode_base64_to_image(media_data.BASE64_IMAGE)
         image_output = gr.outputs.Image()
         self.assertTrue(
             image_output.postprocess(y_img).startswith(
@@ -150,11 +138,11 @@ class TestImage(unittest.TestCase):
         )
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = image_output.save_flagged(
-                tmpdirname, "image_output", gr.test_data.BASE64_IMAGE, None
+                tmpdirname, "image_output", media_data.BASE64_IMAGE, None
             )
             self.assertEqual("image_output/0.png", to_save)
             to_save = image_output.save_flagged(
-                tmpdirname, "image_output", gr.test_data.BASE64_IMAGE, None
+                tmpdirname, "image_output", media_data.BASE64_IMAGE, None
             )
             self.assertEqual("image_output/1.png", to_save)
 
@@ -163,9 +151,7 @@ class TestImage(unittest.TestCase):
             return np.random.randint(0, 256, (width, height, 3))
 
         iface = gr.Interface(generate_noise, ["slider", "slider"], "image")
-        self.assertTrue(
-            iface.process([10, 20])[0][0].startswith("data:image/png;base64")
-        )
+        self.assertTrue(iface.process([10, 20])[0].startswith("data:image/png;base64"))
 
 
 class TestVideo(unittest.TestCase):
@@ -176,47 +162,17 @@ class TestVideo(unittest.TestCase):
             video_output.postprocess(y_vid)["data"].startswith("data:video/mp4;base64,")
         )
         self.assertTrue(
-            video_output.deserialize(gr.test_data.BASE64_VIDEO["data"]).endswith(".mp4")
+            video_output.deserialize(media_data.BASE64_VIDEO["data"]).endswith(".mp4")
         )
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = video_output.save_flagged(
-                tmpdirname, "video_output", gr.test_data.BASE64_VIDEO, None
+                tmpdirname, "video_output", media_data.BASE64_VIDEO, None
             )
             self.assertEqual("video_output/0.mp4", to_save)
             to_save = video_output.save_flagged(
-                tmpdirname, "video_output", gr.test_data.BASE64_VIDEO, None
+                tmpdirname, "video_output", media_data.BASE64_VIDEO, None
             )
             self.assertEqual("video_output/1.mp4", to_save)
-
-
-class TestKeyValues(unittest.TestCase):
-    def test_as_component(self):
-        kv_output = gr.outputs.KeyValues()
-        kv_dict = {"a": 1, "b": 2}
-        kv_list = [("a", 1), ("b", 2)]
-        self.assertEqual(kv_output.postprocess(kv_dict), kv_list)
-        self.assertEqual(kv_output.postprocess(kv_list), kv_list)
-        with self.assertRaises(ValueError):
-            kv_output.postprocess(0)
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            to_save = kv_output.save_flagged(tmpdirname, "kv_output", kv_list, None)
-            self.assertEqual(to_save, '[["a", 1], ["b", 2]]')
-            self.assertEqual(
-                kv_output.restore_flagged(tmpdirname, to_save, None),
-                [["a", 1], ["b", 2]],
-            )
-
-    def test_in_interface(self):
-        def letter_distribution(word):
-            dist = {}
-            for letter in word:
-                dist[letter] = dist.get(letter, 0) + 1
-            return dist
-
-        iface = gr.Interface(letter_distribution, "text", "key_values")
-        self.assertListEqual(
-            iface.process(["alpaca"])[0][0], [("a", 3), ("l", 1), ("p", 1), ("c", 1)]
-        )
 
 
 class TestHighlightedText(unittest.TestCase):
@@ -229,6 +185,9 @@ class TestHighlightedText(unittest.TestCase):
                 "name": "highlightedtext",
                 "label": None,
                 "show_legend": False,
+                "css": {},
+                "default_value": "",
+                "interactive": None,
             },
         )
         ht = {"pos": "Hello ", "neg": "World"}
@@ -258,7 +217,7 @@ class TestHighlightedText(unittest.TestCase):
 
         iface = gr.Interface(highlight_vowels, "text", "highlight")
         self.assertListEqual(
-            iface.process(["Helloooo"])[0][0],
+            iface.process(["Helloooo"])[0],
             [("H", "non"), ("e", "vowel"), ("ll", "non"), ("oooo", "vowel")],
         )
 
@@ -266,7 +225,7 @@ class TestHighlightedText(unittest.TestCase):
 class TestAudio(unittest.TestCase):
     def test_as_component(self):
         y_audio = gr.processing_utils.decode_base64_to_file(
-            gr.test_data.BASE64_AUDIO["data"]
+            media_data.BASE64_AUDIO["data"]
         )
         audio_output = gr.outputs.Audio(type="file")
         self.assertTrue(
@@ -275,30 +234,35 @@ class TestAudio(unittest.TestCase):
             )
         )
         self.assertEqual(
-            audio_output.get_template_context(), {"name": "audio", "label": None}
+            audio_output.get_template_context(),
+            {
+                "name": "audio",
+                "label": None,
+                "source": "upload",
+                "css": {},
+                "default_value": None,
+                "interactive": None,
+            },
         )
-        with self.assertRaises(ValueError):
-            wrong_type = gr.outputs.Audio(type="unknown")
-            wrong_type.postprocess(y_audio.name)
         self.assertTrue(
-            audio_output.deserialize(gr.test_data.BASE64_AUDIO["data"]).endswith(".wav")
+            audio_output.deserialize(media_data.BASE64_AUDIO["data"]).endswith(".wav")
         )
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = audio_output.save_flagged(
-                tmpdirname, "audio_output", gr.test_data.BASE64_AUDIO["data"], None
+                tmpdirname, "audio_output", media_data.BASE64_AUDIO, None
             )
             self.assertEqual("audio_output/0.wav", to_save)
             to_save = audio_output.save_flagged(
-                tmpdirname, "audio_output", gr.test_data.BASE64_AUDIO["data"], None
+                tmpdirname, "audio_output", media_data.BASE64_AUDIO, None
             )
             self.assertEqual("audio_output/1.wav", to_save)
 
     def test_in_interface(self):
         def generate_noise(duration):
-            return 48000, np.random.randint(-256, 256, (duration, 3)).astype(np.int16)
+            return 48000, np.random.randint(-256, 256, (duration, 3)).astype(np.int32)
 
         iface = gr.Interface(generate_noise, "slider", "audio")
-        self.assertTrue(iface.process([100])[0][0].startswith("data:audio/wav;base64"))
+        self.assertTrue(iface.process([100])[0].startswith("data:audio/wav;base64"))
 
 
 class TestJSON(unittest.TestCase):
@@ -336,7 +300,7 @@ class TestJSON(unittest.TestCase):
             ["O", 20],
             ["F", 30],
         ]
-        self.assertDictEqual(iface.process([y_data])[0][0], {"M": 35, "F": 25, "O": 20})
+        self.assertDictEqual(iface.process([y_data])[0], {"M": 35, "F": 25, "O": 20})
 
 
 class TestHTML(unittest.TestCase):
@@ -345,7 +309,7 @@ class TestHTML(unittest.TestCase):
             return "<strong>" + text + "</strong>"
 
         iface = gr.Interface(bold_text, "text", "html")
-        self.assertEqual(iface.process(["test"])[0][0], "<strong>test</strong>")
+        self.assertEqual(iface.process(["test"])[0], "<strong>test</strong>")
 
 
 class TestFile(unittest.TestCase):
@@ -357,7 +321,7 @@ class TestFile(unittest.TestCase):
 
         iface = gr.Interface(write_file, "text", "file")
         self.assertDictEqual(
-            iface.process(["hello world"])[0][0],
+            iface.process(["hello world"])[0],
             {
                 "name": "test.txt",
                 "size": 11,
@@ -367,11 +331,11 @@ class TestFile(unittest.TestCase):
         file_output = gr.outputs.File()
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = file_output.save_flagged(
-                tmpdirname, "file_output", gr.test_data.BASE64_FILE, None
+                tmpdirname, "file_output", [media_data.BASE64_FILE], None
             )
             self.assertEqual("file_output/0", to_save)
             to_save = file_output.save_flagged(
-                tmpdirname, "file_output", gr.test_data.BASE64_FILE, None
+                tmpdirname, "file_output", [media_data.BASE64_FILE], None
             )
             self.assertEqual("file_output/1", to_save)
 
@@ -399,6 +363,18 @@ class TestDataframe(unittest.TestCase):
                 "overflow_row_behaviour": "paginate",
                 "name": "dataframe",
                 "label": None,
+                "css": {},
+                "datatype": "str",
+                "row_count": 3,
+                "col_count": 3,
+                "col_width": None,
+                "default_value": [
+                    ["", "", ""],
+                    ["", "", ""],
+                    ["", "", ""],
+                ],
+                "name": "dataframe",
+                "interactive": None,
             },
         )
         with self.assertRaises(ValueError):
@@ -408,10 +384,21 @@ class TestDataframe(unittest.TestCase):
             to_save = dataframe_output.save_flagged(
                 tmpdirname, "dataframe_output", output, None
             )
-            self.assertEqual(to_save, "[[2, true], [3, true], [4, false]]")
+            self.assertEqual(
+                to_save,
+                json.dumps(
+                    {
+                        "headers": ["num", "prime"],
+                        "data": [[2, True], [3, True], [4, False]],
+                    }
+                ),
+            )
             self.assertEqual(
                 dataframe_output.restore_flagged(tmpdirname, to_save, None),
-                {"data": [[2, True], [3, True], [4, False]]},
+                {
+                    "headers": ["num", "prime"],
+                    "data": [[2, True], [3, True], [4, False]],
+                },
             )
 
     def test_in_interface(self):
@@ -419,9 +406,7 @@ class TestDataframe(unittest.TestCase):
             return array % 2 == 0
 
         iface = gr.Interface(check_odd, "numpy", "numpy")
-        self.assertEqual(
-            iface.process([[2, 3, 4]])[0][0], {"data": [[True, False, True]]}
-        )
+        self.assertEqual(iface.process([[2, 3, 4]])[0], {"data": [[True, False, True]]})
 
 
 class TestCarousel(unittest.TestCase):
@@ -437,8 +422,8 @@ class TestCarousel(unittest.TestCase):
         self.assertEqual(
             output,
             [
-                ["Hello World", gr.test_data.BASE64_IMAGE],
-                ["Bye World", gr.test_data.BASE64_IMAGE],
+                ["Hello World", media_data.BASE64_IMAGE],
+                ["Bye World", media_data.BASE64_IMAGE],
             ],
         )
 
@@ -448,9 +433,21 @@ class TestCarousel(unittest.TestCase):
         self.assertEqual(
             carousel_output.get_template_context(),
             {
-                "components": [{"name": "textbox", "label": None}],
+                "components": [
+                    {
+                        "name": "textbox",
+                        "label": None,
+                        "default_value": "",
+                        "lines": 1,
+                        "css": {},
+                        "placeholder": None,
+                        "interactive": None,
+                    }
+                ],
                 "name": "carousel",
                 "label": "Disease",
+                "css": {},
+                "interactive": None,
             },
         )
         output = carousel_output.postprocess(["Hello World", "Bye World"])
@@ -476,7 +473,7 @@ class TestCarousel(unittest.TestCase):
 
         iface = gr.Interface(report, gr.inputs.Image(type="numpy"), carousel_output)
         self.assertEqual(
-            iface.process([gr.test_data.BASE64_IMAGE])[0],
+            iface.process([media_data.BASE64_IMAGE]),
             [
                 [
                     [
@@ -501,7 +498,15 @@ class TestTimeseries(unittest.TestCase):
         timeseries_output = gr.outputs.Timeseries(label="Disease")
         self.assertEqual(
             timeseries_output.get_template_context(),
-            {"x": None, "y": None, "name": "timeseries", "label": "Disease"},
+            {
+                "x": None,
+                "y": None,
+                "name": "timeseries",
+                "label": "Disease",
+                "css": {},
+                "default_value": None,
+                "interactive": None,
+            },
         )
         data = {"Name": ["Tom", "nick", "krish", "jack"], "Age": [20, 21, 19, 18]}
         df = pd.DataFrame(data)
@@ -550,22 +555,13 @@ class TestImage3D(unittest.TestCase):
         )
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = Image3D_output.save_flagged(
-                tmpdirname, "Image3D_output", gr.test_data.BASE64_IMAGE3D, None
+                tmpdirname, "Image3D_output", media_data.BASE64_MODEL3D, None
             )
-            self.assertEqual("Image3D_output/0.gltf", to_save)
+            self.assertEqual("Image3D_output/0", to_save)
             to_save = Image3D_output.save_flagged(
-                tmpdirname, "Image3D_output", gr.test_data.BASE64_IMAGE3D, None
+                tmpdirname, "Image3D_output", media_data.BASE64_MODEL3D, None
             )
-            self.assertEqual("Image3D_output/1.gltf", to_save)
-
-
-class TestNames(unittest.TestCase):
-    def test_no_duplicate_uncased_names(
-        self,
-    ):  # this ensures that get_input_instance() works correctly when instantiating from components
-        subclasses = gr.outputs.OutputComponent.__subclasses__()
-        unique_subclasses_uncased = set([s.__name__.lower() for s in subclasses])
-        self.assertEqual(len(subclasses), len(unique_subclasses_uncased))
+            self.assertEqual("Image3D_output/1", to_save)
 
 
 if __name__ == "__main__":
