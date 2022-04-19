@@ -1,3 +1,5 @@
+import type { FileData } from "@gradio/upload";
+
 interface XYValue {
 	x: number;
 	y: number;

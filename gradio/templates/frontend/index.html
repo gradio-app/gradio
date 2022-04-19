@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html
+	lang="en"
+	style="
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+		flex-grow: 1;
+		height: 100%;
+	"
+>
+	<head>
+		<meta charset="utf-8" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1, shrink-to-fit=no"
+		/>
+
+		
+		<title>{{ config['title'] or 'Gradio' }}</title>
+		<meta property="og:url" content="https://gradio.app/" />
+		<meta property="og:type" content="website" />
+		<meta property="og:image" content="{{ config['thumbnail'] or '' }}" />
+		<meta property="og:title" content="{{ config['title'] or '' }}" />
+		<meta
+			property="og:description"
+			content="{{ config['simple_description'] or '' }}"
+		/>
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:creator" content="@teamGradio" />
+		<meta name="twitter:title" content="{{ config['title'] or '' }}" />
+		<meta
+			name="twitter:description"
+			content="{{ config['simple_description'] or '' }}"
+		/>
+		<meta name="twitter:image" content="{{ config['thumbnail'] or '' }}" />
+		{%if config['analytics_enabled'] %}
+		<script
+			async
+			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"
+		></script>
+		{% endif %}
+		<script>
+			window.dataLayer = window.dataLayer || [];
+			function gtag() {
+				dataLayer.push(arguments);
+			}
+			gtag("js", new Date());
+			gtag("config", "UA-156449732-1");
+			window.gradio_mode = "app";
+		</script>
+		<script>
+			window.gradio_config = {{ config|tojson }};
+		</script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.1/iframeResizer.contentWindow.min.js"></script>
+		<title>Gradio</title>
+		<script type="module" crossorigin src="./assets/index.65fb5956.js"></script>
+		<link rel="stylesheet" href="./assets/index.39bf42f9.css">
+	</head>
+
+	<body
+		style="
+			margin: 0;
+			padding: 0;
+			display: flex;
+			flex-direction: column;
+			flex-grow: 1;
+		"
+	>
+		<div
+			id="root"
+			style="display: flex; flex-direction: column; flex-grow: 1"
+		></div>
+	</body>
+</html>

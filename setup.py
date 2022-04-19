@@ -5,10 +5,10 @@ except ImportError:
 
 setup(
     name="gradio",
-    version="2.9.4",
+    version="2.9.0b2",
     include_package_data=True,
     description="Python library for easily interacting with trained machine learning models",
-    author="Abubakar Abid, Ali Abid, Ali Abdalla, Dawood Khan, Ahsen Khaliq",
+    author="Abubakar Abid, Ali Abid, Ali Abdalla, Dawood Khan, Ahsen Khaliq, Pete Allen, Ömer Faruk Özdemir",
     author_email="team@gradio.app",
     url="https://github.com/gradio-app/gradio-UI",
     packages=["gradio"],

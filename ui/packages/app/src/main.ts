@@ -1,7 +1,8 @@
-import App from "./App.svelte";
 import Blocks from "./Blocks.svelte";
 import Login from "./Login.svelte";
 import { fn } from "./api";
+
+import * as t from "@gradio/theme";
 
 interface CustomWindow extends Window {
 	gradio_mode: "app" | "website";
@@ -12,6 +13,7 @@ interface CustomWindow extends Window {
 
 declare let window: CustomWindow;
 declare let BACKEND_URL: string;
+declare let BACKEND_URL_TEST: string;
 declare let BUILD_MODE: string;
 
 interface Component {
@@ -20,6 +22,7 @@ interface Component {
 }
 
 interface Config {
+	auth_required: boolean | undefined;
 	allow_flagging: string;
 	allow_interpretation: boolean;
 	allow_screenshot: boolean;
@@ -99,17 +102,10 @@ window.launchGradio = (config: Config, element_query: string) => {
 		}
 		let session_hash = Math.random().toString(36).substring(2);
 		config.fn = fn.bind(null, session_hash, config.root + "api/");
-		if (config.mode === "blocks") {
-			new Blocks({
-				target: target,
-				props: config
-			});
-		} else {
-			new App({
-				target: target,
-				props: config
-			});
-		}
+		new Blocks({
+			target: target,
+			props: config
+		});
 	}
 };
 
@@ -123,7 +119,7 @@ window.launchGradioFromSpaces = async (space: string, target: string) => {
 };
 
 async function get_config() {
-	if (BUILD_MODE === "dev") {
+	if (BUILD_MODE === "dev" || location.origin === "http://localhost:3000") {
 		let config = await fetch(BACKEND_URL + "config");
 		config = await config.json();
 		return config;

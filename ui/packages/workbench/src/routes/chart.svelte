@@ -1,0 +1,14 @@
+<script lang="ts">
+	import { Chart } from "@gradio/chart";
+
+	const csv = `time,value,price
+1,1,4
+2,3,8
+3,6,12
+4,10,16
+5,15,20
+6,21,24
+7,28,28`;
+</script>
+
+<Chart value={csv} />
