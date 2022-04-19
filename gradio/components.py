@@ -20,9 +20,8 @@ import PIL
 from ffmpy import FFmpeg
 from markdown_it import MarkdownIt
 
-from gradio import processing_utils
+from gradio import media_data, processing_utils
 from gradio.blocks import Block
-from gradio import media_data
 
 
 class Component(Block):
