@@ -1,18 +1,18 @@
 {
 	"interface": {
-		"submit": "Zatwierdź",
-		"clear": "Wyczyść",
-		"interpret": "Interpretuj",
-		"flag": "Oznacz",
-		"examples": "Przykłady",
 		"drop_image": "Przeciągnij tutaj zdjęcie",
 		"drop_video": "Przeciągnij tutaj video",
 		"drop_audio": "Przeciągnij tutaj audio",
 		"drop_file": "Przeciągnij tutaj plik",
 		"drop_csv": "Przeciągnij tutaj CSV",
-		"or": "lub",
 		"click_to_upload": "Kliknij, aby przesłać",
 		"view_api": "zobacz api",
 		"built_with_Gradio": "utworzone z gradio"
-	}
+	},
+	"Submit": "Zatwierdź",
+	"Clear": "Wyczyść",
+	"Interpret": "Interpretuj",
+	"Flag": "Oznacz",
+	"Examples": "Przykłady",
+	"or": "lub"
 }

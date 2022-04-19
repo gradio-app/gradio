@@ -2,8 +2,8 @@ name: gradio-ui
 
 on:
   push:
-    branches: 
-      - "master"
+    branches:
+      - "main"
     paths:
       - "ui/**"
   pull_request:
@@ -12,23 +12,31 @@ on:
 
 defaults:
   run:
-    working-directory: ./ui
+    working-directory: ui
+
+env:
+  CI: true
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+  NODE_OPTIONS: "--max-old-space-size=4096"
 
 concurrency:
   group: deploy-${{ github.ref }}-${{ github.event_name == 'push' || github.event.inputs.fire != null }}
   cancel-in-progress: true
 
 jobs:
-  check:
+  quick-checks:
     name: static checks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - run: npm i -g pnpm@6
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2.2.1
+        with:
+          version: 6
+      - uses: actions/setup-node@v3
         with:
           node-version: 16
-
+          cache: pnpm
+          cache-dependency-path: ui/pnpm-lock.yaml
       - name: install dependencies
         run: pnpm i --frozen-lockfile
       - name: formatting check
@@ -38,5 +46,32 @@ jobs:
         continue-on-error: true
       - name: unit tests
         run: pnpm test:run
-      - name: build
-        run: pnpm build
+  functional-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2.2.1
+        with:
+          version: 6
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: pnpm
+          cache-dependency-path: ui/pnpm-lock.yaml
+      - name: Cache browsers
+        id: browser_cache
+        uses: actions/cache@main
+        with:
+          path: "~/.cache/ms-playwright"
+          key: chromium-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+      - run: pnpm install --frozen-lockfile
+      - run: pnpx playwright install chromium
+      - run: pnpm build
+      - run: pnpm test:browser
+      - name: Upload failed tests screenshots
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          retention-days: 3
+          name: test-failure-${{ github.run_id }}
+          path: ui/packages/app/test-results

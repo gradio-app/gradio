@@ -1,0 +1,50 @@
+{
+  "mode": "blocks",
+  "components": [
+    {
+      "id": 1,
+      "type": "textbox",
+      "props": {
+        "lines": 1,
+        "placeholder": null,
+        "default_value": "",
+        "name": "textbox",
+        "label": "Input-Output",
+        "css": {},
+        "interactive": null
+      }
+    },
+    {
+      "id": 2,
+      "type": "button",
+      "props": {
+        "default_value": "Run",
+        "name": "button",
+        "label": null,
+        "css": {},
+        "interactive": null
+      }
+    }
+  ],
+  "theme": "default",
+  "layout": {
+    "id": 0,
+    "children": [
+      {
+        "id": 1
+      },
+      {
+        "id": 2
+      }
+    ]
+  },
+  "dependencies": [
+    {
+      "targets": [2],
+      "trigger": "click",
+      "inputs": [1],
+      "outputs": [1],
+      "queue": false
+    }
+  ]
+}
