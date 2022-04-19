@@ -37,13 +37,14 @@ def main_note(audio):
         if pitch not in volume_per_pitch:
             volume_per_pitch[pitch] = 0
         volume_per_pitch[pitch] += 1.0 * volume / total_volume
+    volume_per_pitch = {k: float(v) for k, v in volume_per_pitch.items()}
     return volume_per_pitch
 
 
-iface = gr.Interface(
+demo = gr.Interface(
     main_note,
-    "audio",
-    gr.outputs.Label(num_top_classes=4),
+    gr.Audio(source="microphone"),
+    gr.Label(num_top_classes=4),
     examples=[
         ["audio/recording1.wav"],
         ["audio/cantina.wav"],
@@ -52,4 +53,4 @@ iface = gr.Interface(
 )
 
 if __name__ == "__main__":
-    iface.launch()
+    demo.launch()

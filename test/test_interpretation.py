@@ -1,11 +1,11 @@
 import os
 import unittest
+from copy import deepcopy
 
 import numpy as np
 
 import gradio.interpretation
-import gradio.test_data
-from gradio import Interface
+from gradio import Interface, media_data
 from gradio.processing_utils import decode_base64_to_image
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
@@ -17,7 +17,9 @@ class TestDefault(unittest.TestCase):
         text_interface = Interface(
             max_word_len, "textbox", "label", interpretation="default"
         )
-        interpretation = text_interface.interpret(["quickest brown fox"])[0][0]
+        interpretation = text_interface.interpret(["quickest brown fox"])[0][
+            "interpretation"
+        ]
         self.assertGreater(
             interpretation[0][1], 0
         )  # Checks to see if the first word has >0 score.
@@ -32,13 +34,12 @@ class TestShapley(unittest.TestCase):
         text_interface = Interface(
             max_word_len, "textbox", "label", interpretation="shapley"
         )
-        interpretation = text_interface.interpret(["quickest brown fox"])[0][0]
+        interpretation = text_interface.interpret(["quickest brown fox"])[0][
+            "interpretation"
+        ][0]
         self.assertGreater(
-            interpretation[0][1], 0
+            interpretation[1], 0
         )  # Checks to see if the first word has >0 score.
-        self.assertEqual(
-            interpretation[-1][1], 0
-        )  # Checks to see if the last word has 0 score.
 
 
 class TestCustom(unittest.TestCase):
@@ -48,9 +49,11 @@ class TestCustom(unittest.TestCase):
         text_interface = Interface(
             max_word_len, "textbox", "label", interpretation=custom
         )
-        result = text_interface.interpret(["quickest brown fox"])[0][0]
+        result = text_interface.interpret(["quickest brown fox"])[0]["interpretation"][
+            0
+        ]
         self.assertEqual(
-            result[0][1], 1
+            result[1], 1
         )  # Checks to see if the first letter has score of 1.
 
     def test_custom_img(self):
@@ -59,9 +62,11 @@ class TestCustom(unittest.TestCase):
         img_interface = Interface(
             max_pixel_value, "image", "label", interpretation=custom
         )
-        result = img_interface.interpret([gradio.test_data.BASE64_IMAGE])[0][0]
+        result = img_interface.interpret([deepcopy(media_data.BASE64_IMAGE)])[0][
+            "interpretation"
+        ]
         expected_result = np.asarray(
-            decode_base64_to_image(gradio.test_data.BASE64_IMAGE).convert("RGB")
+            decode_base64_to_image(deepcopy(media_data.BASE64_IMAGE)).convert("RGB")
         ).tolist()
         self.assertEqual(result, expected_result)
 
@@ -75,16 +80,10 @@ class TestHelperMethods(unittest.TestCase):
         diff = gradio.interpretation.diff("cat", "cat")
         self.assertEquals(diff, 0)
 
-    def test_quantify_difference_with_textbox(self):
-        iface = Interface(lambda text: text, ["textbox"], ["textbox"])
-        diff = gradio.interpretation.quantify_difference_in_label(
-            iface, ["test"], ["test"]
-        )
-        self.assertEquals(diff, 0)
-        diff = gradio.interpretation.quantify_difference_in_label(
-            iface, ["test"], ["test_diff"]
-        )
-        self.assertEquals(diff, 1)
+    def test_quantify_difference_with_number(self):
+        iface = Interface(lambda text: text, ["textbox"], ["number"])
+        diff = gradio.interpretation.quantify_difference_in_label(iface, [4], [6])
+        self.assertEquals(diff, -2)
 
     def test_quantify_difference_with_label(self):
         iface = Interface(lambda text: len(text), ["textbox"], ["label"])
