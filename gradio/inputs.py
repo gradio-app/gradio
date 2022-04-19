@@ -512,4 +512,4 @@ class Image3D(C_Model3D):
             "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
             DeprecationWarning,
         )
-        super().__init__(label, optional=optional)
+        super().__init__(label=label, optional=optional)

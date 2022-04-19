@@ -557,11 +557,11 @@ class TestImage3D(unittest.TestCase):
             to_save = Image3D_output.save_flagged(
                 tmpdirname, "Image3D_output", media_data.BASE64_MODEL3D, None
             )
-            self.assertEqual("Image3D_output/0.gltf", to_save)
+            self.assertEqual("Image3D_output/0", to_save)
             to_save = Image3D_output.save_flagged(
                 tmpdirname, "Image3D_output", media_data.BASE64_MODEL3D, None
             )
-            self.assertEqual("Image3D_output/1.gltf", to_save)
+            self.assertEqual("Image3D_output/1", to_save)
 
 
 if __name__ == "__main__":

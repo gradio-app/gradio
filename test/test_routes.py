@@ -45,7 +45,9 @@ class TestRoutes(unittest.TestCase):
         self.assertEqual(output["data"], ["testtest"])
 
     def test_state(self):
-        def predict(input, history=""):
+        def predict(input, history):
+            if history is None:
+                history = ""
             history += input
             return history, history
 
