@@ -546,5 +546,35 @@ class TestTimeseries(unittest.TestCase):
             )
 
 
+<<<<<<< HEAD
+=======
+class TestImage3D(unittest.TestCase):
+    def test_as_component(self):
+        Image3D = "test/test_files/Fox.gltf"
+        Image3D_output = gr.outputs.Image3D()
+        self.assertTrue(
+            Image3D_output.postprocess(Image3D)["data"].startswith("data:;base64,")
+        )
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            to_save = Image3D_output.save_flagged(
+                tmpdirname, "Image3D_output", gr.test_data.BASE64_IMAGE3D, None
+            )
+            self.assertEqual("Image3D_output/0.gltf", to_save)
+            to_save = Image3D_output.save_flagged(
+                tmpdirname, "Image3D_output", gr.test_data.BASE64_IMAGE3D, None
+            )
+            self.assertEqual("Image3D_output/1.gltf", to_save)
+
+
+class TestNames(unittest.TestCase):
+    def test_no_duplicate_uncased_names(
+        self,
+    ):  # this ensures that get_input_instance() works correctly when instantiating from components
+        subclasses = gr.outputs.OutputComponent.__subclasses__()
+        unique_subclasses_uncased = set([s.__name__.lower() for s in subclasses])
+        self.assertEqual(len(subclasses), len(unique_subclasses_uncased))
+
+
+>>>>>>> main
 if __name__ == "__main__":
     unittest.main()

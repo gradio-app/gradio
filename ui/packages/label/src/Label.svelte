@@ -5,9 +5,10 @@
 	};
 
 	export let style: string = "";
+	export let theme: string = "default";
 </script>
 
-<div class="output-label">
+<div class="output-label" {theme}>
 	<div
 		class="output-class font-bold text-2xl py-6 px-4 flex-grow flex items-center justify-center"
 		class:no-confidence={!("confidences" in value)}
