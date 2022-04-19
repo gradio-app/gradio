@@ -18,11 +18,11 @@
 	}
 
 	.btn {
-		@apply border inline-flex items-center shadow-sm bg-gradient-to-br bg-white active:shadow-inner;
+		@apply border inline-flex items-center justify-center shadow-sm bg-gradient-to-br bg-white active:shadow-inner flex-1 text-center;
 	}
 
 	.btn-lg {
-		@apply py-2 px-4 font-semibold rounded-lg;
+		@apply py-2.5 px-4 font-semibold rounded-lg;
 	}
 
 	.btn-sm {

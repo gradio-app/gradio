@@ -28,6 +28,6 @@
 
 <style lang="postcss">
 	.carousel-item > :global(img) {
-		@apply max-h-96 h-full w-full object-contain object-center;
+		@apply max-h-96 h-[100qh] w-full object-contain object-center;
 	}
 </style>
