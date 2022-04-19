@@ -1,0 +1,48 @@
+{
+	"name": "@gradio/workbench",
+	"version": "0.0.1",
+	"scripts": {
+		"dev": "svelte-kit dev --port 3002",
+		"build": "svelte-kit build",
+		"preview": "svelte-kit preview",
+		"check": "svelte-check --tsconfig ./tsconfig.json",
+		"check:watch": "svelte-check --tsconfig ./tsconfig.json --watch"
+	},
+	"devDependencies": {
+		"@sveltejs/adapter-auto": "next",
+		"@sveltejs/kit": "next",
+		"autoprefixer": "^10.4.2",
+		"postcss": "^8.4.5",
+		"postcss-load-config": "^3.1.1",
+		"svelte": "^3.44.0",
+		"svelte-check": "^2.2.6",
+		"svelte-preprocess": "^4.10.1",
+		"tailwindcss": "^3.0.12",
+		"tslib": "^2.3.1",
+		"typescript": "~4.5.4"
+	},
+	"type": "module",
+	"dependencies": {
+		"@gradio/atoms": "workspace:^0.0.1",
+		"@gradio/audio": "workspace:^0.0.1",
+		"@gradio/button": "workspace:^0.0.1",
+		"@gradio/carousel": "workspace:^0.0.1",
+		"@gradio/chart": "workspace:^0.0.1",
+		"@gradio/chatbot": "workspace:^0.0.1",
+		"@gradio/file": "workspace:^0.0.1",
+		"@gradio/form": "workspace:^0.0.1",
+		"@gradio/highlighted-text": "workspace:^0.0.1",
+		"@gradio/html": "workspace:^0.0.1",
+		"@gradio/image": "workspace:^0.0.1",
+		"@gradio/json": "workspace:^0.0.1",
+		"@gradio/label": "workspace:^0.0.1",
+		"@gradio/markdown": "workspace:^0.0.1",
+		"@gradio/table": "workspace:^0.0.1",
+		"@gradio/tabs": "workspace:^0.0.1",
+		"@gradio/theme": "workspace:^0.0.1",
+		"@gradio/upload": "workspace:^0.0.1",
+		"@gradio/video": "workspace:^0.0.1",
+		"@gradio/model3D": "workspace:^0.0.1",
+		"@gradio/plot": "workspace:^0.0.1"
+	}
+}

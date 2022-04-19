@@ -1,18 +1,18 @@
 {
 	"interface": {
-		"submit": "ارسال",
-		"clear": "حذف",
-		"interpret": "تفسیر",
-		"flag": "پرچم",
-		"examples": "مثال ها",
 		"drop_image": "تصویر را اینجا رها کنید",
 		"drop_video": "ویدیو را اینجا رها کنید",
 		"drop_audio": "صوت را اینجا رها کنید",
 		"drop_file": "فایل را اینجا رها کنید",
 		"drop_csv": "فایل csv را  اینجا رها کنید",
-		"or": "یا",
 		"click_to_upload": "برای آپلود کلیک کنید",
 		"view_api": "api را مشاهده کنید",
 		"built_with_Gradio": "ساخته شده با gradio"
-	}
+	},
+	"Submit": "ارسال",
+	"Clear": "حذف",
+	"Interpret": "تفسیر",
+	"Flag": "پرچم",
+	"Examples": "مثال ها",
+	"or": "یا"
 }
