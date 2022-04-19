@@ -218,6 +218,7 @@ gr.Interface(
         gr.inputs.Slider(label='Number of Punks', minimum=4, maximum=64, step=1, default=10),
     ],
     outputs="image",
+    examples=[[123, 15], [42, 29], [456, 8], [1337, 35]],
 ).launch(cache_examples=True)
 ```
 ----------
