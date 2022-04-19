@@ -1,0 +1,120 @@
+.gradio-bg[theme="grass"] {
+	@apply dark:bg-gray-700;
+}
+.gradio-bg[theme="grass"] .gradio-interface {
+	.component-set {
+		@apply bg-gray-50 dark:bg-gray-800 rounded-none;
+	}
+	.component {
+		@apply p-1 transition;
+	}
+	.panel-header {
+		@apply text-gray-400 dark:text-gray-200 font-semibold;
+	}
+	.panel-button {
+		@apply rounded-none bg-gray-100 dark:bg-gray-800 shadow;
+	}
+	.panel-button.submit {
+		@apply bg-green-400 text-white;
+	}
+	.examples {
+		.examples-holder:not(.gallery) {
+			.examples-table {
+				@apply dark:bg-gray-800;
+				tbody tr:hover {
+					@apply bg-green-400;
+				}
+			}
+		}
+		.examples-holder.gallery .examples-table {
+			.example {
+				@apply dark:bg-gray-800;
+			}
+			.example:hover {
+				@apply bg-green-400;
+			}
+		}
+	}
+
+	/* Input Components */
+	.input-text {
+		@apply rounded-none dark:bg-gray-700 dark:text-gray-50 box-border border-4 p-2 border-white dark:border-gray-600 focus:border-green-400 dark:focus:border-green-400;
+	}
+	.input-number {
+		@apply rounded-none dark:bg-gray-700 dark:text-gray-50 box-border border-4 p-2 border-white dark:border-gray-600 focus:border-green-400 dark:focus:border-green-400;
+	}
+	.input-slider {
+		.range {
+			@apply dark:bg-gray-700 rounded-none;
+		}
+		.range::-webkit-slider-thumb {
+			@apply bg-green-400 rounded-none shadow-sm;
+		}
+		.range::-moz-range-thumb {
+			@apply bg-green-400 rounded-none shadow-sm;
+		}
+		.value {
+			@apply font-semibold text-gray-500 dark:bg-gray-700 dark:text-gray-50;
+		}
+	}
+	.input-radio {
+		.radio-item {
+			@apply bg-gray-100 rounded-none dark:bg-gray-700 dark:text-gray-50;
+		}
+		.radio-circle {
+			@apply hidden;
+		}
+		.radio-item.selected {
+			@apply bg-green-400 text-white shadow;
+		}
+		.radio-circle {
+			@apply w-4 h-4 bg-white transition rounded-full box-border;
+		}
+	}
+
+	.input-checkbox-group,
+	.input-checkbox {
+		.checkbox-item {
+			@apply bg-gray-100 rounded-none dark:bg-gray-700 dark:text-gray-50;
+		}
+		.checkbox-item.selected {
+			@apply bg-green-400 text-white shadow;
+		}
+	}
+	.input-checkbox {
+		.checkbox {
+			@apply bg-gray-200;
+		}
+		.selected .checkbox {
+			@apply bg-green-500;
+		}
+	}
+	.input-checkbox-group .checkbox {
+		@apply hidden;
+	}
+
+	.input-dropdown {
+		.selector {
+			@apply bg-gray-100 rounded-none dark:bg-gray-700 dark:text-gray-50;
+		}
+		.dropdown-menu {
+			@apply shadow;
+		}
+		.dropdown-item {
+			@apply bg-gray-100 dark:bg-gray-800 hover:bg-green-400 hover:text-gray-50 hover:font-semibold;
+		}
+		.dropdown-item:first-child,
+		.dropdown-item:last-child {
+			@apply rounded-none;
+		}
+	}
+	/* Components */
+	.output-label {
+		.confidence {
+			@apply bg-gray-300 text-white dark:bg-gray-600 font-semibold;
+		}
+		.confidence:first-child {
+			@apply bg-green-400;
+		}
+	}
+}

@@ -10,6 +10,7 @@ import json.decoder
 import os
 import random
 import warnings
+from copy import deepcopy
 from distutils.version import StrictVersion
 from typing import TYPE_CHECKING, Any, Callable, Dict, List
 
@@ -292,6 +293,48 @@ def get_default_args(func: Callable) -> Dict[str, Any]:
         v.default if v.default is not inspect.Parameter.empty else None
         for v in signature.parameters.values()
     ]
+
+
+def assert_configs_are_equivalent_besides_ids(config1, config2):
+    """Allows you to test if two different Blocks configs produce the same demo."""
+    assert config1["mode"] == config2["mode"], "Modes are different"
+    assert config1["theme"] == config2["theme"], "Themes are different"
+    assert len(config1["components"]) == len(
+        config2["components"]
+    ), "# of components are different"
+
+    mapping = {}
+
+    for c1, c2 in zip(config1["components"], config2["components"]):
+        c1, c2 = deepcopy(c1), deepcopy(c2)
+        mapping[c1["id"]] = c2["id"]
+        c1.pop("id")
+        c2.pop("id")
+        assert c1 == c2, "{} does not match {}".format(c1, c2)
+
+    def same_children_recursive(children1, chidren2, mapping):
+        for child1, child2 in zip(children1, chidren2):
+            assert mapping[child1["id"]] == child2["id"], "{} does not match {}".format(
+                child1, child2
+            )
+            if "children" in child1 or "children" in child2:
+                same_children_recursive(child1["children"], child2["children"], mapping)
+
+    children1 = config1["layout"]["children"]
+    children2 = config2["layout"]["children"]
+    same_children_recursive(children1, children2, mapping)
+
+    for d1, d2 in zip(config1["dependencies"], config2["dependencies"]):
+        for t1, t2 in zip(d1["targets"], d2["targets"]):
+            assert mapping[t1] == t2, "{} does not match {}".format(d1, d2)
+        assert d1["trigger"] == d2["trigger"], "{} does not match {}".format(d1, d2)
+        for i1, i2 in zip(d1["inputs"], d2["inputs"]):
+            assert mapping[i1] == i2, "{} does not match {}".format(d1, d2)
+        for o1, o2 in zip(d1["outputs"], d2["outputs"]):
+            assert mapping[o1] == o2, "{} does not match {}".format(d1, d2)
+        assert d1["queue"] == d2["queue"], "{} does not match {}".format(d1, d2)
+
+    return True
 
 
 def format_ner_list(input_string: str, ner_groups: Dict[str : str | int]):
