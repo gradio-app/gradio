@@ -105,7 +105,8 @@
 
     .big-padding {
       padding-left: 200px;
-      padding-right: 200px
+      padding-right: 200px;
+      max-width: 100%;
     }
 
     .logo {
@@ -126,6 +127,33 @@
     .card p {
       font-size: 12px;
       line-height: 15px;
+    }
+
+    .customer-card {
+      padding: 15px;
+      background: linear-gradient(180deg, #FFFFFF 0%, #F4F6FA 100%);
+      box-shadow: 0px 16px 50px rgba(89, 118, 135, 0.2);
+      border-radius: 20px;
+      font-family: 'Source Sans Pro', sans-serif;
+    }
+
+    .quote {
+      height: 44%;
+      font-size: 18px;
+      line-height: 25px;
+      margin-top: 20px;
+      margin-bottom: 20px;
+      font-style: italic;
+    }
+
+    .author {
+      font-size: large;
+      margin-bottom: 2px;
+      font-weight: 900
+    }
+
+    .hr-break {
+      margin-bottom: 4rem;
     }
 
 
@@ -237,7 +265,7 @@ iface <span class="token operator">=</span> gr<span class="token punctuation">.<
     </div>
   </div>
   <section class="big-padding w-full py-8 mb-12">
-    <div class="container mx-auto my-4 text-center text-gray-600 flex">
+    <div class="container mx-auto my-4 text-center text-gray-600 flex hr-break">
       <hr>
       <p class="hr-text">Used by</p>
       <hr>
@@ -299,7 +327,7 @@ iface <span class="token operator">=</span> gr<span class="token punctuation">.<
   </section>
   <section class="big-padding w-full py-8 mb-8">
     <div class="container mx-auto mb-2 text-center text-gray-600">
-      <div class="flex">
+      <div class="flex hr-break">
         <hr>
         <p class="hr-text">Integrates with</p>
         <hr>
@@ -314,29 +342,33 @@ iface <span class="token operator">=</span> gr<span class="token punctuation">.<
       </div>
     </div>
   </section>
-  <section class="w-full py-8 px-4 container mx-auto mb-2 flex flex-col sm:flex-row gap-8">
-    <div class="sm:flex-grow sm:w-0 relative">
-      <img class="z-0 h-6 absolute opacity-80" src="/assets/img/quote.png">
-      <div class="z-10 relative">
-        <blockquote class="mb-4" style="text-indent: 1rem;">Gradio is now an essential part of our ML demos. All it takes is a few minutes to make a demo come to life.</blockquote>
-        <div class="italic">
-          - <a class="link" href="https://www.linkedin.com/in/elgeish">Mohamed El-Geish</a>, Director of AI at Cisco
-        </div>
+  <section class="big-padding w-full py-8 px-4 container mx-auto mb-2 flex-col sm:flex-row gap-8">
+      <div class="flex hr-break">
+         <hr>
+        <p class="hr-text">Customer stories</p>
+        <hr>
       </div>
-    </div>
-    <div class="sm:flex-grow sm:w-0 relative">
-      <img class="z-0 h-6 absolute opacity-80" src="/assets/img/quote.png">
-      <div class="z-10 relative">
-        <blockquote class="mb-4" style="text-indent: 1rem;">Gradio accelerated our efforts to build and demo interdisciplinary models by
+    <div class="grid grid-cols-2 mt-8"
+         style="gap: 1rem;">
+      <div class="customer-card">
+        <img src="/assets/img/logos/cisco.svg"
+        style="height: 3rem;">
+        <p class="quote">Gradio is now an essential part of our ML demos. All it takes is a few minutes to make a demo come to life.</p>
+        <h2 class="author">Mohamed El-Geish</h2>
+        <p class="mb-2 text-gray-600">Director of AI at Cisco</p>
+      </div>
+      <div class="customer-card">
+        <img  src="/assets/img/logos/stanford.svg"
+        style="height: 3rem;">
+        <p class="quote">Gradio accelerated our efforts to build and demo interdisciplinary models by
           quickly letting clinicians interact with machine learning models without writing any code. It's a huge
-          time-saver!</blockquote>
-        <div class="italic">
-          - <a class="link" href="https://www.linkedin.com/in/davidouyang">David Ouyang</a>, Cardiologist at Stanford Medicine
-        </div>
+          time-saver!</p>
+        <h2 class="author">David Ouyang</h2>
+        <p class="mb-2 text-gray-600">Cardiologist at Stanford Medicine</p>
       </div>
     </div>
   </section>
-  <section class="w-full py-8 px-4">
+  <section class="big-padding w-full py-8 px-4">
     <div class="container mx-auto mb-2 text-gray-600">
       <div class="grid gap-4 grid-cols-1 md:grid-cols-3">
         {% for tweet in tweets %}
