@@ -7,7 +7,13 @@ import warnings
 import pkg_resources
 import requests
 
+from gradio.test_data.blocks_configs import (
+    XRAY_CONFIG,
+    XRAY_CONFIG_DIFF_IDS,
+    XRAY_CONFIG_WITH_MISTAKE,
+)
 from gradio.utils import (
+    assert_configs_are_equivalent_besides_ids,
     colab_check,
     error_analytics,
     format_ner_list,
@@ -115,6 +121,24 @@ class TestIPAddress(unittest.TestCase):
         mock_get.side_effect = requests.ConnectionError()
         ip = get_local_ip_address()
         self.assertEqual(ip, "No internet connection")
+
+
+class TestAssertConfigsEquivalent(unittest.TestCase):
+    def test_same_configs(self):
+        self.assertTrue(
+            assert_configs_are_equivalent_besides_ids(XRAY_CONFIG, XRAY_CONFIG)
+        )
+
+    def test_equivalent_configs(self):
+        self.assertTrue(
+            assert_configs_are_equivalent_besides_ids(XRAY_CONFIG, XRAY_CONFIG_DIFF_IDS)
+        )
+
+    def test_different_configs(self):
+        with self.assertRaises(AssertionError):
+            assert_configs_are_equivalent_besides_ids(
+                XRAY_CONFIG_WITH_MISTAKE, XRAY_CONFIG
+            )
 
 
 class TestFormatNERList(unittest.TestCase):

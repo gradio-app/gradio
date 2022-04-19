@@ -9,7 +9,7 @@ os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 class TestProcessExamples(unittest.TestCase):
     def test_process_example(self):
         io = Interface(lambda x: "Hello " + x, "text", "text", examples=[["World"]])
-        prediction, _ = process_examples.process_example(io, 0)
+        prediction = process_examples.process_example(io, 0)
         self.assertEquals(prediction[0], "Hello World")
 
     def test_caching(self):

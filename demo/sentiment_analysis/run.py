@@ -13,8 +13,7 @@ def sentiment_analysis(text):
     return scores
 
 
-iface = gr.Interface(sentiment_analysis, "textbox", "label", interpretation="default")
+demo = gr.Interface(sentiment_analysis, "textbox", "label", interpretation="default")
 
-iface.test_launch()
 if __name__ == "__main__":
-    iface.launch()
+    demo.launch()
