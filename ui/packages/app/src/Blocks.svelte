@@ -204,6 +204,7 @@
 			return dep.filter((_id) => _id !== id);
 		});
 	}
+	console.log("Blocks.svelte Hit")
 </script>
 
 <div class="mx-auto container p-4">
