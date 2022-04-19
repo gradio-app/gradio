@@ -47,6 +47,10 @@
       background: linear-gradient(0deg, rgba(246,247,248,1) 25%, rgba(255,211,160,0.25) 100%);
     }
 
+    .last-section {
+      background: linear-gradient(0deg, rgba(255,211,160,0.25) 25%, rgb(237 240 243) 100%);
+    }
+
     .header-text {
       margin-top: 90px;
       font-family: 'Source Sans Pro', sans-serif;
@@ -155,7 +159,6 @@
     .hr-break {
       margin-bottom: 4rem;
     }
-
 
   </style>
 </head>
@@ -368,7 +371,7 @@ iface <span class="token operator">=</span> gr<span class="token punctuation">.<
       </div>
     </div>
   </section>
-  <section class="big-padding w-full py-8 px-4">
+  <section class="last-section big-padding w-full py-8 px-4">
     <div class="container mx-auto mb-2 text-gray-600">
       <div class="grid gap-4 grid-cols-1 md:grid-cols-3">
         {% for tweet in tweets %}
@@ -405,8 +408,8 @@ iface <span class="token operator">=</span> gr<span class="token punctuation">.<
       </div>
     </div>
   </section>
-  <footer class="container mx-auto p-4 flex justify-between items-center">
-    <img src="/assets/img/logo.svg" class="h-10">
+  <footer class="big-padding container mx-auto p-4 flex justify-between items-center">
+    <img src="/assets/img/logo.svg" class="h-8">
     <div class="flex gap-4">
       <a class="hover:opacity-75 transition" href="https://twitter.com/Gradio">
         <img src="/assets/img/twitter.svg" class="h-8">
