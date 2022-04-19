@@ -44,7 +44,7 @@
     }
 
     .header-section {
-      background: linear-gradient(0deg, rgba(246,247,248,1) 25%, rgba(255,211,160,0.25) 100%);
+      background: linear-gradient(0deg, rgb(248 249 250) 25%, rgba(255,211,160,0.25) 100%);
     }
 
     .last-section {
@@ -160,6 +160,51 @@
       margin-bottom: 4rem;
     }
 
+    .interface {
+      background: #FFFFFF;
+      border-radius: 19px;
+      padding: 5px;
+      filter: drop-shadow(0px 6px 35px rgba(255, 187, 84, 0.4));
+    }
+
+    .demo {
+      padding-left: 180px;
+      padding-right: 180px;
+    }
+
+    .language-python {
+      background: #EEF0F4 !important;
+      border-radius: 10px;
+      font-size: 12px !important;
+      margin-bottom: 15px !important;
+    }
+
+    .demo-nav {
+      border-left: 1px solid #DADEE7;
+    }
+
+    .demo-tab {
+      color: #696e78;
+      padding: 9px;
+    }
+
+    .demo-tab.selected-demo {
+      color: #FF9B28;
+      border-left: 3px solid #FF9B28;
+    }
+
+    .title-nav {
+      color: #C9CDD6
+    }
+
+    .left-nav {
+      float: left;
+      font-family: 'Source Sans Pro';
+      margin-top: -10px;
+      font-size: 18px;
+      margin-right: 10px;
+    }
+
   </style>
 </head>
 
@@ -190,16 +235,22 @@
       </a>
     </div>
   </section>
-  <div class="container mx-auto p-4">
-    <div class="flex flex-col sm:flex-row mt-16">
-      <div class="flex-1 text-center px-2 py-3 cursor-pointer border-gray-300 demotab selected" demo="1"
+  <div class="big-padding container mx-auto p-4">
+    <div class="left-nav">
+      <div class="title-nav">Demos</div>
+      <div class="demo-nav grid grid-col-1">
+        <div class="demo-tab selected-demo cursor-pointer" demo="1"
         onclick="load_demo(1)">Sketch Recognition</div>
-      <div class="flex-1 text-center px-2 py-3 cursor-pointer border-gray-300 demotab" demo="2" onclick="load_demo(2)">
-        Question Answer</div>
-      <div class="flex-1 text-center px-2 py-3 cursor-pointer border-gray-300 demotab" demo="3" onclick="load_demo(3)">Image Segmentation</div>
-      <div class="flex-1 text-center px-2 py-3 cursor-pointer border-gray-300 demotab" demo="4" onclick="load_demo(4)">Speech Verification</div>
-    </div>
-    <div class="demo mb-16 p-4 border border-gray-300 border-t-0 shadow-lg" demo="1">
+        <div class="demo-tab cursor-pointer" demo="2"
+        onclick="load_demo(2)">Question Answer</div>
+        <div class="demo-tab cursor-pointer" demo="3"
+        onclick="load_demo(3)">Image Segmentation</div>
+        <div class="demo-tab cursor-pointer" demo="4"
+        onclick="load_demo(4)">Speech Verification</div>
+      </div>
+   </div>
+
+    <div class="demo mb-16 p-4" demo="1">
       <div class="relative">
         <a
           class="absolute font-sans top-2 right-2 uppercase text-sm bg-gray-200 px-2 py-1 cursor-pointer font-semibold hidden">View
@@ -213,9 +264,11 @@
 iface <span class="token operator">=</span> gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>sketch_recognition<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token string">"sketchpad"</span><span class="token punctuation">,</span> outputs<span class="token operator">=</span><span class="token string">"label"</span><span class="token punctuation">).</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
       </div>
-      <div id="demo_mnist" class="w-full"></div>
+      <div id="demo_mnist" class="interface w-full">
+        <iframe src="https://hf.space/embed/abidlabs/Draw/+" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+      </div>
     </div>
-    <div class="demo mb-16 p-4 border border-gray-300 border-t-0 shadow-lg hidden" demo="2">
+    <div class="demo mb-16 p-4 hidden" demo="2">
       <div class="relative">
         <a
           class="absolute font-sans top-2 right-2 uppercase text-sm bg-gray-200 px-2 py-1 cursor-pointer font-semibold hidden">View
@@ -229,9 +282,11 @@ iface <span class="token operator">=</span> gr<span class="token punctuation">.<
 iface <span class="token operator">=</span> gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>question_answer<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">"text"</span><span class="token punctuation">,</span> <span class="token string">"text"</span><span class="token punctuation">],</span> outputs<span class="token operator">=</span>[</span><span class="token string">"textbox"</span><span class="token punctuation">,</span> <span class="token string">"text"</span><span class="token punctuation">]).</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
       </div>
-      <div id="demo_qa" class="w-full"></div>
+      <div id="demo_qa" class="interface w-full">
+          <iframe src="https://hf.space/embed/abidlabs/question-answering/+" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
       </div>
-    <div class="demo mb-16 p-4 border border-gray-300 border-t-0 shadow-lg hidden" demo="3">
+      </div>
+    <div class="demo mb-16 p-4 hidden" demo="3">
       <div class="relative">
         <a
           class="absolute font-sans top-2 right-2 uppercase text-sm bg-gray-200 px-2 py-1 cursor-pointer font-semibold hidden">View
@@ -245,9 +300,11 @@ iface <span class="token operator">=</span> gr<span class="token punctuation">.<
 iface <span class="token operator">=</span> gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>segment<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token string">"image"</span><span class="token punctuation">,</span> outputs<span class="token operator">=</span><span class="token string">"image"</span><span class="token punctuation">).</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
       </div>
-      <div id="demo_image_classifier" class="w-full"></div>
+      <div id="demo_image_classifier" class="interface w-full">
+         <iframe src="https://hf.space/embed/abidlabs/Echocardiogram-Segmentation/+" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
       </div>
-    <div class="demo mb-16 p-4 border border-gray-300 border-t-0 shadow-lg hidden" demo="4">
+      </div>
+    <div class="demo mb-16 p-4 hidden" demo="4">
       <div class="relative">
         <a
           class="absolute font-sans top-2 right-2 uppercase text-sm bg-gray-200 px-2 py-1 cursor-pointer font-semibold hidden">View
@@ -264,7 +321,9 @@ iface <span class="token operator">=</span> gr<span class="token punctuation">.<
   outputs<span class="token operator">=</span><span class="token string">"html"</span>
 <span class="token punctuation">)</span><span class="token punctuation">.</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span></code></pre>
       </div>
-      <div id="demo_anime" class="w-full"></div>
+      <div id="demo_anime" class="interface w-full">
+         <iframe src="https://hf.space/embed/abidlabs/same-person-or-different/+" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+      </div>
     </div>
   </div>
   <section class="big-padding w-full py-8 mb-12">
@@ -435,13 +494,13 @@ iface <span class="token operator">=</span> gr<span class="token punctuation">.<
     xhr.send();
 
     let load_demo = demo_id => {
-      document.querySelectorAll(".demotab").forEach(demotab => {
-        demotab.classList.remove("selected");
+      document.querySelectorAll(".demo-tab").forEach(e => {
+        e.classList.remove("selected-demo");
       })
-      document.querySelectorAll(".demo").forEach(demo => {
-        demo.classList.add("hidden");
+      document.querySelectorAll(".demo").forEach(e => {
+        e.classList.add("hidden");
       })
-      document.querySelector(`.demotab[demo='${demo_id}']`).classList.add("selected");
+      document.querySelector(`.demo-tab[demo='${demo_id}']`).classList.add("selected-demo");
       document.querySelector(`.demo[demo='${demo_id}']`).classList.remove("hidden");
     }
 
@@ -450,12 +509,12 @@ iface <span class="token operator">=</span> gr<span class="token punctuation">.<
   <script defer id="gradio-library" type="module" crossorigin src="/gradio_static/assets/{{ index_js_file }}"></script>
   <link rel="modulepreload" href="/gradio_static/assets/{{ vendor_js_file }}" />
   <script>
-    document.querySelector("#gradio-library").addEventListener('load', function () {
-      launchGradioFromSpaces("abidlabs/Draw", "#demo_mnist");
-      launchGradioFromSpaces("abidlabs/question-answering", "#demo_qa");
-      launchGradioFromSpaces("abidlabs/Echocardiogram-Segmentation", "#demo_image_classifier");
-      launchGradioFromSpaces("abidlabs/same-person-or-different", "#demo_anime");
-    });
+<!--    document.querySelector("#gradio-library").addEventListener('load', function () {-->
+<!--      launchGradioFromSpaces("abidlabs/Draw", "#demo_mnist");-->
+<!--      launchGradioFromSpaces("abidlabs/question-answering", "#demo_qa");-->
+<!--      launchGradioFromSpaces("abidlabs/Echocardiogram-Segmentation", "#demo_image_classifier");-->
+<!--      launchGradioFromSpaces("abidlabs/same-person-or-different", "#demo_anime");-->
+<!--    });-->
   </script>
 </body>
 
