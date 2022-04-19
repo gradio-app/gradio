@@ -756,7 +756,7 @@ class TestImage3D(unittest.TestCase):
             )
             self.assertEqual("Image3D_input/1", to_save)
             restored = Image3D_input.restore_flagged(tmpdirname, to_save, None)
-            self.assertEqual(restored, "Image3D_input/1")
+            self.assertEqual(restored["name"], "Image3D_input/1")
 
         self.assertIsInstance(Image3D_input.generate_sample(), dict)
         Image3D_input = gr.inputs.Image3D(label="Upload Your 3D Image Model")
@@ -778,9 +778,9 @@ class TestImage3D(unittest.TestCase):
 
     def test_in_interface(self):
         Image3D = media_data.BASE64_MODEL3D
-        iface = gr.Interface(lambda x: x, "Image3D", "Image3D")
+        iface = gr.Interface(lambda x: x, "Model3D", "Model3D")
         self.assertEqual(
-            iface.process([Image3D])[0][0]["data"],
+            iface.process([Image3D])[0]["data"],
             Image3D["data"].replace("@file/gltf", ""),
         )
 

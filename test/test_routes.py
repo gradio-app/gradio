@@ -52,11 +52,15 @@ class TestRoutes(unittest.TestCase):
         io = Interface(predict, ["textbox", "state"], ["textbox", "state"])
         app, _, _ = io.launch(prevent_thread_lock=True)
         client = TestClient(app)
-        response = client.post("/api/predict/", json={"data": ["test", None]})
+        response = client.post(
+            "/api/predict/", json={"data": ["test", None], "fn_index": 0}
+        )
         output = dict(response.json())
         print("output", output)
         self.assertEqual(output["data"], ["test", None])
-        response = client.post("/api/predict/", json={"data": ["test", None]})
+        response = client.post(
+            "/api/predict/", json={"data": ["test", None], "fn_index": 0}
+        )
         output = dict(response.json())
         self.assertEqual(output["data"], ["testtest", None])
 

@@ -555,22 +555,13 @@ class TestImage3D(unittest.TestCase):
         )
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = Image3D_output.save_flagged(
-                tmpdirname, "Image3D_output", gr.test_data.BASE64_IMAGE3D, None
+                tmpdirname, "Image3D_output", media_data.BASE64_MODEL3D, None
             )
             self.assertEqual("Image3D_output/0.gltf", to_save)
             to_save = Image3D_output.save_flagged(
-                tmpdirname, "Image3D_output", gr.test_data.BASE64_IMAGE3D, None
+                tmpdirname, "Image3D_output", media_data.BASE64_MODEL3D, None
             )
             self.assertEqual("Image3D_output/1.gltf", to_save)
-
-
-class TestNames(unittest.TestCase):
-    def test_no_duplicate_uncased_names(
-        self,
-    ):  # this ensures that get_input_instance() works correctly when instantiating from components
-        subclasses = gr.outputs.OutputComponent.__subclasses__()
-        unique_subclasses_uncased = set([s.__name__.lower() for s in subclasses])
-        self.assertEqual(len(subclasses), len(unique_subclasses_uncased))
 
 
 if __name__ == "__main__":
