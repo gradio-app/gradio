@@ -7,41 +7,41 @@
 	export let style: string = "";
 </script>
 
-<div class="output-label">
-	<div
+<div class="output-label space-y-3">
+	<!-- <div
 		class="output-class font-bold text-2xl py-6 px-4 flex-grow flex items-center justify-center"
 		class:no-confidence={!("confidences" in value)}
 	>
 		{value.label}
-	</div>
+	</div> -->
 	{#if value.confidences}
-		<div class="confidence-intervals flex text-xl">
-			<div class="labels mr-2" style="maxWidth: 120px">
-				{#each value.confidences as confidence_set}
+		{#each value.confidences as confidence_set}
+			<div
+				class="flex items-start justify-between font-mono text-xs leading-none"
+			>
+				<div class="flex-1">
 					<div
-						class="label overflow-hidden whitespace-nowrap h-7 mb-2 overflow-ellipsis text-right"
-						title={confidence_set.label}
+						class="h-1 mb-1 rounded bg-gradient-to-r 
+					from-orange-400 
+					to-orange-200 
+					dark:from-orange-400 
+					dark:to-orange-600"
+						style="width: calc(
+							{Math.round(confidence_set.confidence * 100)}"
+					/>
+					<span class="leading-snug">{confidence_set.label}</span>
+				</div>
+				{#if value.confidences}
+					<span class="pl-2 flex-none"
+						>{Math.round(confidence_set.confidence * 100)}%</span
 					>
-						{confidence_set.label}
-					</div>
-				{/each}
+				{/if}
 			</div>
-			<div class="confidences flex flex-grow flex-col items-baseline">
-				{#each value.confidences as confidence_set, i}
-					<div
-						class="confidence flex justify-end items-center overflow-hidden whitespace-nowrap h-7 mb-2 px-1"
-						style="min-width: calc(
-							{Math.round(confidence_set.confidence * 100)}% - 12px)"
-					>
-						{Math.round(confidence_set.confidence * 100)}%
-					</div>
-				{/each}
-			</div>
-		</div>
+		{/each}
 	{/if}
 </div>
 
-<style lang="postcss">
+<!-- <style lang="postcss">
 	.output-label[theme="default"] {
 		.label {
 			@apply text-base h-7;
@@ -53,4 +53,4 @@
 			@apply bg-amber-500 dark:bg-red-600 border-red-700 text-white;
 		}
 	}
-</style>
+</style> -->
