@@ -16,6 +16,7 @@ from gradio.components import Dataframe as C_Dataframe
 from gradio.components import Dropdown as C_Dropdown
 from gradio.components import File as C_File
 from gradio.components import Image as C_Image
+from gradio.components import Model3D as C_Model3D
 from gradio.components import Number as C_Number
 from gradio.components import Radio as C_Radio
 from gradio.components import Slider as C_Slider
@@ -23,7 +24,6 @@ from gradio.components import Textbox as C_Textbox
 from gradio.components import Timeseries as C_Timeseries
 from gradio.components import Variable as C_Variable
 from gradio.components import Video as C_Video
-from gradio.components import Model3D as C_Model3D
 
 
 class Textbox(C_Textbox):
