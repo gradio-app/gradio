@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 . /home/ubuntu/.bashrc
 export PATH="/usr/local/bin:/usr/bin:/bin"
