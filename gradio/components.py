@@ -250,6 +250,7 @@ class Textbox(Component):
         default_value: str = "",
         *,
         lines: int = 1,
+        max_lines: int = 20,
         placeholder: Optional[str] = None,
         label: Optional[str] = None,
         css: Optional[Dict] = None,
@@ -258,7 +259,8 @@ class Textbox(Component):
         """
         Parameters:
         default_value (str): default text to provide in textarea.
-        lines (int): number of line rows to provide in textarea.
+        lines (int): minimum number of line rows to provide in textarea.
+        max_lines (int): maximum number of line rows to provide in textarea.
         placeholder (str): placeholder hint to provide behind textarea.
         label (str): component name in interface.
         """
@@ -274,6 +276,7 @@ class Textbox(Component):
             )
         default_value = str(default_value)
         self.lines = lines
+        self.max_lines = max_lines
         self.placeholder = placeholder
         self.default_value = default_value
         self.test_input = default_value
@@ -283,6 +286,7 @@ class Textbox(Component):
     def get_template_context(self):
         return {
             "lines": self.lines,
+            "max_lines": self.max_lines,
             "placeholder": self.placeholder,
             "default_value": self.default_value,
             **super().get_template_context(),
