@@ -8,7 +8,7 @@ sentence_list = [
 ]
 
 
-def random_sentence(a):
+def random_sentence():
     return sentence_list[random.randint(0, 2)]
 
 
