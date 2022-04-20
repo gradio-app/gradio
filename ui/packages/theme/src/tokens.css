@@ -48,3 +48,23 @@
 	@apply rounded 
 	checked:shadow-inner;
 }
+
+.gr-button {
+	@apply border inline-flex items-center justify-center shadow-sm hover:shadow bg-gradient-to-br bg-white active:shadow-inner flex-1 text-center px-2 py-0.5 rounded text-sm;
+}
+
+.gr-button-primary {
+	@apply from-orange-100/70 to-orange-200/80 hover:to-orange-100/90 text-orange-600 border-orange-200;
+}
+
+.gr-button-secondary {
+	@apply from-gray-100/70 to-gray-200/80 hover:to-gray-100/90 text-gray-700 border-gray-200;
+}
+
+.gr-button-sm {
+	@apply px-3 py-1 text-sm rounded-md;
+}
+
+.gr-button-lg {
+	@apply py-2.5 px-4 font-semibold rounded-lg text-base;
+}
