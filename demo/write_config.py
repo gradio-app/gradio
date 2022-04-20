@@ -25,7 +25,7 @@ args = parser.parse_args()
 # import the run.py file from inside the directory specified by args.demo_name
 run = importlib.import_module(f"{args.demo_name}.run")
 
-demo: gr.Blocks = run.iface
+demo: gr.Blocks = run.demo
 config = demo.get_config_file()
 
 json.dump(config, open(args.file_path, "w"), indent=2)
