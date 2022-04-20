@@ -750,13 +750,13 @@ class TestImage3D(unittest.TestCase):
             to_save = Image3D_input.save_flagged(
                 tmpdirname, "Image3D_input", Image3D, None
             )
-            self.assertEqual("Image3D_input/0", to_save)
+            self.assertEqual("Image3D_input/0.gltf", to_save)
             to_save = Image3D_input.save_flagged(
                 tmpdirname, "Image3D_input", Image3D, None
             )
             self.assertEqual("Image3D_input/1", to_save)
             restored = Image3D_input.restore_flagged(tmpdirname, to_save, None)
-            self.assertEqual(restored["name"], "Image3D_input/1")
+            self.assertEqual(restored["name"], "Image3D_input/1.gltf")
 
         self.assertIsInstance(Image3D_input.generate_sample(), dict)
         Image3D_input = gr.inputs.Image3D(label="Upload Your 3D Image Model")
