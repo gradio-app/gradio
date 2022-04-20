@@ -132,9 +132,7 @@ class Component(Block):
         Creates a component, where class name equals to str_shortcut.
 
         @param str_shortcut: string shortcut of a component
-        @return:
-            True, found_class or
-            False, None
+        @return: the insantiated component object, or None if no such component exists
         """
         # If we do not import templates Python cannot recognize grandchild classes names.
         import gradio.templates
@@ -252,7 +250,7 @@ class Textbox(Component):
         lines: int = 1,
         max_lines: int = 20,
         placeholder: Optional[str] = None,
-        label: Optional[str] = None,
+        label: Optional[str] = "Textbox",
         css: Optional[Dict] = None,
         **kwargs,
     ):
@@ -447,7 +445,7 @@ class Number(Component):
         self,
         default_value: Optional[float] = None,
         *,
-        label: Optional[str] = None,
+        label: Optional[str] = "Number",
         css: Optional[Dict] = None,
         **kwargs,
     ):
@@ -596,7 +594,7 @@ class Slider(Component):
         minimum: float = 0,
         maximum: float = 100,
         step: Optional[float] = None,
-        label: Optional[str] = None,
+        label: Optional[str] = "Slider",
         css: Optional[Dict] = None,
         **kwargs,
     ):
@@ -719,7 +717,7 @@ class Checkbox(Component):
         self,
         default_value: bool = False,
         *,
-        label: Optional[str] = None,
+        label: Optional[str] = "Checkbox",
         css: Optional[Dict] = None,
         **kwargs,
     ):
@@ -821,7 +819,7 @@ class CheckboxGroup(Component):
         *,
         default_selected: List[str] = None,
         type: str = "value",
-        label: Optional[str] = None,
+        label: Optional[str] = "Checkbox Group",
         css: Optional[Dict] = None,
         **kwargs,
     ):
@@ -958,7 +956,7 @@ class Radio(Component):
         *,
         default_selected: Optional[str] = None,
         type: str = "value",
-        label: Optional[str] = None,
+        label: Optional[str] = "Radio",
         css: Optional[Dict] = None,
         **kwargs,
     ):
@@ -1075,7 +1073,7 @@ class Dropdown(Radio):
         *,
         default_selected: Optional[str] = None,
         type: str = "value",
-        label: Optional[str] = None,
+        label: Optional[str] = "Dropdown",
         css: Optional[Dict] = None,
         **kwargs,
     ):
@@ -2371,7 +2369,11 @@ class Variable(Component):
         return {"default_value": self.default_value, **super().get_template_context()}
 
 
+############################
 # Only Output Components
+############################
+
+
 class Label(Component):
     """
     Component outputs a classification label, along with confidence scores of top categories if provided. Confidence scores are represented as a dictionary mapping labels to scores between 0 and 1.
@@ -2998,7 +3000,97 @@ class Model3D(Component):
         self.set_event_trigger("clear", fn, inputs, outputs)
 
 
+class Plot(Component):
+    """
+    Used for plot output.
+    Output type: matplotlib plt, plotly figure, or Bokeh fig (json_item format)
+    Demos: outbreak_forecast
+    """
+
+    def __init__(
+        self,
+        type: str = None,
+        label: str = None,
+        css: Optional[Dict] = None,
+        **kwargs,
+    ):
+        """
+        Parameters:
+        type (str): type of plot (matplotlib, plotly)
+        label (str): component name in interface.
+        """
+        self.type = type
+        super().__init__(label=label, css=css, **kwargs)
+
+    def get_template_context(self):
+        return {**super().get_template_context()}
+
+    def postprocess(self, y):
+        """
+        Parameters:
+        y (str): plot data
+        Returns:
+        (str): plot type
+        (str): plot base64 or json
+        """
+        dtype = self.type
+        if self.type == "plotly":
+            out_y = y.to_json()
+        elif self.type == "matplotlib":
+            out_y = processing_utils.encode_plot_to_base64(y)
+        elif self.type == "bokeh":
+            out_y = json.dumps(y)
+        elif self.type == "auto":
+            if isinstance(y, (ModuleType, matplotlib.pyplot.Figure)):
+                dtype = "matplotlib"
+                out_y = processing_utils.encode_plot_to_base64(y)
+            elif isinstance(y, dict):
+                dtype = "bokeh"
+                out_y = json.dumps(y)
+            else:
+                dtype = "plotly"
+                out_y = y.to_json()
+        else:
+            raise ValueError(
+                "Unknown type. Please choose from: 'plotly', 'matplotlib', 'bokeh'."
+            )
+        return {"type": dtype, "plot": out_y}
+
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+            status: StatusTracker to visualize function progress
+        Returns: None
+        """
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker
+        )
+
+    def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("clear", fn, inputs, outputs)
+
+
+############################
 # Static Components
+############################
+
+
 class Markdown(Component):
     """
     Used for Markdown output. Expects a valid string that is rendered into Markdown.
@@ -3186,92 +3278,6 @@ class Dataset(Component):
         )
 
 
-class Plot(Component):
-    """
-    Used for plot output.
-    Output type: matplotlib plt, plotly figure, or Bokeh fig (json_item format)
-    Demos: outbreak_forecast
-    """
-
-    def __init__(
-        self,
-        type: str = None,
-        label: str = None,
-        css: Optional[Dict] = None,
-        **kwargs,
-    ):
-        """
-        Parameters:
-        type (str): type of plot (matplotlib, plotly)
-        label (str): component name in interface.
-        """
-        self.type = type
-        super().__init__(label=label, css=css, **kwargs)
-
-    def get_template_context(self):
-        return {**super().get_template_context()}
-
-    def postprocess(self, y):
-        """
-        Parameters:
-        y (str): plot data
-        Returns:
-        (str): plot type
-        (str): plot base64 or json
-        """
-        dtype = self.type
-        if self.type == "plotly":
-            out_y = y.to_json()
-        elif self.type == "matplotlib":
-            out_y = processing_utils.encode_plot_to_base64(y)
-        elif self.type == "bokeh":
-            out_y = json.dumps(y)
-        elif self.type == "auto":
-            if isinstance(y, (ModuleType, matplotlib.pyplot.Figure)):
-                dtype = "matplotlib"
-                out_y = processing_utils.encode_plot_to_base64(y)
-            elif isinstance(y, dict):
-                dtype = "bokeh"
-                out_y = json.dumps(y)
-            else:
-                dtype = "plotly"
-                out_y = y.to_json()
-        else:
-            raise ValueError(
-                "Unknown type. Please choose from: 'plotly', 'matplotlib', 'bokeh'."
-            )
-        return {"type": dtype, "plot": out_y}
-
-    def change(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
-        )
-
-    def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        Returns: None
-        """
-        self.set_event_trigger("clear", fn, inputs, outputs)
-
-
 class Interpretation(Component):
     """
     Used to create an interpretation widget for a component.
@@ -3295,14 +3301,12 @@ class Interpretation(Component):
         }
 
 
-def component(str_shortcut: str) -> (bool, Optional[Component]):
+def component(str_shortcut: str) -> Optional[Component]:
     """
     Creates a component, where class name equals to str_shortcut.
 
     @param str_shortcut: string shortcut of a component
-    @return:
-        True, found_class or
-        False, None
+    @return component: the component object
     """
     component = Component.get_component_shortcut(str_shortcut)
     if component is None:
