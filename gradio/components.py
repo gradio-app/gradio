@@ -1130,7 +1130,7 @@ class Image(Component):
         """
         if "plot" in kwargs:
             warnings.warn(
-                "The 'plot' parameter has been deprecated. Set parameter 'type' to 'plot' instead.",
+                "The 'plot' parameter has been deprecated. Use the new Plot() component instead",
                 DeprecationWarning,
             )
             self.type = "plot"
