@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Radio } from "@gradio/form";
 
-	export let label: string;
+	export let label: string = "Radio";
 	export let value: string = "";
 	export let default_value: string;
 	export let style: string = "";

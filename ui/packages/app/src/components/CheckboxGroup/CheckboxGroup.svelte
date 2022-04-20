@@ -7,7 +7,7 @@
 
 	export let mode: "static" | "dynamic";
 	export let style: string = "";
-	export let label: string;
+	export let label: string = "Checkbox Group";
 
 	if (default_value) value = default_value;
 </script>
