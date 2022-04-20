@@ -250,7 +250,7 @@ class Textbox(Component):
         lines: int = 1,
         max_lines: int = 20,
         placeholder: Optional[str] = None,
-        label: Optional[str] = "Textbox",
+        label: Optional[str] = None,
         css: Optional[Dict] = None,
         **kwargs,
     ):
@@ -445,7 +445,7 @@ class Number(Component):
         self,
         default_value: Optional[float] = None,
         *,
-        label: Optional[str] = "Number",
+        label: Optional[str] = None,
         css: Optional[Dict] = None,
         **kwargs,
     ):
@@ -594,7 +594,7 @@ class Slider(Component):
         minimum: float = 0,
         maximum: float = 100,
         step: Optional[float] = None,
-        label: Optional[str] = "Slider",
+        label: Optional[str] = None,
         css: Optional[Dict] = None,
         **kwargs,
     ):
@@ -717,7 +717,7 @@ class Checkbox(Component):
         self,
         default_value: bool = False,
         *,
-        label: Optional[str] = "Checkbox",
+        label: Optional[str] = None,
         css: Optional[Dict] = None,
         **kwargs,
     ):
@@ -819,7 +819,7 @@ class CheckboxGroup(Component):
         *,
         default_selected: List[str] = None,
         type: str = "value",
-        label: Optional[str] = "Checkbox Group",
+        label: Optional[str] = None,
         css: Optional[Dict] = None,
         **kwargs,
     ):
@@ -956,7 +956,7 @@ class Radio(Component):
         *,
         default_selected: Optional[str] = None,
         type: str = "value",
-        label: Optional[str] = "Radio",
+        label: Optional[str] = None,
         css: Optional[Dict] = None,
         **kwargs,
     ):
@@ -1073,7 +1073,7 @@ class Dropdown(Radio):
         *,
         default_selected: Optional[str] = None,
         type: str = "value",
-        label: Optional[str] = "Dropdown",
+        label: Optional[str] = None,
         css: Optional[Dict] = None,
         **kwargs,
     ):
