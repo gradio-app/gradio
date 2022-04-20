@@ -39,7 +39,7 @@
 		</div>
 	{:else}
 		<audio
-			class="w-full"
+			class="w-full h-14 p-2 mt-7"
 			controls
 			preload="metadata"
 			src={value.data}
