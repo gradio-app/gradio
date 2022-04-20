@@ -2937,7 +2937,7 @@ class Model3D(Component):
         Returns: (str) path to 3D image model file
         """
         return self.save_flagged_file(
-            dir, label, None if data is None else data["data"], encryption_key
+            dir, label, data["data"], encryption_key, data["name"]
         )
 
     def generate_sample(self):
