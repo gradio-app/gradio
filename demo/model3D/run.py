@@ -1,7 +1,6 @@
 import time
 import gradio as gr
 
-
 def load_mesh(mesh_file_name):
     time.sleep(2)
     return mesh_file_name
@@ -13,8 +12,8 @@ iface = gr.Interface(
     fn=load_mesh, 
     inputs=inputs, 
     outputs=outputs,
-    examples=[["files/Bunny.obj"], ["files/Duck.glb"]]
+    examples=[["files/Bunny.obj"], ["files/Duck.glb"], ["files/Fox.gltf"]], cache_examples=True
 )
 
 if __name__ == "__main__":
-    iface.launch(cache_examples=True)
+    iface.launch()
