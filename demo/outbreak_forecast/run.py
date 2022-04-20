@@ -29,7 +29,7 @@ def outbreak(plot_type, r, month, countries, social_distancing):
 
     if plot_type == "Matplotlib":
         fig = plt.figure()
-        plt.plot(df['day'], df[countries])
+        plt.plot(df['day'], df[countries].to_numpy())
         plt.title("Outbreak in " + month)
         plt.ylabel("Cases")
         plt.xlabel("Days since Day 0")

@@ -3,7 +3,7 @@
 <script lang="ts">
 	import { TextBox } from "@gradio/form";
 
-	export let label: string;
+	export let label: string = "Textbox";
 	export let value: string = " ";
 	export let default_value: string | false = false;
 	export let style: string = "";
