@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
 from gradio import encryptor, networking, queueing, strings, utils
 from gradio.context import Context
-from gradio.process_examples import cache_interface_examples
+from gradio.routes import PredictBody
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from fastapi.applications import FastAPI
@@ -19,7 +19,8 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 
 class Block:
-    def __init__(self, without_rendering=False):
+    def __init__(self, without_rendering=False, css=None):
+        self.css = css if css is not None else {}
         if without_rendering:
             return
         self.render()
@@ -103,9 +104,8 @@ class BlockContext(Block):
         css: Css rules to apply to block.
         """
         self.children = []
-        self.css = css if css is not None else {}
         self.visible = visible
-        super().__init__()
+        super().__init__(css=css)
 
     def __enter__(self):
         self.parent = Context.block
@@ -116,7 +116,10 @@ class BlockContext(Block):
         Context.block = self.parent
 
     def get_template_context(self):
-        return {"css": self.css, "default_value": self.visible}
+        return {
+            "css": self.css,
+            "default_value": self.visible,
+        }
 
     def postprocess(self, y):
         return y
@@ -304,7 +307,7 @@ class Blocks(BlockContext):
                 {
                     "id": _id,
                     "type": (block.get_block_name()),
-                    "props": block.get_template_context()
+                    "props": utils.delete_none(block.get_template_context())
                     if hasattr(block, "get_template_context")
                     else None,
                 }
@@ -378,7 +381,6 @@ class Blocks(BlockContext):
         height: int = 500,
         width: int = 900,
         encrypt: bool = False,
-        cache_examples: bool = False,
         favicon_path: Optional[str] = None,
         ssl_keyfile: Optional[str] = None,
         ssl_certfile: Optional[str] = None,
@@ -403,7 +405,6 @@ class Blocks(BlockContext):
         width (int): The width in pixels of the iframe element containing the interface (used if inline=True)
         height (int): The height in pixels of the iframe element containing the interface (used if inline=True)
         encrypt (bool): If True, flagged data will be encrypted by key provided by creator at launch
-        cache_examples (bool): If True, examples outputs will be processed and cached in a folder, and will be used if a user uses an example input.
         favicon_path (str): If a path to a file (.png, .gif, or .ico) is provided, it will be used as the favicon for the web page.
         ssl_keyfile (str): If a path to a file is provided, will use this as the private key file to create a local server running on https.
         ssl_certfile (str): If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
@@ -414,7 +415,6 @@ class Blocks(BlockContext):
         share_url (str): Publicly accessible link to the demo (if share=True, otherwise None)
         """
         self.config = self.get_config_file()
-        self.cache_examples = cache_examples
         if (
             auth
             and not callable(auth)
@@ -442,9 +442,6 @@ class Blocks(BlockContext):
 
         config = self.get_config_file()
         self.config = config
-
-        if self.cache_examples:
-            cache_interface_examples(self)
 
         if self.is_running:
             self.server_app.launchable = self

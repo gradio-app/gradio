@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Dropdown } from "@gradio/form";
-	export let label: string = "";
+	export let label: string = "Dropdown";
 	export let value: string = "";
 	export let default_value: string = "";
 	export let style: string = "";

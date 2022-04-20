@@ -83,6 +83,25 @@
        visibility: visible;
     }
 
+    ol {
+      list-style: auto;
+      padding-inline-start: 40px;
+      list-style-type: none;
+    }
+
+    table {
+      margin: auto;
+    }
+
+     th {
+      background: #ccc;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+    }
+
   </style>
   <script async src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
   <script>
@@ -98,6 +117,13 @@
 <body class="bg-white text-gray-900 text-md sm:text-lg">
   {{navbar_html|safe}}
   <div class="container mx-auto max-w-4xl px-4 mb-12 mt-6" id="guide-template">
+    <div class="prose mt-6 mb-6">
+      <h1 id="{{guide_name}}" class="header">{{title}}</h1>
+      {% if contributor is not none %}
+      <p>Contributed by {{contributor}}</p>
+      {% endif %}
+    </div>
+
     {% if spaces is not none %}
     <div id='spaces-holder'>
       <a href='https://hf.co/spaces' target='_blank'>
@@ -113,7 +139,7 @@
       </div>
    {% endif %}
 
-    <div class="prose mt-6">
+    <div class="prose mt-6 mb-6">
       {{ template_html|safe }}
     </div>
   </div>

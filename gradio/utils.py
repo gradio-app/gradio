@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import csv
 import inspect
 import json
@@ -11,7 +12,7 @@ import random
 import warnings
 from copy import deepcopy
 from distutils.version import StrictVersion
-from typing import TYPE_CHECKING, Any, Callable, Dict
+from typing import TYPE_CHECKING, Any, Callable, Dict, List
 
 import aiohttp
 import analytics
@@ -215,29 +216,34 @@ def get_config_file(interface: Interface) -> Dict[str, Any]:
     }
     try:
         param_names = inspect.getfullargspec(interface.predict[0])[0]
-        for iface, param in zip(config["input_components"], param_names):
-            if not iface["label"]:
-                iface["label"] = param.replace("_", " ")
-        for i, iface in enumerate(config["output_components"]):
+        for index, component in enumerate(config["input_components"]):
+            if not component["label"]:
+                if index < len(param_names):
+                    component["label"] = param_names[index].replace("_", " ")
+                else:
+                    component["label"] = (
+                        f"input {index + 1}"
+                        if len(config["input_components"]) > 1
+                        else "input"
+                    )
+        for index, component in enumerate(config["output_components"]):
             outputs_per_function = int(
                 len(interface.output_components) / len(interface.predict)
             )
-            function_index = i // outputs_per_function
-            component_index = i - function_index * outputs_per_function
-            ret_name = (
-                "Output " + str(component_index + 1)
-                if outputs_per_function > 1
-                else "Output"
-            )
-            if iface["label"] is None:
-                iface["label"] = ret_name
+            function_index = index // outputs_per_function
+            component_index = index - function_index * outputs_per_function
+            if component["label"] is None:
+                component["label"] = (
+                    f"output {component_index + 1}"
+                    if outputs_per_function > 1
+                    else "output"
+                )
             if len(interface.predict) > 1:
-                iface["label"] = (
+                component["label"] = (
                     interface.function_names[function_index].replace("_", " ")
                     + ": "
-                    + iface["label"]
+                    + component["label"]
                 )
-
     except ValueError:
         pass
     if interface.examples is not None:
@@ -329,3 +335,38 @@ def assert_configs_are_equivalent_besides_ids(config1, config2):
         assert d1["queue"] == d2["queue"], "{} does not match {}".format(d1, d2)
 
     return True
+
+
+def format_ner_list(input_string: str, ner_groups: Dict[str : str | int]):
+    if len(ner_groups) == 0:
+        return [(input_string, None)]
+
+    output = []
+    prev_end = 0
+
+    for group in ner_groups:
+        entity, start, end = group["entity_group"], group["start"], group["end"]
+        output.append((input_string[prev_end:start], None))
+        output.append((input_string[start:end], entity))
+        prev_end = end
+
+    output.append((input_string[end:], None))
+    return output
+
+
+def delete_none(_dict):
+    """
+    Delete None values recursively from all of the dictionaries, tuples, lists, sets.
+    Credit: https://stackoverflow.com/questions/33797126/proper-way-to-remove-keys-in-dictionary-with-none-values-in-python
+    """
+    if isinstance(_dict, dict):
+        for key, value in list(_dict.items()):
+            if isinstance(value, (list, dict, tuple, set)):
+                _dict[key] = delete_none(value)
+            elif value is None or key is None:
+                del _dict[key]
+
+    elif isinstance(_dict, (list, set, tuple)):
+        _dict = type(_dict)(delete_none(item) for item in _dict if item is not None)
+
+    return _dict

@@ -67,51 +67,51 @@ class TestStartServer(unittest.TestCase):
         server.close()
 
 
-class TestFlagging(unittest.TestCase):
-    def test_flagging_analytics(self):
-        callback = flagging.CSVLogger()
-        callback.flag = mock.MagicMock()
-        aiohttp.ClientSession.post = mock.MagicMock()
-        aiohttp.ClientSession.post.__aenter__ = None
-        aiohttp.ClientSession.post.__aexit__ = None
-        io = Interface(
-            lambda x: x,
-            "text",
-            "text",
-            analytics_enabled=True,
-            flagging_callback=callback,
-        )
-        app, _, _ = io.launch(show_error=True, prevent_thread_lock=True)
-        client = TestClient(app)
-        response = client.post(
-            "/api/flag/",
-            json={"data": {"input_data": ["test"], "output_data": ["test"]}},
-        )
-        aiohttp.ClientSession.post.assert_called()
-        callback.flag.assert_called_once()
-        self.assertEqual(response.status_code, 200)
-        io.close()
+# class TestFlagging(unittest.TestCase):
+#     def test_flagging_analytics(self):
+#         callback = flagging.CSVLogger()
+#         callback.flag = mock.MagicMock()
+#         aiohttp.ClientSession.post = mock.MagicMock()
+#         aiohttp.ClientSession.post.__aenter__ = None
+#         aiohttp.ClientSession.post.__aexit__ = None
+#         io = Interface(
+#             lambda x: x,
+#             "text",
+#             "text",
+#             analytics_enabled=True,
+#             flagging_callback=callback,
+#         )
+#         app, _, _ = io.launch(show_error=True, prevent_thread_lock=True)
+#         client = TestClient(app)
+#         response = client.post(
+#             "/api/flag/",
+#             json={"data": {"input_data": ["test"], "output_data": ["test"]}},
+#         )
+#         aiohttp.ClientSession.post.assert_called()
+#         callback.flag.assert_called_once()
+#         self.assertEqual(response.status_code, 200)
+#         io.close()
 
 
-class TestInterpretation(unittest.TestCase):
-    def test_interpretation(self):
-        io = Interface(
-            lambda x: len(x),
-            "text",
-            "label",
-            interpretation="default",
-            analytics_enabled=True,
-        )
-        app, _, _ = io.launch(prevent_thread_lock=True)
-        client = TestClient(app)
-        aiohttp.ClientSession.post = mock.MagicMock()
-        aiohttp.ClientSession.post.__aenter__ = None
-        aiohttp.ClientSession.post.__aexit__ = None
-        io.interpret = mock.MagicMock(return_value=(None, None))
-        response = client.post("/api/interpret/", json={"data": ["test test"]})
-        aiohttp.ClientSession.post.assert_called()
-        self.assertEqual(response.status_code, 200)
-        io.close()
+# class TestInterpretation(unittest.TestCase):
+#     def test_interpretation(self):
+#         io = Interface(
+#             lambda x: len(x),
+#             "text",
+#             "label",
+#             interpretation="default",
+#             analytics_enabled=True,
+#         )
+#         app, _, _ = io.launch(prevent_thread_lock=True)
+#         client = TestClient(app)
+#         aiohttp.ClientSession.post = mock.MagicMock()
+#         aiohttp.ClientSession.post.__aenter__ = None
+#         aiohttp.ClientSession.post.__aexit__ = None
+#         io.interpret = mock.MagicMock(return_value=(None, None))
+#         response = client.post("/api/interpret/", json={"data": ["test test"]})
+#         aiohttp.ClientSession.post.assert_called()
+#         self.assertEqual(response.status_code, 200)
+#         io.close()
 
 
 class TestURLs(unittest.TestCase):

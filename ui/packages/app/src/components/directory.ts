@@ -28,5 +28,7 @@ export const component_map: Record<string, any> = {
 	textbox: () => import("./Textbox"),
 	timeseries: () => import("./TimeSeries"),
 	video: () => import("./Video"),
+	model3d: () => import("./Model3D"),
+	plot: () => import("./Plot"),
 	variable: () => import("./Variable")
 };

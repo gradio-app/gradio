@@ -10,7 +10,7 @@ import pandas
 import PIL
 
 import gradio as gr
-from gradio.test_data import media_data
+from gradio import media_data
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -736,6 +736,54 @@ class TestTimeseries(unittest.TestCase):
                     "data": [[1, 2, 2, 2], [1, 2, 2, 2], [1, 2, 2, 2], [1, 2, 2, 2]],
                 }
             ],
+        )
+
+
+class TestImage3D(unittest.TestCase):
+    def test_as_component(self):
+        Image3D = media_data.BASE64_MODEL3D
+        Image3D_input = gr.inputs.Image3D()
+        output = Image3D_input.preprocess(Image3D)
+        self.assertIsInstance(output, str)
+
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            to_save = Image3D_input.save_flagged(
+                tmpdirname, "Image3D_input", Image3D, None
+            )
+            self.assertEqual("Image3D_input/0.gltf", to_save)
+            to_save = Image3D_input.save_flagged(
+                tmpdirname, "Image3D_input", Image3D, None
+            )
+            self.assertEqual("Image3D_input/1.gltf", to_save)
+            restored = Image3D_input.restore_flagged(tmpdirname, to_save, None)
+            self.assertEqual(restored["name"], "Image3D_input/1.gltf")
+
+        self.assertIsInstance(Image3D_input.generate_sample(), dict)
+        Image3D_input = gr.inputs.Image3D(label="Upload Your 3D Image Model")
+        self.assertEqual(
+            Image3D_input.get_template_context(),
+            {
+                "clearColor": None,
+                "name": "image3d",
+                "css": {},
+                "interactive": None,
+                "label": "Upload Your 3D Image Model",
+            },
+        )
+
+        self.assertIsNone(Image3D_input.preprocess(None))
+        Image3D["is_example"] = True
+        self.assertIsNotNone(Image3D_input.preprocess(Image3D))
+        Image3D_input = gr.inputs.Image3D()
+        with self.assertRaises(NotImplementedError):
+            Image3D_input.serialize(Image3D, True)
+
+    def test_in_interface(self):
+        Image3D = media_data.BASE64_MODEL3D
+        iface = gr.Interface(lambda x: x, "model3d", "model3d")
+        self.assertEqual(
+            iface.process([Image3D])[0]["data"],
+            Image3D["data"].replace("@file/gltf", ""),
         )
 
 
