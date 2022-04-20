@@ -754,7 +754,7 @@ class TestImage3D(unittest.TestCase):
             to_save = Image3D_input.save_flagged(
                 tmpdirname, "Image3D_input", Image3D, None
             )
-            self.assertEqual("Image3D_input/1", to_save)
+            self.assertEqual("Image3D_input/1.gltf", to_save)
             restored = Image3D_input.restore_flagged(tmpdirname, to_save, None)
             self.assertEqual(restored["name"], "Image3D_input/1.gltf")
 
