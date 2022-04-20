@@ -57,16 +57,16 @@
 			engine.resize();
 		});
 
-		let url: string
+		let url: string;
 		if (value.is_example) {
-			url = value.data
+			url = value.data;
 		} else {
 			let base64_model_content = value.data;
 			let raw_content = BABYLON.Tools.DecodeBase64(base64_model_content);
 			let blob = new Blob([raw_content]);
 			url = URL.createObjectURL(blob);
 		}
-		
+
 		BABYLON.SceneLoader.Append(
 			"",
 			url,
