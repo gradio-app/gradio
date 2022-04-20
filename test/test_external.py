@@ -214,7 +214,7 @@ class TestLoadInterface(unittest.TestCase):
 
     def test_speech_recognition_model(self):
         interface_info = gr.external.load_interface(
-            "models/facebook/wav2vec2-large-960h-lv60-self"
+            "models/facebook/wav2vec2-base-960h"
         )
         io = gr.Interface(**interface_info)
         io.api_mode = True
