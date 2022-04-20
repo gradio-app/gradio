@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
 from markdown_it import MarkdownIt
 from mdit_py_plugins.footnote import footnote_plugin
 
-from gradio import context, interpretation, utils
+from gradio import interpretation, utils
 from gradio.blocks import Blocks, Column, Row, TabItem, Tabs
 from gradio.components import (
     Button,
@@ -32,8 +32,6 @@ from gradio.components import (
 )
 from gradio.external import load_from_pipeline, load_interface  # type: ignore
 from gradio.flagging import CSVLogger, FlaggingCallback  # type: ignore
-from gradio.inputs import State as i_State  # type: ignore
-from gradio.outputs import State as o_State  # type: ignore
 from gradio.process_examples import cache_interface_examples, load_from_cache
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
@@ -487,7 +485,10 @@ class Interface(Blocks):
                 component.label = param_name
         for i, component in enumerate(self.output_components):
             if component.label is None:
-                component.label = "output_" + str(i)
+                if len(self.output_components) == 1:
+                    component.label = "output"
+                else:
+                    component.label = "output " + str(i)
 
         self.cache_examples = cache_examples
         if cache_examples:

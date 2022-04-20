@@ -3,7 +3,7 @@
 
 	export let value: number = 0;
 
-	export let label: string;
+	export let label: string = "Slider";
 	export let default_value: number;
 
 	export let style: string = "";
