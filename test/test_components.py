@@ -85,7 +85,7 @@ class TestTextbox(unittest.TestCase):
             text_input.get_template_context(),
             {
                 "lines": 1,
-                "max_lines": 100,
+                "max_lines": 20,
                 "placeholder": None,
                 "default_value": "",
                 "name": "textbox",
@@ -193,10 +193,10 @@ class TestNumber(unittest.TestCase):
         """
         Interface, process, interpret
         """
-        iface = gr.Interface(lambda x: x**2, "number", "textbox")
+        iface = gr.Interface(lambda x: x ** 2, "number", "textbox")
         self.assertEqual(iface.process([2]), ["4.0"])
         iface = gr.Interface(
-            lambda x: x**2, "number", "number", interpretation="default"
+            lambda x: x ** 2, "number", "number", interpretation="default"
         )
         scores = iface.interpret([2])[0]["interpretation"]
         self.assertEqual(
@@ -219,7 +219,7 @@ class TestNumber(unittest.TestCase):
         iface = gr.Interface(lambda x: int(x) ** 2, "textbox", "number")
         self.assertEqual(iface.process([2]), [4.0])
         iface = gr.Interface(
-            lambda x: x**2, "number", "number", interpretation="default"
+            lambda x: x ** 2, "number", "number", interpretation="default"
         )
         scores = iface.interpret([2])[0]["interpretation"]
         self.assertEqual(
@@ -275,10 +275,10 @@ class TestSlider(unittest.TestCase):
         """ "
         Interface, process, interpret
         """
-        iface = gr.Interface(lambda x: x**2, "slider", "textbox")
+        iface = gr.Interface(lambda x: x ** 2, "slider", "textbox")
         self.assertEqual(iface.process([2]), ["4"])
         iface = gr.Interface(
-            lambda x: x**2, "slider", "number", interpretation="default"
+            lambda x: x ** 2, "slider", "number", interpretation="default"
         )
         scores = iface.interpret([2])[0]["interpretation"]
         self.assertEqual(
@@ -1467,7 +1467,7 @@ class TestCarousel(unittest.TestCase):
                         "label": None,
                         "default_value": "",
                         "lines": 1,
-                        "max_lines": 100,
+                        "max_lines": 20,
                         "css": {},
                         "placeholder": None,
                         "interactive": None,

@@ -439,7 +439,7 @@ class TestCarousel(unittest.TestCase):
                         "label": None,
                         "default_value": "",
                         "lines": 1,
-                        "max_lines": 100,
+                        "max_lines": 20,
                         "css": {},
                         "placeholder": None,
                         "interactive": None,

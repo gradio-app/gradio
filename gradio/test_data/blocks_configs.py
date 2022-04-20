@@ -124,7 +124,7 @@ XRAY_CONFIG = {
             "type": "textbox",
             "props": {
                 "lines": 1,
-                "max_lines": 100,
+                "max_lines": 20,
                 "placeholder": None,
                 "default_value": "",
                 "name": "textbox",
@@ -319,7 +319,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "placeholder": None,
                 "default_value": "",
                 "name": "textbox",
-                "max_lines": 100,
+                "max_lines": 20,
                 "label": None,
                 "css": {},
                 "interactive": None,

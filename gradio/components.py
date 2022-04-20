@@ -251,7 +251,7 @@ class Textbox(Component):
         default_value: str = "",
         *,
         lines: int = 1,
-        max_lines: int = 100,
+        max_lines: int = 20,
         placeholder: Optional[str] = None,
         label: Optional[str] = None,
         css: Optional[Dict] = None,
