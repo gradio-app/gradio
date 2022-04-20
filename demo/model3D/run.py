@@ -12,8 +12,8 @@ iface = gr.Interface(
     fn=load_mesh, 
     inputs=inputs, 
     outputs=outputs,
-    examples=["files/Bunny.obj"]
+    examples=[["files/Bunny.obj"], ["files/Duck.glb"], ["files/Fox.gltf"]], cache_examples=True
 )
 
 if __name__ == "__main__":
-    iface.launch(share=True)
+    iface.launch()

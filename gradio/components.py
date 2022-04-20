@@ -1957,7 +1957,6 @@ class File(Component):
         }
 
     def preprocess_example(self, x):
-        print("Hit Pre process example!", x)
         return {"name": x, "data": None, "is_example": True}
 
     def preprocess(self, x: List[Dict[str, str]] | None):
@@ -2923,7 +2922,6 @@ class Model3D(Component):
                 file_data, file_path=file_name
             )
         file_name = file.name
-        print("HIT!! Pre Process Step: ", file_name)
         return file_name
 
     def serialize(self, x, called_directly):
@@ -2955,7 +2953,6 @@ class Model3D(Component):
         if self.clear_color is None:
             self.clear_color = [0.2, 0.2, 0.2, 1.0]
 
-        print("HIT!! Post Process Step: ", os.path.basename(y))
         return {
             "name": os.path.basename(y),
             "data": processing_utils.encode_file_to_base64(y),

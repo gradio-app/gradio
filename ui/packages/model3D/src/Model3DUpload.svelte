@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher, tick } from "svelte";
+	import { createEventDispatcher, tick, afterUpdate } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
 	import type { FileData } from "@gradio/upload";
 	import { Block, BlockLabel } from "@gradio/atoms";
@@ -14,7 +14,11 @@
 	export let label: string = "";
 	export let style: string;
 
-	let file_count: string;
+	afterUpdate(() => {
+		if (value != null && value.is_example) {
+			addNewModel();
+		}
+	});
 
 	async function handle_upload({ detail }: CustomEvent<FileData>) {
 		value = detail;
@@ -34,7 +38,6 @@
 
 	let dragging = false;
 
-	import { afterUpdate } from "svelte";
 	import * as BABYLON from "babylonjs";
 	import "babylonjs-loaders";
 
@@ -54,10 +57,16 @@
 			engine.resize();
 		});
 
-		let base64_model_content = value.data;
-		let raw_content = BABYLON.Tools.DecodeBase64(base64_model_content);
-		let blob = new Blob([raw_content]);
-		let url = URL.createObjectURL(blob);
+		let url: string
+		if (value.is_example) {
+			url = value.data
+		} else {
+			let base64_model_content = value.data;
+			let raw_content = BABYLON.Tools.DecodeBase64(base64_model_content);
+			let blob = new Blob([raw_content]);
+			url = URL.createObjectURL(blob);
+		}
+		
 		BABYLON.SceneLoader.Append(
 			"",
 			url,
