@@ -2,6 +2,7 @@
 . /home/ubuntu/.bashrc
 export PATH="/usr/local/bin:/usr/bin:/bin"
 
+
 ERROR=$(bash ./reload_website.sh 2>&1)
 
 if ! [ $? -eq 0 ]; then
