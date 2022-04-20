@@ -49,7 +49,7 @@
 	let values_changed = true;
 	let is_drawing = false;
 	let is_pressing = false;
-	let showPlaceholder = false;
+	let show_placeholder = false;
 	let lazy = null;
 	let chain_length = null;
 	let canvas_container = null;
@@ -156,7 +156,7 @@
 
 	let handle_draw_start = (e) => {
 		e.preventDefault();
-		showPlaceholder = true;
+		show_placeholder = true;
 		is_pressing = true;
 		const { x, y } = get_pointer_pos(e);
 		if (e.touches && e.touches.length > 0) {
@@ -275,7 +275,7 @@
 	};
 
 	export function clear() {
-		showPlaceholder = false;
+		show_placeholder = false;
 		lines = [];
 		values_changed = true;
 		ctx.drawing.clearRect(0, 0, canvas.drawing.width, canvas.drawing.height);
@@ -343,7 +343,7 @@
 	bind:offsetWidth={canvas_width}
 	bind:offsetHeight={canvas_height}
 >
-	{#if !showPlaceholder}
+	{#if !show_placeholder}
 		<div
 			class="absolute inset-0 flex items-center justify-center z-40 pointer-events-none touch-none text-gray-400 md:text-xl"
 		>
