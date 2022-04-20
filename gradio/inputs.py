@@ -16,6 +16,7 @@ from gradio.components import Dataframe as C_Dataframe
 from gradio.components import Dropdown as C_Dropdown
 from gradio.components import File as C_File
 from gradio.components import Image as C_Image
+from gradio.components import Model3D as C_Model3D
 from gradio.components import Number as C_Number
 from gradio.components import Radio as C_Radio
 from gradio.components import Slider as C_Slider
@@ -488,3 +489,27 @@ class State(C_Variable):
             DeprecationWarning,
         )
         super().__init__(default_value=default, label=label)
+
+
+class Image3D(C_Model3D):
+    """
+    Used for 3D image model output.
+    Input type: File object of type (.obj, glb, or .gltf)
+    Demos: Image3D
+    """
+
+    def __init__(
+        self,
+        label: Optional[str] = None,
+        optional: bool = False,
+    ):
+        """
+        Parameters:
+        label (str): component name in interface.
+        optional (bool): If True, the interface can be submitted with no uploaded image, in which case the input value is None.
+        """
+        warnings.warn(
+            "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
+            DeprecationWarning,
+        )
+        super().__init__(label=label, optional=optional)

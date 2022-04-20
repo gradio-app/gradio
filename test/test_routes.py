@@ -44,6 +44,30 @@ class TestRoutes(unittest.TestCase):
         output = dict(response.json())
         self.assertEqual(output["data"], ["testtest"])
 
+    def test_state(self):
+        def predict(input, history):
+            if history is None:
+                history = ""
+            history += input
+            return history, history
+
+        io = Interface(predict, ["textbox", "state"], ["textbox", "state"])
+        app, _, _ = io.launch(prevent_thread_lock=True)
+        client = TestClient(app)
+        response = client.post(
+            "/api/predict/",
+            json={"data": ["test", None], "fn_index": 0, "session_hash": "_"},
+        )
+        output = dict(response.json())
+        print("output", output)
+        self.assertEqual(output["data"], ["test", None])
+        response = client.post(
+            "/api/predict/",
+            json={"data": ["test", None], "fn_index": 0, "session_hash": "_"},
+        )
+        output = dict(response.json())
+        self.assertEqual(output["data"], ["testtest", None])
+
     def test_queue_push_route(self):
         queueing.push = mock.MagicMock(return_value=(None, None))
         response = self.client.post(

@@ -11,7 +11,7 @@ import pandas as pd
 import PIL
 
 import gradio as gr
-from gradio.test_data import media_data
+from gradio import media_data
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -85,6 +85,7 @@ class TestTextbox(unittest.TestCase):
             text_input.get_template_context(),
             {
                 "lines": 1,
+                "max_lines": 20,
                 "placeholder": None,
                 "default_value": "",
                 "name": "textbox",
@@ -1466,6 +1467,7 @@ class TestCarousel(unittest.TestCase):
                         "label": None,
                         "default_value": "",
                         "lines": 1,
+                        "max_lines": 20,
                         "css": {},
                         "placeholder": None,
                         "interactive": None,

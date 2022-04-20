@@ -1,5 +1,5 @@
-aiohttp
 analytics-python
+aiohttp
 fastapi
 ffmpy
 markdown-it-py[linkify,plugins]
@@ -10,7 +10,8 @@ pandas
 paramiko
 pillow
 pycryptodome
-pydub
 python-multipart
+pydub
 requests
 uvicorn
+Jinja2
