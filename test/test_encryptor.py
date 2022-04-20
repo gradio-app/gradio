@@ -2,7 +2,7 @@ import os
 import unittest
 
 from gradio import encryptor, processing_utils
-from gradio.test_data.media_data import BASE64_IMAGE
+from gradio.media_data import BASE64_IMAGE
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
