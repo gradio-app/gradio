@@ -1,18 +1,9 @@
 <script lang="ts">
-	export let variant: "primary" | "secondary" = "primary";
+	export let variant: "primary" | "secondary" = "secondary";
 	export let style: string = "";
+	export let size: "sm" | "lg" = "lg";
 </script>
 
-<button
-	on:click
-	{style}
-	class="{variant} flex-1 px-4 py-2 bg-gray-100 rounded transition"
->
+<button on:click {style} class="gr-button gr-button-{size} gr-button-{variant}">
 	<slot />
 </button>
-
-<style lang="postcss">
-	button {
-		@apply hover:bg-gray-200;
-	}
-</style>

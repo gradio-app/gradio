@@ -31,7 +31,7 @@ This will install the dependencies for all packages within the `ui` folder and l
 
 ## local development
 
-To develop locally, open two browser tabs from the root of the repository.
+To develop locally, open two terminal tabs from the root of the repository.
 
 Run the python test server, from the root directory:
 
@@ -40,7 +40,7 @@ cd demo/kitchen_sink
 python run.py
 ```
 
-This will start a development server on port `7863` that the web app is expecting.
+This will start a development server on port `7860` that the web app is expecting.
 
 Run the web app:
 
