@@ -19,7 +19,7 @@
 	<BlockLabel image={image_icon} label={label || "Image"} />
 	{#if value === null}
 		<div class="min-h-[16rem] flex justify-center items-center">
-			<img src={image_icon} alt="" class="h-10 opacity-30" />
+			<img src={image_icon} alt="" class="h-6 opacity-20" />
 		</div>
 	{:else}
 		<img class="w-full h-full object-contain" src={value} alt="" />

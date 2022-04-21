@@ -64,7 +64,7 @@
 </script>
 
 <div
-	class="w-full cursor-pointer h-full flex items-center justify-center text-center text-gray-400 md:text-xl max-h-[15rem] xl:max-h-[18rem] 2xl:max-h-[20rem]  min-h-[10rem] md:min-h-[15rem] "
+	class="w-full cursor-pointer h-full flex items-center justify-center text-center text-gray-400 md:text-xl max-h-[15rem] xl:max-h-[18rem] 2xl:max-h-[20rem] min-h-[10rem] md:min-h-[15rem]"
 	{theme}
 	on:drag|preventDefault|stopPropagation
 	on:dragstart|preventDefault|stopPropagation
