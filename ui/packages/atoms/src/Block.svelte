@@ -19,7 +19,6 @@
 	class:!rounded-none={form_position === "mid"}
 	class:!rounded-b-none={form_position === "first"}
 	class:!rounded-t-none={form_position === "last"}
-	{form_position}
 >
 	<slot />
 </div>

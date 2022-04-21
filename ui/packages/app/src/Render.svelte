@@ -79,8 +79,6 @@
 			node.props.form_position = "single";
 		}
 	}
-
-	console.log(children);
 </script>
 
 <svelte:component
@@ -94,7 +92,6 @@
 >
 	{#if children && children.length}
 		{#each children as { component, id, props, children, has_modes }}
-			<!-- {@const type = get_form_type(i)} -->
 			<svelte:self
 				{component}
 				{id}
