@@ -4,7 +4,7 @@
 
 @layer components {
 	.gr-gap > * + * {
-		@apply  mt-2;
+		@apply mt-2;
 	}
 	.gr-form-gap > .form + .form {
 		@apply mt-0 border-t-0;
