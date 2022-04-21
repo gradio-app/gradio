@@ -4,11 +4,10 @@
 
 @layer components {
 	.gr-gap > * + * {
-		margin-top: 0.5rem;
+		@apply  mt-2;
 	}
 	.gr-form-gap > .form + .form {
-		margin-top: 0;
-		border-top: none;
+		@apply mt-0 border-t-0;
 	}
 }
 
