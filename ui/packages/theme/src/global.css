@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+	.gr-gap > * + * {
+		margin-top: 0.5rem;
+	}
+	.gr-form-gap > .form + .form {
+		margin-top: 0;
+		border-top: none;
+	}
+}
+
 .cropper-container {
 	direction: ltr;
 	font-size: 0;

@@ -37,6 +37,50 @@
 				.map((rule) => rule[0] + ": " + rule[1])
 				.join("; ")
 		: null;
+
+	const forms = [
+		"textbox",
+		"number",
+		"slider",
+		"checkbox",
+		"checkboxgroup",
+		"radio",
+		"dropdown"
+	];
+
+	function get_types(i) {
+		const current = children[i]?.id && instance_map[children[i].id];
+		const next = children[i + 1]?.id && instance_map[children[i + 1].id];
+		const prev = children[i - 1]?.id && instance_map[children[i - 1].id];
+
+		return {
+			current: current?.type && forms.includes(current.type),
+			next: next?.type && forms.includes(next.type),
+			prev: prev?.type && forms.includes(prev.type)
+		};
+	}
+
+	if (children) {
+		children.forEach((c, i) => {
+			get_form_context(c, i);
+		});
+	}
+
+	function get_form_context(node, i) {
+		const { current, next, prev } = get_types(i);
+
+		if (current && next && prev) {
+			node.props.form_position = "mid";
+		} else if (current && next && !prev) {
+			node.props.form_position = "first";
+		} else if (current && prev && !next) {
+			node.props.form_position = "last";
+		} else if (current && !prev && !next) {
+			node.props.form_position = "single";
+		}
+	}
+
+	console.log(children);
 </script>
 
 <svelte:component
@@ -50,6 +94,7 @@
 >
 	{#if children && children.length}
 		{#each children as { component, id, props, children, has_modes }}
+			<!-- {@const type = get_form_type(i)} -->
 			<svelte:self
 				{component}
 				{id}
