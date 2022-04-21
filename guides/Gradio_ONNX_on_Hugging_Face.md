@@ -13,7 +13,7 @@ The [ONNX Model Zoo](https://github.com/onnx/models) is a collection of pre-trai
 
 ### Gradio
 
-Gradio lets users demo their machine learning models as a web app all in python code. Gradio demos can work inside jupyter notebooks, colab, embedded in your own website and hosted on Hugging Face Spaces for free.
+Gradio lets users demo their machine learning models as a web app all in python code. Gradio wraps a python function into a user inferface and the demos can be launched inside jupyter notebooks, colab notebooks, as well as embedded in your own website and hosted on Hugging Face Spaces for free.
 
 for more info see: https://gradio.app/
 
