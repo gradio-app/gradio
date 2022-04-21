@@ -373,7 +373,7 @@ class Blocks(BlockContext):
         server_name: Optional[str] = None,
         server_port: Optional[int] = None,
         show_tips: bool = False,
-        enable_queue: bool = False,
+        enable_queue: Optional[bool] = None,
         height: int = 500,
         width: int = 900,
         encrypt: bool = False,
@@ -397,7 +397,10 @@ class Blocks(BlockContext):
         server_port (int): will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT.
         server_name (str): to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME.
         show_tips (bool): if True, will occasionally show tips about new Gradio features
-        enable_queue (bool): if True, inference requests will be served through a queue instead of with parallel threads. Required for longer inference times (> 1min) to prevent timeout.
+        enable_queue (Optional[bool]):
+            if True, inference requests will be served through a queue instead of with parallel threads. Required for longer inference times (> 1min) to prevent timeout.
+            The default option in HuggingFace Spaces is True.
+            The default option elsewhere is False.
         width (int): The width in pixels of the iframe element containing the interface (used if inline=True)
         height (int): The height in pixels of the iframe element containing the interface (used if inline=True)
         encrypt (bool): If True, flagged data will be encrypted by key provided by creator at launch
@@ -433,7 +436,10 @@ class Blocks(BlockContext):
                 getpass.getpass("Enter key for encryption: ")
             )
 
-        self.enable_queue = enable_queue
+        if self.is_space and enable_queue is None:
+            self.enable_queue = True
+        else:
+            self.enable_queue = enable_queue or False
 
         config = self.get_config_file()
         self.config = config
