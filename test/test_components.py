@@ -85,6 +85,7 @@ class TestTextbox(unittest.TestCase):
             text_input.get_template_context(),
             {
                 "lines": 1,
+                "max_lines": 20,
                 "placeholder": None,
                 "default_value": "",
                 "name": "textbox",
@@ -1466,6 +1467,7 @@ class TestCarousel(unittest.TestCase):
                         "label": None,
                         "default_value": "",
                         "lines": 1,
+                        "max_lines": 20,
                         "css": {},
                         "placeholder": None,
                         "interactive": None,

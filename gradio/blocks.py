@@ -307,7 +307,7 @@ class Blocks(BlockContext):
                 {
                     "id": _id,
                     "type": (block.get_block_name()),
-                    "props": block.get_template_context()
+                    "props": utils.delete_none(block.get_template_context())
                     if hasattr(block, "get_template_context")
                     else None,
                 }
