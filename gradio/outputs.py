@@ -20,6 +20,7 @@ from gradio.components import File as C_File
 from gradio.components import HighlightedText as C_HighlightedText
 from gradio.components import Image as C_Image
 from gradio.components import Label as C_Label
+from gradio.components import Model3D as C_Model3D
 from gradio.components import Textbox as C_Textbox
 from gradio.components import Timeseries as C_Timeseries
 from gradio.components import Variable as C_State
@@ -351,3 +352,27 @@ class Chatbot(C_Chatbot):
             DeprecationWarning,
         )
         super().__init__(label=label)
+
+
+class Image3D(C_Model3D):
+    """
+    Used for 3D image model output.
+    Input type: File object of type (.obj, glb, or .gltf)
+    Demos: Image3D
+    """
+
+    def __init__(
+        self,
+        clear_color=None,
+        label: Optional[str] = None,
+    ):
+        """
+        Parameters:
+        label (str): component name in interface.
+        optional (bool): If True, the interface can be submitted with no uploaded image, in which case the input value is None.
+        """
+        warnings.warn(
+            "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
+            DeprecationWarning,
+        )
+        super().__init__(clear_color=clear_color, label=label)

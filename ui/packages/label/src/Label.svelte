@@ -5,11 +5,16 @@
 	};
 
 	export let style: string = "";
-
-	console.log(value);
+	export let theme: string = "default";
 </script>
 
-<div class="output-label space-y-4">
+<div class="output-label" space-y-4 {theme}>
+	<div
+		class="output-class font-bold text-2xl py-6 px-4 flex-grow flex items-center justify-center"
+		class:no-confidence={!("confidences" in value)}
+	>
+		{value.label}
+	</div>
 	{#if value.confidences}
 		{#each value.confidences as confidence_set}
 			<div

@@ -9,7 +9,8 @@ import posixpath
 import secrets
 import traceback
 import urllib
-from typing import Any, List, Optional, Type
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple, Type
 
 import orjson
 import pkg_resources
@@ -21,6 +22,7 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from jinja2.exceptions import TemplateNotFound
+from pydantic import BaseModel
 from starlette.responses import RedirectResponse
 
 from gradio import encryptor, queueing, utils
@@ -47,6 +49,44 @@ class ORJSONResponse(JSONResponse):
 
 
 templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
+
+
+###########
+# Data Models
+###########
+
+
+class PredictBody(BaseModel):
+    session_hash: Optional[str]
+    example_id: Optional[int]
+    data: List[Any]
+    state: Optional[Any]
+    fn_index: Optional[int]
+    cleared: Optional[bool]
+
+
+class FlagData(BaseModel):
+    input_data: List[Any]
+    output_data: List[Any]
+    flag_option: Optional[str]
+    flag_index: Optional[int]
+
+
+class FlagBody(BaseModel):
+    data: FlagData
+
+
+class InterpretBody(BaseModel):
+    data: List[Any]
+
+
+class QueueStatusBody(BaseModel):
+    hash: str
+
+
+class QueuePushBody(BaseModel):
+    action: str
+    data: Any
 
 
 ###########
@@ -166,7 +206,8 @@ def create_app() -> FastAPI:
                 io.BytesIO(file_data), attachment_filename=os.path.basename(path)
             )
         else:
-            return FileResponse(safe_join(app.cwd, path))
+            if Path(app.cwd).resolve() in Path(path).resolve().parents:
+                return FileResponse(Path(path).resolve())
 
     @app.get("/api", response_class=HTMLResponse)  # Needed for Spaces
     @app.get("/api/", response_class=HTMLResponse)
@@ -229,49 +270,14 @@ def create_app() -> FastAPI:
                 raise error
         return output
 
-    @app.post("/api/flag/", dependencies=[Depends(login_check)])
-    async def flag(request: Request, username: str = Depends(get_current_user)):
-        if app.blocks.analytics_enabled:
-            await utils.log_feature_analytics(app.blocks.ip_address, "flag")
-        body = await request.json()
-        data = body["data"]
-        await run_in_threadpool(
-            app.blocks.flagging_callback.flag,
-            app.blocks,
-            data["input_data"],
-            data["output_data"],
-            flag_option=data.get("flag_option"),
-            flag_index=data.get("flag_index"),
-            username=username,
-        )
-        return {"success": True}
-
-    @app.post("/api/interpret/", dependencies=[Depends(login_check)])
-    async def interpret(request: Request):
-        if app.blocks.analytics_enabled:
-            await utils.log_feature_analytics(app.blocks.ip_address, "interpret")
-        body = await request.json()
-        raw_input = body["data"]
-        interpretation_scores, alternative_outputs = await run_in_threadpool(
-            app.blocks.interpret, raw_input
-        )
-        return {
-            "interpretation_scores": interpretation_scores,
-            "alternative_outputs": alternative_outputs,
-        }
-
     @app.post("/api/queue/push/", dependencies=[Depends(login_check)])
-    async def queue_push(request: Request):
-        body = await request.json()
-        action = body["action"]
-        job_hash, queue_position = queueing.push(body, action)
+    async def queue_push(body: QueuePushBody):
+        job_hash, queue_position = queueing.push(body)
         return {"hash": job_hash, "queue_position": queue_position}
 
     @app.post("/api/queue/status/", dependencies=[Depends(login_check)])
-    async def queue_status(request: Request):
-        body = await request.json()
-        hash = body["hash"]
-        status, data = queueing.get_status(hash)
+    async def queue_status(body: QueueStatusBody):
+        status, data = queueing.get_status(body.hash)
         return {"status": status, "data": data}
 
     return app
@@ -299,7 +305,6 @@ def safe_join(directory: str, path: str) -> Optional[str]:
         or filename.startswith("../")
     ):
         return None
-
     return posixpath.join(directory, filename)
 
 

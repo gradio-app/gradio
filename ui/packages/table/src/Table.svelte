@@ -394,7 +394,32 @@
 							contenteditable={editable}
 							on:input={(e) => (value = e.target.innerText)}
 						>
-							{value}
+							<div
+								class:border-transparent={selected !== id}
+								class="min-h-[3.3rem] px-5 py-3  border-[0.125rem] {selected ===
+								id
+									? 'border-gray-600 dark:border-gray-200'
+									: ''}"
+							>
+								{#if editing === id}
+									<input
+										class="outline-none absolute p-0 w-3/4"
+										tabindex="-1"
+										bind:value
+										bind:this={els[id].input}
+										on:blur={({ currentTarget }) =>
+											currentTarget.setAttribute("tabindex", "-1")}
+									/>
+								{/if}
+								<span
+									class="cursor-default w-full"
+									class:opacity-0={editing === id}
+									tabindex="-1"
+									role="button"
+								>
+									{value ?? ""}
+								</span>
+							</div>
 						</td>
 					{/each}
 				</tr>

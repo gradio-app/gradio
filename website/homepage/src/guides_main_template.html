@@ -129,12 +129,14 @@
           <h2 class="font-semibold group-hover:underline text-xl">{{ guide.pretty_name }}
           </h2>
           <div class="tags-holder">
+            {% if guide.tags is not none %}
             <p>
               {% for tag in guide.tags %}
                 {{ tag }}<!--
              -->{% if not loop.last %}, {% endif %}
               {% endfor %}
             </p>
+            {% endif %}
           </div>
         </div>
       </a>
@@ -220,7 +222,7 @@
       if (txtValue.toUpperCase().indexOf(filter) > -1 || guideContent.toUpperCase().indexOf(filter) > -1) {
         a[{{ loop.index - 1}}].style.display = "";
       } else {
-        a[{{ loop.index - 1 }}].style.display = "none";
+        a[{{ loop.index - 1}}].style.display = "none";
         counter++;
       }
     {% endfor %}

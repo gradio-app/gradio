@@ -19,7 +19,7 @@
 			props.mode = "static";
 		} else if (props.interactive === true) {
 			props.mode = "dynamic";
-		} else if (props.interactive === null && dynamic_ids.has(id)) {
+		} else if (dynamic_ids.has(id)) {
 			props.mode = "dynamic";
 		} else {
 			props.mode = "static";
@@ -32,12 +32,11 @@
 		return () => dispatch("destroy", id);
 	});
 
-	let style =
-		"css" in props
-			? Object.entries(props.css)
-					.map((rule) => rule[0] + ": " + rule[1])
-					.join("; ")
-			: null;
+	let style = props.css
+		? Object.entries(props.css)
+				.map((rule) => rule[0] + ": " + rule[1])
+				.join("; ")
+		: null;
 </script>
 
 <svelte:component

@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 import gradio as gr
-from gradio.test_data import media_data
+from gradio import media_data
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -439,6 +439,7 @@ class TestCarousel(unittest.TestCase):
                         "label": None,
                         "default_value": "",
                         "lines": 1,
+                        "max_lines": 20,
                         "css": {},
                         "placeholder": None,
                         "interactive": None,
@@ -544,6 +545,24 @@ class TestTimeseries(unittest.TestCase):
                     "data": [["Tom", 20], ["nick", 21], ["krish", 19], ["jack", 18]],
                 },
             )
+
+
+class TestImage3D(unittest.TestCase):
+    def test_as_component(self):
+        Image3D = "test/test_files/Fox.gltf"
+        Image3D_output = gr.outputs.Image3D()
+        self.assertTrue(
+            Image3D_output.postprocess(Image3D)["data"].startswith("data:;base64,")
+        )
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            to_save = Image3D_output.save_flagged(
+                tmpdirname, "Image3D_output", media_data.BASE64_MODEL3D, None
+            )
+            self.assertEqual("Image3D_output/0.gltf", to_save)
+            to_save = Image3D_output.save_flagged(
+                tmpdirname, "Image3D_output", media_data.BASE64_MODEL3D, None
+            )
+            self.assertEqual("Image3D_output/1.gltf", to_save)
 
 
 if __name__ == "__main__":
