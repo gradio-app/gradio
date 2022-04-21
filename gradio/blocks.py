@@ -373,7 +373,7 @@ class Blocks(BlockContext):
         server_name: Optional[str] = None,
         server_port: Optional[int] = None,
         show_tips: bool = False,
-        enable_queue: bool = False,
+        enable_queue: Optional[bool] = None,
         height: int = 500,
         width: int = 900,
         encrypt: bool = False,
@@ -433,7 +433,10 @@ class Blocks(BlockContext):
                 getpass.getpass("Enter key for encryption: ")
             )
 
-        self.enable_queue = enable_queue
+        if self.is_space and enable_queue is None:
+            self.enable_queue = True
+        else:
+            self.enable_queue = enable_queue
 
         config = self.get_config_file()
         self.config = config

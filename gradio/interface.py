@@ -109,7 +109,7 @@ class Interface(Blocks):
         outputs: str | Component | List[str | Component] = None,
         verbose: bool = False,
         examples: Optional[List[Any] | List[List[Any]] | str] = None,
-        cache_examples: bool = False,
+        cache_examples: Optional[bool] = None,
         examples_per_page: int = 10,
         live: bool = False,
         layout: str = "unaligned",
@@ -288,7 +288,6 @@ class Interface(Blocks):
 
         self.thumbnail = thumbnail
         theme = theme if theme is not None else os.getenv("GRADIO_THEME", "default")
-        self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
         DEPRECATED_THEME_MAP = {
             "darkdefault": "default",
             "darkhuggingface": "dark-huggingface",
@@ -487,8 +486,11 @@ class Interface(Blocks):
             if component.label is None:
                 component.label = "output_" + str(i)
 
-        self.cache_examples = cache_examples
-        if cache_examples:
+        if self.is_space and cache_examples is None:
+            self.cache_examples = True
+        else:
+            self.cache_examples = cache_examples
+        if self.cache_examples:
             cache_interface_examples(self)
 
         if self.allow_flagging != "never":
