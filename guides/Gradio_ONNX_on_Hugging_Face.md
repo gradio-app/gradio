@@ -1,8 +1,8 @@
 
-# Gradio and ONNX Model Zoo on Hugging Face 
+# Building Gradio Demos from the ONNX Model Zoo
 
 related_spaces: https://huggingface.co/spaces/onnx/EfficientNet-Lite4
-tags: ONNX
+tags: ONNX, SPACES
 
 ## What is ONNX Model Zoo?
 Open Neural Network Exchange ([ONNX](https://onnx.ai/)) is an open standard format for representing machine learning models. ONNX is supported by a community of partners who have implemented it in many frameworks and tools. For example, if you have trained a model in TensorFlow, you can convert it to ONNX easily, and from there you could convert it to other frameworks like Pytorch, onnx runtime, Keras etc.
