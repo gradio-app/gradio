@@ -16,7 +16,11 @@
 <Block>
 	<label>
 		<BlockTitle>{label}</BlockTitle>
-		<select class="gr-box gr-input w-full" bind:value {disabled}>
+		<select
+			class="gr-box gr-input w-full disabled:cursor-not-allowed"
+			bind:value
+			{disabled}
+		>
 			{#each choices as choice, i}
 				<option>{choice}</option>
 			{/each}

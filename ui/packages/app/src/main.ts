@@ -62,7 +62,7 @@ window.launchGradio = (config: Config, element_query: string) => {
 
 	if (!target) {
 		throw new Error(
-			"The target element could not be found. Please ensure atht element exists."
+			"The target element could not be found. Please ensure that element exists."
 		);
 	}
 
