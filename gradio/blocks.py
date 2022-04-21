@@ -206,7 +206,7 @@ class Blocks(BlockContext):
         mode: str = "blocks",
     ):
 
-        # Cleanup shared parameters with Interface #TODO: is this part still necessary after Interface with Blocks
+        # Cleanup shared parameters with Interface #TODO: is this part still necessary after Interface with Blocks?
         self.save_to = None
         self.api_mode = False
         self.theme = theme
