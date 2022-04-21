@@ -44,7 +44,8 @@ def run():
         )
         demo_folder_file.Upload()
         demo_folder = demo_folder_file.metadata["id"]
-    for demo_name in os.listdir(GRADIO_DEMO_DIR):
+    for demo_name in [demo_dir for demo_dir in os.listdir(GRADIO_DEMO_DIR)
+                      if os.path.isdir(os.path.join(GRADIO_DEMO_DIR, demo_dir))]:
         notebook_title = demo_name + ".ipynb"
         print("--- " + demo_name + " ---")
         with open(os.path.join(GRADIO_DEMO_DIR, demo_name, "run.py")) as demo_file:
