@@ -59,7 +59,6 @@ class Block:
         outputs: List[Component],
         preprocess: bool = True,
         postprocess: bool = True,
-        queue=False,
         no_target: bool = False,
         status_tracker: Optional[StatusTracker] = None,
     ) -> None:
@@ -72,7 +71,6 @@ class Block:
             outputs: output list
             preprocess: whether to run the preprocess methods of components
             postprocess: whether to run the postprocess methods of components
-            queue: if True, will store multiple calls in queue and run in order instead of in parallel with multiple threads
             no_target: if True, sets "targets" to [], used for Blocks "load" event
             status_tracker: StatusTracker to visualize function progress
         Returns: None
@@ -90,7 +88,6 @@ class Block:
                 "trigger": event_name,
                 "inputs": [block._id for block in inputs],
                 "outputs": [block._id for block in outputs],
-                "queue": queue,
                 "status_tracker": status_tracker._id
                 if status_tracker is not None
                 else None,
@@ -209,12 +206,11 @@ class Blocks(BlockContext):
         mode: str = "blocks",
     ):
 
-        # Cleanup shared parameters with Interface
+        # Cleanup shared parameters with Interface #TODO: is this part still necessary after Interface with Blocks
         self.save_to = None
         self.api_mode = False
         self.theme = theme
         self.requires_permissions = False  # TODO: needs to be implemented
-        self.enable_queue = False
 
         # For analytics_enabled and allow_flagging: (1) first check for
         # parameter, (2) check for env variable, (3) default to True/"manual"
@@ -437,8 +433,7 @@ class Blocks(BlockContext):
                 getpass.getpass("Enter key for encryption: ")
             )
 
-        if hasattr(self, "enable_queue") and self.enable_queue is None:
-            self.enable_queue = enable_queue
+        self.enable_queue = enable_queue
 
         config = self.get_config_file()
         self.config = config

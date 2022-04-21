@@ -437,8 +437,6 @@ class Interface(Blocks):
             [component.requires_permissions for component in self.input_components]
         )
 
-        self.enable_queue = enable_queue
-
         self.favicon_path = None
         self.height = height
         self.width = width
@@ -558,23 +556,26 @@ class Interface(Blocks):
                     submit_fn,
                     self.input_components,
                     self.output_components,
-                    queue=self.enable_queue,
                     status_tracker=status_tracker,
                 )
             clear_btn.click(
-                lambda: [
-                    component.default_value
-                    if hasattr(component, "default_value")
-                    else None
-                    for component in self.input_components + self.output_components
-                ]
-                + [True]
-                + ([False] if self.interpretation else []),
+                (
+                    lambda: [
+                        component.default_value
+                        if hasattr(component, "default_value")
+                        else None
+                        for component in self.input_components + self.output_components
+                    ]
+                    + [True]
+                    + ([False] if self.interpretation else [])
+                ),
                 [],
-                self.input_components
-                + self.output_components
-                + [input_component_column]
-                + ([interpret_component_column] if self.interpretation else []),
+                (
+                    self.input_components
+                    + self.output_components
+                    + [input_component_column]
+                    + ([interpret_component_column] if self.interpretation else [])
+                ),
             )
             if self.examples:
                 examples = Dataset(
