@@ -4,7 +4,7 @@
 	export let value: boolean = false;
 	export let default_value: boolean = false;
 	export let style: string = "";
-	export let label: string;
+	export let label: string = "Checkbox";
 	export let mode: "static" | "dynamic";
 
 	if (default_value) value = default_value;

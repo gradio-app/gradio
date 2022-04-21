@@ -8,7 +8,7 @@
 	export let theme: string = "default";
 </script>
 
-<div class="output-label" {theme}>
+<div class="output-label" space-y-4 {theme}>
 	<div
 		class="output-class font-bold text-2xl py-6 px-4 flex-grow flex items-center justify-center"
 		class:no-confidence={!("confidences" in value)}
@@ -16,42 +16,33 @@
 		{value.label}
 	</div>
 	{#if value.confidences}
-		<div class="confidence-intervals flex text-xl">
-			<div class="labels mr-2" style="maxWidth: 120px">
-				{#each value.confidences as confidence_set}
+		{#each value.confidences as confidence_set}
+			<div
+				class="flex items-start justify-between font-mono text-sm leading-none group"
+			>
+				<div class="flex-1">
 					<div
-						class="label overflow-hidden whitespace-nowrap h-7 mb-2 overflow-ellipsis text-right"
-						title={confidence_set.label}
-					>
-						{confidence_set.label}
-					</div>
-				{/each}
-			</div>
-			<div class="confidences flex flex-grow flex-col items-baseline">
-				{#each value.confidences as confidence_set, i}
+						class="h-1 mb-1 rounded bg-gradient-to-r 
+						group-hover:from-orange-500
+					from-orange-400 
+					to-orange-200
+					dark:from-orange-400 
+					dark:to-orange-600"
+						style="width: {confidence_set.confidence * 100}%"
+					/>
 					<div
-						class="confidence flex justify-end items-center overflow-hidden whitespace-nowrap h-7 mb-2 px-1"
-						style="min-width: calc(
-							{Math.round(confidence_set.confidence * 100)}% - 12px)"
+						class="flex items-baseline space-x-2 group-hover:text-orange-500"
 					>
-						{Math.round(confidence_set.confidence * 100)}%
+						<div class="leading-snug">{confidence_set.label}</div>
+						{#if value.confidences}
+							<div class="flex-1 border border-dashed border-gray-100 px-4" />
+							<div class="text-right ml-auto">
+								{Math.round(confidence_set.confidence * 100)}%
+							</div>
+						{/if}
 					</div>
-				{/each}
+				</div>
 			</div>
-		</div>
+		{/each}
 	{/if}
 </div>
-
-<style lang="postcss">
-	.output-label[theme="default"] {
-		.label {
-			@apply text-base h-7;
-		}
-		.confidence {
-			@apply font-mono box-border border-b-2 border-gray-300 bg-gray-200 dark:bg-gray-500 dark:border-gray-600 text-sm h-7 font-semibold rounded;
-		}
-		.confidence:first-child {
-			@apply bg-amber-500 dark:bg-red-600 border-red-700 text-white;
-		}
-	}
-</style>

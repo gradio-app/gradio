@@ -1,11 +1,14 @@
-#!/bin/sh
+#!/bin/bash
 . /home/ubuntu/.bashrc
 export PATH="/usr/local/bin:/usr/bin:/bin"
 
-ERROR=$(sh ./reload_website.sh 2>&1)
+
+ERROR=$(bash ./reload_website.sh 2>&1)
 
 if ! [ $? -eq 0 ]; then
-    data=$( jo text="$(echo "gradio.app is not tracking master :o: \nError:\n\n\`\`\`'$ERROR'\`\`\`")")
-    echo "$data"
-    curl -X POST -H 'Content-type: application/json' --data "$data" ${SLACK_WEBHOOK}
+    DATA=":x: gradio.app is not tracking main, see the error in the replies :arrow_down: <@${MEMBERID}>"
+    RESPONSE=$(curl https://slack.com/api/chat.postMessage -X POST -H 'Content-type: application/json; charset=utf-8' -H "Authorization: Bearer ${TOKEN}" --data '{"channel":"'${CHANNELID}'", "text":"'"${DATA}"'"}')
+    THREAD_TS="$( jq -r  '.ts' <<< "${RESPONSE}")"
+    DATA=$( jo text="$(echo "\`\`\`'$ERROR'\`\`\`")" channel=$CHANNELID thread_ts="'$THREAD_TS'")
+    _=$(curl https://slack.com/api/chat.postMessage -X POST -H 'Content-type: application/json; charset=utf-8' -H "Authorization: Bearer ${TOKEN}" --data "$DATA")
 fi

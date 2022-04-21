@@ -15,6 +15,7 @@ from gradio.test_data.blocks_configs import (
 from gradio.utils import (
     assert_configs_are_equivalent_besides_ids,
     colab_check,
+    delete_none,
     error_analytics,
     format_ner_list,
     get_local_ip_address,
@@ -162,6 +163,25 @@ class TestFormatNERList(unittest.TestCase):
         groups = []
         result = [("I live in a city", None)]
         self.assertEqual(format_ner_list(string, groups), result)
+
+
+class TestDeleteNone(unittest.TestCase):
+    """Credit: https://stackoverflow.com/questions/33797126/proper-way-to-remove-keys-in-dictionary-with-none-values-in-python"""
+
+    def test_delete_none(self):
+        input = {
+            "a": 12,
+            "b": 34,
+            "c": None,
+            "k": {
+                "d": 34,
+                "t": None,
+                "m": [{"k": 23, "t": None}, [None, 1, 2, 3], {1, 2, None}],
+                None: 123,
+            },
+        }
+        truth = {"a": 12, "b": 34, "k": {"d": 34, "m": [{"k": 23}, [1, 2, 3], {1, 2}]}}
+        self.assertEqual(delete_none(input), truth)
 
 
 if __name__ == "__main__":
