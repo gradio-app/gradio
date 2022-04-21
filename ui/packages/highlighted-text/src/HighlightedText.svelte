@@ -26,34 +26,35 @@
 	if (color_map === null) {
 		color_map = {};
 	}
-	if (value.length > 0) {
-		for (let [_, label] of value) {
-			if (label !== null) {
-				if (typeof label === "string") {
-					mode = "categories";
-					if (!(label in color_map)) {
-						let color = getNextColor(Object.keys(color_map).length);
-						color_map[label] = color;
+	$: {
+		if (value.length > 0) {
+			for (let [_, label] of value) {
+				if (label !== null) {
+					if (typeof label === "string") {
+						mode = "categories";
+						if (!(label in color_map)) {
+							let color = getNextColor(Object.keys(color_map).length);
+							color_map[label] = color;
+						}
+					} else {
+						mode = "scores";
 					}
-				} else {
-					mode = "scores";
 				}
 			}
 		}
-	}
-
-	function correct_color_map() {
-		for (const col in color_map) {
-			const _c = color_map[col].trim();
-			if (_c.startsWith("rgba")) {
-				color_map[col] = color_map[col];
-			} else {
-				color_map[col] = name_to_rgba(color_map[col]);
+		function correct_color_map() {
+			for (const col in color_map) {
+				const _c = color_map[col].trim();
+				if (_c.startsWith("rgba")) {
+					color_map[col] = color_map[col];
+				} else {
+					color_map[col] = name_to_rgba(color_map[col]);
+				}
 			}
 		}
-	}
 
-	correct_color_map();
+		correct_color_map();
+	}
 </script>
 
 <div class="output-highlightedtext" {theme}>
@@ -73,7 +74,7 @@
 		<div
 			class="textfield p-2 bg-white dark:bg-gray-800 rounded box-border max-w-full leading-8 break-word"
 		>
-			{#each value as [text, category], i}
+			{#each value as [text, category]}
 				<span
 					class="textspan p-1 mr-0.5 bg-opacity-20 dark:bg-opacity-80 rounded-sm"
 					style={category === null
@@ -110,7 +111,7 @@
 		<div
 			class="textfield p-2 bg-white dark:bg-gray-800 rounded box-border max-w-full leading-8 break-word"
 		>
-			{#each value as [text, score], i}
+			{#each value as [text, score]}
 				<span
 					class="textspan p-1 mr-0.5 bg-opacity-20 dark:bg-opacity-80 rounded-sm"
 					style={"background-color: rgba(" +
