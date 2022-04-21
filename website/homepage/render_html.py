@@ -9,9 +9,8 @@ import requests
 from jinja2 import Template
 from render_html_helpers import generate_meta_image
 
-from gradio.inputs import InputComponent
+from gradio.components import Component
 from gradio.interface import Interface
-from gradio.outputs import OutputComponent
 
 GRADIO_DIR = "../../"
 GRADIO_GUIDES_DIR = os.path.join(GRADIO_DIR, "guides")
@@ -303,8 +302,8 @@ def render_docs():
 
         return inp
 
-    inputs = [get_class_documentation(cls) for cls in InputComponent.__subclasses__()]
-    outputs = [get_class_documentation(cls) for cls in OutputComponent.__subclasses__()]
+    inputs = [get_class_documentation(cls) for cls in Component.__subclasses__()]
+    outputs = [get_class_documentation(cls) for cls in Component.__subclasses__()]
     interface_params = get_function_documentation(Interface.__init__)
     interface = {
         "doc": inspect.getdoc(Interface),
@@ -362,6 +361,6 @@ if __name__ == "__main__":
     render_index()
     render_guides_main()
     render_guides()
-    render_docs()
+    # render_docs()
     render_gallery()
     render_other()
