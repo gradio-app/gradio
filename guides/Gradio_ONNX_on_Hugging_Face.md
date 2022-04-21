@@ -4,6 +4,18 @@
 related_spaces: https://huggingface.co/spaces/onnx/EfficientNet-Lite4
 tags: ONNX, SPACES
 
+## Introduction
+
+In this Guide, we'll walk you through:
+
+* Introduction of ONNX, ONNX model zoo, Gradio, and Hugging Face Spaces
+* How to setup a Gradio demo for EfficientNet-Lite4
+* How to contribute your own Gradio demos for the ONNX organization on Hugging Face
+
+See example EfficientNet-Lite4 Spaces demo to try below:
+
+<iframe src="https://hf.space/embed/onnx/EfficientNet-Lite4/+" frameBorder="0" height="450" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+
 ## What is ONNX Model Zoo?
 Open Neural Network Exchange ([ONNX](https://onnx.ai/)) is an open standard format for representing machine learning models. ONNX is supported by a community of partners who have implemented it in many frameworks and tools. For example, if you have trained a model in TensorFlow, you can convert it to ONNX easily, and from there you could convert it to other frameworks like Pytorch, onnx runtime, Keras etc.
 
