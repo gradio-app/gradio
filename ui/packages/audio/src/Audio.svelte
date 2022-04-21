@@ -158,26 +158,37 @@
 	<BlockLabel image={audio_icon} label={label || "Audio"} />
 	{#if value === null}
 		{#if source === "microphone"}
-			{#if recording}
-				<button
-					class="ml-2 mt-8 mb-2 p-2 rounded font-semibold bg-red-200 text-red-500 dark:bg-red-600 dark:text-red-100 shadow transition hover:shadow-md"
-					on:click={stop}
-				>
-					Stop Recording
-				</button>
-			{:else}
-				<button
-					class="ml-2 mt-8 mb-2 p-2 rounded font-semibold shadow transition hover:shadow-md bg-white dark:bg-gray-800"
-					on:click={record}
-				>
-					Record
-				</button>
-			{/if}
+			<div class="mt-6 p-2">
+				{#if recording}
+					<button class="gr-button !bg-red-500/10" on:click={stop}>
+						<span class="flex h-1.5 w-1.5 relative mr-2">
+							<span
+								class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"
+							/>
+							<span
+								class="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"
+							/>
+						</span>
+						<div class="whitespace-nowrap text-red-500">Stop recording</div>
+					</button>
+				{:else}
+					<button class="gr-button" on:click={record}>
+						<span class="flex h-1.5 w-1.5 relative mr-2">
+							<span
+								class="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"
+							/>
+						</span>
+						<div class="whitespace-nowrap">Record from microphone</div>
+					</button>
+				{/if}
+			</div>
 		{:else if source === "upload"}
 			<Upload filetype="audio/*" on:load={handle_load} bind:dragging>
-				{drop_text}
-				<br />- {or_text} -<br />
-				{upload_text}
+				<div class="flex flex-col">
+					{drop_text}
+					<span class="text-gray-300">- {or_text} -</span>
+					{upload_text}
+				</div>
 			</Upload>
 		{/if}
 	{:else}
@@ -190,7 +201,7 @@
 
 		<audio
 			use:loaded
-			class="w-full"
+			class="w-full h-14 p-2"
 			controls
 			bind:this={player}
 			preload="metadata"

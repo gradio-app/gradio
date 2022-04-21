@@ -35,7 +35,7 @@
 		type="range"
 		{id}
 		name="cowbell"
-		class="w-full"
+		class="w-full disabled:cursor-not-allowed"
 		bind:value
 		min={minimum}
 		max={maximum}

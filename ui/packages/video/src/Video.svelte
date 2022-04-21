@@ -51,9 +51,11 @@
 				filetype="video/mp4,video/x-m4v,video/*"
 				on:load={handle_load}
 			>
-				{drop_text}
-				<br />- {or_text} -<br />
-				{upload_text}
+				<div class="flex flex-col">
+					{drop_text}
+					<span class="text-gray-300">- {or_text} -</span>
+					{upload_text}
+				</div>
 			</Upload>
 		{:else if source === "webcam"}
 			<Webcam mode="video" on:capture={({ detail }) => (value = detail)} />
