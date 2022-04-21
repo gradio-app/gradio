@@ -334,62 +334,65 @@
 	};
 </script>
 
-<div class="shadow overflow-hidden border-gray-200 rounded-sm relative">
-	<table
-		id="grid"
-		role="grid"
-		aria-labelledby="title"
-		class="min-w-full divide-y divide-gray-200 dark:divide-gray-800"
-	>
-		<thead class="bg-gray-50 dark:bg-gray-800">
-			<tr>
+<div class="overflow-hidden rounded-lg relative border">
+	<table class="table-auto font-mono w-full text-gray-900 text-sm">
+		<thead class="sticky top-0 left-0 right-0 bg-white shadow-sm z-10">
+			<tr class="border-b divide-x dark:divide-gray-800 text-left">
 				{#each _headers as { value, id }, i (id)}
-					<th
-						use:double_click={{
-							click: () => handle_sort(i),
-							dblclick: () => edit_header(id)
-						}}
-						aria-sort={get_sort_status(value, sort_by, sort_direction)}
-						class="after:absolute after:opacity-0 after:content-['▲'] after:ml-2 after:inset-y-0 after:h-[1.05rem] after:m-auto relative px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-						class:sorted={sort_by === i}
-						class:des={sort_by === i && sort_direction === "des"}
-					>
-						{#if header_edit === id}
-							<input
-								class="bg-transparent inset-y-0 left-6 outline-none absolute p-0 w-3/4 text-xs font-medium text-gray-500 uppercase tracking-wider"
-								tabindex="-1"
-								bind:value
-								bind:this={els[id].input}
-								on:keydown={end_header_edit}
-								on:blur={({ currentTarget }) =>
-									currentTarget.setAttribute("tabindex", "-1")}
-							/>
-						{:else}
-							<span
-								tabindex="-1"
-								role="button"
-								class="min-h-full"
-								class:opacity-0={header_edit === id}>{value}</span
+					<th class="p-0 relative">
+						<div
+							class="flex outline-none focus-within:ring-1 ring-orange-500 focus-within:bg-orange-50 ring-inset {i ===
+							0
+								? 'rounded-tl-lg'
+								: i === _headers.length - 1
+								? 'rounded-tr-lg'
+								: ''}"
+						>
+							<div
+								class="py-2 pl-2 flex-1 outline-none"
+								contenteditable={editable}
+								on:input={(e) => (value = e.target.innerText)}
 							>
-						{/if}
+								{value}
+							</div>
+							<div
+								class="flex items-center justify-center p-2 cursor-pointer !visible leading-snug transform transition-all {sort_by !==
+								i
+									? 'text-gray-200 hover:text-gray-500'
+									: 'text-orange-500'} {sort_by === i &&
+								sort_direction === 'des'
+									? '-scale-y-[1]'
+									: ''}"
+								class:text-gray-200={sort_by !== i}
+								on:click={() => handle_sort(i)}
+							>
+								<svg
+									width="1em"
+									height="1em"
+									class="fill-current text-[10px]"
+									viewBox="0 0 9 7"
+									fill="none"
+									xmlns="http://www.w3.org/2000/svg"
+								>
+									<path d="M4.49999 0L8.3971 6.75H0.602875L4.49999 0Z" />
+								</svg>
+							</div>
+						</div>
 					</th>
 				{/each}
-			</tr></thead
-		><tbody
-			class="bg-white divide-y divide-gray-200 dark:divide-gray-500 dark:bg-gray-600"
-		>
+			</tr>
+		</thead>
+
+		<tbody class="overflow-scroll">
 			{#each data as row, i (row)}
-				<tr>
+				<tr
+					class="group border-b last:border-none divide-x dark:divide-gray-800 space-x-4 odd:bg-gray-50 dark:odd:bg-gray-900 group focus:bg-gradient-to-b focus:from-blue-100 dark:focus:from-blue-900 focus:to-blue-50 dark:focus:to-gray-900 focus:odd:bg-white"
+				>
 					{#each row as { value, id }, j (id)}
 						<td
-							tabindex="-1"
-							class="p-0 whitespace-nowrap display-block outline-none relative "
-							on:dblclick={() => start_edit(id)}
-							on:click={() => handle_cell_click(id)}
-							on:keydown={(e) => handle_keydown(e, i, j, id)}
-							bind:this={els[id].cell}
-							on:blur={({ currentTarget }) =>
-								currentTarget.setAttribute("tabindex", "-1")}
+							class="p-2 outline-none focus-within:ring-1 ring-orange-500 ring-inset focus-within:bg-orange-50 group-last:first:rounded-bl-lg group-last:last:rounded-br-lg"
+							contenteditable={editable}
+							on:input={(e) => (value = e.target.innerText)}
 						>
 							<div
 								class:border-transparent={selected !== id}
@@ -425,26 +428,41 @@
 	</table>
 </div>
 {#if editable}
-	<div class="flex justify-end ">
-		<button
-			on:click={add_col}
-			class="hover:bg-gray-100 dark:hover:bg-gray-600 shadow  py-1 px-3 rounded transition  focus:outline-none m-2 mr-0"
-			>New Column</button
+	<div class="flex justify-end space-x-1 pt-2 text-gray-800">
+		<button class="!flex-none gr-button group" on:click={add_row}
+			><svg
+				xmlns="http://www.w3.org/2000/svg"
+				xmlns:xlink="http://www.w3.org/1999/xlink"
+				aria-hidden="true"
+				role="img"
+				class="mr-1 group-hover:text-orange-500"
+				width="1em"
+				height="1em"
+				preserveAspectRatio="xMidYMid meet"
+				viewBox="0 0 32 32"
+				><path
+					fill="currentColor"
+					d="M24.59 16.59L17 24.17V4h-2v20.17l-7.59-7.58L6 18l10 10l10-10l-1.41-1.41z"
+				/></svg
+			>New row</button
 		>
-		<button
-			on:click={add_row}
-			class="bg-amber-500 hover:bg-amber-400 dark:bg-red-700 dark:hover:bg-red-600 text-white shadow py-1 px-3 rounded transition focus:outline-none m-2 mr-0"
-			>New Row</button
+		<button class="!flex-none gr-button group" on:click={add_col}>
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				xmlns:xlink="http://www.w3.org/1999/xlink"
+				aria-hidden="true"
+				role="img"
+				class="mr-1 group-hover:text-orange-500"
+				width="1em"
+				height="1em"
+				preserveAspectRatio="xMidYMid meet"
+				viewBox="0 0 32 32"
+				><path
+					fill="currentColor"
+					d="m18 6l-1.43 1.393L24.15 15H4v2h20.15l-7.58 7.573L18 26l10-10L18 6z"
+				/></svg
+			>
+			New column</button
 		>
 	</div>
 {/if}
-
-<style>
-	.sorted::after {
-		opacity: 1;
-	}
-
-	.des::after {
-		transform: rotate(180deg) translateY(1.5px);
-	}
-</style>

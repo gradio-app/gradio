@@ -4,7 +4,7 @@
 
 	export let value: string = "";
 	export let lines: number = 1;
-	export let placeholder: string = "";
+	export let placeholder: string = "Type here...";
 	export let label: string;
 	export let style: string = "";
 	export let disabled = false;

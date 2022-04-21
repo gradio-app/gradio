@@ -35,11 +35,11 @@
 	<BlockLabel image={audio_icon} label={label || "Audio"} />
 	{#if value === null}
 		<div class="min-h-[8rem] flex justify-center items-center">
-			<img src={audio_icon} alt="" class="h-10 opacity-30" />
+			<img src={audio_icon} alt="" class="h-6 opacity-20" />
 		</div>
 	{:else}
 		<audio
-			class="w-full"
+			class="w-full h-14 p-2 mt-7"
 			controls
 			preload="metadata"
 			src={value.data}
