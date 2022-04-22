@@ -13,6 +13,7 @@ RUN mkdir gradio
 COPY ./gradio/version.txt ./gradio/version.txt
 RUN npm i pnpm -g
 WORKDIR /gradio/ui
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN pnpm i
 RUN pnpm build
 WORKDIR /gradio

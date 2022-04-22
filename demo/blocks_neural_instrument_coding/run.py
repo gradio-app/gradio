@@ -1,7 +1,7 @@
 # A Blocks implementation of https://erlj.notion.site/Neural-Instrument-Cloning-from-very-few-samples-2cf41d8b630842ee8c7eb55036a1bfd6
-# Needs to be run from the demo\blocks_neural_instrument_coding folder
 
 import datetime
+import os
 import random
 
 import gradio as gr
@@ -22,7 +22,7 @@ def reconstruct(audio):
 
 
 io1 = gr.Interface(
-    lambda x, y, z: "sax.wav",
+    lambda x, y, z: os.path.join(os.path.dirname(__file__),"sax.wav"),
     [
         gr.Slider(label="pitch"),
         gr.Slider(label="loudness"),
@@ -32,7 +32,7 @@ io1 = gr.Interface(
 )
 
 io2 = gr.Interface(
-    lambda x, y, z: "flute.wav",
+    lambda x, y, z: os.path.join(os.path.dirname(__file__),"flute.wav"),
     [
         gr.Slider(label="pitch"),
         gr.Slider(label="loudness"),
@@ -42,7 +42,7 @@ io2 = gr.Interface(
 )
 
 io3 = gr.Interface(
-    lambda x, y, z: "trombone.wav",
+    lambda x, y, z: os.path.join(os.path.dirname(__file__),"trombone.wav"),
     [
         gr.Slider(label="pitch"),
         gr.Slider(label="loudness"),
@@ -52,7 +52,7 @@ io3 = gr.Interface(
 )
 
 io4 = gr.Interface(
-    lambda x, y, z: "sax2.wav",
+    lambda x, y, z: os.path.join(os.path.dirname(__file__),"sax2.wav"),
     [
         gr.Slider(label="pitch"),
         gr.Slider(label="loudness"),
@@ -82,14 +82,14 @@ with demo.clear():
     Here are some **real** 16 second saxophone recordings:
     """
     )
-    gr.Audio("sax.wav", label="Here is a real 16 second saxophone recording:")
-    gr.Audio("sax.wav")
+    gr.Audio(os.path.join(os.path.dirname(__file__),"sax.wav"), label="Here is a real 16 second saxophone recording:")
+    gr.Audio(os.path.join(os.path.dirname(__file__),"sax.wav"))
 
     m(
         """\n
         Here is a **generated** saxophone recordings:"""
     )
-    a = gr.Audio("new-sax.wav")
+    a = gr.Audio(os.path.join(os.path.dirname(__file__),"new-sax.wav"))
 
     gr.Button("Generate a new saxophone recording")
 
