@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { HighlightedText } from "@gradio/highlighted-text";
+	import { Block } from "@gradio/atoms";
 
 	export let value: Array<[string, string | number]>;
 	export let default_value: Array<[string, string | number]>;
@@ -15,4 +16,6 @@
 	$: value, dispatch("change");
 </script>
 
-<HighlightedText {value} {style} {show_legend} {color_map} />
+<Block>
+	<HighlightedText {value} {style} {show_legend} {color_map} />
+</Block>

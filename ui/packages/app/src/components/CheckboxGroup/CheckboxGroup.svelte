@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { CheckboxGroup } from "@gradio/form";
+	import { Block } from "@gradio/atoms";
 
 	export let value: Array<string> = [];
 	export let default_value: Array<string> = [];
@@ -13,12 +14,13 @@
 	if (default_value) value = default_value;
 </script>
 
-<CheckboxGroup
-	{form_position}
-	bind:value
-	{choices}
-	{style}
-	{label}
-	on:change
-	disabled={mode === "static"}
-/>
+<Block {form_position} type="fieldset">
+	<CheckboxGroup
+		bind:value
+		{choices}
+		{style}
+		{label}
+		on:change
+		disabled={mode === "static"}
+	/>
+</Block>

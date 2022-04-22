@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Number } from "@gradio/form";
+	import { Block } from "@gradio/atoms";
 
 	export let label: string = "Number";
 	export let value: number = 0;
@@ -13,12 +14,13 @@
 	if (default_value) value = default_value;
 </script>
 
-<Number
-	{form_position}
-	bind:value
-	{label}
-	{style}
-	disabled={mode === "static"}
-	on:change
-	on:submit
-/>
+<Block {form_position}>
+	<Number
+		bind:value
+		{label}
+		{style}
+		disabled={mode === "static"}
+		on:change
+		on:submit
+	/>
+</Block>

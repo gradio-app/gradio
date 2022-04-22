@@ -2,7 +2,7 @@
 	import { createEventDispatcher, tick, afterUpdate } from "svelte";
 	import { Upload, ModifyUpload } from "@gradio/upload";
 	import type { FileData } from "@gradio/upload";
-	import { Block, BlockLabel } from "@gradio/atoms";
+	import { BlockLabel } from "@gradio/atoms";
 
 	import file_icon from "./file.svg";
 
@@ -33,8 +33,11 @@
 		dispatch("clear");
 	}
 
-	const dispatch =
-		createEventDispatcher<{ change: FileData | null; clear: undefined }>();
+	const dispatch = createEventDispatcher<{
+		change: FileData | null;
+		clear: undefined;
+		drag: boolean;
+	}>();
 
 	let dragging = false;
 
@@ -79,27 +82,23 @@
 			"." + value.name.split(".")[1]
 		);
 	}
+
+	$: dispatch("drag", dragging);
 </script>
 
-<Block
-	variant={value === null ? "dashed" : "solid"}
-	color={dragging ? "green" : "grey"}
-	padding={false}
->
-	<BlockLabel image={file_icon} label={label || "3D Model File"} />
+<BlockLabel image={file_icon} label={label || "3D Model"} />
 
-	{#if value === null}
-		<Upload on:load={handle_upload} filetype=".obj, .gltf, .glb" bind:dragging>
-			{drop_text}
-			<br />- {or_text} -<br />
-			{upload_text}
-		</Upload>
-	{:else}
-		<ModifyUpload on:clear={handle_clear} absolute />
-		<div
-			class="input-model w-full h-60 flex justify-center items-center bg-gray-200 dark:bg-gray-600 relative"
-		>
-			<canvas class="w-full h-full object-contain" bind:this={canvas} />
-		</div>
-	{/if}
-</Block>
+{#if value === null}
+	<Upload on:load={handle_upload} filetype=".obj, .gltf, .glb" bind:dragging>
+		{drop_text}
+		<br />- {or_text} -<br />
+		{upload_text}
+	</Upload>
+{:else}
+	<ModifyUpload on:clear={handle_clear} absolute />
+	<div
+		class="input-model w-full h-60 flex justify-center items-center bg-gray-200 dark:bg-gray-600 relative"
+	>
+		<canvas class="w-full h-full object-contain" bind:this={canvas} />
+	</div>
+{/if}

@@ -6,7 +6,6 @@
 	export let disabled: boolean = false;
 	export let label: string;
 	export let style: string = "";
-	export let form_position: "first" | "last" | "mid" | "single" = "single";
 
 	const dispatch =
 		createEventDispatcher<{ change: number; submit: undefined }>();
@@ -27,16 +26,14 @@
 	$: handle_change(value);
 </script>
 
-<Block {form_position}>
-	<!-- svelte-ignore a11y-label-has-associated-control -->
-	<label class="block">
-		<BlockTitle>{label}</BlockTitle>
-		<input
-			type="number"
-			class="gr-box gr-input w-full gr-text-input"
-			bind:value
-			on:keypress={handle_keypress}
-			{disabled}
-		/>
-	</label>
-</Block>
+<!-- svelte-ignore a11y-label-has-associated-control -->
+<label class="block">
+	<BlockTitle>{label}</BlockTitle>
+	<input
+		type="number"
+		class="gr-box gr-input w-full gr-text-input"
+		bind:value
+		on:keypress={handle_keypress}
+		{disabled}
+	/>
+</label>

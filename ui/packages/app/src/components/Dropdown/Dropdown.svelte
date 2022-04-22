@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Dropdown } from "@gradio/form";
+	import { Block } from "@gradio/atoms";
 	export let label: string = "Dropdown";
 	export let value: string = "";
 	export let default_value: string = "";
@@ -12,12 +13,14 @@
 	if (default_value) value = default_value;
 </script>
 
-<Dropdown
-	{form_position}
-	bind:value
-	{style}
-	{choices}
-	{label}
-	on:change
-	disabled={mode === "static"}
-/>
+<Block {form_position}>
+	<Dropdown
+		{form_position}
+		bind:value
+		{style}
+		{choices}
+		{label}
+		on:change
+		disabled={mode === "static"}
+	/>
+</Block>

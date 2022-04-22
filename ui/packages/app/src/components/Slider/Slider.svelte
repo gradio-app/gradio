@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Range } from "@gradio/form";
+	import { Block } from "@gradio/atoms";
 
 	export let value: number = 0;
 
@@ -16,14 +17,15 @@
 	if (default_value) value = default_value;
 </script>
 
-<Range
-	{form_position}
-	bind:value
-	{label}
-	{style}
-	{minimum}
-	{maximum}
-	{step}
-	disabled={mode === "static"}
-	on:change
-/>
+<Block {form_position}>
+	<Range
+		bind:value
+		{label}
+		{style}
+		{minimum}
+		{maximum}
+		{step}
+		disabled={mode === "static"}
+		on:change
+	/>
+</Block>

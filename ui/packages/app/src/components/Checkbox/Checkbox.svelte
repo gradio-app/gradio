@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Checkbox } from "@gradio/form";
+	import { Block } from "@gradio/atoms";
 
 	export let value: boolean = false;
 	export let default_value: boolean = false;
@@ -11,11 +12,6 @@
 	if (default_value) value = default_value;
 </script>
 
-<Checkbox
-	{form_position}
-	{style}
-	{label}
-	bind:value
-	on:change
-	disabled={mode === "static"}
-/>
+<Block {form_position}>
+	<Checkbox {style} {label} bind:value on:change disabled={mode === "static"} />
+</Block>

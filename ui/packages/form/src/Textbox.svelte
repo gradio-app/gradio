@@ -9,7 +9,6 @@
 	export let style: string = "";
 	export let disabled = false;
 	export let autoheight: boolean = false;
-	export let form_position: "first" | "last" | "mid" | "single" = "single";
 
 	const dispatch =
 		createEventDispatcher<{ change: string; submit: undefined }>();
@@ -56,31 +55,29 @@
 	}
 </script>
 
-<Block {form_position}>
-	<!-- svelte-ignore a11y-label-has-associated-control -->
-	<label class="block">
-		<BlockTitle>{label}</BlockTitle>
+<!-- svelte-ignore a11y-label-has-associated-control -->
+<label class="block">
+	<BlockTitle>{label}</BlockTitle>
 
-		{#if autoheight || lines > 1}
-			<textarea
-				use:text_area_resize={{ enabled: autoheight, value }}
-				class="block gr-box gr-input w-full gr-text-input"
-				bind:value
-				{placeholder}
-				{style}
-				rows={lines}
-				{disabled}
-			/>
-		{:else}
-			<input
-				type="text"
-				class="gr-box gr-input w-full gr-text-input"
-				{placeholder}
-				bind:value
-				on:keypress={handle_keypress}
-				{style}
-				{disabled}
-			/>
-		{/if}
-	</label>
-</Block>
+	{#if autoheight || lines > 1}
+		<textarea
+			use:text_area_resize={{ enabled: autoheight, value }}
+			class="block gr-box gr-input w-full gr-text-input"
+			bind:value
+			{placeholder}
+			{style}
+			rows={lines}
+			{disabled}
+		/>
+	{:else}
+		<input
+			type="text"
+			class="gr-box gr-input w-full gr-text-input"
+			{placeholder}
+			bind:value
+			on:keypress={handle_keypress}
+			{style}
+			{disabled}
+		/>
+	{/if}
+</label>

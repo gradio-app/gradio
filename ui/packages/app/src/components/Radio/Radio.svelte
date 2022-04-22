@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Radio } from "@gradio/form";
+	import { Block } from "@gradio/atoms";
 
 	export let label: string = "Radio";
 	export let value: string = "";

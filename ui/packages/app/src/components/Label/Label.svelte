@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { Label } from "@gradio/label";
+	import { Block } from "@gradio/atoms";
 
 	export let value: {
 		label: string;
@@ -21,6 +22,8 @@
 	$: value, dispatch("change");
 </script>
 
-{#if value !== undefined && value !== null}
-	<Label {style} {value} />
-{/if}
+<Block>
+	{#if value !== undefined && value !== null}
+		<Label {style} {value} />
+	{/if}
+</Block>
