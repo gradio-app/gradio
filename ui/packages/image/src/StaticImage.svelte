@@ -22,6 +22,6 @@
 			<img src={image_icon} alt="" class="h-6 opacity-20" />
 		</div>
 	{:else}
-		<img class="w-full h-full object-contain" src={value} alt="" />
+		<img class="w-full h-full object-contain" src={value} {style} alt="" />
 	{/if}
 </Block>

@@ -13,6 +13,9 @@
 		props: {
 			name: keyof typeof component_map;
 			css: Record<string, string>;
+			width: number | null;
+			height: number | null;
+			visible: boolean | null;
 			[key: string]: unknown;
 		};
 	}
@@ -55,7 +58,7 @@
 		value?: unknown;
 	}
 
-	const instance_map = components.reduce((acc, next) => {
+	var instance_map = components.reduce((acc, next) => {
 		return {
 			...acc,
 			[next.id]: {
@@ -109,7 +112,6 @@
 	let tree;
 	Promise.all(Array.from(component_set)).then((v) => {
 		Promise.all(layout.children.map((c) => walk_layout(c))).then((v) => {
-			console.log(v);
 			tree = v;
 		});
 	});
@@ -184,7 +186,26 @@
 						.then((output) => {
 							set_status(i, "complete");
 							output.data.forEach((value, i) => {
-								instance_map[outputs[i]].value = value;
+								if (typeof value === "object" && value.__type__ == "update") {
+									if (value.value) {
+										instance_map[outputs[i]].value = value.value;
+										delete value.value;
+									}
+									delete value.__type__;
+									instance_map = {
+										...instance_map,
+										[outputs[i]]: {
+											...instance_map[outputs[i]],
+											props: {
+												...instance_map[outputs[i]].props,
+												...value
+											}
+										}
+									};
+									console.log("new map")
+								} else {
+									instance_map[outputs[i]].value = value;
+								}
 							});
 						})
 						.catch((error) => {

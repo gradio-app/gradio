@@ -127,7 +127,7 @@ class TestNumber(unittest.TestCase):
             ([0.97, 0.98, 0.99, 1.01, 1.02, 1.03], {}),
         )
         self.assertEqual(
-            numeric_input.get_template_context(),
+            numeric_input.get_config(),
             {
                 "default_value": None,
                 "name": "number",
@@ -175,7 +175,7 @@ class TestSlider(unittest.TestCase):
             default=15, minimum=10, maximum=20, step=1, label="Slide Your Input"
         )
         self.assertEqual(
-            slider_input.get_template_context(),
+            slider_input.get_config(),
             {
                 "minimum": 10,
                 "maximum": 20,
@@ -224,7 +224,7 @@ class TestCheckbox(unittest.TestCase):
         self.assertIsInstance(bool_input.generate_sample(), bool)
         bool_input = gr.inputs.Checkbox(default=True, label="Check Your Input")
         self.assertEqual(
-            bool_input.get_template_context(),
+            bool_input.get_config(),
             {
                 "default_value": True,
                 "name": "checkbox",
@@ -264,7 +264,7 @@ class TestCheckboxGroup(unittest.TestCase):
             default=["a", "c"], choices=["a", "b", "c"], label="Check Your Inputs"
         )
         self.assertEqual(
-            checkboxes_input.get_template_context(),
+            checkboxes_input.get_config(),
             {
                 "choices": ["a", "b", "c"],
                 "default_value": ["a", "c"],
@@ -302,7 +302,7 @@ class TestRadio(unittest.TestCase):
             choices=["a", "b", "c"], default="a", label="Pick Your One Input"
         )
         self.assertEqual(
-            radio_input.get_template_context(),
+            radio_input.get_config(),
             {
                 "choices": ["a", "b", "c"],
                 "default_value": "a",
@@ -347,7 +347,7 @@ class TestDropdown(unittest.TestCase):
             choices=["a", "b", "c"], default="a", label="Drop Your Input"
         )
         self.assertEqual(
-            dropdown_input.get_template_context(),
+            dropdown_input.get_config(),
             {
                 "choices": ["a", "b", "c"],
                 "default_value": "a",
@@ -398,7 +398,7 @@ class TestImage(unittest.TestCase):
             source="upload", tool="editor", type="pil", label="Upload Your Image"
         )
         self.assertEqual(
-            image_input.get_template_context(),
+            image_input.get_config(),
             {
                 "image_mode": "RGB",
                 "shape": None,
@@ -492,7 +492,7 @@ class TestAudio(unittest.TestCase):
         self.assertIsInstance(audio_input.generate_sample(), dict)
         audio_input = gr.inputs.Audio(label="Upload Your Audio")
         self.assertEqual(
-            audio_input.get_template_context(),
+            audio_input.get_config(),
             {
                 "source": "upload",
                 "name": "audio",
@@ -553,7 +553,7 @@ class TestFile(unittest.TestCase):
         self.assertIsInstance(file_input.generate_sample(), dict)
         file_input = gr.inputs.File(label="Upload Your File")
         self.assertEqual(
-            file_input.get_template_context(),
+            file_input.get_config(),
             {
                 "file_count": "single",
                 "name": "file",
@@ -600,7 +600,7 @@ class TestDataframe(unittest.TestCase):
             headers=["Name", "Age", "Member"], label="Dataframe Input"
         )
         self.assertEqual(
-            dataframe_input.get_template_context(),
+            dataframe_input.get_config(),
             {
                 "headers": ["Name", "Age", "Member"],
                 "datatype": "str",
@@ -659,7 +659,7 @@ class TestVideo(unittest.TestCase):
         self.assertIsInstance(video_input.generate_sample(), dict)
         video_input = gr.inputs.Video(label="Upload Your Video")
         self.assertEqual(
-            video_input.get_template_context(),
+            video_input.get_config(),
             {
                 "source": "upload",
                 "name": "video",
@@ -706,7 +706,7 @@ class TestTimeseries(unittest.TestCase):
             x="time", y="retail", label="Upload Your Timeseries"
         )
         self.assertEqual(
-            timeseries_input.get_template_context(),
+            timeseries_input.get_config(),
             {
                 "x": "time",
                 "y": ["retail"],
@@ -761,7 +761,7 @@ class TestImage3D(unittest.TestCase):
         self.assertIsInstance(Image3D_input.generate_sample(), dict)
         Image3D_input = gr.inputs.Image3D(label="Upload Your 3D Image Model")
         self.assertEqual(
-            Image3D_input.get_template_context(),
+            Image3D_input.get_config(),
             {
                 "clearColor": None,
                 "name": "image3d",

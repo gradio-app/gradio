@@ -5,7 +5,13 @@
 	export let component;
 	export let instance_map;
 	export let id: number;
-	export let props;
+	export let props: {
+		css: Record<string, string>;
+		width: number | null;
+		height: number | null;
+		visible: boolean | null;
+		[key: string]: unknown;
+	};
 	export let children;
 	export let theme;
 	export let dynamic_ids: Set<number>;
@@ -32,11 +38,23 @@
 		return () => dispatch("destroy", id);
 	});
 
-	let style = props.css
-		? Object.entries(props.css)
-				.map((rule) => rule[0] + ": " + rule[1])
-				.join("; ")
-		: null;
+	let style;
+	$: {
+		style = null;
+		let rules = props.css || {};
+		if ("height" in props) {
+			rules.height = props.height + "px";
+		}
+		if ("width" in props) {
+			rules.width = props.width + "px";
+		}
+		if (props.visible === false) {
+			rules.display = "hidden";
+		}
+		style = Object.entries(rules)
+			.map((rule) => rule[0] + ": " + rule[1])
+			.join("; ");
+	}
 </script>
 
 <svelte:component

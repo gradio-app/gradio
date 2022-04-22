@@ -179,7 +179,7 @@ class TestHighlightedText(unittest.TestCase):
     def test_as_component(self):
         ht_output = gr.outputs.HighlightedText(color_map={"pos": "green", "neg": "red"})
         self.assertEqual(
-            ht_output.get_template_context(),
+            ht_output.get_config(),
             {
                 "color_map": {"pos": "green", "neg": "red"},
                 "name": "highlightedtext",
@@ -234,7 +234,7 @@ class TestAudio(unittest.TestCase):
             )
         )
         self.assertEqual(
-            audio_output.get_template_context(),
+            audio_output.get_config(),
             {
                 "name": "audio",
                 "label": None,
@@ -355,7 +355,7 @@ class TestDataframe(unittest.TestCase):
             {"headers": ["num", "prime"], "data": [[2, True], [3, True], [4, False]]},
         )
         self.assertEqual(
-            dataframe_output.get_template_context(),
+            dataframe_output.get_config(),
             {
                 "headers": None,
                 "max_rows": 20,
@@ -431,7 +431,7 @@ class TestCarousel(unittest.TestCase):
         output = carousel_output.postprocess([["Hello World"], ["Bye World"]])
         self.assertEqual(output, [["Hello World"], ["Bye World"]])
         self.assertEqual(
-            carousel_output.get_template_context(),
+            carousel_output.get_config(),
             {
                 "components": [
                     {
@@ -498,7 +498,7 @@ class TestTimeseries(unittest.TestCase):
     def test_as_component(self):
         timeseries_output = gr.outputs.Timeseries(label="Disease")
         self.assertEqual(
-            timeseries_output.get_template_context(),
+            timeseries_output.get_config(),
             {
                 "x": None,
                 "y": None,

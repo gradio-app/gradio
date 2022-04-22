@@ -34,7 +34,6 @@ class Component(Block):
         *,
         label: Optional[str] = None,
         requires_permissions: bool = False,
-        css: Optional[Dict] = None,
         without_rendering: bool = False,
         interactive: Optional[bool] = None,
         **kwargs,
@@ -49,7 +48,7 @@ class Component(Block):
         self.interactive = interactive
 
         self.set_interpret_parameters()
-        super().__init__(without_rendering=without_rendering, css=css)
+        super().__init__(without_rendering=without_rendering, **kwargs)
 
     def __str__(self):
         return self.__repr__()
@@ -57,15 +56,15 @@ class Component(Block):
     def __repr__(self):
         return f"{self.get_block_name()} (label={self.label})"
 
-    def get_template_context(self):
+    def get_config(self):
         """
         :return: a dictionary with context variables for the javascript file associated with the context
         """
         return {
             "name": self.get_block_name(),
             "label": self.label,
-            "css": self.css,
             "interactive": self.interactive,
+            **super().get_config(),
         }
 
     def save_flagged(
@@ -251,7 +250,6 @@ class Textbox(Component):
         max_lines: int = 20,
         placeholder: Optional[str] = None,
         label: Optional[str] = None,
-        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -279,15 +277,15 @@ class Textbox(Component):
         self.default_value = default_value
         self.test_input = default_value
         self.interpret_by_tokens = True
-        super().__init__(label=label, css=css, **kwargs)
+        super().__init__(label=label, **kwargs)
 
-    def get_template_context(self):
+    def get_config(self):
         return {
             "lines": self.lines,
             "max_lines": self.max_lines,
             "placeholder": self.placeholder,
             "default_value": self.default_value,
-            **super().get_template_context(),
+            **super().get_config(),
         }
 
     # Input Functionalities
@@ -446,7 +444,6 @@ class Number(Component):
         default_value: Optional[float] = None,
         *,
         label: Optional[str] = None,
-        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -457,10 +454,10 @@ class Number(Component):
         self.default_value = float(default_value) if default_value is not None else None
         self.test_input = self.default_value if self.default_value is not None else 1
         self.interpret_by_tokens = False
-        super().__init__(label=label, css=css, **kwargs)
+        super().__init__(label=label, **kwargs)
 
-    def get_template_context(self):
-        return {"default_value": self.default_value, **super().get_template_context()}
+    def get_config(self):
+        return {"default_value": self.default_value, **super().get_config()}
 
     def preprocess(self, x: float | None) -> Optional[float]:
         """
@@ -595,7 +592,6 @@ class Slider(Component):
         maximum: float = 100,
         step: Optional[float] = None,
         label: Optional[str] = None,
-        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -616,15 +612,15 @@ class Slider(Component):
         self.default_value = minimum if default_value is None else default_value
         self.test_input = self.default_value
         self.interpret_by_tokens = False
-        super().__init__(label=label, css=css, **kwargs)
+        super().__init__(label=label, **kwargs)
 
-    def get_template_context(self):
+    def get_config(self):
         return {
             "minimum": self.minimum,
             "maximum": self.maximum,
             "step": self.step,
             "default_value": self.default_value,
-            **super().get_template_context(),
+            **super().get_config(),
         }
 
     def preprocess(self, x: float) -> float:
@@ -718,7 +714,6 @@ class Checkbox(Component):
         default_value: bool = False,
         *,
         label: Optional[str] = None,
-        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -729,10 +724,10 @@ class Checkbox(Component):
         self.test_input = True
         self.default_value = default_value
         self.interpret_by_tokens = False
-        super().__init__(label=label, css=css, **kwargs)
+        super().__init__(label=label, **kwargs)
 
-    def get_template_context(self):
-        return {"default_value": self.default_value, **super().get_template_context()}
+    def get_config(self):
+        return {"default_value": self.default_value, **super().get_config()}
 
     def preprocess(self, x: bool) -> bool:
         """
@@ -820,7 +815,6 @@ class CheckboxGroup(Component):
         default_selected: List[str] = None,
         type: str = "value",
         label: Optional[str] = None,
-        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -839,13 +833,13 @@ class CheckboxGroup(Component):
         self.type = type
         self.test_input = self.choices
         self.interpret_by_tokens = False
-        super().__init__(label=label, css=css, **kwargs)
+        super().__init__(label=label, **kwargs)
 
-    def get_template_context(self):
+    def get_config(self):
         return {
             "choices": self.choices,
             "default_value": self.default_value,
-            **super().get_template_context(),
+            **super().get_config(),
         }
 
     def preprocess(self, x: List[str]) -> List[str] | List[int]:
@@ -957,7 +951,6 @@ class Radio(Component):
         default_selected: Optional[str] = None,
         type: str = "value",
         label: Optional[str] = None,
-        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -974,13 +967,13 @@ class Radio(Component):
             default_selected if default_selected is not None else self.choices[0]
         )
         self.interpret_by_tokens = False
-        super().__init__(label=label, css=css, **kwargs)
+        super().__init__(label=label, **kwargs)
 
-    def get_template_context(self):
+    def get_config(self):
         return {
             "choices": self.choices,
             "default_value": self.default_value,
-            **super().get_template_context(),
+            **super().get_config(),
         }
 
     def preprocess(self, x: str) -> str | int:
@@ -1074,7 +1067,6 @@ class Dropdown(Radio):
         default_selected: Optional[str] = None,
         type: str = "value",
         label: Optional[str] = None,
-        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -1114,7 +1106,6 @@ class Image(Component):
         tool: str = "editor",
         type: str = "numpy",
         label: str = None,
-        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -1156,14 +1147,14 @@ class Image(Component):
             label=label, requires_permissions=requires_permissions, **kwargs
         )
 
-    def get_template_context(self):
+    def get_config(self):
         return {
             "image_mode": self.image_mode,
             "shape": self.shape,
             "source": self.source,
             "tool": self.tool,
             "default_value": self.default_value,
-            **super().get_template_context(),
+            **super().get_config(),
         }
 
     def preprocess(self, x: Optional[str]) -> np.array | PIL.Image | str | None:
@@ -1445,7 +1436,6 @@ class Video(Component):
         type: Optional[str] = None,
         source: str = "upload",
         label: Optional[str] = None,
-        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -1463,13 +1453,13 @@ class Video(Component):
         )
         self.type = type
         self.source = source
-        super().__init__(label=label, css=css, **kwargs)
+        super().__init__(label=label, **kwargs)
 
-    def get_template_context(self):
+    def get_config(self):
         return {
             "source": self.source,
             "default_value": self.default_value,
-            **super().get_template_context(),
+            **super().get_config(),
         }
 
     def preprocess_example(self, x):
@@ -1617,7 +1607,6 @@ class Audio(Component):
         source: str = "upload",
         type: str = "numpy",
         label: str = None,
-        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -1642,11 +1631,11 @@ class Audio(Component):
             label=label, requires_permissions=requires_permissions, **kwargs
         )
 
-    def get_template_context(self):
+    def get_config(self):
         return {
             "source": self.source,  # TODO: This did not exist in output template, careful here if an error arrives
             "default_value": self.default_value,
-            **super().get_template_context(),
+            **super().get_config(),
         }
 
     def preprocess_example(self, x):
@@ -1928,7 +1917,6 @@ class File(Component):
         file_count: str = "single",
         type: str = "file",
         label: Optional[str] = None,
-        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -1948,13 +1936,13 @@ class File(Component):
         self.file_count = file_count
         self.type = type
         self.test_input = None
-        super().__init__(label=label, css=css, **kwargs)
+        super().__init__(label=label, **kwargs)
 
-    def get_template_context(self):
+    def get_config(self):
         return {
             "file_count": self.file_count,
             "default_value": self.default_value,
-            **super().get_template_context(),
+            **super().get_config(),
         }
 
     def preprocess_example(self, x):
@@ -2081,7 +2069,6 @@ class Dataframe(Component):
         max_rows: Optional[int] = 20,
         max_cols: Optional[int] = None,
         overflow_row_behaviour: str = "paginate",
-        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -2125,9 +2112,9 @@ class Dataframe(Component):
         self.max_rows = max_rows
         self.max_cols = max_cols
         self.overflow_row_behaviour = overflow_row_behaviour
-        super().__init__(label=label, css=css, **kwargs)
+        super().__init__(label=label, **kwargs)
 
-    def get_template_context(self):
+    def get_config(self):
         return {
             "headers": self.headers,
             "datatype": self.datatype,
@@ -2138,7 +2125,7 @@ class Dataframe(Component):
             "max_rows": self.max_rows,
             "max_cols": self.max_cols,
             "overflow_row_behaviour": self.overflow_row_behaviour,
-            **super().get_template_context(),
+            **super().get_config(),
         }
 
     def preprocess(self, x: List[List[str | Number | bool]]):
@@ -2251,7 +2238,6 @@ class Timeseries(Component):
         x: Optional[str] = None,
         y: str | List[str] = None,
         label: Optional[str] = None,
-        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -2268,14 +2254,14 @@ class Timeseries(Component):
         if isinstance(y, str):
             y = [y]
         self.y = y
-        super().__init__(label=label, css=css, **kwargs)
+        super().__init__(label=label, **kwargs)
 
-    def get_template_context(self):
+    def get_config(self):
         return {
             "x": self.x,
             "y": self.y,
             "default_value": self.default_value,
-            **super().get_template_context(),
+            **super().get_config(),
         }
 
     def preprocess_example(self, x):
@@ -2365,8 +2351,8 @@ class Variable(Component):
         self.stateful = True
         super().__init__(**kwargs)
 
-    def get_template_context(self):
-        return {"default_value": self.default_value, **super().get_template_context()}
+    def get_config(self):
+        return {"default_value": self.default_value, **super().get_config()}
 
 
 ############################
@@ -2389,7 +2375,6 @@ class Label(Component):
         *,
         num_top_classes: Optional[int] = None,
         label: Optional[str] = None,
-        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -2401,7 +2386,7 @@ class Label(Component):
         # TODO: Shall we have a default value for the label component?
         self.num_top_classes = num_top_classes
         self.output_type = "auto"
-        super().__init__(label=label, css=css, **kwargs)
+        super().__init__(label=label, **kwargs)
 
     def postprocess(self, y):
         """
@@ -2506,7 +2491,6 @@ class KeyValues(Component):
         default_value: str = " ",
         *,
         label: Optional[str] = None,
-        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -2535,7 +2519,6 @@ class HighlightedText(Component):
         color_map: Dict[str, str] = None,
         label: Optional[str] = None,
         show_legend: bool = False,
-        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -2548,14 +2531,14 @@ class HighlightedText(Component):
         self.default_value = default_value
         self.color_map = color_map
         self.show_legend = show_legend
-        super().__init__(label=label, css=css, **kwargs)
+        super().__init__(label=label, **kwargs)
 
-    def get_template_context(self):
+    def get_config(self):
         return {
             "color_map": self.color_map,
             "show_legend": self.show_legend,
             "default_value": self.default_value,
-            **super().get_template_context(),
+            **super().get_config(),
         }
 
     def postprocess(self, y):
@@ -2606,7 +2589,6 @@ class JSON(Component):
         default_value: str = "",
         *,
         label: Optional[str] = None,
-        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -2615,12 +2597,12 @@ class JSON(Component):
         label (str): component name in interface.
         """
         self.default_value = json.dumps(default_value)
-        super().__init__(label=label, css=css, **kwargs)
+        super().__init__(label=label, **kwargs)
 
-    def get_template_context(self):
+    def get_config(self):
         return {
             "default_value": self.default_value,
-            **super().get_template_context(),
+            **super().get_config(),
         }
 
     def postprocess(self, y):
@@ -2672,7 +2654,6 @@ class HTML(Component):
         self,
         default_value: str = "",
         label: Optional[str] = None,
-        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -2681,12 +2662,12 @@ class HTML(Component):
         label (str): component name in interface.
         """
         self.default_value = default_value
-        super().__init__(label=label, css=css, **kwargs)
+        super().__init__(label=label, **kwargs)
 
-    def get_template_context(self):
+    def get_config(self):
         return {
             "default_value": self.default_value,
-            **super().get_template_context(),
+            **super().get_config(),
         }
 
     def postprocess(self, x):
@@ -2731,7 +2712,6 @@ class Carousel(Component):
         *,
         components: Component | List[Component],
         label: Optional[str] = None,
-        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -2746,14 +2726,14 @@ class Carousel(Component):
         self.components = [
             get_component_instance(component) for component in components
         ]
-        super().__init__(label=label, css=css, **kwargs)
+        super().__init__(label=label, **kwargs)
 
-    def get_template_context(self):
+    def get_config(self):
         return {
             "components": [
-                component.get_template_context() for component in self.components
+                component.get_config() for component in self.components
             ],
-            **super().get_template_context(),
+            **super().get_config(),
         }
 
     def postprocess(self, y):
@@ -2830,7 +2810,6 @@ class Chatbot(Component):
         default_value="",
         *,
         label: Optional[str] = None,
-        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -2839,10 +2818,10 @@ class Chatbot(Component):
         label (str): component name in interface (not used).
         """
         self.default_value = default_value
-        super().__init__(label=label, css=css, **kwargs)
+        super().__init__(label=label, **kwargs)
 
-    def get_template_context(self):
-        return {"default_value": self.default_value, **super().get_template_context()}
+    def get_config(self):
+        return {"default_value": self.default_value, **super().get_config()}
 
     def postprocess(self, y):
         """
@@ -2886,7 +2865,6 @@ class Model3D(Component):
         self,
         clear_color=None,
         label: str = None,
-        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -2895,12 +2873,12 @@ class Model3D(Component):
         label (str): component name in interface.
         """
         self.clear_color = clear_color
-        super().__init__(label=label, css=css, **kwargs)
+        super().__init__(label=label, **kwargs)
 
-    def get_template_context(self):
+    def get_config(self):
         return {
             "clearColor": self.clear_color,
-            **super().get_template_context(),
+            **super().get_config(),
         }
 
     def preprocess_example(self, x):
@@ -3011,7 +2989,6 @@ class Plot(Component):
         self,
         type: str = None,
         label: str = None,
-        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -3020,10 +2997,10 @@ class Plot(Component):
         label (str): component name in interface.
         """
         self.type = type
-        super().__init__(label=label, css=css, **kwargs)
+        super().__init__(label=label, **kwargs)
 
-    def get_template_context(self):
-        return {**super().get_template_context()}
+    def get_config(self):
+        return {**super().get_config()}
 
     def postprocess(self, y):
         """
@@ -3101,22 +3078,20 @@ class Markdown(Component):
         default_value: str = "",
         *,
         label: Optional[str] = None,
-        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
         Parameters:
         default_value (str): Default value
         label (str): component name
-        css (dict): optional css parameters for the component
         """
-        super().__init__(label=label, css=css, **kwargs)
+        super().__init__(label=label, **kwargs)
         self.md = MarkdownIt()
         unindented_default_value = inspect.cleandoc(default_value)
         self.default_value = self.md.render(unindented_default_value)
 
-    def get_template_context(self):
-        return {"default_value": self.default_value, **super().get_template_context()}
+    def get_config(self):
+        return {"default_value": self.default_value, **super().get_config()}
 
 
 class Button(Component):
@@ -3128,21 +3103,26 @@ class Button(Component):
         self,
         default_value: str = "",
         *,
+        variant: Optional[str] = "secondary",
         label: Optional[str] = None,
-        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
         Parameters:
         default_value (str): Default value
+        variant (str): Which color scheme to use. Either "primary", "secondary".
         label (str): component name
-        css (dict): optional css parameters for the component
         """
-        super().__init__(label=label, css=css, **kwargs)
+        super().__init__(label=label, **kwargs)
+        self.variant = variant
         self.default_value = default_value
 
-    def get_template_context(self):
-        return {"default_value": self.default_value, **super().get_template_context()}
+    def get_config(self):
+        return {
+            "default_value": self.default_value,
+            "variant": self.variant,
+            **super().get_config(),
+        }
 
     def click(
         self,
@@ -3207,22 +3187,21 @@ class Dataset(Component):
         samples: List[List[Any]],
         type: str = "values",
         label: Optional[str] = None,
-        css: Optional[Dict] = None,
         **kwargs,
     ):
-        super().__init__(label=label, css=css, **kwargs)
+        super().__init__(label=label, **kwargs)
         self.components = components
         self.type = type
         self.headers = [c.label for c in components]
         self.samples = samples
 
-    def get_template_context(self):
+    def get_config(self):
         return {
             "components": [component.get_block_name() for component in self.components],
             "headers": self.headers,
             "samples": self.samples,
             "type": self.type,
-            **super().get_template_context(),
+            **super().get_config(),
         }
 
     def preprocess(self, x: Any) -> Any:
@@ -3288,16 +3267,15 @@ class Interpretation(Component):
         component: Component,
         *,
         label: Optional[str] = None,
-        css: Optional[Dict] = None,
         **kwargs,
     ):
-        super().__init__(label=label, css=css, **kwargs)
+        super().__init__(label=label, **kwargs)
         self.component = component
 
-    def get_template_context(self):
+    def get_config(self):
         return {
             "component": self.component.get_block_name(),
-            "component_props": self.component.get_template_context(),
+            "component_props": self.component.get_config(),
         }
 
 
@@ -3350,20 +3328,18 @@ class StatusTracker(Component):
         *,
         cover_container: bool = False,
         label: Optional[str] = None,
-        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
         Parameters:
         cover_container (bool): If True, will expand to cover parent container while function pending.
         label (str): component name
-        css (dict): optional css parameters for the component
         """
-        super().__init__(label=label, css=css, **kwargs)
+        super().__init__(label=label, **kwargs)
         self.cover_container = cover_container
 
-    def get_template_context(self):
+    def get_config(self):
         return {
             "cover_container": self.cover_container,
-            **super().get_template_context(),
+            **super().get_config(),
         }

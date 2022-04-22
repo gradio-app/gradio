@@ -33,7 +33,7 @@ class TestComponent(unittest.TestCase):
 class TestTextbox(unittest.TestCase):
     def test_component_functions(self):
         """
-        Preprocess, postprocess, serialize, save_flagged, restore_flagged, tokenize, generate_sample, get_template_context
+        Preprocess, postprocess, serialize, save_flagged, restore_flagged, tokenize, generate_sample, get_config
         """
         text_input = gr.Textbox()
         self.assertEqual(text_input.preprocess("Hello World!"), "Hello World!")
@@ -82,7 +82,7 @@ class TestTextbox(unittest.TestCase):
             ),
         )
         self.assertEqual(
-            text_input.get_template_context(),
+            text_input.get_config(),
             {
                 "lines": 1,
                 "max_lines": 20,
@@ -151,7 +151,7 @@ class TestTextbox(unittest.TestCase):
 class TestNumber(unittest.TestCase):
     def test_component_functions(self):
         """
-        Preprocess, postprocess, serialize, save_flagged, restore_flagged, generate_sample, set_interpret_parameters, get_interpretation_neighbors, get_template_context
+        Preprocess, postprocess, serialize, save_flagged, restore_flagged, generate_sample, set_interpret_parameters, get_interpretation_neighbors, get_config
 
         """
         numeric_input = gr.Number()
@@ -179,7 +179,7 @@ class TestNumber(unittest.TestCase):
             ([0.97, 0.98, 0.99, 1.01, 1.02, 1.03], {}),
         )
         self.assertEqual(
-            numeric_input.get_template_context(),
+            numeric_input.get_config(),
             {
                 "default_value": None,
                 "name": "number",
@@ -239,7 +239,7 @@ class TestNumber(unittest.TestCase):
 class TestSlider(unittest.TestCase):
     def test_component_functions(self):
         """
-        Preprocess, postprocess, serialize, save_flagged, restore_flagged, generate_sample, get_template_context
+        Preprocess, postprocess, serialize, save_flagged, restore_flagged, generate_sample, get_config
         """
         slider_input = gr.Slider()
         self.assertEqual(slider_input.preprocess(3.0), 3.0)
@@ -258,7 +258,7 @@ class TestSlider(unittest.TestCase):
             default_value=15, minimum=10, maximum=20, step=1, label="Slide Your Input"
         )
         self.assertEqual(
-            slider_input.get_template_context(),
+            slider_input.get_config(),
             {
                 "minimum": 10,
                 "maximum": 20,
@@ -299,7 +299,7 @@ class TestSlider(unittest.TestCase):
 class TestCheckbox(unittest.TestCase):
     def test_component_functions(self):
         """
-        Preprocess, postprocess, serialize, generate_sample, get_template_context
+        Preprocess, postprocess, serialize, generate_sample, get_config
         """
         bool_input = gr.Checkbox()
         self.assertEqual(bool_input.preprocess(True), True)
@@ -314,7 +314,7 @@ class TestCheckbox(unittest.TestCase):
         self.assertIsInstance(bool_input.generate_sample(), bool)
         bool_input = gr.Checkbox(default_value=True, label="Check Your Input")
         self.assertEqual(
-            bool_input.get_template_context(),
+            bool_input.get_config(),
             {
                 "default_value": True,
                 "name": "checkbox",
@@ -342,7 +342,7 @@ class TestCheckbox(unittest.TestCase):
 class TestCheckboxGroup(unittest.TestCase):
     def test_component_functions(self):
         """
-        Preprocess, preprocess_example, serialize, save_flagged, restore_flagged, generate_sample, get_template_context
+        Preprocess, preprocess_example, serialize, save_flagged, restore_flagged, generate_sample, get_config
         """
         checkboxes_input = gr.CheckboxGroup(["a", "b", "c"])
         self.assertEqual(checkboxes_input.preprocess(["a", "c"]), ["a", "c"])
@@ -362,7 +362,7 @@ class TestCheckboxGroup(unittest.TestCase):
             label="Check Your Inputs",
         )
         self.assertEqual(
-            checkboxes_input.get_template_context(),
+            checkboxes_input.get_config(),
             {
                 "choices": ["a", "b", "c"],
                 "default_value": ["a", "c"],
@@ -390,7 +390,7 @@ class TestCheckboxGroup(unittest.TestCase):
 class TestRadio(unittest.TestCase):
     def test_component_functions(self):
         """
-        Preprocess, preprocess_example, serialize, save_flagged, generate_sample, get_template_context
+        Preprocess, preprocess_example, serialize, save_flagged, generate_sample, get_config
 
         """
         radio_input = gr.Radio(["a", "b", "c"])
@@ -407,7 +407,7 @@ class TestRadio(unittest.TestCase):
             choices=["a", "b", "c"], default="a", label="Pick Your One Input"
         )
         self.assertEqual(
-            radio_input.get_template_context(),
+            radio_input.get_config(),
             {
                 "choices": ["a", "b", "c"],
                 "default_value": "a",
@@ -440,7 +440,7 @@ class TestRadio(unittest.TestCase):
 class TestImage(unittest.TestCase):
     def test_component_functions(self):
         """
-        Preprocess, postprocess, serialize, save_flagged, restore_flagged, generate_sample, get_template_context, _segment_by_slic
+        Preprocess, postprocess, serialize, save_flagged, restore_flagged, generate_sample, get_config, _segment_by_slic
         type: pil, file, filepath, numpy
         """
         img = deepcopy(media_data.BASE64_IMAGE)
@@ -465,7 +465,7 @@ class TestImage(unittest.TestCase):
             source="upload", tool="editor", type="pil", label="Upload Your Image"
         )
         self.assertEqual(
-            image_input.get_template_context(),
+            image_input.get_config(),
             {
                 "image_mode": "RGB",
                 "shape": None,
@@ -598,7 +598,7 @@ class TestImage(unittest.TestCase):
 class TestAudio(unittest.TestCase):
     def test_component_functions(self):
         """
-        Preprocess, postprocess serialize, save_flagged, restore_flagged, generate_sample, get_template_context, deserialize
+        Preprocess, postprocess serialize, save_flagged, restore_flagged, generate_sample, get_config, deserialize
         type: filepath, numpy, file
         """
         x_wav = deepcopy(media_data.BASE64_AUDIO)
@@ -622,7 +622,7 @@ class TestAudio(unittest.TestCase):
         self.assertIsInstance(audio_input.generate_sample(), dict)
         audio_input = gr.Audio(label="Upload Your Audio")
         self.assertEqual(
-            audio_input.get_template_context(),
+            audio_input.get_config(),
             {
                 "source": "upload",
                 "name": "audio",
@@ -662,7 +662,7 @@ class TestAudio(unittest.TestCase):
             )
         )
         self.assertEqual(
-            audio_output.get_template_context(),
+            audio_output.get_config(),
             {
                 "name": "audio",
                 "label": None,
@@ -735,7 +735,7 @@ class TestAudio(unittest.TestCase):
 class TestFile(unittest.TestCase):
     def test_component_functions(self):
         """
-        Preprocess, serialize, save_flagged, restore_flagged, generate_sample, get_template_context, default_value
+        Preprocess, serialize, save_flagged, restore_flagged, generate_sample, get_config, default_value
         """
         x_file = deepcopy(media_data.BASE64_FILE)
         file_input = gr.File()
@@ -757,7 +757,7 @@ class TestFile(unittest.TestCase):
         self.assertIsInstance(file_input.generate_sample(), dict)
         file_input = gr.File(label="Upload Your File")
         self.assertEqual(
-            file_input.get_template_context(),
+            file_input.get_config(),
             {
                 "file_count": "single",
                 "name": "file",
@@ -773,7 +773,7 @@ class TestFile(unittest.TestCase):
 
         file_input = gr.File("test/test_files/sample_file.pdf")
         self.assertEqual(
-            file_input.get_template_context(),
+            file_input.get_config(),
             deepcopy(media_data.FILE_TEMPLATE_CONTEXT),
         )
 
@@ -823,7 +823,7 @@ class TestFile(unittest.TestCase):
 class TestDataframe(unittest.TestCase):
     def test_component_functions(self):
         """
-        Preprocess, serialize, save_flagged, restore_flagged, generate_sample, get_template_context
+        Preprocess, serialize, save_flagged, restore_flagged, generate_sample, get_config
         """
         x_data = [["Tim", 12, False], ["Jan", 24, True]]
         dataframe_input = gr.Dataframe(headers=["Name", "Age", "Member"])
@@ -846,7 +846,7 @@ class TestDataframe(unittest.TestCase):
             headers=["Name", "Age", "Member"], label="Dataframe Input"
         )
         self.assertEqual(
-            dataframe_input.get_template_context(),
+            dataframe_input.get_config(),
             {
                 "headers": ["Name", "Age", "Member"],
                 "datatype": "str",
@@ -891,7 +891,7 @@ class TestDataframe(unittest.TestCase):
             },
         )
         self.assertEqual(
-            dataframe_output.get_template_context(),
+            dataframe_output.get_config(),
             {
                 "headers": None,
                 "max_rows": 20,
@@ -966,7 +966,7 @@ class TestDataframe(unittest.TestCase):
 class TestVideo(unittest.TestCase):
     def test_component_functions(self):
         """
-        Preprocess, serialize, deserialize, save_flagged, restore_flagged, generate_sample, get_template_context
+        Preprocess, serialize, deserialize, save_flagged, restore_flagged, generate_sample, get_config
         """
         x_video = deepcopy(media_data.BASE64_VIDEO)
         video_input = gr.Video()
@@ -984,7 +984,7 @@ class TestVideo(unittest.TestCase):
         self.assertIsInstance(video_input.generate_sample(), dict)
         video_input = gr.Video(label="Upload Your Video")
         self.assertEqual(
-            video_input.get_template_context(),
+            video_input.get_config(),
             {
                 "source": "upload",
                 "name": "video",
@@ -1037,7 +1037,7 @@ class TestVideo(unittest.TestCase):
 class TestTimeseries(unittest.TestCase):
     def test_component_functions(self):
         """
-        Preprocess, postprocess, save_flagged, restore_flagged, generate_sample, get_template_context,
+        Preprocess, postprocess, save_flagged, restore_flagged, generate_sample, get_config,
         """
         timeseries_input = gr.Timeseries(x="time", y=["retail", "food", "other"])
         x_timeseries = {
@@ -1060,7 +1060,7 @@ class TestTimeseries(unittest.TestCase):
             x="time", y="retail", label="Upload Your Timeseries"
         )
         self.assertEqual(
-            timeseries_input.get_template_context(),
+            timeseries_input.get_config(),
             {
                 "x": "time",
                 "y": ["retail"],
@@ -1080,7 +1080,7 @@ class TestTimeseries(unittest.TestCase):
         timeseries_output = gr.Timeseries(label="Disease")
 
         self.assertEqual(
-            timeseries_output.get_template_context(),
+            timeseries_output.get_config(),
             {
                 "x": None,
                 "y": None,
@@ -1254,7 +1254,7 @@ class TestLabel(unittest.TestCase):
             )
 
         self.assertEqual(
-            label_output.get_template_context(),
+            label_output.get_config(),
             {
                 "name": "label",
                 "label": None,
@@ -1297,11 +1297,11 @@ class TestLabel(unittest.TestCase):
 class TestHighlightedText(unittest.TestCase):
     def test_component_functions(self):
         """
-        get_template_context, save_flagged, restore_flagged
+        get_config, save_flagged, restore_flagged
         """
         ht_output = gr.HighlightedText(color_map={"pos": "green", "neg": "red"})
         self.assertEqual(
-            ht_output.get_template_context(),
+            ht_output.get_config(),
             {
                 "color_map": {"pos": "green", "neg": "red"},
                 "name": "highlightedtext",
@@ -1366,7 +1366,7 @@ class TestJSON(unittest.TestCase):
                 {"pos": "Hello ", "neg": "World"},
             )
         self.assertEqual(
-            js_output.get_template_context(),
+            js_output.get_config(),
             {
                 "css": {},
                 "default_value": '""',
@@ -1406,7 +1406,7 @@ class TestJSON(unittest.TestCase):
 class TestHTML(unittest.TestCase):
     def test_component_functions(self):
         """
-        Get_template_context
+        get_config
         """
         html_component = gr.components.HTML("#Welcome onboard", label="HTML Input")
         self.assertEqual(
@@ -1417,7 +1417,7 @@ class TestHTML(unittest.TestCase):
                 "name": "html",
                 "interactive": None,
             },
-            html_component.get_template_context(),
+            html_component.get_config(),
         )
 
     def test_in_interface(self):
@@ -1435,7 +1435,7 @@ class TestHTML(unittest.TestCase):
 class TestCarousel(unittest.TestCase):
     def test_component_functions(self):
         """
-        Postprocess, get_template_context, save_flagged, restore_flagged
+        Postprocess, get_config, save_flagged, restore_flagged
         """
         carousel_output = gr.Carousel(
             components=[gr.Textbox(), gr.Image()], label="Disease"
@@ -1459,7 +1459,7 @@ class TestCarousel(unittest.TestCase):
         output = carousel_output.postprocess([["Hello World"], ["Bye World"]])
         self.assertEqual(output, [["Hello World"], ["Bye World"]])
         self.assertEqual(
-            carousel_output.get_template_context(),
+            carousel_output.get_config(),
             {
                 "components": [
                     {

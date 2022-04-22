@@ -529,7 +529,7 @@ class Interface(Blocks):
                     with Row():
                         clear_btn = Button("Clear")
                         if not self.live:
-                            submit_btn = Button("Submit")
+                            submit_btn = Button("Submit", variant="primary")
                 with Column(
                     css={
                         "background-color": "rgb(249,250,251)",

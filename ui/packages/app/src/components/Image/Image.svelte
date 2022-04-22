@@ -17,6 +17,7 @@
 	if (default_value) value = default_value;
 
 	$: value, dispatch("change");
+	$: console.log(style)
 </script>
 
 {#if mode === "static"}

@@ -14,6 +14,7 @@ def ct_model(diseases, img):
 
 
 with gr.Blocks() as demo:
+    gr.Image("files/xray.jpg", height=48)
     gr.Markdown(
         """
 # Detect Disease From Scan
