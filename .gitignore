@@ -11,7 +11,8 @@ __pycache__/
 build/
 
 # JS build
-gradio/templates/frontend/*
+gradio/templates/frontend
+gradio/templates/frontend/index.html
 # Secrets
 .env
 
@@ -38,7 +39,6 @@ demo/files/*.mp4
 *.bak
 workspace.code-workspace
 *.h5
-.vscode/
 
 # log files
 .pnpm-debug.log
