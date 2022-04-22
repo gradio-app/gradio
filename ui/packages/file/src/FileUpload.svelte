@@ -15,8 +15,6 @@
 	export let label: string = "";
 	export let style: string;
 
-	let file_count: string;
-
 	async function handle_upload({ detail }: CustomEvent<FileData>) {
 		value = detail;
 		await tick();

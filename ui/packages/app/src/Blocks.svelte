@@ -115,6 +115,14 @@
 		});
 	});
 
+	function set_prop(obj: Instance, prop: string, val: any) {
+		if (!obj?.props) {
+			obj.props = {};
+		}
+		obj.props[prop] = val;
+		tree = tree;
+	}
+
 	let handled_dependencies: Array<number[]> = [];
 	let status_tracker_values: Record<number, string> = {};
 
@@ -157,18 +165,14 @@
 			}
 
 			target_instances.forEach(([id, { instance }]: [number, Instance]) => {
-				// console.log(id, handled_dependencies[i]?.includes(id) || !instance);
 				if (handled_dependencies[i]?.includes(id) || !instance) return;
-				// console.log(trigger, target_instances, instance);
 				instance?.$on(trigger, () => {
 					if (status === "pending") {
 						return;
 					}
-					outputs.forEach(
-						(_id) => (instance_map[_id].props.loading_status = "pending")
+					outputs.forEach((_id) =>
+						set_prop(instance_map[_id], "loading_status", "pending")
 					);
-
-					tree = tree;
 
 					fn(
 						"predict",
@@ -183,15 +187,17 @@
 							// set_status(i, "complete");
 							output.data.forEach((value, i) => {
 								instance_map[outputs[i]].value = value;
-								instance_map[outputs[i]].props.loading_status = "complete";
+								set_prop(
+									instance_map[outputs[i]],
+									"loading_status",
+									"complete"
+								);
 							});
-							tree = tree;
 						})
 						.catch((error) => {
-							outputs.forEach(
-								(_id) => (instance_map[_id].props.loading_status = "error")
+							outputs.forEach((_id) =>
+								set_prop(instance_map[_id], "loading_status", "error")
 							);
-							tree = tree;
 
 							console.error(error);
 						});

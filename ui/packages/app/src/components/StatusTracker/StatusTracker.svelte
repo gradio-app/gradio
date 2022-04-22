@@ -34,8 +34,7 @@
 </script>
 
 <script lang="ts">
-	import { onDestroy, onMount } from "svelte";
-	import { fade } from "svelte/transition";
+	// import { onDestroy, onMount } from "svelte";
 	import Loader from "./Loader.svelte";
 
 	export let style: string = "";
@@ -45,18 +44,6 @@
 	export let tracked_status: "complete" | "pending" | "error";
 
 	let el: HTMLDivElement;
-
-	// onMount(async () => {
-	// 	items.push(el);
-	// 	console.log(items);
-
-	// 	await tick();
-	// 	console.log("all done");
-	// 	return () => {
-	// 		items.splice(items.findIndex((i) => i === el));
-	// 		console.log(items);
-	// 	};
-	// });
 
 	// $: progress = eta === null ? null : Math.min(duration / eta, 1);
 
