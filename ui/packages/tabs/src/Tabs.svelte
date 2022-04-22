@@ -41,24 +41,23 @@
 </script>
 
 <div class="flex flex-col my-4">
-	<div class="flex">
+	<div class="flex border-b-2">
 		{#each tabs as t, i}
 			{#if t.id === $selected_tab}
 				<button
-					class="px-4 py-2 font-semibold border-2 border-b-0 rounded-t border-gray-200"
+					class="bg-white px-4 pb-2 pt-1.5 rounded-t-lg border-gray-200 -mb-[2px] border-2 border-b-0"
 				>
 					{t.name}
 				</button>
 			{:else}
 				<button
-					class="px-4 py-2 border-b-2 border-gray-200"
+					class="px-4 pb-2 pt-1.5 border-transparent text-gray-400 hover:text-gray-700 -mb-[2px] border-2 border-b-0"
 					on:click={() => handle_click(t.id)}
 				>
 					{t.name}
 				</button>
 			{/if}
 		{/each}
-		<div class="flex-1 border-b-2 border-gray-200" />
 	</div>
 	<slot />
 </div>

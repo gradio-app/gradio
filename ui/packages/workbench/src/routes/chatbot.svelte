@@ -4,7 +4,7 @@
 	let messages: Array<[string, string]> = [["message one", "message two"]];
 
 	setTimeout(() => {
-		messages = [...messages, ["message five", ""]];
+		messages = [...messages, ["message five", "•••"]];
 	}, 1000);
 
 	setTimeout(() => {

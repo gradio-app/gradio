@@ -4,7 +4,7 @@
 	export let padding: boolean = true;
 
 	const styles = {
-		dashed: "border-dashed border-2",
+		dashed: "border-dashed border-[3px]",
 		solid: "border-solid border",
 		grey: "border-gray-200",
 		green: "border-green-400"

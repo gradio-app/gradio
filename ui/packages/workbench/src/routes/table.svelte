@@ -11,4 +11,4 @@
 </script>
 
 <Table {values} headers={["Num", "Two", "Three"]} />
-<button on:click={() => (values = src)}>Populate</button>
+<button class="gr-button" on:click={() => (values = src)}>Populate</button>

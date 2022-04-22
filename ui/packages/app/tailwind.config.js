@@ -5,6 +5,9 @@ module.exports = {
 		"**/@gradio/**/*.{html,js,svelte,ts,css}"
 	],
 
+	mode: "jit",
+	darkMode: "class",
+
 	theme: {
 		extend: {
 			colors: {
@@ -16,11 +19,6 @@ module.exports = {
 			sans: ["IBM Plex Sans", "system-ui"]
 		}
 	},
-	mode: "jit",
-	darkMode: "class", // or 'media' or 'class'
 
-	variants: {
-		extend: {}
-	},
 	plugins: [require("@tailwindcss/forms")]
 };
