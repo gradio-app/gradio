@@ -34,6 +34,10 @@ for more info see: https://gradio.app/
 
 Hugging Face Spaces is a free hosting option for Gradio demos on Hugging Face. Spaces comes with 3 SDK options: Gradio, Streamlit and Static HTML demos. Spaces can be public or private and the workflow is similar to github repos. There are over 2000+ spaces currently on Hugging Face. To learn more about spaces see: https://huggingface.co/spaces/launch
 
+### Hugging Face Models
+
+Hugging Face Model Hub also supports ONNX models and ONNX models can be filtered through the [ONNX tag](https://huggingface.co/models?library=onnx&sort=downloads)
+
 ## How did Hugging Face help ONNX Model Zoo?
 There are a lot of Jupyter notebooks in ONNX Model Zoo for users to test ONNX Model Zoo models. Previously users needed to download the models themselves and run those notebooks locally for testing. With Hugging Face, the testing process can be much simpler and more user-friendly. Users can easily try certain ONNX Model Zoo model on Hugging Face Spaces and run a quick demo powered by Gradio with ONNX Runtime, all on cloud without downloading anything locally. Note that there are various runtimes for ONNX, e.g., [ONNX Runtime](https://github.com/microsoft/onnxruntime), [MXNet](https://github.com/apache/incubator-mxnet).
 
