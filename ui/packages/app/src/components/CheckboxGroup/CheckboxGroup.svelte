@@ -8,11 +8,13 @@
 	export let mode: "static" | "dynamic";
 	export let style: string = "";
 	export let label: string = "Checkbox Group";
+	export let form_position: "first" | "last" | "mid" | "single" = "single";
 
 	if (default_value) value = default_value;
 </script>
 
 <CheckboxGroup
+	{form_position}
 	bind:value
 	{choices}
 	{style}

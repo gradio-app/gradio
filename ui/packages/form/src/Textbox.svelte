@@ -9,6 +9,7 @@
 	export let style: string = "";
 	export let disabled = false;
 	export let autoheight: boolean = false;
+	export let form_position: "first" | "last" | "mid" | "single" = "single";
 
 	const dispatch =
 		createEventDispatcher<{ change: string; submit: undefined }>();
@@ -55,7 +56,7 @@
 	}
 </script>
 
-<Block>
+<Block {form_position}>
 	<!-- svelte-ignore a11y-label-has-associated-control -->
 	<label class="block">
 		<BlockTitle>{label}</BlockTitle>
