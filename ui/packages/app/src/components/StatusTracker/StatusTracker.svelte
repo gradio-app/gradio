@@ -1,74 +1,113 @@
-<script lang="ts">
-	import { onDestroy } from "svelte";
+<script context="module" lang="ts">
+	import { tick } from "svelte";
 
-	export let style: string = "";
-	export let cover_container: bool = false;
-	export let eta: number | null = null;
-	export let duration: number = 8.2;
-	export let queue_pos: number | null = 0;
-	export let tracked_status: "complete" | "pending" | "error";
+	let items: Array<HTMLDivElement> = [];
 
-	$: progress = eta === null ? null : Math.min(duration / eta, 1);
+	let called = false;
 
-	let timer: NodeJS.Timeout = null;
-	let timer_start = 0;
-	let timer_diff = 0;
+	async function scroll_into_view(el: HTMLDivElement) {
+		items.push(el);
+		if (!called) called = true;
+		else return;
 
-	const start_timer = () => {
-		timer_start = Date.now();
-		timer_diff = 0;
-		timer = setInterval(() => {
-			timer_diff = (Date.now() - timer_start) / 1000;
-		}, 100);
-	};
+		await tick();
 
-	const stop_timer = () => {
-		clearInterval(timer);
-	};
+		requestAnimationFrame(() => {
+			let min = [0, 0];
 
-	onDestroy(() => {
-		if (timer) stop_timer();
-	});
+			for (let i = 0; i < items.length; i++) {
+				const element = items[i];
 
-	$: {
-		if (tracked_status === "pending") {
-			start_timer();
-		} else {
-			stop_timer();
-		}
+				const box = element.getBoundingClientRect();
+				if (i === 0 || box.top + window.scrollY <= min[0]) {
+					min[0] = box.top + window.scrollY;
+					min[1] = i;
+				}
+			}
+
+			window.scrollTo({ top: min[0] - 20, behavior: "smooth" });
+
+			called = false;
+			items = [];
+		});
 	}
 </script>
 
-{#if tracked_status === "pending"}
-	<div class:cover_container {style}>
-		<div class="text-xs font-mono text-gray-400">
-			{#if queue_pos}
-				{queue_pos} in line
-			{:else}
-				{timer_diff.toFixed(1)}s
-			{/if}
-		</div>
-		<div class="border-gray-200 rounded border w-40 h-2 relative">
-			{#if progress === null}
-				<div class="bounce absolute bg-amber-500 shadow-inner h-full w-1/4" />
-			{:else}
-				<div
-					class="blink bg-amber-500 shadow-inner h-full"
-					style="width: {progress * 100}%;"
-				/>
-			{/if}
-		</div>
-	</div>
-{:else if tracked_status === "error"}
-	<div class:cover_container {style}>
+<script lang="ts">
+	import { onDestroy, onMount } from "svelte";
+	import { fade } from "svelte/transition";
+	import Loader from "./Loader.svelte";
+
+	export let style: string = "";
+	// export let eta: number | null = null;
+	// export let duration: number = 8.2;
+	// export let queue_pos: number | null = 0;
+	export let tracked_status: "complete" | "pending" | "error";
+
+	let el: HTMLDivElement;
+
+	// onMount(async () => {
+	// 	items.push(el);
+	// 	console.log(items);
+
+	// 	await tick();
+	// 	console.log("all done");
+	// 	return () => {
+	// 		items.splice(items.findIndex((i) => i === el));
+	// 		console.log(items);
+	// 	};
+	// });
+
+	// $: progress = eta === null ? null : Math.min(duration / eta, 1);
+
+	// let timer: NodeJS.Timeout | null = null;
+	// let timer_start = 0;
+	// let timer_diff = 0;
+
+	// const start_timer = () => {
+	// 	timer_start = performance.now();
+	// 	timer_diff = 0;
+	// 	timer = setInterval(() => {
+	// 		timer_diff = (performance.now() - timer_start) / 1000;
+	// 	}, 100);
+	// };
+
+	// const stop_timer = () => {
+	// 	if (!timer) return;
+	// 	clearInterval(timer);
+	// };
+
+	// onDestroy(() => {
+	// 	if (timer) stop_timer();
+	// });
+
+	// $: {
+	// 	if (tracked_status === "pending") {
+	// 		start_timer();
+	// 	} else {
+	// 		stop_timer();
+	// 	}
+	// }
+
+	$: el &&
+		(tracked_status === "pending" || tracked_status === "complete") &&
+		scroll_into_view(el);
+</script>
+
+<div
+	class=" absolute top-0 left-0 w-full h-full z-10 flex flex-col justify-center items-center bg-white pointer-events-none transition-opacity"
+	class:opacity-0={!tracked_status || tracked_status === "complete"}
+	{style}
+	bind:this={el}
+>
+	{#if tracked_status === "pending"}
+		<Loader />
+	{:else if tracked_status === "error"}
 		<span class="text-red-400 font-mono font-semibold text-lg">ERROR</span>
-	</div>
-{/if}
+	{/if}
+</div>
 
 <style lang="postcss">
-	.cover_container {
-		@apply absolute top-0 left-0 w-full h-full z-10 flex flex-col justify-center items-center bg-gray-100 bg-opacity-25;
-	}
 	@keyframes blink {
 		0% {
 			opacity: 100%;

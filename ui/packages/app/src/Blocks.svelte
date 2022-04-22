@@ -55,7 +55,7 @@
 		value?: unknown;
 	}
 
-	const instance_map = components.reduce((acc, next) => {
+	let instance_map = components.reduce((acc, next) => {
 		return {
 			...acc,
 			[next.id]: {
@@ -107,6 +107,7 @@
 	});
 
 	let tree;
+
 	Promise.all(Array.from(component_set)).then((v) => {
 		Promise.all(layout.children.map((c) => walk_layout(c))).then((v) => {
 			console.log(v);
@@ -116,14 +117,6 @@
 
 	let handled_dependencies: Array<number[]> = [];
 	let status_tracker_values: Record<number, string> = {};
-
-	let set_status = (dependency_index: number, status: string) => {
-		dependencies[dependency_index].status = status;
-		let status_tracker_id = dependencies[dependency_index].status_tracker;
-		if (status_tracker_id !== null) {
-			status_tracker_values[status_tracker_id] = status;
-		}
-	};
 
 	async function handle_mount({ detail }) {
 		await tick();
@@ -171,7 +164,12 @@
 					if (status === "pending") {
 						return;
 					}
-					set_status(i, "pending");
+					outputs.forEach(
+						(_id) => (instance_map[_id].props.loading_status = "pending")
+					);
+
+					tree = tree;
+
 					fn(
 						"predict",
 						{
@@ -182,13 +180,19 @@
 						() => {}
 					)
 						.then((output) => {
-							set_status(i, "complete");
+							// set_status(i, "complete");
 							output.data.forEach((value, i) => {
 								instance_map[outputs[i]].value = value;
+								instance_map[outputs[i]].props.loading_status = "complete";
 							});
+							tree = tree;
 						})
 						.catch((error) => {
-							set_status(i, "error");
+							outputs.forEach(
+								(_id) => (instance_map[_id].props.loading_status = "error")
+							);
+							tree = tree;
+
 							console.error(error);
 						});
 				});

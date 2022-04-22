@@ -79,6 +79,9 @@
 			node.props.form_position = "single";
 		}
 	}
+	children =
+		children &&
+		children.filter((v, i) => instance_map[v.id].type !== "statustracker");
 </script>
 
 <svelte:component
@@ -91,7 +94,7 @@
 	tracked_status={status_tracker_values[id]}
 >
 	{#if children && children.length}
-		{#each children as { component, id, props, children, has_modes }}
+		{#each children as { component, id, props, children, has_modes } (id)}
 			<svelte:self
 				{component}
 				{id}
