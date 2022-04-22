@@ -89,8 +89,6 @@
 			_n.has_modes = true;
 		}
 
-		// console.log(await _component_map.get(meta.type));
-
 		if (node.children) {
 			_n.children = await Promise.all(node.children.map((v) => walk_layout(v)));
 		}
