@@ -14,10 +14,10 @@ In this Guide, we'll walk you through:
 
 See example EfficientNet-Lite4 Spaces demo to try below:
 
-<iframe src="https://hf.space/embed/onnx/EfficientNet-Lite4/+" frameBorder="0" height="450" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe> 
+<iframe src="https://hf.space/embed/onnx/EfficientNet-Lite4/+" frameBorder="0" height="450" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
 ## What is ONNX Model Zoo?
-Open Neural Network Exchange ([ONNX](https://onnx.ai/)) is an open standard format for representing machine learning models. ONNX is supported by a community of partners who have implemented it in many frameworks and tools. For example, if you have trained a model in TensorFlow, you can convert it to ONNX easily, and from there you could convert it to other frameworks like Pytorch, onnx runtime, Keras etc.
+Open Neural Network Exchange ([ONNX](https://onnx.ai/)) is an open standard format for representing machine learning models. ONNX is supported by a community of partners who have implemented it in many frameworks and tools. For example, if you have trained a model in TensorFlow, you can convert it to ONNX easily, and from there you could convert it to other frameworks like Pytorch, onnx runtime, Keras etc. For example, if you have trained a model in TensorFlow or PyTorch, you can convert it to ONNX easily, and from there run it on a variety of devices using an engine/compiler like ONNX Runtime.
 
 The [ONNX Model Zoo](https://github.com/onnx/models) is a collection of pre-trained, state-of-the-art models in the ONNX format contributed by community members. Accompanying each model are Jupyter notebooks for model training and running inference with the trained model. The notebooks are written in Python and include links to the training dataset as well as references to the original paper that describes the model architecture.
 
@@ -32,7 +32,7 @@ for more info see: https://gradio.app/
 
 ### Hugging Face Spaces
 
-Hugging Face Spaces is a free hosting option for Gradio demos on Hugging Face. Spaces comes with 3 SDK options: Gradio, Streamlit and Static HTML demos. Spaces can be public or private and the workflow is similar to github repos. There are over 2000+ spaces currently on Hugging Face. To learn more about spaces see: https://huggingface.co/spaces/launch
+Hugging Face Spaces is a free hosting option for Gradio demos. Spaces comes with 3 SDK options: Gradio, Streamlit and Static HTML demos. Spaces can be public or private and the workflow is similar to github repos. There are over 2000+ spaces currently on Hugging Face. To learn more about spaces see: https://huggingface.co/spaces/launch
 
 ### Hugging Face Models
 
@@ -64,13 +64,15 @@ import cv2
 import json
 import gradio as gr
 from huggingface_hub import hf_hub_download
+from onnx import hub
 import onnxruntime as rt
 
-modele = hf_hub_download(repo_id="onnx/EfficientNet-Lite4", filename="efficientnet-lite4-11.onnx")
-# load the labels text file
+# lodas ONNX model from ONNX Model Zoo
+model = hub.load("efficientnet-lite4")
+# loads the labels text file
 labels = json.load(open("labels_map.txt", "r"))
 
-# set image file dimensions to 224x224 by resizing and cropping image from center
+# sets image file dimensions to 224x224 by resizing and cropping image from center
 def pre_process_edgetpu(img, dims):
     output_height, output_width, _ = dims
     img = resize_with_aspectratio(img, output_height, output_width, inter_pol=cv2.INTER_LINEAR)
@@ -81,7 +83,7 @@ def pre_process_edgetpu(img, dims):
     img /= [128.0, 128.0, 128.0]
     return img
 
-# resize the image with a proportional scale
+# resizes the image with a proportional scale
 def resize_with_aspectratio(img, out_height, out_width, scale=87.5, inter_pol=cv2.INTER_LINEAR):
     height, width, _ = img.shape
     new_height = int(100. * out_height / scale)
@@ -95,7 +97,7 @@ def resize_with_aspectratio(img, out_height, out_width, scale=87.5, inter_pol=cv
     img = cv2.resize(img, (w, h), interpolation=inter_pol)
     return img
 
-# crop the image around the center based on given height and width
+# crops the image around the center based on given height and width
 def center_crop(img, out_height, out_width):
     height, width, _ = img.shape
     left = int((width - out_width) / 2)
@@ -106,7 +108,7 @@ def center_crop(img, out_height, out_width):
     return img
 
 
-sess = rt.InferenceSession(modele)
+sess = rt.InferenceSession(model)
 
 def inference(img):
   img = cv2.imread(img)
@@ -123,10 +125,10 @@ def inference(img):
       resultdic[labels[str(r)]] = float(results[0][r])
   return resultdic
   
-title="EfficientNet-Lite4"
-description="EfficientNet-Lite 4 is the largest variant and most accurate of the set of EfficientNet-Lite model. It is an integer-only quantized model that produces the highest accuracy of all of the EfficientNet models. It achieves 80.4% ImageNet top-1 accuracy, while still running in real-time (e.g. 30ms/image) on a Pixel 4 CPU."
-examples=[['catonnx.jpg']]
-gr.Interface(inference,gr.inputs.Image(type="filepath"),"label",title=title,description=description,examples=examples).launch() 
+title = "EfficientNet-Lite4"
+description = "EfficientNet-Lite 4 is the largest variant and most accurate of the set of EfficientNet-Lite model. It is an integer-only quantized model that produces the highest accuracy of all of the EfficientNet models. It achieves 80.4% ImageNet top-1 accuracy, while still running in real-time (e.g. 30ms/image) on a Pixel 4 CPU."
+examples = [['catonnx.jpg']]
+gr.Interface(inference, gr.inputs.Image(type="filepath"), "label", title=title, description=description, examples=examples).launch()
 ```
 
 
