@@ -11,11 +11,13 @@
 	export let maximum: number;
 	export let step: number;
 	export let mode: "static" | "dynamic";
+	export let form_position: "first" | "last" | "mid" | "single" = "single";
 
 	if (default_value) value = default_value;
 </script>
 
 <Range
+	{form_position}
 	bind:value
 	{label}
 	{style}

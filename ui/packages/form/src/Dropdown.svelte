@@ -7,13 +7,14 @@
 	export let choices: Array<string>;
 	export let style: string = "";
 	export let disabled: boolean = false;
+	export let form_position: "first" | "last" | "mid" | "single" = "single";
 
 	const dispatch = createEventDispatcher<{ change: string }>();
 
 	$: dispatch("change", value);
 </script>
 
-<Block>
+<Block {form_position}>
 	<label>
 		<BlockTitle>{label}</BlockTitle>
 		<select
