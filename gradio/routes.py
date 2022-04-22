@@ -191,7 +191,11 @@ def create_app() -> FastAPI:
         if build_file is not None:
             return FileResponse(build_file)
         raise HTTPException(status_code=404, detail="Build file not found")
-
+    
+    @app.get('/favicon.ico')
+    async def favicon():
+        return FileResponse(app.blocks.favicon_path)
+    
     @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
     def file(path):
         if (
