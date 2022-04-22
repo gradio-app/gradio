@@ -9,6 +9,7 @@
 	export let style: string = "";
 	export let lines: number;
 	export let placeholder: string = "";
+	export let form_position: "first" | "last" | "mid" | "single" = "single";
 
 	export let mode: "static" | "dynamic";
 
@@ -16,6 +17,7 @@
 </script>
 
 <TextBox
+	{form_position}
 	bind:value
 	{label}
 	{style}
