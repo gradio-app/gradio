@@ -26,8 +26,6 @@ demos_list = next(os.walk('.'))[1]
 # Some demos are just too large or need to be run in a special way, so we'll just skip them
 demos_list.remove('streaming_wav2vec')
 demos_list.remove('blocks_neural_instrument_coding')
-demos_list.remove('reverse_audio')
-demos_list.remove('image_classifier')
 demos_list.remove('flagged')
 
 for d, demo_name in enumerate(random.sample(demos_list, args.num_demos)):
