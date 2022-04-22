@@ -6,7 +6,7 @@ Please include:
 * which issue is fixed. 
 * any additional dependencies that are required for this change.
 
-Fixes: # (issue)
+Closes: # (issue)
 
 # Checklist:
 
