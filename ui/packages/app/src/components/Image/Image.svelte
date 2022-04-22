@@ -26,7 +26,9 @@
 </script>
 
 <Block
-	variant={value === null && source === "upload" ? "dashed" : "solid"}
+	variant={mode === "dynamic" && value === null && source === "upload"
+		? "dashed"
+		: "solid"}
 	color={dragging ? "green" : "grey"}
 	padding={false}
 >

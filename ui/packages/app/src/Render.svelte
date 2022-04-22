@@ -81,7 +81,7 @@
 	}
 	children =
 		children &&
-		children.filter((v, i) => instance_map[v.id].type !== "statustracker");
+		children.filter((v) => instance_map[v.id].type !== "statustracker");
 </script>
 
 <svelte:component

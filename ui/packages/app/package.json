@@ -3,7 +3,7 @@
 	"version": "1.0.0",
 	"private": true,
 	"scripts": {
-		"dev": "vite --host",
+		"dev": "vite",
 		"build": "vite build",
 		"preview": "vite preview",
 		"test:browser": "pnpx playwright test test/ --config=../../playwright.config.js",
