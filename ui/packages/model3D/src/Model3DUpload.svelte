@@ -39,7 +39,9 @@
 	let dragging = false;
 
 	import * as BABYLON from "babylonjs";
-	import "babylonjs-loaders";
+	import * as BABYLON_LOADERS from "babylonjs-loaders";
+
+	BABYLON_LOADERS.OBJFileLoader.IMPORT_VERTEX_COLORS = true;
 
 	let canvas: HTMLCanvasElement;
 	let scene: BABYLON.Scene;
