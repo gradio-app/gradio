@@ -194,7 +194,10 @@ def create_app() -> FastAPI:
 
     @app.get("/favicon.ico")
     async def favicon():
-        return FileResponse(app.blocks.favicon_path)
+        if app.blocks.favicon_path is None:
+            return static_resource("img/logo.svg")
+        else:
+            return FileResponse(app.blocks.favicon_path)
 
     @app.get("/file/{path:path}", dependencies=[Depends(login_check)])
     def file(path):
