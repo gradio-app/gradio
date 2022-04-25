@@ -10,8 +10,10 @@
 	export let disabled = false;
 	export let autoheight: boolean = false;
 
-	const dispatch =
-		createEventDispatcher<{ change: string; submit: undefined }>();
+	const dispatch = createEventDispatcher<{
+		change: string;
+		submit: undefined;
+	}>();
 
 	function handle_change(val: string) {
 		dispatch("change", val);

@@ -7,8 +7,10 @@
 	export let label: string;
 	export let style: string = "";
 
-	const dispatch =
-		createEventDispatcher<{ change: number; submit: undefined }>();
+	const dispatch = createEventDispatcher<{
+		change: number;
+		submit: undefined;
+	}>();
 
 	function handle_change(n: number) {
 		dispatch("change", n);
