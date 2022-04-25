@@ -277,6 +277,7 @@ class Textbox(Component):
         self.max_lines = max_lines
         self.placeholder = placeholder
         self.default_value = default_value
+        self.cleared_value = ""
         self.test_input = default_value
         self.interpret_by_tokens = True
         super().__init__(label=label, css=css, **kwargs)
@@ -398,6 +399,7 @@ class Textbox(Component):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        _js=False,
     ):
         """
         Parameters:
@@ -408,7 +410,7 @@ class Textbox(Component):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
+            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
         )
 
     def submit(
@@ -417,6 +419,7 @@ class Textbox(Component):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        _js=False,
     ):
         """
         Parameters:
@@ -427,7 +430,7 @@ class Textbox(Component):
         Returns: None
         """
         self.set_event_trigger(
-            "submit", fn, inputs, outputs, status_tracker=status_tracker
+            "submit", fn, inputs, outputs, status_tracker=status_tracker, js=_js
         )
 
 
@@ -546,6 +549,7 @@ class Number(Component):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        _js=False,
     ):
         """
         Parameters:
@@ -556,7 +560,7 @@ class Number(Component):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
+            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
         )
 
     def submit(
@@ -565,6 +569,7 @@ class Number(Component):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        _js=False,
     ):
         """
         Parameters:
@@ -575,7 +580,7 @@ class Number(Component):
         Returns: None
         """
         self.set_event_trigger(
-            "submit", fn, inputs, outputs, status_tracker=status_tracker
+            "submit", fn, inputs, outputs, status_tracker=status_tracker, js=_js
         )
 
 
@@ -614,6 +619,7 @@ class Slider(Component):
             step = 10**power
         self.step = step
         self.default_value = minimum if default_value is None else default_value
+        self.cleared_value = self.default_value
         self.test_input = self.default_value
         self.interpret_by_tokens = False
         super().__init__(label=label, css=css, **kwargs)
@@ -690,6 +696,7 @@ class Slider(Component):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        _js=False,
     ):
         """
         Parameters:
@@ -700,7 +707,7 @@ class Slider(Component):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
+            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
         )
 
 
@@ -791,6 +798,7 @@ class Checkbox(Component):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        _js=False,
     ):
         """
         Parameters:
@@ -801,7 +809,7 @@ class Checkbox(Component):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
+            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
         )
 
 
@@ -836,6 +844,7 @@ class CheckboxGroup(Component):
             default_selected = []
         self.choices = choices
         self.default_value = default_selected
+        self.cleared_value = []
         self.type = type
         self.test_input = self.choices
         self.interpret_by_tokens = False
@@ -928,6 +937,7 @@ class CheckboxGroup(Component):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        _js=False,
     ):
         """
         Parameters:
@@ -938,7 +948,7 @@ class CheckboxGroup(Component):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
+            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
         )
 
 
@@ -973,6 +983,7 @@ class Radio(Component):
         self.default_value = (
             default_selected if default_selected is not None else self.choices[0]
         )
+        self.cleared_value = self.default_value
         self.interpret_by_tokens = False
         super().__init__(label=label, css=css, **kwargs)
 
@@ -1045,6 +1056,7 @@ class Radio(Component):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        _js=False,
     ):
         """
         Parameters:
@@ -1055,7 +1067,7 @@ class Radio(Component):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
+            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
         )
 
 
@@ -1395,6 +1407,7 @@ class Image(Component):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        _js=False,
     ):
         """
         Parameters:
@@ -1405,7 +1418,7 @@ class Image(Component):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
+            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
         )
 
     def edit(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
@@ -1546,6 +1559,7 @@ class Video(Component):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        _js=False,
     ):
         """
         Parameters:
@@ -1556,7 +1570,7 @@ class Video(Component):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
+            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
         )
 
     def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
@@ -1848,6 +1862,7 @@ class Audio(Component):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        _js=False,
     ):
         """
         Parameters:
@@ -1858,7 +1873,7 @@ class Audio(Component):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
+            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
         )
 
     def edit(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
@@ -2035,6 +2050,7 @@ class File(Component):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        _js=False,
     ):
         """
         Parameters:
@@ -2045,7 +2061,7 @@ class File(Component):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
+            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
         )
 
     def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
@@ -2221,6 +2237,7 @@ class Dataframe(Component):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        _js=False,
     ):
         """
         Parameters:
@@ -2231,7 +2248,7 @@ class Dataframe(Component):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
+            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
         )
 
 
@@ -2328,6 +2345,7 @@ class Timeseries(Component):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        _js=False,
     ):
         """
         Parameters:
@@ -2338,7 +2356,7 @@ class Timeseries(Component):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
+            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
         )
 
 
@@ -2480,6 +2498,7 @@ class Label(Component):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        _js=False,
     ):
         """
         Parameters:
@@ -2490,7 +2509,7 @@ class Label(Component):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
+            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
         )
 
 
@@ -2580,6 +2599,7 @@ class HighlightedText(Component):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        _js=False,
     ):
         """
         Parameters:
@@ -2590,7 +2610,7 @@ class HighlightedText(Component):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
+            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
         )
 
 
@@ -2647,6 +2667,7 @@ class JSON(Component):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        _js=False,
     ):
         """
         Parameters:
@@ -2657,7 +2678,7 @@ class JSON(Component):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
+            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
         )
 
 
@@ -2704,6 +2725,7 @@ class HTML(Component):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        _js=False,
     ):
         """
         Parameters:
@@ -2714,7 +2736,7 @@ class HTML(Component):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
+            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
         )
 
 
@@ -2804,6 +2826,7 @@ class Carousel(Component):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        _js=False,
     ):
         """
         Parameters:
@@ -2814,7 +2837,7 @@ class Carousel(Component):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
+            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
         )
 
 
@@ -2860,6 +2883,7 @@ class Chatbot(Component):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        _js=False,
     ):
         """
         Parameters:
@@ -2870,7 +2894,7 @@ class Chatbot(Component):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
+            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
         )
 
 
@@ -3062,6 +3086,7 @@ class Plot(Component):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        _js=False,
     ):
         """
         Parameters:
@@ -3072,7 +3097,7 @@ class Plot(Component):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
+            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
         )
 
     def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
@@ -3151,6 +3176,7 @@ class Button(Component):
         outputs: List[Component],
         queue=False,
         status_tracker: Optional[StatusTracker] = None,
+        _js=False,
     ):
         """
         Parameters:
@@ -3167,6 +3193,7 @@ class Button(Component):
             outputs,
             queue=queue,
             status_tracker=status_tracker,
+            js=_js,
         )
 
     def _click_no_preprocess(
@@ -3175,6 +3202,7 @@ class Button(Component):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        _js=False,
     ):
         """
         Parameters:
@@ -3191,6 +3219,7 @@ class Button(Component):
             outputs,
             preprocess=False,
             status_tracker=status_tracker,
+            js=_js,
         )
 
 
@@ -3240,6 +3269,7 @@ class Dataset(Component):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        _js=False,
     ):
         """
         Parameters:
@@ -3250,7 +3280,7 @@ class Dataset(Component):
         Returns: None
         """
         self.set_event_trigger(
-            "click", fn, inputs, outputs, status_tracker=status_tracker
+            "click", fn, inputs, outputs, status_tracker=status_tracker, js=_js
         )
 
     def _click_no_postprocess(
@@ -3259,6 +3289,7 @@ class Dataset(Component):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        _js=False,
     ):
         """
         Parameters:
@@ -3275,6 +3306,7 @@ class Dataset(Component):
             outputs,
             postprocess=False,
             status_tracker=status_tracker,
+            js=_js,
         )
 
 

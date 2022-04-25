@@ -29,6 +29,7 @@
 		inputs: Array<number>;
 		outputs: Array<number>;
 		queue: boolean;
+		js: string | null;
 		status_tracker: number | null;
 		status?: string;
 	}
@@ -127,53 +128,25 @@
 
 	async function handle_mount({ detail }) {
 		await tick();
-		dependencies.forEach(({ targets, trigger, inputs, outputs, queue }, i) => {
-			const target_instances: [number, Instance][] = targets.map((t) => [
-				t,
-				instance_map[t]
-			]);
+		dependencies.forEach(
+			({ targets, trigger, inputs, outputs, queue, js }, i) => {
+				const target_instances: [number, Instance][] = targets.map((t) => [
+					t,
+					instance_map[t]
+				]);
 
-			// page events
-			if (
-				targets.length === 0 &&
-				!handled_dependencies[i]?.includes(-1) &&
-				trigger === "load" &&
-				// check all input + output elements are on the page
-				outputs.every((v) => instance_map[v].instance) &&
-				inputs.every((v) => instance_map[v].instance)
-			) {
-				fn(
-					"predict",
-					{
-						fn_index: i,
-						data: inputs.map((id) => instance_map[id].value)
-					},
-					queue,
-					() => {}
-				)
-					.then((output) => {
-						output.data.forEach((value, i) => {
-							instance_map[outputs[i]].value = value;
-						});
-					})
-					.catch((error) => {
-						console.error(error);
-					});
-
-				handled_dependencies[i] = [-1];
-			}
-
-			target_instances.forEach(([id, { instance }]: [number, Instance]) => {
-				// console.log(id, handled_dependencies[i]?.includes(id) || !instance);
-				if (handled_dependencies[i]?.includes(id) || !instance) return;
-				// console.log(trigger, target_instances, instance);
-				instance?.$on(trigger, () => {
-					if (status === "pending") {
-						return;
-					}
-					set_status(i, "pending");
+				// page events
+				if (
+					targets.length === 0 &&
+					!handled_dependencies[i]?.includes(-1) &&
+					trigger === "load" &&
+					// check all input + output elements are on the page
+					outputs.every((v) => instance_map[v].instance) &&
+					inputs.every((v) => instance_map[v].instance)
+				) {
 					fn(
 						"predict",
+						js,
 						{
 							fn_index: i,
 							data: inputs.map((id) => instance_map[id].value)
@@ -182,21 +155,53 @@
 						() => {}
 					)
 						.then((output) => {
-							set_status(i, "complete");
 							output.data.forEach((value, i) => {
 								instance_map[outputs[i]].value = value;
 							});
 						})
 						.catch((error) => {
-							set_status(i, "error");
 							console.error(error);
 						});
-				});
 
-				if (!handled_dependencies[i]) handled_dependencies[i] = [];
-				handled_dependencies[i].push(id);
-			});
-		});
+					handled_dependencies[i] = [-1];
+				}
+
+				target_instances.forEach(([id, { instance }]: [number, Instance]) => {
+					// console.log(id, handled_dependencies[i]?.includes(id) || !instance);
+					if (handled_dependencies[i]?.includes(id) || !instance) return;
+					// console.log(trigger, target_instances, instance);
+					instance?.$on(trigger, () => {
+						if (status === "pending") {
+							return;
+						}
+						set_status(i, "pending");
+						fn(
+							"predict",
+							js,
+							{
+								fn_index: i,
+								data: inputs.map((id) => instance_map[id].value)
+							},
+							queue,
+							() => {}
+						)
+							.then((output) => {
+								set_status(i, "complete");
+								output.data.forEach((value, i) => {
+									instance_map[outputs[i]].value = value;
+								});
+							})
+							.catch((error) => {
+								set_status(i, "error");
+								console.error(error);
+							});
+					});
+
+					if (!handled_dependencies[i]) handled_dependencies[i] = [];
+					handled_dependencies[i].push(id);
+				});
+			}
+		);
 	}
 
 	function handle_destroy(id: number) {

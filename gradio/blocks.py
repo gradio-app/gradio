@@ -60,6 +60,7 @@ class Block:
         preprocess: bool = True,
         postprocess: bool = True,
         queue=False,
+        js: bool = False,
         no_target: bool = False,
         status_tracker: Optional[StatusTracker] = None,
     ) -> None:
@@ -91,6 +92,7 @@ class Block:
                 "inputs": [block._id for block in inputs],
                 "outputs": [block._id for block in outputs],
                 "queue": queue,
+                "js": fn if js else False,
                 "status_tracker": status_tracker._id
                 if status_tracker is not None
                 else None,

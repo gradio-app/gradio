@@ -8,6 +8,7 @@ from __future__ import annotations
 import copy
 import csv
 import inspect
+import json
 import os
 import random
 import re
@@ -568,19 +569,18 @@ class Interface(Blocks):
                     status_tracker=status_tracker,
                 )
             clear_btn.click(
-                lambda: [
-                    component.default_value
-                    if hasattr(component, "default_value")
-                    else None
-                    for component in self.input_components + self.output_components
-                ]
-                + [True]
-                + ([False] if self.interpretation else []),
+                f"""() => {json.dumps(
+                    [component.cleared_value if hasattr(component, "cleared_value") else None
+                    for component in self.input_components + self.output_components] + [True]
+                    + ([False] if self.interpretation else [])
+                )}
+                """,
                 [],
                 self.input_components
                 + self.output_components
                 + [input_component_column]
                 + ([interpret_component_column] if self.interpretation else []),
+                _js=True,
             )
             if self.examples:
                 examples = Dataset(

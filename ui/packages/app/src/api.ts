@@ -17,10 +17,22 @@ export const fn = async (
 	session_hash: string,
 	api_endpoint: string,
 	action: string,
+	js: string | false,
 	data: Record<string, unknown>,
 	queue: boolean,
 	queue_callback: (pos: number | null, is_initial?: boolean) => void
 ) => {
+	if (js !== false) {
+		console.log(js);
+		try {
+			var jsfn = eval(js);
+		} catch (e) {
+			console.error("Error parsing custom JS method:", e);
+		}
+		return {
+			data: jsfn(data.data)
+		};
+	}
 	data["session_hash"] = session_hash;
 	if (queue && ["predict", "interpret"].includes(action)) {
 		data["action"] = action;
