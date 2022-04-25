@@ -3,9 +3,12 @@
 	import { JSON } from "@gradio/json";
 	import { Block } from "@gradio/atoms";
 
+	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
+
 	export let value: any = {};
 	export let default_value: any;
 	export let style: string = "";
+	export let loading_status: "complete" | "pending" | "error";
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
@@ -15,5 +18,7 @@
 </script>
 
 <Block>
+	<StatusTracker tracked_status={loading_status} />
+
 	<JSON {style} {value} />
 </Block>

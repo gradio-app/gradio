@@ -7,6 +7,8 @@
 	export let default_value: number;
 	export let form_position: "first" | "last" | "mid" | "single" = "single";
 
+	export let loading_status: "complete" | "pending" | "error";
+
 	export let style: string = "";
 
 	export let mode: "static" | "dynamic";

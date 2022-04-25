@@ -14,6 +14,8 @@
 	export let mode: "static" | "dynamic";
 	export let form_position: "first" | "last" | "mid" | "single" = "single";
 
+	export let loading_status: "complete" | "pending" | "error";
+
 	if (default_value) value = default_value;
 </script>
 

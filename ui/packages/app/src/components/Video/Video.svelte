@@ -2,8 +2,9 @@
 	import type { FileData } from "@gradio/upload";
 	import { normalise_file } from "@gradio/upload";
 	import { Block } from "@gradio/atoms";
-
 	import { Video, StaticVideo } from "@gradio/video";
+
+	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import { _ } from "svelte-i18n";
 
 	export let value: FileData | null | string = null;
@@ -12,6 +13,8 @@
 	export let style: string = "";
 	export let source: string;
 	export let root: string;
+
+	export let loading_status: "complete" | "pending" | "error";
 
 	export let mode: "static" | "dynamic";
 
@@ -30,6 +33,8 @@
 	color={dragging ? "green" : "grey"}
 	padding={false}
 >
+	<StatusTracker tracked_status={loading_status} />
+
 	{#if mode === "static"}
 		<StaticVideo value={_value} {label} {style} />
 	{:else}

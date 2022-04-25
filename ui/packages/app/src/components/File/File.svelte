@@ -3,6 +3,8 @@
 	import type { FileData } from "@gradio/upload";
 	import { normalise_file } from "@gradio/upload";
 	import { Block } from "@gradio/atoms";
+
+	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import { _ } from "svelte-i18n";
 
 	export let value: null | FileData = null;
@@ -11,6 +13,8 @@
 	export let mode: "static" | "dynamic";
 	export let root: string;
 	export let label: string;
+
+	export let loading_status: "complete" | "pending" | "error";
 
 	if (default_value) value = default_value;
 
@@ -25,6 +29,8 @@
 	color={dragging ? "green" : "grey"}
 	padding={false}
 >
+	<StatusTracker tracked_status={loading_status} />
+
 	{#if mode === "dynamic"}
 		<FileUpload
 			value={_value}

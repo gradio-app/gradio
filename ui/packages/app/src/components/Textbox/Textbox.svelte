@@ -12,6 +12,8 @@
 	export let placeholder: string = "";
 	export let form_position: "first" | "last" | "mid" | "single" = "single";
 
+	export let loading_status: "complete" | "pending" | "error";
+
 	export let mode: "static" | "dynamic";
 
 	if (default_value) value = default_value;

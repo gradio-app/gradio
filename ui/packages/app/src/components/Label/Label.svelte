@@ -14,6 +14,7 @@
 	};
 
 	export let style: string = "";
+	export let loading_status: "complete" | "pending" | "error";
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 

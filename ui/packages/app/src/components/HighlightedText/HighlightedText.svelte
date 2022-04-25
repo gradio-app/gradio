@@ -9,6 +9,8 @@
 	export let show_legend: boolean;
 	export let color_map: Record<string, string> = {};
 
+	export let loading_status: "complete" | "pending" | "error";
+
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
 	if (default_value) value = default_value;
