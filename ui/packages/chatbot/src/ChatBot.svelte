@@ -3,6 +3,7 @@
 
 	export let value: Array<[string, string]>;
 	export let style: string = "";
+	export let color_map: Array<[string, string]>;
 
 	let div: HTMLDivElement;
 	let autoscroll: Boolean;
