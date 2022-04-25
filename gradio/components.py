@@ -33,6 +33,7 @@ class Component(Block):
         self,
         *,
         label: Optional[str] = None,
+        show_label: bool = True,
         requires_permissions: bool = False,
         css: Optional[Dict] = None,
         without_rendering: bool = False,
@@ -64,6 +65,7 @@ class Component(Block):
         return {
             "name": self.get_block_name(),
             "label": self.label,
+            "show_label": self.show_label,
             "css": self.css,
             "interactive": self.interactive,
         }
