@@ -3149,7 +3149,6 @@ class Button(Component):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
-        queue=False,
         status_tracker: Optional[StatusTracker] = None,
     ):
         """
@@ -3165,7 +3164,6 @@ class Button(Component):
             fn,
             inputs,
             outputs,
-            queue=queue,
             status_tracker=status_tracker,
         )
 
