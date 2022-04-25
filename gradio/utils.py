@@ -332,7 +332,6 @@ def assert_configs_are_equivalent_besides_ids(config1, config2):
             assert mapping[i1] == i2, "{} does not match {}".format(d1, d2)
         for o1, o2 in zip(d1["outputs"], d2["outputs"]):
             assert mapping[o1] == o2, "{} does not match {}".format(d1, d2)
-        assert d1["queue"] == d2["queue"], "{} does not match {}".format(d1, d2)
 
     return True
 
