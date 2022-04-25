@@ -7,6 +7,7 @@
 	export let disabled: boolean = false;
 	export let label: string;
 	export let style: string = "";
+	export let form_position: "first" | "last" | "mid" | "single" = "single";
 
 	const dispatch = createEventDispatcher<{ change: Array<string> }>();
 
@@ -22,7 +23,10 @@
 </script>
 
 <fieldset
-	class="gr-box overflow-hidden border-solid border border-gray-200 gr-panel"
+	class="form gr-box overflow-hidden border-solid border border-gray-200 gr-panel"
+	class:!rounded-none={form_position === "mid"}
+	class:!rounded-b-none={form_position === "first"}
+	class:!rounded-t-none={form_position === "last"}
 >
 	<BlockTitle>{label}</BlockTitle>
 

@@ -170,6 +170,11 @@ class Interface(Blocks):
         """
         super().__init__(analytics_enabled=analytics_enabled, mode="interface")
 
+        if inputs is None:
+            inputs = []
+        if outputs is None:
+            outputs = []
+
         if not isinstance(fn, list):
             fn = [fn]
         if not isinstance(inputs, list):
