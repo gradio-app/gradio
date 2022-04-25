@@ -46,6 +46,7 @@ class Component(Block):
                 DeprecationWarning,
             )
         self.label = label
+        self.show_label = show_label 
         self.requires_permissions = requires_permissions
         self.interactive = interactive
 
