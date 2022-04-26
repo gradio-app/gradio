@@ -27,7 +27,6 @@ XRAY_CONFIG = {
             "id": 4,
             "type": "tabitem",
             "props": {
-                "show_label": True,
                 "label": "X-ray",
                 "css": {},
                 "default_value": True,
@@ -42,6 +41,7 @@ XRAY_CONFIG = {
             "id": 6,
             "type": "image",
             "props": {
+                "show_label": True,
                 "image_mode": "RGB",
                 "source": "upload",
                 "tool": "editor",
@@ -53,6 +53,7 @@ XRAY_CONFIG = {
             "id": 7,
             "type": "json",
             "props": {
+                "show_label": True,
                 "default_value": '""',
                 "name": "json",
                 "css": {},
@@ -71,7 +72,6 @@ XRAY_CONFIG = {
             "id": 9,
             "type": "tabitem",
             "props": {
-                "show_label": True,
                 "label": "CT Scan",
                 "css": {},
                 "default_value": True,
@@ -86,6 +86,7 @@ XRAY_CONFIG = {
             "id": 11,
             "type": "image",
             "props": {
+                "show_label": True,
                 "image_mode": "RGB",
                 "source": "upload",
                 "tool": "editor",
@@ -97,6 +98,7 @@ XRAY_CONFIG = {
             "id": 12,
             "type": "json",
             "props": {
+                "show_label": True,
                 "default_value": '""',
                 "name": "json",
                 "css": {},
@@ -116,6 +118,7 @@ XRAY_CONFIG = {
             "type": "textbox",
             "props": {
                 "lines": 1,
+                "show_label": True,
                 "max_lines": 20,
                 "default_value": "",
                 "name": "textbox",
@@ -205,7 +208,6 @@ XRAY_CONFIG_DIFF_IDS = {
             "id": 444,
             "type": "tabitem",
             "props": {
-                "show_label": True,
                 "label": "X-ray",
                 "css": {},
                 "default_value": True,
@@ -222,6 +224,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "props": {
                 "image_mode": "RGB",
                 "source": "upload",
+                "show_label": True,
                 "tool": "editor",
                 "name": "image",
                 "css": {},
@@ -233,6 +236,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "props": {
                 "default_value": '""',
                 "name": "json",
+                "show_label": True,
                 "css": {},
             },
         },
@@ -249,7 +253,6 @@ XRAY_CONFIG_DIFF_IDS = {
             "id": 9,
             "type": "tabitem",
             "props": {
-                "show_label": True,
                 "label": "CT Scan",
                 "css": {},
                 "default_value": True,
@@ -268,6 +271,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "source": "upload",
                 "tool": "editor",
                 "name": "image",
+                "show_label": True,
                 "css": {},
             },
         },
@@ -277,6 +281,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "props": {
                 "default_value": '""',
                 "name": "json",
+                "show_label": True,
                 "css": {},
             },
         },
@@ -297,6 +302,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "default_value": "",
                 "name": "textbox",
                 "max_lines": 20,
+                "show_label": True,
                 "css": {},
             },
         },
@@ -376,7 +382,6 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "id": 4,
             "type": "tabitem",
             "props": {
-                "show_label": True,
                 "label": "X-ray",
                 "css": {},
                 "default_value": True,
