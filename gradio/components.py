@@ -1821,7 +1821,6 @@ class Audio(Component):
             data_string = data
         else:
             data_string = data["data"]
-            # is_example = data.get("is_example", False),
             is_example = data.get("is_example", False)
             if is_example:
                 file_obj = processing_utils.create_tmp_copy_of_file(data["name"])

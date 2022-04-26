@@ -56,30 +56,6 @@ templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 ###########
 
 
-class PredictBody(BaseModel):
-    session_hash: Optional[str]
-    example_id: Optional[int]
-    data: List[Any]
-    state: Optional[Any]
-    fn_index: Optional[int]
-    cleared: Optional[bool]
-
-
-class FlagData(BaseModel):
-    input_data: List[Any]
-    output_data: List[Any]
-    flag_option: Optional[str]
-    flag_index: Optional[int]
-
-
-class FlagBody(BaseModel):
-    data: FlagData
-
-
-class InterpretBody(BaseModel):
-    data: List[Any]
-
-
 class QueueStatusBody(BaseModel):
     hash: str
 
