@@ -31,21 +31,19 @@
 		});
 </script>
 
-<Block variant={"solid"} color={"grey"} padding={false}>
-	<BlockLabel image={audio_icon} label={label || "Audio"} />
-	{#if value === null}
-		<div class="min-h-[8rem] flex justify-center items-center">
-			<img src={audio_icon} alt="" class="h-6 opacity-20" />
-		</div>
-	{:else}
-		<audio
-			class="w-full h-14 p-2 mt-7"
-			controls
-			preload="metadata"
-			src={value.data}
-			on:play
-			on:pause
-			on:ended
-		/>
-	{/if}
-</Block>
+<BlockLabel image={audio_icon} label={label || "Audio"} />
+{#if value === null}
+	<div class="min-h-[8rem] flex justify-center items-center">
+		<img src={audio_icon} alt="" class="h-6 opacity-20" />
+	</div>
+{:else}
+	<audio
+		class="w-full h-14 p-2 mt-7"
+		controls
+		preload="metadata"
+		src={value.data}
+		on:play
+		on:pause
+		on:ended
+	/>
+{/if}

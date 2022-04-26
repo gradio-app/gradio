@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Table } from "@gradio/table";
+	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import { createEventDispatcher, tick } from "svelte";
 
 	type Headers = Array<string>;
@@ -25,6 +26,8 @@
 
 	const dispatch = createEventDispatcher();
 
+	export let loading_status: "complete" | "pending" | "error";
+
 	async function handle_change({ detail }) {
 		value = detail;
 		await tick();
@@ -32,10 +35,13 @@
 	}
 </script>
 
-<Table
-	values={value}
-	{headers}
-	{style}
-	on:change={handle_change}
-	editable={mode === "dynamic"}
-/>
+<div class="relative">
+	<StatusTracker tracked_status={loading_status} />
+	<Table
+		values={value}
+		{headers}
+		{style}
+		on:change={handle_change}
+		editable={mode === "dynamic"}
+	/>
+</div>

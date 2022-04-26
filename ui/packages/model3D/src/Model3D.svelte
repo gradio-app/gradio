@@ -64,12 +64,4 @@
 	}
 </script>
 
-<div
-	class="output-model w-full h-60 flex justify-center items-center bg-gray-200 dark:bg-gray-600 relative"
-	{theme}
->
-	<canvas class="w-full h-full object-contain" bind:this={canvas} />
-</div>
-
-<style lang="postcss">
-</style>
+<canvas class="w-full h-full object-contain" bind:this={canvas} />

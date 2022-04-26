@@ -1,3 +1,4 @@
+import os
 from zipfile import ZipFile
 
 import gradio as gr
@@ -15,7 +16,8 @@ demo = gr.Interface(
     ["file", "file"],
     "file",
     examples=[
-        ["files/titanic.csv", "files/titanic.csv"],
+        [os.path.join(os.path.dirname(__file__),"files/titanic.csv"), 
+         os.path.join(os.path.dirname(__file__),"files/titanic.csv")],
     ],
 )
 
