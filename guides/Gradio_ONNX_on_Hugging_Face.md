@@ -54,7 +54,7 @@ Here we walk through setting up a example demo for EfficientNet-Lite4 using Grad
 First we import our dependencies and download and load the efficientnet-lite4 model from the onnx model zoo. Then load the labels from the labels_map.txt file. We then setup our preprocessing functions, load the model for inference, and setup the inference function. Finally, the inference function is wrapped into a gradio inferface for a user to interact with. See the full code below.
 
 
-```python 
+```python
 import numpy as np
 import math
 import matplotlib.pyplot as plt
