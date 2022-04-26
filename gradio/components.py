@@ -22,6 +22,7 @@ from markdown_it import MarkdownIt
 
 from gradio import media_data, processing_utils
 from gradio.blocks import Block
+from gradio.utils import get_all_subclasses
 
 
 class Component(Block):
@@ -57,28 +58,6 @@ class Component(Block):
             "name": self.get_block_name(),
             "css": self.css,
         }
-
-    @classmethod
-    def get_component_shortcut(cls, str_shortcut: str) -> Optional[Component]:
-        """
-        Creates a component, where class name equals to str_shortcut.
-
-        @param str_shortcut: string shortcut of a component
-        @return: the insantiated component object, or None if no such component exists
-        """
-        # If we do not import templates Python cannot recognize grandchild classes names.
-        import gradio.templates
-
-        # Make it suitable with class names
-        str_shortcut = str_shortcut.replace("_", "")
-        for sub_cls in cls.__subclasses__():
-            if sub_cls.__name__.lower() == str_shortcut:
-                return sub_cls()
-            # For template components
-            for sub_sub_cls in sub_cls.__subclasses__():
-                if sub_sub_cls.__name__.lower() == str_shortcut:
-                    return sub_sub_cls()
-        return None
 
     @staticmethod
     def update(**kwargs) -> dict:
@@ -3337,16 +3316,15 @@ def component(str_shortcut: str) -> Optional[Component]:
 
 def get_component_instance(comp: str | dict | Component):
     if isinstance(comp, str):
-        component = Component.get_component_shortcut(comp)
-        if component is None:
-            raise ValueError(f"No such component: {comp}")
-        else:
-            return component
+        for component in get_all_subclasses(Component):
+            if component.__name__.lower() == comp:
+                return component()
+        raise ValueError(f"No such Component: {comp}")
     elif isinstance(
         comp, dict
     ):  # a dict with `name` as the input component type and other keys as parameters
         name = comp.pop("name")
-        for component in Component.__subclasses__():
+        for component in get_all_subclasses(Component):
             if component.__name__.lower() == name:
                 break
         else:
