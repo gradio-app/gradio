@@ -58,7 +58,6 @@ First we import our dependencies and download and load the efficientnet-lite4 mo
 import numpy as np
 import math
 import matplotlib.pyplot as plt
-import onnxruntime as rt
 import cv2
 import json
 import gradio as gr
