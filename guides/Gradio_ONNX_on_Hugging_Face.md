@@ -11,7 +11,7 @@ In this Guide, we'll walk you through:
 * How to setup a Gradio demo for EfficientNet-Lite4
 * How to contribute your own Gradio demos for the ONNX organization on Hugging Face
 
-See example EfficientNet-Lite4 Spaces demo to try below:
+Here's an example of an ONNX model: try out the EfficientNet-Lite4 demo below:
 
 <iframe src="https://hf.space/embed/onnx/EfficientNet-Lite4/+" frameBorder="0" height="810" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
 
