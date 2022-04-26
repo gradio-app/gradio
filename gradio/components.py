@@ -76,6 +76,7 @@ class IOComponent(Component):
     """
     A base class for defining methods that all input/output components should have.
     """
+
     def __init__(
         self,
         *,
@@ -83,15 +84,15 @@ class IOComponent(Component):
         show_label: bool = True,
         requires_permissions: bool = False,
         interactive: Optional[bool] = None,
-        **kwargs
+        **kwargs,
     ):
         self.label = label
-        self.show_label = show_label 
+        self.show_label = show_label
         self.requires_permissions = requires_permissions
         self.interactive = interactive
 
         self.set_interpret_parameters()
-        
+
         super().__init__(**kwargs)
 
     def get_template_context(self):
@@ -233,6 +234,7 @@ class IOComponent(Component):
         Convert from serialized output (e.g. base64 representation) from a call() to the interface to a human-readable version of the output (path of an image, etc.)
         """
         return x
+
 
 class Textbox(IOComponent):
     """
@@ -3309,12 +3311,22 @@ def component(cls_name: str):
     @return cls: the component class
     """
     import gradio.templates
-    components = [(name, cls) for name, cls in sys.modules[__name__].__dict__.items() if isinstance(cls, type)]
-    templates = [(name, cls) for name, cls in gradio.templates.__dict__.items() if isinstance(cls, type)]
+
+    components = [
+        (name, cls)
+        for name, cls in sys.modules[__name__].__dict__.items()
+        if isinstance(cls, type)
+    ]
+    templates = [
+        (name, cls)
+        for name, cls in gradio.templates.__dict__.items()
+        if isinstance(cls, type)
+    ]
     for name, cls in components + templates:
         if name.lower() == cls_name.replace("_", "") and issubclass(cls, Component):
             return cls
     raise ValueError(f"No such Component: {cls_name}")
+
 
 def get_component_instance(comp: str | dict | Component):
     if isinstance(comp, str):
