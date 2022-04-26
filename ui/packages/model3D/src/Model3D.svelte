@@ -8,6 +8,7 @@
 	import { onMount, afterUpdate } from "svelte";
 	import * as BABYLON from "babylonjs";
 	import "babylonjs-loaders";
+	import { clear } from "@testing-library/user-event/dist/clear";
 
 	let canvas: HTMLCanvasElement;
 	let scene: BABYLON.Scene;
@@ -16,12 +17,15 @@
 		const engine = new BABYLON.Engine(canvas, true);
 		scene = new BABYLON.Scene(engine);
 		scene.createDefaultCameraOrLight();
-		scene.clearColor = new BABYLON.Color4(
-			clearColor[0],
-			clearColor[1],
-			clearColor[2],
-			clearColor[3]
-		);
+		scene.clearColor = clearColor
+			? (scene.clearColor = new BABYLON.Color4(
+					clearColor[0],
+					clearColor[1],
+					clearColor[2],
+					clearColor[3]
+			  ))
+			: new BABYLON.Color4(0.2, 0.2, 0.2, 1);
+
 		engine.runRenderLoop(() => {
 			scene.render();
 		});

@@ -4,7 +4,7 @@
 	export let collapsed = depth > 4;
 </script>
 
-<div class="json-node inline">
+<div class="json-node inline text-sm font-mono leading-tight">
 	{#if value instanceof Array}
 		{#if collapsed}
 			<button
@@ -12,7 +12,10 @@
 					collapsed = false;
 				}}
 			>
-				[+{value.length} children]
+				<span
+					class="bg-gray-50 hover:bg-gray-100 px-1 border rounded text-gray-700"
+					>expand {value.length} children</span
+				>
 			</button>
 		{:else}
 			[

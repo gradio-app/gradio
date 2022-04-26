@@ -4,11 +4,12 @@
 
 	export let value: string = "";
 	export let lines: number = 1;
-	export let placeholder: string = "";
+	export let placeholder: string = "Type here...";
 	export let label: string;
 	export let style: string = "";
 	export let disabled = false;
 	export let autoheight: boolean = false;
+	export let form_position: "first" | "last" | "mid" | "single" = "single";
 
 	const dispatch =
 		createEventDispatcher<{ change: string; submit: undefined }>();
@@ -55,7 +56,7 @@
 	}
 </script>
 
-<Block>
+<Block {form_position}>
 	<!-- svelte-ignore a11y-label-has-associated-control -->
 	<label class="block">
 		<BlockTitle>{label}</BlockTitle>

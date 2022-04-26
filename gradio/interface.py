@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
 from markdown_it import MarkdownIt
 from mdit_py_plugins.footnote import footnote_plugin
 
-from gradio import context, interpretation, utils
+from gradio import interpretation, utils
 from gradio.blocks import Blocks, Column, Row, TabItem, Tabs
 from gradio.components import (
     Button,
@@ -32,8 +32,6 @@ from gradio.components import (
 )
 from gradio.external import load_from_pipeline, load_interface  # type: ignore
 from gradio.flagging import CSVLogger, FlaggingCallback  # type: ignore
-from gradio.inputs import State as i_State  # type: ignore
-from gradio.outputs import State as o_State  # type: ignore
 from gradio.process_examples import cache_interface_examples, load_from_cache
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
@@ -109,7 +107,7 @@ class Interface(Blocks):
         outputs: str | Component | List[str | Component] = None,
         verbose: bool = False,
         examples: Optional[List[Any] | List[List[Any]] | str] = None,
-        cache_examples: bool = False,
+        cache_examples: Optional[bool] = None,
         examples_per_page: int = 10,
         live: bool = False,
         layout: str = "unaligned",
@@ -148,6 +146,10 @@ class Interface(Blocks):
         verbose (bool): DEPRECATED. Whether to print detailed information during launch.
         examples (Union[List[List[Any]], str]): sample inputs for the function; if provided, appears below the UI components and can be used to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided. If there are multiple input components and a directory is provided, a log.csv file must be present in the directory to link corresponding inputs.
         examples_per_page (int): If examples are provided, how many to display per page.
+        cache_examples(Optional[bool]):
+            If True, caches examples in the server for fast runtime in examples.
+            The default option in HuggingFace Spaces is True.
+            The default option elsewhere is False.
         live (bool): whether the interface should automatically reload on change.
         layout (str): Layout of input and output panels. "horizontal" arranges them as two columns of equal height, "unaligned" arranges them as two columns of unequal height, and "vertical" arranges them vertically.
         capture_session (bool): DEPRECATED. If True, captures the default graph and session (needed for Tensorflow 1.x)
@@ -171,6 +173,11 @@ class Interface(Blocks):
         server_port (int): DEPRECATED. Port of the server to use for serving the interface - pass in launch() instead.
         """
         super().__init__(analytics_enabled=analytics_enabled, mode="interface")
+
+        if inputs is None:
+            inputs = []
+        if outputs is None:
+            outputs = []
 
         if not isinstance(fn, list):
             fn = [fn]
@@ -288,7 +295,6 @@ class Interface(Blocks):
 
         self.thumbnail = thumbnail
         theme = theme if theme is not None else os.getenv("GRADIO_THEME", "default")
-        self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
         DEPRECATED_THEME_MAP = {
             "darkdefault": "default",
             "darkhuggingface": "dark-huggingface",
@@ -437,8 +443,6 @@ class Interface(Blocks):
             [component.requires_permissions for component in self.input_components]
         )
 
-        self.enable_queue = enable_queue
-
         self.favicon_path = None
         self.height = height
         self.width = width
@@ -487,10 +491,16 @@ class Interface(Blocks):
                 component.label = param_name
         for i, component in enumerate(self.output_components):
             if component.label is None:
-                component.label = "output_" + str(i)
+                if len(self.output_components) == 1:
+                    component.label = "output"
+                else:
+                    component.label = "output " + str(i)
 
-        self.cache_examples = cache_examples
-        if cache_examples:
+        if self.is_space and cache_examples is None:
+            self.cache_examples = True
+        else:
+            self.cache_examples = cache_examples or False
+        if self.cache_examples:
             cache_interface_examples(self)
 
         if self.allow_flagging != "never":
@@ -558,23 +568,26 @@ class Interface(Blocks):
                     submit_fn,
                     self.input_components,
                     self.output_components,
-                    queue=self.enable_queue,
                     status_tracker=status_tracker,
                 )
             clear_btn.click(
-                lambda: [
-                    component.default_value
-                    if hasattr(component, "default_value")
-                    else None
-                    for component in self.input_components + self.output_components
-                ]
-                + [True]
-                + ([False] if self.interpretation else []),
+                (
+                    lambda: [
+                        component.default_value
+                        if hasattr(component, "default_value")
+                        else None
+                        for component in self.input_components + self.output_components
+                    ]
+                    + [True]
+                    + ([False] if self.interpretation else [])
+                ),
                 [],
-                self.input_components
-                + self.output_components
-                + [input_component_column]
-                + ([interpret_component_column] if self.interpretation else []),
+                (
+                    self.input_components
+                    + self.output_components
+                    + [input_component_column]
+                    + ([interpret_component_column] if self.interpretation else [])
+                ),
             )
             if self.examples:
                 examples = Dataset(
