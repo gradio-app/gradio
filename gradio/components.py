@@ -32,12 +32,8 @@ class Component(Block):
     def __init__(
         self,
         *,
-        label: Optional[str] = None,
-        show_label: bool = True,
-        requires_permissions: bool = False,
         css: Optional[Dict] = None,
         without_rendering: bool = False,
-        interactive: Optional[bool] = None,
         **kwargs,
     ):
         if "optional" in kwargs:
@@ -45,12 +41,6 @@ class Component(Block):
                 "Usage of optional is deprecated, and it has no effect",
                 DeprecationWarning,
             )
-        self.label = label
-        self.show_label = show_label 
-        self.requires_permissions = requires_permissions
-        self.interactive = interactive
-
-        self.set_interpret_parameters()
         super().__init__(without_rendering=without_rendering, css=css)
 
     def __str__(self):
@@ -65,10 +55,71 @@ class Component(Block):
         """
         return {
             "name": self.get_block_name(),
+            "css": self.css,
+        }
+
+    @classmethod
+    def get_component_shortcut(cls, str_shortcut: str) -> Optional[Component]:
+        """
+        Creates a component, where class name equals to str_shortcut.
+
+        @param str_shortcut: string shortcut of a component
+        @return: the insantiated component object, or None if no such component exists
+        """
+        # If we do not import templates Python cannot recognize grandchild classes names.
+        import gradio.templates
+
+        # Make it suitable with class names
+        str_shortcut = str_shortcut.replace("_", "")
+        for sub_cls in cls.__subclasses__():
+            if sub_cls.__name__.lower() == str_shortcut:
+                return sub_cls()
+            # For template components
+            for sub_sub_cls in sub_cls.__subclasses__():
+                if sub_sub_cls.__name__.lower() == str_shortcut:
+                    return sub_sub_cls()
+        return None
+
+    @staticmethod
+    def update(**kwargs) -> dict:
+        """
+        Updates component parameters
+
+        @param kwargs: Updating component parameters
+        @return: Updated component parameters
+        """
+        kwargs["__type__"] = "update"
+        return kwargs
+
+
+class IOComponent(Component):
+    """
+    A base class for defining methods that all input/output components should have.
+    """
+    def __init__(
+        self,
+        *,
+        label: Optional[str] = None,
+        show_label: bool = True,
+        requires_permissions: bool = False,
+        interactive: Optional[bool] = None,
+        **kwargs
+    ):
+        self.label = label
+        self.show_label = show_label 
+        self.requires_permissions = requires_permissions
+        self.interactive = interactive
+
+        self.set_interpret_parameters()
+        
+        super().__init__(**kwargs)
+
+    def get_template_context(self):
+        return {
             "label": self.label,
             "show_label": self.show_label,
-            "css": self.css,
             "interactive": self.interactive,
+            **super().get_template_context(),
         }
 
     def save_flagged(
@@ -128,28 +179,6 @@ class Component(Block):
             os.path.join(dir, file), encryption_key=encryption_key
         )
         return {"name": file, "data": data}
-
-    @classmethod
-    def get_component_shortcut(cls, str_shortcut: str) -> Optional[Component]:
-        """
-        Creates a component, where class name equals to str_shortcut.
-
-        @param str_shortcut: string shortcut of a component
-        @return: the insantiated component object, or None if no such component exists
-        """
-        # If we do not import templates Python cannot recognize grandchild classes names.
-        import gradio.templates
-
-        # Make it suitable with class names
-        str_shortcut = str_shortcut.replace("_", "")
-        for sub_cls in cls.__subclasses__():
-            if sub_cls.__name__.lower() == str_shortcut:
-                return sub_cls()
-            # For template components
-            for sub_sub_cls in sub_cls.__subclasses__():
-                if sub_sub_cls.__name__.lower() == str_shortcut:
-                    return sub_sub_cls()
-        return None
 
     # Input Functionalities
     def preprocess(self, x: Any) -> Any:
@@ -225,19 +254,7 @@ class Component(Block):
         """
         return x
 
-    @staticmethod
-    def update(**kwargs) -> dict:
-        """
-        Updates component parameters
-
-        @param kwargs: Updating component parameters
-        @return: Updated component parameters
-        """
-        kwargs["__type__"] = "update"
-        return kwargs
-
-
-class Textbox(Component):
+class Textbox(IOComponent):
     """
     Component creates a textbox for user to enter string input or display string output. Provides a string as an argument to the wrapped function.
     Input type: str
@@ -434,7 +451,7 @@ class Textbox(Component):
         )
 
 
-class Number(Component):
+class Number(IOComponent):
     """
     Component creates a field for user to enter numeric input or display numeric output. Provides a number as an argument to the wrapped function.
     Can be used as an output as well.
@@ -582,7 +599,7 @@ class Number(Component):
         )
 
 
-class Slider(Component):
+class Slider(IOComponent):
     """
     Component creates a slider that ranges from `minimum` to `maximum`. Provides a number as an argument to the wrapped function.
 
@@ -707,7 +724,7 @@ class Slider(Component):
         )
 
 
-class Checkbox(Component):
+class Checkbox(IOComponent):
     """
     Component creates a checkbox that can be set to `True` or `False`. Provides a boolean as an argument to the wrapped function.
 
@@ -808,7 +825,7 @@ class Checkbox(Component):
         )
 
 
-class CheckboxGroup(Component):
+class CheckboxGroup(IOComponent):
     """
     Component creates a set of checkboxes of which a subset can be selected. Provides a list of strings representing the selected choices as an argument to the wrapped function.
 
@@ -945,7 +962,7 @@ class CheckboxGroup(Component):
         )
 
 
-class Radio(Component):
+class Radio(IOComponent):
     """
     Component creates a set of radio buttons of which only one can be selected. Provides string representing selected choice as an argument to the wrapped function.
 
@@ -1097,7 +1114,7 @@ class Dropdown(Radio):
         )
 
 
-class Image(Component):
+class Image(IOComponent):
     """
     Component creates an image component with input and output capabilities.
 
@@ -1432,7 +1449,7 @@ class Image(Component):
         self.set_event_trigger("clear", fn, inputs, outputs)
 
 
-class Video(Component):
+class Video(IOComponent):
     """
     Component creates a video file upload that is converted to a file path.
 
@@ -1603,7 +1620,7 @@ class Video(Component):
         self.set_event_trigger("stop", fn, inputs, outputs)
 
 
-class Audio(Component):
+class Audio(IOComponent):
     """
     Component accepts audio input files or creates an audio player that plays the output audio.
 
@@ -1915,7 +1932,7 @@ class Audio(Component):
         self.set_event_trigger("stop", fn, inputs, outputs)
 
 
-class File(Component):
+class File(IOComponent):
     """
     Component accepts generic file uploads and output..
 
@@ -2062,7 +2079,7 @@ class File(Component):
         self.set_event_trigger("clear", fn, inputs, outputs)
 
 
-class Dataframe(Component):
+class Dataframe(IOComponent):
     """
     Component accepts or displays 2D input  through a spreadsheet interface.
 
@@ -2238,7 +2255,7 @@ class Dataframe(Component):
         )
 
 
-class Timeseries(Component):
+class Timeseries(IOComponent):
     """
     Component accepts pandas.DataFrame uploaded as a timeseries csv file or renders a dataframe consisting of a time series as output.
 
@@ -2345,39 +2362,12 @@ class Timeseries(Component):
         )
 
 
-class Variable(Component):
-    """
-    Special hidden component that stores state across runs of the interface.
-
-    Input type: Any
-    Output type: Any
-    Demos: chatbot
-    """
-
-    def __init__(
-        self,
-        default_value: Any = None,
-        **kwargs,
-    ):
-        """
-        Parameters:
-        default_value (Any): the initial value of the state.
-        label (str): component name in interface (not used).
-        """
-        self.default_value = default_value
-        self.stateful = True
-        super().__init__(**kwargs)
-
-    def get_template_context(self):
-        return {"default_value": self.default_value, **super().get_template_context()}
-
-
 ############################
 # Only Output Components
 ############################
 
 
-class Label(Component):
+class Label(IOComponent):
     """
     Component outputs a classification label, along with confidence scores of top categories if provided. Confidence scores are represented as a dictionary mapping labels to scores between 0 and 1.
     Output type: Union[Dict[str, float], str, int, float]
@@ -2497,7 +2487,7 @@ class Label(Component):
         )
 
 
-class KeyValues(Component):
+class KeyValues(IOComponent):
     """
     Component displays a table representing values for multiple fields.
     Output type: Union[Dict, List[Tuple[str, Union[str, int, float]]]]
@@ -2523,7 +2513,7 @@ class KeyValues(Component):
         )
 
 
-class HighlightedText(Component):
+class HighlightedText(IOComponent):
     """
     Component creates text that contains spans that are highlighted by category or numerical value.
     Output is represent as a list of Tuple pairs, where the first element represents the span of text represented by the tuple, and the second element represents the category or value of the text.
@@ -2597,7 +2587,7 @@ class HighlightedText(Component):
         )
 
 
-class JSON(Component):
+class JSON(IOComponent):
     """
     Used for JSON output. Expects a JSON string or a Python object that is JSON serializable.
     Output type: Union[str, Any]
@@ -2664,7 +2654,7 @@ class JSON(Component):
         )
 
 
-class HTML(Component):
+class HTML(IOComponent):
     """
     Used for HTML output. Expects an HTML valid string.
     Output type: str
@@ -2721,7 +2711,7 @@ class HTML(Component):
         )
 
 
-class Carousel(Component):
+class Carousel(IOComponent):
     """
     Component displays a set of output components that can be scrolled through.
     Output type: List[List[Any]]
@@ -2821,7 +2811,7 @@ class Carousel(Component):
         )
 
 
-class Chatbot(Component):
+class Chatbot(IOComponent):
     """
     Component displays a chatbot output showing both user submitted messages and responses
     Output type: List[Tuple[str, str]]
@@ -2877,7 +2867,7 @@ class Chatbot(Component):
         )
 
 
-class Model3D(Component):
+class Model3D(IOComponent):
     """
     Component creates a 3D Model component with input and output capabilities.
     Input type: File object of type (.obj, glb, or .gltf)
@@ -3003,7 +2993,7 @@ class Model3D(Component):
         self.set_event_trigger("clear", fn, inputs, outputs)
 
 
-class Plot(Component):
+class Plot(IOComponent):
     """
     Used for plot output.
     Output type: matplotlib plt, plotly figure, or Bokeh fig (json_item format)
@@ -3279,6 +3269,33 @@ class Dataset(Component):
             postprocess=False,
             status_tracker=status_tracker,
         )
+
+
+class Variable(Component):
+    """
+    Special hidden component that stores state across runs of the interface.
+
+    Input type: Any
+    Output type: Any
+    Demos: chatbot
+    """
+
+    def __init__(
+        self,
+        default_value: Any = None,
+        **kwargs,
+    ):
+        """
+        Parameters:
+        default_value (Any): the initial value of the state.
+        label (str): component name in interface (not used).
+        """
+        self.default_value = default_value
+        self.stateful = True
+        super().__init__(**kwargs)
+
+    def get_template_context(self):
+        return {"default_value": self.default_value, **super().get_template_context()}
 
 
 class Interpretation(Component):
