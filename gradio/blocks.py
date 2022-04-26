@@ -212,7 +212,7 @@ class Blocks(BlockContext):
         self.theme = theme
         self.requires_permissions = False  # TODO: needs to be implemented
         self.encrypt = False
-        
+
         # For analytics_enabled and allow_flagging: (1) first check for
         # parameter, (2) check for env variable, (3) default to True/"manual"
         self.analytics_enabled = (
