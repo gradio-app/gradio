@@ -66,7 +66,7 @@ from huggingface_hub import hf_hub_download
 from onnx import hub
 import onnxruntime as ort
 
-# lodas ONNX model from ONNX Model Zoo
+# loads ONNX model from ONNX Model Zoo
 model = hub.load("efficientnet-lite4")
 # loads the labels text file
 labels = json.load(open("labels_map.txt", "r"))
