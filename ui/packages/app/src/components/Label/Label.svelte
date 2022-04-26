@@ -2,6 +2,7 @@
 	import { createEventDispatcher } from "svelte";
 	import { Label } from "@gradio/label";
 	import { Block } from "@gradio/atoms";
+	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 
 	export let value: {
 		label: string;
@@ -24,6 +25,8 @@
 </script>
 
 <Block>
+	<StatusTracker tracked_status={loading_status} />
+
 	{#if value !== undefined && value !== null}
 		<Label {style} {value} />
 	{/if}

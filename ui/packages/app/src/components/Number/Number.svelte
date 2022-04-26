@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Number } from "@gradio/form";
 	import { Block } from "@gradio/atoms";
+	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 
 	export let label: string = "Number";
 	export let value: number = 0;
@@ -17,6 +18,8 @@
 </script>
 
 <Block {form_position}>
+	<StatusTracker tracked_status={loading_status} />
+
 	<Number
 		bind:value
 		{label}

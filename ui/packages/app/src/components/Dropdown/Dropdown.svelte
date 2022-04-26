@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { Dropdown } from "@gradio/form";
 	import { Block } from "@gradio/atoms";
+	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
+
 	export let label: string = "Dropdown";
 	export let value: string = "";
 	export let default_value: string = "";
@@ -16,8 +18,9 @@
 </script>
 
 <Block {form_position}>
+	<StatusTracker tracked_status={loading_status} />
+
 	<Dropdown
-		{form_position}
 		bind:value
 		{style}
 		{choices}

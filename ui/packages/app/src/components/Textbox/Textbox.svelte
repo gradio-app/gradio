@@ -3,6 +3,7 @@
 <script lang="ts">
 	import { TextBox } from "@gradio/form";
 	import { Block } from "@gradio/atoms";
+	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 
 	export let label: string = "Textbox";
 	export let value: string = " ";
@@ -20,6 +21,8 @@
 </script>
 
 <Block {form_position}>
+	<StatusTracker tracked_status={loading_status} />
+
 	<TextBox
 		bind:value
 		{label}

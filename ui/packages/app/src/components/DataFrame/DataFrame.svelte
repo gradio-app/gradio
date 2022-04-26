@@ -36,7 +36,7 @@
 </script>
 
 <div class="relative">
-	<!-- <StatusTracker tracked_status={loading_status} /> -->
+	<StatusTracker tracked_status={loading_status} />
 	<Table
 		values={value}
 		{headers}

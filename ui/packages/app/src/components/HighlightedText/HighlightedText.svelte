@@ -2,6 +2,7 @@
 	import { createEventDispatcher } from "svelte";
 	import { HighlightedText } from "@gradio/highlighted-text";
 	import { Block } from "@gradio/atoms";
+	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 
 	export let value: Array<[string, string | number]>;
 	export let default_value: Array<[string, string | number]>;
@@ -19,5 +20,7 @@
 </script>
 
 <Block>
+	<StatusTracker tracked_status={loading_status} />
+
 	<HighlightedText {value} {style} {show_legend} {color_map} />
 </Block>

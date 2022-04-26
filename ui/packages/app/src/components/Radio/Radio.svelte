@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Radio } from "@gradio/form";
 	import { Block } from "@gradio/atoms";
+	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 
 	export let label: string = "Radio";
 	export let value: string = "";
@@ -15,12 +16,16 @@
 	if (default_value) value = default_value;
 </script>
 
-<Radio
-	{form_position}
-	bind:value
-	{label}
-	{style}
-	{choices}
-	disabled={mode === "static"}
-	on:change
-/>
+<Block {form_position} type="fieldset">
+	<StatusTracker tracked_status={loading_status} />
+
+	<Radio
+		{form_position}
+		bind:value
+		{label}
+		{style}
+		{choices}
+		disabled={mode === "static"}
+		on:change
+	/>
+</Block>

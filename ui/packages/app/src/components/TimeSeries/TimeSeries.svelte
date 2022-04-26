@@ -111,8 +111,6 @@
 	$: value, dispatch("change");
 
 	if (default_value) value = default_value;
-
-	console.log(mode, _value, value);
 </script>
 
 <Block

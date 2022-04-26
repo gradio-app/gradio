@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { CheckboxGroup } from "@gradio/form";
 	import { Block } from "@gradio/atoms";
+	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 
 	export let value: Array<string> = [];
 	export let default_value: Array<string> = [];
@@ -17,6 +18,8 @@
 </script>
 
 <Block {form_position} type="fieldset">
+	<StatusTracker tracked_status={loading_status} />
+
 	<CheckboxGroup
 		bind:value
 		{choices}
