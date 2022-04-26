@@ -23,7 +23,6 @@ from markdown_it import MarkdownIt
 
 from gradio import media_data, processing_utils
 from gradio.blocks import Block
-from gradio.utils import get_all_subclasses
 
 
 class Component(Block):
