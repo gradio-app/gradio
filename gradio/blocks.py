@@ -235,6 +235,7 @@ class Blocks(BlockContext):
 
         self.ip_address = utils.get_local_ip_address()
         self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
+        self.favicon_path = None
 
     def render(self):
         self._id = Context.id
