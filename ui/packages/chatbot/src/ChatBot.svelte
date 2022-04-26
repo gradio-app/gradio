@@ -21,7 +21,7 @@
 	$: value && dispatch("change");
 </script>
 
-<div class="overflow-y-auto h-[40vh] border rounded-lg" bind:this={div}>
+<div class="overflow-y-auto h-[40vh]" bind:this={div}>
 	<div class="flex flex-col items-end space-y-4 p-3">
 		{#each value as message}
 			<div

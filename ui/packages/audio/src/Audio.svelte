@@ -42,6 +42,7 @@
 		play: undefined;
 		pause: undefined;
 		ended: undefined;
+		drag: boolean;
 	}>();
 
 	function blob_to_data_url(blob: Blob): Promise<string> {
@@ -148,78 +149,73 @@
 	}
 
 	export let dragging = false;
+	$: dispatch("drag", dragging);
 </script>
 
-<Block
-	variant={value === null && source === "upload" ? "dashed" : "solid"}
-	color={dragging ? "green" : "grey"}
-	padding={false}
->
-	<BlockLabel image={audio_icon} label={label || "Audio"} />
-	{#if value === null}
-		{#if source === "microphone"}
-			<div class="mt-6 p-2">
-				{#if recording}
-					<button class="gr-button !bg-red-500/10" on:click={stop}>
-						<span class="flex h-1.5 w-1.5 relative mr-2">
-							<span
-								class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"
-							/>
-							<span
-								class="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"
-							/>
-						</span>
-						<div class="whitespace-nowrap text-red-500">Stop recording</div>
-					</button>
-				{:else}
-					<button class="gr-button" on:click={record}>
-						<span class="flex h-1.5 w-1.5 relative mr-2">
-							<span
-								class="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"
-							/>
-						</span>
-						<div class="whitespace-nowrap">Record from microphone</div>
-					</button>
-				{/if}
+<BlockLabel image={audio_icon} label={label || "Audio"} />
+{#if value === null}
+	{#if source === "microphone"}
+		<div class="mt-6 p-2">
+			{#if recording}
+				<button class="gr-button !bg-red-500/10" on:click={stop}>
+					<span class="flex h-1.5 w-1.5 relative mr-2">
+						<span
+							class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"
+						/>
+						<span
+							class="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"
+						/>
+					</span>
+					<div class="whitespace-nowrap text-red-500">Stop recording</div>
+				</button>
+			{:else}
+				<button class="gr-button" on:click={record}>
+					<span class="flex h-1.5 w-1.5 relative mr-2">
+						<span
+							class="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"
+						/>
+					</span>
+					<div class="whitespace-nowrap">Record from microphone</div>
+				</button>
+			{/if}
+		</div>
+	{:else if source === "upload"}
+		<Upload filetype="audio/*" on:load={handle_load} bind:dragging>
+			<div class="flex flex-col">
+				{drop_text}
+				<span class="text-gray-300">- {or_text} -</span>
+				{upload_text}
 			</div>
-		{:else if source === "upload"}
-			<Upload filetype="audio/*" on:load={handle_load} bind:dragging>
-				<div class="flex flex-col">
-					{drop_text}
-					<span class="text-gray-300">- {or_text} -</span>
-					{upload_text}
-				</div>
-			</Upload>
-		{/if}
-	{:else}
-		<ModifyUpload
-			on:clear={clear}
-			on:edit={() => (mode = "edit")}
-			editable
-			absolute={false}
-		/>
-
-		<audio
-			use:loaded
-			class="w-full h-14 p-2"
-			controls
-			bind:this={player}
-			preload="metadata"
-			src={value.data}
-			on:play
-			on:pause
-			on:ended
-		/>
-
-		{#if mode === "edit" && player?.duration}
-			<Range
-				bind:values={crop_values}
-				range
-				min={0}
-				max={100}
-				step={1}
-				on:change={handle_change}
-			/>
-		{/if}
+		</Upload>
 	{/if}
-</Block>
+{:else}
+	<ModifyUpload
+		on:clear={clear}
+		on:edit={() => (mode = "edit")}
+		editable
+		absolute={false}
+	/>
+
+	<audio
+		use:loaded
+		class="w-full h-14 p-2"
+		controls
+		bind:this={player}
+		preload="metadata"
+		src={value.data}
+		on:play
+		on:pause
+		on:ended
+	/>
+
+	{#if mode === "edit" && player?.duration}
+		<Range
+			bind:values={crop_values}
+			range
+			min={0}
+			max={100}
+			step={1}
+			on:change={handle_change}
+		/>
+	{/if}
+{/if}
