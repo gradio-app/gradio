@@ -4,7 +4,6 @@
 	import { _ } from "svelte-i18n";
 
 	export let value: null | string = null;
-	export let default_value: null | string = null;
 	export let style: string = "";
 	export let source: "canvas" | "webcam" | "upload" = "upload";
 	export let tool: "editor" | "select" = "editor";
@@ -14,10 +13,8 @@
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
-	if (default_value) value = default_value;
-
 	$: value, dispatch("change");
-	$: console.log(style)
+	$: console.log(style);
 </script>
 
 {#if mode === "static"}

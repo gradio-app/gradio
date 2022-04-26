@@ -87,7 +87,7 @@ class TestTextbox(unittest.TestCase):
                 "lines": 1,
                 "max_lines": 20,
                 "placeholder": None,
-                "default_value": "",
+                "value": "",
                 "name": "textbox",
                 "label": None,
                 "css": {},
@@ -181,7 +181,7 @@ class TestNumber(unittest.TestCase):
         self.assertEqual(
             numeric_input.get_config(),
             {
-                "default_value": None,
+                "value": None,
                 "name": "number",
                 "label": None,
                 "css": {},
@@ -255,7 +255,7 @@ class TestSlider(unittest.TestCase):
 
         self.assertIsInstance(slider_input.generate_sample(), int)
         slider_input = gr.Slider(
-            default_value=15, minimum=10, maximum=20, step=1, label="Slide Your Input"
+            value=15, minimum=10, maximum=20, step=1, label="Slide Your Input"
         )
         self.assertEqual(
             slider_input.get_config(),
@@ -263,7 +263,7 @@ class TestSlider(unittest.TestCase):
                 "minimum": 10,
                 "maximum": 20,
                 "step": 1,
-                "default_value": 15,
+                "value": 15,
                 "name": "slider",
                 "label": "Slide Your Input",
                 "css": {},
@@ -312,11 +312,11 @@ class TestCheckbox(unittest.TestCase):
             restored = bool_input.restore_flagged(tmpdirname, to_save, None)
             self.assertEqual(restored, True)
         self.assertIsInstance(bool_input.generate_sample(), bool)
-        bool_input = gr.Checkbox(default_value=True, label="Check Your Input")
+        bool_input = gr.Checkbox(value=True, label="Check Your Input")
         self.assertEqual(
             bool_input.get_config(),
             {
-                "default_value": True,
+                "value": True,
                 "name": "checkbox",
                 "label": "Check Your Input",
                 "css": {},
@@ -365,7 +365,7 @@ class TestCheckboxGroup(unittest.TestCase):
             checkboxes_input.get_config(),
             {
                 "choices": ["a", "b", "c"],
-                "default_value": ["a", "c"],
+                "value": ["a", "c"],
                 "name": "checkboxgroup",
                 "label": "Check Your Inputs",
                 "css": {},
@@ -410,7 +410,7 @@ class TestRadio(unittest.TestCase):
             radio_input.get_config(),
             {
                 "choices": ["a", "b", "c"],
-                "default_value": "a",
+                "value": "a",
                 "name": "radio",
                 "label": "Pick Your One Input",
                 "css": {},
@@ -474,7 +474,7 @@ class TestImage(unittest.TestCase):
                 "name": "image",
                 "label": "Upload Your Image",
                 "css": {},
-                "default_value": None,
+                "value": None,
                 "interactive": None,
             },
         )
@@ -628,7 +628,7 @@ class TestAudio(unittest.TestCase):
                 "name": "audio",
                 "label": "Upload Your Audio",
                 "css": {},
-                "default_value": None,
+                "value": None,
                 "interactive": None,
             },
         )
@@ -668,7 +668,7 @@ class TestAudio(unittest.TestCase):
                 "label": None,
                 "source": "upload",
                 "css": {},
-                "default_value": None,
+                "value": None,
                 "interactive": None,
             },
         )
@@ -735,7 +735,7 @@ class TestAudio(unittest.TestCase):
 class TestFile(unittest.TestCase):
     def test_component_functions(self):
         """
-        Preprocess, serialize, save_flagged, restore_flagged, generate_sample, get_config, default_value
+        Preprocess, serialize, save_flagged, restore_flagged, generate_sample, get_config, value
         """
         x_file = deepcopy(media_data.BASE64_FILE)
         file_input = gr.File()
@@ -763,7 +763,7 @@ class TestFile(unittest.TestCase):
                 "name": "file",
                 "label": "Upload Your File",
                 "css": {},
-                "default_value": None,
+                "value": None,
                 "interactive": None,
             },
         )
@@ -853,7 +853,7 @@ class TestDataframe(unittest.TestCase):
                 "row_count": 3,
                 "col_count": 3,
                 "col_width": None,
-                "default_value": [
+                "value": [
                     ["", "", ""],
                     ["", "", ""],
                     ["", "", ""],
@@ -904,7 +904,7 @@ class TestDataframe(unittest.TestCase):
                 "row_count": 3,
                 "col_count": 3,
                 "col_width": None,
-                "default_value": [
+                "value": [
                     ["", "", ""],
                     ["", "", ""],
                     ["", "", ""],
@@ -990,7 +990,7 @@ class TestVideo(unittest.TestCase):
                 "name": "video",
                 "label": "Upload Your Video",
                 "css": {},
-                "default_value": None,
+                "value": None,
                 "interactive": None,
             },
         )
@@ -1067,7 +1067,7 @@ class TestTimeseries(unittest.TestCase):
                 "name": "timeseries",
                 "label": "Upload Your Timeseries",
                 "css": {},
-                "default_value": None,
+                "value": None,
                 "interactive": None,
             },
         )
@@ -1087,7 +1087,7 @@ class TestTimeseries(unittest.TestCase):
                 "name": "timeseries",
                 "label": "Disease",
                 "css": {},
-                "default_value": None,
+                "value": None,
                 "interactive": None,
             },
         )
@@ -1308,7 +1308,7 @@ class TestHighlightedText(unittest.TestCase):
                 "label": None,
                 "show_legend": False,
                 "css": {},
-                "default_value": "",
+                "value": "",
                 "interactive": None,
             },
         )
@@ -1369,7 +1369,7 @@ class TestJSON(unittest.TestCase):
             js_output.get_config(),
             {
                 "css": {},
-                "default_value": '""',
+                "value": '""',
                 "label": None,
                 "name": "json",
                 "interactive": None,
@@ -1412,7 +1412,7 @@ class TestHTML(unittest.TestCase):
         self.assertEqual(
             {
                 "css": {},
-                "default_value": "#Welcome onboard",
+                "value": "#Welcome onboard",
                 "label": "HTML Input",
                 "name": "html",
                 "interactive": None,
@@ -1465,7 +1465,7 @@ class TestCarousel(unittest.TestCase):
                     {
                         "name": "textbox",
                         "label": None,
-                        "default_value": "",
+                        "value": "",
                         "lines": 1,
                         "max_lines": 20,
                         "css": {},

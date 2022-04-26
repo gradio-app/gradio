@@ -186,7 +186,7 @@ class TestHighlightedText(unittest.TestCase):
                 "label": None,
                 "show_legend": False,
                 "css": {},
-                "default_value": "",
+                "value": "",
                 "interactive": None,
             },
         )
@@ -240,7 +240,7 @@ class TestAudio(unittest.TestCase):
                 "label": None,
                 "source": "upload",
                 "css": {},
-                "default_value": None,
+                "value": None,
                 "interactive": None,
             },
         )
@@ -368,7 +368,7 @@ class TestDataframe(unittest.TestCase):
                 "row_count": 3,
                 "col_count": 3,
                 "col_width": None,
-                "default_value": [
+                "value": [
                     ["", "", ""],
                     ["", "", ""],
                     ["", "", ""],
@@ -437,7 +437,7 @@ class TestCarousel(unittest.TestCase):
                     {
                         "name": "textbox",
                         "label": None,
-                        "default_value": "",
+                        "value": "",
                         "lines": 1,
                         "max_lines": 20,
                         "css": {},
@@ -505,7 +505,7 @@ class TestTimeseries(unittest.TestCase):
                 "name": "timeseries",
                 "label": "Disease",
                 "css": {},
-                "default_value": None,
+                "value": None,
                 "interactive": None,
             },
         )

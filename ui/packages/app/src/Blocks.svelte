@@ -192,17 +192,9 @@
 										delete value.value;
 									}
 									delete value.__type__;
-									instance_map = {
-										...instance_map,
-										[outputs[i]]: {
-											...instance_map[outputs[i]],
-											props: {
-												...instance_map[outputs[i]].props,
-												...value
-											}
-										}
-									};
-									console.log("new map")
+									let node = tree.filter((n) => n.id === outputs[i])[0];
+									node.props = { ...node.props, ...value };
+									tree = tree;
 								} else {
 									instance_map[outputs[i]].value = value;
 								}

@@ -221,17 +221,6 @@ class Component(Block):
         """
         return x
 
-    @staticmethod
-    def update(**kwargs) -> dict:
-        """
-        Updates component parameters
-
-        @param kwargs: Updating component parameters
-        @return: Updated component parameters
-        """
-        kwargs["__type__"] = "update"
-        return kwargs
-
 
 class Textbox(Component):
     """
@@ -244,7 +233,7 @@ class Textbox(Component):
 
     def __init__(
         self,
-        default_value: str = "",
+        value: str = "",
         *,
         lines: int = 1,
         max_lines: int = 20,
@@ -254,7 +243,7 @@ class Textbox(Component):
     ):
         """
         Parameters:
-        default_value (str): default text to provide in textarea.
+        value (str): default text to provide in textarea.
         lines (int): minimum number of line rows to provide in textarea.
         max_lines (int): maximum number of line rows to provide in textarea.
         placeholder (str): placeholder hint to provide behind textarea.
@@ -270,12 +259,12 @@ class Textbox(Component):
                 "The 'type' parameter has been deprecated. Use the Number component instead if you need it.",
                 DeprecationWarning,
             )
-        default_value = str(default_value)
+        value = str(value)
         self.lines = lines
         self.max_lines = max_lines
         self.placeholder = placeholder
-        self.default_value = default_value
-        self.test_input = default_value
+        self.value = value
+        self.test_input = value
         self.interpret_by_tokens = True
         super().__init__(label=label, **kwargs)
 
@@ -284,7 +273,7 @@ class Textbox(Component):
             "lines": self.lines,
             "max_lines": self.max_lines,
             "placeholder": self.placeholder,
-            "default_value": self.default_value,
+            "value": self.value,
             **super().get_config(),
         }
 
@@ -441,23 +430,23 @@ class Number(Component):
 
     def __init__(
         self,
-        default_value: Optional[float] = None,
+        value: Optional[float] = None,
         *,
         label: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
-        default_value (float): default value.
+        value (float): default value.
         label (str): component name in interface.
         """
-        self.default_value = float(default_value) if default_value is not None else None
-        self.test_input = self.default_value if self.default_value is not None else 1
+        self.value = float(value) if value is not None else None
+        self.test_input = self.value if self.value is not None else 1
         self.interpret_by_tokens = False
         super().__init__(label=label, **kwargs)
 
     def get_config(self):
-        return {"default_value": self.default_value, **super().get_config()}
+        return {"value": self.value, **super().get_config()}
 
     def preprocess(self, x: float | None) -> Optional[float]:
         """
@@ -586,7 +575,7 @@ class Slider(Component):
 
     def __init__(
         self,
-        default_value: Optional[float] = None,
+        value: Optional[float] = None,
         *,
         minimum: float = 0,
         maximum: float = 100,
@@ -596,7 +585,7 @@ class Slider(Component):
     ):
         """
         Parameters:
-        default_value (float): default value.
+        value (float): default value.
         minimum (float): minimum value for slider.
         maximum (float): maximum value for slider.
         step (float): increment between slider values.
@@ -609,8 +598,8 @@ class Slider(Component):
             power = math.floor(math.log10(difference) - 2)
             step = 10**power
         self.step = step
-        self.default_value = minimum if default_value is None else default_value
-        self.test_input = self.default_value
+        self.value = minimum if value is None else value
+        self.test_input = self.value
         self.interpret_by_tokens = False
         super().__init__(label=label, **kwargs)
 
@@ -619,7 +608,7 @@ class Slider(Component):
             "minimum": self.minimum,
             "maximum": self.maximum,
             "step": self.step,
-            "default_value": self.default_value,
+            "value": self.value,
             **super().get_config(),
         }
 
@@ -711,23 +700,23 @@ class Checkbox(Component):
 
     def __init__(
         self,
-        default_value: bool = False,
+        value: bool = False,
         *,
         label: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
-        default_value (bool): if True, checked by default.
+        value (bool): if True, checked by default.
         label (str): component name in interface.
         """
         self.test_input = True
-        self.default_value = default_value
+        self.value = value
         self.interpret_by_tokens = False
         super().__init__(label=label, **kwargs)
 
     def get_config(self):
-        return {"default_value": self.default_value, **super().get_config()}
+        return {"value": self.value, **super().get_config()}
 
     def preprocess(self, x: bool) -> bool:
         """
@@ -829,7 +818,7 @@ class CheckboxGroup(Component):
         ):  # Mutable parameters shall not be given as default parameters in the function.
             default_selected = []
         self.choices = choices
-        self.default_value = default_selected
+        self.value = default_selected
         self.type = type
         self.test_input = self.choices
         self.interpret_by_tokens = False
@@ -838,7 +827,7 @@ class CheckboxGroup(Component):
     def get_config(self):
         return {
             "choices": self.choices,
-            "default_value": self.default_value,
+            "value": self.value,
             **super().get_config(),
         }
 
@@ -963,7 +952,7 @@ class Radio(Component):
         self.choices = choices
         self.type = type
         self.test_input = self.choices[0]
-        self.default_value = (
+        self.value = (
             default_selected if default_selected is not None else self.choices[0]
         )
         self.interpret_by_tokens = False
@@ -972,7 +961,7 @@ class Radio(Component):
     def get_config(self):
         return {
             "choices": self.choices,
-            "default_value": self.default_value,
+            "value": self.value,
             **super().get_config(),
         }
 
@@ -1097,7 +1086,7 @@ class Image(Component):
 
     def __init__(
         self,
-        default_value: Optional[str] = None,
+        value: Optional[str] = None,
         *,
         shape: Tuple[int, int] = None,
         image_mode: str = "RGB",
@@ -1110,7 +1099,7 @@ class Image(Component):
     ):
         """
         Parameters:
-        default_value(str): A path or URL for the default value that Image component is going to take.
+        value(str): A path or URL for the default value that Image component is going to take.
         shape (Tuple[int, int]): (width, height) shape to crop and resize image to; if None, matches input image size.
         image_mode (str): "RGB" if color, or "L" if black and white.
         invert_colors (bool): whether to invert the image as a preprocessing step.
@@ -1128,10 +1117,8 @@ class Image(Component):
         else:
             self.type = type
 
-        self.default_value = (
-            processing_utils.encode_url_or_file_to_base64(default_value)
-            if default_value
-            else None
+        self.value = (
+            processing_utils.encode_url_or_file_to_base64(value) if value else None
         )
         self.type = type
         self.output_type = "auto"
@@ -1153,7 +1140,7 @@ class Image(Component):
             "shape": self.shape,
             "source": self.source,
             "tool": self.tool,
-            "default_value": self.default_value,
+            "value": self.value,
             **super().get_config(),
         }
 
@@ -1431,7 +1418,7 @@ class Video(Component):
 
     def __init__(
         self,
-        default_value: str = "",
+        value: str = "",
         *,
         type: Optional[str] = None,
         source: str = "upload",
@@ -1440,16 +1427,14 @@ class Video(Component):
     ):
         """
         Parameters:
-        default_value(str): A path or URL for the default value that Video component is going to take.
+        value(str): A path or URL for the default value that Video component is going to take.
         type (str): Type of video format to be returned by component, such as 'avi' or 'mp4'. Use 'mp4' to ensure browser playability. If set to None, video will keep uploaded format.
         source (str): Source of video. "upload" creates a box where user can drop an video file, "webcam" allows user to record a video from their webcam.
         label (str): component name in interface.
         optional (bool): If True, the interface can be submitted with no uploaded video, in which case the input value is None.
         """
-        self.default_value = (
-            processing_utils.encode_url_or_file_to_base64(default_value)
-            if default_value
-            else None
+        self.value = (
+            processing_utils.encode_url_or_file_to_base64(value) if value else None
         )
         self.type = type
         self.source = source
@@ -1458,7 +1443,7 @@ class Video(Component):
     def get_config(self):
         return {
             "source": self.source,
-            "default_value": self.default_value,
+            "value": self.value,
             **super().get_config(),
         }
 
@@ -1602,7 +1587,7 @@ class Audio(Component):
 
     def __init__(
         self,
-        default_value="",
+        value="",
         *,
         source: str = "upload",
         type: str = "numpy",
@@ -1611,15 +1596,13 @@ class Audio(Component):
     ):
         """
         Parameters:
-        default_value (str): IGNORED
+        value (str): IGNORED
         source (str): Source of audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input.
         type (str): The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
         label (str): component name in interface.
         """
-        self.default_value = (
-            processing_utils.encode_url_or_file_to_base64(default_value)
-            if default_value
-            else None
+        self.value = (
+            processing_utils.encode_url_or_file_to_base64(value) if value else None
         )
         self.source = source
         requires_permissions = source == "microphone"
@@ -1634,7 +1617,7 @@ class Audio(Component):
     def get_config(self):
         return {
             "source": self.source,  # TODO: This did not exist in output template, careful here if an error arrives
-            "default_value": self.default_value,
+            "value": self.value,
             **super().get_config(),
         }
 
@@ -1912,7 +1895,7 @@ class File(Component):
 
     def __init__(
         self,
-        default_value: str = "",
+        value: str = "",
         *,
         file_count: str = "single",
         type: str = "file",
@@ -1921,17 +1904,15 @@ class File(Component):
     ):
         """
         Parameters:
-        default_value (str): Default value given as file path
+        value (str): Default value given as file path
         file_count (str): if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
         type (str): Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name, "binary" returns an bytes object.
         label (str): component name in interface.
         """
         if "keep_filename" in kwargs:
             warnings.warn("keep_filename is deprecated", DeprecationWarning)
-        self.default_value = (
-            processing_utils.encode_url_or_file_to_base64(default_value)
-            if default_value
-            else None
+        self.value = (
+            processing_utils.encode_url_or_file_to_base64(value) if value else None
         )
         self.file_count = file_count
         self.type = type
@@ -1941,7 +1922,7 @@ class File(Component):
     def get_config(self):
         return {
             "file_count": self.file_count,
-            "default_value": self.default_value,
+            "value": self.value,
             **super().get_config(),
         }
 
@@ -2057,7 +2038,7 @@ class Dataframe(Component):
 
     def __init__(
         self,
-        default_value: Optional[List[List[Any]]] = None,
+        value: Optional[List[List[Any]]] = None,
         *,
         headers: Optional[List[str]] = None,
         row_count: int = 3,
@@ -2073,7 +2054,7 @@ class Dataframe(Component):
     ):
         """
         Input Parameters:
-        default_value (List[List[Any]]): Default value as a pandas DataFrame. TODO: Add support for default value as a filepath
+        value (List[List[Any]]): Default value as a pandas DataFrame. TODO: Add support for default value as a filepath
         headers (List[str]): Header names to dataframe. If None, no headers are shown.
         row_count (int): Limit number of rows for input.
         col_count (int): Limit number of columns for input. If equal to 1, return data will be one-dimensional. Ignored if `headers` is provided.
@@ -2094,7 +2075,7 @@ class Dataframe(Component):
         self.col_width = col_width
         self.type = type
         self.output_type = "auto"
-        default_values = {
+        values = {
             "str": "",
             "number": 0,
             "bool": False,
@@ -2103,12 +2084,8 @@ class Dataframe(Component):
         column_dtypes = (
             [datatype] * self.col_count if isinstance(datatype, str) else datatype
         )
-        self.test_input = [
-            [default_values[c] for c in column_dtypes] for _ in range(row_count)
-        ]
-        self.default_value = (
-            default_value if default_value is not None else self.test_input
-        )
+        self.test_input = [[values[c] for c in column_dtypes] for _ in range(row_count)]
+        self.value = value if value is not None else self.test_input
         self.max_rows = max_rows
         self.max_cols = max_cols
         self.overflow_row_behaviour = overflow_row_behaviour
@@ -2121,7 +2098,7 @@ class Dataframe(Component):
             "row_count": self.row_count,
             "col_count": self.col_count,
             "col_width": self.col_width,
-            "default_value": self.default_value,
+            "value": self.value,
             "max_rows": self.max_rows,
             "max_cols": self.max_cols,
             "overflow_row_behaviour": self.overflow_row_behaviour,
@@ -2233,7 +2210,7 @@ class Timeseries(Component):
 
     def __init__(
         self,
-        default_value: Optional[str] = None,
+        value: Optional[str] = None,
         *,
         x: Optional[str] = None,
         y: str | List[str] = None,
@@ -2242,14 +2219,12 @@ class Timeseries(Component):
     ):
         """
         Parameters:
-        default_value: File path for the timeseries csv file. TODO: Add support for default value as a pd.DataFrame
+        value: File path for the timeseries csv file. TODO: Add support for default value as a pd.DataFrame
         x (str): Column name of x (time) series. None if csv has no headers, in which case first column is x series.
         y (Union[str, List[str]]): Column name of y series, or list of column names if multiple series. None if csv has no headers, in which case every column after first is a y series.
         label (str): component name in interface.
         """
-        self.default_value = (
-            pd.read_csv(default_value) if default_value is not None else None
-        )
+        self.value = pd.read_csv(value) if value is not None else None
         self.x = x
         if isinstance(y, str):
             y = [y]
@@ -2260,7 +2235,7 @@ class Timeseries(Component):
         return {
             "x": self.x,
             "y": self.y,
-            "default_value": self.default_value,
+            "value": self.value,
             **super().get_config(),
         }
 
@@ -2339,20 +2314,20 @@ class Variable(Component):
 
     def __init__(
         self,
-        default_value: Any = None,
+        value: Any = None,
         **kwargs,
     ):
         """
         Parameters:
-        default_value (Any): the initial value of the state.
+        value (Any): the initial value of the state.
         label (str): component name in interface (not used).
         """
-        self.default_value = default_value
+        self.value = value
         self.stateful = True
         super().__init__(**kwargs)
 
     def get_config(self):
-        return {"default_value": self.default_value, **super().get_config()}
+        return {"value": self.value, **super().get_config()}
 
 
 ############################
@@ -2371,7 +2346,7 @@ class Label(Component):
 
     def __init__(
         self,
-        default_value: str = "",
+        value: str = "",
         *,
         num_top_classes: Optional[int] = None,
         label: Optional[str] = None,
@@ -2379,7 +2354,7 @@ class Label(Component):
     ):
         """
         Parameters:
-        default_value(str): Default string value
+        value(str): Default string value
         num_top_classes (int): number of most confident classes to show.
         label (str): component name in interface.
         """
@@ -2488,7 +2463,7 @@ class KeyValues(Component):
 
     def __init__(
         self,
-        default_value: str = " ",
+        value: str = " ",
         *,
         label: Optional[str] = None,
         **kwargs,
@@ -2514,7 +2489,7 @@ class HighlightedText(Component):
 
     def __init__(
         self,
-        default_value: str = "",
+        value: str = "",
         *,
         color_map: Dict[str, str] = None,
         label: Optional[str] = None,
@@ -2523,12 +2498,12 @@ class HighlightedText(Component):
     ):
         """
         Parameters:
-        default_value (str): Default value
+        value (str): Default value
         color_map (Dict[str, str]): Map between category and respective colors
         label (str): component name in interface.
         show_legend (bool): whether to show span categories in a separate legend or inline.
         """
-        self.default_value = default_value
+        self.value = value
         self.color_map = color_map
         self.show_legend = show_legend
         super().__init__(label=label, **kwargs)
@@ -2537,7 +2512,7 @@ class HighlightedText(Component):
         return {
             "color_map": self.color_map,
             "show_legend": self.show_legend,
-            "default_value": self.default_value,
+            "value": self.value,
             **super().get_config(),
         }
 
@@ -2586,22 +2561,22 @@ class JSON(Component):
 
     def __init__(
         self,
-        default_value: str = "",
+        value: str = "",
         *,
         label: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
-        default_value (str): Default value
+        value (str): Default value
         label (str): component name in interface.
         """
-        self.default_value = json.dumps(default_value)
+        self.value = json.dumps(value)
         super().__init__(label=label, **kwargs)
 
     def get_config(self):
         return {
-            "default_value": self.default_value,
+            "value": self.value,
             **super().get_config(),
         }
 
@@ -2652,21 +2627,21 @@ class HTML(Component):
 
     def __init__(
         self,
-        default_value: str = "",
+        value: str = "",
         label: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
-        default_value (str): Default value
+        value (str): Default value
         label (str): component name in interface.
         """
-        self.default_value = default_value
+        self.value = value
         super().__init__(label=label, **kwargs)
 
     def get_config(self):
         return {
-            "default_value": self.default_value,
+            "value": self.value,
             **super().get_config(),
         }
 
@@ -2708,7 +2683,7 @@ class Carousel(Component):
 
     def __init__(
         self,
-        default_value="",
+        value="",
         *,
         components: Component | List[Component],
         label: Optional[str] = None,
@@ -2716,7 +2691,7 @@ class Carousel(Component):
     ):
         """
         Parameters:
-        default_value (str): IGNORED
+        value (str): IGNORED
         components (Union[List[OutputComponent], OutputComponent]): Classes of component(s) that will be scrolled through.
         label (str): component name in interface.
         """
@@ -2730,9 +2705,7 @@ class Carousel(Component):
 
     def get_config(self):
         return {
-            "components": [
-                component.get_config() for component in self.components
-            ],
+            "components": [component.get_config() for component in self.components],
             **super().get_config(),
         }
 
@@ -2807,21 +2780,21 @@ class Chatbot(Component):
 
     def __init__(
         self,
-        default_value="",
+        value="",
         *,
         label: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
-        default_value (str): Default value
+        value (str): Default value
         label (str): component name in interface (not used).
         """
-        self.default_value = default_value
+        self.value = value
         super().__init__(label=label, **kwargs)
 
     def get_config(self):
-        return {"default_value": self.default_value, **super().get_config()}
+        return {"value": self.value, **super().get_config()}
 
     def postprocess(self, y):
         """
@@ -3075,23 +3048,23 @@ class Markdown(Component):
 
     def __init__(
         self,
-        default_value: str = "",
+        value: str = "",
         *,
         label: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
-        default_value (str): Default value
+        value (str): Default value
         label (str): component name
         """
         super().__init__(label=label, **kwargs)
         self.md = MarkdownIt()
-        unindented_default_value = inspect.cleandoc(default_value)
-        self.default_value = self.md.render(unindented_default_value)
+        unindented_value = inspect.cleandoc(value)
+        self.value = self.md.render(unindented_value)
 
     def get_config(self):
-        return {"default_value": self.default_value, **super().get_config()}
+        return {"value": self.value, **super().get_config()}
 
 
 class Button(Component):
@@ -3101,7 +3074,7 @@ class Button(Component):
 
     def __init__(
         self,
-        default_value: str = "",
+        value: str = "",
         *,
         variant: Optional[str] = "secondary",
         label: Optional[str] = None,
@@ -3109,17 +3082,17 @@ class Button(Component):
     ):
         """
         Parameters:
-        default_value (str): Default value
+        value (str): Default value
         variant (str): Which color scheme to use. Either "primary", "secondary".
         label (str): component name
         """
         super().__init__(label=label, **kwargs)
         self.variant = variant
-        self.default_value = default_value
+        self.value = value
 
     def get_config(self):
         return {
-            "default_value": self.default_value,
+            "value": self.value,
             "variant": self.variant,
             **super().get_config(),
         }
@@ -3343,3 +3316,14 @@ class StatusTracker(Component):
             "cover_container": self.cover_container,
             **super().get_config(),
         }
+
+
+def update(**kwargs) -> dict:
+    """
+    Updates component parameters
+
+    @param kwargs: Updating component parameters
+    @return: Updated component parameters
+    """
+    kwargs["__type__"] = "update"
+    return kwargs

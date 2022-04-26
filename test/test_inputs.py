@@ -129,7 +129,7 @@ class TestNumber(unittest.TestCase):
         self.assertEqual(
             numeric_input.get_config(),
             {
-                "default_value": None,
+                "value": None,
                 "name": "number",
                 "label": None,
                 "css": {},
@@ -180,7 +180,7 @@ class TestSlider(unittest.TestCase):
                 "minimum": 10,
                 "maximum": 20,
                 "step": 1,
-                "default_value": 15,
+                "value": 15,
                 "name": "slider",
                 "label": "Slide Your Input",
                 "css": {},
@@ -226,7 +226,7 @@ class TestCheckbox(unittest.TestCase):
         self.assertEqual(
             bool_input.get_config(),
             {
-                "default_value": True,
+                "value": True,
                 "name": "checkbox",
                 "label": "Check Your Input",
                 "css": {},
@@ -267,7 +267,7 @@ class TestCheckboxGroup(unittest.TestCase):
             checkboxes_input.get_config(),
             {
                 "choices": ["a", "b", "c"],
-                "default_value": ["a", "c"],
+                "value": ["a", "c"],
                 "name": "checkboxgroup",
                 "label": "Check Your Inputs",
                 "css": {},
@@ -305,7 +305,7 @@ class TestRadio(unittest.TestCase):
             radio_input.get_config(),
             {
                 "choices": ["a", "b", "c"],
-                "default_value": "a",
+                "value": "a",
                 "name": "radio",
                 "label": "Pick Your One Input",
                 "css": {},
@@ -350,7 +350,7 @@ class TestDropdown(unittest.TestCase):
             dropdown_input.get_config(),
             {
                 "choices": ["a", "b", "c"],
-                "default_value": "a",
+                "value": "a",
                 "name": "dropdown",
                 "label": "Drop Your Input",
                 "css": {},
@@ -407,7 +407,7 @@ class TestImage(unittest.TestCase):
                 "name": "image",
                 "label": "Upload Your Image",
                 "css": {},
-                "default_value": None,
+                "value": None,
                 "interactive": None,
             },
         )
@@ -498,7 +498,7 @@ class TestAudio(unittest.TestCase):
                 "name": "audio",
                 "label": "Upload Your Audio",
                 "css": {},
-                "default_value": None,
+                "value": None,
                 "interactive": None,
             },
         )
@@ -559,7 +559,7 @@ class TestFile(unittest.TestCase):
                 "name": "file",
                 "label": "Upload Your File",
                 "css": {},
-                "default_value": None,
+                "value": None,
                 "interactive": None,
             },
         )
@@ -607,7 +607,7 @@ class TestDataframe(unittest.TestCase):
                 "row_count": 3,
                 "col_count": 3,
                 "col_width": None,
-                "default_value": [
+                "value": [
                     ["", "", ""],
                     ["", "", ""],
                     ["", "", ""],
@@ -665,7 +665,7 @@ class TestVideo(unittest.TestCase):
                 "name": "video",
                 "label": "Upload Your Video",
                 "css": {},
-                "default_value": None,
+                "value": None,
                 "interactive": None,
             },
         )
@@ -713,7 +713,7 @@ class TestTimeseries(unittest.TestCase):
                 "name": "timeseries",
                 "label": "Upload Your Timeseries",
                 "css": {},
-                "default_value": None,
+                "value": None,
                 "interactive": None,
             },
         )

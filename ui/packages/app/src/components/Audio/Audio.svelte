@@ -6,15 +6,12 @@
 
 	export let mode: "static" | "dynamic";
 	export let value: null | FileData | string = null;
-	export let default_value: null | FileData | string = null;
 	export let style: string = "";
 	export let name: string;
 	export let source: "microphone" | "upload";
 	export let type: "normal" | "numpy" = "normal";
 	export let label: string;
 	export let root: string;
-
-	if (default_value) value = default_value;
 
 	let _value: null | FileData;
 	$: _value = normalise_file(value, root);

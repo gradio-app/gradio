@@ -2,14 +2,11 @@
 	import { CheckboxGroup } from "@gradio/form";
 
 	export let value: Array<string> = [];
-	export let default_value: Array<string> = [];
 	export let choices: Array<string>;
 
 	export let mode: "static" | "dynamic";
 	export let style: string = "";
 	export let label: string = "Checkbox Group";
-
-	if (default_value) value = default_value;
 </script>
 
 <CheckboxGroup

@@ -33,6 +33,7 @@ from gradio.components import (
     Variable,
     Video,
     component,
+    update,
 )
 from gradio.flagging import (
     CSVLogger,

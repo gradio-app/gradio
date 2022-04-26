@@ -5,13 +5,10 @@
 	import { _ } from "svelte-i18n";
 
 	export let value: null | FileData = null;
-	export let default_value: null | FileData = null;
 	export let style: string = "";
 	export let mode: "static" | "dynamic";
 	export let root: string;
 	export let clearColor: [];
-
-	if (default_value) value = default_value;
 
 	let _value: null | FileData;
 	$: _value = normalise_file(value, root);
