@@ -4,6 +4,7 @@ import gradio.components as components
 import gradio.inputs as inputs
 import gradio.outputs as outputs
 import gradio.processing_utils
+import gradio.templates
 from gradio.blocks import Blocks, Column, Row, TabItem, Tabs
 from gradio.components import (
     HTML,
@@ -43,7 +44,6 @@ from gradio.flagging import (
 from gradio.interface import Interface, TabbedInterface, close_all, reset_all
 from gradio.mix import Parallel, Series
 from gradio.routes import get_state, set_state
-import gradio.templates
 
 current_pkg_version = pkg_resources.require("gradio")[0].version
 __version__ = current_pkg_version
