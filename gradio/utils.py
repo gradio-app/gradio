@@ -383,4 +383,4 @@ def get_all_subclasses(cls):
         all_subclasses.append(subclass)
         all_subclasses.extend(get_all_subclasses(subclass))
 
-    return set(all_subclasses)
+    return all_subclasses
