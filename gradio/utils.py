@@ -332,7 +332,6 @@ def assert_configs_are_equivalent_besides_ids(config1, config2):
             assert mapping[i1] == i2, "{} does not match {}".format(d1, d2)
         for o1, o2 in zip(d1["outputs"], d2["outputs"]):
             assert mapping[o1] == o2, "{} does not match {}".format(d1, d2)
-        assert d1["queue"] == d2["queue"], "{} does not match {}".format(d1, d2)
 
     return True
 
@@ -352,3 +351,21 @@ def format_ner_list(input_string: str, ner_groups: Dict[str : str | int]):
 
     output.append((input_string[end:], None))
     return output
+
+
+def delete_none(_dict):
+    """
+    Delete None values recursively from all of the dictionaries, tuples, lists, sets.
+    Credit: https://stackoverflow.com/questions/33797126/proper-way-to-remove-keys-in-dictionary-with-none-values-in-python
+    """
+    if isinstance(_dict, dict):
+        for key, value in list(_dict.items()):
+            if isinstance(value, (list, dict, tuple, set)):
+                _dict[key] = delete_none(value)
+            elif value is None or key is None:
+                del _dict[key]
+
+    elif isinstance(_dict, (list, set, tuple)):
+        _dict = type(_dict)(delete_none(item) for item in _dict if item is not None)
+
+    return _dict

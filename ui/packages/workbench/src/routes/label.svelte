@@ -11,10 +11,12 @@
 	};
 </script>
 
-<h2>Without confidence</h2>
+<div class="space-y-6">
+	<h2>Without confidence</h2>
 
-<Label value={{ label: "hello" }} />
+	<Label value={{ label: "hello" }} />
 
-<h2>With confidence</h2>
+	<h2>With confidence</h2>
 
-<Label value={data} />
+	<Label value={data} />
+</div>

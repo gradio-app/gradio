@@ -132,9 +132,7 @@ class Component(Block):
         Creates a component, where class name equals to str_shortcut.
 
         @param str_shortcut: string shortcut of a component
-        @return:
-            True, found_class or
-            False, None
+        @return: the insantiated component object, or None if no such component exists
         """
         # If we do not import templates Python cannot recognize grandchild classes names.
         import gradio.templates
@@ -250,6 +248,7 @@ class Textbox(Component):
         default_value: str = "",
         *,
         lines: int = 1,
+        max_lines: int = 20,
         placeholder: Optional[str] = None,
         label: Optional[str] = None,
         css: Optional[Dict] = None,
@@ -258,7 +257,8 @@ class Textbox(Component):
         """
         Parameters:
         default_value (str): default text to provide in textarea.
-        lines (int): number of line rows to provide in textarea.
+        lines (int): minimum number of line rows to provide in textarea.
+        max_lines (int): maximum number of line rows to provide in textarea.
         placeholder (str): placeholder hint to provide behind textarea.
         label (str): component name in interface.
         """
@@ -274,6 +274,7 @@ class Textbox(Component):
             )
         default_value = str(default_value)
         self.lines = lines
+        self.max_lines = max_lines
         self.placeholder = placeholder
         self.default_value = default_value
         self.test_input = default_value
@@ -283,6 +284,7 @@ class Textbox(Component):
     def get_template_context(self):
         return {
             "lines": self.lines,
+            "max_lines": self.max_lines,
             "placeholder": self.placeholder,
             "default_value": self.default_value,
             **super().get_template_context(),
@@ -1128,7 +1130,7 @@ class Image(Component):
         """
         if "plot" in kwargs:
             warnings.warn(
-                "The 'plot' parameter has been deprecated. Set parameter 'type' to 'plot' instead.",
+                "The 'plot' parameter has been deprecated. Use the new Plot() component instead",
                 DeprecationWarning,
             )
             self.type = "plot"
@@ -2367,7 +2369,11 @@ class Variable(Component):
         return {"default_value": self.default_value, **super().get_template_context()}
 
 
+############################
 # Only Output Components
+############################
+
+
 class Label(Component):
     """
     Component outputs a classification label, along with confidence scores of top categories if provided. Confidence scores are represented as a dictionary mapping labels to scores between 0 and 1.
@@ -2931,7 +2937,7 @@ class Model3D(Component):
         Returns: (str) path to 3D image model file
         """
         return self.save_flagged_file(
-            dir, label, None if data is None else data["data"], encryption_key
+            dir, label, data["data"], encryption_key, data["name"]
         )
 
     def generate_sample(self):
@@ -2994,7 +3000,97 @@ class Model3D(Component):
         self.set_event_trigger("clear", fn, inputs, outputs)
 
 
+class Plot(Component):
+    """
+    Used for plot output.
+    Output type: matplotlib plt, plotly figure, or Bokeh fig (json_item format)
+    Demos: outbreak_forecast
+    """
+
+    def __init__(
+        self,
+        type: str = None,
+        label: str = None,
+        css: Optional[Dict] = None,
+        **kwargs,
+    ):
+        """
+        Parameters:
+        type (str): type of plot (matplotlib, plotly)
+        label (str): component name in interface.
+        """
+        self.type = type
+        super().__init__(label=label, css=css, **kwargs)
+
+    def get_template_context(self):
+        return {**super().get_template_context()}
+
+    def postprocess(self, y):
+        """
+        Parameters:
+        y (str): plot data
+        Returns:
+        (str): plot type
+        (str): plot base64 or json
+        """
+        dtype = self.type
+        if self.type == "plotly":
+            out_y = y.to_json()
+        elif self.type == "matplotlib":
+            out_y = processing_utils.encode_plot_to_base64(y)
+        elif self.type == "bokeh":
+            out_y = json.dumps(y)
+        elif self.type == "auto":
+            if isinstance(y, (ModuleType, matplotlib.pyplot.Figure)):
+                dtype = "matplotlib"
+                out_y = processing_utils.encode_plot_to_base64(y)
+            elif isinstance(y, dict):
+                dtype = "bokeh"
+                out_y = json.dumps(y)
+            else:
+                dtype = "plotly"
+                out_y = y.to_json()
+        else:
+            raise ValueError(
+                "Unknown type. Please choose from: 'plotly', 'matplotlib', 'bokeh'."
+            )
+        return {"type": dtype, "plot": out_y}
+
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+    ):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+            status: StatusTracker to visualize function progress
+        Returns: None
+        """
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker
+        )
+
+    def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("clear", fn, inputs, outputs)
+
+
+############################
 # Static Components
+############################
+
+
 class Markdown(Component):
     """
     Used for Markdown output. Expects a valid string that is rendered into Markdown.
@@ -3053,7 +3149,6 @@ class Button(Component):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
-        queue=False,
         status_tracker: Optional[StatusTracker] = None,
     ):
         """
@@ -3069,7 +3164,6 @@ class Button(Component):
             fn,
             inputs,
             outputs,
-            queue=queue,
             status_tracker=status_tracker,
         )
 
@@ -3182,92 +3276,6 @@ class Dataset(Component):
         )
 
 
-class Plot(Component):
-    """
-    Used for plot output.
-    Output type: matplotlib plt, plotly figure, or Bokeh fig (json_item format)
-    Demos: outbreak_forecast
-    """
-
-    def __init__(
-        self,
-        type: str = None,
-        label: str = None,
-        css: Optional[Dict] = None,
-        **kwargs,
-    ):
-        """
-        Parameters:
-        type (str): type of plot (matplotlib, plotly)
-        label (str): component name in interface.
-        """
-        self.type = type
-        super().__init__(label=label, css=css, **kwargs)
-
-    def get_template_context(self):
-        return {**super().get_template_context()}
-
-    def postprocess(self, y):
-        """
-        Parameters:
-        y (str): plot data
-        Returns:
-        (str): plot type
-        (str): plot base64 or json
-        """
-        dtype = self.type
-        if self.type == "plotly":
-            out_y = y.to_json()
-        elif self.type == "matplotlib":
-            out_y = processing_utils.encode_plot_to_base64(y)
-        elif self.type == "bokeh":
-            out_y = json.dumps(y)
-        elif self.type == "auto":
-            if isinstance(y, (ModuleType, matplotlib.pyplot.Figure)):
-                dtype = "matplotlib"
-                out_y = processing_utils.encode_plot_to_base64(y)
-            elif isinstance(y, dict):
-                dtype = "bokeh"
-                out_y = json.dumps(y)
-            else:
-                dtype = "plotly"
-                out_y = y.to_json()
-        else:
-            raise ValueError(
-                "Unknown type. Please choose from: 'plotly', 'matplotlib', 'bokeh'."
-            )
-        return {"type": dtype, "plot": out_y}
-
-    def change(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
-        )
-
-    def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        Returns: None
-        """
-        self.set_event_trigger("clear", fn, inputs, outputs)
-
-
 class Interpretation(Component):
     """
     Used to create an interpretation widget for a component.
@@ -3291,14 +3299,12 @@ class Interpretation(Component):
         }
 
 
-def component(str_shortcut: str) -> (bool, Optional[Component]):
+def component(str_shortcut: str) -> Optional[Component]:
     """
     Creates a component, where class name equals to str_shortcut.
 
     @param str_shortcut: string shortcut of a component
-    @return:
-        True, found_class or
-        False, None
+    @return component: the component object
     """
     component = Component.get_component_shortcut(str_shortcut)
     if component is None:

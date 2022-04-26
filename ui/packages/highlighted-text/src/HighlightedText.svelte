@@ -26,43 +26,56 @@
 	if (color_map === null) {
 		color_map = {};
 	}
-	if (value.length > 0) {
-		for (let [_, label] of value) {
-			if (label !== null) {
-				if (typeof label === "string") {
-					mode = "categories";
-					if (!(label in color_map)) {
-						let color = getNextColor(Object.keys(color_map).length);
-						color_map[label] = color;
+	$: {
+		if (value.length > 0) {
+			for (let [_, label] of value) {
+				if (label !== null) {
+					if (typeof label === "string") {
+						mode = "categories";
+						if (!(label in color_map)) {
+							let color = getNextColor(Object.keys(color_map).length);
+							color_map[label] = color;
+						}
+					} else {
+						mode = "scores";
 					}
-				} else {
-					mode = "scores";
 				}
 			}
 		}
-	}
-
-	function correct_color_map() {
-		for (const col in color_map) {
-			const _c = color_map[col].trim();
-			if (_c.startsWith("rgba")) {
-				color_map[col] = color_map[col];
-			} else {
-				color_map[col] = name_to_rgba(color_map[col]);
+		function correct_color_map() {
+			for (const col in color_map) {
+				const _c = color_map[col].trim();
+				if (_c.startsWith("rgba")) {
+					color_map[col] = color_map[col];
+				} else {
+					color_map[col] = name_to_rgba(color_map[col]);
+				}
 			}
 		}
-	}
 
-	correct_color_map();
+		correct_color_map();
+	}
 </script>
 
-<div class="output-highlightedtext" {theme}>
+<!-- 
+	@todo victor: try reimplementing without flex (negative margins on container to avoid left margin on linebreak). 
+	If not possible hijack the copy execution like this:
+
+<svelte:window
+	on:copy|preventDefault={() => {
+		const selection =.getSelection()?.toString();
+		console.log(selection?.replaceAll("\n", " "));
+	}}
+/>
+-->
+
+<div class="border rounded-lg p-2" {theme}>
 	{#if mode === "categories"}
 		{#if show_legend}
 			<div class="category-legend flex flex-wrap gap-1 mb-2">
 				{#each Object.entries(color_map) as [category, color], i}
 					<div
-						class="category-label px-2 py-1 rounded text-white font-semibold"
+						class="category-label px-2 rounded text-white font-semibold"
 						style={"background-color:" + color}
 					>
 						{category}
@@ -71,11 +84,11 @@
 			</div>
 		{/if}
 		<div
-			class="textfield p-2 bg-white dark:bg-gray-800 rounded box-border max-w-full leading-8 break-word"
+			class="textfield bg-white dark:bg-gray-800 rounded box-border max-w-full break-word inline-flex flex-wrap gap-1"
 		>
-			{#each value as [text, category], i}
+			{#each value as [text, category]}
 				<span
-					class="textspan p-1 mr-0.5 bg-opacity-20 dark:bg-opacity-80 rounded-sm"
+					class="textspan bg-opacity-10 rounded inline-flex items-center px-1.5 space-x-1.5"
 					style={category === null
 						? ""
 						: `color: ${color_map[category]}; background-color: ${color_map[
@@ -85,7 +98,7 @@
 					<span class="text dark:text-white">{text}</span>
 					{#if !show_legend && category !== null}
 						<span
-							class="inline-category text-xs text-white ml-0.5 px-0.5 rounded-sm"
+							class="inline-category text-xs text-white rounded-sm px-1"
 							style={category === null
 								? ""
 								: `background-color: ${color_map[category]}`}
@@ -108,9 +121,9 @@
 			</div>
 		{/if}
 		<div
-			class="textfield p-2 bg-white dark:bg-gray-800 rounded box-border max-w-full leading-8 break-word"
+			class="textfield p-2 bg-white dark:bg-gray-800 rounded box-border max-w-full break-word"
 		>
-			{#each value as [text, score], i}
+			{#each value as [text, score]}
 				<span
 					class="textspan p-1 mr-0.5 bg-opacity-20 dark:bg-opacity-80 rounded-sm"
 					style={"background-color: rgba(" +
@@ -123,11 +136,3 @@
 		</div>
 	{/if}
 </div>
-
-<style lang="postcss">
-	.output-highlightedtext[theme="default"] {
-		.textfield {
-			@apply shadow;
-		}
-	}
-</style>

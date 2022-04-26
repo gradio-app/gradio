@@ -341,6 +341,17 @@ def render_docs():
         generated_template.write(output_html)
 
 
+def render_static_docs():
+    os.makedirs("generated", exist_ok=True)
+    with open("src/static_docs.html") as static_file:
+        static_docs = static_file.read()
+    os.makedirs(os.path.join("generated", "docs"), exist_ok=True)
+    with open(
+        os.path.join("generated", "docs", "index.html"), "w"
+    ) as generated_template:
+        generated_template.write(static_docs)
+
+
 def render_other():
     os.makedirs("generated", exist_ok=True)
     for template_filename in os.listdir("src/other_templates"):
@@ -363,4 +374,5 @@ if __name__ == "__main__":
     render_guides()
     # render_docs()
     render_gallery()
+    render_static_docs()
     render_other()
