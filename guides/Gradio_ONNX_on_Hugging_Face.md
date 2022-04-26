@@ -130,7 +130,7 @@ gr.Interface(inference, gr.inputs.Image(type="filepath"), "label", title=title, 
 ```
 
 
-## Get started: How to contribute Gradio demos on HF spaces using ONNX models
+## How to contribute Gradio demos on HF spaces using ONNX models
 
 * Create an account on Hugging Face: https://huggingface.co/join
 * See list of models left to add to ONNX organization, please refer to the table with the [Models list](https://github.com/onnx/models#models)
