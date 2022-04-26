@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { Range } from "@gradio/form";
+	import { Block } from "@gradio/atoms";
+	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 
 	export let value: number = 0;
 
@@ -13,17 +15,22 @@
 	export let mode: "static" | "dynamic";
 	export let form_position: "first" | "last" | "mid" | "single" = "single";
 
+	export let loading_status: "complete" | "pending" | "error";
+
 	if (default_value) value = default_value;
 </script>
 
-<Range
-	{form_position}
-	bind:value
-	{label}
-	{style}
-	{minimum}
-	{maximum}
-	{step}
-	disabled={mode === "static"}
-	on:change
-/>
+<Block {form_position}>
+	<StatusTracker tracked_status={loading_status} />
+
+	<Range
+		bind:value
+		{label}
+		{style}
+		{minimum}
+		{maximum}
+		{step}
+		disabled={mode === "static"}
+		on:change
+	/>
+</Block>

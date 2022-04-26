@@ -70,6 +70,3 @@
 		<img  class="w-full h-full object-contain" src={value["plot"]} />
 	</div>
 {/if}
-
-<style lang="postcss">
-</style>

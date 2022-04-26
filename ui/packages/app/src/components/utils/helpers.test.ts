@@ -74,7 +74,7 @@ describe("randInt", () => {
 
 	test("respects min and max when negative", () => {
 		const n = randInt(-100, -10);
-		assert.ok(n > -100 && n < -10);
+		assert.ok(n >= -100 && n <= -10);
 	});
 });
 

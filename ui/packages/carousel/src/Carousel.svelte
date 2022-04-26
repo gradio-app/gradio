@@ -45,7 +45,7 @@
 	};
 </script>
 
-<div class="output-carousel flex flex-col">
+<div class="output-carousel flex flex-col relative">
 	<slot />
 
 	<div
