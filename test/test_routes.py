@@ -6,7 +6,7 @@ import unittest.mock as mock
 
 from fastapi.testclient import TestClient
 
-from gradio import Interface, queueing, reset_all
+from gradio import Interface, queueing, close_all
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -82,7 +82,7 @@ class TestRoutes(unittest.TestCase):
 
     def tearDown(self) -> None:
         self.io.close()
-        reset_all()
+        close_all()
 
 
 class TestAuthenticatedRoutes(unittest.TestCase):
@@ -105,7 +105,7 @@ class TestAuthenticatedRoutes(unittest.TestCase):
 
     def tearDown(self) -> None:
         self.io.close()
-        reset_all()
+        close_all()
 
 
 if __name__ == "__main__":
