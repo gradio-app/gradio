@@ -33,7 +33,7 @@ jobs:
           paths:
             - "venv"
       - node/install:
-          node-version: 16
+          node-version: "16"
       - run:
           name: Build frontend
           command: |
