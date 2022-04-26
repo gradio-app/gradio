@@ -11,7 +11,7 @@ print(long_description)
 
 setup(
     name="gradio",
-    version="2.9.0b8",
+    version="2.9.0b9",
     include_package_data=True,
     description="Python library for easily interacting with trained machine learning models",
     long_description=long_description,
