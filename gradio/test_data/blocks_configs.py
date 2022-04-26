@@ -17,6 +17,7 @@ XRAY_CONFIG = {
                 "choices": ["Covid", "Malaria", "Lung Cancer"],
                 "default_value": [],
                 "name": "checkboxgroup",
+                "show_label": True,
                 "label": "Disease to Scan For",
                 "css": {},
             },
@@ -25,7 +26,12 @@ XRAY_CONFIG = {
         {
             "id": 4,
             "type": "tabitem",
-            "props": {"label": "X-ray", "css": {}, "default_value": True},
+            "props": {
+                "show_label": True,
+                "label": "X-ray",
+                "css": {},
+                "default_value": True,
+            },
         },
         {
             "id": 5,
@@ -64,7 +70,12 @@ XRAY_CONFIG = {
         {
             "id": 9,
             "type": "tabitem",
-            "props": {"label": "CT Scan", "css": {}, "default_value": True},
+            "props": {
+                "show_label": True,
+                "label": "CT Scan",
+                "css": {},
+                "default_value": True,
+            },
         },
         {
             "id": 10,
@@ -187,6 +198,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "choices": ["Covid", "Malaria", "Lung Cancer"],
                 "default_value": [],
                 "name": "checkboxgroup",
+                "show_label": True,
                 "label": "Disease to Scan For",
                 "css": {},
             },
@@ -195,7 +207,12 @@ XRAY_CONFIG_DIFF_IDS = {
         {
             "id": 444,
             "type": "tabitem",
-            "props": {"label": "X-ray", "css": {}, "default_value": True},
+            "props": {
+                "show_label": True,
+                "label": "X-ray",
+                "css": {},
+                "default_value": True,
+            },
         },
         {
             "id": 5,
@@ -234,7 +251,12 @@ XRAY_CONFIG_DIFF_IDS = {
         {
             "id": 9,
             "type": "tabitem",
-            "props": {"label": "CT Scan", "css": {}, "default_value": True},
+            "props": {
+                "show_label": True,
+                "label": "CT Scan",
+                "css": {},
+                "default_value": True,
+            },
         },
         {
             "id": 10,
@@ -349,6 +371,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "choices": ["Covid", "Malaria", "Lung Cancer"],
                 "default_value": [],
                 "name": "checkboxgroup",
+                "show_label": True,
                 "label": "Disease to Scan For",
                 "css": {},
             },
@@ -357,7 +380,12 @@ XRAY_CONFIG_WITH_MISTAKE = {
         {
             "id": 4,
             "type": "tabitem",
-            "props": {"label": "X-ray", "css": {}, "default_value": True},
+            "props": {
+                "show_label": True,
+                "label": "X-ray",
+                "css": {},
+                "default_value": True,
+            },
         },
         {
             "id": 5,
@@ -396,7 +424,12 @@ XRAY_CONFIG_WITH_MISTAKE = {
         {
             "id": 9,
             "type": "tabitem",
-            "props": {"label": "CT Scan", "css": {}, "default_value": True},
+            "props": {
+                "show_label": True,
+                "label": "CT Scan",
+                "css": {},
+                "default_value": True,
+            },
         },
         {
             "id": 10,
