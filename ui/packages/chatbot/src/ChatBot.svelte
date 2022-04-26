@@ -27,13 +27,15 @@
 		{#each value as message}
 			<div
 				data-testid="bot"
-				class="px-3 py-2 rounded-[22px] rounded-br-none bg-orange-500 text-white ml-7 text-sm"
+				class="px-3 py-2 rounded-[22px] rounded-br-none text-white ml-7 text-sm"
+				style={"background-color:" + color_map[0]}
 			>
 				{message[0]}
 			</div>
 			<div
 				data-testid="user"
-				class="px-3 py-2 rounded-[22px] rounded-bl-none place-self-start bg-gray-200 mr-7 text-gray-800 text-sm"
+				class="px-3 py-2 rounded-[22px] rounded-bl-none place-self-start text-white ml-7 text-sm"
+				style={"background-color:" + color_map[1]}
 			>
 				{message[1]}
 			</div>
