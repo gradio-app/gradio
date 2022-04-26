@@ -89,6 +89,7 @@ class TestTextbox(unittest.TestCase):
                 "placeholder": None,
                 "default_value": "",
                 "name": "textbox",
+                "show_label": True, 
                 "label": None,
                 "css": {},
                 "interactive": None,
@@ -183,6 +184,7 @@ class TestNumber(unittest.TestCase):
             {
                 "default_value": None,
                 "name": "number",
+                "show_label": True, 
                 "label": None,
                 "css": {},
                 "interactive": None,

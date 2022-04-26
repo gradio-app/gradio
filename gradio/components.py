@@ -7,6 +7,7 @@ import numbers
 import operator
 import os
 import shutil
+import sys
 import tempfile
 import warnings
 from copy import deepcopy
@@ -2341,6 +2342,33 @@ class Timeseries(IOComponent):
         )
 
 
+class Variable(IOComponent):
+    """
+    Special hidden component that stores state across runs of the interface.
+
+    Input type: Any
+    Output type: Any
+    Demos: chatbot
+    """
+
+    def __init__(
+        self,
+        default_value: Any = None,
+        **kwargs,
+    ):
+        """
+        Parameters:
+        default_value (Any): the initial value of the state.
+        label (str): component name in interface (not used).
+        """
+        self.default_value = default_value
+        self.stateful = True
+        super().__init__(**kwargs)
+
+    def get_template_context(self):
+        return {"default_value": self.default_value, **super().get_template_context()}
+
+
 ############################
 # Only Output Components
 ############################
@@ -3250,33 +3278,6 @@ class Dataset(Component):
         )
 
 
-class Variable(Component):
-    """
-    Special hidden component that stores state across runs of the interface.
-
-    Input type: Any
-    Output type: Any
-    Demos: chatbot
-    """
-
-    def __init__(
-        self,
-        default_value: Any = None,
-        **kwargs,
-    ):
-        """
-        Parameters:
-        default_value (Any): the initial value of the state.
-        label (str): component name in interface (not used).
-        """
-        self.default_value = default_value
-        self.stateful = True
-        super().__init__(**kwargs)
-
-    def get_template_context(self):
-        return {"default_value": self.default_value, **super().get_template_context()}
-
-
 class Interpretation(Component):
     """
     Used to create an interpretation widget for a component.
@@ -3300,36 +3301,30 @@ class Interpretation(Component):
         }
 
 
-def component(str_shortcut: str) -> Optional[Component]:
+def component(cls_name: str) -> Component:
     """
-    Creates a component, where class name equals to str_shortcut.
+    Returns a component or template with the given class name, or raises a ValueError if not found.
 
-    @param str_shortcut: string shortcut of a component
-    @return component: the component object
+    @param cls_name: lower-case string class name of a component
+    @return component: the component class
     """
-    component = Component.get_component_shortcut(str_shortcut)
-    if component is None:
-        raise ValueError(f"No such component: {str_shortcut}")
-    else:
-        return component
-
+    import gradio.templates
+    components = [(name, cls) for name, cls in sys.modules[__name__].__dict__.items() if isinstance(cls, type)]
+    templates = [(name, cls) for name, cls in gradio.templates.__dict__.items() if isinstance(cls, type)]
+    for name, cls in components + templates:
+        if name.lower() == cls_name.replace("_", "") and issubclass(cls, Component):
+            return cls
+    raise ValueError(f"No such Component: {cls_name}")
 
 def get_component_instance(comp: str | dict | Component):
     if isinstance(comp, str):
-        for component in get_all_subclasses(Component):
-            if component.__name__.lower() == comp:
-                return component()
-        raise ValueError(f"No such Component: {comp}")
+        return component(comp)()
     elif isinstance(
         comp, dict
     ):  # a dict with `name` as the input component type and other keys as parameters
         name = comp.pop("name")
-        for component in get_all_subclasses(Component):
-            if component.__name__.lower() == name:
-                break
-        else:
-            raise ValueError(f"No such Component: {name}")
-        return component(**comp, without_rendering=True)
+        component_cls = component(name)
+        return component_cls(**comp, without_rendering=True)
     elif isinstance(comp, Component):
         return comp
     else:
