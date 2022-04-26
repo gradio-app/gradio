@@ -2,6 +2,8 @@
 
 related_spaces: https://huggingface.co/spaces/onnx/EfficientNet-Lite4
 tags: ONNX, SPACES
+Contributed by Gradio and ONNX team
+
 
 ## Introduction
 
