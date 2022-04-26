@@ -1,3 +1,4 @@
+import os
 import json
 
 import numpy as np
@@ -40,9 +41,9 @@ def fn(
         },  # Label
         (audio1[0], np.flipud(audio1[1]))
         if audio1 is not None
-        else "files/cantina.wav",  # Audio
-        np.flipud(im1) if im1 is not None else "files/cheetah1.jpg",  # Image
-        video if video is not None else "files/world.mp4",  # Video
+        else os.path.join(os.path.dirname(__file__),"files/cantina.wav"),  # Audio
+        np.flipud(im1) if im1 is not None else os.path.join(os.path.dirname(__file__),"files/cheetah1.jpg"),  # Image
+        video if video is not None else os.path.join(os.path.dirname(__file__),"files/world.mp4"),  # Video
         [
             ("The", "art"),
             ("quick brown", "adj"),
@@ -72,11 +73,11 @@ def fn(
         "<button style='background-color: red'>Click Me: "
         + radio
         + "</button>",  # HTML
-        "files/titanic.csv",
+        os.path.join(os.path.dirname(__file__),"files/titanic.csv"),
         df1,  # Dataframe
         np.random.randint(0, 10, (4, 4)),  # Dataframe
         [
-            im for im in [im1, im2, im3, im4, "files/cheetah1.jpg"] if im is not None
+            im for im in [im1, im2, im3, im4, os.path.join(os.path.dirname(__file__),"files/cheetah1.jpg")] if im is not None
         ],  # Carousel
         df2,  # Timeseries
     )
@@ -136,16 +137,16 @@ demo = gr.Interface(
             ["foo", "baz"],
             "baz",
             "bar",
-            "files/cheetah1.jpg",
-            "files/cheetah1.jpg",
-            "files/cheetah1.jpg",
-            "files/cheetah1.jpg",
-            "files/world.mp4",
-            "files/cantina.wav",
-            "files/cantina.wav",
-            "files/titanic.csv",
+            os.path.join(os.path.dirname(__file__),"files/cheetah1.jpg"),
+            os.path.join(os.path.dirname(__file__),"files/cheetah1.jpg"),
+            os.path.join(os.path.dirname(__file__),"files/cheetah1.jpg"),
+            os.path.join(os.path.dirname(__file__),"files/cheetah1.jpg"),
+            os.path.join(os.path.dirname(__file__),"files/world.mp4"),
+            os.path.join(os.path.dirname(__file__),"files/cantina.wav"),
+            os.path.join(os.path.dirname(__file__),"files/cantina.wav"),
+            os.path.join(os.path.dirname(__file__),"files/titanic.csv"),
             [[1, 2, 3], [3, 4, 5]],
-            "files/time.csv",
+            os.path.join(os.path.dirname(__file__),"files/time.csv"),
         ]
     ]
     * 3,
