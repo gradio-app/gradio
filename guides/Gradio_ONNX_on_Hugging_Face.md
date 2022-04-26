@@ -64,7 +64,7 @@ import json
 import gradio as gr
 from huggingface_hub import hf_hub_download
 from onnx import hub
-import onnxruntime as rt
+import onnxruntime as ort
 
 # lodas ONNX model from ONNX Model Zoo
 model = hub.load("efficientnet-lite4")
@@ -107,7 +107,7 @@ def center_crop(img, out_height, out_width):
     return img
 
 
-sess = rt.InferenceSession(model)
+sess = ort.InferenceSession(model)
 
 def inference(img):
   img = cv2.imread(img)
