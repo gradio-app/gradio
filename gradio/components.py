@@ -3314,12 +3314,12 @@ class Interpretation(Component):
         }
 
 
-def component(cls_name: str) -> Component:
+def component(cls_name: str):
     """
     Returns a component or template with the given class name, or raises a ValueError if not found.
 
     @param cls_name: lower-case string class name of a component
-    @return component: the component class
+    @return cls: the component class
     """
     import gradio.templates
     components = [(name, cls) for name, cls in sys.modules[__name__].__dict__.items() if isinstance(cls, type)]
