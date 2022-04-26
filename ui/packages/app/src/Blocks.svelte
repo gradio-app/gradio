@@ -206,7 +206,7 @@
 	}
 </script>
 
-<div class="mx-auto container space-y-4 px-4 py-6">
+<div class="mx-auto container space-y-4 px-4 py-6 dark:bg-gray-950">
 	{#if tree}
 		{#each tree as { component, id, props, children, has_modes }}
 			<Render
@@ -230,7 +230,7 @@
 	class="gradio-page container mx-auto flex flex-col box-border flex-grow text-gray-700 dark:text-gray-50"
 >
 	<div
-		class="footer flex-shrink-0 inline-flex gap-2.5 items-center text-gray-600 justify-center py-2"
+		class="footer flex-shrink-0 inline-flex gap-2.5 items-center text-gray-600 dark:text-gray-300 justify-center py-2"
 	>
 		<a href="https://gradio.app" target="_blank" rel="noreferrer">
 			{$_("interface.built_with_Gradio")}
