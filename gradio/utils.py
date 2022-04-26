@@ -370,17 +370,3 @@ def delete_none(_dict):
         _dict = type(_dict)(delete_none(item) for item in _dict if item is not None)
 
     return _dict
-
-
-def get_all_subclasses(cls):
-    """
-    Get all subclasses recursively of a class
-    Credit: https://stackoverflow.com/a/17246726/5209347
-    """
-    all_subclasses = []
-
-    for subclass in cls.__subclasses__():
-        all_subclasses.append(subclass)
-        all_subclasses.extend(get_all_subclasses(subclass))
-
-    return all_subclasses
