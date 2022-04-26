@@ -6,7 +6,7 @@ import unittest.mock as mock
 
 from fastapi.testclient import TestClient
 
-from gradio import Interface, queueing, close_all
+from gradio import Interface, close_all, queueing
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
