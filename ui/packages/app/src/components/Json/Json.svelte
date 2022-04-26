@@ -17,7 +17,7 @@
 	if (default_value) value = default_value;
 </script>
 
-<Block>
+<Block test_id="json">
 	<StatusTracker tracked_status={loading_status} />
 
 	<JSON {style} {value} />

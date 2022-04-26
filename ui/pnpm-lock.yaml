@@ -32,7 +32,7 @@ importers:
       tailwindcss: ^3.0.23
       tinyspy: ^0.3.0
       vite: ^2.9.5
-      vitest: ^0.3.2
+      vitest: ^0.10.0
     dependencies:
       '@gradio/tootils': link:packages/tootils
       '@playwright/test': 1.20.0
@@ -61,7 +61,7 @@ importers:
       tailwindcss: 3.0.23_autoprefixer@10.4.4
       tinyspy: 0.3.0
       vite: 2.9.5
-      vitest: 0.3.6_happy-dom@2.49.0
+      vitest: 0.10.0_happy-dom@2.49.0
     devDependencies:
       '@types/three': 0.138.0
 
@@ -1137,11 +1137,11 @@ packages:
   /@types/chai-subset/1.3.3:
     resolution: {integrity: sha512-frBecisrNGz+F4T6bcc+NLeolfiojh5FxW2klu669+8BARtyQv2C/GkNW6FUodVe4BroGMP/wER/YDGc7rEllw==}
     dependencies:
-      '@types/chai': 4.3.0
+      '@types/chai': 4.3.1
     dev: false
 
-  /@types/chai/4.3.0:
-    resolution: {integrity: sha512-/ceqdqeRraGolFTcfoXNiqjyQhZzbINDngeoAq9GoHa8PPK1yNzTaxWjA6BFWp5Ua9JpXEMSS4s5i9tS0hOJtw==}
+  /@types/chai/4.3.1:
+    resolution: {integrity: sha512-/zPMqDkzSZ8t3VtxOa4KPq7uzzW978M9Tvh+j7GHKuo6k6GTLxPJ4J5gE5cjfJ26pnXst0N5Hax8Sr0T2Mi9zQ==}
     dev: false
 
   /@types/concat-stream/1.6.1:
@@ -4492,13 +4492,13 @@ packages:
     engines: {node: '>=14.0.0'}
     dev: false
 
-  /tinyspy/0.2.10:
-    resolution: {integrity: sha512-Qij6rGWCDjWIejxCXXVi6bNgvrYBp3PbqC4cBP/0fD6WHDOHCw09Zd13CsxrDqSR5PFq01WeqDws8t5lz5sH0A==}
+  /tinyspy/0.3.0:
+    resolution: {integrity: sha512-c5uFHqtUp74R2DJE3/Efg0mH5xicmgziaQXMm/LvuuZn3RdpADH32aEGDRyCzObXT1DNfwDMqRQ/Drh1MlO12g==}
     engines: {node: '>=14.0.0'}
     dev: false
 
-  /tinyspy/0.3.0:
-    resolution: {integrity: sha512-c5uFHqtUp74R2DJE3/Efg0mH5xicmgziaQXMm/LvuuZn3RdpADH32aEGDRyCzObXT1DNfwDMqRQ/Drh1MlO12g==}
+  /tinyspy/0.3.2:
+    resolution: {integrity: sha512-2+40EP4D3sFYy42UkgkFFB+kiX2Tg3URG/lVvAZFfLxgGpnWl5qQJuBw1gaLttq8UOS+2p3C0WrhJnQigLTT2Q==}
     engines: {node: '>=14.0.0'}
     dev: false
 
@@ -4679,9 +4679,9 @@ packages:
     optionalDependencies:
       fsevents: 2.3.2
 
-  /vitest/0.3.6_happy-dom@2.49.0:
-    resolution: {integrity: sha512-EzlAmGHDh/sQhzKeqDtEae6nlFM5pJKJefj5P2eUUmg6DcXL2Xj365M7eN29P2tMofzs+qZD/LW+d2wopfNl0g==}
-    engines: {node: '>=14.14.0'}
+  /vitest/0.10.0_happy-dom@2.49.0:
+    resolution: {integrity: sha512-8UXemUg9CA4QYppDTsDV76nH0e1p6C8lV9q+o9i0qMSK9AQ7vA2sjoxtkDP0M+pwNmc3ZGYetBXgSJx0M1D/gg==}
+    engines: {node: '>=v14.16.0'}
     hasBin: true
     peerDependencies:
       '@vitest/ui': '*'
@@ -4698,13 +4698,13 @@ packages:
       jsdom:
         optional: true
     dependencies:
-      '@types/chai': 4.3.0
+      '@types/chai': 4.3.1
       '@types/chai-subset': 1.3.3
       chai: 4.3.6
       happy-dom: 2.49.0
       local-pkg: 0.4.1
       tinypool: 0.1.2
-      tinyspy: 0.2.10
+      tinyspy: 0.3.2
       vite: 2.9.5
     transitivePeerDependencies:
       - less

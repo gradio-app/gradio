@@ -3,7 +3,7 @@
 	import { _ } from "svelte-i18n";
 
 	export let value: string;
-	export let default_value: string;
+	export let default_value: string | undefined = undefined;
 	export let style: string = "";
 	export let variant: "primary" | "secondary" = "primary";
 

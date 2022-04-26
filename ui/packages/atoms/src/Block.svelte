@@ -5,6 +5,7 @@
 	export let form_position: "first" | "last" | "mid" | "single" | undefined =
 		undefined;
 	export let type: "normal" | "fieldset" = "normal";
+	export let test_id: string | undefined = undefined;
 
 	const styles = {
 		dashed: "border-dashed border-[3px]",
@@ -18,6 +19,7 @@
 
 <svelte:element
 	this={tag}
+	data-testid={test_id}
 	class="gr-box overflow-hidden {styles[variant]} {styles[color]}"
 	class:gr-panel={padding}
 	class:form={form_position}
