@@ -43,6 +43,7 @@ from gradio.flagging import (
 from gradio.interface import Interface, TabbedInterface, close_all, reset_all
 from gradio.mix import Parallel, Series
 from gradio.routes import get_state, set_state
+import gradio.templates
 
 current_pkg_version = pkg_resources.require("gradio")[0].version
 __version__ = current_pkg_version
