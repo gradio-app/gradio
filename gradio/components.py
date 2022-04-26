@@ -81,15 +81,11 @@ class Component(Block):
         Restores flagged data from logs
         """
         return data
-    
-    def save_file(
-        self,
-        file: tempfile._TemporaryFileWrapper,
-        dir: str,
-        label: str):
+
+    def save_file(self, file: tempfile._TemporaryFileWrapper, dir: str, label: str):
         """
         Saved flagged file and returns filepath
-        """        
+        """
         label = "".join([char for char in label if char.isalnum() or char in "._- "])
         old_file_name = file.name
         output_dir = os.path.join(dir, label)
@@ -105,7 +101,6 @@ class Component(Block):
         file.close()
         shutil.move(old_file_name, os.path.join(dir, label, new_file_name))
         return label + "/" + new_file_name
-        
 
     def save_flagged_file(
         self,
@@ -1831,10 +1826,8 @@ class Audio(Component):
             if is_example:
                 file_obj = processing_utils.create_tmp_copy_of_file(data["name"])
                 return self.save_file(file_obj, dir, label)
-            
-        return self.save_flagged_file(
-            dir, label, data_string, encryption_key
-        )
+
+        return self.save_flagged_file(dir, label, data_string, encryption_key)
 
     def generate_sample(self):
         return deepcopy(media_data.BASE64_AUDIO)

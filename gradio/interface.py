@@ -549,10 +549,12 @@ class Interface(Blocks):
                         if self.allow_flagging == "manual":
                             flag_btn = Button("Flag")
                             flag_btn._click_no_preprocess(
-                                lambda *flag_data: self.flagging_callback.flag(flag_data),
+                                lambda *flag_data: self.flagging_callback.flag(
+                                    flag_data
+                                ),
                                 inputs=self.input_components + self.output_components,
                                 outputs=[],
-                            )                            
+                            )
                         if self.interpretation:
                             interpretation_btn = Button("Interpret")
             submit_fn = (
