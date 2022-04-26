@@ -183,7 +183,7 @@ class TestHighlightedText(unittest.TestCase):
             {
                 "color_map": {"pos": "green", "neg": "red"},
                 "name": "highlightedtext",
-                "show_label": True, 
+                "show_label": True,
                 "label": None,
                 "show_legend": False,
                 "css": {},
@@ -238,7 +238,7 @@ class TestAudio(unittest.TestCase):
             audio_output.get_template_context(),
             {
                 "name": "audio",
-                "show_label": True, 
+                "show_label": True,
                 "label": None,
                 "source": "upload",
                 "css": {},
@@ -364,7 +364,7 @@ class TestDataframe(unittest.TestCase):
                 "max_cols": None,
                 "overflow_row_behaviour": "paginate",
                 "name": "dataframe",
-                "show_label": True, 
+                "show_label": True,
                 "label": None,
                 "css": {},
                 "datatype": "str",
@@ -439,7 +439,7 @@ class TestCarousel(unittest.TestCase):
                 "components": [
                     {
                         "name": "textbox",
-                        "show_label": True, 
+                        "show_label": True,
                         "label": None,
                         "default_value": "",
                         "lines": 1,
@@ -450,7 +450,7 @@ class TestCarousel(unittest.TestCase):
                     }
                 ],
                 "name": "carousel",
-                "show_label": True, 
+                "show_label": True,
                 "label": "Disease",
                 "css": {},
                 "interactive": None,
@@ -508,7 +508,7 @@ class TestTimeseries(unittest.TestCase):
                 "x": None,
                 "y": None,
                 "name": "timeseries",
-                "show_label": True, 
+                "show_label": True,
                 "label": "Disease",
                 "css": {},
                 "default_value": None,
