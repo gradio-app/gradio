@@ -1,9 +1,13 @@
 <script lang="ts">
 	import type { FileData } from "@gradio/upload";
+	import { BlockLabel } from "@gradio/atoms";
+	import file_icon from "./file.svg";
 
 	export let value: FileData;
-	export let theme: string;
-	export let clearColor: Array;
+	export let style: string;
+	export let clearColor: Array<number>;
+	export let label: string = "";
+	export let show_label: boolean;
 
 	import { onMount, afterUpdate } from "svelte";
 	import * as BABYLON from "babylonjs";
@@ -63,5 +67,7 @@
 		);
 	}
 </script>
+
+<BlockLabel {show_label} image={file_icon} label={label || "3D Model"} />
 
 <canvas class="w-full h-full object-contain" bind:this={canvas} />
