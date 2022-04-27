@@ -10,12 +10,12 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
 from gradio import encryptor, networking, queueing, strings, utils
 from gradio.context import Context
-from gradio.routes import PredictBody
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from fastapi.applications import FastAPI
 
     from gradio.components import Component, StatusTracker
+    from gradio.routes import PredictBody
 
 
 class Block:
@@ -240,7 +240,7 @@ class Blocks(BlockContext):
 
     def process_api(
         self,
-        data: Dict[str, Any],
+        data: PredictBody,
         username: str = None,
         state: Optional[Dict[int, any]] = None,
     ) -> Dict[str, Any]:
@@ -252,8 +252,8 @@ class Blocks(BlockContext):
             state: data stored from stateful components for session
         Returns: None
         """
-        raw_input = data["data"]
-        fn_index = data["fn_index"]
+        raw_input = data.data
+        fn_index = data.fn_index
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
 

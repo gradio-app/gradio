@@ -38,7 +38,7 @@ class TestRoutes(unittest.TestCase):
 
     def test_predict_route(self):
         response = self.client.post(
-            "/api/predict/", json={"data": ["test"], "fn_index": 0}
+            "/api/predict/", json={"data": ["test"], "fn_index": 1}
         )
         self.assertEqual(response.status_code, 200)
         output = dict(response.json())
@@ -56,14 +56,14 @@ class TestRoutes(unittest.TestCase):
         client = TestClient(app)
         response = client.post(
             "/api/predict/",
-            json={"data": ["test", None], "fn_index": 0, "session_hash": "_"},
+            json={"data": ["test", None], "fn_index": 1, "session_hash": "_"},
         )
         output = dict(response.json())
         print("output", output)
         self.assertEqual(output["data"], ["test", None])
         response = client.post(
             "/api/predict/",
-            json={"data": ["test", None], "fn_index": 0, "session_hash": "_"},
+            json={"data": ["test", None], "fn_index": 1, "session_hash": "_"},
         )
         output = dict(response.json())
         self.assertEqual(output["data"], ["testtest", None])
