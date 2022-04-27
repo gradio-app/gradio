@@ -23,7 +23,6 @@
 	$: _value = normalise_file(value, root);
 
 	let dragging = false;
-
 </script>
 
 <Block
