@@ -3352,3 +3352,9 @@ def get_component_instance(comp: str | dict | Component):
         name = comp.pop("name")
         component_cls = component(name)
         return component_cls(**comp, without_rendering=True)
+    elif isinstance(comp, Component):
+        return comp
+    else:
+        raise ValueError(
+            f"Component must provided as a `str` or `dict` or `Component` but is {comp}"
+        )
