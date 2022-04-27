@@ -623,10 +623,9 @@ class Interface(Blocks):
                     + [input_component_column, interpret_component_column],
                     status_tracker=status_tracker,
                 )
-                
+
             if self.article:
                 Markdown(self.article)
-                
 
     def __call__(self, *params):
         if (
