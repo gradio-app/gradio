@@ -643,7 +643,7 @@ class Interface(Blocks):
                 )
             clear_btn.click(
                 (
-                    lambda: [
+                    lambda: utils.resolve_singleton([
                         component.default_value
                         if hasattr(component, "default_value")
                         else None
@@ -660,7 +660,7 @@ class Interface(Blocks):
                         else []
                     )
                     + ([False] if self.interpretation else [])
-                ),
+                )),
                 [],
                 (
                     self.input_components
