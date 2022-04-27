@@ -20,11 +20,11 @@
 	});
 
 	$: value && dispatch("change");
-	console.log("color_map ", color_map)
+	console.log("color_map ", color_map);
 	if (!color_map) {
 		color_map = ["rgb(251 146 60)", "rgb(156 163 175)"];
 	}
-	console.log("color_map ", color_map)
+	console.log("color_map ", color_map);
 </script>
 
 <div class="overflow-y-auto h-[40vh]" bind:this={div}>
