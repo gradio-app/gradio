@@ -194,8 +194,8 @@ class Interface(Blocks):
             inputs[inputs.index("state")] = state_variable
             outputs[outputs.index("state")] = state_variable
 
-        self.input_components = [get_component_instance(i) for i in inputs]
-        self.output_components = [get_component_instance(o) for o in outputs]
+        self.input_components = [get_component_instance(i).unrender() for i in inputs]
+        self.output_components = [get_component_instance(o).unrender() for o in outputs]
         for o in self.output_components:
             o.interactive = (
                 False  # Force output components to be treated as non-interactive
