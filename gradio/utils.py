@@ -356,7 +356,7 @@ def format_ner_list(input_string: str, ner_groups: Dict[str : str | int]):
 def delete_none(_dict):
     """
     Delete None values recursively from all of the dictionaries, tuples, lists, sets.
-    Credit: https://stackoverflow.com/questions/33797126/proper-way-to-remove-keys-in-dictionary-with-none-values-in-python
+    Credit: https://stackoverflow.com/a/66127889/5209347
     """
     if isinstance(_dict, dict):
         for key, value in list(_dict.items()):
