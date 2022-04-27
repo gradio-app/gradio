@@ -12,6 +12,7 @@
 	export let or_text: string = "or";
 	export let upload_text: string = "click to upload";
 	export let label: string = "";
+	export let show_label: boolean;
 	export let style: string;
 
 	afterUpdate(() => {
@@ -62,6 +63,8 @@
 			engine.resize();
 		});
 
+		if (!value) return;
+
 		let url: string;
 		if (value.is_example) {
 			url = value.data;
@@ -88,7 +91,7 @@
 	$: dispatch("drag", dragging);
 </script>
 
-<BlockLabel image={file_icon} label={label || "3D Model"} />
+<BlockLabel {show_label} image={file_icon} label={label || "3D Model"} />
 
 {#if value === null}
 	<Upload on:load={handle_upload} filetype=".obj, .gltf, .glb" bind:dragging>
