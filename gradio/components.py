@@ -115,20 +115,10 @@ class IOComponent(Component):
         """
         return data
 
-    def save_flagged_file(
-        self,
-        dir: str,
-        label: str,
-        data: Any,
-        encryption_key: bool,
-        file_path: Optional[str] = None,
-    ) -> Optional[str]:
+    def save_file(self, file: tempfile._TemporaryFileWrapper, dir: str, label: str):
         """
-        Saved flagged data (e.g. image or audio) as a file and returns filepath
+        Saved flagged file and returns filepath
         """
-        if data is None:
-            return None
-        file = processing_utils.decode_base64_to_file(data, encryption_key, file_path)
         label = "".join([char for char in label if char.isalnum() or char in "._- "])
         old_file_name = file.name
         output_dir = os.path.join(dir, label)
@@ -144,6 +134,22 @@ class IOComponent(Component):
         file.close()
         shutil.move(old_file_name, os.path.join(dir, label, new_file_name))
         return label + "/" + new_file_name
+
+    def save_flagged_file(
+        self,
+        dir: str,
+        label: str,
+        data: Any,
+        encryption_key: bool,
+        file_path: Optional[str] = None,
+    ) -> Optional[str]:
+        """
+        Saved flagged data (e.g. image or audio) as a file and returns filepath
+        """
+        if data is None:
+            return None
+        file = processing_utils.decode_base64_to_file(data, encryption_key, file_path)
+        return self.save_file(file, dir, label)
 
     def restore_flagged_file(
         self,
@@ -1809,9 +1815,18 @@ class Audio(IOComponent):
         """
         Returns: (str) path to audio file
         """
-        return self.save_flagged_file(
-            dir, label, None if data is None else data["data"], encryption_key
-        )
+        if data is None:
+            data_string = None
+        elif isinstance(data, str):
+            data_string = data
+        else:
+            data_string = data["data"]
+            is_example = data.get("is_example", False)
+            if is_example:
+                file_obj = processing_utils.create_tmp_copy_of_file(data["name"])
+                return self.save_file(file_obj, dir, label)
+
+        return self.save_flagged_file(dir, label, data_string, encryption_key)
 
     def generate_sample(self):
         return deepcopy(media_data.BASE64_AUDIO)
@@ -3149,7 +3164,6 @@ class Button(Component):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
-        queue=False,
         status_tracker: Optional[StatusTracker] = None,
     ):
         """
@@ -3165,7 +3179,6 @@ class Button(Component):
             fn,
             inputs,
             outputs,
-            queue=queue,
             status_tracker=status_tracker,
         )
 
@@ -3328,12 +3341,22 @@ def component(cls_name: str):
 
 def get_component_instance(comp: str | dict | Component):
     if isinstance(comp, str):
+<<<<<<< HEAD
         component_cls = component(comp)
         return component_cls()
     elif isinstance(comp, dict):
         name = comp.pop("name")
         component_cls = component(name)
         return component_cls(**comp)
+=======
+        return component(comp)()
+    elif isinstance(
+        comp, dict
+    ):  # a dict with `name` as the input component type and other keys as parameters
+        name = comp.pop("name")
+        component_cls = component(name)
+        return component_cls(**comp, without_rendering=True)
+>>>>>>> main
     elif isinstance(comp, Component):
         return comp
     else:
