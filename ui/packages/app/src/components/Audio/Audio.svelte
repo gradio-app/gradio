@@ -26,7 +26,6 @@
 	$: _value = normalise_file(value, root);
 
 	let dragging: boolean;
-
 </script>
 
 <Block

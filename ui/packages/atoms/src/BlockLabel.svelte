@@ -19,7 +19,6 @@
 	// if (!label && label !== "" && filetype) {
 	// 	label = type_labels[filetype as keyof typeof type_labels].text;
 	// }
-
 </script>
 
 <div
