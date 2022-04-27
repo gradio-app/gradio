@@ -118,8 +118,9 @@ class Block:
 
 
 class BlockContext(Block):
-    def __init__(self, visible: bool = True, css: Optional[Dict[str, str]] = None,
-                 render=True):
+    def __init__(
+        self, visible: bool = True, css: Optional[Dict[str, str]] = None, render=True
+    ):
         """
         css: Css rules to apply to block.
         """
@@ -263,7 +264,7 @@ class Blocks(BlockContext):
             Context.root_block.dependencies.extend(self.dependencies)
         if Context.block is not None:
             Context.block.children.extend(self.children)
- 
+
     def process_api(
         self,
         data: Dict[str, Any],
