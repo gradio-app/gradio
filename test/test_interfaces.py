@@ -164,13 +164,14 @@ class TestInterface(unittest.TestCase):
         interface.close()
 
     def test_integration_wandb(self):
-        assert True
-        """
         with captured_output() as (out, err):
             wandb.log = mock.MagicMock()
             wandb.Html = mock.MagicMock()
             interface = Interface(lambda x: x, "textbox", "label")
+            interface.width = 500
+            interface.height = 500
             interface.integrate(wandb=wandb)
+
             self.assertEqual(
                 out.getvalue().strip(),
                 "The WandB integration requires you to `launch(share=True)` first.",
@@ -178,7 +179,6 @@ class TestInterface(unittest.TestCase):
             interface.share_url = "tmp"
             interface.integrate(wandb=wandb)
             wandb.log.assert_called_once()
-        """
 
     @mock.patch("requests.post")
     def test_integration_analytics(self, mock_post):
