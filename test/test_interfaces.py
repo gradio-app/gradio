@@ -194,9 +194,9 @@ class TestTabbedInterface(unittest.TestCase):
         with Blocks() as demo:
             with Tabs():
                 with TabItem(label="tab1"):
-                    interface1.render_basic_interface()
+                    interface1.render()
                 with TabItem(label="tab2"):
-                    interface2.render_basic_interface()
+                    interface2.render()
 
         interface3 = Interface(lambda x: x, "textbox", "textbox")
         interface4 = Interface(lambda x: x, "image", "image")
