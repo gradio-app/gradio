@@ -16,6 +16,7 @@
 	export let label: string;
 	export let style: string = "";
 	export let name: string;
+	export let show_label: boolean;
 
 	const dispatch = createEventDispatcher<{
 		change: AudioData;
@@ -31,7 +32,7 @@
 		});
 </script>
 
-<BlockLabel image={audio_icon} label={label || "Audio"} />
+<BlockLabel {show_label} image={audio_icon} label={label || "Audio"} />
 {#if value === null}
 	<div class="min-h-[8rem] flex justify-center items-center">
 		<img src={audio_icon} alt="" class="h-6 opacity-20" />

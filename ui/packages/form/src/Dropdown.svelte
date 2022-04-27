@@ -7,6 +7,7 @@
 	export let choices: Array<string>;
 	export let style: string = "";
 	export let disabled: boolean = false;
+	export let show_label: boolean;
 
 	const dispatch = createEventDispatcher<{ change: string }>();
 
@@ -14,7 +15,7 @@
 </script>
 
 <label>
-	<BlockTitle>{label}</BlockTitle>
+	<BlockTitle {show_label}>{label}</BlockTitle>
 	<select
 		class="gr-box gr-input w-full disabled:cursor-not-allowed"
 		bind:value

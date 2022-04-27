@@ -14,6 +14,7 @@
 	export let step: number;
 	export let mode: "static" | "dynamic";
 	export let form_position: "first" | "last" | "mid" | "single" = "single";
+	export let show_label: boolean;
 
 	export let loading_status: "complete" | "pending" | "error";
 
@@ -26,6 +27,7 @@
 	<Range
 		bind:value
 		{label}
+		{show_label}
 		{style}
 		{minimum}
 		{maximum}
