@@ -179,6 +179,7 @@ class TestInterface(unittest.TestCase):
             interface.integrate(wandb=wandb)
             wandb.log.assert_called_once()
         """
+
     @mock.patch("requests.post")
     def test_integration_analytics(self, mock_post):
         mlflow.log_param = mock.MagicMock()
