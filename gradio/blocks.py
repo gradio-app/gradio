@@ -436,9 +436,8 @@ class Blocks(BlockContext):
         self.width = width
         self.favicon_path = favicon_path
 
-        if hasattr(self, "encrypt") and self.encrypt is None:
-            self.encrypt = encrypt
-        if hasattr(self, "encrypt") and self.encrypt:
+        self.encrypt = encrypt
+        if self.encrypt:
             self.encryption_key = encryptor.get_key(
                 getpass.getpass("Enter key for encryption: ")
             )
