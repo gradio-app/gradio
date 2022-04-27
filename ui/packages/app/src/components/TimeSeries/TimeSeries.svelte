@@ -4,6 +4,8 @@
 	import type { FileData } from "@gradio/upload";
 	import { Block, BlockLabel } from "@gradio/atoms";
 	import { Chart } from "@gradio/chart";
+
+	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import { _ } from "svelte-i18n";
 
 	import chart_icon from "./chart.svg";
@@ -32,6 +34,9 @@
 	export let x: string;
 	export let mode: "static" | "dynamic";
 	export let label: string;
+	export let show_label: boolean;
+
+	export let loading_status: "complete" | "pending" | "error";
 
 	let _value: string | null;
 
@@ -109,8 +114,13 @@
 	if (default_value) value = default_value;
 </script>
 
-<Block variant={"solid"} color={"grey"} padding={false}>
-	<BlockLabel image={chart_icon} label={label || "TimeSeries"} />
+<Block
+	variant={mode === "dynamic" ? "dashed" : "solid"}
+	color={"grey"}
+	padding={false}
+>
+	<BlockLabel {show_label} image={chart_icon} label={label || "TimeSeries"} />
+	<StatusTracker tracked_status={loading_status} />
 
 	{#if mode === "static"}
 		{#if static_data}
@@ -127,16 +137,18 @@
 			{x}
 			on:process={({ detail: { x, y } }) => (value = make_dict(x, y))}
 		/>
-	{:else if value === null}
-		<Upload
-			filetype="text/csv"
-			on:load={({ detail }) => handle_load(detail)}
-			include_file_metadata={false}
-			{style}
-		>
-			{$_("interface.drop_csv")}
-			<br />- {$_("or")} -<br />
-			{$_("interface.click_to_upload")}
-		</Upload>
+	{:else if value === undefined}
+		<div class="min-h-[8rem]">
+			<Upload
+				filetype="text/csv"
+				on:load={({ detail }) => handle_load(detail)}
+				include_file_metadata={false}
+				{style}
+			>
+				{$_("interface.drop_csv")}
+				<br />- {$_("or")} -<br />
+				{$_("interface.click_to_upload")}
+			</Upload>
+		</div>
 	{/if}
 </Block>

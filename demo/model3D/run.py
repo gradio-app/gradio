@@ -12,7 +12,7 @@ iface = gr.Interface(
     fn=load_mesh, 
     inputs=inputs, 
     outputs=outputs,
-    examples=[["files/Bunny.obj"], ["files/Duck.glb"], ["files/Fox.gltf"]], cache_examples=True
+    examples=[["files/Bunny.obj"], ["files/Duck.glb"], ["files/Fox.gltf"],["files/face.obj"]], cache_examples=True
 )
 
 if __name__ == "__main__":

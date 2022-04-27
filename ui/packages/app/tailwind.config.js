@@ -9,7 +9,11 @@ module.exports = {
 	darkMode: "class",
 
 	theme: {
-		extend: {},
+		extend: {
+			colors: {
+				"gray-950": "#0B0F19"
+			}
+		},
 		fontFamily: {
 			mono: ["monospace"],
 			sans: ["IBM Plex Sans", "system-ui"]

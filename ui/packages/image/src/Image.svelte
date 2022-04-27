@@ -15,6 +15,7 @@
 	export let value: null | string;
 	export let label: string | undefined = undefined;
 	export let style: string = "";
+	export let show_label: boolean;
 
 	export let source: "canvas" | "webcam" | "upload" = "upload";
 	export let tool: "editor" | "select" = "editor";
@@ -45,69 +46,67 @@
 		change: string | null;
 		edit: undefined;
 		clear: undefined;
+		drag: boolean;
 	}>();
 
 	$: dispatch("change", value);
 
 	let dragging = false;
+
+	$: dispatch("drag", dragging);
 </script>
 
-<Block
-	variant={value === null && source === "upload" ? "dashed" : "solid"}
-	color={dragging ? "green" : "grey"}
-	padding={false}
->
-	<BlockLabel
-		image={source === "canvas" ? sketch_icon : image_icon}
-		label={label || (source === "canvas" ? "Sketch" : "Image")}
-	/>
+<BlockLabel
+	{show_label}
+	image={source === "canvas" ? sketch_icon : image_icon}
+	label={label || (source === "canvas" ? "Sketch" : "Image")}
+/>
 
-	<div class:bg-gray-200={value} class:h-60={source !== "webcam"}>
-		{#if source === "canvas"}
-			<ModifySketch
-				on:undo={() => sketch.undo()}
-				on:clear={() => sketch.clear()}
-			/>
-			<Sketch {value} bind:this={sketch} on:change={handle_save} />
-		{:else if value === null}
-			{#if source === "upload"}
-				<Upload
-					bind:dragging
-					filetype="image/x-png,image/gif,image/jpeg"
-					on:load={handle_upload}
-					include_file_metadata={false}
-				>
-					<div class="flex flex-col">
-						{drop_text}
-						<span class="text-gray-300">- {or_text} -</span>
-						{upload_text}
-					</div>
-				</Upload>
-			{:else if source === "webcam"}
-				<Webcam on:capture={handle_save} />
-			{/if}
-		{:else if tool === "select"}
-			<Cropper image={value} on:crop={handle_save} />
-		{:else if tool === "editor"}
-			{#if mode === "edit"}
-				<ImageEditor
-					{value}
-					on:cancel={() => (mode = "view")}
-					on:save={handle_save}
-				/>
-			{/if}
-			<ModifyUpload
-				on:edit={() => (mode = "edit")}
-				on:clear={handle_clear}
-				editable
-			/>
-
-			<img class="w-full h-full object-contain" src={value} alt="" />
-		{:else}
-			<img class="w-full h-full object-contain" src={value} alt="" />
+<div class:bg-gray-200={value} class:h-60={source !== "webcam"}>
+	{#if source === "canvas"}
+		<ModifySketch
+			on:undo={() => sketch.undo()}
+			on:clear={() => sketch.clear()}
+		/>
+		<Sketch {value} bind:this={sketch} on:change={handle_save} />
+	{:else if value === null}
+		{#if source === "upload"}
+			<Upload
+				bind:dragging
+				filetype="image/x-png,image/gif,image/jpeg"
+				on:load={handle_upload}
+				include_file_metadata={false}
+			>
+				<div class="flex flex-col">
+					{drop_text}
+					<span class="text-gray-300">- {or_text} -</span>
+					{upload_text}
+				</div>
+			</Upload>
+		{:else if source === "webcam"}
+			<Webcam on:capture={handle_save} />
 		{/if}
-	</div>
-</Block>
+	{:else if tool === "select"}
+		<Cropper image={value} on:crop={handle_save} />
+	{:else if tool === "editor"}
+		{#if mode === "edit"}
+			<ImageEditor
+				{value}
+				on:cancel={() => (mode = "view")}
+				on:save={handle_save}
+			/>
+		{/if}
+		<ModifyUpload
+			on:edit={() => (mode = "edit")}
+			on:clear={handle_clear}
+			editable
+		/>
+
+		<img class="w-full h-full object-contain" src={value} alt="" />
+	{:else}
+		<img class="w-full h-full object-contain" src={value} alt="" />
+	{/if}
+</div>
 
 <style lang="postcss">
 	:global(.image_editor_buttons) {

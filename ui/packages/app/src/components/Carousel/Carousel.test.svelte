@@ -4,7 +4,7 @@
 	import api_logo from "../../../public/static/img/api-logo.svg";
 </script>
 
-<Carousel on:change>
+<Carousel on:change loading_status="complete">
 	<CarouselItem>
 		<h1>Item 1</h1>
 	</CarouselItem>

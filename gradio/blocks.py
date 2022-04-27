@@ -10,12 +10,12 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
 from gradio import encryptor, networking, queueing, strings, utils
 from gradio.context import Context
-from gradio.routes import PredictBody
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from fastapi.applications import FastAPI
 
     from gradio.components import Component, StatusTracker
+    from gradio.routes import PredictBody
 
 
 class Block:
@@ -59,7 +59,6 @@ class Block:
         outputs: List[Component],
         preprocess: bool = True,
         postprocess: bool = True,
-        queue=False,
         no_target: bool = False,
         status_tracker: Optional[StatusTracker] = None,
     ) -> None:
@@ -72,7 +71,6 @@ class Block:
             outputs: output list
             preprocess: whether to run the preprocess methods of components
             postprocess: whether to run the postprocess methods of components
-            queue: if True, will store multiple calls in queue and run in order instead of in parallel with multiple threads
             no_target: if True, sets "targets" to [], used for Blocks "load" event
             status_tracker: StatusTracker to visualize function progress
         Returns: None
@@ -90,7 +88,6 @@ class Block:
                 "trigger": event_name,
                 "inputs": [block._id for block in inputs],
                 "outputs": [block._id for block in outputs],
-                "queue": queue,
                 "status_tracker": status_tracker._id
                 if status_tracker is not None
                 else None,
@@ -209,12 +206,12 @@ class Blocks(BlockContext):
         mode: str = "blocks",
     ):
 
-        # Cleanup shared parameters with Interface
+        # Cleanup shared parameters with Interface #TODO: is this part still necessary after Interface with Blocks?
         self.save_to = None
         self.api_mode = False
         self.theme = theme
         self.requires_permissions = False  # TODO: needs to be implemented
-        self.enable_queue = False
+        self.encrypt = False
 
         # For analytics_enabled and allow_flagging: (1) first check for
         # parameter, (2) check for env variable, (3) default to True/"manual"
@@ -243,7 +240,7 @@ class Blocks(BlockContext):
 
     def process_api(
         self,
-        data: Dict[str, Any],
+        data: PredictBody,
         username: str = None,
         state: Optional[Dict[int, any]] = None,
     ) -> Dict[str, Any]:
@@ -255,8 +252,8 @@ class Blocks(BlockContext):
             state: data stored from stateful components for session
         Returns: None
         """
-        raw_input = data["data"]
-        fn_index = data["fn_index"]
+        raw_input = data.data
+        fn_index = data.fn_index
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
 
@@ -378,7 +375,7 @@ class Blocks(BlockContext):
         server_name: Optional[str] = None,
         server_port: Optional[int] = None,
         show_tips: bool = False,
-        enable_queue: bool = False,
+        enable_queue: Optional[bool] = None,
         height: int = 500,
         width: int = 900,
         encrypt: bool = False,
@@ -402,7 +399,10 @@ class Blocks(BlockContext):
         server_port (int): will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT.
         server_name (str): to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME.
         show_tips (bool): if True, will occasionally show tips about new Gradio features
-        enable_queue (bool): if True, inference requests will be served through a queue instead of with parallel threads. Required for longer inference times (> 1min) to prevent timeout.
+        enable_queue (Optional[bool]):
+            if True, inference requests will be served through a queue instead of with parallel threads. Required for longer inference times (> 1min) to prevent timeout.
+            The default option in HuggingFace Spaces is True.
+            The default option elsewhere is False.
         width (int): The width in pixels of the iframe element containing the interface (used if inline=True)
         height (int): The height in pixels of the iframe element containing the interface (used if inline=True)
         encrypt (bool): If True, flagged data will be encrypted by key provided by creator at launch
@@ -438,8 +438,10 @@ class Blocks(BlockContext):
                 getpass.getpass("Enter key for encryption: ")
             )
 
-        if hasattr(self, "enable_queue") and self.enable_queue is None:
-            self.enable_queue = enable_queue
+        if self.is_space and enable_queue is None:
+            self.enable_queue = True
+        else:
+            self.enable_queue = enable_queue or False
 
         config = self.get_config_file()
         self.config = config
