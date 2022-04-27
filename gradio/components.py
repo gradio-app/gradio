@@ -3354,6 +3354,16 @@ def get_component_instance(comp: str | dict | Component):
         return component_cls(**comp, without_rendering=True)
     elif isinstance(comp, Component):
         return comp
+    elif isinstance(
+        comp, dict
+    ):  # a dict with `name` as the input component type and other keys as parameters
+        name = comp.pop("name")
+        for component in Component.__subclasses__():
+            if component.__name__.lower() == name:
+                break
+        else:
+            raise ValueError(f"No such Component: {name}")
+        return component(**comp, without_rendering=True)
     else:
         raise ValueError(
             f"Component must provided as a `str` or `dict` or `Component` but is {comp}"
