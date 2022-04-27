@@ -186,6 +186,11 @@ class Interface(Blocks):
         if not isinstance(outputs, list):
             outputs = [outputs]
 
+        if self.is_space and cache_examples is None:
+            self.cache_examples = True
+        else:
+            self.cache_examples = cache_examples or False
+
         if "state" in inputs or "state" in outputs:
             state_input_count = len([i for i in inputs if i == "state"])
             state_output_count = len([o for o in outputs if o == "state"])
@@ -197,6 +202,11 @@ class Interface(Blocks):
             state_variable = Variable(default_value=default)
             inputs[inputs.index("state")] = state_variable
             outputs[outputs.index("state")] = state_variable
+            
+            if cache_examples:
+                warnings.warn("Cache examples cannot be used with state inputs and outputs."
+                              "Setting cache_examples to False.")
+            self.cache_examples = False
 
         self.input_components = [get_component_instance(i).unrender() for i in inputs]
         self.output_components = [get_component_instance(o).unrender() for o in outputs]
@@ -496,10 +506,6 @@ class Interface(Blocks):
                 else:
                     component.label = "output " + str(i)
 
-        if self.is_space and cache_examples is None:
-            self.cache_examples = True
-        else:
-            self.cache_examples = cache_examples or False
         if self.cache_examples:
             cache_interface_examples(self)
 
@@ -598,8 +604,10 @@ class Interface(Blocks):
                 ),
             )
             if self.examples:
+                non_state_inputs = [c for c in self.input_components if not isinstance(c, Variable)]
+                    
                 examples = Dataset(
-                    components=self.input_components,
+                    components=non_state_inputs,
                     samples=self.examples,
                     type="index",
                 )
@@ -621,7 +629,7 @@ class Interface(Blocks):
                 examples._click_no_postprocess(
                     load_example,
                     inputs=[examples],
-                    outputs=self.input_components
+                    outputs=non_state_inputs
                     + (self.output_components if self.cache_examples else []),
                 )
 
