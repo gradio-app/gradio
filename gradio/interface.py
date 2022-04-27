@@ -146,10 +146,7 @@ class Interface(Blocks):
         verbose (bool): DEPRECATED. Whether to print detailed information during launch.
         examples (Union[List[List[Any]], str]): sample inputs for the function; if provided, appears below the UI components and can be used to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided. If there are multiple input components and a directory is provided, a log.csv file must be present in the directory to link corresponding inputs.
         examples_per_page (int): If examples are provided, how many to display per page.
-        cache_examples(Optional[bool]):
-            If True, caches examples in the server for fast runtime in examples.
-            The default option in HuggingFace Spaces is True.
-            The default option elsewhere is False.
+        cache_examples (Optional[bool]): If True, caches examples in the server for fast runtime in examples. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
         live (bool): whether the interface should automatically reload on change.
         layout (str): Layout of input and output panels. "horizontal" arranges them as two columns of equal height, "unaligned" arranges them as two columns of unequal height, and "vertical" arranges them vertically.
         capture_session (bool): DEPRECATED. If True, captures the default graph and session (needed for Tensorflow 1.x)
