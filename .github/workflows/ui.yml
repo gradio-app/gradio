@@ -58,12 +58,6 @@ jobs:
           node-version: 16
           cache: pnpm
           cache-dependency-path: ui/pnpm-lock.yaml
-      - name: Cache browsers
-        id: browser_cache
-        uses: actions/cache@main
-        with:
-          path: "~/.cache/ms-playwright"
-          key: chromium-${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
       - run: pnpm install --frozen-lockfile
       - run: pnpx playwright install chromium
       - run: pnpm build

@@ -160,7 +160,6 @@ XRAY_CONFIG = {
             "trigger": "click",
             "inputs": [2, 6],
             "outputs": [7],
-            "queue": False,
             "status_tracker": None,
         },
         {
@@ -168,7 +167,6 @@ XRAY_CONFIG = {
             "trigger": "click",
             "inputs": [2, 11],
             "outputs": [12],
-            "queue": False,
             "status_tracker": None,
         },
         {
@@ -176,7 +174,6 @@ XRAY_CONFIG = {
             "trigger": "load",
             "inputs": [],
             "outputs": [14],
-            "queue": False,
             "status_tracker": None,
         },
     ],
@@ -344,7 +341,6 @@ XRAY_CONFIG_DIFF_IDS = {
             "trigger": "click",
             "inputs": [22, 6],
             "outputs": [7],
-            "queue": False,
             "status_tracker": None,
         },
         {
@@ -352,7 +348,6 @@ XRAY_CONFIG_DIFF_IDS = {
             "trigger": "click",
             "inputs": [22, 11],
             "outputs": [12],
-            "queue": False,
             "status_tracker": None,
         },
     ],
@@ -515,7 +510,6 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "trigger": "click",
             "inputs": [2, 6],
             "outputs": [7],
-            "queue": False,
             "status_tracker": None,
         },
         {
@@ -523,7 +517,6 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "trigger": "click",
             "inputs": [2, 11],
             "outputs": [12],
-            "queue": False,
             "status_tracker": None,
         },
     ],

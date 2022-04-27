@@ -55,7 +55,7 @@
 		value?: unknown;
 	}
 
-	const instance_map = components.reduce((acc, next) => {
+	let instance_map = components.reduce((acc, next) => {
 		return {
 			...acc,
 			[next.id]: {
@@ -89,8 +89,6 @@
 			_n.has_modes = true;
 		}
 
-		// console.log(await _component_map.get(meta.type));
-
 		if (node.children) {
 			_n.children = await Promise.all(node.children.map((v) => walk_layout(v)));
 		}
@@ -107,6 +105,7 @@
 	});
 
 	let tree;
+
 	Promise.all(Array.from(component_set)).then((v) => {
 		Promise.all(layout.children.map((c) => walk_layout(c))).then((v) => {
 			console.log(v);
@@ -114,16 +113,16 @@
 		});
 	});
 
+	function set_prop(obj: Instance, prop: string, val: any) {
+		if (!obj?.props) {
+			obj.props = {};
+		}
+		obj.props[prop] = val;
+		tree = tree;
+	}
+
 	let handled_dependencies: Array<number[]> = [];
 	let status_tracker_values: Record<number, string> = {};
-
-	let set_status = (dependency_index: number, status: string) => {
-		dependencies[dependency_index].status = status;
-		let status_tracker_id = dependencies[dependency_index].status_tracker;
-		if (status_tracker_id !== null) {
-			status_tracker_values[status_tracker_id] = status;
-		}
-	};
 
 	async function handle_mount({ detail }) {
 		await tick();
@@ -164,14 +163,15 @@
 			}
 
 			target_instances.forEach(([id, { instance }]: [number, Instance]) => {
-				// console.log(id, handled_dependencies[i]?.includes(id) || !instance);
 				if (handled_dependencies[i]?.includes(id) || !instance) return;
-				// console.log(trigger, target_instances, instance);
 				instance?.$on(trigger, () => {
 					if (status === "pending") {
 						return;
 					}
-					set_status(i, "pending");
+					outputs.forEach((_id) =>
+						set_prop(instance_map[_id], "loading_status", "pending")
+					);
+
 					fn(
 						"predict",
 						{
@@ -182,13 +182,21 @@
 						() => {}
 					)
 						.then((output) => {
-							set_status(i, "complete");
+							// set_status(i, "complete");
 							output.data.forEach((value, i) => {
 								instance_map[outputs[i]].value = value;
+								set_prop(
+									instance_map[outputs[i]],
+									"loading_status",
+									"complete"
+								);
 							});
 						})
 						.catch((error) => {
-							set_status(i, "error");
+							outputs.forEach((_id) =>
+								set_prop(instance_map[_id], "loading_status", "error")
+							);
+
 							console.error(error);
 						});
 				});
@@ -206,7 +214,7 @@
 	}
 </script>
 
-<div class="mx-auto container space-y-4 px-4 py-6">
+<div class="mx-auto container space-y-4 px-4 py-6 dark:bg-gray-950">
 	{#if tree}
 		{#each tree as { component, id, props, children, has_modes }}
 			<Render
@@ -230,7 +238,7 @@
 	class="gradio-page container mx-auto flex flex-col box-border flex-grow text-gray-700 dark:text-gray-50"
 >
 	<div
-		class="footer flex-shrink-0 inline-flex gap-2.5 items-center text-gray-600 justify-center py-2"
+		class="footer flex-shrink-0 inline-flex gap-2.5 items-center text-gray-600 dark:text-gray-300 justify-center py-2"
 	>
 		<a href="https://gradio.app" target="_blank" rel="noreferrer">
 			{$_("interface.built_with_Gradio")}
