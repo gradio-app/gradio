@@ -11,6 +11,7 @@
 	export let source: "canvas" | "webcam" | "upload" = "upload";
 	export let tool: "editor" | "select" = "editor";
 	export let label: string;
+	export let show_label: boolean;
 
 	export let loading_status: "complete" | "pending" | "error";
 
@@ -34,7 +35,7 @@
 >
 	<StatusTracker tracked_status={loading_status} />
 	{#if mode === "static"}
-		<StaticImage {value} {label} {style} />
+		<StaticImage {value} {label} {style} {show_label} />
 	{:else}
 		<Image
 			bind:value
@@ -46,6 +47,7 @@
 			on:change
 			on:drag={({ detail }) => (dragging = detail)}
 			{label}
+			{show_label}
 			drop_text={$_("interface.drop_image")}
 			or_text={$_("or")}
 			upload_text={$_("interface.click_to_upload")}

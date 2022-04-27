@@ -12,9 +12,11 @@
 	export let style: string = "";
 	export let mode: "static" | "dynamic";
 	export let root: string;
-	export let clearColor: [];
+	export let clearColor: Array<number>;
 
 	export let loading_status: "complete" | "pending" | "error";
+	export let label: string;
+	export let show_label: boolean;
 
 	if (default_value) value = default_value;
 
@@ -33,6 +35,8 @@
 
 	{#if mode === "dynamic"}
 		<Model3DUpload
+			{label}
+			{show_label}
 			value={_value}
 			on:change={({ detail }) => (value = detail)}
 			on:drag={({ detail }) => (dragging = detail)}
@@ -44,6 +48,6 @@
 			upload_text={$_("interface.click_to_upload")}
 		/>
 	{:else if _value}
-		<Model3D value={_value} {clearColor} {style} />
+		<Model3D value={_value} {clearColor} {style} {label} {show_label} />
 	{/if}
 </Block>

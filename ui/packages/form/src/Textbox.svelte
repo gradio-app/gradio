@@ -9,6 +9,7 @@
 	export let style: string = "";
 	export let disabled = false;
 	export let autoheight: boolean = false;
+	export let show_label: boolean;
 
 	const dispatch = createEventDispatcher<{
 		change: string;
@@ -59,7 +60,7 @@
 
 <!-- svelte-ignore a11y-label-has-associated-control -->
 <label class="block">
-	<BlockTitle>{label}</BlockTitle>
+	<BlockTitle {show_label}>{label}</BlockTitle>
 
 	{#if autoheight || lines > 1}
 		<textarea

@@ -7,6 +7,7 @@
 	export let disabled: boolean = false;
 	export let label: string;
 	export let style: string = "";
+	export let show_label: boolean;
 
 	const dispatch = createEventDispatcher<{ change: Array<string> }>();
 
@@ -21,7 +22,7 @@
 	};
 </script>
 
-<BlockTitle>{label}</BlockTitle>
+<BlockTitle {show_label}>{label}</BlockTitle>
 
 <div class="flex flex-wrap gap-2" data-testid="checkbox-group">
 	{#each choices as choice, i}
