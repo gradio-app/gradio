@@ -7,6 +7,7 @@
 	export let disabled: boolean = false;
 	export let label: string;
 	export let style: string = "";
+	export let show_label: boolean;
 
 	const dispatch = createEventDispatcher<{ change: boolean }>();
 

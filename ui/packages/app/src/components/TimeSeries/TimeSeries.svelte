@@ -34,6 +34,7 @@
 	export let x: string;
 	export let mode: "static" | "dynamic";
 	export let label: string;
+	export let show_label: boolean;
 
 	export let loading_status: "complete" | "pending" | "error";
 
@@ -118,7 +119,7 @@
 	color={"grey"}
 	padding={false}
 >
-	<BlockLabel image={chart_icon} label={label || "TimeSeries"} />
+	<BlockLabel {show_label} image={chart_icon} label={label || "TimeSeries"} />
 	<StatusTracker tracked_status={loading_status} />
 
 	{#if mode === "static"}

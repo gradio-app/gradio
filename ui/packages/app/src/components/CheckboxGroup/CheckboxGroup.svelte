@@ -11,6 +11,7 @@
 	export let style: string = "";
 	export let label: string = "Checkbox Group";
 	export let form_position: "first" | "last" | "mid" | "single" = "single";
+	export let show_label: boolean;
 
 	export let loading_status: "complete" | "pending" | "error";
 
@@ -25,6 +26,7 @@
 		{choices}
 		{style}
 		{label}
+		{show_label}
 		on:change
 		disabled={mode === "static"}
 	/>

@@ -17,6 +17,7 @@
 
 	export let value: null | { name: string; data: string } = null;
 	export let label: string;
+	export let show_label: boolean;
 	export let style: string = "";
 	export let name: string;
 	export let source: "microphone" | "upload" | "none";
@@ -152,7 +153,7 @@
 	$: dispatch("drag", dragging);
 </script>
 
-<BlockLabel image={audio_icon} label={label || "Audio"} />
+<BlockLabel {show_label} image={audio_icon} label={label || "Audio"} />
 {#if value === null}
 	{#if source === "microphone"}
 		<div class="mt-6 p-2">
