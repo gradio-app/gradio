@@ -3341,22 +3341,12 @@ def component(cls_name: str):
 
 def get_component_instance(comp: str | dict | Component):
     if isinstance(comp, str):
-<<<<<<< HEAD
         component_cls = component(comp)
         return component_cls()
     elif isinstance(comp, dict):
         name = comp.pop("name")
         component_cls = component(name)
         return component_cls(**comp)
-=======
-        return component(comp)()
-    elif isinstance(
-        comp, dict
-    ):  # a dict with `name` as the input component type and other keys as parameters
-        name = comp.pop("name")
-        component_cls = component(name)
-        return component_cls(**comp, without_rendering=True)
->>>>>>> main
     elif isinstance(comp, Component):
         return comp
     else:
