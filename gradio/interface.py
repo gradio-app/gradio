@@ -7,13 +7,13 @@ from __future__ import annotations
 
 import copy
 import csv
-from enum import Enum, auto
 import inspect
 import os
 import random
 import re
 import warnings
 import weakref
+from enum import Enum, auto
 from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
 
 from markdown_it import MarkdownIt
@@ -49,7 +49,7 @@ class Interface(Blocks):
 
     # stores references to all currently existing Interface instances
     instances: weakref.WeakSet = weakref.WeakSet()
-    
+
     class InterfaceTypes(Enum):
         STANDARD = auto()
         INPUT_ONLY = auto()
@@ -111,8 +111,8 @@ class Interface(Blocks):
     def __init__(
         self,
         fn: Callable | List[Callable],
-        inputs: str | Component | List[str | Component] = None,
-        outputs: str | Component | List[str | Component] = None,
+        inputs: Optional[str | Component | List[str | Component]] = None,
+        outputs: Optional[str | Component | List[str | Component]] = None,
         verbose: bool = False,
         examples: Optional[List[Any] | List[List[Any]] | str] = None,
         cache_examples: Optional[bool] = None,
@@ -186,23 +186,18 @@ class Interface(Blocks):
         if inputs is None and outputs is None:
             raise ValueError("Must provide at least one of `inputs` or `outputs`")
         elif outputs is None:
+            outputs = []
             self.interface_type = self.InterfaceTypes.INPUT_ONLY
         elif inputs is None:
+            inputs = []
             self.interface_type = self.InterfaceTypes.OUTPUT_ONLY
-            
+
         if not isinstance(fn, list):
             fn = [fn]
         if not isinstance(inputs, list):
             inputs = [inputs]
         if not isinstance(outputs, list):
             outputs = [outputs]
-            
-        same_components = [i==o for i,o in zip(inputs, outputs)]
-        if all(same_components):
-            self.interface_type = self.InterfaceTypes.UNIFIED
-        elif any(same_components):
-            raise ValueError("If any of the input and output components are the same, "
-                             "they must all be the same to create a unified Interface.")
 
         if "state" in inputs or "state" in outputs:
             state_input_count = len([i for i in inputs if i == "state"])
@@ -218,10 +213,24 @@ class Interface(Blocks):
 
         self.input_components = [get_component_instance(i).unrender() for i in inputs]
         self.output_components = [get_component_instance(o).unrender() for o in outputs]
-        for o in self.output_components:
-            o.interactive = (
-                False  # Force output components to be treated as non-interactive
-            )
+
+        if len(self.input_components) == len(self.output_components):
+            same_components = [
+                i is o for i, o in zip(self.input_components, self.output_components)
+            ]
+            if all(same_components):
+                self.interface_type = self.InterfaceTypes.UNIFIED
+            elif any(same_components):
+                raise ValueError(
+                    "If any of the input and output components are the same, "
+                    "they must all be the same to create a unified Interface."
+                )
+        if self.interface_type in [
+            self.InterfaceTypes.STANDARD,
+            self.InterfaceTypes.OUTPUT_ONLY,
+        ]:
+            for o in self.output_components:
+                o.interactive = False  # Force output components to be non-interactive
 
         if repeat_outputs_per_model:
             self.output_components *= len(fn)
@@ -536,49 +545,80 @@ class Interface(Blocks):
             if self.description:
                 Markdown(self.description)
             with Row():
-                with Column(
-                    css={
-                        "background-color": "rgb(249,250,251)",
-                        "padding": "0.5rem",
-                        "border-radius": "0.5rem",
-                    }
-                ):
-                    input_component_column = Column()
-                    with input_component_column:
-                        for component in self.input_components:
-                            component.render()
-                    if self.interpretation:
-                        interpret_component_column = Column(visible=False)
-                        interpretation_set = []
-                        with interpret_component_column:
+                if self.interface_type in [
+                    self.InterfaceTypes.STANDARD,
+                    self.InterfaceTypes.INPUT_ONLY,
+                    self.InterfaceTypes.UNIFIED,
+                ]:
+                    with Column(
+                        css={
+                            "background-color": "rgb(249,250,251)",
+                            "padding": "0.5rem",
+                            "border-radius": "0.5rem",
+                        }
+                    ):
+                        input_component_column = Column()
+                        with input_component_column:
                             for component in self.input_components:
-                                interpretation_set.append(Interpretation(component))
-                    with Row():
-                        clear_btn = Button("Clear")
-                        if not self.live:
-                            submit_btn = Button("Submit")
-                with Column(
-                    css={
-                        "background-color": "rgb(249,250,251)",
-                        "padding": "0.5rem",
-                        "border-radius": "0.5rem",
-                    }
-                ):
-                    status_tracker = StatusTracker(cover_container=True)
-                    for component in self.output_components:
-                        component.render()
-                    with Row():
-                        if self.allow_flagging == "manual":
-                            flag_btn = Button("Flag")
-                            flag_btn._click_no_preprocess(
-                                lambda *flag_data: self.flagging_callback.flag(
-                                    flag_data
-                                ),
-                                inputs=self.input_components + self.output_components,
-                                outputs=[],
-                            )
+                                component.render()
                         if self.interpretation:
-                            interpretation_btn = Button("Interpret")
+                            interpret_component_column = Column(visible=False)
+                            interpretation_set = []
+                            with interpret_component_column:
+                                for component in self.input_components:
+                                    interpretation_set.append(Interpretation(component))
+                        with Row():
+                            if self.interface_type in [
+                                self.InterfaceTypes.STANDARD,
+                                self.InterfaceTypes.INPUT_ONLY,
+                            ]:
+                                clear_btn = Button("Clear")
+                                if not self.live:
+                                    submit_btn = Button("Submit")
+                            elif self.interface_type == self.InterfaceTypes.UNIFIED:
+                                clear_btn = Button("Clear")
+                                submit_btn = Button("Submit")
+                                if self.allow_flagging == "manual":
+                                    flag_btn = Button("Flag")
+                                    flag_btn._click_no_preprocess(
+                                        lambda *flag_data: self.flagging_callback.flag(
+                                            flag_data
+                                        ),
+                                        inputs=self.input_components,
+                                        outputs=[],
+                                    )
+
+                if self.interface_type in [
+                    self.InterfaceTypes.STANDARD,
+                    self.InterfaceTypes.OUTPUT_ONLY,
+                ]:
+
+                    with Column(
+                        css={
+                            "background-color": "rgb(249,250,251)",
+                            "padding": "0.5rem",
+                            "border-radius": "0.5rem",
+                        }
+                    ):
+                        status_tracker = StatusTracker(cover_container=True)
+                        for component in self.output_components:
+                            component.render()
+                        with Row():
+                            if self.interface_type == self.InterfaceTypes.OUTPUT_ONLY:
+                                clear_btn = Button("Clear")
+                                submit_btn = Button("Generate")
+                            if self.allow_flagging == "manual":
+                                flag_btn = Button("Flag")
+                                flag_btn._click_no_preprocess(
+                                    lambda *flag_data: self.flagging_callback.flag(
+                                        flag_data
+                                    ),
+                                    inputs=self.input_components
+                                    + self.output_components,
+                                    outputs=[],
+                                )
+                            if self.interpretation:
+                                interpretation_btn = Button("Interpret")
             submit_fn = (
                 lambda *args: self.run_prediction(args)[0]
                 if len(self.output_components) == 1
@@ -604,14 +644,27 @@ class Interface(Blocks):
                         else None
                         for component in self.input_components + self.output_components
                     ]
-                    + [True]
-                    + ([False] if self.interpretation else [])
+                    + ([True]
+                    if self.interface_type
+                    in [
+                        self.InterfaceTypes.STANDARD,
+                        self.InterfaceTypes.INPUT_ONLY,
+                        self.InterfaceTypes.UNIFIED,
+                    ]
+                    else []) + ([False] if self.interpretation else [])
                 ),
                 [],
                 (
                     self.input_components
                     + self.output_components
-                    + [input_component_column]
+                    + ([input_component_column]
+                    if self.interface_type
+                    in [
+                        self.InterfaceTypes.STANDARD,
+                        self.InterfaceTypes.INPUT_ONLY,
+                        self.InterfaceTypes.UNIFIED,
+                    ]
+                    else [])
                     + ([interpret_component_column] if self.interpretation else [])
                 ),
             )
