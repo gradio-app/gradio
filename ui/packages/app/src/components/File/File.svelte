@@ -24,7 +24,6 @@
 
 	let dragging = false;
 
-	$: console.log($$props);
 </script>
 
 <Block
