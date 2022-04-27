@@ -1,15 +1,16 @@
 from __future__ import annotations
 
-import enum
 import getpass
 import os
 import sys
 import time
+import warnings
 import webbrowser
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
 from gradio import encryptor, networking, queueing, strings, utils
 from gradio.context import Context
+from gradio.deprecation import check_deprecated_parameters
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from fastapi.applications import FastAPI
@@ -19,11 +20,12 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 
 class Block:
-    def __init__(self, without_rendering=False, css=None):
+    def __init__(self, without_rendering=False, css=None, **kwargs):
         self.css = css if css is not None else {}
         if without_rendering:
             return
         self.render()
+        check_deprecated_parameters(**kwargs)
 
     def render(self):
         """
@@ -96,13 +98,15 @@ class Block:
 
 
 class BlockContext(Block):
-    def __init__(self, visible: bool = True, css: Optional[Dict[str, str]] = None):
+    def __init__(
+        self, visible: bool = True, css: Optional[Dict[str, str]] = None, **kwargs
+    ):
         """
         css: Css rules to apply to block.
         """
         self.children = []
         self.visible = visible
-        super().__init__(css=css)
+        super().__init__(css=css, **kwargs)
 
     def __enter__(self):
         self.parent = Context.block
@@ -204,6 +208,7 @@ class Blocks(BlockContext):
         theme: str = "default",
         analytics_enabled: Optional[bool] = None,
         mode: str = "blocks",
+        **kwargs,
     ):
 
         # Cleanup shared parameters with Interface #TODO: is this part still necessary after Interface with Blocks?
@@ -221,7 +226,7 @@ class Blocks(BlockContext):
             else os.getenv("GRADIO_ANALYTICS_ENABLED", "True") == "True"
         )
 
-        super().__init__()
+        super().__init__(**kwargs)
         self.blocks = {}
         self.fns: List[BlockFunction] = []
         self.dependencies = []

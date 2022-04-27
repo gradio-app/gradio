@@ -37,12 +37,7 @@ class Component(Block):
         without_rendering: bool = False,
         **kwargs,
     ):
-        if "optional" in kwargs:
-            warnings.warn(
-                "Usage of optional is deprecated, and it has no effect",
-                DeprecationWarning,
-            )
-        super().__init__(without_rendering=without_rendering, css=css)
+        super().__init__(without_rendering=without_rendering, css=css, **kwargs)
 
     def __str__(self):
         return self.__repr__()
@@ -269,16 +264,6 @@ class Textbox(IOComponent):
         placeholder (str): placeholder hint to provide behind textarea.
         label (str): component name in interface.
         """
-        if "numeric" in kwargs:
-            warnings.warn(
-                "The 'numeric' type has been deprecated. Use the Number component instead.",
-                DeprecationWarning,
-            )
-        if "type" in kwargs:
-            warnings.warn(
-                "The 'type' parameter has been deprecated. Use the Number component instead if you need it.",
-                DeprecationWarning,
-            )
         default_value = str(default_value)
         self.lines = lines
         self.max_lines = max_lines
@@ -1135,15 +1120,7 @@ class Image(IOComponent):
         type (str): The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
         label (str): component name in interface.
         """
-        if "plot" in kwargs:
-            warnings.warn(
-                "The 'plot' parameter has been deprecated. Use the new Plot() component instead",
-                DeprecationWarning,
-            )
-            self.type = "plot"
-        else:
-            self.type = type
-
+        self.type = type
         self.default_value = (
             processing_utils.encode_url_or_file_to_base64(default_value)
             if default_value
@@ -1954,8 +1931,6 @@ class File(IOComponent):
         type (str): Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name, "binary" returns an bytes object.
         label (str): component name in interface.
         """
-        if "keep_filename" in kwargs:
-            warnings.warn("keep_filename is deprecated", DeprecationWarning)
         self.default_value = (
             processing_utils.encode_url_or_file_to_base64(default_value)
             if default_value

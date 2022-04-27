@@ -209,5 +209,11 @@ class TestTabbedInterface(unittest.TestCase):
         )
 
 
+class TestDeprecatedInterface(unittest.TestCase):
+    def test_deprecation_notice(self):
+        with self.assertWarns(DeprecationWarning):
+            _ = Interface(lambda x: x, "textbox", "textbox", verbose=True)
+
+
 if __name__ == "__main__":
     unittest.main()
