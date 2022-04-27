@@ -20,20 +20,25 @@
 	});
 
 	$: value && dispatch("change");
+	console.log("color_map ", color_map)
+	if (!color_map) {
+		color_map = ["rgb(251 146 60)", "rgb(156 163 175)"];
+	}
+	console.log("color_map ", color_map)
 </script>
 
 <div class="overflow-y-auto h-[40vh]" bind:this={div}>
 	<div class="flex flex-col items-end space-y-4 p-3">
 		{#each value as message}
 			<div
-				data-testid="bot"
+				data-testid="user"
 				class="px-3 py-2 rounded-[22px] rounded-br-none text-white ml-7 text-sm"
 				style={"background-color:" + color_map[0]}
 			>
 				{message[0]}
 			</div>
 			<div
-				data-testid="user"
+				data-testid="bot"
 				class="px-3 py-2 rounded-[22px] rounded-bl-none place-self-start text-white ml-7 text-sm"
 				style={"background-color:" + color_map[1]}
 			>
