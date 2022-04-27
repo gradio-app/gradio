@@ -19,10 +19,8 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 
 class Block:
-    def __init__(self, without_rendering=False, css=None):
+    def __init__(self, css=None):
         self.css = css if css is not None else {}
-        if without_rendering:
-            return
         self.render()
 
     def render(self):

@@ -34,7 +34,6 @@ class Component(Block):
         self,
         *,
         css: Optional[Dict] = None,
-        without_rendering: bool = False,
         **kwargs,
     ):
         if "optional" in kwargs:
@@ -42,7 +41,7 @@ class Component(Block):
                 "Usage of optional is deprecated, and it has no effect",
                 DeprecationWarning,
             )
-        super().__init__(without_rendering=without_rendering, css=css)
+        super().__init__(css=css)
 
     def __str__(self):
         return self.__repr__()
@@ -3329,13 +3328,12 @@ def component(cls_name: str):
 
 def get_component_instance(comp: str | dict | Component):
     if isinstance(comp, str):
-        return component(comp)()
-    elif isinstance(
-        comp, dict
-    ):  # a dict with `name` as the input component type and other keys as parameters
+        component_cls = component(comp)
+        return component_cls()
+    elif isinstance(comp, dict):
         name = comp.pop("name")
         component_cls = component(name)
-        return component_cls(**comp, without_rendering=True)
+        return component_cls(**comp)
     elif isinstance(comp, Component):
         return comp
     else:
