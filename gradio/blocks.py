@@ -19,16 +19,17 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 
 class Block:
-    def __init__(self, css=None):
+    def __init__(self, css=None, render=True):
+        self._id = Context.id
+        Context.id += 1
         self.css = css if css is not None else {}
-        self.render()
+        if render:
+            self.render()
 
     def render(self):
         """
         Adds self into appropriate BlockContext
         """
-        self._id = Context.id
-        Context.id += 1
         if Context.block is not None:
             Context.block.children.append(self)
         if Context.root_block is not None:
@@ -117,13 +118,14 @@ class Block:
 
 
 class BlockContext(Block):
-    def __init__(self, visible: bool = True, css: Optional[Dict[str, str]] = None):
+    def __init__(self, visible: bool = True, css: Optional[Dict[str, str]] = None,
+                 render=True):
         """
         css: Css rules to apply to block.
         """
         self.children = []
         self.visible = visible
-        super().__init__(css=css)
+        super().__init__(css=css, render=render)
 
     def __enter__(self):
         self.parent = Context.block
@@ -242,8 +244,8 @@ class Blocks(BlockContext):
             else os.getenv("GRADIO_ANALYTICS_ENABLED", "True") == "True"
         )
 
-        super().__init__()
-        self.blocks = {}
+        super().__init__(render=False)
+        self.blocks: Dict[int, Block] = {}
         self.fns: List[BlockFunction] = []
         self.dependencies = []
         self.mode = mode
@@ -255,9 +257,13 @@ class Blocks(BlockContext):
         self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
 
     def render(self):
-        self._id = Context.id
-        Context.id += 1
-
+        if Context.root_block is not None:
+            Context.root_block.blocks.update(self.blocks)
+            Context.root_block.fns.extend(self.fns)
+            Context.root_block.dependencies.extend(self.dependencies)
+        if Context.block is not None:
+            Context.block.children.extend(self.children)
+ 
     def process_api(
         self,
         data: Dict[str, Any],

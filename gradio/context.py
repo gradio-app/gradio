@@ -5,10 +5,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, List
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
-    from gradio.blocks import Block
+    from gradio.blocks import BlockContext, Blocks
 
 
 class Context:
-    root_block: Block = None  # The current root block that holds all blocks.
-    block: Block = None  # The current block that all children should be added to.
+    root_block: Blocks = None  # The current root block that holds all blocks.
+    block: BlockContext = None  # The current block that all children should be added to.
     id = 0  # Running id to uniquely refer to any block that gets defined
