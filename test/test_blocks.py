@@ -52,7 +52,6 @@ class TestBlocks(unittest.TestCase):
             textbox = gr.components.Textbox()
             demo.load(fake_func, [], [textbox])
 
-        print(demo.get_config_file())
         self.assertEqual(XRAY_CONFIG, demo.get_config_file())
 
 
