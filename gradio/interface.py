@@ -643,24 +643,27 @@ class Interface(Blocks):
                 )
             clear_btn.click(
                 (
-                    lambda: utils.resolve_singleton([
-                        component.default_value
-                        if hasattr(component, "default_value")
-                        else None
-                        for component in self.input_components + self.output_components
-                    ]
-                    + (
-                        [True]
-                        if self.interface_type
-                        in [
-                            self.InterfaceTypes.STANDARD,
-                            self.InterfaceTypes.INPUT_ONLY,
-                            self.InterfaceTypes.UNIFIED,
+                    lambda: utils.resolve_singleton(
+                        [
+                            component.default_value
+                            if hasattr(component, "default_value")
+                            else None
+                            for component in self.input_components
+                            + self.output_components
                         ]
-                        else []
+                        + (
+                            [True]
+                            if self.interface_type
+                            in [
+                                self.InterfaceTypes.STANDARD,
+                                self.InterfaceTypes.INPUT_ONLY,
+                                self.InterfaceTypes.UNIFIED,
+                            ]
+                            else []
+                        )
+                        + ([False] if self.interpretation else [])
                     )
-                    + ([False] if self.interpretation else [])
-                )),
+                ),
                 [],
                 (
                     self.input_components
