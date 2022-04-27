@@ -63,13 +63,12 @@ class QueueStatusBody(BaseModel):
 class QueuePushBody(BaseModel):
     action: str
     data: Any
-    
+
 
 class PredictBody(BaseModel):
     session_hash: Optional[str]
     data: Any
     fn_index: int
-       
 
 
 ###########
