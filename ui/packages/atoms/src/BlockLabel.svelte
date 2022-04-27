@@ -20,7 +20,6 @@
 	// 	label = type_labels[filetype as keyof typeof type_labels].text;
 	// }
 
-	$: console.log(show_label);
 </script>
 
 <div
