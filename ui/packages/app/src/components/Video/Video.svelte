@@ -13,7 +13,7 @@
 	export let style: string = "";
 	export let source: string;
 	export let root: string;
-
+	export let show_label: boolean;
 	export let loading_status: "complete" | "pending" | "error";
 
 	export let mode: "static" | "dynamic";
@@ -36,13 +36,14 @@
 	<StatusTracker tracked_status={loading_status} />
 
 	{#if mode === "static"}
-		<StaticVideo value={_value} {label} {style} />
+		<StaticVideo value={_value} {label} {show_label} {style} />
 	{:else}
 		<Video
 			value={_value}
 			on:change={({ detail }) => (value = detail)}
 			on:drag={({ detail }) => (dragging = detail)}
 			{label}
+			{show_label}
 			{style}
 			{source}
 			drop_text={$_("interface.drop_video")}

@@ -16,6 +16,7 @@
 	export let type: "normal" | "numpy" = "normal";
 	export let label: string;
 	export let root: string;
+	export let show_label: boolean;
 
 	export let loading_status: "complete" | "pending" | "error";
 
@@ -39,6 +40,7 @@
 	{#if mode === "dynamic"}
 		<Audio
 			{label}
+			{show_label}
 			value={_value}
 			on:change={({ detail }) => (value = detail)}
 			on:drag={({ detail }) => (dragging = detail)}
@@ -55,6 +57,11 @@
 			upload_text={$_("interface.click_to_upload")}
 		/>
 	{:else}
-		<StaticAudio value={_value} name={_value?.name || "audio_file"} {label} />
+		<StaticAudio
+			{show_label}
+			value={_value}
+			name={_value?.name || "audio_file"}
+			{label}
+		/>
 	{/if}
 </Block>

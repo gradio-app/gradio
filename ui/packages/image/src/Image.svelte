@@ -15,6 +15,7 @@
 	export let value: null | string;
 	export let label: string | undefined = undefined;
 	export let style: string = "";
+	export let show_label: boolean;
 
 	export let source: "canvas" | "webcam" | "upload" = "upload";
 	export let tool: "editor" | "select" = "editor";
@@ -56,6 +57,7 @@
 </script>
 
 <BlockLabel
+	{show_label}
 	image={source === "canvas" ? sketch_icon : image_icon}
 	label={label || (source === "canvas" ? "Sketch" : "Image")}
 />
