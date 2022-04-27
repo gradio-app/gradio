@@ -202,10 +202,12 @@ class Interface(Blocks):
             state_variable = Variable(default_value=default)
             inputs[inputs.index("state")] = state_variable
             outputs[outputs.index("state")] = state_variable
-            
+
             if cache_examples:
-                warnings.warn("Cache examples cannot be used with state inputs and outputs."
-                              "Setting cache_examples to False.")
+                warnings.warn(
+                    "Cache examples cannot be used with state inputs and outputs."
+                    "Setting cache_examples to False."
+                )
             self.cache_examples = False
 
         self.input_components = [get_component_instance(i).unrender() for i in inputs]
@@ -604,8 +606,10 @@ class Interface(Blocks):
                 ),
             )
             if self.examples:
-                non_state_inputs = [c for c in self.input_components if not isinstance(c, Variable)]
-                    
+                non_state_inputs = [
+                    c for c in self.input_components if not isinstance(c, Variable)
+                ]
+
                 examples = Dataset(
                     components=non_state_inputs,
                     samples=self.examples,
