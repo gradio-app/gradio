@@ -558,6 +558,9 @@ class Interface(Blocks):
                         }
                     ):
                         input_component_column = Column()
+                        if self.interface_type in [self.InterfaceTypes.INPUT_ONLY,
+                                                   self.InterfaceTypes.UNIFIED]:
+                            status_tracker = StatusTracker(cover_container=True)
                         with input_component_column:
                             for component in self.input_components:
                                 component.render()
@@ -763,17 +766,19 @@ class Interface(Blocks):
             else:
                 prediction = predict_fn(*processed_input)
 
-            if len(self.output_components) == len(self.predict):
+            if len(self.output_components) == len(self.predict) or prediction is None:
                 prediction = [prediction]
 
             if self.api_mode:  # Serialize the input
                 prediction_ = copy.deepcopy(prediction)
                 prediction = []
+                
+                # Done this way to handle both single interfaces with multiple outputs and Parallel() interfaces                
                 for (
                     pred
                 ) in (
                     prediction_
-                ):  # Done this way to handle both single interfaces with multiple outputs and Parallel() interfaces
+                ):
                     prediction.append(
                         self.output_components[output_component_counter].deserialize(
                             pred
