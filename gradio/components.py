@@ -3289,8 +3289,36 @@ class Interpretation(Component):
             "component_props": self.component.get_template_context(),
         }
 
+class StatusTracker(Component):
+    """
+    Used to indicate status of a function call. Event listeners can bind to a StatusTracker with 'status=' keyword argument.
+    """
 
-def component(cls_name: str):
+    def __init__(
+        self,
+        *,
+        cover_container: bool = False,
+        label: Optional[str] = None,
+        css: Optional[Dict] = None,
+        **kwargs,
+    ):
+        """
+        Parameters:
+        cover_container (bool): If True, will expand to cover parent container while function pending.
+        label (str): component name
+        css (dict): optional css parameters for the component
+        """
+        super().__init__(label=label, css=css, **kwargs)
+        self.cover_container = cover_container
+
+    def get_template_context(self):
+        return {
+            "cover_container": self.cover_container,
+            **super().get_template_context(),
+        }
+
+
+def component(str_shortcut: str) -> Optional[Component]:
     """
     Returns a component or template with the given class name, or raises a ValueError if not found.
 
@@ -3330,32 +3358,3 @@ def get_component_instance(comp: str | dict | Component):
         raise ValueError(
             f"Component must provided as a `str` or `dict` or `Component` but is {comp}"
         )
-
-
-class StatusTracker(Component):
-    """
-    Used to indicate status of a function call. Event listeners can bind to a StatusTracker with 'status=' keyword argument.
-    """
-
-    def __init__(
-        self,
-        *,
-        cover_container: bool = False,
-        label: Optional[str] = None,
-        css: Optional[Dict] = None,
-        **kwargs,
-    ):
-        """
-        Parameters:
-        cover_container (bool): If True, will expand to cover parent container while function pending.
-        label (str): component name
-        css (dict): optional css parameters for the component
-        """
-        super().__init__(label=label, css=css, **kwargs)
-        self.cover_container = cover_container
-
-    def get_template_context(self):
-        return {
-            "cover_container": self.cover_container,
-            **super().get_template_context(),
-        }
