@@ -1,9 +1,11 @@
 version: 2.1
 orbs:
   codecov: codecov/codecov@3.2.2
-  node: circleci/node@4.7.0
+  node: circleci/node@5.0.2
 jobs:
   build:
+    environment:
+      NODE_OPTIONS: --max-old-space-size=4096
     docker:
       - image: circleci/python:3.9.2-browsers
     steps:
@@ -31,8 +33,7 @@ jobs:
           paths:
             - "venv"
       - node/install:
-          node-version: 14.17.4
-          npm-version: 8.1.0
+          node-version: "16"
       - run:
           name: Build frontend
           command: |
@@ -61,7 +62,7 @@ jobs:
             coverage run -m pytest
             coverage xml
       - codecov/upload:
-          file: 'coverage.xml'
+          file: "coverage.xml"
       - store_artifacts:
           path: /home/circleci/project/test/tmp
           destination: screenshots
