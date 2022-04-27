@@ -27,7 +27,6 @@
 
 	let dragging: boolean;
 
-	$: console.log($$props);
 </script>
 
 <Block
