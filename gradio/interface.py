@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import copy
 import csv
+from enum import Enum, auto
 import inspect
 import os
 import random
@@ -17,6 +18,7 @@ from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
 
 from markdown_it import MarkdownIt
 from mdit_py_plugins.footnote import footnote_plugin
+from torch import InterfaceType
 
 from gradio import interpretation, utils
 from gradio.blocks import Blocks, Column, Row, TabItem, Tabs
@@ -47,6 +49,12 @@ class Interface(Blocks):
 
     # stores references to all currently existing Interface instances
     instances: weakref.WeakSet = weakref.WeakSet()
+    
+    class InterfaceTypes(Enum):
+        STANDARD = auto()
+        INPUT_ONLY = auto()
+        OUTPUT_ONLY = auto()
+        UNIFIED = auto()
 
     @classmethod
     def get_instances(cls) -> List[Interface]:
@@ -174,17 +182,27 @@ class Interface(Blocks):
         """
         super().__init__(analytics_enabled=analytics_enabled, mode="interface")
 
-        if inputs is None:
-            inputs = []
-        if outputs is None:
-            outputs = []
-
+        self.interface_type = self.InterfaceTypes.STANDARD
+        if inputs is None and outputs is None:
+            raise ValueError("Must provide at least one of `inputs` or `outputs`")
+        elif outputs is None:
+            self.interface_type = self.InterfaceTypes.INPUT_ONLY
+        elif inputs is None:
+            self.interface_type = self.InterfaceTypes.OUTPUT_ONLY
+            
         if not isinstance(fn, list):
             fn = [fn]
         if not isinstance(inputs, list):
             inputs = [inputs]
         if not isinstance(outputs, list):
             outputs = [outputs]
+            
+        same_components = [i==o for i,o in zip(inputs, outputs)]
+        if all(same_components):
+            self.interface_type = self.InterfaceTypes.UNIFIED
+        elif any(same_components):
+            raise ValueError("If any of the input and output components are the same, "
+                             "they must all be the same to create a unified Interface.")
 
         if "state" in inputs or "state" in outputs:
             state_input_count = len([i for i in inputs if i == "state"])
