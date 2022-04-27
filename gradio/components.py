@@ -3289,6 +3289,7 @@ class Interpretation(Component):
             "component_props": self.component.get_template_context(),
         }
 
+
 class StatusTracker(Component):
     """
     Used to indicate status of a function call. Event listeners can bind to a StatusTracker with 'status=' keyword argument.
@@ -3318,10 +3319,9 @@ class StatusTracker(Component):
         }
 
 
-def component(str_shortcut: str) -> Optional[Component]:
+def component(cls_name: str):
     """
     Returns a component or template with the given class name, or raises a ValueError if not found.
-
     @param cls_name: lower-case string class name of a component
     @return cls: the component class
     """
@@ -3352,19 +3352,3 @@ def get_component_instance(comp: str | dict | Component):
         name = comp.pop("name")
         component_cls = component(name)
         return component_cls(**comp, without_rendering=True)
-    elif isinstance(comp, Component):
-        return comp
-    elif isinstance(
-        comp, dict
-    ):  # a dict with `name` as the input component type and other keys as parameters
-        name = comp.pop("name")
-        for component in Component.__subclasses__():
-            if component.__name__.lower() == name:
-                break
-        else:
-            raise ValueError(f"No such Component: {name}")
-        return component(**comp, without_rendering=True)
-    else:
-        raise ValueError(
-            f"Component must provided as a `str` or `dict` or `Component` but is {comp}"
-        )
