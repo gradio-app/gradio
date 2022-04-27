@@ -246,6 +246,7 @@ def render_docs():
             if mode == "pre":
                 func_doc.append(line)
             elif mode == "in":
+                print(line)
                 space_index = line.index(" ")
                 colon_index = line.index(":")
                 name = line[:space_index]
@@ -282,13 +283,15 @@ def render_docs():
         inp["name"] = cls.__name__
         doc = inspect.getdoc(cls)
         doc_lines = doc.split("\n")
-        inp["doc"] = "\n".join(doc_lines[:-2])
-        inp["type"] = doc_lines[-2].split("type: ")[-1]
-        inp["demos"] = doc_lines[-1][7:].split(", ")
+        inp["doc"] = doc_lines[0]
+        for line in doc_lines[1:]:
+            if ": " in line:
+                key, value = line.split(": ")
+                inp[key] = value
+
         _, inp["params"], inp["params_doc"], _ = get_function_documentation(
             cls.__init__
         )
-        inp["shortcuts"] = list(cls.get_shortcut_implementations().items())
         if "interpret" in cls.__dict__:
             (
                 inp["interpret"],
@@ -301,9 +304,7 @@ def render_docs():
             )
 
         return inp
-
-    inputs = [get_class_documentation(cls) for cls in Component.__subclasses__()]
-    outputs = [get_class_documentation(cls) for cls in Component.__subclasses__()]
+    components = [get_class_documentation(cls) for cls in Component.__subclasses__()]
     interface_params = get_function_documentation(Interface.__init__)
     interface = {
         "doc": inspect.getdoc(Interface),
@@ -322,8 +323,7 @@ def render_docs():
         "return_doc": load_params[3],
     }
     docs = {
-        "input": inputs,
-        "output": outputs,
+        "components": components,
         "interface": interface,
         "launch": launch,
         "load": load,
@@ -372,7 +372,7 @@ if __name__ == "__main__":
     render_index()
     render_guides_main()
     render_guides()
-    # render_docs()
+    render_docs()
+    # render_static_docs()
     render_gallery()
-    render_static_docs()
     render_other()
