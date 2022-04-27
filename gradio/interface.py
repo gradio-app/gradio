@@ -558,8 +558,10 @@ class Interface(Blocks):
                         }
                     ):
                         input_component_column = Column()
-                        if self.interface_type in [self.InterfaceTypes.INPUT_ONLY,
-                                                   self.InterfaceTypes.UNIFIED]:
+                        if self.interface_type in [
+                            self.InterfaceTypes.INPUT_ONLY,
+                            self.InterfaceTypes.UNIFIED,
+                        ]:
                             status_tracker = StatusTracker(cover_container=True)
                         with input_component_column:
                             for component in self.input_components:
@@ -647,27 +649,32 @@ class Interface(Blocks):
                         else None
                         for component in self.input_components + self.output_components
                     ]
-                    + ([True]
-                    if self.interface_type
-                    in [
-                        self.InterfaceTypes.STANDARD,
-                        self.InterfaceTypes.INPUT_ONLY,
-                        self.InterfaceTypes.UNIFIED,
-                    ]
-                    else []) + ([False] if self.interpretation else [])
+                    + (
+                        [True]
+                        if self.interface_type
+                        in [
+                            self.InterfaceTypes.STANDARD,
+                            self.InterfaceTypes.INPUT_ONLY,
+                            self.InterfaceTypes.UNIFIED,
+                        ]
+                        else []
+                    )
+                    + ([False] if self.interpretation else [])
                 ),
                 [],
                 (
                     self.input_components
                     + self.output_components
-                    + ([input_component_column]
-                    if self.interface_type
-                    in [
-                        self.InterfaceTypes.STANDARD,
-                        self.InterfaceTypes.INPUT_ONLY,
-                        self.InterfaceTypes.UNIFIED,
-                    ]
-                    else [])
+                    + (
+                        [input_component_column]
+                        if self.interface_type
+                        in [
+                            self.InterfaceTypes.STANDARD,
+                            self.InterfaceTypes.INPUT_ONLY,
+                            self.InterfaceTypes.UNIFIED,
+                        ]
+                        else []
+                    )
                     + ([interpret_component_column] if self.interpretation else [])
                 ),
             )
@@ -772,13 +779,9 @@ class Interface(Blocks):
             if self.api_mode:  # Serialize the input
                 prediction_ = copy.deepcopy(prediction)
                 prediction = []
-                
-                # Done this way to handle both single interfaces with multiple outputs and Parallel() interfaces                
-                for (
-                    pred
-                ) in (
-                    prediction_
-                ):
+
+                # Done this way to handle both single interfaces with multiple outputs and Parallel() interfaces
+                for pred in prediction_:
                     prediction.append(
                         self.output_components[output_component_counter].deserialize(
                             pred
