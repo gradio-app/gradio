@@ -216,7 +216,6 @@ class Interface(Blocks):
         self.show_output = show_output
         self.flag_hash = random.getrandbits(32)
 
-        self.session = None
         self.title = title
 
         CLEANER = re.compile("<.*?>")
@@ -617,12 +616,7 @@ class Interface(Blocks):
         output_component_counter = 0
 
         for predict_fn in self.predict:
-            if self.capture_session and self.session is not None:  # For TF 1.x
-                graph, sess = self.session
-                with graph.as_default(), sess.as_default():
-                    prediction = predict_fn(*processed_input)
-            else:
-                prediction = predict_fn(*processed_input)
+            prediction = predict_fn(*processed_input)
 
             if len(self.output_components) == len(self.predict):
                 prediction = [prediction]
