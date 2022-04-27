@@ -6,6 +6,7 @@
 	export let disabled: boolean = false;
 	export let label: string;
 	export let style: string = "";
+	export let show_label: boolean;
 
 	const dispatch = createEventDispatcher<{
 		change: number;
@@ -30,7 +31,7 @@
 
 <!-- svelte-ignore a11y-label-has-associated-control -->
 <label class="block">
-	<BlockTitle>{label}</BlockTitle>
+	<BlockTitle {show_label}>{label}</BlockTitle>
 	<input
 		type="number"
 		class="gr-box gr-input w-full gr-text-input"

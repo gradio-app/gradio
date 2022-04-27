@@ -8,13 +8,14 @@
 	export let label: string;
 	export let style: string = "";
 	export let form_position: "first" | "last" | "mid" | "single" = "single";
+	export let show_label: boolean;
 
 	const dispatch = createEventDispatcher();
 
 	$: dispatch("change", value);
 </script>
 
-<BlockTitle>{label}</BlockTitle>
+<BlockTitle {show_label}>{label}</BlockTitle>
 
 <div class="flex flex-wrap gap-2">
 	{#each choices as choice, i}

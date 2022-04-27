@@ -7,9 +7,10 @@
 	export let value: FileData | null;
 	export let style: string = "";
 	export let label: string;
+	export let show_label: boolean;
 </script>
 
-<BlockLabel image={file_icon} label={label || "File"} />
+<BlockLabel {show_label} image={file_icon} label={label || "File"} />
 
 {#if value}
 	<a

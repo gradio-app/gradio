@@ -16,6 +16,7 @@
 
 	export let style: string = "";
 	export let loading_status: "complete" | "pending" | "error";
+	export let show_label: boolean;
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
@@ -28,6 +29,6 @@
 	<StatusTracker tracked_status={loading_status} />
 
 	{#if value !== undefined && value !== null}
-		<Label {style} {value} />
+		<Label {style} {value} {show_label} />
 	{/if}
 </Block>

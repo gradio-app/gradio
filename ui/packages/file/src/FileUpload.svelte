@@ -14,6 +14,7 @@
 	export let upload_text: string = "click to upload";
 	export let label: string = "";
 	export let style: string;
+	export let show_label: boolean;
 
 	async function handle_upload({ detail }: CustomEvent<FileData>) {
 		value = detail;
@@ -43,7 +44,7 @@
 	$: dispatch("drag", dragging);
 </script>
 
-<BlockLabel image={file_icon} label={label || "File"} />
+<BlockLabel {show_label} image={file_icon} label={label || "File"} />
 
 {#if value === null}
 	<Upload on:load={handle_upload} filetype="file" bind:dragging>
