@@ -13,6 +13,7 @@
 	export let mode: "static" | "dynamic";
 	export let root: string;
 	export let label: string;
+	export let show_label: boolean;
 
 	export let loading_status: "complete" | "pending" | "error";
 
@@ -22,6 +23,8 @@
 	$: _value = normalise_file(value, root);
 
 	let dragging = false;
+
+	$: console.log($$props);
 </script>
 
 <Block
@@ -33,6 +36,8 @@
 
 	{#if mode === "dynamic"}
 		<FileUpload
+			{label}
+			{show_label}
 			value={_value}
 			on:change={({ detail }) => (value = detail)}
 			on:drag={({ detail }) => (dragging = detail)}
@@ -44,6 +49,6 @@
 			upload_text={$_("interface.click_to_upload")}
 		/>
 	{:else}
-		<File value={_value} {style} {label} />
+		<File value={_value} {style} {label} {show_label} />
 	{/if}
 </Block>

@@ -7,6 +7,7 @@
 	export let value: number = 0;
 	export let default_value: number;
 	export let form_position: "first" | "last" | "mid" | "single" = "single";
+	export let show_label: boolean;
 
 	export let loading_status: "complete" | "pending" | "error";
 
@@ -23,6 +24,7 @@
 	<Number
 		bind:value
 		{label}
+		{show_label}
 		{style}
 		disabled={mode === "static"}
 		on:change
