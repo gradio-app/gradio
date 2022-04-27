@@ -21,6 +21,7 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 class Block:
     def __init__(self, without_rendering=False, css=None, **kwargs):
+        self._id = None
         self.css = css if css is not None else {}
         if without_rendering:
             return
@@ -37,7 +38,6 @@ class Block:
             Context.block.children.append(self)
         if Context.root_block is not None:
             Context.root_block.blocks[self._id] = self
-        self.events = []
 
     def get_block_name(self) -> str:
         """
