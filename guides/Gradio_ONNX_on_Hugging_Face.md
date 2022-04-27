@@ -23,7 +23,7 @@ Open Neural Network Exchange ([ONNX](https://onnx.ai/)) is an open standard form
 The [ONNX Model Zoo](https://github.com/onnx/models) is a collection of pre-trained, state-of-the-art models in the ONNX format contributed by community members. Accompanying each model are Jupyter notebooks for model training and running inference with the trained model. The notebooks are written in Python and include links to the training dataset as well as references to the original paper that describes the model architecture.
 
 
-## What is Hugging Face Spaces & Gradio?
+## What are Hugging Face Spaces & Gradio?
 
 ### Gradio
 
