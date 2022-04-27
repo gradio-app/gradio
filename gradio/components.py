@@ -2863,8 +2863,8 @@ class Chatbot(IOComponent):
     def get_template_context(self):
         return {
             "color_map": self.color_map,
-            "default_value": self.default_value, 
-            **super().get_template_context()
+            "default_value": self.default_value,
+            **super().get_template_context(),
         }
 
     def postprocess(self, y):
