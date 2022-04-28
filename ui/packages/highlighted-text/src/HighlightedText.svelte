@@ -1,4 +1,5 @@
 <script lang="ts">
+	const browser = typeof document !== "undefined";
 	import { colors } from "@gradio/theme";
 	import { getNextColor } from "./utils";
 
@@ -53,8 +54,10 @@
 					_color_map[col] = colors[_c];
 				} else {
 					_color_map[col] = {
-						primary: name_to_rgba(color_map[col], 1),
-						secondary: name_to_rgba(color_map[col], 0.5)
+						primary: browser ? name_to_rgba(color_map[col], 1) : color_map[col],
+						secondary: browser
+							? name_to_rgba(color_map[col], 0.5)
+							: color_map[col]
 					};
 				}
 			}
