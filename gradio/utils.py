@@ -369,3 +369,10 @@ def delete_none(_dict):
         _dict = type(_dict)(delete_none(item) for item in _dict if item is not None)
 
     return _dict
+
+
+def resolve_singleton(_list):
+    if len(_list) == 1:
+        return _list[0]
+    else:
+        return _list
