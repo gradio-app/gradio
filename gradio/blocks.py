@@ -55,26 +55,6 @@ class Block:
                 pass
         return self
 
-    def unrender(self):
-        """
-        Removes self from BlockContext if it has been rendered (otherwise does nothing).
-        Only deletes the first occurrence of self in BlockContext. Removes from the
-        layout and collection of Blocks, but does not delete any event triggers.
-        """
-        self._id = Context.id
-        Context.id += 1
-        if Context.block is not None:
-            try:
-                Context.block.children.remove(self)
-            except ValueError:
-                pass
-        if Context.root_block is not None:
-            try:
-                del Context.root_block.blocks[self._id]
-            except KeyError:
-                pass
-        return self
-
     def get_block_name(self) -> str:
         """
         Gets block's class name.
