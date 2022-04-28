@@ -202,11 +202,7 @@ class Interface(Blocks):
             ]
             if all(same_components):
                 self.interface_type = self.InterfaceTypes.UNIFIED
-            elif any(same_components):
-                raise ValueError(
-                    "If any of the input and output components are the same, "
-                    "they must all be the same to create a unified Interface."
-                )
+
         if self.interface_type in [
             self.InterfaceTypes.STANDARD,
             self.InterfaceTypes.OUTPUT_ONLY,
