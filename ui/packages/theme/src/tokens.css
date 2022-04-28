@@ -85,7 +85,7 @@
 	}
 	
 	.gr-sample-textbox, .gr-sample-slider, .gr-sample-checkbox, .gr-sample-checkboxgroup, .gr-sample-file, .gr-sample-number, .gr-sample-dataframe, .gr-sample-audio, .gr-sample-3d {
-		@apply flex items-center border cursor-pointer px-2 py-1.5 rounded-lg bg-white hover:bg-gray-50 text-sm;
+		@apply flex items-center border cursor-pointer px-2 py-1.5 rounded-lg bg-white hover:bg-gray-50 text-sm text-left;
 	}
 }
 
