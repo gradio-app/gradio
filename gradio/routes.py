@@ -312,17 +312,3 @@ def get_types(cls_set: List[Type], component: str):
             docset.append(doc_lines[-1].split(":")[-1])
             types.append(doc_lines[-1].split(")")[0].split("(")[-1])
     return docset, types
-
-
-def get_state():
-    raise DeprecationWarning(
-        "This function is deprecated. To create stateful demos, use the Variable"
-        " component. Please see the getting started for more information."
-    )
-
-
-def set_state(*args):
-    raise DeprecationWarning(
-        "This function is deprecated. To create stateful demos, use the Variable"
-        " component. Please see the getting started for more information."
-    )

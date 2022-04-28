@@ -51,7 +51,7 @@ class TestTextbox(unittest.TestCase):
             restored = text_input.restore_flagged(tmpdirname, to_save, None)
             self.assertEqual(restored, "Hello World!")
 
-        with self.assertWarns(DeprecationWarning):
+        with self.assertWarns(Warning):
             _ = gr.Textbox(type="number")
 
         self.assertEqual(
@@ -489,7 +489,7 @@ class TestImage(unittest.TestCase):
         image_input = gr.Image(invert_colors=True)
         self.assertIsNotNone(image_input.preprocess(img))
         image_input.preprocess(img)
-        with self.assertWarns(DeprecationWarning):
+        with self.assertWarns(Warning):
             file_image = gr.Image(type="file")
             file_image.preprocess(deepcopy(media_data.BASE64_IMAGE))
         file_image = gr.Image(type="filepath")
@@ -526,7 +526,7 @@ class TestImage(unittest.TestCase):
                 "data:image/png;base64,iVBORw0KGgoAAA"
             )
         )
-        with self.assertWarns(DeprecationWarning):
+        with self.assertWarns(Warning):
             plot_output = gr.Image(plot=True)
 
         xpoints = np.array([0, 6])
