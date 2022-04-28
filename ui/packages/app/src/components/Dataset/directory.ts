@@ -25,5 +25,6 @@ export const component_map = {
 	video: ExampleVideo,
 	file: ExampleFile,
 	dataframe: ExampleDataframe,
-	model3d: ExampleModel3D
+	model3d: ExampleModel3D,
+	integer: ExampleNumber
 };

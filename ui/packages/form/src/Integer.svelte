@@ -2,7 +2,7 @@
 	import { createEventDispatcher, tick } from "svelte";
 	import { BlockTitle, Block } from "@gradio/atoms";
 
-	export let n: number = 0;
+	export let value: number = 0;
 	export let disabled: boolean = false;
 	export let label: string;
 	export let style: string = "";
@@ -25,15 +25,15 @@
 		}
 	}
 
-	function validator(node, value) {
-	return {
-    	update(value) {
-			n = Math.floor(value);
-      	}
-    	}
+	function validator(node, n) {
+		return {
+			update(n) {
+				value = Math.floor(n);
+			}
+		};
 	}
 
-	$: handle_change(n);
+	$: handle_change(value);
 </script>
 
 <!-- svelte-ignore a11y-label-has-associated-control -->
@@ -42,8 +42,8 @@
 	<input
 		type="number"
 		class="gr-box gr-input w-full gr-text-input"
-		bind:value={n}
-		use:validator={n}
+		bind:value
+		use:validator={value}
 		on:keypress={handle_keypress}
 		{disabled}
 	/>
