@@ -117,7 +117,11 @@ class Block:
 
 class BlockContext(Block):
     def __init__(
-        self, visible: bool = True, css: Optional[Dict[str, str]] = None, render: bool = True, **kwargs
+        self,
+        visible: bool = True,
+        css: Optional[Dict[str, str]] = None,
+        render: bool = True,
+        **kwargs,
     ):
         """
         css: Css rules to apply to block.
