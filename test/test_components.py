@@ -195,6 +195,47 @@ class TestNumber(unittest.TestCase):
             },
         )
 
+    def test_component_functions_integer(self):
+        """
+        Preprocess, postprocess, serialize, save_flagged, restore_flagged, generate_sample, set_interpret_parameters, get_interpretation_neighbors, get_template_context
+
+        """
+        numeric_input = gr.Number(integer=True)
+        self.assertEqual(numeric_input.preprocess(3), 3)
+        self.assertEqual(numeric_input.preprocess(None), None)
+        self.assertEqual(numeric_input.preprocess_example(3), 3)
+        self.assertEqual(numeric_input.postprocess(3), 3)
+        self.assertEqual(numeric_input.postprocess(2.14), 2)
+        self.assertEqual(numeric_input.postprocess(None), None)
+        self.assertEqual(numeric_input.serialize(3, True), 3)
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            to_save = numeric_input.save_flagged(tmpdirname, "numeric_input", 3, None)
+            self.assertEqual(to_save, 3)
+            restored = numeric_input.restore_flagged(tmpdirname, to_save, None)
+            self.assertEqual(restored, 3)
+        self.assertIsInstance(numeric_input.generate_sample(), int)
+        numeric_input.set_interpret_parameters(steps=3, delta=1, delta_type="absolute")
+        self.assertEqual(
+            numeric_input.get_interpretation_neighbors(1),
+            ([-2.0, -1.0, 0.0, 2.0, 3.0, 4.0], {}),
+        )
+        numeric_input.set_interpret_parameters(steps=3, delta=1, delta_type="percent")
+        self.assertEqual(
+            numeric_input.get_interpretation_neighbors(1),
+            ([0.97, 0.98, 0.99, 1.01, 1.02, 1.03], {}),
+        )
+        self.assertEqual(
+            numeric_input.get_template_context(),
+            {
+                "default_value": None,
+                "name": "integer",
+                "show_label": True,
+                "label": None,
+                "css": {},
+                "interactive": None,
+            },
+        )
+
     def test_in_interface_as_input(self):
         """
         Interface, process, interpret

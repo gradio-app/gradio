@@ -630,6 +630,7 @@ class Number(Changeable, Submittable, IOComponent):
         interactive: Optional[bool] = None,
         visible: bool = True,
         elem_id: Optional[str] = None,
+        integer: bool = False,
         **kwargs,
     ):
         """
@@ -651,6 +652,7 @@ class Number(Changeable, Submittable, IOComponent):
             elem_id=elem_id,
             **kwargs,
         )
+        self.integer = integer
 
     def get_config(self):
         return {
@@ -674,7 +676,10 @@ class Number(Changeable, Submittable, IOComponent):
             "__type__": "update",
         }
 
-    def preprocess(self, x: float | None) -> Optional[float]:
+    def get_block_name(self) -> str:
+        return "integer" if self.integer else "number"
+
+    def preprocess(self, x: int | float | None) -> Optional[float]:
         """
         Parameters:
         x (string): numeric input as a string
@@ -683,7 +688,7 @@ class Number(Changeable, Submittable, IOComponent):
         """
         if x is None:
             return None
-        return float(x)
+        return int(x) if self.integer else float(x)
 
     def preprocess_example(self, x: float | None) -> float | None:
         """
@@ -693,7 +698,7 @@ class Number(Changeable, Submittable, IOComponent):
         if x is None:
             return None
         else:
-            return float(x)
+            return int(x) if self.integer else float(x)
 
     def set_interpret_parameters(
         self, steps: int = 3, delta: float = 1, delta_type: str = "percent"
@@ -734,7 +739,7 @@ class Number(Changeable, Submittable, IOComponent):
         return interpretation
 
     def generate_sample(self) -> float:
-        return 1.0
+        return 1 if self.integer else 1.0
 
     # Output Functionalities
     def postprocess(self, y: float | None):
@@ -744,7 +749,7 @@ class Number(Changeable, Submittable, IOComponent):
         if y is None:
             return None
         else:
-            return float(y)
+            return int(y) if self.integer else float(y)
 
     def deserialize(self, y):
         """
