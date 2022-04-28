@@ -3090,7 +3090,6 @@ class Markdown(Component):
         self,
         default_value: str = "",
         *,
-        label: Optional[str] = None,
         css: Optional[Dict] = None,
         **kwargs,
     ):
@@ -3100,7 +3099,7 @@ class Markdown(Component):
         label (str): component name
         css (dict): optional css parameters for the component
         """
-        super().__init__(label=label, css=css, **kwargs)
+        super().__init__(css=css, **kwargs)
         self.md = MarkdownIt()
         unindented_default_value = inspect.cleandoc(default_value)
         self.default_value = self.md.render(unindented_default_value)
@@ -3193,11 +3192,10 @@ class Dataset(Component):
         components: List[Component],
         samples: List[List[Any]],
         type: str = "values",
-        label: Optional[str] = None,
         css: Optional[Dict] = None,
         **kwargs,
     ):
-        super().__init__(label=label, css=css, **kwargs)
+        super().__init__(css=css, **kwargs)
         self.components = components
         self.type = type
         self.headers = [c.label for c in components]
@@ -3274,11 +3272,10 @@ class Interpretation(Component):
         self,
         component: Component,
         *,
-        label: Optional[str] = None,
         css: Optional[Dict] = None,
         **kwargs,
     ):
-        super().__init__(label=label, css=css, **kwargs)
+        super().__init__(css=css, **kwargs)
         self.component = component
 
     def get_template_context(self):

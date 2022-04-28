@@ -1,29 +1,29 @@
 import gradio as gr
 
-text_identity, text_input, text_output = gr.Blocks(), gr.Blocks(), gr.Blocks()
+identity_demo, input_demo, output_demo = gr.Blocks(), gr.Blocks(), gr.Blocks()
 
-with text_identity:
+with identity_demo:
     gr.Interface(lambda x:x, "text", "text")
 
-with text_input:
+with input_demo:
     t = gr.Textbox(label="Enter your text here")
     with gr.Row():
         btn = gr.Button("Submit")
         clr = gr.Button("Clear")
     clr.click(lambda x: "", t, t)
 
-with text_output:
+with output_demo:
     gr.Textbox("This is a static output")
 
 with gr.Blocks() as demo:
     gr.Markdown("Three demos in one!")
     with gr.Tabs():
         with gr.TabItem("Text Identity"):
-            text_identity.render()
+            identity_demo.render()
         with gr.TabItem("Text Input"):
-            text_input.render()
+            input_demo.render()
         with gr.TabItem("Text Static"):
-            text_output.render()
+            output_demo.render()
     
 
 if __name__ == "__main__":
