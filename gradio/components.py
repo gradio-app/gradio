@@ -36,12 +36,7 @@ class Component(Block):
         css: Optional[Dict] = None,
         **kwargs,
     ):
-        if "optional" in kwargs:
-            warnings.warn(
-                "Usage of optional is deprecated, and it has no effect",
-                DeprecationWarning,
-            )
-        super().__init__(css=css)
+        super().__init__(css=css, **kwargs)
 
     def __str__(self):
         return self.__repr__()
@@ -268,16 +263,6 @@ class Textbox(IOComponent):
         placeholder (str): placeholder hint to provide behind textarea.
         label (str): component name in interface.
         """
-        if "numeric" in kwargs:
-            warnings.warn(
-                "The 'numeric' type has been deprecated. Use the Number component instead.",
-                DeprecationWarning,
-            )
-        if "type" in kwargs:
-            warnings.warn(
-                "The 'type' parameter has been deprecated. Use the Number component instead if you need it.",
-                DeprecationWarning,
-            )
         default_value = str(default_value)
         self.lines = lines
         self.max_lines = max_lines
@@ -1134,15 +1119,7 @@ class Image(IOComponent):
         type (str): The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
         label (str): component name in interface.
         """
-        if "plot" in kwargs:
-            warnings.warn(
-                "The 'plot' parameter has been deprecated. Use the new Plot() component instead",
-                DeprecationWarning,
-            )
-            self.type = "plot"
-        else:
-            self.type = type
-
+        self.type = type
         self.default_value = (
             processing_utils.encode_url_or_file_to_base64(default_value)
             if default_value
@@ -1953,8 +1930,6 @@ class File(IOComponent):
         type (str): Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name, "binary" returns an bytes object.
         label (str): component name in interface.
         """
-        if "keep_filename" in kwargs:
-            warnings.warn("keep_filename is deprecated", DeprecationWarning)
         self.default_value = (
             processing_utils.encode_url_or_file_to_base64(default_value)
             if default_value
@@ -3115,7 +3090,6 @@ class Markdown(Component):
         self,
         default_value: str = "",
         *,
-        label: Optional[str] = None,
         css: Optional[Dict] = None,
         **kwargs,
     ):
@@ -3125,7 +3099,7 @@ class Markdown(Component):
         label (str): component name
         css (dict): optional css parameters for the component
         """
-        super().__init__(label=label, css=css, **kwargs)
+        super().__init__(css=css, **kwargs)
         self.md = MarkdownIt()
         unindented_default_value = inspect.cleandoc(default_value)
         self.default_value = self.md.render(unindented_default_value)
@@ -3143,7 +3117,6 @@ class Button(Component):
         self,
         default_value: str = "",
         *,
-        label: Optional[str] = None,
         css: Optional[Dict] = None,
         **kwargs,
     ):
@@ -3153,7 +3126,7 @@ class Button(Component):
         label (str): component name
         css (dict): optional css parameters for the component
         """
-        super().__init__(label=label, css=css, **kwargs)
+        super().__init__(css=css, **kwargs)
         self.default_value = default_value
 
     def get_template_context(self):
@@ -3219,11 +3192,10 @@ class Dataset(Component):
         components: List[Component],
         samples: List[List[Any]],
         type: str = "values",
-        label: Optional[str] = None,
         css: Optional[Dict] = None,
         **kwargs,
     ):
-        super().__init__(label=label, css=css, **kwargs)
+        super().__init__(css=css, **kwargs)
         self.components = components
         self.type = type
         self.headers = [c.label for c in components]
@@ -3300,11 +3272,10 @@ class Interpretation(Component):
         self,
         component: Component,
         *,
-        label: Optional[str] = None,
         css: Optional[Dict] = None,
         **kwargs,
     ):
-        super().__init__(label=label, css=css, **kwargs)
+        super().__init__(css=css, **kwargs)
         self.component = component
 
     def get_template_context(self):
@@ -3314,10 +3285,37 @@ class Interpretation(Component):
         }
 
 
+class StatusTracker(Component):
+    """
+    Used to indicate status of a function call. Event listeners can bind to a StatusTracker with 'status=' keyword argument.
+    """
+
+    def __init__(
+        self,
+        *,
+        cover_container: bool = False,
+        css: Optional[Dict] = None,
+        **kwargs,
+    ):
+        """
+        Parameters:
+        cover_container (bool): If True, will expand to cover parent container while function pending.
+        label (str): component name
+        css (dict): optional css parameters for the component
+        """
+        super().__init__(css=css, **kwargs)
+        self.cover_container = cover_container
+
+    def get_template_context(self):
+        return {
+            "cover_container": self.cover_container,
+            **super().get_template_context(),
+        }
+
+
 def component(cls_name: str):
     """
     Returns a component or template with the given class name, or raises a ValueError if not found.
-
     @param cls_name: lower-case string class name of a component
     @return cls: the component class
     """
@@ -3353,32 +3351,3 @@ def get_component_instance(comp: str | dict | Component):
         raise ValueError(
             f"Component must provided as a `str` or `dict` or `Component` but is {comp}"
         )
-
-
-class StatusTracker(Component):
-    """
-    Used to indicate status of a function call. Event listeners can bind to a StatusTracker with 'status=' keyword argument.
-    """
-
-    def __init__(
-        self,
-        *,
-        cover_container: bool = False,
-        label: Optional[str] = None,
-        css: Optional[Dict] = None,
-        **kwargs,
-    ):
-        """
-        Parameters:
-        cover_container (bool): If True, will expand to cover parent container while function pending.
-        label (str): component name
-        css (dict): optional css parameters for the component
-        """
-        super().__init__(label=label, css=css, **kwargs)
-        self.cover_container = cover_container
-
-    def get_template_context(self):
-        return {
-            "cover_container": self.cover_container,
-            **super().get_template_context(),
-        }

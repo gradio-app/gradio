@@ -1,15 +1,16 @@
 from __future__ import annotations
 
-import enum
 import getpass
 import os
 import sys
 import time
+import warnings
 import webbrowser
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
 from gradio import encryptor, networking, queueing, strings, utils
 from gradio.context import Context
+from gradio.deprecation import check_deprecated_parameters
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from fastapi.applications import FastAPI
@@ -19,12 +20,13 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 
 class Block:
-    def __init__(self, css=None, render=True):
+    def __init__(self, css=None, render=True, **kwargs):
         self._id = Context.id
         Context.id += 1
         self.css = css if css is not None else {}
         if render:
             self.render()
+        check_deprecated_parameters(self.__class__.__name__, **kwargs)
 
     def render(self):
         """
@@ -34,7 +36,24 @@ class Block:
             Context.block.children.append(self)
         if Context.root_block is not None:
             Context.root_block.blocks[self._id] = self
-        self.events = []
+
+    def unrender(self):
+        """
+        Removes self from BlockContext if it has been rendered (otherwise does nothing).
+        Only deletes the first occurrence of self in BlockContext. Removes from the
+        layout and collection of Blocks, but does not delete any event triggers.
+        """
+        if Context.block is not None:
+            try:
+                Context.block.children.remove(self)
+            except ValueError:
+                pass
+        if Context.root_block is not None:
+            try:
+                del Context.root_block.blocks[self._id]
+            except KeyError:
+                pass
+        return self
 
     def unrender(self):
         """
@@ -116,14 +135,18 @@ class Block:
 
 class BlockContext(Block):
     def __init__(
-        self, visible: bool = True, css: Optional[Dict[str, str]] = None, render=True
+        self,
+        visible: bool = True,
+        css: Optional[Dict[str, str]] = None,
+        render: bool = True,
+        **kwargs,
     ):
         """
         css: Css rules to apply to block.
         """
         self.children = []
         self.visible = visible
-        super().__init__(css=css, render=render)
+        super().__init__(css=css, render=render, **kwargs)
 
     def __enter__(self):
         self.parent = Context.block
@@ -225,6 +248,7 @@ class Blocks(BlockContext):
         theme: str = "default",
         analytics_enabled: Optional[bool] = None,
         mode: str = "blocks",
+        **kwargs,
     ):
 
         # Cleanup shared parameters with Interface #TODO: is this part still necessary after Interface with Blocks?
@@ -242,7 +266,7 @@ class Blocks(BlockContext):
             else os.getenv("GRADIO_ANALYTICS_ENABLED", "True") == "True"
         )
 
-        super().__init__(render=False)
+        super().__init__(render=False, **kwargs)
         self.blocks: Dict[int, Block] = {}
         self.fns: List[BlockFunction] = []
         self.dependencies = []
@@ -456,9 +480,8 @@ class Blocks(BlockContext):
         self.width = width
         self.favicon_path = favicon_path
 
-        if hasattr(self, "encrypt") and self.encrypt is None:
-            self.encrypt = encrypt
-        if hasattr(self, "encrypt") and self.encrypt:
+        self.encrypt = encrypt
+        if self.encrypt:
             self.encryption_key = encryptor.get_key(
                 getpass.getpass("Enter key for encryption: ")
             )
