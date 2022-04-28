@@ -6,9 +6,7 @@ def simple_deprecated_notice(term: str) -> str:
 
 
 def use_in_launch(term: str) -> str:
-    return (
-        f"`{term}` is deprecated in `Interface()`, please use it within `launch()` instead."
-    )
+    return f"`{term}` is deprecated in `Interface()`, please use it within `launch()` instead."
 
 
 DEPRECATION_MESSAGE = {
