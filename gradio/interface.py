@@ -181,8 +181,8 @@ class Interface(Blocks):
             inputs[inputs.index("state")] = state_variable
             outputs[outputs.index("state")] = state_variable
 
-        self.input_components = [get_component_instance(i) for i in inputs]
-        self.output_components = [get_component_instance(o) for o in outputs]
+        self.input_components = [get_component_instance(i).unrender() for i in inputs]
+        self.output_components = [get_component_instance(o).unrender() for o in outputs]
         for o in self.output_components:
             o.interactive = (
                 False  # Force output components to be treated as non-interactive
@@ -549,6 +549,9 @@ class Interface(Blocks):
                     status_tracker=status_tracker,
                 )
 
+            if self.article:
+                Markdown(self.article)
+
     def __call__(self, *params):
         if (
             self.api_mode
@@ -573,25 +576,6 @@ class Interface(Blocks):
         for component in self.output_components:
             repr += "\n|-{}".format(str(component))
         return repr
-
-    def render_basic_interface(self):
-        Interface(
-            fn=self.predict,
-            inputs=self.input_components,
-            outputs=self.output_components,
-            examples=self.examples,
-            examples_per_page=self.examples_per_page,
-            live=self.live,
-            layout=self.layout,
-            interpretation=self.interpretation,
-            num_shap=self.num_shap,
-            title=self.title,
-            description=self.description,
-            article=self.article,
-            allow_flagging=self.allow_flagging,
-            flagging_options=self.flagging_options,
-            flagging_dir=self.flagging_dir,
-        )
 
     def run_prediction(
         self,
@@ -755,7 +739,7 @@ class TabbedInterface(Blocks):
             with Tabs():
                 for (interface, tab_name) in zip(interface_list, tab_names):
                     with TabItem(label=tab_name):
-                        interface.render_basic_interface()
+                        interface.render()
 
 
 def close_all(verbose: bool = True) -> None:
