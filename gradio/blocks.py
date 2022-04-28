@@ -43,8 +43,6 @@ class Block:
         Only deletes the first occurrence of self in BlockContext. Removes from the
         layout and collection of Blocks, but does not delete any event triggers.
         """
-        self._id = Context.id
-        Context.id += 1
         if Context.block is not None:
             try:
                 Context.block.children.remove(self)
