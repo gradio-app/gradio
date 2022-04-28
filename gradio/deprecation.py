@@ -40,5 +40,5 @@ def check_deprecated_parameters(**kwargs) -> None:
 
     if len(kwargs) != 0:
         warnings.warn(
-            f"You have unused kwarg parameters,  please remove usage of them: {kwargs}"
+            f"You have unused kwarg parameters, please remove them: {kwargs}"
         )
