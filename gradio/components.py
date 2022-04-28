@@ -3119,7 +3119,6 @@ class Button(Component):
         self,
         default_value: str = "",
         *,
-        label: Optional[str] = None,
         css: Optional[Dict] = None,
         **kwargs,
     ):
@@ -3129,7 +3128,7 @@ class Button(Component):
         label (str): component name
         css (dict): optional css parameters for the component
         """
-        super().__init__(label=label, css=css, **kwargs)
+        super().__init__(css=css, **kwargs)
         self.default_value = default_value
 
     def get_template_context(self):
@@ -3299,7 +3298,6 @@ class StatusTracker(Component):
         self,
         *,
         cover_container: bool = False,
-        label: Optional[str] = None,
         css: Optional[Dict] = None,
         **kwargs,
     ):
@@ -3309,7 +3307,7 @@ class StatusTracker(Component):
         label (str): component name
         css (dict): optional css parameters for the component
         """
-        super().__init__(label=label, css=css, **kwargs)
+        super().__init__(css=css, **kwargs)
         self.cover_container = cover_container
 
     def get_template_context(self):

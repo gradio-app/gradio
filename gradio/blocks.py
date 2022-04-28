@@ -26,7 +26,7 @@ class Block:
         if without_rendering:
             return
         self.render()
-        check_deprecated_parameters(**kwargs)
+        check_deprecated_parameters(self.__class__.__name__, **kwargs)
 
     def render(self):
         """
