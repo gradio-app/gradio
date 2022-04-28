@@ -18,7 +18,6 @@ from typing import TYPE_CHECKING, Any, Callable, List, Optional, Tuple
 
 from markdown_it import MarkdownIt
 from mdit_py_plugins.footnote import footnote_plugin
-from torch import InterfaceType
 
 from gradio import interpretation, utils
 from gradio.blocks import Blocks, Column, Row, TabItem, Tabs
