@@ -105,7 +105,6 @@ class Interface(Blocks):
         fn: Callable | List[Callable],
         inputs: str | Component | List[str | Component] = None,
         outputs: str | Component | List[str | Component] = None,
-        verbose: bool = False,
         examples: Optional[List[Any] | List[List[Any]] | str] = None,
         cache_examples: Optional[bool] = None,
         examples_per_page: int = 10,
@@ -113,7 +112,6 @@ class Interface(Blocks):
         layout: str = "unaligned",
         show_input: bool = True,
         show_output: bool = True,
-        capture_session: Optional[bool] = None,
         interpretation: Optional[Callable | str] = None,
         num_shap: float = 2.0,
         theme: Optional[str] = None,
@@ -123,27 +121,18 @@ class Interface(Blocks):
         article: Optional[str] = None,
         thumbnail: Optional[str] = None,
         css: Optional[str] = None,
-        height=None,
-        width=None,
-        allow_screenshot: bool = False,
         allow_flagging: Optional[str] = None,
         flagging_options: List[str] = None,
-        encrypt=None,
-        show_tips=None,
         flagging_dir: str = "flagged",
         analytics_enabled: Optional[bool] = None,
-        server_name=None,
-        server_port=None,
-        enable_queue=None,
-        api_mode=None,
         flagging_callback: FlaggingCallback = CSVLogger(),
-    ):  # TODO: (faruk) Let's remove depreceated parameters in the version 3.0.0
+        **kwargs,
+    ):
         """
         Parameters:
         fn (Union[Callable, List[Callable]]): the function to wrap an interface around.
         inputs (Union[str, InputComponent, List[Union[str, InputComponent]]]): a single Gradio input component, or list of Gradio input components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of input components should match the number of parameters in fn.
         outputs (Union[str, OutputComponent, List[Union[str, OutputComponent]]]): a single Gradio output component, or list of Gradio output components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of output components should match the number of values returned by fn.
-        verbose (bool): DEPRECATED. Whether to print detailed information during launch.
         examples (Union[List[List[Any]], str]): sample inputs for the function; if provided, appears below the UI components and can be used to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided. If there are multiple input components and a directory is provided, a log.csv file must be present in the directory to link corresponding inputs.
         examples_per_page (int): If examples are provided, how many to display per page.
         cache_examples(Optional[bool]):
@@ -152,7 +141,6 @@ class Interface(Blocks):
             The default option elsewhere is False.
         live (bool): whether the interface should automatically reload on change.
         layout (str): Layout of input and output panels. "horizontal" arranges them as two columns of equal height, "unaligned" arranges them as two columns of unequal height, and "vertical" arranges them vertically.
-        capture_session (bool): DEPRECATED. If True, captures the default graph and session (needed for Tensorflow 1.x)
         interpretation (Union[Callable, str]): function that provides interpretation explaining prediction output. Pass "default" to use simple built-in interpreter, "shap" to use a built-in shapley-based interpreter, or your own custom interpretation function.
         num_shap (float): a multiplier that determines how many examples are computed for shap-based interpretation. Increasing this value will increase shap runtime, but improve results. Only applies if interpretation is "shap".
         title (str): a title for the interface; if provided, appears above the input and output components.
@@ -161,18 +149,13 @@ class Interface(Blocks):
         thumbnail (str): path to image or src to use as display picture for models listed in gradio.app/hub
         theme (str): Theme to use - one of "default", "huggingface", "seafoam", "grass", "peach". Add "dark-" prefix, e.g. "dark-peach" for dark theme (or just "dark" for the default dark theme).
         css (str): custom css or path to custom css file to use with interface.
-        allow_screenshot (bool): DEPRECATED if False, users will not see a button to take a screenshot of the interface.
         allow_flagging (str): one of "never", "auto", or "manual". If "never" or "auto", users will not see a button to flag an input and output. If "manual", users will see a button to flag. If "auto", every prediction will be automatically flagged. If "manual", samples are flagged when the user clicks flag button. Can be set with environmental variable GRADIO_ALLOW_FLAGGING.
         flagging_options (List[str]): if provided, allows user to select from the list of options when flagging. Only applies if allow_flagging is "manual".
-        encrypt (bool): DEPRECATED. If True, flagged data will be encrypted by key provided by creator at launch
         flagging_dir (str): what to name the dir where flagged data is stored.
-        show_tips (bool): DEPRECATED. if True, will occasionally show tips about new Gradio features
-        enable_queue (bool): DEPRECATED. if True, inference requests will be served through a queue instead of with parallel threads. Required for longer inference times (> 1min) to prevent timeout.
-        api_mode (bool): DEPRECATED. If True, will skip preprocessing steps when the Interface is called() as a function (should remain False unless the Interface is loaded from an external repo)
-        server_name (str): DEPRECATED. Name of the server to use for serving the interface - pass in launch() instead.
-        server_port (int): DEPRECATED. Port of the server to use for serving the interface - pass in launch() instead.
         """
-        super().__init__(analytics_enabled=analytics_enabled, mode="interface")
+        super().__init__(
+            analytics_enabled=analytics_enabled, mode="interface", **kwargs
+        )
 
         if inputs is None:
             inputs = []
@@ -221,50 +204,18 @@ class Interface(Blocks):
         else:
             raise ValueError("Invalid value for parameter: interpretation")
 
+        self.api_mode = False
         self.predict = fn
         self.predict_durations = [[0, 0]] * len(fn)
         self.function_names = [func.__name__ for func in fn]
         self.__name__ = ", ".join(self.function_names)
-
-        if verbose:
-            warnings.warn(
-                "The `verbose` parameter in the `Interface`"
-                "is deprecated and has no effect."
-            )
-        if allow_screenshot:
-            warnings.warn(
-                "The `allow_screenshot` parameter in the `Interface`"
-                "is deprecated and has no effect."
-            )
 
         self.live = live
         self.layout = layout
         self.show_input = show_input
         self.show_output = show_output
         self.flag_hash = random.getrandbits(32)
-        self.capture_session = capture_session
 
-        if capture_session is not None:
-            warnings.warn(
-                "The `capture_session` parameter in the `Interface`"
-                " is deprecated and may be removed in the future."
-            )
-            try:
-                import tensorflow as tf
-
-                self.session = tf.get_default_graph(), tf.keras.backend.get_session()
-            except (ImportError, AttributeError):
-                # If they are using TF >= 2.0 or don't have TF,
-                # just ignore this parameter.
-                pass
-
-        if server_name is not None or server_port is not None:
-            raise DeprecationWarning(
-                "The `server_name` and `server_port` parameters in `Interface`"
-                "are deprecated. Please pass into launch() instead."
-            )
-
-        self.session = None
         self.title = title
 
         CLEANER = re.compile("<.*?>")
@@ -324,14 +275,6 @@ class Interface(Blocks):
             )
         self.theme = theme
 
-        self.height = height
-        self.width = width
-        if self.height is not None or self.width is not None:
-            warnings.warn(
-                "The `height` and `width` parameters in `Interface` "
-                "are deprecated and should be passed into launch()."
-            )
-
         if css is not None and os.path.exists(css):
             with open(css) as css_file:
                 self.css = css_file.read()
@@ -388,7 +331,6 @@ class Interface(Blocks):
         self.examples_per_page = examples_per_page
 
         self.simple_server = None
-        self.allow_screenshot = allow_screenshot
 
         # For analytics_enabled and allow_flagging: (1) first check for
         # parameter, (2) check for env variable, (3) default to True/"manual"
@@ -434,47 +376,20 @@ class Interface(Blocks):
         self.share_url = None
         self.local_url = None
 
-        if show_tips is not None:
-            warnings.warn(
-                "The `show_tips` parameter in the `Interface` is deprecated. Please use the `show_tips` parameter in `launch()` instead"
-            )
-
         self.requires_permissions = any(
             [component.requires_permissions for component in self.input_components]
         )
 
         self.favicon_path = None
-        self.height = height
-        self.width = width
-        if self.height is not None or self.width is not None:
-            warnings.warn(
-                "The `width` and `height` parameters in the `Interface` class"
-                "will be deprecated. Please provide these parameters"
-                "in `launch()` instead"
-            )
-
-        self.encrypt = encrypt
-        if self.encrypt is not None:
-            warnings.warn(
-                "The `encrypt` parameter in the `Interface` class"
-                "will be deprecated. Please provide this parameter"
-                "in `launch()` instead"
-            )
-
-        if api_mode is not None:
-            warnings.warn("The `api_mode` parameter in the `Interface` is deprecated.")
-        self.api_mode = False
 
         data = {
             "fn": fn,
             "inputs": inputs,
             "outputs": outputs,
             "live": live,
-            "capture_session": capture_session,
             "ip_address": self.ip_address,
             "interpretation": interpretation,
             "allow_flagging": allow_flagging,
-            "allow_screenshot": allow_screenshot,
             "custom_css": self.css is not None,
             "theme": self.theme,
         }
@@ -685,12 +600,7 @@ class Interface(Blocks):
         output_component_counter = 0
 
         for predict_fn in self.predict:
-            if self.capture_session and self.session is not None:  # For TF 1.x
-                graph, sess = self.session
-                with graph.as_default(), sess.as_default():
-                    prediction = predict_fn(*processed_input)
-            else:
-                prediction = predict_fn(*processed_input)
+            prediction = predict_fn(*processed_input)
 
             if len(self.output_components) == len(self.predict):
                 prediction = [prediction]
@@ -835,11 +745,3 @@ class TabbedInterface(Blocks):
 def close_all(verbose: bool = True) -> None:
     for io in Interface.get_instances():
         io.close(verbose)
-
-
-def reset_all() -> None:
-    warnings.warn(
-        "The `reset_all()` method has been renamed to `close_all()` "
-        "and will be deprecated. Please use `close_all()` instead."
-    )
-    close_all()
