@@ -6,6 +6,13 @@ body:
     attributes:
       value: |
         Thanks for taking the time to fill out this bug report!
+  - type: checkboxes
+    attributes:
+      label: Is there an existing issue for this?
+      description: Please search to see if an issue already exists for the issue you encountered.
+      options:
+        - label: I have searched the existing issues
+          required: true
   - type: textarea
     id: bug-description
     attributes:
