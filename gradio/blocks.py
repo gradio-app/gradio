@@ -20,24 +20,40 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 
 class Block:
-    def __init__(self, without_rendering=False, css=None, **kwargs):
-        self._id = None
+    def __init__(self, css=None, render=True, **kwargs):
+        self._id = Context.id
+        Context.id += 1
         self.css = css if css is not None else {}
-        if without_rendering:
-            return
-        self.render()
+        if render:
+            self.render()
         check_deprecated_parameters(self.__class__.__name__, **kwargs)
 
     def render(self):
         """
         Adds self into appropriate BlockContext
         """
-        self._id = Context.id
-        Context.id += 1
         if Context.block is not None:
             Context.block.children.append(self)
         if Context.root_block is not None:
             Context.root_block.blocks[self._id] = self
+
+    def unrender(self):
+        """
+        Removes self from BlockContext if it has been rendered (otherwise does nothing).
+        Only deletes the first occurrence of self in BlockContext. Removes from the
+        layout and collection of Blocks, but does not delete any event triggers.
+        """
+        if Context.block is not None:
+            try:
+                Context.block.children.remove(self)
+            except ValueError:
+                pass
+        if Context.root_block is not None:
+            try:
+                del Context.root_block.blocks[self._id]
+            except KeyError:
+                pass
+        return self
 
     def get_block_name(self) -> str:
         """
@@ -99,14 +115,18 @@ class Block:
 
 class BlockContext(Block):
     def __init__(
-        self, visible: bool = True, css: Optional[Dict[str, str]] = None, **kwargs
+        self,
+        visible: bool = True,
+        css: Optional[Dict[str, str]] = None,
+        render: bool = True,
+        **kwargs,
     ):
         """
         css: Css rules to apply to block.
         """
         self.children = []
         self.visible = visible
-        super().__init__(css=css, **kwargs)
+        super().__init__(css=css, render=render, **kwargs)
 
     def __enter__(self):
         self.parent = Context.block
@@ -226,8 +246,8 @@ class Blocks(BlockContext):
             else os.getenv("GRADIO_ANALYTICS_ENABLED", "True") == "True"
         )
 
-        super().__init__(**kwargs)
-        self.blocks = {}
+        super().__init__(render=False, **kwargs)
+        self.blocks: Dict[int, Block] = {}
         self.fns: List[BlockFunction] = []
         self.dependencies = []
         self.mode = mode
@@ -240,8 +260,12 @@ class Blocks(BlockContext):
         self.favicon_path = None
 
     def render(self):
-        self._id = Context.id
-        Context.id += 1
+        if Context.root_block is not None:
+            Context.root_block.blocks.update(self.blocks)
+            Context.root_block.fns.extend(self.fns)
+            Context.root_block.dependencies.extend(self.dependencies)
+        if Context.block is not None:
+            Context.block.children.extend(self.children)
 
     def process_api(
         self,
