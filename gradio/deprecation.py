@@ -2,7 +2,7 @@ import warnings
 
 
 def simple_deprecated_notice(term: str) -> str:
-    return f"'{term} is deprecated, and it has no effect"
+    return f"`{term}` parameter is deprecated, and it has no effect"
 
 
 def use_in_launch(term: str) -> str:
