@@ -445,7 +445,7 @@ class Interface(Blocks):
                 else:
                     component.label = "output " + str(i)
 
-        if self.cache_examples:
+        if self.cache_examples and examples:
             cache_interface_examples(self)
 
         if self.allow_flagging != "never":
