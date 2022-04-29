@@ -1,4 +1,4 @@
-# Building_from_the_ONNX_Model_Zoo
+# Gradio and ONNX on Hugging Face
 
 related_spaces: https://huggingface.co/spaces/onnx/EfficientNet-Lite4
 tags: ONNX, SPACES
