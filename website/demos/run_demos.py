@@ -25,7 +25,8 @@ for demo_name, port in demo_port_sets:
     demo_file = os.path.join(demo_folder, "run.py")
     with open(demo_file, "r") as file:
         filedata = file.read()
-    filedata = filedata.replace(f"iface.launch()", f"iface.launch(server_port={port})")
+    assert "demo.launch()" in filedata
+    filedata = filedata.replace(f"demo.launch()", f"demo.launch(server_port={port})")
     with open(demo_file, "w") as file:
         file.write(filedata)
     demo_thread = threading.Thread(target=launch_demo, args=(demo_folder,))
