@@ -6,7 +6,7 @@
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 
 	export let label: string = "Textbox";
-	export let value: string = " ";
+	export let value: string = "";
 	export let default_value: string | false = false;
 	export let style: string = "";
 	export let lines: number;
