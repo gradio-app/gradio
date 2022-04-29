@@ -28,7 +28,6 @@
 		targets: Array<number>;
 		inputs: Array<number>;
 		outputs: Array<number>;
-		queue: boolean;
 		status_tracker: number | null;
 		status?: string;
 	}
@@ -40,6 +39,7 @@
 	export let dependencies: Array<Dependency>;
 	export let theme: string;
 	export let style: string | null;
+	export let queue: boolean;
 	export let static_src: string;
 
 	const dynamic_ids = dependencies.reduce((acc, next) => {
@@ -126,7 +126,7 @@
 
 	async function handle_mount({ detail }) {
 		await tick();
-		dependencies.forEach(({ targets, trigger, inputs, outputs, queue }, i) => {
+		dependencies.forEach(({ targets, trigger, inputs, outputs }, i) => {
 			const target_instances: [number, Instance][] = targets.map((t) => [
 				t,
 				instance_map[t]
