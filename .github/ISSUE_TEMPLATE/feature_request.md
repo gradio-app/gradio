@@ -6,7 +6,7 @@ labels: ''
 assignees: ''
 
 ---
-- [] I have searched to see if a similar issue already exists.
+- [ ] I have searched to see if a similar issue already exists.
 
 
 **Is your feature request related to a problem? Please describe.**  
