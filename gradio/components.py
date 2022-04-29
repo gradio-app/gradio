@@ -1136,7 +1136,7 @@ class Image(IOComponent):
         self.test_input = deepcopy(media_data.BASE64_IMAGE)
         self.interpret_by_tokens = True
         super().__init__(
-            label=label, requires_permissions=requires_permissions, **kwargs
+            label=label, requires_permissions=requires_permissions, css=css, **kwargs
         )
 
     def get_template_context(self):
