@@ -264,7 +264,6 @@ class Blocks(BlockContext):
         else:
             self.enable_queue = enable_queue or False
 
-
     def render(self):
         if Context.root_block is not None:
             Context.root_block.blocks.update(self.blocks)
