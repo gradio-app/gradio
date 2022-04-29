@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 @layer components {
-	.gr-gap > * + * {
+	.gr-gap > *:not(.absolute) + * {
 		@apply mt-2;
 	}
 	.gr-form-gap > .form + .form {
