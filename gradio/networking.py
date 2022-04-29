@@ -4,6 +4,7 @@ creating tunnels.
 """
 from __future__ import annotations
 
+import asyncio
 import os
 import socket
 import threading
@@ -15,13 +16,12 @@ import fastapi
 import requests
 import uvicorn
 
-from gradio import queueing
+from gradio.queueing import Queue
 from gradio.routes import create_app
 from gradio.tunneling import create_tunnel
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
     from gradio.blocks import Blocks
-
 
 # By default, the local server will try to open on localhost, port 7860.
 # If that is not available, then it will try 7861, 7862, ... 7959.
@@ -141,11 +141,10 @@ def start_server(
     if app.blocks.enable_queue:
         if auth is not None or app.blocks.encrypt:
             raise ValueError("Cannot queue with encryption or authentication enabled.")
-        queueing.init()
-        app.queue_thread = threading.Thread(
-            target=queueing.queue_thread, args=(path_to_local_server,)
-        )
-        app.queue_thread.start()
+
+        Queue.init()
+        # Did not verify create_task works with this configuration, there are alternatives to run this as well.
+        asyncio.create_task(Queue.start_queuing(path_to_local_server))
     if blocks.save_to is not None:  # Used for selenium tests
         blocks.save_to["port"] = port
 
