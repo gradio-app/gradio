@@ -2,7 +2,7 @@
 
 related_spaces: https://huggingface.co/spaces/onnx/EfficientNet-Lite4
 tags: ONNX, SPACES
-Contributed by Gradio and the [ONNX](https://onnx.ai/) team
+Contributed by Gradio and the <a href="https://onnx.ai/">ONNX</a> team
 
 ## Introduction
 
