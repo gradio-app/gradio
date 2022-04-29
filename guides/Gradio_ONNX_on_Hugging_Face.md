@@ -28,11 +28,11 @@ The [ONNX Model Zoo](https://github.com/onnx/models) is a collection of pre-trai
 
 Gradio lets users demo their machine learning models as a web app all in python code. Gradio wraps a python function into a user inferface and the demos can be launched inside jupyter notebooks, colab notebooks, as well as embedded in your own website and hosted on Hugging Face Spaces for free.
 
-Get started here: https://gradio.app/getting_started
+Get started [here](https://gradio.app/getting_started)
 
 ### Hugging Face Spaces
 
-Hugging Face Spaces is a free hosting option for Gradio demos. Spaces comes with 3 SDK options: Gradio, Streamlit and Static HTML demos. Spaces can be public or private and the workflow is similar to github repos. There are over 2000+ spaces currently on Hugging Face. To learn more about spaces see: https://huggingface.co/spaces/launch
+Hugging Face Spaces is a free hosting option for Gradio demos. Spaces comes with 3 SDK options: Gradio, Streamlit and Static HTML demos. Spaces can be public or private and the workflow is similar to github repos. There are over 2000+ spaces currently on Hugging Face. Learn more about spaces [here](https://huggingface.co/spaces/launch).
 
 ### Hugging Face Models
 
@@ -134,9 +134,9 @@ gr.Interface(inference, gr.inputs.Image(type="filepath"), "label", title=title, 
 ## How to contribute Gradio demos on HF spaces using ONNX models
 
 * Add model to the [onnx model zoo](https://github.com/onnx/models/blob/main/.github/PULL_REQUEST_TEMPLATE.md)
-* Create an account on Hugging Face: https://huggingface.co/join
+* Create an account on Hugging Face [here](https://huggingface.co/join).
 * See list of models left to add to ONNX organization, please refer to the table with the [Models list](https://github.com/onnx/models#models)
-* Add Gradio Demo under your username, see blog for setting up Gradio Demo on Hugging Face: https://huggingface.co/blog/gradio-spaces
-* Request to join ONNX Organization: https://huggingface.co/onnx
+* Add Gradio Demo under your username, see this [blog post](https://huggingface.co/blog/gradio-spaces) for setting up Gradio Demo on Hugging Face. 
+* Request to join ONNX Organization [here](https://huggingface.co/onnx).
 * Once approved transfer model from your username to ONNX organization
 * Add a badge for model in model table, see examples in [Models list](https://github.com/onnx/models#models)
