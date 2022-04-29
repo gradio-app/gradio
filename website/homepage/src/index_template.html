@@ -87,7 +87,9 @@
 iface <span class="token operator">=</span> gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>sketch_recognition<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token string">"sketchpad"</span><span class="token punctuation">,</span> outputs<span class="token operator">=</span><span class="token string">"label"</span><span class="token punctuation">).</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
       </div>
-      <div id="demo_mnist" class="w-full"></div>
+      <div id="demo_mnist" class="w-full">
+        <iframe src="https://hf.space/embed/abidlabs/draw2/+" frameBorder="0" height="400" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+      </div>
     </div>
     <div class="demo mb-16 p-4 border border-gray-300 border-t-0 shadow-lg hidden" demo="2">
       <div class="relative">
@@ -103,7 +105,9 @@ iface <span class="token operator">=</span> gr<span class="token punctuation">.<
 iface <span class="token operator">=</span> gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>question_answer<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">"text"</span><span class="token punctuation">,</span> <span class="token string">"text"</span><span class="token punctuation">],</span> outputs<span class="token operator">=</span>[</span><span class="token string">"textbox"</span><span class="token punctuation">,</span> <span class="token string">"text"</span><span class="token punctuation">]).</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
       </div>
-      <div id="demo_qa" class="w-full"></div>
+      <div id="demo_qa" class="w-full">
+        <iframe src="https://hf.space/embed/abidlabs/question-answering-simple/+" frameBorder="0" height="400" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+      </div>
       </div>
     <div class="demo mb-16 p-4 border border-gray-300 border-t-0 shadow-lg hidden" demo="3">
       <div class="relative">
@@ -119,7 +123,9 @@ iface <span class="token operator">=</span> gr<span class="token punctuation">.<
 iface <span class="token operator">=</span> gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>segment<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token string">"image"</span><span class="token punctuation">,</span> outputs<span class="token operator">=</span><span class="token string">"image"</span><span class="token punctuation">).</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
       </div>
-      <div id="demo_image_classifier" class="w-full"></div>
+      <div id="demo_image_classifier" class="w-full">
+        <iframe src="https://hf.space/embed/abidlabs/Echocardiogram-Segmentation-simple/+" frameBorder="0" height="400" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+      </div>
       </div>
     <div class="demo mb-16 p-4 border border-gray-300 border-t-0 shadow-lg hidden" demo="4">
       <div class="relative">
@@ -138,7 +144,9 @@ iface <span class="token operator">=</span> gr<span class="token punctuation">.<
   outputs<span class="token operator">=</span><span class="token string">"html"</span>
 <span class="token punctuation">)</span><span class="token punctuation">.</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span></code></pre>
       </div>
-      <div id="demo_anime" class="w-full"></div>
+      <div id="demo_anime" class="w-full">
+        <iframe src="https://hf.space/embed/abidlabs/speech-simple/+" frameBorder="0" height="400" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+      </div>
     </div>
   </div>
   <section class="w-full py-8 mb-12 bg-gradient-to-tr from-gray-50 to-gray-200 shadow-inner">
@@ -293,12 +301,12 @@ iface <span class="token operator">=</span> gr<span class="token punctuation">.<
   <script defer id="gradio-library" type="module" crossorigin src="/gradio_static/assets/{{ index_js_file }}"></script>
   <link rel="modulepreload" href="/gradio_static/assets/{{ vendor_js_file }}" />
   <script>
-    document.querySelector("#gradio-library").addEventListener('load', function () {
-      launchGradioFromSpaces("abidlabs/Draw", "#demo_mnist");
-      launchGradioFromSpaces("abidlabs/question-answering", "#demo_qa");
-      launchGradioFromSpaces("abidlabs/Echocardiogram-Segmentation", "#demo_image_classifier");
-      launchGradioFromSpaces("abidlabs/same-person-or-different", "#demo_anime");
-    });
+<!--    document.querySelector("#gradio-library").addEventListener('load', function () {-->
+<!--      launchGradioFromSpaces("abidlabs/Draw", "#demo_mnist");-->
+<!--      launchGradioFromSpaces("abidlabs/question-answering", "#demo_qa");-->
+<!--      launchGradioFromSpaces("abidlabs/Echocardiogram-Segmentation", "#demo_image_classifier");-->
+<!--      launchGradioFromSpaces("abidlabs/same-person-or-different", "#demo_anime");-->
+<!--    });-->
   </script>
 </body>
 
