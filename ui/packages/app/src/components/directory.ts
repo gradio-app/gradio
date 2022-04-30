@@ -20,7 +20,6 @@ export const component_map: Record<string, any> = {
 	json: () => import("./Json"),
 	label: () => import("./Label"),
 	number: () => import("./Number"),
-	integer: () => import("./Integer"),
 	markdown: () => import("./Markdown"),
 	radio: () => import("./Radio"),
 	row: () => import("./Row"),
