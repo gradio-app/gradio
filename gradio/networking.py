@@ -70,6 +70,22 @@ def get_first_available_port(initial: int, final: int) -> int:
     )
 
 
+def configure_app_with_blocks(app: fastapi.FastAPI, blocks: Blocks) -> fastapi.FastAPI:
+    auth = blocks.auth
+    if auth is not None:
+        if not callable(auth):
+            app.auth = {account[0]: account[1] for account in auth}
+        else:
+            app.auth = auth
+    else:
+        app.auth = None
+    app.blocks = blocks
+    app.cwd = os.getcwd()
+    app.favicon_path = blocks.favicon_path
+    app.tokens = {}
+    return app
+
+
 def start_server(
     blocks: Blocks,
     server_name: Optional[str] = None,
@@ -123,23 +139,11 @@ def start_server(
     else:
         path_to_local_server = "http://{}:{}/".format(url_host_name, port)
 
-    auth = blocks.auth
     app = create_app()
-
-    if auth is not None:
-        if not callable(auth):
-            app.auth = {account[0]: account[1] for account in auth}
-        else:
-            app.auth = auth
-    else:
-        app.auth = None
-    app.blocks = blocks
-    app.cwd = os.getcwd()
-    app.favicon_path = blocks.favicon_path
-    app.tokens = {}
-
+    app = configure_app_with_blocks(app, blocks)
+    
     if app.blocks.enable_queue:
-        if auth is not None or app.blocks.encrypt:
+        if blocks.auth is not None or app.blocks.encrypt:
             raise ValueError("Cannot queue with encryption or authentication enabled.")
         queueing.init()
         app.queue_thread = threading.Thread(
