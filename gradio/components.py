@@ -724,8 +724,8 @@ class Number(Changeable, Submittable, IOComponent):
         if self.integer and math.floor(delta) != delta:
             raise ValueError(
                 f"Delta value {delta} is not an integer. Cannot generate valid set of neighbors. "
-                "Use delta_type='absolute' or pick a value of delta such that x * delta is an "
-                "integer."
+                "If delta_type='percent', pick a value of delta such that x * delta is an "
+                "integer. If delta_type='absolute', pick a value of delta that is an integer."
             )
         # run_interpretation will preprocess the neighbors so no need to covert to int here
         negatives = (x + np.arange(-self.interpretation_steps, 0) * delta).tolist()

@@ -229,6 +229,12 @@ class TestNumber(unittest.TestCase):
         with self.assertRaises(ValueError) as error:
             numeric_input.get_interpretation_neighbors(1)
             assert error.msg == "Cannot generate valid set of neighbors"
+        numeric_input.set_interpret_parameters(
+            steps=3, delta=1.24, delta_type="absolute"
+        )
+        with self.assertRaises(ValueError) as error:
+            numeric_input.get_interpretation_neighbors(4)
+            assert error.msg == "Cannot generate valid set of neighbors"
         self.assertEqual(
             numeric_input.get_template_context(),
             {
