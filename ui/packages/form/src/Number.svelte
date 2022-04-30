@@ -6,7 +6,7 @@
 	export let value: number = 0;
 	export let style: Record<string, string> = {};
 	export let disabled: boolean = false;
-	export let integer: boolean = false;
+	export let type: string = "float";
 	export let label: string;
 	export let show_label: boolean;
 
@@ -31,7 +31,7 @@
 	function validator(node, n) {
 		return {
 			update(n) {
-				value = integer ? Math.floor(n) : n;
+				value = type === "integer" ? Math.floor(n) : n;
 			}
 		};
 	}
