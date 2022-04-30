@@ -32,6 +32,7 @@ from gradio.components import (
     Timeseries,
     Variable,
     Video,
+    Gallery,
     component,
 )
 from gradio.flagging import (
