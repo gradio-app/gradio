@@ -187,6 +187,7 @@ class TestNumber(unittest.TestCase):
                 "value": None,
                 "name": "number",
                 "show_label": True,
+                "integer": False,
                 "label": None,
                 "style": {},
                 "elem_id": None,
@@ -200,7 +201,7 @@ class TestNumber(unittest.TestCase):
         Preprocess, postprocess, serialize, save_flagged, restore_flagged, generate_sample, set_interpret_parameters, get_interpretation_neighbors, get_template_context
 
         """
-        numeric_input = gr.Number(integer=True)
+        numeric_input = gr.Number(integer=True, default_value=42)
         self.assertEqual(numeric_input.preprocess(3), 3)
         self.assertEqual(numeric_input.preprocess(None), None)
         self.assertEqual(numeric_input.preprocess_example(3), 3)
@@ -208,6 +209,7 @@ class TestNumber(unittest.TestCase):
         self.assertEqual(numeric_input.postprocess(2.14), 2)
         self.assertEqual(numeric_input.postprocess(None), None)
         self.assertEqual(numeric_input.serialize(3, True), 3)
+        self.assertEqual(numeric_input.default_value, 42)
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = numeric_input.save_flagged(tmpdirname, "numeric_input", 3, None)
             self.assertEqual(to_save, 3)
@@ -227,8 +229,9 @@ class TestNumber(unittest.TestCase):
         self.assertEqual(
             numeric_input.get_template_context(),
             {
-                "default_value": None,
-                "name": "integer",
+                "default_value": 42,
+                "name": "number",
+                "integer": True,
                 "show_label": True,
                 "label": None,
                 "css": {},
