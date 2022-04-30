@@ -70,7 +70,7 @@ def get_first_available_port(initial: int, final: int) -> int:
     )
 
 
-def configure_app_with_blocks(app: fastapi.FastAPI, blocks: Blocks) -> fastapi.FastAPI:
+def configure_app(app: fastapi.FastAPI, blocks: Blocks) -> fastapi.FastAPI:
     auth = blocks.auth
     if auth is not None:
         if not callable(auth):
@@ -140,7 +140,7 @@ def start_server(
         path_to_local_server = "http://{}:{}/".format(url_host_name, port)
 
     app = create_app()
-    app = configure_app_with_blocks(app, blocks)
+    app = configure_app(app, blocks)
     
     if app.blocks.enable_queue:
         if blocks.auth is not None or app.blocks.encrypt:
