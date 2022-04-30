@@ -186,8 +186,8 @@ class TestNumber(unittest.TestCase):
             {
                 "value": None,
                 "name": "number",
+                "type": "float",
                 "show_label": True,
-                "integer": False,
                 "label": None,
                 "style": {},
                 "elem_id": None,
@@ -234,7 +234,7 @@ class TestNumber(unittest.TestCase):
             {
                 "default_value": 42,
                 "name": "number",
-                "integer": True,
+                "type": "integer",
                 "show_label": True,
                 "label": None,
                 "css": {},
