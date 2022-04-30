@@ -676,9 +676,6 @@ class Number(Changeable, Submittable, IOComponent):
             "__type__": "update",
         }
 
-    def get_block_name(self) -> str:
-        return "integer" if self.integer else "number"
-
     def preprocess(self, x: int | float | None) -> Optional[float]:
         """
         Parameters:

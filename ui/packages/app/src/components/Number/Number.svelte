@@ -21,6 +21,7 @@
 	<Number
 		bind:value
 		{label}
+		{integer}
 		{show_label}
 		{style}
 		disabled={mode === "static"}

@@ -26,5 +26,4 @@ export const component_map = {
 	file: ExampleFile,
 	dataframe: ExampleDataframe,
 	model3d: ExampleModel3D,
-	integer: ExampleNumber
 };
