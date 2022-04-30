@@ -747,12 +747,12 @@ class Number(Changeable, Submittable, IOComponent):
         return 1 if self.integer else 1.0
 
     # Output Functionalities
-    def postprocess(self, y: float | None) -> int | float | None:
+    def postprocess(self, y: int | float | None) -> int | float | None:
         """
         Any postprocessing needed to be performed on function output.
 
         Parameters:
-        x (string): numeric output
+        y (int | float | None): numeric output
         Returns:
         (int | float | None): number representing function output
         """
