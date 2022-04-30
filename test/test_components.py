@@ -223,9 +223,12 @@ class TestNumber(unittest.TestCase):
         )
         numeric_input.set_interpret_parameters(steps=3, delta=1, delta_type="percent")
         self.assertEqual(
-            numeric_input.get_interpretation_neighbors(1),
-            ([0.97, 0.98, 0.99, 1.01, 1.02, 1.03], {}),
+            numeric_input.get_interpretation_neighbors(100),
+            ([97.0, 98.0, 99.0, 101.0, 102.0, 103.0], {}),
         )
+        with self.assertRaises(ValueError) as error:
+            numeric_input.get_interpretation_neighbors(1)
+            assert error.msg == "Cannot generate valid set of neighbors"
         self.assertEqual(
             numeric_input.get_template_context(),
             {

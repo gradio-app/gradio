@@ -616,8 +616,8 @@ class Number(Changeable, Submittable, IOComponent):
     Component creates a field for user to enter numeric input or display numeric output. Provides a number as an argument to the wrapped function.
     Can be used as an output as well.
 
-    Input type: float
-    Output type: float
+    Input type: float or int.
+    Output type: float or int.
     Demos: tax_calculator, titanic_survival
     """
 
@@ -639,6 +639,7 @@ class Number(Changeable, Submittable, IOComponent):
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
+        integer (bool): Whether the field should only contain integer values. Defaults to False.
         """
         self.value = float(value) if value is not None else None
         self.test_input = self.value if self.value is not None else 1
@@ -676,21 +677,21 @@ class Number(Changeable, Submittable, IOComponent):
             "__type__": "update",
         }
 
-    def preprocess(self, x: int | float | None) -> Optional[float]:
+    def preprocess(self, x: int | float | None) -> int | float | None:
         """
         Parameters:
         x (string): numeric input as a string
         Returns:
-        (float): number representing function input
+        (int | float | None): number representing function input
         """
         if x is None:
             return None
         return int(x) if self.integer else float(x)
 
-    def preprocess_example(self, x: float | None) -> float | None:
+    def preprocess_example(self, x: int | float | None) -> int | float | None:
         """
         Returns:
-        (float): Number representing function input
+        (int | float | None): Number representing function input
         """
         if x is None:
             return None
@@ -712,14 +713,21 @@ class Number(Changeable, Submittable, IOComponent):
         self.interpretation_delta_type = delta_type
         return self
 
-    def get_interpretation_neighbors(self, x: float) -> Tuple[List[float], Dict]:
-        x = float(x)
+    def get_interpretation_neighbors(self, x: float | int) -> Tuple[List[float], Dict]:
+        x = int(x) if self.integer else float(x)
         if self.interpretation_delta_type == "percent":
             delta = 1.0 * self.interpretation_delta * x / 100
         elif self.interpretation_delta_type == "absolute":
             delta = self.interpretation_delta
         else:
             delta = self.interpretation_delta
+        if self.integer and math.floor(delta) != delta:
+            raise ValueError(
+                f"Delta value {delta} is not an integer. Cannot generate valid set of neighbors. "
+                "Use delta_type='absolute' or pick a value of delta such that x * delta is an "
+                "integer."
+            )
+        # run_interpretation will preprocess the neighbors so no need to covert to int here
         negatives = (x + np.arange(-self.interpretation_steps, 0) * delta).tolist()
         positives = (x + np.arange(1, self.interpretation_steps + 1) * delta).tolist()
         return negatives + positives, {}
@@ -735,13 +743,18 @@ class Number(Changeable, Submittable, IOComponent):
         interpretation.insert(int(len(interpretation) / 2), [x, None])
         return interpretation
 
-    def generate_sample(self) -> float:
+    def generate_sample(self) -> int | float:
         return 1 if self.integer else 1.0
 
     # Output Functionalities
-    def postprocess(self, y: float | None):
+    def postprocess(self, y: float | None) -> int | float | None:
         """
         Any postprocessing needed to be performed on function output.
+
+        Parameters:
+        x (string): numeric output
+        Returns:
+        (int | float | None): number representing function output
         """
         if y is None:
             return None
