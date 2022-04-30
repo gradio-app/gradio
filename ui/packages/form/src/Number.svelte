@@ -27,11 +27,11 @@
 			dispatch("submit");
 		}
 	}
-	
+
 	function validator(node, n) {
 		return {
 			update(n) {
-				value = integer ? Math.floor(n): n;
+				value = integer ? Math.floor(n) : n;
 			}
 		};
 	}
