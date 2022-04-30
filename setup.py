@@ -9,7 +9,7 @@ long_description = (this_directory / "README.md").read_text()
 
 setup(
     name="gradio",
-    version="2.9b20",
+    version="2.9b21",
     include_package_data=True,
     description="Python library for easily interacting with trained machine learning models",
     long_description=long_description,
