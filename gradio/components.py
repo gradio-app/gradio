@@ -1111,7 +1111,7 @@ class Image(IOComponent):
         """
         Parameters:
         default_value(str): A path or URL for the default value that Image component is going to take.
-        shape (Tuple[int, int]): (width, height) shape to crop and resize image to; if None, matches input image size.
+        shape (Tuple[int, int]): (width, height) shape to crop and resize image to; if None, matches input image size. Pass None for either width or height to only crop and resize the other.
         image_mode (str): "RGB" if color, or "L" if black and white.
         invert_colors (bool): whether to invert the image as a preprocessing step.
         source (str): Source of image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "canvas" defaults to a white image that can be edited and drawn upon with tools.
