@@ -31,10 +31,14 @@ class TestQueuingActions(unittest.TestCase):
         queueing.close()
 
     def test_push_pop_status(self):
-        request = QueuePushBody(data="test1", action="predict")
+        request = QueuePushBody(
+            data="test1", action="predict", fn_index=0, session_hash="-"
+        )
         hash1, position = queueing.push(request)
         self.assertEquals(position, 0)
-        request = QueuePushBody(data="test2", action="predict")
+        request = QueuePushBody(
+            data="test2", action="predict", fn_index=0, session_hash="-"
+        )
         hash2, position = queueing.push(request)
         self.assertEquals(position, 1)
         status, position = queueing.get_status(hash2)
@@ -42,11 +46,16 @@ class TestQueuingActions(unittest.TestCase):
         self.assertEquals(position, 1)
         _, hash_popped, input_data, action = queueing.pop()
         self.assertEquals(hash_popped, hash1)
-        self.assertEquals(input_data, {"data": "test1"})
+        self.assertEquals(
+            input_data,
+            {"action": "predict", "data": "test1", "fn_index": 0, "session_hash": "-"},
+        )
         self.assertEquals(action, "predict")
 
     def test_jobs(self):
-        request = QueuePushBody(data="test1", action="predict")
+        request = QueuePushBody(
+            data="test1", action="predict", fn_index=0, session_hash="-"
+        )
         hash1, _ = queueing.push(request)
         hash2, position = queueing.push(request)
         self.assertEquals(position, 1)
