@@ -18,15 +18,17 @@
 	$: next = ((selected_image ?? 0) + 1) % (value?.length ?? 0);
 
 	function on_keydown(e: KeyboardEvent) {
-		e.preventDefault();
 		switch (e.code) {
 			case "Escape":
+				e.preventDefault();
 				selected_image = null;
 				break;
 			case "ArrowLeft":
+				e.preventDefault();
 				selected_image = previous;
 				break;
 			case "ArrowRight":
+				e.preventDefault();
 				selected_image = next;
 				break;
 			default:
@@ -42,6 +44,8 @@
 	async function scroll_to_img(index: number | null) {
 		if (typeof index !== "number") return;
 		await tick();
+
+		el[index].focus();
 
 		const { left: container_left, width: container_width } =
 			container.getBoundingClientRect();
@@ -59,7 +63,7 @@
 	}
 </script>
 
-<svelte:window on:keydown|preventDefault={on_keydown} />
+<svelte:window />
 
 <Block variant="solid" color="grey" padding={false}>
 	<StatusTracker tracked_status={loading_status} />
@@ -71,6 +75,7 @@
 	{:else}
 		{#if selected_image !== null}
 			<div
+				on:keydown={on_keydown}
 				class="absolute inset-0 z-10 flex flex-col bg-white/90 backdrop-blur min-h-[350px] xl:min-h-[450px] max-h-[55vh]"
 			>
 				<ModifyUpload on:clear={() => (selected_image = null)} />
