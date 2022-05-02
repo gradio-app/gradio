@@ -71,7 +71,8 @@ class TestRoutes(unittest.TestCase):
     def test_queue_push_route(self):
         queueing.push = mock.MagicMock(return_value=(None, None))
         response = self.client.post(
-            "/api/queue/push/", json={"data": "test", "action": "test"}
+            "/api/queue/push/",
+            json={"data": "test", "action": "test", "fn_index": 0, "session_hash": "-"},
         )
         self.assertEqual(response.status_code, 200)
 

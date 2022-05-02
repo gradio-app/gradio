@@ -228,6 +228,7 @@ class Blocks(BlockContext):
         theme: str = "default",
         analytics_enabled: Optional[bool] = None,
         mode: str = "blocks",
+        enable_queue: bool = False,
         **kwargs,
     ):
 
@@ -258,6 +259,10 @@ class Blocks(BlockContext):
         self.ip_address = utils.get_local_ip_address()
         self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
         self.favicon_path = None
+        if self.is_space and enable_queue is None:
+            self.enable_queue = True
+        else:
+            self.enable_queue = enable_queue or False
 
     def render(self):
         if Context.root_block is not None:
@@ -328,7 +333,12 @@ class Blocks(BlockContext):
         return {"type": "column"}
 
     def get_config_file(self):
-        config = {"mode": "blocks", "components": [], "theme": self.theme}
+        config = {
+            "mode": "blocks",
+            "components": [],
+            "theme": self.theme,
+            "queue": self.enable_queue,
+        }
         for _id, block in self.blocks.items():
             config["components"].append(
                 {
@@ -404,7 +414,6 @@ class Blocks(BlockContext):
         server_name: Optional[str] = None,
         server_port: Optional[int] = None,
         show_tips: bool = False,
-        enable_queue: Optional[bool] = None,
         height: int = 500,
         width: int = 900,
         encrypt: bool = False,
@@ -428,10 +437,6 @@ class Blocks(BlockContext):
         server_port (int): will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT.
         server_name (str): to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME.
         show_tips (bool): if True, will occasionally show tips about new Gradio features
-        enable_queue (Optional[bool]):
-            if True, inference requests will be served through a queue instead of with parallel threads. Required for longer inference times (> 1min) to prevent timeout.
-            The default option in HuggingFace Spaces is True.
-            The default option elsewhere is False.
         width (int): The width in pixels of the iframe element containing the interface (used if inline=True)
         height (int): The height in pixels of the iframe element containing the interface (used if inline=True)
         encrypt (bool): If True, flagged data will be encrypted by key provided by creator at launch
@@ -465,11 +470,6 @@ class Blocks(BlockContext):
             self.encryption_key = encryptor.get_key(
                 getpass.getpass("Enter key for encryption: ")
             )
-
-        if self.is_space and enable_queue is None:
-            self.enable_queue = True
-        else:
-            self.enable_queue = enable_queue or False
 
         config = self.get_config_file()
         self.config = config
