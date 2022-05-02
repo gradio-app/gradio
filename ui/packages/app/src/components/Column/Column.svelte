@@ -5,8 +5,6 @@
 	export let variant: "default" | "panel" = "default";
 
 	if (default_value) value = default_value;
-
-	$: console.log($$props);
 </script>
 
 <div

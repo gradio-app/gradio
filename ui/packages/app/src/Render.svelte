@@ -49,9 +49,12 @@
 	];
 
 	function get_types(i) {
-		const current = children[i]?.id && instance_map[children[i].id];
-		const next = children[i + 1]?.id && instance_map[children[i + 1].id];
-		const prev = children[i - 1]?.id && instance_map[children[i - 1].id];
+		const current =
+			children[i]?.id != undefined && instance_map[children[i].id];
+		const next =
+			children[i + 1]?.id != undefined && instance_map[children[i + 1].id];
+		const prev =
+			children[i - 1]?.id != undefined && instance_map[children[i - 1].id];
 
 		return {
 			current: current?.type && forms.includes(current.type),
