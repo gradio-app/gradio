@@ -158,15 +158,23 @@ class Row(BlockContext):
 
 
 class Column(BlockContext):
-    def __init__(self, visible: bool = True, css: Optional[Dict[str, str]] = None):
+    def __init__(
+        self,
+        visible: bool = True,
+        css: Optional[Dict[str, str]] = None,
+        variant: str = "default",
+    ):
         """
         css: Css rules to apply to block.
+        variant: row type, 'default' or 'panel'
         """
+        self.variant = variant
         super().__init__(visible, css)
 
     def get_template_context(self):
         return {
             "type": "column",
+            "variant": self.variant,
             **super().get_template_context(),
         }
 
