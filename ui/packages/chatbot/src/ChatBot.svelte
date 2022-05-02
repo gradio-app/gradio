@@ -3,6 +3,7 @@
 
 	export let value: Array<[string, string]>;
 	export let style: string = "";
+	export let color_map: Array<[string, string]>;
 
 	let div: HTMLDivElement;
 	let autoscroll: Boolean;
@@ -19,20 +20,25 @@
 	});
 
 	$: value && dispatch("change");
+	if (!color_map) {
+		color_map = ["rgb(251 146 60)", "rgb(156 163 175)"];
+	}
 </script>
 
 <div class="overflow-y-auto h-[40vh]" bind:this={div}>
 	<div class="flex flex-col items-end space-y-4 p-3">
 		{#each value as message}
 			<div
-				data-testid="bot"
-				class="px-3 py-2 rounded-[22px] rounded-br-none bg-orange-500 text-white ml-7 text-sm"
+				data-testid="user"
+				class="px-3 py-2 rounded-[22px] rounded-br-none text-white ml-7 text-sm"
+				style={"background-color:" + color_map[0]}
 			>
 				{message[0]}
 			</div>
 			<div
-				data-testid="user"
-				class="px-3 py-2 rounded-[22px] rounded-bl-none place-self-start bg-gray-200 mr-7 text-gray-800 text-sm"
+				data-testid="bot"
+				class="px-3 py-2 rounded-[22px] rounded-bl-none place-self-start text-white ml-7 text-sm"
+				style={"background-color:" + color_map[1]}
 			>
 				{message[1]}
 			</div>
