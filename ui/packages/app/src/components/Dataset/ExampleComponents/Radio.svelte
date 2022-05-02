@@ -2,4 +2,4 @@
 	export let value: string;
 </script>
 
-<div class="input-radio-example">{value}</div>
+<div class="gr-sample-radio">{value}</div>

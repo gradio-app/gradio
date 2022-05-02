@@ -3,4 +3,4 @@
 	export let value: Value;
 </script>
 
-<div class="input-model3D-example">{value}</div>
+<div class="gr-sample-3d">{value}</div>
