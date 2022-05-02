@@ -11,7 +11,7 @@
 	"
 >
 	<head>
-		<base target="_blank">
+		<base target="_blank" />
 		<meta charset="utf-8" />
 		<meta
 			name="viewport"
@@ -35,7 +35,7 @@
 			content="{{ config['simple_description'] or '' }}"
 		/>
 		<meta name="twitter:image" content="{{ config['thumbnail'] or '' }}" />
-	
+
 		<script>
 			window.dataLayer = window.dataLayer || [];
 			function gtag() {
@@ -45,7 +45,7 @@
 			gtag("config", "UA-156449732-1");
 			window.gradio_mode = "app";
 		</script>
-		
+
 		%gradio_config%
 
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
