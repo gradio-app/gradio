@@ -112,14 +112,19 @@ def resize_and_crop(img, size, crop_type="center"):
     else:
         raise ValueError
 
-    if size[0] == None and size[1] == None:
-        resize = [img.size[0], img.size[1]]
-    elif size[0] == None:
-        resize = [img.size[0], size[1]]
-    elif size[1] == None:
-        resize = [size[0], img.size[1]]
-    else:
-        resize = size
+    resize = list(size)
+    if size[0] == None: resize[0] = img.size[0]
+    if size[1] == None: resize[1] = img.size[1]
+    # resize[0] = img.size[0] if size[0] == None else size[0]
+    # resize[1] = img.size[1] if size[1] == None else size[1]
+    # if size[0] == None and size[1] == None:
+    #     resize = [img.size[0], img.size[1]]
+    # elif size[0] == None:
+    #     resize = [img.size[0], size[1]]
+    # elif size[1] == None:
+    #     resize = [size[0], img.size[1]]
+    # else:
+    #     resize = size
     return ImageOps.fit(img, resize, centering=center)
 
 
