@@ -61,7 +61,9 @@ class QueueStatusBody(BaseModel):
 
 
 class QueuePushBody(BaseModel):
+    fn_index: int
     action: str
+    session_hash: str
     data: Any
 
 
