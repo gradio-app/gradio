@@ -4,4 +4,4 @@
 	export let value: Value;
 </script>
 
-<div class="input-audio-example">{value}</div>
+<div class="gr-sample-audio">{value}</div>
