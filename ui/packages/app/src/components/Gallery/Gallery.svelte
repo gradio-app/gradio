@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Block, BlockLabel } from "@gradio/atoms";
 	import { ModifyUpload } from "@gradio/upload";
+	import { tick } from "svelte";
 	import { Component as StatusTracker } from "../StatusTracker/";
 	import image_icon from "./image.svg";
 
@@ -17,6 +18,7 @@
 	$: next = ((selected_image ?? 0) + 1) % (value?.length ?? 0);
 
 	function on_keydown(e: KeyboardEvent) {
+		e.preventDefault();
 		switch (e.code) {
 			case "Escape":
 				selected_image = null;
@@ -31,9 +33,33 @@
 				break;
 		}
 	}
+
+	$: scroll_to_img(selected_image);
+
+	let el: Array<HTMLButtonElement> = [];
+	let container: HTMLDivElement;
+
+	async function scroll_to_img(index: number | null) {
+		if (typeof index !== "number") return;
+		await tick();
+
+		const { left: container_left, width: container_width } =
+			container.getBoundingClientRect();
+		const { left, width } = el[index].getBoundingClientRect();
+
+		const relative_left = left - container_left;
+
+		const pos =
+			relative_left + width / 2 - container_width / 2 + container.scrollLeft;
+
+		container.scrollTo({
+			left: pos < 0 ? 0 : pos,
+			behavior: "smooth"
+		});
+	}
 </script>
 
-<svelte:window on:keydown={on_keydown} />
+<svelte:window on:keydown|preventDefault={on_keydown} />
 
 <Block variant="solid" color="grey" padding={false}>
 	<StatusTracker tracked_status={loading_status} />
@@ -57,10 +83,12 @@
 				/>
 
 				<div
-					class="absolute h-[50px] bg-white overflow-hidden w-full bottom-0 flex gap-1.5 items-center justify-center py-2 text-sm px-3"
+					bind:this={container}
+					class="absolute h-[50px] bg-white overflow-x-scroll scroll-hide w-full bottom-0 flex gap-1.5 items-center py-2 text-sm px-3"
 				>
 					{#each value as image, i}
 						<button
+							bind:this={el[i]}
 							on:click={() => (selected_image = i)}
 							class="gallery-item !flex-none !h-7 !w-7 transition-all duration-75 {selected_image ===
 							i

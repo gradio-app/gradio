@@ -9,6 +9,15 @@
 	.gr-form-gap > .form + .form {
 		@apply mt-0 border-t-0;
 	}
+
+	.scroll-hide {
+		-ms-overflow-style: none;
+		scrollbar-width: none;
+	}
+
+	.scroll-hide::-webkit-scrollbar {
+		display: none;
+	}
 }
 
 .cropper-container {
