@@ -17,6 +17,7 @@ from gradio.components import (
     Dataframe,
     Dropdown,
     File,
+    Gallery,
     HighlightedText,
     Image,
     KeyValues,
@@ -32,7 +33,6 @@ from gradio.components import (
     Timeseries,
     Variable,
     Video,
-    Gallery,
     component,
 )
 from gradio.flagging import (
