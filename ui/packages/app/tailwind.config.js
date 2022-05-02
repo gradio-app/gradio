@@ -1,24 +1,39 @@
+const defaultTheme = require("tailwindcss/defaultTheme");
 const production = !process.env.ROLLUP_WATCH;
+
 module.exports = {
 	content: [
 		"./src/**/*.{html,js,svelte,ts}",
 		"**/@gradio/**/*.{html,js,svelte,ts,css}"
 	],
 
-	mode: "jit",
-	darkMode: "class",
-
 	theme: {
 		extend: {
+			fontFamily: {
+				sans: ["Source Sans Pro", ...defaultTheme.fontFamily.sans],
+				mono: ["IBM Plex Mono", ...defaultTheme.fontFamily.mono]
+			},
 			colors: {
-				"gray-950": "#0B0F19"
+				orange: {
+					50: "#FFF2E5",
+					100: "#FFE5CC",
+					200: "#FFD8B4",
+					300: "#FFB066",
+					400: "#FF9633",
+					500: "#FF7C00",
+					600: "#EE7400",
+					700: "#CE6400",
+					800: "#A45000",
+					900: "#5C2D00"
+				}
 			}
-		},
-		fontFamily: {
-			mono: ["monospace"],
-			sans: ["IBM Plex Sans", "system-ui"]
 		}
 	},
+	mode: "jit",
+	darkMode: "class", // or 'media' or 'class'
 
+	variants: {
+		extend: {}
+	},
 	plugins: [require("@tailwindcss/forms")]
 };

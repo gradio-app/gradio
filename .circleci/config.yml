@@ -37,7 +37,7 @@ jobs:
       - run:
           name: Build frontend
           command: |
-            npm i pnpm -g
+            npm i pnpm@6 -g
             cd ui
             pnpm i --frozen-lockfile
             pnpm build
