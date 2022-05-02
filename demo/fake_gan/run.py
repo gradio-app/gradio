@@ -1,5 +1,6 @@
 # This demo needs to be run from the repo folder.
 # python demo/fake_gan/run.py
+import os
 import random
 import time
 
@@ -36,6 +37,22 @@ demo = gr.Interface(
     outputs=gr.Gallery(label="Generated Images"),
     title="FD-GAN",
     description="This is a fake demo of a GAN. In reality, the images are randomly chosen from Unsplash.",
+    examples=[
+        [os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"), 12, 12, 4, 4],
+        [os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"), 12, 12, 4, 4],
+        [os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"), 12, 12, 4, 4],
+        [os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"), 12, 12, 4, 4],
+        [os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"), 12, 12, 4, 4],
+        [os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"), 12, 12, 4, 4],
+        [os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"), 12, 12, 4, 4],
+        [os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"), 12, 12, 4, 4],
+        [os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"), 12, 12, 4, 4],
+        [os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"), 12, 12, 4, 4],
+        [os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"), 12, 12, 4, 4],
+        [os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"), 12, 12, 4, 4],
+        [os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"), 12, 12, 4, 4],
+        [os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"), 12, 12, 4, 4],
+    ],
 )
 
 if __name__ == "__main__":

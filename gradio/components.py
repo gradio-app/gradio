@@ -2854,6 +2854,7 @@ class Chatbot(IOComponent):
     def __init__(
         self,
         default_value="",
+        color_map: Tuple(str, str) = None,
         *,
         label: Optional[str] = None,
         css: Optional[Dict] = None,
@@ -2862,13 +2863,19 @@ class Chatbot(IOComponent):
         """
         Parameters:
         default_value (str): Default value
+        color_map (Tuple[str, str]): Chat bubble color of input text and output text respectively.
         label (str): component name in interface (not used).
         """
         self.default_value = default_value
+        self.color_map = color_map
         super().__init__(label=label, css=css, **kwargs)
 
     def get_template_context(self):
-        return {"default_value": self.default_value, **super().get_template_context()}
+        return {
+            "color_map": self.color_map,
+            "default_value": self.default_value,
+            **super().get_template_context(),
+        }
 
     def postprocess(self, y):
         """

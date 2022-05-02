@@ -4,4 +4,4 @@
 </script>
 
 <!-- svelte-ignore a11y-missing-attribute -->
-<img class="input-image-example h-24 max-w-none" src={samples_dir + value} />
+<img class="gr-sample-image" src={samples_dir + value} />
