@@ -11,6 +11,7 @@
 	"
 >
 	<head>
+		<base target="_blank">
 		<meta charset="utf-8" />
 		<meta
 			name="viewport"
@@ -18,7 +19,6 @@
 		/>
 
 		<script type="module" src="./src/main.ts"></script>
-		<title>{{ config['title'] or 'Gradio' }}</title>
 		<meta property="og:url" content="https://gradio.app/" />
 		<meta property="og:type" content="website" />
 		<meta property="og:image" content="{{ config['thumbnail'] or '' }}" />
@@ -35,12 +35,7 @@
 			content="{{ config['simple_description'] or '' }}"
 		/>
 		<meta name="twitter:image" content="{{ config['thumbnail'] or '' }}" />
-		{%if config['analytics_enabled'] %}
-		<script
-			async
-			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"
-		></script>
-		{% endif %}
+	
 		<script>
 			window.dataLayer = window.dataLayer || [];
 			function gtag() {
@@ -50,9 +45,9 @@
 			gtag("config", "UA-156449732-1");
 			window.gradio_mode = "app";
 		</script>
-		<script>
-			window.gradio_config = {{ config | tojson }};
-		</script>
+		
+		%gradio_config%
+
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link
 			rel="preconnect"
@@ -64,7 +59,6 @@
 			rel="stylesheet"
 		/>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/4.3.1/iframeResizer.contentWindow.min.js"></script>
-		<title>Gradio</title>
 	</head>
 
 	<body
