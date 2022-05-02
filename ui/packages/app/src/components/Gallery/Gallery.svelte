@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Block, BlockLabel } from "@gradio/atoms";
+	import { ModifyUpload } from "@gradio/upload";
 	import { Component as StatusTracker } from "../StatusTracker/";
 	import image_icon from "./image.svg";
 
@@ -9,9 +10,30 @@
 	export let value: Array<string> | null = null;
 	export let style: string = "";
 
-	let page = 0;
-	let focus_img: number | null = null;
+	let selected_image: number | null = null;
+
+	$: previous =
+		((selected_image ?? 0) + (value?.length ?? 0) - 1) % (value?.length ?? 0);
+	$: next = ((selected_image ?? 0) + 1) % (value?.length ?? 0);
+
+	function on_keydown(e: KeyboardEvent) {
+		switch (e.code) {
+			case "Escape":
+				selected_image = null;
+				break;
+			case "ArrowLeft":
+				selected_image = previous;
+				break;
+			case "ArrowRight":
+				selected_image = next;
+				break;
+			default:
+				break;
+		}
+	}
 </script>
+
+<svelte:window on:keydown={on_keydown} />
 
 <Block variant="solid" color="grey" padding={false}>
 	<StatusTracker tracked_status={loading_status} />
@@ -21,34 +43,63 @@
 			<img src={image_icon} alt="" class="h-6 opacity-20" />
 		</div>
 	{:else}
-		<div class="p-4 relative h-[16rem]">
-			{#if focus_img !== null}
+		{#if selected_image !== null}
+			<div
+				class="absolute inset-0 z-10 flex flex-col bg-white/90 backdrop-blur min-h-[350px] xl:min-h-[450px] max-h-[55vh]"
+			>
+				<ModifyUpload on:clear={() => (selected_image = null)} />
+
+				<img
+					on:click={() => (selected_image = next)}
+					class="w-full object-contain h-[calc(100%-50px)]"
+					src={value[selected_image]}
+					alt=""
+				/>
+
 				<div
-					class="absolute w-full h-full z-10 bg-black bg-opacity-10 flex justify-center items-center"
-					on:click={() => {
-						focus_img = null;
-					}}
+					class="absolute h-[50px] bg-white overflow-hidden w-full bottom-0 flex gap-1.5 items-center justify-center py-2 text-sm px-3"
 				>
-					<img
-						class="h-3/4 object-contain border-gray-300 border-8"
-						src={value[focus_img]}
-						alt=""
-					/>
+					{#each value as image, i}
+						<button
+							on:click={() => (selected_image = i)}
+							class="gallery-item !flex-none !h-7 !w-7 transition-all duration-75 {selected_image ===
+							i
+								? '!ring-2 !ring-orange-500 hover:!ring-orange-500'
+								: 'scale-90 transform'}"
+						>
+							<img
+								alt=""
+								class="h-full w-full overflow-hidden object-contain"
+								src={image}
+							/>
+						</button>
+					{/each}
 				</div>
-			{/if}
-			<div class="flex flex-wrap gap-3 max-h-full overflow-auto">
-				{#each value as img_data, i}
-					<img
-						class="h-32 object-contain border-gray-300 border-8 cursor-pointer"
-						src={img_data}
-						{style}
-						on:click={() => {
-							focus_img = i;
-						}}
-						alt=""
-					/>
+			</div>
+		{/if}
+
+		<div
+			class="overflow-y-auto h-full p-2 min-h-[350px] xl:min-h-[450px] max-h-[55vh]"
+		>
+			<div class="pt-6 grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+				{#each value as image, i}
+					<button class="gallery-item" on:click={() => (selected_image = i)}>
+						<img
+							alt=""
+							class="h-full w-full overflow-hidden object-contain"
+							src={image}
+						/>
+					</button>
+				{:else}
+					<p>Empty</p>
 				{/each}
 			</div>
 		</div>
 	{/if}
 </Block>
+
+<style lang="postcss">
+	.gallery-item {
+		@apply rounded shadow-sm relative aspect-square h-full hover:brightness-110 focus:ring-blue-500 focus:ring-2 ring-1 ring-gray-200 hover:ring hover:ring-orange-300 w-full overflow-hidden bg-gray-100 object-fill outline-none;
+	}
+</style>

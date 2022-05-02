@@ -33,7 +33,7 @@ demo = gr.Interface(
         gr.Number(label="Seed"),
         gr.Number(label="Respacing"),
     ],
-    outputs=gr.Gallery(label="Generated Image"),
+    outputs=gr.Gallery(label="Generated Images"),
     title="FD-GAN",
     description="This is a fake demo of a GAN. In reality, the images are randomly chosen from Unsplash.",
 )
