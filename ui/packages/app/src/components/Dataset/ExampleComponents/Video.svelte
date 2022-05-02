@@ -13,9 +13,9 @@
 		bind:this={video}
 		on:mouseover={video.play}
 		on:mouseout={video.pause}
-		class="input-video-example h-24 max-w-none"
+		class="gr-sample-video"
 		src={samples_dir + value}
 	/>
 {:else}
-	<div class="input-video-example">{value}</div>
+	<div class="gr-sample-video">{value}</div>
 {/if}
