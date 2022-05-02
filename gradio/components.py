@@ -2746,7 +2746,6 @@ class Gallery(IOComponent):
         return output
 
 
-
 class Carousel(IOComponent):
     """
     Component displays a set of output components that can be scrolled through.
