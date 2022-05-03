@@ -468,13 +468,7 @@ class Interface(Blocks):
                     self.InterfaceTypes.INPUT_ONLY,
                     self.InterfaceTypes.UNIFIED,
                 ]:
-                    with Column(
-                        css={
-                            "background-color": "rgb(249,250,251)",
-                            "padding": "0.5rem",
-                            "border-radius": "0.5rem",
-                        }
-                    ):
+                    with Column(variant="panel"):
                         input_component_column = Column()
                         if self.interface_type in [
                             self.InterfaceTypes.INPUT_ONLY,
@@ -516,13 +510,7 @@ class Interface(Blocks):
                     self.InterfaceTypes.OUTPUT_ONLY,
                 ]:
 
-                    with Column(
-                        css={
-                            "background-color": "rgb(249,250,251)",
-                            "padding": "0.5rem",
-                            "border-radius": "0.5rem",
-                        }
-                    ):
+                    with Column(variant="panel"):
                         status_tracker = StatusTracker(cover_container=True)
                         for component in self.output_components:
                             component.render()
