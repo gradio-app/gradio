@@ -102,9 +102,9 @@
 			editable
 		/>
 
-		<img class="w-full h-full object-contain" src={value} alt="" />
+		<img class="w-full h-full object-contain" src={value} {style} alt="" />
 	{:else}
-		<img class="w-full h-full object-contain" src={value} alt="" />
+		<img class="w-full h-full object-contain" src={value} {style} alt="" />
 	{/if}
 </div>
 
