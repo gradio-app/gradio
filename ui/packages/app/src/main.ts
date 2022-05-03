@@ -102,6 +102,7 @@ window.launchGradio = (config: Config, element_query: string) => {
 		}
 		let session_hash = Math.random().toString(36).substring(2);
 		config.fn = fn.bind(null, session_hash, config.root + "api/");
+
 		new Blocks({
 			target: target,
 			props: config
