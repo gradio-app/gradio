@@ -97,7 +97,7 @@ def resize_and_crop(img, size, crop_type="center"):
     """
     Resize and crop an image to fit the specified size.
     args:
-        size: `(width, height)` tuple. Pass `None` for either width or height 
+        size: `(width, height)` tuple. Pass `None` for either width or height
         to only crop and resize the other.
         crop_type: can be 'top', 'middle' or 'bottom', depending on this
             value, the image will cropped getting the 'top/left', 'middle' or
@@ -113,8 +113,10 @@ def resize_and_crop(img, size, crop_type="center"):
         raise ValueError
 
     resize = list(size)
-    if size[0] == None: resize[0] = img.size[0]
-    if size[1] == None: resize[1] = img.size[1]
+    if size[0] == None:
+        resize[0] = img.size[0]
+    if size[1] == None:
+        resize[1] = img.size[1]
     return ImageOps.fit(img, resize, centering=center)
 
 
