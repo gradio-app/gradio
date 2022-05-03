@@ -8,7 +8,9 @@
 	"license": "ISC",
 	"private": true,
 	"dependencies": {
+		"@gradio/theme": "workspace:^0.0.1",
 		"@gradio/tooltip": "workspace:^0.0.1",
+		"@gradio/utils": "workspace:^0.0.1",
 		"d3-dsv": "^3.0.1",
 		"d3-scale": "^4.0.2",
 		"d3-shape": "^3.1.0"
