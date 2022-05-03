@@ -166,7 +166,7 @@ class Column(BlockContext):
     ):
         """
         css: Css rules to apply to block.
-        variant: row type, 'default' or 'panel'
+        variant: column type, 'default' (no background) or 'panel' (gray background color and rounded corners)
         """
         self.variant = variant
         super().__init__(visible, css)
