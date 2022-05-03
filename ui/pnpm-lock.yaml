@@ -154,7 +154,10 @@ importers:
       '@types/d3-shape': 3.0.2
 
   packages/chatbot:
-    specifiers: {}
+    specifiers:
+      '@gradio/theme': workspace:^0.0.1
+    dependencies:
+      '@gradio/theme': link:../theme
 
   packages/file:
     specifiers:

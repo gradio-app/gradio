@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { beforeUpdate, afterUpdate, createEventDispatcher } from "svelte";
+	import { colors } from "@gradio/theme";
 
 	export let value: Array<[string, string]>;
 	export let style: string = "";
-	export let color_map: Array<[string, string]>;
+	export let color_map: [string, string] | undefined = undefined;
 
 	let div: HTMLDivElement;
 	let autoscroll: Boolean;
@@ -20,8 +21,21 @@
 	});
 
 	$: value && dispatch("change");
-	if (!color_map) {
-		color_map = ["rgb(251 146 60)", "rgb(156 163 175)"];
+
+	$: _colors = get_colors();
+
+	function get_colors() {
+		if (!color_map) {
+			return ["#fb923c", "#9ca3af"];
+		} else {
+			return color_map.map((c) => {
+				if (c in colors) {
+					return colors[c as keyof typeof colors].primary;
+				} else {
+					return c;
+				}
+			});
+		}
 	}
 </script>
 
@@ -31,14 +45,14 @@
 			<div
 				data-testid="user"
 				class="px-3 py-2 rounded-[22px] rounded-br-none text-white ml-7 text-sm"
-				style={"background-color:" + color_map[0]}
+				style={"background-color:" + _colors[0]}
 			>
 				{message[0]}
 			</div>
 			<div
 				data-testid="bot"
 				class="px-3 py-2 rounded-[22px] rounded-bl-none place-self-start text-white ml-7 text-sm"
-				style={"background-color:" + color_map[1]}
+				style={"background-color:" + _colors[1]}
 			>
 				{message[1]}
 			</div>
