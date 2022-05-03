@@ -267,10 +267,12 @@ class Blocks(BlockContext):
         self.ip_address = utils.get_local_ip_address()
         self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
         self.favicon_path = None
+        self.auth = None
         if self.is_space and enable_queue is None:
             self.enable_queue = True
         else:
             self.enable_queue = enable_queue or False
+        self.config = self.get_config_file()
 
     def render(self):
         if Context.root_block is not None:
@@ -457,7 +459,6 @@ class Blocks(BlockContext):
         local_url (str): Locally accessible link to the demo
         share_url (str): Publicly accessible link to the demo (if share=True, otherwise None)
         """
-        self.config = self.get_config_file()
         if (
             auth
             and not callable(auth)
@@ -478,9 +479,6 @@ class Blocks(BlockContext):
             self.encryption_key = encryptor.get_key(
                 getpass.getpass("Enter key for encryption: ")
             )
-
-        config = self.get_config_file()
-        self.config = config
 
         if self.is_running:
             self.server_app.launchable = self
