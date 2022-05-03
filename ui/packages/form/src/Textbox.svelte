@@ -8,12 +8,12 @@
 	export let label: string;
 	export let style: string = "";
 	export let disabled = false;
-	export let autoheight: boolean;
-	export let show_label: boolean;
+	export let show_label: boolean = true;
+	export let max_lines: number | false;
 
 	let el: HTMLTextAreaElement;
 
-	$: value, el && autoheight && resize({ target: el });
+	$: value, el && lines !== max_lines && resize({ target: el });
 	$: handle_change(value);
 
 	const dispatch = createEventDispatcher<{
@@ -36,15 +36,33 @@
 
 	async function resize(event: Event | { target: HTMLTextAreaElement }) {
 		await tick();
+		if (lines === max_lines) return;
+
+		let max =
+			max_lines === false
+				? false
+				: max_lines === undefined // default
+				? 20 * 11
+				: 20 * (max_lines + 1);
+		let min = 20 * (lines + 1);
 
 		const target = event.target as HTMLTextAreaElement;
 		target.style.height = "1px";
-		target.style.height = +target.scrollHeight + "px";
+
+		let scroll_height;
+		if (max && target.scrollHeight > max) {
+			scroll_height = max;
+		} else if (target.scrollHeight < min) {
+			scroll_height = min;
+		} else {
+			scroll_height = target.scrollHeight;
+		}
+
+		target.style.height = `${scroll_height}px`;
 	}
 
 	function text_area_resize(el: HTMLTextAreaElement, value: string) {
-		if (!autoheight) return;
-
+		if (lines === max_lines) return;
 		el.style.overflow = "hidden";
 		el.addEventListener("input", resize);
 
@@ -61,26 +79,14 @@
 <label class="block">
 	<BlockTitle {show_label}>{label}</BlockTitle>
 
-	{#if autoheight || lines > 1}
-		<textarea
-			use:text_area_resize={value}
-			class="block gr-box gr-input w-full gr-text-input"
-			bind:value
-			bind:this={el}
-			{placeholder}
-			{style}
-			rows={lines}
-			{disabled}
-		/>
-	{:else}
-		<input
-			type="text"
-			class="gr-box gr-input w-full gr-text-input"
-			{placeholder}
-			bind:value
-			on:keypress={handle_keypress}
-			{style}
-			{disabled}
-		/>
-	{/if}
+	<textarea
+		use:text_area_resize={value}
+		class="block gr-box gr-input w-full gr-text-input"
+		bind:value
+		bind:this={el}
+		{placeholder}
+		{style}
+		rows={lines}
+		{disabled}
+	/>
 </label>
