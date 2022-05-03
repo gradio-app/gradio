@@ -26,7 +26,9 @@
 	$: scale_x = scaleLinear(x_domain, [0, 600]).nice();
 	$: scale_y = scaleLinear(y_domain, [350, 0]).nice();
 	$: x_ticks = scale_x.ticks(8);
-	$: y_ticks = scale_y.ticks(y_domain[1] < 10 ? y_domain[1] : 8);
+	$: y_ticks = scale_y.ticks(8);
+
+	$: console.log(scale_y.ticks(), y_domain);
 
 	let colors: Record<string, string>;
 	$: colors = _y.reduce(

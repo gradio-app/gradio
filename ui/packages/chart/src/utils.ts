@@ -60,11 +60,11 @@ export function transform_values(
 		for (let j = 0; j < _a.length; j++) {
 			let [name, x] = _a[j];
 			if (name === transformed_values.x.name) {
-				transformed_values.x.values.push(parseInt(x, 10));
+				transformed_values.x.values.push(parseFloat(x));
 			} else {
 				transformed_values.y[j - 1].values.push({
-					y: parseInt(_a[j][1], 10),
-					x: parseInt(_a[0][1], 10)
+					y: parseFloat(_a[j][1]),
+					x: parseFloat(_a[0][1])
 				});
 			}
 		}
