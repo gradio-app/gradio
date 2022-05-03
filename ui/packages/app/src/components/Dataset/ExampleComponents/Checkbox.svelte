@@ -2,4 +2,4 @@
 	export let value: boolean;
 </script>
 
-<div class="input-checkbox-example">{value.toLocaleString()}</div>
+<div class="gr-sample-checkbox">{value.toLocaleString()}</div>

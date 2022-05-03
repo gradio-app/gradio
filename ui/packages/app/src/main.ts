@@ -54,7 +54,7 @@ interface Config {
 	space?: string;
 	detail: string;
 	dark: boolean;
-	auth_required: boolean;
+	enable_queue: boolean;
 }
 
 window.launchGradio = (config: Config, element_query: string) => {
