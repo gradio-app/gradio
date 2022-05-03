@@ -35,6 +35,7 @@
 	export let mode: "static" | "dynamic";
 	export let label: string;
 	export let show_label: boolean;
+	export let colors: Array<string>;
 
 	export let loading_status: "complete" | "pending" | "error";
 
@@ -115,7 +116,7 @@
 </script>
 
 <Block
-	variant={mode === "dynamic" ? "dashed" : "solid"}
+	variant={mode === "dynamic" && !_value ? "dashed" : "solid"}
 	color={"grey"}
 	padding={false}
 >
@@ -124,7 +125,7 @@
 
 	{#if mode === "static"}
 		{#if static_data}
-			<Chart value={static_data} />
+			<Chart value={static_data} {colors} />
 		{:else}
 			<div class="min-h-[16rem] flex justify-center items-center">
 				<img src={chart_icon} alt="" class="h-10 opacity-30" />
@@ -136,6 +137,7 @@
 			{y}
 			{x}
 			on:process={({ detail: { x, y } }) => (value = make_dict(x, y))}
+			{colors}
 		/>
 	{:else if value === undefined}
 		<div class="min-h-[8rem]">

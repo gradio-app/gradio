@@ -1,15 +1,20 @@
 <script lang="ts">
+	import { createEventDispatcher, onMount } from "svelte";
 	import { csvParse } from "d3-dsv";
 	import { scaleLinear } from "d3-scale";
 	import { line as _line, curveLinear } from "d3-shape";
-	import { createEventDispatcher, onMount } from "svelte";
 
-	import { get_domains, transform_values, get_color } from "./utils";
+	import { colors as color_palette, ordered_colors } from "@gradio/theme";
+	import { get_next_color } from "@gradio/utils";
+
+	import { get_domains, transform_values } from "./utils";
+
 	import { tooltip } from "@gradio/tooltip";
 
 	export let value: string | Array<Record<string, string>>;
 	export let x: string | undefined = undefined;
 	export let y: Array<string> | undefined = undefined;
+	export let colors: Array<string> = [];
 
 	export let style: string = "";
 
@@ -26,26 +31,40 @@
 	$: scale_x = scaleLinear(x_domain, [0, 600]).nice();
 	$: scale_y = scaleLinear(y_domain, [350, 0]).nice();
 	$: x_ticks = scale_x.ticks(8);
-	$: y_ticks = scale_y.ticks(y_domain[1] < 10 ? y_domain[1] : 8);
+	$: y_ticks = scale_y.ticks(8);
 
-	let colors: Record<string, string>;
-	$: colors = _y.reduce(
-		(acc, next) => ({ ...acc, [next.name]: get_color() }),
+	let color_map: Record<string, string>;
+	$: color_map = _y.reduce(
+		(acc, next, i) => ({ ...acc, [next.name]: get_color(i) }),
 		{}
 	);
+
+	function get_color(index: number) {
+		let current_color = colors[index % colors.length];
+
+		if (current_color && current_color in color_palette) {
+			return color_palette[current_color as keyof typeof color_palette]
+				?.primary;
+		} else if (!current_color) {
+			return color_palette[get_next_color(index) as keyof typeof color_palette]
+				.primary;
+		} else {
+			return current_color;
+		}
+	}
 
 	onMount(() => {
 		dispatch("process", { x: _x, y: _y });
 	});
 </script>
 
-<div>
-	<div class="flex justify-center align-items-center text-sm">
+<div class="mt-3">
+	<div class="flex justify-center items-center text-sm">
 		{#each _y as { name }}
-			<div class="mx-2">
+			<div class="mx-2 flex gap-1 items-center">
 				<span
-					class="inline-block w-[10px] h-[10px]"
-					style="background-color: {colors[name]}"
+					class="inline-block w-[12px] h-[12px] rounded-sm"
+					style="background-color: {color_map[name]}"
 				/>
 				{name}
 			</div>
@@ -121,7 +140,7 @@
 		</g>
 
 		{#each _y as { name, values }}
-			{@const color = colors[name]}
+			{@const color = color_map[name]}
 			{#each values as { x, y }}
 				<circle
 					r="3.5"
@@ -143,7 +162,7 @@
 		{/each}
 
 		{#each _y as { name, values }}
-			{@const color = colors[name]}
+			{@const color = color_map[name]}
 			{#each values as { x, y }}
 				<circle
 					use:tooltip={{ color, text: `(${x}, ${y})` }}

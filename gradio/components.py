@@ -2242,6 +2242,7 @@ class Timeseries(IOComponent):
         y: str | List[str] = None,
         label: Optional[str] = None,
         css: Optional[Dict] = None,
+        colors: List[str] = None,
         **kwargs,
     ):
         """
@@ -2250,6 +2251,7 @@ class Timeseries(IOComponent):
         x (str): Column name of x (time) series. None if csv has no headers, in which case first column is x series.
         y (Union[str, List[str]]): Column name of y series, or list of column names if multiple series. None if csv has no headers, in which case every column after first is a y series.
         label (str): component name in interface.
+        colors List[str]: an ordered list of colors to use for each line plot
         """
         self.default_value = (
             pd.read_csv(default_value) if default_value is not None else None
@@ -2258,6 +2260,7 @@ class Timeseries(IOComponent):
         if isinstance(y, str):
             y = [y]
         self.y = y
+        self.colors = colors
         super().__init__(label=label, css=css, **kwargs)
 
     def get_template_context(self):
@@ -2265,6 +2268,7 @@ class Timeseries(IOComponent):
             "x": self.x,
             "y": self.y,
             "default_value": self.default_value,
+            "colors": self.colors,
             **super().get_template_context(),
         }
 
