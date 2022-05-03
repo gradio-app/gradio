@@ -1,5 +1,5 @@
 {
-	"name": "@gradio/highlighted-text",
+	"name": "@gradio/utils",
 	"version": "0.0.1",
 	"description": "Gradio UI packages",
 	"type": "module",
@@ -8,7 +8,6 @@
 	"license": "ISC",
 	"private": true,
 	"dependencies": {
-		"@gradio/theme": "workspace:^0.0.1",
-		"@gradio/utils": "workspace:^0.0.1"
+		"@gradio/theme": "workspace:^0.0.1"
 	}
 }

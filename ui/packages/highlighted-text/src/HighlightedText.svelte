@@ -1,7 +1,7 @@
 <script lang="ts">
 	const browser = typeof document !== "undefined";
-	import { colors } from "@gradio/theme";
-	import { getNextColor } from "./utils";
+	import { colors, ordered_colors } from "@gradio/theme";
+	import { get_next_color } from "@gradio/utils";
 
 	export let value: Array<[string, string | number]> = [];
 	export let show_legend: boolean = false;
@@ -38,7 +38,7 @@
 					if (typeof label === "string") {
 						mode = "categories";
 						if (!(label in color_map)) {
-							let color = getNextColor(Object.keys(color_map).length);
+							let color = get_next_color(Object.keys(color_map).length);
 							color_map[label] = color;
 						}
 					} else {
@@ -51,7 +51,7 @@
 			for (const col in color_map) {
 				const _c = color_map[col].trim();
 				if (_c in colors) {
-					_color_map[col] = colors[_c];
+					_color_map[col] = colors[_c as keyof typeof colors];
 				} else {
 					_color_map[col] = {
 						primary: browser ? name_to_rgba(color_map[col], 1) : color_map[col],

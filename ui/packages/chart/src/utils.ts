@@ -72,21 +72,3 @@ export function transform_values(
 
 	return transformed_values;
 }
-
-let c = 0;
-export function get_color(): string {
-	let default_colors = [
-		[255, 99, 132],
-		[54, 162, 235],
-		[240, 176, 26],
-		[153, 102, 255],
-		[75, 192, 192],
-		[255, 159, 64]
-	];
-
-	if (c >= default_colors.length) c = 0;
-
-	const [r, g, b] = default_colors[c++];
-
-	return `rgb(${r},${g},${b})`;
-}

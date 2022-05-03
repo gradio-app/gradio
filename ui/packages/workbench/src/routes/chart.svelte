@@ -40,8 +40,8 @@
 
 <Chart value={csv} />
 
-<Chart value={csv2} />
+<Chart value={csv2} colors={["teal", "pink"]} />
 
-<Chart value={csv3} />
+<Chart value={csv3} colors={["purple", "lime"]} />
 
 <Chart value={csv4} />
