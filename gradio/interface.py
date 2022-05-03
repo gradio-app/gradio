@@ -631,6 +631,8 @@ class Interface(Blocks):
             if self.article:
                 Markdown(self.article)
 
+        self.config = self.get_config_file()
+
     def __call__(self, *params):
         if (
             self.api_mode
