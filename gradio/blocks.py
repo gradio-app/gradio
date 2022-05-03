@@ -202,7 +202,7 @@ class TabItem(BlockContext):
     def get_template_context(self):
         return {"label": self.label, **super().get_template_context()}
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def select(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
             fn: Callable function
@@ -210,7 +210,7 @@ class TabItem(BlockContext):
             outputs: List of outputs
         Returns: None
         """
-        self.set_event_trigger("change", fn, inputs, outputs)
+        self.set_event_trigger("select", fn, inputs, outputs)
 
 
 class BlockFunction:
