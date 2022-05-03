@@ -17,6 +17,7 @@ from gradio.components import (
     Dataframe,
     Dropdown,
     File,
+    Gallery,
     HighlightedText,
     Image,
     KeyValues,
