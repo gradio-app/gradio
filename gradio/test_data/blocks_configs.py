@@ -115,7 +115,7 @@ XRAY_CONFIG = {
         },
     ],
     "theme": "default",
-    "queue": False,
+    "enable_queue": False,
     "layout": {
         "id": 0,
         "children": [
@@ -150,6 +150,7 @@ XRAY_CONFIG = {
             "inputs": [2, 6],
             "outputs": [7],
             "status_tracker": None,
+            "queue": None,
         },
         {
             "targets": [13],
@@ -157,6 +158,7 @@ XRAY_CONFIG = {
             "inputs": [2, 11],
             "outputs": [12],
             "status_tracker": None,
+            "queue": None,
         },
         {
             "targets": [],
@@ -164,6 +166,7 @@ XRAY_CONFIG = {
             "inputs": [],
             "outputs": [14],
             "status_tracker": None,
+            "queue": None,
         },
     ],
 }
