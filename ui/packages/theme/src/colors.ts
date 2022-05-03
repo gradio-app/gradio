@@ -9,7 +9,7 @@ export const ordered_colors = [
 	"cyan",
 	"lime",
 	"pink"
-];
+] as const;
 
 // https://play.tailwindcss.com/ZubQYya0aN
 export const colors = {
@@ -23,4 +23,4 @@ export const colors = {
 	cyan: { primary: "#0891b2", secondary: "#7dd3fc" },
 	lime: { primary: "#84cc16", secondary: "#d9f99d" },
 	pink: { primary: "#db2777", secondary: "#f9a8d4" }
-};
+} as const;

@@ -141,7 +141,7 @@ def start_server(
 
     app = create_app()
     app = configure_app(app, blocks)
-    
+
     if app.blocks.enable_queue:
         if blocks.auth is not None or app.blocks.encrypt:
             raise ValueError("Cannot queue with encryption or authentication enabled.")

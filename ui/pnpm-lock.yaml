@@ -136,7 +136,9 @@ importers:
 
   packages/chart:
     specifiers:
+      '@gradio/theme': workspace:^0.0.1
       '@gradio/tooltip': workspace:^0.0.1
+      '@gradio/utils': workspace:^0.0.1
       '@types/d3-dsv': ^3.0.0
       '@types/d3-scale': ^4.0.2
       '@types/d3-shape': ^3.0.2
@@ -144,7 +146,9 @@ importers:
       d3-scale: ^4.0.2
       d3-shape: ^3.1.0
     dependencies:
+      '@gradio/theme': link:../theme
       '@gradio/tooltip': link:../tooltip
+      '@gradio/utils': link:../utils
       d3-dsv: 3.0.1
       d3-scale: 4.0.2
       d3-shape: 3.1.0
@@ -154,7 +158,10 @@ importers:
       '@types/d3-shape': 3.0.2
 
   packages/chatbot:
-    specifiers: {}
+    specifiers:
+      '@gradio/theme': workspace:^0.0.1
+    dependencies:
+      '@gradio/theme': link:../theme
 
   packages/file:
     specifiers:
@@ -173,8 +180,10 @@ importers:
   packages/highlighted-text:
     specifiers:
       '@gradio/theme': workspace:^0.0.1
+      '@gradio/utils': workspace:^0.0.1
     dependencies:
       '@gradio/theme': link:../theme
+      '@gradio/utils': link:../utils
 
   packages/html:
     specifiers: {}
@@ -242,6 +251,12 @@ importers:
       '@gradio/atoms': workspace:^0.0.1
     dependencies:
       '@gradio/atoms': link:../atoms
+
+  packages/utils:
+    specifiers:
+      '@gradio/theme': workspace:^0.0.1
+    dependencies:
+      '@gradio/theme': link:../theme
 
   packages/video:
     specifiers:

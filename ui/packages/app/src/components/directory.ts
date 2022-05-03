@@ -13,6 +13,7 @@ export const component_map: Record<string, any> = {
 	file: () => import("./File"),
 	statustracker: () => import("./StatusTracker"),
 	highlightedtext: () => import("./HighlightedText"),
+	gallery: () => import("./Gallery"),
 	html: () => import("./HTML"),
 	image: () => import("./Image"),
 	interpretation: () => import("./Interpretation"),

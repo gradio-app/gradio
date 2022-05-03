@@ -1111,7 +1111,7 @@ class Image(IOComponent):
         """
         Parameters:
         default_value(str): A path or URL for the default value that Image component is going to take.
-        shape (Tuple[int, int]): (width, height) shape to crop and resize image to; if None, matches input image size.
+        shape (Tuple[int, int]): (width, height) shape to crop and resize image to; if None, matches input image size. Pass None for either width or height to only crop and resize the other.
         image_mode (str): "RGB" if color, or "L" if black and white.
         invert_colors (bool): whether to invert the image as a preprocessing step.
         source (str): Source of image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "canvas" defaults to a white image that can be edited and drawn upon with tools.
@@ -1136,7 +1136,7 @@ class Image(IOComponent):
         self.test_input = deepcopy(media_data.BASE64_IMAGE)
         self.interpret_by_tokens = True
         super().__init__(
-            label=label, requires_permissions=requires_permissions, **kwargs
+            label=label, requires_permissions=requires_permissions, css=css, **kwargs
         )
 
     def get_template_context(self):
@@ -2242,6 +2242,7 @@ class Timeseries(IOComponent):
         y: str | List[str] = None,
         label: Optional[str] = None,
         css: Optional[Dict] = None,
+        colors: List[str] = None,
         **kwargs,
     ):
         """
@@ -2250,6 +2251,7 @@ class Timeseries(IOComponent):
         x (str): Column name of x (time) series. None if csv has no headers, in which case first column is x series.
         y (Union[str, List[str]]): Column name of y series, or list of column names if multiple series. None if csv has no headers, in which case every column after first is a y series.
         label (str): component name in interface.
+        colors List[str]: an ordered list of colors to use for each line plot
         """
         self.default_value = (
             pd.read_csv(default_value) if default_value is not None else None
@@ -2258,6 +2260,7 @@ class Timeseries(IOComponent):
         if isinstance(y, str):
             y = [y]
         self.y = y
+        self.colors = colors
         super().__init__(label=label, css=css, **kwargs)
 
     def get_template_context(self):
@@ -2265,6 +2268,7 @@ class Timeseries(IOComponent):
             "x": self.x,
             "y": self.y,
             "default_value": self.default_value,
+            "colors": self.colors,
             **super().get_template_context(),
         }
 
@@ -2708,6 +2712,44 @@ class HTML(IOComponent):
         )
 
 
+class Gallery(IOComponent):
+    def __init__(
+        self,
+        *,
+        label: Optional[str] = None,
+        **kwargs,
+    ):
+        super().__init__(label=label, **kwargs)
+
+    def get_template_context(self):
+        return {
+            **super().get_template_context(),
+        }
+
+    def postprocess(self, y):
+        """
+        Parameters:
+        y (List[Union[numpy.array, PIL.Image, str]]): list of images
+        Returns:
+        (str): list of base64 url data for images
+        """
+        output = []
+        for img in y:
+            if isinstance(img, np.ndarray):
+                img = processing_utils.encode_array_to_base64(img)
+            elif isinstance(img, PIL.Image.Image):
+                img = np.array(img)
+                img = processing_utils.encode_array_to_base64(img)
+            elif isinstance(img, str):
+                img = processing_utils.encode_url_or_file_to_base64(img)
+            else:
+                raise ValueError(
+                    "Unknown type. Please choose from: 'numpy', 'pil', 'file'."
+                )
+            output.append(img)
+        return output
+
+
 class Carousel(IOComponent):
     """
     Component displays a set of output components that can be scrolled through.
@@ -2717,7 +2759,6 @@ class Carousel(IOComponent):
 
     def __init__(
         self,
-        default_value="",
         *,
         components: Component | List[Component],
         label: Optional[str] = None,
@@ -2726,11 +2767,9 @@ class Carousel(IOComponent):
     ):
         """
         Parameters:
-        default_value (str): IGNORED
         components (Union[List[OutputComponent], OutputComponent]): Classes of component(s) that will be scrolled through.
         label (str): component name in interface.
         """
-        # TODO: Shall we havea default value in carousel?
         if not isinstance(components, list):
             components = [components]
         self.components = [

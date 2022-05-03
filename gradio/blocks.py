@@ -158,15 +158,23 @@ class Row(BlockContext):
 
 
 class Column(BlockContext):
-    def __init__(self, visible: bool = True, css: Optional[Dict[str, str]] = None):
+    def __init__(
+        self,
+        visible: bool = True,
+        css: Optional[Dict[str, str]] = None,
+        variant: str = "default",
+    ):
         """
         css: Css rules to apply to block.
+        variant: column type, 'default' (no background) or 'panel' (gray background color and rounded corners)
         """
+        self.variant = variant
         super().__init__(visible, css)
 
     def get_template_context(self):
         return {
             "type": "column",
+            "variant": self.variant,
             **super().get_template_context(),
         }
 
@@ -202,7 +210,7 @@ class TabItem(BlockContext):
     def get_template_context(self):
         return {"label": self.label, **super().get_template_context()}
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def select(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
             fn: Callable function
@@ -210,7 +218,7 @@ class TabItem(BlockContext):
             outputs: List of outputs
         Returns: None
         """
-        self.set_event_trigger("change", fn, inputs, outputs)
+        self.set_event_trigger("select", fn, inputs, outputs)
 
 
 class BlockFunction:
@@ -228,6 +236,7 @@ class Blocks(BlockContext):
         theme: str = "default",
         analytics_enabled: Optional[bool] = None,
         mode: str = "blocks",
+        enable_queue: bool = False,
         **kwargs,
     ):
 
@@ -259,6 +268,10 @@ class Blocks(BlockContext):
         self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
         self.favicon_path = None
         self.auth = None
+        if self.is_space and enable_queue is None:
+            self.enable_queue = True
+        else:
+            self.enable_queue = enable_queue or False
         self.config = self.get_config_file()
 
     def render(self):
@@ -330,7 +343,12 @@ class Blocks(BlockContext):
         return {"type": "column"}
 
     def get_config_file(self):
-        config = {"mode": "blocks", "components": [], "theme": self.theme}
+        config = {
+            "mode": "blocks",
+            "components": [],
+            "theme": self.theme,
+            "queue": self.enable_queue,
+        }
         for _id, block in self.blocks.items():
             config["components"].append(
                 {
@@ -406,7 +424,6 @@ class Blocks(BlockContext):
         server_name: Optional[str] = None,
         server_port: Optional[int] = None,
         show_tips: bool = False,
-        enable_queue: Optional[bool] = None,
         height: int = 500,
         width: int = 900,
         encrypt: bool = False,
@@ -430,10 +447,6 @@ class Blocks(BlockContext):
         server_port (int): will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT.
         server_name (str): to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME.
         show_tips (bool): if True, will occasionally show tips about new Gradio features
-        enable_queue (Optional[bool]):
-            if True, inference requests will be served through a queue instead of with parallel threads. Required for longer inference times (> 1min) to prevent timeout.
-            The default option in HuggingFace Spaces is True.
-            The default option elsewhere is False.
         width (int): The width in pixels of the iframe element containing the interface (used if inline=True)
         height (int): The height in pixels of the iframe element containing the interface (used if inline=True)
         encrypt (bool): If True, flagged data will be encrypted by key provided by creator at launch
@@ -466,11 +479,6 @@ class Blocks(BlockContext):
             self.encryption_key = encryptor.get_key(
                 getpass.getpass("Enter key for encryption: ")
             )
-
-        if self.is_space and enable_queue is None:
-            self.enable_queue = True
-        else:
-            self.enable_queue = enable_queue or False
 
         if self.is_running:
             self.server_app.launchable = self

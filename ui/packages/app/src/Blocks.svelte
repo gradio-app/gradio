@@ -28,7 +28,6 @@
 		targets: Array<number>;
 		inputs: Array<number>;
 		outputs: Array<number>;
-		queue: boolean;
 		status_tracker: number | null;
 		status?: string;
 	}
@@ -40,7 +39,10 @@
 	export let dependencies: Array<Dependency>;
 	export let theme: string;
 	export let style: string | null;
+	export let queue: boolean;
 	export let static_src: string;
+	export let title: string = "Gradio";
+	export let analytics_enabled: boolean = false;
 
 	const dynamic_ids = dependencies.reduce((acc, next) => {
 		next.inputs.forEach((i) => acc.add(i));
@@ -126,7 +128,7 @@
 
 	async function handle_mount({ detail }) {
 		await tick();
-		dependencies.forEach(({ targets, trigger, inputs, outputs, queue }, i) => {
+		dependencies.forEach(({ targets, trigger, inputs, outputs }, i) => {
 			const target_instances: [number, Instance][] = targets.map((t) => [
 				t,
 				instance_map[t]
@@ -213,6 +215,16 @@
 		});
 	}
 </script>
+
+<svelte:head>
+	<title>{title}</title>
+	{#if analytics_enabled}
+		<script
+			async
+			defer
+			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
+	{/if}
+</svelte:head>
 
 <div class="mx-auto container space-y-4 px-4 py-6 dark:bg-gray-950">
 	{#if tree}

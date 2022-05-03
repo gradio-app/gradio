@@ -60,33 +60,15 @@ export function transform_values(
 		for (let j = 0; j < _a.length; j++) {
 			let [name, x] = _a[j];
 			if (name === transformed_values.x.name) {
-				transformed_values.x.values.push(parseInt(x, 10));
+				transformed_values.x.values.push(parseFloat(x));
 			} else {
 				transformed_values.y[j - 1].values.push({
-					y: parseInt(_a[j][1], 10),
-					x: parseInt(_a[0][1], 10)
+					y: parseFloat(_a[j][1]),
+					x: parseFloat(_a[0][1])
 				});
 			}
 		}
 	}
 
 	return transformed_values;
-}
-
-let c = 0;
-export function get_color(): string {
-	let default_colors = [
-		[255, 99, 132],
-		[54, 162, 235],
-		[240, 176, 26],
-		[153, 102, 255],
-		[75, 192, 192],
-		[255, 159, 64]
-	];
-
-	if (c >= default_colors.length) c = 0;
-
-	const [r, g, b] = default_colors[c++];
-
-	return `rgb(${r},${g},${b})`;
 }
