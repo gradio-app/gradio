@@ -13,6 +13,7 @@
 	export let placeholder: string = "";
 	export let form_position: "first" | "last" | "mid" | "single" = "single";
 	export let show_label: boolean;
+	export let max_lines: number | false;
 
 	export let loading_status: "complete" | "pending" | "error";
 
@@ -30,7 +31,7 @@
 		{show_label}
 		{style}
 		{lines}
-		autoheight={mode === "static"}
+		max_lines={!max_lines && mode === "static" ? lines + 1 : max_lines}
 		{placeholder}
 		on:change
 		on:submit
