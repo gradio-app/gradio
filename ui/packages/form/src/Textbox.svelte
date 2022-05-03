@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher, tick } from "svelte";
-	import { BlockTitle, Block } from "@gradio/atoms";
+	import { BlockTitle } from "@gradio/atoms";
 
 	export let value: string = "";
 	export let lines: number = 1;
@@ -8,8 +8,13 @@
 	export let label: string;
 	export let style: string = "";
 	export let disabled = false;
-	export let autoheight: boolean = false;
+	export let autoheight: boolean;
 	export let show_label: boolean;
+
+	let el: HTMLTextAreaElement;
+
+	$: value, el && autoheight && resize({ target: el });
+	$: handle_change(value);
 
 	const dispatch = createEventDispatcher<{
 		change: string;
@@ -29,8 +34,6 @@
 		}
 	}
 
-	$: handle_change(value);
-
 	async function resize(event: Event | { target: HTMLTextAreaElement }) {
 		await tick();
 
@@ -39,11 +42,8 @@
 		target.style.height = +target.scrollHeight + "px";
 	}
 
-	function text_area_resize(
-		el: HTMLTextAreaElement,
-		{ enabled, value }: { enabled: boolean; value: string }
-	) {
-		if (!enabled) return;
+	function text_area_resize(el: HTMLTextAreaElement, value: string) {
+		if (!autoheight) return;
 
 		el.style.overflow = "hidden";
 		el.addEventListener("input", resize);
@@ -52,8 +52,7 @@
 		resize({ target: el });
 
 		return {
-			destroy: () => el.removeEventListener("input", resize),
-			update: () => resize({ target: el })
+			destroy: () => el.removeEventListener("input", resize)
 		};
 	}
 </script>
@@ -64,9 +63,10 @@
 
 	{#if autoheight || lines > 1}
 		<textarea
-			use:text_area_resize={{ enabled: autoheight, value }}
+			use:text_area_resize={value}
 			class="block gr-box gr-input w-full gr-text-input"
 			bind:value
+			bind:this={el}
 			{placeholder}
 			{style}
 			rows={lines}
