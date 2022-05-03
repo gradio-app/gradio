@@ -58,12 +58,12 @@
 	});
 </script>
 
-<div>
-	<div class="flex justify-center align-items-center text-sm">
+<div class="mt-3">
+	<div class="flex justify-center items-center text-sm">
 		{#each _y as { name }}
-			<div class="mx-2">
+			<div class="mx-2 flex gap-1 items-center">
 				<span
-					class="inline-block w-[10px] h-[10px]"
+					class="inline-block w-[12px] h-[12px] rounded-sm"
 					style="background-color: {color_map[name]}"
 				/>
 				{name}
