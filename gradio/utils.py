@@ -207,7 +207,7 @@ def get_config_file(interface: Interface) -> Dict[str, Any]:
         "allow_flagging": interface.allow_flagging,
         "flagging_options": interface.flagging_options,
         "allow_interpretation": interface.interpretation is not None,
-        "queue": interface.enable_queue,
+        "enable_queue": interface.enable_queue,
         "cached_examples": interface.cache_examples
         if hasattr(interface, "cache_examples")
         else False,
