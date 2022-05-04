@@ -174,6 +174,7 @@
 							fn_index: i,
 							data: inputs.map((id) => instance_map[id].value)
 						},
+						outputs.map((id) => instance_map[id].value),
 						queue === null ? enable_queue : queue,
 						() => {}
 					)
@@ -207,6 +208,7 @@
 								fn_index: i,
 								data: inputs.map((id) => instance_map[id].value)
 							},
+							outputs.map((id) => instance_map[id].value),
 							queue === null ? enable_queue : queue,
 							() => {}
 						)

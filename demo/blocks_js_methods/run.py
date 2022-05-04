@@ -22,6 +22,6 @@ with blocks:
     btn.click(sentence_maker, [subject, verb, object], output1)
     reverse_btn.click(None, [subject, verb, object], output2, _js="(s, v, o) => o + ' ' + v + ' ' + s")
     verb.change(lambda x: x, verb, output3, _js="(x) => [...x].reverse().join('')")
-    foo_bar_btn.click(lambda x: x + " bar", subject, subject, _js="(x) => x + ' foo'")
+    foo_bar_btn.click(None, [], subject, _js="(x) => x + ' foo'")
 
 blocks.launch()

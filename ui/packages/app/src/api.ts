@@ -20,11 +20,12 @@ export const fn = async (
 	backend_fn: boolean,
 	frontend_fn: Function | undefined,
 	data: Record<string, unknown>,
+	output_data: Array<any>,
 	queue: boolean,
 	queue_callback: (pos: number | null, is_initial?: boolean) => void
 ) => {
 	if (frontend_fn !== undefined) {
-		data.data = frontend_fn(data.data);
+		data.data = frontend_fn(data.data.concat(output_data));
 	}
 	if (backend_fn == false) {
 		return data;
