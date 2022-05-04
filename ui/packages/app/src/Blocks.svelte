@@ -28,6 +28,9 @@
 		targets: Array<number>;
 		inputs: Array<number>;
 		outputs: Array<number>;
+		backend_fn: boolean;
+		js: string | null;
+		frontend_fn?: Function;
 		status_tracker: number | null;
 		status?: string;
 		queue: boolean | null;
@@ -44,6 +47,20 @@
 	export let static_src: string;
 	export let title: string = "Gradio";
 	export let analytics_enabled: boolean = false;
+
+	dependencies.forEach((d) => {
+		if (d.js) {
+			try {
+				d.frontend_fn = new Function(
+					"__fn_args",
+					`return ${d.outputs.length} === 1 ? [(${d.js})(...__fn_args)] : (${d.js})(...__fn_args)`
+				);
+			} catch (e) {
+				console.error("Could not parse custom js method.");
+				console.error(e);
+			}
+		}
+	});
 
 	const dynamic_ids = dependencies.reduce((acc, next) => {
 		next.inputs.forEach((i) => acc.add(i));
@@ -66,6 +83,7 @@
 			}
 		};
 	}, {} as { [id: number]: Instance });
+	console.log(JSON.stringify(components));
 
 	function load_component<T extends keyof typeof component_map>(
 		name: T
@@ -129,85 +147,95 @@
 
 	async function handle_mount({ detail }) {
 		await tick();
-		dependencies.forEach(({ targets, trigger, inputs, outputs, queue }, i) => {
-			const target_instances: [number, Instance][] = targets.map((t) => [
-				t,
-				instance_map[t]
-			]);
+		dependencies.forEach(
+			(
+				{ targets, trigger, inputs, outputs, queue, backend_fn, frontend_fn },
+				i
+			) => {
+				const target_instances: [number, Instance][] = targets.map((t) => [
+					t,
+					instance_map[t]
+				]);
 
-			// page events
-			if (
-				targets.length === 0 &&
-				!handled_dependencies[i]?.includes(-1) &&
-				trigger === "load" &&
-				// check all input + output elements are on the page
-				outputs.every((v) => instance_map[v].instance) &&
-				inputs.every((v) => instance_map[v].instance)
-			) {
-				fn(
-					"predict",
-					{
-						fn_index: i,
-						data: inputs.map((id) => instance_map[id].value)
-					},
-					queue === null ? enable_queue : queue,
-					() => {}
-				)
-					.then((output) => {
-						output.data.forEach((value, i) => {
-							instance_map[outputs[i]].value = value;
-						});
-					})
-					.catch((error) => {
-						console.error(error);
-					});
-
-				handled_dependencies[i] = [-1];
-			}
-
-			target_instances.forEach(([id, { instance }]: [number, Instance]) => {
-				if (handled_dependencies[i]?.includes(id) || !instance) return;
-				instance?.$on(trigger, () => {
-					if (status === "pending") {
-						return;
-					}
-					outputs.forEach((_id) =>
-						set_prop(instance_map[_id], "loading_status", "pending")
-					);
-
+				// page events
+				if (
+					targets.length === 0 &&
+					!handled_dependencies[i]?.includes(-1) &&
+					trigger === "load" &&
+					// check all input + output elements are on the page
+					outputs.every((v) => instance_map[v].instance) &&
+					inputs.every((v) => instance_map[v].instance)
+				) {
 					fn(
 						"predict",
+						backend_fn,
+						frontend_fn,
 						{
 							fn_index: i,
 							data: inputs.map((id) => instance_map[id].value)
 						},
+						outputs.map((id) => instance_map[id].value),
 						queue === null ? enable_queue : queue,
 						() => {}
 					)
 						.then((output) => {
-							// set_status(i, "complete");
 							output.data.forEach((value, i) => {
 								instance_map[outputs[i]].value = value;
-								set_prop(
-									instance_map[outputs[i]],
-									"loading_status",
-									"complete"
-								);
 							});
 						})
 						.catch((error) => {
-							outputs.forEach((_id) =>
-								set_prop(instance_map[_id], "loading_status", "error")
-							);
-
 							console.error(error);
 						});
-				});
 
-				if (!handled_dependencies[i]) handled_dependencies[i] = [];
-				handled_dependencies[i].push(id);
-			});
-		});
+					handled_dependencies[i] = [-1];
+				}
+
+				target_instances.forEach(([id, { instance }]: [number, Instance]) => {
+					if (handled_dependencies[i]?.includes(id) || !instance) return;
+					instance?.$on(trigger, () => {
+						if (status === "pending") {
+							return;
+						}
+						outputs.forEach((_id) =>
+							set_prop(instance_map[_id], "loading_status", "pending")
+						);
+
+						fn(
+							"predict",
+							backend_fn,
+							frontend_fn,
+							{
+								fn_index: i,
+								data: inputs.map((id) => instance_map[id].value)
+							},
+							outputs.map((id) => instance_map[id].value),
+							queue === null ? enable_queue : queue,
+							() => {}
+						)
+							.then((output) => {
+								output.data.forEach((value, i) => {
+									instance_map[outputs[i]].value = value;
+									set_prop(
+										instance_map[outputs[i]],
+										"loading_status",
+										"complete"
+									);
+								});
+							})
+							.catch((error) => {
+								outputs.forEach((_id) =>
+									set_prop(instance_map[_id], "loading_status", "error")
+								);
+
+								console.error(error);
+							});
+					});
+
+					if (!handled_dependencies[i]) handled_dependencies[i] = [];
+					handled_dependencies[i].push(id);
+				});
+			}
+		);
 	}
 
 	function handle_destroy(id: number) {

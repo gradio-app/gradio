@@ -17,10 +17,19 @@ export const fn = async (
 	session_hash: string,
 	api_endpoint: string,
 	action: string,
+	backend_fn: boolean,
+	frontend_fn: Function | undefined,
 	data: Record<string, unknown>,
+	output_data: Array<any>,
 	queue: boolean,
 	queue_callback: (pos: number | null, is_initial?: boolean) => void
 ) => {
+	if (frontend_fn !== undefined) {
+		data.data = frontend_fn(data.data.concat(output_data));
+	}
+	if (backend_fn == false) {
+		return data;
+	}
 	data["session_hash"] = session_hash;
 	if (queue && ["predict", "interpret"].includes(action)) {
 		data["action"] = action;
