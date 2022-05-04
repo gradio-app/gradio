@@ -8,6 +8,7 @@ from __future__ import annotations
 import copy
 import csv
 import inspect
+import json
 import os
 import random
 import re
@@ -497,12 +498,14 @@ class Interface(Blocks):
                                 submit_btn = Button("Submit")
                                 if self.allow_flagging == "manual":
                                     flag_btn = Button("Flag")
-                                    flag_btn._click_no_preprocess(
+                                    flag_btn.click(
                                         lambda *flag_data: self.flagging_callback.flag(
                                             flag_data
                                         ),
                                         inputs=self.input_components,
                                         outputs=[],
+                                        _preprocess=False,
+                                        queue=False,
                                     )
 
                 if self.interface_type in [
@@ -520,13 +523,14 @@ class Interface(Blocks):
                                 submit_btn = Button("Generate")
                             if self.allow_flagging == "manual":
                                 flag_btn = Button("Flag")
-                                flag_btn._click_no_preprocess(
+                                flag_btn.click(
                                     lambda *flag_data: self.flagging_callback.flag(
                                         flag_data
                                     ),
                                     inputs=self.input_components
                                     + self.output_components,
                                     outputs=[],
+                                    _preprocess=False,
                                 )
                             if self.interpretation:
                                 interpretation_btn = Button("Interpret")
@@ -548,28 +552,7 @@ class Interface(Blocks):
                     status_tracker=status_tracker,
                 )
             clear_btn.click(
-                (
-                    lambda: utils.resolve_singleton(
-                        [
-                            component.default_value
-                            if hasattr(component, "default_value")
-                            else None
-                            for component in self.input_components
-                            + self.output_components
-                        ]
-                        + (
-                            [True]
-                            if self.interface_type
-                            in [
-                                self.InterfaceTypes.STANDARD,
-                                self.InterfaceTypes.INPUT_ONLY,
-                                self.InterfaceTypes.UNIFIED,
-                            ]
-                            else []
-                        )
-                        + ([False] if self.interpretation else [])
-                    )
-                ),
+                None,
                 [],
                 (
                     self.input_components
@@ -586,6 +569,21 @@ class Interface(Blocks):
                     )
                     + ([interpret_component_column] if self.interpretation else [])
                 ),
+                _js=f"""() => {json.dumps(
+                    [component.cleared_value if hasattr(component, "cleared_value") else None
+                    for component in self.input_components + self.output_components] + (
+                            [True]
+                            if self.interface_type
+                            in [
+                                self.InterfaceTypes.STANDARD,
+                                self.InterfaceTypes.INPUT_ONLY,
+                                self.InterfaceTypes.UNIFIED,
+                            ]
+                            else []
+                        )
+                    + ([False] if self.interpretation else [])
+                )}
+                """,
             )
             if self.examples:
                 non_state_inputs = [
@@ -612,21 +610,23 @@ class Interface(Blocks):
                     else:
                         return processed_examples
 
-                examples._click_no_postprocess(
+                examples.click(
                     load_example,
                     inputs=[examples],
                     outputs=non_state_inputs
                     + (self.output_components if self.cache_examples else []),
+                    _postprocess=False,
                     queue=False,
                 )
 
             if self.interpretation:
-                interpretation_btn._click_no_preprocess(
+                interpretation_btn.click(
                     lambda *data: self.interpret(data) + [False, True],
                     inputs=self.input_components + self.output_components,
                     outputs=interpretation_set
                     + [input_component_column, interpret_component_column],
                     status_tracker=status_tracker,
+                    _preprocess=False,
                 )
 
             if self.article:

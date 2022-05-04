@@ -72,11 +72,12 @@ class Block:
     def set_event_trigger(
         self,
         event_name: str,
-        fn: Callable,
+        fn: Optional[Callable],
         inputs: List[Component],
         outputs: List[Component],
         preprocess: bool = True,
         postprocess: bool = True,
+        js: Optional[str] = False,
         no_target: bool = False,
         status_tracker: Optional[StatusTracker] = None,
         queue: Optional[bool] = None,
@@ -90,6 +91,7 @@ class Block:
             outputs: output list
             preprocess: whether to run the preprocess methods of components
             postprocess: whether to run the postprocess methods of components
+            js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components
             no_target: if True, sets "targets" to [], used for Blocks "load" event
             status_tracker: StatusTracker to visualize function progress
         Returns: None
@@ -107,6 +109,8 @@ class Block:
                 "trigger": event_name,
                 "inputs": [block._id for block in inputs],
                 "outputs": [block._id for block in outputs],
+                "backend_fn": fn is not None,
+                "js": js,
                 "status_tracker": status_tracker._id
                 if status_tracker is not None
                 else None,
@@ -224,7 +228,7 @@ class TabItem(BlockContext):
 
 
 class BlockFunction:
-    def __init__(self, fn: Callable, preprocess: bool, postprocess: bool):
+    def __init__(self, fn: Optional[Callable], preprocess: bool, postprocess: bool):
         self.fn = fn
         self.preprocess = preprocess
         self.postprocess = postprocess
@@ -476,6 +480,7 @@ class Blocks(BlockContext):
         self.height = height
         self.width = width
         self.favicon_path = favicon_path
+        self.config = self.get_config_file()
 
         self.encrypt = encrypt
         if self.encrypt:
