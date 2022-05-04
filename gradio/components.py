@@ -389,6 +389,7 @@ class Textbox(IOComponent):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        queue: Optional[bool] = None,
     ):
         """
         Parameters:
@@ -399,7 +400,7 @@ class Textbox(IOComponent):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
+            "change", fn, inputs, outputs, status_tracker=status_tracker, queue=queue
         )
 
     def submit(
@@ -408,6 +409,7 @@ class Textbox(IOComponent):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        queue: Optional[bool] = None,
     ):
         """
         Parameters:
@@ -418,7 +420,7 @@ class Textbox(IOComponent):
         Returns: None
         """
         self.set_event_trigger(
-            "submit", fn, inputs, outputs, status_tracker=status_tracker
+            "submit", fn, inputs, outputs, status_tracker=status_tracker, queue=queue
         )
 
 
@@ -537,6 +539,7 @@ class Number(IOComponent):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        queue: Optional[bool] = None,
     ):
         """
         Parameters:
@@ -547,7 +550,7 @@ class Number(IOComponent):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
+            "change", fn, inputs, outputs, status_tracker=status_tracker, queue=queue
         )
 
     def submit(
@@ -556,6 +559,7 @@ class Number(IOComponent):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        queue: Optional[bool] = None,
     ):
         """
         Parameters:
@@ -566,7 +570,7 @@ class Number(IOComponent):
         Returns: None
         """
         self.set_event_trigger(
-            "submit", fn, inputs, outputs, status_tracker=status_tracker
+            "submit", fn, inputs, outputs, status_tracker=status_tracker, queue=queue
         )
 
 
@@ -681,6 +685,7 @@ class Slider(IOComponent):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        queue: Optional[bool] = None,
     ):
         """
         Parameters:
@@ -691,7 +696,7 @@ class Slider(IOComponent):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
+            "change", fn, inputs, outputs, status_tracker=status_tracker, queue=queue
         )
 
 
@@ -782,6 +787,7 @@ class Checkbox(IOComponent):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        queue: Optional[bool] = None,
     ):
         """
         Parameters:
@@ -792,7 +798,7 @@ class Checkbox(IOComponent):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
+            "change", fn, inputs, outputs, status_tracker=status_tracker, queue=queue
         )
 
 
@@ -919,6 +925,7 @@ class CheckboxGroup(IOComponent):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        queue: Optional[bool] = None,
     ):
         """
         Parameters:
@@ -929,7 +936,7 @@ class CheckboxGroup(IOComponent):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
+            "change", fn, inputs, outputs, status_tracker=status_tracker, queue=queue
         )
 
 
@@ -1036,6 +1043,7 @@ class Radio(IOComponent):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        queue: Optional[bool] = None,
     ):
         """
         Parameters:
@@ -1046,7 +1054,7 @@ class Radio(IOComponent):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
+            "change", fn, inputs, outputs, status_tracker=status_tracker, queue=queue
         )
 
 
@@ -1378,6 +1386,7 @@ class Image(IOComponent):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        queue: Optional[bool] = None,
     ):
         """
         Parameters:
@@ -1388,7 +1397,7 @@ class Image(IOComponent):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
+            "change", fn, inputs, outputs, status_tracker=status_tracker, queue=queue
         )
 
     def edit(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
@@ -1529,6 +1538,7 @@ class Video(IOComponent):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        queue: Optional[bool] = None,
     ):
         """
         Parameters:
@@ -1539,7 +1549,7 @@ class Video(IOComponent):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
+            "change", fn, inputs, outputs, status_tracker=status_tracker, queue=queue
         )
 
     def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
@@ -1840,6 +1850,7 @@ class Audio(IOComponent):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        queue: Optional[bool] = None,
     ):
         """
         Parameters:
@@ -1850,7 +1861,7 @@ class Audio(IOComponent):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
+            "change", fn, inputs, outputs, status_tracker=status_tracker, queue=queue
         )
 
     def edit(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
@@ -2025,6 +2036,7 @@ class File(IOComponent):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        queue: Optional[bool] = None,
     ):
         """
         Parameters:
@@ -2035,7 +2047,7 @@ class File(IOComponent):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
+            "change", fn, inputs, outputs, status_tracker=status_tracker, queue=queue
         )
 
     def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
@@ -2211,6 +2223,7 @@ class Dataframe(IOComponent):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        queue: Optional[bool] = None,
     ):
         """
         Parameters:
@@ -2221,7 +2234,7 @@ class Dataframe(IOComponent):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
+            "change", fn, inputs, outputs, status_tracker=status_tracker, queue=queue
         )
 
 
@@ -2322,6 +2335,7 @@ class Timeseries(IOComponent):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        queue: Optional[bool] = None,
     ):
         """
         Parameters:
@@ -2332,7 +2346,7 @@ class Timeseries(IOComponent):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
+            "change", fn, inputs, outputs, status_tracker=status_tracker, queue=queue
         )
 
 
@@ -2474,6 +2488,7 @@ class Label(IOComponent):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        queue: Optional[bool] = None,
     ):
         """
         Parameters:
@@ -2484,7 +2499,7 @@ class Label(IOComponent):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
+            "change", fn, inputs, outputs, status_tracker=status_tracker, queue=queue
         )
 
 
@@ -2574,6 +2589,7 @@ class HighlightedText(IOComponent):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        queue: Optional[bool] = None,
     ):
         """
         Parameters:
@@ -2584,7 +2600,7 @@ class HighlightedText(IOComponent):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
+            "change", fn, inputs, outputs, status_tracker=status_tracker, queue=queue
         )
 
 
@@ -2641,6 +2657,7 @@ class JSON(IOComponent):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        queue: Optional[bool] = None,
     ):
         """
         Parameters:
@@ -2651,7 +2668,7 @@ class JSON(IOComponent):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
+            "change", fn, inputs, outputs, status_tracker=status_tracker, queue=queue
         )
 
 
@@ -2698,6 +2715,7 @@ class HTML(IOComponent):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        queue: Optional[bool] = None,
     ):
         """
         Parameters:
@@ -2708,7 +2726,7 @@ class HTML(IOComponent):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
+            "change", fn, inputs, outputs, status_tracker=status_tracker, queue=queue
         )
 
 
@@ -2833,6 +2851,7 @@ class Carousel(IOComponent):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        queue: Optional[bool] = None,
     ):
         """
         Parameters:
@@ -2843,7 +2862,7 @@ class Carousel(IOComponent):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
+            "change", fn, inputs, outputs, status_tracker=status_tracker, queue=queue
         )
 
 
@@ -2896,6 +2915,7 @@ class Chatbot(IOComponent):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        queue: Optional[bool] = None,
     ):
         """
         Parameters:
@@ -2906,7 +2926,7 @@ class Chatbot(IOComponent):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
+            "change", fn, inputs, outputs, status_tracker=status_tracker, queue=queue
         )
 
 
@@ -3098,6 +3118,7 @@ class Plot(IOComponent):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        queue: Optional[bool] = None,
     ):
         """
         Parameters:
@@ -3108,7 +3129,7 @@ class Plot(IOComponent):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
+            "change", fn, inputs, outputs, status_tracker=status_tracker, queue=queue
         )
 
     def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
@@ -3184,6 +3205,7 @@ class Button(Component):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        queue: Optional[bool] = None,
     ):
         """
         Parameters:
@@ -3199,6 +3221,7 @@ class Button(Component):
             inputs,
             outputs,
             status_tracker=status_tracker,
+            queue=queue,
         )
 
     def _click_no_preprocess(
@@ -3207,6 +3230,7 @@ class Button(Component):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        queue: Optional[bool] = None,
     ):
         """
         Parameters:
@@ -3223,6 +3247,7 @@ class Button(Component):
             outputs,
             preprocess=False,
             status_tracker=status_tracker,
+            queue=queue,
         )
 
 
@@ -3271,6 +3296,7 @@ class Dataset(Component):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        queue: Optional[bool] = None,
     ):
         """
         Parameters:
@@ -3281,7 +3307,7 @@ class Dataset(Component):
         Returns: None
         """
         self.set_event_trigger(
-            "click", fn, inputs, outputs, status_tracker=status_tracker
+            "click", fn, inputs, outputs, status_tracker=status_tracker, queue=queue
         )
 
     def _click_no_postprocess(
@@ -3290,6 +3316,7 @@ class Dataset(Component):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        queue: Optional[bool] = None,
     ):
         """
         Parameters:
@@ -3306,6 +3333,7 @@ class Dataset(Component):
             outputs,
             postprocess=False,
             status_tracker=status_tracker,
+            queue=queue,
         )
 
 
