@@ -274,7 +274,6 @@ class Blocks(BlockContext):
             self.enable_queue = True
         else:
             self.enable_queue = enable_queue or False
-        self.config = self.get_config_file()
 
     def render(self):
         if Context.root_block is not None:
@@ -387,6 +386,7 @@ class Blocks(BlockContext):
             Context.root_block = None
         else:
             self.parent.children.extend(self.children)
+        self.config = self.get_config_file()
 
     def load(
         self, fn: Callable, inputs: List[Component], outputs: List[Component]
@@ -461,6 +461,7 @@ class Blocks(BlockContext):
         local_url (str): Locally accessible link to the demo
         share_url (str): Publicly accessible link to the demo (if share=True, otherwise None)
         """
+        self.config = self.get_config_file()
         if (
             auth
             and not callable(auth)
