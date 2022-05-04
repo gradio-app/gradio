@@ -234,7 +234,178 @@ class Component(Block):
         return kwargs
 
 
-class Textbox(Component):
+class Changeable(Component):
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+        _js: Optional[str] = None,
+    ):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+            status_tracker: StatusTracker to visualize function progress
+            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of input and outputs components, return should be a list of values for output component.
+        Returns: None
+        """
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
+        )
+
+
+class Clickable(Component):
+    def click(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+        _js: Optional[str] = None,
+        _preprocess: bool = True,
+        _postprocess: bool = True,
+    ):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+            status_tracker: StatusTracker to visualize function progress
+            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+            _preprocess: If False, will not run preprocessing of component data before running 'fn'.
+            _postprocess: If False, will not run postprocessing of component data before returning 'fn' output.
+        Returns: None
+        """
+        self.set_event_trigger(
+            "click",
+            fn,
+            inputs,
+            outputs,
+            status_tracker=status_tracker,
+            js=_js,
+            preprocess=_preprocess,
+            postprocess=_postprocess,
+        )
+
+
+class Submittable(Component):
+    def submit(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+        _js: Optional[str] = None,
+    ):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+            status_tracker: StatusTracker to visualize function progress
+            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        Returns: None
+        """
+        self.set_event_trigger(
+            "submit", fn, inputs, outputs, status_tracker=status_tracker, js=_js
+        )
+
+
+class Editable(Component):
+    def edit(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        _js: Optional[str] = None,
+    ):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        Returns: None
+        """
+        self.set_event_trigger("edit", fn, inputs, outputs, js=_js)
+
+
+class Clearable(Component):
+    def clear(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        _js: Optional[str] = None,
+    ):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        Returns: None
+        """
+        self.set_event_trigger("submit", fn, inputs, outputs, js=_js)
+
+
+class Playable(Component):
+    def play(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        _js: Optional[str] = None,
+    ):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        Returns: None
+        """
+        self.set_event_trigger("play", fn, inputs, outputs, js=_js)
+
+    def pause(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        _js: Optional[str] = None,
+    ):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        Returns: None
+        """
+        self.set_event_trigger("pause", fn, inputs, outputs, js=_js)
+
+    def stop(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        _js: Optional[str] = None,
+    ):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        Returns: None
+        """
+        self.set_event_trigger("stop", fn, inputs, outputs, js=_js)
+
+
+class Textbox(Changeable, Submittable, Component):
     """
     Component creates a textbox for user to enter string input or display string output. Provides a string as an argument to the wrapped function.
     Input type: str
@@ -280,7 +451,7 @@ class Textbox(Component):
         self.cleared_value = ""
         self.test_input = default_value
         self.interpret_by_tokens = True
-        super().__init__(label=label, css=css, **kwargs)
+        Component.__init__(self, label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
@@ -288,7 +459,7 @@ class Textbox(Component):
             "max_lines": self.max_lines,
             "placeholder": self.placeholder,
             "default_value": self.default_value,
-            **super().get_template_context(),
+            **Component.get_template_context(self),
         }
 
     # Input Functionalities
@@ -393,48 +564,8 @@ class Textbox(Component):
         """
         return x
 
-    def change(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-        _js=False,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
-        )
 
-    def submit(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-        _js=False,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "submit", fn, inputs, outputs, status_tracker=status_tracker, js=_js
-        )
-
-
-class Number(Component):
+class Number(Changeable, Submittable, Component):
     """
     Component creates a field for user to enter numeric input or display numeric output. Provides a number as an argument to the wrapped function.
     Can be used as an output as well.
@@ -460,10 +591,13 @@ class Number(Component):
         self.default_value = float(default_value) if default_value is not None else None
         self.test_input = self.default_value if self.default_value is not None else 1
         self.interpret_by_tokens = False
-        super().__init__(label=label, css=css, **kwargs)
+        Component.__init__(self, label=label, css=css, **kwargs)
 
     def get_template_context(self):
-        return {"default_value": self.default_value, **super().get_template_context()}
+        return {
+            "default_value": self.default_value,
+            **Component.get_template_context(self),
+        }
 
     def preprocess(self, x: float | None) -> Optional[float]:
         """
@@ -543,48 +677,8 @@ class Number(Component):
         """
         return y
 
-    def change(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-        _js=False,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
-        )
 
-    def submit(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-        _js=False,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "submit", fn, inputs, outputs, status_tracker=status_tracker, js=_js
-        )
-
-
-class Slider(Component):
+class Slider(Changeable, Component):
     """
     Component creates a slider that ranges from `minimum` to `maximum`. Provides a number as an argument to the wrapped function.
 
@@ -622,7 +716,7 @@ class Slider(Component):
         self.cleared_value = self.default_value
         self.test_input = self.default_value
         self.interpret_by_tokens = False
-        super().__init__(label=label, css=css, **kwargs)
+        Component.__init__(self, label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
@@ -630,7 +724,7 @@ class Slider(Component):
             "maximum": self.maximum,
             "step": self.step,
             "default_value": self.default_value,
-            **super().get_template_context(),
+            **Component.get_template_context(self),
         }
 
     def preprocess(self, x: float) -> float:
@@ -690,28 +784,8 @@ class Slider(Component):
         """
         return y
 
-    def change(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-        _js=False,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
-        )
 
-
-class Checkbox(Component):
+class Checkbox(Changeable, Component):
     """
     Component creates a checkbox that can be set to `True` or `False`. Provides a boolean as an argument to the wrapped function.
 
@@ -736,10 +810,13 @@ class Checkbox(Component):
         self.test_input = True
         self.default_value = default_value
         self.interpret_by_tokens = False
-        super().__init__(label=label, css=css, **kwargs)
+        Component.__init__(self, label=label, css=css, **kwargs)
 
     def get_template_context(self):
-        return {"default_value": self.default_value, **super().get_template_context()}
+        return {
+            "default_value": self.default_value,
+            **Component.get_template_context(self),
+        }
 
     def preprocess(self, x: bool) -> bool:
         """
@@ -792,28 +869,8 @@ class Checkbox(Component):
         """
         return x
 
-    def change(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-        _js=False,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
-        )
 
-
-class CheckboxGroup(Component):
+class CheckboxGroup(Changeable, Component):
     """
     Component creates a set of checkboxes of which a subset can be selected. Provides a list of strings representing the selected choices as an argument to the wrapped function.
 
@@ -848,13 +905,13 @@ class CheckboxGroup(Component):
         self.type = type
         self.test_input = self.choices
         self.interpret_by_tokens = False
-        super().__init__(label=label, css=css, **kwargs)
+        Component.__init__(self, label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
             "choices": self.choices,
             "default_value": self.default_value,
-            **super().get_template_context(),
+            **Component.get_template_context(self),
         }
 
     def preprocess(self, x: List[str]) -> List[str] | List[int]:
@@ -931,28 +988,8 @@ class CheckboxGroup(Component):
         """
         return x
 
-    def change(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-        _js=False,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
-        )
 
-
-class Radio(Component):
+class Radio(Changeable, Component):
     """
     Component creates a set of radio buttons of which only one can be selected. Provides string representing selected choice as an argument to the wrapped function.
 
@@ -985,13 +1022,13 @@ class Radio(Component):
         )
         self.cleared_value = self.default_value
         self.interpret_by_tokens = False
-        super().__init__(label=label, css=css, **kwargs)
+        Component.__init__(self, label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
             "choices": self.choices,
             "default_value": self.default_value,
-            **super().get_template_context(),
+            **Component.get_template_context(self),
         }
 
     def preprocess(self, x: str) -> str | int:
@@ -1050,26 +1087,6 @@ class Radio(Component):
         """
         return x
 
-    def change(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-        _js=False,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
-        )
-
 
 class Dropdown(Radio):
     """
@@ -1097,7 +1114,8 @@ class Dropdown(Radio):
         label (str): component name in interface.
         """
         # Everything is same with Dropdown and Radio, so let's make use of it :)
-        super().__init__(
+        Component.__init__(
+            self,
             default_selected=default_selected,
             choices=choices,
             type=type,
@@ -1106,7 +1124,7 @@ class Dropdown(Radio):
         )
 
 
-class Image(Component):
+class Image(Editable, Clearable, Component):
     """
     Component creates an image component with input and output capabilities.
 
@@ -1164,8 +1182,8 @@ class Image(Component):
         self.invert_colors = invert_colors
         self.test_input = deepcopy(media_data.BASE64_IMAGE)
         self.interpret_by_tokens = True
-        super().__init__(
-            label=label, requires_permissions=requires_permissions, **kwargs
+        Component.__init__(
+            self, label=label, requires_permissions=requires_permissions, **kwargs
         )
 
     def get_template_context(self):
@@ -1175,7 +1193,7 @@ class Image(Component):
             "source": self.source,
             "tool": self.tool,
             "default_value": self.default_value,
-            **super().get_template_context(),
+            **Component.get_template_context(self),
         }
 
     def preprocess(self, x: Optional[str]) -> np.array | PIL.Image | str | None:
@@ -1401,48 +1419,8 @@ class Image(Component):
         y = processing_utils.decode_base64_to_file(x).name
         return y
 
-    def change(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-        _js=False,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
-        )
 
-    def edit(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        Returns: None
-        """
-        self.set_event_trigger("edit", fn, inputs, outputs)
-
-    def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        Returns: None
-        """
-        self.set_event_trigger("clear", fn, inputs, outputs)
-
-
-class Video(Component):
+class Video(Changeable, Clearable, Playable, Component):
     """
     Component creates a video file upload that is converted to a file path.
 
@@ -1476,13 +1454,13 @@ class Video(Component):
         )
         self.type = type
         self.source = source
-        super().__init__(label=label, css=css, **kwargs)
+        Component.__init__(self, label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
             "source": self.source,
             "default_value": self.default_value,
-            **super().get_template_context(),
+            **Component.get_template_context(self),
         }
 
     def preprocess_example(self, x):
@@ -1553,68 +1531,8 @@ class Video(Component):
     def deserialize(self, x):
         return processing_utils.decode_base64_to_file(x).name
 
-    def change(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-        _js=False,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
-        )
 
-    def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        Returns: None
-        """
-        self.set_event_trigger("clear", fn, inputs, outputs)
-
-    def play(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        Returns: None
-        """
-        self.set_event_trigger("play", fn, inputs, outputs)
-
-    def pause(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        Returns: None
-        """
-        self.set_event_trigger("pause", fn, inputs, outputs)
-
-    def stop(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        Returns: None
-        """
-        self.set_event_trigger("stop", fn, inputs, outputs)
-
-
-class Audio(Component):
+class Audio(Changeable, Clearable, Playable, Component):
     """
     Component accepts audio input files or creates an audio player that plays the output audio.
 
@@ -1652,15 +1570,15 @@ class Audio(Component):
         self.output_type = "auto"
         self.test_input = deepcopy(media_data.BASE64_AUDIO)
         self.interpret_by_tokens = True
-        super().__init__(
-            label=label, requires_permissions=requires_permissions, **kwargs
+        Component.__init__(
+            self, label=label, requires_permissions=requires_permissions, **kwargs
         )
 
     def get_template_context(self):
         return {
             "source": self.source,  # TODO: This did not exist in output template, careful here if an error arrives
             "default_value": self.default_value,
-            **super().get_template_context(),
+            **Component.get_template_context(self),
         }
 
     def preprocess_example(self, x):
@@ -1856,78 +1774,8 @@ class Audio(Component):
     def deserialize(self, x):
         return processing_utils.decode_base64_to_file(x).name
 
-    def change(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-        _js=False,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
-        )
 
-    def edit(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        Returns: None
-        """
-        self.set_event_trigger("edit", fn, inputs, outputs)
-
-    def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        Returns: None
-        """
-        self.set_event_trigger("clear", fn, inputs, outputs)
-
-    def play(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        Returns: None
-        """
-        self.set_event_trigger("play", fn, inputs, outputs)
-
-    def pause(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        Returns: None
-        """
-        self.set_event_trigger("pause", fn, inputs, outputs)
-
-    def stop(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        Returns: None
-        """
-        self.set_event_trigger("stop", fn, inputs, outputs)
-
-
-class File(Component):
+class File(Changeable, Clearable, Component):
     """
     Component accepts generic file uploads and output..
 
@@ -1963,13 +1811,13 @@ class File(Component):
         self.file_count = file_count
         self.type = type
         self.test_input = None
-        super().__init__(label=label, css=css, **kwargs)
+        Component.__init__(self, label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
             "file_count": self.file_count,
             "default_value": self.default_value,
-            **super().get_template_context(),
+            **Component.get_template_context(self),
         }
 
     def preprocess_example(self, x):
@@ -2044,38 +1892,8 @@ class File(Component):
             "data": processing_utils.encode_file_to_base64(y),
         }
 
-    def change(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-        _js=False,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
-        )
 
-    def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        Returns: None
-        """
-        self.set_event_trigger("clear", fn, inputs, outputs)
-
-
-class Dataframe(Component):
+class Dataframe(Changeable, Component):
     """
     Component accepts or displays 2D input  through a spreadsheet interface.
 
@@ -2141,7 +1959,7 @@ class Dataframe(Component):
         self.max_rows = max_rows
         self.max_cols = max_cols
         self.overflow_row_behaviour = overflow_row_behaviour
-        super().__init__(label=label, css=css, **kwargs)
+        Component.__init__(self, label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
@@ -2154,7 +1972,7 @@ class Dataframe(Component):
             "max_rows": self.max_rows,
             "max_cols": self.max_cols,
             "overflow_row_behaviour": self.overflow_row_behaviour,
-            **super().get_template_context(),
+            **Component.get_template_context(self),
         }
 
     def preprocess(self, x: List[List[str | Number | bool]]):
@@ -2231,28 +2049,8 @@ class Dataframe(Component):
                 + ". Please choose from: 'pandas', 'numpy', 'array'."
             )
 
-    def change(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-        _js=False,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
-        )
 
-
-class Timeseries(Component):
+class Timeseries(Changeable, Component):
     """
     Component accepts pandas.DataFrame uploaded as a timeseries csv file or renders a dataframe consisting of a time series as output.
 
@@ -2285,14 +2083,14 @@ class Timeseries(Component):
         if isinstance(y, str):
             y = [y]
         self.y = y
-        super().__init__(label=label, css=css, **kwargs)
+        Component.__init__(self, label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
             "x": self.x,
             "y": self.y,
             "default_value": self.default_value,
-            **super().get_template_context(),
+            **Component.get_template_context(self),
         }
 
     def preprocess_example(self, x):
@@ -2339,26 +2137,6 @@ class Timeseries(Component):
         """
         return {"headers": y.columns.values.tolist(), "data": y.values.tolist()}
 
-    def change(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-        _js=False,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
-        )
-
 
 class Variable(Component):
     """
@@ -2381,10 +2159,13 @@ class Variable(Component):
         """
         self.default_value = default_value
         self.stateful = True
-        super().__init__(**kwargs)
+        Component.__init__(self, **kwargs)
 
     def get_template_context(self):
-        return {"default_value": self.default_value, **super().get_template_context()}
+        return {
+            "default_value": self.default_value,
+            **Component.get_template_context(self),
+        }
 
 
 ############################
@@ -2392,7 +2173,7 @@ class Variable(Component):
 ############################
 
 
-class Label(Component):
+class Label(Changeable, Component):
     """
     Component outputs a classification label, along with confidence scores of top categories if provided. Confidence scores are represented as a dictionary mapping labels to scores between 0 and 1.
     Output type: Union[Dict[str, float], str, int, float]
@@ -2419,7 +2200,7 @@ class Label(Component):
         # TODO: Shall we have a default value for the label component?
         self.num_top_classes = num_top_classes
         self.output_type = "auto"
-        super().__init__(label=label, css=css, **kwargs)
+        Component.__init__(self, label=label, css=css, **kwargs)
 
     def postprocess(self, y):
         """
@@ -2492,26 +2273,6 @@ class Label(Component):
         except ValueError:
             return data
 
-    def change(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-        _js=False,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
-        )
-
 
 class KeyValues(Component):
     """
@@ -2539,7 +2300,7 @@ class KeyValues(Component):
         )
 
 
-class HighlightedText(Component):
+class HighlightedText(Changeable, Component):
     """
     Component creates text that contains spans that are highlighted by category or numerical value.
     Output is represent as a list of Tuple pairs, where the first element represents the span of text represented by the tuple, and the second element represents the category or value of the text.
@@ -2567,14 +2328,14 @@ class HighlightedText(Component):
         self.default_value = default_value
         self.color_map = color_map
         self.show_legend = show_legend
-        super().__init__(label=label, css=css, **kwargs)
+        Component.__init__(self, label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
             "color_map": self.color_map,
             "show_legend": self.show_legend,
             "default_value": self.default_value,
-            **super().get_template_context(),
+            **Component.get_template_context(self),
         }
 
     def postprocess(self, y):
@@ -2593,28 +2354,8 @@ class HighlightedText(Component):
     def restore_flagged(self, dir, data, encryption_key):
         return json.loads(data)
 
-    def change(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-        _js=False,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
-        )
 
-
-class JSON(Component):
+class JSON(Changeable, Component):
     """
     Used for JSON output. Expects a JSON string or a Python object that is JSON serializable.
     Output type: Union[str, Any]
@@ -2635,12 +2376,12 @@ class JSON(Component):
         label (str): component name in interface.
         """
         self.default_value = json.dumps(default_value)
-        super().__init__(label=label, css=css, **kwargs)
+        Component.__init__(self, label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
             "default_value": self.default_value,
-            **super().get_template_context(),
+            **Component.get_template_context(self),
         }
 
     def postprocess(self, y):
@@ -2661,28 +2402,8 @@ class JSON(Component):
     def restore_flagged(self, dir, data, encryption_key):
         return json.loads(data)
 
-    def change(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-        _js=False,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
-        )
 
-
-class HTML(Component):
+class HTML(Changeable, Component):
     """
     Used for HTML output. Expects an HTML valid string.
     Output type: str
@@ -2702,12 +2423,12 @@ class HTML(Component):
         label (str): component name in interface.
         """
         self.default_value = default_value
-        super().__init__(label=label, css=css, **kwargs)
+        Component.__init__(self, label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
             "default_value": self.default_value,
-            **super().get_template_context(),
+            **Component.get_template_context(self),
         }
 
     def postprocess(self, x):
@@ -2719,28 +2440,8 @@ class HTML(Component):
         """
         return x
 
-    def change(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-        _js=False,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
-        )
 
-
-class Carousel(Component):
+class Carousel(Changeable, Component):
     """
     Component displays a set of output components that can be scrolled through.
     Output type: List[List[Any]]
@@ -2768,14 +2469,14 @@ class Carousel(Component):
         self.components = [
             get_component_instance(component) for component in components
         ]
-        super().__init__(label=label, css=css, **kwargs)
+        Component.__init__(self, label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
             "components": [
                 component.get_template_context() for component in self.components
             ],
-            **super().get_template_context(),
+            **Component.get_template_context(self),
         }
 
     def postprocess(self, y):
@@ -2820,28 +2521,8 @@ class Carousel(Component):
             for sample_set in json.loads(data)
         ]
 
-    def change(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-        _js=False,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
-        )
 
-
-class Chatbot(Component):
+class Chatbot(Changeable, Component):
     """
     Component displays a chatbot output showing both user submitted messages and responses
     Output type: List[Tuple[str, str]]
@@ -2862,10 +2543,13 @@ class Chatbot(Component):
         label (str): component name in interface (not used).
         """
         self.default_value = default_value
-        super().__init__(label=label, css=css, **kwargs)
+        Component.__init__(self, label=label, css=css, **kwargs)
 
     def get_template_context(self):
-        return {"default_value": self.default_value, **super().get_template_context()}
+        return {
+            "default_value": self.default_value,
+            **Component.get_template_context(self),
+        }
 
     def postprocess(self, y):
         """
@@ -2877,28 +2561,8 @@ class Chatbot(Component):
         """
         return y
 
-    def change(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-        _js=False,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
-        )
 
-
-class Model3D(Component):
+class Model3D(Changeable, Editable, Clearable, Component):
     """
     Component creates a 3D Model component with input and output capabilities.
     Input type: File object of type (.obj, glb, or .gltf)
@@ -2919,12 +2583,12 @@ class Model3D(Component):
         label (str): component name in interface.
         """
         self.clear_color = clear_color
-        super().__init__(label=label, css=css, **kwargs)
+        Component.__init__(self, label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
             "clearColor": self.clear_color,
-            **super().get_template_context(),
+            **Component.get_template_context(self),
         }
 
     def preprocess_example(self, x):
@@ -2993,38 +2657,8 @@ class Model3D(Component):
     def restore_flagged(self, dir, data, encryption_key):
         return self.restore_flagged_file(dir, data, encryption_key)
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        Returns: None
-        """
-        self.set_event_trigger("change", fn, inputs, outputs)
 
-    def edit(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        Returns: None
-        """
-        self.set_event_trigger("edit", fn, inputs, outputs)
-
-    def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        Returns: None
-        """
-        self.set_event_trigger("clear", fn, inputs, outputs)
-
-
-class Plot(Component):
+class Plot(Changeable, Clearable, Component):
     """
     Used for plot output.
     Output type: matplotlib plt, plotly figure, or Bokeh fig (json_item format)
@@ -3044,10 +2678,10 @@ class Plot(Component):
         label (str): component name in interface.
         """
         self.type = type
-        super().__init__(label=label, css=css, **kwargs)
+        Component.__init__(self, label=label, css=css, **kwargs)
 
     def get_template_context(self):
-        return {**super().get_template_context()}
+        return {**Component.get_template_context(self)}
 
     def postprocess(self, y):
         """
@@ -3080,36 +2714,6 @@ class Plot(Component):
             )
         return {"type": dtype, "plot": out_y}
 
-    def change(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-        _js=False,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
-        )
-
-    def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        Returns: None
-        """
-        self.set_event_trigger("clear", fn, inputs, outputs)
-
 
 ############################
 # Static Components
@@ -3135,16 +2739,19 @@ class Markdown(Component):
         label (str): component name
         css (dict): optional css parameters for the component
         """
-        super().__init__(label=label, css=css, **kwargs)
+        Component.__init__(self, label=label, css=css, **kwargs)
         self.md = MarkdownIt()
         unindented_default_value = inspect.cleandoc(default_value)
         self.default_value = self.md.render(unindented_default_value)
 
     def get_template_context(self):
-        return {"default_value": self.default_value, **super().get_template_context()}
+        return {
+            "default_value": self.default_value,
+            **Component.get_template_context(self),
+        }
 
 
-class Button(Component):
+class Button(Clickable, Component):
     """
     Used to create a button, that can be assigned arbitrary click() events.
     """
@@ -3163,36 +2770,14 @@ class Button(Component):
         label (str): component name
         css (dict): optional css parameters for the component
         """
-        super().__init__(label=label, css=css, **kwargs)
+        Component.__init__(self, label=label, css=css, **kwargs)
         self.default_value = default_value
 
     def get_template_context(self):
-        return {"default_value": self.default_value, **super().get_template_context()}
-
-    def click(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-        _js=False,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "click",
-            fn,
-            inputs,
-            outputs,
-            status_tracker=status_tracker,
-            js=_js,
-        )
+        return {
+            "default_value": self.default_value,
+            **Component.get_template_context(self),
+        }
 
     def _click_no_preprocess(
         self,
@@ -3200,7 +2785,7 @@ class Button(Component):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
-        _js=False,
+        _js: Optional[str] = None,
     ):
         """
         Parameters:
@@ -3221,7 +2806,7 @@ class Button(Component):
         )
 
 
-class Dataset(Component):
+class Dataset(Clickable, Component):
     """
     Used to create a output widget for showing datasets. Used to render the examples
     box in the interface.
@@ -3237,7 +2822,7 @@ class Dataset(Component):
         css: Optional[Dict] = None,
         **kwargs,
     ):
-        super().__init__(label=label, css=css, **kwargs)
+        Component.__init__(self, label=label, css=css, **kwargs)
         self.components = components
         self.type = type
         self.headers = [c.label for c in components]
@@ -3249,7 +2834,7 @@ class Dataset(Component):
             "headers": self.headers,
             "samples": self.samples,
             "type": self.type,
-            **super().get_template_context(),
+            **Component.get_template_context(self),
         }
 
     def preprocess(self, x: Any) -> Any:
@@ -3261,33 +2846,13 @@ class Dataset(Component):
         elif self.type == "values":
             return self.samples[x]
 
-    def click(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-        _js=False,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "click", fn, inputs, outputs, status_tracker=status_tracker, js=_js
-        )
-
     def _click_no_postprocess(
         self,
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
-        _js=False,
+        _js: Optional[str] = None,
     ):
         """
         Parameters:
@@ -3321,7 +2886,7 @@ class Interpretation(Component):
         css: Optional[Dict] = None,
         **kwargs,
     ):
-        super().__init__(label=label, css=css, **kwargs)
+        Component.__init__(self, label=label, css=css, **kwargs)
         self.component = component
 
     def get_template_context(self):
@@ -3389,11 +2954,11 @@ class StatusTracker(Component):
         label (str): component name
         css (dict): optional css parameters for the component
         """
-        super().__init__(label=label, css=css, **kwargs)
+        Component.__init__(self, label=label, css=css, **kwargs)
         self.cover_container = cover_container
 
     def get_template_context(self):
         return {
             "cover_container": self.cover_container,
-            **super().get_template_context(),
+            **Component.get_template_context(self),
         }

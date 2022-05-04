@@ -572,18 +572,18 @@ class Interface(Blocks):
                     status_tracker=status_tracker,
                 )
             clear_btn.click(
-                f"""() => {json.dumps(
-                    [component.cleared_value if hasattr(component, "cleared_value") else None
-                    for component in self.input_components + self.output_components] + [True]
-                    + ([False] if self.interpretation else [])
-                )}
-                """,
+                None,
                 [],
                 self.input_components
                 + self.output_components
                 + [input_component_column]
                 + ([interpret_component_column] if self.interpretation else []),
-                _js=True,
+                _js=f"""() => {json.dumps(
+                    [component.cleared_value if hasattr(component, "cleared_value") else None
+                    for component in self.input_components + self.output_components] + [True]
+                    + ([False] if self.interpretation else [])
+                )}
+                """,
             )
             if self.examples:
                 examples = Dataset(
@@ -606,25 +606,28 @@ class Interface(Blocks):
                     else:
                         return processed_examples
 
-                examples._click_no_postprocess(
+                examples.click(
                     load_example,
                     inputs=[examples],
                     outputs=self.input_components
                     + (self.output_components if self.cache_examples else []),
+                    _postprocess=False,
                 )
 
-            flag_btn._click_no_preprocess(
+            flag_btn.click(
                 lambda *flag_data: self.flagging_callback.flag(flag_data),
                 inputs=self.input_components + self.output_components,
                 outputs=[],
+                _preprocess=False,
             )
             if self.interpretation:
-                interpretation_btn._click_no_preprocess(
+                interpretation_btn.click(
                     lambda *data: self.interpret(data) + [False, True],
                     inputs=self.input_components + self.output_components,
                     outputs=interpretation_set
                     + [input_component_column, interpret_component_column],
                     status_tracker=status_tracker,
+                    _preprocess=False,
                 )
 
     def __call__(self, *params):

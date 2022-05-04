@@ -54,12 +54,12 @@ class Block:
     def set_event_trigger(
         self,
         event_name: str,
-        fn: Callable,
+        fn: Optional[Callable],
         inputs: List[Component],
         outputs: List[Component],
         preprocess: bool = True,
         postprocess: bool = True,
-        js: bool = False,
+        js: Optional[str] = False,
         no_target: bool = False,
         status_tracker: Optional[StatusTracker] = None,
     ) -> None:
@@ -89,7 +89,8 @@ class Block:
                 "trigger": event_name,
                 "inputs": [block._id for block in inputs],
                 "outputs": [block._id for block in outputs],
-                "js": fn if js else False,
+                "backend_fn": fn is not None,
+                "js": js,
                 "status_tracker": status_tracker._id
                 if status_tracker is not None
                 else None,
@@ -192,7 +193,7 @@ class TabItem(BlockContext):
 
 
 class BlockFunction:
-    def __init__(self, fn: Callable, preprocess: bool, postprocess: bool):
+    def __init__(self, fn: Optional[Callable], preprocess: bool, postprocess: bool):
         self.fn = fn
         self.preprocess = preprocess
         self.postprocess = postprocess

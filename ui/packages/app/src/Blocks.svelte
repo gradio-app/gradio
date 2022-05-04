@@ -29,7 +29,9 @@
 		inputs: Array<number>;
 		outputs: Array<number>;
 		queue: boolean;
+		backend_fn: boolean;
 		js: string | null;
+		frontend_fn?: Function;
 		status_tracker: number | null;
 		status?: string;
 	}
@@ -42,6 +44,21 @@
 	export let theme: string;
 	export let style: string | null;
 	export let static_src: string;
+
+	dependencies.forEach((d) => {
+		if (d.js) {
+			try {
+				d.frontend_fn = new Function(
+					"__fn_args",
+					`return ${d.outputs.length} === 1 ? [(${d.js})(...__fn_args)] : (${d.js})(...__fn_args)`
+				);
+			} catch (e) {
+				console.error("Could not parse custom js method.");
+				console.error(e);
+			}
+		}
+		return d;
+	});
 
 	const dynamic_ids = dependencies.reduce((acc, next) => {
 		next.inputs.forEach((i) => acc.add(i));
@@ -129,7 +146,10 @@
 	async function handle_mount({ detail }) {
 		await tick();
 		dependencies.forEach(
-			({ targets, trigger, inputs, outputs, queue, js }, i) => {
+			(
+				{ targets, trigger, inputs, outputs, queue, backend_fn, frontend_fn },
+				i
+			) => {
 				const target_instances: [number, Instance][] = targets.map((t) => [
 					t,
 					instance_map[t]
@@ -146,7 +166,8 @@
 				) {
 					fn(
 						"predict",
-						js,
+						backend_fn,
+						frontend_fn,
 						{
 							fn_index: i,
 							data: inputs.map((id) => instance_map[id].value)
@@ -177,7 +198,8 @@
 						set_status(i, "pending");
 						fn(
 							"predict",
-							js,
+							backend_fn,
+							frontend_fn,
 							{
 								fn_index: i,
 								data: inputs.map((id) => instance_map[id].value)
