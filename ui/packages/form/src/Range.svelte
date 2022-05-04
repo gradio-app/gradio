@@ -13,7 +13,7 @@
 	export let step: number = 1;
 	export let disabled: boolean = false;
 	export let label: string;
-	export let form_position: "first" | "last" | "mid" | "single" = "single";
+	export let show_label: boolean;
 
 	const id = `range_id_${_id++}`;
 
@@ -22,25 +22,23 @@
 	$: dispatch("change", value);
 </script>
 
-<Block {form_position}>
-	<div class="w-full flex flex-col">
-		<div class="flex justify-between">
-			<label for={id}>
-				<BlockTitle>{label}</BlockTitle>
-			</label>
-			<div class="font-medium">{value}</div>
-		</div>
+<div class="w-full flex flex-col">
+	<div class="flex justify-between">
+		<label for={id}>
+			<BlockTitle {show_label}>{label}</BlockTitle>
+		</label>
+		<div class="font-medium">{value}</div>
 	</div>
+</div>
 
-	<input
-		type="range"
-		{id}
-		name="cowbell"
-		class="w-full disabled:cursor-not-allowed"
-		bind:value
-		min={minimum}
-		max={maximum}
-		{step}
-		{disabled}
-	/>
-</Block>
+<input
+	type="range"
+	{id}
+	name="cowbell"
+	class="w-full disabled:cursor-not-allowed"
+	bind:value
+	min={minimum}
+	max={maximum}
+	{step}
+	{disabled}
+/>

@@ -168,7 +168,10 @@ class TestInterface(unittest.TestCase):
             wandb.log = mock.MagicMock()
             wandb.Html = mock.MagicMock()
             interface = Interface(lambda x: x, "textbox", "label")
+            interface.width = 500
+            interface.height = 500
             interface.integrate(wandb=wandb)
+
             self.assertEqual(
                 out.getvalue().strip(),
                 "The WandB integration requires you to `launch(share=True)` first.",
@@ -194,9 +197,9 @@ class TestTabbedInterface(unittest.TestCase):
         with Blocks() as demo:
             with Tabs():
                 with TabItem(label="tab1"):
-                    interface1.render_basic_interface()
+                    interface1.render()
                 with TabItem(label="tab2"):
-                    interface2.render_basic_interface()
+                    interface2.render()
 
         interface3 = Interface(lambda x: x, "textbox", "textbox")
         interface4 = Interface(lambda x: x, "image", "image")
@@ -207,6 +210,12 @@ class TestTabbedInterface(unittest.TestCase):
                 demo.get_config_file(), tabbed_interface.get_config_file()
             )
         )
+
+
+class TestDeprecatedInterface(unittest.TestCase):
+    def test_deprecation_notice(self):
+        with self.assertWarns(Warning):
+            _ = Interface(lambda x: x, "textbox", "textbox", verbose=True)
 
 
 if __name__ == "__main__":

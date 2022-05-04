@@ -60,7 +60,9 @@ class Image(C_Image):
             "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
             DeprecationWarning,
         )
-        super().__init__(type=type, label=label, plot=plot)
+        if plot:
+            type = "plot"
+        super().__init__(type=type, label=label)
 
 
 class Video(C_Video):

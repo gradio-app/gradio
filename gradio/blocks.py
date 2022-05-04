@@ -1,41 +1,59 @@
 from __future__ import annotations
 
-import enum
 import getpass
 import os
 import sys
 import time
+import warnings
 import webbrowser
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
 from gradio import encryptor, networking, queueing, strings, utils
 from gradio.context import Context
-from gradio.routes import PredictBody
+from gradio.deprecation import check_deprecated_parameters
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from fastapi.applications import FastAPI
 
     from gradio.components import Component, StatusTracker
+    from gradio.routes import PredictBody
 
 
 class Block:
-    def __init__(self, without_rendering=False, css=None):
+    def __init__(self, css=None, render=True, **kwargs):
+        self._id = Context.id
+        Context.id += 1
         self.css = css if css is not None else {}
-        if without_rendering:
-            return
-        self.render()
+        if render:
+            self.render()
+        check_deprecated_parameters(self.__class__.__name__, **kwargs)
 
     def render(self):
         """
         Adds self into appropriate BlockContext
         """
-        self._id = Context.id
-        Context.id += 1
         if Context.block is not None:
             Context.block.children.append(self)
         if Context.root_block is not None:
             Context.root_block.blocks[self._id] = self
-        self.events = []
+
+    def unrender(self):
+        """
+        Removes self from BlockContext if it has been rendered (otherwise does nothing).
+        Only deletes the first occurrence of self in BlockContext. Removes from the
+        layout and collection of Blocks, but does not delete any event triggers.
+        """
+        if Context.block is not None:
+            try:
+                Context.block.children.remove(self)
+            except ValueError:
+                pass
+        if Context.root_block is not None:
+            try:
+                del Context.root_block.blocks[self._id]
+            except KeyError:
+                pass
+        return self
 
     def get_block_name(self) -> str:
         """
@@ -62,6 +80,7 @@ class Block:
         js: Optional[str] = False,
         no_target: bool = False,
         status_tracker: Optional[StatusTracker] = None,
+        queue: Optional[bool] = None,
     ) -> None:
         """
         Adds an event to the component's dependencies.
@@ -95,18 +114,25 @@ class Block:
                 "status_tracker": status_tracker._id
                 if status_tracker is not None
                 else None,
+                "queue": queue,
             }
         )
 
 
 class BlockContext(Block):
-    def __init__(self, visible: bool = True, css: Optional[Dict[str, str]] = None):
+    def __init__(
+        self,
+        visible: bool = True,
+        css: Optional[Dict[str, str]] = None,
+        render: bool = True,
+        **kwargs,
+    ):
         """
         css: Css rules to apply to block.
         """
         self.children = []
         self.visible = visible
-        super().__init__(css=css)
+        super().__init__(css=css, render=render, **kwargs)
 
     def __enter__(self):
         self.parent = Context.block
@@ -138,15 +164,23 @@ class Row(BlockContext):
 
 
 class Column(BlockContext):
-    def __init__(self, visible: bool = True, css: Optional[Dict[str, str]] = None):
+    def __init__(
+        self,
+        visible: bool = True,
+        css: Optional[Dict[str, str]] = None,
+        variant: str = "default",
+    ):
         """
         css: Css rules to apply to block.
+        variant: column type, 'default' (no background) or 'panel' (gray background color and rounded corners)
         """
+        self.variant = variant
         super().__init__(visible, css)
 
     def get_template_context(self):
         return {
             "type": "column",
+            "variant": self.variant,
             **super().get_template_context(),
         }
 
@@ -182,7 +216,7 @@ class TabItem(BlockContext):
     def get_template_context(self):
         return {"label": self.label, **super().get_template_context()}
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+    def select(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
             fn: Callable function
@@ -190,7 +224,7 @@ class TabItem(BlockContext):
             outputs: List of outputs
         Returns: None
         """
-        self.set_event_trigger("change", fn, inputs, outputs)
+        self.set_event_trigger("select", fn, inputs, outputs)
 
 
 class BlockFunction:
@@ -208,6 +242,8 @@ class Blocks(BlockContext):
         theme: str = "default",
         analytics_enabled: Optional[bool] = None,
         mode: str = "blocks",
+        enable_queue: bool = False,
+        **kwargs,
     ):
 
         # Cleanup shared parameters with Interface #TODO: is this part still necessary after Interface with Blocks?
@@ -215,6 +251,7 @@ class Blocks(BlockContext):
         self.api_mode = False
         self.theme = theme
         self.requires_permissions = False  # TODO: needs to be implemented
+        self.encrypt = False
 
         # For analytics_enabled and allow_flagging: (1) first check for
         # parameter, (2) check for env variable, (3) default to True/"manual"
@@ -224,8 +261,8 @@ class Blocks(BlockContext):
             else os.getenv("GRADIO_ANALYTICS_ENABLED", "True") == "True"
         )
 
-        super().__init__()
-        self.blocks = {}
+        super().__init__(render=False, **kwargs)
+        self.blocks: Dict[int, Block] = {}
         self.fns: List[BlockFunction] = []
         self.dependencies = []
         self.mode = mode
@@ -236,14 +273,23 @@ class Blocks(BlockContext):
         self.ip_address = utils.get_local_ip_address()
         self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
         self.favicon_path = None
+        self.auth = None
+        if self.is_space and enable_queue is None:
+            self.enable_queue = True
+        else:
+            self.enable_queue = enable_queue or False
 
     def render(self):
-        self._id = Context.id
-        Context.id += 1
+        if Context.root_block is not None:
+            Context.root_block.blocks.update(self.blocks)
+            Context.root_block.fns.extend(self.fns)
+            Context.root_block.dependencies.extend(self.dependencies)
+        if Context.block is not None:
+            Context.block.children.extend(self.children)
 
     def process_api(
         self,
-        data: Dict[str, Any],
+        data: PredictBody,
         username: str = None,
         state: Optional[Dict[int, any]] = None,
     ) -> Dict[str, Any]:
@@ -255,8 +301,8 @@ class Blocks(BlockContext):
             state: data stored from stateful components for session
         Returns: None
         """
-        raw_input = data["data"]
-        fn_index = data["fn_index"]
+        raw_input = data.data
+        fn_index = data.fn_index
         block_fn = self.fns[fn_index]
         dependency = self.dependencies[fn_index]
 
@@ -302,7 +348,12 @@ class Blocks(BlockContext):
         return {"type": "column"}
 
     def get_config_file(self):
-        config = {"mode": "blocks", "components": [], "theme": self.theme}
+        config = {
+            "mode": "blocks",
+            "components": [],
+            "theme": self.theme,
+            "enable_queue": self.enable_queue,
+        }
         for _id, block in self.blocks.items():
             config["components"].append(
                 {
@@ -378,7 +429,6 @@ class Blocks(BlockContext):
         server_name: Optional[str] = None,
         server_port: Optional[int] = None,
         show_tips: bool = False,
-        enable_queue: Optional[bool] = None,
         height: int = 500,
         width: int = 900,
         encrypt: bool = False,
@@ -402,10 +452,6 @@ class Blocks(BlockContext):
         server_port (int): will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT.
         server_name (str): to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME.
         show_tips (bool): if True, will occasionally show tips about new Gradio features
-        enable_queue (Optional[bool]):
-            if True, inference requests will be served through a queue instead of with parallel threads. Required for longer inference times (> 1min) to prevent timeout.
-            The default option in HuggingFace Spaces is True.
-            The default option elsewhere is False.
         width (int): The width in pixels of the iframe element containing the interface (used if inline=True)
         height (int): The height in pixels of the iframe element containing the interface (used if inline=True)
         encrypt (bool): If True, flagged data will be encrypted by key provided by creator at launch
@@ -418,7 +464,6 @@ class Blocks(BlockContext):
         local_url (str): Locally accessible link to the demo
         share_url (str): Publicly accessible link to the demo (if share=True, otherwise None)
         """
-        self.config = self.get_config_file()
         if (
             auth
             and not callable(auth)
@@ -433,21 +478,13 @@ class Blocks(BlockContext):
         self.height = height
         self.width = width
         self.favicon_path = favicon_path
+        self.config = self.get_config_file()
 
-        if hasattr(self, "encrypt") and self.encrypt is None:
-            self.encrypt = encrypt
-        if hasattr(self, "encrypt") and self.encrypt:
+        self.encrypt = encrypt
+        if self.encrypt:
             self.encryption_key = encryptor.get_key(
                 getpass.getpass("Enter key for encryption: ")
             )
-
-        if self.is_space and enable_queue is None:
-            self.enable_queue = True
-        else:
-            self.enable_queue = enable_queue or False
-
-        config = self.get_config_file()
-        self.config = config
 
         if self.is_running:
             self.server_app.launchable = self

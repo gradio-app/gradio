@@ -7,6 +7,7 @@ import numbers
 import operator
 import os
 import shutil
+import sys
 import tempfile
 import warnings
 from copy import deepcopy
@@ -32,24 +33,10 @@ class Component(Block):
     def __init__(
         self,
         *,
-        label: Optional[str] = None,
-        requires_permissions: bool = False,
         css: Optional[Dict] = None,
-        without_rendering: bool = False,
-        interactive: Optional[bool] = None,
         **kwargs,
     ):
-        if "optional" in kwargs:
-            warnings.warn(
-                "Usage of optional is deprecated, and it has no effect",
-                DeprecationWarning,
-            )
-        self.label = label
-        self.requires_permissions = requires_permissions
-        self.interactive = interactive
-
-        self.set_interpret_parameters()
-        super().__init__(without_rendering=without_rendering, css=css)
+        super().__init__(css=css, **kwargs)
 
     def __str__(self):
         return self.__repr__()
@@ -63,9 +50,50 @@ class Component(Block):
         """
         return {
             "name": self.get_block_name(),
-            "label": self.label,
             "css": self.css,
+        }
+
+    @staticmethod
+    def update(**kwargs) -> dict:
+        """
+        Updates component parameters
+
+        @param kwargs: Updating component parameters
+        @return: Updated component parameters
+        """
+        kwargs["__type__"] = "update"
+        return kwargs
+
+
+class IOComponent(Component):
+    """
+    A base class for defining methods that all input/output components should have.
+    """
+
+    def __init__(
+        self,
+        *,
+        label: Optional[str] = None,
+        show_label: bool = True,
+        requires_permissions: bool = False,
+        interactive: Optional[bool] = None,
+        **kwargs,
+    ):
+        self.label = label
+        self.show_label = show_label
+        self.requires_permissions = requires_permissions
+        self.interactive = interactive
+
+        self.set_interpret_parameters()
+
+        super().__init__(**kwargs)
+
+    def get_template_context(self):
+        return {
+            "label": self.label,
+            "show_label": self.show_label,
             "interactive": self.interactive,
+            **super().get_template_context(),
         }
 
     def save_flagged(
@@ -82,20 +110,10 @@ class Component(Block):
         """
         return data
 
-    def save_flagged_file(
-        self,
-        dir: str,
-        label: str,
-        data: Any,
-        encryption_key: bool,
-        file_path: Optional[str] = None,
-    ) -> Optional[str]:
+    def save_file(self, file: tempfile._TemporaryFileWrapper, dir: str, label: str):
         """
-        Saved flagged data (e.g. image or audio) as a file and returns filepath
+        Saved flagged file and returns filepath
         """
-        if data is None:
-            return None
-        file = processing_utils.decode_base64_to_file(data, encryption_key, file_path)
         label = "".join([char for char in label if char.isalnum() or char in "._- "])
         old_file_name = file.name
         output_dir = os.path.join(dir, label)
@@ -112,6 +130,22 @@ class Component(Block):
         shutil.move(old_file_name, os.path.join(dir, label, new_file_name))
         return label + "/" + new_file_name
 
+    def save_flagged_file(
+        self,
+        dir: str,
+        label: str,
+        data: Any,
+        encryption_key: bool,
+        file_path: Optional[str] = None,
+    ) -> Optional[str]:
+        """
+        Saved flagged data (e.g. image or audio) as a file and returns filepath
+        """
+        if data is None:
+            return None
+        file = processing_utils.decode_base64_to_file(data, encryption_key, file_path)
+        return self.save_file(file, dir, label)
+
     def restore_flagged_file(
         self,
         dir: str,
@@ -125,28 +159,6 @@ class Component(Block):
             os.path.join(dir, file), encryption_key=encryption_key
         )
         return {"name": file, "data": data}
-
-    @classmethod
-    def get_component_shortcut(cls, str_shortcut: str) -> Optional[Component]:
-        """
-        Creates a component, where class name equals to str_shortcut.
-
-        @param str_shortcut: string shortcut of a component
-        @return: the insantiated component object, or None if no such component exists
-        """
-        # If we do not import templates Python cannot recognize grandchild classes names.
-        import gradio.templates
-
-        # Make it suitable with class names
-        str_shortcut = str_shortcut.replace("_", "")
-        for sub_cls in cls.__subclasses__():
-            if sub_cls.__name__.lower() == str_shortcut:
-                return sub_cls()
-            # For template components
-            for sub_sub_cls in sub_cls.__subclasses__():
-                if sub_sub_cls.__name__.lower() == str_shortcut:
-                    return sub_sub_cls()
-        return None
 
     # Input Functionalities
     def preprocess(self, x: Any) -> Any:
@@ -222,17 +234,6 @@ class Component(Block):
         """
         return x
 
-    @staticmethod
-    def update(**kwargs) -> dict:
-        """
-        Updates component parameters
-
-        @param kwargs: Updating component parameters
-        @return: Updated component parameters
-        """
-        kwargs["__type__"] = "update"
-        return kwargs
-
 
 class Changeable(Component):
     def change(
@@ -264,6 +265,7 @@ class Clickable(Component):
         inputs: List[Component],
         outputs: List[Component],
         status_tracker: Optional[StatusTracker] = None,
+        queue=None,
         _js: Optional[str] = None,
         _preprocess: bool = True,
         _postprocess: bool = True,
@@ -285,6 +287,7 @@ class Clickable(Component):
             inputs,
             outputs,
             status_tracker=status_tracker,
+            queue=queue,
             js=_js,
             preprocess=_preprocess,
             postprocess=_postprocess,
@@ -405,7 +408,7 @@ class Playable(Component):
         self.set_event_trigger("stop", fn, inputs, outputs, js=_js)
 
 
-class Textbox(Changeable, Submittable, Component):
+class Textbox(Changeable, Submittable, IOComponent):
     """
     Component creates a textbox for user to enter string input or display string output. Provides a string as an argument to the wrapped function.
     Input type: str
@@ -433,16 +436,6 @@ class Textbox(Changeable, Submittable, Component):
         placeholder (str): placeholder hint to provide behind textarea.
         label (str): component name in interface.
         """
-        if "numeric" in kwargs:
-            warnings.warn(
-                "The 'numeric' type has been deprecated. Use the Number component instead.",
-                DeprecationWarning,
-            )
-        if "type" in kwargs:
-            warnings.warn(
-                "The 'type' parameter has been deprecated. Use the Number component instead if you need it.",
-                DeprecationWarning,
-            )
         default_value = str(default_value)
         self.lines = lines
         self.max_lines = max_lines
@@ -451,7 +444,7 @@ class Textbox(Changeable, Submittable, Component):
         self.cleared_value = ""
         self.test_input = default_value
         self.interpret_by_tokens = True
-        Component.__init__(self, label=label, css=css, **kwargs)
+        IOComponent.__init__(self, label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
@@ -459,7 +452,7 @@ class Textbox(Changeable, Submittable, Component):
             "max_lines": self.max_lines,
             "placeholder": self.placeholder,
             "default_value": self.default_value,
-            **Component.get_template_context(self),
+            **IOComponent.get_template_context(self),
         }
 
     # Input Functionalities
@@ -565,7 +558,7 @@ class Textbox(Changeable, Submittable, Component):
         return x
 
 
-class Number(Changeable, Submittable, Component):
+class Number(Changeable, Submittable, IOComponent):
     """
     Component creates a field for user to enter numeric input or display numeric output. Provides a number as an argument to the wrapped function.
     Can be used as an output as well.
@@ -591,12 +584,12 @@ class Number(Changeable, Submittable, Component):
         self.default_value = float(default_value) if default_value is not None else None
         self.test_input = self.default_value if self.default_value is not None else 1
         self.interpret_by_tokens = False
-        Component.__init__(self, label=label, css=css, **kwargs)
+        IOComponent.__init__(self, label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
             "default_value": self.default_value,
-            **Component.get_template_context(self),
+            **IOComponent.get_template_context(self),
         }
 
     def preprocess(self, x: float | None) -> Optional[float]:
@@ -678,7 +671,7 @@ class Number(Changeable, Submittable, Component):
         return y
 
 
-class Slider(Changeable, Component):
+class Slider(Changeable, IOComponent):
     """
     Component creates a slider that ranges from `minimum` to `maximum`. Provides a number as an argument to the wrapped function.
 
@@ -716,7 +709,7 @@ class Slider(Changeable, Component):
         self.cleared_value = self.default_value
         self.test_input = self.default_value
         self.interpret_by_tokens = False
-        Component.__init__(self, label=label, css=css, **kwargs)
+        IOComponent.__init__(self, label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
@@ -724,7 +717,7 @@ class Slider(Changeable, Component):
             "maximum": self.maximum,
             "step": self.step,
             "default_value": self.default_value,
-            **Component.get_template_context(self),
+            **IOComponent.get_template_context(self),
         }
 
     def preprocess(self, x: float) -> float:
@@ -785,7 +778,7 @@ class Slider(Changeable, Component):
         return y
 
 
-class Checkbox(Changeable, Component):
+class Checkbox(Changeable, IOComponent):
     """
     Component creates a checkbox that can be set to `True` or `False`. Provides a boolean as an argument to the wrapped function.
 
@@ -810,12 +803,12 @@ class Checkbox(Changeable, Component):
         self.test_input = True
         self.default_value = default_value
         self.interpret_by_tokens = False
-        Component.__init__(self, label=label, css=css, **kwargs)
+        IOComponent.__init__(self, label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
             "default_value": self.default_value,
-            **Component.get_template_context(self),
+            **IOComponent.get_template_context(self),
         }
 
     def preprocess(self, x: bool) -> bool:
@@ -870,7 +863,7 @@ class Checkbox(Changeable, Component):
         return x
 
 
-class CheckboxGroup(Changeable, Component):
+class CheckboxGroup(Changeable, IOComponent):
     """
     Component creates a set of checkboxes of which a subset can be selected. Provides a list of strings representing the selected choices as an argument to the wrapped function.
 
@@ -905,13 +898,13 @@ class CheckboxGroup(Changeable, Component):
         self.type = type
         self.test_input = self.choices
         self.interpret_by_tokens = False
-        Component.__init__(self, label=label, css=css, **kwargs)
+        IOComponent.__init__(self, label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
             "choices": self.choices,
             "default_value": self.default_value,
-            **Component.get_template_context(self),
+            **IOComponent.get_template_context(self),
         }
 
     def preprocess(self, x: List[str]) -> List[str] | List[int]:
@@ -989,7 +982,7 @@ class CheckboxGroup(Changeable, Component):
         return x
 
 
-class Radio(Changeable, Component):
+class Radio(Changeable, IOComponent):
     """
     Component creates a set of radio buttons of which only one can be selected. Provides string representing selected choice as an argument to the wrapped function.
 
@@ -1022,13 +1015,13 @@ class Radio(Changeable, Component):
         )
         self.cleared_value = self.default_value
         self.interpret_by_tokens = False
-        Component.__init__(self, label=label, css=css, **kwargs)
+        IOComponent.__init__(self, label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
             "choices": self.choices,
             "default_value": self.default_value,
-            **Component.get_template_context(self),
+            **IOComponent.get_template_context(self),
         }
 
     def preprocess(self, x: str) -> str | int:
@@ -1114,7 +1107,7 @@ class Dropdown(Radio):
         label (str): component name in interface.
         """
         # Everything is same with Dropdown and Radio, so let's make use of it :)
-        Component.__init__(
+        IOComponent.__init__(
             self,
             default_selected=default_selected,
             choices=choices,
@@ -1124,7 +1117,7 @@ class Dropdown(Radio):
         )
 
 
-class Image(Editable, Clearable, Component):
+class Image(Editable, Clearable, IOComponent):
     """
     Component creates an image component with input and output capabilities.
 
@@ -1150,7 +1143,7 @@ class Image(Editable, Clearable, Component):
         """
         Parameters:
         default_value(str): A path or URL for the default value that Image component is going to take.
-        shape (Tuple[int, int]): (width, height) shape to crop and resize image to; if None, matches input image size.
+        shape (Tuple[int, int]): (width, height) shape to crop and resize image to; if None, matches input image size. Pass None for either width or height to only crop and resize the other.
         image_mode (str): "RGB" if color, or "L" if black and white.
         invert_colors (bool): whether to invert the image as a preprocessing step.
         source (str): Source of image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "canvas" defaults to a white image that can be edited and drawn upon with tools.
@@ -1158,15 +1151,7 @@ class Image(Editable, Clearable, Component):
         type (str): The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
         label (str): component name in interface.
         """
-        if "plot" in kwargs:
-            warnings.warn(
-                "The 'plot' parameter has been deprecated. Use the new Plot() component instead",
-                DeprecationWarning,
-            )
-            self.type = "plot"
-        else:
-            self.type = type
-
+        self.type = type
         self.default_value = (
             processing_utils.encode_url_or_file_to_base64(default_value)
             if default_value
@@ -1182,8 +1167,12 @@ class Image(Editable, Clearable, Component):
         self.invert_colors = invert_colors
         self.test_input = deepcopy(media_data.BASE64_IMAGE)
         self.interpret_by_tokens = True
-        Component.__init__(
-            self, label=label, requires_permissions=requires_permissions, **kwargs
+        IOComponent.__init__(
+            self,
+            label=label,
+            css=css,
+            requires_permissions=requires_permissions,
+            **kwargs,
         )
 
     def get_template_context(self):
@@ -1193,7 +1182,7 @@ class Image(Editable, Clearable, Component):
             "source": self.source,
             "tool": self.tool,
             "default_value": self.default_value,
-            **Component.get_template_context(self),
+            **IOComponent.get_template_context(self),
         }
 
     def preprocess(self, x: Optional[str]) -> np.array | PIL.Image | str | None:
@@ -1420,7 +1409,7 @@ class Image(Editable, Clearable, Component):
         return y
 
 
-class Video(Changeable, Clearable, Playable, Component):
+class Video(Changeable, Clearable, Playable, IOComponent):
     """
     Component creates a video file upload that is converted to a file path.
 
@@ -1454,13 +1443,13 @@ class Video(Changeable, Clearable, Playable, Component):
         )
         self.type = type
         self.source = source
-        Component.__init__(self, label=label, css=css, **kwargs)
+        IOComponent.__init__(self, label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
             "source": self.source,
             "default_value": self.default_value,
-            **Component.get_template_context(self),
+            **IOComponent.get_template_context(self),
         }
 
     def preprocess_example(self, x):
@@ -1532,7 +1521,7 @@ class Video(Changeable, Clearable, Playable, Component):
         return processing_utils.decode_base64_to_file(x).name
 
 
-class Audio(Changeable, Clearable, Playable, Component):
+class Audio(Changeable, Clearable, Playable, IOComponent):
     """
     Component accepts audio input files or creates an audio player that plays the output audio.
 
@@ -1570,7 +1559,7 @@ class Audio(Changeable, Clearable, Playable, Component):
         self.output_type = "auto"
         self.test_input = deepcopy(media_data.BASE64_AUDIO)
         self.interpret_by_tokens = True
-        Component.__init__(
+        IOComponent.__init__(
             self, label=label, requires_permissions=requires_permissions, **kwargs
         )
 
@@ -1578,7 +1567,7 @@ class Audio(Changeable, Clearable, Playable, Component):
         return {
             "source": self.source,  # TODO: This did not exist in output template, careful here if an error arrives
             "default_value": self.default_value,
-            **Component.get_template_context(self),
+            **IOComponent.get_template_context(self),
         }
 
     def preprocess_example(self, x):
@@ -1741,9 +1730,18 @@ class Audio(Changeable, Clearable, Playable, Component):
         """
         Returns: (str) path to audio file
         """
-        return self.save_flagged_file(
-            dir, label, None if data is None else data["data"], encryption_key
-        )
+        if data is None:
+            data_string = None
+        elif isinstance(data, str):
+            data_string = data
+        else:
+            data_string = data["data"]
+            is_example = data.get("is_example", False)
+            if is_example:
+                file_obj = processing_utils.create_tmp_copy_of_file(data["name"])
+                return self.save_file(file_obj, dir, label)
+
+        return self.save_flagged_file(dir, label, data_string, encryption_key)
 
     def generate_sample(self):
         return deepcopy(media_data.BASE64_AUDIO)
@@ -1775,7 +1773,7 @@ class Audio(Changeable, Clearable, Playable, Component):
         return processing_utils.decode_base64_to_file(x).name
 
 
-class File(Changeable, Clearable, Component):
+class File(Changeable, Clearable, IOComponent):
     """
     Component accepts generic file uploads and output..
 
@@ -1801,8 +1799,6 @@ class File(Changeable, Clearable, Component):
         type (str): Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name, "binary" returns an bytes object.
         label (str): component name in interface.
         """
-        if "keep_filename" in kwargs:
-            warnings.warn("keep_filename is deprecated", DeprecationWarning)
         self.default_value = (
             processing_utils.encode_url_or_file_to_base64(default_value)
             if default_value
@@ -1811,13 +1807,13 @@ class File(Changeable, Clearable, Component):
         self.file_count = file_count
         self.type = type
         self.test_input = None
-        Component.__init__(self, label=label, css=css, **kwargs)
+        IOComponent.__init__(self, label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
             "file_count": self.file_count,
             "default_value": self.default_value,
-            **Component.get_template_context(self),
+            **IOComponent.get_template_context(self),
         }
 
     def preprocess_example(self, x):
@@ -1893,7 +1889,7 @@ class File(Changeable, Clearable, Component):
         }
 
 
-class Dataframe(Changeable, Component):
+class Dataframe(Changeable, IOComponent):
     """
     Component accepts or displays 2D input  through a spreadsheet interface.
 
@@ -1959,7 +1955,7 @@ class Dataframe(Changeable, Component):
         self.max_rows = max_rows
         self.max_cols = max_cols
         self.overflow_row_behaviour = overflow_row_behaviour
-        Component.__init__(self, label=label, css=css, **kwargs)
+        IOComponent.__init__(self, label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
@@ -1972,7 +1968,7 @@ class Dataframe(Changeable, Component):
             "max_rows": self.max_rows,
             "max_cols": self.max_cols,
             "overflow_row_behaviour": self.overflow_row_behaviour,
-            **Component.get_template_context(self),
+            **IOComponent.get_template_context(self),
         }
 
     def preprocess(self, x: List[List[str | Number | bool]]):
@@ -2050,7 +2046,7 @@ class Dataframe(Changeable, Component):
             )
 
 
-class Timeseries(Changeable, Component):
+class Timeseries(Changeable, IOComponent):
     """
     Component accepts pandas.DataFrame uploaded as a timeseries csv file or renders a dataframe consisting of a time series as output.
 
@@ -2067,6 +2063,7 @@ class Timeseries(Changeable, Component):
         y: str | List[str] = None,
         label: Optional[str] = None,
         css: Optional[Dict] = None,
+        colors: List[str] = None,
         **kwargs,
     ):
         """
@@ -2075,6 +2072,7 @@ class Timeseries(Changeable, Component):
         x (str): Column name of x (time) series. None if csv has no headers, in which case first column is x series.
         y (Union[str, List[str]]): Column name of y series, or list of column names if multiple series. None if csv has no headers, in which case every column after first is a y series.
         label (str): component name in interface.
+        colors List[str]: an ordered list of colors to use for each line plot
         """
         self.default_value = (
             pd.read_csv(default_value) if default_value is not None else None
@@ -2083,14 +2081,16 @@ class Timeseries(Changeable, Component):
         if isinstance(y, str):
             y = [y]
         self.y = y
-        Component.__init__(self, label=label, css=css, **kwargs)
+        self.colors = colors
+        IOComponent.__init__(self, label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
             "x": self.x,
             "y": self.y,
             "default_value": self.default_value,
-            **Component.get_template_context(self),
+            "colors": self.colors,
+            **IOComponent.get_template_context(self),
         }
 
     def preprocess_example(self, x):
@@ -2138,7 +2138,7 @@ class Timeseries(Changeable, Component):
         return {"headers": y.columns.values.tolist(), "data": y.values.tolist()}
 
 
-class Variable(Component):
+class Variable(IOComponent):
     """
     Special hidden component that stores state across runs of the interface.
 
@@ -2159,12 +2159,12 @@ class Variable(Component):
         """
         self.default_value = default_value
         self.stateful = True
-        Component.__init__(self, **kwargs)
+        IOComponent.__init__(self, **kwargs)
 
     def get_template_context(self):
         return {
             "default_value": self.default_value,
-            **Component.get_template_context(self),
+            **IOComponent.get_template_context(self),
         }
 
 
@@ -2173,7 +2173,7 @@ class Variable(Component):
 ############################
 
 
-class Label(Changeable, Component):
+class Label(Changeable, IOComponent):
     """
     Component outputs a classification label, along with confidence scores of top categories if provided. Confidence scores are represented as a dictionary mapping labels to scores between 0 and 1.
     Output type: Union[Dict[str, float], str, int, float]
@@ -2200,7 +2200,7 @@ class Label(Changeable, Component):
         # TODO: Shall we have a default value for the label component?
         self.num_top_classes = num_top_classes
         self.output_type = "auto"
-        Component.__init__(self, label=label, css=css, **kwargs)
+        IOComponent.__init__(self, label=label, css=css, **kwargs)
 
     def postprocess(self, y):
         """
@@ -2274,7 +2274,7 @@ class Label(Changeable, Component):
             return data
 
 
-class KeyValues(Component):
+class KeyValues(IOComponent):
     """
     Component displays a table representing values for multiple fields.
     Output type: Union[Dict, List[Tuple[str, Union[str, int, float]]]]
@@ -2300,7 +2300,7 @@ class KeyValues(Component):
         )
 
 
-class HighlightedText(Changeable, Component):
+class HighlightedText(Changeable, IOComponent):
     """
     Component creates text that contains spans that are highlighted by category or numerical value.
     Output is represent as a list of Tuple pairs, where the first element represents the span of text represented by the tuple, and the second element represents the category or value of the text.
@@ -2328,14 +2328,14 @@ class HighlightedText(Changeable, Component):
         self.default_value = default_value
         self.color_map = color_map
         self.show_legend = show_legend
-        Component.__init__(self, label=label, css=css, **kwargs)
+        IOComponent.__init__(self, label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
             "color_map": self.color_map,
             "show_legend": self.show_legend,
             "default_value": self.default_value,
-            **Component.get_template_context(self),
+            **IOComponent.get_template_context(self),
         }
 
     def postprocess(self, y):
@@ -2355,7 +2355,7 @@ class HighlightedText(Changeable, Component):
         return json.loads(data)
 
 
-class JSON(Changeable, Component):
+class JSON(Changeable, IOComponent):
     """
     Used for JSON output. Expects a JSON string or a Python object that is JSON serializable.
     Output type: Union[str, Any]
@@ -2376,12 +2376,12 @@ class JSON(Changeable, Component):
         label (str): component name in interface.
         """
         self.default_value = json.dumps(default_value)
-        Component.__init__(self, label=label, css=css, **kwargs)
+        IOComponent.__init__(self, label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
             "default_value": self.default_value,
-            **Component.get_template_context(self),
+            **IOComponent.get_template_context(self),
         }
 
     def postprocess(self, y):
@@ -2403,7 +2403,7 @@ class JSON(Changeable, Component):
         return json.loads(data)
 
 
-class HTML(Changeable, Component):
+class HTML(Changeable, IOComponent):
     """
     Used for HTML output. Expects an HTML valid string.
     Output type: str
@@ -2423,12 +2423,12 @@ class HTML(Changeable, Component):
         label (str): component name in interface.
         """
         self.default_value = default_value
-        Component.__init__(self, label=label, css=css, **kwargs)
+        IOComponent.__init__(self, label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
             "default_value": self.default_value,
-            **Component.get_template_context(self),
+            **IOComponent.get_template_context(self),
         }
 
     def postprocess(self, x):
@@ -2441,7 +2441,45 @@ class HTML(Changeable, Component):
         return x
 
 
-class Carousel(Changeable, Component):
+class Gallery(IOComponent):
+    def __init__(
+        self,
+        *,
+        label: Optional[str] = None,
+        **kwargs,
+    ):
+        super().__init__(label=label, **kwargs)
+
+    def get_template_context(self):
+        return {
+            **super().get_template_context(),
+        }
+
+    def postprocess(self, y):
+        """
+        Parameters:
+        y (List[Union[numpy.array, PIL.Image, str]]): list of images
+        Returns:
+        (str): list of base64 url data for images
+        """
+        output = []
+        for img in y:
+            if isinstance(img, np.ndarray):
+                img = processing_utils.encode_array_to_base64(img)
+            elif isinstance(img, PIL.Image.Image):
+                img = np.array(img)
+                img = processing_utils.encode_array_to_base64(img)
+            elif isinstance(img, str):
+                img = processing_utils.encode_url_or_file_to_base64(img)
+            else:
+                raise ValueError(
+                    "Unknown type. Please choose from: 'numpy', 'pil', 'file'."
+                )
+            output.append(img)
+        return output
+
+
+class Carousel(IOComponent):
     """
     Component displays a set of output components that can be scrolled through.
     Output type: List[List[Any]]
@@ -2450,7 +2488,6 @@ class Carousel(Changeable, Component):
 
     def __init__(
         self,
-        default_value="",
         *,
         components: Component | List[Component],
         label: Optional[str] = None,
@@ -2459,24 +2496,22 @@ class Carousel(Changeable, Component):
     ):
         """
         Parameters:
-        default_value (str): IGNORED
         components (Union[List[OutputComponent], OutputComponent]): Classes of component(s) that will be scrolled through.
         label (str): component name in interface.
         """
-        # TODO: Shall we havea default value in carousel?
         if not isinstance(components, list):
             components = [components]
         self.components = [
             get_component_instance(component) for component in components
         ]
-        Component.__init__(self, label=label, css=css, **kwargs)
+        IOComponent.__init__(self, label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
             "components": [
                 component.get_template_context() for component in self.components
             ],
-            **Component.get_template_context(self),
+            **IOComponent.get_template_context(self),
         }
 
     def postprocess(self, y):
@@ -2522,7 +2557,7 @@ class Carousel(Changeable, Component):
         ]
 
 
-class Chatbot(Changeable, Component):
+class Chatbot(Changeable, IOComponent):
     """
     Component displays a chatbot output showing both user submitted messages and responses
     Output type: List[Tuple[str, str]]
@@ -2532,6 +2567,7 @@ class Chatbot(Changeable, Component):
     def __init__(
         self,
         default_value="",
+        color_map: Tuple(str, str) = None,
         *,
         label: Optional[str] = None,
         css: Optional[Dict] = None,
@@ -2540,15 +2576,18 @@ class Chatbot(Changeable, Component):
         """
         Parameters:
         default_value (str): Default value
+        color_map (Tuple[str, str]): Chat bubble color of input text and output text respectively.
         label (str): component name in interface (not used).
         """
         self.default_value = default_value
-        Component.__init__(self, label=label, css=css, **kwargs)
+        self.color_map = color_map
+        IOComponent.__init__(self, label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
             "default_value": self.default_value,
-            **Component.get_template_context(self),
+            "color_map": self.color_map,
+            **IOComponent.get_template_context(self),
         }
 
     def postprocess(self, y):
@@ -2562,7 +2601,7 @@ class Chatbot(Changeable, Component):
         return y
 
 
-class Model3D(Changeable, Editable, Clearable, Component):
+class Model3D(Changeable, Editable, Clearable, IOComponent):
     """
     Component creates a 3D Model component with input and output capabilities.
     Input type: File object of type (.obj, glb, or .gltf)
@@ -2583,12 +2622,12 @@ class Model3D(Changeable, Editable, Clearable, Component):
         label (str): component name in interface.
         """
         self.clear_color = clear_color
-        Component.__init__(self, label=label, css=css, **kwargs)
+        IOComponent.__init__(self, label=label, css=css, **kwargs)
 
     def get_template_context(self):
         return {
             "clearColor": self.clear_color,
-            **Component.get_template_context(self),
+            **IOComponent.get_template_context(self),
         }
 
     def preprocess_example(self, x):
@@ -2658,7 +2697,7 @@ class Model3D(Changeable, Editable, Clearable, Component):
         return self.restore_flagged_file(dir, data, encryption_key)
 
 
-class Plot(Changeable, Clearable, Component):
+class Plot(Changeable, Clearable, IOComponent):
     """
     Used for plot output.
     Output type: matplotlib plt, plotly figure, or Bokeh fig (json_item format)
@@ -2678,10 +2717,10 @@ class Plot(Changeable, Clearable, Component):
         label (str): component name in interface.
         """
         self.type = type
-        Component.__init__(self, label=label, css=css, **kwargs)
+        IOComponent.__init__(self, label=label, css=css, **kwargs)
 
     def get_template_context(self):
-        return {**Component.get_template_context(self)}
+        return {**IOComponent.get_template_context(self)}
 
     def postprocess(self, y):
         """
@@ -2729,17 +2768,15 @@ class Markdown(Component):
         self,
         default_value: str = "",
         *,
-        label: Optional[str] = None,
         css: Optional[Dict] = None,
         **kwargs,
     ):
         """
         Parameters:
         default_value (str): Default value
-        label (str): component name
         css (dict): optional css parameters for the component
         """
-        Component.__init__(self, label=label, css=css, **kwargs)
+        Component.__init__(self, css=css, **kwargs)
         self.md = MarkdownIt()
         unindented_default_value = inspect.cleandoc(default_value)
         self.default_value = self.md.render(unindented_default_value)
@@ -2760,17 +2797,15 @@ class Button(Clickable, Component):
         self,
         default_value: str = "",
         *,
-        label: Optional[str] = None,
         css: Optional[Dict] = None,
         **kwargs,
     ):
         """
         Parameters:
         default_value (str): Default value
-        label (str): component name
         css (dict): optional css parameters for the component
         """
-        Component.__init__(self, label=label, css=css, **kwargs)
+        Component.__init__(self, css=css, **kwargs)
         self.default_value = default_value
 
     def get_template_context(self):
@@ -2778,32 +2813,6 @@ class Button(Clickable, Component):
             "default_value": self.default_value,
             **Component.get_template_context(self),
         }
-
-    def _click_no_preprocess(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-        _js: Optional[str] = None,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "click",
-            fn,
-            inputs,
-            outputs,
-            preprocess=False,
-            status_tracker=status_tracker,
-            js=_js,
-        )
 
 
 class Dataset(Clickable, Component):
@@ -2818,11 +2827,10 @@ class Dataset(Clickable, Component):
         components: List[Component],
         samples: List[List[Any]],
         type: str = "values",
-        label: Optional[str] = None,
         css: Optional[Dict] = None,
         **kwargs,
     ):
-        Component.__init__(self, label=label, css=css, **kwargs)
+        Component.__init__(self, css=css, **kwargs)
         self.components = components
         self.type = type
         self.headers = [c.label for c in components]
@@ -2846,32 +2854,6 @@ class Dataset(Clickable, Component):
         elif self.type == "values":
             return self.samples[x]
 
-    def _click_no_postprocess(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-        _js: Optional[str] = None,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "click",
-            fn,
-            inputs,
-            outputs,
-            postprocess=False,
-            status_tracker=status_tracker,
-            js=_js,
-        )
-
 
 class Interpretation(Component):
     """
@@ -2882,11 +2864,10 @@ class Interpretation(Component):
         self,
         component: Component,
         *,
-        label: Optional[str] = None,
         css: Optional[Dict] = None,
         **kwargs,
     ):
-        Component.__init__(self, label=label, css=css, **kwargs)
+        Component.__init__(self, css=css, **kwargs)
         self.component = component
 
     def get_template_context(self):
@@ -2894,45 +2875,6 @@ class Interpretation(Component):
             "component": self.component.get_block_name(),
             "component_props": self.component.get_template_context(),
         }
-
-
-def component(str_shortcut: str) -> Optional[Component]:
-    """
-    Creates a component, where class name equals to str_shortcut.
-
-    @param str_shortcut: string shortcut of a component
-    @return component: the component object
-    """
-    component = Component.get_component_shortcut(str_shortcut)
-    if component is None:
-        raise ValueError(f"No such component: {str_shortcut}")
-    else:
-        return component
-
-
-def get_component_instance(comp: str | dict | Component):
-    if isinstance(comp, str):
-        component = Component.get_component_shortcut(comp)
-        if component is None:
-            raise ValueError(f"No such component: {comp}")
-        else:
-            return component
-    elif isinstance(
-        comp, dict
-    ):  # a dict with `name` as the input component type and other keys as parameters
-        name = comp.pop("name")
-        for component in Component.__subclasses__():
-            if component.__name__.lower() == name:
-                break
-        else:
-            raise ValueError(f"No such Component: {name}")
-        return component(**comp, without_rendering=True)
-    elif isinstance(comp, Component):
-        return comp
-    else:
-        raise ValueError(
-            f"Component must provided as a `str` or `dict` or `Component` but is {comp}"
-        )
 
 
 class StatusTracker(Component):
@@ -2944,17 +2886,15 @@ class StatusTracker(Component):
         self,
         *,
         cover_container: bool = False,
-        label: Optional[str] = None,
         css: Optional[Dict] = None,
         **kwargs,
     ):
         """
         Parameters:
         cover_container (bool): If True, will expand to cover parent container while function pending.
-        label (str): component name
         css (dict): optional css parameters for the component
         """
-        Component.__init__(self, label=label, css=css, **kwargs)
+        Component.__init__(self, css=css, **kwargs)
         self.cover_container = cover_container
 
     def get_template_context(self):
@@ -2962,3 +2902,43 @@ class StatusTracker(Component):
             "cover_container": self.cover_container,
             **Component.get_template_context(self),
         }
+
+
+def component(cls_name: str):
+    """
+    Returns a component or template with the given class name, or raises a ValueError if not found.
+    @param cls_name: lower-case string class name of a component
+    @return cls: the component class
+    """
+    import gradio.templates
+
+    components = [
+        (name, cls)
+        for name, cls in sys.modules[__name__].__dict__.items()
+        if isinstance(cls, type)
+    ]
+    templates = [
+        (name, cls)
+        for name, cls in gradio.templates.__dict__.items()
+        if isinstance(cls, type)
+    ]
+    for name, cls in components + templates:
+        if name.lower() == cls_name.replace("_", "") and issubclass(cls, Component):
+            return cls
+    raise ValueError(f"No such Component: {cls_name}")
+
+
+def get_component_instance(comp: str | dict | Component):
+    if isinstance(comp, str):
+        component_cls = component(comp)
+        return component_cls()
+    elif isinstance(comp, dict):
+        name = comp.pop("name")
+        component_cls = component(name)
+        return component_cls(**comp)
+    elif isinstance(comp, Component):
+        return comp
+    else:
+        raise ValueError(
+            f"Component must provided as a `str` or `dict` or `Component` but is {comp}"
+        )

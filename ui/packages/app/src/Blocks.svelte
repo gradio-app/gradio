@@ -28,12 +28,12 @@
 		targets: Array<number>;
 		inputs: Array<number>;
 		outputs: Array<number>;
-		queue: boolean;
 		backend_fn: boolean;
 		js: string | null;
 		frontend_fn?: Function;
 		status_tracker: number | null;
 		status?: string;
+		queue: boolean | null;
 	}
 
 	export let root: string;
@@ -43,7 +43,10 @@
 	export let dependencies: Array<Dependency>;
 	export let theme: string;
 	export let style: string | null;
+	export let enable_queue: boolean;
 	export let static_src: string;
+	export let title: string = "Gradio";
+	export let analytics_enabled: boolean = false;
 
 	dependencies.forEach((d) => {
 		if (d.js) {
@@ -57,7 +60,6 @@
 				console.error(e);
 			}
 		}
-		return d;
 	});
 
 	const dynamic_ids = dependencies.reduce((acc, next) => {
@@ -73,7 +75,7 @@
 		value?: unknown;
 	}
 
-	const instance_map = components.reduce((acc, next) => {
+	let instance_map = components.reduce((acc, next) => {
 		return {
 			...acc,
 			[next.id]: {
@@ -81,6 +83,7 @@
 			}
 		};
 	}, {} as { [id: number]: Instance });
+	console.log(JSON.stringify(components));
 
 	function load_component<T extends keyof typeof component_map>(
 		name: T
@@ -107,8 +110,6 @@
 			_n.has_modes = true;
 		}
 
-		// console.log(await _component_map.get(meta.type));
-
 		if (node.children) {
 			_n.children = await Promise.all(node.children.map((v) => walk_layout(v)));
 		}
@@ -125,6 +126,7 @@
 	});
 
 	let tree;
+
 	Promise.all(Array.from(component_set)).then((v) => {
 		Promise.all(layout.children.map((c) => walk_layout(c))).then((v) => {
 			console.log(v);
@@ -132,16 +134,16 @@
 		});
 	});
 
+	function set_prop(obj: Instance, prop: string, val: any) {
+		if (!obj?.props) {
+			obj.props = {};
+		}
+		obj.props[prop] = val;
+		tree = tree;
+	}
+
 	let handled_dependencies: Array<number[]> = [];
 	let status_tracker_values: Record<number, string> = {};
-
-	let set_status = (dependency_index: number, status: string) => {
-		dependencies[dependency_index].status = status;
-		let status_tracker_id = dependencies[dependency_index].status_tracker;
-		if (status_tracker_id !== null) {
-			status_tracker_values[status_tracker_id] = status;
-		}
-	};
 
 	async function handle_mount({ detail }) {
 		await tick();
@@ -172,7 +174,7 @@
 							fn_index: i,
 							data: inputs.map((id) => instance_map[id].value)
 						},
-						queue,
+						queue === null ? enable_queue : queue,
 						() => {}
 					)
 						.then((output) => {
@@ -188,14 +190,15 @@
 				}
 
 				target_instances.forEach(([id, { instance }]: [number, Instance]) => {
-					// console.log(id, handled_dependencies[i]?.includes(id) || !instance);
 					if (handled_dependencies[i]?.includes(id) || !instance) return;
-					// console.log(trigger, target_instances, instance);
 					instance?.$on(trigger, () => {
 						if (status === "pending") {
 							return;
 						}
-						set_status(i, "pending");
+						outputs.forEach((_id) =>
+							set_prop(instance_map[_id], "loading_status", "pending")
+						);
+
 						fn(
 							"predict",
 							backend_fn,
@@ -204,17 +207,24 @@
 								fn_index: i,
 								data: inputs.map((id) => instance_map[id].value)
 							},
-							queue,
+							queue === null ? enable_queue : queue,
 							() => {}
 						)
 							.then((output) => {
-								set_status(i, "complete");
 								output.data.forEach((value, i) => {
 									instance_map[outputs[i]].value = value;
+									set_prop(
+										instance_map[outputs[i]],
+										"loading_status",
+										"complete"
+									);
 								});
 							})
 							.catch((error) => {
-								set_status(i, "error");
+								outputs.forEach((_id) =>
+									set_prop(instance_map[_id], "loading_status", "error")
+								);
+
 								console.error(error);
 							});
 					});
@@ -233,7 +243,17 @@
 	}
 </script>
 
-<div class="mx-auto container space-y-4 px-4 py-6">
+<svelte:head>
+	<title>{title}</title>
+	{#if analytics_enabled}
+		<script
+			async
+			defer
+			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
+	{/if}
+</svelte:head>
+
+<div class="mx-auto container space-y-4 px-4 py-6 dark:bg-gray-950">
 	{#if tree}
 		{#each tree as { component, id, props, children, has_modes }}
 			<Render
@@ -257,7 +277,7 @@
 	class="gradio-page container mx-auto flex flex-col box-border flex-grow text-gray-700 dark:text-gray-50"
 >
 	<div
-		class="footer flex-shrink-0 inline-flex gap-2.5 items-center text-gray-600 justify-center py-2"
+		class="footer flex-shrink-0 inline-flex gap-2.5 items-center text-gray-600 dark:text-gray-300 justify-center py-2"
 	>
 		<a href="https://gradio.app" target="_blank" rel="noreferrer">
 			{$_("interface.built_with_Gradio")}
