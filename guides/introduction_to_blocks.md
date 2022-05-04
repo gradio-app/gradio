@@ -21,6 +21,7 @@ If you have already used `gradio.Interface`, you know that you can easily create
 
 These are all use cases where you should use the Blocks API!
 
+
 ### Getting Started with Blocks
 
 After you have installed Gradio, run the code below as a Python script or in a Python notebook (or in a  [colab notebook](https://colab.research.google.com/drive/18ODkJvyxHutTN0P5APWyGFO_xwNcgHDZ?usp=sharing)).
