@@ -24,7 +24,7 @@ export const fn = async (
 	queue_callback: (pos: number | null, is_initial?: boolean) => void
 ) => {
 	if (frontend_fn !== undefined) {
-		data.data = frontend_fn(data.data)
+		data.data = frontend_fn(data.data);
 	}
 	if (backend_fn == false) {
 		return data;
