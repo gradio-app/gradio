@@ -238,7 +238,7 @@ class Blocks(BlockContext):
         theme: str = "default",
         analytics_enabled: Optional[bool] = None,
         mode: str = "blocks",
-        enable_queue: bool = False,
+        enable_queue: bool = None,
         **kwargs,
     ):
 
