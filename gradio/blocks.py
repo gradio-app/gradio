@@ -79,6 +79,7 @@ class Block:
         postprocess: bool = True,
         no_target: bool = False,
         status_tracker: Optional[StatusTracker] = None,
+        queue: Optional[bool] = None,
     ) -> None:
         """
         Adds an event to the component's dependencies.
@@ -109,6 +110,7 @@ class Block:
                 "status_tracker": status_tracker._id
                 if status_tracker is not None
                 else None,
+                "queue": queue,
             }
         )
 
@@ -347,7 +349,7 @@ class Blocks(BlockContext):
             "mode": "blocks",
             "components": [],
             "theme": self.theme,
-            "queue": self.enable_queue,
+            "enable_queue": self.enable_queue,
         }
         for _id, block in self.blocks.items():
             config["components"].append(
