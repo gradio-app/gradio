@@ -41,7 +41,7 @@ interface Config {
 	layout: string;
 	live: boolean;
 	mode: "blocks" | "interface" | undefined;
-	queue: boolean;
+	enable_queue: boolean;
 	root: string;
 	show_input: boolean;
 	show_output: boolean;
@@ -54,7 +54,6 @@ interface Config {
 	space?: string;
 	detail: string;
 	dark: boolean;
-	enable_queue: boolean;
 }
 
 window.launchGradio = (config: Config, element_query: string) => {

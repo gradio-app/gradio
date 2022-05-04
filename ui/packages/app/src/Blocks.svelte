@@ -30,6 +30,7 @@
 		outputs: Array<number>;
 		status_tracker: number | null;
 		status?: string;
+		queue: boolean | null;
 	}
 
 	export let root: string;
@@ -39,7 +40,7 @@
 	export let dependencies: Array<Dependency>;
 	export let theme: string;
 	export let style: string | null;
-	export let queue: boolean;
+	export let enable_queue: boolean;
 	export let static_src: string;
 	export let title: string = "Gradio";
 	export let analytics_enabled: boolean = false;
@@ -128,7 +129,7 @@
 
 	async function handle_mount({ detail }) {
 		await tick();
-		dependencies.forEach(({ targets, trigger, inputs, outputs }, i) => {
+		dependencies.forEach(({ targets, trigger, inputs, outputs, queue }, i) => {
 			const target_instances: [number, Instance][] = targets.map((t) => [
 				t,
 				instance_map[t]
@@ -149,7 +150,7 @@
 						fn_index: i,
 						data: inputs.map((id) => instance_map[id].value)
 					},
-					queue,
+					queue === null ? enable_queue : queue,
 					() => {}
 				)
 					.then((output) => {
@@ -180,7 +181,7 @@
 							fn_index: i,
 							data: inputs.map((id) => instance_map[id].value)
 						},
-						queue,
+						queue === null ? enable_queue : queue,
 						() => {}
 					)
 						.then((output) => {

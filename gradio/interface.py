@@ -617,6 +617,7 @@ class Interface(Blocks):
                     inputs=[examples],
                     outputs=non_state_inputs
                     + (self.output_components if self.cache_examples else []),
+                    queue=False,
                 )
 
             if self.interpretation:
