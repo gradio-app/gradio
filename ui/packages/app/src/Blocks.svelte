@@ -1,6 +1,9 @@
 <script lang="ts">
 	import type { SvelteComponentTyped } from "svelte";
 	import { component_map } from "./components/directory";
+	import { loading_status } from "./stores";
+	import type { LoadingStatus } from "./stores";
+
 	import { _ } from "svelte-i18n";
 	import { setupi18n } from "./i18n";
 	import Render from "./Render.svelte";
@@ -83,7 +86,6 @@
 			}
 		};
 	}, {} as { [id: number]: Instance });
-	console.log(JSON.stringify(components));
 
 	function load_component<T extends keyof typeof component_map>(
 		name: T
@@ -145,7 +147,7 @@
 	let handled_dependencies: Array<number[]> = [];
 	let status_tracker_values: Record<number, string> = {};
 
-	async function handle_mount({ detail }) {
+	async function handle_mount() {
 		await tick();
 		dependencies.forEach(
 			(
@@ -166,18 +168,16 @@
 					outputs.every((v) => instance_map[v].instance) &&
 					inputs.every((v) => instance_map[v].instance)
 				) {
-					fn(
-						"predict",
+					fn({
+						action: "predict",
 						backend_fn,
 						frontend_fn,
-						{
+						payload: {
 							fn_index: i,
 							data: inputs.map((id) => instance_map[id].value)
 						},
-						outputs.map((id) => instance_map[id].value),
-						queue === null ? enable_queue : queue,
-						() => {}
-					)
+						queue: queue === null ? enable_queue : queue
+					})
 						.then((output) => {
 							output.data.forEach((value, i) => {
 								instance_map[outputs[i]].value = value;
@@ -193,40 +193,30 @@
 				target_instances.forEach(([id, { instance }]: [number, Instance]) => {
 					if (handled_dependencies[i]?.includes(id) || !instance) return;
 					instance?.$on(trigger, () => {
-						if (status === "pending") {
+						console.log(loading_status.get_status_for_fn(i));
+
+						if (loading_status.get_status_for_fn(i) === "pending") {
 							return;
 						}
-						outputs.forEach((_id) =>
-							set_prop(instance_map[_id], "loading_status", "pending")
-						);
 
-						fn(
-							"predict",
+						// page events
+						fn({
+							action: "predict",
 							backend_fn,
 							frontend_fn,
-							{
+							payload: {
 								fn_index: i,
 								data: inputs.map((id) => instance_map[id].value)
 							},
-							outputs.map((id) => instance_map[id].value),
-							queue === null ? enable_queue : queue,
-							() => {}
-						)
+							output_data: outputs.map((id) => instance_map[id].value),
+							queue: queue === null ? enable_queue : queue
+						})
 							.then((output) => {
 								output.data.forEach((value, i) => {
 									instance_map[outputs[i]].value = value;
-									set_prop(
-										instance_map[outputs[i]],
-										"loading_status",
-										"complete"
-									);
 								});
 							})
 							.catch((error) => {
-								outputs.forEach((_id) =>
-									set_prop(instance_map[_id], "loading_status", "error")
-								);
-
 								console.error(error);
 							});
 					});
@@ -242,6 +232,20 @@
 		handled_dependencies = handled_dependencies.map((dep) => {
 			return dep.filter((_id) => _id !== id);
 		});
+	}
+
+	$: set_status($loading_status);
+
+	dependencies.forEach((v, i) => {
+		loading_status.register(i, v.outputs);
+	});
+
+	function set_status(
+		statuses: Record<number, Omit<LoadingStatus, "outputs">>
+	) {
+		for (const id in statuses) {
+			set_prop(instance_map[id], "loading_status", statuses[id]);
+		}
 	}
 </script>
 

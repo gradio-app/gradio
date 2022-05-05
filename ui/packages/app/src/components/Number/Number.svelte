@@ -2,6 +2,7 @@
 	import { Number } from "@gradio/form";
 	import { Block } from "@gradio/atoms";
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
+	import type { LoadingStatus } from "../StatusTracker/types";
 
 	export let label: string = "Number";
 	export let value: number = 0;
@@ -9,7 +10,7 @@
 	export let form_position: "first" | "last" | "mid" | "single" = "single";
 	export let show_label: boolean;
 
-	export let loading_status: "complete" | "pending" | "error";
+	export let loading_status: LoadingStatus;
 
 	export let style: string = "";
 
@@ -19,7 +20,7 @@
 </script>
 
 <Block {form_position}>
-	<StatusTracker tracked_status={loading_status} />
+	<StatusTracker {...loading_status} />
 
 	<Number
 		bind:value
