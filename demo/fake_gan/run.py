@@ -8,7 +8,7 @@ import gradio as gr
 
 
 def fake_gan(count, *args):
-    time.sleep(10)
+    time.sleep(1)
     images = [
         random.choice(
             [
