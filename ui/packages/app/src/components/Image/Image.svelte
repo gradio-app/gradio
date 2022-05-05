@@ -13,7 +13,7 @@
 	export let label: string;
 	export let show_label: boolean;
 
-	export let loading_status: "complete" | "pending" | "error";
+	export let loading_status: LoadingStatus;
 
 	export let mode: "static" | "dynamic";
 
@@ -33,7 +33,7 @@
 	color={dragging ? "green" : "grey"}
 	padding={false}
 >
-	<StatusTracker tracked_status={loading_status} />
+	<StatusTracker {...loading_status} />
 	{#if mode === "static"}
 		<StaticImage {value} {label} {style} {show_label} />
 	{:else}
