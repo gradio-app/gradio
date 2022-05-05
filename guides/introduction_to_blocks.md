@@ -8,23 +8,23 @@ To offer both simplicity and more powerful and flexible control for advanced web
 
 * `gradio.Blocks`: a low-level API that allows you to have full control over the data flows and layout of your application. You can build very complex, multi-step applications using Blocks.
 
-This Guide will teach you the Blocks API and we will create several custom web apps in the process. It will be helpful if you are already familiar with the Interface API before you read this tutorial.
+This Guide will teach you the **Blocks API** and we will create several custom web apps in the process. It will be helpful if you are already familiar with the Interface API before you read this tutorial.
 
 ### Why Blocks?
 
 If you have already used `gradio.Interface`, you know that you can easily create fully-fledged machine learning demos with just a few lines of code. The Interface API is very convenient but in some cases may not be sufficiently flexible for your needs. For example, you might want to:
 
-* Group together related demos in one web app
-* Change the layout of the components instead of just having the inputs on the left and outputs on the right
-* Have multi-step interfaces, in which the output of one model becomes the input to the next model
-* Change components based on the input into another component 
+* Group together related demos as multiple tabs in one web app
+* Change the layout of your demo instead of just having the inputs on the left and outputs on the right
+* Have multi-step interfaces, in which the output of one model becomes the input to the next model, or have more flexible data flows generally
+* Change a component (for example, the choices in a Dropdown) or change the visibilty of a component based on user input
 
 These are all use cases where you should use the Blocks API!
 
 
 ### Getting Started with Blocks
 
-After you have installed Gradio, run the code below as a Python script or in a Python notebook (or in a  [colab notebook](https://colab.research.google.com/drive/18ODkJvyxHutTN0P5APWyGFO_xwNcgHDZ?usp=sharing)).
+After you have installed Gradio, run the code below as a Python script or in a Python notebook (or in a  [colab notebook](https://colab.research.google.com/drive/18ODkJvyxHutTN0P5APWyGFO_xwNcgHDZ?usp=sharing))
 
 {{ code["hello_world"] }}
 
