@@ -5,6 +5,7 @@
 	import { Video, StaticVideo } from "@gradio/video";
 
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
+	import type { LoadingStatus } from "../StatusTracker/types";
 	import { _ } from "svelte-i18n";
 
 	export let value: FileData | null | string = null;
@@ -14,7 +15,7 @@
 	export let source: string;
 	export let root: string;
 	export let show_label: boolean;
-	export let loading_status: "complete" | "pending" | "error";
+	export let loading_status: LoadingStatus;
 
 	export let mode: "static" | "dynamic";
 
@@ -33,7 +34,7 @@
 	color={dragging ? "green" : "grey"}
 	padding={false}
 >
-	<StatusTracker tracked_status={loading_status} />
+	<StatusTracker {...loading_status} />
 
 	{#if mode === "static"}
 		<StaticVideo value={_value} {label} {show_label} {style} />

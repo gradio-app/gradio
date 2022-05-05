@@ -24,6 +24,8 @@ def fake_gan(count, *args):
     return images
 
 
+cheetah = os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg")
+
 demo = gr.Interface(
     fn=fake_gan,
     inputs=[
@@ -38,21 +40,22 @@ demo = gr.Interface(
     title="FD-GAN",
     description="This is a fake demo of a GAN. In reality, the images are randomly chosen from Unsplash.",
     examples=[
-        [os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"), 12, 12, 4, 4],
-        [os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"), 12, 12, 4, 4],
-        [os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"), 12, 12, 4, 4],
-        [os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"), 12, 12, 4, 4],
-        [os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"), 12, 12, 4, 4],
-        [os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"), 12, 12, 4, 4],
-        [os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"), 12, 12, 4, 4],
-        [os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"), 12, 12, 4, 4],
-        [os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"), 12, 12, 4, 4],
-        [os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"), 12, 12, 4, 4],
-        [os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"), 12, 12, 4, 4],
-        [os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"), 12, 12, 4, 4],
-        [os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"), 12, 12, 4, 4],
-        [os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"), 12, 12, 4, 4],
+        [2, cheetah, 12, 12, 4, 4],
+        [2, cheetah, 12, 12, 4, 4],
+        [2, cheetah, 12, 12, 4, 4],
+        [2, cheetah, 12, 12, 4, 4],
+        [2, cheetah, 12, 12, 4, 4],
+        [2, cheetah, 12, 12, 4, 4],
+        [2, cheetah, 12, 12, 4, 4],
+        [2, cheetah, 12, 12, 4, 4],
+        [2, cheetah, 12, 12, 4, 4],
+        [2, cheetah, 12, 12, 4, 4],
+        [2, cheetah, 12, 12, 4, 4],
+        [2, cheetah, 12, 12, 4, 4],
+        [2, cheetah, 12, 12, 4, 4],
+        [2, cheetah, 12, 12, 4, 4],
     ],
+    enable_queue=True,
 )
 
 if __name__ == "__main__":

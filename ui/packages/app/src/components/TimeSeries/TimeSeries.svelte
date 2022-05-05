@@ -6,6 +6,7 @@
 	import { Chart } from "@gradio/chart";
 
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
+	import type { LoadingStatus } from "../StatusTracker/types";
 	import { _ } from "svelte-i18n";
 
 	import chart_icon from "./chart.svg";
@@ -37,7 +38,7 @@
 	export let show_label: boolean;
 	export let colors: Array<string>;
 
-	export let loading_status: "complete" | "pending" | "error";
+	export let loading_status: LoadingStatus;
 
 	let _value: string | null;
 
@@ -121,7 +122,7 @@
 	padding={false}
 >
 	<BlockLabel {show_label} image={chart_icon} label={label || "TimeSeries"} />
-	<StatusTracker tracked_status={loading_status} />
+	<StatusTracker {...loading_status} />
 
 	{#if mode === "static"}
 		{#if static_data}
