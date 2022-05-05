@@ -50,11 +50,41 @@ async function post_data<
 export const fn = async (
 	session_hash: string,
 	api_endpoint: string,
-	action: string,
-	payload: Payload,
-	queue: boolean
+	{
+		action,
+		payload,
+		queue,
+		backend_fn,
+		frontend_fn,
+		output_data
+	}: {
+		action: string;
+		payload: Payload;
+		queue: boolean;
+		backend_fn: boolean;
+		frontend_fn: Function | undefined;
+		output_data: Array<any>;
+	}
 ) => {
+	console.log({
+		session_hash,
+		api_endpoint,
+		action,
+		payload,
+		queue,
+		backend_fn,
+		frontend_fn,
+		output_data
+	});
+	console.log(payload);
 	const fn_index = payload.fn_index;
+
+	if (frontend_fn !== undefined) {
+		payload.data = frontend_fn(payload.data.concat(output_data));
+	}
+	if (backend_fn == false) {
+		return payload;
+	}
 
 	if (queue && ["predict", "interpret"].includes(action)) {
 		loading_status.update(fn_index as number, "pending", null, null);
