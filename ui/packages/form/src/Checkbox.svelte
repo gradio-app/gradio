@@ -7,6 +7,7 @@
 	export let disabled: boolean = false;
 	export let label: string;
 	export let style: string = "";
+	export let show_label: boolean;
 
 	const dispatch = createEventDispatcher<{ change: boolean }>();
 
@@ -16,16 +17,17 @@
 	}
 </script>
 
-<Block>
-	<!-- svelte-ignore a11y-label-has-associated-control -->
-	<label class="">
-		<input
-			bind:checked={value}
-			{disabled}
-			type="checkbox"
-			name="test"
-			class="gr-check-radio rounded checked:shadow-inner"
-		/>
-		<span class="ml-2">{label}</span></label
-	>
-</Block>
+<!-- svelte-ignore a11y-label-has-associated-control -->
+<label
+	class:!cursor-not-allowed={disabled}
+	class="flex items-center text-gray-700 text-sm space-x-2 rounded-lg cursor-pointer bg-white"
+>
+	<input
+		bind:checked={value}
+		{disabled}
+		type="checkbox"
+		name="test"
+		class="rounded border-gray-300 text-blue-600 disabled:text-gray-400 disabled:!cursor-not-allowed shadow-sm focus:border-blue-300 focus:ring focus:ring-offset-0 focus:ring-blue-200 focus:ring-opacity-50"
+	/>
+	<span class="ml-2">{label}</span></label
+>

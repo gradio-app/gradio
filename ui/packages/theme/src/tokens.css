@@ -48,3 +48,58 @@
 	@apply rounded 
 	checked:shadow-inner;
 }
+
+.gr-button {
+	@apply border inline-flex items-center justify-center shadow-sm hover:shadow bg-gradient-to-br bg-white active:shadow-inner flex-1 text-center px-2 py-0.5 rounded text-sm;
+}
+
+.gr-button-primary {
+	@apply from-orange-100/70 to-orange-200/80 hover:to-orange-100/90 text-orange-600 border-orange-200;
+}
+
+.gr-button-secondary {
+	@apply from-gray-100/70 to-gray-200/80 hover:to-gray-100/90 text-gray-700 border-gray-200;
+}
+
+.gr-button-sm {
+	@apply px-3 py-1 text-sm rounded-md;
+}
+
+.gr-button-lg {
+	@apply py-2.5 px-4 font-semibold rounded-lg text-base;
+}
+
+.gr-samples-table {
+	@apply w-full;
+
+	img.gr-sample-image,
+	video.gr-sample-video {
+		@apply max-h-12;
+	}
+}
+
+.gr-samples-gallery {
+	@apply flex gap-2 flex-wrap;
+
+	img.gr-sample-image,
+	video.gr-sample-video {
+		@apply max-h-20;
+	}
+
+	.gr-sample-textbox,
+	.gr-sample-slider,
+	.gr-sample-checkbox,
+	.gr-sample-checkboxgroup,
+	.gr-sample-file,
+	.gr-sample-number,
+	.gr-sample-dataframe,
+	.gr-sample-audio,
+	.gr-sample-3d {
+		@apply flex items-center border cursor-pointer px-2 py-1.5 rounded-lg bg-white hover:bg-gray-50 text-sm text-left;
+	}
+}
+
+img.gr-sample-image,
+video.gr-sample-video {
+	@apply flex-none rounded-lg max-w-none ring-2 ring-gray-200 hover:ring-orange-400 group-hover:ring-orange-400;
+}

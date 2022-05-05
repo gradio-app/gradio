@@ -5,12 +5,10 @@
 	export let style: string = "";
 </script>
 
-<div class="output-json font-mono leading-relaxed w-full">
-	<JSONNode {value} depth={0} />
-</div>
+<button
+	class="font-sans absolute right-0 top-0 py-1 px-2 rounded-bl-lg shadow-sm text-xs text-gray-500 flex items-center pointer-events-none bg-white z-20 border-l border-b border-gray-100"
+>
+	copy to clipboard
+</button>
 
-<style lang="postcss" global>
-	.output-text[theme="default"] {
-		@apply shadow transition hover:shadow-md dark:bg-gray-800;
-	}
-</style>
+<JSONNode {value} depth={0} />

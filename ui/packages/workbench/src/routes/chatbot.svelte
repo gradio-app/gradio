@@ -4,7 +4,7 @@
 	let messages: Array<[string, string]> = [["message one", "message two"]];
 
 	setTimeout(() => {
-		messages = [...messages, ["message five", ""]];
+		messages = [...messages, ["message five", "•••"]];
 	}, 1000);
 
 	setTimeout(() => {
@@ -13,4 +13,4 @@
 	}, 2000);
 </script>
 
-<ChatBot value={messages} />
+<ChatBot value={messages} color_map={["purple", "#bbb"]} />

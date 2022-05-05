@@ -2,7 +2,7 @@
 	import { HighlightedText } from "@gradio/highlighted-text";
 </script>
 
-<h2>With legend</h2>
+<h2 class="my-2">With legend</h2>
 <HighlightedText
 	show_legend={true}
 	value={[
@@ -14,7 +14,7 @@
 	]}
 />
 
-<h2>Without legend</h2>
+<h2 class="my-2">Without legend</h2>
 <HighlightedText
 	value={[
 		["one", "1"],
@@ -25,7 +25,7 @@
 	]}
 />
 
-<h2>Custom color_map with legend</h2>
+<h2 class="my-2">Custom color_map with legend</h2>
 <HighlightedText
 	show_legend={true}
 	value={[
@@ -35,10 +35,10 @@
 		["two", "+"],
 		["three", "-"]
 	]}
-	color_map={{ "+": "limegreen", "-": "crimson" }}
+	color_map={{ "+": "green", "-": "red" }}
 />
 
-<h2>Custom color_map without legend</h2>
+<h2 class="my-2">Custom color_map without legend</h2>
 <HighlightedText
 	value={[
 		["one", "+"],
@@ -47,5 +47,5 @@
 		["two", "+"],
 		["three", "-"]
 	]}
-	color_map={{ "+": "limegreen", "-": "crimson" }}
+	color_map={{ "+": "orange", "-": "purple" }}
 />

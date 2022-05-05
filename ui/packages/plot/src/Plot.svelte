@@ -22,9 +22,9 @@
 	const bokehPromises = Array(6).fill(0).map((_, i) => createPromise(i))
 
 	const initializeBokeh = (index) => {
-		if (value["type"] == "bokeh") {
+		if (value && value["type"] == "bokeh") {
 			resolves[index]()
-    }
+    	}
 	}
 
 	function createPromise(index) {
@@ -50,17 +50,18 @@
 			let plotDiv = document.getElementById("plotlyDiv");
 			Plotly.newPlot(plotDiv, plotObj["data"], plotObj["layout"]);
 		} else if (value && value["type"] == "bokeh") {
+			document.getElementById("bokehDiv").innerHTML = "";
 			let plotObj = JSON.parse(value["plot"]);
-    	window.Bokeh.embed.embed_item(plotObj, "bokehDiv");
+    		window.Bokeh.embed.embed_item(plotObj, "bokehDiv");
 		}
 	});
 </script>
 
 {#if value && value["type"] == "plotly"}
 	<div id="plotlyDiv"/>
-{:else if value}
-	<div id="bokehDiv"/>
 {:else if value && value["type"] == "bokeh"}
+	<div id="bokehDiv"/>
+{:else if value && value["type"] == "matplotlib"}
 	<div
 		class="output-image w-full h-80 flex justify-center items-center dark:bg-gray-600 relative"
 		{theme}
@@ -69,6 +70,3 @@
 		<img  class="w-full h-full object-contain" src={value["plot"]} />
 	</div>
 {/if}
-
-<style lang="postcss">
-</style>

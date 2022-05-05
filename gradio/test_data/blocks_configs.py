@@ -7,9 +7,7 @@ XRAY_CONFIG = {
             "props": {
                 "default_value": "<h1>Detect Disease From Scan</h1>\n<p>With this model you can lorem ipsum</p>\n<ul>\n<li>ipsum 1</li>\n<li>ipsum 2</li>\n</ul>\n",
                 "name": "markdown",
-                "label": None,
                 "css": {},
-                "interactive": None,
             },
         },
         {
@@ -18,10 +16,10 @@ XRAY_CONFIG = {
             "props": {
                 "choices": ["Covid", "Malaria", "Lung Cancer"],
                 "default_value": [],
-                "name": "checkboxgroup",
                 "label": "Disease to Scan For",
+                "show_label": True,
+                "name": "checkboxgroup",
                 "css": {},
-                "interactive": None,
             },
         },
         {"id": 3, "type": "tabs", "props": {"css": {}, "default_value": True}},
@@ -40,14 +38,11 @@ XRAY_CONFIG = {
             "type": "image",
             "props": {
                 "image_mode": "RGB",
-                "shape": None,
                 "source": "upload",
                 "tool": "editor",
-                "default_value": None,
+                "show_label": True,
                 "name": "image",
-                "label": None,
                 "css": {},
-                "interactive": None,
             },
         },
         {
@@ -55,10 +50,9 @@ XRAY_CONFIG = {
             "type": "json",
             "props": {
                 "default_value": '""',
+                "show_label": True,
                 "name": "json",
-                "label": None,
                 "css": {},
-                "interactive": None,
             },
         },
         {
@@ -67,9 +61,7 @@ XRAY_CONFIG = {
             "props": {
                 "default_value": "Run",
                 "name": "button",
-                "label": None,
                 "css": {"background-color": "red", "--hover-color": "orange"},
-                "interactive": None,
             },
         },
         {
@@ -87,14 +79,11 @@ XRAY_CONFIG = {
             "type": "image",
             "props": {
                 "image_mode": "RGB",
-                "shape": None,
                 "source": "upload",
                 "tool": "editor",
-                "default_value": None,
+                "show_label": True,
                 "name": "image",
-                "label": None,
                 "css": {},
-                "interactive": None,
             },
         },
         {
@@ -102,38 +91,31 @@ XRAY_CONFIG = {
             "type": "json",
             "props": {
                 "default_value": '""',
+                "show_label": True,
                 "name": "json",
-                "label": None,
                 "css": {},
-                "interactive": None,
             },
         },
         {
             "id": 13,
             "type": "button",
-            "props": {
-                "default_value": "Run",
-                "name": "button",
-                "label": None,
-                "css": {},
-                "interactive": None,
-            },
+            "props": {"default_value": "Run", "name": "button", "css": {}},
         },
         {
             "id": 14,
             "type": "textbox",
             "props": {
                 "lines": 1,
-                "placeholder": None,
+                "max_lines": 20,
                 "default_value": "",
+                "show_label": True,
                 "name": "textbox",
-                "label": None,
                 "css": {},
-                "interactive": None,
             },
         },
     ],
     "theme": "default",
+    "enable_queue": False,
     "layout": {
         "id": 0,
         "children": [
@@ -167,24 +149,30 @@ XRAY_CONFIG = {
             "trigger": "click",
             "inputs": [2, 6],
             "outputs": [7],
-            "queue": False,
+            "backend_fn": True,
+            "js": None,
             "status_tracker": None,
+            "queue": None,
         },
         {
             "targets": [13],
             "trigger": "click",
             "inputs": [2, 11],
             "outputs": [12],
-            "queue": False,
+            "backend_fn": True,
+            "js": None,
             "status_tracker": None,
+            "queue": None,
         },
         {
             "targets": [],
             "trigger": "load",
             "inputs": [],
             "outputs": [14],
-            "queue": False,
+            "backend_fn": True,
+            "js": False,
             "status_tracker": None,
+            "queue": None,
         },
     ],
 }
@@ -198,9 +186,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "props": {
                 "default_value": "<h1>Detect Disease From Scan</h1>\n<p>With this model you can lorem ipsum</p>\n<ul>\n<li>ipsum 1</li>\n<li>ipsum 2</li>\n</ul>\n",
                 "name": "markdown",
-                "label": None,
                 "css": {},
-                "interactive": None,
             },
         },
         {
@@ -210,16 +196,20 @@ XRAY_CONFIG_DIFF_IDS = {
                 "choices": ["Covid", "Malaria", "Lung Cancer"],
                 "default_value": [],
                 "name": "checkboxgroup",
+                "show_label": True,
                 "label": "Disease to Scan For",
                 "css": {},
-                "interactive": None,
             },
         },
         {"id": 3, "type": "tabs", "props": {"css": {}, "default_value": True}},
         {
             "id": 444,
             "type": "tabitem",
-            "props": {"label": "X-ray", "css": {}, "default_value": True},
+            "props": {
+                "label": "X-ray",
+                "css": {},
+                "default_value": True,
+            },
         },
         {
             "id": 5,
@@ -231,14 +221,11 @@ XRAY_CONFIG_DIFF_IDS = {
             "type": "image",
             "props": {
                 "image_mode": "RGB",
-                "shape": None,
                 "source": "upload",
+                "show_label": True,
                 "tool": "editor",
-                "default_value": None,
                 "name": "image",
-                "label": None,
                 "css": {},
-                "interactive": None,
             },
         },
         {
@@ -247,9 +234,8 @@ XRAY_CONFIG_DIFF_IDS = {
             "props": {
                 "default_value": '""',
                 "name": "json",
-                "label": None,
+                "show_label": True,
                 "css": {},
-                "interactive": None,
             },
         },
         {
@@ -258,15 +244,17 @@ XRAY_CONFIG_DIFF_IDS = {
             "props": {
                 "default_value": "Run",
                 "name": "button",
-                "label": None,
                 "css": {"background-color": "red", "--hover-color": "orange"},
-                "interactive": None,
             },
         },
         {
             "id": 9,
             "type": "tabitem",
-            "props": {"label": "CT Scan", "css": {}, "default_value": True},
+            "props": {
+                "label": "CT Scan",
+                "css": {},
+                "default_value": True,
+            },
         },
         {
             "id": 10,
@@ -278,14 +266,11 @@ XRAY_CONFIG_DIFF_IDS = {
             "type": "image",
             "props": {
                 "image_mode": "RGB",
-                "shape": None,
                 "source": "upload",
                 "tool": "editor",
-                "default_value": None,
                 "name": "image",
-                "label": None,
+                "show_label": True,
                 "css": {},
-                "interactive": None,
             },
         },
         {
@@ -294,9 +279,8 @@ XRAY_CONFIG_DIFF_IDS = {
             "props": {
                 "default_value": '""',
                 "name": "json",
-                "label": None,
+                "show_label": True,
                 "css": {},
-                "interactive": None,
             },
         },
         {
@@ -305,9 +289,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "props": {
                 "default_value": "Run",
                 "name": "button",
-                "label": None,
                 "css": {},
-                "interactive": None,
             },
         },
         {
@@ -315,12 +297,11 @@ XRAY_CONFIG_DIFF_IDS = {
             "type": "textbox",
             "props": {
                 "lines": 1,
-                "placeholder": None,
                 "default_value": "",
                 "name": "textbox",
-                "label": None,
+                "max_lines": 20,
+                "show_label": True,
                 "css": {},
-                "interactive": None,
             },
         },
     ],
@@ -358,7 +339,6 @@ XRAY_CONFIG_DIFF_IDS = {
             "trigger": "click",
             "inputs": [22, 6],
             "outputs": [7],
-            "queue": False,
             "status_tracker": None,
         },
         {
@@ -366,7 +346,6 @@ XRAY_CONFIG_DIFF_IDS = {
             "trigger": "click",
             "inputs": [22, 11],
             "outputs": [12],
-            "queue": False,
             "status_tracker": None,
         },
     ],
@@ -381,9 +360,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "props": {
                 "default_value": "<h1>Detect Disease From Scan</h1>\n<p>With this model you can lorem ipsum</p>\n<ul>\n<li>ipsum 1</li>\n<li>ipsum 2</li>\n</ul>\n",
                 "name": "markdown",
-                "label": None,
                 "css": {},
-                "interactive": None,
             },
         },
         {
@@ -393,16 +370,20 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "choices": ["Covid", "Malaria", "Lung Cancer"],
                 "default_value": [],
                 "name": "checkboxgroup",
+                "show_label": True,
                 "label": "Disease to Scan For",
                 "css": {},
-                "interactive": None,
             },
         },
         {"id": 3, "type": "tabs", "props": {"css": {}, "default_value": True}},
         {
             "id": 4,
             "type": "tabitem",
-            "props": {"label": "X-ray", "css": {}, "default_value": True},
+            "props": {
+                "label": "X-ray",
+                "css": {},
+                "default_value": True,
+            },
         },
         {
             "id": 5,
@@ -414,14 +395,10 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "type": "image",
             "props": {
                 "image_mode": "RGB",
-                "shape": None,
                 "source": "upload",
                 "tool": "editor",
-                "default_value": None,
                 "name": "image",
-                "label": None,
                 "css": {},
-                "interactive": None,
             },
         },
         {
@@ -430,9 +407,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "props": {
                 "default_value": '""',
                 "name": "json",
-                "label": None,
                 "css": {},
-                "interactive": None,
             },
         },
         {
@@ -441,15 +416,18 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "props": {
                 "default_value": "Run",
                 "name": "button",
-                "label": None,
                 "css": {"background-color": "red", "--hover-color": "orange"},
-                "interactive": None,
             },
         },
         {
             "id": 9,
             "type": "tabitem",
-            "props": {"label": "CT Scan", "css": {}, "default_value": True},
+            "props": {
+                "show_label": True,
+                "label": "CT Scan",
+                "css": {},
+                "default_value": True,
+            },
         },
         {
             "id": 10,
@@ -461,14 +439,10 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "type": "image",
             "props": {
                 "image_mode": "RGB",
-                "shape": None,
                 "source": "upload",
                 "tool": "editor",
-                "default_value": None,
                 "name": "image",
-                "label": None,
                 "css": {},
-                "interactive": None,
             },
         },
         {
@@ -477,9 +451,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "props": {
                 "default_value": '""',
                 "name": "json",
-                "label": None,
                 "css": {},
-                "interactive": None,
             },
         },
         {
@@ -488,9 +460,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "props": {
                 "default_value": "Run",
                 "name": "button",
-                "label": None,
                 "css": {},
-                "interactive": None,
             },
         },
         {
@@ -498,12 +468,9 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "type": "textbox",
             "props": {
                 "lines": 1,
-                "placeholder": None,
                 "default_value": "",
                 "name": "textbox",
-                "label": None,
                 "css": {},
-                "interactive": None,
             },
         },
     ],
@@ -541,7 +508,6 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "trigger": "click",
             "inputs": [2, 6],
             "outputs": [7],
-            "queue": False,
             "status_tracker": None,
         },
         {
@@ -549,7 +515,6 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "trigger": "click",
             "inputs": [2, 11],
             "outputs": [12],
-            "queue": False,
             "status_tracker": None,
         },
     ],

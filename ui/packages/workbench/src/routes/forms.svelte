@@ -13,10 +13,24 @@
 
 <Panel>
 	<TextBox on:change={({ detail }) => console.log(detail)} label="TextBox" />
+	<TextBox
+		on:change={({ detail }) => console.log(detail)}
+		label="TextBox with max_lines"
+		lines={2}
+		max_lines={5}
+	/>
 
 	<TextBox
 		label="TextArea"
 		lines={5}
+		on:change={({ detail }) => console.log(detail)}
+		placeholder="Type here..."
+	/>
+
+	<TextBox
+		label="TextArea with equal lines + max_lines"
+		lines={2}
+		max_lines={2}
 		on:change={({ detail }) => console.log(detail)}
 		placeholder="Type here..."
 	/>

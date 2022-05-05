@@ -27,7 +27,7 @@ class TestComponent(unittest.TestCase):
         """
         component
         """
-        assert isinstance(gr.component("text"), gr.templates.Text)
+        assert isinstance(gr.components.component("text")(), gr.templates.Text)
 
 
 class TestTextbox(unittest.TestCase):
@@ -51,7 +51,7 @@ class TestTextbox(unittest.TestCase):
             restored = text_input.restore_flagged(tmpdirname, to_save, None)
             self.assertEqual(restored, "Hello World!")
 
-        with self.assertWarns(DeprecationWarning):
+        with self.assertWarns(Warning):
             _ = gr.Textbox(type="number")
 
         self.assertEqual(
@@ -85,9 +85,11 @@ class TestTextbox(unittest.TestCase):
             text_input.get_template_context(),
             {
                 "lines": 1,
+                "max_lines": 20,
                 "placeholder": None,
                 "default_value": "",
                 "name": "textbox",
+                "show_label": True,
                 "label": None,
                 "css": {},
                 "interactive": None,
@@ -182,6 +184,7 @@ class TestNumber(unittest.TestCase):
             {
                 "default_value": None,
                 "name": "number",
+                "show_label": True,
                 "label": None,
                 "css": {},
                 "interactive": None,
@@ -264,6 +267,7 @@ class TestSlider(unittest.TestCase):
                 "step": 1,
                 "default_value": 15,
                 "name": "slider",
+                "show_label": True,
                 "label": "Slide Your Input",
                 "css": {},
                 "interactive": None,
@@ -317,6 +321,7 @@ class TestCheckbox(unittest.TestCase):
             {
                 "default_value": True,
                 "name": "checkbox",
+                "show_label": True,
                 "label": "Check Your Input",
                 "css": {},
                 "interactive": None,
@@ -366,6 +371,7 @@ class TestCheckboxGroup(unittest.TestCase):
                 "choices": ["a", "b", "c"],
                 "default_value": ["a", "c"],
                 "name": "checkboxgroup",
+                "show_label": True,
                 "label": "Check Your Inputs",
                 "css": {},
                 "interactive": None,
@@ -411,6 +417,7 @@ class TestRadio(unittest.TestCase):
                 "choices": ["a", "b", "c"],
                 "default_value": "a",
                 "name": "radio",
+                "show_label": True,
                 "label": "Pick Your One Input",
                 "css": {},
                 "interactive": None,
@@ -471,6 +478,7 @@ class TestImage(unittest.TestCase):
                 "source": "upload",
                 "tool": "editor",
                 "name": "image",
+                "show_label": True,
                 "label": "Upload Your Image",
                 "css": {},
                 "default_value": None,
@@ -481,7 +489,7 @@ class TestImage(unittest.TestCase):
         image_input = gr.Image(invert_colors=True)
         self.assertIsNotNone(image_input.preprocess(img))
         image_input.preprocess(img)
-        with self.assertWarns(DeprecationWarning):
+        with self.assertWarns(Warning):
             file_image = gr.Image(type="file")
             file_image.preprocess(deepcopy(media_data.BASE64_IMAGE))
         file_image = gr.Image(type="filepath")
@@ -518,7 +526,7 @@ class TestImage(unittest.TestCase):
                 "data:image/png;base64,iVBORw0KGgoAAA"
             )
         )
-        with self.assertWarns(DeprecationWarning):
+        with self.assertWarns(Warning):
             plot_output = gr.Image(plot=True)
 
         xpoints = np.array([0, 6])
@@ -625,6 +633,7 @@ class TestAudio(unittest.TestCase):
             {
                 "source": "upload",
                 "name": "audio",
+                "show_label": True,
                 "label": "Upload Your Audio",
                 "css": {},
                 "default_value": None,
@@ -664,6 +673,7 @@ class TestAudio(unittest.TestCase):
             audio_output.get_template_context(),
             {
                 "name": "audio",
+                "show_label": True,
                 "label": None,
                 "source": "upload",
                 "css": {},
@@ -760,6 +770,7 @@ class TestFile(unittest.TestCase):
             {
                 "file_count": "single",
                 "name": "file",
+                "show_label": True,
                 "label": "Upload Your File",
                 "css": {},
                 "default_value": None,
@@ -858,6 +869,7 @@ class TestDataframe(unittest.TestCase):
                     ["", "", ""],
                 ],
                 "name": "dataframe",
+                "show_label": True,
                 "label": "Dataframe Input",
                 "max_rows": 20,
                 "max_cols": None,
@@ -897,6 +909,7 @@ class TestDataframe(unittest.TestCase):
                 "max_cols": None,
                 "overflow_row_behaviour": "paginate",
                 "name": "dataframe",
+                "show_label": True,
                 "label": None,
                 "css": {},
                 "datatype": "str",
@@ -987,6 +1000,7 @@ class TestVideo(unittest.TestCase):
             {
                 "source": "upload",
                 "name": "video",
+                "show_label": True,
                 "label": "Upload Your Video",
                 "css": {},
                 "default_value": None,
@@ -1064,7 +1078,9 @@ class TestTimeseries(unittest.TestCase):
                 "x": "time",
                 "y": ["retail"],
                 "name": "timeseries",
+                "show_label": True,
                 "label": "Upload Your Timeseries",
+                "colors": None,
                 "css": {},
                 "default_value": None,
                 "interactive": None,
@@ -1084,7 +1100,9 @@ class TestTimeseries(unittest.TestCase):
                 "x": None,
                 "y": None,
                 "name": "timeseries",
+                "show_label": True,
                 "label": "Disease",
+                "colors": None,
                 "css": {},
                 "default_value": None,
                 "interactive": None,
@@ -1256,6 +1274,7 @@ class TestLabel(unittest.TestCase):
             label_output.get_template_context(),
             {
                 "name": "label",
+                "show_label": True,
                 "label": None,
                 "css": {},
                 "interactive": None,
@@ -1304,6 +1323,7 @@ class TestHighlightedText(unittest.TestCase):
             {
                 "color_map": {"pos": "green", "neg": "red"},
                 "name": "highlightedtext",
+                "show_label": True,
                 "label": None,
                 "show_legend": False,
                 "css": {},
@@ -1369,6 +1389,7 @@ class TestJSON(unittest.TestCase):
             {
                 "css": {},
                 "default_value": '""',
+                "show_label": True,
                 "label": None,
                 "name": "json",
                 "interactive": None,
@@ -1389,7 +1410,7 @@ class TestJSON(unittest.TestCase):
 
         iface = gr.Interface(
             get_avg_age_per_gender,
-            gr.inputs.Dataframe(headers=["gender", "age"]),
+            gr.Dataframe(headers=["gender", "age"]),
             "json",
         )
         y_data = [
@@ -1412,6 +1433,7 @@ class TestHTML(unittest.TestCase):
             {
                 "css": {},
                 "default_value": "#Welcome onboard",
+                "show_label": True,
                 "label": "HTML Input",
                 "name": "html",
                 "interactive": None,
@@ -1463,15 +1485,18 @@ class TestCarousel(unittest.TestCase):
                 "components": [
                     {
                         "name": "textbox",
+                        "show_label": True,
                         "label": None,
                         "default_value": "",
                         "lines": 1,
+                        "max_lines": 20,
                         "css": {},
                         "placeholder": None,
                         "interactive": None,
                     }
                 ],
                 "name": "carousel",
+                "show_label": True,
                 "label": "Disease",
                 "css": {},
                 "interactive": None,
@@ -1505,7 +1530,7 @@ class TestCarousel(unittest.TestCase):
                 results.append([mode, img * color_filter])
             return results
 
-        iface = gr.Interface(report, gr.inputs.Image(type="numpy"), carousel_output)
+        iface = gr.Interface(report, gr.Image(type="numpy"), carousel_output)
         result = iface.process([deepcopy(media_data.BASE64_IMAGE)])
         self.assertTrue(result[0][0][0] == "Red")
         self.assertTrue(
