@@ -246,7 +246,6 @@ def render_docs():
             if mode == "pre":
                 func_doc.append(line)
             elif mode == "in":
-                print(line)
                 space_index = line.index(" ")
                 colon_index = line.index(":")
                 name = line[:space_index]
