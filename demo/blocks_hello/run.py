@@ -8,7 +8,7 @@ with demo:
     output = gr.Textbox()
     
     def update_output(name):
-        return "Welcome to Blocks, {}!".format(name)
+        return "Welcome to Gradio, {}!".format(name)
     
     input.change(fn=update_output, 
                  inputs=input, 
