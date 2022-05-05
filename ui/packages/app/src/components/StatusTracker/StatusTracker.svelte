@@ -122,7 +122,7 @@
 				processing |
 			{/if}
 
-			{formatted_timer}{eta ? `/${formatted_eta}s` : "s"}
+			{formatted_timer}{eta ? `/${formatted_eta}` : ""}
 		</div>
 
 		<Loader />

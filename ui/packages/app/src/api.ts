@@ -96,12 +96,21 @@ export const fn = async (
 			}
 		}
 	} else {
+		loading_status.update(fn_index as number, "pending", null, null);
+
 		const output = await post_data(api_endpoint + action + "/", {
 			...payload,
 			session_hash
 		});
 
-		loading_status.update(fn_index, "complete", null, null);
+		console.log();
+
+		loading_status.update(
+			fn_index,
+			"complete",
+			null,
+			output.average_duration as number
+		);
 
 		return await output;
 	}
