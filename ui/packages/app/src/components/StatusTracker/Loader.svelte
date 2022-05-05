@@ -38,7 +38,7 @@
 	});
 </script>
 
-<div class="m-12">
+<div class="m-12 z-20">
 	<svg
 		class="text-xl"
 		width="7em"

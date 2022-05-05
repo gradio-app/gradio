@@ -34,62 +34,99 @@
 </script>
 
 <script lang="ts">
-	// import { onDestroy, onMount } from "svelte";
+	import { onDestroy, onMount } from "svelte";
 	import Loader from "./Loader.svelte";
 
 	export let style: string = "";
-	// export let eta: number | null = null;
-	// export let duration: number = 8.2;
-	// export let queue_pos: number | null = 0;
-	export let tracked_status: "complete" | "pending" | "error";
+	export let eta: number | null = null;
+	export let queue_position: number | null;
+	export let status: "complete" | "pending" | "error";
 
 	let el: HTMLDivElement;
 
-	// $: progress = eta === null ? null : Math.min(duration / eta, 1);
+	let timer: boolean = false;
+	let timer_start = 0;
+	let timer_diff = 0;
 
-	// let timer: NodeJS.Timeout | null = null;
-	// let timer_start = 0;
-	// let timer_diff = 0;
+	let initial_queue_pos = queue_position;
 
-	// const start_timer = () => {
-	// 	timer_start = performance.now();
-	// 	timer_diff = 0;
-	// 	timer = setInterval(() => {
-	// 		timer_diff = (performance.now() - timer_start) / 1000;
-	// 	}, 100);
-	// };
+	$: if (
+		queue_position &&
+		(!initial_queue_pos || queue_position > initial_queue_pos)
+	) {
+		initial_queue_pos = queue_position;
+	}
 
-	// const stop_timer = () => {
-	// 	if (!timer) return;
-	// 	clearInterval(timer);
-	// };
+	$: progress =
+		eta === null || !timer_diff
+			? null
+			: Math.min(timer_diff / (eta * ((initial_queue_pos || 0) + 1)), 1);
 
-	// onDestroy(() => {
-	// 	if (timer) stop_timer();
-	// });
+	const start_timer = () => {
+		timer_start = performance.now();
+		timer_diff = 0;
+		timer = true;
+		run();
+		// timer = setInterval(, 100);
+	};
 
-	// $: {
-	// 	if (tracked_status === "pending") {
-	// 		start_timer();
-	// 	} else {
-	// 		stop_timer();
-	// 	}
-	// }
+	function run() {
+		requestAnimationFrame(() => {
+			timer_diff = (performance.now() - timer_start) / 1000;
+			if (timer) run();
+		});
+	}
+
+	const stop_timer = () => {
+		timer_diff = 0;
+
+		if (!timer) return;
+		timer = false;
+	};
+
+	onDestroy(() => {
+		if (timer) stop_timer();
+	});
+
+	$: {
+		if (status === "pending") {
+			start_timer();
+		} else {
+			stop_timer();
+		}
+	}
 
 	$: el &&
-		(tracked_status === "pending" || tracked_status === "complete") &&
+		(status === "pending" || status === "complete") &&
 		scroll_into_view(el);
+
+	$: formatted_eta = eta && (eta * ((initial_queue_pos || 0) + 1)).toFixed(1);
+	$: formatted_timer = timer_diff.toFixed(1);
 </script>
 
 <div
-	class=" absolute top-0 left-0 w-full h-full z-10 flex flex-col justify-center items-center bg-white pointer-events-none transition-opacity"
-	class:opacity-0={!tracked_status || tracked_status === "complete"}
+	class=" absolute inset-0  z-10 flex flex-col justify-center items-center bg-white pointer-events-none transition-opacity"
+	class:opacity-0={!status || status === "complete"}
 	{style}
 	bind:this={el}
 >
-	{#if tracked_status === "pending"}
+	{#if status === "pending"}
+		<div
+			class="absolute inset-0  origin-left bg-slate-100 top-0 left-0 z-10 opacity-80"
+			style:transform="scaleX({progress || 0})"
+		/>
+		<div class="absolute top-0 right-0 py-1 px-2 font-mono z-20 text-xs">
+			{#if queue_position !== null && queue_position > 0}
+				queue: {queue_position}/{initial_queue_pos} |
+			{:else if queue_position === 0}
+				processing |
+			{/if}
+
+			{formatted_timer}{eta ? `/${formatted_eta}` : ""}
+		</div>
+
 		<Loader />
-	{:else if tracked_status === "error"}
+	{:else if status === "error"}
 		<span class="text-red-400 font-mono font-semibold text-lg">ERROR</span>
 	{/if}
 </div>

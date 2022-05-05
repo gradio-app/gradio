@@ -2,10 +2,11 @@
 	import { Block, BlockLabel } from "@gradio/atoms";
 	import { ModifyUpload } from "@gradio/upload";
 	import { tick } from "svelte";
-	import { Component as StatusTracker } from "../StatusTracker/";
+	import type { LoadingStatus } from "../StatusTracker/types";
+	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import image_icon from "./image.svg";
 
-	export let loading_status: "complete" | "pending" | "error";
+	export let loading_status: LoadingStatus;
 	export let show_label: boolean;
 	export let label: string;
 	export let value: Array<string> | null = null;
@@ -66,7 +67,7 @@
 <svelte:window />
 
 <Block variant="solid" color="grey" padding={false}>
-	<StatusTracker tracked_status={loading_status} />
+	<StatusTracker {...loading_status} />
 	<BlockLabel {show_label} image={image_icon} label={label || "Gallery"} />
 	{#if value === null}
 		<div class="min-h-[16rem] flex justify-center items-center">
