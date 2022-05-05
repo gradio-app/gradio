@@ -66,17 +66,6 @@ export const fn = async (
 		output_data: Array<any>;
 	}
 ) => {
-	console.log({
-		session_hash,
-		api_endpoint,
-		action,
-		payload,
-		queue,
-		backend_fn,
-		frontend_fn,
-		output_data
-	});
-	console.log(payload);
 	const fn_index = payload.fn_index;
 
 	if (frontend_fn !== undefined) {
