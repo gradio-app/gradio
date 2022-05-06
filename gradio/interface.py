@@ -111,8 +111,8 @@ class Interface(Blocks):
     def __init__(
         self,
         fn: Callable | List[Callable],
-        inputs: Optional[str | Component | List[str | Component]] = None,
-        outputs: Optional[str | Component | List[str | Component]] = None,
+        inputs: Optional[str | Component | List[str | Component]],
+        outputs: Optional[str | Component | List[str | Component]],
         examples: Optional[List[Any] | List[List[Any]] | str] = None,
         cache_examples: Optional[bool] = None,
         examples_per_page: int = 10,
@@ -166,12 +166,12 @@ class Interface(Blocks):
         )
 
         self.interface_type = self.InterfaceTypes.STANDARD
-        if inputs is None and outputs is None:
+        if (inputs is None or inputs == []) and (outputs is None or outputs == []):
             raise ValueError("Must provide at least one of `inputs` or `outputs`")
-        elif outputs is None:
+        elif (outputs is None or outputs == []):
             outputs = []
             self.interface_type = self.InterfaceTypes.INPUT_ONLY
-        elif inputs is None:
+        elif (inputs is None or inputs == []):
             inputs = []
             self.interface_type = self.InterfaceTypes.OUTPUT_ONLY
 
