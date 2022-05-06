@@ -40,59 +40,9 @@
 
   <style>
 
-    body {
-      background: linear-gradient(180deg, #FFFFFF 1.95%, #EFF1F4 24.62%, #EFF1F4 77.68%, #FFFFFF 98.32%);
-    }
-
-    .header-section {
-      background: linear-gradient(0deg, rgb(248 249 250) 25%, rgba(255,211,160,0.25) 100%);
-    }
 
     .last-section {
       background: linear-gradient(0deg, rgba(255,211,160,0.25) 25%, rgb(237 240 243) 100%);
-    }
-
-    .header-text {
-      margin-top: 90px;
-      font-family: 'Source Sans Pro', sans-serif;
-      font-weight: 700;
-      color: #37332F;
-      font-size: 60px;
-      line-height: 105%;
-      max-width: 47%;
-    }
-
-    .subheader-text {
-      margin-top: 15px;
-      margin-bottom: 15px;
-      font-family: 'Source Sans Pro', sans-serif;
-      font-weight: 600;
-      color: #787E86;
-      font-size: 20px;
-      line-height: 135%;
-      max-width: 40%;
-    }
-
-    .gs-button {
-      margin: auto;
-      padding: 0 25px 0 25px;
-      background: linear-gradient(82.4deg, #FF8F27 -12.66%, #FFB627 66.87%, #FFF27E 108.9%);
-      border-radius: 31px;
-      font-family: 'Product Sans', sans-serif;
-      color: #FFFFFF;
-      font-size: 14px;
-      filter: drop-shadow(0px 6px 35px rgba(255, 187, 84, 0.4));
-      height: 28px;
-    }
-
-    .arrow-left {
-      margin-left: 8px !important;
-      margin: auto;
-      width: 0;
-      height: 0;
-      border-top: 7px solid transparent;
-      border-bottom: 7px solid transparent;
-      border-right:7px solid #e5e5e5;
     }
 
     .hr-text {
@@ -161,51 +111,14 @@
       margin-bottom: 4rem;
     }
 
-    .interface {
-      background: #FFFFFF;
-      border-radius: 19px;
-      padding: 5px;
-      filter: drop-shadow(0px 6px 35px rgba(255, 187, 84, 0.4));
-    }
-
-    .demo {
-      padding-left: 180px;
-      padding-right: 180px;
-    }
-
     .language-python {
-      background: #EEF0F4 !important;
-      border-radius: 10px;
-      font-size: 12px !important;
-      margin-bottom: 15px !important;
+      background: none !important;
+      font-size: 1vw !important;
     }
 
-    .demo-nav {
-      border-left: 1px solid #DADEE7;
+    .token.operator {
+      background: none !important;
     }
-
-    .demo-tab {
-      color: #696e78;
-      padding: 9px;
-    }
-
-    .demo-tab.selected-demo {
-      color: #FF9B28;
-      border-left: 3px solid #FF9B28;
-    }
-
-    .title-nav {
-      color: #C9CDD6
-    }
-
-    .left-nav {
-      float: left;
-      font-family: 'Source Sans Pro';
-      margin-top: -10px;
-      font-size: 18px;
-      margin-right: 10px;
-    }
-
   </style>
 </head>
 
@@ -227,32 +140,30 @@
             d="M14 6l-4.9-.64L7 1 4.9 5.36 0 6l3.6 3.26L2.67 14 7 11.67 11.33 14l-.93-4.74L14 6z"></path>
         </svg>
         <span id="star-count" class="transition preloaded-star-count"
-        style="font-size: 15px;">{{ star_count }}</span>
+        style="padding-left: 2px;font-size: 15px;">{{ star_count }}</span>
       </a>
     </div>
   </div>
   </div>
 
-  <div class="big-padding container mx-auto p-4">
-    <div class="left-nav">
-      <div class="title-nav">Demos</div>
-      <div class="demo-nav grid grid-col-1">
-        <div class="demo-tab selected-demo cursor-pointer" demo="1"
+<!--DEMOS-->
+  <div class="mx-auto grid max-w-6xl grid-cols-1 px-4 md:grid-cols-4">
+    <div>
+      <p class="mb-4 text-lg font-bold">Demos</p>
+      <nav class="flex flex-wrap gap-3 whitespace-nowrap text-gray-600 md:flex-col md:border-l md:text-lg">
+        <div class="demo-tab mr-2 border-orange-500 text-orange-500 md:border-l-2 md:pl-2 cursor-pointer" demo="1"
         onclick="load_demo(1)">Sketch Recognition</div>
-        <div class="demo-tab cursor-pointer" demo="2"
-        onclick="load_demo(2)">Question Answer</div>
-        <div class="demo-tab cursor-pointer" demo="3"
+        <div class="demo-tab mr-2 hover:text-gray-800 md:pl-2 cursor-pointer" demo="2"
+        onclick="load_demo(2)">Question Answering</div>
+        <div class="demo-tab mr-2 hover:text-gray-800 md:pl-2 cursor-pointer" demo="3"
         onclick="load_demo(3)">Image Segmentation</div>
-        <div class="demo-tab cursor-pointer" demo="4"
+        <div class="demo-tab mr-2 hover:text-gray-800 md:pl-2 cursor-pointer" demo="4"
         onclick="load_demo(4)">Speech Verification</div>
-      </div>
-   </div>
+      </nav>
+    </div>
 
-    <div class="demo mb-16 p-4" demo="1">
-      <div class="relative">
-        <a
-          class="absolute font-sans top-2 right-2 uppercase text-sm bg-gray-200 px-2 py-1 cursor-pointer font-semibold hidden">View
-          full code</a>
+    <div class="demo space-y-2 md:col-span-3" demo="1">
+      <div class="rounded-lg bg-gray-200">
         <pre class="language-python"><code class="language-python"><span class="token keyword">import</span> gradio <span class="token keyword">as</span> gr
 
 <span class="token keyword">def</span> <span class="token function">sketch_recognition</span><span class="token punctuation">(</span>img<span class="token punctuation">)</span><span class="token punctuation">:</span>
@@ -262,15 +173,13 @@
 iface <span class="token operator">=</span> gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>sketch_recognition<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token string">"sketchpad"</span><span class="token punctuation">,</span> outputs<span class="token operator">=</span><span class="token string">"label"</span><span class="token punctuation">).</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
       </div>
-      <div id="demo_mnist" class="interface w-full">
-        <iframe src="https://hf.space/embed/abidlabs/Draw/+" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+      <div class="rounded-lg bg-gray-100">
+        <iframe src="https://hf.space/embed/aliabd/pictionary/+" frameBorder="0" height="350" scrolling="no" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
       </div>
     </div>
-    <div class="demo mb-16 p-4 hidden" demo="2">
-      <div class="relative">
-        <a
-          class="absolute font-sans top-2 right-2 uppercase text-sm bg-gray-200 px-2 py-1 cursor-pointer font-semibold hidden">View
-          full code</a>
+
+    <div class="demo space-y-2 md:col-span-3 hidden" demo="2">
+      <div class="rounded-lg bg-gray-200">
         <pre class="language-python"><code class="language-python"><span class="token keyword">import</span> gradio <span class="token keyword">as</span> gr
 
 <span class="token keyword">def</span> <span class="token function">question_answer</span><span class="token punctuation">(</span>context<span class="token punctuation">,</span> question<span class="token punctuation">)</span><span class="token punctuation">:</span>
@@ -280,15 +189,13 @@ iface <span class="token operator">=</span> gr<span class="token punctuation">.<
 iface <span class="token operator">=</span> gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>question_answer<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">"text"</span><span class="token punctuation">,</span> <span class="token string">"text"</span><span class="token punctuation">],</span> outputs<span class="token operator">=</span>[</span><span class="token string">"textbox"</span><span class="token punctuation">,</span> <span class="token string">"text"</span><span class="token punctuation">]).</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
       </div>
-      <div id="demo_qa" class="interface w-full">
-          <iframe src="https://hf.space/embed/abidlabs/question-answering/+" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+      <div class="rounded-lg bg-gray-100">
+        <iframe src="https://hf.space/embed/aliabd/question-answering/+" frameBorder="0" height="425" scrolling="no" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
       </div>
-      </div>
-    <div class="demo mb-16 p-4 hidden" demo="3">
-      <div class="relative">
-        <a
-          class="absolute font-sans top-2 right-2 uppercase text-sm bg-gray-200 px-2 py-1 cursor-pointer font-semibold hidden">View
-          full code</a>
+    </div>
+
+    <div class="demo space-y-2 md:col-span-3 hidden" demo="3">
+      <div class="rounded-lg bg-gray-200">
         <pre class="language-python"><code class="language-python"><span class="token keyword">import</span> gradio <span class="token keyword">as</span> gr
 
 <span class="token keyword">def</span> <span class="token function">segment</span><span class="token punctuation">(</span>image<span class="token punctuation">)</span><span class="token punctuation">:</span>
@@ -298,15 +205,13 @@ iface <span class="token operator">=</span> gr<span class="token punctuation">.<
 iface <span class="token operator">=</span> gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>segment<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token string">"image"</span><span class="token punctuation">,</span> outputs<span class="token operator">=</span><span class="token string">"image"</span><span class="token punctuation">).</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
       </div>
-      <div id="demo_image_classifier" class="interface w-full">
-         <iframe src="https://hf.space/embed/abidlabs/Echocardiogram-Segmentation/+" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+      <div class="rounded-lg bg-gray-100">
+       <iframe src="https://hf.space/embed/aliabd/Echocardiogram-Segmentation/+" frameBorder="0" height="475" scrolling="no" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
       </div>
-      </div>
-    <div class="demo mb-16 p-4 hidden" demo="4">
-      <div class="relative">
-        <a
-          class="absolute font-sans top-2 right-2 uppercase text-sm bg-gray-200 px-2 py-1 cursor-pointer font-semibold hidden">View
-          full code</a>
+    </div>
+
+    <div class="demo space-y-2 md:col-span-3 hidden" demo="4">
+      <div class="rounded-lg bg-gray-200">
         <pre class="language-python"><code class="language-python"><span class="token keyword">import</span> gradio <span class="token keyword">as</span> gr
 
 <span class="token keyword">def</span> <span class="token function">same_or_different</span><span class="token punctuation">(</span>audio1<span class="token punctuation">,</span> audio2<span class="token punctuation">)</span><span class="token punctuation">:</span>
@@ -319,11 +224,14 @@ iface <span class="token operator">=</span> gr<span class="token punctuation">.<
   outputs<span class="token operator">=</span><span class="token string">"html"</span>
 <span class="token punctuation">)</span><span class="token punctuation">.</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span></code></pre>
       </div>
-      <div id="demo_anime" class="interface w-full">
-         <iframe src="https://hf.space/embed/abidlabs/same-person-or-different/+" frameBorder="0" height="350" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+      <div class="rounded-lg bg-gray-100">
+       <iframe src="https://hf.space/embed/aliabd/same-person-or-different/+" frameBorder="0" height="420" scrolling="no" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
       </div>
     </div>
   </div>
+
+
+
   <section class="big-padding w-full py-8 mb-12">
     <div class="container mx-auto my-4 text-center text-gray-600 flex hr-break">
       <hr>
@@ -493,12 +401,15 @@ iface <span class="token operator">=</span> gr<span class="token punctuation">.<
 
     let load_demo = demo_id => {
       document.querySelectorAll(".demo-tab").forEach(e => {
-        e.classList.remove("selected-demo");
+        e.classList.remove("border-orange-500", "text-orange-500", "md:border-l-2")
+        e.classList.add("hover:text-gray-800");
       })
       document.querySelectorAll(".demo").forEach(e => {
         e.classList.add("hidden");
       })
-      document.querySelector(`.demo-tab[demo='${demo_id}']`).classList.add("selected-demo");
+      document.querySelector(`.demo-tab[demo='${demo_id}']`).classList.add("border-orange-500", "text-orange-500", "md:border-l-2");
+      document.querySelector(`.demo-tab[demo='${demo_id}']`).classList.remove("hover:text-gray-800");
+
       document.querySelector(`.demo[demo='${demo_id}']`).classList.remove("hidden");
     }
 
