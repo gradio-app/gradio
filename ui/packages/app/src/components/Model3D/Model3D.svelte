@@ -5,6 +5,7 @@
 	import { Block } from "@gradio/atoms";
 
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
+	import type { LoadingStatus } from "../StatusTracker/types";
 	import { _ } from "svelte-i18n";
 
 	export let value: null | FileData = null;
@@ -14,7 +15,7 @@
 	export let root: string;
 	export let clearColor: Array<number>;
 
-	export let loading_status: "complete" | "pending" | "error";
+	export let loading_status: LoadingStatus;
 	export let label: string;
 	export let show_label: boolean;
 
@@ -31,7 +32,7 @@
 	color={dragging ? "green" : "grey"}
 	padding={false}
 >
-	<StatusTracker tracked_status={loading_status} />
+	<StatusTracker {...loading_status} />
 
 	{#if mode === "dynamic"}
 		<Model3DUpload

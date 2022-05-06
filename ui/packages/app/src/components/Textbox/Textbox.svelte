@@ -4,6 +4,7 @@
 	import { TextBox } from "@gradio/form";
 	import { Block } from "@gradio/atoms";
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
+	import type { LoadingStatus } from "../StatusTracker/types";
 
 	export let label: string = "Textbox";
 	export let value: string = "";
@@ -15,7 +16,7 @@
 	export let show_label: boolean;
 	export let max_lines: number | false;
 
-	export let loading_status: "complete" | "pending" | "error";
+	export let loading_status: LoadingStatus;
 
 	export let mode: "static" | "dynamic";
 
@@ -23,7 +24,7 @@
 </script>
 
 <Block {form_position}>
-	<StatusTracker tracked_status={loading_status} />
+	<StatusTracker {...loading_status} />
 
 	<TextBox
 		bind:value

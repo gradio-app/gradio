@@ -1,13 +1,14 @@
 <script lang="ts">
 	import { Carousel } from "@gradio/carousel";
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
+	import type { LoadingStatus } from "../StatusTracker/types";
 
 	export let style: string = "";
-	export let loading_status: "complete" | "pending" | "error";
+	export let loading_status: LoadingStatus;
 </script>
 
 <Carousel {style} on:change>
-	<StatusTracker tracked_status={loading_status} />
+	<StatusTracker {...loading_status} />
 
 	<slot />
 </Carousel>

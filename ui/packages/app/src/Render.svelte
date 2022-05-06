@@ -82,6 +82,7 @@
 			node.props.form_position = "single";
 		}
 	}
+
 	children =
 		children &&
 		children.filter((v) => instance_map[v.id].type !== "statustracker");
