@@ -2781,6 +2781,10 @@ class Markdown(Component):
         unindented_default_value = inspect.cleandoc(default_value)
         self.default_value = self.md.render(unindented_default_value)
 
+    def postprocess(self, y):
+        unindented_y = inspect.cleandoc(y)
+        return self.md.render(unindented_y) 
+    
     def get_template_context(self):
         return {
             "default_value": self.default_value,
