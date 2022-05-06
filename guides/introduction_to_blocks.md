@@ -64,13 +64,20 @@ We've also created a `Button` component in each tab, and we've assigned a click 
 
 Just as you can control the layout and css, `Blocks` gives you fine-grained control over what events trigger function calls. Each component and many layouts have specific events that they support. 
 
-For example, the `Textbox` component has 3 events: `click()` (when the textbox is clicked), `change()` (when the value inside of the textbox changes), and `submit()`, when a user presses the enter key while focused on the textbox. You can attach events to none, one, or more of these events. More complex components can have even more events: for example, the `Audio` component also has separate events for when the audio file is played, cleared, paused, etc. See [the documentation](https://www.gradio.app/docs) for the events each component supports. 
+For example, the `Textbox` component has 2 events: `change()` (when the value inside of the textbox changes), and `submit()` (when a user presses the enter key while focused on the textbox). You can attach events to none, one, or more of these events. More complex components can have even more events: for example, the `Audio` component also has separate events for when the audio file is played, cleared, paused, etc. See [the documentation](https://www.gradio.app/docs) for the events each component supports. 
 
-see [the documentation](https://www.gradio.app/docs).You can create an event trigger by calling the appropriate event on the component instance. The event takes in three parameters, as discussed above:
+You can create an event trigger by calling the appropriate event on the component instance. The event takes in three parameters, as discussed above:
 
 * `fn`: the function to run
 * `inputs`: a (list of) component(s) whose values should supplied as the input parameters to the function. Each component's value gets mapped to the corresponding function parameter, in order. This parameter can be `None` if the function does not take any parameters.
 * `outputs`: a (list of) component(s) whose values should be updated based on the values returned by the function. Each return value gets sets the corresponding component's value, in order. This parameter can be `None` if the function does not return anything.
+
+You can even make the input and output component be the same component, as we do in this example that uses a GPT model to do text completion:
+
+{{ code["blocks_gpt"] }}
+
+{{ demos["blocks_gpt"] }}
+
 
 ### Multistep Demos
 
@@ -82,27 +89,34 @@ In some cases, you might want
 
 ### Updating Component Properties
 
-So far, we have seen how to create events to update the *value* of another component. But if you want to change other properties of a component? You can do this by  
+So far, we have seen how to create events to update the value of another component. But if you want to change *other properties* of a component? You can do this by returning a `Component.update()` function instead of a regular return value. This is a class function that defines 
 
 ### Sharing Blocks Publicly
 
 Blocks  can be easily shared publicly by setting `share=True` in the `launch()` method. Like this:
 
 ```python
-gr.Interface(classify_image, "image", "label").launch(share=True)
+demo = gr.Blocks()
+
+with demo:
+    ...  # define components & events here
+
+demo.launch(share=True)
 ```
 
-This generates a public, shareable link that you can send to anybody! When you send this link, the user on the other side can try out the model in their browser. Because the processing happens on your device (as long as your device stays on!), you don't have to worry about any packaging any dependencies. If you're working out of colab notebook, a share link is always automatically created. It usually looks something like this:  **XXXXX.gradio.app**. Although the link is served through a gradio link, we are only a proxy for your local server, and do not store any data sent through the interfaces.
+This generates a public, shareable link that you can send to anybody! When you send this link, the user on the other side can try out the demo in their browser. Because the processing happens on your device (as long as your device stays on!), you don't have to worry about any packaging any dependencies. If you're working out of colab notebook, a share link is always automatically created. It usually looks something like this:  **XXXXX.gradio.app**. Although the link is served through a gradio link, we are only a proxy for your local server, and do not store any data sent through the demo.
 
-Keep in mind, however, that these links are publicly accessible, meaning that anyone can use your model for prediction! Therefore, make sure not to expose any sensitive information through the functions you write, or allow any critical changes to occur on your device. If you set `share=False` (the default), only a local link is created, which can be shared by  [port-forwarding](https://www.ssh.com/ssh/tunneling/example)  with specific users. 
+Keep in mind, however, that these links are publicly accessible, meaning that anyone can use your model for prediction! Therefore, make sure not to expose any sensitive information through the functions you write, or allow any critical changes to occur on your device. If you set `share=False` (the default), only a local link is created, which can be shared by  [port-forwarding](https://www.ssh.com/ssh/tunneling/example) with specific users. 
 
-Share links expire after 72 hours. For permanent hosting, see Hosting Gradio Apps on Spaces below.
+Share links expire after 72 hours. For permanent hosting, see Hosting Gradio Blocks on Spaces below.
 
 ![Sharing diagram](/assets/img/sharing.svg)
 
-### Hosting Gradio Apps on Spaces
+### Hosting Gradio Blocks on Spaces
 
-Huggingface provides the infrastructure to permanently host your Gradio model on the internet, for free! You can either drag and drop a folder containing your Gradio model and all related files, or you can point HF Spaces to your Git repository and HF Spaces will pull the Gradio interface from there. See [Huggingface Spaces](http://huggingface.co/spaces/) for more information. 
+Huggingface provides the infrastructure to permanently host your Gradio demo on the internet, for free! You can either drag and drop a folder containing your Gradio model and all related files, or you can point HF Spaces to your Git repository and HF Spaces will pull the Gradio interface from there. It's just as easy to share a Blocks demo as it is a regular Gradio Interface.
+
+See [Huggingface Spaces](http://huggingface.co/spaces/) for more information. 
 
 ![Hosting Demo](/assets/img/hf_demo.gif)
 
