@@ -9,9 +9,9 @@ import requests
 from jinja2 import Template
 from render_html_helpers import generate_meta_image
 
-from gradio.inputs import InputComponent
+# from gradio.inputs import InputComponent
 from gradio.interface import Interface
-from gradio.outputs import OutputComponent
+# from gradio.outputs import OutputComponent
 
 GRADIO_DIR = "../../"
 GRADIO_GUIDES_DIR = os.path.join(GRADIO_DIR, "guides")
@@ -62,7 +62,7 @@ for guide in guide_files:
     guide_name = guide[:-3]
     pretty_guide_name = " ".join(
         [
-            word.capitalize().replace("Ml", "ML").replace("Gan", "GAN").replace("Api", "API")
+            word.capitalize().replace("Ml", "ML").replace("Gan", "GAN").replace("Api", "API").replace("Onnx", "ONNX")
             for word in guide_name.split("_")
         ]
     )
@@ -331,6 +331,17 @@ def render_docs():
         generated_template.write(output_html)
 
 
+def render_static_docs():
+    os.makedirs("generated", exist_ok=True)
+    with open("src/static_docs.html") as static_file:
+        static_docs = static_file.read()
+    os.makedirs(os.path.join("generated", "docs"), exist_ok=True)
+    with open(
+        os.path.join("generated", "docs", "index.html"), "w"
+    ) as generated_template:
+        generated_template.write(static_docs)
+
+
 def render_other():
     os.makedirs("generated", exist_ok=True)
     for template_filename in os.listdir("src/other_templates"):
@@ -351,5 +362,5 @@ if __name__ == "__main__":
     render_index()
     render_guides_main()
     render_guides()
-    render_docs()
+    render_static_docs()
     render_other()

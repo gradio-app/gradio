@@ -7,6 +7,7 @@ import numbers
 import operator
 import os
 import shutil
+import sys
 import tempfile
 import warnings
 from copy import deepcopy
@@ -32,23 +33,10 @@ class Component(Block):
     def __init__(
         self,
         *,
-        label: Optional[str] = None,
-        requires_permissions: bool = False,
-        without_rendering: bool = False,
-        interactive: Optional[bool] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
-        if "optional" in kwargs:
-            warnings.warn(
-                "Usage of optional is deprecated, and it has no effect",
-                DeprecationWarning,
-            )
-        self.label = label
-        self.requires_permissions = requires_permissions
-        self.interactive = interactive
-
-        self.set_interpret_parameters()
-        super().__init__(without_rendering=without_rendering, **kwargs)
+        super().__init__(**kwargs)
 
     def __str__(self):
         return self.__repr__()
@@ -62,7 +50,48 @@ class Component(Block):
         """
         return {
             "name": self.get_block_name(),
+            **super().get_config(),
+        }
+
+    @staticmethod
+    def update(**kwargs) -> dict:
+        """
+        Updates component parameters
+
+        @param kwargs: Updating component parameters
+        @return: Updated component parameters
+        """
+        kwargs["__type__"] = "update"
+        return kwargs
+
+
+class IOComponent(Component):
+    """
+    A base class for defining methods that all input/output components should have.
+    """
+
+    def __init__(
+        self,
+        *,
+        label: Optional[str] = None,
+        show_label: bool = True,
+        requires_permissions: bool = False,
+        interactive: Optional[bool] = None,
+        **kwargs,
+    ):
+        self.label = label
+        self.show_label = show_label
+        self.requires_permissions = requires_permissions
+        self.interactive = interactive
+
+        self.set_interpret_parameters()
+
+        super().__init__(**kwargs)
+
+    def get_config(self):
+        return {
             "label": self.label,
+            "show_label": self.show_label,
             "interactive": self.interactive,
             **super().get_config(),
         }
@@ -81,20 +110,10 @@ class Component(Block):
         """
         return data
 
-    def save_flagged_file(
-        self,
-        dir: str,
-        label: str,
-        data: Any,
-        encryption_key: bool,
-        file_path: Optional[str] = None,
-    ) -> Optional[str]:
+    def save_file(self, file: tempfile._TemporaryFileWrapper, dir: str, label: str):
         """
-        Saved flagged data (e.g. image or audio) as a file and returns filepath
+        Saved flagged file and returns filepath
         """
-        if data is None:
-            return None
-        file = processing_utils.decode_base64_to_file(data, encryption_key, file_path)
         label = "".join([char for char in label if char.isalnum() or char in "._- "])
         old_file_name = file.name
         output_dir = os.path.join(dir, label)
@@ -111,6 +130,22 @@ class Component(Block):
         shutil.move(old_file_name, os.path.join(dir, label, new_file_name))
         return label + "/" + new_file_name
 
+    def save_flagged_file(
+        self,
+        dir: str,
+        label: str,
+        data: Any,
+        encryption_key: bool,
+        file_path: Optional[str] = None,
+    ) -> Optional[str]:
+        """
+        Saved flagged data (e.g. image or audio) as a file and returns filepath
+        """
+        if data is None:
+            return None
+        file = processing_utils.decode_base64_to_file(data, encryption_key, file_path)
+        return self.save_file(file, dir, label)
+
     def restore_flagged_file(
         self,
         dir: str,
@@ -124,28 +159,6 @@ class Component(Block):
             os.path.join(dir, file), encryption_key=encryption_key
         )
         return {"name": file, "data": data}
-
-    @classmethod
-    def get_component_shortcut(cls, str_shortcut: str) -> Optional[Component]:
-        """
-        Creates a component, where class name equals to str_shortcut.
-
-        @param str_shortcut: string shortcut of a component
-        @return: the insantiated component object, or None if no such component exists
-        """
-        # If we do not import templates Python cannot recognize grandchild classes names.
-        import gradio.templates
-
-        # Make it suitable with class names
-        str_shortcut = str_shortcut.replace("_", "")
-        for sub_cls in cls.__subclasses__():
-            if sub_cls.__name__.lower() == str_shortcut:
-                return sub_cls()
-            # For template components
-            for sub_sub_cls in sub_cls.__subclasses__():
-                if sub_sub_cls.__name__.lower() == str_shortcut:
-                    return sub_sub_cls()
-        return None
 
     # Input Functionalities
     def preprocess(self, x: Any) -> Any:
@@ -222,7 +235,180 @@ class Component(Block):
         return x
 
 
-class Textbox(Component):
+class Changeable(Component):
+    def change(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+        _js: Optional[str] = None,
+    ):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+            status_tracker: StatusTracker to visualize function progress
+            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of input and outputs components, return should be a list of values for output component.
+        Returns: None
+        """
+        self.set_event_trigger(
+            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
+        )
+
+
+class Clickable(Component):
+    def click(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+        queue=None,
+        _js: Optional[str] = None,
+        _preprocess: bool = True,
+        _postprocess: bool = True,
+    ):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+            status_tracker: StatusTracker to visualize function progress
+            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+            _preprocess: If False, will not run preprocessing of component data before running 'fn'.
+            _postprocess: If False, will not run postprocessing of component data before returning 'fn' output.
+        Returns: None
+        """
+        self.set_event_trigger(
+            "click",
+            fn,
+            inputs,
+            outputs,
+            status_tracker=status_tracker,
+            queue=queue,
+            js=_js,
+            preprocess=_preprocess,
+            postprocess=_postprocess,
+        )
+
+
+class Submittable(Component):
+    def submit(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        status_tracker: Optional[StatusTracker] = None,
+        _js: Optional[str] = None,
+    ):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+            status_tracker: StatusTracker to visualize function progress
+            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        Returns: None
+        """
+        self.set_event_trigger(
+            "submit", fn, inputs, outputs, status_tracker=status_tracker, js=_js
+        )
+
+
+class Editable(Component):
+    def edit(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        _js: Optional[str] = None,
+    ):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        Returns: None
+        """
+        self.set_event_trigger("edit", fn, inputs, outputs, js=_js)
+
+
+class Clearable(Component):
+    def clear(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        _js: Optional[str] = None,
+    ):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        Returns: None
+        """
+        self.set_event_trigger("submit", fn, inputs, outputs, js=_js)
+
+
+class Playable(Component):
+    def play(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        _js: Optional[str] = None,
+    ):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        Returns: None
+        """
+        self.set_event_trigger("play", fn, inputs, outputs, js=_js)
+
+    def pause(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        _js: Optional[str] = None,
+    ):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        Returns: None
+        """
+        self.set_event_trigger("pause", fn, inputs, outputs, js=_js)
+
+    def stop(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        _js: Optional[str] = None,
+    ):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        Returns: None
+        """
+        self.set_event_trigger("stop", fn, inputs, outputs, js=_js)
+
+
+class Textbox(Changeable, Submittable, IOComponent):
     """
     Component creates a textbox for user to enter string input or display string output. Provides a string as an argument to the wrapped function.
     Input type: str
@@ -249,24 +435,15 @@ class Textbox(Component):
         placeholder (str): placeholder hint to provide behind textarea.
         label (str): component name in interface.
         """
-        if "numeric" in kwargs:
-            warnings.warn(
-                "The 'numeric' type has been deprecated. Use the Number component instead.",
-                DeprecationWarning,
-            )
-        if "type" in kwargs:
-            warnings.warn(
-                "The 'type' parameter has been deprecated. Use the Number component instead if you need it.",
-                DeprecationWarning,
-            )
         value = str(value)
         self.lines = lines
         self.max_lines = max_lines
         self.placeholder = placeholder
         self.value = value
+        self.cleared_value = ""
         self.test_input = value
         self.interpret_by_tokens = True
-        super().__init__(label=label, **kwargs)
+        IOComponent.__init__(self, label=label, **kwargs)
 
     def get_config(self):
         return {
@@ -274,7 +451,7 @@ class Textbox(Component):
             "max_lines": self.max_lines,
             "placeholder": self.placeholder,
             "value": self.value,
-            **super().get_config(),
+            **IOComponent.get_config(self),
         }
 
     # Input Functionalities
@@ -379,46 +556,8 @@ class Textbox(Component):
         """
         return x
 
-    def change(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
-        )
 
-    def submit(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "submit", fn, inputs, outputs, status_tracker=status_tracker
-        )
-
-
-class Number(Component):
+class Number(Changeable, Submittable, IOComponent):
     """
     Component creates a field for user to enter numeric input or display numeric output. Provides a number as an argument to the wrapped function.
     Can be used as an output as well.
@@ -443,10 +582,13 @@ class Number(Component):
         self.value = float(value) if value is not None else None
         self.test_input = self.value if self.value is not None else 1
         self.interpret_by_tokens = False
-        super().__init__(label=label, **kwargs)
+        IOComponent.__init__(self, label=label, **kwargs)
 
     def get_config(self):
-        return {"value": self.value, **super().get_config()}
+        return {
+            "value": self.value,
+            **IOComponent.get_config(self),
+        }
 
     def preprocess(self, x: float | None) -> Optional[float]:
         """
@@ -526,46 +668,8 @@ class Number(Component):
         """
         return y
 
-    def change(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
-        )
 
-    def submit(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "submit", fn, inputs, outputs, status_tracker=status_tracker
-        )
-
-
-class Slider(Component):
+class Slider(Changeable, IOComponent):
     """
     Component creates a slider that ranges from `minimum` to `maximum`. Provides a number as an argument to the wrapped function.
 
@@ -599,9 +703,10 @@ class Slider(Component):
             step = 10**power
         self.step = step
         self.value = minimum if value is None else value
+        self.cleared_value = self.value
         self.test_input = self.value
         self.interpret_by_tokens = False
-        super().__init__(label=label, **kwargs)
+        IOComponent.__init__(self, label=label, **kwargs)
 
     def get_config(self):
         return {
@@ -609,7 +714,7 @@ class Slider(Component):
             "maximum": self.maximum,
             "step": self.step,
             "value": self.value,
-            **super().get_config(),
+            **IOComponent.get_config(self),
         }
 
     def preprocess(self, x: float) -> float:
@@ -669,27 +774,8 @@ class Slider(Component):
         """
         return y
 
-    def change(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
-        )
 
-
-class Checkbox(Component):
+class Checkbox(Changeable, IOComponent):
     """
     Component creates a checkbox that can be set to `True` or `False`. Provides a boolean as an argument to the wrapped function.
 
@@ -713,10 +799,13 @@ class Checkbox(Component):
         self.test_input = True
         self.value = value
         self.interpret_by_tokens = False
-        super().__init__(label=label, **kwargs)
+        IOComponent.__init__(self, label=label, **kwargs)
 
     def get_config(self):
-        return {"value": self.value, **super().get_config()}
+        return {
+            "value": self.value,
+            **IOComponent.get_config(self),
+        }
 
     def preprocess(self, x: bool) -> bool:
         """
@@ -769,27 +858,8 @@ class Checkbox(Component):
         """
         return x
 
-    def change(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
-        )
 
-
-class CheckboxGroup(Component):
+class CheckboxGroup(Changeable, IOComponent):
     """
     Component creates a set of checkboxes of which a subset can be selected. Provides a list of strings representing the selected choices as an argument to the wrapped function.
 
@@ -819,16 +889,17 @@ class CheckboxGroup(Component):
             default_selected = []
         self.choices = choices
         self.value = default_selected
+        self.cleared_value = []
         self.type = type
         self.test_input = self.choices
         self.interpret_by_tokens = False
-        super().__init__(label=label, **kwargs)
+        IOComponent.__init__(self, label=label, **kwargs)
 
     def get_config(self):
         return {
             "choices": self.choices,
             "value": self.value,
-            **super().get_config(),
+            **IOComponent.get_config(self),
         }
 
     def preprocess(self, x: List[str]) -> List[str] | List[int]:
@@ -905,27 +976,8 @@ class CheckboxGroup(Component):
         """
         return x
 
-    def change(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
-        )
 
-
-class Radio(Component):
+class Radio(Changeable, IOComponent):
     """
     Component creates a set of radio buttons of which only one can be selected. Provides string representing selected choice as an argument to the wrapped function.
 
@@ -955,14 +1007,15 @@ class Radio(Component):
         self.value = (
             default_selected if default_selected is not None else self.choices[0]
         )
+        self.cleared_value = self.value
         self.interpret_by_tokens = False
-        super().__init__(label=label, **kwargs)
+        IOComponent.__init__(self, label=label, **kwargs)
 
     def get_config(self):
         return {
             "choices": self.choices,
             "value": self.value,
-            **super().get_config(),
+            **IOComponent.get_config(self),
         }
 
     def preprocess(self, x: str) -> str | int:
@@ -1021,25 +1074,6 @@ class Radio(Component):
         """
         return x
 
-    def change(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
-        )
-
 
 class Dropdown(Radio):
     """
@@ -1066,7 +1100,8 @@ class Dropdown(Radio):
         label (str): component name in interface.
         """
         # Everything is same with Dropdown and Radio, so let's make use of it :)
-        super().__init__(
+        IOComponent.__init__(
+            self,
             default_selected=default_selected,
             choices=choices,
             type=type,
@@ -1075,7 +1110,7 @@ class Dropdown(Radio):
         )
 
 
-class Image(Component):
+class Image(Editable, Clearable, IOComponent):
     """
     Component creates an image component with input and output capabilities.
 
@@ -1100,7 +1135,7 @@ class Image(Component):
         """
         Parameters:
         value(str): A path or URL for the default value that Image component is going to take.
-        shape (Tuple[int, int]): (width, height) shape to crop and resize image to; if None, matches input image size.
+        shape (Tuple[int, int]): (width, height) shape to crop and resize image to; if None, matches input image size. Pass None for either width or height to only crop and resize the other.
         image_mode (str): "RGB" if color, or "L" if black and white.
         invert_colors (bool): whether to invert the image as a preprocessing step.
         source (str): Source of image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "canvas" defaults to a white image that can be edited and drawn upon with tools.
@@ -1108,15 +1143,7 @@ class Image(Component):
         type (str): The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
         label (str): component name in interface.
         """
-        if "plot" in kwargs:
-            warnings.warn(
-                "The 'plot' parameter has been deprecated. Use the new Plot() component instead",
-                DeprecationWarning,
-            )
-            self.type = "plot"
-        else:
-            self.type = type
-
+        self.type = type
         self.value = (
             processing_utils.encode_url_or_file_to_base64(value) if value else None
         )
@@ -1130,8 +1157,11 @@ class Image(Component):
         self.invert_colors = invert_colors
         self.test_input = deepcopy(media_data.BASE64_IMAGE)
         self.interpret_by_tokens = True
-        super().__init__(
-            label=label, requires_permissions=requires_permissions, **kwargs
+        IOComponent.__init__(
+            self,
+            label=label,
+            requires_permissions=requires_permissions,
+            **kwargs,
         )
 
     def get_config(self):
@@ -1141,7 +1171,7 @@ class Image(Component):
             "source": self.source,
             "tool": self.tool,
             "value": self.value,
-            **super().get_config(),
+            **IOComponent.get_config(self),
         }
 
     def preprocess(self, x: Optional[str]) -> np.array | PIL.Image | str | None:
@@ -1367,47 +1397,8 @@ class Image(Component):
         y = processing_utils.decode_base64_to_file(x).name
         return y
 
-    def change(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
-        )
 
-    def edit(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        Returns: None
-        """
-        self.set_event_trigger("edit", fn, inputs, outputs)
-
-    def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        Returns: None
-        """
-        self.set_event_trigger("clear", fn, inputs, outputs)
-
-
-class Video(Component):
+class Video(Changeable, Clearable, Playable, IOComponent):
     """
     Component creates a video file upload that is converted to a file path.
 
@@ -1438,13 +1429,13 @@ class Video(Component):
         )
         self.type = type
         self.source = source
-        super().__init__(label=label, **kwargs)
+        IOComponent.__init__(self, label=label, **kwargs)
 
     def get_config(self):
         return {
             "source": self.source,
             "value": self.value,
-            **super().get_config(),
+            **IOComponent.get_config(self),
         }
 
     def preprocess_example(self, x):
@@ -1515,67 +1506,8 @@ class Video(Component):
     def deserialize(self, x):
         return processing_utils.decode_base64_to_file(x).name
 
-    def change(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
-        )
 
-    def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        Returns: None
-        """
-        self.set_event_trigger("clear", fn, inputs, outputs)
-
-    def play(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        Returns: None
-        """
-        self.set_event_trigger("play", fn, inputs, outputs)
-
-    def pause(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        Returns: None
-        """
-        self.set_event_trigger("pause", fn, inputs, outputs)
-
-    def stop(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        Returns: None
-        """
-        self.set_event_trigger("stop", fn, inputs, outputs)
-
-
-class Audio(Component):
+class Audio(Changeable, Clearable, Playable, IOComponent):
     """
     Component accepts audio input files or creates an audio player that plays the output audio.
 
@@ -1610,15 +1542,15 @@ class Audio(Component):
         self.output_type = "auto"
         self.test_input = deepcopy(media_data.BASE64_AUDIO)
         self.interpret_by_tokens = True
-        super().__init__(
-            label=label, requires_permissions=requires_permissions, **kwargs
+        IOComponent.__init__(
+            self, label=label, requires_permissions=requires_permissions, **kwargs
         )
 
     def get_config(self):
         return {
             "source": self.source,  # TODO: This did not exist in output template, careful here if an error arrives
             "value": self.value,
-            **super().get_config(),
+            **IOComponent.get_config(self),
         }
 
     def preprocess_example(self, x):
@@ -1781,9 +1713,18 @@ class Audio(Component):
         """
         Returns: (str) path to audio file
         """
-        return self.save_flagged_file(
-            dir, label, None if data is None else data["data"], encryption_key
-        )
+        if data is None:
+            data_string = None
+        elif isinstance(data, str):
+            data_string = data
+        else:
+            data_string = data["data"]
+            is_example = data.get("is_example", False)
+            if is_example:
+                file_obj = processing_utils.create_tmp_copy_of_file(data["name"])
+                return self.save_file(file_obj, dir, label)
+
+        return self.save_flagged_file(dir, label, data_string, encryption_key)
 
     def generate_sample(self):
         return deepcopy(media_data.BASE64_AUDIO)
@@ -1814,77 +1755,8 @@ class Audio(Component):
     def deserialize(self, x):
         return processing_utils.decode_base64_to_file(x).name
 
-    def change(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
-        )
 
-    def edit(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        Returns: None
-        """
-        self.set_event_trigger("edit", fn, inputs, outputs)
-
-    def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        Returns: None
-        """
-        self.set_event_trigger("clear", fn, inputs, outputs)
-
-    def play(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        Returns: None
-        """
-        self.set_event_trigger("play", fn, inputs, outputs)
-
-    def pause(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        Returns: None
-        """
-        self.set_event_trigger("pause", fn, inputs, outputs)
-
-    def stop(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        Returns: None
-        """
-        self.set_event_trigger("stop", fn, inputs, outputs)
-
-
-class File(Component):
+class File(Changeable, Clearable, IOComponent):
     """
     Component accepts generic file uploads and output..
 
@@ -1900,6 +1772,7 @@ class File(Component):
         file_count: str = "single",
         type: str = "file",
         label: Optional[str] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -1909,21 +1782,19 @@ class File(Component):
         type (str): Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name, "binary" returns an bytes object.
         label (str): component name in interface.
         """
-        if "keep_filename" in kwargs:
-            warnings.warn("keep_filename is deprecated", DeprecationWarning)
         self.value = (
             processing_utils.encode_url_or_file_to_base64(value) if value else None
         )
         self.file_count = file_count
         self.type = type
         self.test_input = None
-        super().__init__(label=label, **kwargs)
+        IOComponent.__init__(self, label=label, **kwargs)
 
     def get_config(self):
         return {
             "file_count": self.file_count,
             "value": self.value,
-            **super().get_config(),
+            **IOComponent.get_config(self),
         }
 
     def preprocess_example(self, x):
@@ -1998,37 +1869,8 @@ class File(Component):
             "data": processing_utils.encode_file_to_base64(y),
         }
 
-    def change(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
-        )
 
-    def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        Returns: None
-        """
-        self.set_event_trigger("clear", fn, inputs, outputs)
-
-
-class Dataframe(Component):
+class Dataframe(Changeable, IOComponent):
     """
     Component accepts or displays 2D input  through a spreadsheet interface.
 
@@ -2089,7 +1931,7 @@ class Dataframe(Component):
         self.max_rows = max_rows
         self.max_cols = max_cols
         self.overflow_row_behaviour = overflow_row_behaviour
-        super().__init__(label=label, **kwargs)
+        IOComponent.__init__(self, label=label, **kwargs)
 
     def get_config(self):
         return {
@@ -2102,7 +1944,7 @@ class Dataframe(Component):
             "max_rows": self.max_rows,
             "max_cols": self.max_cols,
             "overflow_row_behaviour": self.overflow_row_behaviour,
-            **super().get_config(),
+            **IOComponent.get_config(self),
         }
 
     def preprocess(self, x: List[List[str | Number | bool]]):
@@ -2179,27 +2021,8 @@ class Dataframe(Component):
                 + ". Please choose from: 'pandas', 'numpy', 'array'."
             )
 
-    def change(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
-        )
 
-
-class Timeseries(Component):
+class Timeseries(Changeable, IOComponent):
     """
     Component accepts pandas.DataFrame uploaded as a timeseries csv file or renders a dataframe consisting of a time series as output.
 
@@ -2215,6 +2038,8 @@ class Timeseries(Component):
         x: Optional[str] = None,
         y: str | List[str] = None,
         label: Optional[str] = None,
+        css: Optional[Dict] = None,
+        colors: List[str] = None,
         **kwargs,
     ):
         """
@@ -2223,20 +2048,23 @@ class Timeseries(Component):
         x (str): Column name of x (time) series. None if csv has no headers, in which case first column is x series.
         y (Union[str, List[str]]): Column name of y series, or list of column names if multiple series. None if csv has no headers, in which case every column after first is a y series.
         label (str): component name in interface.
+        colors List[str]: an ordered list of colors to use for each line plot
         """
         self.value = pd.read_csv(value) if value is not None else None
         self.x = x
         if isinstance(y, str):
             y = [y]
         self.y = y
-        super().__init__(label=label, **kwargs)
+        self.colors = colors
+        IOComponent.__init__(self, label=label, **kwargs)
 
     def get_config(self):
         return {
             "x": self.x,
             "y": self.y,
             "value": self.value,
-            **super().get_config(),
+            "colors": self.colors,
+            **IOComponent.get_config(self),
         }
 
     def preprocess_example(self, x):
@@ -2283,27 +2111,8 @@ class Timeseries(Component):
         """
         return {"headers": y.columns.values.tolist(), "data": y.values.tolist()}
 
-    def change(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
-        )
 
-
-class Variable(Component):
+class Variable(IOComponent):
     """
     Special hidden component that stores state across runs of the interface.
 
@@ -2324,10 +2133,13 @@ class Variable(Component):
         """
         self.value = value
         self.stateful = True
-        super().__init__(**kwargs)
+        IOComponent.__init__(self, **kwargs)
 
     def get_config(self):
-        return {"value": self.value, **super().get_config()}
+        return {
+            "value": self.value,
+            **IOComponent.get_config(self),
+        }
 
 
 ############################
@@ -2335,7 +2147,7 @@ class Variable(Component):
 ############################
 
 
-class Label(Component):
+class Label(Changeable, IOComponent):
     """
     Component outputs a classification label, along with confidence scores of top categories if provided. Confidence scores are represented as a dictionary mapping labels to scores between 0 and 1.
     Output type: Union[Dict[str, float], str, int, float]
@@ -2361,7 +2173,7 @@ class Label(Component):
         # TODO: Shall we have a default value for the label component?
         self.num_top_classes = num_top_classes
         self.output_type = "auto"
-        super().__init__(label=label, **kwargs)
+        IOComponent.__init__(self, label=label, **kwargs)
 
     def postprocess(self, y):
         """
@@ -2434,27 +2246,8 @@ class Label(Component):
         except ValueError:
             return data
 
-    def change(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
-        )
 
-
-class KeyValues(Component):
+class KeyValues(IOComponent):
     """
     Component displays a table representing values for multiple fields.
     Output type: Union[Dict, List[Tuple[str, Union[str, int, float]]]]
@@ -2479,7 +2272,7 @@ class KeyValues(Component):
         )
 
 
-class HighlightedText(Component):
+class HighlightedText(Changeable, IOComponent):
     """
     Component creates text that contains spans that are highlighted by category or numerical value.
     Output is represent as a list of Tuple pairs, where the first element represents the span of text represented by the tuple, and the second element represents the category or value of the text.
@@ -2506,14 +2299,14 @@ class HighlightedText(Component):
         self.value = value
         self.color_map = color_map
         self.show_legend = show_legend
-        super().__init__(label=label, **kwargs)
+        IOComponent.__init__(self, label=label, **kwargs)
 
     def get_config(self):
         return {
             "color_map": self.color_map,
             "show_legend": self.show_legend,
             "value": self.value,
-            **super().get_config(),
+            **IOComponent.get_config(self),
         }
 
     def postprocess(self, y):
@@ -2532,27 +2325,8 @@ class HighlightedText(Component):
     def restore_flagged(self, dir, data, encryption_key):
         return json.loads(data)
 
-    def change(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
-        )
 
-
-class JSON(Component):
+class JSON(Changeable, IOComponent):
     """
     Used for JSON output. Expects a JSON string or a Python object that is JSON serializable.
     Output type: Union[str, Any]
@@ -2572,12 +2346,12 @@ class JSON(Component):
         label (str): component name in interface.
         """
         self.value = json.dumps(value)
-        super().__init__(label=label, **kwargs)
+        IOComponent.__init__(self, label=label, **kwargs)
 
     def get_config(self):
         return {
             "value": self.value,
-            **super().get_config(),
+            **IOComponent.get_config(self),
         }
 
     def postprocess(self, y):
@@ -2598,27 +2372,8 @@ class JSON(Component):
     def restore_flagged(self, dir, data, encryption_key):
         return json.loads(data)
 
-    def change(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
-        )
 
-
-class HTML(Component):
+class HTML(Changeable, IOComponent):
     """
     Used for HTML output. Expects an HTML valid string.
     Output type: str
@@ -2637,12 +2392,12 @@ class HTML(Component):
         label (str): component name in interface.
         """
         self.value = value
-        super().__init__(label=label, **kwargs)
+        IOComponent.__init__(self, label=label, **kwargs)
 
     def get_config(self):
         return {
             "value": self.value,
-            **super().get_config(),
+            **IOComponent.get_config(self),
         }
 
     def postprocess(self, x):
@@ -2654,27 +2409,46 @@ class HTML(Component):
         """
         return x
 
-    def change(
+
+class Gallery(IOComponent):
+    def __init__(
         self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
+        *,
+        label: Optional[str] = None,
+        **kwargs,
     ):
+        super().__init__(label=label, **kwargs)
+
+    def get_config(self):
+        return {
+            **super().get_config(),
+        }
+
+    def postprocess(self, y):
         """
         Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
+        y (List[Union[numpy.array, PIL.Image, str]]): list of images
+        Returns:
+        (str): list of base64 url data for images
         """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
-        )
+        output = []
+        for img in y:
+            if isinstance(img, np.ndarray):
+                img = processing_utils.encode_array_to_base64(img)
+            elif isinstance(img, PIL.Image.Image):
+                img = np.array(img)
+                img = processing_utils.encode_array_to_base64(img)
+            elif isinstance(img, str):
+                img = processing_utils.encode_url_or_file_to_base64(img)
+            else:
+                raise ValueError(
+                    "Unknown type. Please choose from: 'numpy', 'pil', 'file'."
+                )
+            output.append(img)
+        return output
 
 
-class Carousel(Component):
+class Carousel(IOComponent):
     """
     Component displays a set of output components that can be scrolled through.
     Output type: List[List[Any]]
@@ -2683,7 +2457,6 @@ class Carousel(Component):
 
     def __init__(
         self,
-        value="",
         *,
         components: Component | List[Component],
         label: Optional[str] = None,
@@ -2691,22 +2464,20 @@ class Carousel(Component):
     ):
         """
         Parameters:
-        value (str): IGNORED
         components (Union[List[OutputComponent], OutputComponent]): Classes of component(s) that will be scrolled through.
         label (str): component name in interface.
         """
-        # TODO: Shall we havea default value in carousel?
         if not isinstance(components, list):
             components = [components]
         self.components = [
             get_component_instance(component) for component in components
         ]
-        super().__init__(label=label, **kwargs)
+        IOComponent.__init__(self, label=label, **kwargs)
 
     def get_config(self):
         return {
             "components": [component.get_config() for component in self.components],
-            **super().get_config(),
+            **IOComponent.get_config(self),
         }
 
     def postprocess(self, y):
@@ -2751,27 +2522,8 @@ class Carousel(Component):
             for sample_set in json.loads(data)
         ]
 
-    def change(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
-        )
 
-
-class Chatbot(Component):
+class Chatbot(Changeable, IOComponent):
     """
     Component displays a chatbot output showing both user submitted messages and responses
     Output type: List[Tuple[str, str]]
@@ -2781,6 +2533,7 @@ class Chatbot(Component):
     def __init__(
         self,
         value="",
+        color_map: Tuple(str, str) = None,
         *,
         label: Optional[str] = None,
         **kwargs,
@@ -2788,13 +2541,19 @@ class Chatbot(Component):
         """
         Parameters:
         value (str): Default value
+        color_map (Tuple[str, str]): Chat bubble color of input text and output text respectively.
         label (str): component name in interface (not used).
         """
         self.value = value
-        super().__init__(label=label, **kwargs)
+        self.color_map = color_map
+        IOComponent.__init__(self, label=label, **kwargs)
 
     def get_config(self):
-        return {"value": self.value, **super().get_config()}
+        return {
+            "value": self.value,
+            "color_map": self.color_map,
+            **IOComponent.get_config(self),
+        }
 
     def postprocess(self, y):
         """
@@ -2806,27 +2565,8 @@ class Chatbot(Component):
         """
         return y
 
-    def change(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
-        )
 
-
-class Model3D(Component):
+class Model3D(Changeable, Editable, Clearable, IOComponent):
     """
     Component creates a 3D Model component with input and output capabilities.
     Input type: File object of type (.obj, glb, or .gltf)
@@ -2846,12 +2586,12 @@ class Model3D(Component):
         label (str): component name in interface.
         """
         self.clear_color = clear_color
-        super().__init__(label=label, **kwargs)
+        IOComponent.__init__(self, label=label, **kwargs)
 
     def get_config(self):
         return {
             "clearColor": self.clear_color,
-            **super().get_config(),
+            **IOComponent.get_config(self),
         }
 
     def preprocess_example(self, x):
@@ -2920,38 +2660,8 @@ class Model3D(Component):
     def restore_flagged(self, dir, data, encryption_key):
         return self.restore_flagged_file(dir, data, encryption_key)
 
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        Returns: None
-        """
-        self.set_event_trigger("change", fn, inputs, outputs)
 
-    def edit(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        Returns: None
-        """
-        self.set_event_trigger("edit", fn, inputs, outputs)
-
-    def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        Returns: None
-        """
-        self.set_event_trigger("clear", fn, inputs, outputs)
-
-
-class Plot(Component):
+class Plot(Changeable, Clearable, IOComponent):
     """
     Used for plot output.
     Output type: matplotlib plt, plotly figure, or Bokeh fig (json_item format)
@@ -2970,10 +2680,10 @@ class Plot(Component):
         label (str): component name in interface.
         """
         self.type = type
-        super().__init__(label=label, **kwargs)
+        IOComponent.__init__(self, label=label, **kwargs)
 
     def get_config(self):
-        return {**super().get_config()}
+        return {**IOComponent.get_config(self)}
 
     def postprocess(self, y):
         """
@@ -3006,40 +2716,6 @@ class Plot(Component):
             )
         return {"type": dtype, "plot": out_y}
 
-    def change(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker
-        )
-
-    def clear(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        Returns: None
-        """
-        self.set_event_trigger("clear", fn, inputs, outputs)
-
-
-############################
-# Static Components
-############################
-
 
 class Markdown(Component):
     """
@@ -3050,24 +2726,36 @@ class Markdown(Component):
         self,
         value: str = "",
         *,
-        label: Optional[str] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
         Parameters:
         value (str): Default value
-        label (str): component name
+        css (dict): optional css parameters for the component
         """
-        super().__init__(label=label, **kwargs)
+        Component.__init__(self, **kwargs)
         self.md = MarkdownIt()
         unindented_value = inspect.cleandoc(value)
         self.value = self.md.render(unindented_value)
 
+    def postprocess(self, y):
+        unindented_y = inspect.cleandoc(y)
+        return self.md.render(unindented_y)
+
     def get_config(self):
-        return {"value": self.value, **super().get_config()}
+        return {
+            "value": self.value,
+            **Component.get_config(self),
+        }
 
 
-class Button(Component):
+############################
+# Static Components
+############################
+
+
+class Button(Clickable, Component):
     """
     Used to create a button, that can be assigned arbitrary click() events.
     """
@@ -3076,78 +2764,25 @@ class Button(Component):
         self,
         value: str = "",
         *,
-        variant: Optional[str] = "secondary",
-        label: Optional[str] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
         Parameters:
         value (str): Default value
-        variant (str): Which color scheme to use. Either "primary", "secondary".
-        label (str): component name
+        css (dict): optional css parameters for the component
         """
-        super().__init__(label=label, **kwargs)
-        self.variant = variant
+        Component.__init__(self, **kwargs)
         self.value = value
 
     def get_config(self):
         return {
             "value": self.value,
-            "variant": self.variant,
-            **super().get_config(),
+            **Component.get_config(self),
         }
 
-    def click(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        queue=False,
-        status_tracker: Optional[StatusTracker] = None,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "click",
-            fn,
-            inputs,
-            outputs,
-            queue=queue,
-            status_tracker=status_tracker,
-        )
 
-    def _click_no_preprocess(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "click",
-            fn,
-            inputs,
-            outputs,
-            preprocess=False,
-            status_tracker=status_tracker,
-        )
-
-
-class Dataset(Component):
+class Dataset(Clickable, Component):
     """
     Used to create a output widget for showing datasets. Used to render the examples
     box in the interface.
@@ -3159,10 +2794,10 @@ class Dataset(Component):
         components: List[Component],
         samples: List[List[Any]],
         type: str = "values",
-        label: Optional[str] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
-        super().__init__(label=label, **kwargs)
+        Component.__init__(self, **kwargs)
         self.components = components
         self.type = type
         self.headers = [c.label for c in components]
@@ -3174,7 +2809,7 @@ class Dataset(Component):
             "headers": self.headers,
             "samples": self.samples,
             "type": self.type,
-            **super().get_config(),
+            **Component.get_config(self),
         }
 
     def preprocess(self, x: Any) -> Any:
@@ -3186,49 +2821,6 @@ class Dataset(Component):
         elif self.type == "values":
             return self.samples[x]
 
-    def click(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "click", fn, inputs, outputs, status_tracker=status_tracker
-        )
-
-    def _click_no_postprocess(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status: StatusTracker to visualize function progress
-        Returns: None
-        """
-        self.set_event_trigger(
-            "click",
-            fn,
-            inputs,
-            outputs,
-            postprocess=False,
-            status_tracker=status_tracker,
-        )
-
 
 class Interpretation(Component):
     """
@@ -3239,10 +2831,10 @@ class Interpretation(Component):
         self,
         component: Component,
         *,
-        label: Optional[str] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
-        super().__init__(label=label, **kwargs)
+        Component.__init__(self, **kwargs)
         self.component = component
 
     def get_config(self):
@@ -3250,45 +2842,6 @@ class Interpretation(Component):
             "component": self.component.get_block_name(),
             "component_props": self.component.get_config(),
         }
-
-
-def component(str_shortcut: str) -> Optional[Component]:
-    """
-    Creates a component, where class name equals to str_shortcut.
-
-    @param str_shortcut: string shortcut of a component
-    @return component: the component object
-    """
-    component = Component.get_component_shortcut(str_shortcut)
-    if component is None:
-        raise ValueError(f"No such component: {str_shortcut}")
-    else:
-        return component
-
-
-def get_component_instance(comp: str | dict | Component):
-    if isinstance(comp, str):
-        component = Component.get_component_shortcut(comp)
-        if component is None:
-            raise ValueError(f"No such component: {comp}")
-        else:
-            return component
-    elif isinstance(
-        comp, dict
-    ):  # a dict with `name` as the input component type and other keys as parameters
-        name = comp.pop("name")
-        for component in Component.__subclasses__():
-            if component.__name__.lower() == name:
-                break
-        else:
-            raise ValueError(f"No such Component: {name}")
-        return component(**comp, without_rendering=True)
-    elif isinstance(comp, Component):
-        return comp
-    else:
-        raise ValueError(
-            f"Component must provided as a `str` or `dict` or `Component` but is {comp}"
-        )
 
 
 class StatusTracker(Component):
@@ -3300,28 +2853,74 @@ class StatusTracker(Component):
         self,
         *,
         cover_container: bool = False,
-        label: Optional[str] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
         Parameters:
         cover_container (bool): If True, will expand to cover parent container while function pending.
-        label (str): component name
+        css (dict): optional css parameters for the component
         """
-        super().__init__(label=label, **kwargs)
+        Component.__init__(self, **kwargs)
         self.cover_container = cover_container
 
     def get_config(self):
         return {
             "cover_container": self.cover_container,
-            **super().get_config(),
+            **Component.get_config(self),
         }
+
+
+def component(cls_name: str):
+    """
+    Returns a component or template with the given class name, or raises a ValueError if not found.
+    @param cls_name: lower-case string class name of a component
+    @return cls: the component class
+    """
+    import gradio.templates
+
+    components = [
+        (name, cls)
+        for name, cls in sys.modules[__name__].__dict__.items()
+        if isinstance(cls, type)
+    ]
+    templates = [
+        (name, cls)
+        for name, cls in gradio.templates.__dict__.items()
+        if isinstance(cls, type)
+    ]
+    for name, cls in components + templates:
+        if name.lower() == cls_name.replace("_", "") and issubclass(cls, Component):
+            return cls
+    raise ValueError(f"No such Component: {cls_name}")
+
+
+def get_component_instance(comp: str | dict | Component):
+    if isinstance(comp, str):
+        component_cls = component(comp)
+        return component_cls()
+    elif isinstance(comp, dict):
+        name = comp.pop("name")
+        component_cls = component(name)
+        return component_cls(**comp)
+    elif isinstance(comp, Component):
+        return comp
+    else:
+        raise ValueError(
+            f"Component must provided as a `str` or `dict` or `Component` but is {comp}"
+        )
+
+
+DataFrame = Dataframe
+Keyvalues = KeyValues
+Highlightedtext = HighlightedText
+Checkboxgroup = CheckboxGroup
+TimeSeries = Timeseries
 
 
 def update(**kwargs) -> dict:
     """
     Updates component parameters
-
     @param kwargs: Updating component parameters
     @return: Updated component parameters
     """

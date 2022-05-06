@@ -13,12 +13,17 @@ from gradio.components import (
     Carousel,
     Chatbot,
     Checkbox,
+    Checkboxgroup,
     CheckboxGroup,
+    DataFrame,
     Dataframe,
     Dropdown,
     File,
+    Gallery,
+    Highlightedtext,
     HighlightedText,
     Image,
+    Keyvalues,
     KeyValues,
     Label,
     Markdown,
@@ -29,6 +34,7 @@ from gradio.components import (
     Slider,
     StatusTracker,
     Textbox,
+    TimeSeries,
     Timeseries,
     Variable,
     Video,
@@ -41,9 +47,8 @@ from gradio.flagging import (
     HuggingFaceDatasetSaver,
     SimpleCSVLogger,
 )
-from gradio.interface import Interface, TabbedInterface, close_all, reset_all
+from gradio.interface import Interface, TabbedInterface, close_all
 from gradio.mix import Parallel, Series
-from gradio.routes import get_state, set_state
 
 current_pkg_version = pkg_resources.require("gradio")[0].version
 __version__ = current_pkg_version

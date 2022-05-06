@@ -40,4 +40,8 @@ def transcribe(speech, stream):
     text = stream.intermediateDecode()
     return text, stream
 
-gr.Interface(transcribe, ["microphone", "state"], ["text", "state"], live=True).launch()
+demo = gr.Interface(transcribe, ["microphone", "state"], ["text", "state"], live=True)
+
+if __name__ == "__main__":
+    demo.launch()
+

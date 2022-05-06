@@ -28,7 +28,7 @@ With this model you can lorem ipsum
     )
 
     with gr.Tabs():
-        with gr.TabItem("X-ray"):
+        with gr.TabItem("X-ray") as x_tab:
             with gr.Row():
                 xray_scan = gr.Image()
                 xray_results = gr.JSON()

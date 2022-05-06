@@ -1,3 +1,4 @@
+import os
 import requests
 import tensorflow as tf
 
@@ -20,10 +21,16 @@ def classify_image(inp):
 image = gr.Image(shape=(224, 224))
 label = gr.Label(num_top_classes=3)
 
-gr.Interface(
+demo = gr.Interface(
     fn=classify_image,
     inputs=image,
-    outputs="image",
-    examples=[["images/cheetah1.jpg"], ["images/lion.jpg"]],
-    cache_examples=True,
-).launch()
+    outputs=label,
+    examples=[
+        os.path.join(os.path.dirname(__file__), "images/cheetah1.jpg"),
+        os.path.join(os.path.dirname(__file__), "images/lion.jpg")
+        ]
+    )
+
+if __name__ == "__main__":
+    demo.launch()
+

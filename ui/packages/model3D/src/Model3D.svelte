@@ -1,14 +1,20 @@
 <script lang="ts">
 	import type { FileData } from "@gradio/upload";
+	import { BlockLabel } from "@gradio/atoms";
+	import file_icon from "./file.svg";
 
 	export let value: FileData;
-	export let theme: string;
-	export let clearColor: Array;
+	export let style: string;
+	export let clearColor: Array<number>;
+	export let label: string = "";
+	export let show_label: boolean;
 
 	import { onMount, afterUpdate } from "svelte";
 	import * as BABYLON from "babylonjs";
-	import "babylonjs-loaders";
+	import * as BABYLON_LOADERS from "babylonjs-loaders";
 	import { clear } from "@testing-library/user-event/dist/clear";
+
+	BABYLON_LOADERS.OBJFileLoader.IMPORT_VERTEX_COLORS = true;
 
 	let canvas: HTMLCanvasElement;
 	let scene: BABYLON.Scene;
@@ -62,12 +68,6 @@
 	}
 </script>
 
-<div
-	class="output-model w-full h-60 flex justify-center items-center bg-gray-200 dark:bg-gray-600 relative"
-	{theme}
->
-	<canvas class="w-full h-full object-contain" bind:this={canvas} />
-</div>
+<BlockLabel {show_label} image={file_icon} label={label || "3D Model"} />
 
-<style lang="postcss">
-</style>
+<canvas class="w-full h-full object-contain" bind:this={canvas} />

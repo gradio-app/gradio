@@ -32,7 +32,16 @@ export default defineConfig(({ mode }) => {
 				preprocess: sveltePreprocess({
 					postcss: { plugins: [tailwind, nested] }
 				})
-			})
+			}),
+			{
+				name: "inject-ejs",
+				transformIndexHtml: (html) => {
+					return html.replace(
+						/%gradio_config%/,
+						`<script>window.gradio_config = {{ config | tojson }};</script>`
+					);
+				}
+			}
 		],
 		test: {
 			environment: "happy-dom",

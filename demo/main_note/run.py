@@ -1,6 +1,6 @@
 from math import log2, pow
+import os
 
-import matplotlib.pyplot as plt
 import numpy as np
 from scipy.fftpack import fft
 
@@ -46,8 +46,8 @@ demo = gr.Interface(
     gr.Audio(source="microphone"),
     gr.Label(num_top_classes=4),
     examples=[
-        ["audio/recording1.wav"],
-        ["audio/cantina.wav"],
+        [os.path.join(os.path.dirname(__file__),"audio/recording1.wav")],
+        [os.path.join(os.path.dirname(__file__),"audio/cantina.wav")],
     ],
     interpretation="default",
 )

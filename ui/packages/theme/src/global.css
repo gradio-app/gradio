@@ -2,6 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+	.gr-gap > *:not(.absolute) + * {
+		@apply mt-2;
+	}
+	.gr-form-gap > .form + .form {
+		@apply mt-0 border-t-0;
+	}
+
+	.scroll-hide {
+		-ms-overflow-style: none;
+		scrollbar-width: none;
+	}
+
+	.scroll-hide::-webkit-scrollbar {
+		display: none;
+	}
+}
+
 .cropper-container {
 	direction: ltr;
 	font-size: 0;
