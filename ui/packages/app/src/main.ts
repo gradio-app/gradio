@@ -41,7 +41,7 @@ interface Config {
 	layout: string;
 	live: boolean;
 	mode: "blocks" | "interface" | undefined;
-	queue: boolean;
+	enable_queue: boolean;
 	root: string;
 	show_input: boolean;
 	show_output: boolean;
@@ -54,7 +54,6 @@ interface Config {
 	space?: string;
 	detail: string;
 	dark: boolean;
-	auth_required: boolean;
 }
 
 window.launchGradio = (config: Config, element_query: string) => {
@@ -102,6 +101,7 @@ window.launchGradio = (config: Config, element_query: string) => {
 		}
 		let session_hash = Math.random().toString(36).substring(2);
 		config.fn = fn.bind(null, session_hash, config.root + "api/");
+
 		new Blocks({
 			target: target,
 			props: config

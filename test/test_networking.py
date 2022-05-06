@@ -36,14 +36,22 @@ class TestPort(unittest.TestCase):
             warnings.warn("Unable to test, no ports available")
 
 
-class TestInterfaceCustomParameters(unittest.TestCase):
-    def test_show_error(self):
+class TestInterfaceErrors(unittest.TestCase):
+    def test_processing_error(self):
+        io = Interface(lambda x: 1 / x, "number", "number")
+        app, _, _ = io.launch(show_error=True, prevent_thread_lock=True)
+        client = TestClient(app)
+        response = client.post("/api/predict/", json={"data": [0], "fn_index": 1})
+        self.assertEqual(response.status_code, 500)
+        self.assertTrue("error" in response.json())
+        io.close()
+
+    def test_validation_error(self):
         io = Interface(lambda x: 1 / x, "number", "number")
         app, _, _ = io.launch(show_error=True, prevent_thread_lock=True)
         client = TestClient(app)
         response = client.post("/api/predict/", json={"data": [0]})
-        self.assertEqual(response.status_code, 500)
-        self.assertTrue("error" in response.json())
+        self.assertEqual(response.status_code, 422)
         io.close()
 
 

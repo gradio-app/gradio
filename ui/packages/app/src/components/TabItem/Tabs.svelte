@@ -4,6 +4,6 @@
 	export let label: string;
 </script>
 
-<TabItem name={label}>
+<TabItem name={label} on:select>
 	<slot />
 </TabItem>

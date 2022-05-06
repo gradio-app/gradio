@@ -9,26 +9,26 @@ describe("Textbox", () => {
 	afterEach(() => cleanup());
 
 	test("renders provided value", () => {
-		const { container, getByLabelText } = render(Textbox, {
+		const { getByDisplayValue } = render(Textbox, {
 			lines: 1,
 			mode: "dynamic",
 			value: "hello world",
 			label: "Textbox"
 		});
 
-		const item: HTMLInputElement = getByLabelText("Textbox");
+		const item: HTMLInputElement = getByDisplayValue("hello world");
 		assert.equal(item.value, "hello world");
 	});
 
 	test("changing the text should update the value", async () => {
-		const { component, getByLabelText } = render(Textbox, {
+		const { component, getByLabelText, getByDisplayValue } = render(Textbox, {
 			lines: 1,
 			mode: "dynamic",
-			value: "",
+			value: "hi ",
 			label: "Textbox"
 		});
 
-		const item: HTMLInputElement = getByLabelText("Textbox");
+		const item: HTMLInputElement = getByDisplayValue("hi");
 
 		const mock = spy();
 		component.$on("change", mock);
@@ -39,22 +39,9 @@ describe("Textbox", () => {
 		// wait for debounce
 		await wait(300);
 
-		assert.equal(item.value, "some text");
-		assert.equal(component.value, "some text");
+		assert.equal(item.value, "hi some text");
+		assert.equal(component.value, "hi some text");
 		assert.equal(mock.callCount, 1);
-		assert.equal(mock.calls[0][0].detail, "some text");
-	});
-
-	test("component should respect placeholder", async () => {
-		const { getByLabelText } = render(Textbox, {
-			lines: 1,
-			mode: "dynamic",
-			value: "",
-			placeholder: "placeholder text",
-			label: "Textbox"
-		});
-
-		const item: HTMLInputElement = getByLabelText("Textbox");
-		assert.equal(item.placeholder, "placeholder text");
+		assert.equal(mock.calls[0][0].detail, "hi some text");
 	});
 });

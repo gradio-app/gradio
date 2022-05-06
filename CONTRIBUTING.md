@@ -4,6 +4,7 @@ Prequisites:
 
 * Python 3.7+
 * Node 16.0+ (optional for backend-only changes, but needed for any frontend changes)
+* pnpm version 6.x
 
 More than 30 awesome developers have contributed to the `gradio` library, and we'd be thrilled if you would like be the next `gradio` contributor! You can start by forking or cloning the repo (https://github.com/gradio-app/gradio.git) and creating your own branch to work from.
 
@@ -36,7 +37,7 @@ bash scripts/install_test_requirements.sh
 * Run the tests
 
 ```
-bash scripts/run_tests.sh
+bash scripts/run_all_tests.sh
 ```
 
 * You can also start a local frontend development server (on port 3000 by default) that responds to any changes in the frontend.

@@ -10,7 +10,7 @@ examples = [
 
 demo = gr.Interface.load(
     "huggingface/EleutherAI/gpt-j-6B",
-    inputs=gr.Textbox(lines=5, label="Input Text"),
+    inputs=gr.Textbox(lines=5, max_lines=6, label="Input Text"),
     title=title,
     examples=examples,
 )
