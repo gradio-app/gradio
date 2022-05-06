@@ -55,8 +55,7 @@ demo = gr.Interface(
         [2, cheetah, 12, 12, 4, 4],
         [2, cheetah, 12, 12, 4, 4],
     ],
-    enable_queue=True,
 )
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(enable_queue=True)
