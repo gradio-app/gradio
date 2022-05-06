@@ -133,7 +133,7 @@
 .prose code {
 	color: #111827;
 	font-weight: 600;
-	font-size: 0.875em;
+	font-size: 1em;
 }
 .prose code::before {
 	content: "`";
