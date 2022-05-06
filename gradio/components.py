@@ -1109,7 +1109,6 @@ class Dropdown(Radio):
 
         # Everything is same with Dropdown and Radio, so let's make use of it :)
         super().__init__(
-            self,
             default_selected=default_selected,
             choices=choices,
             type=type,
@@ -2755,11 +2754,6 @@ class Plot(Changeable, Clearable, IOComponent):
         return {"type": dtype, "plot": out_y}
 
 
-############################
-# Static Components
-############################
-
-
 class Markdown(Component):
     """
     Used for Markdown output. Expects a valid string that is rendered into Markdown.
@@ -2782,11 +2776,20 @@ class Markdown(Component):
         unindented_default_value = inspect.cleandoc(default_value)
         self.default_value = self.md.render(unindented_default_value)
 
+    def postprocess(self, y):
+        unindented_y = inspect.cleandoc(y)
+        return self.md.render(unindented_y)
+
     def get_template_context(self):
         return {
             "default_value": self.default_value,
             **Component.get_template_context(self),
         }
+
+
+############################
+# Static Components
+############################
 
 
 class Button(Clickable, Component):
@@ -2943,3 +2946,10 @@ def get_component_instance(comp: str | dict | Component):
         raise ValueError(
             f"Component must provided as a `str` or `dict` or `Component` but is {comp}"
         )
+
+
+DataFrame = Dataframe
+Keyvalues = KeyValues
+Highlightedtext = HighlightedText
+Checkboxgroup = CheckboxGroup
+TimeSeries = Timeseries

@@ -73,8 +73,8 @@ class Block:
         self,
         event_name: str,
         fn: Optional[Callable],
-        inputs: List[Component],
-        outputs: List[Component],
+        inputs: Optional[Component | List[Component]],
+        outputs: Optional[Component | List[Component]],
         preprocess: bool = True,
         postprocess: bool = True,
         js: Optional[str] = False,
@@ -97,6 +97,10 @@ class Block:
         Returns: None
         """
         # Support for singular parameter
+        if inputs is None:
+            inputs = []
+        if outputs is None:
+            outputs = []
         if not isinstance(inputs, list):
             inputs = [inputs]
         if not isinstance(outputs, list):

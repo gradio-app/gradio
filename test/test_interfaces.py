@@ -42,8 +42,8 @@ class TestInterface(unittest.TestCase):
         close_all()
         interface.close.assert_called()
 
-    def test_examples_invalid_input(self):
-        with self.assertRaises(ValueError):
+    def test_no_input_or_output(self):
+        with self.assertRaises(TypeError):
             Interface(lambda x: x, examples=1234)
 
     def test_examples_valid_path(self):
