@@ -1,8 +1,8 @@
 import gradio as gr
 
-test = gr.Blocks()
+demo = gr.Blocks()
 
-with test:
+with demo:
     num = gr.Variable(default_value=0)
     squared = gr.Number(default_value=0)
     btn = gr.Button("Next Square")
@@ -13,4 +13,5 @@ with test:
 
     btn.click(increase, [num], [num, squared])
 
-test.launch()
+if __name__ == "__main__":
+    demo.launch()

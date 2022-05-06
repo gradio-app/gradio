@@ -1,0 +1,58 @@
+{
+  "mode": "blocks",
+  "components": [
+    {
+      "id": 1,
+      "type": "textbox",
+      "props": {
+        "lines": 1,
+        "max_lines": 20,
+        "default_value": "Frank",
+        "label": "Name",
+        "show_label": true,
+        "name": "textbox",
+        "css": {}
+      }
+    },
+    {
+      "id": 2,
+      "type": "textbox",
+      "props": {
+        "lines": 1,
+        "max_lines": 20,
+        "default_value": "",
+        "label": "Output",
+        "show_label": true,
+        "name": "textbox",
+        "css": {}
+      }
+    }
+  ],
+  "theme": "default",
+  "enable_queue": false,
+  "layout": {
+    "id": 0,
+    "children": [
+      {
+        "id": 1
+      },
+      {
+        "id": 2
+      }
+    ]
+  },
+  "dependencies": [
+    {
+      "targets": [],
+      "trigger": "load",
+      "inputs": [
+        1
+      ],
+      "outputs": [
+        2
+      ],
+      "status_tracker": null,
+      "queue": null
+    }
+  ]
+}
