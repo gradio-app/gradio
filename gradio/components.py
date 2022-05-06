@@ -2754,11 +2754,6 @@ class Plot(Changeable, Clearable, IOComponent):
         return {"type": dtype, "plot": out_y}
 
 
-############################
-# Static Components
-############################
-
-
 class Markdown(Component):
     """
     Used for Markdown output. Expects a valid string that is rendered into Markdown.
@@ -2790,6 +2785,11 @@ class Markdown(Component):
             "default_value": self.default_value,
             **Component.get_template_context(self),
         }
+
+
+############################
+# Static Components
+############################
 
 
 class Button(Clickable, Component):
