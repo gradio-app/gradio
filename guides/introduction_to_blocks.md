@@ -68,7 +68,7 @@ We've also created a `Button` component in each tab, and we've assigned a click 
 
 Just as you can control the layout and css, `Blocks` gives you fine-grained control over what events trigger function calls. Each component and many layouts have specific events that they support. 
 
-For example, the 
+For example, the `Textbox` component has 3 events: `click()` (when the textbox is clicked), `change()` (when the value inside of the textbox changes), and `submit()`, when a user presses the enter key while focused on the textbox. More complex components can have more events: for example, the `Audio` component has separate events for when the audio file is played, cleared, paused, etc. See more 
 
 You can create an event trigger by calling the appropriate event on the component instance. The event takes in three parameters, as discussed above: the function `fn` that should be called, the (list) of input component(s)
 
