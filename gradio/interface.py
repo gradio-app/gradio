@@ -111,8 +111,8 @@ class Interface(Blocks):
     def __init__(
         self,
         fn: Callable | List[Callable],
-        inputs: Optional[str | Component | List[str | Component]] = None,
-        outputs: Optional[str | Component | List[str | Component]] = None,
+        inputs: Optional[str | Component | List[str | Component]],
+        outputs: Optional[str | Component | List[str | Component]],
         examples: Optional[List[Any] | List[List[Any]] | str] = None,
         cache_examples: Optional[bool] = None,
         examples_per_page: int = 10,
@@ -143,10 +143,7 @@ class Interface(Blocks):
         outputs (Union[str, OutputComponent, List[Union[str, OutputComponent]]]): a single Gradio output component, or list of Gradio output components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of output components should match the number of values returned by fn.
         examples (Union[List[List[Any]], str]): sample inputs for the function; if provided, appears below the UI components and can be used to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided. If there are multiple input components and a directory is provided, a log.csv file must be present in the directory to link corresponding inputs.
         examples_per_page (int): If examples are provided, how many to display per page.
-        cache_examples(Optional[bool]):
-            If True, caches examples in the server for fast runtime in examples.
-            The default option in HuggingFace Spaces is True.
-            The default option elsewhere is False.
+        cache_examples (Optional[bool]): If True, caches examples in the server for fast runtime in examples. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
         live (bool): whether the interface should automatically reload on change.
         layout (str): Layout of input and output panels. "horizontal" arranges them as two columns of equal height, "unaligned" arranges them as two columns of unequal height, and "vertical" arranges them vertically.
         interpretation (Union[Callable, str]): function that provides interpretation explaining prediction output. Pass "default" to use simple built-in interpreter, "shap" to use a built-in shapley-based interpreter, or your own custom interpretation function.
@@ -166,12 +163,12 @@ class Interface(Blocks):
         )
 
         self.interface_type = self.InterfaceTypes.STANDARD
-        if inputs is None and outputs is None:
+        if (inputs is None or inputs == []) and (outputs is None or outputs == []):
             raise ValueError("Must provide at least one of `inputs` or `outputs`")
-        elif outputs is None:
+        elif outputs is None or outputs == []:
             outputs = []
             self.interface_type = self.InterfaceTypes.INPUT_ONLY
-        elif inputs is None:
+        elif inputs is None or inputs == []:
             inputs = []
             self.interface_type = self.InterfaceTypes.OUTPUT_ONLY
 

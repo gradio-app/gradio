@@ -1,6 +1,7 @@
-<header class="container mx-auto p-4 flex flex-wrap justify-between items-center gap-6 flex-row sm:flex-col lg:flex-row">
+<header class="container mx-auto p-4 flex flex-wrap justify-between items-center gap-6 flex-row sm:flex-col lg:flex-row text-sm"
+    style="padding-left: 200px; padding-right:200px; max-width:100%;">
     <a href="/">
-      <img src="/assets/img/logo.svg" class="h-10">
+      <img src="/assets/img/logo.svg" class="h-8">
     </a>
     <svg class="h-8 w-8 sm:hidden" viewBox="-10 -10 20 20" 
       onclick="document.querySelector('nav').classList.toggle('hidden'); document.querySelector('nav').classList.toggle('flex');">
@@ -8,20 +9,16 @@
       <rect x="-7" y="-1" width="14" height="2" />
       <rect x="-7" y="4" width="14" height="2" />
     </svg>
-    <nav class="sm:flex sm:flex-row sm:w-auto w-full flex-col gap-3 sm:gap-12 hidden">
-      <a class="link flex gap-3 items-center" href="/getting_started">
-        <span>⚡</span> 
-        <span>Getting Started</span>
-      </a>
-      <a class="link flex gap-3 items-center" href="/docs">
+    <nav class="sm:flex sm:flex-row sm:w-auto w-full flex-col gap-3 sm:gap-10 hidden" style="font-family: 'Product Sans'">
+      <a class="link flex gap-2 items-center" href="/docs">
         <span>✍️</span>
         <span>Docs</span>
       </a>
-      <a class="link flex gap-3 items-center" href="/guides">
+      <a class="link flex gap-2 items-center" href="/guides">
         <span>💡</span>
         <span>Guides</span>
       </a>
-      <div class="group relative cursor-pointer font-semibold flex gap-3 items-center" onClick="document.querySelector('.help-menu').classList.toggle('flex'); document.querySelector('.help-menu').classList.toggle('hidden');">
+      <div class="group relative cursor-pointer font-semibold flex gap-2 items-center" onClick="document.querySelector('.help-menu').classList.toggle('flex'); document.querySelector('.help-menu').classList.toggle('hidden');">
         <span>🖐</span>
         <span>Community</span>
         <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
@@ -38,5 +35,10 @@
             href="https://gradio.curated.co/">Newsletter</a>
         </div>
       </div>
+      <a class="link flex gap-1 items-center" href="/getting_started">
+        <img src="/assets/img/thunder.svg" class="h-4">
+        <span
+        style="color: #FF8F27">Get Started</span>
+      </a>
     </nav>
   </header>
