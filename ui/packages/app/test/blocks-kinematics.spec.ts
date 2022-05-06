@@ -6,7 +6,7 @@ function mock_demo(page: Page, demo: string) {
 			headers: {
 				"Access-Control-Allow-Origin": "*"
 			},
-			path: `../../../demo/kitchen_sink/config.json`
+			path: `../../../demo/${demo}/config.json`
 		});
 	});
 }
@@ -25,8 +25,11 @@ function mock_api(page: Page, body: Array<unknown>) {
 	});
 }
 
-test("renders the correct elements", async ({ page }) => {
-	await mock_demo(page, "kitchen_sink");
+test("renders plot", async ({ page }) => {
+	await mock_demo(page, "blocks_kinematics");
+    await mock_api(page, [25, 45]);
 	await page.goto("http://localhost:3000");
-});
 
+	const button = await page.locator("button");
+	await Promise.all([button.click(), page.waitForResponse("**/api/predict/")]);
+});

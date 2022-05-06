@@ -1,0 +1,67 @@
+{
+  "mode": "blocks",
+  "components": [
+    {
+      "id": 1,
+      "type": "variable",
+      "props": {
+        "default_value": 0,
+        "show_label": true,
+        "name": "variable",
+        "css": {}
+      }
+    },
+    {
+      "id": 2,
+      "type": "number",
+      "props": {
+        "default_value": 0.0,
+        "show_label": true,
+        "name": "number",
+        "css": {}
+      }
+    },
+    {
+      "id": 3,
+      "type": "button",
+      "props": {
+        "default_value": "Next Square",
+        "name": "button",
+        "css": {}
+      }
+    }
+  ],
+  "theme": "default",
+  "enable_queue": false,
+  "layout": {
+    "id": 0,
+    "children": [
+      {
+        "id": 1
+      },
+      {
+        "id": 2
+      },
+      {
+        "id": 3
+      }
+    ]
+  },
+  "dependencies": [
+    {
+      "targets": [
+        3
+      ],
+      "trigger": "click",
+      "inputs": [
+        1
+      ],
+      "outputs": [
+        1,
+        2
+      ],
+      "status_tracker": null,
+      "queue": null
+    }
+  ]
+}

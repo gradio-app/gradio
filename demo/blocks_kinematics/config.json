@@ -1,0 +1,116 @@
+{
+  "mode": "blocks",
+  "components": [
+    {
+      "id": 1,
+      "type": "markdown",
+      "props": {
+        "default_value": "<p>Let's do some kinematics! Choose the speed and angle to see the trajectory.</p>\n",
+        "name": "markdown",
+        "css": {}
+      }
+    },
+    {
+      "id": 2,
+      "type": "row",
+      "props": {
+        "type": "row",
+        "css": {},
+        "default_value": true
+      }
+    },
+    {
+      "id": 3,
+      "type": "slider",
+      "props": {
+        "minimum": 0,
+        "maximum": 100,
+        "step": 1,
+        "default_value": 25,
+        "label": "Speed",
+        "show_label": true,
+        "name": "slider",
+        "css": {}
+      }
+    },
+    {
+      "id": 4,
+      "type": "slider",
+      "props": {
+        "minimum": 0,
+        "maximum": 100,
+        "step": 1,
+        "default_value": 45,
+        "label": "Angle",
+        "show_label": true,
+        "name": "slider",
+        "css": {}
+      }
+    },
+    {
+      "id": 5,
+      "type": "image",
+      "props": {
+        "image_mode": "RGB",
+        "source": "upload",
+        "tool": "editor",
+        "show_label": true,
+        "name": "image",
+        "css": {}
+      }
+    },
+    {
+      "id": 6,
+      "type": "button",
+      "props": {
+        "default_value": "Run",
+        "name": "button",
+        "css": {}
+      }
+    }
+  ],
+  "theme": "default",
+  "enable_queue": false,
+  "layout": {
+    "id": 0,
+    "children": [
+      {
+        "id": 1
+      },
+      {
+        "id": 2,
+        "children": [
+          {
+            "id": 3
+          },
+          {
+            "id": 4
+          }
+        ]
+      },
+      {
+        "id": 5
+      },
+      {
+        "id": 6
+      }
+    ]
+  },
+  "dependencies": [
+    {
+      "targets": [
+        6
+      ],
+      "trigger": "click",
+      "inputs": [
+        3,
+        4
+      ],
+      "outputs": [
+        5
+      ],
+      "status_tracker": null,
+      "queue": null
+    }
+  ]
+}
