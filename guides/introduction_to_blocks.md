@@ -54,6 +54,12 @@ This simple example introduces a few concepts about Blocks:
 
 5. You can write and `launch()` your Blocks anywhere: jupyter notebooks, colab notebooks, or regular Python IDEs since Gradio uses the standard Python interpreter. You can also share Blocks with other people by a single parameter: `launch(share=True)`, which we will discuss at the end of this guide.
 
+### More on Layouts
+
+You might want to change the default layout. For example, you might want to 
+
+### More on Layouts
+
 ### Sharing Interfaces Publicly
 
 Interfaces can be easily shared publicly by setting `share=True` in the `launch()` method. Like this:
