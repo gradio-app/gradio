@@ -165,12 +165,12 @@ class Interface(Blocks):
         )
 
         self.interface_type = self.InterfaceTypes.STANDARD
-        if (inputs is None or inputs == []) and (outputs is None or outputs == []):
+        if (inputs is None or inputs==[]) and (outputs is None or outputs==[]):
             raise ValueError("Must provide at least one of `inputs` or `outputs`")
-        elif outputs is None or outputs == []:
+        elif (outputs is None or outputs==[]):
             outputs = []
             self.interface_type = self.InterfaceTypes.INPUT_ONLY
-        elif inputs is None or inputs == []:
+        elif (inputs is None or inputs==[]):
             inputs = []
             self.interface_type = self.InterfaceTypes.OUTPUT_ONLY
 
