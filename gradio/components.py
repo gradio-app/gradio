@@ -1107,8 +1107,7 @@ class Dropdown(Radio):
         label (str): component name in interface.
         """
         # Everything is same with Dropdown and Radio, so let's make use of it :)
-        IOComponent.__init__(
-            self,
+        super().__init__(
             default_selected=default_selected,
             choices=choices,
             type=type,
