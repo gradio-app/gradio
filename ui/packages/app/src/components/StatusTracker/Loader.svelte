@@ -23,21 +23,22 @@
 
 	async function run() {
 		await animate();
-		console.log(dismounted);
 		if (!dismounted) run();
 	}
 
-	async function loading() {}
-
-	onMount(async () => {
+	async function loading() {
 		await Promise.all([top.set([125, 0]), bottom.set([-125, 0])]);
 
 		run();
+	}
+
+	onMount(() => {
+		loading();
 		return () => (dismounted = true);
 	});
 </script>
 
-<div class="m-12" style="transform: translateY(3rem)">
+<div class="m-12 z-20">
 	<svg
 		class="text-xl"
 		width="7em"

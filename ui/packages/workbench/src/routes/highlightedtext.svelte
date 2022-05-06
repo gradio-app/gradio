@@ -35,7 +35,7 @@
 		["two", "+"],
 		["three", "-"]
 	]}
-	color_map={{ "+": "limegreen", "-": "crimson" }}
+	color_map={{ "+": "green", "-": "red" }}
 />
 
 <h2 class="my-2">Custom color_map without legend</h2>
@@ -47,5 +47,5 @@
 		["two", "+"],
 		["three", "-"]
 	]}
-	color_map={{ "+": "limegreen", "-": "crimson" }}
+	color_map={{ "+": "orange", "-": "purple" }}
 />

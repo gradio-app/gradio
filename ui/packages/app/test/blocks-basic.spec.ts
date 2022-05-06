@@ -68,6 +68,6 @@ test("can run an api request and display the data", async ({ page }) => {
 		page.waitForResponse("**/api/predict/")
 	]);
 
-	const json = await page.locator(".output-json");
+	const json = await page.locator("data-testid=json");
 	await expect(json).toContainText(`Covid: 0.75, Lung Cancer: 0.25`);
 });

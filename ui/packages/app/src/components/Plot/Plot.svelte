@@ -5,6 +5,8 @@
 	export let default_value: null | string = null;
 	export let style: string = "";
 
+	export let loading_status: LoadingStatus;
+
 	if (default_value) value = default_value;
 </script>
 

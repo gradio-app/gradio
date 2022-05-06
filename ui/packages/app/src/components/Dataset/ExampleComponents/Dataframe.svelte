@@ -2,7 +2,7 @@
 	export let value: Array<Array<string | number>>;
 </script>
 
-<table class="input-dataframe-example">
+<table class="gr-sample-dataframe">
 	{#each value.slice(0, 3) as row}
 		<tr>
 			{#each row.slice(0, 3) as cell}

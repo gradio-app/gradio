@@ -4,3 +4,6 @@ https://graphics.stanford.edu/~mdfisher/Data/Meshes/bunny.obj
 
 Duck & Fox:
 https://github.com/KhronosGroup/glTF-Sample-Models
+
+Face:
+https://github.com/mikedh/trimesh/tree/main/models

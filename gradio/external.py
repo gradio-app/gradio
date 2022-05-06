@@ -129,7 +129,7 @@ def get_huggingface_interface(model_name, api_key, alias):
         },
         "text-classification": {
             "inputs": components.Textbox(label="Input"),
-            "outputs": components.Label(type="confidences", label="Classification"),
+            "outputs": components.Label(label="Classification"),
             "preprocess": lambda x: {"inputs": x},
             "postprocess": lambda r: {
                 i["label"].split(", ")[0]: i["score"] for i in r.json()[0]
@@ -159,7 +159,7 @@ def get_huggingface_interface(model_name, api_key, alias):
                 components.Textbox(label="Possible class names (" "comma-separated)"),
                 components.Checkbox(label="Allow multiple true classes"),
             ],
-            "outputs": components.Label(type="confidences", label="Classification"),
+            "outputs": components.Label(label="Classification"),
             "preprocess": lambda i, c, m: {
                 "inputs": i,
                 "parameters": {"candidate_labels": c, "multi_class": m},
