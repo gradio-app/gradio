@@ -2946,3 +2946,10 @@ def get_component_instance(comp: str | dict | Component):
         raise ValueError(
             f"Component must provided as a `str` or `dict` or `Component` but is {comp}"
         )
+
+
+DataFrame = Dataframe
+Keyvalues = KeyValues
+Highlightedtext = HighlightedText
+Checkboxgroup = CheckboxGroup
+TimeSeries = Timeseries
