@@ -1106,8 +1106,9 @@ class Dropdown(Radio):
         type (str): Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
         label (str): component name in interface.
         """
+
         # Everything is same with Dropdown and Radio, so let's make use of it :)
-        IOComponent.__init__(
+        super().__init__(
             self,
             default_selected=default_selected,
             choices=choices,
