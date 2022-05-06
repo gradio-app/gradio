@@ -17,7 +17,7 @@
 
 <BlockTitle {show_label}>{label}</BlockTitle>
 
-<div class="flex flex-wrap gap-2">
+<div class="flex flex-wrap gap-2" {style}>
 	{#each choices as choice, i}
 		<label
 			class:!cursor-not-allowed={disabled}

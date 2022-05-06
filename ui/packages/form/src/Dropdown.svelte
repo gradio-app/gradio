@@ -20,6 +20,7 @@
 		class="gr-box gr-input w-full disabled:cursor-not-allowed"
 		bind:value
 		{disabled}
+		{style}
 	>
 		{#each choices as choice, i}
 			<option>{choice}</option>

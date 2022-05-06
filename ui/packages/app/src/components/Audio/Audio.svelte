@@ -60,6 +60,7 @@
 		/>
 	{:else}
 		<StaticAudio
+			{style}
 			{show_label}
 			value={_value}
 			name={_value?.name || "audio_file"}

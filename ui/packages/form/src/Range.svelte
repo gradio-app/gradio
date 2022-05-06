@@ -22,7 +22,7 @@
 	$: dispatch("change", value);
 </script>
 
-<div class="w-full flex flex-col">
+<div class="w-full flex flex-col" {style}>
 	<div class="flex justify-between">
 		<label for={id}>
 			<BlockTitle {show_label}>{label}</BlockTitle>

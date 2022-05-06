@@ -78,6 +78,7 @@
 			<div
 				on:keydown={on_keydown}
 				class="absolute inset-0 z-10 flex flex-col bg-white/90 backdrop-blur min-h-[350px] xl:min-h-[450px] max-h-[55vh]"
+				{style}
 			>
 				<ModifyUpload on:clear={() => (selected_image = null)} />
 

@@ -50,7 +50,7 @@
 	}
 </script>
 
-<div class="mt-4 inline-block max-w-full text-gray-700 w-full">
+<div class="mt-4 inline-block max-w-full text-gray-700 w-full" {style}>
 	<div class="text-xs mb-2 flex items-center text-gray-500">
 		<svg
 			xmlns="http://www.w3.org/2000/svg"

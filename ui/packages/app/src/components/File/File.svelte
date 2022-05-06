@@ -40,7 +40,6 @@
 			value={_value}
 			on:change={({ detail }) => (value = detail)}
 			on:drag={({ detail }) => (dragging = detail)}
-			{style}
 			on:change
 			on:clear
 			drop_text={$_("interface.drop_file")}

@@ -334,7 +334,7 @@
 	};
 </script>
 
-<div class="overflow-hidden rounded-lg relative border">
+<div class="overflow-hidden rounded-lg relative border" {style}>
 	<table class="table-auto font-mono w-full text-gray-900 text-sm">
 		<thead class="sticky top-0 left-0 right-0 bg-white shadow-sm z-10">
 			<tr class="border-b divide-x dark:divide-gray-800 text-left">

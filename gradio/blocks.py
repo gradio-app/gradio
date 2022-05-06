@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 from gradio import encryptor, networking, queueing, strings, utils
 from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
+from gradio.css import CSS
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from fastapi.applications import FastAPI
@@ -20,10 +21,10 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 
 class Block:
-    def __init__(self, css=None, render=True, **kwargs):
+    def __init__(self, css: Optional[CSS] = None, render: bool = True, **kwargs):
         self._id = Context.id
         Context.id += 1
-        self.css = css if css is not None else {}
+        self.css = css
         if render:
             self.render()
         check_deprecated_parameters(self.__class__.__name__, **kwargs)
@@ -118,12 +119,18 @@ class Block:
             }
         )
 
+    def get_template_context(self):
+        return {
+            "css": self.css.render() if self.css is not None else None,
+        }
+
+
 
 class BlockContext(Block):
     def __init__(
         self,
         visible: bool = True,
-        css: Optional[Dict[str, str]] = None,
+        css: Optional[CSS] = None,
         render: bool = True,
         **kwargs,
     ):
@@ -144,8 +151,8 @@ class BlockContext(Block):
 
     def get_template_context(self):
         return {
-            "css": self.css,
             "default_value": self.visible,
+            **super().get_template_context()
         }
 
     def postprocess(self, y):
@@ -153,7 +160,7 @@ class BlockContext(Block):
 
 
 class Row(BlockContext):
-    def __init__(self, visible: bool = True, css: Optional[Dict[str, str]] = None):
+    def __init__(self, visible: bool = True, css: Optional[CSS] = None):
         """
         css: Css rules to apply to block.
         """
@@ -167,7 +174,7 @@ class Column(BlockContext):
     def __init__(
         self,
         visible: bool = True,
-        css: Optional[Dict[str, str]] = None,
+        css: Optional[CSS] = None,
         variant: str = "default",
     ):
         """
@@ -186,7 +193,7 @@ class Column(BlockContext):
 
 
 class Tabs(BlockContext):
-    def __init__(self, visible: bool = True, css: Optional[Dict[str, str]] = None):
+    def __init__(self, visible: bool = True, css: Optional[CSS] = None):
         """
         css: css rules to apply to block.
         """
@@ -204,9 +211,7 @@ class Tabs(BlockContext):
 
 
 class TabItem(BlockContext):
-    def __init__(
-        self, label, visible: bool = True, css: Optional[Dict[str, str]] = None
-    ):
+    def __init__(self, label, visible: bool = True, css: Optional[CSS] = None):
         """
         css: Css rules to apply to block.
         """
@@ -347,6 +352,7 @@ class Blocks(BlockContext):
             "mode": "blocks",
             "components": [],
             "theme": self.theme,
+            "css": self.css,
             "enable_queue": getattr(
                 self, "enable_queue", False
             ),  # attribute set at launch

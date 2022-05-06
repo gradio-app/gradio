@@ -24,7 +24,7 @@
 
 <BlockTitle {show_label}>{label}</BlockTitle>
 
-<div class="flex flex-wrap gap-2" data-testid="checkbox-group">
+<div class="flex flex-wrap gap-2" data-testid="checkbox-group" {style}>
 	{#each choices as choice, i}
 		<label
 			class:!cursor-not-allowed={disabled}

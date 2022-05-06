@@ -2,8 +2,9 @@
 	import { TabItem } from "@gradio/tabs";
 
 	export let label: string;
+	export let style: string = "";
 </script>
 
-<TabItem name={label} on:select>
+<TabItem {style} name={label} on:select>
 	<slot />
 </TabItem>

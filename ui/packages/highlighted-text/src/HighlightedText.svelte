@@ -105,6 +105,7 @@
 	{/if}
 	<div
 		class="textfield bg-white dark:bg-gray-800 rounded-sm box-border max-w-full break-word inline-flex flex-wrap gap-1"
+		{style}
 	>
 		{#each value as [text, category]}
 			<span

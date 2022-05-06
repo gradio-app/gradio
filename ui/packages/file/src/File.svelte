@@ -17,6 +17,7 @@
 		class="output-file w-full h-full flex flex-row flex-wrap justify-center items-center relative"
 		href={value.data}
 		download={value.name}
+		{style}
 	>
 		<svg
 			xmlns="http://www.w3.org/2000/svg"

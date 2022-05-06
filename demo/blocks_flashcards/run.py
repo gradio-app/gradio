@@ -26,10 +26,10 @@ with demo:
                 with feedback_row:
                     correct_btn = gr.Button(
                         "Correct",
-                        css={"background-color": "lightgreen", "color": "green"},
+                        css=gr.CSS(backgroundColor="lightgreen", color="green"),
                     )
                     incorrect_btn = gr.Button(
-                        "Incorrect", css={"background-color": "pink", "color": "red"}
+                        "Incorrect", css=gr.CSS(backgroundColor="pink", color="red")
                     )
         with gr.TabItem("Results"):
             results = gr.Variable(default_value={})
