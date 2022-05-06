@@ -110,7 +110,7 @@ class TestUtils(unittest.TestCase):
 
 
 class TestIPAddress(unittest.TestCase):
-    ## Removing this test because it is flaky on circleci
+    ## Removing this test because internet connection is flaky on circleci
     # def test_get_ip(self):
     #     ip = get_local_ip_address()
     #     try:  # check whether ip is valid
