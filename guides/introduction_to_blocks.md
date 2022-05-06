@@ -32,6 +32,7 @@ The interface below will appear automatically within the Python notebook, or pop
 
 {{ demos["blocks_hello"] }}
 
+
 ### Understanding this Example
 
 This simple example introduces 5 concepts that underlie Blocks:
