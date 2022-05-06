@@ -28,7 +28,6 @@ from gradio.components import (
     Dataset,
     Interpretation,
     Markdown,
-    StatusTracker,
     Variable,
     get_component_instance,
 )
@@ -471,11 +470,6 @@ class Interface(Blocks):
                 ]:
                     with Column(variant="panel"):
                         input_component_column = Column()
-                        if self.interface_type in [
-                            self.InterfaceTypes.INPUT_ONLY,
-                            self.InterfaceTypes.UNIFIED,
-                        ]:
-                            status_tracker = StatusTracker(cover_container=True)
                         with input_component_column:
                             for component in self.input_components:
                                 component.render()
@@ -514,7 +508,6 @@ class Interface(Blocks):
                 ]:
 
                     with Column(variant="panel"):
-                        status_tracker = StatusTracker(cover_container=True)
                         for component in self.output_components:
                             component.render()
                         with Row():

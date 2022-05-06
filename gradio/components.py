@@ -241,7 +241,6 @@ class Changeable(Component):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
         _js: Optional[str] = None,
     ):
         """
@@ -254,7 +253,7 @@ class Changeable(Component):
         Returns: None
         """
         self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
+            "change", fn, inputs, outputs, js=_js
         )
 
 
@@ -264,7 +263,6 @@ class Clickable(Component):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
         queue=None,
         _js: Optional[str] = None,
         _preprocess: bool = True,
@@ -286,7 +284,6 @@ class Clickable(Component):
             fn,
             inputs,
             outputs,
-            status_tracker=status_tracker,
             queue=queue,
             js=_js,
             preprocess=_preprocess,
@@ -300,7 +297,6 @@ class Submittable(Component):
         fn: Callable,
         inputs: List[Component],
         outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
         _js: Optional[str] = None,
     ):
         """
@@ -313,7 +309,7 @@ class Submittable(Component):
         Returns: None
         """
         self.set_event_trigger(
-            "submit", fn, inputs, outputs, status_tracker=status_tracker, js=_js
+            "submit", fn, inputs, outputs, js=_js
         )
 
 
@@ -981,6 +977,8 @@ class CheckboxGroup(Changeable, IOComponent):
         """
         return x
 
+
+Checkboxgroup = CheckboxGroup
 
 class Radio(Changeable, IOComponent):
     """
@@ -2046,6 +2044,8 @@ class Dataframe(Changeable, IOComponent):
             )
 
 
+DataFrame = Dataframe
+
 class Timeseries(Changeable, IOComponent):
     """
     Component accepts pandas.DataFrame uploaded as a timeseries csv file or renders a dataframe consisting of a time series as output.
@@ -2137,6 +2137,8 @@ class Timeseries(Changeable, IOComponent):
         """
         return {"headers": y.columns.values.tolist(), "data": y.values.tolist()}
 
+
+TimeSeries = Timeseries
 
 class Variable(IOComponent):
     """
@@ -2300,6 +2302,8 @@ class KeyValues(IOComponent):
         )
 
 
+Keyvalues = KeyValues
+
 class HighlightedText(Changeable, IOComponent):
     """
     Component creates text that contains spans that are highlighted by category or numerical value.
@@ -2354,6 +2358,8 @@ class HighlightedText(Changeable, IOComponent):
     def restore_flagged(self, dir, data, encryption_key):
         return json.loads(data)
 
+
+Highlightedtext = HighlightedText
 
 class JSON(Changeable, IOComponent):
     """
@@ -2874,33 +2880,6 @@ class Interpretation(Component):
         return {
             "component": self.component.get_block_name(),
             "component_props": self.component.get_template_context(),
-        }
-
-
-class StatusTracker(Component):
-    """
-    Used to indicate status of a function call. Event listeners can bind to a StatusTracker with 'status=' keyword argument.
-    """
-
-    def __init__(
-        self,
-        *,
-        cover_container: bool = False,
-        css: Optional[Dict] = None,
-        **kwargs,
-    ):
-        """
-        Parameters:
-        cover_container (bool): If True, will expand to cover parent container while function pending.
-        css (dict): optional css parameters for the component
-        """
-        Component.__init__(self, css=css, **kwargs)
-        self.cover_container = cover_container
-
-    def get_template_context(self):
-        return {
-            "cover_container": self.cover_container,
-            **Component.get_template_context(self),
         }
 
 

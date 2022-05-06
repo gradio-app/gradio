@@ -15,7 +15,7 @@ from gradio.deprecation import check_deprecated_parameters
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from fastapi.applications import FastAPI
 
-    from gradio.components import Component, StatusTracker
+    from gradio.components import Component
     from gradio.routes import PredictBody
 
 
@@ -79,7 +79,6 @@ class Block:
         postprocess: bool = True,
         js: Optional[str] = False,
         no_target: bool = False,
-        status_tracker: Optional[StatusTracker] = None,
         queue: Optional[bool] = None,
     ) -> None:
         """
