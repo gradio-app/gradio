@@ -210,22 +210,17 @@
 </head>
 
 <body>
+<!--NAVBAR-->
   {{navbar_html|safe}}
-  <section
-    class="header-section flex flex-col gap-8 items-center justify-center p-4 bg-opacity-20 bg-cover bg-center">
-    <div class="header-text max-w-3xl mx-auto p-2 text-center text-4xl leading-snug md:text-6xl md:leading-snug font-semibold">
-      Build &amp; Share Delightful Machine Learning Apps
-    </div>
-    <p class="subheader-text font-semibold text-center text-2xl leading-relaxed max-w-3xl text-gray-500">Gradio is the fastest way to demo your machine learning model with a friendly web interface so that anyone can use it, anywhere! </p>
 
-
-    <div class="justify-center flex">
-      <a class="gs-button font-semibold" href="/getting_started">Get Started</a>
-      <div class="arrow-left"></div>
-      <a class="border shadow bg-gradient-to-b from-gray-50 to-gray-100 hover:to-gray-200 transition rounded inline-flex gap-2 items-center justify-center px-2 py-1"
-        href="https://github.com/gradio-app/gradio-UI" target="_blank"
-        aria-label="Star gradio-app/gradio-UI on GitHub"
-        style="height: 28px;">
+<!--HEADER-->
+  <div class="">
+  <div class="mx-auto max-w-xl px-4 py-20 text-center xl:max-w-2xl xl:py-36">
+    <div class="mb-10 text-4xl font-bold capitalize text-gray-900 md:text-5xl xl:text-6xl">Build & share delightful machine learning apps</div>
+    <p class="mx-auto mb-12 max-w-xl text-xl text-gray-600">Gradio is the fastest way to demo your machine learning model with a friendly web interface so that anyone can use it, anywhere!</p>
+    <div class="flex items-center justify-center">
+      <a class="rounded-full bg-gradient-to-br from-orange-500 via-orange-500 to-yellow-500 px-5 py-2 text-lg font-semibold text-white ring-orange-300 ring-offset-2 hover:to-yellow-400 hover:ring hover:drop-shadow-md" href="/getting_started">Get Started</a>
+      <a class="mx-2 flex items-center rounded-lg border bg-white px-2 text-lg font-semibold" href="https://github.com/gradio-app/gradio-UI" target="_blank">
         <svg version="1.1" viewBox="0 0 14 16" class="inline" aria-hidden="true"
         style="height: 1.25rem;">
           <path fill-rule="evenodd"
@@ -235,7 +230,9 @@
         style="font-size: 15px;">{{ star_count }}</span>
       </a>
     </div>
-  </section>
+  </div>
+  </div>
+
   <div class="big-padding container mx-auto p-4">
     <div class="left-nav">
       <div class="title-nav">Demos</div>
