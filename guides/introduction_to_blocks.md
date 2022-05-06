@@ -34,18 +34,14 @@ The interface below will appear automatically within the Python notebook, or pop
 
 ### Understanding this Example
 
-This simple example introduces a few concepts about Blocks:
+This simple example introduces 5 concepts that underlie Blocks:
 
 1. Blocks allow you to build web applications that combine markdown, HTML, buttons, and interactive **components** simply by instantiating objects in Python inside of a "`with gradio.Blocks`" context. The *order* in which you instantiate components <u>matters</u> as each element gets rendered into the web app in the order it was created. (More complex layouts are discussed below)
 
 2. You can define **regular Python functions** anywhere inside your code and use them to run arbitrary Python code on user input. In our example, we have a simple function that adds a welcome message before a user's name, but you can write *any* Python function, from a simple calculation to running inference from a large machine learning model.
 
-3. You can assign **events** to any component to run a function when the component is clicked/changed/etc. When you assign an event, you must pass in three parameters:
-* `fn`: the function to run
-* `inputs`: a (list of) component(s) whose values should supplied as the input parameters to the function
-* `outputs`: a (list of) component(s) whose values should be updated based on the values returned by the function<br /><br /> 
-In this example, we run the `update()` function when the value in the `Textbox` named `inp` changes. The function reads the value in `inp`, passes it as the `name` parameter to `update()`, which then supplies value to our second `Textbox` named `out`. 
-<br /><br /> To see a list of events that each component supports, see the docs.
+3. You can assign **events** to any component to run a function when the component is clicked/changed/etc. When you assign an event, you pass in three parameters: `fn`: the function  that should be called, `inputs`: the (list) of input component(s), and `outputs`: the (list) of output components that should be called.<p /> 
+In this example, we run the `update()` function when the value in the `Textbox` named `inp` changes. The function reads the value in `inp`, passes it as the `name` parameter to `update()`, which then supplies value to our second `Textbox` named `out`. <p /> To see a list of events that each component supports, see [the documentation](https://www.gradio.app/docs).
 
 
 4. Blocks automatically figures out whether a component should be **interactive** (accept user input) or not, based on the event triggers you define. In our example, the first textbox is interactive, since its value is used by the `update()` function. The second textbox is not interactive, since its value is never used as an input. In some cases, you might want to override this, which you can do by passing the appropriate boolean to `interactive`, a  parameter that every component accepts.
@@ -68,9 +64,13 @@ We've also created a `Button` component in each tab, and we've assigned a click 
 
 Just as you can control the layout and css, `Blocks` gives you fine-grained control over what events trigger function calls. Each component and many layouts have specific events that they support. 
 
-For example, the `Textbox` component has 3 events: `click()` (when the textbox is clicked), `change()` (when the value inside of the textbox changes), and `submit()`, when a user presses the enter key while focused on the textbox. More complex components can have more events: for example, the `Audio` component has separate events for when the audio file is played, cleared, paused, etc. See more 
+For example, the `Textbox` component has 3 events: `click()` (when the textbox is clicked), `change()` (when the value inside of the textbox changes), and `submit()`, when a user presses the enter key while focused on the textbox. You can attach events to none, one, or more of these events. More complex components can have even more events: for example, the `Audio` component also has separate events for when the audio file is played, cleared, paused, etc. See [the documentation](https://www.gradio.app/docs) for the events each component supports. 
 
-You can create an event trigger by calling the appropriate event on the component instance. The event takes in three parameters, as discussed above: the function `fn` that should be called, the (list) of input component(s)
+see [the documentation](https://www.gradio.app/docs).You can create an event trigger by calling the appropriate event on the component instance. The event takes in three parameters, as discussed above:
+
+* `fn`: the function to run
+* `inputs`: a (list of) component(s) whose values should supplied as the input parameters to the function. Each component's value gets mapped to the corresponding function parameter, in order. This parameter can be `None` if the function does not take any parameters.
+* `outputs`: a (list of) component(s) whose values should be updated based on the values returned by the function. Each return value gets sets the corresponding component's value, in order. This parameter can be `None` if the function does not return anything.
 
 ### Multistep Demos
 
