@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher, tick } from "svelte";
+	import EditableCell from "./EditableCell.svelte";
 
 	export let headers: Array<string> = [];
 	export let values: Array<Array<string | number>> = [[]];
@@ -118,21 +119,38 @@
 		}
 	}
 
-	async function start_edit(id: string) {
+	function get_current_indices(id: string) {
+		return data.reduce(
+			(acc, arr, i) => {
+				const j = arr.reduce((acc, data, j) => (id === data.id ? j : acc), -1);
+
+				return j === -1 ? acc : [i, j];
+			},
+			[-1, -1]
+		);
+	}
+
+	async function start_edit(id: string, clear?: boolean) {
 		if (!editable) return;
+		if (clear) {
+			const [i, j] = get_current_indices(id);
+
+			data[i][j].value = "";
+		}
 		editing = id;
 		await tick();
 		const { input } = els[id];
 		input?.focus();
 	}
 
-	function handle_keydown(
+	async function handle_keydown(
 		event: KeyboardEvent,
 		i: number,
 		j: number,
 		id: string
 	) {
 		let is_data;
+
 		switch (event.key) {
 			case "ArrowRight":
 				if (editing) break;
@@ -161,16 +179,26 @@
 			case "Escape":
 				if (!editable) break;
 				event.preventDefault();
+				selected = editing;
 				editing = false;
 				break;
 			case "Enter":
 				if (!editable) break;
 				event.preventDefault();
-				if (editing === id) {
-					editing = false;
+
+				if (event.shiftKey) {
+					add_row(i);
+					await tick();
+					const [pos] = get_current_indices(id);
+					selected = data[pos + 1][j].id;
 				} else {
-					editing = id;
+					if (editing === id) {
+						editing = false;
+					} else {
+						start_edit(id);
+					}
 				}
+
 				break;
 			case "Backspace":
 				if (!editable) break;
@@ -186,7 +214,27 @@
 					data[i][j].value = "";
 				}
 				break;
+			case "Tab":
+				let direction = event.shiftKey ? -1 : 1;
+
+				let is_data_x = data[i][j + direction];
+				let is_data_y =
+					data?.[i + direction]?.[direction > 0 ? 0 : _headers.length - 1];
+				let _selected = is_data_x || is_data_y;
+				if (_selected) {
+					event.preventDefault();
+					selected = _selected ? _selected.id : selected;
+				}
+
+				break;
 			default:
+				if (
+					(!editing || (editing && editing !== id)) &&
+					event.key.length === 1
+				) {
+					start_edit(id, true);
+				}
+
 				break;
 		}
 	}
@@ -199,7 +247,7 @@
 	}
 
 	async function set_focus(id: string | boolean, type: "edit" | "select") {
-		if (type === "edit" && typeof id == "number") {
+		if (type === "edit" && typeof id == "string") {
 			await tick();
 			els[id].input?.focus();
 		}
@@ -207,18 +255,18 @@
 		if (
 			type === "edit" &&
 			typeof id == "boolean" &&
-			typeof selected === "number"
+			typeof selected === "string"
 		) {
 			let cell = els[selected]?.cell;
 			await tick();
 			cell?.focus();
 		}
 
-		if (type === "select" && typeof id == "number") {
+		if (type === "select" && typeof id == "string") {
 			const { cell } = els[id];
 			cell?.setAttribute("tabindex", "0");
 			await tick();
-			els[id].cell?.focus();
+			cell?.focus();
 		}
 	}
 
@@ -269,17 +317,22 @@
 		switch (event.key) {
 			case "Escape":
 				event.preventDefault();
+				selected = header_edit;
 				header_edit = false;
+
 				break;
 			case "Enter":
 				event.preventDefault();
+				selected = header_edit;
 				header_edit = false;
 		}
 	}
 
-	function add_row() {
-		data.push(
-			headers.map((_, i) => {
+	function add_row(index?: number) {
+		data.splice(
+			index ? index + 1 : data.length,
+			0,
+			_headers.map((_, i) => {
 				const _id = `${data.length}-${i}`;
 				els[_id] = { cell: null, input: null };
 				return { id: _id, value: "" };
@@ -332,29 +385,56 @@
 			destroy: () => node.removeEventListener("click", handler)
 		};
 	};
+
+	function handle_click_outside(event: Event) {
+		if (typeof editing === "string" && els[editing]) {
+			if (
+				els[editing].cell !== event.target &&
+				!els[editing].cell?.contains(event?.target as Node | null)
+			) {
+				header_edit = false;
+			}
+		}
+
+		if (typeof header_edit === "string" && els[header_edit]) {
+			if (
+				els[header_edit].cell !== event.target &&
+				!els[header_edit].cell?.contains(event.target as Node | null)
+			) {
+				header_edit = false;
+			}
+		}
+	}
 </script>
+
+<svelte:window on:click={handle_click_outside} />
 
 <div class="overflow-hidden rounded-lg relative border">
 	<table class="table-auto font-mono w-full text-gray-900 text-sm">
 		<thead class="sticky top-0 left-0 right-0 bg-white shadow-sm z-10">
 			<tr class="border-b divide-x dark:divide-gray-800 text-left">
 				{#each _headers as { value, id }, i (id)}
-					<th class="p-0 relative">
-						<div
-							class="flex outline-none focus-within:ring-1 ring-orange-500 focus-within:bg-orange-50 ring-inset {i ===
-							0
-								? 'rounded-tl-lg'
-								: i === _headers.length - 1
-								? 'rounded-tr-lg'
-								: ''}"
-						>
-							<div
-								class="py-2 pl-2 flex-1 outline-none"
-								contenteditable={editable}
-								on:input={(e) => (value = e.target.innerText)}
-							>
+					<th
+						bind:this={els[id].cell}
+						class="p-0 relative focus-within:ring-1 ring-orange-500 ring-inset outline-none "
+						class:bg-orange-50={header_edit === id}
+						class:rounded-tl-lg={i === 0}
+						class:rounded-tr-lg={i === _headers.length - 1}
+						aria-sort={get_sort_status(value, sort_by, sort_direction)}
+						use:double_click={{
+							click: () => {},
+							dblclick: () => edit_header(id)
+						}}
+					>
+						<div class="flex outline-none justify-between">
+							<EditableCell
 								{value}
-							</div>
+								bind:el={els[id].input}
+								edit={header_edit === id}
+								on:keydown={end_header_edit}
+								header
+							/>
+
 							<div
 								class="flex items-center justify-center p-2 cursor-pointer !visible leading-snug transform transition-all {sort_by !==
 								i
@@ -390,18 +470,23 @@
 				>
 					{#each row as { value, id }, j (id)}
 						<td
-							class="p-2 outline-none focus-within:ring-1 ring-orange-500 ring-inset focus-within:bg-orange-50 group-last:first:rounded-bl-lg group-last:last:rounded-br-lg"
-							contenteditable={editable}
-							on:input={(e) => (value = e.target.innerText)}
+							bind:this={els[id].cell}
+							on:click={() => handle_cell_click(id)}
+							on:dblclick={() => start_edit(id)}
+							on:keydown={(e) => handle_keydown(e, i, j, id)}
+							class=" outline-none focus-within:ring-1 ring-orange-500 ring-inset focus-within:bg-orange-50 group-last:first:rounded-bl-lg group-last:last:rounded-br-lg relative"
 						>
 							<div
 								class:border-transparent={selected !== id}
-								class="min-h-[3.3rem] px-5 py-3  border-[0.125rem] {selected ===
-								id
-									? 'border-gray-600 dark:border-gray-200'
-									: ''}"
+								class="min-h-[2.3rem] h-full  outline-none items-center flex "
 							>
-								{#if editing === id}
+								<EditableCell
+									bind:value
+									bind:el={els[id].input}
+									edit={editing === id}
+								/>
+
+								<!-- {#if editing === id}
 									<input
 										class="outline-none absolute p-0 w-3/4"
 										tabindex="-1"
@@ -418,7 +503,7 @@
 									role="button"
 								>
 									{value ?? ""}
-								</span>
+								</span> -->
 							</div>
 						</td>
 					{/each}
@@ -429,7 +514,7 @@
 </div>
 {#if editable}
 	<div class="flex justify-end space-x-1 pt-2 text-gray-800">
-		<button class="!flex-none gr-button group" on:click={add_row}
+		<button class="!flex-none gr-button group" on:click={() => add_row()}
 			><svg
 				xmlns="http://www.w3.org/2000/svg"
 				xmlns:xlink="http://www.w3.org/1999/xlink"
