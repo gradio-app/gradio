@@ -49,7 +49,6 @@
 					.map((n, j) => {
 						const id = `${i}-${j}`;
 						els[id] = { input: null, cell: null };
-						console.log(_values?.[i]?.[j] || "");
 						return { value: _values?.[i]?.[j] || "", id };
 					})
 			);
@@ -237,7 +236,7 @@
 				break;
 		}
 	}
-	$: console.log(data);
+
 	async function handle_cell_click(id: string) {
 		if (editing === id) return;
 		if (selected === id) return;
@@ -337,7 +336,6 @@
 				.map((_, i) => {
 					const _id = `${data.length}-${i}`;
 					els[_id] = { cell: null, input: null };
-					console.log({ id: _id, value: "" });
 					return { id: _id, value: "" };
 				})
 		);

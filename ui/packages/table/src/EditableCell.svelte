@@ -1,12 +1,8 @@
 <script lang="ts">
-	// import { createEventDispatcher } from "svelte";
 	export let edit: boolean;
 	export let value: string | number = "";
 	export let el: HTMLInputElement | null;
 	export let header: boolean = false;
-
-	// const dispatch = createEventDispatcher<{ keydown:  KeyboardEvent }>();
-	$: console.log(value);
 </script>
 
 {#if edit}
