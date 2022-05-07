@@ -2048,7 +2048,7 @@ class Dataframe(Changeable, IOComponent):
 
     @staticmethod
     def __process_counts(count, default=3):
-        if count == None:
+        if count is None:
             return (default, "dynamic")
         if type(count) == int or type(count) == float:
             return (int(count), "dynamic")
@@ -2057,7 +2057,7 @@ class Dataframe(Changeable, IOComponent):
 
     @staticmethod
     def __validate_headers(headers: List[str] | None, col_count: int):
-        if headers != None and len(headers) != col_count:
+        if headers is not None and len(headers) != col_count:
             raise ValueError(
                 "The length of the headers list must be equal to the col_count int.\nThe column count is set to {cols} but `headers` has {headers} items. Check the values passed to `col_count` and `headers`.".format(
                     cols=col_count, headers=len(headers)
