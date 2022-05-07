@@ -1888,10 +1888,6 @@ class File(Changeable, Clearable, IOComponent):
         }
 
 
-def process_():
-    print("hi")
-
-
 class Dataframe(Changeable, IOComponent):
     """
     Component accepts or displays 2D input  through a spreadsheet interface.
