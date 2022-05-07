@@ -6,11 +6,12 @@
 	export let header: boolean = false;
 
 	// const dispatch = createEventDispatcher<{ keydown:  KeyboardEvent }>();
+	$: console.log(value);
 </script>
 
 {#if edit}
 	<input
-		class="absolute flex-1 outline-none inset-2 bg-transparent border-0 translate-x-px"
+		class="absolute flex-1 outline-none inset-2 bg-transparent border-0 translate-x-px flex-1"
 		class:translate-x-px={!header}
 		class:font-bold={header}
 		tabindex="-1"
@@ -22,8 +23,9 @@
 	/>
 {/if}
 <span
+	on:dblclick
 	tabindex="-1"
 	role="button"
 	class:opacity-0={edit}
-	class="p-2  outline-none border-0">{value}</span
+	class="p-2  outline-none border-0 flex-1">{value}</span
 >

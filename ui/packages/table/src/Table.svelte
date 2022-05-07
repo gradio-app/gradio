@@ -41,7 +41,7 @@
 	}
 
 	function process_data(_values: Array<Array<string | number>>) {
-		return Array(row_count[0])
+		return Array(data[0].length > 0 ? data.length : row_count[0])
 			.fill(0)
 			.map((x, i) =>
 				Array(col_count[0])
@@ -49,6 +49,7 @@
 					.map((n, j) => {
 						const id = `${i}-${j}`;
 						els[id] = { input: null, cell: null };
+						console.log(_values?.[i]?.[j] || "");
 						return { value: _values?.[i]?.[j] || "", id };
 					})
 			);
@@ -236,7 +237,7 @@
 				break;
 		}
 	}
-
+	$: console.log(data);
 	async function handle_cell_click(id: string) {
 		if (editing === id) return;
 		if (selected === id) return;
@@ -301,7 +302,7 @@
 	let header_edit: string | boolean;
 
 	async function edit_header(_id: string, select?: boolean) {
-		if (!editable) return;
+		if (!editable || col_count[1] !== "dynamic") return;
 		header_edit = _id;
 		await tick();
 		els[_id].input?.focus();
@@ -331,12 +332,16 @@
 		data.splice(
 			index ? index + 1 : data.length,
 			0,
-			_headers.map((_, i) => {
-				const _id = `${data.length}-${i}`;
-				els[_id] = { cell: null, input: null };
-				return { id: _id, value: "" };
-			})
+			Array(col_count[0])
+				.fill(0)
+				.map((_, i) => {
+					const _id = `${data.length}-${i}`;
+					els[_id] = { cell: null, input: null };
+					console.log({ id: _id, value: "" });
+					return { id: _id, value: "" };
+				})
 		);
+
 		data = data;
 	}
 
@@ -421,22 +426,19 @@
 						class:rounded-tl-lg={i === 0}
 						class:rounded-tr-lg={i === _headers.length - 1}
 						aria-sort={get_sort_status(value, sort_by, sort_direction)}
-						use:double_click={{
-							click: () => {},
-							dblclick: () => edit_header(id)
-						}}
 					>
-						<div class="flex outline-none justify-between">
+						<div class="flex outline-none">
 							<EditableCell
 								{value}
 								bind:el={els[id].input}
 								edit={header_edit === id}
 								on:keydown={end_header_edit}
+								on:dblclick={() => edit_header(id)}
 								header
 							/>
 
 							<div
-								class="flex items-center justify-center p-2 cursor-pointer !visible leading-snug transform transition-all {sort_by !==
+								class="flex flex-none items-center justify-center p-2 cursor-pointer !visible leading-snug transform transition-all {sort_by !==
 								i
 									? 'text-gray-200 hover:text-gray-500'
 									: 'text-orange-500'} {sort_by === i &&
@@ -486,25 +488,6 @@
 									bind:el={els[id].input}
 									edit={editing === id}
 								/>
-
-								<!-- {#if editing === id}
-									<input
-										class="outline-none absolute p-0 w-3/4"
-										tabindex="-1"
-										bind:value
-										bind:this={els[id].input}
-										on:blur={({ currentTarget }) =>
-											currentTarget.setAttribute("tabindex", "-1")}
-									/>
-								{/if}
-								<span
-									class="cursor-default w-full"
-									class:opacity-0={editing === id}
-									tabindex="-1"
-									role="button"
-								>
-									{value ?? ""}
-								</span> -->
 							</div>
 						</td>
 					{/each}
