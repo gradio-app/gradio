@@ -11,7 +11,7 @@ WORKDIR /gradio
 COPY ./ui ./ui
 RUN mkdir gradio
 COPY ./gradio/version.txt ./gradio/version.txt
-RUN npm i pnpm -g
+RUN npm i pnpm@6 -g
 WORKDIR /gradio/ui
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN pnpm i
@@ -20,6 +20,7 @@ WORKDIR /gradio
 COPY ./gradio ./gradio
 COPY ./setup.py ./setup.py
 COPY ./MANIFEST.in ./MANIFEST.in
+COPY ./README.md ./README.md
 RUN python setup.py install
 WORKDIR /gradio
 COPY ./website ./website

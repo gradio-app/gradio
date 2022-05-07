@@ -7,24 +7,22 @@
 	export let choices: Array<string>;
 	export let style: string = "";
 	export let disabled: boolean = false;
-	export let form_position: "first" | "last" | "mid" | "single" = "single";
+	export let show_label: boolean;
 
 	const dispatch = createEventDispatcher<{ change: string }>();
 
 	$: dispatch("change", value);
 </script>
 
-<Block {form_position}>
-	<label>
-		<BlockTitle>{label}</BlockTitle>
-		<select
-			class="gr-box gr-input w-full disabled:cursor-not-allowed"
-			bind:value
-			{disabled}
-		>
-			{#each choices as choice, i}
-				<option>{choice}</option>
-			{/each}
-		</select>
-	</label>
-</Block>
+<label>
+	<BlockTitle {show_label}>{label}</BlockTitle>
+	<select
+		class="gr-box gr-input w-full disabled:cursor-not-allowed"
+		bind:value
+		{disabled}
+	>
+		{#each choices as choice, i}
+			<option>{choice}</option>
+		{/each}
+	</select>
+</label>

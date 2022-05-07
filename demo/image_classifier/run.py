@@ -21,7 +21,7 @@ def classify_image(inp):
 image = gr.Image(shape=(224, 224))
 label = gr.Label(num_top_classes=3)
 
-gr.Interface(
+demo = gr.Interface(
     fn=classify_image,
     inputs=image,
     outputs=label,
@@ -29,4 +29,8 @@ gr.Interface(
         os.path.join(os.path.dirname(__file__), "images/cheetah1.jpg"),
         os.path.join(os.path.dirname(__file__), "images/lion.jpg")
         ]
-    ).launch()
+    )
+
+if __name__ == "__main__":
+    demo.launch()
+
