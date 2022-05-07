@@ -3,11 +3,19 @@
 @tailwind utilities;
 
 @layer components {
-	.gr-gap > *:not(.absolute) + * {
-		@apply mt-2;
+	.col.gr-gap > *:not(.absolute) + * {
+		@apply mt-3;
 	}
-	.gr-form-gap > .form + .form {
+	.col.gr-form-gap > .form + .form {
 		@apply mt-0 border-t-0;
+	}
+
+	.row.gr-gap > *:not(.absolute) + * {
+		@apply ml-3;
+	}
+
+	.row.gr-form-gap > .form + .form {
+		@apply ml-0 border-l-0;
 	}
 
 	.scroll-hide {
