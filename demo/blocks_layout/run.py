@@ -1,4 +1,3 @@
-from matplotlib import interactive
 import gradio as gr
 
 
