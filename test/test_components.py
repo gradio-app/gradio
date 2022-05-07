@@ -860,9 +860,8 @@ class TestDataframe(unittest.TestCase):
             {
                 "headers": ["Name", "Age", "Member"],
                 "datatype": "str",
-                "row_count": 3,
-                "col_count": 3,
-                "col_width": None,
+                "row_count": (3, "dynamic"),
+                "col_count": (3, "dynamic"),
                 "default_value": [
                     ["", "", ""],
                     ["", "", ""],
