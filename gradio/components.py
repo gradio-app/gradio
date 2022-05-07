@@ -1932,12 +1932,15 @@ class Dataframe(Changeable, IOComponent):
         overflow_row_behaviour (str): If set to "paginate", will create pages for overflow rows. If set to "show_ends", will show initial and final rows and truncate middle rows.
         """
 
-        self.headers = headers
-        self.datatype = datatype
         self.row_count = self.__process_counts(row_count)
         self.col_count = self.__process_counts(
             col_count, len(headers) if headers else 3
         )
+
+        self.__validate_headers(headers, self.col_count[0])
+
+        self.headers = headers
+        self.datatype = datatype
         self.type = type
         self.output_type = "auto"
         default_values = {
@@ -1959,15 +1962,6 @@ class Dataframe(Changeable, IOComponent):
         self.max_cols = max_cols
         self.overflow_row_behaviour = overflow_row_behaviour
         IOComponent.__init__(self, label=label, css=css, **kwargs)
-
-    @staticmethod
-    def __process_counts(count, default=3):
-        if count == None:
-            return (default, "dynamic")
-        if type(count) == int or type(count) == float:
-            return (int(count), "dynamic")
-        else:
-            return count
 
     def get_template_context(self):
         return {
@@ -2054,6 +2048,24 @@ class Dataframe(Changeable, IOComponent):
                 "Unknown type: "
                 + self.type
                 + ". Please choose from: 'pandas', 'numpy', 'array'."
+            )
+
+    @staticmethod
+    def __process_counts(count, default=3):
+        if count == None:
+            return (default, "dynamic")
+        if type(count) == int or type(count) == float:
+            return (int(count), "dynamic")
+        else:
+            return count
+
+    @staticmethod
+    def __validate_headers(headers: List[str] | None, col_count: int):
+        if headers != None and len(headers) != col_count:
+            raise ValueError(
+                "The length of the headers list must be equal to the col_count int.\nThe column count is set to {cols} but `headers` has {headers} items. Check the values passed to `col_count` and `headers`.".format(
+                    cols=col_count, headers=len(headers)
+                )
             )
 
 
