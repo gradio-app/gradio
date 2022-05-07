@@ -1984,7 +1984,7 @@ class Dataframe(Changeable, IOComponent):
                 return pd.DataFrame(x, columns=self.headers)
             else:
                 return pd.DataFrame(x)
-        if self.col_count == 1:
+        if self.col_count[0] == 1:
             x = [row[0] for row in x]
         if self.type == "numpy":
             return np.array(x)
