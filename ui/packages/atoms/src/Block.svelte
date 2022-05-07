@@ -1,5 +1,8 @@
 <script lang="ts">
-	export let variant: "solid" | "dashed" = "solid";
+	import { getContext } from "svelte";
+	import { BLOCK_KEY } from "./";
+
+	export let variant: "solid" | "dashed" | "none" = "solid";
 	export let color: "grey" | "green" = "grey";
 	export let padding: boolean = true;
 	export let form_position: "first" | "last" | "mid" | "single" | undefined =
@@ -11,21 +14,41 @@
 		dashed: "border-dashed border-[3px]",
 		solid: "border-solid border",
 		grey: "border-gray-200",
-		green: "border-green-400"
+		green: "border-green-400",
+		none: "!border-0"
+	};
+
+	const form_styles = {
+		column: {
+			first: "!rounded-b-none",
+			last: "!rounded-t-none",
+			mid: "!rounded-none",
+			single: ""
+		},
+		row: {
+			first: "!rounded-r-none",
+			last: "!rounded-l-none",
+			mid: "!rounded-none",
+			single: ""
+		}
 	};
 
 	let tag = type === "fieldset" ? "fieldset" : "div";
+
+	const parent = getContext<string | null>(BLOCK_KEY);
+
+	$: form_class = form_position
+		? form_styles?.[(parent as "column" | "row") || "column"][form_position]
+		: "";
 </script>
 
 <svelte:element
 	this={tag}
 	data-testid={test_id}
-	class="gr-box overflow-hidden {styles[variant]} {styles[color]}"
+	class="gr-box overflow-hidden {styles[variant]} {styles[color]} {form_class}"
 	class:gr-panel={padding}
 	class:form={form_position}
-	class:!rounded-none={form_position === "mid"}
-	class:!rounded-b-none={form_position === "first"}
-	class:!rounded-t-none={form_position === "last"}
+	class:flex-1={parent === "row" || null}
 >
 	<slot />
 </svelte:element>
