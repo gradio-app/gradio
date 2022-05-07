@@ -62,6 +62,7 @@ XRAY_CONFIG = {
                 "default_value": "Run",
                 "name": "button",
                 "css": {"background-color": "red", "--hover-color": "orange"},
+                "variant": "primary",
             },
         },
         {
@@ -99,7 +100,12 @@ XRAY_CONFIG = {
         {
             "id": 13,
             "type": "button",
-            "props": {"default_value": "Run", "name": "button", "css": {}},
+            "props": {
+                "default_value": "Run",
+                "name": "button",
+                "css": {},
+                "variant": "primary",
+            },
         },
         {
             "id": 14,
@@ -245,6 +251,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "default_value": "Run",
                 "name": "button",
                 "css": {"background-color": "red", "--hover-color": "orange"},
+                "variant": "primary",
             },
         },
         {
@@ -290,6 +297,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "default_value": "Run",
                 "name": "button",
                 "css": {},
+                "variant": "primary",
             },
         },
         {
@@ -417,6 +425,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "default_value": "Run",
                 "name": "button",
                 "css": {"background-color": "red", "--hover-color": "orange"},
+                "variant": "primary",
             },
         },
         {
@@ -461,6 +470,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "default_value": "Run",
                 "name": "button",
                 "css": {},
+                "variant": "primary",
             },
         },
         {
