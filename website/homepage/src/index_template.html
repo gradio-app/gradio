@@ -39,78 +39,6 @@
     </script>
 
   <style>
-
-
-    .last-section {
-      background: linear-gradient(0deg, rgba(255,211,160,0.25) 25%, rgb(237 240 243) 100%);
-    }
-
-    .hr-text {
-      color: #C9CDD6;
-      font-family: 'Product Sans';
-      font-size: 20px;
-      font-weight: 700;
-    }
-
-    hr {
-      margin: auto;
-      width: 40%;
-      border-top: 1px solid #C9CDD6;
-    }
-
-    .big-padding {
-      padding-left: 200px;
-      padding-right: 200px;
-      max-width: 100%;
-    }
-
-    .logo {
-      opacity: 0.5;
-      filter: grayscale(1);
-      max-width: 100%;
-      height: 27px;
-    }
-
-    .card {
-      padding: 30px 15px 30px 15px;
-      background: linear-gradient(180deg, #FFFFFF 0%, #F4F6FA 100%);
-      box-shadow: 0px 16px 50px rgba(89, 118, 135, 0.2);
-      border-radius: 20px;
-      font-family: 'Source Sans Pro', sans-serif;
-    }
-
-    .card p {
-      font-size: 12px;
-      line-height: 15px;
-    }
-
-    .customer-card {
-      padding: 15px;
-      background: linear-gradient(180deg, #FFFFFF 0%, #F4F6FA 100%);
-      box-shadow: 0px 16px 50px rgba(89, 118, 135, 0.2);
-      border-radius: 20px;
-      font-family: 'Source Sans Pro', sans-serif;
-    }
-
-    .quote {
-      height: 44%;
-      font-size: 18px;
-      line-height: 25px;
-      margin-top: 20px;
-      margin-bottom: 20px;
-      font-style: italic;
-    }
-
-    .author {
-      font-size: large;
-      margin-bottom: 2px;
-      font-weight: 900
-    }
-
-    .hr-break {
-      margin-bottom: 4rem;
-    }
-
     .language-python {
       background: none !important;
     }
@@ -343,7 +271,7 @@ iface <span class="token operator">=</span> gr<span class="token punctuation">.<
     </nav>
   </footer>
 
-<script>
+  <script>
     let xhr = new XMLHttpRequest;
     xhr.open('GET', 'https://api.github.com/repos/gradio-app/gradio', true)
     xhr.onload = function()
@@ -377,12 +305,12 @@ iface <span class="token operator">=</span> gr<span class="token punctuation">.<
   <script defer id="gradio-library" type="module" crossorigin src="/gradio_static/assets/{{ index_js_file }}"></script>
   <link rel="modulepreload" href="/gradio_static/assets/{{ vendor_js_file }}" />
   <script>
-<!--    document.querySelector("#gradio-library").addEventListener('load', function () {-->
-<!--      launchGradioFromSpaces("abidlabs/Draw", "#demo_mnist");-->
-<!--      launchGradioFromSpaces("abidlabs/question-answering", "#demo_qa");-->
-<!--      launchGradioFromSpaces("abidlabs/Echocardiogram-Segmentation", "#demo_image_classifier");-->
-<!--      launchGradioFromSpaces("abidlabs/same-person-or-different", "#demo_anime");-->
-<!--    });-->
+  <!--    document.querySelector("#gradio-library").addEventListener('load', function () {-->
+  <!--      launchGradioFromSpaces("abidlabs/Draw", "#demo_mnist");-->
+  <!--      launchGradioFromSpaces("abidlabs/question-answering", "#demo_qa");-->
+  <!--      launchGradioFromSpaces("abidlabs/Echocardiogram-Segmentation", "#demo_image_classifier");-->
+  <!--      launchGradioFromSpaces("abidlabs/same-person-or-different", "#demo_anime");-->
+  <!--    });-->
   </script>
 </body>
 
