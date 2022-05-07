@@ -16,8 +16,9 @@ XRAY_CONFIG = {
             "props": {
                 "choices": ["Covid", "Malaria", "Lung Cancer"],
                 "default_value": [],
-                "name": "checkboxgroup",
                 "label": "Disease to Scan For",
+                "show_label": True,
+                "name": "checkboxgroup",
                 "css": {},
             },
         },
@@ -39,6 +40,7 @@ XRAY_CONFIG = {
                 "image_mode": "RGB",
                 "source": "upload",
                 "tool": "editor",
+                "show_label": True,
                 "name": "image",
                 "css": {},
             },
@@ -48,6 +50,7 @@ XRAY_CONFIG = {
             "type": "json",
             "props": {
                 "default_value": '""',
+                "show_label": True,
                 "name": "json",
                 "css": {},
             },
@@ -78,6 +81,7 @@ XRAY_CONFIG = {
                 "image_mode": "RGB",
                 "source": "upload",
                 "tool": "editor",
+                "show_label": True,
                 "name": "image",
                 "css": {},
             },
@@ -87,6 +91,7 @@ XRAY_CONFIG = {
             "type": "json",
             "props": {
                 "default_value": '""',
+                "show_label": True,
                 "name": "json",
                 "css": {},
             },
@@ -94,11 +99,7 @@ XRAY_CONFIG = {
         {
             "id": 13,
             "type": "button",
-            "props": {
-                "default_value": "Run",
-                "name": "button",
-                "css": {},
-            },
+            "props": {"default_value": "Run", "name": "button", "css": {}},
         },
         {
             "id": 14,
@@ -107,12 +108,14 @@ XRAY_CONFIG = {
                 "lines": 1,
                 "max_lines": 20,
                 "default_value": "",
+                "show_label": True,
                 "name": "textbox",
                 "css": {},
             },
         },
     ],
     "theme": "default",
+    "enable_queue": False,
     "layout": {
         "id": 0,
         "children": [
@@ -146,21 +149,30 @@ XRAY_CONFIG = {
             "trigger": "click",
             "inputs": [2, 6],
             "outputs": [7],
+            "backend_fn": True,
+            "js": None,
             "status_tracker": None,
+            "queue": None,
         },
         {
             "targets": [13],
             "trigger": "click",
             "inputs": [2, 11],
             "outputs": [12],
+            "backend_fn": True,
+            "js": None,
             "status_tracker": None,
+            "queue": None,
         },
         {
             "targets": [],
             "trigger": "load",
             "inputs": [],
             "outputs": [14],
+            "backend_fn": True,
+            "js": False,
             "status_tracker": None,
+            "queue": None,
         },
     ],
 }
@@ -184,6 +196,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "choices": ["Covid", "Malaria", "Lung Cancer"],
                 "default_value": [],
                 "name": "checkboxgroup",
+                "show_label": True,
                 "label": "Disease to Scan For",
                 "css": {},
             },
@@ -192,7 +205,11 @@ XRAY_CONFIG_DIFF_IDS = {
         {
             "id": 444,
             "type": "tabitem",
-            "props": {"label": "X-ray", "css": {}, "default_value": True},
+            "props": {
+                "label": "X-ray",
+                "css": {},
+                "default_value": True,
+            },
         },
         {
             "id": 5,
@@ -205,6 +222,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "props": {
                 "image_mode": "RGB",
                 "source": "upload",
+                "show_label": True,
                 "tool": "editor",
                 "name": "image",
                 "css": {},
@@ -216,6 +234,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "props": {
                 "default_value": '""',
                 "name": "json",
+                "show_label": True,
                 "css": {},
             },
         },
@@ -231,7 +250,11 @@ XRAY_CONFIG_DIFF_IDS = {
         {
             "id": 9,
             "type": "tabitem",
-            "props": {"label": "CT Scan", "css": {}, "default_value": True},
+            "props": {
+                "label": "CT Scan",
+                "css": {},
+                "default_value": True,
+            },
         },
         {
             "id": 10,
@@ -246,6 +269,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "source": "upload",
                 "tool": "editor",
                 "name": "image",
+                "show_label": True,
                 "css": {},
             },
         },
@@ -255,6 +279,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "props": {
                 "default_value": '""',
                 "name": "json",
+                "show_label": True,
                 "css": {},
             },
         },
@@ -275,6 +300,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "default_value": "",
                 "name": "textbox",
                 "max_lines": 20,
+                "show_label": True,
                 "css": {},
             },
         },
@@ -344,6 +370,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "choices": ["Covid", "Malaria", "Lung Cancer"],
                 "default_value": [],
                 "name": "checkboxgroup",
+                "show_label": True,
                 "label": "Disease to Scan For",
                 "css": {},
             },
@@ -352,7 +379,11 @@ XRAY_CONFIG_WITH_MISTAKE = {
         {
             "id": 4,
             "type": "tabitem",
-            "props": {"label": "X-ray", "css": {}, "default_value": True},
+            "props": {
+                "label": "X-ray",
+                "css": {},
+                "default_value": True,
+            },
         },
         {
             "id": 5,
@@ -391,7 +422,12 @@ XRAY_CONFIG_WITH_MISTAKE = {
         {
             "id": 9,
             "type": "tabitem",
-            "props": {"label": "CT Scan", "css": {}, "default_value": True},
+            "props": {
+                "show_label": True,
+                "label": "CT Scan",
+                "css": {},
+                "default_value": True,
+            },
         },
         {
             "id": 10,

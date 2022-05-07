@@ -2,4 +2,4 @@
 	export let value: number;
 </script>
 
-<div class="input-slider-example">{value}</div>
+<div class="gr-sample-slider">{value}</div>

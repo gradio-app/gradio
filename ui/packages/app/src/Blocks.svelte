@@ -1,6 +1,9 @@
 <script lang="ts">
 	import type { SvelteComponentTyped } from "svelte";
 	import { component_map } from "./components/directory";
+	import { loading_status } from "./stores";
+	import type { LoadingStatus } from "./stores";
+
 	import { _ } from "svelte-i18n";
 	import { setupi18n } from "./i18n";
 	import Render from "./Render.svelte";
@@ -28,9 +31,12 @@
 		targets: Array<number>;
 		inputs: Array<number>;
 		outputs: Array<number>;
-		queue: boolean;
+		backend_fn: boolean;
+		js: string | null;
+		frontend_fn?: Function;
 		status_tracker: number | null;
 		status?: string;
+		queue: boolean | null;
 	}
 
 	export let root: string;
@@ -40,7 +46,24 @@
 	export let dependencies: Array<Dependency>;
 	export let theme: string;
 	export let style: string | null;
+	export let enable_queue: boolean;
 	export let static_src: string;
+	export let title: string = "Gradio";
+	export let analytics_enabled: boolean = false;
+
+	dependencies.forEach((d) => {
+		if (d.js) {
+			try {
+				d.frontend_fn = new Function(
+					"__fn_args",
+					`return ${d.outputs.length} === 1 ? [(${d.js})(...__fn_args)] : (${d.js})(...__fn_args)`
+				);
+			} catch (e) {
+				console.error("Could not parse custom js method.");
+				console.error(e);
+			}
+		}
+	});
 
 	const dynamic_ids = dependencies.reduce((acc, next) => {
 		next.inputs.forEach((i) => acc.add(i));
@@ -55,7 +78,7 @@
 		value?: unknown;
 	}
 
-	const instance_map = components.reduce((acc, next) => {
+	let instance_map = components.reduce((acc, next) => {
 		return {
 			...acc,
 			[next.id]: {
@@ -89,8 +112,6 @@
 			_n.has_modes = true;
 		}
 
-		// console.log(await _component_map.get(meta.type));
-
 		if (node.children) {
 			_n.children = await Promise.all(node.children.map((v) => walk_layout(v)));
 		}
@@ -107,6 +128,7 @@
 	});
 
 	let tree;
+
 	Promise.all(Array.from(component_set)).then((v) => {
 		Promise.all(layout.children.map((c) => walk_layout(c))).then((v) => {
 			console.log(v);
@@ -114,89 +136,96 @@
 		});
 	});
 
+	function set_prop(obj: Instance, prop: string, val: any) {
+		if (!obj?.props) {
+			obj.props = {};
+		}
+		obj.props[prop] = val;
+		tree = tree;
+	}
+
 	let handled_dependencies: Array<number[]> = [];
 	let status_tracker_values: Record<number, string> = {};
 
-	let set_status = (dependency_index: number, status: string) => {
-		dependencies[dependency_index].status = status;
-		let status_tracker_id = dependencies[dependency_index].status_tracker;
-		if (status_tracker_id !== null) {
-			status_tracker_values[status_tracker_id] = status;
-		}
-	};
-
-	async function handle_mount({ detail }) {
+	async function handle_mount() {
 		await tick();
-		dependencies.forEach(({ targets, trigger, inputs, outputs, queue }, i) => {
-			const target_instances: [number, Instance][] = targets.map((t) => [
-				t,
-				instance_map[t]
-			]);
+		dependencies.forEach(
+			(
+				{ targets, trigger, inputs, outputs, queue, backend_fn, frontend_fn },
+				i
+			) => {
+				const target_instances: [number, Instance][] = targets.map((t) => [
+					t,
+					instance_map[t]
+				]);
 
-			// page events
-			if (
-				targets.length === 0 &&
-				!handled_dependencies[i]?.includes(-1) &&
-				trigger === "load" &&
-				// check all input + output elements are on the page
-				outputs.every((v) => instance_map[v].instance) &&
-				inputs.every((v) => instance_map[v].instance)
-			) {
-				fn(
-					"predict",
-					{
-						fn_index: i,
-						data: inputs.map((id) => instance_map[id].value)
-					},
-					queue,
-					() => {}
-				)
-					.then((output) => {
-						output.data.forEach((value, i) => {
-							instance_map[outputs[i]].value = value;
-						});
-					})
-					.catch((error) => {
-						console.error(error);
-					});
-
-				handled_dependencies[i] = [-1];
-			}
-
-			target_instances.forEach(([id, { instance }]: [number, Instance]) => {
-				// console.log(id, handled_dependencies[i]?.includes(id) || !instance);
-				if (handled_dependencies[i]?.includes(id) || !instance) return;
-				// console.log(trigger, target_instances, instance);
-				instance?.$on(trigger, () => {
-					if (status === "pending") {
-						return;
-					}
-					set_status(i, "pending");
-					fn(
-						"predict",
-						{
+				// page events
+				if (
+					targets.length === 0 &&
+					!handled_dependencies[i]?.includes(-1) &&
+					trigger === "load" &&
+					// check all input + output elements are on the page
+					outputs.every((v) => instance_map[v].instance) &&
+					inputs.every((v) => instance_map[v].instance)
+				) {
+					fn({
+						action: "predict",
+						backend_fn,
+						frontend_fn,
+						payload: {
 							fn_index: i,
 							data: inputs.map((id) => instance_map[id].value)
 						},
-						queue,
-						() => {}
-					)
+						queue: queue === null ? enable_queue : queue
+					})
 						.then((output) => {
-							set_status(i, "complete");
 							output.data.forEach((value, i) => {
 								instance_map[outputs[i]].value = value;
 							});
 						})
 						.catch((error) => {
-							set_status(i, "error");
 							console.error(error);
 						});
-				});
 
-				if (!handled_dependencies[i]) handled_dependencies[i] = [];
-				handled_dependencies[i].push(id);
-			});
-		});
+					handled_dependencies[i] = [-1];
+				}
+
+				target_instances.forEach(([id, { instance }]: [number, Instance]) => {
+					if (handled_dependencies[i]?.includes(id) || !instance) return;
+					instance?.$on(trigger, () => {
+						console.log(loading_status.get_status_for_fn(i));
+
+						if (loading_status.get_status_for_fn(i) === "pending") {
+							return;
+						}
+
+						// page events
+						fn({
+							action: "predict",
+							backend_fn,
+							frontend_fn,
+							payload: {
+								fn_index: i,
+								data: inputs.map((id) => instance_map[id].value)
+							},
+							output_data: outputs.map((id) => instance_map[id].value),
+							queue: queue === null ? enable_queue : queue
+						})
+							.then((output) => {
+								output.data.forEach((value, i) => {
+									instance_map[outputs[i]].value = value;
+								});
+							})
+							.catch((error) => {
+								console.error(error);
+							});
+					});
+
+					if (!handled_dependencies[i]) handled_dependencies[i] = [];
+					handled_dependencies[i].push(id);
+				});
+			}
+		);
 	}
 
 	function handle_destroy(id: number) {
@@ -204,9 +233,33 @@
 			return dep.filter((_id) => _id !== id);
 		});
 	}
+
+	$: set_status($loading_status);
+
+	dependencies.forEach((v, i) => {
+		loading_status.register(i, v.outputs);
+	});
+
+	function set_status(
+		statuses: Record<number, Omit<LoadingStatus, "outputs">>
+	) {
+		for (const id in statuses) {
+			set_prop(instance_map[id], "loading_status", statuses[id]);
+		}
+	}
 </script>
 
-<div class="mx-auto container space-y-4 px-4 py-6">
+<svelte:head>
+	<title>{title}</title>
+	{#if analytics_enabled}
+		<script
+			async
+			defer
+			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
+	{/if}
+</svelte:head>
+
+<div class="mx-auto container space-y-4 px-4 py-6 dark:bg-gray-950">
 	{#if tree}
 		{#each tree as { component, id, props, children, has_modes }}
 			<Render
@@ -230,7 +283,7 @@
 	class="gradio-page container mx-auto flex flex-col box-border flex-grow text-gray-700 dark:text-gray-50"
 >
 	<div
-		class="footer flex-shrink-0 inline-flex gap-2.5 items-center text-gray-600 justify-center py-2"
+		class="footer flex-shrink-0 inline-flex gap-2.5 items-center text-gray-600 dark:text-gray-300 justify-center py-2"
 	>
 		<a href="https://gradio.app" target="_blank" rel="noreferrer">
 			{$_("interface.built_with_Gradio")}

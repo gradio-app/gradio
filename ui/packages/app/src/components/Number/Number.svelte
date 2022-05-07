@@ -1,10 +1,16 @@
 <script lang="ts">
 	import { Number } from "@gradio/form";
+	import { Block } from "@gradio/atoms";
+	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
+	import type { LoadingStatus } from "../StatusTracker/types";
 
 	export let label: string = "Number";
 	export let value: number = 0;
 	export let default_value: number;
 	export let form_position: "first" | "last" | "mid" | "single" = "single";
+	export let show_label: boolean;
+
+	export let loading_status: LoadingStatus;
 
 	export let style: string = "";
 
@@ -13,12 +19,16 @@
 	if (default_value) value = default_value;
 </script>
 
-<Number
-	{form_position}
-	bind:value
-	{label}
-	{style}
-	disabled={mode === "static"}
-	on:change
-	on:submit
-/>
+<Block {form_position}>
+	<StatusTracker {...loading_status} />
+
+	<Number
+		bind:value
+		{label}
+		{show_label}
+		{style}
+		disabled={mode === "static"}
+		on:change
+		on:submit
+	/>
+</Block>

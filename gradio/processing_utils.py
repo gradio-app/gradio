@@ -97,7 +97,8 @@ def resize_and_crop(img, size, crop_type="center"):
     """
     Resize and crop an image to fit the specified size.
     args:
-        size: `(width, height)` tuple.
+        size: `(width, height)` tuple. Pass `None` for either width or height
+        to only crop and resize the other.
         crop_type: can be 'top', 'middle' or 'bottom', depending on this
             value, the image will cropped getting the 'top/left', 'middle' or
             'bottom/right' of the image to fit the size.
@@ -110,7 +111,13 @@ def resize_and_crop(img, size, crop_type="center"):
         center = (0.5, 0.5)
     else:
         raise ValueError
-    return ImageOps.fit(img, size, centering=center)
+
+    resize = list(size)
+    if size[0] is None:
+        resize[0] = img.size[0]
+    if size[1] is None:
+        resize[1] = img.size[1]
+    return ImageOps.fit(img, resize, centering=center)
 
 
 ##################
@@ -119,7 +126,14 @@ def resize_and_crop(img, size, crop_type="center"):
 
 
 def audio_from_file(filename, crop_min=0, crop_max=100):
-    audio = AudioSegment.from_file(filename)
+    try:
+        audio = AudioSegment.from_file(filename)
+    except FileNotFoundError as e:
+        error_message = str(e)
+        if "ffprobe" in error_message:
+            print(
+                "Please install `ffmpeg` in your system to use non-WAV audio file formats."
+            )
     if crop_min != 0 or crop_max != 100:
         audio_start = len(audio) * crop_min / 100
         audio_end = len(audio) * crop_max / 100

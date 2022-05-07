@@ -207,7 +207,7 @@ def get_config_file(interface: Interface) -> Dict[str, Any]:
         "allow_flagging": interface.allow_flagging,
         "flagging_options": interface.flagging_options,
         "allow_interpretation": interface.interpretation is not None,
-        "queue": interface.enable_queue,
+        "enable_queue": interface.enable_queue,
         "cached_examples": interface.cache_examples
         if hasattr(interface, "cache_examples")
         else False,
@@ -356,7 +356,7 @@ def format_ner_list(input_string: str, ner_groups: Dict[str : str | int]):
 def delete_none(_dict):
     """
     Delete None values recursively from all of the dictionaries, tuples, lists, sets.
-    Credit: https://stackoverflow.com/questions/33797126/proper-way-to-remove-keys-in-dictionary-with-none-values-in-python
+    Credit: https://stackoverflow.com/a/66127889/5209347
     """
     if isinstance(_dict, dict):
         for key, value in list(_dict.items()):
@@ -369,3 +369,10 @@ def delete_none(_dict):
         _dict = type(_dict)(delete_none(item) for item in _dict if item is not None)
 
     return _dict
+
+
+def resolve_singleton(_list):
+    if len(_list) == 1:
+        return _list[0]
+    else:
+        return _list

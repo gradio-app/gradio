@@ -61,7 +61,7 @@ for guide in guide_files:
     guide_name = guide[:-3]
     pretty_guide_name = " ".join(
         [
-            word.capitalize().replace("Ml", "ML").replace("Gan", "GAN").replace("Api", "API")
+            word.capitalize().replace("Ml", "ML").replace("Gan", "GAN").replace("Api", "API").replace("Onnx", "ONNX")
             for word in guide_name.split("_")
         ]
     )

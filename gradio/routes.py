@@ -56,37 +56,21 @@ templates = Jinja2Templates(directory=STATIC_TEMPLATE_LIB)
 ###########
 
 
-class PredictBody(BaseModel):
-    session_hash: Optional[str]
-    example_id: Optional[int]
-    data: List[Any]
-    state: Optional[Any]
-    fn_index: Optional[int]
-    cleared: Optional[bool]
-
-
-class FlagData(BaseModel):
-    input_data: List[Any]
-    output_data: List[Any]
-    flag_option: Optional[str]
-    flag_index: Optional[int]
-
-
-class FlagBody(BaseModel):
-    data: FlagData
-
-
-class InterpretBody(BaseModel):
-    data: List[Any]
-
-
 class QueueStatusBody(BaseModel):
     hash: str
 
 
 class QueuePushBody(BaseModel):
+    fn_index: int
     action: str
+    session_hash: str
     data: Any
+
+
+class PredictBody(BaseModel):
+    session_hash: Optional[str]
+    data: Any
+    fn_index: int
 
 
 ###########
@@ -250,16 +234,15 @@ def create_app() -> FastAPI:
         return templates.TemplateResponse("api_docs.html", {"request": request, **docs})
 
     @app.post("/api/predict/", dependencies=[Depends(login_check)])
-    async def predict(request: Request, username: str = Depends(get_current_user)):
-        body = await request.json()
-        if "session_hash" in body:
-            if body["session_hash"] not in app.state_holder:
-                app.state_holder[body["session_hash"]] = {
+    async def predict(body: PredictBody, username: str = Depends(get_current_user)):
+        if hasattr(body, "session_hash"):
+            if body.session_hash not in app.state_holder:
+                app.state_holder[body.session_hash] = {
                     _id: getattr(block, "default_value", None)
                     for _id, block in app.blocks.blocks.items()
                     if getattr(block, "stateful", False)
                 }
-            session_state = app.state_holder[body["session_hash"]]
+            session_state = app.state_holder[body.session_hash]
         else:
             session_state = {}
         try:
@@ -331,17 +314,3 @@ def get_types(cls_set: List[Type], component: str):
             docset.append(doc_lines[-1].split(":")[-1])
             types.append(doc_lines[-1].split(")")[0].split("(")[-1])
     return docset, types
-
-
-def get_state():
-    raise DeprecationWarning(
-        "This function is deprecated. To create stateful demos, use the Variable"
-        " component. Please see the getting started for more information."
-    )
-
-
-def set_state(*args):
-    raise DeprecationWarning(
-        "This function is deprecated. To create stateful demos, use the Variable"
-        " component. Please see the getting started for more information."
-    )
