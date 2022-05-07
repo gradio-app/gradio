@@ -490,14 +490,14 @@ class Interface(Blocks):
                                 self.InterfaceTypes.STANDARD,
                                 self.InterfaceTypes.INPUT_ONLY,
                             ]:
-                                clear_btn = Button("Clear")
+                                clear_btn = Button("Clear", variant="secondary")
                                 if not self.live:
                                     submit_btn = Button("Submit")
                             elif self.interface_type == self.InterfaceTypes.UNIFIED:
-                                clear_btn = Button("Clear")
+                                clear_btn = Button("Clear", variant="secondary")
                                 submit_btn = Button("Submit")
                                 if self.allow_flagging == "manual":
-                                    flag_btn = Button("Flag")
+                                    flag_btn = Button("Flag", variant="secondary")
                                     flag_btn.click(
                                         lambda *flag_data: self.flagging_callback.flag(
                                             flag_data
@@ -519,10 +519,10 @@ class Interface(Blocks):
                             component.render()
                         with Row():
                             if self.interface_type == self.InterfaceTypes.OUTPUT_ONLY:
-                                clear_btn = Button("Clear")
+                                clear_btn = Button("Clear", variant="secondary")
                                 submit_btn = Button("Generate")
                             if self.allow_flagging == "manual":
-                                flag_btn = Button("Flag")
+                                flag_btn = Button("Flag", variant="secondary")
                                 flag_btn.click(
                                     lambda *flag_data: self.flagging_callback.flag(
                                         flag_data
@@ -533,7 +533,9 @@ class Interface(Blocks):
                                     _preprocess=False,
                                 )
                             if self.interpretation:
-                                interpretation_btn = Button("Interpret")
+                                interpretation_btn = Button(
+                                    "Interpret", variant="secondary"
+                                )
             submit_fn = (
                 lambda *args: self.run_prediction(args)[0]
                 if len(self.output_components) == 1

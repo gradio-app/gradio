@@ -2801,19 +2801,23 @@ class Button(Clickable, Component):
         default_value: str = "",
         *,
         css: Optional[Dict] = None,
+        variant: str = "primary",
         **kwargs,
     ):
         """
         Parameters:
         default_value (str): Default value
         css (dict): optional css parameters for the component
+        variant (str): 'primary' for main call-to-action, 'secondary' for a more subdued style
         """
         Component.__init__(self, css=css, **kwargs)
         self.default_value = default_value
+        self.variant = variant
 
     def get_template_context(self):
         return {
             "default_value": self.default_value,
+            "variant": self.variant,
             **Component.get_template_context(self),
         }
 
