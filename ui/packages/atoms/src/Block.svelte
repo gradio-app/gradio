@@ -1,4 +1,7 @@
 <script lang="ts">
+	import { getContext } from "svelte";
+	import { BLOCK_KEY } from "./";
+
 	export let variant: "solid" | "dashed" = "solid";
 	export let color: "grey" | "green" = "grey";
 	export let padding: boolean = true;
@@ -15,6 +18,10 @@
 	};
 
 	let tag = type === "fieldset" ? "fieldset" : "div";
+
+	const parent = getContext<string | null>(BLOCK_KEY);
+
+	console.log(parent);
 </script>
 
 <svelte:element
@@ -26,6 +33,7 @@
 	class:!rounded-none={form_position === "mid"}
 	class:!rounded-b-none={form_position === "first"}
 	class:!rounded-t-none={form_position === "last"}
+	class:flex-1={parent === "row" || null}
 >
 	<slot />
 </svelte:element>
