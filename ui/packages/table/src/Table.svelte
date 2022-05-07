@@ -1,5 +1,9 @@
 <script lang="ts">
 	import { createEventDispatcher, tick } from "svelte";
+	import { dsvFormat } from "d3-dsv";
+	import { dequal } from "dequal/lite";
+
+	import { Upload } from "@gradio/upload";
 	import EditableCell from "./EditableCell.svelte";
 
 	export let headers: Array<string> = [];
@@ -22,7 +26,15 @@
 
 	type Headers = Array<{ value: string; id: string }>;
 
-	function make_headers(_h: Array<string>): Headers {
+	function make_headers(_head: Array<string>): Headers {
+		let _h = _head || [];
+		if (col_count[1] === "fixed" && _h.length < col_count[0]) {
+			const fill = Array(col_count[0] - _h.length)
+				.fill("")
+				.map((v, i) => `${i + _h.length}`);
+			_h = _h.concat(fill);
+		}
+
 		if (!_h || _h.length === 0) {
 			return Array(col_count[0])
 				.fill(0)
@@ -35,16 +47,24 @@
 			return _h.map((h, i) => {
 				const _id = `h-${i}`;
 				els[_id] = { cell: null, input: null };
-				return { id: _id, value: h };
+				return { id: _id, value: h || "" };
 			});
 		}
 	}
 
 	function process_data(_values: Array<Array<string | number>>) {
-		return Array(data[0].length > 0 ? data.length : row_count[0])
+		const data_row_length = _values.length > 0 ? _values.length : row_count[0];
+
+		return Array(
+			row_count[1] === "fixed"
+				? row_count[0]
+				: data_row_length < row_count[0]
+				? row_count[0]
+				: data_row_length
+		)
 			.fill(0)
 			.map((x, i) =>
-				Array(col_count[0])
+				Array(col_count[1] === "fixed" ? col_count[0] : _values[0].length)
 					.fill(0)
 					.map((n, j) => {
 						const id = `${i}-${j}`;
@@ -58,14 +78,14 @@
 	let old_headers: Array<string> | undefined;
 
 	$: {
-		if (!is_equal(headers, old_headers)) {
+		if (!dequal(headers, old_headers)) {
 			_headers = make_headers(headers);
+
 			old_headers = headers;
 			refresh_focus();
 		}
 	}
-
-	$: if (!is_equal(values, old_val)) {
+	$: if (!dequal(values, old_val)) {
 		data = process_data(values);
 		old_val = values;
 
@@ -86,23 +106,11 @@
 
 	let old_val: undefined | Array<Array<string | number>> = undefined;
 
-	function is_equal(arr: Array<any>, arr2: Array<any> | undefined) {
-		if (!arr2) return false;
-		return arr.every((_arr, i) => {
-			if (Array.isArray(_arr)) {
-				return _arr.every((item, j) => {
-					return item === arr2?.[i]?.[j];
-				});
-			} else {
-				return _arr === arr2?.[i];
-			}
-		});
-	}
-
-	$: dispatch(
-		"change",
-		data.map((r) => r.map(({ value }) => value))
-	);
+	$: _headers &&
+		dispatch(
+			"change",
+			data.map((r) => r.map(({ value }) => value))
+		);
 
 	function get_sort_status(
 		name: string,
@@ -128,7 +136,8 @@
 	}
 
 	async function start_edit(id: string, clear?: boolean) {
-		if (!editable) return;
+		if (!editable || editing === id) return;
+
 		if (clear) {
 			const [i, j] = get_current_indices(id);
 
@@ -301,7 +310,7 @@
 	let header_edit: string | boolean;
 
 	async function edit_header(_id: string, select?: boolean) {
-		if (!editable || col_count[1] !== "dynamic") return;
+		if (!editable || col_count[1] !== "dynamic" || editing === _id) return;
 		header_edit = _id;
 		await tick();
 		els[_id].input?.focus();
@@ -363,32 +372,6 @@
 		edit_header(_id, true);
 	}
 
-	const double_click = (
-		node: HTMLElement,
-		{ click, dblclick }: { click: Function; dblclick: Function }
-	) => {
-		let timer: NodeJS.Timeout | undefined;
-
-		function handler(event: MouseEvent) {
-			if (timer) {
-				clearTimeout(timer);
-				timer = undefined;
-				dblclick(event);
-			} else {
-				timer = setTimeout(() => {
-					click(event);
-					timer = undefined;
-				}, 250);
-			}
-		}
-
-		node.addEventListener("click", handler);
-
-		return {
-			destroy: () => node.removeEventListener("click", handler)
-		};
-	};
-
 	function handle_click_outside(event: Event) {
 		if (typeof editing === "string" && els[editing]) {
 			if (
@@ -408,91 +391,165 @@
 			}
 		}
 	}
+
+	function guess_delimitaor(text: string, possibleDelimiters: Array<string>) {
+		return possibleDelimiters.filter(weedOut);
+
+		function weedOut(delimiter: string) {
+			var cache = -1;
+			return text.split("\n").every(checkLength);
+
+			function checkLength(line: string) {
+				if (!line) {
+					return true;
+				}
+
+				var length = line.split(delimiter).length;
+				if (cache < 0) {
+					cache = length;
+				}
+				return cache === length && length > 1;
+			}
+		}
+	}
+
+	function data_uri_to_blob(data_uri: string) {
+		const byte_str = atob(data_uri.split(",")[1]);
+		const mime_str = data_uri.split(",")[0].split(":")[1].split(";")[0];
+
+		const ab = new ArrayBuffer(byte_str.length);
+		const ia = new Uint8Array(ab);
+
+		for (let i = 0; i < byte_str.length; i++) {
+			ia[i] = byte_str.charCodeAt(i);
+		}
+
+		return new Blob([ab], { type: mime_str });
+	}
+
+	function blob_to_string(blob: Blob) {
+		const reader = new FileReader();
+
+		function handle_read(e) {
+			const [delimiter] = guess_delimitaor(e.srcElement.result, [",", "\t"]);
+
+			const [head, ...rest] = dsvFormat(delimiter).parseRows(
+				e.srcElement.result
+			);
+
+			_headers = make_headers(
+				col_count[1] === "fixed" ? head.slice(0, col_count[0]) : head
+			);
+
+			values = rest;
+			reader.removeEventListener("loadend", handle_read);
+		}
+
+		reader.addEventListener("loadend", handle_read);
+
+		reader.readAsText(blob);
+	}
+
+	let dragging = false;
 </script>
 
 <svelte:window on:click={handle_click_outside} />
 
-<div class="overflow-hidden rounded-lg relative border">
-	<table class="table-auto font-mono w-full text-gray-900 text-sm">
-		<thead class="sticky top-0 left-0 right-0 bg-white shadow-sm z-10">
-			<tr class="border-b divide-x dark:divide-gray-800 text-left">
-				{#each _headers as { value, id }, i (id)}
-					<th
-						bind:this={els[id].cell}
-						class="p-0 relative focus-within:ring-1 ring-orange-500 ring-inset outline-none "
-						class:bg-orange-50={header_edit === id}
-						class:rounded-tl-lg={i === 0}
-						class:rounded-tr-lg={i === _headers.length - 1}
-						aria-sort={get_sort_status(value, sort_by, sort_direction)}
-					>
-						<div class="flex outline-none">
-							<EditableCell
-								{value}
-								bind:el={els[id].input}
-								edit={header_edit === id}
-								on:keydown={end_header_edit}
-								on:dblclick={() => edit_header(id)}
-								header
-							/>
-
-							<div
-								class="flex flex-none items-center justify-center p-2 cursor-pointer !visible leading-snug transform transition-all {sort_by !==
-								i
-									? 'text-gray-200 hover:text-gray-500'
-									: 'text-orange-500'} {sort_by === i &&
-								sort_direction === 'des'
-									? '-scale-y-[1]'
-									: ''}"
-								class:text-gray-200={sort_by !== i}
-								on:click={() => handle_sort(i)}
-							>
-								<svg
-									width="1em"
-									height="1em"
-									class="fill-current text-[10px]"
-									viewBox="0 0 9 7"
-									fill="none"
-									xmlns="http://www.w3.org/2000/svg"
-								>
-									<path d="M4.49999 0L8.3971 6.75H0.602875L4.49999 0Z" />
-								</svg>
-							</div>
-						</div>
-					</th>
-				{/each}
-			</tr>
-		</thead>
-
-		<tbody class="overflow-scroll">
-			{#each data as row, i (row)}
-				<tr
-					class="group border-b last:border-none divide-x dark:divide-gray-800 space-x-4 odd:bg-gray-50 dark:odd:bg-gray-900 group focus:bg-gradient-to-b focus:from-blue-100 dark:focus:from-blue-900 focus:to-blue-50 dark:focus:to-gray-900 focus:odd:bg-white"
-				>
-					{#each row as { value, id }, j (id)}
-						<td
-							tabindex="0"
+<div
+	class="overflow-hidden rounded-lg relative border transition-colors"
+	class:border-green-400={dragging}
+>
+	<Upload
+		center={false}
+		boundedheight={false}
+		click={false}
+		on:load={(e) => blob_to_string(data_uri_to_blob(e.detail.data))}
+		bind:dragging
+	>
+		<table
+			class="table-auto font-mono w-full text-gray-900 text-sm transition-opacity"
+			class:opacity-40={dragging}
+		>
+			<thead class="sticky top-0 left-0 right-0 bg-white shadow-sm z-10">
+				<tr class="border-b divide-x dark:divide-gray-800 text-left">
+					{#each _headers as { value, id }, i (id)}
+						<th
 							bind:this={els[id].cell}
-							on:click={() => handle_cell_click(id)}
-							on:dblclick={() => start_edit(id)}
-							on:keydown={(e) => handle_keydown(e, i, j, id)}
-							class=" outline-none focus-within:ring-1 ring-orange-500 ring-inset focus-within:bg-orange-50 group-last:first:rounded-bl-lg group-last:last:rounded-br-lg relative"
+							class="p-0 relative focus-within:ring-1 ring-orange-500 ring-inset outline-none "
+							class:bg-orange-50={header_edit === id}
+							class:rounded-tl-lg={i === 0}
+							class:rounded-tr-lg={i === _headers.length - 1}
+							aria-sort={get_sort_status(value, sort_by, sort_direction)}
 						>
-							<div
-								class:border-transparent={selected !== id}
-								class="min-h-[2.3rem] h-full  outline-none items-center flex "
-							>
+							<div class="min-h-[2.3rem] flex outline-none">
 								<EditableCell
-									bind:value
+									{value}
 									bind:el={els[id].input}
-									edit={editing === id}
+									edit={header_edit === id}
+									on:keydown={end_header_edit}
+									on:dblclick={() => edit_header(id)}
+									header
 								/>
+
+								<div
+									class="flex flex-none items-center justify-center p-2 cursor-pointer  leading-snug transform transition-all {sort_by !==
+									i
+										? 'text-gray-200 hover:text-gray-500'
+										: 'text-orange-500'} {sort_by === i &&
+									sort_direction === 'des'
+										? '-scale-y-[1]'
+										: ''}"
+									class:text-gray-200={sort_by !== i}
+									on:click={() => handle_sort(i)}
+								>
+									<svg
+										width="1em"
+										height="1em"
+										class="fill-current text-[10px]"
+										viewBox="0 0 9 7"
+										fill="none"
+										xmlns="http://www.w3.org/2000/svg"
+									>
+										<path d="M4.49999 0L8.3971 6.75H0.602875L4.49999 0Z" />
+									</svg>
+								</div>
 							</div>
-						</td>
+						</th>
 					{/each}
 				</tr>
-			{/each}
-		</tbody>
-	</table>
+			</thead>
+
+			<tbody class="overflow-scroll">
+				{#each data as row, i (row)}
+					<tr
+						class="group border-b last:border-none divide-x dark:divide-gray-800 space-x-4 odd:bg-gray-50 dark:odd:bg-gray-900 group focus:bg-gradient-to-b focus:from-blue-100 dark:focus:from-blue-900 focus:to-blue-50 dark:focus:to-gray-900 focus:odd:bg-white"
+					>
+						{#each row as { value, id }, j (id)}
+							<td
+								tabindex="0"
+								bind:this={els[id].cell}
+								on:click={() => handle_cell_click(id)}
+								on:dblclick={() => start_edit(id)}
+								on:keydown={(e) => handle_keydown(e, i, j, id)}
+								class=" outline-none focus-within:ring-1 ring-orange-500 ring-inset focus-within:bg-orange-50 group-last:first:rounded-bl-lg group-last:last:rounded-br-lg relative"
+							>
+								<div
+									class:border-transparent={selected !== id}
+									class="min-h-[2.3rem] h-full  outline-none flex items-center"
+								>
+									<EditableCell
+										bind:value
+										bind:el={els[id].input}
+										edit={editing === id}
+									/>
+								</div>
+							</td>
+						{/each}
+					</tr>
+				{/each}
+			</tbody>
+		</table>
+	</Upload>
 </div>
 {#if editable}
 	<div class="flex justify-end space-x-1 pt-2 text-gray-800">

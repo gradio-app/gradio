@@ -23,5 +23,6 @@
 	tabindex="-1"
 	role="button"
 	class:opacity-0={edit}
+	class:pointer-events-none={edit}
 	class="p-2  outline-none border-0 flex-1">{value}</span
 >
