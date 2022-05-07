@@ -4,6 +4,8 @@
 
 	export let headers: Array<string> = [];
 	export let values: Array<Array<string | number>> = [[]];
+	export let col_count: [number, "fixed" | "dynamic"];
+	export let row_count: [number, "fixed" | "dynamic"];
 
 	export let style: string = "";
 
@@ -22,11 +24,13 @@
 
 	function make_headers(_h: Array<string>): Headers {
 		if (!_h || _h.length === 0) {
-			return values[0].map((_, i) => {
-				const _id = `h-${i}`;
-				els[_id] = { cell: null, input: null };
-				return { id: _id, value: JSON.stringify(i + 1) };
-			});
+			return Array(col_count[0])
+				.fill(0)
+				.map((_, i) => {
+					const _id = `h-${i}`;
+					els[_id] = { cell: null, input: null };
+					return { id: _id, value: JSON.stringify(i + 1) };
+				});
 		} else {
 			return _h.map((h, i) => {
 				const _id = `h-${i}`;
@@ -37,29 +41,22 @@
 	}
 
 	function process_data(_values: Array<Array<string | number>>) {
-		return (
-			_values.map((x, i) =>
-				x.map((n, j) => {
-					const id = `${i}-${j}`;
-					els[id] = { input: null, cell: null };
-					return { value: n, id };
-				})
-			) || [
-				Array(headers.length)
+		return Array(row_count[0])
+			.fill(0)
+			.map((x, i) =>
+				Array(col_count[0])
 					.fill(0)
-
-					.map((_, j) => {
-						const id = `0-${j}`;
+					.map((n, j) => {
+						const id = `${i}-${j}`;
 						els[id] = { input: null, cell: null };
-
-						return { value: "", id: `0-${j}` };
+						return { value: _values?.[i]?.[j] || "", id };
 					})
-			]
-		);
+			);
 	}
 
 	let _headers = make_headers(headers);
 	let old_headers: Array<string> | undefined;
+
 	$: {
 		if (!is_equal(headers, old_headers)) {
 			_headers = make_headers(headers);
@@ -225,6 +222,7 @@
 					event.preventDefault();
 					selected = _selected ? _selected.id : selected;
 				}
+				editing = false;
 
 				break;
 			default:
@@ -264,7 +262,7 @@
 
 		if (type === "select" && typeof id == "string") {
 			const { cell } = els[id];
-			cell?.setAttribute("tabindex", "0");
+			// cell?.setAttribute("tabindex", "0");
 			await tick();
 			cell?.focus();
 		}
@@ -329,6 +327,7 @@
 	}
 
 	function add_row(index?: number) {
+		if (row_count[1] !== "dynamic") return;
 		data.splice(
 			index ? index + 1 : data.length,
 			0,
@@ -342,6 +341,7 @@
 	}
 
 	async function add_col() {
+		if (col_count[1] !== "dynamic") return;
 		for (let i = 0; i < data.length; i++) {
 			const _id = `${i}-${data[i].length}`;
 			els[_id] = { cell: null, input: null };
@@ -470,6 +470,7 @@
 				>
 					{#each row as { value, id }, j (id)}
 						<td
+							tabindex="0"
 							bind:this={els[id].cell}
 							on:click={() => handle_cell_click(id)}
 							on:dblclick={() => start_edit(id)}
@@ -514,40 +515,43 @@
 </div>
 {#if editable}
 	<div class="flex justify-end space-x-1 pt-2 text-gray-800">
-		<button class="!flex-none gr-button group" on:click={() => add_row()}
-			><svg
-				xmlns="http://www.w3.org/2000/svg"
-				xmlns:xlink="http://www.w3.org/1999/xlink"
-				aria-hidden="true"
-				role="img"
-				class="mr-1 group-hover:text-orange-500"
-				width="1em"
-				height="1em"
-				preserveAspectRatio="xMidYMid meet"
-				viewBox="0 0 32 32"
-				><path
-					fill="currentColor"
-					d="M24.59 16.59L17 24.17V4h-2v20.17l-7.59-7.58L6 18l10 10l10-10l-1.41-1.41z"
-				/></svg
-			>New row</button
-		>
-		<button class="!flex-none gr-button group" on:click={add_col}>
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				xmlns:xlink="http://www.w3.org/1999/xlink"
-				aria-hidden="true"
-				role="img"
-				class="mr-1 group-hover:text-orange-500"
-				width="1em"
-				height="1em"
-				preserveAspectRatio="xMidYMid meet"
-				viewBox="0 0 32 32"
-				><path
-					fill="currentColor"
-					d="m18 6l-1.43 1.393L24.15 15H4v2h20.15l-7.58 7.573L18 26l10-10L18 6z"
-				/></svg
+		{#if row_count[1] === "dynamic"}
+			<button class="!flex-none gr-button group" on:click={() => add_row()}
+				><svg
+					xmlns="http://www.w3.org/2000/svg"
+					xmlns:xlink="http://www.w3.org/1999/xlink"
+					aria-hidden="true"
+					role="img"
+					class="mr-1 group-hover:text-orange-500"
+					width="1em"
+					height="1em"
+					preserveAspectRatio="xMidYMid meet"
+					viewBox="0 0 32 32"
+					><path
+						fill="currentColor"
+						d="M24.59 16.59L17 24.17V4h-2v20.17l-7.59-7.58L6 18l10 10l10-10l-1.41-1.41z"
+					/></svg
+				>New row</button
 			>
-			New column</button
-		>
+		{/if}
+		{#if col_count[1] === "dynamic"}
+			<button class="!flex-none gr-button group" on:click={add_col}>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					xmlns:xlink="http://www.w3.org/1999/xlink"
+					aria-hidden="true"
+					role="img"
+					class="mr-1 group-hover:text-orange-500"
+					width="1em"
+					height="1em"
+					preserveAspectRatio="xMidYMid meet"
+					viewBox="0 0 32 32"
+					><path
+						fill="currentColor"
+						d="m18 6l-1.43 1.393L24.15 15H4v2h20.15l-7.58 7.573L18 26l10-10L18 6z"
+					/></svg
+				>
+				New column</button
+			>{/if}
 	</div>
 {/if}
