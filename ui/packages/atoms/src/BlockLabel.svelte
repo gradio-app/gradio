@@ -23,7 +23,7 @@
 
 <div
 	class:sr-only={!show_label}
-	class="absolute left-0 top-0 py-1 px-2 rounded-br-lg shadow-sm text-xs text-gray-500 flex items-center pointer-events-none bg-white z-20 border-b border-r border-gray-100"
+	class="absolute left-0 top-0 py-1 px-2 rounded-br-lg shadow-sm text-xs text-gray-500 flex items-center pointer-events-none bg-white z-20 border-b border-r border-gray-100 dark:bg-gray-900"
 >
 	<img src={image} alt="" class="mr-2 h-[12px] w-[12px] opacity-50" />
 

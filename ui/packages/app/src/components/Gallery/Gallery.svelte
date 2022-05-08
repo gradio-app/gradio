@@ -77,7 +77,7 @@
 		{#if selected_image !== null}
 			<div
 				on:keydown={on_keydown}
-				class="absolute inset-0 z-10 flex flex-col bg-white/90 backdrop-blur min-h-[350px] xl:min-h-[450px] max-h-[55vh]"
+				class="absolute inset-0 z-10 flex flex-col bg-white/90 dark:bg-gray-900 backdrop-blur min-h-[350px] xl:min-h-[450px] max-h-[55vh]"
 			>
 				<ModifyUpload on:clear={() => (selected_image = null)} />
 
@@ -134,6 +134,6 @@
 
 <style lang="postcss">
 	.gallery-item {
-		@apply rounded shadow-sm relative aspect-square h-full hover:brightness-110 focus:ring-blue-500 focus:ring-2 ring-1 ring-gray-200 hover:ring hover:ring-orange-300 w-full overflow-hidden bg-gray-100 object-fill outline-none;
+		@apply rounded shadow-sm relative aspect-square h-full hover:brightness-110 focus:ring-blue-500 focus:ring-2 ring-1 ring-gray-200 hover:ring hover:ring-orange-300 w-full overflow-hidden bg-gray-100 dark:bg-gray-900 object-fill outline-none;
 	}
 </style>

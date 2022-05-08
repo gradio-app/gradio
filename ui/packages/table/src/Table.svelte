@@ -472,7 +472,9 @@
 			class:opacity-40={dragging}
 		>
 			<thead class="sticky top-0 left-0 right-0 bg-white shadow-sm z-10">
-				<tr class="border-b divide-x dark:divide-gray-800 text-left">
+				<tr
+					class="border-b  dark:border-gray-700 divide-x dark:divide-gray-700 text-left"
+				>
 					{#each _headers as { value, id }, i (id)}
 						<th
 							bind:this={els[id].cell}
@@ -523,7 +525,7 @@
 			<tbody class="overflow-y-scroll">
 				{#each data as row, i (row)}
 					<tr
-						class="group border-b last:border-none divide-x dark:divide-gray-800 space-x-4 odd:bg-gray-50 dark:odd:bg-gray-900 group focus:bg-gradient-to-b focus:from-blue-100 dark:focus:from-blue-900 focus:to-blue-50 dark:focus:to-gray-900 focus:odd:bg-white"
+						class="group border-b dark:border-gray-700 last:border-none divide-x dark:divide-gray-700 space-x-4 odd:bg-gray-50 dark:odd:bg-gray-900 group focus:bg-gradient-to-b focus:from-blue-100 dark:focus:from-blue-900 focus:to-blue-50 dark:focus:to-gray-900 focus:odd:bg-white"
 					>
 						{#each row as { value, id }, j (id)}
 							<td
@@ -532,7 +534,7 @@
 								on:click={() => handle_cell_click(id)}
 								on:dblclick={() => start_edit(id)}
 								on:keydown={(e) => handle_keydown(e, i, j, id)}
-								class=" outline-none focus-within:ring-1 ring-orange-500 ring-inset focus-within:bg-orange-50 group-last:first:rounded-bl-lg group-last:last:rounded-br-lg relative"
+								class=" outline-none focus-within:ring-1 ring-orange-500 ring-inset focus-within:bg-orange-50 dark:focus-within:bg-gray-800 group-last:first:rounded-bl-lg group-last:last:rounded-br-lg relative"
 							>
 								<div
 									class:border-transparent={selected !== id}
