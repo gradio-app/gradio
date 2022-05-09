@@ -1949,7 +1949,7 @@ class Dataframe(Changeable, IOComponent):
             [datatype] * self.col_count[0] if isinstance(datatype, str) else datatype
         )
         self.test_input = [
-            [default_values[c] for c in column_dtypes] for _ in range(row_count[0])
+            [default_values[c] for c in column_dtypes] for _ in range(self.row_count[0])
         ]
         self.default_value = (
             default_value if default_value is not None else self.test_input
