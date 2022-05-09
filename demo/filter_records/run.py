@@ -12,6 +12,7 @@ demo = gr.Interface(
             headers=["name", "age", "gender"],
             datatype=["str", "number", "str"],
             row_count=5,
+            col_count=(3, "fixed")
         ),
         gr.Dropdown(["M", "F", "O"]),
     ],

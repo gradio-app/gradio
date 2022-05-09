@@ -3,7 +3,7 @@ import gradio as gr
 
 def tax_calculator(income, marital_status, assets):
     tax_brackets = [(10, 0), (25, 8), (60, 12), (120, 20), (250, 30)]
-    total_deductible = sum(assets[assets["Deduct"]]["Cost"])
+    total_deductible = sum(assets["Cost"])
     taxable_income = income - total_deductible
 
     total_tax = 0
@@ -25,15 +25,15 @@ demo = gr.Interface(
         "number",
         gr.Radio(["Single", "Married", "Divorced"]),
         gr.Dataframe(
-            headers=["Item", "Cost", "Deduct"],
-            datatype=["str", "number", "bool"],
+            headers=["Item", "Cost"],
+            datatype=["str", "number"],
             label="Assets Purchased this Year",
         ),
     ],
     "number",
     examples=[
-        [10000, "Married", [["Car", 5000, False], ["Laptop", 800, True]]],
-        [80000, "Single", [["Suit", 800, True], ["Watch", 1800, False]]],
+        [10000, "Married", [["Suit", 5000], ["Laptop", 800], ["Car", 1800]]],
+        [80000, "Single", [["Suit", 800], ["Watch", 1800], ["Car", 800]]],
     ],
 )
 

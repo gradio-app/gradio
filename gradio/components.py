@@ -1901,10 +1901,9 @@ class Dataframe(Changeable, IOComponent):
         default_value: Optional[List[List[Any]]] = None,
         *,
         headers: Optional[List[str]] = None,
-        row_count: int = 3,
-        col_count: Optional[int] = 3,
+        row_count: int | Tuple[int, str] = (3, "dynamic"),
+        col_count: Optional[int | Tuple[int, str]] = None,
         datatype: str | List[str] = "str",
-        col_width: int | List[int] = None,
         type: str = "pandas",
         label: Optional[str] = None,
         max_rows: Optional[int] = 20,
@@ -1917,10 +1916,9 @@ class Dataframe(Changeable, IOComponent):
         Input Parameters:
         default_value (List[List[Any]]): Default value as a pandas DataFrame. TODO: Add support for default value as a filepath
         headers (List[str]): Header names to dataframe. If None, no headers are shown.
-        row_count (int): Limit number of rows for input.
-        col_count (int): Limit number of columns for input. If equal to 1, return data will be one-dimensional. Ignored if `headers` is provided.
+        row_count (Union[int, Tuple[int, str]]): Limit number of rows for input and decide whether user can create new rows. The first element of the tuple is an `int`, the row count; the second should be 'fixed' or 'dynamic', the new row behaviour. If an `int` is passed the rows default to 'dynamic'
+        col_count (Union[int, Tuple[int, str]]): Limit number of columns for input and decide whether user can create new columns. The first element of the tuple is an `int`, the number of columns; the second should be 'fixed' or 'dynamic', the new column behaviour. If an `int` is passed the columns default to 'dynamic'
         datatype (Union[str, List[str]]): Datatype of values in sheet. Can be provided per column as a list of strings, or for the entire sheet as a single string. Valid datatypes are "str", "number", "bool", and "date".
-        col_width (Union[int, List[int]]): Width of columns in pixels. Can be provided as single value or list of values per column.
         type (str): Type of value to be returned by component. "pandas" for pandas dataframe, "numpy" for numpy array, or "array" for a Python array.
         label (str): component name in interface.
         Output Parameters:
@@ -1929,11 +1927,16 @@ class Dataframe(Changeable, IOComponent):
         max_cols (int): Maximum number of columns to display at once. Set to None for infinite.
         overflow_row_behaviour (str): If set to "paginate", will create pages for overflow rows. If set to "show_ends", will show initial and final rows and truncate middle rows.
         """
+
+        self.row_count = self.__process_counts(row_count)
+        self.col_count = self.__process_counts(
+            col_count, len(headers) if headers else 3
+        )
+
+        self.__validate_headers(headers, self.col_count[0])
+
         self.headers = headers
         self.datatype = datatype
-        self.row_count = row_count
-        self.col_count = len(headers) if headers else col_count
-        self.col_width = col_width
         self.type = type
         self.output_type = "auto"
         default_values = {
@@ -1943,10 +1946,10 @@ class Dataframe(Changeable, IOComponent):
             "date": "01/01/1970",
         }
         column_dtypes = (
-            [datatype] * self.col_count if isinstance(datatype, str) else datatype
+            [datatype] * self.col_count[0] if isinstance(datatype, str) else datatype
         )
         self.test_input = [
-            [default_values[c] for c in column_dtypes] for _ in range(row_count)
+            [default_values[c] for c in column_dtypes] for _ in range(self.row_count[0])
         ]
         self.default_value = (
             default_value if default_value is not None else self.test_input
@@ -1962,7 +1965,6 @@ class Dataframe(Changeable, IOComponent):
             "datatype": self.datatype,
             "row_count": self.row_count,
             "col_count": self.col_count,
-            "col_width": self.col_width,
             "default_value": self.default_value,
             "max_rows": self.max_rows,
             "max_cols": self.max_cols,
@@ -1982,7 +1984,7 @@ class Dataframe(Changeable, IOComponent):
                 return pd.DataFrame(x, columns=self.headers)
             else:
                 return pd.DataFrame(x)
-        if self.col_count == 1:
+        if self.col_count[0] == 1:
             x = [row[0] for row in x]
         if self.type == "numpy":
             return np.array(x)
@@ -2042,6 +2044,24 @@ class Dataframe(Changeable, IOComponent):
                 "Unknown type: "
                 + self.type
                 + ". Please choose from: 'pandas', 'numpy', 'array'."
+            )
+
+    @staticmethod
+    def __process_counts(count, default=3):
+        if count is None:
+            return (default, "dynamic")
+        if type(count) == int or type(count) == float:
+            return (int(count), "dynamic")
+        else:
+            return count
+
+    @staticmethod
+    def __validate_headers(headers: List[str] | None, col_count: int):
+        if headers is not None and len(headers) != col_count:
+            raise ValueError(
+                "The length of the headers list must be equal to the col_count int.\nThe column count is set to {cols} but `headers` has {headers} items. Check the values passed to `col_count` and `headers`.".format(
+                    cols=col_count, headers=len(headers)
+                )
             )
 
 
