@@ -52,7 +52,8 @@
       gtag('js', new Date());
       gtag('config', 'UA-156449732-1');
     </script>
-
+<!--  <script defer id="gradio-library" type="module" crossorigin src="/assets/gradio-library/index.3aee2a84.js"></script>-->
+<!--  <link rel="modulepreload" href="/assets/gradio-library/index.5565f236.css">-->
 </head>
 
 <body>
@@ -196,7 +197,8 @@
           {% for func in docs["components"] %}
           <div id="{{ func['name'].lower() }}" class="func">
             <h3 id="{{ func['name'].lower() }}-header" class="text-3xl font-light my-4">{{ func['name'] }}</h3>
-            <pre ><code class="lang-python">gradio.components.<span>{{ func["name"] }}(</span><!--
+            <div id='{{ func["name"].lower() }}_component'></div>
+            <pre><code class="lang-python">gradio.components.<span>{{ func["name"] }}(</span><!--
             -->{% for param in func["params"] %}<!--
               -->{% if param|length == 1 %}<!--
                 -->{{ param[0] }}<!--
@@ -442,6 +444,62 @@
       }
       });
 
+<!--      // embedding components-->
+
+<!--      document.querySelector("#gradio-library").addEventListener('load', function () {-->
+
+<!--      var target, config-->
+
+<!--      {% for component in docs["components"] %}-->
+<!--        {% if not component["name"].lower() in ['checkboxgroup', 'dropdown', 'radio', 'state'] %}-->
+<!--           target = '#{{ component["name"].lower() }}_component'-->
+<!--           config = {-->
+<!--          "mode": "blocks",-->
+<!--          "components": [-->
+<!--            {-->
+<!--              "id": 1,-->
+<!--              "type": "{{ component["name"].lower() }}",-->
+<!--              "props": {-->
+<!--              "label": "input"-->
+<!--              }-->
+<!--            },-->
+<!--            {-->
+<!--              "id": 2,-->
+<!--              "type": "textbox",-->
+<!--              "props": {},-->
+<!--            },-->
+<!--              {-->
+<!--              "id": 3,-->
+<!--              "type": "button",-->
+<!--              "props": {}-->
+<!--            },-->
+<!--          ],-->
+<!--          "theme": "default",-->
+<!--          "layout": {-->
+<!--            "id": 0, "children": [-->
+<!--                {"id": 1}-->
+<!--                ]-->
+<!--          },-->
+<!--          "dependencies": [-->
+<!--              {-->
+<!--              "targets": [-->
+<!--                3-->
+<!--              ],-->
+<!--              "trigger": "click",-->
+<!--              "inputs": [-->
+<!--                1-->
+<!--              ],-->
+<!--              "outputs": [-->
+<!--                2-->
+<!--              ],-->
+<!--              "queue": false-->
+<!--            },-->
+<!--          ]-->
+<!--        }-->
+<!--      window.launchGradio(config, target);-->
+<!--      {% endif %}-->
+<!--    {% endfor %}-->
+<!--    });-->
 
   </script>
 </body>
