@@ -24,7 +24,7 @@ These are all use cases where you should use the Blocks API!
 
 ### "Hello World" with Blocks
 
-After you have installed Gradio, run the code below as a Python script or in a Python notebook (or in a  [colab notebook](https://colab.research.google.com/drive/18ODkJvyxHutTN0P5APWyGFO_xwNcgHDZ?usp=sharing))
+After you have installed Gradio, run the code below as a Python script or in a Python notebook (or in a  [colab notebook](https://colab.research.google.com/drive/1n_uB44G_uENGf0zroeVKgcytFQ-7UwZt?usp=sharing))
 
 {{ code["blocks_hello"] }}
 
