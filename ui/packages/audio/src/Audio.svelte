@@ -158,7 +158,7 @@
 		<div class="mt-6 p-2">
 			{#if recording}
 				<button class="gr-button !bg-red-500/10" on:click={stop}>
-					<span class="flex h-1.5 w-1.5 relative mr-2">
+					<span class="flex h-1.5 w-1.5 relative mr-2 ">
 						<span
 							class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"
 						/>
@@ -169,7 +169,7 @@
 					<div class="whitespace-nowrap text-red-500">Stop recording</div>
 				</button>
 			{:else}
-				<button class="gr-button" on:click={record}>
+				<button class="gr-button text-gray-800" on:click={record}>
 					<span class="flex h-1.5 w-1.5 relative mr-2">
 						<span
 							class="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"
