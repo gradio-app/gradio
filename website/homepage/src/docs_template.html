@@ -61,9 +61,9 @@
     <main class="flex gap-4">
       <div class="py-4 navigation h-screen leading-relaxed sticky top-0 bg-gray-50 text-md overflow-y-auto hidden md:block" style="min-width: 18%">
         <a class="px-4 link mb-2 block border-orange-500 text-orange-500 md:border-l-2 pl-8" href="#creating_interfaces">Creating Interfaces</a>
-        <a class="px-4 block thin-link" href="#interface">Interfaces</a>
-        <a class="px-4 block thin-link" href="#launch">Launching</a>
-        <a class="px-4 block thin-link" href="#load">Loading</a>
+        <a class="px-4 block thin-link" href="#interface">Interface</a>
+        <a class="px-4 block thin-link" href="#launch">Launch</a>
+        <a class="px-4 block thin-link" href="#load">Load</a>
         <a class="px-4 link my-2 block" href="#components">Components</h4>
         {% for component in docs["components"] %}
         <a class="px-4 block thin-link" href="#{{ component["name"].lower() }}">{{ component["name"] }}</a>
@@ -85,14 +85,34 @@
             -->{% if not loop.last %}, {% endif %}<!--
           -->{% endfor %})</code></pre>
             <p class="mb-2 w-4/5 mt-4 leading-8">{{ docs.interface["doc"] }}</p>
-            <h4 class="font-semibold mb-2">Parameters</h4>
-            <ul class="list-disc list-inside">
+            <table class="w-full my-4">
+              <thead class="text-left">
+                <tr>
+                  <th class="font-semibold w-2/5">Parameter</th>
+                  <th class="font-semibold">Description</th>
+                </tr>
+              </thead>
+            </table>
+            <table class="w-full my-4 rounded-lg bg-gray-100">
+              <tbody class="text-left align-top">
               {% for param in docs.interface["params_doc"] %}
-              <li><span class="font-semibold">{{ param[0] }}</span> <em>({{ param[1] }})</em> - {{ param[2] }}</li>
+                  <tr class="group hover:bg-gray-200">
+                    <td class="p-2 w-2/5">
+                      <code class=“prettyprint”>{{ param[0] }}</code>
+                      <p class="text-gray-500 italic">{{ param[1] }}</p>
+                    </td>
+                    <td class="p-2">
+                      <p>{{ param[2] }}</p>
+                    </td>
+                  </tr>
               {% endfor %}
-            </ul>
+              </tbody>
+            </table>
           </div>
           <div id="launch" class="func">
+            <div class="py-4">
+              <div class="w-full border-t border-gray-200"></div>
+            </div>
             <h3 id="launch-header" class="text-3xl font-light my-4">Launch</h3>
             <pre><code class='lang-python'>gradio.Interface().launch(<!--
             -->{% for param in docs.launch["params"] %}<!--
@@ -103,15 +123,35 @@
               -->{% endif %}<!--
               -->{% if not loop.last %}, {% endif %}<!--
             -->{% endfor %})</code></pre>
-            <p class="mb-2 w-4/5 mt-4 leading-8">Launches the webserver that serves the UI for the interface.</p>
-            <h4 class="font-semibold mb-2">Parameters</h4>
-            <ul class="list-disc list-inside">
+            <p class="mb-2 w-4/5 mt-4">Launches the webserver that serves the UI for the interface.</p>
+            <table class="w-full my-4">
+              <thead class="text-left">
+                <tr>
+                  <th class="font-semibold w-2/5">Parameter</th>
+                  <th class="font-semibold">Description</th>
+                </tr>
+              </thead>
+            </table>
+            <table class="w-full my-4 rounded-lg bg-gray-100">
+              <tbody class="text-left align-top">
               {% for param in docs.launch["params_doc"] %}
-              <li><span class="font-semibold">{{ param[0] }}</span> <em>({{ param[1] }})</em> - {{ param[2] }}</li>
+                  <tr class="group hover:bg-gray-200">
+                    <td class="p-2 w-2/5">
+                      <code class=“prettyprint”>{{ param[0] }}</code>
+                      <p class="text-gray-500 italic">{{ param[1] }}</p>
+                    </td>
+                    <td class="p-2">
+                      <p>{{ param[2] }}</p>
+                    </td>
+                  </tr>
               {% endfor %}
-            </ul>
+              </tbody>
+            </table>
           </div>
           <div id="load" class="func">
+            <div class="py-4">
+              <div class="w-full border-t border-gray-200"></div>
+            </div>
             <h3 id="load-header" class="text-3xl font-light my-4">Load</h3>
             <pre><code class='lang-python'>gradio.Interface.load(<!--
             -->{% for param in docs.load["params"] %}<!--
@@ -122,19 +162,33 @@
               -->{% endif %}<!--
               -->{% if not loop.last %}, {% endif %}<!--
             -->{% endfor %})</code></pre>
-            <p class="mb-2 w-4/5 mt-4 leading-8">Class method to construct an Interface from an external source repository, such as huggingface.</p>
-            <h4 class="font-semibold mb-2">Parameters</h4>
-            <ul class="list-disc list-inside">
+            <p class="mb-2 w-4/5 mt-4">Class method to construct an Interface from an external source repository, such as huggingface. Returns a Gradio Interface object for the given model</p>
+            <table class="w-full my-4">
+              <thead class="text-left">
+                <tr>
+                  <th class="font-semibold w-2/5">Parameter</th>
+                  <th class="font-semibold">Description</th>
+                </tr>
+              </thead>
+            </table>
+            <table class="w-full my-4 rounded-lg bg-gray-100">
+              <tbody class="text-left align-top">
               {% for param in docs.load["params_doc"] %}
-              <li><span class="font-semibold">{{ param[0] }}</span> <em>({{ param[1] }})</em> - {{ param[2] }}</li>
+                  <tr class="group hover:bg-gray-200">
+                    <td class="p-2 w-2/5">
+                      <code class=“prettyprint”>{{ param[0] }}</code>
+                      <p class="text-gray-500 italic">{{ param[1] }}</p>
+                    </td>
+                    <td class="p-2">
+                      <p>{{ param[2] }}</p>
+                    </td>
+                  </tr>
               {% endfor %}
-            </ul>
-            <h4 class="font-semibold mb-2">Returns</h4>
-            <ul class="list-disc list-inside">
-              {% for ret in docs.load["return_doc"] %}
-              <li><em>({{ ret[0] }})</em> - {{ ret[1] }}</li>
-              {% endfor %}
-            </ul>
+              </tbody>
+            </table>
+            <div class="py-4">
+              <div class="w-full border-t border-gray-200"></div>
+            </div>
           </div>
         </section>
         <h2 id="components" class="text-4xl font-light my-4 text-orange-500">Components</h2>
@@ -151,14 +205,31 @@
               -->{% endif %}<!--
               -->{% if not loop.last %}, {% endif %}<!--
             -->{% endfor %}<span>)</span></code></pre>
-            <p class="w-4/5 mt-4 leading-8">{{ func["doc"] }}</p>
+            <p class="w-4/5 mt-4">{{ func["doc"] }}</p>
             <p class="text-gray-500 italic">Input type: {{ func["Input type"] }}</p>
-            <h4 class="font-semibold mb-2">Parameters</h4>
-            <ul class="list-disc list-inside">
+            <table class="w-full my-4">
+              <thead class="text-left">
+                <tr>
+                  <th class="font-semibold w-2/5">Parameter</th>
+                  <th class="font-semibold">Description</th>
+                </tr>
+              </thead>
+            </table>
+            <table class="w-full my-4 rounded-lg bg-gray-100">
+              <tbody class="text-left align-top">
               {% for param in func["params_doc"] %}
-              <li><span class="font-semibold">{{ param[0] }}</span> <em>({{ param[1] }})</em> - {{ param[2] }}</li>
+                  <tr class="group hover:bg-gray-200">
+                    <td class="p-2 w-2/5">
+                      <code class=“prettyprint”>{{ param[0] }}</code>
+                      <p class="text-gray-500 italic">{{ param[1] }}</p>
+                    </td>
+                    <td class="p-2">
+                      <p>{{ param[2] }}</p>
+                    </td>
+                  </tr>
               {% endfor %}
-            </ul>
+              </tbody>
+            </table>
             {% if func["shortcuts"]|length %}
             <h4 class="my-2 font-semibold">String Shortcuts</h4>
             <ul class="list-disc list-inside">
@@ -224,7 +295,13 @@
               </div>
               {% endfor %}
             </div>
+            {% if not loop.last %}
+              <div class="py-4">
+                <div class="w-full border-t border-gray-200"></div>
+              </div>
+            {% endif %}
           </div>
+
           {% endfor %}
         </section>
       </div>
