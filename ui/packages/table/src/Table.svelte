@@ -456,10 +456,11 @@
 <svelte:window on:click={handle_click_outside} />
 
 <div
-	class="overflow-hidden rounded-lg relative border transition-colors"
+	class="scroll-hide whitespace-nowrap overflow-hidden rounded-lg relative border transition-colors overflow-x-scroll"
 	class:border-green-400={dragging}
 >
 	<Upload
+		flex={false}
 		center={false}
 		boundedheight={false}
 		click={false}
@@ -467,7 +468,7 @@
 		bind:dragging
 	>
 		<table
-			class="table-auto font-mono w-full text-gray-900 text-sm transition-opacity"
+			class="table-auto font-mono w-full text-gray-900 text-sm transition-opacity overflow-hidden "
 			class:opacity-40={dragging}
 		>
 			<thead class="sticky top-0 left-0 right-0 bg-white shadow-sm z-10">
@@ -519,7 +520,7 @@
 				</tr>
 			</thead>
 
-			<tbody class="overflow-scroll">
+			<tbody class="overflow-y-scroll">
 				{#each data as row, i (row)}
 					<tr
 						class="group border-b last:border-none divide-x dark:divide-gray-800 space-x-4 odd:bg-gray-50 dark:odd:bg-gray-900 group focus:bg-gradient-to-b focus:from-blue-100 dark:focus:from-blue-900 focus:to-blue-50 dark:focus:to-gray-900 focus:odd:bg-white"
