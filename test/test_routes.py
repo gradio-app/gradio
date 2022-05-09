@@ -45,9 +45,7 @@ class TestRoutes(unittest.TestCase):
         self.assertEqual(output["data"], ["testtest"])
 
     def test_predict_route_without_fn_index(self):
-        response = self.client.post(
-            "/api/predict/", json={"data": ["test"]}
-        )
+        response = self.client.post("/api/predict/", json={"data": ["test"]})
         self.assertEqual(response.status_code, 200)
         output = dict(response.json())
         self.assertEqual(output["data"], ["testtest"])

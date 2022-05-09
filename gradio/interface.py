@@ -450,10 +450,8 @@ class Interface(Blocks):
             cache_interface_examples(self)
 
         if self.allow_flagging != "never":
-            if self.interface_type == self.InterfaceTypes.UNIFIED:            
-                self.flagging_callback.setup(
-                    self.input_components, self.flagging_dir
-                )
+            if self.interface_type == self.InterfaceTypes.UNIFIED:
+                self.flagging_callback.setup(self.input_components, self.flagging_dir)
             elif self.interface_type == self.InterfaceTypes.INPUT_ONLY:
                 pass
             else:
@@ -520,7 +518,7 @@ class Interface(Blocks):
                                 clear_btn = Button("Clear", variant="secondary")
                                 submit_btn = Button("Generate")
                             if self.allow_flagging == "manual":
-                                flag_btn = Button("Flag", variant="secondary")                                
+                                flag_btn = Button("Flag", variant="secondary")
                             if self.interpretation:
                                 interpretation_btn = Button(
                                     "Interpret", variant="secondary"
@@ -579,27 +577,23 @@ class Interface(Blocks):
             if self.allow_flagging == "manual":
                 if self.interface_type in [
                     self.InterfaceTypes.STANDARD,
-                    self.InterfaceTypes.OUTPUT_ONLY]:
+                    self.InterfaceTypes.OUTPUT_ONLY,
+                ]:
                     flag_btn.click(
-                        lambda *flag_data: self.flagging_callback.flag(
-                            flag_data
-                        ),
-                        inputs=self.input_components
-                        + self.output_components,
+                        lambda *flag_data: self.flagging_callback.flag(flag_data),
+                        inputs=self.input_components + self.output_components,
                         outputs=[],
                         _preprocess=False,
                     )
                 elif self.interface_type == self.InterfaceTypes.UNIFIED:
                     flag_btn.click(
-                        lambda *flag_data: self.flagging_callback.flag(
-                            flag_data
-                        ),
+                        lambda *flag_data: self.flagging_callback.flag(flag_data),
                         inputs=self.input_components,
                         outputs=[],
                         _preprocess=False,
                         queue=False,
                     )
-            
+
             if self.examples:
                 non_state_inputs = [
                     c for c in self.input_components if not isinstance(c, Variable)
