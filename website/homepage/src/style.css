@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+
+.btn-star {
+    @apply cursor-pointer select-none inline-flex justify-center items-center whitespace-nowrap px-3 py-1 rounded-lg border bg-gradient-to-b focus:outline-none focus:ring text-gray-800 border-gray-200 from-white to-gray-100 hover:shadow-inner;
+}
+
 .link {
     @apply font-semibold hover:text-blue-500 transition-colors;
 }
