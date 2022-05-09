@@ -12,4 +12,5 @@ with gr.Blocks() as demo:
     
     btn.click(complete_with_gpt, textbox, textbox)
     
-demo.launch()
+if __name__ == "__main__":
+    demo.launch()
