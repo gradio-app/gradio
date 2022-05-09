@@ -12,6 +12,8 @@
 	export let default_value: Array<Array<string | number>> = [["", "", ""]];
 	export let style: string = "";
 	export let mode: "static" | "dynamic";
+	export let col_count: [number, "fixed" | "dynamic"];
+	export let row_count: [number, "fixed" | "dynamic"];
 
 	if (default_value) value = default_value;
 
@@ -39,6 +41,8 @@
 <div class="relative">
 	<StatusTracker {...loading_status} />
 	<Table
+		{row_count}
+		{col_count}
 		values={value}
 		{headers}
 		{style}
