@@ -8,6 +8,9 @@
 	export let include_file_metadata = true;
 	export let dragging = false;
 	export let style: string = "";
+	export let boundedheight: boolean = true;
+	export let click: boolean = true;
+	export let center: boolean = true;
 
 	let hidden_upload: HTMLInputElement;
 	let file_count: "multiple" | "directory" | "single";
@@ -19,6 +22,7 @@
 	};
 
 	const openFileUpload = () => {
+		if (!click) return;
 		hidden_upload.click();
 	};
 
@@ -64,7 +68,10 @@
 </script>
 
 <div
-	class="w-full cursor-pointer h-full flex items-center justify-center text-center text-gray-400 md:text-xl max-h-[15rem] xl:max-h-[18rem] 2xl:max-h-[20rem] min-h-[10rem] md:min-h-[15rem]"
+	class="w-full cursor-pointer h-full flex items-center justify-center text-gray-400 md:text-xl {boundedheight
+		? 'min-h-[10rem] md:min-h-[15rem] max-h-[15rem] xl:max-h-[18rem] 2xl:max-h-[20rem]'
+		: ''}"
+	class:text-center={center}
 	{theme}
 	on:drag|preventDefault|stopPropagation
 	on:dragstart|preventDefault|stopPropagation
