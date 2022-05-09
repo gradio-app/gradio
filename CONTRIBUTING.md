@@ -31,8 +31,14 @@ bash scripts/build_frontend.sh
 ```
 bash scripts/install_test_requirements.sh
 ```
+* It is recommended to use **Python 3.9** for development. If you have a different Python version and conflicting packages during the installation, you can run
 
-* Install [chrome driver](https://sites.google.com/chromium.org/driver/) and [chrome](https://www.google.com/chrome/) for selenium (necessary for tests)
+```
+bash scripts/create_test_requirements.sh
+```
+```
+bash scripts/install_test_requirements.sh
+```
 
 * Run the tests
 
@@ -51,10 +57,12 @@ bash scripts/run_frontend.sh
 It's helpful to know the overall structure of the repository so that you can focus on the part of the source code you'd like to contribute to
 
 * `/gradio`: contains the Python source code for the library
-    * `/gradio/interface.py`: contains the Python source code for the core `Interface` class (**start HERE!**)
+    * `/gradio/interface.py`: contains the Python source code for the core `Interface` class
+    * `/gradio/blocks.py`: contains the Python source code for the core `Blocks` class
+    * `/gradio/components.py`: contains the Python source code for the `components`, you can add your custom components here.
 * `/ui`: contains the HTML/JS/CSS source code for the library ([start here for frontend changes](/ui/README.md))
 * `/test`: contains Python unit tests for the library
-* `/demo`: contains demos that are used in the documentation as well as for integration tests
+* `/demo`: contains demos that are used in the documentation, you can find `Gradio` examples over here.
 * `/website`: contains the code for the Gradio website (www.gradio.app). See the README in the `/website` folder for more details
 
 ### Continuous Integration and Testing
