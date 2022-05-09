@@ -42,9 +42,13 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 class Interface(Blocks):
     """
-    Gradio interfaces are created by constructing a `Interface` object
-    with a locally-defined function, or with `Interface.load()` with the path
-    to a repo or by `Interface.from_pipeline()` with a Transformers Pipeline.
+    gradio.Interface is a high-level class that allows you to create a web demo
+    simply by specifying a function, the desired input components, and desired 
+    output components. For example:
+    
+    Examples:
+        >>> gr.Interface(image_classifier, "image", "label")  
+        >>> gr.Interface(speech_to_text, "mic", gr.Textbox(label="predicted text", lines=4))      
     """
 
     # stores references to all currently existing Interface instances
