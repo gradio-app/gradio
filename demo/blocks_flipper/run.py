@@ -15,8 +15,9 @@ with demo:
     gr.Markdown("Flip text or image files using this demo.")
     with gr.Tabs():
         with gr.TabItem("Flip Text"):
-            text_input = gr.Textbox()
-            text_output = gr.Textbox()
+            with gr.Row():
+                text_input = gr.Textbox()
+                text_output = gr.Textbox()
             text_button = gr.Button("Flip")
         with gr.TabItem("Flip Image"):
             with gr.Row():
