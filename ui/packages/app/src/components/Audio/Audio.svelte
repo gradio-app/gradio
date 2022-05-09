@@ -11,6 +11,7 @@
 
 	export let mode: "static" | "dynamic";
 	export let value: null | FileData | string = null;
+	export let default_value: null | FileData | string = null;
 	export let style: string = "";
 	export let name: string;
 	export let source: "microphone" | "upload";
@@ -20,6 +21,8 @@
 	export let show_label: boolean;
 
 	export let loading_status: LoadingStatus;
+
+	if (default_value) value = default_value;
 
 	let _value: null | FileData;
 	$: _value = normalise_file(value, root);

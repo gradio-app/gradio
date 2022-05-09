@@ -16,9 +16,7 @@
 		props: {
 			name: keyof typeof component_map;
 			css: Record<string, string>;
-			width: number | null;
-			height: number | null;
-			visible: boolean | null;
+			visible: boolean;
 			[key: string]: unknown;
 		};
 	}
@@ -182,7 +180,7 @@
 					})
 						.then((output) => {
 							output.data.forEach((value, i) => {
-								if (typeof value === "object" && value.__type__ == "update") {
+								if (typeof value === "object" && value !== null && value.__type__ == "update") {
 									if (value.value) {
 										instance_map[outputs[i]].value = value.value;
 										delete value.value;
@@ -226,7 +224,18 @@
 						})
 							.then((output) => {
 								output.data.forEach((value, i) => {
-									instance_map[outputs[i]].value = value;
+									if (typeof value === "object" && value !== null && value.__type__ == "update") {
+										if (value.value) {
+											instance_map[outputs[i]].value = value.value;
+											delete value.value;
+										}
+										delete value.__type__;
+										let node = tree.filter((n) => n.id === outputs[i])[0];
+										node.props = { ...node.props, ...value };
+										tree = tree;
+									} else {
+										instance_map[outputs[i]].value = value;
+									}
 								});
 							})
 							.catch((error) => {

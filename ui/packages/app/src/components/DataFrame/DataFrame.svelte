@@ -9,8 +9,11 @@
 
 	export let headers: Headers = [];
 	export let value: Data | { data: Data; headers: Headers } = [["", "", ""]];
+	export let default_value: Array<Array<string | number>> = [["", "", ""]];
 	export let style: string = "";
 	export let mode: "static" | "dynamic";
+
+	if (default_value) value = default_value;
 
 	$: {
 		if (!Array.isArray(value)) {

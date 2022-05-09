@@ -5,6 +5,7 @@
 	import type { LoadingStatus } from "../StatusTracker/types";
 
 	export let value: boolean = false;
+	export let default_value: boolean = false;
 	export let style: string = "";
 	export let label: string = "Checkbox";
 	export let mode: "static" | "dynamic";
@@ -12,6 +13,8 @@
 	export let show_label: boolean;
 
 	export let loading_status: LoadingStatus;
+
+	if (default_value) value = default_value;
 </script>
 
 <Block {form_position}>

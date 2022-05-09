@@ -20,10 +20,11 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 
 class Block:
-    def __init__(self, *, render=True, css=None, **kwargs):
+    def __init__(self, *, render=True, css=None, visible=True, **kwargs):
         self._id = Context.id
         Context.id += 1
         self.css = css if css is not None else {}
+        self.visible = visible
         if render:
             self.render()
         check_deprecated_parameters(self.__class__.__name__, **kwargs)
@@ -125,6 +126,7 @@ class Block:
     def get_config(self):
         return {
             "css": self.css,
+            "visible": self.visible
         }
 
 

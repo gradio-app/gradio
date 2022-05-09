@@ -7,9 +7,7 @@
 	export let id: number;
 	export let props: {
 		css: Record<string, string>;
-		width: number | null;
-		height: number | null;
-		visible: boolean | null;
+		visible: boolean;
 		[key: string]: unknown;
 	};
 	export let children;
@@ -38,11 +36,17 @@
 		return () => dispatch("destroy", id);
 	});
 
-	let style = props.css
-		? Object.entries(props.css)
-				.map((rule) => rule[0] + ": " + rule[1])
-				.join("; ")
-		: null;
+	let style: string = "";
+	$: {
+		style = props.css
+			? Object.entries(props.css)
+					.map((rule) => rule[0] + ": " + rule[1])
+					.join("; ")
+			: "";
+		if (!props.visible) {
+			style += " display: hidden !important;"
+		}
+	}
 
 	const forms = [
 		"textbox",

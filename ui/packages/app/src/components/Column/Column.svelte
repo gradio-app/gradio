@@ -1,8 +1,10 @@
 <script lang="ts">
 	export let value: boolean = true;
+	export let default_value: boolean;
 	export let style: string = "";
 	export let variant: "default" | "panel" = "default";
 
+	if (default_value) value = default_value;
 </script>
 
 <div

@@ -1,22 +1,29 @@
-from gradio import Dropdown, Blocks, Slider, Image, Button, update
+import gradio as gr
 
 
 def update_dropdown_choices(val):
     if val < 50:
-        opts = ["fail", "repeat"]
+        opts = ["A", "B"]
     else:
-        opts = ["succeed", "repeat"]
-    return update(choices=opts), update(height=val)
+        opts = ["A", "hide"]
+    return gr.update(choices=opts), gr.update(lines=(int(val / 10) + 1))
 
 
-with Blocks() as block:
-    s = Slider(value=0, minimum=0, maximum=100)
-    d = Dropdown(choices=["fake", "choices", "exist"])
-    i = Image(value="xray.jpg", height=0)
+with gr.Blocks() as block:
+    slider = gr.Slider(value=0, minimum=0, maximum=100)
+    radio = gr.Radio(choices=["A", "B"])
+    textbox = gr.Textbox(default_value="hello")
+    img = gr.Image("xray.jpg")
 
-    # s.change(fn=update_dropdown_choices, inputs=[s], outputs=[d, i])
+    slider.change(fn=update_dropdown_choices, inputs=[slider], outputs=[radio, textbox])
+    radio.change(lambda choice: gr.update(visible=(choice != "hide")), [radio], [img])
 
-    btn = Button("Go")
-    btn.click(fn=update_dropdown_choices, inputs=[s], outputs=[d, i])
+    btn = gr.Button("Go")
+    var = gr.Variable()
+    btn.click(
+        fn=lambda x, y: (5, gr.update(default_value=x)),
+        inputs=[radio, textbox],
+        outputs=[var, textbox],
+    )
 
-    block.launch()
+block.launch()
