@@ -360,7 +360,7 @@
 			data[i].push({ id: _id, value: "" });
 		}
 
-		const _id = `h-${headers.length}`;
+		const _id = `h-${_headers.length}`;
 		els[_id] = { cell: null, input: null };
 		_headers.push({ id: _id, value: `Header ${_headers.length + 1}` });
 
