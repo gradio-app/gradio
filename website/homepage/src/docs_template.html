@@ -42,6 +42,39 @@
       visibility: visible;
     }
 
+     .popup {
+      text-align: left;
+      padding: 20px;
+      background: #fff;
+      border-radius: 5px;
+      width: 95%;
+      height: 75%;
+      position: fixed;
+      z-index: 99;
+      margin: 2rem;
+    }
+
+    .popup h2 {
+      margin-top: 0;
+      color: #333;
+      font-family: Tahoma, Arial, sans-serif;
+    }
+
+    .popup .close {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      transition: all 200ms;
+      font-size: 30px;
+      font-weight: bold;
+      text-decoration: none;
+      color: #333;
+      cursor: pointer;
+    }
+    .popup .close:hover {
+      color: #ec8f14;
+    }
+
   </style>
   <script async src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
     <script>
@@ -196,7 +229,12 @@
         <section class="flex flex-col gap-6">
           {% for func in docs["components"] %}
           <div id="{{ func['name'].lower() }}" class="func">
-            <h3 id="{{ func['name'].lower() }}-header" class="text-3xl font-light my-4">{{ func['name'] }}</h3>
+            <h3 id="{{ func['name'].lower() }}-header" class="text-3xl font-light my-4">
+              {{ func['name'] }}
+            </h3>
+            <button class="rounded-full bg-orange-500 text-white py-1 px-3" onclick="showPopup('{{ func['name'].lower() }}')">
+              Try Demo →
+            </button>
             <div id='{{ func["name"].lower() }}_component'></div>
             <pre><code class="lang-python">gradio.components.<span>{{ func["name"] }}(</span><!--
             -->{% for param in func["params"] %}<!--
@@ -292,28 +330,28 @@
               {% endfor %}
             </ul>
             {% endif %}
-            <h4 class="my-2 font-semibold">Demos</h4>
-            <div class="flex gap-4 overflow-x-auto pb-1">
-              {% for demo in func["demos"] %}
-              <div class="flex-shrink-0 flex flex-col">
-                <div class="mb-2">
-                  <span class="italic">{{ demo }}:</span>
-                  <a class="demo_code link" target="_blank"
-                    href="{{ demo_links[demo] if demo in demo_links else '#'  }}"
-                    target="_blank">
-                    Open in Colab
-                  </a>
-                </div>
-                <div class="relative cursor-pointer flex-grow">
-                  <a href="{{ demo_links[demo] }}" target="_blank" class="absolute w-full h-full bg-gray-400 bg-opacity-10 hover:bg-opacity-0 group transition flex items-center justify-center">
-                    <img src="/assets/img/colab-badge.svg" class="opacity-60 group-hover:opacity-80 transition h-6">
-                  </a>
-                  <img style="width:420px"
-                    src="/assets/demo_screenshots/{{ demo }}.png">
-                </div>
-              </div>
-              {% endfor %}
-            </div>
+<!--            <h4 class="my-2 font-semibold">Demos</h4>-->
+<!--            <div class="flex gap-4 overflow-x-auto pb-1">-->
+<!--              {% for demo in func["demos"] %}-->
+<!--              <div class="flex-shrink-0 flex flex-col">-->
+<!--                <div class="mb-2">-->
+<!--                  <span class="italic">{{ demo }}:</span>-->
+<!--                  <a class="demo_code link" target="_blank"-->
+<!--                    href="{{ demo_links[demo] if demo in demo_links else '#'  }}"-->
+<!--                    target="_blank">-->
+<!--                    Open in Colab-->
+<!--                  </a>-->
+<!--                </div>-->
+<!--                <div class="relative cursor-pointer flex-grow">-->
+<!--                  <a href="{{ demo_links[demo] }}" target="_blank" class="absolute w-full h-full bg-gray-400 bg-opacity-10 hover:bg-opacity-0 group transition flex items-center justify-center">-->
+<!--                    <img src="/assets/img/colab-badge.svg" class="opacity-60 group-hover:opacity-80 transition h-6">-->
+<!--                  </a>-->
+<!--                  <img style="width:420px"-->
+<!--                    src="/assets/demo_screenshots/{{ demo }}.png">-->
+<!--                </div>-->
+<!--              </div>-->
+<!--              {% endfor %}-->
+<!--            </div>-->
             {% if not loop.last %}
               <div class="py-4">
                 <div class="w-full border-t border-gray-200"></div>
@@ -324,6 +362,17 @@
           {% endfor %}
         </section>
       </div>
+<!--      <div class="popup demos-panel relative flex flex-row h-4/5 mx-4 my-auto bg-grey-100">-->
+<!--        <div class="demo-code w-2/6 m-4 border-2 border-orange-500 rounded-xl p-4 bg-white">-->
+<!--            <h1 class="text-3xl font-semibold">Code</h1>-->
+<!--        </div>-->
+<!--        <div class="demo-interface w-7/12 m-4 border-2 border-orange-500 rounded-xl p-4 bg-white">-->
+<!--            <h1 class="text-3xl font-semibold">Demo</h1>-->
+<!--        </div>-->
+<!--        <div class="close w-1/12 p-4">-->
+<!--          <a class="float-right" onclick="hidePopup()">&#215;</a>-->
+<!--        </div>-->
+<!--      </div>-->
     </main>
   </div>
   <footer class="container flex-row sm:flex-col lg:flex-row relative inset-x-0 top-0 z-10 bg-white/80 backdrop-blur-lg mx-auto flex max-w-6xl items-center p-4 justify-between flex-wrap gap-6">
@@ -443,6 +492,16 @@
         }
       }
       });
+
+      // Demos
+<!--      function hidePopup(elem) {-->
+<!--        elem.parentElement.parentElement.classList.add("hidden");-->
+<!--      }-->
+
+<!--      function showPopup(component) {-->
+<!--        let popup = document.querySelector(".popup");-->
+<!--        popup.classList.remove("hidden");-->
+<!--      }-->
 
 <!--      // embedding components-->
 
