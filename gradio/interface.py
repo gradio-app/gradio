@@ -450,9 +450,16 @@ class Interface(Blocks):
             cache_interface_examples(self)
 
         if self.allow_flagging != "never":
-            self.flagging_callback.setup(
-                self.input_components + self.output_components, self.flagging_dir
-            )
+            if self.interface_type == self.InterfaceTypes.UNIFIED:            
+                self.flagging_callback.setup(
+                    self.input_components, self.flagging_dir
+                )
+            elif self.interface_type == self.InterfaceTypes.INPUT_ONLY:
+                pass
+            else:
+                self.flagging_callback.setup(
+                    self.input_components + self.output_components, self.flagging_dir
+                )
 
         with self:
             if self.title:
