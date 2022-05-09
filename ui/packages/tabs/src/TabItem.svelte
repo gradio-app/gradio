@@ -19,7 +19,7 @@
 </script>
 
 {#if $selected_tab === id}
-	<div class="p-2 border-2 border-t-0 border-gray-200 relative">
+	<div class="tabitem p-2 border-2 border-t-0 border-gray-200 relative flex">
 		<slot />
 	</div>
 {/if}

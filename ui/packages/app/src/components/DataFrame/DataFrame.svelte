@@ -14,6 +14,7 @@
 	export let mode: "static" | "dynamic";
 	export let col_count: [number, "fixed" | "dynamic"];
 	export let row_count: [number, "fixed" | "dynamic"];
+	export let parent: string | null = null;
 
 	if (default_value) value = default_value;
 
@@ -38,7 +39,10 @@
 	}
 </script>
 
-<div class="relative">
+<div
+	class="relative overflow-hidden"
+	class:flex-1={parent === "row" || !parent}
+>
 	<StatusTracker {...loading_status} />
 	<Table
 		{row_count}
