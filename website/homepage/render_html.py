@@ -79,6 +79,9 @@ for guide in guide_files:
     contributor = None
     if "Contributed by " in guide_content:
         contributor = guide_content.split("Contributed by ")[1].split("\n")[0]
+    docs = []
+    if "Docs: " in guide_content:
+        docs = guide_content.split("Docs: ")[1].split("\n")[0].split(", ")
 
     url = f"https://gradio.app/{guide_name}/"
 
@@ -90,6 +93,7 @@ for guide in guide_files:
                 line.startswith("tags: ")
                 or line.startswith("related_spaces: ")
                 or line.startswith("Contributed by ")
+                or line.startswith("Docs: ")
                 or line == title
             )
         ]
@@ -104,6 +108,7 @@ for guide in guide_files:
             "spaces": spaces,
             "url": url,
             "contributor": contributor,
+            "docs": docs
         }
     )
 
@@ -301,7 +306,7 @@ def render_docs():
             _, _, _, inp["interpret_returns_doc"] = get_function_documentation(
                 cls.get_interpretation_scores
             )
-
+        inp["guides"] = [guide for guide in guides if inp['name'].lower() in guide["docs"]]
         return inp
 
     component_types = [cls for cls in Component.__subclasses__()]

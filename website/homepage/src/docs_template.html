@@ -70,7 +70,7 @@
         {% endfor %}
       </div>
       <div class="docs ml-6 leading-7 max-w-full">
-        <p class="bg-orange-100 border border-orange-600 px-4 py-2 rounded mb-4 text-md w-fit">If you're just starting with Gradio, see <a class="link" href="/getting_started">Getting Started</a></p>
+        <p class="bg-orange-100 border border-orange-600 px-4 py-2 rounded mb-4 text-md w-fit">New? Start here →  <a class="link" href="/getting_started">Getting Started</a></p>
         <h2 id="creating_interfaces" class="text-4xl font-light my-4 text-orange-500">Creating Interfaces</h2>
         <section class="flex flex-col gap-6">
           <div id="interface" class="func">
@@ -232,6 +232,21 @@
               {% endfor %}
               </tbody>
             </table>
+            <h4 class="my-2 font-semibold">Step-by-step Guides</h4>
+            {% if func["guides"] %}
+              <div class="guides-list grid grid-cols-1 lg:grid-cols-4 gap-4">
+                {% for guide in func["guides"] %}
+                <a class="flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow my-4" target="_blank" href="/{{ guide.name }}">
+                  <div class="flex flex-col p-4 h-min">
+                    <p class="font-semibold group-hover:underline text-l">{{ guide.pretty_name }}</p>
+                  </div>
+                </a>
+
+                {% endfor %}
+              </div>
+            {% else %}
+              <p class="my-2 text-gray-500">No guides yet, <a class="font-semibold text-orange-500 border-b border-orange-500 " target="_blank" href="https://github.com/gradio-app/gradio/tree/master/guides">contribute</a> a guide about <span class="font-semibold">{{ func["name"] }}</span></p>
+            {% endif %}
             {% if func["shortcuts"]|length %}
             <h4 class="my-2 font-semibold">String Shortcuts</h4>
             <ul class="list-disc list-inside">
@@ -392,6 +407,40 @@
             headers[i].appendChild(createAnchorTag(link))
           }
     }
+
+    // guides styling
+    var a;
+    guideLists = document.querySelectorAll(".guides-list");
+
+    guideLists.forEach(guideList => {
+      a = guideList.getElementsByTagName('a');
+
+      var backgrounds = ['linear-gradient(90deg, rgba(255,254,188,0.3) 0%, rgba(255,255,240,0.3) 100%)',
+                         'linear-gradient(90deg, rgba(255,205,188,0.3) 0%, rgba(255,253,253,0.3) 100%)',
+                         'linear-gradient(90deg, rgba(255,188,188,0.3) 0%, rgba(255,238,238,0.3) 100%)',
+                         'linear-gradient(90deg, rgba(194,255,169,0.3) 0%, rgba(243,255,238,0.3) 100%)',
+                         'linear-gradient(90deg, rgba(169,255,237,0.3) 0%, rgba(230,255,250,0.3) 100%)',
+                         'linear-gradient(90deg, rgba(182,169,255,0.3) 0%, rgba(237,234,255,0.3) 100%)',
+                         'linear-gradient(90deg, rgba(255,183,245,0.3) 0%, rgba(255,234,252,0.3) 100%)']
+
+      function shuffleBackgrounds(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+      }
+
+      shuffleBackgrounds(backgrounds);
+
+      color_counter = 0
+      for (let i = 0; i < a.length; i++) {
+        a[i].style.background = backgrounds[color_counter];
+        color_counter += 1
+        if (color_counter == backgrounds.length) {
+          color_counter = 0;
+        }
+      }
+      });
 
 
   </script>

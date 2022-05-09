@@ -2,6 +2,7 @@
 
 related_spaces: https://huggingface.co/spaces/abidlabs/vision-transformer
 tags: VISION, TRANSFORMERS, HUB
+Docs: image, label
 
 ## Introduction
 
