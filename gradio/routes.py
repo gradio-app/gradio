@@ -238,7 +238,7 @@ def create_app() -> FastAPI:
         if hasattr(body, "session_hash"):
             if body.session_hash not in app.state_holder:
                 app.state_holder[body.session_hash] = {
-                    _id: getattr(block, "value", None)
+                    _id: getattr(block, "default_value", None)
                     for _id, block in app.blocks.blocks.items()
                     if getattr(block, "stateful", False)
                 }

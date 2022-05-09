@@ -6,6 +6,7 @@
 	import type { LoadingStatus } from "../StatusTracker/types";
 
 	export let value: Array<[string, string | number]>;
+	export let default_value: Array<[string, string | number]>;
 	export let style: string = "";
 	export let show_legend: boolean;
 	export let color_map: Record<string, string> = {};
@@ -14,6 +15,8 @@
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
+	if (default_value) value = default_value;
+	
 	$: value, dispatch("change");
 </script>
 

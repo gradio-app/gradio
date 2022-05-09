@@ -5,7 +5,7 @@ XRAY_CONFIG = {
             "id": 1,
             "type": "markdown",
             "props": {
-                "value": "<h1>Detect Disease From Scan</h1>\n<p>With this model you can lorem ipsum</p>\n<ul>\n<li>ipsum 1</li>\n<li>ipsum 2</li>\n</ul>\n",
+                "default_value": "<h1>Detect Disease From Scan</h1>\n<p>With this model you can lorem ipsum</p>\n<ul>\n<li>ipsum 1</li>\n<li>ipsum 2</li>\n</ul>\n",
                 "name": "markdown",
                 "css": {},
             },
@@ -15,24 +15,23 @@ XRAY_CONFIG = {
             "type": "checkboxgroup",
             "props": {
                 "choices": ["Covid", "Malaria", "Lung Cancer"],
-                "value": [],
-                "value": [],
+                "default_value": [],
                 "label": "Disease to Scan For",
                 "show_label": True,
                 "name": "checkboxgroup",
                 "css": {},
             },
         },
-        {"id": 3, "type": "tabs", "props": {"css": {}, "value": True}},
+        {"id": 3, "type": "tabs", "props": {"css": {}, "default_value": True}},
         {
             "id": 4,
             "type": "tabitem",
-            "props": {"label": "X-ray", "css": {}, "value": True},
+            "props": {"label": "X-ray", "css": {}, "default_value": True},
         },
         {
             "id": 5,
             "type": "row",
-            "props": {"type": "row", "css": {}, "value": True},
+            "props": {"type": "row", "css": {}, "default_value": True},
         },
         {
             "id": 6,
@@ -50,7 +49,7 @@ XRAY_CONFIG = {
             "id": 7,
             "type": "json",
             "props": {
-                "value": '""',
+                "default_value": '""',
                 "show_label": True,
                 "name": "json",
                 "css": {},
@@ -60,7 +59,7 @@ XRAY_CONFIG = {
             "id": 8,
             "type": "button",
             "props": {
-                "value": "Run",
+                "default_value": "Run",
                 "name": "button",
                 "css": {"background-color": "red", "--hover-color": "orange"},
                 "variant": "primary",
@@ -69,12 +68,12 @@ XRAY_CONFIG = {
         {
             "id": 9,
             "type": "tabitem",
-            "props": {"label": "CT Scan", "css": {}, "value": True},
+            "props": {"label": "CT Scan", "css": {}, "default_value": True},
         },
         {
             "id": 10,
             "type": "row",
-            "props": {"type": "row", "css": {}, "value": True},
+            "props": {"type": "row", "css": {}, "default_value": True},
         },
         {
             "id": 11,
@@ -92,7 +91,7 @@ XRAY_CONFIG = {
             "id": 12,
             "type": "json",
             "props": {
-                "value": '""',
+                "default_value": '""',
                 "show_label": True,
                 "name": "json",
                 "css": {},
@@ -114,7 +113,7 @@ XRAY_CONFIG = {
             "props": {
                 "lines": 1,
                 "max_lines": 20,
-                "value": "",
+                "default_value": "",
                 "show_label": True,
                 "name": "textbox",
                 "css": {},
@@ -191,7 +190,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "id": 1,
             "type": "markdown",
             "props": {
-                "value": "<h1>Detect Disease From Scan</h1>\n<p>With this model you can lorem ipsum</p>\n<ul>\n<li>ipsum 1</li>\n<li>ipsum 2</li>\n</ul>\n",
+                "default_value": "<h1>Detect Disease From Scan</h1>\n<p>With this model you can lorem ipsum</p>\n<ul>\n<li>ipsum 1</li>\n<li>ipsum 2</li>\n</ul>\n",
                 "name": "markdown",
                 "css": {},
             },
@@ -201,27 +200,27 @@ XRAY_CONFIG_DIFF_IDS = {
             "type": "checkboxgroup",
             "props": {
                 "choices": ["Covid", "Malaria", "Lung Cancer"],
-                "value": [],
+                "default_value": [],
                 "name": "checkboxgroup",
                 "show_label": True,
                 "label": "Disease to Scan For",
                 "css": {},
             },
         },
-        {"id": 3, "type": "tabs", "props": {"css": {}, "value": True}},
+        {"id": 3, "type": "tabs", "props": {"css": {}, "default_value": True}},
         {
             "id": 444,
             "type": "tabitem",
             "props": {
                 "label": "X-ray",
                 "css": {},
-                "value": True,
+                "default_value": True,
             },
         },
         {
             "id": 5,
             "type": "row",
-            "props": {"type": "row", "css": {}, "value": True},
+            "props": {"type": "row", "css": {}, "default_value": True},
         },
         {
             "id": 6,
@@ -239,7 +238,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "id": 7,
             "type": "json",
             "props": {
-                "value": '""',
+                "default_value": '""',
                 "name": "json",
                 "show_label": True,
                 "css": {},
@@ -249,7 +248,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "id": 8888,
             "type": "button",
             "props": {
-                "value": "Run",
+                "default_value": "Run",
                 "name": "button",
                 "css": {"background-color": "red", "--hover-color": "orange"},
                 "variant": "primary",
@@ -261,13 +260,13 @@ XRAY_CONFIG_DIFF_IDS = {
             "props": {
                 "label": "CT Scan",
                 "css": {},
-                "value": True,
+                "default_value": True,
             },
         },
         {
             "id": 10,
             "type": "row",
-            "props": {"type": "row", "css": {}, "value": True},
+            "props": {"type": "row", "css": {}, "default_value": True},
         },
         {
             "id": 11,
@@ -285,7 +284,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "id": 12,
             "type": "json",
             "props": {
-                "value": '""',
+                "default_value": '""',
                 "name": "json",
                 "show_label": True,
                 "css": {},
@@ -295,7 +294,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "id": 13,
             "type": "button",
             "props": {
-                "value": "Run",
+                "default_value": "Run",
                 "name": "button",
                 "css": {},
                 "variant": "primary",
@@ -306,7 +305,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "type": "textbox",
             "props": {
                 "lines": 1,
-                "value": "",
+                "default_value": "",
                 "name": "textbox",
                 "max_lines": 20,
                 "show_label": True,
@@ -367,7 +366,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "id": 1,
             "type": "markdown",
             "props": {
-                "value": "<h1>Detect Disease From Scan</h1>\n<p>With this model you can lorem ipsum</p>\n<ul>\n<li>ipsum 1</li>\n<li>ipsum 2</li>\n</ul>\n",
+                "default_value": "<h1>Detect Disease From Scan</h1>\n<p>With this model you can lorem ipsum</p>\n<ul>\n<li>ipsum 1</li>\n<li>ipsum 2</li>\n</ul>\n",
                 "name": "markdown",
                 "css": {},
             },
@@ -377,27 +376,27 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "type": "checkboxgroup",
             "props": {
                 "choices": ["Covid", "Malaria", "Lung Cancer"],
-                "value": [],
+                "default_value": [],
                 "name": "checkboxgroup",
                 "show_label": True,
                 "label": "Disease to Scan For",
                 "css": {},
             },
         },
-        {"id": 3, "type": "tabs", "props": {"css": {}, "value": True}},
+        {"id": 3, "type": "tabs", "props": {"css": {}, "default_value": True}},
         {
             "id": 4,
             "type": "tabitem",
             "props": {
                 "label": "X-ray",
                 "css": {},
-                "value": True,
+                "default_value": True,
             },
         },
         {
             "id": 5,
             "type": "row",
-            "props": {"type": "row", "css": {}, "value": True},
+            "props": {"type": "row", "css": {}, "default_value": True},
         },
         {
             "id": 6,
@@ -414,7 +413,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "id": 7,
             "type": "json",
             "props": {
-                "value": '""',
+                "default_value": '""',
                 "name": "json",
                 "css": {},
             },
@@ -423,7 +422,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "id": 8,
             "type": "button",
             "props": {
-                "value": "Run",
+                "default_value": "Run",
                 "name": "button",
                 "css": {"background-color": "red", "--hover-color": "orange"},
                 "variant": "primary",
@@ -436,13 +435,13 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "show_label": True,
                 "label": "CT Scan",
                 "css": {},
-                "value": True,
+                "default_value": True,
             },
         },
         {
             "id": 10,
             "type": "row",
-            "props": {"type": "row", "css": {}, "value": True},
+            "props": {"type": "row", "css": {}, "default_value": True},
         },
         {
             "id": 11,
@@ -459,7 +458,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "id": 12,
             "type": "json",
             "props": {
-                "value": '""',
+                "default_value": '""',
                 "name": "json",
                 "css": {},
             },
@@ -468,7 +467,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "id": 13,
             "type": "button",
             "props": {
-                "value": "Run",
+                "default_value": "Run",
                 "name": "button",
                 "css": {},
                 "variant": "primary",
@@ -479,7 +478,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "type": "textbox",
             "props": {
                 "lines": 1,
-                "value": "",
+                "default_value": "",
                 "name": "textbox",
                 "css": {},
             },

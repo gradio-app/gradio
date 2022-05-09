@@ -3,8 +3,8 @@ import gradio as gr
 test = gr.Blocks()
 
 with test:
-    num = gr.Variable(value=0)
-    squared = gr.Number(value=0)
+    num = gr.Variable(default_value=0)
+    squared = gr.Number(default_value=0)
     btn = gr.Button("Next Square")
 
     def increase(var):

@@ -7,7 +7,7 @@
       "props": {
         "lines": 1,
         "placeholder": null,
-        "value": "",
+        "default_value": "",
         "name": "textbox",
         "label": "Input-Output",
         "css": {},
@@ -18,7 +18,7 @@
       "id": 2,
       "type": "button",
       "props": {
-        "value": "Run",
+        "default_value": "Run",
         "name": "button",
         "label": null,
         "css": {},
