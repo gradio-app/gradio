@@ -58,13 +58,9 @@
         <a class="block thin-link" href="#interface">Interfaces</a>
         <a class="block thin-link" href="#launch">Launching</a>
         <a class="block thin-link" href="#load">Loading</a>
-        <a class="link my-2 block" href="#input_components">Input Components</h4>
-        {% for input in docs["input"] %}
-        <a class="block thin-link" href="#i_{{ input["name"].lower() }}">{{ input["name"] }}</a>
-        {% endfor %}
-        <a class="link my-2 block" href="#output_components">Output Components</h4>
-          {% for output in docs["output"] %}
-        <a class="block thin-link" href="#o_{{ output["name"].lower() }}">{{ output["name"] }}</a>
+        <a class="link my-2 block" href="#input_components">Components</h4>
+        {% for component in docs["components"] %}
+        <a class="block thin-link" href="#{{ component["name"].lower() }}">{{ component["name"] }}</a>
         {% endfor %}
       </div>
       <div class="leading-7 max-w-full">

@@ -303,7 +303,16 @@ def render_docs():
             )
 
         return inp
-    components = [get_class_documentation(cls) for cls in Component.__subclasses__()]
+
+    component_types = [cls for cls in Component.__subclasses__()]
+    parent_components = set()
+    for typ in component_types:
+        parent_components.update(typ.__subclasses__())
+    components = set()
+    for parent_component in parent_components:
+        components.update(parent_component.__subclasses__())
+    components_docs = [get_class_documentation(cls) for cls in components]
+
     interface_params = get_function_documentation(Interface.__init__)
     interface = {
         "doc": inspect.getdoc(Interface),
@@ -322,7 +331,7 @@ def render_docs():
         "return_doc": load_params[3],
     }
     docs = {
-        "components": components,
+        "components": components_docs,
         "interface": interface,
         "launch": launch,
         "load": load,
