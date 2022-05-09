@@ -3,6 +3,12 @@
 @tailwind utilities;
 
 @layer base {
+	.bg-gray-950 {
+		background-color: #090f1f;
+	}
+	.dark:bg-gray-950 {
+	}
+
 	.dark {
 		@apply text-gray-300 bg-gray-950;
 	}
