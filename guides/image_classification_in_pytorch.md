@@ -2,6 +2,7 @@
 
 related_spaces: https://huggingface.co/spaces/abidlabs/pytorch-image-classifier, https://huggingface.co/spaces/pytorch/ResNet, https://huggingface.co/spaces/pytorch/ResNext, https://huggingface.co/spaces/pytorch/SqueezeNet
 tags: VISION, RESNET, PYTORCH
+Docs: image, label
 
 ## Introduction
 
