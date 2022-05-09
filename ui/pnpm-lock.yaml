@@ -232,7 +232,14 @@ importers:
       plotly.js-dist-min: 2.11.1
 
   packages/table:
-    specifiers: {}
+    specifiers:
+      '@gradio/upload': workspace:^0.0.1
+      d3-dsv: ^3.0.1
+      dequal: ^2.0.2
+    dependencies:
+      '@gradio/upload': link:../upload
+      d3-dsv: 3.0.1
+      dequal: 2.0.2
 
   packages/tabs:
     specifiers: {}
@@ -1940,6 +1947,11 @@ packages:
     resolution: {integrity: sha1-hMbhWbgZBP3KWaDvRM2HDTElD5o=}
     dev: false
     optional: true
+
+  /dequal/2.0.2:
+    resolution: {integrity: sha512-q9K8BlJVxK7hQYqa6XISGmBZbtQQWVXSrRrWreHC94rMt1QL/Impruc+7p2CYSYuVIUr+YCt6hjrs1kkdJRTug==}
+    engines: {node: '>=6'}
+    dev: false
 
   /detect-indent/6.1.0:
     resolution: {integrity: sha512-reYkTUJAZb9gUuZ2RvVCNhVHdg62RHnJ7WJl8ftMi4diZ6NWlciOzQN88pUhSELEwflJht4oQDv0F0BMlwaYtA==}

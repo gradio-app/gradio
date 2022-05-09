@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { onMount, createEventDispatcher } from "svelte";
+	import { onMount, createEventDispatcher, setContext } from "svelte";
+	import { BLOCK_KEY } from "@gradio/atoms";
 
 	export let root: string;
 	export let component;
@@ -15,6 +16,7 @@
 	export let dynamic_ids: Set<number>;
 	export let has_modes: boolean;
 	export let status_tracker_values: Record<number, string>;
+	export let parent: string | null = null;
 
 	const dispatch = createEventDispatcher<{ mount: number; destroy: number }>();
 
@@ -96,6 +98,8 @@
 	children =
 		children &&
 		children.filter((v) => instance_map[v.id].type !== "statustracker");
+
+	setContext(BLOCK_KEY, parent);
 </script>
 
 <svelte:component
@@ -108,10 +112,11 @@
 	tracked_status={status_tracker_values[id]}
 >
 	{#if children && children.length}
-		{#each children as { component, id, props, children, has_modes } (id)}
+		{#each children as { component, id: each_id, props, children, has_modes } (each_id)}
 			<svelte:self
+				parent={instance_map[id].type}
 				{component}
-				{id}
+				id={each_id}
 				{props}
 				{theme}
 				{root}

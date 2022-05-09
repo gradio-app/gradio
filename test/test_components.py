@@ -860,10 +860,9 @@ class TestDataframe(unittest.TestCase):
             {
                 "headers": ["Name", "Age", "Member"],
                 "datatype": "str",
-                "row_count": 3,
-                "col_count": 3,
-                "col_width": None,
-                "value": [
+                "row_count": (3, "dynamic"),
+                "col_count": (3, "dynamic"),
+                "default_value": [
                     ["", "", ""],
                     ["", "", ""],
                     ["", "", ""],
@@ -913,10 +912,9 @@ class TestDataframe(unittest.TestCase):
                 "label": None,
                 "css": {},
                 "datatype": "str",
-                "row_count": 3,
-                "col_count": 3,
-                "col_width": None,
-                "value": [
+                "row_count": (3, "dynamic"),
+                "col_count": (3, "dynamic"),
+                "default_value": [
                     ["", "", ""],
                     ["", "", ""],
                     ["", "", ""],
