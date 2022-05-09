@@ -11,10 +11,14 @@
 		visible: boolean;
 		[key: string]: unknown;
 	};
-	export let children;
+	interface LayoutNode {
+		id: number;
+		children: Array<LayoutNode>;
+	}
+	export let children: Array<LayoutNode>;
 	export let theme;
 	export let dynamic_ids: Set<number>;
-	export let has_modes: boolean;
+	export let has_modes: boolean | undefined;
 	export let status_tracker_values: Record<number, string>;
 	export let parent: string | null = null;
 
@@ -45,8 +49,8 @@
 					.map((rule) => rule[0] + ": " + rule[1])
 					.join("; ")
 			: "";
-		if (!props.visible) {
-			style += " display: hidden !important;"
+		if (props.visible === false) {
+			style += " display: none !important;";
 		}
 	}
 

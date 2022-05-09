@@ -10,7 +10,7 @@
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
 	$: label, dispatch("change");
-	
+
 	if (default_value) value = default_value;
 </script>
 

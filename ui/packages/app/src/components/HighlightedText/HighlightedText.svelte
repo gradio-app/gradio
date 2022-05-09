@@ -16,7 +16,7 @@
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
 	if (default_value) value = default_value;
-	
+
 	$: value, dispatch("change");
 </script>
 

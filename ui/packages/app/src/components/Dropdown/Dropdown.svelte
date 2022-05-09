@@ -22,12 +22,5 @@
 <Block {form_position}>
 	<StatusTracker {...loading_status} />
 
-	<Dropdown
-		bind:value
-		{style}
-		{choices}
-		{label}
-		{show_label}
-		on:change
-	/>
+	<Dropdown bind:value {style} {choices} {label} {show_label} on:change />
 </Block>

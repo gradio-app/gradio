@@ -238,7 +238,9 @@ class KeyValues:
     Demos: text_analysis
     """
 
-    def __init__(self, default_value: str = " ", *, label: Optional[str] = None, **kwargs):
+    def __init__(
+        self, default_value: str = " ", *, label: Optional[str] = None, **kwargs
+    ):
         """
         Parameters:
         default_value (str): IGNORED

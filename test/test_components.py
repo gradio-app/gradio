@@ -1386,12 +1386,8 @@ class TestJSON(unittest.TestCase):
             js_output.get_config(),
             {
                 "css": {},
-<<<<<<< HEAD
-                "value": '""',
-=======
                 "default_value": '""',
                 "show_label": True,
->>>>>>> main
                 "label": None,
                 "name": "json",
                 "interactive": None,

@@ -124,10 +124,7 @@ class Block:
         )
 
     def get_config(self):
-        return {
-            "css": self.css,
-            "visible": self.visible
-        }
+        return {"css": self.css, "visible": self.visible}
 
 
 class BlockContext(Block):
@@ -142,8 +139,7 @@ class BlockContext(Block):
         css: Css rules to apply to block.
         """
         self.children = []
-        self.visible = visible
-        super().__init__(css=css, render=render, **kwargs)
+        super().__init__(css=css, visible=visible, render=render, **kwargs)
 
     def __enter__(self):
         self.parent = Context.block
@@ -161,6 +157,17 @@ class Row(BlockContext):
     def get_config(self):
         return {"type": "row", **super().get_config()}
 
+    @staticmethod
+    def update(
+        css: Optional[Dict] = None,
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "css": css,
+            "visible": visible,
+            "__type__": "update",
+        }
+
 
 class Column(BlockContext):
     def __init__(
@@ -174,13 +181,26 @@ class Column(BlockContext):
         variant: column type, 'default' (no background) or 'panel' (gray background color and rounded corners)
         """
         self.variant = variant
-        super().__init__(visible, css)
+        super().__init__(visible=visible, css=css)
 
     def get_config(self):
         return {
             "type": "column",
             "variant": self.variant,
             **super().get_config(),
+        }
+
+    @staticmethod
+    def update(
+        variant: Optional[str] = None,
+        css: Optional[Dict] = None,
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "variant": variant,
+            "css": css,
+            "visible": visible,
+            "__type__": "update",
         }
 
 
@@ -315,10 +335,18 @@ class Blocks(BlockContext):
                     output.append(None)
                 else:
                     prediction_value = predictions[i]
-                    if (
-                        type(prediction_value) is dict
-                        and prediction_value.get("__type__") == "update"
-                    ):
+                    if type(
+                        prediction_value
+                    ) is dict and "update" in prediction_value.get("__type__"):
+                        if prediction_value["__type__"] == "generic_update":
+                            del prediction_value["__type__"]
+                            prediction_value = block.__class__.update(
+                                **prediction_value
+                            )
+                        keys = list(prediction_value.keys())
+                        for key in keys:
+                            if prediction_value[key] is None:
+                                del prediction_value[key]
                         if "value" in prediction_value:
                             prediction_value["value"] = (
                                 block.postprocess(prediction_value["value"])
