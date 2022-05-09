@@ -10,7 +10,7 @@
 <div
 	{style}
 	class:hidden={!value}
-	class="flex flex-col md:flex-row gr-gap gr-form-gap row w-full"
+	class="flex flex-col md:flex-row gr-gap gr-form-gap row w-full flex-none"
 	class:flex-1={parent === "row"}
 >
 	<slot />
