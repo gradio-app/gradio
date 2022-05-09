@@ -430,12 +430,12 @@
 	function blob_to_string(blob: Blob) {
 		const reader = new FileReader();
 
-		function handle_read(e) {
-			const [delimiter] = guess_delimitaor(e.srcElement.result, [",", "\t"]);
+		function handle_read(e: ProgressEvent<FileReader>) {
+			if (!e?.target?.result || typeof e.target.result !== "string") return;
 
-			const [head, ...rest] = dsvFormat(delimiter).parseRows(
-				e.srcElement.result
-			);
+			const [delimiter] = guess_delimitaor(e.target.result, [",", "\t"]);
+
+			const [head, ...rest] = dsvFormat(delimiter).parseRows(e.target.result);
 
 			_headers = make_headers(
 				col_count[1] === "fixed" ? head.slice(0, col_count[0]) : head
