@@ -480,6 +480,7 @@
 							bind:this={els[id].cell}
 							class="p-0 relative focus-within:ring-1 ring-orange-500 ring-inset outline-none "
 							class:bg-orange-50={header_edit === id}
+							class:dark:bg-transparent={header_edit === id}
 							class:rounded-tl-lg={i === 0}
 							class:rounded-tr-lg={i === _headers.length - 1}
 							aria-sort={get_sort_status(value, sort_by, sort_direction)}

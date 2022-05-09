@@ -4,7 +4,7 @@
 	import { tick } from "svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
-	import image_icon from "./image.svg";
+	import ImageIcon from "./ImageIcon.svelte";
 
 	export let loading_status: LoadingStatus;
 	export let show_label: boolean;
@@ -68,10 +68,10 @@
 
 <Block variant="solid" color="grey" padding={false}>
 	<StatusTracker {...loading_status} />
-	<BlockLabel {show_label} image={image_icon} label={label || "Gallery"} />
+	<BlockLabel {show_label} Icon={ImageIcon} label={label || "Gallery"} />
 	{#if value === null}
 		<div class="min-h-[16rem] flex justify-center items-center">
-			<img src={image_icon} alt="" class="h-6 opacity-20" />
+			<ImageIcon />
 		</div>
 	{:else}
 		{#if selected_image !== null}
