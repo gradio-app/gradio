@@ -6,6 +6,7 @@
 	export let parent: string | null = null;
 
 	if (default_value) value = default_value;
+	console.log(parent);
 </script>
 
 <div
