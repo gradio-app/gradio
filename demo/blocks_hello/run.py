@@ -2,7 +2,7 @@ import gradio as gr
 
 
 def update(name):
-    return "Welcome to Gradio, {}!".format(name)
+    return f"Welcome to Gradio, {name}!"
 
 demo = gr.Blocks()
 
