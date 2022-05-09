@@ -8,6 +8,8 @@ def complete_with_gpt(text):
 
 with gr.Blocks() as demo:
     textbox = gr.Textbox(placeholder="Type here and press enter...", lines=4)
-    textbox.submit(complete_with_gpt, textbox, textbox)
+    btn = gr.Button("Generate")
+    
+    btn.click(complete_with_gpt, textbox, textbox)
     
 demo.launch()
