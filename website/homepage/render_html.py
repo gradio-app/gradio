@@ -311,8 +311,15 @@ def render_docs():
     components = set()
     for parent_component in parent_components:
         components.update(parent_component.__subclasses__())
+    components_list = list(components)
+    components_str = set()
+    components = set()
+    for component in components_list:
+        name = str(component).split(".")[-1][:-2]
+        if name not in components_str:
+            components_str.add(name)
+            components.add(component)
     components_docs = [get_class_documentation(cls) for cls in components]
-
     interface_params = get_function_documentation(Interface.__init__)
     interface = {
         "doc": inspect.getdoc(Interface),
