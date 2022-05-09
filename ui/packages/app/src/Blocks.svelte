@@ -229,6 +229,7 @@
 											delete value.value;
 										}
 										delete value.__type__;
+										console.log(i, outputs[i], tree)
 										let node = tree.filter((n) => n.id === outputs[i])[0];
 										node.props = { ...node.props, ...value };
 										tree = tree;

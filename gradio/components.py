@@ -1003,9 +1003,13 @@ class Radio(Changeable, IOComponent):
         """
         self.choices = choices
         self.type = type
-        self.test_input = self.choices[0]
+        self.test_input = self.choices[0] if len(self.choices) else None
         self.default_value = (
-            default_selected if default_selected is not None else self.choices[0]
+            default_selected
+            if default_selected is not None
+            else self.choices[0]
+            if len(self.choices) > 0
+            else None
         )
         self.cleared_value = self.default_value
         self.interpret_by_tokens = False
@@ -1145,7 +1149,9 @@ class Image(Editable, Clearable, IOComponent):
         """
         self.type = type
         self.default_value = (
-            processing_utils.encode_url_or_file_to_base64(default_value) if default_value else None
+            processing_utils.encode_url_or_file_to_base64(default_value)
+            if default_value
+            else None
         )
         self.type = type
         self.output_type = "auto"
@@ -1425,7 +1431,9 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         optional (bool): If True, the interface can be submitted with no uploaded video, in which case the input value is None.
         """
         self.default_value = (
-            processing_utils.encode_url_or_file_to_base64(default_value) if default_value else None
+            processing_utils.encode_url_or_file_to_base64(default_value)
+            if default_value
+            else None
         )
         self.type = type
         self.source = source
@@ -1534,7 +1542,9 @@ class Audio(Changeable, Clearable, Playable, IOComponent):
         label (str): component name in interface.
         """
         self.default_value = (
-            processing_utils.encode_url_or_file_to_base64(default_value) if default_value else None
+            processing_utils.encode_url_or_file_to_base64(default_value)
+            if default_value
+            else None
         )
         self.source = source
         requires_permissions = source == "microphone"
@@ -1783,7 +1793,9 @@ class File(Changeable, Clearable, IOComponent):
         label (str): component name in interface.
         """
         self.default_value = (
-            processing_utils.encode_url_or_file_to_base64(default_value) if default_value else None
+            processing_utils.encode_url_or_file_to_base64(default_value)
+            if default_value
+            else None
         )
         self.file_count = file_count
         self.type = type
@@ -2074,7 +2086,9 @@ class Timeseries(Changeable, IOComponent):
         label (str): component name in interface.
         colors List[str]: an ordered list of colors to use for each line plot
         """
-        self.default_value = pd.read_csv(default_value) if default_value is not None else None
+        self.default_value = (
+            pd.read_csv(default_value) if default_value is not None else None
+        )
         self.x = x
         if isinstance(y, str):
             y = [y]
