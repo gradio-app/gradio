@@ -173,7 +173,7 @@ def get_huggingface_interface(model_name, api_key, alias):
             # example model: hf.co/sentence-transformers/distilbert-base-nli-stsb-mean-tokens
             "inputs": [
                 components.Textbox(
-                    value="That is a happy person", label="Source Sentence"
+                    default_value="That is a happy person", label="Source Sentence"
                 ),
                 components.Textbox(
                     lines=7,

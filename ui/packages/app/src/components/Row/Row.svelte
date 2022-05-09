@@ -1,6 +1,6 @@
 <script lang="ts">
 	export let value: boolean;
-	export let default_value: boolean;	
+	export let default_value: boolean;
 	export let style: string = "";
 	export let parent: string | null = null;
 

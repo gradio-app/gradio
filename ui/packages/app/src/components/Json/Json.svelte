@@ -15,7 +15,7 @@
 
 	$: value, dispatch("change");
 
-	if (default_value) value = default_value;	
+	if (default_value) value = default_value;
 </script>
 
 <Block test_id="json">

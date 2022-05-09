@@ -195,7 +195,7 @@ class Interface(Blocks):
                     "If using 'state', there must be exactly one state input and one state output."
                 )
             default = utils.get_default_args(fn[0])[inputs.index("state")]
-            state_variable = Variable(value=default)
+            state_variable = Variable(default_value=default)
             inputs[inputs.index("state")] = state_variable
             outputs[outputs.index("state")] = state_variable
 
