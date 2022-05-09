@@ -1,8 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 
-	import { BlockTitle, Block } from "@gradio/atoms";
-
 	export let value: boolean;
 	export let disabled: boolean = false;
 	export let label: string;
@@ -20,7 +18,7 @@
 <!-- svelte-ignore a11y-label-has-associated-control -->
 <label
 	class:!cursor-not-allowed={disabled}
-	class="flex items-center text-gray-700 text-sm space-x-2 rounded-lg cursor-pointer bg-white"
+	class="flex items-center text-gray-700 text-sm space-x-2 rounded-lg cursor-pointer bg-white dark:bg-transparent"
 >
 	<input
 		bind:checked={value}
