@@ -19,7 +19,8 @@
   <meta name="twitter:description" content="Browse Gradio documentation and examples">
   <meta name="twitter:image" content="https://gradio.app/static/home/img/social-cheetah.jpg">  
   <link href="http://fonts.cdnfonts.com/css/product-sans" rel="stylesheet">
-
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700;1,900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="icon" type="image/png" href="/assets/img/logo.png">
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/assets/prism.css">
@@ -34,6 +35,10 @@
     }
     .prose .code, .prose pre {
       color: black;
+    }
+
+    .header:hover .anchor {
+      visibility: visible;
     }
 
   </style>
@@ -51,24 +56,24 @@
 
 <body>
   {{navbar_html|safe}}
-  <div class="container mx-auto px-4">
-    <main class="container flex gap-4">
-      <div class="h-screen leading-relaxed sticky top-0 bg-gray-50 p-4 text-md overflow-y-auto hidden md:block" style="width: 64rem">
-        <a class="link mb-2 block" href="#creating_interfaces">Creating Interfaces</a>
-        <a class="block thin-link" href="#interface">Interfaces</a>
-        <a class="block thin-link" href="#launch">Launching</a>
-        <a class="block thin-link" href="#load">Loading</a>
-        <a class="link my-2 block" href="#input_components">Components</h4>
+  <div style="width: 85%">
+    <main class="flex gap-4">
+      <div class="py-4 navigation h-screen leading-relaxed sticky top-0 bg-gray-50 text-md overflow-y-auto hidden md:block" style="min-width: 18%">
+        <a class="px-4 link mb-2 block border-orange-500 text-orange-500 md:border-l-2 pl-8" href="#creating_interfaces">Creating Interfaces</a>
+        <a class="px-4 block thin-link" href="#interface">Interfaces</a>
+        <a class="px-4 block thin-link" href="#launch">Launching</a>
+        <a class="px-4 block thin-link" href="#load">Loading</a>
+        <a class="px-4 link my-2 block" href="#components">Components</h4>
         {% for component in docs["components"] %}
-        <a class="block thin-link" href="#{{ component["name"].lower() }}">{{ component["name"] }}</a>
+        <a class="px-4 block thin-link" href="#{{ component["name"].lower() }}">{{ component["name"] }}</a>
         {% endfor %}
       </div>
-      <div class="leading-7 max-w-full">
-        <p class="bg-blue-200 border border-blue-600 px-4 py-2 rounded mb-4">If you are just getting started with Gradio, see the <a class="link" href="/getting_started">Getting Started</a> guide.</p>
-        <h1 class="text-3xl font-semibold mb-4">Docs</h1>
-        <h2 id="creating_interfaces" class="text-2xl font-semibold mb-4">Creating Interfaces</h2>
+      <div class="docs ml-6 leading-7 max-w-full">
+        <p class="bg-orange-100 border border-orange-600 px-4 py-2 rounded mb-4 text-sm w-fit">If you're just starting with Gradio, see <a class="link" href="/getting_started">Getting Started</a></p>
+        <h2 id="creating_interfaces" class="text-4xl font-light my-4 text-orange-500">Creating Interfaces</h2>
         <section class="flex flex-col gap-6">
           <div id="interface" class="func">
+            <h3 id="interface-header" class="text-xl font-semibold my-4">Interface</h3>
             <pre><code class='lang-python'>gradio.Interface(<!--
           -->{% for param in docs.interface["params"] %}<!--
             -->{% if param|length == 1 %}<!--
@@ -87,6 +92,7 @@
             </ul>
           </div>
           <div id="launch" class="func">
+            <h3 id="launch-header" class="text-xl font-semibold my-4">Launch</h3>
             <pre><code class='lang-python'>gradio.Interface().launch(<!--
             -->{% for param in docs.launch["params"] %}<!--
               -->{% if param|length == 1 %}<!--
@@ -105,6 +111,7 @@
             </ul>
           </div>
           <div id="load" class="func">
+            <h3 id="load-header" class="text-xl font-semibold my-4">Load</h3>
             <pre><code class='lang-python'>gradio.Interface.load(<!--
             -->{% for param in docs.load["params"] %}<!--
               -->{% if param|length == 1 %}<!--
@@ -129,10 +136,11 @@
             </ul>
           </div>
         </section>
-        <h2 id="components" class="text-2xl font-semibold my-4">Components</h2>
+        <h2 id="components" class="text-4xl font-light my-4 text-orange-500">Components</h2>
         <section class="flex flex-col gap-6">
           {% for func in docs["components"] %}
           <div id="{{ func['name'].lower() }}" class="func">
+            <h3 id="{{ func['name'].lower() }}-header" class="text-xl font-semibold my-4">{{ func['name'] }}</h3>
             <pre ><code class="lang-python">gradio.components.<span>{{ func["name"] }}(</span><!--
             -->{% for param in func["params"] %}<!--
               -->{% if param|length == 1 %}<!--
@@ -242,6 +250,71 @@
     </nav>
   </footer>
   <script src="/assets/prism.js"></script>
+  <script>
+    // highlighting section in nav bar
+    let mainNavLinks = document.querySelectorAll(".navigation a");
+    let lastId;
+    let cur = [];
+
+    window.addEventListener("scroll", event => {
+      let fromTop = window.scrollY;
+
+    mainNavLinks.forEach(link => {
+      let section = document.querySelector(link.hash);
+
+      if (
+        section.offsetTop <= fromTop &&
+        section.offsetTop + section.offsetHeight > fromTop
+      ) {
+        link.classList.add("border-orange-500", "text-orange-500", "md:border-l-2", "pl-8");
+      } else {
+        link.classList.remove("border-orange-500", "text-orange-500", "md:border-l-2", "pl-8");
+      }
+    });
+    });
+
+    // header anchor tags
+    function createAnchorTag(link) {
+            let a = document.createElement('a');
+            a.href = link;
+            a.classList.add("anchor", "invisible");
+            let img = document.createElement('img');
+            img.classList.add("anchor-img", "w-7", "max-w-full", "inline-block", "mr-0", "ml-1")
+            img.src = "/assets/img/anchor.svg";
+            a.appendChild(img);
+            return a;
+        }
+    function createMobileAnchorTag(link) {
+            let a = document.createElement('a');
+            a.href = link;
+            a.style="text-decoration: none"
+            return a;
+    }
+    var headers = document.querySelectorAll(".docs h2, .docs h3");
+    function isTouchDevice() {
+            return (('ontouchstart' in window) ||
+               (navigator.maxTouchPoints > 0) ||
+               (navigator.msMaxTouchPoints > 0));
+          }
+
+    if (isTouchDevice()) {
+          for (let i = 0; i < headers.length; i++) {
+            let link = '#' + headers[i].id;
+            var parent = headers[i].parentNode;
+            var wrapper = createMobileAnchorTag(link);
+            parent.replaceChild(wrapper, headers[i]);
+            wrapper.appendChild(headers[i]);
+          }
+    } else {
+          for (let i = 0; i < headers.length; i++) {
+            headers[i].classList.add("header");
+            let link = '#' + headers[i].id;
+            headers[i].appendChild(createAnchorTag(link))
+          }
+    }
+
+
+  </script>
 </body>
 
 </html>
