@@ -15,8 +15,8 @@ with demo:
     inp = gr.Textbox(placeholder="What is your name?")
     out = gr.Textbox()
     
-    input.change(fn=update, 
-                 inputs=inp, 
-                 outputs=out)
+    inp.change(fn=update, 
+               inputs=inp, 
+               outputs=out)
 
 demo.launch()

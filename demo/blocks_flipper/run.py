@@ -14,7 +14,7 @@ def flip_image(x):
 with demo:
     gr.Markdown("Flip text or image files using this demo.")
     with gr.Tabs():
-        with gr.TabItem("Flip Text")
+        with gr.TabItem("Flip Text"):
             text_input = gr.Textbox()
             text_output = gr.Textbox()
             text_button = gr.Button("Flip")
