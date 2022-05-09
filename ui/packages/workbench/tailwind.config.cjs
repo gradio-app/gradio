@@ -1,4 +1,4 @@
-const colors = require('tailwindcss/colors')
+const colors = require("tailwindcss/colors");
 
 const defaultTheme = require("tailwindcss/defaultTheme");
 const production = !process.env.ROLLUP_WATCH;
@@ -17,7 +17,7 @@ module.exports = {
 			},
 			colors: {
 				gray: {
-					950: "#090f1f",
+					950: "#090f1f"
 				},
 				orange: {
 					50: "#FFF2E5",
