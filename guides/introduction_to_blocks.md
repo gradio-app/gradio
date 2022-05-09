@@ -57,7 +57,7 @@ Here's what you should keep in mind: any components created under a `Column` (th
 
 Finally, you can also create a `with gradio.Tabs():` and within it create multiple  `with gradio.TabItem(name_of_tab):` children. Any component created inside of a `with gradio.TabItem(name_of_tab):` context appears in that tab.
 
-Here is a example with 2 tabs and also using a `Row`:
+Here is a example with tabs, rows, and columns:
 
 {{ code["blocks_flipper"] }}
 
