@@ -29,15 +29,6 @@ class Component(Block):
     """
     A base class for defining the methods that all gradio components should have.
     """
-
-    def __init__(
-        self,
-        *,
-        css: Optional[Dict] = None,
-        **kwargs,
-    ):
-        super().__init__(**kwargs)
-
     def __str__(self):
         return self.__repr__()
 
@@ -429,7 +420,7 @@ class Textbox(Changeable, Submittable, IOComponent):
     ):
         """
         Parameters:
-        value (str): default text to provide in textarea.
+        default_value (str): default text to provide in textarea.
         lines (int): minimum number of line rows to provide in textarea.
         max_lines (int): maximum number of line rows to provide in textarea.
         placeholder (str): placeholder hint to provide behind textarea.
@@ -576,7 +567,7 @@ class Number(Changeable, Submittable, IOComponent):
     ):
         """
         Parameters:
-        value (float): default value.
+        default_value (float): default value.
         label (str): component name in interface.
         """
         self.default_value = float(default_value) if default_value is not None else None
@@ -689,7 +680,7 @@ class Slider(Changeable, IOComponent):
     ):
         """
         Parameters:
-        value (float): default value.
+        default_value (float): default value.
         minimum (float): minimum value for slider.
         maximum (float): maximum value for slider.
         step (float): increment between slider values.
@@ -793,7 +784,7 @@ class Checkbox(Changeable, IOComponent):
     ):
         """
         Parameters:
-        value (bool): if True, checked by default.
+        default_value (bool): if True, checked by default.
         label (str): component name in interface.
         """
         self.test_input = True
@@ -1138,7 +1129,7 @@ class Image(Editable, Clearable, IOComponent):
     ):
         """
         Parameters:
-        value(str): A path or URL for the default value that Image component is going to take.
+        default_value (str): A path or URL for the default value that Image component is going to take.
         shape (Tuple[int, int]): (width, height) shape to crop and resize image to; if None, matches input image size. Pass None for either width or height to only crop and resize the other.
         image_mode (str): "RGB" if color, or "L" if black and white.
         invert_colors (bool): whether to invert the image as a preprocessing step.
@@ -1536,7 +1527,7 @@ class Audio(Changeable, Clearable, Playable, IOComponent):
     ):
         """
         Parameters:
-        value (str): IGNORED
+        default_value (str): IGNORED
         source (str): Source of audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input.
         type (str): The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
         label (str): component name in interface.
@@ -1787,7 +1778,7 @@ class File(Changeable, Clearable, IOComponent):
     ):
         """
         Parameters:
-        value (str): Default value given as file path
+        default_value (str): Default value given as file path
         file_count (str): if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
         type (str): Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name, "binary" returns an bytes object.
         label (str): component name in interface.
@@ -1907,7 +1898,7 @@ class Dataframe(Changeable, IOComponent):
     ):
         """
         Input Parameters:
-        value (List[List[Any]]): Default value as a pandas DataFrame. TODO: Add support for default value as a filepath
+        default_value (List[List[Any]]): Default value as a pandas DataFrame. TODO: Add support for default value as a filepath
         headers (List[str]): Header names to dataframe. If None, no headers are shown.
         row_count (Union[int, Tuple[int, str]]): Limit number of rows for input and decide whether user can create new rows. The first element of the tuple is an `int`, the row count; the second should be 'fixed' or 'dynamic', the new row behaviour. If an `int` is passed the rows default to 'dynamic'
         col_count (Union[int, Tuple[int, str]]): Limit number of columns for input and decide whether user can create new columns. The first element of the tuple is an `int`, the number of columns; the second should be 'fixed' or 'dynamic', the new column behaviour. If an `int` is passed the columns default to 'dynamic'
@@ -2166,7 +2157,7 @@ class Variable(IOComponent):
     ):
         """
         Parameters:
-        value (Any): the initial value of the state.
+        default_value (Any): the initial value of the state.
         label (str): component name in interface (not used).
         """
         self.default_value = default_value
@@ -2329,7 +2320,7 @@ class HighlightedText(Changeable, IOComponent):
     ):
         """
         Parameters:
-        value (str): Default value
+        default_value (str): Default value
         color_map (Dict[str, str]): Map between category and respective colors
         label (str): component name in interface.
         show_legend (bool): whether to show span categories in a separate legend or inline.
@@ -2380,7 +2371,7 @@ class JSON(Changeable, IOComponent):
     ):
         """
         Parameters:
-        value (str): Default value
+        default_value (str): Default value
         label (str): component name in interface.
         """
         self.default_value = json.dumps(default_value)
@@ -2426,7 +2417,7 @@ class HTML(Changeable, IOComponent):
     ):
         """
         Parameters:
-        value (str): Default value
+        default_value (str): Default value
         label (str): component name in interface.
         """
         self.default_value = default_value
@@ -2578,7 +2569,7 @@ class Chatbot(Changeable, IOComponent):
     ):
         """
         Parameters:
-        value (str): Default value
+        default_value (str): Default value
         color_map (Tuple[str, str]): Chat bubble color of input text and output text respectively.
         label (str): component name in interface (not used).
         """
@@ -2769,7 +2760,7 @@ class Markdown(Component):
     ):
         """
         Parameters:
-        value (str): Default value
+        default_value (str): Default value
         css (dict): optional css parameters for the component
         """
         Component.__init__(self, **kwargs)
@@ -2808,7 +2799,7 @@ class Button(Clickable, Component):
     ):
         """
         Parameters:
-        value (str): Default value
+        default_value (str): Default value
         css (dict): optional css parameters for the component
         variant (str): 'primary' for main call-to-action, 'secondary' for a more subdued style
         """
