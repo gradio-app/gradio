@@ -8,6 +8,7 @@
 	"license": "ISC",
 	"private": true,
 	"dependencies": {
-		"@gradio/atoms": "workspace:^0.0.1"
+		"@gradio/atoms": "workspace:^0.0.1",
+		"@gradio/icons": "workspace:^0.0.1"
 	}
 }

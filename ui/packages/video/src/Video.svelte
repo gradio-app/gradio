@@ -4,9 +4,9 @@
 	import type { FileData } from "@gradio/upload";
 	import { Block, BlockLabel } from "@gradio/atoms";
 	import { Webcam } from "@gradio/image";
+	import { Video } from "@gradio/icons";
 
 	import { prettyBytes, playable } from "./utils";
-	import video_icon from "./video.svg";
 
 	export let value: FileData | null = null;
 	export let source: string;
@@ -42,7 +42,7 @@
 	$: dispatch("drag", dragging);
 </script>
 
-<BlockLabel {show_label} image={video_icon} label={label || "Video"} />
+<BlockLabel {show_label} Icon={Video} label={label || "Video"} />
 {#if value === null}
 	{#if source === "upload"}
 		<Upload
