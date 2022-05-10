@@ -352,8 +352,8 @@ def render_docs():
         "params": load_params[1],
         "params_doc": load_params[2],
         "return_doc": load_params[3],
-        "example":"""
-description = "Story generation with GPT"
+        "example":
+"""description = "Story generation with GPT"
 examples = [["An adventurer is approached by a mysterious stranger in the tavern for a new quest."]]
 
 demo = gr.Interface.load("models/EleutherAI/gpt-neo-1.3B", description=description, examples=examples)
@@ -366,7 +366,13 @@ demo.launch()"""
         "params": from_pipeline_params[1],
         "params_doc": from_pipeline_params[2],
         "return_doc": from_pipeline_params[3],
-        "example": """import gradio as gr\nfrom transformers import pipeline\n\npipe = pipeline(model="lysandre/tiny-vit-random")\n\ngr.Interface.from_pipeline(pipe).launch()"""
+        "example": 
+"""import gradio as gr
+from transformers import pipeline
+
+pipe = pipeline("image-classification")
+
+gr.Interface.from_pipeline(pipe).launch()"""
     }
     docs = {
         "components": components_docs,

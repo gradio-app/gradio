@@ -420,13 +420,12 @@ class Blocks(BlockContext):
     def launch(
         self,
         inline: bool = None,
-        inbrowser: bool = None,
+        inbrowser: bool = False,
         share: bool = False,
         debug: bool = False,
         enable_queue: bool = None,
         auth: Optional[Callable | Tuple[str, str] | List[Tuple[str, str]]] = None,
         auth_message: Optional[str] = None,
-        private_endpoint: Optional[str] = None,
         prevent_thread_lock: bool = False,
         show_error: bool = True,
         server_name: Optional[str] = None,
@@ -444,26 +443,25 @@ class Blocks(BlockContext):
         Launches a simple web server that serves the demo. Can also be used to create a
         shareable link.
         Parameters:
-        inline (bool): whether to display in the interface inline on python notebooks.
+        inline (bool | None): whether to display in the interface inline in an iframe. Defaults to True in python notebooks; False otherwise. 
         inbrowser (bool): whether to automatically launch the interface in a new tab on the default browser.
-        share (bool): whether to create a publicly shareable link from your computer for the interface.
-        debug (bool): if True, and the interface was launched from Google Colab, prints the errors in the cell output.
-        auth (Callable, Union[Tuple[str, str], List[Tuple[str, str]]]): If provided, username and password (or list of username-password tuples) required to access interface. Can also provide function that takes username and password and returns True if valid login.
-        auth_message (str): If provided, HTML message provided on login page.
-        private_endpoint (str): If provided, the public URL of the interface will be this endpoint (should generally be unchanged).
+        share (bool): whether to create a publicly shareable link for the interface. Creates an SSH tunnel to make your UI accessible from anywhere.
+        debug (bool): if True, blocks the main thread from running. If running in Google Colab, this is needed to print the errors in the cell output.
+        auth (Callable | Union[Tuple[str, str] | List[Tuple[str, str]]] | None): If provided, username and password (or list of username-password tuples) required to access interface. Can also provide function that takes username and password and returns True if valid login.
+        auth_message (str | None): If provided, HTML message provided on login page.
         prevent_thread_lock (bool): If True, the interface will block the main thread while the server is running.
         show_error (bool): If True, any errors in the interface will be printed in the browser console log
-        server_port (int): will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT.
-        server_name (str): to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME.
+        server_port (int | None): will start gradio app on this port (if available). Can be set by environment variable GRADIO_SERVER_PORT. If None, will search for an available port starting at 7860.
+        server_name (str | None): to make app accessible on local network, set this to "0.0.0.0". Can be set by environment variable GRADIO_SERVER_NAME. If None, will use "127.0.0.1".
         show_tips (bool): if True, will occasionally show tips about new Gradio features
-        enable_queue (Optional[bool]): if True, inference requests will be served through a queue instead of with parallel threads. Required for longer inference times (> 1min) to prevent timeout. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
+        enable_queue (bool | None): if True, inference requests will be served through a queue instead of with parallel threads. Required for longer inference times (> 1min) to prevent timeout. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
         width (int): The width in pixels of the iframe element containing the interface (used if inline=True)
         height (int): The height in pixels of the iframe element containing the interface (used if inline=True)
         encrypt (bool): If True, flagged data will be encrypted by key provided by creator at launch
-        favicon_path (str): If a path to a file (.png, .gif, or .ico) is provided, it will be used as the favicon for the web page.
-        ssl_keyfile (str): If a path to a file is provided, will use this as the private key file to create a local server running on https.
-        ssl_certfile (str): If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
-        ssl_keyfile_password (str): If a password is provided, will use this with the ssl certificate for https.
+        favicon_path (str | None): If a path to a file (.png, .gif, or .ico) is provided, it will be used as the favicon for the web page.
+        ssl_keyfile (str | None): If a path to a file is provided, will use this as the private key file to create a local server running on https.
+        ssl_certfile (str | None): If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
+        ssl_keyfile_password (str | None): If a password is provided, will use this with the ssl certificate for https.
         Returns:
         app (FastAPI): FastAPI app object that is running the demo
         local_url (str): Locally accessible link to the demo
@@ -533,23 +531,15 @@ class Blocks(BlockContext):
         if is_colab and self.requires_permissions:
             print(strings.en["MEDIA_PERMISSIONS_IN_COLAB"])
 
-        if private_endpoint is not None:
-            share = True
-
         if share:
             if self.is_space:
                 raise RuntimeError("Share is not supported when you are in Spaces")
             try:
                 if self.share_url is None:
-                    share_url = networking.setup_tunnel(
-                        self.server_port, private_endpoint
-                    )
+                    share_url = networking.setup_tunnel(self.server_port, None)
                     self.share_url = share_url
                 print(strings.en["SHARE_LINK_DISPLAY"].format(self.share_url))
-                if private_endpoint:
-                    print(strings.en["PRIVATE_LINK_MESSAGE"])
-                else:
-                    print(strings.en["SHARE_LINK_MESSAGE"])
+                print(strings.en["SHARE_LINK_MESSAGE"])
             except RuntimeError:
                 if self.analytics_enabled:
                     utils.error_analytics(self.ip_address, "Not able to set up tunnel")
