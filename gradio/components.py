@@ -1367,9 +1367,7 @@ class Image(Editable, Clearable, IOComponent):
         """
         self.type = type
         self.value = (
-            processing_utils.encode_url_or_file_to_base64(value)
-            if value
-            else None
+            processing_utils.encode_url_or_file_to_base64(value) if value else None
         )
         self.type = type
         self.output_type = "auto"
@@ -1678,9 +1676,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         visible (bool): If False, component will be hidden.
         """
         self.value = (
-            processing_utils.encode_url_or_file_to_base64(value)
-            if value
-            else None
+            processing_utils.encode_url_or_file_to_base64(value) if value else None
         )
         self.type = type
         self.source = source
@@ -1825,9 +1821,7 @@ class Audio(Changeable, Clearable, Playable, IOComponent):
         visible (bool): If False, component will be hidden.
         """
         self.value = (
-            processing_utils.encode_url_or_file_to_base64(value)
-            if value
-            else None
+            processing_utils.encode_url_or_file_to_base64(value) if value else None
         )
         self.source = source
         requires_permissions = source == "microphone"
@@ -2110,9 +2104,7 @@ class File(Changeable, Clearable, IOComponent):
         visible (bool): If False, component will be hidden.
         """
         self.value = (
-            processing_utils.encode_url_or_file_to_base64(value)
-            if value
-            else None
+            processing_utils.encode_url_or_file_to_base64(value) if value else None
         )
         self.file_count = file_count
         self.type = type
@@ -2293,9 +2285,7 @@ class Dataframe(Changeable, IOComponent):
         self.test_input = [
             [values[c] for c in column_dtypes] for _ in range(self.row_count[0])
         ]
-        self.value = (
-            value if value is not None else self.test_input
-        )
+        self.value = value if value is not None else self.test_input
         self.max_rows = max_rows
         self.max_cols = max_cols
         self.overflow_row_behaviour = overflow_row_behaviour
@@ -2472,9 +2462,7 @@ class Timeseries(Changeable, IOComponent):
         visible (bool): If False, component will be hidden.
         colors List[str]: an ordered list of colors to use for each line plot
         """
-        self.value = (
-            pd.read_csv(value) if value is not None else None
-        )
+        self.value = pd.read_csv(value) if value is not None else None
         self.x = x
         if isinstance(y, str):
             y = [y]

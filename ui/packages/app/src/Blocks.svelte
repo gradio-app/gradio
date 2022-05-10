@@ -56,7 +56,7 @@
 	export let title: string = "Gradio";
 	export let analytics_enabled: boolean = false;
 
-	let rootNode: Component = { id: layout.id, type: "column", props: {}};
+	let rootNode: Component = { id: layout.id, type: "column", props: {} };
 	components.push(rootNode);
 
 	dependencies.forEach((d) => {

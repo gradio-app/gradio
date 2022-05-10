@@ -344,8 +344,6 @@ class Blocks(BlockContext):
                             prediction_value = block.__class__.update(
                                 **prediction_value
                             )
-                        keys = list(prediction_value.keys())
-
                         prediction_value = delete_none(prediction_value)
                         if "value" in prediction_value:
                             prediction_value["value"] = (

@@ -15,7 +15,6 @@
 	export let row_count: [number, "fixed" | "dynamic"];
 	export let parent: string | null = null;
 
-
 	$: {
 		if (!Array.isArray(value)) {
 			if (Array.isArray(value.headers)) headers = value.headers;

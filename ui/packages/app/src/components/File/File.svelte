@@ -17,7 +17,6 @@
 
 	export let loading_status: LoadingStatus;
 
-
 	let _value: null | FileData;
 	$: _value = normalise_file(value, root);
 

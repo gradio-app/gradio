@@ -111,7 +111,6 @@
 		mode === "static" && value && format_value(value as StaticData);
 
 	$: value, dispatch("change");
-
 </script>
 
 <Block
