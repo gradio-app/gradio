@@ -353,7 +353,7 @@ def render_docs():
         "params_doc": load_params[2],
         "return_doc": load_params[3],
         "example":
-        """import gradio as gr\ndescription = "Story generation with GPT-2"\ntitle = "Generate your own story"\nexamples = [["Adventurer is approached by a mysterious stranger in the tavern for a new quest."]]\n\ninterface = gr.Interface.load("huggingface/pranavpsv/gpt2-genre-story-generator", description=description, examples=examples)\n\ninterface.launch()"""
+        """import gradio as gr\n\ndescription = "Story generation with GPT-2"\nexamples = [["Adventurer is approached by a mysterious stranger in the tavern for a new quest."]]\n\ndemo = gr.Interface.load("models/pranavpsv/gpt2-genre-story-generator", description=description, examples=examples)\n\ndemo.launch()"""
     }
     from_pipeline_params = get_function_documentation(Interface.from_pipeline)
     from_pipeline = {
@@ -361,7 +361,7 @@ def render_docs():
         "params": from_pipeline_params[1],
         "params_doc": from_pipeline_params[2],
         "return_doc": from_pipeline_params[3],
-        "example": """import gradio as gr\nfrom transformers import pipeline\npipe = pipeline(model="lysandre/tiny-vit-random")\ngr.Interface.from_pipeline(pipe).launch()"""
+        "example": """import gradio as gr\nfrom transformers import pipeline\n\npipe = pipeline(model="lysandre/tiny-vit-random")\n\ngr.Interface.from_pipeline(pipe).launch()"""
     }
     docs = {
         "components": components_docs,
