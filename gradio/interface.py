@@ -132,7 +132,7 @@ class Interface(Blocks):
     ):
         """
         Parameters:
-        fn (Callable): the function to wrap an interface around.
+        fn (Callable): the function to wrap an interface around. Often a machine learning model's prediction function.
         inputs (str | Component | List[str] | List[Component] | None): a single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of input components should match the number of parameters in fn. If set to None, then only the output components will be displayed.
         outputs (str | Component | List[str] | List[Component] | None): a single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of output components should match the number of values returned by fn. If set to None, then only the input components will be displayed.
         examples (List[List[Any]] | str | None): sample inputs for the function; if provided, appear below the UI components and can be clicked to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided. If there are multiple input components and a directory is provided, a log.csv file must be present in the directory to link corresponding inputs.
@@ -149,9 +149,9 @@ class Interface(Blocks):
         css (str | None): custom css or path to custom css file to use with interface.
         allow_flagging (str | None): one of "never", "auto", or "manual". If "never" or "auto", users will not see a button to flag an input and output. If "manual", users will see a button to flag. If "auto", every prediction will be automatically flagged. If "manual", samples are flagged when the user clicks flag button. Can be set with environmental variable GRADIO_ALLOW_FLAGGING; otherwise defaults to "manual".
         flagging_options (List[str] | None): if provided, allows user to select from the list of options when flagging. Only applies if allow_flagging is "manual".
-        flagging_dir (str): what to name the dir where flagged data is stored.
+        flagging_dir (str): what to name the directory where flagged data is stored.
         flagging_callback (FlaggingCallback): An instance of a subclass of FlaggingCallback which will be called when a sample is flagged. By default logs to a local CSV file.
-        analytics_enabled (bool | None): Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
+        analytics_enabled (bool | None): Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
         """
         super().__init__(
             analytics_enabled=analytics_enabled, mode="interface", **kwargs
