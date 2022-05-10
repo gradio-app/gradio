@@ -23,8 +23,6 @@ from gradio.components import (
     Highlightedtext,
     HighlightedText,
     Image,
-    Keyvalues,
-    KeyValues,
     Label,
     Markdown,
     Model3D,

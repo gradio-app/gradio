@@ -10,7 +10,7 @@
 		confidences?: Array<{ label: string; confidence: number }>;
 	};
 
-	export let default_value: {
+	export let value: {
 		label: string;
 		confidences?: Array<{ label: string; confidence: number }>;
 	};
@@ -20,8 +20,6 @@
 	export let show_label: boolean;
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
-
-	if (default_value) value = default_value;
 
 	$: value, dispatch("change");
 </script>

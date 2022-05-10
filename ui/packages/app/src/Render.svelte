@@ -109,7 +109,7 @@
 <svelte:component
 	this={component}
 	bind:this={instance_map[id].instance}
-	bind:value={instance_map[id].value}
+	bind:value={instance_map[id].props.value}
 	{style}
 	{...props}
 	{root}

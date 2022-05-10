@@ -29,7 +29,6 @@
 	}
 
 	export let value: null | Data;
-	export let default_value: null | Data;
 	export let style: string = "";
 	export let y: Array<string>;
 	export let x: string;
@@ -113,7 +112,6 @@
 
 	$: value, dispatch("change");
 
-	if (default_value) value = default_value;
 </script>
 
 <Block

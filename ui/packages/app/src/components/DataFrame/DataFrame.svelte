@@ -9,14 +9,12 @@
 
 	export let headers: Headers = [];
 	export let value: Data | { data: Data; headers: Headers } = [["", "", ""]];
-	export let default_value: Array<Array<string | number>> = [["", "", ""]];
 	export let style: string = "";
 	export let mode: "static" | "dynamic";
 	export let col_count: [number, "fixed" | "dynamic"];
 	export let row_count: [number, "fixed" | "dynamic"];
 	export let parent: string | null = null;
 
-	if (default_value) value = default_value;
 
 	$: {
 		if (!Array.isArray(value)) {

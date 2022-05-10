@@ -34,7 +34,7 @@ class Component(Block):
         return self.__repr__()
 
     def __repr__(self):
-        return f"{self.get_block_name()} (label={self.label})"
+        return f"{self.get_block_name()}"
 
     def get_config(self):
         """
@@ -402,7 +402,7 @@ class Textbox(Changeable, Submittable, IOComponent):
 
     def __init__(
         self,
-        default_value: str = "",
+        value: str = "",
         *,
         lines: int = 1,
         max_lines: int = 20,
@@ -416,7 +416,7 @@ class Textbox(Changeable, Submittable, IOComponent):
     ):
         """
         Parameters:
-        default_value (str): default text to provide in textarea.
+        value (str): default text to provide in textarea.
         lines (int): minimum number of line rows to provide in textarea.
         max_lines (int): maximum number of line rows to provide in textarea.
         placeholder (str): placeholder hint to provide behind textarea.
@@ -425,13 +425,13 @@ class Textbox(Changeable, Submittable, IOComponent):
         css (Optional[Dict]): Provided css rules will be applied to component.
         visible (bool): If False, component will be hidden.
         """
-        default_value = str(default_value)
+        value = str(value)
         self.lines = lines
         self.max_lines = max_lines
         self.placeholder = placeholder
-        self.default_value = default_value
+        self.value = value
         self.cleared_value = ""
-        self.test_input = default_value
+        self.test_input = value
         self.interpret_by_tokens = True
         IOComponent.__init__(
             self,
@@ -448,7 +448,7 @@ class Textbox(Changeable, Submittable, IOComponent):
             "lines": self.lines,
             "max_lines": self.max_lines,
             "placeholder": self.placeholder,
-            "default_value": self.default_value,
+            "value": self.value,
             **IOComponent.get_config(self),
         }
 
@@ -590,7 +590,7 @@ class Number(Changeable, Submittable, IOComponent):
 
     def __init__(
         self,
-        default_value: Optional[float] = None,
+        value: Optional[float] = None,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -601,14 +601,14 @@ class Number(Changeable, Submittable, IOComponent):
     ):
         """
         Parameters:
-        default_value (float): default value.
+        value (float): default value.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         css (Optional[Dict]): Provided css rules will be applied to component.
         visible (bool): If False, component will be hidden.
         """
-        self.default_value = float(default_value) if default_value is not None else None
-        self.test_input = self.default_value if self.default_value is not None else 1
+        self.value = float(value) if value is not None else None
+        self.test_input = self.value if self.value is not None else 1
         self.interpret_by_tokens = False
         IOComponent.__init__(
             self,
@@ -622,7 +622,7 @@ class Number(Changeable, Submittable, IOComponent):
 
     def get_config(self):
         return {
-            "default_value": self.default_value,
+            "value": self.value,
             **IOComponent.get_config(self),
         }
 
@@ -631,6 +631,7 @@ class Number(Changeable, Submittable, IOComponent):
         value: Optional[Any] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
+        interactive: Optional[bool] = None,
         css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
@@ -732,7 +733,7 @@ class Slider(Changeable, IOComponent):
 
     def __init__(
         self,
-        default_value: Optional[float] = None,
+        value: Optional[float] = None,
         *,
         minimum: float = 0,
         maximum: float = 100,
@@ -746,7 +747,7 @@ class Slider(Changeable, IOComponent):
     ):
         """
         Parameters:
-        default_value (float): default value.
+        value (float): default value.
         minimum (float): minimum value for slider.
         maximum (float): maximum value for slider.
         step (float): increment between slider values.
@@ -762,9 +763,9 @@ class Slider(Changeable, IOComponent):
             power = math.floor(math.log10(difference) - 2)
             step = 10**power
         self.step = step
-        self.default_value = minimum if default_value is None else default_value
-        self.cleared_value = self.default_value
-        self.test_input = self.default_value
+        self.value = minimum if value is None else value
+        self.cleared_value = self.value
+        self.test_input = self.value
         self.interpret_by_tokens = False
         IOComponent.__init__(
             self,
@@ -781,7 +782,7 @@ class Slider(Changeable, IOComponent):
             "minimum": self.minimum,
             "maximum": self.maximum,
             "step": self.step,
-            "default_value": self.default_value,
+            "value": self.value,
             **IOComponent.get_config(self),
         }
 
@@ -793,6 +794,7 @@ class Slider(Changeable, IOComponent):
         step: Optional[float] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
+        interactive: Optional[bool] = None,
         css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
@@ -802,6 +804,7 @@ class Slider(Changeable, IOComponent):
             "step": step,
             "label": label,
             "show_label": show_label,
+            "interactive": interactive,
             "css": css,
             "visible": visible,
             "value": value,
@@ -877,7 +880,7 @@ class Checkbox(Changeable, IOComponent):
 
     def __init__(
         self,
-        default_value: bool = False,
+        value: bool = False,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -888,14 +891,14 @@ class Checkbox(Changeable, IOComponent):
     ):
         """
         Parameters:
-        default_value (bool): if True, checked by default.
+        value (bool): if True, checked by default.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         css (Optional[Dict]): Provided css rules will be applied to component.
         visible (bool): If False, component will be hidden.
         """
         self.test_input = True
-        self.default_value = default_value
+        self.value = value
         self.interpret_by_tokens = False
         IOComponent.__init__(
             self,
@@ -909,7 +912,7 @@ class Checkbox(Changeable, IOComponent):
 
     def get_config(self):
         return {
-            "default_value": self.default_value,
+            "value": self.value,
             **IOComponent.get_config(self),
         }
 
@@ -918,12 +921,14 @@ class Checkbox(Changeable, IOComponent):
         value: Optional[Any] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
+        interactive: Optional[bool] = None,
         css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
         return {
             "label": label,
             "show_label": show_label,
+            "interactive": interactive,
             "css": css,
             "visible": visible,
             "value": value,
@@ -1018,7 +1023,7 @@ class CheckboxGroup(Changeable, IOComponent):
         ):  # Mutable parameters shall not be given as default parameters in the function.
             default_selected = []
         self.choices = choices
-        self.default_value = default_selected
+        self.value = default_selected
         self.cleared_value = []
         self.type = type
         self.test_input = self.choices
@@ -1036,7 +1041,7 @@ class CheckboxGroup(Changeable, IOComponent):
     def get_config(self):
         return {
             "choices": self.choices,
-            "default_value": self.default_value,
+            "value": self.value,
             **IOComponent.get_config(self),
         }
 
@@ -1046,6 +1051,7 @@ class CheckboxGroup(Changeable, IOComponent):
         choices: Optional[List[str]] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
+        interactive: Optional[bool] = None,
         css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
@@ -1053,6 +1059,7 @@ class CheckboxGroup(Changeable, IOComponent):
             "choices": choices,
             "label": label,
             "show_label": show_label,
+            "interactive": interactive,
             "css": css,
             "visible": visible,
             "value": value,
@@ -1168,14 +1175,14 @@ class Radio(Changeable, IOComponent):
         self.choices = choices
         self.type = type
         self.test_input = self.choices[0] if len(self.choices) else None
-        self.default_value = (
+        self.value = (
             default_selected
             if default_selected is not None
             else self.choices[0]
             if len(self.choices) > 0
             else None
         )
-        self.cleared_value = self.default_value
+        self.cleared_value = self.value
         self.interpret_by_tokens = False
         IOComponent.__init__(
             self,
@@ -1190,7 +1197,7 @@ class Radio(Changeable, IOComponent):
     def get_config(self):
         return {
             "choices": self.choices,
-            "default_value": self.default_value,
+            "value": self.value,
             **IOComponent.get_config(self),
         }
 
@@ -1200,6 +1207,7 @@ class Radio(Changeable, IOComponent):
         choices: Optional[List[str]] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
+        interactive: Optional[bool] = None,
         css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
@@ -1207,6 +1215,7 @@ class Radio(Changeable, IOComponent):
             "choices": choices,
             "label": label,
             "show_label": show_label,
+            "interactive": interactive,
             "css": css,
             "visible": visible,
             "value": value,
@@ -1327,7 +1336,7 @@ class Image(Editable, Clearable, IOComponent):
 
     def __init__(
         self,
-        default_value: Optional[str] = None,
+        value: Optional[str] = None,
         *,
         shape: Tuple[int, int] = None,
         image_mode: str = "RGB",
@@ -1344,7 +1353,7 @@ class Image(Editable, Clearable, IOComponent):
     ):
         """
         Parameters:
-        default_value (str): A path or URL for the default value that Image component is going to take.
+        value (str): A path or URL for the default value that Image component is going to take.
         shape (Tuple[int, int]): (width, height) shape to crop and resize image to; if None, matches input image size. Pass None for either width or height to only crop and resize the other.
         image_mode (str): "RGB" if color, or "L" if black and white.
         invert_colors (bool): whether to invert the image as a preprocessing step.
@@ -1357,9 +1366,9 @@ class Image(Editable, Clearable, IOComponent):
         visible (bool): If False, component will be hidden.
         """
         self.type = type
-        self.default_value = (
-            processing_utils.encode_url_or_file_to_base64(default_value)
-            if default_value
+        self.value = (
+            processing_utils.encode_url_or_file_to_base64(value)
+            if value
             else None
         )
         self.type = type
@@ -1389,7 +1398,7 @@ class Image(Editable, Clearable, IOComponent):
             "shape": self.shape,
             "source": self.source,
             "tool": self.tool,
-            "default_value": self.default_value,
+            "value": self.value,
             **IOComponent.get_config(self),
         }
 
@@ -1398,12 +1407,14 @@ class Image(Editable, Clearable, IOComponent):
         value: Optional[Any] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
+        interactive: Optional[bool] = None,
         css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
         return {
             "label": label,
             "show_label": show_label,
+            "interactive": interactive,
             "css": css,
             "visible": visible,
             "value": value,
@@ -1645,7 +1656,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
 
     def __init__(
         self,
-        default_value: str = "",
+        value: str = "",
         *,
         type: Optional[str] = None,
         source: str = "upload",
@@ -1666,9 +1677,9 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         css (Optional[Dict]): Provided css rules will be applied to component.
         visible (bool): If False, component will be hidden.
         """
-        self.default_value = (
-            processing_utils.encode_url_or_file_to_base64(default_value)
-            if default_value
+        self.value = (
+            processing_utils.encode_url_or_file_to_base64(value)
+            if value
             else None
         )
         self.type = type
@@ -1686,7 +1697,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
     def get_config(self):
         return {
             "source": self.source,
-            "default_value": self.default_value,
+            "value": self.value,
             **IOComponent.get_config(self),
         }
 
@@ -1696,6 +1707,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         source: Optional[str] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
+        interactive: Optional[bool] = None,
         css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
@@ -1703,6 +1715,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
             "source": source,
             "label": label,
             "show_label": show_label,
+            "interactive": interactive,
             "css": css,
             "visible": visible,
             "value": value,
@@ -1790,7 +1803,7 @@ class Audio(Changeable, Clearable, Playable, IOComponent):
 
     def __init__(
         self,
-        default_value="",
+        value="",
         *,
         source: str = "upload",
         type: str = "numpy",
@@ -1803,7 +1816,7 @@ class Audio(Changeable, Clearable, Playable, IOComponent):
     ):
         """
         Parameters:
-        default_value (str): IGNORED
+        value (str): IGNORED
         source (str): Source of audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input.
         type (str): The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
         label (Optional[str]): component name in interface.
@@ -1811,9 +1824,9 @@ class Audio(Changeable, Clearable, Playable, IOComponent):
         css (Optional[Dict]): Provided css rules will be applied to component.
         visible (bool): If False, component will be hidden.
         """
-        self.default_value = (
-            processing_utils.encode_url_or_file_to_base64(default_value)
-            if default_value
+        self.value = (
+            processing_utils.encode_url_or_file_to_base64(value)
+            if value
             else None
         )
         self.source = source
@@ -1836,7 +1849,7 @@ class Audio(Changeable, Clearable, Playable, IOComponent):
     def get_config(self):
         return {
             "source": self.source,  # TODO: This did not exist in output template, careful here if an error arrives
-            "default_value": self.default_value,
+            "value": self.value,
             **IOComponent.get_config(self),
         }
 
@@ -1846,6 +1859,7 @@ class Audio(Changeable, Clearable, Playable, IOComponent):
         source: Optional[str] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
+        interactive: Optional[bool] = None,
         css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
@@ -1853,6 +1867,7 @@ class Audio(Changeable, Clearable, Playable, IOComponent):
             "source": source,
             "label": label,
             "show_label": show_label,
+            "interactive": interactive,
             "css": css,
             "visible": visible,
             "value": value,
@@ -2073,7 +2088,7 @@ class File(Changeable, Clearable, IOComponent):
 
     def __init__(
         self,
-        default_value: str = "",
+        value: str = "",
         *,
         file_count: str = "single",
         type: str = "file",
@@ -2086,7 +2101,7 @@ class File(Changeable, Clearable, IOComponent):
     ):
         """
         Parameters:
-        default_value (str): Default value given as file path
+        value (str): Default value given as file path
         file_count (str): if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
         type (str): Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name, "binary" returns an bytes object.
         label (Optional[str]): component name in interface.
@@ -2094,9 +2109,9 @@ class File(Changeable, Clearable, IOComponent):
         css (Optional[Dict]): Provided css rules will be applied to component.
         visible (bool): If False, component will be hidden.
         """
-        self.default_value = (
-            processing_utils.encode_url_or_file_to_base64(default_value)
-            if default_value
+        self.value = (
+            processing_utils.encode_url_or_file_to_base64(value)
+            if value
             else None
         )
         self.file_count = file_count
@@ -2115,7 +2130,7 @@ class File(Changeable, Clearable, IOComponent):
     def get_config(self):
         return {
             "file_count": self.file_count,
-            "default_value": self.default_value,
+            "value": self.value,
             **IOComponent.get_config(self),
         }
 
@@ -2124,12 +2139,14 @@ class File(Changeable, Clearable, IOComponent):
         value: Optional[Any] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
+        interactive: Optional[bool] = None,
         css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
         return {
             "label": label,
             "show_label": show_label,
+            "interactive": interactive,
             "css": css,
             "visible": visible,
             "value": value,
@@ -2219,7 +2236,7 @@ class Dataframe(Changeable, IOComponent):
 
     def __init__(
         self,
-        default_value: Optional[List[List[Any]]] = None,
+        value: Optional[List[List[Any]]] = None,
         *,
         headers: Optional[List[str]] = None,
         row_count: int | Tuple[int, str] = (3, "dynamic"),
@@ -2238,7 +2255,7 @@ class Dataframe(Changeable, IOComponent):
     ):
         """
         Input Parameters:
-        default_value (List[List[Any]]): Default value as a pandas DataFrame. TODO: Add support for default value as a filepath
+        value (List[List[Any]]): Default value as a pandas DataFrame. TODO: Add support for default value as a filepath
         row_count (Union[int, Tuple[int, str]]): Limit number of rows for input and decide whether user can create new rows. The first element of the tuple is an `int`, the row count; the second should be 'fixed' or 'dynamic', the new row behaviour. If an `int` is passed the rows default to 'dynamic'
         col_count (Union[int, Tuple[int, str]]): Limit number of columns for input and decide whether user can create new columns. The first element of the tuple is an `int`, the number of columns; the second should be 'fixed' or 'dynamic', the new column behaviour. If an `int` is passed the columns default to 'dynamic'
         datatype (Union[str, List[str]]): Datatype of values in sheet. Can be provided per column as a list of strings, or for the entire sheet as a single string. Valid datatypes are "str", "number", "bool", and "date".
@@ -2276,8 +2293,8 @@ class Dataframe(Changeable, IOComponent):
         self.test_input = [
             [values[c] for c in column_dtypes] for _ in range(self.row_count[0])
         ]
-        self.default_value = (
-            default_value if default_value is not None else self.test_input
+        self.value = (
+            value if value is not None else self.test_input
         )
         self.max_rows = max_rows
         self.max_cols = max_cols
@@ -2298,7 +2315,7 @@ class Dataframe(Changeable, IOComponent):
             "datatype": self.datatype,
             "row_count": self.row_count,
             "col_count": self.col_count,
-            "default_value": self.default_value,
+            "value": self.value,
             "max_rows": self.max_rows,
             "max_cols": self.max_cols,
             "overflow_row_behaviour": self.overflow_row_behaviour,
@@ -2312,6 +2329,7 @@ class Dataframe(Changeable, IOComponent):
         max_cols: Optional[str] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
+        interactive: Optional[bool] = None,
         css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
@@ -2320,6 +2338,7 @@ class Dataframe(Changeable, IOComponent):
             "max_cols": max_cols,
             "label": label,
             "show_label": show_label,
+            "interactive": interactive,
             "css": css,
             "visible": visible,
             "value": value,
@@ -2430,7 +2449,7 @@ class Timeseries(Changeable, IOComponent):
 
     def __init__(
         self,
-        default_value: Optional[str] = None,
+        value: Optional[str] = None,
         *,
         x: Optional[str] = None,
         y: str | List[str] = None,
@@ -2444,7 +2463,7 @@ class Timeseries(Changeable, IOComponent):
     ):
         """
         Parameters:
-        default_value: File path for the timeseries csv file. TODO: Add support for default value as a pd.DataFrame
+        value: File path for the timeseries csv file. TODO: Add support for default value as a pd.DataFrame
         x (str): Column name of x (time) series. None if csv has no headers, in which case first column is x series.
         y (Union[str, List[str]]): Column name of y series, or list of column names if multiple series. None if csv has no headers, in which case every column after first is a y series.
         label (Optional[str]): component name in interface.
@@ -2453,8 +2472,8 @@ class Timeseries(Changeable, IOComponent):
         visible (bool): If False, component will be hidden.
         colors List[str]: an ordered list of colors to use for each line plot
         """
-        self.default_value = (
-            pd.read_csv(default_value) if default_value is not None else None
+        self.value = (
+            pd.read_csv(value) if value is not None else None
         )
         self.x = x
         if isinstance(y, str):
@@ -2475,7 +2494,7 @@ class Timeseries(Changeable, IOComponent):
         return {
             "x": self.x,
             "y": self.y,
-            "default_value": self.default_value,
+            "value": self.value,
             "colors": self.colors,
             **IOComponent.get_config(self),
         }
@@ -2486,6 +2505,7 @@ class Timeseries(Changeable, IOComponent):
         colors: Optional[List[str]] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
+        interactive: Optional[bool] = None,
         css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
@@ -2493,6 +2513,7 @@ class Timeseries(Changeable, IOComponent):
             "colors": colors,
             "label": label,
             "show_label": show_label,
+            "interactive": interactive,
             "css": css,
             "visible": visible,
             "value": value,
@@ -2555,20 +2576,20 @@ class Variable(IOComponent):
 
     def __init__(
         self,
-        default_value: Any = None,
+        value: Any = None,
         **kwargs,
     ):
         """
         Parameters:
-        default_value (Any): the initial value of the state.
+        value (Any): the initial value of the state.
         """
-        self.default_value = default_value
+        self.value = value
         self.stateful = True
         IOComponent.__init__(self, **kwargs)
 
     def get_config(self):
         return {
-            "default_value": self.default_value,
+            "value": self.value,
             **IOComponent.get_config(self),
         }
 
@@ -2589,7 +2610,7 @@ class Label(Changeable, IOComponent):
 
     def __init__(
         self,
-        default_value: str = "",
+        value: str = "",
         *,
         num_top_classes: Optional[int] = None,
         label: Optional[str] = None,
@@ -2703,37 +2724,6 @@ class Label(Changeable, IOComponent):
         }
 
 
-class KeyValues(IOComponent):
-    """
-    Component displays a table representing values for multiple fields.
-    Output type: Union[Dict, List[Tuple[str, Union[str, int, float]]]]
-    Demos: text_analysis
-    """
-
-    def __init__(
-        self,
-        default_value: str = " ",
-        *,
-        label: Optional[str] = None,
-        show_label: bool = True,
-        css: Optional[Dict] = None,
-        visible: bool = True,
-        **kwargs,
-    ):
-        """
-        Parameters:
-        default (str): IGNORED
-        label (Optional[str]): component name in interface.
-        show_label (bool): if True, will display label.
-        css (Optional[Dict]): Provided css rules will be applied to component.
-        visible (bool): If False, component will be hidden.
-        """
-        raise DeprecationWarning(
-            "The KeyValues component is deprecated. Please use the DataFrame or JSON "
-            "components instead."
-        )
-
-
 class HighlightedText(Changeable, IOComponent):
     """
     Component creates text that contains spans that are highlighted by category or numerical value.
@@ -2744,7 +2734,7 @@ class HighlightedText(Changeable, IOComponent):
 
     def __init__(
         self,
-        default_value: str = "",
+        value: str = "",
         *,
         color_map: Dict[str, str] = None,
         show_legend: bool = False,
@@ -2756,7 +2746,7 @@ class HighlightedText(Changeable, IOComponent):
     ):
         """
         Parameters:
-        default_value (str): Default value
+        value (str): Default value
         color_map (Dict[str, str]): Map between category and respective colors
         show_legend (bool): whether to show span categories in a separate legend or inline.
         label (Optional[str]): component name in interface.
@@ -2764,7 +2754,7 @@ class HighlightedText(Changeable, IOComponent):
         css (Optional[Dict]): Provided css rules will be applied to component.
         visible (bool): If False, component will be hidden.
         """
-        self.default_value = default_value
+        self.value = value
         self.color_map = color_map
         self.show_legend = show_legend
         IOComponent.__init__(
@@ -2775,7 +2765,7 @@ class HighlightedText(Changeable, IOComponent):
         return {
             "color_map": self.color_map,
             "show_legend": self.show_legend,
-            "default_value": self.default_value,
+            "value": self.value,
             **IOComponent.get_config(self),
         }
 
@@ -2826,7 +2816,7 @@ class JSON(Changeable, IOComponent):
 
     def __init__(
         self,
-        default_value: str = "",
+        value: str = "",
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -2836,20 +2826,20 @@ class JSON(Changeable, IOComponent):
     ):
         """
         Parameters:
-        default_value (str): Default value
+        value (str): Default value
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         css (Optional[Dict]): Provided css rules will be applied to component.
         visible (bool): If False, component will be hidden.
         """
-        self.default_value = json.dumps(default_value)
+        self.value = json.dumps(value)
         IOComponent.__init__(
             self, label=label, show_label=show_label, css=css, visible=visible, **kwargs
         )
 
     def get_config(self):
         return {
-            "default_value": self.default_value,
+            "value": self.value,
             **IOComponent.get_config(self),
         }
 
@@ -2898,7 +2888,7 @@ class HTML(Changeable, IOComponent):
 
     def __init__(
         self,
-        default_value: str = "",
+        value: str = "",
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -2908,20 +2898,20 @@ class HTML(Changeable, IOComponent):
     ):
         """
         Parameters:
-        default_value (str): Default value
+        value (str): Default value
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         css (Optional[Dict]): Provided css rules will be applied to component.
         visible (bool): If False, component will be hidden.
         """
-        self.default_value = default_value
+        self.value = value
         IOComponent.__init__(
             self, label=label, show_label=show_label, css=css, visible=visible, **kwargs
         )
 
     def get_config(self):
         return {
-            "default_value": self.default_value,
+            "value": self.value,
             **IOComponent.get_config(self),
         }
 
@@ -3123,7 +3113,7 @@ class Chatbot(Changeable, IOComponent):
 
     def __init__(
         self,
-        default_value="",
+        value="",
         color_map: Tuple(str, str) = None,
         *,
         label: Optional[str] = None,
@@ -3134,14 +3124,14 @@ class Chatbot(Changeable, IOComponent):
     ):
         """
         Parameters:
-        default_value (str): Default value
+        value (str): Default value
         color_map (Tuple[str, str]): Chat bubble color of input text and output text respectively.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         css (Optional[Dict]): Provided css rules will be applied to component.
         visible (bool): If False, component will be hidden.
         """
-        self.default_value = default_value
+        self.value = value
         self.color_map = color_map
         IOComponent.__init__(
             self, label=label, show_label=show_label, css=css, visible=visible, **kwargs
@@ -3149,7 +3139,7 @@ class Chatbot(Changeable, IOComponent):
 
     def get_config(self):
         return {
-            "default_value": self.default_value,
+            "value": self.value,
             "color_map": self.color_map,
             **IOComponent.get_config(self),
         }
@@ -3394,7 +3384,7 @@ class Markdown(Component):
 
     def __init__(
         self,
-        default_value: str = "",
+        value: str = "",
         *,
         css: Optional[Dict] = None,
         visible: bool = True,
@@ -3402,14 +3392,14 @@ class Markdown(Component):
     ):
         """
         Parameters:
-        default_value (str): Default value
+        value (str): Default value
         css (Optional[Dict]): Provided css rules will be applied to component.
         visible (bool): If False, component will be hidden.
         """
         Component.__init__(self, css=css, visible=visible, **kwargs)
         self.md = MarkdownIt()
-        unindented_value = inspect.cleandoc(default_value)
-        self.default_value = self.md.render(unindented_value)
+        unindented_value = inspect.cleandoc(value)
+        self.value = self.md.render(unindented_value)
 
     def postprocess(self, y):
         unindented_y = inspect.cleandoc(y)
@@ -3417,7 +3407,7 @@ class Markdown(Component):
 
     def get_config(self):
         return {
-            "default_value": self.default_value,
+            "value": self.value,
             **Component.get_config(self),
         }
 
@@ -3447,7 +3437,7 @@ class Button(Clickable, Component):
 
     def __init__(
         self,
-        default_value: str = "",
+        value: str = "",
         *,
         variant: str = "primary",
         css: Optional[Dict] = None,
@@ -3456,18 +3446,18 @@ class Button(Clickable, Component):
     ):
         """
         Parameters:
-        default_value (str): Default value
+        value (str): Default value
         variant (str): 'primary' for main call-to-action, 'secondary' for a more subdued style
         css (Optional[Dict]): Provided css rules will be applied to component.
         visible (bool): If False, component will be hidden.
         """
         Component.__init__(self, css=css, visible=visible, **kwargs)
-        self.default_value = default_value
+        self.value = value
         self.variant = variant
 
     def get_config(self):
         return {
-            "default_value": self.default_value,
+            "value": self.value,
             "variant": self.variant,
             **Component.get_config(self),
         }
@@ -3667,7 +3657,6 @@ def get_component_instance(comp: str | dict | Component):
 
 
 DataFrame = Dataframe
-Keyvalues = KeyValues
 Highlightedtext = HighlightedText
 Checkboxgroup = CheckboxGroup
 TimeSeries = Timeseries

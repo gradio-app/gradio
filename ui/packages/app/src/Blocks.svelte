@@ -3,7 +3,6 @@
 	import { component_map } from "./components/directory";
 	import { loading_status } from "./stores";
 	import type { LoadingStatus } from "./stores";
-	import { Component as Column } from "./components/Column";
 
 	import { _ } from "svelte-i18n";
 	import { setupi18n } from "./i18n";
@@ -100,6 +99,7 @@
 
 	async function walk_layout(node: LayoutNode) {
 		let instance = instance_map[node.id];
+		console.log(node.id, instance_map);
 		const _component = (await _component_map.get(instance.type)).component;
 		instance.component = _component.Component;
 		if (_component.modes.length > 1) {
@@ -132,6 +132,7 @@
 			obj.props = {};
 		}
 		obj.props[prop] = val;
+		rootNode = rootNode;
 	}
 
 	let handled_dependencies: Array<number[]> = [];
@@ -180,15 +181,13 @@
 									)) {
 										if (update_key === "__type__") {
 											continue;
-										} else if (update_key === "value") {
-											instance_map[outputs[i]].value = update_value;
 										} else {
 											instance_map[outputs[i]].props[update_key] = update_value;
 										}
 									}
 									rootNode = rootNode;
 								} else {
-									instance_map[outputs[i]].value = value;
+									instance_map[outputs[i]].props.value = value;
 								}
 							});
 						})
@@ -230,8 +229,6 @@
 										)) {
 											if (update_key === "__type__") {
 												continue;
-											} else if (update_key === "value") {
-												instance_map[outputs[i]].value = update_value;
 											} else {
 												instance_map[outputs[i]].props[update_key] =
 													update_value;

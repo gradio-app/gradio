@@ -862,7 +862,7 @@ class TestDataframe(unittest.TestCase):
                 "datatype": "str",
                 "row_count": (3, "dynamic"),
                 "col_count": (3, "dynamic"),
-                "default_value": [
+                "value": [
                     ["", "", ""],
                     ["", "", ""],
                     ["", "", ""],
@@ -914,7 +914,7 @@ class TestDataframe(unittest.TestCase):
                 "datatype": "str",
                 "row_count": (3, "dynamic"),
                 "col_count": (3, "dynamic"),
-                "default_value": [
+                "value": [
                     ["", "", ""],
                     ["", "", ""],
                     ["", "", ""],
@@ -1386,7 +1386,7 @@ class TestJSON(unittest.TestCase):
             js_output.get_config(),
             {
                 "css": {},
-                "default_value": '""',
+                "value": '""',
                 "show_label": True,
                 "label": None,
                 "name": "json",

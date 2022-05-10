@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 from gradio import encryptor, networking, queueing, strings, utils
 from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
+from gradio.utils import delete_none
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from fastapi.applications import FastAPI
@@ -22,6 +23,7 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 class Block:
     def __init__(self, *, render=True, css=None, visible=True, **kwargs):
         self._id = Context.id
+        print(self._id, type(self))
         Context.id += 1
         self.css = css if css is not None else {}
         self.visible = visible
@@ -344,9 +346,8 @@ class Blocks(BlockContext):
                                 **prediction_value
                             )
                         keys = list(prediction_value.keys())
-                        for key in keys:
-                            if prediction_value[key] is None:
-                                del prediction_value[key]
+
+                        prediction_value = delete_none(prediction_value)
                         if "value" in prediction_value:
                             prediction_value["value"] = (
                                 block.postprocess(prediction_value["value"])
@@ -382,6 +383,8 @@ class Blocks(BlockContext):
                 self, "enable_queue", False
             ),  # attribute set at launch
         }
+
+        print(list(self.blocks.items()))
         for _id, block in self.blocks.items():
             config["components"].append(
                 {
@@ -389,7 +392,7 @@ class Blocks(BlockContext):
                     "type": (block.get_block_name()),
                     "props": utils.delete_none(block.get_config())
                     if hasattr(block, "get_config")
-                    else None,
+                    else {},
                 }
             )
 

@@ -27,5 +27,5 @@ demo = gr.Interface(
     flagging_options=["this", "or", "that"],
 )
 
-if __name__ == "__main__":
-    demo.launch()
+# if __name__ == "__main__":
+    # demo.launch()
