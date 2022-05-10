@@ -42,13 +42,9 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 class Interface(Blocks):
     """
-    gradio.Interface is a high-level class that allows you to create a web demo
-    simply by specifying a function, the desired input components, and desired 
-    output components. For example:
-    
-    Examples:
-        >>> gr.Interface(image_classifier, "image", "label")  
-        >>> gr.Interface(speech_to_text, "mic", gr.Textbox(label="predicted text", lines=4))      
+    The core Interface class is a high-level abstraction that allows you to create a 
+    web-based UI around a function by specifying (1) the function (2) the desired 
+    input components and (3) desired output components.
     """
 
     # stores references to all currently existing Interface instances
@@ -142,10 +138,10 @@ class Interface(Blocks):
     ):
         """
         Parameters:
-        fn (Union[Callable, List[Callable]]): the function to wrap an interface around.
-        inputs (Union[str, InputComponent, List[Union[str, InputComponent]]]): a single Gradio input component, or list of Gradio input components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of input components should match the number of parameters in fn.
-        outputs (Union[str, OutputComponent, List[Union[str, OutputComponent]]]): a single Gradio output component, or list of Gradio output components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of output components should match the number of values returned by fn.
-        examples (Union[List[List[Any]], str]): sample inputs for the function; if provided, appears below the UI components and can be used to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided. If there are multiple input components and a directory is provided, a log.csv file must be present in the directory to link corresponding inputs.
+        fn (Callable): the function to wrap an interface around.
+        inputs (str | Component | List[str] | List[Component] | None): a single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of input components should match the number of parameters in fn. If None, then only the output components will be displayed.
+        outputs (str | Component | List[str] | List[Component] | None): a single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of output components should match the number of values returned by fn. If None, then only the input components will be displayed.
+        examples (List[List[Any]] | str): sample inputs for the function; if provided, appears below the UI components and can be used to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided. If there are multiple input components and a directory is provided, a log.csv file must be present in the directory to link corresponding inputs.
         examples_per_page (int): If examples are provided, how many to display per page.
         cache_examples (Optional[bool]): If True, caches examples in the server for fast runtime in examples. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
         live (bool): whether the interface should automatically reload on change.
