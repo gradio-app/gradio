@@ -44,18 +44,7 @@ class Interface(Blocks):
     """
     The core Interface class is a high-level abstraction that allows you to create a
     web-based UI around a function by specifying (1) the function (2) the desired
-    input components and (3) desired output components. For example:
-    
-    Example Usage:
-        import gradio as gr
-
-        def image_classifier(inp):
-            pass # image classifier model defined here
-        gr.Interface(image_classifier, "image", "label")
-
-        def speech_to_text(inp):
-            pass # image classifier model defined here
-        gr.Interface(speech_to_text, "mic", gr.Textbox(label="predicted text", lines=4))
+    input components and (3) desired output components.
     """
 
     # stores references to all currently existing Interface instances
@@ -84,11 +73,13 @@ class Interface(Blocks):
         **kwargs,
     ) -> Interface:
         """
-        Class method to construct an Interface from an external source repository, such as huggingface.
+        Class method that constructs an Interface from a Hugging Face repo. Can accept
+        model repos (if src is "models") or Space repos (if src is "spaces"). Input
+        and output components are automatically loaded from the repo.
         Parameters:
-        name (str): the name of the model (e.g. "gpt2"), can include the `src` as prefix (e.g. "huggingface/gpt2")
-        src (str): the source of the model: `huggingface` or `gradio` (or empty if source is provided as a prefix in `name`)
-        api_key (str): optional api key for use with Hugging Face Model Hub
+        name (str): the name of the model (e.g. "gpt2"), can include the `src` as prefix (e.g. "models/gpt2")
+        src (str): the source of the model: `models` or `spaces` (or empty if source is provided as a prefix in `name`)
+        api_key (str): optional api key for use with Hugging Face Hub
         alias (str): optional, used as the name of the loaded model instead of the default name
         Returns:
         (gradio.Interface): a Gradio Interface object for the given model
@@ -102,17 +93,12 @@ class Interface(Blocks):
     @classmethod
     def from_pipeline(cls, pipeline: transformers.Pipeline, **kwargs) -> Interface:
         """
-        Construct an Interface from a Hugging Face transformers.Pipeline.
+        Construct an Interface from a Hugging Face transformers.Pipeline object. Input
+        and output components are automatically determined from the pipeline.
         Parameters:
-        pipeline (transformers.Pipeline): a Transformers object that offers a simple inference API dedicated to several tasks
+        pipeline (transformers.Pipeline): the pipeline object to use.
         Returns:
         (gradio.Interface): a Gradio Interface object from the given Pipeline
-
-        Example usage:
-            import gradio as gr
-            from transformers import pipeline
-            pipe = pipeline(model="lysandre/tiny-vit-random")
-            gr.Interface.from_pipeline(pipe).launch()
         """
         interface_info = load_from_pipeline(pipeline)
         kwargs = dict(interface_info, **kwargs)
@@ -155,10 +141,10 @@ class Interface(Blocks):
         live (bool): whether the interface should automatically rerun if any of the inputs change.
         interpretation (Callable | str): function that provides interpretation explaining prediction output. Pass "default" to use simple built-in interpreter, "shap" to use a built-in shapley-based interpreter, or your own custom interpretation function.
         num_shap (float): a multiplier that determines how many examples are computed for shap-based interpretation. Increasing this value will increase shap runtime, but improve results. Only applies if interpretation is "shap".
-        title (str): a title for the interface; if provided, appears above the input and output components.
-        description (str): a description for the interface; if provided, appears above the input and output components.
-        article (str): an expanded article explaining the interface; if provided, appears below the input and output components. Accepts Markdown and HTML content.
-        thumbnail (str): path to image or src to use as display picture for models listed in gradio.app/hub
+        title (str): a title for the interface; if provided, appears above the input and output components in large font.
+        description (str): a description for the interface; if provided, appears above the input and output components and beneath the title in regular font. Accepts Markdown and HTML content.
+        article (str): an expanded article explaining the interface; if provided, appears below the input and output components in regular font. Accepts Markdown and HTML content.
+        thumbnail (str): path or url to image to use as display image when the web demo is shared on social media.
         theme (str): Theme to use - right now, only "default" is supported.
         css (str): custom css or path to custom css file to use with interface.
         allow_flagging (str): one of "never", "auto", or "manual". If "never" or "auto", users will not see a button to flag an input and output. If "manual", users will see a button to flag. If "auto", every prediction will be automatically flagged. If "manual", samples are flagged when the user clicks flag button. Can be set with environmental variable GRADIO_ALLOW_FLAGGING.
@@ -284,7 +270,7 @@ class Interface(Blocks):
 
         self.thumbnail = thumbnail
         self.theme = theme or os.getenv("GRADIO_THEME", "default")
-        if not(self.theme == "default"):
+        if not (self.theme == "default"):
             warnings.warn("Currently, only the 'default' theme is supported.")
 
         if css is not None and os.path.exists(css):
