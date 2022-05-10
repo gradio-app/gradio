@@ -352,8 +352,13 @@ def render_docs():
         "params": load_params[1],
         "params_doc": load_params[2],
         "return_doc": load_params[3],
-        "example":
-        """import gradio as gr\n\ndescription = "Story generation with GPT-2"\nexamples = [["Adventurer is approached by a mysterious stranger in the tavern for a new quest."]]\n\ndemo = gr.Interface.load("models/pranavpsv/gpt2-genre-story-generator", description=description, examples=examples)\n\ndemo.launch()"""
+        "example":"""
+description = "Story generation with GPT"
+examples = [["An adventurer is approached by a mysterious stranger in the tavern for a new quest."]]
+
+demo = gr.Interface.load("models/EleutherAI/gpt-neo-1.3B", description=description, examples=examples)
+
+demo.launch()"""
     }
     from_pipeline_params = get_function_documentation(Interface.from_pipeline)
     from_pipeline = {
