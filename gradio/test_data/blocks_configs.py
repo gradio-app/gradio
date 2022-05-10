@@ -8,6 +8,7 @@ XRAY_CONFIG = {
                 "value": "<h1>Detect Disease From Scan</h1>\n<p>With this model you can lorem ipsum</p>\n<ul>\n<li>ipsum 1</li>\n<li>ipsum 2</li>\n</ul>\n",
                 "name": "markdown",
                 "css": {},
+                "visible": True,
             },
         },
         {
@@ -20,19 +21,16 @@ XRAY_CONFIG = {
                 "show_label": True,
                 "name": "checkboxgroup",
                 "css": {},
+                "visible": True,
             },
         },
-        {"id": 3, "type": "tabs", "props": {"css": {}, "value": True}},
+        {"id": 3, "type": "tabs", "props": {"css": {}, "visible": True}},
         {
             "id": 4,
             "type": "tabitem",
-            "props": {"label": "X-ray", "css": {}, "value": True},
+            "props": {"label": "X-ray", "css": {}, "visible": True},
         },
-        {
-            "id": 5,
-            "type": "row",
-            "props": {"type": "row", "css": {}, "value": True},
-        },
+        {"id": 5, "type": "row", "props": {"type": "row", "css": {}, "visible": True}},
         {
             "id": 6,
             "type": "image",
@@ -43,6 +41,7 @@ XRAY_CONFIG = {
                 "show_label": True,
                 "name": "image",
                 "css": {},
+                "visible": True,
             },
         },
         {
@@ -53,6 +52,7 @@ XRAY_CONFIG = {
                 "show_label": True,
                 "name": "json",
                 "css": {},
+                "visible": True,
             },
         },
         {
@@ -60,21 +60,18 @@ XRAY_CONFIG = {
             "type": "button",
             "props": {
                 "value": "Run",
+                "variant": "primary",
                 "name": "button",
                 "css": {"background-color": "red", "--hover-color": "orange"},
-                "variant": "primary",
+                "visible": True,
             },
         },
         {
             "id": 9,
             "type": "tabitem",
-            "props": {"label": "CT Scan", "css": {}, "value": True},
+            "props": {"label": "CT Scan", "css": {}, "visible": True},
         },
-        {
-            "id": 10,
-            "type": "row",
-            "props": {"type": "row", "css": {}, "value": True},
-        },
+        {"id": 10, "type": "row", "props": {"type": "row", "css": {}, "visible": True}},
         {
             "id": 11,
             "type": "image",
@@ -85,6 +82,7 @@ XRAY_CONFIG = {
                 "show_label": True,
                 "name": "image",
                 "css": {},
+                "visible": True,
             },
         },
         {
@@ -95,6 +93,7 @@ XRAY_CONFIG = {
                 "show_label": True,
                 "name": "json",
                 "css": {},
+                "visible": True,
             },
         },
         {
@@ -102,9 +101,10 @@ XRAY_CONFIG = {
             "type": "button",
             "props": {
                 "value": "Run",
+                "variant": "primary",
                 "name": "button",
                 "css": {},
-                "variant": "primary",
+                "visible": True,
             },
         },
         {
@@ -117,6 +117,7 @@ XRAY_CONFIG = {
                 "show_label": True,
                 "name": "textbox",
                 "css": {},
+                "visible": True,
             },
         },
     ],

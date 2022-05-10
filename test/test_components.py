@@ -92,6 +92,7 @@ class TestTextbox(unittest.TestCase):
                 "show_label": True,
                 "label": None,
                 "css": {},
+                "visible": True,
                 "interactive": None,
             },
         )
@@ -187,6 +188,7 @@ class TestNumber(unittest.TestCase):
                 "show_label": True,
                 "label": None,
                 "css": {},
+                "visible": True,
                 "interactive": None,
             },
         )
@@ -270,6 +272,7 @@ class TestSlider(unittest.TestCase):
                 "show_label": True,
                 "label": "Slide Your Input",
                 "css": {},
+                "visible": True,
                 "interactive": None,
             },
         )
@@ -324,6 +327,7 @@ class TestCheckbox(unittest.TestCase):
                 "show_label": True,
                 "label": "Check Your Input",
                 "css": {},
+                "visible": True,
                 "interactive": None,
             },
         )
@@ -374,6 +378,7 @@ class TestCheckboxGroup(unittest.TestCase):
                 "show_label": True,
                 "label": "Check Your Inputs",
                 "css": {},
+                "visible": True,
                 "interactive": None,
             },
         )
@@ -420,6 +425,7 @@ class TestRadio(unittest.TestCase):
                 "show_label": True,
                 "label": "Pick Your One Input",
                 "css": {},
+                "visible": True,
                 "interactive": None,
             },
         )
@@ -481,6 +487,7 @@ class TestImage(unittest.TestCase):
                 "show_label": True,
                 "label": "Upload Your Image",
                 "css": {},
+                "visible": True,
                 "value": None,
                 "interactive": None,
             },
@@ -636,6 +643,7 @@ class TestAudio(unittest.TestCase):
                 "show_label": True,
                 "label": "Upload Your Audio",
                 "css": {},
+                "visible": True,
                 "value": None,
                 "interactive": None,
             },
@@ -677,6 +685,7 @@ class TestAudio(unittest.TestCase):
                 "label": None,
                 "source": "upload",
                 "css": {},
+                "visible": True,
                 "value": None,
                 "interactive": None,
             },
@@ -773,6 +782,7 @@ class TestFile(unittest.TestCase):
                 "show_label": True,
                 "label": "Upload Your File",
                 "css": {},
+                "visible": True,
                 "value": None,
                 "interactive": None,
             },
@@ -874,6 +884,7 @@ class TestDataframe(unittest.TestCase):
                 "max_cols": None,
                 "overflow_row_behaviour": "paginate",
                 "css": {},
+                "visible": True,
                 "interactive": None,
             },
         )
@@ -911,6 +922,7 @@ class TestDataframe(unittest.TestCase):
                 "show_label": True,
                 "label": None,
                 "css": {},
+                "visible": True,
                 "datatype": "str",
                 "row_count": (3, "dynamic"),
                 "col_count": (3, "dynamic"),
@@ -1001,6 +1013,7 @@ class TestVideo(unittest.TestCase):
                 "show_label": True,
                 "label": "Upload Your Video",
                 "css": {},
+                "visible": True,
                 "value": None,
                 "interactive": None,
             },
@@ -1080,6 +1093,7 @@ class TestTimeseries(unittest.TestCase):
                 "label": "Upload Your Timeseries",
                 "colors": None,
                 "css": {},
+                "visible": True,
                 "value": None,
                 "interactive": None,
             },
@@ -1102,6 +1116,7 @@ class TestTimeseries(unittest.TestCase):
                 "label": "Disease",
                 "colors": None,
                 "css": {},
+                "visible": True,
                 "value": None,
                 "interactive": None,
             },
@@ -1275,6 +1290,7 @@ class TestLabel(unittest.TestCase):
                 "show_label": True,
                 "label": None,
                 "css": {},
+                "visible": True,
                 "interactive": None,
             },
         )
@@ -1325,6 +1341,7 @@ class TestHighlightedText(unittest.TestCase):
                 "label": None,
                 "show_legend": False,
                 "css": {},
+                "visible": True,
                 "value": "",
                 "interactive": None,
             },
@@ -1386,6 +1403,7 @@ class TestJSON(unittest.TestCase):
             js_output.get_config(),
             {
                 "css": {},
+                "visible": True,
                 "value": '""',
                 "show_label": True,
                 "label": None,
@@ -1430,6 +1448,7 @@ class TestHTML(unittest.TestCase):
         self.assertEqual(
             {
                 "css": {},
+                "visible": True,
                 "value": "#Welcome onboard",
                 "show_label": True,
                 "label": "HTML Input",
@@ -1489,6 +1508,7 @@ class TestCarousel(unittest.TestCase):
                         "lines": 1,
                         "max_lines": 20,
                         "css": {},
+                        "visible": True,
                         "placeholder": None,
                         "interactive": None,
                     }
@@ -1497,6 +1517,7 @@ class TestCarousel(unittest.TestCase):
                 "show_label": True,
                 "label": "Disease",
                 "css": {},
+                "visible": True,
                 "interactive": None,
             },
         )
