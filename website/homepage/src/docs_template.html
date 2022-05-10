@@ -122,7 +122,7 @@
             -->{% endif %}<!--
             -->, <!--
           -->{% endfor %}&#183;&#183;&#183;)</code></pre>
-            <p class="mb-2 w-4/5 mt-4 leading-8">{{ docs.interface["doc"] }}</p>
+            <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.interface["doc"] }}</p>
             <table class="table-fixed w-full my-4">
               <thead class="text-left">
                 <tr>
@@ -160,7 +160,7 @@
             <pre><code class='lang-python'>gradio.Interface().launch(<!--
             -->&#183;&#183;&#183;<!--
             -->)</code></pre>
-            <p class="mb-2 w-4/5 mt-4">{{ docs.launch["doc"] }}</p>
+            <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.launch["doc"] }}</p>
             <table class="table-fixed w-full my-4">
               <thead class="text-left">
                 <tr>
@@ -202,7 +202,7 @@
                 -->{{ param[0] }}={{ param[1] }}<!--
               -->{% endif %}, <!--
             -->{% endfor %}&#183;&#183;&#183;)</code></pre>
-            <p class="mb-2 w-4/5 mt-4">{{ docs.load["doc"] }}</p>
+            <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.load["doc"] }}</p>
             <table class="table-fixed w-full my-4">
               <thead class="text-left">
                 <tr>
@@ -245,7 +245,7 @@
               -->{% endif %}<!--
               -->{% if not loop.last %}, {% endif %}<!--
             -->{% endfor %})</code></pre>
-            <p class="mb-2 w-4/5 mt-4">{{ docs.from_pipeline["doc"] }}</p>
+            <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.from_pipeline["doc"] }}</p>
             <table class="table-fixed w-full my-4">
               <thead class="text-left">
                 <tr>
@@ -289,6 +289,11 @@
           </div>
         </section>
         <h2 id="components" class="text-4xl font-light my-4 text-orange-500">Components</h2>
+        <p class="w-4/5 mt-4 text-lg">Gradio includes pre-built components that can be used as 
+          inputs or outputs in your Interface or Blocks with a single line of code. Components 
+          include <em>preprocessing</em> steps that convert user data submitted through browser 
+          to something that be can used by a Python function, and <em>postprocessing</em>
+          steps to convert values returned by a Python function into something that can be displayed in a browser.</p>
         <section class="flex flex-col gap-6">
           {% for func in docs["components"] %}
           {% if func["name"] not in ["Image3D", "Dropdown", "State" "Textbox"] %}
@@ -309,9 +314,9 @@
               -->{% endif %}<!--
               -->{% if not loop.last %}, {% endif %}<!--
             -->{% endfor %}<span>)</span></code></pre>
-            <p class="w-4/5 mt-4">{{ func["doc"] }}</p>
+            <p class="w-4/5 mt-4 text-lg">{{ func["doc"] }}</p>
             {% if func["Input type"]|length %}
-            <p class="text-gray-500 italic">Input type: {{ func["Input type"] }}</p>
+            <p class="text-gray-500 italic text-lg">Input type: {{ func["Input type"] }}</p>
             {% endif %}
             <table class="table-fixed w-full my-4">
               <thead class="text-left">
