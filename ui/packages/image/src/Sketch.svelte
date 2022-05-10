@@ -10,9 +10,8 @@
 	let mounted;
 
 	let brush_radius = 50;
-	let brush_color = "#444";
+	let brush_color = "#090f1f";
 	let catenary_color = "#aaa";
-	let background_color = "#FFF";
 
 	let canvas_width = 400;
 	let canvas_height = 400;
@@ -337,8 +336,7 @@
 </script>
 
 <div
-	class="touch-none relative"
-	style="height:100%; width:100%; background-color:{background_color}"
+	class="touch-none relative bg-red-500 h-full w-full"
 	bind:this={canvas_container}
 	bind:offsetWidth={canvas_width}
 	bind:offsetHeight={canvas_height}
