@@ -2,9 +2,7 @@
 	import type { FileData } from "./types";
 
 	import { IconButton } from "@gradio/atoms";
-
-	import edit from "./edit.svg";
-	import clear from "./clear.svg";
+	import { Edit, Clear } from "@gradio/icons";
 
 	import { createEventDispatcher } from "svelte";
 
@@ -22,16 +20,8 @@
 	class:m-1={!absolute}
 >
 	{#if editable}
-		<IconButton
-			image={edit}
-			alt="edit image"
-			on:click={() => dispatch("edit")}
-		/>
+		<IconButton Icon={Edit} on:click={() => dispatch("edit")} />
 	{/if}
 
-	<IconButton
-		image={clear}
-		alt="clear image"
-		on:click={() => dispatch("clear")}
-	/>
+	<IconButton Icon={Clear} on:click={() => dispatch("clear")} />
 </div>

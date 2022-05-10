@@ -1,3 +1,5 @@
+const colors = require("tailwindcss/colors");
+
 const defaultTheme = require("tailwindcss/defaultTheme");
 const production = !process.env.ROLLUP_WATCH;
 
@@ -14,6 +16,9 @@ module.exports = {
 				mono: ["IBM Plex Mono", ...defaultTheme.fontFamily.mono]
 			},
 			colors: {
+				gray: {
+					950: "#090f1f"
+				},
 				orange: {
 					50: "#FFF2E5",
 					100: "#FFE5CC",
