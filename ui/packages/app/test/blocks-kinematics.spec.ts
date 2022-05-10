@@ -25,9 +25,9 @@ function mock_api(page: Page, body: Array<unknown>) {
 	});
 }
 
-test("renders plot", async ({ page }) => {
+test("renders the correct elements", async ({ page }) => {
 	await mock_demo(page, "blocks_kinematics");
-    await mock_api(page, [25, 45]);
+    await mock_api(page, [[25, 45]]);
 	await page.goto("http://localhost:3000");
 
 	const button = await page.locator("button");

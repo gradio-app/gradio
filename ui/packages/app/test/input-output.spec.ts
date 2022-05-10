@@ -13,6 +13,7 @@ function mock_demo(page: Page, demo: string) {
 
 function mock_api(page: Page, body: Array<unknown>) {
 	return page.route("**/api/predict/", (route) => {
+		console.log("***********", route)
 		const id = JSON.parse(route.request().postData()!).fn_index;
 		return route.fulfill({
 			headers: {
