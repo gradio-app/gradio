@@ -584,6 +584,7 @@ class Interface(Blocks):
                         inputs=self.input_components + self.output_components,
                         outputs=[],
                         _preprocess=False,
+                        queue=False,
                     )
                 elif self.interface_type == self.InterfaceTypes.UNIFIED:
                     flag_btn.click(
