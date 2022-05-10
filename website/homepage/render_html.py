@@ -327,7 +327,9 @@ def render_docs():
     components_docs = [get_class_documentation(cls) for cls in components]
     interface_params = get_function_documentation(Interface.__init__)
     interface = {
-        "doc": "gradio.Interface is a high-level class that allows you to create a web demo simply by specifying a function, the desired input components, and desired output components.",
+        "doc": """The core Interface class is a high-level abstraction that allows you to create a 
+    web-based UI around a function by specifying (1) the function (2) the desired 
+    input components and (3) desired output components.""",
         "params": interface_params[1],
         "params_doc": interface_params[2],
         "example": """import gradio as gr\n\ndef image_classifier(inp):\n   pass # image classifier model defined here\ngr.Interface(image_classifier, "image", "label")\n\ndef speech_to_text(inp):\n  pass # image classifier model defined here\ngr.Interface(speech_to_text, "mic", gr.Textbox(label="predicted text", lines=4))""",

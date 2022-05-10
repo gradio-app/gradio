@@ -26,7 +26,7 @@ class Parallel(gradio.Interface):
             "fn": fns,
             "inputs": interfaces[0].input_components,
             "outputs": outputs,
-            "repeat_outputs_per_model": False,
+            "_repeat_outputs_per_model": False,
         }
         kwargs.update(options)
         super().__init__(**kwargs)
