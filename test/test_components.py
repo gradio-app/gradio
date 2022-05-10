@@ -361,7 +361,7 @@ class TestCheckboxGroup(unittest.TestCase):
             self.assertEqual(restored, ["a", "c"])
         self.assertIsInstance(checkboxes_input.generate_sample(), list)
         checkboxes_input = gr.CheckboxGroup(
-            default_selected=["a", "c"],
+            value=["a", "c"],
             choices=["a", "b", "c"],
             label="Check Your Inputs",
         )

@@ -172,7 +172,7 @@ class CheckboxGroup(C_CheckboxGroup):
             DeprecationWarning,
         )
         super().__init__(
-            default_selected=default,
+            value=default,
             choices=choices,
             type=type,
             label=label,
@@ -210,7 +210,7 @@ class Radio(C_Radio):
         super().__init__(
             choices=choices,
             type=type,
-            default_selected=default,
+            value=default,
             label=label,
             optional=optional,
         )
@@ -246,7 +246,7 @@ class Dropdown(C_Dropdown):
         super().__init__(
             choices=choices,
             type=type,
-            default_selected=default,
+            value=default,
             label=label,
             optional=optional,
         )

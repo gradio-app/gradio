@@ -23,7 +23,6 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 class Block:
     def __init__(self, *, render=True, css=None, visible=True, **kwargs):
         self._id = Context.id
-        print(self._id, type(self))
         Context.id += 1
         self.css = css if css is not None else {}
         self.visible = visible
@@ -384,7 +383,6 @@ class Blocks(BlockContext):
             ),  # attribute set at launch
         }
 
-        print(list(self.blocks.items()))
         for _id, block in self.blocks.items():
             config["components"].append(
                 {

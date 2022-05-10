@@ -999,7 +999,7 @@ class CheckboxGroup(Changeable, IOComponent):
         self,
         choices: List[str],
         *,
-        default_selected: List[str] = None,
+        value: List[str] = None,
         type: str = "value",
         label: Optional[str] = None,
         show_label: bool = True,
@@ -1011,7 +1011,7 @@ class CheckboxGroup(Changeable, IOComponent):
         """
         Parameters:
         choices (List[str]): list of options to select from.
-        default_selected (List[str]): default selected list of options.
+        value (List[str]): default selected list of options.
         type (str): Type of value to be returned by component. "value" returns the list of strings of the choices selected, "index" returns the list of indicies of the choices selected.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
@@ -1019,11 +1019,11 @@ class CheckboxGroup(Changeable, IOComponent):
         visible (bool): If False, component will be hidden.
         """
         if (
-            default_selected is None
+            value is None
         ):  # Mutable parameters shall not be given as default parameters in the function.
-            default_selected = []
+            value = []
         self.choices = choices
-        self.value = default_selected
+        self.value = value
         self.cleared_value = []
         self.type = type
         self.test_input = self.choices
@@ -1153,7 +1153,7 @@ class Radio(Changeable, IOComponent):
         self,
         choices: List[str],
         *,
-        default_selected: Optional[str] = None,
+        value: Optional[str] = None,
         type: str = "value",
         label: Optional[str] = None,
         show_label: bool = True,
@@ -1165,7 +1165,7 @@ class Radio(Changeable, IOComponent):
         """
         Parameters:
         choices (List[str]): list of options to select from.
-        default_selected (str): the button selected by default. If None, no button is selected by default.
+        value (str): the button selected by default. If None, no button is selected by default.
         type (str): Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
@@ -1176,8 +1176,8 @@ class Radio(Changeable, IOComponent):
         self.type = type
         self.test_input = self.choices[0] if len(self.choices) else None
         self.value = (
-            default_selected
-            if default_selected is not None
+            value
+            if value is not None
             else self.choices[0]
             if len(self.choices) > 0
             else None
@@ -1291,7 +1291,7 @@ class Dropdown(Radio):
         self,
         choices: List[str],
         *,
-        default_selected: Optional[str] = None,
+        value: Optional[str] = None,
         type: str = "value",
         label: Optional[str] = None,
         show_label: bool = True,
@@ -1303,7 +1303,7 @@ class Dropdown(Radio):
         """
         Parameters:
         choices (List[str]): list of options to select from.
-        default_selected (str): default value selected in dropdown. If None, no value is selected by default.
+        value (str): default value selected in dropdown. If None, no value is selected by default.
         type (str): Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
@@ -1313,7 +1313,7 @@ class Dropdown(Radio):
         # Everything is same with Dropdown and Radio, so let's make use of it :)
         Radio.__init__(
             self,
-            default_selected=default_selected,
+            value=value,
             choices=choices,
             type=type,
             label=label,

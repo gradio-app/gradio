@@ -561,7 +561,7 @@ class Interface(Blocks):
                 _js=f"""() => {json.dumps(
                     [component.cleared_value if hasattr(component, "cleared_value") else None
                     for component in self.input_components + self.output_components] + (
-                            [Column.update(visible=False)]
+                            [Column.update(visible=True)]
                             if self.interface_type
                             in [
                                 self.InterfaceTypes.STANDARD,

@@ -54,7 +54,7 @@ inputs = [
         gr.Slider(minimum=1, maximum=4, value=3.2, label="R"),
         gr.Dropdown(["January", "February", "March", "April", "May"], label="Month"),
         gr.CheckboxGroup(["USA", "Canada", "Mexico", "UK"], label="Countries", 
-                         default_selected=["USA", "Canada"]),
+                         value=["USA", "Canada"]),
         gr.Checkbox(label="Social Distancing?"),
     ]
 outputs = gr.Plot(type="auto")
