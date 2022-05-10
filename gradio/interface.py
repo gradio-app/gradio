@@ -42,8 +42,8 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 class Interface(Blocks):
     """
-    The core Interface class is a high-level abstraction that allows you to create a 
-    web-based UI around a function by specifying (1) the function (2) the desired 
+    The core Interface class is a high-level abstraction that allows you to create a
+    web-based UI around a function by specifying (1) the function (2) the desired
     input components and (3) desired output components.
     """
 
@@ -273,7 +273,7 @@ class Interface(Blocks):
 
         self.thumbnail = thumbnail
         self.theme = theme or os.getenv("GRADIO_THEME", "default")
-        if not(self.theme == "default"):
+        if not (self.theme == "default"):
             warnings.warn("Currently, only the 'default' theme is supported.")
 
         if css is not None and os.path.exists(css):
