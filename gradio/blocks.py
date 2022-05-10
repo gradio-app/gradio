@@ -241,6 +241,18 @@ class BlockFunction:
 
 
 class Blocks(BlockContext):
+    """
+    The Blocks class is a low-level API that allows you to create an interactive web 
+    application entirely in Python. Compared to the Interface class, Blocks offers
+    more flexibility and control over: (1) the layout of components (2) the events that
+    trigger the execution of functions (3) data flows (e.g. inputs can trigger outputs,
+    which can trigger the next level of outputs). Blocks also offers ways to group
+    together related demos e.g. using tabs.
+    
+    The basic usage of Blocks is as follows: create a Blocks object, then use it as a 
+    context (with the "with" statement), and then define layouts, components, or events
+    within the Blocks context. Finally, call the launch() method to launch the demo.
+    """    
     def __init__(
         self,
         theme: str = "default",
@@ -248,7 +260,12 @@ class Blocks(BlockContext):
         mode: str = "blocks",
         **kwargs,
     ):
-
+        """
+        Parameters:
+        theme (str): theme to use - right now, only "default" is supported.   
+        analytics_enabled (bool | None): Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.             
+        mode (str): a human-friendly name for the kind of Blocks interface being created.
+        """
         # Cleanup shared parameters with Interface #TODO: is this part still necessary after Interface with Blocks?
         self.save_to = None
         self.api_mode = False

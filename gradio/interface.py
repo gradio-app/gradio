@@ -74,7 +74,7 @@ class Interface(Blocks):
     ) -> Interface:
         """
         Class method that constructs an Interface from a Hugging Face repo. Can accept
-        model repos (if src is "models") or Space repos (if src is "spaces"). Input
+        model repos (if src is "models") or Space repos (if src is "spaces"). The input
         and output components are automatically loaded from the repo.
         Parameters:
         name (str): the name of the model (e.g. "gpt2"), can include the `src` as prefix (e.g. "models/gpt2")
@@ -93,8 +93,8 @@ class Interface(Blocks):
     @classmethod
     def from_pipeline(cls, pipeline: transformers.Pipeline, **kwargs) -> Interface:
         """
-        Construct an Interface from a Hugging Face transformers.Pipeline object. Input
-        and output components are automatically determined from the pipeline.
+        Class method that constructs an Interface from a Hugging Face transformers.Pipeline object. 
+        The input and output components are automatically determined from the pipeline.
         Parameters:
         pipeline (transformers.Pipeline): the pipeline object to use.
         Returns:
@@ -151,7 +151,7 @@ class Interface(Blocks):
         flagging_options (List[str] | None): if provided, allows user to select from the list of options when flagging. Only applies if allow_flagging is "manual".
         flagging_dir (str): what to name the dir where flagged data is stored.
         flagging_callback (FlaggingCallback): An instance of a subclass of FlaggingCallback which will be called when a sample is flagged. By default logs to a local CSV file.
-        analytics_enabled (bool | None): Whether to allow telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
+        analytics_enabled (bool | None): Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
         """
         super().__init__(
             analytics_enabled=analytics_enabled, mode="interface", **kwargs
