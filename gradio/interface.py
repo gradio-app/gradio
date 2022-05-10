@@ -46,9 +46,16 @@ class Interface(Blocks):
     simply by specifying a function, the desired input components, and desired 
     output components. For example:
     
-    Examples:
-        >>> gr.Interface(image_classifier, "image", "label")  
-        >>> gr.Interface(speech_to_text, "mic", gr.Textbox(label="predicted text", lines=4))      
+    Example Usage:
+        import gradio as gr
+
+        def image_classifier(inp):
+            pass # image classifier model defined here
+        gr.Interface(image_classifier, "image", "label")
+
+        def speech_to_text(inp):
+            pass # image classifier model defined here
+        gr.Interface(speech_to_text, "mic", gr.Textbox(label="predicted text", lines=4))
     """
 
     # stores references to all currently existing Interface instances
@@ -97,7 +104,7 @@ class Interface(Blocks):
         """
         Construct an Interface from a Hugging Face transformers.Pipeline.
         Parameters:
-        pipeline (transformers.Pipeline):
+        pipeline (transformers.Pipeline): a Transformers object that offers a simple inference API dedicated to several tasks
         Returns:
         (gradio.Interface): a Gradio Interface object from the given Pipeline
 

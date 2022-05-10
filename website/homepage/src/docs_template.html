@@ -94,10 +94,9 @@
   <div style="width: 85%">
     <main class="flex gap-4">
       <div class="py-4 navigation h-screen leading-relaxed sticky top-0 bg-gray-50 text-md overflow-y-auto hidden md:block" style="min-width: 18%">
-        <a class="px-4 link mb-2 block border-orange-500 text-orange-500 md:border-l-2 pl-8" href="#creating_interfaces">Creating Interfaces</a>
+        <a class="px-4 link mb-2 block border-orange-500 text-orange-500 md:border-l-2 pl-8" href="#building_demos">Building Demos</a>
         <a class="px-4 block thin-link" href="#interface">Interface</a>
-        <a class="px-4 block thin-link" href="#launch">Launch</a>
-        <a class="px-4 block thin-link" href="#load">Load</a>
+        <a class="px-4 block thin-link" href="#blocks">Blocks</a>
         <a class="px-4 link my-2 block" href="#components">Components</h4>
         {% for component in docs["components"] %}
         <a class="px-4 block thin-link" href="#{{ component["name"].lower() }}">{{ component["name"] }}</a>
@@ -105,19 +104,22 @@
       </div>
       <div class="docs ml-6 leading-7 max-w-full">
         <p class="bg-orange-100 border border-orange-600 px-4 py-2 rounded mb-4 text-md w-fit">New? Start here →  <a class="link" href="/getting_started">Getting Started</a></p>
-        <h2 id="creating_interfaces" class="text-4xl font-light my-4 text-orange-500">Creating Interfaces</h2>
+        <h2 id="building_demos" class="text-4xl font-light my-4 text-orange-500">Building Demos</h2>
         <section class="flex flex-col gap-6">
           <div id="interface" class="func">
             <h3 id="interface-header" class="text-3xl font-light my-4">Interface</h3>
+            <button class="rounded-full bg-orange-500 text-white py-1 px-3" onclick="showPopup('interface')">
+              Try Demo &#8594;
+            </button>
             <pre><code class='lang-python'>gradio.Interface(<!--
-          -->{% for param in docs.interface["params"] %}<!--
+          -->{% for param in docs.interface["params"][:4] %}<!--
             -->{% if param|length == 1 %}<!--
               -->{{ param[0] }}<!--
             -->{% else %}<!--
               -->{{ param[0] }}={{ param[1] }}<!--
             -->{% endif %}<!--
-            -->{% if not loop.last %}, {% endif %}<!--
-          -->{% endfor %})</code></pre>
+            -->, <!--
+          -->{% endfor %}&#183;&#183;&#183;)</code></pre>
             <p class="mb-2 w-4/5 mt-4 leading-8">{{ docs.interface["doc"] }}</p>
             <table class="w-full my-4">
               <thead class="text-left">
@@ -142,22 +144,16 @@
               {% endfor %}
               </tbody>
             </table>
+            <p class="mb-2 w-4/5 font-semibold">Example usage:</p>
+            <pre><code class='lang-python'>{{ docs.interface["example"] }}</code></pre>
           </div>
-          <div id="launch" class="func">
-            <div class="py-4">
-              <div class="w-full border-t border-gray-200"></div>
-            </div>
-            <h3 id="launch-header" class="text-3xl font-light my-4">Launch</h3>
+          <h3 class="font-semibold">Methods:</h3>
+          <div id="launch" class="func ml-20">
+            <h3 id="launch-header" class="text-2xl font-light my-4">launch</h3>
             <pre><code class='lang-python'>gradio.Interface().launch(<!--
-            -->{% for param in docs.launch["params"] %}<!--
-              -->{% if param|length == 1 %}<!--
-                -->{{ param[0] }}<!--
-              -->{% else %}<!--
-                -->{{ param[0] }}={{ param[1] }}<!--
-              -->{% endif %}<!--
-              -->{% if not loop.last %}, {% endif %}<!--
-            -->{% endfor %})</code></pre>
-            <p class="mb-2 w-4/5 mt-4">Launches the webserver that serves the UI for the interface.</p>
+            -->&#183;&#183;&#183;<!--
+            -->)</code></pre>
+            <p class="mb-2 w-4/5 mt-4">{{ docs.launch["doc"] }}</p>
             <table class="w-full my-4">
               <thead class="text-left">
                 <tr>
@@ -181,22 +177,20 @@
               {% endfor %}
               </tbody>
             </table>
+            <p class="mb-2 w-4/5 font-semibold">Example usage:</p>
+            <pre><code class='lang-python'>{{ docs.launch["example"] }}</code></pre>
           </div>
-          <div id="load" class="func">
-            <div class="py-4">
-              <div class="w-full border-t border-gray-200"></div>
-            </div>
-            <h3 id="load-header" class="text-3xl font-light my-4">Load</h3>
+          <div id="load" class="func ml-20">
+            <h3 id="load-header" class="text-2xl font-light my-4">load</h3>
             <pre><code class='lang-python'>gradio.Interface.load(<!--
-            -->{% for param in docs.load["params"] %}<!--
+            -->{% for param in docs.load["params"][:1] %}<!--
               -->{% if param|length == 1 %}<!--
                 -->{{ param[0] }}<!--
               -->{% else %}<!--
                 -->{{ param[0] }}={{ param[1] }}<!--
-              -->{% endif %}<!--
-              -->{% if not loop.last %}, {% endif %}<!--
-            -->{% endfor %})</code></pre>
-            <p class="mb-2 w-4/5 mt-4">Class method to construct an Interface from an external source repository, such as huggingface. Returns a Gradio Interface object for the given model</p>
+              -->{% endif %}, <!--
+            -->{% endfor %}&#183;&#183;&#183;)</code></pre>
+            <p class="mb-2 w-4/5 mt-4">{{ docs.load["doc"] }}</p>
             <table class="w-full my-4">
               <thead class="text-left">
                 <tr>
@@ -220,9 +214,56 @@
               {% endfor %}
               </tbody>
             </table>
+            <p class="mb-2 w-4/5 font-semibold">Example usage:</p>
+            <pre><code class='lang-python'>{{ docs.load["example"] }}</code></pre>
+          </div>
+          <div id="from_pipeline" class="func ml-20">
+            <h3 id="from_pipeline-header" class="text-2xl font-light my-4">from_pipeline</h3>
+            <pre><code class='lang-python'>gradio.Interface.from_pipeline(<!--
+            -->{% for param in docs.from_pipeline["params"] %}<!--
+              -->{% if param|length == 1 %}<!--
+                -->{{ param[0] }}<!--
+              -->{% else %}<!--
+                -->{{ param[0] }}={{ param[1] }}<!--
+              -->{% endif %}<!--
+              -->{% if not loop.last %}, {% endif %}<!--
+            -->{% endfor %})</code></pre>
+            <p class="mb-2 w-4/5 mt-4">{{ docs.from_pipeline["doc"] }}</p>
+            <table class="w-full my-4">
+              <thead class="text-left">
+                <tr>
+                  <th class="font-semibold w-2/5">Parameter</th>
+                  <th class="font-semibold">Description</th>
+                </tr>
+              </thead>
+            </table>
+            <table class="w-full my-4 rounded-lg bg-gray-100">
+              <tbody class="text-left align-top">
+              {% for param in docs.from_pipeline["params_doc"] %}
+                  <tr class="group hover:bg-gray-200">
+                    <td class="p-2 w-2/5">
+                      <code class=“prettyprint”>{{ param[0] }}</code>
+                      <p class="text-gray-500 italic">{{ param[1] }}</p>
+                    </td>
+                    <td class="p-2">
+                      <p>{{ param[2] }}</p>
+                    </td>
+                  </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+            <p class="mb-2 w-4/5 font-semibold">Example usage:</p>
+            <pre><code class='lang-python'>{{ docs.from_pipeline["example"] }}</code></pre>
             <div class="py-4">
               <div class="w-full border-t border-gray-200"></div>
             </div>
+          </div>
+        </section>
+        <section class="flex flex-col gap-6">
+          <div id="blocks" class="func">
+            <h3 id="blocks-header" class="text-3xl font-light my-4">Blocks</h3>
+
+
           </div>
         </section>
         <h2 id="components" class="text-4xl font-light my-4 text-orange-500">Components</h2>
@@ -233,7 +274,7 @@
               {{ func['name'] }}
             </h3>
             <button class="rounded-full bg-orange-500 text-white py-1 px-3" onclick="showPopup('{{ func['name'].lower() }}')">
-              Try Demo →
+              Try Demo &#8594;
             </button>
             <div id='{{ func["name"].lower() }}_component'></div>
             <pre><code class="lang-python">gradio.components.<span>{{ func["name"] }}(</span><!--
