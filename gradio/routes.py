@@ -34,6 +34,7 @@ VERSION_FILE = pkg_resources.resource_filename("gradio", "version.txt")
 with open(VERSION_FILE) as version_file:
     VERSION = version_file.read()
 
+
 class ORJSONResponse(JSONResponse):
     media_type = "application/json"
 
@@ -135,7 +136,9 @@ def create_app() -> FastAPI:
             }
 
         try:
-            template = "frontend/share.html" if app.blocks.share else "frontend/index.html"
+            template = (
+                "frontend/share.html" if app.blocks.share else "frontend/index.html"
+            )
             return templates.TemplateResponse(
                 template, {"request": request, "config": config}
             )
