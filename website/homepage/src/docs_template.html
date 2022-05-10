@@ -94,7 +94,7 @@
   <div style="width: 85%">
     <main class="flex gap-4">
       <div class="py-4 navigation h-screen leading-relaxed sticky top-0 bg-gray-50 text-md overflow-y-auto hidden md:block" style="min-width: 18%">
-        <a class="px-4 link mb-2 block border-orange-500 text-orange-500 md:border-l-2 pl-8" href="#interfaces">Interfaces</a>
+        <a class="px-4 link mb-2 block border-orange-500 text-orange-500 md:border-l-2 pl-8" href="#interface">Interface</a>
         <a class="px-4 block thin-link" href="#creation">Creation</a>
         <a class="px-4 block thin-link" href="#launch">Launch</a>
         <a class="px-4 block thin-link" href="#load">Load</a>
@@ -121,8 +121,8 @@
             <p class="mb-2 w-4/5 mt-4 leading-8">{{ docs.interface["doc"]}} Examples:</p>
             <pre><code class='lang-python'>>>> gradio.Interface(fn=classify_image, inputs="image", outputs="label")</code></pre>
             <pre><code class='lang-python'>>>> gradio.Interface(fn=recognize_speech, 
-                inputs="mic", 
-                outputs=[gradio.Textbox(label="Text"), gradio.Textbox(label="Timestamps", lines=2)])</code></pre>
+                    inputs="mic", 
+                    outputs=[gradio.Textbox(label="Text"), gradio.Textbox(label="Timestamps", lines=2)])</code></pre>
             <table class="w-full my-4">
               <thead class="text-left">
                 <tr>
