@@ -364,6 +364,9 @@ def render_docs():
         "load": load,
         "from_pipeline": from_pipeline
     }
+
+
+
     os.makedirs("generated", exist_ok=True)
     with open("src/docs_template.html") as template_file:
         template = Template(template_file.read())
