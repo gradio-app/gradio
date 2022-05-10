@@ -56,7 +56,7 @@
 	export let title: string = "Gradio";
 	export let analytics_enabled: boolean = false;
 
-	let rootNode: Component = { id: 0, type: "column", props: {} };
+	let rootNode: Component = { id: layout.id, type: "column", props: {}};
 	components.push(rootNode);
 
 	dependencies.forEach((d) => {
@@ -165,7 +165,7 @@
 						frontend_fn,
 						payload: {
 							fn_index: i,
-							data: inputs.map((id) => instance_map[id].value)
+							data: inputs.map((id) => instance_map[id].props.value)
 						},
 						queue: queue === null ? enable_queue : queue
 					})
@@ -212,9 +212,9 @@
 							frontend_fn,
 							payload: {
 								fn_index: i,
-								data: inputs.map((id) => instance_map[id].value)
+								data: inputs.map((id) => instance_map[id].props.value)
 							},
-							output_data: outputs.map((id) => instance_map[id].value),
+							output_data: outputs.map((id) => instance_map[id].props.value),
 							queue: queue === null ? enable_queue : queue
 						})
 							.then((output) => {
@@ -236,7 +236,7 @@
 										}
 										rootNode = rootNode;
 									} else {
-										instance_map[outputs[i]].value = value;
+										instance_map[outputs[i]].props.value = value;
 									}
 								});
 							})
