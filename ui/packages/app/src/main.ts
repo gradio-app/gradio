@@ -57,6 +57,9 @@ interface Config {
 }
 
 window.launchGradio = (config: Config, element_query: string) => {
+	if (window.loading) return;
+	window.loading = true;
+
 	let target: HTMLElement = document.querySelector(element_query)!;
 
 	if (!target) {
@@ -143,11 +146,8 @@ window.launchGradioFromSpaces = async (space: string, target: string) => {
 	window.launchGradio(_config, target);
 };
 
-window.loading = false;
-
-if (window.gradio_mode == "app") {
-	if (!window.loading) {
-		window.loading = true;
+function run() {
+	if (window.gradio_mode == "app") {
 		get_config().then((config) => {
 			window.launchGradio(config, "#root");
 		});
