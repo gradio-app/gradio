@@ -42,8 +42,8 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 class Interface(Blocks):
     """
-    The core Interface class is a high-level abstraction that allows you to create a
-    web-based UI around a function by specifying (1) the function (2) the desired
+    The Interface class is a high-level abstraction that allows you to create a
+    web-based UI around a function by specifying: (1) the function (2) the desired
     input components and (3) desired output components.
     """
 
