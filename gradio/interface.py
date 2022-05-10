@@ -128,8 +128,8 @@ class Interface(Blocks):
         allow_flagging: Optional[str] = None,
         flagging_options: List[str] = None,
         flagging_dir: str = "flagged",
-        analytics_enabled: Optional[bool] = None,
         flagging_callback: FlaggingCallback = CSVLogger(),
+        analytics_enabled: Optional[bool] = None,
         _repeat_outputs_per_model: bool = True,
         **kwargs,
     ):
@@ -153,6 +153,8 @@ class Interface(Blocks):
         allow_flagging (str): one of "never", "auto", or "manual". If "never" or "auto", users will not see a button to flag an input and output. If "manual", users will see a button to flag. If "auto", every prediction will be automatically flagged. If "manual", samples are flagged when the user clicks flag button. Can be set with environmental variable GRADIO_ALLOW_FLAGGING.
         flagging_options (List[str]): if provided, allows user to select from the list of options when flagging. Only applies if allow_flagging is "manual".
         flagging_dir (str): what to name the dir where flagged data is stored.
+        flagging_callback (FlaggingCallback): An instance of a subclass of FlaggingCallback which will be called when a sample is flagged. By default logs to a local CSV file.
+        analytics_enabled (bool | None): Whether to allow telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
         """
         super().__init__(
             analytics_enabled=analytics_enabled, mode="interface", **kwargs
@@ -216,7 +218,7 @@ class Interface(Blocks):
             for o in self.output_components:
                 o.interactive = False  # Force output components to be non-interactive
 
-        if repeat_outputs_per_model:
+        if _repeat_outputs_per_model:
             self.output_components *= len(fn)
 
         if (
