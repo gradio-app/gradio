@@ -2332,8 +2332,9 @@ class HighlightedText(Changeable, IOComponent):
         default_value: str = "",
         *,
         color_map: Dict[str, str] = None,
-        label: Optional[str] = None,
         show_legend: bool = False,
+        combine_adjacent: bool = False,
+        label: Optional[str] = None,
         css: Optional[Dict] = None,
         **kwargs,
     ):
@@ -2347,6 +2348,7 @@ class HighlightedText(Changeable, IOComponent):
         self.default_value = default_value
         self.color_map = color_map
         self.show_legend = show_legend
+        self.combine_adjacent = combine_adjacent
         IOComponent.__init__(self, label=label, css=css, **kwargs)
 
     def get_template_context(self):
@@ -2360,12 +2362,28 @@ class HighlightedText(Changeable, IOComponent):
     def postprocess(self, y):
         """
         Parameters:
-        y (Union[Dict, List[Tuple[str, Union[str, int, float]]]]): dictionary or tuple list representing key value pairs
+        y (List[Tuple[str, Union[str, number, None]]]): List of (word, category) tuples
         Returns:
-        (List[Tuple[str, Union[str, number]]]): list of key value pairs
-
+        (List[Tuple[str, Union[str, number, None]]]): List of (word, category) tuples
         """
-        return y
+        if self.combine_adjacent:
+            output = []
+            running_text, running_category = None, None
+            for text, category in y:
+                if running_text == None:
+                    running_text = text
+                    running_category = category
+                elif category == running_category:
+                    running_text += text
+                else:
+                    output.append((running_text, running_category))
+                    running_text = text
+                    running_category = category
+            if running_text != None:
+                output.append((running_text, running_category))
+            return output
+        else:
+            return y
 
     def save_flagged(self, dir, label, data, encryption_key):
         return json.dumps(data)

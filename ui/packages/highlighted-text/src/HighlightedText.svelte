@@ -104,17 +104,18 @@
 		</div>
 	{/if}
 	<div
-		class="textfield bg-white dark:bg-transparent rounded-sm box-border max-w-full break-word inline-flex flex-wrap gap-1"
+		class="textfield bg-white dark:bg-transparent rounded-sm box-border max-w-full break-word leading-8"
 	>
 		{#each value as [text, category]}
 			<span
-				class="textspan rounded-sm inline-flex items-center px-1 space-x-1.5 transition-colors text-black"
+				class="textspan rounded-sm inline p-1 space-1.5 transition-colors text-black"
 				style:background-color={category === null ||
 				(active && active !== category)
 					? ""
 					: _color_map[category].secondary}
 				class:dark:text-white={category === null ||
 					(active && active !== category)}
+				class:mx-1={category !== null}
 			>
 				<span class="text ">{text}</span>
 				{#if !show_legend && category !== null}
