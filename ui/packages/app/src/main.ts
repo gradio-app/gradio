@@ -9,17 +9,12 @@ interface CustomWindow extends Window {
 	launchGradio: Function;
 	launchGradioFromSpaces: Function;
 	gradio_config: Config;
-	__BACEKND_URL__: string | false;
-	__BUILD_MODE__: string;
 }
 
 declare let window: CustomWindow;
 declare let BACKEND_URL: string;
 declare let BACKEND_URL_TEST: string;
 declare let BUILD_MODE: string;
-
-window.__BACKEND_URL__ = BACKEND_URL || "";
-window.__BUILD_MODE__ = BUILD_MODE || false;
 
 interface Component {
 	name: string;
@@ -147,3 +142,24 @@ window.launchGradioFromSpaces = async (space: string, target: string) => {
 	_config.space = space;
 	window.launchGradio(_config, target);
 };
+
+window.loading = false;
+
+if (window.gradio_mode == "app") {
+	if (!window.loading) {
+		window.loading = true;
+		get_config().then((config) => {
+			window.launchGradio(config, "#root");
+		});
+	}
+}
+
+async function get_config() {
+	if (BUILD_MODE === "dev" || location.origin === "http://localhost:3000") {
+		let config = await fetch(BACKEND_URL + "config");
+		config = await config.json();
+		return config;
+	} else {
+		return window.gradio_config;
+	}
+}
