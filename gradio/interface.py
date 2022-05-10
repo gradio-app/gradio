@@ -42,8 +42,8 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 class Interface(Blocks):
     """
-    The Interface class is a high-level abstraction that allows you to create a
-    web-based UI around a function by specifying: (1) the function (2) the desired
+    The Interface class is a high-level abstraction that allows you to create a 
+    web-based UI around a function by specifying: (1) the function (2) the desired 
     input components and (3) desired output components.
     """
 
@@ -133,8 +133,8 @@ class Interface(Blocks):
         """
         Parameters:
         fn (Callable): the function to wrap an interface around.
-        inputs (str | Component | List[str] | List[Component] | None): a single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of input components should match the number of parameters in fn. If None, then only the output components will be displayed.
-        outputs (str | Component | List[str] | List[Component] | None): a single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of output components should match the number of values returned by fn. If None, then only the input components will be displayed.
+        inputs (str | Component | List[str] | List[Component] | None): a single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of input components should match the number of parameters in fn. If set to None, then only the output components will be displayed.
+        outputs (str | Component | List[str] | List[Component] | None): a single Gradio component, or list of Gradio components. Components can either be passed as instantiated objects, or referred to by their string shortcuts. The number of output components should match the number of values returned by fn. If set to None, then only the input components will be displayed.
         examples (List[List[Any]] | str | None): sample inputs for the function; if provided, appear below the UI components and can be clicked to populate the interface. Should be nested list, in which the outer list consists of samples and each inner list consists of an input corresponding to each input component. A string path to a directory of examples can also be provided. If there are multiple input components and a directory is provided, a log.csv file must be present in the directory to link corresponding inputs.
         cache_examples (bool | None): If True, caches examples in the server for fast runtime in examples. The default option in HuggingFace Spaces is True. The default option elsewhere is False.
         examples_per_page (int): If examples are provided, how many to display per page.

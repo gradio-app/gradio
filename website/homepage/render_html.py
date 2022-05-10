@@ -291,7 +291,7 @@ def render_docs():
         parameters_started = False
         for l, line in enumerate(doc_lines):
             if not(parameters_started):
-                inp["doc"] += line.strip()
+                inp["doc"] += line
             if "Parameters:" in line or (lines is not None and l >= lines-1):
                 parameters_started = True
             if parameters_started and ": " in line:
