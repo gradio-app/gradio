@@ -146,7 +146,7 @@ window.launchGradioFromSpaces = async (space: string, target: string) => {
 	window.launchGradio(_config, target);
 };
 
-function run() {
+function init() {
 	if (window.gradio_mode == "app") {
 		get_config().then((config) => {
 			window.launchGradio(config, "#root");
@@ -163,3 +163,5 @@ async function get_config() {
 		return window.gradio_config;
 	}
 }
+
+init();
