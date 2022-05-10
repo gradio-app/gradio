@@ -25,7 +25,7 @@ demo = gr.Interface(
             default_value="The fast brown fox jumps over lazy dogs.",
         ),
     ],
-    gr.HighlightedText(label="Diff"),
+    gr.HighlightedText(label="Diff", combine_adjacent=True),
 )
 if __name__ == "__main__":
     demo.launch()
