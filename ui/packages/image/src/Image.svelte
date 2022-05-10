@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import { Block, BlockLabel } from "@gradio/atoms";
-	import image_icon from "./image.svg";
-	import sketch_icon from "./sketch.svg";
+	import { BlockLabel } from "@gradio/atoms";
+	import { Image, Sketch as SketchIcon } from "@gradio/icons";
 
 	import Cropper from "./Cropper.svelte";
 	import Sketch from "./Sketch.svelte";
@@ -58,7 +57,7 @@
 
 <BlockLabel
 	{show_label}
-	image={source === "canvas" ? sketch_icon : image_icon}
+	Icon={source === "canvas" ? SketchIcon : Image}
 	label={label || (source === "canvas" ? "Sketch" : "Image")}
 />
 

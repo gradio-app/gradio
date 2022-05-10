@@ -2,7 +2,7 @@
 	import type { FileData } from "@gradio/upload";
 	import { BlockLabel } from "@gradio/atoms";
 	import { prettyBytes } from "./utils";
-	import file_icon from "./file.svg";
+	import { File } from "@gradio/icons";
 
 	export let value: FileData | null;
 	export let style: string = "";
@@ -10,7 +10,7 @@
 	export let show_label: boolean;
 </script>
 
-<BlockLabel {show_label} image={file_icon} label={label || "File"} />
+<BlockLabel {show_label} Icon={File} label={label || "File"} />
 
 {#if value}
 	<a
@@ -38,5 +38,7 @@
 		</div>
 	</a>
 {:else}
-	<div class="min-h-[8rem]" />
+	<div class="min-h-[16rem] flex justify-center items-center">
+		<div class="h-10 dark:text-white opacity-50"><File /></div>
+	</div>
 {/if}

@@ -13,4 +13,4 @@
 	}, 2000);
 </script>
 
-<ChatBot value={messages} color_map={["purple", "#bbb"]} />
+<ChatBot value={messages} color_map={["purple", "red"]} />
