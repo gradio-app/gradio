@@ -340,7 +340,7 @@ def render_docs():
         "doc": "Launches the webserver that serves the UI for the interface.",
         "params": launch_params[1],
         "params_doc": launch_params[2],
-        "example": """import gradio as gr\n\ndef image_classifier(inp):\n    pass # image classifier model defined here\niface = gr.Interface(image_classifier, "image", "label")\niface.launch(share=True)"""
+        "example": """import gradio as gr\n\ndef image_classifier(inp):\n    pass # image classifier model defined here\n\ndemo = gr.Interface(image_classifier, "image", "label")\ndemo.launch(share=True)"""
     }
     load_params = get_function_documentation(Interface.load)
     load = {
