@@ -69,7 +69,7 @@
 	function handle_mouseover(label: string) {
 		active = label;
 	}
-	function handle_mouseout(label: string) {
+	function handle_mouseout() {
 		active = "";
 	}
 </script>
@@ -88,13 +88,13 @@
 
 {#if mode === "categories"}
 	{#if show_legend}
-		<div class="category-legend flex flex-wrap gap-1 mb-2">
+		<div class="category-legend flex flex-wrap gap-1 mb-2 text-black">
 			{#each Object.entries(_color_map) as [category, color], i}
 				<div
 					on:mouseover={() => handle_mouseover(category)}
 					on:focus={() => handle_mouseover(category)}
-					on:mouseout={() => handle_mouseout(category)}
-					on:blur={() => handle_mouseout(category)}
+					on:mouseout={() => handle_mouseout()}
+					on:blur={() => handle_mouseout()}
 					class="category-label px-2 rounded-sm font-semibold cursor-pointer"
 					style={"background-color:" + color.secondary}
 				>
@@ -104,20 +104,22 @@
 		</div>
 	{/if}
 	<div
-		class="textfield bg-white dark:bg-gray-800 rounded-sm box-border max-w-full break-word inline-flex flex-wrap gap-1"
+		class="textfield bg-white dark:bg-transparent rounded-sm box-border max-w-full break-word inline-flex flex-wrap gap-1"
 	>
 		{#each value as [text, category]}
 			<span
-				class="textspan bg-opacity-10 rounded-sm inline-flex items-center px-1.5 space-x-1.5 transition-colors"
+				class="textspan rounded-sm inline-flex items-center px-1 space-x-1.5 transition-colors text-black"
 				style:background-color={category === null ||
 				(active && active !== category)
 					? ""
 					: _color_map[category].secondary}
+				class:dark:text-white={category === null ||
+					(active && active !== category)}
 			>
-				<span class="text dark:text-white">{text}</span>
+				<span class="text ">{text}</span>
 				{#if !show_legend && category !== null}
 					<span
-						class="inline-category text-xs text-white rounded-sm px-1 transition-colors"
+						class="font-bold uppercase inline-category text-xs text-white rounded-sm my-[0.225rem] px-[0.325rem] transition-colors"
 						style:background-color={category === null ||
 						(active && active !== category)
 							? ""
