@@ -2,6 +2,47 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+	.bg-gray-950 {
+		background-color: #090f1f;
+	}
+	.dark:bg-gray-950 {
+	}
+
+	.dark {
+		@apply text-gray-300 bg-gray-950;
+	}
+	.dark .text-gray-500,
+	.dark .text-gray-600 {
+		@apply text-gray-300;
+	}
+
+	.dark .text-gray-700,
+	.dark .text-gray-800,
+	.dark .text-gray-900 {
+		@apply text-gray-200;
+	}
+
+	.dark .border,
+	.dark .border-gray-100,
+	.dark .border-gray-200,
+	.dark .border-gray-300 {
+		@apply border-gray-700;
+	}
+
+	.dark .bg-white {
+		@apply bg-gray-950;
+	}
+
+	.dark .bg-gray-50 {
+		@apply bg-gray-900;
+	}
+
+	.dark .bg-gray-200 {
+		@apply bg-gray-800;
+	}
+}
+
 @layer components {
 	.col.gr-gap > *:not(.absolute) + * {
 		@apply mt-3;

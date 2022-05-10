@@ -12,7 +12,7 @@
 <div class="input-slider text-center" {theme}>
 	<input
 		type="range"
-		class="range w-full appearance-none transition rounded h-4"
+		class="range w-full appearance-none transition rounded h-4 bg-blue-400"
 		disabled
 		{original}
 		min={minimum}

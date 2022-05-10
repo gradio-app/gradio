@@ -36,7 +36,7 @@
 				checked={value.includes(choice)}
 				type="checkbox"
 				name="test"
-				class="rounded border-gray-300 text-blue-600 disabled:text-gray-400 disabled:cursor-not-allowed shadow-sm focus:border-blue-300 focus:ring focus:ring-offset-0 focus:ring-blue-200 focus:ring-opacity-50"
+				class="gr-check-radio gr-checkbox"
 			/> <span class="ml-2">{choice}</span></label
 		>
 	{/each}

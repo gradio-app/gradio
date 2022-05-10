@@ -27,7 +27,7 @@
 		<label for={id}>
 			<BlockTitle {show_label}>{label}</BlockTitle>
 		</label>
-		<div class="font-medium">{value}</div>
+		<div class="font-medium dark:text-gray-300">{value}</div>
 	</div>
 </div>
 
