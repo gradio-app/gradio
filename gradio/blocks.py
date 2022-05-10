@@ -441,8 +441,8 @@ class Blocks(BlockContext):
         ssl_keyfile_password: Optional[str] = None,
     ) -> Tuple[FastAPI, str, str]:
         """
-        Launches a simple web server that serves the demo. Can also be used to create a 
-        shareable link. 
+        Launches a simple web server that serves the demo. Can also be used to create a
+        shareable link.
         Parameters:
         inline (bool): whether to display in the interface inline on python notebooks.
         inbrowser (bool): whether to automatically launch the interface in a new tab on the default browser.
