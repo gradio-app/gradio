@@ -18,7 +18,7 @@ declare let BACKEND_URL: string;
 declare let BACKEND_URL_TEST: string;
 declare let BUILD_MODE: string;
 
-window.__BACKEND_URL__ = BACKEND_URL || false;
+window.__BACKEND_URL__ = BACKEND_URL || "";
 window.__BUILD_MODE__ = BUILD_MODE || false;
 
 interface Component {
