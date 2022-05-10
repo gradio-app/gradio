@@ -22,7 +22,7 @@ else
     aws s3 cp gradio/templates/frontend s3://gradio/$new_version/ --recursive  # requires aws cli (contact maintainers for credentials)
     cp gradio/templates/frontend/index.html gradio/templates/frontend/share.html
     assets_link="https://gradio.s3-us-west-2.amazonaws.com/$new_version/assets"
-    gsed -i -e "s#\./assets#${assets_link}#g" gradio/templates/frontend/share.html
+    sed -i -e "s#\./assets#${assets_link}#g" gradio/templates/frontend/share.html
   fi
   rm -r dist/*
   rm -r build/*
