@@ -1,8 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher, onMount } from "svelte";
-	import camera_icon from "./camera.svg";
-	import circle_icon from "./circle.svg";
-	import square_icon from "./square.svg";
+	import { Camera, Circle, Square } from "@gradio/icons";
 
 	let video_source: HTMLVideoElement;
 	let canvas: HTMLCanvasElement;
@@ -107,27 +105,18 @@
 	>
 		{#if mode === "video"}
 			{#if recording}
-				<img
-					style="color: white"
-					src={square_icon}
-					alt="take a screenshot"
-					class="w-2/4 h-2/4"
-				/>
+				<div class="w-2/4 h-2/4 dark:text-white opacity-80">
+					<Square />
+				</div>
 			{:else}
-				<img
-					style="color: white"
-					src={circle_icon}
-					alt="take a screenshot"
-					class="w-2/4 h-2/4"
-				/>
+				<div class="w-2/4 h-2/4 dark:text-white opacity-80">
+					<Square />
+				</div>
 			{/if}
 		{:else}
-			<img
-				style="color: white"
-				src={camera_icon}
-				alt="take a screenshot"
-				class="w-2/4 h-2/4"
-			/>
+			<div class="w-2/4 h-2/4 dark:text-white opacity-80">
+				<Camera />
+			</div>
 		{/if}
 	</button>
 </div>

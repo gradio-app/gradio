@@ -19,7 +19,11 @@
 </script>
 
 {#if $selected_tab === id}
-	<div class="p-2 border-2 border-t-0 border-gray-200 relative">
-		<slot />
+	<div class="tabitem p-2 border-2 border-t-0 border-gray-200 relative flex">
+		<div
+			class="flex flex-col gr-gap gr-form-gap relative col overflow-auto flex-1"
+		>
+			<slot />
+		</div>
 	</div>
 {/if}

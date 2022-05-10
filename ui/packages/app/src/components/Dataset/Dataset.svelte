@@ -92,7 +92,9 @@
 		<div class="overflow-x-auto border table-auto rounded-lg w-full text-sm">
 			<table class="gr-samples-table">
 				<thead>
-					<tr class="border-b divide-x shadow-sm">
+					<tr
+						class="border-b dark:border-gray-800 divide-x dark:divide-gray-800 shadow-sm"
+					>
 						{#each headers as header}
 							<th class="p-2 whitespace-nowrap min-w-lg text-left">
 								{header}
@@ -103,7 +105,7 @@
 				<tbody>
 					{#each selected_samples as sample_row, i}
 						<tr
-							class="group cursor-pointer odd:bg-gray-50 border-b divide-x last:border-none hover:bg-orange-50 hover:divide-orange-100"
+							class="group cursor-pointer odd:bg-gray-50 border-b dark:border-gray-800 divide-x dark:divide-gray-800 last:border-none hover:bg-orange-50 hover:divide-orange-100 dark:hover:bg-gray-700"
 							on:click={() => {
 								value = i;
 								dispatch("click", i + page * samples_per_page);

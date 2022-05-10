@@ -70,7 +70,7 @@ class QueuePushBody(BaseModel):
 class PredictBody(BaseModel):
     session_hash: Optional[str]
     data: Any
-    fn_index: int
+    fn_index: int = 0
 
 
 ###########

@@ -10,7 +10,7 @@
 	import { createEventDispatcher } from "svelte";
 	import { Block, BlockLabel } from "@gradio/atoms";
 
-	import audio_icon from "./music.svg";
+	import { Music } from "@gradio/icons";
 
 	export let value: null | { name: string; data: string } = null;
 	export let label: string;
@@ -32,10 +32,11 @@
 		});
 </script>
 
-<BlockLabel {show_label} image={audio_icon} label={label || "Audio"} />
+<BlockLabel {show_label} Icon={Music} label={label || "Audio"} />
 {#if value === null}
 	<div class="min-h-[8rem] flex justify-center items-center">
-		<img src={audio_icon} alt="" class="h-6 opacity-20" />
+		<!-- <img src={audio_icon} alt="" class="h-6 opacity-20" /> -->
+		<div class="h-10 dark:text-white opacity-50"><Music /></div>
 	</div>
 {:else}
 	<audio

@@ -77,6 +77,7 @@ importers:
       '@gradio/form': workspace:^0.0.1
       '@gradio/highlighted-text': workspace:^0.0.1
       '@gradio/html': workspace:^0.0.1
+      '@gradio/icons': workspace:^0.0.1
       '@gradio/image': workspace:^0.0.1
       '@gradio/json': workspace:^0.0.1
       '@gradio/label': workspace:^0.0.1
@@ -101,6 +102,7 @@ importers:
       '@gradio/form': link:../form
       '@gradio/highlighted-text': link:../highlighted-text
       '@gradio/html': link:../html
+      '@gradio/icons': link:../icons
       '@gradio/image': link:../image
       '@gradio/json': link:../json
       '@gradio/label': link:../label
@@ -121,10 +123,12 @@ importers:
   packages/audio:
     specifiers:
       '@gradio/atoms': workspace:^0.0.1
+      '@gradio/icons': workspace:^0.0.1
       '@gradio/upload': workspace:^0.0.1
       svelte-range-slider-pips: ^2.0.1
     dependencies:
       '@gradio/atoms': link:../atoms
+      '@gradio/icons': link:../icons
       '@gradio/upload': link:../upload
       svelte-range-slider-pips: 2.0.2
 
@@ -136,6 +140,7 @@ importers:
 
   packages/chart:
     specifiers:
+      '@gradio/icons': workspace:^0.0.1
       '@gradio/theme': workspace:^0.0.1
       '@gradio/tooltip': workspace:^0.0.1
       '@gradio/utils': workspace:^0.0.1
@@ -146,6 +151,7 @@ importers:
       d3-scale: ^4.0.2
       d3-shape: ^3.1.0
     dependencies:
+      '@gradio/icons': link:../icons
       '@gradio/theme': link:../theme
       '@gradio/tooltip': link:../tooltip
       '@gradio/utils': link:../utils
@@ -166,9 +172,11 @@ importers:
   packages/file:
     specifiers:
       '@gradio/atoms': workspace:^0.0.1
+      '@gradio/icons': workspace:^0.0.1
       '@gradio/upload': workspace:^0.0.1
     dependencies:
       '@gradio/atoms': link:../atoms
+      '@gradio/icons': link:../icons
       '@gradio/upload': link:../upload
 
   packages/form:
@@ -191,6 +199,7 @@ importers:
   packages/image:
     specifiers:
       '@gradio/atoms': workspace:^0.0.1
+      '@gradio/icons': workspace:^0.0.1
       '@gradio/upload': workspace:^0.0.1
       cropperjs: ^1.5.12
       lazy-brush: ^1.0.1
@@ -198,6 +207,7 @@ importers:
       tui-image-editor: ^3.15.2
     dependencies:
       '@gradio/atoms': link:../atoms
+      '@gradio/icons': link:../icons
       '@gradio/upload': link:../upload
       cropperjs: 1.5.12
       lazy-brush: 1.0.1
@@ -216,11 +226,13 @@ importers:
   packages/model3D:
     specifiers:
       '@gradio/atoms': workspace:^0.0.1
+      '@gradio/icons': workspace:^0.0.1
       '@gradio/upload': workspace:^0.0.1
       babylonjs: ^4.2.1
       babylonjs-loaders: ^4.2.1
     dependencies:
       '@gradio/atoms': link:../atoms
+      '@gradio/icons': link:../icons
       '@gradio/upload': link:../upload
       babylonjs: 4.2.2
       babylonjs-loaders: 4.2.2
@@ -232,7 +244,14 @@ importers:
       plotly.js-dist-min: 2.11.1
 
   packages/table:
-    specifiers: {}
+    specifiers:
+      '@gradio/upload': workspace:^0.0.1
+      d3-dsv: ^3.0.1
+      dequal: ^2.0.2
+    dependencies:
+      '@gradio/upload': link:../upload
+      d3-dsv: 3.0.1
+      dequal: 2.0.2
 
   packages/tabs:
     specifiers: {}
@@ -249,8 +268,10 @@ importers:
   packages/upload:
     specifiers:
       '@gradio/atoms': workspace:^0.0.1
+      '@gradio/icons': workspace:^0.0.1
     dependencies:
       '@gradio/atoms': link:../atoms
+      '@gradio/icons': link:../icons
 
   packages/utils:
     specifiers:
@@ -261,10 +282,12 @@ importers:
   packages/video:
     specifiers:
       '@gradio/atoms': workspace:^0.0.1
+      '@gradio/icons': workspace:^0.0.1
       '@gradio/image': workspace:^0.0.1
       '@gradio/upload': workspace:^0.0.1
     dependencies:
       '@gradio/atoms': link:../atoms
+      '@gradio/icons': link:../icons
       '@gradio/image': link:../image
       '@gradio/upload': link:../upload
 
@@ -1940,6 +1963,11 @@ packages:
     resolution: {integrity: sha1-hMbhWbgZBP3KWaDvRM2HDTElD5o=}
     dev: false
     optional: true
+
+  /dequal/2.0.2:
+    resolution: {integrity: sha512-q9K8BlJVxK7hQYqa6XISGmBZbtQQWVXSrRrWreHC94rMt1QL/Impruc+7p2CYSYuVIUr+YCt6hjrs1kkdJRTug==}
+    engines: {node: '>=6'}
+    dev: false
 
   /detect-indent/6.1.0:
     resolution: {integrity: sha512-reYkTUJAZb9gUuZ2RvVCNhVHdg62RHnJ7WJl8ftMi4diZ6NWlciOzQN88pUhSELEwflJht4oQDv0F0BMlwaYtA==}

@@ -3,6 +3,7 @@
 	import { component_map } from "./components/directory";
 	import { loading_status } from "./stores";
 	import type { LoadingStatus } from "./stores";
+	import { Component as Column } from "./components/Column";
 
 	import { _ } from "svelte-i18n";
 	import { setupi18n } from "./i18n";
@@ -193,8 +194,6 @@
 				target_instances.forEach(([id, { instance }]: [number, Instance]) => {
 					if (handled_dependencies[i]?.includes(id) || !instance) return;
 					instance?.$on(trigger, () => {
-						console.log(loading_status.get_status_for_fn(i));
-
 						if (loading_status.get_status_for_fn(i) === "pending") {
 							return;
 						}
@@ -259,25 +258,27 @@
 	{/if}
 </svelte:head>
 
-<div class="mx-auto container space-y-4 px-4 py-6 dark:bg-gray-950">
-	{#if tree}
-		{#each tree as { component, id, props, children, has_modes }}
-			<Render
-				{has_modes}
-				{dynamic_ids}
-				{component}
-				{id}
-				{props}
-				{children}
-				{instance_map}
-				{theme}
-				{root}
-				{status_tracker_values}
-				on:mount={handle_mount}
-				on:destroy={({ detail }) => handle_destroy(detail)}
-			/>
-		{/each}
-	{/if}
+<div class="mx-auto container px-4 py-6 dark:bg-gray-950">
+	<Column default_value={true}>
+		{#if tree}
+			{#each tree as { component, id, props, children, has_modes }}
+				<Render
+					{has_modes}
+					{dynamic_ids}
+					{component}
+					{id}
+					{props}
+					{children}
+					{instance_map}
+					{theme}
+					{root}
+					{status_tracker_values}
+					on:mount={handle_mount}
+					on:destroy={({ detail }) => handle_destroy(detail)}
+				/>
+			{/each}
+		{/if}
+	</Column>
 </div>
 <div
 	class="gradio-page container mx-auto flex flex-col box-border flex-grow text-gray-700 dark:text-gray-50"
