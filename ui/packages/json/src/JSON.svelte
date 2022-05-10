@@ -38,7 +38,7 @@
 		<span
 			in:fade={{ duration: 100 }}
 			out:fade={{ duration: 350 }}
-			class="font-bold text-green-400 py-1 px-2 absolute block w-full text-left dark:bg-gray-900"
+			class="font-bold dark:text-green-400 text-green-600 py-1 px-2 absolute block w-full text-left bg-white dark:bg-gray-900"
 			>COPIED</span
 		>
 	{/if}
