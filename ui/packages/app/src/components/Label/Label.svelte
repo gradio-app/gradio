@@ -10,11 +10,6 @@
 		confidences?: Array<{ label: string; confidence: number }>;
 	};
 
-	export let value: {
-		label: string;
-		confidences?: Array<{ label: string; confidence: number }>;
-	};
-
 	export let style: string = "";
 	export let loading_status: LoadingStatus;
 	export let show_label: boolean;
