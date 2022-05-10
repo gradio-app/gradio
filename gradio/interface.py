@@ -43,8 +43,8 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 class Interface(Blocks):
     """
     The Interface class is a high-level abstraction that allows you to create a 
-    web-based UI around a function by specifying: (1) the function (2) the desired 
-    input components and (3) desired output components.
+    web-based demo around a machine learning model or arbitrary Python function 
+    by specifying: (1) the function (2) the desired input components and (3) desired output components.
     """
 
     # stores references to all currently existing Interface instances
@@ -78,9 +78,9 @@ class Interface(Blocks):
         and output components are automatically loaded from the repo.
         Parameters:
         name (str): the name of the model (e.g. "gpt2"), can include the `src` as prefix (e.g. "models/gpt2")
-        src (str): the source of the model: `models` or `spaces` (or empty if source is provided as a prefix in `name`)
-        api_key (str): optional api key for use with Hugging Face Hub
-        alias (str): optional, used as the name of the loaded model instead of the default name
+        src (str | None): the source of the model: `models` or `spaces` (or empty if source is provided as a prefix in `name`)
+        api_key (str | None): optional api key for use with Hugging Face Hub
+        alias (str | None): optional string used as the name of the loaded model instead of the default name
         Returns:
         (gradio.Interface): a Gradio Interface object for the given model
         """
@@ -141,14 +141,14 @@ class Interface(Blocks):
         live (bool): whether the interface should automatically rerun if any of the inputs change.
         interpretation (Callable | str): function that provides interpretation explaining prediction output. Pass "default" to use simple built-in interpreter, "shap" to use a built-in shapley-based interpreter, or your own custom interpretation function.
         num_shap (float): a multiplier that determines how many examples are computed for shap-based interpretation. Increasing this value will increase shap runtime, but improve results. Only applies if interpretation is "shap".
-        title (str): a title for the interface; if provided, appears above the input and output components in large font.
-        description (str): a description for the interface; if provided, appears above the input and output components and beneath the title in regular font. Accepts Markdown and HTML content.
-        article (str): an expanded article explaining the interface; if provided, appears below the input and output components in regular font. Accepts Markdown and HTML content.
-        thumbnail (str): path or url to image to use as display image when the web demo is shared on social media.
-        theme (str): Theme to use - right now, only "default" is supported.
-        css (str): custom css or path to custom css file to use with interface.
-        allow_flagging (str): one of "never", "auto", or "manual". If "never" or "auto", users will not see a button to flag an input and output. If "manual", users will see a button to flag. If "auto", every prediction will be automatically flagged. If "manual", samples are flagged when the user clicks flag button. Can be set with environmental variable GRADIO_ALLOW_FLAGGING.
-        flagging_options (List[str]): if provided, allows user to select from the list of options when flagging. Only applies if allow_flagging is "manual".
+        title (str | None): a title for the interface; if provided, appears above the input and output components in large font.
+        description (str | None): a description for the interface; if provided, appears above the input and output components and beneath the title in regular font. Accepts Markdown and HTML content.
+        article (str | None): an expanded article explaining the interface; if provided, appears below the input and output components in regular font. Accepts Markdown and HTML content.
+        thumbnail (str | None): path or url to image to use as display image when the web demo is shared on social media.
+        theme (str | None): Theme to use - right now, only "default" is supported. Can be set with the GRADIO_THEME environment variable.
+        css (str | None): custom css or path to custom css file to use with interface.
+        allow_flagging (str | None): one of "never", "auto", or "manual". If "never" or "auto", users will not see a button to flag an input and output. If "manual", users will see a button to flag. If "auto", every prediction will be automatically flagged. If "manual", samples are flagged when the user clicks flag button. Can be set with environmental variable GRADIO_ALLOW_FLAGGING; otherwise defaults to "manual".
+        flagging_options (List[str] | None): if provided, allows user to select from the list of options when flagging. Only applies if allow_flagging is "manual".
         flagging_dir (str): what to name the dir where flagged data is stored.
         flagging_callback (FlaggingCallback): An instance of a subclass of FlaggingCallback which will be called when a sample is flagged. By default logs to a local CSV file.
         analytics_enabled (bool | None): Whether to allow telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
