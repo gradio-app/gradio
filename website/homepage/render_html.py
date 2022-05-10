@@ -282,21 +282,26 @@ def render_docs():
                 param_set.insert(0, (params.args[neg_index],))
         return "\n".join(func_doc), param_set, params_doc, return_doc
 
-    def get_class_documentation(cls):
+    def get_class_documentation(cls, get_interpret=True, lines=1):
         inp = {}
         inp["name"] = cls.__name__
         doc = inspect.getdoc(cls)
         doc_lines = doc.split("\n")
-        inp["doc"] = doc_lines[0]
-        for line in doc_lines[1:]:
-            if ": " in line:
+        inp["doc"] = ""
+        parameters_started = False
+        for l, line in enumerate(doc_lines):
+            if not(parameters_started):
+                inp["doc"] += line.strip()
+            if "Parameters:" in line or (lines is not None and l >= lines-1):
+                parameters_started = True
+            if parameters_started and ": " in line:
                 key, value = line.split(": ")
                 inp[key] = value
 
         _, inp["params"], inp["params_doc"], _ = get_function_documentation(
             cls.__init__
         )
-        if "interpret" in cls.__dict__:
+        if get_interpret and "interpret" in cls.__dict__:
             (
                 inp["interpret"],
                 inp["interpret_params"],
@@ -326,10 +331,9 @@ def render_docs():
             components.add(component)
     components_docs = [get_class_documentation(cls) for cls in components]
     interface_params = get_function_documentation(Interface.__init__)
+    interface_docs = get_class_documentation(Interface, get_interpret=False, lines=None)["doc"]
     interface = {
-        "doc": """The core Interface class is a high-level abstraction that allows you to create a 
-    web-based UI around a function by specifying (1) the function (2) the desired 
-    input components and (3) desired output components.""",
+        "doc": interface_docs,
         "params": interface_params[1],
         "params_doc": interface_params[2],
         "example": """import gradio as gr\n\ndef image_classifier(inp):\n    pass # image classifier model defined here\n\ngr.Interface(fn=image_classifier, inputs="image", outputs="label")\n\ndef speech_to_text(inp):\n   pass # speech recognition model defined here\n\ngr.Interface(speech_to_text, inputs="mic", outputs=gr.Textbox(label="Predicted text", lines=4))""",
@@ -337,26 +341,26 @@ def render_docs():
     }
     launch_params = get_function_documentation(Interface.launch)
     launch = {
-        "doc": "Launches the webserver that serves the UI for the interface.",
+        "doc": launch_params[0],
         "params": launch_params[1],
         "params_doc": launch_params[2],
         "example": """import gradio as gr\n\ndef image_classifier(inp):\n    pass # image classifier model defined here\n\ndemo = gr.Interface(image_classifier, "image", "label")\ndemo.launch(share=True)"""
     }
     load_params = get_function_documentation(Interface.load)
     load = {
-        "doc": "Class method to construct an Interface from an external source repository, such as huggingface. Returns a Gradio Interface object for the given model",
+        "doc": load_params[0],
         "params": load_params[1],
         "params_doc": load_params[2],
         "return_doc": load_params[3],
         "example":
         """import gradio as gr\ndescription = "Story generation with GPT-2"\ntitle = "Generate your own story"\nexamples = [["Adventurer is approached by a mysterious stranger in the tavern for a new quest."]]\n\ninterface = gr.Interface.load("huggingface/pranavpsv/gpt2-genre-story-generator", description=description, examples=examples)\n\ninterface.launch()"""
     }
+    from_pipeline_params = get_function_documentation(Interface.from_pipeline)
     from_pipeline = {
-        "doc": "Construct an Interface from a Hugging Face Transformers Pipeline. Returns a Gradio Interface object from the given Pipeline",
-        "params": [["pipeline"]],
-        "params_doc": [
-            ["pipeline", "transformers.Pipeline", "a Transformers object that offers a simple inference API dedicated to several tasks"]
-        ],
+        "doc": from_pipeline_params[0],
+        "params": from_pipeline_params[1],
+        "params_doc": from_pipeline_params[2],
+        "return_doc": from_pipeline_params[3],
         "example": """import gradio as gr\nfrom transformers import pipeline\npipe = pipeline(model="lysandre/tiny-vit-random")\ngr.Interface.from_pipeline(pipe).launch()"""
     }
     docs = {
