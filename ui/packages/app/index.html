@@ -74,5 +74,26 @@
 			id="root"
 			style="display: flex; flex-direction: column; flex-grow: 1"
 		></div>
+
+		<script type="module">
+			if (window.gradio_mode == "app") {
+				get_config().then((config) => {
+					window.launchGradio(config, "#root");
+				});
+			}
+
+			async function get_config() {
+				if (
+					window.__BUILD_MODE__ === "dev" ||
+					location.origin === "http://localhost:3000"
+				) {
+					let config = await fetch(window.__BACKEND_URL__ + "config");
+					config = await config.json();
+					return config;
+				} else {
+					return window.gradio_config;
+				}
+			}
+		</script>
 	</body>
 </html>
