@@ -8641,5 +8641,5 @@ FILE_TEMPLATE_CONTEXT = {
     "show_label": True,
     "css": {},
     "interactive": None,
-    "visible": True
+    "visible": True,
 }
