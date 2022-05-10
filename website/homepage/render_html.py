@@ -332,7 +332,7 @@ def render_docs():
     input components and (3) desired output components.""",
         "params": interface_params[1],
         "params_doc": interface_params[2],
-        "example": """import gradio as gr\n\ndef image_classifier(inp):\n   pass # image classifier model defined here\ngr.Interface(image_classifier, "image", "label")\n\ndef speech_to_text(inp):\n  pass # image classifier model defined here\ngr.Interface(speech_to_text, "mic", gr.Textbox(label="predicted text", lines=4))""",
+        "example": """import gradio as gr\n\ndef image_classifier(inp):\n    pass # image classifier model defined here\n\ngr.Interface(fn=image_classifier, inputs="image", outputs="label")\n\ndef speech_to_text(inp):\n   pass # speech recognition model defined here\n\ngr.Interface(speech_to_text, inputs="mic", outputs=gr.Textbox(label="Predicted text", lines=4))""",
         "demos": ["hello_world", "hello_world_3", "gpt_j"]
     }
     launch_params = get_function_documentation(Interface.launch)
@@ -340,7 +340,7 @@ def render_docs():
         "doc": "Launches the webserver that serves the UI for the interface.",
         "params": launch_params[1],
         "params_doc": launch_params[2],
-        "example": """import gradio as gr\n\ndef image_classifier(inp):\n   pass # image classifier model defined here\niface = gr.Interface(image_classifier, "image", "label")\niface.launch(share=True)"""
+        "example": """import gradio as gr\n\ndef image_classifier(inp):\n    pass # image classifier model defined here\niface = gr.Interface(image_classifier, "image", "label")\niface.launch(share=True)"""
     }
     load_params = get_function_documentation(Interface.load)
     load = {
