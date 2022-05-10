@@ -94,7 +94,7 @@ class Interface(Blocks):
     def from_pipeline(cls, pipeline: transformers.Pipeline, **kwargs) -> Interface:
         """
         Construct an Interface from a Hugging Face transformers.Pipeline object. Input
-        and output components are automatically determined from the pipeline. 
+        and output components are automatically determined from the pipeline.
         Parameters:
         pipeline (transformers.Pipeline): the pipeline object to use.
         Returns:
