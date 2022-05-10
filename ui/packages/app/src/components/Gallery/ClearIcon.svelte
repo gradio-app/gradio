@@ -1,14 +1,11 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg
-	width="100%"
-	height="100%"
+	width="1em"
+	height="1em"
 	viewBox="0 0 24 24"
 	version="1.1"
 	xmlns="http://www.w3.org/2000/svg"
 	xmlns:xlink="http://www.w3.org/1999/xlink"
 	xml:space="preserve"
-	xmlns:serif="http://www.serif.com/"
 	style="
 		fill-rule: evenodd;
 		clip-rule: evenodd;

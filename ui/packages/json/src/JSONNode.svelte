@@ -13,7 +13,7 @@
 				}}
 			>
 				<span
-					class="bg-gray-50 hover:bg-gray-100 px-1 border rounded text-gray-700"
+					class="bg-gray-50 hover:bg-gray-100 px-1 border rounded text-gray-700 dark:hover:bg-gray-800"
 					>expand {value.length} children</span
 				>
 			</button>

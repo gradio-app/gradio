@@ -2,8 +2,7 @@
 	import { createEventDispatcher } from "svelte";
 	import { Block, BlockLabel } from "@gradio/atoms";
 	import type { FileData } from "@gradio/upload";
-
-	import video_icon from "./video.svg";
+	import { Video } from "@gradio/icons";
 
 	export let value: FileData | null = null;
 	export let label: string | undefined = undefined;
@@ -20,10 +19,10 @@
 	$: value && dispatch("change", value);
 </script>
 
-<BlockLabel {show_label} image={video_icon} label={label || "Video"} />
+<BlockLabel {show_label} Icon={Video} label={label || "Video"} />
 {#if value === null}
 	<div class="min-h-[16rem] flex justify-center items-center">
-		<img src={video_icon} alt="" class="h-6 opacity-20" />
+		<div class="h-10 dark:text-white opacity-50"><Video /></div>
 	</div>
 {:else}
 	<!-- svelte-ignore a11y-media-has-caption -->

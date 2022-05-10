@@ -14,10 +14,18 @@ def diff_texts(text1, text2):
 demo = gr.Interface(
     diff_texts,
     [
-        gr.Textbox(lines=3, value="The quick brown fox jumped over the lazy dogs."),
-        gr.Textbox(lines=3, value="The fast brown fox jumps over lazy dogs."),
+        gr.Textbox(
+            label="Initial text",
+            lines=3,
+            value="The quick brown fox jumped over the lazy dogs.",
+        ),
+        gr.Textbox(
+            label="Text to compare",
+            lines=3,
+            value="The fast brown fox jumps over lazy dogs.",
+        ),
     ],
-    gr.HighlightedText(),
+    gr.HighlightedText(label="Diff"),
 )
 if __name__ == "__main__":
     demo.launch()
