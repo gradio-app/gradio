@@ -7,7 +7,7 @@
 	import { Block, BlockTitle } from "@gradio/atoms";
 
 	export let value: number = 0;
-	export let style: Record<string, string> = {};
+	export let style: string = "";
 	export let minimum: number = 0;
 	export let maximum: number = 100;
 	export let step: number = 1;
@@ -25,9 +25,9 @@
 <div class="w-full flex flex-col">
 	<div class="flex justify-between">
 		<label for={id}>
-			<BlockTitle {show_label} style={style["label"]}>{label}</BlockTitle>
+			<BlockTitle {show_label}>{label}</BlockTitle>
 		</label>
-		<div class="font-medium dark:text-gray-300" style={style["value"]}>{value}</div>
+		<div class="font-medium dark:text-gray-300">{value}</div>
 	</div>
 </div>
 
@@ -41,5 +41,4 @@
 	max={maximum}
 	{step}
 	{disabled}
-	style={style["main"]}
 />

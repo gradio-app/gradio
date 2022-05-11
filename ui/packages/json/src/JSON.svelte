@@ -4,7 +4,7 @@
 	import JSONNode from "./JSONNode.svelte";
 
 	export let value: any = {};
-	export let style: Record<string, string> = {};
+	export let style: string = "";
 
 	let copied = false;
 	let timer: NodeJS.Timeout;
@@ -44,4 +44,4 @@
 	{/if}
 </button>
 
-<JSONNode style={style["main"]} {value} depth={0} />
+<JSONNode {value} depth={0} />

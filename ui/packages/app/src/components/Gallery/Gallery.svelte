@@ -10,7 +10,7 @@
 	export let show_label: boolean;
 	export let label: string;
 	export let value: Array<string> | null = null;
-	export let style: Record<string, string> = {};
+	export let style: string = "";
 
 	let selected_image: number | null = null;
 
@@ -66,7 +66,7 @@
 
 <svelte:window />
 
-<Block variant="solid" color="grey" padding={false} style={style["container"]}>
+<Block variant="solid" color="grey" padding={false}>
 	<StatusTracker {...loading_status} />
 	<BlockLabel {show_label} Icon={ImageIcon} label={label || "Gallery"} />
 	{#if value === null}
@@ -86,7 +86,6 @@
 					class="w-full object-contain h-[calc(100%-50px)]"
 					src={value[selected_image]}
 					alt=""
-					style={style["selected_image"]}
 				/>
 
 				<div
@@ -106,7 +105,6 @@
 								alt=""
 								class="h-full w-full overflow-hidden object-contain"
 								src={image}
-								style={style["image"]}
 							/>
 						</button>
 					{/each}
@@ -117,10 +115,7 @@
 		<div
 			class="overflow-y-auto h-full p-2 min-h-[350px] xl:min-h-[450px] max-h-[55vh]"
 		>
-			<div
-				class="pt-6 grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2"
-				style={style["main"]}
-			>
+			<div class="pt-6 grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
 				{#each value as image, i}
 					<button class="gallery-item" on:click={() => (selected_image = i)}>
 						<img

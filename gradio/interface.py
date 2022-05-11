@@ -162,7 +162,7 @@ class Interface(Blocks):
         flagging_dir (str): what to name the dir where flagged data is stored.
         """
         super().__init__(
-            analytics_enabled=analytics_enabled, mode="interface", css=css, **kwargs
+            analytics_enabled=analytics_enabled, mode="interface", **kwargs
         )
 
         self.interface_type = self.InterfaceTypes.STANDARD
@@ -310,6 +310,11 @@ class Interface(Blocks):
             )
         self.theme = theme
 
+        if css is not None and os.path.exists(css):
+            with open(css) as css_file:
+                self.css = css_file.read()
+        else:
+            self.css = css
         if examples is None or (
             isinstance(examples, list)
             and (len(examples) == 0 or isinstance(examples[0], list))

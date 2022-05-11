@@ -11,7 +11,7 @@
 		id: object;
 	}
 
-	export let style: Record<string, string> = {};
+	export let style: string = "";
 
 	const tabs: Array<Tab> = [];
 

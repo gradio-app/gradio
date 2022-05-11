@@ -9,7 +9,7 @@
 
 	export let headers: Headers = [];
 	export let value: Data | { data: Data; headers: Headers } = [["", "", ""]];
-	export let style: Record<string, string> = {};
+	export let style: string = "";
 	export let mode: "static" | "dynamic";
 	export let col_count: [number, "fixed" | "dynamic"];
 	export let row_count: [number, "fixed" | "dynamic"];

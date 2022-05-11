@@ -11,7 +11,7 @@
 
 	export let mode: "static" | "dynamic";
 	export let value: null | FileData | string = null;
-	export let style: Record[string, string] = {};
+	export let style: string = "";
 	export let name: string;
 	export let source: "microphone" | "upload";
 	export let type: "normal" | "numpy" = "normal";
@@ -33,7 +33,6 @@
 		: "solid"}
 	color={dragging ? "green" : "grey"}
 	padding={false}
-	style={style["container"]}
 >
 	<StatusTracker {...loading_status} />
 

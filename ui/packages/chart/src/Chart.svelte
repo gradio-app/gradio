@@ -16,7 +16,7 @@
 	export let y: Array<string> | undefined = undefined;
 	export let colors: Array<string> = [];
 
-	export let style: Record<string, string> = {};
+	export let style: string = "";
 
 	const dispatch = createEventDispatcher();
 

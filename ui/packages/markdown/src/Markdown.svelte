@@ -3,7 +3,7 @@
 	import "./typography.css";
 
 	export let value: string;
-	export let style: Record<string, string> = {};
+	export let style: string = "";
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 

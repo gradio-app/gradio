@@ -8,7 +8,7 @@
 
 	export let label: string = "Textbox";
 	export let value: string = "";
-	export let style: Record<string, string> = {};
+	export let style: string = "";
 	export let lines: number;
 	export let placeholder: string = "";
 	export let form_position: "first" | "last" | "mid" | "single" = "single";
@@ -20,7 +20,7 @@
 	export let mode: "static" | "dynamic";
 </script>
 
-<Block {form_position} style={style["container"]}>
+<Block {form_position}>
 	<StatusTracker {...loading_status} />
 
 	<TextBox

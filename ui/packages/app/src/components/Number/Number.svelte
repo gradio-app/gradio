@@ -11,12 +11,12 @@
 
 	export let loading_status: LoadingStatus;
 
-	export let style: Record<string, string> = {};
+	export let style: string = "";
 
 	export let mode: "static" | "dynamic";
 </script>
 
-<Block {form_position} style={style["container"]}>
+<Block {form_position}>
 	<StatusTracker {...loading_status} />
 
 	<Number

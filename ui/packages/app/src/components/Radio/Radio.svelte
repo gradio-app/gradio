@@ -6,7 +6,7 @@
 
 	export let label: string = "Radio";
 	export let value: string = "";
-	export let style: Record<string, string> = {};
+	export let style: string = "";
 	export let choices: Array<string> = [];
 	export let mode: "static" | "dynamic";
 	export let form_position: "first" | "last" | "mid" | "single" = "single";
@@ -15,7 +15,7 @@
 	export let loading_status: LoadingStatus;
 </script>
 
-<Block {form_position} type="fieldset" style={style["container"]}>
+<Block {form_position} type="fieldset">
 	<StatusTracker {...loading_status} />
 
 	<Radio

@@ -3,10 +3,10 @@
 	import { _ } from "svelte-i18n";
 
 	export let value: string;
-	export let style: Record<string, string> = {};
+	export let style: string = "";
 	export let variant: "primary" | "secondary" = "primary";
 </script>
 
-<Button {variant} style={style["main"]} on:click>
+<Button {variant} {style} on:click>
 	{$_(value)}
 </Button>

@@ -1,6 +1,6 @@
 <script lang="ts">
 	export let variant: "primary" | "secondary" = "secondary";
-	export let style: string | undefined = "";
+	export let style: string = "";
 	export let size: "sm" | "lg" = "lg";
 </script>
 

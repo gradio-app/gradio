@@ -7,7 +7,7 @@
 	import type { LoadingStatus } from "../StatusTracker/types";
 
 	export let value: any = {};
-	export let style: Record<string, string> = {};
+	export let style: string = "";
 	export let loading_status: LoadingStatus;
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
@@ -15,7 +15,7 @@
 	$: value, dispatch("change");
 </script>
 
-<Block test_id="json" style={style["container"]}>
+<Block test_id="json">
 	<StatusTracker {...loading_status} />
 
 	<JSON {style} {value} />

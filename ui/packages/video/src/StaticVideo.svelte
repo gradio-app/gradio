@@ -6,7 +6,7 @@
 
 	export let value: FileData | null = null;
 	export let label: string | undefined = undefined;
-	export let style: string | undefined = "";
+	export let style: string = "";
 	export let show_label: boolean;
 
 	const dispatch = createEventDispatcher<{
@@ -32,7 +32,6 @@
 		playsInline
 		preload="auto"
 		src={value.data}
-		{style}
 		on:play
 		on:pause
 		on:ended

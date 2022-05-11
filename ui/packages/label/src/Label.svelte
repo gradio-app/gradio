@@ -4,7 +4,7 @@
 		confidences?: Array<{ label: string; confidence: number }>;
 	};
 
-	export let style: Record<string, string> = {};
+	export let style: string = "";
 	export let theme: string = "default";
 	export let show_label: boolean;
 </script>
@@ -14,7 +14,6 @@
 		class:sr-only={!show_label}
 		class="output-class font-bold text-2xl py-6 px-4 flex-grow flex items-center justify-center"
 		class:no-confidence={!("confidences" in value)}
-		style={style["main"]}
 	>
 		{value.label}
 	</div>
@@ -31,10 +30,10 @@
 					to-orange-200
 					dark:from-orange-400 
 					dark:to-orange-600"
-						style={"width: " + confidence_set.confidence * 100 + "%;" + style["confidence_bar"]}
+						style="width: {confidence_set.confidence * 100}%"
 					/>
 					<div
-						class="flex items-baseline space-x-2 group-hover:text-orange-500" style={style["confidence_text"]}
+						class="flex items-baseline space-x-2 group-hover:text-orange-500"
 					>
 						<div class="leading-snug">{confidence_set.label}</div>
 						{#if value.confidences}

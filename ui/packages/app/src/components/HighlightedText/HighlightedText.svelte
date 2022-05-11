@@ -6,7 +6,7 @@
 	import type { LoadingStatus } from "../StatusTracker/types";
 
 	export let value: Array<[string, string | number]>;
-	export let style: Record<string, string> = {};
+	export let style: string = "";
 	export let show_legend: boolean;
 	export let color_map: Record<string, string> = {};
 	export let label: string;
@@ -18,7 +18,7 @@
 	$: value, dispatch("change");
 </script>
 
-<Block style={style["container"]}>
+<Block>
 	<StatusTracker {...loading_status} />
 	{#if label}
 		<BlockTitle>{label}</BlockTitle>
