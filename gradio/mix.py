@@ -6,15 +6,18 @@ import gradio
 
 class Parallel(gradio.Interface):
     """
-    Creates a new Interface consisting of multiple models in parallel
-    Parameters:
-    interfaces: any number of Interface objects that are to be compared in parallel
-    options: additional kwargs that are passed into the new Interface object to customize it
-    Returns:
-    (Interface): an Interface object comparing the given models
+    Creates a new Interface consisting of multiple models in parallel (comparing their outputs).
+    The Interfaces to put in Parallel must share the same input components (but can have different output components).
     """
 
     def __init__(self, *interfaces, **options):
+        """
+        Parameters:
+        *interfaces (Interface): any number of Interface objects that are to be compared in parallel
+        **options (optional): additional kwargs that are passed into the new Interface object to customize it
+        Returns:
+        (Interface): an Interface object comparing the given models        
+        """
         fns = []
         outputs = []
 
@@ -37,15 +40,18 @@ class Parallel(gradio.Interface):
 
 class Series(gradio.Interface):
     """
-    Creates a new Interface from multiple models in series (the output of one is fed as the input to the next)
-    Parameters:
-    interfaces: any number of Interface objects that are to be connected in series
-    options: additional kwargs that are passed into the new Interface object to customize it
-    Returns:
-    (Interface): an Interface object connecting the given models
+    Creates a new Interface from multiple models in series (the output of one is fed as the input to the next,
+    and so the input and output components must agree between the interfaces).
     """
 
     def __init__(self, *interfaces, **options):
+        """
+        Parameters:
+        *interfaces (Interface): any number of Interface objects that are to be connected in series
+        **options (optional): additional kwargs that are passed into the new Interface object to customize it
+        Returns:
+        (Interface): an Interface object connecting the given models        
+        """
         fns = [io.predict for io in interfaces]
 
         def connected_fn(

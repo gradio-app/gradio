@@ -286,17 +286,15 @@
         <section class="flex flex-col gap-6">
           <div id="combining_interfaces" class="func">
             <h3 id="interface-header" class="text-3xl font-light my-4">Combining Interfaces</h3>
-            <p class="w-4/5 mt-4 text-lg">Once you have created several Interfaces, you can 
+            <p class="w-4/5 mt-4 text-lg">Once you have created several Interfaces, we provide several classes that let you
               start combining them together. For example, you can chain them in <em>Series</em>
               or compare their outputs in <em>Parallel</em> if the inputs and outputs match accordingly. 
               You can also display arbitrary Interfaces together in a tabbed layout using <em>TabbedInterface</em>.</p>
               <h3 class="font-semibold">Classes:</h3>
-              <div id="launch" class="func ml-20">
-                <h3 id="launch-header" class="text-2xl font-light my-4">TabbedInterface()</h3>
-                <pre><code class='lang-python'>gradio.Interface().launch(<!--
-                -->&#183;&#183;&#183;<!--
-                -->)</code></pre>
-                <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.launch["doc"] }}</p>
+              <div id="tabbed_interface" class="func ml-20">
+                <h3 id="tabbed_interface_heading" class="text-2xl font-light my-4">TabbedInterface</h3>
+                <pre><code class='lang-python'>gradio.TabbedInterface(interface_list, &#183;&#183;&#183;)</code></pre>
+                <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.tabbed_interface["doc"] }}</p>
                 <table class="table-fixed w-full my-4">
                   <thead class="text-left">
                     <tr>
@@ -307,15 +305,15 @@
                 </table>
                 <table class="table-fixed w-full my-4 rounded-lg bg-gray-100">
                   <tbody class="text-left align-top">
-                  {% for param in docs.launch["params_doc"] %}
+                  {% for param in docs.tabbed_interface["params_doc"] %}
                       <tr class="group hover:bg-gray-200">
                         <td class="p-2 w-2/5 break-words">
                           <code class=“prettyprint”>{{ param[0] }}</code>
                           <p class="text-gray-500 italic">{{ param[1] }}</p>
-                          {% if docs.launch["params"][loop.index]|length == 1 %}
+                          {% if docs.tabbed_interface["params"][loop.index]|length == 1 %}
                             <p class="text-orange-600 font-semibold italic">required</p>
                           {% else %}
-                            <p class="text-gray-600 font-semibold italic">default: {{ docs.launch["params"][loop.index][1] }}</p>
+                            <p class="text-gray-600 font-semibold italic">default: {{ docs.tabbed_interface["params"][loop.index][1] }}</p>
                           {% endif %}
                         </td>
                         <td class="p-2 w-3/5 break-words">
@@ -325,9 +323,77 @@
                   {% endfor %}
                   </tbody>
                 </table>
-                <p class="mb-2 w-4/5 font-semibold">Example usage:</p>
-                <pre><code class='lang-python'>{{ docs.launch["example"] }}</code></pre>
+              </div>
+              
+              <div id="tabbed_interface" class="func ml-20">
+                <h3 id="tabbed_interface_heading" class="text-2xl font-light my-4">Parallel</h3>
+                <pre><code class='lang-python'>gradio.Parallel(*interfaces, &#183;&#183;&#183;)</code></pre>
+                <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.parallel["doc"] }}</p>
+                <table class="table-fixed w-full my-4">
+                  <thead class="text-left">
+                    <tr>
+                      <th class="font-semibold w-2/5">Parameter</th>
+                      <th class="font-semibold">Description</th>
+                    </tr>
+                  </thead>
+                </table>
+                <table class="table-fixed w-full my-4 rounded-lg bg-gray-100">
+                  <tbody class="text-left align-top">
+                  {% for param in docs.parallel["params_doc"] %}
+                      <tr class="group hover:bg-gray-200">
+                        <td class="p-2 w-2/5 break-words">
+                          <code class=“prettyprint”>{{ param[0] }}</code>
+                          <p class="text-gray-500 italic">{{ param[1] }}</p>
+                          {% if docs.parallel["params"][loop.index]|length == 1 %}
+                            <p class="text-orange-600 font-semibold italic">required</p>
+                          {% else %}
+                            <p class="text-gray-600 font-semibold italic">default: None</p>
+                          {% endif %}
+                        </td>
+                        <td class="p-2 w-3/5 break-words">
+                          <p>{{ param[2] }}</p>
+                        </td>
+                      </tr>
+                  {% endfor %}
+                  </tbody>
+                </table>
               </div>              
+
+              <div id="tabbed_interface" class="func ml-20">
+                <h3 id="tabbed_interface_heading" class="text-2xl font-light my-4">Series</h3>
+                <pre><code class='lang-python'>gradio.Series(*interfaces, &#183;&#183;&#183;)</code></pre>
+                <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.series["doc"] }}</p>
+                <table class="table-fixed w-full my-4">
+                  <thead class="text-left">
+                    <tr>
+                      <th class="font-semibold w-2/5">Parameter</th>
+                      <th class="font-semibold">Description</th>
+                    </tr>
+                  </thead>
+                </table>
+                <table class="table-fixed w-full my-4 rounded-lg bg-gray-100">
+                  <tbody class="text-left align-top">
+                  {% for param in docs.series["params_doc"] %}
+                      <tr class="group hover:bg-gray-200">
+                        <td class="p-2 w-2/5 break-words">
+                          <code class=“prettyprint”>{{ param[0] }}</code>
+                          <p class="text-gray-500 italic">{{ param[1] }}</p>
+                          {% if docs.series["params"][loop.index]|length == 1 %}
+                            <p class="text-orange-600 font-semibold italic">required</p>
+                          {% else %}
+                            <p class="text-gray-600 font-semibold italic">default: None</p>
+                          {% endif %}
+                        </td>
+                        <td class="p-2 w-3/5 break-words">
+                          <p>{{ param[2] }}</p>
+                        </td>
+                      </tr>
+                  {% endfor %}
+                  </tbody>
+                </table>
+              </div>              
+              
+
           </div>
         </section>
         <section class="flex flex-col gap-6">
