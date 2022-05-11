@@ -1,4 +1,5 @@
 from transformers import pipeline
+import torch
 
 import gradio as gr
 
@@ -7,7 +8,7 @@ classifier = pipeline("text-classification")
 
 
 def speech_to_text(speech):
-    text = asr(speech)["text"]
+    text = asr(speech, chunk_length_s=10)["text"]
     return text
 
 
