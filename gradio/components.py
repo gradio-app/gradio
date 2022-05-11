@@ -1,3 +1,7 @@
+"""Contains all of the components that can be used used with Gradio Interface / Blocks.
+Along with the docs for each component, you can find the names of example demos that use 
+each component. These demos are located in the `demo` directory."""
+
 from __future__ import annotations
 
 import inspect
@@ -246,8 +250,8 @@ class IOComponent(Component):
 class Textbox(Changeable, Submittable, IOComponent):
     """
     Creates a textarea for user to enter string input or display string output.
-    Preprocessing: passes textarea value as a [str] or [np.array] into the function.
-    Postprocessing: accepts [str] returned from function and sets textarea value to it.
+    Preprocessing: passes textarea value as a {str} into the function.
+    Postprocessing: expects a {str} returned from function and sets textarea value to it.
 
     Demos: hello_world, diff_texts, sentence_builder
     """
@@ -396,8 +400,8 @@ class Textbox(Changeable, Submittable, IOComponent):
 class Number(Changeable, Submittable, IOComponent):
     """
     Creates a numeric field for user to enter numbers as input or display numeric output.
-    Preprocessing: passes field value as a [float] into the function.
-    Postprocessing: accepts [int] or [float] returned from function and sets field value to it.
+    Preprocessing: passes field value as a {float} into the function.
+    Postprocessing: expects an {int} or {float} returned from the function and sets field value to it.
 
     Demos: tax_calculator, titanic_survival
     """
@@ -508,8 +512,8 @@ class Number(Changeable, Submittable, IOComponent):
 class Slider(Changeable, IOComponent):
     """
     Creates a slider that ranges from `minimum` to `maximum` with a step size of `step`.
-    Preprocessing: passes slider value as a [float] into the function.
-    Postprocessing: accepts an [int] or [float] returned from function and sets slider value to it as long as it is within range.
+    Preprocessing: passes slider value as a {float} into the function.
+    Postprocessing: expects an {int} or {float} returned from function and sets slider value to it as long as it is within range.
 
     Demos: sentence_builder, generate_tone, titanic_survival
     """
@@ -617,8 +621,8 @@ class Checkbox(Changeable, IOComponent):
     """
     Creates a checkbox that can be set to `True` or `False`.
 
-    Preprocessing: passes the status of the checkbox as a [bool] into the function.
-    Postprocessing: accepts [bool] returned from function and checks the checkbox if True.
+    Preprocessing: passes the status of the checkbox as a {bool} into the function.
+    Postprocessing: expects a {bool} returned from the function and, if it is True, checks the checkbox.
     Demos: sentence_builder, titanic_survival
     """
 
@@ -700,9 +704,10 @@ class Checkbox(Changeable, IOComponent):
 
 class CheckboxGroup(Changeable, IOComponent):
     """
-    Component creates a set of checkboxes of which a subset can be selected. Provides a list of strings representing the selected choices as an argument to the wrapped function.
-
-    Input type: Union[List[str], List[int]]
+    Creates a set of checkboxes of which a subset can be checked.
+    Preprocessing: passes the list of checked checkboxes as a {List[str]} or their indices as a {List[int]} into the function, depending on `type`.
+    Postprocessing: expects a {List[str]}, each element of which becomes a checked checkbox.
+    
     Demos: sentence_builder, titanic_survival, fraud_detector
     """
 
@@ -819,9 +824,10 @@ class CheckboxGroup(Changeable, IOComponent):
 
 class Radio(Changeable, IOComponent):
     """
-    Component creates a set of radio buttons of which only one can be selected. Provides string representing selected choice as an argument to the wrapped function.
+    Creates a set of radio buttons of which only one can be selected.
+    Preprocessing: passes the value of the selected radio button as a {str} or its index as an {int} into the function, depending on `type`.
+    Postprocessing: expects a {str} corresponding to the value of the radio button to be selected.
 
-    Input type: Union[str, int]
     Demos: sentence_builder, tax_calculator, titanic_survival
     """
 
@@ -918,9 +924,10 @@ class Radio(Changeable, IOComponent):
 
 class Dropdown(Radio):
     """
-    Component creates a dropdown of which only one can be selected. Provides string representing selected choice as an argument to the wrapped function.
+    Creates a dropdown of which only one entry can be selected.
+    Preprocessing: passes the value of the selected dropdown entry as a {str} or its index as an {int} into the function, depending on `type`.
+    Postprocessing: expects a {str} corresponding to the value of the dropdown entry to be selected.
 
-    Input type: Union[str, int]
     Demos: sentence_builder, filter_records, titanic_survival
     """
 
@@ -953,10 +960,10 @@ class Dropdown(Radio):
 
 class Image(Editable, Clearable, IOComponent):
     """
-    Component creates an image component with input and output capabilities.
+    Creates an image component that can be used to upload/draw images (as an input) or display images (as an output).
+    Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type`.
+    Postprocessing: expects a {numpy.array}, {PIL.Image} or {str} filepath to an image and displays the image.
 
-    Input type: Union[numpy.array, PIL.Image, file-object]
-    Output type: Union[numpy.array, PIL.Image, str, matplotlib.pyplot, Tuple[Union[numpy.array, PIL.Image, str], List[Tuple[str, float, float, float, float]]]]
     Demos: image_classifier, image_mod, webcam, digit_classifier
     """
 
@@ -1245,10 +1252,10 @@ class Image(Editable, Clearable, IOComponent):
 
 class Video(Changeable, Clearable, Playable, IOComponent):
     """
-    Component creates a video file upload that is converted to a file path.
+    Creates an video component that can be used to upload/record videos (as an input) or display videos (as an output).
+    Preprocessing: passes the uploaded video as a {str} filepath whose extension can be set by `format`.
+    Postprocessing: expects a {str} filepath to a video which is displayed.
 
-    Input type: filepath
-    Output type: filepath
     Demos: video_flip
     """
 
@@ -1256,7 +1263,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         self,
         default_value: str = "",
         *,
-        type: Optional[str] = None,
+        format: Optional[str] = None,
         source: str = "upload",
         label: Optional[str] = None,
         css: Optional[Dict] = None,
@@ -1265,7 +1272,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         """
         Parameters:
         default_value(str): A path or URL for the default value that Video component is going to take.
-        type (str): Type of video format to be returned by component, such as 'avi' or 'mp4'. Use 'mp4' to ensure browser playability. If set to None, video will keep uploaded format.
+        output_format (str): Format of video format to be returned by component, such as 'avi' or 'mp4'. Use 'mp4' to ensure browser playability. If set to None, video will keep uploaded format.
         source (str): Source of video. "upload" creates a box where user can drop an video file, "webcam" allows user to record a video from their webcam.
         label (str): component name in interface.
         optional (bool): If True, the interface can be submitted with no uploaded video, in which case the input value is None.
@@ -1275,7 +1282,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
             if default_value
             else None
         )
-        self.type = type
+        self.format = format
         self.source = source
         IOComponent.__init__(self, label=label, css=css, **kwargs)
 
@@ -1311,8 +1318,8 @@ class Video(Changeable, Clearable, Playable, IOComponent):
             )
         file_name = file.name
         uploaded_format = file_name.split(".")[-1].lower()
-        if self.type is not None and uploaded_format != self.type:
-            output_file_name = file_name[0 : file_name.rindex(".") + 1] + self.type
+        if self.format is not None and uploaded_format != self.format:
+            output_file_name = file_name[0 : file_name.rindex(".") + 1] + self.format
             ff = FFmpeg(inputs={file_name: None}, outputs={output_file_name: None})
             ff.run()
             return output_file_name
@@ -1341,8 +1348,8 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         (str): base64 url data
         """
         returned_format = y.split(".")[-1].lower()
-        if self.type is not None and returned_format != self.type:
-            output_file_name = y[0 : y.rindex(".") + 1] + self.type
+        if self.format is not None and returned_format != self.format:
+            output_file_name = y[0 : y.rindex(".") + 1] + self.format
             ff = FFmpeg(inputs={y: None}, outputs={output_file_name: None})
             ff.run()
             y = output_file_name
@@ -1357,17 +1364,16 @@ class Video(Changeable, Clearable, Playable, IOComponent):
 
 class Audio(Changeable, Clearable, Playable, IOComponent):
     """
-    Component accepts audio input files or creates an audio player that plays the output audio.
+    Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
+    Preprocessing: passes the uploaded audio as a {Tuple(int, numpy.array)} corresponding to (sample rate, data) or as a {str} filepath, depending on `type`
+    Postprocessing: expects a {Tuple(int, numpy.array)} corresponding to (sample rate, data) or as a {str} filepath to an audio file, which gets displayed
 
-
-    Input type: Union[Tuple[int, numpy.array], file-object, numpy.array]
-    Output type: Union[Tuple[int, numpy.array], str]
     Demos: main_note, generate_tone, reverse_audio, spectogram
     """
 
     def __init__(
         self,
-        default_value="",
+        default_value: str = "",
         *,
         source: str = "upload",
         type: str = "numpy",
@@ -1377,7 +1383,7 @@ class Audio(Changeable, Clearable, Playable, IOComponent):
     ):
         """
         Parameters:
-        default_value (str): IGNORED
+        default_value (str): A path or URL for the default value that Audio component is going to take.
         source (str): Source of audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input.
         type (str): The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
         label (str): component name in interface.
@@ -1609,10 +1615,10 @@ class Audio(Changeable, Clearable, Playable, IOComponent):
 
 class File(Changeable, Clearable, IOComponent):
     """
-    Component accepts generic file uploads and output..
-
-    Input type: Union[file-object, bytes, List[Union[file-object, bytes]]]
-    Output type: Union[file-like, str]
+    Creates a file component that allows uploading generic file (when used as an input) and or displaying generic files (output).
+    Preprocessing: passes the uploaded file as a {file-object} or {List[file-object]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
+    Postprocessing: expects a {str} path to a file returned by the function.
+    
     Demos: zip_to_json, zip_two_files
     """
 
@@ -1725,9 +1731,10 @@ class File(Changeable, Clearable, IOComponent):
 
 class Dataframe(Changeable, IOComponent):
     """
-    Component accepts or displays 2D input  through a spreadsheet interface.
-
-    Input or Output type: Union[pandas.DataFrame, numpy.array, List[Union[str, float]], List[List[Union[str, float]]]]
+    Accepts or displays 2D input through a spreadsheet-like component for dataframes.
+    Preprocessing: passes the uploaded spreadsheet data as a {pandas.DataFrame}, {numpy.array}, {List[List]}, or {List} depending on `type`
+    Postprocessing: expects a {pandas.DataFrame}, {numpy.array}, {List[List]}, or {List} which is rendered in the spreadsheet.
+    
     Demos: filter_records, matrix_transpose, tax_calculator
     """
 
@@ -1902,10 +1909,10 @@ class Dataframe(Changeable, IOComponent):
 
 class Timeseries(Changeable, IOComponent):
     """
-    Component accepts pandas.DataFrame uploaded as a timeseries csv file or renders a dataframe consisting of a time series as output.
-
-    Input type: pandas.DataFrame
-    Output type: pandas.DataFrame
+    Creates a component that can be used to upload/preview timeseries csv files or display a dataframe consisting of a time series graphically.
+    Preprocessing: passes the uploaded timeseries data as a {pandas.DataFrame} into the function
+    Postprocessing: expects a {pandas.DataFrame} to be returned, which is then displayed as a timeseries graph
+        
     Demos: fraud_detector
     """
 
@@ -1992,6 +1999,104 @@ class Timeseries(Changeable, IOComponent):
         return {"headers": y.columns.values.tolist(), "data": y.values.tolist()}
 
 
+class Model3D(Changeable, Editable, Clearable, IOComponent):
+    """
+    Can be used to upload (input) or display (output) 3D model object (.obj, glb, or .gltf) files.
+    
+    Preprocessing: passes a {str} filepath corresponding to the model file to the function
+    Postprocessing: expects a {str} filepath corresponding to the model file to be returned
+    
+    Demos: model3d
+    """
+
+    def __init__(
+        self,
+        clear_color=None,
+        label: str = None,
+        css: Optional[Dict] = None,
+        **kwargs,
+    ):
+        """
+        Parameters:
+        clear_color (List[r, g, b, a]): background color of scene
+        label (str): component name in interface.
+        """
+        self.clear_color = clear_color
+        IOComponent.__init__(self, label=label, css=css, **kwargs)
+
+    def get_template_context(self):
+        return {
+            "clearColor": self.clear_color,
+            **IOComponent.get_template_context(self),
+        }
+
+    def preprocess_example(self, x):
+        return {"name": x, "data": None, "is_example": True}
+
+    def preprocess(self, x: Dict[str, str] | None) -> str | None:
+        """
+        Parameters:
+        x (Dict[name: str, data: str]): JSON object with filename as 'name' property and base64 data as 'data' property
+        Returns:
+        (str): file path to 3D image model
+        """
+        if x is None:
+            return x
+        file_name, file_data, is_example = (
+            x["name"],
+            x["data"],
+            x.get("is_example", False),
+        )
+        if is_example:
+            file = processing_utils.create_tmp_copy_of_file(file_name)
+        else:
+            file = processing_utils.decode_base64_to_file(
+                file_data, file_path=file_name
+            )
+        file_name = file.name
+        return file_name
+
+    def serialize(self, x, called_directly):
+        raise NotImplementedError()
+
+    def save_flagged(self, dir, label, data, encryption_key):
+        """
+        Returns: (str) path to 3D image model file
+        """
+        return self.save_flagged_file(
+            dir, label, data["data"], encryption_key, data["name"]
+        )
+
+    def generate_sample(self):
+        return media_data.BASE64_MODEL3D
+
+    # Output functions
+
+    def postprocess(self, y):
+        """
+        Parameters:
+        y (str): path to the model
+        Returns:
+        (str): file name
+        (str): file extension
+        (str): base64 url data
+        """
+
+        if self.clear_color is None:
+            self.clear_color = [0.2, 0.2, 0.2, 1.0]
+
+        return {
+            "name": os.path.basename(y),
+            "data": processing_utils.encode_file_to_base64(y),
+        }
+
+    def deserialize(self, x):
+        return processing_utils.decode_base64_to_file(x).name
+
+    def restore_flagged(self, dir, data, encryption_key):
+        return self.restore_flagged_file(dir, data, encryption_key)
+
+
 class Variable(IOComponent):
     """
     Special hidden component that stores state across runs of the interface.
@@ -2029,8 +2134,10 @@ class Variable(IOComponent):
 
 class Label(Changeable, IOComponent):
     """
-    Component outputs a classification label, along with confidence scores of top categories if provided. Confidence scores are represented as a dictionary mapping labels to scores between 0 and 1.
-    Output type: Union[Dict[str, float], str, int, float]
+    Displays a classification label, along with confidence scores of top categories, if provided.
+    Preprocessing: this component does *not* accept input.
+    Postprocessing: expects a {Dict[str, float]} of classes and confidences, or {str} with just the class or an {int}/{float} for regression outputs.
+    
     Demos: image_classifier, main_note, titanic_survival
     """
 
@@ -2131,8 +2238,6 @@ class Label(Changeable, IOComponent):
 class KeyValues(IOComponent):
     """
     Component displays a table representing values for multiple fields.
-    Output type: Union[Dict, List[Tuple[str, Union[str, int, float]]]]
-    Demos: text_analysis
     """
 
     def __init__(
@@ -2156,9 +2261,10 @@ class KeyValues(IOComponent):
 
 class HighlightedText(Changeable, IOComponent):
     """
-    Component creates text that contains spans that are highlighted by category or numerical value.
-    Output is represent as a list of Tuple pairs, where the first element represents the span of text represented by the tuple, and the second element represents the category or value of the text.
-    Output type: List[Tuple[str, Union[float, str]]]
+    Displays text that contains spans that are highlighted by category or numerical value.
+    Preprocessing: this component does *not* accept input.
+    Postprocessing: expects a {List[Tuple[str, float | str]]]} consisting of spans of text and their associated labels.
+    
     Demos: diff_texts, text_analysis
     """
 
@@ -2211,8 +2317,10 @@ class HighlightedText(Changeable, IOComponent):
 
 class JSON(Changeable, IOComponent):
     """
-    Used for JSON output. Expects a JSON string or a Python object that is JSON serializable.
-    Output type: Union[str, Any]
+    Used to display arbitrary JSON output prettily.
+    Preprocessing: this component does *not* accept input.
+    Postprocessing: expects a valid JSON {str} -- or a {list} or {dict} that is JSON serializable.
+    
     Demos: zip_to_json
     """
 
@@ -2259,8 +2367,10 @@ class JSON(Changeable, IOComponent):
 
 class HTML(Changeable, IOComponent):
     """
-    Used for HTML output. Expects an HTML valid string.
-    Output type: str
+    Used to display arbitrary HTML output.
+    Preprocessing: this component does *not* accept input.
+    Postprocessing: expects a valid HTML {str}.
+    
     Demos: text_analysis
     """
 
@@ -2296,6 +2406,14 @@ class HTML(Changeable, IOComponent):
 
 
 class Gallery(IOComponent):
+    """
+    Used to display a list of images as a gallery that can be scrolled through.
+    Preprocessing: this component does *not* accept input.
+    Postprocessing: expects a list of images in any format, {List[numpy.array | PIL.Image | str]}, and displays them.
+    
+    Demos: fake_gan
+    """
+    
     def __init__(
         self,
         *,
@@ -2335,8 +2453,10 @@ class Gallery(IOComponent):
 
 class Carousel(IOComponent):
     """
-    Component displays a set of output components that can be scrolled through.
-    Output type: List[List[Any]]
+    Used to display a list of arbitrary components that can be scrolled through.
+    Preprocessing: this component does *not* accept input.
+    Postprocessing: Expects a nested {List[List]} where the inner elements depend on the components in the Carousel.
+    
     Demos: disease_report
     """
 
@@ -2413,8 +2533,10 @@ class Carousel(IOComponent):
 
 class Chatbot(Changeable, IOComponent):
     """
-    Component displays a chatbot output showing both user submitted messages and responses
-    Output type: List[Tuple[str, str]]
+    Displays a chatbot output showing both user submitted messages and responses
+    Preprocessing: this component does *not* accept input.
+    Postprocessing: expects a {List[Tuple[str, str]]}, a list of tuples with user inputs and responses.
+    
     Demos: chatbot
     """
 
@@ -2455,112 +2577,17 @@ class Chatbot(Changeable, IOComponent):
         return y
 
 
-class Model3D(Changeable, Editable, Clearable, IOComponent):
-    """
-    Component creates a 3D Model component with input and output capabilities.
-    Input type: File object of type (.obj, glb, or .gltf)
-    Output type: filepath
-    Demos: Model3D
-    """
-
-    def __init__(
-        self,
-        clear_color=None,
-        label: str = None,
-        css: Optional[Dict] = None,
-        **kwargs,
-    ):
-        """
-        Parameters:
-        clear_color (List[r, g, b, a]): background color of scene
-        label (str): component name in interface.
-        """
-        self.clear_color = clear_color
-        IOComponent.__init__(self, label=label, css=css, **kwargs)
-
-    def get_template_context(self):
-        return {
-            "clearColor": self.clear_color,
-            **IOComponent.get_template_context(self),
-        }
-
-    def preprocess_example(self, x):
-        return {"name": x, "data": None, "is_example": True}
-
-    def preprocess(self, x: Dict[str, str] | None) -> str | None:
-        """
-        Parameters:
-        x (Dict[name: str, data: str]): JSON object with filename as 'name' property and base64 data as 'data' property
-        Returns:
-        (str): file path to 3D image model
-        """
-        if x is None:
-            return x
-        file_name, file_data, is_example = (
-            x["name"],
-            x["data"],
-            x.get("is_example", False),
-        )
-        if is_example:
-            file = processing_utils.create_tmp_copy_of_file(file_name)
-        else:
-            file = processing_utils.decode_base64_to_file(
-                file_data, file_path=file_name
-            )
-        file_name = file.name
-        return file_name
-
-    def serialize(self, x, called_directly):
-        raise NotImplementedError()
-
-    def save_flagged(self, dir, label, data, encryption_key):
-        """
-        Returns: (str) path to 3D image model file
-        """
-        return self.save_flagged_file(
-            dir, label, data["data"], encryption_key, data["name"]
-        )
-
-    def generate_sample(self):
-        return media_data.BASE64_MODEL3D
-
-    # Output functions
-
-    def postprocess(self, y):
-        """
-        Parameters:
-        y (str): path to the model
-        Returns:
-        (str): file name
-        (str): file extension
-        (str): base64 url data
-        """
-
-        if self.clear_color is None:
-            self.clear_color = [0.2, 0.2, 0.2, 1.0]
-
-        return {
-            "name": os.path.basename(y),
-            "data": processing_utils.encode_file_to_base64(y),
-        }
-
-    def deserialize(self, x):
-        return processing_utils.decode_base64_to_file(x).name
-
-    def restore_flagged(self, dir, data, encryption_key):
-        return self.restore_flagged_file(dir, data, encryption_key)
-
-
 class Plot(Changeable, Clearable, IOComponent):
     """
-    Used for plot output.
-    Output type: matplotlib plt, plotly figure, or Bokeh fig (json_item format)
+    Used to display various kinds of plots (matplotlib, plotly, or bokeh are supported)    
+    Preprocessing: this component does *not* accept input.
+    Postprocessing: expects either a {matplotlib.pyplot.Figure}, a {plotly.graph_objects._figure.Figure}, or a {dict} corresponding to a bokeh plot (json_item format)
+    
     Demos: outbreak_forecast
     """
 
     def __init__(
         self,
-        type: str = None,
         label: str = None,
         css: Optional[Dict] = None,
         **kwargs,
@@ -2570,7 +2597,6 @@ class Plot(Changeable, Clearable, IOComponent):
         type (str): type of plot (matplotlib, plotly)
         label (str): component name in interface.
         """
-        self.type = type
         IOComponent.__init__(self, label=label, css=css, **kwargs)
 
     def get_template_context(self):
@@ -2585,32 +2611,24 @@ class Plot(Changeable, Clearable, IOComponent):
         (str): plot base64 or json
         """
         dtype = self.type
-        if self.type == "plotly":
-            out_y = y.to_json()
-        elif self.type == "matplotlib":
+        if isinstance(y, (ModuleType, matplotlib.pyplot.Figure)):
+            dtype = "matplotlib"
             out_y = processing_utils.encode_plot_to_base64(y)
-        elif self.type == "bokeh":
+        elif isinstance(y, dict):
+            dtype = "bokeh"
             out_y = json.dumps(y)
-        elif self.type == "auto":
-            if isinstance(y, (ModuleType, matplotlib.pyplot.Figure)):
-                dtype = "matplotlib"
-                out_y = processing_utils.encode_plot_to_base64(y)
-            elif isinstance(y, dict):
-                dtype = "bokeh"
-                out_y = json.dumps(y)
-            else:
-                dtype = "plotly"
-                out_y = y.to_json()
         else:
-            raise ValueError(
-                "Unknown type. Please choose from: 'plotly', 'matplotlib', 'bokeh'."
-            )
+            dtype = "plotly"
+            out_y = y.to_json()
         return {"type": dtype, "plot": out_y}
 
 
 class Markdown(Component):
     """
-    Used for Markdown output. Expects a valid string that is rendered into Markdown.
+    Used to render arbitrary Markdown output.
+
+    Preprocessing: this component does *not* accept input.
+    Postprocessing: expects a valid {str} that can be rendered as Markdown.    
     """
 
     def __init__(
@@ -2648,7 +2666,7 @@ class Markdown(Component):
 
 class Button(Clickable, Component):
     """
-    Used to create a button, that can be assigned arbitrary click() events.
+    Used to create a button, that can be assigned arbitrary click() events. Accepts neither input nor output.
     """
 
     def __init__(
@@ -2680,7 +2698,7 @@ class Button(Clickable, Component):
 class Dataset(Clickable, Component):
     """
     Used to create a output widget for showing datasets. Used to render the examples
-    box in the interface.
+    box in the interface. Accepts neither input nor output.
     """
 
     def __init__(
@@ -2719,7 +2737,7 @@ class Dataset(Clickable, Component):
 
 class Interpretation(Component):
     """
-    Used to create an interpretation widget for a component.
+    Used to create an interpretation widget for a component. 
     """
 
     def __init__(

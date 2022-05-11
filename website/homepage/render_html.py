@@ -10,15 +10,34 @@ from jinja2 import Template
 from render_html_helpers import generate_meta_image
 
 from gradio.components import (
-    Textbox, Number,
-    Slider, Checkbox, CheckboxGroup, Radio, Dropdown,
-    Image, Video, Audio, File, Dataframe, Timeseries,
-    
-    Label, KeyValues, HighlightedText, JSON, HTML, Gallery,
-    Carousel, Chatbot, Model3D, Plot, Markdown,
-    
-    Button, Dataset, 
+    Textbox, 
+    Number,
+    Slider, 
+    Checkbox, 
+    CheckboxGroup, 
+    Radio, 
+    Dropdown,
+    Image, 
+    Video, 
+    Audio, 
+    File, 
+    Dataframe, 
+    Timeseries,    
+    Label, 
+    KeyValues, 
+    HighlightedText, 
+    JSON, 
+    HTML, 
+    Gallery,
+    Carousel, 
+    Chatbot, 
+    Model3D, 
+    Plot, 
+    Markdown,    
+    Button, 
+    Dataset, 
 )
+
 from gradio.interface import Interface
 
 GRADIO_DIR = "../../"
@@ -304,8 +323,9 @@ def render_docs():
             if "Parameters:" in line or (lines is not None and l >= lines-1):
                 parameters_started = True
             if parameters_started and ": " in line:
+                print(line)
                 key, value = line.split(": ")
-                inp[key] = value.replace("[","<em>").replace("]","</em>") if replace_brackets else value
+                inp[key] = value.replace("{","<em>").replace("}","</em>") if replace_brackets else value
 
         _, inp["params"], inp["params_doc"], _ = get_function_documentation(
             cls.__init__
@@ -324,8 +344,33 @@ def render_docs():
         return inp
 
     components = [
-        
+        Textbox, 
+        Number,
+        Slider, 
+        Checkbox, 
+        CheckboxGroup, 
+        Radio, 
+        Dropdown,
+        Image, 
+        Video, 
+        Audio, 
+        File, 
+        Dataframe, 
+        Timeseries,    
+        Label, 
+        HighlightedText, 
+        JSON, 
+        HTML, 
+        Gallery,
+        Carousel, 
+        Chatbot, 
+        Model3D, 
+        Plot, 
+        Markdown,    
+        Button, 
+        Dataset
     ]
+    
     components_docs = [get_class_documentation(cls, replace_brackets=True) for cls in components]
     interface_params = get_function_documentation(Interface.__init__)
     interface_docs = get_class_documentation(Interface, get_interpret=False, lines=None)["doc"]
