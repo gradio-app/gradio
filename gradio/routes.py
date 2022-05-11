@@ -12,7 +12,6 @@ import urllib
 from pathlib import Path
 from typing import Any, List, Optional, Type
 
-import fastapi
 import orjson
 import pkg_resources
 from fastapi import Depends, FastAPI, HTTPException, Request, status
@@ -22,6 +21,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.templating import Jinja2Templates
 from jinja2.exceptions import TemplateNotFound
 from pydantic import BaseModel
+from starlette.concurrency import run_in_threadpool
 from starlette.responses import RedirectResponse
 
 import gradio
@@ -70,7 +70,7 @@ class QueuePushBody(BaseModel):
 class PredictBody(BaseModel):
     session_hash: Optional[str]
     data: Any
-    fn_index: int
+    fn_index: int = 0
 
 
 ###########
@@ -272,7 +272,7 @@ class App(FastAPI):
             if hasattr(body, "session_hash"):
                 if body.session_hash not in app.state_holder:
                     app.state_holder[body.session_hash] = {
-                        _id: getattr(block, "default_value", None)
+                        _id: getattr(block, "value", None)
                         for _id, block in app.blocks.blocks.items()
                         if getattr(block, "stateful", False)
                     }
