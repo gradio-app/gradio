@@ -6,7 +6,7 @@
 	import { Component as StatusTracker } from "../StatusTracker/";
 
 	export let value: null | string = null;
-	export let style: string = "";
+	export let style: Record<string, string> = {};
 	export let source: "canvas" | "webcam" | "upload" = "upload";
 	export let tool: "editor" | "select" = "editor";
 	export let label: string;
@@ -29,6 +29,7 @@
 		: "solid"}
 	color={dragging ? "green" : "grey"}
 	padding={false}
+	style={style["container"]}
 >
 	<StatusTracker {...loading_status} />
 	{#if mode === "static"}

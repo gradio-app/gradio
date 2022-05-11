@@ -4,7 +4,7 @@
 	export let value: boolean;
 	export let disabled: boolean = false;
 	export let label: string;
-	export let style: string = "";
+	export let style: Record<string, string> = {};
 	export let show_label: boolean;
 
 	const dispatch = createEventDispatcher<{ change: boolean }>();
@@ -19,6 +19,7 @@
 <label
 	class:!cursor-not-allowed={disabled}
 	class="flex items-center text-gray-700 text-sm space-x-2 rounded-lg cursor-pointer bg-white dark:bg-transparent"
+	style={style["main"]}
 >
 	<input
 		bind:checked={value}

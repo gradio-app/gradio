@@ -29,7 +29,7 @@
 	}
 
 	export let value: null | Data;
-	export let style: string = "";
+	export let style: Record<string, string> = {};
 	export let y: Array<string>;
 	export let x: string;
 	export let mode: "static" | "dynamic";

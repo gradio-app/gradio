@@ -9,7 +9,7 @@
 	import { _ } from "svelte-i18n";
 
 	export let value: null | FileData = null;
-	export let style: string = "";
+	export let style: Record<string, string> = {};
 	export let mode: "static" | "dynamic";
 	export let root: string;
 	export let label: string;

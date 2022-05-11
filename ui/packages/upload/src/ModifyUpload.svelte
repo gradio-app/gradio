@@ -9,7 +9,7 @@
 	export let editable: boolean = false;
 	export let absolute: boolean = true;
 
-	export let style: string | null = "";
+	export let style: Record<string, string> = {};
 
 	const dispatch = createEventDispatcher<{ edit: FileData; clear: null }>();
 </script>
@@ -20,8 +20,8 @@
 	class:m-1={!absolute}
 >
 	{#if editable}
-		<IconButton Icon={Edit} on:click={() => dispatch("edit")} />
+		<IconButton style={style["edit_btn"]} Icon={Edit} on:click={() => dispatch("edit")} />
 	{/if}
 
-	<IconButton Icon={Clear} on:click={() => dispatch("clear")} />
+	<IconButton style={style["clear_btn"]} Icon={Clear} on:click={() => dispatch("clear")} />
 </div>

@@ -2,7 +2,7 @@
 	import { createEventDispatcher } from "svelte";
 
 	export let value: string;
-	export let style: string = "";
+	export let style: Record<string, string> = {};
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 

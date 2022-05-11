@@ -37,7 +37,7 @@
 	import { onDestroy, onMount } from "svelte";
 	import Loader from "./Loader.svelte";
 
-	export let style: string = "";
+	export let style: Record<string, string> = {};
 	export let eta: number | null = null;
 	export let queue_position: number | null;
 	export let status: "complete" | "pending" | "error";

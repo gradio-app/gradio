@@ -10,7 +10,7 @@
 
 	export let value: FileData | null | string = null;
 	export let label: string;
-	export let style: string = "";
+	export let style: Record<string, string> = {};
 	export let source: string;
 	export let root: string;
 	export let show_label: boolean;
@@ -30,11 +30,12 @@
 		: "solid"}
 	color={dragging ? "green" : "grey"}
 	padding={false}
+	style={style["container"]}
 >
 	<StatusTracker {...loading_status} />
 
 	{#if mode === "static"}
-		<StaticVideo value={_value} {label} {show_label} {style} />
+		<StaticVideo value={_value} {label} {show_label} style={style["main"]} />
 	{:else}
 		<Video
 			value={_value}

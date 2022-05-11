@@ -10,7 +10,7 @@
 	export let samples_per_page: number = 10;
 
 	export let theme: string;
-	export let style: string = "";
+	export let style: Record<string, string> = {};
 
 	const dispatch = createEventDispatcher<{ click: number }>();
 

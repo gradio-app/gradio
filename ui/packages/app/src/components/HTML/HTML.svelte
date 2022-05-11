@@ -4,7 +4,7 @@
 
 	export let label: string;
 	export let value: string = "";
-	export let style: string = "";
+	export let style: Record<string, string> = {};
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
