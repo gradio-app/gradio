@@ -96,7 +96,8 @@
       <div class="py-4 navigation h-screen leading-relaxed sticky top-0 bg-gray-50 text-md overflow-y-auto hidden md:block" style="min-width: 18%">
         <a class="px-4 link mb-2 block border-orange-500 text-orange-500 md:border-l-2 pl-8" href="#building_demos">Building Demos</a>
         <a class="px-4 block thin-link" href="#interface">Interface</a>
-        <a class="px-4 block thin-link" href="#blocks">Blocks</a>
+        <a class="px-4 block thin-link" href="#combining_interfaces">Combining Interfaces</a>
+        <a class="px-4 block thin-link" href="#blocks">Blocks<sup class="text-orange-500">NEW</sup></a>
         <a class="px-4 link my-2 block" href="#components">Components</h4>
         {% for component in docs["components"] %}
           {% if component["name"] not in ["Image3D", "Dropdown", "State" "Textbox"] %}
@@ -192,7 +193,7 @@
             </table>
             <p class="mb-2 w-4/5 font-semibold">Example usage:</p>
             <pre><code class='lang-python'>{{ docs.launch["example"] }}</code></pre>
-          </div>
+          </div>          
           <div id="load" class="func ml-20">
             <h3 id="load-header" class="text-2xl font-light my-4">load()</h3>
             <pre><code class='lang-python'>gradio.Interface.load(<!--
@@ -283,6 +284,53 @@
           </div>
         </section>
         <section class="flex flex-col gap-6">
+          <div id="combining_interfaces" class="func">
+            <h3 id="interface-header" class="text-3xl font-light my-4">Combining Interfaces</h3>
+            <p class="w-4/5 mt-4 text-lg">Once you have created several Interfaces, you can 
+              start combining them together. For example, you can chain them in <em>Series</em>
+              or compare their outputs in <em>Parallel</em> if the inputs and outputs match accordingly. 
+              You can also display arbitrary Interfaces together in a tabbed layout using <em>TabbedInterface</em>.</p>
+              <h3 class="font-semibold">Classes:</h3>
+              <div id="launch" class="func ml-20">
+                <h3 id="launch-header" class="text-2xl font-light my-4">TabbedInterface()</h3>
+                <pre><code class='lang-python'>gradio.Interface().launch(<!--
+                -->&#183;&#183;&#183;<!--
+                -->)</code></pre>
+                <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.launch["doc"] }}</p>
+                <table class="table-fixed w-full my-4">
+                  <thead class="text-left">
+                    <tr>
+                      <th class="font-semibold w-2/5">Parameter</th>
+                      <th class="font-semibold">Description</th>
+                    </tr>
+                  </thead>
+                </table>
+                <table class="table-fixed w-full my-4 rounded-lg bg-gray-100">
+                  <tbody class="text-left align-top">
+                  {% for param in docs.launch["params_doc"] %}
+                      <tr class="group hover:bg-gray-200">
+                        <td class="p-2 w-2/5 break-words">
+                          <code class=“prettyprint”>{{ param[0] }}</code>
+                          <p class="text-gray-500 italic">{{ param[1] }}</p>
+                          {% if docs.launch["params"][loop.index]|length == 1 %}
+                            <p class="text-orange-600 font-semibold italic">required</p>
+                          {% else %}
+                            <p class="text-gray-600 font-semibold italic">default: {{ docs.launch["params"][loop.index][1] }}</p>
+                          {% endif %}
+                        </td>
+                        <td class="p-2 w-3/5 break-words">
+                          <p>{{ param[2] }}</p>
+                        </td>
+                      </tr>
+                  {% endfor %}
+                  </tbody>
+                </table>
+                <p class="mb-2 w-4/5 font-semibold">Example usage:</p>
+                <pre><code class='lang-python'>{{ docs.launch["example"] }}</code></pre>
+              </div>              
+          </div>
+        </section>
+        <section class="flex flex-col gap-6">
           <div id="blocks" class="func">
             <h3 id="blocks-header" class="text-3xl font-light my-4">Blocks</h3>
             <button class="rounded-full bg-orange-500 text-white py-1 px-3" onclick="showPopup('interface')">
@@ -319,6 +367,8 @@
       {% endfor %}
       </tbody>
     </table>
+    <p class="mb-2 w-4/5 font-semibold">Example usage:</p>
+    <pre><code class='lang-python'>{{ docs.blocks["example"] }}</code></pre>
 
 
           </div>

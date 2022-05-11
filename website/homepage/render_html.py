@@ -369,7 +369,8 @@ def render_docs():
         Plot, 
         Markdown,    
         Button, 
-        Dataset
+        Dataset,
+        Variable
     ]
     
     components_docs = [get_class_documentation(cls, replace_brackets=True) for cls in components]
@@ -434,6 +435,27 @@ gr.Interface.from_pipeline(pipe).launch()"""
         "doc": blocks_docs,
         "params": blocks_params[1],
         "params_doc": blocks_params[2],
+        "example":
+"""import gradio as gr
+
+def update(name):
+    return f"Welcome to Gradio, {name}!"
+
+demo = gr.Blocks()
+
+with demo:
+    gr.Markdown(
+    \"\"\"
+    # Hello World!
+    Start typing below to see the output.
+    \"\"\")
+    with gr.Row():
+        inp = gr.Textbox(placeholder="What is your name?")
+        out = gr.Textbox()
+    
+    inp.change(fn=update, inputs=inp, outputs=out)
+
+demo.launch()"""            
     }    
     docs = {
         "components": components_docs,
