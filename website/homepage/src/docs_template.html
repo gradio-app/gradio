@@ -106,8 +106,8 @@
       <div class="docs mx-6 leading-7 max-w-full">
         <p class="bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200/80 px-4 py-1 rounded-full mb-4 text-md w-full text-orange-900">New to Gradio? Start here: <a class="link underline" href="/getting_started">Getting Started</a></p>
         <h2 id="building_demos" class="text-4xl font-light mb-4 mt-8 text-orange-500">Building Demos</h2>
-        <section class="flex flex-col gap-6">
-          <div id="interface" class="func">
+        <section id="interface" class="flex flex-col gap-6">
+          <div class="func">
             <h3 id="interface-header" class="text-3xl font-light my-4">Interface</h3>
             <button class="rounded-full bg-orange-500 text-white py-1 px-3 my-3" onclick="showPopup('interface')">
               Try Demo &#8594;
@@ -281,8 +281,8 @@
             </div>
           </div>
         </section>
-        <section class="flex flex-col gap-6">
-          <div id="combining_interfaces" class="func">
+        <section id="combining_interfaces" class="flex flex-col gap-6">
+          <div class="func">
             <h3 id="combining-interfaces-header" class="text-3xl font-light my-4">Combining Interfaces</h3>
             <p class="w-4/5 mt-4 text-lg">Once you have created several Interfaces, we provide several classes that let you
               start combining them together. For example, you can chain them in <em>Series</em>
@@ -394,8 +394,8 @@
 
           </div>
         </section>
-        <section class="flex flex-col gap-6">
-          <div id="blocks" class="func">
+        <section id="blocks" class="flex flex-col gap-6">
+          <div class="func">
             <h3 id="blocks-header" class="text-3xl font-light my-4">Blocks</h3>
             <button class="rounded-full bg-orange-500 text-white py-1 px-3 my-3" onclick="showPopup('interface')">
               Try Demo &#8594;
@@ -457,13 +457,15 @@
 
           </div>
         </section>
-        <h2 id="components" class="text-4xl font-light my-4 text-orange-500">Components</h2>
-        <p class="w-4/5 mt-8 text-lg">Gradio includes pre-built components that can be used as 
-          inputs or outputs in your Interface or Blocks with a single line of code. Components 
-          include <em>preprocessing</em> steps that convert user data submitted through browser 
-          to something that be can used by a Python function, and <em>postprocessing</em>
-          steps to convert values returned by a Python function into something that can be displayed in a browser.</p>
         <section class="flex flex-col gap-6">
+          <div id="components">
+            <h2 id ="components-header" class="text-4xl font-light my-4 text-orange-500">Components</h2>
+            <p class="w-4/5 mt-8 text-lg">Gradio includes pre-built components that can be used as
+            inputs or outputs in your Interface or Blocks with a single line of code. Components
+            include <em>preprocessing</em> steps that convert user data submitted through browser
+            to something that be can used by a Python function, and <em>postprocessing</em>
+          steps to convert values returned by a Python function into something that can be displayed in a browser.</p>
+          </div>
           {% for func in docs["components"] %}
           <div id="{{ func['name'].lower() }}" class="func">
             <h3 id="{{ func['name'].lower() }}-header" class="text-3xl font-light my-4">
@@ -650,8 +652,8 @@
       let section = document.querySelector(link.hash);
 
       if (
-        section.offsetTop <= fromTop &&
-        section.offsetTop + section.offsetHeight > fromTop
+        section.offsetTop <= fromTop*1.01 &&
+        section.offsetTop + section.offsetHeight > fromTop*1.01
       ) {
         link.classList.add("border-orange-500", "text-orange-500", "md:border-l-2", "pl-4");
       } else {
