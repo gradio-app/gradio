@@ -2791,7 +2791,7 @@ class HighlightedText(Changeable, IOComponent):
             output = []
             running_text, running_category = None, None
             for text, category in y:
-                if running_text == None:
+                if running_text is None:
                     running_text = text
                     running_category = category
                 elif category == running_category:
@@ -2800,7 +2800,7 @@ class HighlightedText(Changeable, IOComponent):
                     output.append((running_text, running_category))
                     running_text = text
                     running_category = category
-            if running_text != None:
+            if running_text is not None:
                 output.append((running_text, running_category))
             return output
         else:
