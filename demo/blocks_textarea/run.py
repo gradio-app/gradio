@@ -6,7 +6,7 @@ def greet(name):
 
 
 demo = gr.Interface(
-    fn=greet, inputs=gr.component("textarea"), outputs=gr.component("textarea")
+    fn=greet, inputs=gr.component("textarea")(), outputs=gr.component("textarea")()
 )
 
 
