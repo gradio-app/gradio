@@ -104,11 +104,11 @@
 		</div>
 	{/if}
 	<div
-		class="textfield bg-white dark:bg-transparent rounded-sm box-border max-w-full break-word leading-7"
+		class="textfield bg-white dark:bg-transparent rounded-sm text-sm box-border max-w-full break-word leading-7"
 	>
 		{#each value as [text, category]}
 			<span
-				class="textspan rounded-sm  px-1 transition-colors text-black  pb-[0.225rem] pt-[0.1rem]"
+				class="textspan rounded-sm px-1 transition-colors text-black  pb-[0.225rem] pt-[0.15rem]"
 				style:background-color={category === null ||
 				(active && active !== category)
 					? ""
@@ -117,10 +117,10 @@
 					(active && active !== category)}
 				class:hl={category !== null}
 			>
-				<span class="text">{text}</span>
+				<span class="text ">{text}</span>
 				{#if !show_legend && category !== null}
 					<span
-						class="label mr-[-4px] font-bold uppercase inline-category text-xs text-white rounded-sm  px-[0.325rem] mt-[0.05rem] pb-[0.05rem] transition-colors"
+						class="label mr-[-4px] font-bold uppercase text-xs inline-category  text-white rounded-sm  px-[0.325rem] mt-[0.05rem] py-[0.05rem] transition-colors"
 						style:background-color={category === null ||
 						(active && active !== category)
 							? ""
