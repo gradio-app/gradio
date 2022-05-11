@@ -242,6 +242,7 @@ class Blocks(BlockContext):
         theme: str = "default",
         analytics_enabled: Optional[bool] = None,
         mode: str = "blocks",
+        enable_queue: bool = None,
         **kwargs,
     ):
 
@@ -273,6 +274,10 @@ class Blocks(BlockContext):
         self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
         self.favicon_path = None
         self.auth = None
+        if self.is_space and enable_queue is None:
+            self.enable_queue = True
+        else:
+            self.enable_queue = enable_queue or False
 
     def render(self):
         if Context.root_block is not None:
@@ -347,9 +352,7 @@ class Blocks(BlockContext):
             "mode": "blocks",
             "components": [],
             "theme": self.theme,
-            "enable_queue": getattr(
-                self, "enable_queue", False
-            ),  # attribute set at launch
+            "enable_queue": self.enable_queue,
         }
         for _id, block in self.blocks.items():
             config["components"].append(
@@ -419,7 +422,6 @@ class Blocks(BlockContext):
         inbrowser: bool = None,
         share: bool = False,
         debug: bool = False,
-        enable_queue: bool = None,
         auth: Optional[Callable | Tuple[str, str] | List[Tuple[str, str]]] = None,
         auth_message: Optional[str] = None,
         private_endpoint: Optional[str] = None,
@@ -463,6 +465,7 @@ class Blocks(BlockContext):
         local_url (str): Locally accessible link to the demo
         share_url (str): Publicly accessible link to the demo (if share=True, otherwise None)
         """
+        self.config = self.get_config_file()
         if (
             auth
             and not callable(auth)
@@ -477,11 +480,6 @@ class Blocks(BlockContext):
         self.height = height
         self.width = width
         self.favicon_path = favicon_path
-        if self.is_space and enable_queue is None:
-            self.enable_queue = True
-        else:
-            self.enable_queue = enable_queue or False
-
         self.config = self.get_config_file()
 
         self.encrypt = encrypt
