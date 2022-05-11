@@ -39,6 +39,7 @@ from gradio.components import (
 )
 
 from gradio.interface import Interface
+from gradio.blocks import Blocks
 
 GRADIO_DIR = "../../"
 GRADIO_GUIDES_DIR = os.path.join(GRADIO_DIR, "guides")
@@ -319,7 +320,7 @@ def render_docs():
         parameters_started = False
         for l, line in enumerate(doc_lines):
             if not(parameters_started):
-                inp["doc"] += line
+                inp["doc"] += line + " "
             if "Parameters:" in line or (lines is not None and l >= lines-1):
                 parameters_started = True
             if parameters_started and ": " in line:
@@ -426,12 +427,20 @@ pipe = pipeline("image-classification")
 
 gr.Interface.from_pipeline(pipe).launch()"""
     }
+    blocks_docs = get_class_documentation(Blocks, lines=None)["doc"]
+    blocks_params = get_function_documentation(Blocks.__init__)
+    blocks_docs = {
+        "doc": blocks_docs,
+        "params": blocks_params[1],
+        "params_doc": blocks_params[2],
+    }    
     docs = {
         "components": components_docs,
         "interface": interface,
         "launch": launch,
         "load": load,
-        "from_pipeline": from_pipeline
+        "from_pipeline": from_pipeline,
+        "blocks": blocks_docs,
     }
 
 

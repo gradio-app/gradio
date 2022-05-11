@@ -285,6 +285,40 @@
         <section class="flex flex-col gap-6">
           <div id="blocks" class="func">
             <h3 id="blocks-header" class="text-3xl font-light my-4">Blocks</h3>
+            <button class="rounded-full bg-orange-500 text-white py-1 px-3" onclick="showPopup('interface')">
+              Try Demo &#8594;
+            </button>
+            <pre><code class='lang-python'>with gradio.Blocks(theme, analytics_enabled, mode):
+    &#183;&#183;&#183;</code></pre>
+    <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.blocks["doc"] }}</p>
+    <table class="table-fixed w-full my-4">
+      <thead class="text-left">
+        <tr>
+          <th class="font-semibold w-2/5">Parameter</th>
+          <th class="font-semibold">Description</th>
+        </tr>
+      </thead>
+    </table>
+    <table class="table-fixed w-full my-4 rounded-lg bg-gray-100">
+      <tbody class="text-left align-top">
+      {% for param in docs.blocks["params_doc"] %}
+          <tr class="group hover:bg-gray-200">
+            <td class="p-2 w-2/5">
+              <code class=“prettyprint”>{{ param[0] }}</code>
+              <p class="text-gray-500 italic">{{ param[1] }}</p>
+              {% if docs.blocks["params"][loop.index]|length == 1 %}
+                <p class="text-orange-600 font-semibold italic">required</p>
+              {% else %}
+                <p class="text-gray-600 font-semibold italic">default: {{ docs.blocks["params"][loop.index][1] }}</p>
+              {% endif %}
+            </td>
+            <td class="p-2">
+              <p>{{ param[2] }}</p>
+            </td>
+          </tr>
+      {% endfor %}
+      </tbody>
+    </table>
 
 
           </div>
