@@ -492,6 +492,7 @@
             {% if func["Postprocessing"]|length %}
             <p class="text-gray-500">Postprocessing: {{ func["Postprocessing"] | safe}}</p>
             {% endif %}
+            <p class="text-gray-500">Supported events: <em>{{func["events"]}}</em></p>
             <table class="table-fixed w-full mt-6 mb-4">
               <thead class="text-left">
                 <tr>
