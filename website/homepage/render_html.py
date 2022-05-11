@@ -282,7 +282,7 @@ def render_docs():
                 param_set.insert(0, (params.args[neg_index],))
         return "\n".join(func_doc), param_set, params_doc, return_doc
 
-    def get_class_documentation(cls, get_interpret=True, lines=1):
+    def get_class_documentation(cls, get_interpret=True, lines=1, replace_brackets=False):
         inp = {}
         inp["name"] = cls.__name__
         doc = inspect.getdoc(cls)
@@ -296,7 +296,7 @@ def render_docs():
                 parameters_started = True
             if parameters_started and ": " in line:
                 key, value = line.split(": ")
-                inp[key] = value
+                inp[key] = value.replace("[","<em>").replace("]","</em>") if replace_brackets else value
 
         _, inp["params"], inp["params_doc"], _ = get_function_documentation(
             cls.__init__
@@ -329,7 +329,7 @@ def render_docs():
         if name not in components_str:
             components_str.add(name)
             components.add(component)
-    components_docs = [get_class_documentation(cls) for cls in components]
+    components_docs = [get_class_documentation(cls, replace_brackets=True) for cls in components]
     interface_params = get_function_documentation(Interface.__init__)
     interface_docs = get_class_documentation(Interface, get_interpret=False, lines=None)["doc"]
     interface = {

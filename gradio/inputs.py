@@ -80,7 +80,7 @@ class Number(C_Number):
 
 class Slider(C_Slider):
     """
-    Component creates a slider that ranges from `minimum` to `maximum`. Provides a number as an argument to the wrapped function.
+    Component creates a slider that ranges from `minimum` to `maximum`. Provides number as an argument to the wrapped function.
     Input type: float
     Demos: sentence_builder, generate_tone, titanic_survival
     """
