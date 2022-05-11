@@ -91,10 +91,10 @@
 
 <body>
   {{navbar_html|safe}}
-  <div style="width:89%" class="m-auto">
+  <div class="container mx-auto max-w-7xl">
     <main class="flex gap-4">
-      <div class="py-4 navigation h-screen leading-relaxed sticky top-0 bg-gray-50 text-md overflow-y-auto hidden md:block" style="min-width: 18%">
-        <a class="px-4 link mb-2 block border-orange-500 text-orange-500 md:border-l-2 pl-8" href="#building_demos">Building Demos</a>
+      <div class="py-4 navigation h-screen leading-relaxed sticky top-0 text-md overflow-y-auto hidden md:block rounded-t-xl bg-gradient-to-r from-white to-gray-50" style="min-width: 18%">
+        <a class="px-4 link mb-2 block border-orange-500 text-orange-500 md:border-l-2 pl-4" href="#building_demos">Building Demos</a>
         <a class="px-4 block thin-link" href="#interface">Interface</a>
         <a class="px-4 block thin-link" href="#blocks">Blocks</a>
         <a class="px-4 link my-2 block" href="#components">Components</h4>
@@ -105,12 +105,12 @@
         {% endfor %}
       </div>
       <div class="docs mx-6 leading-7 max-w-full">
-        <p class="bg-orange-100 border border-orange-600 px-4 py-2 rounded mb-4 text-md w-fit">New to Gradio? Start here →  <a class="link" href="/getting_started">Getting Started</a></p>
-        <h2 id="building_demos" class="text-4xl font-light my-4 text-orange-500">Building Demos</h2>
+        <p class="bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200/80 px-4 py-1 rounded-full mb-4 text-md w-full text-orange-900">New to Gradio? Start here: <a class="link underline" href="/getting_started">Getting Started</a></p>
+        <h2 id="building_demos" class="text-4xl font-light mb-4 mt-8 text-orange-500">Building Demos</h2>
         <section class="flex flex-col gap-6">
           <div id="interface" class="func">
             <h3 id="interface-header" class="text-3xl font-light my-4">Interface</h3>
-            <button class="rounded-full bg-orange-500 text-white py-1 px-3" onclick="showPopup('interface')">
+            <button class="rounded-full bg-orange-500 text-white py-1 px-3 my-3" onclick="showPopup('interface')">
               Try Demo &#8594;
             </button>
             <pre><code class='lang-python'>gradio.Interface(<!--
@@ -122,8 +122,8 @@
             -->{% endif %}<!--
             -->, <!--
           -->{% endfor %}&#183;&#183;&#183;)</code></pre>
-            <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.interface["doc"] }}</p>
-            <table class="table-fixed w-full my-4">
+            <p class="mb-2 w-full md:pr-12 mt-4 text-lg">{{ docs.interface["doc"] }}</p>
+            <table class="table-fixed w-full mt-6 mb-4">
               <thead class="text-left">
                 <tr>
                   <th class="font-semibold w-2/5">Parameter</th>
@@ -131,11 +131,11 @@
                 </tr>
               </thead>
             </table>
-            <table class="table-fixed w-full my-4 rounded-lg bg-gray-100">
-              <tbody class="text-left align-top">
+            <table class="table-fixed w-full mt-6 mb-4 rounded-lg bg-gray-50 border border-gray-100 overflow-hidden">
+              <tbody class="text-left align-top divide-y">
               {% for param in docs.interface["params_doc"] %}
-                  <tr class="group hover:bg-gray-200">
-                    <td class="p-2 w-2/5">
+                  <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+                    <td class="p-3 w-2/5">
                       <code class=“prettyprint”>{{ param[0] }}</code>
                       <p class="text-gray-500 italic">{{ param[1] }}</p>
                       {% if docs.interface["params"][loop.index]|length == 1 %}
@@ -144,7 +144,7 @@
                         <p class="text-gray-600 font-semibold italic">default: {{ docs.interface["params"][loop.index][1] }}</p>
                       {% endif %}
                     </td>
-                    <td class="p-2">
+                    <td class="p-3 text-gray-700">
                       <p>{{ param[2] }}</p>
                     </td>
                   </tr>
@@ -156,13 +156,13 @@
             <pre><code class='lang-python'>{{ docs.interface["example"][1] }}</code></pre>
           </div>
           <h3 class="font-semibold">Methods:</h3>
-          <div id="launch" class="func ml-20">
+          <div id="launch" class="func ml-12">
             <h3 id="launch-header" class="text-2xl font-light my-4">launch()</h3>
             <pre><code class='lang-python'>gradio.Interface().launch(<!--
             -->&#183;&#183;&#183;<!--
             -->)</code></pre>
-            <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.launch["doc"] }}</p>
-            <table class="table-fixed w-full my-4">
+            <p class="mb-2 w-full md:pr-12 mt-4 text-lg">{{ docs.launch["doc"] }}</p>
+            <table class="table-fixed w-full mt-6 mb-4">
               <thead class="text-left">
                 <tr>
                   <th class="font-semibold w-2/5">Parameter</th>
@@ -170,11 +170,11 @@
                 </tr>
               </thead>
             </table>
-            <table class="table-fixed w-full my-4 rounded-lg bg-gray-100">
-              <tbody class="text-left align-top">
+            <table class="table-fixed w-full mt-6 mb-4 rounded-lg bg-gray-50 border border-gray-100 overflow-hidden">
+              <tbody class="text-left align-top divide-y">
               {% for param in docs.launch["params_doc"] %}
-                  <tr class="group hover:bg-gray-200">
-                    <td class="p-2 w-2/5 break-words">
+                  <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+                    <td class="p-3 w-2/5 break-words">
                       <code class=“prettyprint”>{{ param[0] }}</code>
                       <p class="text-gray-500 italic">{{ param[1] }}</p>
                       {% if docs.launch["params"][loop.index]|length == 1 %}
@@ -183,7 +183,7 @@
                         <p class="text-gray-600 font-semibold italic">default: {{ docs.launch["params"][loop.index][1] }}</p>
                       {% endif %}
                     </td>
-                    <td class="p-2 w-3/5 break-words">
+                    <td class="p-2 w-3/5 break-words text-gray-700">
                       <p>{{ param[2] }}</p>
                     </td>
                   </tr>
@@ -193,7 +193,7 @@
             <p class="mb-2 w-4/5 font-semibold">Example usage:</p>
             <pre><code class='lang-python'>{{ docs.launch["example"] }}</code></pre>
           </div>
-          <div id="load" class="func ml-20">
+          <div id="load" class="func ml-12">
             <h3 id="load-header" class="text-2xl font-light my-4">load()</h3>
             <pre><code class='lang-python'>gradio.Interface.load(<!--
             -->{% for param in docs.load["params"][:1] %}<!--
@@ -203,8 +203,8 @@
                 -->{{ param[0] }}={{ param[1] }}<!--
               -->{% endif %}, <!--
             -->{% endfor %}&#183;&#183;&#183;)</code></pre>
-            <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.load["doc"] }}</p>
-            <table class="table-fixed w-full my-4">
+            <p class="mb-2 w-full md:pr-12 mt-4 text-lg">{{ docs.load["doc"] }}</p>
+            <table class="table-fixed w-full mt-6 mb-4">
               <thead class="text-left">
                 <tr>
                   <th class="font-semibold w-2/5">Parameter</th>
@@ -212,11 +212,11 @@
                 </tr>
               </thead>
             </table>
-            <table class="table-fixed w-full my-4 rounded-lg bg-gray-100">
-              <tbody class="text-left align-top">
+            <table class="table-fixed w-full mt-6 mb-4 rounded-lg bg-gray-50 border border-gray-100 overflow-hidden">
+              <tbody class="text-left align-top divide-y">
               {% for param in docs.load["params_doc"] %}
-                  <tr class="group hover:bg-gray-200">
-                    <td class="p-2 w-2/5">
+                  <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+                    <td class="p-3 w-2/5">
                       <code class=“prettyprint”>{{ param[0] }}</code>
                       <p class="text-gray-500 italic">{{ param[1] }}</p>
                       {% if docs.load["params"][loop.index - 1]|length == 1 %}
@@ -225,7 +225,7 @@
                         <p class="text-gray-600 font-semibold italic">default: {{ docs.load["params"][loop.index - 1][1] }}</p>
                       {% endif %}
                     </td>
-                    <td class="p-2">
+                    <td class="p-3 text-gray-700">
                       <p>{{ param[2] }}</p>
                     </td>
                   </tr>
@@ -235,7 +235,7 @@
             <p class="mb-2 w-4/5 font-semibold">Example usage:</p>
             <pre><code class='lang-python'>{{ docs.load["example"] }}</code></pre>
           </div>
-          <div id="from_pipeline" class="func ml-20">
+          <div id="from_pipeline" class="func ml-12">
             <h3 id="from_pipeline-header" class="text-2xl font-light my-4">from_pipeline()</h3>
             <pre><code class='lang-python'>gradio.Interface.from_pipeline(<!--
             -->{% for param in docs.from_pipeline["params"] %}<!--
@@ -246,8 +246,8 @@
               -->{% endif %}<!--
               -->{% if not loop.last %}, {% endif %}<!--
             -->{% endfor %})</code></pre>
-            <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.from_pipeline["doc"] }}</p>
-            <table class="table-fixed w-full my-4">
+            <p class="mb-2 w-full md:pr-12 mt-4 text-lg">{{ docs.from_pipeline["doc"] }}</p>
+            <table class="table-fixed w-full mt-6 mb-4">
               <thead class="text-left">
                 <tr>
                   <th class="font-semibold w-2/5">Parameter</th>
@@ -255,11 +255,11 @@
                 </tr>
               </thead>
             </table>
-            <table class="table-fixed w-full my-4 rounded-lg bg-gray-100">
-              <tbody class="text-left align-top">
+            <table class="table-fixed w-full mt-6 mb-4 rounded-lg bg-gray-50 border border-gray-100 overflow-hidden">
+              <tbody class="text-left align-top divide-y">
               {% for param in docs.from_pipeline["params_doc"] %}
-                  <tr class="group hover:bg-gray-200">
-                    <td class="p-2 w-2/5">
+                  <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+                    <td class="p-3 w-2/5">
                       <code class=“prettyprint”>{{ param[0] }}</code>
                       <p class="text-gray-500 italic">{{ param[1] }}</p>
                       {% if docs.from_pipeline["params"][loop.index - 1]|length == 1 %}
@@ -268,7 +268,7 @@
                         <p class="text-gray-600 font-semibold italic">default: {{ docs.from_pipeline["params"][loop.index - 1][1] }}</p>
                       {% endif %}
                     </td>
-                    <td class="p-2">
+                    <td class="p-3 text-gray-700">
                       <p>{{ param[2] }}</p>
                     </td>
                   </tr>
@@ -285,13 +285,13 @@
         <section class="flex flex-col gap-6">
           <div id="blocks" class="func">
             <h3 id="blocks-header" class="text-3xl font-light my-4">Blocks</h3>
-            <button class="rounded-full bg-orange-500 text-white py-1 px-3" onclick="showPopup('interface')">
+            <button class="rounded-full bg-orange-500 text-white py-1 px-3 my-3" onclick="showPopup('interface')">
               Try Demo &#8594;
             </button>
             <pre><code class='lang-python'>with gradio.Blocks(theme, analytics_enabled, mode):
     &#183;&#183;&#183;</code></pre>
-    <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.blocks["doc"] }}</p>
-    <table class="table-fixed w-full my-4">
+    <p class="mb-2 w-full md:pr-12 mt-4 text-lg">{{ docs.blocks["doc"] }}</p>
+    <table class="table-fixed w-full mt-6 mb-4">
       <thead class="text-left">
         <tr>
           <th class="font-semibold w-2/5">Parameter</th>
@@ -299,11 +299,11 @@
         </tr>
       </thead>
     </table>
-    <table class="table-fixed w-full my-4 rounded-lg bg-gray-100">
-      <tbody class="text-left align-top">
+    <table class="table-fixed w-full mt-6 mb-4 rounded-lg bg-gray-50 border border-gray-100 overflow-hidden">
+      <tbody class="text-left align-top divide-y">
       {% for param in docs.blocks["params_doc"] %}
-          <tr class="group hover:bg-gray-200">
-            <td class="p-2 w-2/5">
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5">
               <code class=“prettyprint”>{{ param[0] }}</code>
               <p class="text-gray-500 italic">{{ param[1] }}</p>
               {% if docs.blocks["params"][loop.index]|length == 1 %}
@@ -312,7 +312,7 @@
                 <p class="text-gray-600 font-semibold italic">default: {{ docs.blocks["params"][loop.index][1] }}</p>
               {% endif %}
             </td>
-            <td class="p-2">
+            <td class="p-3 text-gray-700">
               <p>{{ param[2] }}</p>
             </td>
           </tr>
@@ -324,7 +324,7 @@
           </div>
         </section>
         <h2 id="components" class="text-4xl font-light my-4 text-orange-500">Components</h2>
-        <p class="w-4/5 mt-4 text-lg">Gradio includes pre-built components that can be used as 
+        <p class="w-4/5 mt-8 text-lg">Gradio includes pre-built components that can be used as 
           inputs or outputs in your Interface or Blocks with a single line of code. Components 
           include <em>preprocessing</em> steps that convert user data submitted through browser 
           to something that be can used by a Python function, and <em>postprocessing</em>
@@ -336,7 +336,7 @@
             <h3 id="{{ func['name'].lower() }}-header" class="text-3xl font-light my-4">
               {{ func['name'] }}
             </h3>
-            <button class="rounded-full bg-orange-500 text-white py-1 px-3" onclick="showPopup('{{ func['name'].lower() }}')">
+            <button class="rounded-full bg-orange-500 text-white py-1 px-3 my-3" onclick="showPopup('{{ func['name'].lower() }}')">
               Try Demo &#8594;
             </button>
             <div id='{{ func["name"].lower() }}_component'></div>
@@ -349,14 +349,14 @@
               -->{% endif %}<!--
               -->{% if not loop.last %}, {% endif %}<!--
             -->{% endfor %}<span>)</span></code></pre>
-            <p class="w-4/5 mt-4 text-lg">{{ func["doc"] }}</p>
+            <p class="w-4/5 mt-8 text-lg">{{ func["doc"] }}</p>
             {% if func["Preprocessing"]|length %}
             <p class="text-gray-500">Preprocessing: {{ func["Preprocessing"] | safe}}</p>
             {% endif %}
             {% if func["Postprocessing"]|length %}
             <p class="text-gray-500">Postprocessing: {{ func["Postprocessing"] | safe}}</p>
             {% endif %}
-            <table class="table-fixed w-full my-4">
+            <table class="table-fixed w-full mt-6 mb-4">
               <thead class="text-left">
                 <tr>
                   <th class="font-semibold w-2/5">Parameter</th>
@@ -364,16 +364,16 @@
                 </tr>
               </thead>
             </table>
-            <table class="table-fixed w-full my-4 rounded-lg bg-gray-100">
-              <tbody class="text-left align-top">
+            <table class="table-fixed w-full mt-6 mb-4 rounded-lg bg-gray-50 border border-gray-100 overflow-hidden">
+              <tbody class="text-left align-top divide-y">
               {% for param in func["params_doc"] %}
-                  <tr class="group hover:bg-gray-200">
-                    <td class="p-2 w-2/5">
+                  <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+                    <td class="p-3 w-2/5">
                       <code class=“prettyprint”>{{ param[0] }}</code>
 
                       <p class="text-gray-500 italic">{{ param[1] }}</p>
                     </td>
-                    <td class="p-2">
+                    <td class="p-3 text-gray-700">
                       <p>{{ param[2] }}</p>
                     </td>
                   </tr>
@@ -520,9 +520,9 @@
         section.offsetTop <= fromTop &&
         section.offsetTop + section.offsetHeight > fromTop
       ) {
-        link.classList.add("border-orange-500", "text-orange-500", "md:border-l-2", "pl-8");
+        link.classList.add("border-orange-500", "text-orange-500", "md:border-l-2", "pl-4");
       } else {
-        link.classList.remove("border-orange-500", "text-orange-500", "md:border-l-2", "pl-8");
+        link.classList.remove("border-orange-500", "text-orange-500", "md:border-l-2", "pl-4");
       }
     });
     });
