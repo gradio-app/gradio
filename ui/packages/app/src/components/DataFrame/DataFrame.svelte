@@ -9,11 +9,11 @@
 
 	export let headers: Headers = [];
 	export let value: Data | { data: Data; headers: Headers } = [["", "", ""]];
-	export let default_value: Array<Array<string | number>> = [["", "", ""]];
 	export let style: string = "";
 	export let mode: "static" | "dynamic";
-
-	if (default_value) value = default_value;
+	export let col_count: [number, "fixed" | "dynamic"];
+	export let row_count: [number, "fixed" | "dynamic"];
+	export let parent: string | null = null;
 
 	$: {
 		if (!Array.isArray(value)) {
@@ -36,9 +36,14 @@
 	}
 </script>
 
-<div class="relative">
+<div
+	class="relative overflow-hidden"
+	class:flex-1={parent === "row" || !parent}
+>
 	<StatusTracker {...loading_status} />
 	<Table
+		{row_count}
+		{col_count}
 		values={value}
 		{headers}
 		{style}

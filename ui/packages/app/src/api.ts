@@ -122,8 +122,6 @@ export const fn = async (
 			session_hash
 		});
 
-		console.log();
-
 		loading_status.update(
 			fn_index,
 			"complete",

@@ -5,7 +5,6 @@
 	import type { LoadingStatus } from "../StatusTracker/types";
 
 	export let value: Array<string> = [];
-	export let default_value: Array<string> = [];
 	export let choices: Array<string>;
 
 	export let mode: "static" | "dynamic";
@@ -15,8 +14,6 @@
 	export let show_label: boolean;
 
 	export let loading_status: LoadingStatus;
-
-	if (default_value) value = default_value;
 </script>
 
 <Block {form_position} type="fieldset">

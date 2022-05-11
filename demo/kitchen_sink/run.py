@@ -98,16 +98,16 @@ def fn(
 demo = gr.Interface(
     fn,
     inputs=[
-        gr.Textbox(default_value="Lorem ipsum", label="Textbox"),
+        gr.Textbox(value="Lorem ipsum", label="Textbox"),
         gr.Textbox(lines=3, placeholder="Type here..", label="Textbox 2"),
-        gr.Number(label="Number", default=42),
-        gr.Slider(minimum=10, maximum=20, default_value=15, label="Slider: 10 - 20"),
+        gr.Number(label="Number", value=42),
+        gr.Slider(minimum=10, maximum=20, value=15, label="Slider: 10 - 20"),
         gr.Slider(maximum=20, step=0.04, label="Slider: step @ 0.04"),
         gr.Checkbox(label="Checkbox"),
         gr.CheckboxGroup(
-            label="CheckboxGroup", choices=CHOICES, default_selected=CHOICES[0:2]
+            label="CheckboxGroup", choices=CHOICES, value=CHOICES[0:2]
         ),
-        gr.Radio(label="Radio", choices=CHOICES, default_selected=CHOICES[2]),
+        gr.Radio(label="Radio", choices=CHOICES, value=CHOICES[2]),
         gr.Dropdown(label="Dropdown", choices=CHOICES),
         gr.Image(label="Image"),
         gr.Image(label="Image w/ Cropper", tool="select"),

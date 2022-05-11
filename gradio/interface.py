@@ -111,8 +111,8 @@ class Interface(Blocks):
     def __init__(
         self,
         fn: Callable | List[Callable],
-        inputs: Optional[str | Component | List[str | Component]] = None,
-        outputs: Optional[str | Component | List[str | Component]] = None,
+        inputs: Optional[str | Component | List[str | Component]],
+        outputs: Optional[str | Component | List[str | Component]],
         examples: Optional[List[Any] | List[List[Any]] | str] = None,
         cache_examples: Optional[bool] = None,
         examples_per_page: int = 10,
@@ -166,12 +166,12 @@ class Interface(Blocks):
         )
 
         self.interface_type = self.InterfaceTypes.STANDARD
-        if inputs is None and outputs is None:
+        if (inputs is None or inputs == []) and (outputs is None or outputs == []):
             raise ValueError("Must provide at least one of `inputs` or `outputs`")
-        elif outputs is None:
+        elif outputs is None or outputs == []:
             outputs = []
             self.interface_type = self.InterfaceTypes.INPUT_ONLY
-        elif inputs is None:
+        elif inputs is None or inputs == []:
             inputs = []
             self.interface_type = self.InterfaceTypes.OUTPUT_ONLY
 
@@ -195,7 +195,7 @@ class Interface(Blocks):
                     "If using 'state', there must be exactly one state input and one state output."
                 )
             default = utils.get_default_args(fn[0])[inputs.index("state")]
-            state_variable = Variable(default_value=default)
+            state_variable = Variable(value=default)
             inputs[inputs.index("state")] = state_variable
             outputs[outputs.index("state")] = state_variable
 
@@ -450,9 +450,14 @@ class Interface(Blocks):
             cache_interface_examples(self)
 
         if self.allow_flagging != "never":
-            self.flagging_callback.setup(
-                self.input_components + self.output_components, self.flagging_dir
-            )
+            if self.interface_type == self.InterfaceTypes.UNIFIED:
+                self.flagging_callback.setup(self.input_components, self.flagging_dir)
+            elif self.interface_type == self.InterfaceTypes.INPUT_ONLY:
+                pass
+            else:
+                self.flagging_callback.setup(
+                    self.input_components + self.output_components, self.flagging_dir
+                )
 
         with self:
             if self.title:
@@ -490,23 +495,14 @@ class Interface(Blocks):
                                 self.InterfaceTypes.STANDARD,
                                 self.InterfaceTypes.INPUT_ONLY,
                             ]:
-                                clear_btn = Button("Clear")
+                                clear_btn = Button("Clear", variant="secondary")
                                 if not self.live:
                                     submit_btn = Button("Submit")
                             elif self.interface_type == self.InterfaceTypes.UNIFIED:
-                                clear_btn = Button("Clear")
+                                clear_btn = Button("Clear", variant="secondary")
                                 submit_btn = Button("Submit")
                                 if self.allow_flagging == "manual":
-                                    flag_btn = Button("Flag")
-                                    flag_btn.click(
-                                        lambda *flag_data: self.flagging_callback.flag(
-                                            flag_data
-                                        ),
-                                        inputs=self.input_components,
-                                        outputs=[],
-                                        _preprocess=False,
-                                        queue=False,
-                                    )
+                                    flag_btn = Button("Flag", variant="secondary")
 
                 if self.interface_type in [
                     self.InterfaceTypes.STANDARD,
@@ -519,21 +515,14 @@ class Interface(Blocks):
                             component.render()
                         with Row():
                             if self.interface_type == self.InterfaceTypes.OUTPUT_ONLY:
-                                clear_btn = Button("Clear")
+                                clear_btn = Button("Clear", variant="secondary")
                                 submit_btn = Button("Generate")
                             if self.allow_flagging == "manual":
-                                flag_btn = Button("Flag")
-                                flag_btn.click(
-                                    lambda *flag_data: self.flagging_callback.flag(
-                                        flag_data
-                                    ),
-                                    inputs=self.input_components
-                                    + self.output_components,
-                                    outputs=[],
-                                    _preprocess=False,
-                                )
+                                flag_btn = Button("Flag", variant="secondary")
                             if self.interpretation:
-                                interpretation_btn = Button("Interpret")
+                                interpretation_btn = Button(
+                                    "Interpret", variant="secondary"
+                                )
             submit_fn = (
                 lambda *args: self.run_prediction(args)[0]
                 if len(self.output_components) == 1
@@ -572,7 +561,7 @@ class Interface(Blocks):
                 _js=f"""() => {json.dumps(
                     [component.cleared_value if hasattr(component, "cleared_value") else None
                     for component in self.input_components + self.output_components] + (
-                            [True]
+                            [Column.update(visible=True)]
                             if self.interface_type
                             in [
                                 self.InterfaceTypes.STANDARD,
@@ -581,10 +570,31 @@ class Interface(Blocks):
                             ]
                             else []
                         )
-                    + ([False] if self.interpretation else [])
+                    + ([Column.update(visible=False)] if self.interpretation else [])
                 )}
                 """,
             )
+            if self.allow_flagging == "manual":
+                if self.interface_type in [
+                    self.InterfaceTypes.STANDARD,
+                    self.InterfaceTypes.OUTPUT_ONLY,
+                ]:
+                    flag_btn.click(
+                        lambda *flag_data: self.flagging_callback.flag(flag_data),
+                        inputs=self.input_components + self.output_components,
+                        outputs=[],
+                        _preprocess=False,
+                        queue=False,
+                    )
+                elif self.interface_type == self.InterfaceTypes.UNIFIED:
+                    flag_btn.click(
+                        lambda *flag_data: self.flagging_callback.flag(flag_data),
+                        inputs=self.input_components,
+                        outputs=[],
+                        _preprocess=False,
+                        queue=False,
+                    )
+
             if self.examples:
                 non_state_inputs = [
                     c for c in self.input_components if not isinstance(c, Variable)
@@ -621,7 +631,8 @@ class Interface(Blocks):
 
             if self.interpretation:
                 interpretation_btn.click(
-                    lambda *data: self.interpret(data) + [False, True],
+                    lambda *data: self.interpret(data)
+                    + [Column.update(visible=False), Column.update(visible=True)],
                     inputs=self.input_components + self.output_components,
                     outputs=interpretation_set
                     + [input_component_column, interpret_component_column],

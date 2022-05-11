@@ -27,6 +27,19 @@ with gr.Blocks() as demo:
         md = gr.Markdown(show_label=False)
         label = gr.Label(show_label=False)
         highlight = gr.HighlightedText(show_label=False)
+        gr.Dataframe(interactive=True, col_count=(3, "fixed"))
+        gr.Dataframe(interactive=True, col_count=4)
+        gr.Dataframe(interactive=True, headers=["One", "Two", "Three", "Four"])
+        gr.Dataframe(
+            interactive=True,
+            headers=["One", "Two", "Three", "Four"],
+            col_count=(4, "fixed"),
+            row_count=(7, "fixed"),
+            value=[[1, 2, 3, 4]],
+        )
+        gr.Dataframe(
+            interactive=True, headers=["One", "Two", "Three", "Four"], col_count=4
+        )
         # layout components are static only
         # carousel doesn't work like other components
         # carousel = gr.Carousel()
