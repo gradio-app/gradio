@@ -8,7 +8,6 @@
 
 	export let label: string = "Textbox";
 	export let value: string = "";
-	export let default_value: string | false = false;
 	export let style: string = "";
 	export let lines: number;
 	export let placeholder: string = "";
@@ -19,8 +18,6 @@
 	export let loading_status: LoadingStatus;
 
 	export let mode: "static" | "dynamic";
-
-	if (default_value) value = default_value;
 </script>
 
 <Block {form_position}>
