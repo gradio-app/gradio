@@ -21,10 +21,21 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 
 class Block:
-    def __init__(self, *, render=True, css=None, visible=True, **kwargs):
+    def __init__(self, *, render=True, style=None, visible=True, **kwargs):
         self._id = Context.id
         Context.id += 1
-        self.css = css if css is not None else {}
+        if style is None:
+            style = []
+        elif isinstance(style, dict):
+            style = [style]
+        self.style = {}
+        for ruleset in style:
+            target = ruleset.get("target", "main")
+            if "target" in ruleset:
+                del ruleset["target"]
+            self.style[target] = "; ".join(
+                key + ": " + val + " !important" for key, val in ruleset.items()
+            )
         self.visible = visible
         if render:
             self.render()
@@ -125,22 +136,22 @@ class Block:
         )
 
     def get_config(self):
-        return {"css": self.css, "visible": self.visible}
+        return {"style": self.style, "visible": self.visible}
 
 
 class BlockContext(Block):
     def __init__(
         self,
         visible: bool = True,
-        css: Optional[Dict[str, str]] = None,
+        style: Optional[Dict | List[Dict]] = None,
         render: bool = True,
         **kwargs,
     ):
         """
-        css: Css rules to apply to block.
+        style: style rules to apply to block.
         """
         self.children = []
-        super().__init__(css=css, visible=visible, render=render, **kwargs)
+        super().__init__(style=style, visible=visible, render=render, **kwargs)
 
     def __enter__(self):
         self.parent = Context.block
@@ -160,11 +171,11 @@ class Row(BlockContext):
 
     @staticmethod
     def update(
-        css: Optional[Dict] = None,
+        style: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
         return {
-            "css": css,
+            "style": style,
             "visible": visible,
             "__type__": "update",
         }
@@ -174,15 +185,15 @@ class Column(BlockContext):
     def __init__(
         self,
         visible: bool = True,
-        css: Optional[Dict[str, str]] = None,
+        style: Optional[Dict | List[Dict]] = None,
         variant: str = "default",
     ):
         """
-        css: Css rules to apply to block.
+        style: style rules to apply to block.
         variant: column type, 'default' (no background) or 'panel' (gray background color and rounded corners)
         """
         self.variant = variant
-        super().__init__(visible=visible, css=css)
+        super().__init__(visible=visible, style=style)
 
     def get_config(self):
         return {
@@ -194,12 +205,12 @@ class Column(BlockContext):
     @staticmethod
     def update(
         variant: Optional[str] = None,
-        css: Optional[Dict] = None,
+        style: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
         return {
             "variant": variant,
-            "css": css,
+            "style": style,
             "visible": visible,
             "__type__": "update",
         }
@@ -251,15 +262,21 @@ class Blocks(BlockContext):
         theme: str = "default",
         analytics_enabled: Optional[bool] = None,
         mode: str = "blocks",
+        css: Optional[str] = None,
         **kwargs,
     ):
 
-        # Cleanup shared parameters with Interface #TODO: is this part still necessary after Interface with Blocks?
         self.save_to = None
         self.api_mode = False
         self.theme = theme
         self.requires_permissions = False  # TODO: needs to be implemented
         self.encrypt = False
+
+        if css is not None and os.path.exists(css):
+            with open(css) as css_file:
+                self.css = css_file.read()
+        else:
+            self.css = css
 
         # For analytics_enabled and allow_flagging: (1) first check for
         # parameter, (2) check for env variable, (3) default to True/"manual"
@@ -338,7 +355,7 @@ class Blocks(BlockContext):
                     prediction_value = predictions[i]
                     if type(
                         prediction_value
-                    ) is dict and "update" in prediction_value.get("__type__"):
+                    ) is dict and "update" in prediction_value.get("__type__", ""):
                         if prediction_value["__type__"] == "generic_update":
                             del prediction_value["__type__"]
                             prediction_value = block.__class__.update(
@@ -376,6 +393,7 @@ class Blocks(BlockContext):
             "mode": "blocks",
             "components": [],
             "theme": self.theme,
+            "css": self.css,
             "enable_queue": getattr(
                 self, "enable_queue", False
             ),  # attribute set at launch

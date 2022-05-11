@@ -10,7 +10,7 @@
 		confidences?: Array<{ label: string; confidence: number }>;
 	};
 
-	export let style: string = "";
+	export let style: Record<string, string> = {};
 	export let loading_status: LoadingStatus;
 	export let show_label: boolean;
 
@@ -19,7 +19,7 @@
 	$: value, dispatch("change");
 </script>
 
-<Block>
+<Block style={style["container"]}>
 	<StatusTracker {...loading_status} />
 
 	{#if value !== undefined && value !== null}

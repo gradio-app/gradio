@@ -6,7 +6,7 @@
 	export let value: Array<[string, string | number]> = [];
 	export let show_legend: boolean = false;
 	export let color_map: Record<string, string> = {};
-	export let style: string = "";
+	export let style: Record<string, string> = {};
 
 	let ctx: CanvasRenderingContext2D;
 
@@ -105,6 +105,7 @@
 	{/if}
 	<div
 		class="textfield bg-white dark:bg-transparent rounded-sm box-border max-w-full break-word inline-flex flex-wrap gap-1"
+		style={style["main"]}
 	>
 		{#each value as [text, category]}
 			<span
@@ -124,6 +125,7 @@
 						(active && active !== category)
 							? ""
 							: _color_map[category].primary}
+						style={style["highilight"]}
 					>
 						{category}
 					</span>

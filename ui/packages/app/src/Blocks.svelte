@@ -50,7 +50,6 @@
 	export let layout: LayoutNode;
 	export let dependencies: Array<Dependency>;
 	export let theme: string;
-	export let style: string | null;
 	export let enable_queue: boolean;
 	export let static_src: string;
 	export let title: string = "Gradio";

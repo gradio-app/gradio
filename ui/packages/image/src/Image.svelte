@@ -13,7 +13,7 @@
 
 	export let value: null | string;
 	export let label: string | undefined = undefined;
-	export let style: string = "";
+	export let style: Record<string, string> = {};
 	export let show_label: boolean;
 
 	export let source: "canvas" | "webcam" | "upload" = "upload";
@@ -75,6 +75,7 @@
 				filetype="image/x-png,image/gif,image/jpeg"
 				on:load={handle_upload}
 				include_file_metadata={false}
+				style={style["upload"]}
 			>
 				<div class="flex flex-col">
 					{drop_text}
@@ -99,6 +100,7 @@
 			on:edit={() => (mode = "edit")}
 			on:clear={handle_clear}
 			editable
+			{style}
 		/>
 
 		<img class="w-full h-full object-contain" src={value} {style} alt="" />

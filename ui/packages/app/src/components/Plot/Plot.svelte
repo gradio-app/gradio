@@ -2,7 +2,7 @@
 	import { Plot } from "@gradio/plot";
 
 	export let value: null | string = null;
-	export let style: string = "";
+	export let style: Record<string, string> = {};
 
 	export let loading_status: LoadingStatus;
 </script>

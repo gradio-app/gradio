@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Tabs } from "@gradio/tabs";
 
-	export let style: string = "";
+	export let style: Record<string, string> = {};
 </script>
 
 <Tabs on:change {style}>

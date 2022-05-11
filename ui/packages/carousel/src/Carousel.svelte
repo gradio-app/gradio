@@ -6,7 +6,7 @@
 	import { setContext, createEventDispatcher } from "svelte";
 	import { writable } from "svelte/store";
 
-	export let style: string = "";
+	export let style: Record<string, string> = {};
 
 	const dispatch = createEventDispatcher<{
 		change: undefined;
@@ -45,7 +45,7 @@
 	};
 </script>
 
-<div class="output-carousel flex flex-col relative">
+<div class="output-carousel flex flex-col relative" style={style["main"]}>
 	<slot />
 
 	<div
@@ -54,6 +54,7 @@
 		<button
 			on:click={prev}
 			class="flex items-center justify-center h-6 w-6 hover:text-orange-500"
+			style={style["navigate_btn"]}
 		>
 			<svg
 				class="caret text-xs fill-current"
@@ -72,6 +73,7 @@
 		<button
 			on:click={next}
 			class="flex items-center justify-center h-6 w-6  hover:text-orange-500"
+			style={style["navigate_btn"]}
 		>
 			<svg
 				class="caret text-xs fill-current scale-x-[-1]"

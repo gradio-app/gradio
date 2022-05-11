@@ -6,7 +6,7 @@
 
 	export let value: null | string;
 	export let label: string | undefined = undefined;
-	export let style: string = "";
+	export let style: Record<string, string> = {};
 	export let show_label: boolean;
 
 	const dispatch = createEventDispatcher<{
@@ -16,11 +16,11 @@
 	$: value && dispatch("change", value);
 </script>
 
-<BlockLabel {show_label} Icon={Image} label={label || "Image"} />
+<BlockLabel {show_label} style={style["label"]} Icon={Image} label={label || "Image"} />
 {#if value === null}
 	<div class="min-h-[16rem] flex justify-center items-center">
 		<div class="h-10 dark:text-white opacity-50"><Image /></div>
 	</div>
 {:else}
-	<img class="w-full h-full object-contain" src={value} {style} alt="" />
+	<img class="w-full h-full object-contain" style={style["main"]} src={value} alt="" />
 {/if}

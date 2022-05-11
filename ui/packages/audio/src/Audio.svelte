@@ -17,7 +17,7 @@
 	export let value: null | { name: string; data: string } = null;
 	export let label: string;
 	export let show_label: boolean;
-	export let style: string = "";
+	export let style: Record<string, string> = {};
 	export let name: string;
 	export let source: "microphone" | "upload" | "none";
 	export let drop_text: string = "Drop an audio file";
@@ -157,7 +157,7 @@
 	{#if source === "microphone"}
 		<div class="mt-6 p-2">
 			{#if recording}
-				<button class="gr-button !bg-red-500/10" on:click={stop}>
+				<button class="gr-button !bg-red-500/10" style={style["record_btn"]} on:click={stop}>
 					<span class="flex h-1.5 w-1.5 relative mr-2 ">
 						<span
 							class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"
@@ -166,10 +166,10 @@
 							class="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"
 						/>
 					</span>
-					<div class="whitespace-nowrap text-red-500">Stop recording</div>
+					<div class="whitespace-nowrap text-red-500" style={style["record_btn"]}>Stop recording</div>
 				</button>
 			{:else}
-				<button class="gr-button text-gray-800" on:click={record}>
+				<button class="gr-button text-gray-800" style={style["record-btn"]} on:click={record}>
 					<span class="flex h-1.5 w-1.5 relative mr-2">
 						<span
 							class="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"
@@ -180,7 +180,7 @@
 			{/if}
 		</div>
 	{:else if source === "upload"}
-		<Upload filetype="audio/*" on:load={handle_load} bind:dragging>
+		<Upload filetype="audio/*" on:load={handle_load} bind:dragging  style={style["upload"]}>
 			<div class="flex flex-col">
 				{drop_text}
 				<span class="text-gray-300">- {or_text} -</span>
@@ -194,6 +194,7 @@
 		on:edit={() => (mode = "edit")}
 		editable
 		absolute={false}
+		{style}
 	/>
 
 	<audio
@@ -203,6 +204,7 @@
 		bind:this={player}
 		preload="metadata"
 		src={value.data}
+		style={style["main"]}
 		on:play
 		on:pause
 		on:ended

@@ -5,13 +5,13 @@
 	import type { LoadingStatus } from "../StatusTracker/types";
 
 	export let value: Array<[string, string]> = [];
-	export let style: string = "";
+	export let style: Record<string, string> = {};
 	export let color_map: Array<[string, string]>;
 
 	export let loading_status: LoadingStatus;
 </script>
 
-<Block padding={false}>
+<Block padding={false} style={style["container"]}>
 	<StatusTracker {...loading_status} />
 	<ChatBot {value} {style} {color_map} on:change />
 </Block>

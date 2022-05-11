@@ -5,7 +5,7 @@
 	import type { LoadingStatus } from "../StatusTracker/types";
 
 	export let value: boolean = false;
-	export let style: string = "";
+	export let style: Record<string, string> = {};
 	export let label: string = "Checkbox";
 	export let mode: "static" | "dynamic";
 	export let form_position: "first" | "last" | "mid" | "single" = "single";
@@ -14,7 +14,7 @@
 	export let loading_status: LoadingStatus;
 </script>
 
-<Block {form_position}>
+<Block {form_position} style={style["container"]}>
 	<StatusTracker {...loading_status} />
 
 	<Checkbox

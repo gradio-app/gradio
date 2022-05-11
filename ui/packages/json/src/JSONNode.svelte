@@ -2,9 +2,10 @@
 	export let value: any;
 	export let depth: number;
 	export let collapsed = depth > 4;
+	export let style: string | undefined = "";
 </script>
 
-<div class="json-node inline text-sm font-mono leading-tight ">
+<div class="json-node inline text-sm font-mono leading-tight" {style}>
 	{#if value instanceof Array}
 		{#if collapsed}
 			<button
