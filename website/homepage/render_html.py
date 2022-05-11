@@ -323,7 +323,6 @@ def render_docs():
             if "Parameters:" in line or (lines is not None and l >= lines-1):
                 parameters_started = True
             if parameters_started and ": " in line:
-                print(line)
                 key, value = line.split(": ")
                 inp[key] = value.replace("{","<em>").replace("}","</em>") if replace_brackets else value
 
@@ -378,7 +377,18 @@ def render_docs():
         "doc": interface_docs,
         "params": interface_params[1],
         "params_doc": interface_params[2],
-        "example": """import gradio as gr\n\ndef image_classifier(inp):\n    pass # image classifier model defined here\n\ngr.Interface(fn=image_classifier, inputs="image", outputs="label")\n\ndef speech_to_text(inp):\n   pass # speech recognition model defined here\n\ngr.Interface(speech_to_text, inputs="mic", outputs=gr.Textbox(label="Predicted text", lines=4))""",
+        "example": [
+"""import gradio as gr
+
+def image_classifier(inp):
+    pass  # image classifier model defined here
+gr.Interface(fn=image_classifier, inputs="image", outputs="label")""",
+"""import gradio as gr
+
+def speech_to_text(inp):
+    pass  # speech recognition model defined here
+
+gr.Interface(speech_to_text, inputs="mic", outputs=gr.Textbox(label="Predicted text", lines=4))"""],
         "demos": ["hello_world", "hello_world_3", "gpt_j"]
     }
     launch_params = get_function_documentation(Interface.launch)
