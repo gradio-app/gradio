@@ -1,8 +1,15 @@
+import asyncio
 import random
+import time
 import unittest
 
+import pytest
+
 import gradio as gr
+from gradio.routes import PredictBody
 from gradio.test_data.blocks_configs import XRAY_CONFIG
+
+pytest_plugins = ("pytest_asyncio",)
 
 
 class TestBlocks(unittest.TestCase):
@@ -51,8 +58,26 @@ class TestBlocks(unittest.TestCase):
                     )
             textbox = gr.components.Textbox()
             demo.load(fake_func, [], [textbox])
-
         self.assertEqual(XRAY_CONFIG, demo.get_config_file())
+
+    @pytest.mark.asyncio
+    async def test_async_function(self):
+        async def wait():
+            await asyncio.sleep(0.01)
+            return True
+
+        with gr.Blocks() as demo:
+            text = gr.components.Textbox()
+            button = gr.components.Button()
+            button.click(wait, [text], [text])
+
+            body = PredictBody(data=1, fn_index=0)
+            start = time.time()
+            result = await demo.process_api(body)
+            end = time.time()
+            difference = end - start
+            assert difference >= 0.01
+            assert result
 
 
 if __name__ == "__main__":

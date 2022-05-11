@@ -165,6 +165,10 @@ class Interface(Blocks):
             analytics_enabled=analytics_enabled, mode="interface", **kwargs
         )
 
+        if inspect.iscoroutinefunction(fn):
+            raise NotImplementedError(
+                "Async functions are not currently supported within interfaces. Please use Blocks API."
+            )
         self.interface_type = self.InterfaceTypes.STANDARD
         if (inputs is None or inputs == []) and (outputs is None or outputs == []):
             raise ValueError("Must provide at least one of `inputs` or `outputs`")
@@ -195,7 +199,7 @@ class Interface(Blocks):
                     "If using 'state', there must be exactly one state input and one state output."
                 )
             default = utils.get_default_args(fn[0])[inputs.index("state")]
-            state_variable = Variable(default_value=default)
+            state_variable = Variable(value=default)
             inputs[inputs.index("state")] = state_variable
             outputs[outputs.index("state")] = state_variable
 
@@ -561,7 +565,7 @@ class Interface(Blocks):
                 _js=f"""() => {json.dumps(
                     [component.cleared_value if hasattr(component, "cleared_value") else None
                     for component in self.input_components + self.output_components] + (
-                            [True]
+                            [Column.update(visible=True)]
                             if self.interface_type
                             in [
                                 self.InterfaceTypes.STANDARD,
@@ -570,7 +574,7 @@ class Interface(Blocks):
                             ]
                             else []
                         )
-                    + ([False] if self.interpretation else [])
+                    + ([Column.update(visible=False)] if self.interpretation else [])
                 )}
                 """,
             )
@@ -631,7 +635,8 @@ class Interface(Blocks):
 
             if self.interpretation:
                 interpretation_btn.click(
-                    lambda *data: self.interpret(data) + [False, True],
+                    lambda *data: self.interpret(data)
+                    + [Column.update(visible=False), Column.update(visible=True)],
                     inputs=self.input_components + self.output_components,
                     outputs=interpretation_set
                     + [input_component_column, interpret_component_column],
