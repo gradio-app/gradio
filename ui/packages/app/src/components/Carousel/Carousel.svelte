@@ -3,11 +3,11 @@
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
 
-	export let style: string = "";
+	export let elem_id: string = "";
 	export let loading_status: LoadingStatus;
 </script>
 
-<Carousel {style} on:change>
+<Carousel  {elem_id} on:change>
 	<StatusTracker {...loading_status} />
 
 	<slot />

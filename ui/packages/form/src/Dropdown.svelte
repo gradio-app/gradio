@@ -4,8 +4,8 @@
 
 	export let label: string;
 	export let value: string | undefined = undefined;
+	export let style: Record<string, string> = {};
 	export let choices: Array<string>;
-	export let style: string = "";
 	export let disabled: boolean = false;
 	export let show_label: boolean;
 

@@ -7,7 +7,7 @@
 	import { Block, BlockTitle } from "@gradio/atoms";
 
 	export let value: number = 0;
-	export let style: string = "";
+	export let style: Record<string, string> = {};
 	export let minimum: number = 0;
 	export let maximum: number = 100;
 	export let step: number = 1;

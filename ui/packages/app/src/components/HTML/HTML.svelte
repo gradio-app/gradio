@@ -3,12 +3,12 @@
 	import { HTML } from "@gradio/html";
 
 	export let label: string;
+	export let elem_id: string = "";
 	export let value: string = "";
-	export let style: string = "";
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
 	$: label, dispatch("change");
 </script>
 
-<HTML {value} {style} on:change />
+<HTML {value}  {elem_id} on:change />

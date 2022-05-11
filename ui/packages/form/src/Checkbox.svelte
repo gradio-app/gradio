@@ -2,9 +2,9 @@
 	import { createEventDispatcher } from "svelte";
 
 	export let value: boolean;
+	export let style: Record<string, string> = {};
 	export let disabled: boolean = false;
 	export let label: string;
-	export let style: string = "";
 	export let show_label: boolean;
 
 	const dispatch = createEventDispatcher<{ change: boolean }>();

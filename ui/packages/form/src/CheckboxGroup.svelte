@@ -3,10 +3,10 @@
 	import { BlockTitle } from "@gradio/atoms";
 
 	export let value: Array<string> = [];
+	export let style: Record<string, string> = {};
 	export let choices: Array<string>;
 	export let disabled: boolean = false;
 	export let label: string;
-	export let style: string = "";
 	export let show_label: boolean;
 
 	const dispatch = createEventDispatcher<{ change: Array<string> }>();

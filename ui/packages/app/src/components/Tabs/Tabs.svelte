@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { Tabs } from "@gradio/tabs";
 
-	export let style: string = "";
+	export let elem_id: string = "";
 </script>
 
-<Tabs on:change {style}>
+<Tabs on:change >
 	<slot />
 </Tabs>

@@ -5,8 +5,8 @@
 	import type { LoadingStatus } from "../StatusTracker/types";
 
 	export let label: string = "Radio";
+	export let elem_id: string = "";
 	export let value: string = "";
-	export let style: string = "";
 	export let choices: Array<string> = [];
 	export let mode: "static" | "dynamic";
 	export let form_position: "first" | "last" | "mid" | "single" = "single";
@@ -15,7 +15,7 @@
 	export let loading_status: LoadingStatus;
 </script>
 
-<Block {form_position} type="fieldset">
+<Block {form_position} type="fieldset" {elem_id}>
 	<StatusTracker {...loading_status} />
 
 	<Radio
@@ -23,7 +23,7 @@
 		bind:value
 		{label}
 		{show_label}
-		{style}
+		
 		{choices}
 		disabled={mode === "static"}
 		on:change

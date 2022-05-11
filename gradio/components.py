@@ -57,9 +57,9 @@ class IOComponent(Component):
         label: Optional[str] = None,
         show_label: bool = True,
         interactive: Optional[bool] = None,
-        css: Optional[Dict] = None,
         visible: bool = True,
         requires_permissions: bool = False,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         self.label = label
@@ -69,7 +69,7 @@ class IOComponent(Component):
 
         self.set_interpret_parameters()
 
-        super().__init__(css=css, visible=visible, **kwargs)
+        super().__init__(elem_id=elem_id, visible=visible, **kwargs)
 
     def get_config(self):
         return {
@@ -410,8 +410,8 @@ class Textbox(Changeable, Submittable, IOComponent):
         label: Optional[str] = None,
         show_label: bool = True,
         interactive: Optional[bool] = None,
-        css: Optional[Dict] = None,
         visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -422,7 +422,6 @@ class Textbox(Changeable, Submittable, IOComponent):
         placeholder (str): placeholder hint to provide behind textarea.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
-        css (Optional[Dict]): Provided css rules will be applied to component.
         visible (bool): If False, component will be hidden.
         """
         value = str(value)
@@ -438,8 +437,8 @@ class Textbox(Changeable, Submittable, IOComponent):
             label=label,
             show_label=show_label,
             interactive=interactive,
-            css=css,
             visible=visible,
+            elem_id=elem_id,
             **kwargs,
         )
 
@@ -460,7 +459,6 @@ class Textbox(Changeable, Submittable, IOComponent):
         placeholder: Optional[str] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
-        css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
         return {
@@ -469,7 +467,6 @@ class Textbox(Changeable, Submittable, IOComponent):
             "placeholder": placeholder,
             "label": label,
             "show_label": show_label,
-            "css": css,
             "visible": visible,
             "value": value,
             "__type__": "update",
@@ -577,6 +574,22 @@ class Textbox(Changeable, Submittable, IOComponent):
         """
         return x
 
+    def style(
+        self,
+        rounded: Optional[bool] = None,
+        bg_color: Optional[str] = None,
+        text_color: Optional[str] = None,
+        container_bg_color: Optional[str] = None,
+    ):
+        if rounded is not None:
+            self._style["rounded"] = rounded
+        if bg_color is not None:
+            self._style["bg_color"] = bg_color
+        if text_color is not None:
+            self._style["text_color"] = text_color
+        if container_bg_color is not None:
+            self._style["container_bg_color"] = container_bg_color
+        return self
 
 class Number(Changeable, Submittable, IOComponent):
     """
@@ -595,8 +608,8 @@ class Number(Changeable, Submittable, IOComponent):
         label: Optional[str] = None,
         show_label: bool = True,
         interactive: Optional[bool] = None,
-        css: Optional[Dict] = None,
         visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -604,7 +617,6 @@ class Number(Changeable, Submittable, IOComponent):
         value (float): default value.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
-        css (Optional[Dict]): Provided css rules will be applied to component.
         visible (bool): If False, component will be hidden.
         """
         self.value = float(value) if value is not None else None
@@ -615,8 +627,8 @@ class Number(Changeable, Submittable, IOComponent):
             label=label,
             show_label=show_label,
             interactive=interactive,
-            css=css,
             visible=visible,
+            elem_id=elem_id,
             **kwargs,
         )
 
@@ -632,13 +644,11 @@ class Number(Changeable, Submittable, IOComponent):
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         interactive: Optional[bool] = None,
-        css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
         return {
             "label": label,
             "show_label": show_label,
-            "css": css,
             "visible": visible,
             "value": value,
             "__type__": "update",
@@ -722,6 +732,23 @@ class Number(Changeable, Submittable, IOComponent):
         """
         return y
 
+    def style(
+        self,
+        rounded: Optional[bool] = None,
+        bg_color: Optional[str] = None,
+        text_color: Optional[str] = None,
+        container_bg_color: Optional[str] = None,
+    ):
+        if rounded is not None:
+            self._style["rounded"] = rounded
+        if bg_color is not None:
+            self._style["bg_color"] = bg_color
+        if text_color is not None:
+            self._style["text_color"] = text_color
+        if container_bg_color is not None:
+            self._style["container_bg_color"] = container_bg_color
+        return self
+
 
 class Slider(Changeable, IOComponent):
     """
@@ -741,8 +768,8 @@ class Slider(Changeable, IOComponent):
         label: Optional[str] = None,
         show_label: bool = True,
         interactive: Optional[bool] = None,
-        css: Optional[Dict] = None,
         visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -753,7 +780,6 @@ class Slider(Changeable, IOComponent):
         step (float): increment between slider values.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
-        css (Optional[Dict]): Provided css rules will be applied to component.
         visible (bool): If False, component will be hidden.
         """
         self.minimum = minimum
@@ -772,8 +798,8 @@ class Slider(Changeable, IOComponent):
             label=label,
             show_label=show_label,
             interactive=interactive,
-            css=css,
             visible=visible,
+            elem_id=elem_id,
             **kwargs,
         )
 
@@ -795,7 +821,6 @@ class Slider(Changeable, IOComponent):
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         interactive: Optional[bool] = None,
-        css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
         return {
@@ -805,7 +830,6 @@ class Slider(Changeable, IOComponent):
             "label": label,
             "show_label": show_label,
             "interactive": interactive,
-            "css": css,
             "visible": visible,
             "value": value,
             "__type__": "update",
@@ -885,8 +909,8 @@ class Checkbox(Changeable, IOComponent):
         label: Optional[str] = None,
         show_label: bool = True,
         interactive: Optional[bool] = None,
-        css: Optional[Dict] = None,
         visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -894,7 +918,6 @@ class Checkbox(Changeable, IOComponent):
         value (bool): if True, checked by default.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
-        css (Optional[Dict]): Provided css rules will be applied to component.
         visible (bool): If False, component will be hidden.
         """
         self.test_input = True
@@ -905,8 +928,8 @@ class Checkbox(Changeable, IOComponent):
             label=label,
             show_label=show_label,
             interactive=interactive,
-            css=css,
             visible=visible,
+            elem_id=elem_id,
             **kwargs,
         )
 
@@ -922,14 +945,12 @@ class Checkbox(Changeable, IOComponent):
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         interactive: Optional[bool] = None,
-        css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
         return {
             "label": label,
             "show_label": show_label,
             "interactive": interactive,
-            "css": css,
             "visible": visible,
             "value": value,
             "__type__": "update",
@@ -1004,8 +1025,8 @@ class CheckboxGroup(Changeable, IOComponent):
         label: Optional[str] = None,
         show_label: bool = True,
         interactive: Optional[bool] = None,
-        css: Optional[Dict] = None,
         visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -1015,7 +1036,6 @@ class CheckboxGroup(Changeable, IOComponent):
         type (str): Type of value to be returned by component. "value" returns the list of strings of the choices selected, "index" returns the list of indicies of the choices selected.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
-        css (Optional[Dict]): Provided css rules will be applied to component.
         visible (bool): If False, component will be hidden.
         """
         if (
@@ -1033,8 +1053,8 @@ class CheckboxGroup(Changeable, IOComponent):
             label=label,
             show_label=show_label,
             interactive=interactive,
-            css=css,
             visible=visible,
+            elem_id=elem_id,
             **kwargs,
         )
 
@@ -1052,7 +1072,6 @@ class CheckboxGroup(Changeable, IOComponent):
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         interactive: Optional[bool] = None,
-        css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
         return {
@@ -1060,7 +1079,6 @@ class CheckboxGroup(Changeable, IOComponent):
             "label": label,
             "show_label": show_label,
             "interactive": interactive,
-            "css": css,
             "visible": visible,
             "value": value,
             "__type__": "update",
@@ -1158,8 +1176,8 @@ class Radio(Changeable, IOComponent):
         label: Optional[str] = None,
         show_label: bool = True,
         interactive: Optional[bool] = None,
-        css: Optional[Dict] = None,
         visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -1169,7 +1187,6 @@ class Radio(Changeable, IOComponent):
         type (str): Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
-        css (Optional[Dict]): Provided css rules will be applied to component.
         visible (bool): If False, component will be hidden.
         """
         self.choices = choices
@@ -1189,8 +1206,8 @@ class Radio(Changeable, IOComponent):
             label=label,
             show_label=show_label,
             interactive=interactive,
-            css=css,
             visible=visible,
+            elem_id=elem_id,
             **kwargs,
         )
 
@@ -1208,7 +1225,6 @@ class Radio(Changeable, IOComponent):
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         interactive: Optional[bool] = None,
-        css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
         return {
@@ -1216,7 +1232,6 @@ class Radio(Changeable, IOComponent):
             "label": label,
             "show_label": show_label,
             "interactive": interactive,
-            "css": css,
             "visible": visible,
             "value": value,
             "__type__": "update",
@@ -1296,8 +1311,8 @@ class Dropdown(Radio):
         label: Optional[str] = None,
         show_label: bool = True,
         interactive: Optional[bool] = None,
-        css: Optional[Dict] = None,
         visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -1307,7 +1322,6 @@ class Dropdown(Radio):
         type (str): Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
-        css (Optional[Dict]): Provided css rules will be applied to component.
         visible (bool): If False, component will be hidden.
         """
         # Everything is same with Dropdown and Radio, so let's make use of it :)
@@ -1319,8 +1333,8 @@ class Dropdown(Radio):
             label=label,
             show_label=show_label,
             interactive=interactive,
-            css=css,
             visible=visible,
+            elem_id=elem_id,
             **kwargs,
         )
 
@@ -1347,8 +1361,8 @@ class Image(Editable, Clearable, IOComponent):
         label: Optional[str] = None,
         show_label: bool = True,
         interactive: Optional[bool] = None,
-        css: Optional[Dict] = None,
         visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -1362,7 +1376,6 @@ class Image(Editable, Clearable, IOComponent):
         type (str): The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
-        css (Optional[Dict]): Provided css rules will be applied to component.
         visible (bool): If False, component will be hidden.
         """
         self.type = type
@@ -1384,8 +1397,8 @@ class Image(Editable, Clearable, IOComponent):
             label=label,
             show_label=show_label,
             interactive=interactive,
-            css=css,
             visible=visible,
+            elem_id=elem_id,
             requires_permissions=requires_permissions,
             **kwargs,
         )
@@ -1406,14 +1419,12 @@ class Image(Editable, Clearable, IOComponent):
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         interactive: Optional[bool] = None,
-        css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
         return {
             "label": label,
             "show_label": show_label,
             "interactive": interactive,
-            "css": css,
             "visible": visible,
             "value": value,
             "__type__": "update",
@@ -1661,8 +1672,8 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         label: Optional[str] = None,
         show_label: bool = True,
         interactive: Optional[bool] = None,
-        css: Optional[Dict] = None,
         visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -1672,7 +1683,6 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         source (str): Source of video. "upload" creates a box where user can drop an video file, "webcam" allows user to record a video from their webcam.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
-        css (Optional[Dict]): Provided css rules will be applied to component.
         visible (bool): If False, component will be hidden.
         """
         self.value = (
@@ -1685,8 +1695,8 @@ class Video(Changeable, Clearable, Playable, IOComponent):
             label=label,
             show_label=show_label,
             interactive=interactive,
-            css=css,
             visible=visible,
+            elem_id=elem_id,
             **kwargs,
         )
 
@@ -1704,7 +1714,6 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         interactive: Optional[bool] = None,
-        css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
         return {
@@ -1712,7 +1721,6 @@ class Video(Changeable, Clearable, Playable, IOComponent):
             "label": label,
             "show_label": show_label,
             "interactive": interactive,
-            "css": css,
             "visible": visible,
             "value": value,
             "__type__": "update",
@@ -1806,8 +1814,8 @@ class Audio(Changeable, Clearable, Playable, IOComponent):
         label: Optional[str] = None,
         show_label: bool = True,
         interactive: Optional[bool] = None,
-        css: Optional[Dict] = None,
         visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -1817,7 +1825,6 @@ class Audio(Changeable, Clearable, Playable, IOComponent):
         type (str): The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
-        css (Optional[Dict]): Provided css rules will be applied to component.
         visible (bool): If False, component will be hidden.
         """
         self.value = (
@@ -1834,8 +1841,8 @@ class Audio(Changeable, Clearable, Playable, IOComponent):
             label=label,
             show_label=show_label,
             interactive=interactive,
-            css=css,
             visible=visible,
+            elem_id=elem_id,
             requires_permissions=requires_permissions,
             **kwargs,
         )
@@ -1854,7 +1861,6 @@ class Audio(Changeable, Clearable, Playable, IOComponent):
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         interactive: Optional[bool] = None,
-        css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
         return {
@@ -1862,7 +1868,6 @@ class Audio(Changeable, Clearable, Playable, IOComponent):
             "label": label,
             "show_label": show_label,
             "interactive": interactive,
-            "css": css,
             "visible": visible,
             "value": value,
             "__type__": "update",
@@ -2089,8 +2094,8 @@ class File(Changeable, Clearable, IOComponent):
         label: Optional[str] = None,
         show_label: bool = True,
         interactive: Optional[bool] = None,
-        css: Optional[Dict] = None,
         visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -2100,7 +2105,6 @@ class File(Changeable, Clearable, IOComponent):
         type (str): Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name, "binary" returns an bytes object.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
-        css (Optional[Dict]): Provided css rules will be applied to component.
         visible (bool): If False, component will be hidden.
         """
         self.value = (
@@ -2114,8 +2118,8 @@ class File(Changeable, Clearable, IOComponent):
             label=label,
             show_label=show_label,
             interactive=interactive,
-            css=css,
             visible=visible,
+            elem_id=elem_id,
             **kwargs,
         )
 
@@ -2132,14 +2136,12 @@ class File(Changeable, Clearable, IOComponent):
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         interactive: Optional[bool] = None,
-        css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
         return {
             "label": label,
             "show_label": show_label,
             "interactive": interactive,
-            "css": css,
             "visible": visible,
             "value": value,
             "__type__": "update",
@@ -2241,8 +2243,8 @@ class Dataframe(Changeable, IOComponent):
         label: Optional[str] = None,
         show_label: bool = True,
         interactive: Optional[bool] = None,
-        css: Optional[Dict] = None,
         visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -2258,7 +2260,6 @@ class Dataframe(Changeable, IOComponent):
         overflow_row_behaviour (str): If set to "paginate", will create pages for overflow rows. If set to "show_ends", will show initial and final rows and truncate middle rows.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
-        css (Optional[Dict]): Provided css rules will be applied to component.
         visible (bool): If False, component will be hidden.
         """
 
@@ -2294,8 +2295,8 @@ class Dataframe(Changeable, IOComponent):
             label=label,
             show_label=show_label,
             interactive=interactive,
-            css=css,
             visible=visible,
+            elem_id=elem_id,
             **kwargs,
         )
 
@@ -2320,7 +2321,6 @@ class Dataframe(Changeable, IOComponent):
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         interactive: Optional[bool] = None,
-        css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
         return {
@@ -2329,7 +2329,6 @@ class Dataframe(Changeable, IOComponent):
             "label": label,
             "show_label": show_label,
             "interactive": interactive,
-            "css": css,
             "visible": visible,
             "value": value,
             "__type__": "update",
@@ -2447,8 +2446,8 @@ class Timeseries(Changeable, IOComponent):
         label: Optional[str] = None,
         show_label: bool = True,
         interactive: Optional[bool] = None,
-        css: Optional[Dict] = None,
         visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -2458,7 +2457,6 @@ class Timeseries(Changeable, IOComponent):
         y (Union[str, List[str]]): Column name of y series, or list of column names if multiple series. None if csv has no headers, in which case every column after first is a y series.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
-        css (Optional[Dict]): Provided css rules will be applied to component.
         visible (bool): If False, component will be hidden.
         colors List[str]: an ordered list of colors to use for each line plot
         """
@@ -2473,8 +2471,8 @@ class Timeseries(Changeable, IOComponent):
             label=label,
             show_label=show_label,
             interactive=interactive,
-            css=css,
             visible=visible,
+            elem_id=elem_id,
             **kwargs,
         )
 
@@ -2494,7 +2492,6 @@ class Timeseries(Changeable, IOComponent):
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         interactive: Optional[bool] = None,
-        css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
         return {
@@ -2502,7 +2499,6 @@ class Timeseries(Changeable, IOComponent):
             "label": label,
             "show_label": show_label,
             "interactive": interactive,
-            "css": css,
             "visible": visible,
             "value": value,
             "__type__": "update",
@@ -2603,8 +2599,8 @@ class Label(Changeable, IOComponent):
         num_top_classes: Optional[int] = None,
         label: Optional[str] = None,
         show_label: bool = True,
-        css: Optional[Dict] = None,
         visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -2613,14 +2609,18 @@ class Label(Changeable, IOComponent):
         num_top_classes (int): number of most confident classes to show.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
-        css (Optional[Dict]): Provided css rules will be applied to component.
         visible (bool): If False, component will be hidden.
         """
         # TODO: Shall we have a default value for the label component?
         self.num_top_classes = num_top_classes
         self.output_type = "auto"
         IOComponent.__init__(
-            self, label=label, show_label=show_label, css=css, visible=visible, **kwargs
+            self,
+            label=label,
+            show_label=show_label,
+            visible=visible,
+            elem_id=elem_id,
+            **kwargs,
         )
 
     def postprocess(self, y):
@@ -2699,13 +2699,11 @@ class Label(Changeable, IOComponent):
         value: Optional[Any] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
-        css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
         return {
             "label": label,
             "show_label": show_label,
-            "css": css,
             "visible": visible,
             "value": value,
             "__type__": "update",
@@ -2728,8 +2726,8 @@ class HighlightedText(Changeable, IOComponent):
         show_legend: bool = False,
         label: Optional[str] = None,
         show_label: bool = True,
-        css: Optional[Dict] = None,
         visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -2739,14 +2737,18 @@ class HighlightedText(Changeable, IOComponent):
         show_legend (bool): whether to show span categories in a separate legend or inline.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
-        css (Optional[Dict]): Provided css rules will be applied to component.
         visible (bool): If False, component will be hidden.
         """
         self.value = value
         self.color_map = color_map
         self.show_legend = show_legend
         IOComponent.__init__(
-            self, label=label, show_label=show_label, css=css, visible=visible, **kwargs
+            self,
+            label=label,
+            show_label=show_label,
+            visible=visible,
+            elem_id=elem_id,
+            **kwargs,
         )
 
     def get_config(self):
@@ -2764,7 +2766,6 @@ class HighlightedText(Changeable, IOComponent):
         show_legend: Optional[bool] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
-        css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
         return {
@@ -2772,7 +2773,6 @@ class HighlightedText(Changeable, IOComponent):
             "show_legend": show_legend,
             "label": label,
             "show_label": show_label,
-            "css": css,
             "visible": visible,
             "value": value,
             "__type__": "update",
@@ -2808,8 +2808,8 @@ class JSON(Changeable, IOComponent):
         *,
         label: Optional[str] = None,
         show_label: bool = True,
-        css: Optional[Dict] = None,
         visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -2817,12 +2817,16 @@ class JSON(Changeable, IOComponent):
         value (str): Default value
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
-        css (Optional[Dict]): Provided css rules will be applied to component.
         visible (bool): If False, component will be hidden.
         """
         self.value = json.dumps(value)
         IOComponent.__init__(
-            self, label=label, show_label=show_label, css=css, visible=visible, **kwargs
+            self,
+            label=label,
+            show_label=show_label,
+            visible=visible,
+            elem_id=elem_id,
+            **kwargs,
         )
 
     def get_config(self):
@@ -2836,13 +2840,11 @@ class JSON(Changeable, IOComponent):
         value: Optional[Any] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
-        css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
         return {
             "label": label,
             "show_label": show_label,
-            "css": css,
             "visible": visible,
             "value": value,
             "__type__": "update",
@@ -2880,8 +2882,8 @@ class HTML(Changeable, IOComponent):
         *,
         label: Optional[str] = None,
         show_label: bool = True,
-        css: Optional[Dict] = None,
         visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -2889,12 +2891,16 @@ class HTML(Changeable, IOComponent):
         value (str): Default value
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
-        css (Optional[Dict]): Provided css rules will be applied to component.
         visible (bool): If False, component will be hidden.
         """
         self.value = value
         IOComponent.__init__(
-            self, label=label, show_label=show_label, css=css, visible=visible, **kwargs
+            self,
+            label=label,
+            show_label=show_label,
+            visible=visible,
+            elem_id=elem_id,
+            **kwargs,
         )
 
     def get_config(self):
@@ -2908,13 +2914,11 @@ class HTML(Changeable, IOComponent):
         value: Optional[Any] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
-        css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
         return {
             "label": label,
             "show_label": show_label,
-            "css": css,
             "visible": visible,
             "value": value,
             "__type__": "update",
@@ -2936,19 +2940,22 @@ class Gallery(IOComponent):
         *,
         label: Optional[str] = None,
         show_label: bool = True,
-        css: Optional[Dict] = None,
         visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
-        css (Optional[Dict]): Provided css rules will be applied to component.
         visible (bool): If False, component will be hidden.
         """
         super().__init__(
-            label=label, show_label=show_label, css=css, visible=visible, **kwargs
+            label=label,
+            show_label=show_label,
+            visible=visible,
+            elem_id=elem_id,
+            **kwargs,
         )
 
     @staticmethod
@@ -2956,13 +2963,11 @@ class Gallery(IOComponent):
         value: Optional[Any] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
-        css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
         return {
             "label": label,
             "show_label": show_label,
-            "css": css,
             "visible": visible,
             "value": value,
             "__type__": "update",
@@ -3005,8 +3010,8 @@ class Carousel(IOComponent):
         components: Component | List[Component],
         label: Optional[str] = None,
         show_label: bool = True,
-        css: Optional[Dict] = None,
         visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -3014,7 +3019,6 @@ class Carousel(IOComponent):
         components (Union[List[OutputComponent], OutputComponent]): Classes of component(s) that will be scrolled through.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
-        css (Optional[Dict]): Provided css rules will be applied to component.
         visible (bool): If False, component will be hidden.
         """
         if not isinstance(components, list):
@@ -3023,7 +3027,12 @@ class Carousel(IOComponent):
             get_component_instance(component) for component in components
         ]
         IOComponent.__init__(
-            self, label=label, show_label=show_label, css=css, visible=visible, **kwargs
+            self,
+            label=label,
+            show_label=show_label,
+            visible=visible,
+            elem_id=elem_id,
+            **kwargs,
         )
 
     def get_config(self):
@@ -3037,13 +3046,11 @@ class Carousel(IOComponent):
         value: Optional[Any] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
-        css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
         return {
             "label": label,
             "show_label": show_label,
-            "css": css,
             "visible": visible,
             "value": value,
             "__type__": "update",
@@ -3106,8 +3113,8 @@ class Chatbot(Changeable, IOComponent):
         *,
         label: Optional[str] = None,
         show_label: bool = True,
-        css: Optional[Dict] = None,
         visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -3116,13 +3123,17 @@ class Chatbot(Changeable, IOComponent):
         color_map (Tuple[str, str]): Chat bubble color of input text and output text respectively.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
-        css (Optional[Dict]): Provided css rules will be applied to component.
         visible (bool): If False, component will be hidden.
         """
         self.value = value
         self.color_map = color_map
         IOComponent.__init__(
-            self, label=label, show_label=show_label, css=css, visible=visible, **kwargs
+            self,
+            label=label,
+            show_label=show_label,
+            visible=visible,
+            elem_id=elem_id,
+            **kwargs,
         )
 
     def get_config(self):
@@ -3138,14 +3149,12 @@ class Chatbot(Changeable, IOComponent):
         color_map: Optional[Tuple(str, str)] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
-        css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
         return {
             "color_map": color_map,
             "label": label,
             "show_label": show_label,
-            "css": css,
             "visible": visible,
             "value": value,
             "__type__": "update",
@@ -3176,8 +3185,8 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
         clear_color=None,
         label: Optional[str] = None,
         show_label: bool = True,
-        css: Optional[Dict] = None,
         visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -3185,12 +3194,16 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
         clear_color (List[r, g, b, a]): background color of scene
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
-        css (Optional[Dict]): Provided css rules will be applied to component.
         visible (bool): If False, component will be hidden.
         """
         self.clear_color = clear_color
         IOComponent.__init__(
-            self, label=label, show_label=show_label, css=css, visible=visible, **kwargs
+            self,
+            label=label,
+            show_label=show_label,
+            visible=visible,
+            elem_id=elem_id,
+            **kwargs,
         )
 
     def get_config(self):
@@ -3204,13 +3217,11 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
         value: Optional[Any] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
-        css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
         return {
             "label": label,
             "show_label": show_label,
-            "css": css,
             "visible": visible,
             "value": value,
             "__type__": "update",
@@ -3296,8 +3307,8 @@ class Plot(Changeable, Clearable, IOComponent):
         type: str = None,
         label: Optional[str] = None,
         show_label: bool = True,
-        css: Optional[Dict] = None,
         visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -3305,12 +3316,16 @@ class Plot(Changeable, Clearable, IOComponent):
         type (str): type of plot (matplotlib, plotly)
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
-        css (Optional[Dict]): Provided css rules will be applied to component.
         visible (bool): If False, component will be hidden.
         """
         self.type = type
         IOComponent.__init__(
-            self, label=label, show_label=show_label, css=css, visible=visible, **kwargs
+            self,
+            label=label,
+            show_label=show_label,
+            visible=visible,
+            elem_id=elem_id,
+            **kwargs,
         )
 
     def get_config(self):
@@ -3321,13 +3336,11 @@ class Plot(Changeable, Clearable, IOComponent):
         value: Optional[Any] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
-        css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
         return {
             "label": label,
             "show_label": show_label,
-            "css": css,
             "visible": visible,
             "value": value,
             "__type__": "update",
@@ -3374,17 +3387,16 @@ class Markdown(Component):
         self,
         value: str = "",
         *,
-        css: Optional[Dict] = None,
         visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
         value (str): Default value
-        css (Optional[Dict]): Provided css rules will be applied to component.
         visible (bool): If False, component will be hidden.
         """
-        Component.__init__(self, css=css, visible=visible, **kwargs)
+        Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.md = MarkdownIt()
         unindented_value = inspect.cleandoc(value)
         self.value = self.md.render(unindented_value)
@@ -3402,11 +3414,9 @@ class Markdown(Component):
     @staticmethod
     def update(
         value: Optional[Any] = None,
-        css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
         return {
-            "css": css,
             "visible": visible,
             "value": value,
             "__type__": "update",
@@ -3428,18 +3438,17 @@ class Button(Clickable, Component):
         value: str = "",
         *,
         variant: str = "primary",
-        css: Optional[Dict] = None,
         visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
         value (str): Default value
         variant (str): 'primary' for main call-to-action, 'secondary' for a more subdued style
-        css (Optional[Dict]): Provided css rules will be applied to component.
         visible (bool): If False, component will be hidden.
         """
-        Component.__init__(self, css=css, visible=visible, **kwargs)
+        Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.value = value
         self.variant = variant
 
@@ -3454,16 +3463,28 @@ class Button(Clickable, Component):
     def update(
         value: Optional[Any] = None,
         variant: Optional[str] = None,
-        css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
         return {
             "variant": variant,
-            "css": css,
             "visible": visible,
             "value": value,
             "__type__": "update",
         }
+    
+    def style(
+        self,
+        rounded: Optional[bool] = None,
+        bg_color: Optional[str] = None,
+        text_color: Optional[str] = None,
+    ):
+        if rounded is not None:
+            self._style["rounded"] = rounded
+        if bg_color is not None:
+            self._style["bg_color"] = bg_color
+        if text_color is not None:
+            self._style["text_color"] = text_color
+        return self
 
 
 class Dataset(Clickable, Component):
@@ -3478,18 +3499,17 @@ class Dataset(Clickable, Component):
         components: List[Component],
         samples: List[List[Any]],
         type: str = "values",
-        css: Optional[Dict] = None,
         visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
         components (List[Component]): Default value
         variant (str): 'primary' for main call-to-action, 'secondary' for a more subdued style
-        css (Optional[Dict]): Provided css rules will be applied to component.
         visible (bool): If False, component will be hidden.
         """
-        Component.__init__(self, css=css, visible=visible, **kwargs)
+        Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.components = components
         self.type = type
         self.headers = [c.label for c in components]
@@ -3507,11 +3527,9 @@ class Dataset(Clickable, Component):
     @staticmethod
     def update(
         value: Optional[Any] = None,
-        css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
         return {
-            "css": css,
             "visible": visible,
             "value": value,
             "__type__": "update",
@@ -3536,11 +3554,11 @@ class Interpretation(Component):
         self,
         component: Component,
         *,
-        css: Optional[Dict] = None,
         visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
-        Component.__init__(self, css=css, visible=visible, **kwargs)
+        Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.component = component
 
     def get_config(self):
@@ -3552,11 +3570,9 @@ class Interpretation(Component):
     @staticmethod
     def update(
         value: Optional[Any] = None,
-        css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
         return {
-            "css": css,
             "visible": visible,
             "value": value,
             "__type__": "update",
@@ -3572,16 +3588,15 @@ class StatusTracker(Component):
         self,
         *,
         cover_container: bool = False,
-        css: Optional[Dict] = None,
         visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
         cover_container (bool): If True, will expand to cover parent container while function pending.
-        css (dict): optional css parameters for the component
         """
-        Component.__init__(self, css=css, visible=visible, **kwargs)
+        Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.cover_container = cover_container
 
     def get_config(self):
@@ -3593,11 +3608,9 @@ class StatusTracker(Component):
     @staticmethod
     def update(
         value: Optional[Any] = None,
-        css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
         return {
-            "css": css,
             "visible": visible,
             "value": value,
             "__type__": "update",

@@ -8,8 +8,8 @@
 	import type { LoadingStatus } from "../StatusTracker/types";
 	import { _ } from "svelte-i18n";
 
+	export let elem_id: string = "";
 	export let value: null | FileData = null;
-	export let style: string = "";
 	export let mode: "static" | "dynamic";
 	export let root: string;
 	export let label: string;
@@ -27,6 +27,7 @@
 	variant={mode === "dynamic" && value === null ? "dashed" : "solid"}
 	color={dragging ? "green" : "grey"}
 	padding={false}
+	{elem_id}
 >
 	<StatusTracker {...loading_status} />
 
@@ -37,7 +38,7 @@
 			value={_value}
 			on:change={({ detail }) => (value = detail)}
 			on:drag={({ detail }) => (dragging = detail)}
-			{style}
+			
 			on:change
 			on:clear
 			drop_text={$_("interface.drop_file")}
@@ -45,6 +46,6 @@
 			upload_text={$_("interface.click_to_upload")}
 		/>
 	{:else}
-		<File value={_value} {style} {label} {show_label} />
+		<File value={_value}  {label} {show_label} />
 	{/if}
 </Block>

@@ -6,7 +6,7 @@
 	export let collapsed = depth > 4;
 </script>
 
-<div class="json-node inline" {theme} {style}>
+<div class="json-node inline" {theme} >
 	{#if value instanceof Array}
 		{#if collapsed}
 			<button
@@ -26,7 +26,7 @@
 							depth={depth + 1}
 							key={i}
 							{theme}
-							{style}
+							
 						/>
 						{#if i !== value.length - 1}
 							,
@@ -55,7 +55,7 @@
 							depth={depth + 1}
 							key={i}
 							{theme}
-							{style}
+							
 						/><!--
             -->{#if i !== Object.keys(value).length - 1}<!--
             -->,

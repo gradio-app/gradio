@@ -3,10 +3,10 @@
 	import { BlockTitle } from "@gradio/atoms";
 
 	export let value: string;
+	export let style: Record<string, string> = {};
 	export let choices: Array<string>;
 	export let disabled: boolean = false;
 	export let label: string;
-	export let style: string = "";
 	export let form_position: "first" | "last" | "mid" | "single" = "single";
 	export let show_label: boolean;
 

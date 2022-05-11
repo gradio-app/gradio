@@ -7,8 +7,8 @@
 	import type { LoadingStatus } from "../StatusTracker/types";
 
 	export let label: string = "Textbox";
+	export let elem_id: string = "";
 	export let value: string = "";
-	export let style: string = "";
 	export let lines: number;
 	export let placeholder: string = "";
 	export let form_position: "first" | "last" | "mid" | "single" = "single";
@@ -20,14 +20,13 @@
 	export let mode: "static" | "dynamic";
 </script>
 
-<Block {form_position}>
+<Block {form_position} {elem_id}>
 	<StatusTracker {...loading_status} />
 
 	<TextBox
 		bind:value
 		{label}
 		{show_label}
-		{style}
 		{lines}
 		max_lines={!max_lines && mode === "static" ? lines + 1 : max_lines}
 		{placeholder}

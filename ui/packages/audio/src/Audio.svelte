@@ -17,7 +17,6 @@
 	export let value: null | { name: string; data: string } = null;
 	export let label: string;
 	export let show_label: boolean;
-	export let style: string = "";
 	export let name: string;
 	export let source: "microphone" | "upload" | "none";
 	export let drop_text: string = "Drop an audio file";

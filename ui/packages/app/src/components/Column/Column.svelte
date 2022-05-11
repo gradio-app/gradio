@@ -1,11 +1,12 @@
 <script lang="ts">
-	export let style: string = "";
+	export let elem_id: string = "";
 	export let variant: "default" | "panel" = "default";
 	export let parent: string | null = null;
 </script>
 
 <div
-	{style}
+	
+	id={elem_id}
 	class:bg-gray-50={variant === "panel"}
 	class:p-2={variant === "panel"}
 	class:rounded-lg={variant === "panel"}

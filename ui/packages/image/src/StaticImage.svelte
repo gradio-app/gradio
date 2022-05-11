@@ -6,7 +6,6 @@
 
 	export let value: null | string;
 	export let label: string | undefined = undefined;
-	export let style: string = "";
 	export let show_label: boolean;
 
 	const dispatch = createEventDispatcher<{
@@ -22,5 +21,5 @@
 		<div class="h-10 dark:text-white opacity-50"><Image /></div>
 	</div>
 {:else}
-	<img class="w-full h-full object-contain" src={value} {style} alt="" />
+	<img class="w-full h-full object-contain" src={value}  alt="" />
 {/if}

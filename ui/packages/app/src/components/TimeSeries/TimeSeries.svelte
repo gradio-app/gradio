@@ -28,8 +28,8 @@
 		headers?: Array<string>;
 	}
 
+	export let elem_id: string = "";
 	export let value: null | Data;
-	export let style: string = "";
 	export let y: Array<string>;
 	export let x: string;
 	export let mode: "static" | "dynamic";
@@ -117,6 +117,7 @@
 	variant={mode === "dynamic" && !_value ? "dashed" : "solid"}
 	color={"grey"}
 	padding={false}
+	{elem_id}
 >
 	<BlockLabel {show_label} Icon={ChartIcon} label={label || "TimeSeries"} />
 	<StatusTracker {...loading_status} />
@@ -143,7 +144,7 @@
 				filetype="text/csv"
 				on:load={({ detail }) => handle_load(detail)}
 				include_file_metadata={false}
-				{style}
+				
 			>
 				{$_("interface.drop_csv")}
 				<br />- {$_("or")} -<br />
