@@ -5,7 +5,7 @@
 	export let label: string;
 	export let value: string | undefined = undefined;
 	export let choices: Array<string>;
-	export let style: string = "";
+	export let style: Record<string, string> = {};
 	export let disabled: boolean = false;
 	export let show_label: boolean;
 
@@ -15,11 +15,12 @@
 </script>
 
 <label>
-	<BlockTitle {show_label}>{label}</BlockTitle>
+	<BlockTitle {show_label} style={style["label"]}>{label}</BlockTitle>
 	<select
 		class="gr-box gr-input w-full disabled:cursor-not-allowed"
 		bind:value
 		{disabled}
+		style={style["main"]}
 	>
 		{#each choices as choice, i}
 			<option>{choice}</option>

@@ -6,7 +6,7 @@
 	export let lines: number = 1;
 	export let placeholder: string = "Type here...";
 	export let label: string;
-	export let style: string = "";
+	export let style: Record<string, string> = {};
 	export let disabled = false;
 	export let show_label: boolean = true;
 	export let max_lines: number | false;
@@ -77,7 +77,7 @@
 
 <!-- svelte-ignore a11y-label-has-associated-control -->
 <label class="block">
-	<BlockTitle {show_label}>{label}</BlockTitle>
+	<BlockTitle {show_label} style={style["label"]}>{label}</BlockTitle>
 
 	<textarea
 		use:text_area_resize={value}
@@ -85,7 +85,7 @@
 		bind:value
 		bind:this={el}
 		{placeholder}
-		{style}
+		style={style["main"]}
 		rows={lines}
 		{disabled}
 	/>

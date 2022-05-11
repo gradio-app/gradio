@@ -11,7 +11,7 @@
 	export let value: FileData | null = null;
 	export let source: string;
 	export let label: string | undefined = undefined;
-	export let style: string = "";
+	export let style: Record<string, string> = {};
 	export let show_label: boolean;
 
 	export let drop_text: string = "Drop a video file";
@@ -49,6 +49,7 @@
 			bind:dragging
 			filetype="video/mp4,video/x-m4v,video/*"
 			on:load={handle_load}
+			style={style["upload"]}
 		>
 			<div class="flex flex-col">
 				{drop_text}
@@ -60,7 +61,7 @@
 		<Webcam mode="video" on:capture={({ detail }) => (value = detail)} />
 	{/if}
 {:else}
-	<ModifyUpload on:clear={handle_clear} />
+	<ModifyUpload on:clear={handle_clear} {style} />
 	{#if playable(value.name)}
 		<!-- svelte-ignore a11y-media-has-caption -->
 		<video
@@ -69,6 +70,7 @@
 			playsInline
 			preload="auto"
 			src={value.data}
+			style={style["main"]}
 			on:play
 			on:pause
 			on:ended

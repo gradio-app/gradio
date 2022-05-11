@@ -5,7 +5,7 @@
 	export let value: number = 0;
 	export let disabled: boolean = false;
 	export let label: string;
-	export let style: string = "";
+	export let style: Record<string, string> = {};
 	export let show_label: boolean;
 
 	const dispatch = createEventDispatcher<{
@@ -31,12 +31,13 @@
 
 <!-- svelte-ignore a11y-label-has-associated-control -->
 <label class="block">
-	<BlockTitle {show_label}>{label}</BlockTitle>
+	<BlockTitle {show_label} style={style["label"]}>{label}</BlockTitle>
 	<input
 		type="number"
 		class="gr-box gr-input w-full gr-text-input"
 		bind:value
 		on:keypress={handle_keypress}
 		{disabled}
+		style={style["main"]}
 	/>
 </label>

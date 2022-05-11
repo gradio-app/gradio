@@ -3,7 +3,7 @@
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
 
-	export let style: string = "";
+	export let style: Record<string, string> = {};
 	export let loading_status: LoadingStatus;
 </script>
 

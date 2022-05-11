@@ -7,7 +7,7 @@
 	export let single_file: boolean = true;
 	export let include_file_metadata = true;
 	export let dragging = false;
-	export let style: string = "";
+	export let style: string | undefined = "";
 	export let boundedheight: boolean = true;
 	export let click: boolean = true;
 	export let center: boolean = true;
@@ -75,6 +75,7 @@
 	class:text-center={center}
 	class:flex
 	{theme}
+	{style}
 	on:drag|preventDefault|stopPropagation
 	on:dragstart|preventDefault|stopPropagation
 	on:dragend|preventDefault|stopPropagation

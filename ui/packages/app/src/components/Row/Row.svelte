@@ -1,5 +1,5 @@
 <script lang="ts">
-	export let style: string = "";
+	export let style: Record<string, string> = {};
 	export let parent: string | null = null;
 </script>
 

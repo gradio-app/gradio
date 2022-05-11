@@ -8,7 +8,7 @@
 
 	export let label: string = "Slider";
 
-	export let style: string = "";
+	export let style: Record<string, string> = {};
 	export let minimum: number;
 	export let maximum: number;
 	export let step: number;
@@ -19,7 +19,7 @@
 	export let loading_status: LoadingStatus;
 </script>
 
-<Block {form_position}>
+<Block {form_position} style={style["container"]}>
 	<StatusTracker {...loading_status} />
 
 	<Range

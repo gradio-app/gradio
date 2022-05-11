@@ -6,7 +6,7 @@
 
 	export let label: string = "Dropdown";
 	export let value: string = "";
-	export let style: string = "";
+	export let style: Record<string, string> = {};
 	export let choices: Array<string>;
 	export let form_position: "first" | "last" | "mid" | "single" = "single";
 	export let show_label: boolean;
@@ -16,7 +16,7 @@
 	export let mode: "static" | "dynamic";
 </script>
 
-<Block {form_position}>
+<Block {form_position} style={style["container"]}>
 	<StatusTracker {...loading_status} />
 
 	<Dropdown bind:value {style} {choices} {label} {show_label} on:change />

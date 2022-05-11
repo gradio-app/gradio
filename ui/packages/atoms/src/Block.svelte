@@ -9,6 +9,7 @@
 		undefined;
 	export let type: "normal" | "fieldset" = "normal";
 	export let test_id: string | undefined = undefined;
+	export let style: string | undefined = "";
 
 	const styles = {
 		dashed: "border-dashed border-[3px]",
@@ -46,6 +47,7 @@
 	this={tag}
 	data-testid={test_id}
 	class="gr-box overflow-hidden {styles[variant]} {styles[color]} {form_class}"
+	{style}
 	class:gr-panel={padding}
 	class:form={form_position}
 	class:flex-1={parent === "row" || null}
