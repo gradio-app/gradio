@@ -16,7 +16,7 @@ class Parallel(gradio.Interface):
         *interfaces (Interface): any number of Interface objects that are to be compared in parallel
         **options (optional): additional kwargs that are passed into the new Interface object to customize it
         Returns:
-        (Interface): an Interface object comparing the given models        
+        (Interface): an Interface object comparing the given models
         """
         fns = []
         outputs = []
@@ -50,7 +50,7 @@ class Series(gradio.Interface):
         *interfaces (Interface): any number of Interface objects that are to be connected in series
         **options (optional): additional kwargs that are passed into the new Interface object to customize it
         Returns:
-        (Interface): an Interface object connecting the given models        
+        (Interface): an Interface object connecting the given models
         """
         fns = [io.predict for io in interfaces]
 
