@@ -49,7 +49,7 @@ class Column(BlockContext):
 
 class Tabs(BlockContext):
     """
-    A layout element within Blocks that can contain multiple TabItem()'s which get
+    Tabs are a layout element within Blocks that contain multiple TabItem()'s which get
     rendered as tabs. The TabItem()'s must be nested within the Tabs() context.
     """    
     
@@ -72,7 +72,7 @@ class Tabs(BlockContext):
 
 class TabItem(BlockContext):
     """
-    A layout element that creates a tab within the parent Tab() context. All children
+    A layout element that creates a tab within the parent Tabs() context. All children
     are rendered within the tab vertically by default.
     """    
     
