@@ -9,6 +9,11 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 
 class Row(BlockContext):
+    """
+    A layout element within Blocks that renders all children horizontally.
+
+    Demos: blocks_flipper, blocks_layout
+    """
     def __init__(self, visible: bool = True, css: Optional[Dict[str, str]] = None):
         """
         css: Css rules to apply to block.
@@ -20,6 +25,11 @@ class Row(BlockContext):
 
 
 class Column(BlockContext):
+    """
+    A layout element within Blocks that renders all children vertically.
+
+    Demos: blocks_flipper, blocks_layout
+    """    
     def __init__(
         self,
         visible: bool = True,
@@ -42,6 +52,13 @@ class Column(BlockContext):
 
 
 class Tabs(BlockContext):
+    """
+    A layout element within Blocks that can contain multiple TabItem()'s which get
+    rendered as tabs. The TabItem()'s must be nested within the Tabs() context.
+
+    Demos: blocks_flipper, blocks_xray
+    """    
+    
     def __init__(self, visible: bool = True, css: Optional[Dict[str, str]] = None):
         """
         css: css rules to apply to block.
@@ -60,6 +77,13 @@ class Tabs(BlockContext):
 
 
 class TabItem(BlockContext):
+    """
+    A layout element that creates a tab within the parent Tab() context. All children
+    are rendered within the tab vertically by default.
+
+    Demos: blocks_flipper, blocks_xray
+    """    
+    
     def __init__(
         self, label, visible: bool = True, css: Optional[Dict[str, str]] = None
     ):
