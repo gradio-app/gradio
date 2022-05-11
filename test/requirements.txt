@@ -293,8 +293,6 @@ pytz==2021.3
     #   pandas
 pywavelets==1.2.0
     # via scikit-image
-pywin32==227
-    # via docker
 pyyaml==6.0
     # via
     #   huggingface-hub
