@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import getpass
+import inspect
 import os
 import sys
 import time
 import warnings
 import webbrowser
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
+
+from fastapi.concurrency import run_in_threadpool
 
 from gradio import encryptor, networking, queueing, strings, utils
 from gradio.context import Context
@@ -291,7 +294,7 @@ class Blocks(BlockContext):
         if Context.block is not None:
             Context.block.children.extend(self.children)
 
-    def process_api(
+    async def process_api(
         self,
         data: PredictBody,
         username: str = None,
@@ -321,7 +324,11 @@ class Blocks(BlockContext):
         else:
             processed_input = raw_input
         start = time.time()
-        predictions = block_fn.fn(*processed_input)
+
+        if inspect.iscoroutinefunction(block_fn.fn):
+            predictions = await block_fn.fn(*processed_input)
+        else:
+            predictions = await run_in_threadpool(block_fn.fn, *processed_input)
         duration = time.time() - start
         block_fn.total_runtime += duration
         block_fn.total_runs += 1
