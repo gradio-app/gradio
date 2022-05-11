@@ -707,7 +707,7 @@ class CheckboxGroup(Changeable, IOComponent):
     Creates a set of checkboxes of which a subset can be checked.
     Preprocessing: passes the list of checked checkboxes as a {List[str]} or their indices as a {List[int]} into the function, depending on `type`.
     Postprocessing: expects a {List[str]}, each element of which becomes a checked checkbox.
-    
+
     Demos: sentence_builder, titanic_survival, fraud_detector
     """
 
@@ -1618,7 +1618,7 @@ class File(Changeable, Clearable, IOComponent):
     Creates a file component that allows uploading generic file (when used as an input) and or displaying generic files (output).
     Preprocessing: passes the uploaded file as a {file-object} or {List[file-object]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
     Postprocessing: expects a {str} path to a file returned by the function.
-    
+
     Demos: zip_to_json, zip_two_files
     """
 
@@ -1734,7 +1734,7 @@ class Dataframe(Changeable, IOComponent):
     Accepts or displays 2D input through a spreadsheet-like component for dataframes.
     Preprocessing: passes the uploaded spreadsheet data as a {pandas.DataFrame}, {numpy.array}, {List[List]}, or {List} depending on `type`
     Postprocessing: expects a {pandas.DataFrame}, {numpy.array}, {List[List]}, or {List} which is rendered in the spreadsheet.
-    
+
     Demos: filter_records, matrix_transpose, tax_calculator
     """
 
@@ -1912,7 +1912,7 @@ class Timeseries(Changeable, IOComponent):
     Creates a component that can be used to upload/preview timeseries csv files or display a dataframe consisting of a time series graphically.
     Preprocessing: passes the uploaded timeseries data as a {pandas.DataFrame} into the function
     Postprocessing: expects a {pandas.DataFrame} to be returned, which is then displayed as a timeseries graph
-        
+
     Demos: fraud_detector
     """
 
@@ -2002,10 +2002,10 @@ class Timeseries(Changeable, IOComponent):
 class Model3D(Changeable, Editable, Clearable, IOComponent):
     """
     Can be used to upload (input) or display (output) 3D model object (.obj, glb, or .gltf) files.
-    
+
     Preprocessing: passes a {str} filepath corresponding to the model file to the function
     Postprocessing: expects a {str} filepath corresponding to the model file to be returned
-    
+
     Demos: model3d
     """
 
@@ -2099,7 +2099,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
 
 class Variable(IOComponent):
     """
-    Special hidden component that stores session state across runs of the demo by the 
+    Special hidden component that stores session state across runs of the demo by the
     same user. The value of the Variable is cleared when the user refreshes the page.
 
     Preprocessing: No preprocessing is performed
@@ -2138,7 +2138,7 @@ class Label(Changeable, IOComponent):
     Displays a classification label, along with confidence scores of top categories, if provided.
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a {Dict[str, float]} of classes and confidences, or {str} with just the class or an {int}/{float} for regression outputs.
-    
+
     Demos: image_classifier, main_note, titanic_survival
     """
 
@@ -2265,7 +2265,7 @@ class HighlightedText(Changeable, IOComponent):
     Displays text that contains spans that are highlighted by category or numerical value.
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a {List[Tuple[str, float | str]]]} consisting of spans of text and their associated labels.
-    
+
     Demos: diff_texts, text_analysis
     """
 
@@ -2321,7 +2321,7 @@ class JSON(Changeable, IOComponent):
     Used to display arbitrary JSON output prettily.
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a valid JSON {str} -- or a {list} or {dict} that is JSON serializable.
-    
+
     Demos: zip_to_json, blocks_xray
     """
 
@@ -2371,7 +2371,7 @@ class HTML(Changeable, IOComponent):
     Used to display arbitrary HTML output.
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a valid HTML {str}.
-    
+
     Demos: text_analysis
     """
 
@@ -2411,10 +2411,10 @@ class Gallery(IOComponent):
     Used to display a list of images as a gallery that can be scrolled through.
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a list of images in any format, {List[numpy.array | PIL.Image | str]}, and displays them.
-    
+
     Demos: fake_gan
     """
-    
+
     def __init__(
         self,
         *,
@@ -2457,7 +2457,7 @@ class Carousel(IOComponent):
     Used to display a list of arbitrary components that can be scrolled through.
     Preprocessing: this component does *not* accept input.
     Postprocessing: Expects a nested {List[List]} where the inner elements depend on the components in the Carousel.
-    
+
     Demos: disease_report
     """
 
@@ -2537,7 +2537,7 @@ class Chatbot(Changeable, IOComponent):
     Displays a chatbot output showing both user submitted messages and responses
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a {List[Tuple[str, str]]}, a list of tuples with user inputs and responses.
-    
+
     Demos: chatbot
     """
 
@@ -2580,10 +2580,10 @@ class Chatbot(Changeable, IOComponent):
 
 class Plot(Changeable, Clearable, IOComponent):
     """
-    Used to display various kinds of plots (matplotlib, plotly, or bokeh are supported)    
+    Used to display various kinds of plots (matplotlib, plotly, or bokeh are supported)
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects either a {matplotlib.pyplot.Figure}, a {plotly.graph_objects._figure.Figure}, or a {dict} corresponding to a bokeh plot (json_item format)
-    
+
     Demos: outbreak_forecast, blocks_kinematics
     """
 
@@ -2628,8 +2628,8 @@ class Markdown(Component):
     """
     Used to render arbitrary Markdown output.
     Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a valid {str} that can be rendered as Markdown.   
-    
+    Postprocessing: expects a valid {str} that can be rendered as Markdown.
+
     Demos: blocks_hello, blocks_kinematics, blocks_neural_instrument_coding
     """
 
@@ -2669,7 +2669,7 @@ class Markdown(Component):
 class Button(Clickable, Component):
     """
     Used to create a button, that can be assigned arbitrary click() events. Accepts neither input nor output.
-    
+
     Demos: blocks_inputs, blocks_kinematics
     """
 
@@ -2741,7 +2741,7 @@ class Dataset(Clickable, Component):
 
 class Interpretation(Component):
     """
-    Used to create an interpretation widget for a component. 
+    Used to create an interpretation widget for a component.
     """
 
     def __init__(

@@ -12,6 +12,7 @@ class Row(BlockContext):
     """
     A layout element within Blocks that renders all children horizontally.
     """
+
     def __init__(self, visible: bool = True, css: Optional[Dict[str, str]] = None):
         """
         css: Css rules to apply to block.
@@ -25,7 +26,8 @@ class Row(BlockContext):
 class Column(BlockContext):
     """
     A layout element within Blocks that renders all children vertically.
-    """    
+    """
+
     def __init__(
         self,
         visible: bool = True,
@@ -51,8 +53,8 @@ class Tabs(BlockContext):
     """
     Tabs are a layout element within Blocks that contain multiple TabItem()'s which get
     rendered as tabs. The TabItem()'s must be nested within the Tabs() context.
-    """    
-    
+    """
+
     def __init__(self, visible: bool = True, css: Optional[Dict[str, str]] = None):
         """
         css: css rules to apply to block.
@@ -74,8 +76,8 @@ class TabItem(BlockContext):
     """
     A layout element that creates a tab within the parent Tabs() context. All children
     are rendered within the tab vertically by default.
-    """    
-    
+    """
+
     def __init__(
         self, label, visible: bool = True, css: Optional[Dict[str, str]] = None
     ):
