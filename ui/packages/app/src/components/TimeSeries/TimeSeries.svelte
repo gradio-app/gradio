@@ -9,7 +9,7 @@
 	import type { LoadingStatus } from "../StatusTracker/types";
 	import { _ } from "svelte-i18n";
 
-	import chart_icon from "./chart.svg";
+	import { Chart as ChartIcon } from "@gradio/icons";
 
 	function format_value(val: StaticData) {
 		return val.data.map((r) =>
@@ -29,7 +29,6 @@
 	}
 
 	export let value: null | Data;
-	export let default_value: null | Data;
 	export let style: string = "";
 	export let y: Array<string>;
 	export let x: string;
@@ -112,8 +111,6 @@
 		mode === "static" && value && format_value(value as StaticData);
 
 	$: value, dispatch("change");
-
-	if (default_value) value = default_value;
 </script>
 
 <Block
@@ -121,7 +118,7 @@
 	color={"grey"}
 	padding={false}
 >
-	<BlockLabel {show_label} image={chart_icon} label={label || "TimeSeries"} />
+	<BlockLabel {show_label} Icon={ChartIcon} label={label || "TimeSeries"} />
 	<StatusTracker {...loading_status} />
 
 	{#if mode === "static"}
@@ -129,7 +126,7 @@
 			<Chart value={static_data} {colors} />
 		{:else}
 			<div class="min-h-[16rem] flex justify-center items-center">
-				<img src={chart_icon} alt="" class="h-10 opacity-30" />
+				<div class="h-10 dark:text-white opacity-50"><ChartIcon /></div>
 			</div>
 		{/if}
 	{:else if _value}

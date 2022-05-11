@@ -151,6 +151,7 @@ class App(FastAPI):
                 response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
                 response.set_cookie(key="access-token", value=token, httponly=True)
                 return response
+
             else:
                 raise HTTPException(status_code=400, detail="Incorrect credentials.")
 

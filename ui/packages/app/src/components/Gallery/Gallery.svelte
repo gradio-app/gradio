@@ -4,7 +4,7 @@
 	import { tick } from "svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
-	import image_icon from "./image.svg";
+	import ImageIcon from "./ImageIcon.svelte";
 
 	export let loading_status: LoadingStatus;
 	export let show_label: boolean;
@@ -68,16 +68,16 @@
 
 <Block variant="solid" color="grey" padding={false}>
 	<StatusTracker {...loading_status} />
-	<BlockLabel {show_label} image={image_icon} label={label || "Gallery"} />
+	<BlockLabel {show_label} Icon={ImageIcon} label={label || "Gallery"} />
 	{#if value === null}
 		<div class="min-h-[16rem] flex justify-center items-center">
-			<img src={image_icon} alt="" class="h-6 opacity-20" />
+			<ImageIcon />
 		</div>
 	{:else}
 		{#if selected_image !== null}
 			<div
 				on:keydown={on_keydown}
-				class="absolute inset-0 z-10 flex flex-col bg-white/90 backdrop-blur min-h-[350px] xl:min-h-[450px] max-h-[55vh]"
+				class="absolute inset-0 z-10 flex flex-col bg-white/90 dark:bg-gray-900 backdrop-blur min-h-[350px] xl:min-h-[450px] max-h-[55vh]"
 			>
 				<ModifyUpload on:clear={() => (selected_image = null)} />
 
@@ -134,6 +134,6 @@
 
 <style lang="postcss">
 	.gallery-item {
-		@apply rounded shadow-sm relative aspect-square h-full hover:brightness-110 focus:ring-blue-500 focus:ring-2 ring-1 ring-gray-200 hover:ring hover:ring-orange-300 w-full overflow-hidden bg-gray-100 object-fill outline-none;
+		@apply rounded shadow-sm relative aspect-square h-full hover:brightness-110 focus:ring-blue-500 focus:ring-2 ring-1 ring-gray-200 hover:ring hover:ring-orange-300 w-full overflow-hidden bg-gray-100 dark:bg-gray-900 object-fill outline-none;
 	}
 </style>
