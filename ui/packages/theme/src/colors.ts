@@ -1,7 +1,5 @@
 import tw_colors from "tailwindcss/colors";
 
-console.log(tw_colors);
-
 export const ordered_colors = [
 	"red",
 	"green",
