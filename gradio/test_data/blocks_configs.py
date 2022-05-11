@@ -338,9 +338,9 @@ XRAY_CONFIG_DIFF_IDS = {
     },
     "dependencies": [
         {
-            "targets": [8],
+            "targets": [8888],
             "trigger": "click",
-            "inputs": [2, 6],
+            "inputs": [22, 6],
             "outputs": [7],
             "backend_fn": True,
             "js": None,
@@ -350,7 +350,7 @@ XRAY_CONFIG_DIFF_IDS = {
         {
             "targets": [13],
             "trigger": "click",
-            "inputs": [2, 11],
+            "inputs": [22, 11],
             "outputs": [12],
             "backend_fn": True,
             "js": None,
@@ -361,7 +361,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "targets": [],
             "trigger": "load",
             "inputs": [],
-            "outputs": [14],
+            "outputs": [141],
             "backend_fn": True,
             "js": False,
             "status_tracker": None,
