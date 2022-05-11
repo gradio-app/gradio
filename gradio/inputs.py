@@ -42,7 +42,7 @@ class Textbox(C_Textbox):
             DeprecationWarning,
         )
         super().__init__(
-            default_value=default,
+            value=default,
             lines=lines,
             placeholder=placeholder,
             label=label,
@@ -75,7 +75,7 @@ class Number(C_Number):
             "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your component from gradio.components",
             DeprecationWarning,
         )
-        super().__init__(default_value=default, label=label, optional=optional)
+        super().__init__(value=default, label=label, optional=optional)
 
 
 class Slider(C_Slider):
@@ -109,7 +109,7 @@ class Slider(C_Slider):
         )
 
         super().__init__(
-            default_value=default,
+            value=default,
             minimum=minimum,
             maximum=maximum,
             step=step,
@@ -141,7 +141,7 @@ class Checkbox(C_Checkbox):
             "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your component from gradio.components",
             DeprecationWarning,
         )
-        super().__init__(default_value=default, label=label, optional=optional)
+        super().__init__(value=default, label=label, optional=optional)
 
 
 class CheckboxGroup(C_CheckboxGroup):
@@ -172,7 +172,7 @@ class CheckboxGroup(C_CheckboxGroup):
             DeprecationWarning,
         )
         super().__init__(
-            default_selected=default,
+            value=default,
             choices=choices,
             type=type,
             label=label,
@@ -210,7 +210,7 @@ class Radio(C_Radio):
         super().__init__(
             choices=choices,
             type=type,
-            default_selected=default,
+            value=default,
             label=label,
             optional=optional,
         )
@@ -246,7 +246,7 @@ class Dropdown(C_Dropdown):
         super().__init__(
             choices=choices,
             type=type,
-            default_selected=default,
+            value=default,
             label=label,
             optional=optional,
         )
@@ -426,7 +426,7 @@ class Dataframe(C_Dataframe):
             DeprecationWarning,
         )
         super().__init__(
-            default_value=default,
+            value=default,
             headers=headers,
             row_count=row_count,
             col_count=col_count,
@@ -488,7 +488,7 @@ class State(C_Variable):
             "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import this component as gr.Variable from gradio.components",
             DeprecationWarning,
         )
-        super().__init__(default_value=default, label=label)
+        super().__init__(value=default, label=label)
 
 
 class Image3D(C_Model3D):

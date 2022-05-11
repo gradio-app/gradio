@@ -5,7 +5,7 @@
       "id": 1,
       "type": "markdown",
       "props": {
-        "default_value": "<h1>Detect Disease From Scan</h1>\n<p>With this model you can lorem ipsum</p>\n<ul>\n<li>ipsum 1</li>\n<li>ipsum 2</li>\n</ul>\n",
+        "value": "<h1>Detect Disease From Scan</h1>\n<p>With this model you can lorem ipsum</p>\n<ul>\n<li>ipsum 1</li>\n<li>ipsum 2</li>\n</ul>\n",
         "name": "markdown",
         "label": null,
         "css": {},
@@ -17,7 +17,7 @@
       "type": "checkboxgroup",
       "props": {
         "choices": ["Covid", "Malaria", "Lung Cancer"],
-        "default_value": [],
+        "value": [],
         "name": "checkboxgroup",
         "label": "Disease to Scan For",
         "css": {},
@@ -29,7 +29,7 @@
       "type": "tabs",
       "props": {
         "css": {},
-        "default_value": true
+        "value": true
       }
     },
     {
@@ -38,7 +38,7 @@
       "props": {
         "label": "X-ray",
         "css": {},
-        "default_value": true
+        "value": true
       }
     },
     {
@@ -47,7 +47,7 @@
       "props": {
         "type": "row",
         "css": {},
-        "default_value": true
+        "value": true
       }
     },
     {
@@ -58,7 +58,7 @@
         "shape": null,
         "source": "upload",
         "tool": "editor",
-        "default_value": null,
+        "value": null,
         "name": "image",
         "label": null,
         "css": {},
@@ -69,7 +69,7 @@
       "id": 7,
       "type": "json",
       "props": {
-        "default_value": "\"\"",
+        "value": "\"\"",
         "name": "json",
         "label": null,
         "css": {},
@@ -80,7 +80,7 @@
       "id": 8,
       "type": "button",
       "props": {
-        "default_value": "Run",
+        "value": "Run",
         "name": "button",
         "label": null,
         "css": {},
@@ -93,7 +93,7 @@
       "props": {
         "label": "CT Scan",
         "css": {},
-        "default_value": true
+        "value": true
       }
     },
     {
@@ -102,7 +102,7 @@
       "props": {
         "type": "row",
         "css": {},
-        "default_value": true
+        "value": true
       }
     },
     {
@@ -113,7 +113,7 @@
         "shape": null,
         "source": "upload",
         "tool": "editor",
-        "default_value": null,
+        "value": null,
         "name": "image",
         "label": null,
         "css": {},
@@ -124,7 +124,7 @@
       "id": 12,
       "type": "json",
       "props": {
-        "default_value": "\"\"",
+        "value": "\"\"",
         "name": "json",
         "label": null,
         "css": {},
@@ -135,7 +135,7 @@
       "id": 13,
       "type": "button",
       "props": {
-        "default_value": "Run",
+        "value": "Run",
         "name": "button",
         "label": null,
         "css": {},
@@ -148,7 +148,7 @@
       "props": {
         "lines": 1,
         "placeholder": null,
-        "default_value": "",
+        "value": "",
         "name": "textbox",
         "label": null,
         "css": {},

@@ -6,11 +6,19 @@
 	export let component;
 	export let instance_map;
 	export let id: number;
-	export let props;
-	export let children;
+	export let props: {
+		css: Record<string, string>;
+		visible: boolean;
+		[key: string]: unknown;
+	};
+	interface LayoutNode {
+		id: number;
+		children: Array<LayoutNode>;
+	}
+	export let children: Array<LayoutNode>;
 	export let theme;
 	export let dynamic_ids: Set<number>;
-	export let has_modes: boolean;
+	export let has_modes: boolean | undefined;
 	export let status_tracker_values: Record<number, string>;
 	export let parent: string | null = null;
 
@@ -34,11 +42,17 @@
 		return () => dispatch("destroy", id);
 	});
 
-	let style = props.css
-		? Object.entries(props.css)
-				.map((rule) => rule[0] + ": " + rule[1])
-				.join("; ")
-		: null;
+	let style: string = "";
+	$: {
+		style = props.css
+			? Object.entries(props.css)
+					.map((rule) => rule[0] + ": " + rule[1])
+					.join("; ")
+			: "";
+		if (props.visible === false) {
+			style += " display: none !important;";
+		}
+	}
 
 	const forms = [
 		"textbox",
@@ -95,7 +109,7 @@
 <svelte:component
 	this={component}
 	bind:this={instance_map[id].instance}
-	bind:value={instance_map[id].value}
+	bind:value={instance_map[id].props.value}
 	{style}
 	{...props}
 	{root}
