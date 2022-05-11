@@ -104,23 +104,23 @@
 		</div>
 	{/if}
 	<div
-		class="textfield bg-white dark:bg-transparent rounded-sm box-border max-w-full break-word leading-8"
+		class="textfield bg-white dark:bg-transparent rounded-sm box-border max-w-full break-word leading-7"
 	>
 		{#each value as [text, category]}
 			<span
-				class="textspan rounded-sm inline p-1 space-1.5 transition-colors text-black"
+				class="textspan rounded-sm  px-1 transition-colors text-black  pb-[0.225rem] pt-[0.1rem]"
 				style:background-color={category === null ||
 				(active && active !== category)
 					? ""
 					: _color_map[category].secondary}
 				class:dark:text-white={category === null ||
 					(active && active !== category)}
-				class:mx-1={category !== null}
+				class:hl={category !== null}
 			>
-				<span class="text ">{text}</span>
+				<span class="text">{text}</span>
 				{#if !show_legend && category !== null}
 					<span
-						class="font-bold uppercase inline-category text-xs text-white rounded-sm my-[0.225rem] px-[0.325rem] transition-colors"
+						class="label mr-[-4px] font-bold uppercase inline-category text-xs text-white rounded-sm  px-[0.325rem] mt-[0.05rem] pb-[0.05rem] transition-colors"
 						style:background-color={category === null ||
 						(active && active !== category)
 							? ""
@@ -158,3 +158,13 @@
 		{/each}
 	</div>
 {/if}
+
+<style>
+	.hl + .hl {
+		@apply ml-1;
+	}
+
+	.textspan:last-child > .label {
+		@apply mr-0;
+	}
+</style>
