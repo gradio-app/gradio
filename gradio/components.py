@@ -1755,16 +1755,14 @@ class Dataframe(Changeable, IOComponent):
         **kwargs,
     ):
         """
-        Input Parameters:
-        default_value (List[List[Any]]): Default value as a pandas DataFrame. TODO: Add support for default value as a filepath
-        headers (List[str]): Header names to dataframe. If None, no headers are shown.
-        row_count (Union[int, Tuple[int, str]]): Limit number of rows for input and decide whether user can create new rows. The first element of the tuple is an `int`, the row count; the second should be 'fixed' or 'dynamic', the new row behaviour. If an `int` is passed the rows default to 'dynamic'
-        col_count (Union[int, Tuple[int, str]]): Limit number of columns for input and decide whether user can create new columns. The first element of the tuple is an `int`, the number of columns; the second should be 'fixed' or 'dynamic', the new column behaviour. If an `int` is passed the columns default to 'dynamic'
-        datatype (Union[str, List[str]]): Datatype of values in sheet. Can be provided per column as a list of strings, or for the entire sheet as a single string. Valid datatypes are "str", "number", "bool", and "date".
+        Parameters:
+        default_value (List[List[Any]]): Default value as a 2-dimensional list of values.
+        headers (List[str] | None): List of str header names. If None, no headers are shown.
+        row_count (int | Tuple[int, str]): Limit number of rows for input and decide whether user can create new rows. The first element of the tuple is an `int`, the row count; the second should be 'fixed' or 'dynamic', the new row behaviour. If an `int` is passed the rows default to 'dynamic'
+        col_count (int | Tuple[int, str]): Limit number of columns for input and decide whether user can create new columns. The first element of the tuple is an `int`, the number of columns; the second should be 'fixed' or 'dynamic', the new column behaviour. If an `int` is passed the columns default to 'dynamic'
+        datatype (str | List[str]): Datatype of values in sheet. Can be provided per column as a list of strings, or for the entire sheet as a single string. Valid datatypes are "str", "number", "bool", and "date".
         type (str): Type of value to be returned by component. "pandas" for pandas dataframe, "numpy" for numpy array, or "array" for a Python array.
         label (str): component name in interface.
-        Output Parameters:
-        headers (List[str]): Header names to dataframe. Only applicable if type is "numpy" or "array".
         max_rows (int): Maximum number of rows to display at once. Set to None for infinite.
         max_cols (int): Maximum number of columns to display at once. Set to None for infinite.
         overflow_row_behaviour (str): If set to "paginate", will create pages for overflow rows. If set to "show_ends", will show initial and final rows and truncate middle rows.
@@ -2421,6 +2419,10 @@ class Gallery(IOComponent):
         label: Optional[str] = None,
         **kwargs,
     ):
+        """
+        Parameters:
+        label (str): component name in interface.
+        """
         super().__init__(label=label, **kwargs)
 
     def get_template_context(self):
@@ -2471,7 +2473,7 @@ class Carousel(IOComponent):
     ):
         """
         Parameters:
-        components (Union[List[OutputComponent], OutputComponent]): Classes of component(s) that will be scrolled through.
+        components (List[Component] | Component): Classes of component(s) that will be scrolled through.
         label (str): component name in interface.
         """
         if not isinstance(components, list):
@@ -2701,8 +2703,11 @@ class Button(Clickable, Component):
 
 class Dataset(Clickable, Component):
     """
-    Used to create a output widget for showing datasets. Used to render the examples
-    box in the interface. Accepts neither input nor output.
+    Used to create a output widget for showing data and peforming actions when one of
+    the samples is selected. Used to render the examples box in the interface.
+    
+    Preprocessing: this component passes either the sample which can be of any type, or its {int} index, depending on `type` 
+    Postprocessing: this component does *not* return output    
     """
 
     def __init__(
@@ -2714,6 +2719,13 @@ class Dataset(Clickable, Component):
         css: Optional[Dict] = None,
         **kwargs,
     ):
+        """
+        Parameters:
+        components (List[Component]): Classes of component(s) that will be displayed in the dataset component.
+        samples (List[List[Any]]): 2D list of samples to be displayed in the dataset component.
+        type (str): either "values" (if the sample should be passed into the function) or "index" (if its index should be passed) 
+        label (str): component name in interface.        
+        """
         Component.__init__(self, css=css, **kwargs)
         self.components = components
         self.type = type
@@ -2731,7 +2743,7 @@ class Dataset(Clickable, Component):
 
     def preprocess(self, x: Any) -> Any:
         """
-        Any preprocessing needed to be performed on function input.
+        Any preprocessing needed to be performed when sample is selected.
         """
         if self.type == "index":
             return x
