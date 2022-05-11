@@ -33,12 +33,6 @@ BUILD_PATH_LIB = pkg_resources.resource_filename("gradio", "templates/frontend/a
 VERSION_FILE = pkg_resources.resource_filename("gradio", "version.txt")
 with open(VERSION_FILE) as version_file:
     VERSION = version_file.read()
-GRADIO_STATIC_ROOT = "https://gradio.s3-us-west-2.amazonaws.com/{}/static/".format(
-    VERSION
-)
-GRADIO_BUILD_ROOT = "https://gradio.s3-us-west-2.amazonaws.com/{}/assets/".format(
-    VERSION
-)
 
 
 class ORJSONResponse(JSONResponse):
