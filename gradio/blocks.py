@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 from gradio import encryptor, networking, queueing, strings, utils
 from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
+from gradio.utils import delete_none
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from fastapi.applications import FastAPI
@@ -20,10 +21,11 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 
 class Block:
-    def __init__(self, css=None, render=True, **kwargs):
+    def __init__(self, *, render=True, css=None, visible=True, **kwargs):
         self._id = Context.id
         Context.id += 1
         self.css = css if css is not None else {}
+        self.visible = visible
         if render:
             self.render()
         check_deprecated_parameters(self.__class__.__name__, **kwargs)
@@ -122,6 +124,9 @@ class Block:
             }
         )
 
+    def get_config(self):
+        return {"css": self.css, "visible": self.visible}
+
 
 class BlockContext(Block):
     def __init__(
@@ -135,8 +140,7 @@ class BlockContext(Block):
         css: Css rules to apply to block.
         """
         self.children = []
-        self.visible = visible
-        super().__init__(css=css, render=render, **kwargs)
+        super().__init__(css=css, visible=visible, render=render, **kwargs)
 
     def __enter__(self):
         self.parent = Context.block
@@ -146,25 +150,24 @@ class BlockContext(Block):
     def __exit__(self, *args):
         Context.block = self.parent
 
-    def get_template_context(self):
-        return {
-            "css": self.css,
-            "default_value": self.visible,
-        }
-
     def postprocess(self, y):
         return y
 
 
 class Row(BlockContext):
-    def __init__(self, visible: bool = True, css: Optional[Dict[str, str]] = None):
-        """
-        css: Css rules to apply to block.
-        """
-        super().__init__(visible, css)
+    def get_config(self):
+        return {"type": "row", **super().get_config()}
 
-    def get_template_context(self):
-        return {"type": "row", **super().get_template_context()}
+    @staticmethod
+    def update(
+        css: Optional[Dict] = None,
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "css": css,
+            "visible": visible,
+            "__type__": "update",
+        }
 
 
 class Column(BlockContext):
@@ -179,23 +182,30 @@ class Column(BlockContext):
         variant: column type, 'default' (no background) or 'panel' (gray background color and rounded corners)
         """
         self.variant = variant
-        super().__init__(visible, css)
+        super().__init__(visible=visible, css=css)
 
-    def get_template_context(self):
+    def get_config(self):
         return {
             "type": "column",
             "variant": self.variant,
-            **super().get_template_context(),
+            **super().get_config(),
+        }
+
+    @staticmethod
+    def update(
+        variant: Optional[str] = None,
+        css: Optional[Dict] = None,
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "variant": variant,
+            "css": css,
+            "visible": visible,
+            "__type__": "update",
         }
 
 
 class Tabs(BlockContext):
-    def __init__(self, visible: bool = True, css: Optional[Dict[str, str]] = None):
-        """
-        css: css rules to apply to block.
-        """
-        super().__init__(visible, css)
-
     def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
@@ -208,17 +218,12 @@ class Tabs(BlockContext):
 
 
 class TabItem(BlockContext):
-    def __init__(
-        self, label, visible: bool = True, css: Optional[Dict[str, str]] = None
-    ):
-        """
-        css: Css rules to apply to block.
-        """
-        super().__init__(visible, css)
+    def __init__(self, label, **kwargs):
+        super().__init__(**kwargs)
         self.label = label
 
-    def get_template_context(self):
-        return {"label": self.label, **super().get_template_context()}
+    def get_config(self):
+        return {"label": self.label, **super().get_config()}
 
     def select(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
@@ -330,11 +335,31 @@ class Blocks(BlockContext):
                     state[output_id] = predictions[i]
                     output.append(None)
                 else:
-                    output.append(
-                        block.postprocess(predictions[i])
-                        if predictions[i] is not None
-                        else None
-                    )
+                    prediction_value = predictions[i]
+                    if type(
+                        prediction_value
+                    ) is dict and "update" in prediction_value.get("__type__"):
+                        if prediction_value["__type__"] == "generic_update":
+                            del prediction_value["__type__"]
+                            prediction_value = block.__class__.update(
+                                **prediction_value
+                            )
+                        prediction_value = delete_none(prediction_value)
+                        if "value" in prediction_value:
+                            prediction_value["value"] = (
+                                block.postprocess(prediction_value["value"])
+                                if prediction_value["value"] is not None
+                                else None
+                            )
+                        output_value = prediction_value
+                    else:
+                        output_value = (
+                            block.postprocess(prediction_value)
+                            if prediction_value is not None
+                            else None
+                        )
+                    output.append(output_value)
+
         else:
             output = predictions
         return {
@@ -343,7 +368,7 @@ class Blocks(BlockContext):
             "average_duration": block_fn.total_runtime / block_fn.total_runs,
         }
 
-    def get_template_context(self):
+    def get_config(self):
         return {"type": "column"}
 
     def get_config_file(self):
@@ -355,14 +380,15 @@ class Blocks(BlockContext):
                 self, "enable_queue", False
             ),  # attribute set at launch
         }
+
         for _id, block in self.blocks.items():
             config["components"].append(
                 {
                     "id": _id,
                     "type": (block.get_block_name()),
-                    "props": utils.delete_none(block.get_template_context())
-                    if hasattr(block, "get_template_context")
-                    else None,
+                    "props": utils.delete_none(block.get_config())
+                    if hasattr(block, "get_config")
+                    else {},
                 }
             )
 
