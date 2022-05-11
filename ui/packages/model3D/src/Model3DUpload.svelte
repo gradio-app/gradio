@@ -13,7 +13,7 @@
 	export let upload_text: string = "click to upload";
 	export let label: string = "";
 	export let show_label: boolean;
-	export let style: string = "";
+	export let style: string;
 
 	afterUpdate(() => {
 		if (value != null && value.is_example) {
@@ -103,7 +103,6 @@
 	<ModifyUpload on:clear={handle_clear} absolute />
 	<div
 		class="input-model w-full h-60 flex justify-center items-center bg-gray-200 dark:bg-gray-600 relative"
-		{style}
 	>
 		<canvas class="w-full h-full object-contain" bind:this={canvas} />
 	</div>

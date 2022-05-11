@@ -9,6 +9,6 @@
 	$: value, dispatch("change");
 </script>
 
-<div class="output-html" {style}>
+<div class="output-html">
 	{@html value}
 </div>

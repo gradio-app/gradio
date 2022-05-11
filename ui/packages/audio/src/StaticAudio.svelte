@@ -46,6 +46,5 @@
 		on:play
 		on:pause
 		on:ended
-		{style}
 	/>
 {/if}

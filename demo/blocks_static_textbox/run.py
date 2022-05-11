@@ -1,16 +1,10 @@
 import gradio as gr
 
-demo = gr.Blocks(css="""
-body {
-    font-family: monospace;
-    background-color: navy;
-    color: teal;
-}
-""")
+demo = gr.Blocks()
 
 with demo:
-    gr.Textbox("Hello", css=gr.CSS(color="green", fontSize="2rem"))
-    gr.Number(5, css=gr.CSS(border="solid 2px pink"))
+    gr.Textbox("Hello")
+    gr.Number(5)
 
 if __name__ == "__main__":
     demo.launch()

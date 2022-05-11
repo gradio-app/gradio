@@ -72,7 +72,6 @@
 			on:play
 			on:pause
 			on:ended
-			{style}
 		/>
 	{:else if value.size}
 		<div class="file-name text-4xl p-6 break-all">{value.name}</div>

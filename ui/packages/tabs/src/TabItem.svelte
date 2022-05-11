@@ -3,7 +3,6 @@
 	import { TABS } from "./Tabs.svelte";
 
 	export let name: string;
-	export let style: style = "";
 
 	const dispatch = createEventDispatcher<{ select: undefined }>();
 	const id = {};
@@ -20,7 +19,7 @@
 </script>
 
 {#if $selected_tab === id}
-	<div class="p-2 border-2 border-t-0 border-gray-200 relative" {style}>
+	<div class="p-2 border-2 border-t-0 border-gray-200 relative">
 		<slot />
 	</div>
 {/if}

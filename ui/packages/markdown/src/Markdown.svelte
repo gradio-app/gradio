@@ -10,6 +10,6 @@
 	$: value, dispatch("change");
 </script>
 
-<div class="output-markdown prose max-w-full" {style}>
+<div class="output-markdown prose" style="max-width: 100%">
 	{@html value}
 </div>

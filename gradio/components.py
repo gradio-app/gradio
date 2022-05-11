@@ -23,7 +23,7 @@ from markdown_it import MarkdownIt
 
 from gradio import media_data, processing_utils
 from gradio.blocks import Block
-from gradio.css import CSS, CSSWithLabel
+
 
 class Component(Block):
     """
@@ -33,7 +33,7 @@ class Component(Block):
     def __init__(
         self,
         *,
-        css: Optional[CSS] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         super().__init__(css=css, **kwargs)
@@ -50,7 +50,7 @@ class Component(Block):
         """
         return {
             "name": self.get_block_name(),
-            **super().get_template_context()
+            "css": self.css,
         }
 
     @staticmethod
@@ -425,7 +425,7 @@ class Textbox(Changeable, Submittable, IOComponent):
         max_lines: int = 20,
         placeholder: Optional[str] = None,
         label: Optional[str] = None,
-        css: Optional[CSSWithLabel] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -573,7 +573,7 @@ class Number(Changeable, Submittable, IOComponent):
         default_value: Optional[float] = None,
         *,
         label: Optional[str] = None,
-        css: Optional[CSS] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -687,7 +687,7 @@ class Slider(Changeable, IOComponent):
         maximum: float = 100,
         step: Optional[float] = None,
         label: Optional[str] = None,
-        css: Optional[CSS] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -792,7 +792,7 @@ class Checkbox(Changeable, IOComponent):
         default_value: bool = False,
         *,
         label: Optional[str] = None,
-        css: Optional[CSS] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -878,7 +878,7 @@ class CheckboxGroup(Changeable, IOComponent):
         default_selected: List[str] = None,
         type: str = "value",
         label: Optional[str] = None,
-        css: Optional[CSS] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -997,7 +997,7 @@ class Radio(Changeable, IOComponent):
         default_selected: Optional[str] = None,
         type: str = "value",
         label: Optional[str] = None,
-        css: Optional[CSS] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -1096,7 +1096,7 @@ class Dropdown(Radio):
         default_selected: Optional[str] = None,
         type: str = "value",
         label: Optional[str] = None,
-        css: Optional[CSS] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -1137,7 +1137,7 @@ class Image(Editable, Clearable, IOComponent):
         tool: str = "editor",
         type: str = "numpy",
         label: str = None,
-        css: Optional[CSSWithLabel] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -1425,7 +1425,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         type: Optional[str] = None,
         source: str = "upload",
         label: Optional[str] = None,
-        css: Optional[CSS] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -1538,7 +1538,7 @@ class Audio(Changeable, Clearable, Playable, IOComponent):
         source: str = "upload",
         type: str = "numpy",
         label: str = None,
-        css: Optional[CSS] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -1789,7 +1789,7 @@ class File(Changeable, Clearable, IOComponent):
         file_count: str = "single",
         type: str = "file",
         label: Optional[str] = None,
-        css: Optional[CSS] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -1911,7 +1911,7 @@ class Dataframe(Changeable, IOComponent):
         max_rows: Optional[int] = 20,
         max_cols: Optional[int] = None,
         overflow_row_behaviour: str = "paginate",
-        css: Optional[CSS] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -2062,7 +2062,7 @@ class Timeseries(Changeable, IOComponent):
         x: Optional[str] = None,
         y: str | List[str] = None,
         label: Optional[str] = None,
-        css: Optional[CSS] = None,
+        css: Optional[Dict] = None,
         colors: List[str] = None,
         **kwargs,
     ):
@@ -2188,7 +2188,7 @@ class Label(Changeable, IOComponent):
         *,
         num_top_classes: Optional[int] = None,
         label: Optional[str] = None,
-        css: Optional[CSS] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -2286,7 +2286,7 @@ class KeyValues(IOComponent):
         default_value: str = " ",
         *,
         label: Optional[str] = None,
-        css: Optional[CSS] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -2315,7 +2315,7 @@ class HighlightedText(Changeable, IOComponent):
         color_map: Dict[str, str] = None,
         label: Optional[str] = None,
         show_legend: bool = False,
-        css: Optional[CSS] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -2367,7 +2367,7 @@ class JSON(Changeable, IOComponent):
         default_value: str = "",
         *,
         label: Optional[str] = None,
-        css: Optional[CSS] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -2414,7 +2414,7 @@ class HTML(Changeable, IOComponent):
         self,
         default_value: str = "",
         label: Optional[str] = None,
-        css: Optional[CSS] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -2491,7 +2491,7 @@ class Carousel(IOComponent):
         *,
         components: Component | List[Component],
         label: Optional[str] = None,
-        css: Optional[CSS] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -2570,7 +2570,7 @@ class Chatbot(Changeable, IOComponent):
         color_map: Tuple(str, str) = None,
         *,
         label: Optional[str] = None,
-        css: Optional[CSS] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -2613,7 +2613,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
         self,
         clear_color=None,
         label: str = None,
-        css: Optional[CSS] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -2708,7 +2708,7 @@ class Plot(Changeable, Clearable, IOComponent):
         self,
         type: str = None,
         label: str = None,
-        css: Optional[CSS] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -2768,7 +2768,7 @@ class Markdown(Component):
         self,
         default_value: str = "",
         *,
-        css: Optional[CSS] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -2797,7 +2797,7 @@ class Button(Clickable, Component):
         self,
         default_value: str = "",
         *,
-        css: Optional[CSS] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """
@@ -2827,7 +2827,7 @@ class Dataset(Clickable, Component):
         components: List[Component],
         samples: List[List[Any]],
         type: str = "values",
-        css: Optional[CSS] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         Component.__init__(self, css=css, **kwargs)
@@ -2864,7 +2864,7 @@ class Interpretation(Component):
         self,
         component: Component,
         *,
-        css: Optional[CSS] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         Component.__init__(self, css=css, **kwargs)
@@ -2886,7 +2886,7 @@ class StatusTracker(Component):
         self,
         *,
         cover_container: bool = False,
-        css: Optional[CSS] = None,
+        css: Optional[Dict] = None,
         **kwargs,
     ):
         """

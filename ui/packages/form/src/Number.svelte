@@ -38,6 +38,5 @@
 		bind:value
 		on:keypress={handle_keypress}
 		{disabled}
-		{style}
 	/>
 </label>

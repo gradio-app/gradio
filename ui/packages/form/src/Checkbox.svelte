@@ -21,7 +21,6 @@
 <label
 	class:!cursor-not-allowed={disabled}
 	class="flex items-center text-gray-700 text-sm space-x-2 rounded-lg cursor-pointer bg-white"
-	{style}
 >
 	<input
 		bind:checked={value}
