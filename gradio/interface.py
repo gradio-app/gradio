@@ -783,6 +783,12 @@ class Interface(Blocks):
 
 
 class TabbedInterface(Blocks):
+    """
+    A TabbedInterface is created by providing a list of Interfaces, each of which gets 
+    rendered in a separate tab.
+    
+    Demos: blocks_neural_instrument_coding 
+    """
     def __init__(
         self, interface_list: List[Interface], tab_names: Optional[List[str]] = None
     ):

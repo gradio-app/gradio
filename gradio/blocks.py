@@ -167,8 +167,8 @@ class BlockFunction:
 
 class Blocks(BlockContext):
     """
-    The Blocks class is a low-level API that allows you to create an interactive web
-    application entirely in Python. Compared to the Interface class, Blocks offers
+    The Blocks class is a low-level API that allows you to create very custom web
+    applications entirely in Python. Compared to the Interface class, Blocks offers
     more flexibility and control over: (1) the layout of components (2) the events that
     trigger the execution of functions (3) data flows (e.g. inputs can trigger outputs,
     which can trigger the next level of outputs). Blocks also offers ways to group
