@@ -22,6 +22,8 @@
 	$: _value = normalise_file(value, root);
 
 	let dragging = false;
+
+	$: console.log(value);
 </script>
 
 <Block
