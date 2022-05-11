@@ -43,6 +43,7 @@ from gradio.interface import Interface, TabbedInterface
 from gradio.mix import Series, Parallel
 from gradio.blocks import Blocks
 from gradio.layouts import Row, Column, Tabs, TabItem
+from gradio.events import Changeable, Clearable, Submittable, Editable, Playable, Clickable
 
 GRADIO_DIR = "../../"
 GRADIO_GUIDES_DIR = os.path.join(GRADIO_DIR, "guides")
@@ -344,6 +345,25 @@ def render_docs():
                 cls.get_interpretation_scores
             )
         inp["guides"] = [guide for guide in guides if inp['name'].lower() in guide["docs"]]
+        
+        
+        inp["events"] = []
+        if issubclass(cls, Changeable):
+            inp["events"].append("change()")
+        if issubclass(cls, Clickable):
+            inp["events"].append("click()")
+        if issubclass(cls, Clearable):
+            inp["events"].append("clear()")
+        if issubclass(cls, Playable):
+            inp["events"].append("play()")
+            inp["events"].append("pause()")
+            inp["events"].append("stop()")
+        if issubclass(cls, Editable):
+            inp["events"].append("edit()")
+        if issubclass(cls, Submittable):
+            inp["events"].append("submit()")
+        inp["events"] = ", ".join(inp["events"])
+            
         return inp
 
     components = [
@@ -446,16 +466,12 @@ def update(name):
 demo = gr.Blocks()
 
 with demo:
-    gr.Markdown(
-    \"\"\"
-    # Hello World!
-    Start typing below to see the output.
-    \"\"\")
+    gr.Markdown("Start typing below and then click **Run** to see the output.")
     with gr.Row():
         inp = gr.Textbox(placeholder="What is your name?")
         out = gr.Textbox()
-    
-    inp.change(fn=update, inputs=inp, outputs=out)
+    btn = gr.Button("Run")
+    btn.click(fn=update, inputs=inp, outputs=out)
 
 demo.launch()"""            
     }    
