@@ -166,8 +166,8 @@ class App(FastAPI):
 
             try:
                 template = (
-                    "frontend/share.html" if app.blocks.share else "frontend/index.html" 
-                )               
+                    "frontend/share.html" if app.blocks.share else "frontend/index.html"
+                )
                 return templates.TemplateResponse(
                     template, {"request": request, "config": config}
                 )
@@ -184,14 +184,14 @@ class App(FastAPI):
 
         @app.get("/static/{path:path}")
         def static_resource(path: str):
-            static_file = safe_join(STATIC_PATH_LIB, path)            
+            static_file = safe_join(STATIC_PATH_LIB, path)
             if static_file is not None:
                 return FileResponse(static_file)
             raise HTTPException(status_code=404, detail="Static file not found")
 
         @app.get("/assets/{path:path}")
         def build_resource(path: str):
-            build_file = safe_join(BUILD_PATH_LIB, path)            
+            build_file = safe_join(BUILD_PATH_LIB, path)
             if build_file is not None:
                 return FileResponse(build_file)
             raise HTTPException(status_code=404, detail="Build file not found")
