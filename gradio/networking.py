@@ -22,7 +22,6 @@ from gradio.tunneling import create_tunnel
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
     from gradio.blocks import Blocks
 
-
 # By default, the local server will try to open on localhost, port 7860.
 # If that is not available, then it will try 7861, 7862, ... 7959.
 INITIAL_PORT_VALUE = int(os.getenv("GRADIO_SERVER_PORT", "7860"))
@@ -152,7 +151,7 @@ def start_server(
         app.queue_thread.start()
     if blocks.save_to is not None:  # Used for selenium tests
         blocks.save_to["port"] = port
-
+    """
     config = uvicorn.Config(
         app=app,
         port=port,
@@ -164,6 +163,8 @@ def start_server(
     )
     server = Server(config=config)
     server.run_in_thread()
+    """
+    server = uvicorn.run(app=app, reload_dirs="[.]")
     return port, path_to_local_server, app, server
 
 
