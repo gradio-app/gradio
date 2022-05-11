@@ -34,7 +34,7 @@ class Block:
             if "target" in ruleset:
                 del ruleset["target"]
             self.style[target] = "; ".join(
-                key + ": " + val + " !important" for key, val in ruleset.items()
+                key + ": " + val for key, val in ruleset.items()
             )
         self.visible = visible
         if render:
