@@ -115,7 +115,6 @@ function handle_darkmode(target: HTMLElement) {
 	} else if (url.searchParams.get("__dark-theme") === "true") {
 		target.classList.add("dark");
 	} else {
-		console.log("boo");
 		use_system_theme(target);
 	}
 }
