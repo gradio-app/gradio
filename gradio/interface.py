@@ -22,7 +22,6 @@ from mdit_py_plugins.footnote import footnote_plugin
 
 from gradio import interpretation, utils
 from gradio.blocks import Blocks
-from gradio.layouts import Column, Row, TabItem, Tabs
 from gradio.components import (
     Button,
     Component,
@@ -35,6 +34,7 @@ from gradio.components import (
 )
 from gradio.external import load_from_pipeline, load_interface  # type: ignore
 from gradio.flagging import CSVLogger, FlaggingCallback  # type: ignore
+from gradio.layouts import Column, Row, TabItem, Tabs
 from gradio.process_examples import cache_interface_examples, load_from_cache
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
@@ -43,8 +43,8 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 class Interface(Blocks):
     """
-    The Interface class is a high-level abstraction that allows you to create a 
-    web-based demo around a machine learning model or arbitrary Python function 
+    The Interface class is a high-level abstraction that allows you to create a
+    web-based demo around a machine learning model or arbitrary Python function
     by specifying: (1) the function (2) the desired input components and (3) desired output components.
     """
 
@@ -94,7 +94,7 @@ class Interface(Blocks):
     @classmethod
     def from_pipeline(cls, pipeline: transformers.Pipeline, **kwargs) -> Interface:
         """
-        Class method that constructs an Interface from a Hugging Face transformers.Pipeline object. 
+        Class method that constructs an Interface from a Hugging Face transformers.Pipeline object.
         The input and output components are automatically determined from the pipeline.
         Parameters:
         pipeline (transformers.Pipeline): the pipeline object to use.

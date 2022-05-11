@@ -9,7 +9,16 @@ import requests
 from jinja2 import Template
 from render_html_helpers import generate_meta_image
 
-from gradio.components import Component
+from gradio.components import (
+    Textbox, Number,
+    Slider, Checkbox, CheckboxGroup, Radio, Dropdown,
+    Image, Video, Audio, File, Dataframe, Timeseries,
+    
+    Label, KeyValues, HighlightedText, JSON, HTML, Gallery,
+    Carousel, Chatbot, Model3D, Plot, Markdown,
+    
+    Button, Dataset, 
+)
 from gradio.interface import Interface
 
 GRADIO_DIR = "../../"
@@ -314,21 +323,9 @@ def render_docs():
         inp["guides"] = [guide for guide in guides if inp['name'].lower() in guide["docs"]]
         return inp
 
-    component_types = [cls for cls in Component.__subclasses__()]
-    parent_components = set()
-    for typ in component_types:
-        parent_components.update(typ.__subclasses__())
-    components = set()
-    for parent_component in parent_components:
-        components.update(parent_component.__subclasses__())
-    components_list = list(components)
-    components_str = set()
-    components = set()
-    for component in components_list:
-        name = str(component).split(".")[-1][:-2]
-        if name not in components_str:
-            components_str.add(name)
-            components.add(component)
+    components = [
+        
+    ]
     components_docs = [get_class_documentation(cls, replace_brackets=True) for cls in components]
     interface_params = get_function_documentation(Interface.__init__)
     interface_docs = get_class_documentation(Interface, get_interpret=False, lines=None)["doc"]

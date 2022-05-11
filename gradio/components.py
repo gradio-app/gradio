@@ -23,7 +23,14 @@ from markdown_it import MarkdownIt
 
 from gradio import media_data, processing_utils
 from gradio.blocks import Block
-from gradio.events import Changeable, Clickable, Submittable, Editable, Clearable, Playable
+from gradio.events import (
+    Changeable,
+    Clearable,
+    Clickable,
+    Editable,
+    Playable,
+    Submittable,
+)
 
 
 class Component(Block):
@@ -239,7 +246,7 @@ class IOComponent(Component):
 class Textbox(Changeable, Submittable, IOComponent):
     """
     Creates a textarea for user to enter string input or display string output.
-    Preprocessing: passes textarea value as a [str] or [np.array] into the function. 
+    Preprocessing: passes textarea value as a [str] or [np.array] into the function.
     Postprocessing: accepts [str] returned from function and sets textarea value to it.
 
     Demos: hello_world, diff_texts, sentence_builder
@@ -388,10 +395,10 @@ class Textbox(Changeable, Submittable, IOComponent):
 
 class Number(Changeable, Submittable, IOComponent):
     """
-    Creates a numeric field for user to enter numbers as input or display numeric output. 
-    Preprocessing: passes field value as a [float] into the function. 
+    Creates a numeric field for user to enter numbers as input or display numeric output.
+    Preprocessing: passes field value as a [float] into the function.
     Postprocessing: accepts [int] or [float] returned from function and sets field value to it.
-    
+
     Demos: tax_calculator, titanic_survival
     """
 
@@ -501,9 +508,9 @@ class Number(Changeable, Submittable, IOComponent):
 class Slider(Changeable, IOComponent):
     """
     Creates a slider that ranges from `minimum` to `maximum` with a step size of `step`.
-    Preprocessing: passes slider value as a [float] into the function. 
+    Preprocessing: passes slider value as a [float] into the function.
     Postprocessing: accepts an [int] or [float] returned from function and sets slider value to it as long as it is within range.
-    
+
     Demos: sentence_builder, generate_tone, titanic_survival
     """
 
@@ -608,9 +615,9 @@ class Slider(Changeable, IOComponent):
 
 class Checkbox(Changeable, IOComponent):
     """
-    Creates a checkbox that can be set to `True` or `False`. 
+    Creates a checkbox that can be set to `True` or `False`.
 
-    Preprocessing: passes the status of the checkbox as a [bool] into the function. 
+    Preprocessing: passes the status of the checkbox as a [bool] into the function.
     Postprocessing: accepts [bool] returned from function and checks the checkbox if True.
     Demos: sentence_builder, titanic_survival
     """
