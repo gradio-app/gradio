@@ -167,17 +167,18 @@ class BlockFunction:
 
 class Blocks(BlockContext):
     """
-    The Blocks class is a low-level API that allows you to create an interactive web 
+    The Blocks class is a low-level API that allows you to create an interactive web
     application entirely in Python. Compared to the Interface class, Blocks offers
     more flexibility and control over: (1) the layout of components (2) the events that
     trigger the execution of functions (3) data flows (e.g. inputs can trigger outputs,
     which can trigger the next level of outputs). Blocks also offers ways to group
     together related demos e.g. using tabs.
-    
-    The basic usage of Blocks is as follows: create a Blocks object, then use it as a 
+
+    The basic usage of Blocks is as follows: create a Blocks object, then use it as a
     context (with the "with" statement), and then define layouts, components, or events
     within the Blocks context. Finally, call the launch() method to launch the demo.
-    """    
+    """
+
     def __init__(
         self,
         theme: str = "default",
@@ -187,8 +188,8 @@ class Blocks(BlockContext):
     ):
         """
         Parameters:
-        theme (str): theme to use - right now, only "default" is supported.   
-        analytics_enabled (bool | None): Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.             
+        theme (str): theme to use - right now, only "default" is supported.
+        analytics_enabled (bool | None): Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable or default to True.
         mode (str): a human-friendly name for the kind of Blocks interface being created.
         """
         # Cleanup shared parameters with Interface #TODO: is this part still necessary after Interface with Blocks?
@@ -385,7 +386,7 @@ class Blocks(BlockContext):
         Launches a simple web server that serves the demo. Can also be used to create a
         shareable link.
         Parameters:
-        inline (bool | None): whether to display in the interface inline in an iframe. Defaults to True in python notebooks; False otherwise. 
+        inline (bool | None): whether to display in the interface inline in an iframe. Defaults to True in python notebooks; False otherwise.
         inbrowser (bool): whether to automatically launch the interface in a new tab on the default browser.
         share (bool): whether to create a publicly shareable link for the interface. Creates an SSH tunnel to make your UI accessible from anywhere.
         debug (bool): if True, blocks the main thread from running. If running in Google Colab, this is needed to print the errors in the cell output.

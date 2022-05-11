@@ -5,7 +5,6 @@ import gradio.inputs as inputs
 import gradio.outputs as outputs
 import gradio.processing_utils
 from gradio.blocks import Blocks
-from gradio.layouts import Column, Row, TabItem, Tabs
 from gradio.components import (
     HTML,
     JSON,
@@ -48,6 +47,7 @@ from gradio.flagging import (
     SimpleCSVLogger,
 )
 from gradio.interface import Interface, TabbedInterface, close_all
+from gradio.layouts import Column, Row, TabItem, Tabs
 from gradio.mix import Parallel, Series
 
 current_pkg_version = pkg_resources.require("gradio")[0].version
