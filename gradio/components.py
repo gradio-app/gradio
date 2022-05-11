@@ -253,7 +253,7 @@ class Textbox(Changeable, Submittable, IOComponent):
     Preprocessing: passes textarea value as a {str} into the function.
     Postprocessing: expects a {str} returned from function and sets textarea value to it.
 
-    Demos: hello_world, diff_texts, sentence_builder
+    Demos: hello_world, diff_texts, sentence_builder, blocks_gpt
     """
 
     def __init__(
@@ -403,7 +403,7 @@ class Number(Changeable, Submittable, IOComponent):
     Preprocessing: passes field value as a {float} into the function.
     Postprocessing: expects an {int} or {float} returned from the function and sets field value to it.
 
-    Demos: tax_calculator, titanic_survival
+    Demos: tax_calculator, titanic_survival, blocks_static_textbox, blocks_simple_squares
     """
 
     def __init__(
@@ -828,7 +828,7 @@ class Radio(Changeable, IOComponent):
     Preprocessing: passes the value of the selected radio button as a {str} or its index as an {int} into the function, depending on `type`.
     Postprocessing: expects a {str} corresponding to the value of the radio button to be selected.
 
-    Demos: sentence_builder, tax_calculator, titanic_survival
+    Demos: sentence_builder, tax_calculator, titanic_survival, blocks_essay
     """
 
     def __init__(
@@ -2099,11 +2099,12 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
 
 class Variable(IOComponent):
     """
-    Special hidden component that stores state across runs of the interface.
+    Special hidden component that stores session state across runs of the demo by the 
+    same user. The value of the Variable is cleared when the user refreshes the page.
 
-    Input type: Any
-    Output type: Any
-    Demos: chatbot
+    Preprocessing: No preprocessing is performed
+    Postprocessing: No postprocessing is performed
+    Demos: chatbot, blocks_simple_squares
     """
 
     def __init__(
@@ -2321,7 +2322,7 @@ class JSON(Changeable, IOComponent):
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a valid JSON {str} -- or a {list} or {dict} that is JSON serializable.
     
-    Demos: zip_to_json
+    Demos: zip_to_json, blocks_xray
     """
 
     def __init__(
@@ -2583,7 +2584,7 @@ class Plot(Changeable, Clearable, IOComponent):
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects either a {matplotlib.pyplot.Figure}, a {plotly.graph_objects._figure.Figure}, or a {dict} corresponding to a bokeh plot (json_item format)
     
-    Demos: outbreak_forecast
+    Demos: outbreak_forecast, blocks_kinematics
     """
 
     def __init__(
@@ -2626,9 +2627,10 @@ class Plot(Changeable, Clearable, IOComponent):
 class Markdown(Component):
     """
     Used to render arbitrary Markdown output.
-
     Preprocessing: this component does *not* accept input.
-    Postprocessing: expects a valid {str} that can be rendered as Markdown.    
+    Postprocessing: expects a valid {str} that can be rendered as Markdown.   
+    
+    Demos: blocks_hello, blocks_kinematics, blocks_neural_instrument_coding
     """
 
     def __init__(
@@ -2667,6 +2669,8 @@ class Markdown(Component):
 class Button(Clickable, Component):
     """
     Used to create a button, that can be assigned arbitrary click() events. Accepts neither input nor output.
+    
+    Demos: blocks_inputs, blocks_kinematics
     """
 
     def __init__(
