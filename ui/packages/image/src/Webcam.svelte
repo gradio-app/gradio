@@ -23,12 +23,6 @@
 		}
 	}
 
-	function clearphoto() {
-		var context = canvas.getContext("2d")!;
-		context.fillStyle = "#AAA";
-		context.fillRect(0, 0, canvas.width, canvas.height);
-	}
-
 	function take_picture() {
 		var context = canvas.getContext("2d")!;
 
@@ -98,7 +92,7 @@
 
 <div class="h-full w-full relative">
 	<!-- svelte-ignore a11y-media-has-caption -->
-	<video bind:this={video_source} class=" h-full w-full" />
+	<video bind:this={video_source} class="h-full w-full " />
 	<button
 		on:click={mode === "image" ? take_picture : take_recording}
 		class="rounded-xl w-10 h-10 flex justify-center items-center absolute inset-x-0 bottom-2 md:bottom-4 xl:bottom-8 m-auto drop-shadow-lg bg-black/90"
@@ -110,7 +104,7 @@
 				</div>
 			{:else}
 				<div class="w-2/4 h-2/4 dark:text-white opacity-80">
-					<Square />
+					<Circle />
 				</div>
 			{/if}
 		{:else}
@@ -120,10 +114,3 @@
 		{/if}
 	</button>
 </div>
-
-<style lang="postcss">
-	video {
-		-webkit-transform: scaleX(-1);
-		transform: scaleX(-1);
-	}
-</style>
