@@ -315,8 +315,11 @@
               -->{% if not loop.last %}, {% endif %}<!--
             -->{% endfor %}<span>)</span></code></pre>
             <p class="w-4/5 mt-4 text-lg">{{ func["doc"] }}</p>
-            {% if func["Input type"]|length %}
-            <p class="text-gray-500 italic text-lg">Input type: {{ func["Input type"] }}</p>
+            {% if func["Preprocessing"]|length %}
+            <p class="text-gray-500">Preprocessing: {{ func["Preprocessing"] | safe}}</p>
+            {% endif %}
+            {% if func["Postprocessing"]|length %}
+            <p class="text-gray-500">Postprocessing: {{ func["Postprocessing"] | safe}}</p>
             {% endif %}
             <table class="table-fixed w-full my-4">
               <thead class="text-left">

@@ -410,9 +410,9 @@ class Playable(Component):
 
 class Textbox(Changeable, Submittable, IOComponent):
     """
-    Component creates a textbox for user to enter string input or display string output. Provides a string as an argument to the wrapped function.
-    Input type: str
-    Output type: str
+    Creates a textarea for user to enter string input or display string output.
+    Preprocessing: passes textarea value as a [str] or [np.array] into the function. 
+    Postprocessing: accepts [str] returned from function and sets textarea value to it.
 
     Demos: hello_world, diff_texts, sentence_builder
     """
@@ -560,11 +560,10 @@ class Textbox(Changeable, Submittable, IOComponent):
 
 class Number(Changeable, Submittable, IOComponent):
     """
-    Component creates a field for user to enter numeric input or display numeric output. Provides a number as an argument to the wrapped function.
-    Can be used as an output as well.
-
-    Input type: float
-    Output type: float
+    Creates a numeric field for user to enter numbers as input or display numeric output. 
+    Preprocessing: passes field value as a [float] into the function. 
+    Postprocessing: accepts [int] or [float] returned from function and sets field value to it.
+    
     Demos: tax_calculator, titanic_survival
     """
 
@@ -673,9 +672,10 @@ class Number(Changeable, Submittable, IOComponent):
 
 class Slider(Changeable, IOComponent):
     """
-    Component creates a slider that ranges from `minimum` to `maximum`. Provides a number as an argument to the wrapped function.
-
-    Input type: float
+    Creates a slider that ranges from `minimum` to `maximum` with a step size of `step`.
+    Preprocessing: passes slider value as a [float] into the function. 
+    Postprocessing: accepts an [int] or [float] returned from function and sets slider value to it as long as it is within range.
+    
     Demos: sentence_builder, generate_tone, titanic_survival
     """
 
@@ -765,7 +765,7 @@ class Slider(Changeable, IOComponent):
 
         # Output Functionalities
 
-    def postprocess(self, y: float | None):
+    def postprocess(self, y: int | float | None):
         """
         Any postprocessing needed to be performed on function output.
         """
@@ -780,10 +780,10 @@ class Slider(Changeable, IOComponent):
 
 class Checkbox(Changeable, IOComponent):
     """
-    Component creates a checkbox that can be set to `True` or `False`. Provides a boolean as an argument to the wrapped function.
+    Creates a checkbox that can be set to `True` or `False`. 
 
-    Input type: bool
-    Output type: bool
+    Preprocessing: passes the status of the checkbox as a [bool] into the function. 
+    Postprocessing: accepts [bool] returned from function and checks the checkbox if True.
     Demos: sentence_builder, titanic_survival
     """
 
