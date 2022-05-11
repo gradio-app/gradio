@@ -39,7 +39,8 @@ from gradio.components import (
     Variable
 )
 
-from gradio.interface import Interface
+from gradio.interface import Interface, TabbedInterface
+from gradio.mix import Series, Parallel
 from gradio.blocks import Blocks
 
 GRADIO_DIR = "../../"
@@ -457,6 +458,30 @@ with demo:
 
 demo.launch()"""            
     }    
+    tabbed_interface_docs = get_class_documentation(TabbedInterface, lines=None)["doc"]
+    tabbed_interface_params = get_function_documentation(TabbedInterface.__init__)
+    tabbed_interface = {
+        "doc": tabbed_interface_docs,
+        "params": tabbed_interface_params[1],
+        "params_doc": tabbed_interface_params[2],
+    }
+    
+    series_docs = get_class_documentation(Series, lines=None)["doc"]
+    series_params = get_function_documentation(Series.__init__)
+    series = {
+        "doc": series_docs,
+        "params": series_params[1],
+        "params_doc": series_params[2],
+    }
+    
+    parallel_docs = get_class_documentation(Parallel, lines=None)["doc"]
+    parallel_params = get_function_documentation(Parallel.__init__)
+    parallel = {
+        "doc": parallel_docs,
+        "params": parallel_params[1],
+        "params_doc": parallel_params[2],
+    }        
+    
     docs = {
         "components": components_docs,
         "interface": interface,
@@ -464,9 +489,10 @@ demo.launch()"""
         "load": load,
         "from_pipeline": from_pipeline,
         "blocks": blocks_docs,
+        "tabbed_interface": tabbed_interface,
+        "parallel": parallel,
+        "series": series
     }
-
-
 
     os.makedirs("generated", exist_ok=True)
     with open("src/docs_template.html") as template_file:

@@ -785,13 +785,18 @@ class Interface(Blocks):
 class TabbedInterface(Blocks):
     """
     A TabbedInterface is created by providing a list of Interfaces, each of which gets 
-    rendered in a separate tab.
-    
-    Demos: blocks_neural_instrument_coding 
+    rendered in a separate tab.    
     """
     def __init__(
         self, interface_list: List[Interface], tab_names: Optional[List[str]] = None
     ):
+        """
+        Parameters:
+        interface_list (List[Interface]): a list of interfaces to be rendered in tabs.
+        tab_names (List[str] | None): a list of tab names. If None, the tab names will be "Tab 1", "Tab 2", etc.
+        Returns:
+        (gradio.TabbedInterface): a Gradio Tabbed Interface for the given interfaces        
+        """
         if tab_names is None:
             tab_names = ["Tab {}".format(i) for i in range(len(interface_list))]
         super().__init__()
