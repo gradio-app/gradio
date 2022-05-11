@@ -33,12 +33,6 @@ BUILD_PATH_LIB = pkg_resources.resource_filename("gradio", "templates/frontend/a
 VERSION_FILE = pkg_resources.resource_filename("gradio", "version.txt")
 with open(VERSION_FILE) as version_file:
     VERSION = version_file.read()
-GRADIO_STATIC_ROOT = "https://gradio.s3-us-west-2.amazonaws.com/{}/static/".format(
-    VERSION
-)
-GRADIO_BUILD_ROOT = "https://gradio.s3-us-west-2.amazonaws.com/{}/assets/".format(
-    VERSION
-)
 
 
 class ORJSONResponse(JSONResponse):
@@ -98,6 +92,7 @@ class App(FastAPI):
                 self.auth = auth
         else:
             self.auth = None
+
         self.blocks = blocks
         self.cwd = os.getcwd()
         self.favicon_path = blocks.favicon_path
@@ -151,7 +146,6 @@ class App(FastAPI):
                 response = RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
                 response.set_cookie(key="access-token", value=token, httponly=True)
                 return response
-
             else:
                 raise HTTPException(status_code=400, detail="Incorrect credentials.")
 
@@ -171,8 +165,11 @@ class App(FastAPI):
                 }
 
             try:
+                template = (
+                    "frontend/share.html" if app.blocks.share else "frontend/index.html"
+                )
                 return templates.TemplateResponse(
-                    "frontend/index.html", {"request": request, "config": config}
+                    template, {"request": request, "config": config}
                 )
             except TemplateNotFound:
                 raise ValueError(
@@ -187,20 +184,14 @@ class App(FastAPI):
 
         @app.get("/static/{path:path}")
         def static_resource(path: str):
-            if app.blocks.share:
-                return RedirectResponse(GRADIO_STATIC_ROOT + path)
-            else:
-                static_file = safe_join(STATIC_PATH_LIB, path)
+            static_file = safe_join(STATIC_PATH_LIB, path)
             if static_file is not None:
                 return FileResponse(static_file)
             raise HTTPException(status_code=404, detail="Static file not found")
 
         @app.get("/assets/{path:path}")
         def build_resource(path: str):
-            if app.blocks.share:
-                return RedirectResponse(GRADIO_BUILD_ROOT + path)
-            else:
-                build_file = safe_join(BUILD_PATH_LIB, path)
+            build_file = safe_join(BUILD_PATH_LIB, path)
             if build_file is not None:
                 return FileResponse(build_file)
             raise HTTPException(status_code=404, detail="Build file not found")
