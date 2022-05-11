@@ -283,14 +283,14 @@
         </section>
         <section class="flex flex-col gap-6">
           <div id="combining_interfaces" class="func">
-            <h3 id="interface-header" class="text-3xl font-light my-4">Combining Interfaces</h3>
+            <h3 id="combining-interfaces-header" class="text-3xl font-light my-4">Combining Interfaces</h3>
             <p class="w-4/5 mt-4 text-lg">Once you have created several Interfaces, we provide several classes that let you
               start combining them together. For example, you can chain them in <em>Series</em>
               or compare their outputs in <em>Parallel</em> if the inputs and outputs match accordingly. 
               You can also display arbitrary Interfaces together in a tabbed layout using <em>TabbedInterface</em>.</p>
               <h3 class="font-semibold">Classes:</h3>
               <div id="tabbed_interface" class="func ml-20">
-                <h3 id="tabbed_interface_heading" class="text-2xl font-light my-4">TabbedInterface</h3>
+                <h3 id="tabbed_interface_header" class="text-2xl font-light my-4">TabbedInterface</h3>
                 <pre><code class='lang-python'>gradio.TabbedInterface(interface_list, &#183;&#183;&#183;)</code></pre>
                 <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.tabbed_interface["doc"] }}</p>
                 <table class="table-fixed w-full my-4">
@@ -323,8 +323,8 @@
                 </table>
               </div>
               
-              <div id="tabbed_interface" class="func ml-20">
-                <h3 id="tabbed_interface_heading" class="text-2xl font-light my-4">Parallel</h3>
+              <div id="parallel" class="func ml-20">
+                <h3 id="parallel-header" class="text-2xl font-light my-4">Parallel</h3>
                 <pre><code class='lang-python'>gradio.Parallel(*interfaces, &#183;&#183;&#183;)</code></pre>
                 <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.parallel["doc"] }}</p>
                 <table class="table-fixed w-full my-4">
@@ -357,8 +357,8 @@
                 </table>
               </div>              
 
-              <div id="tabbed_interface" class="func ml-20">
-                <h3 id="tabbed_interface_heading" class="text-2xl font-light my-4">Series</h3>
+              <div id="series" class="func ml-20">
+                <h3 id="series-header" class="text-2xl font-light my-4">Series</h3>
                 <pre><code class='lang-python'>gradio.Series(*interfaces, &#183;&#183;&#183;)</code></pre>
                 <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.series["doc"] }}</p>
                 <table class="table-fixed w-full my-4">
@@ -435,18 +435,18 @@
     <pre><code class='lang-python'>{{ docs.blocks["example"] }}</code></pre>
 
     <h3 class="font-semibold">Layout Classes:</h3>
-    <div id="tabbed_interface" class="func ml-20">
-      <h3 id="tabbed_interface_heading" class="text-2xl font-light my-4">Row</h3>
+    <div id="layout-classes" class="func ml-20">
+      <h3 id="layout-classes-header" class="text-2xl font-light my-4">Row</h3>
       <pre><code class='lang-python'>with gradio.Row():
     &#183;&#183;&#183;</code></pre>
       <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.row["doc"] }}</p>
 
-      <h3 id="tabbed_interface_heading" class="text-2xl font-light my-4">Column</h3>
+      <h3 id="column-header" class="text-2xl font-light my-4">Column</h3>
       <pre><code class='lang-python'>with gradio.Column():
     &#183;&#183;&#183;</code></pre>
       <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.column["doc"] }}</p>
 
-      <h3 id="tabbed_interface_heading" class="text-2xl font-light my-4">Tabs and TabItem</h3>
+      <h3 id="tabs-header" class="text-2xl font-light my-4">Tabs and TabItem</h3>
       <pre><code class='lang-python'>with gradio.Tabs():
     with gradio.TabItem("Tab 1"):
       &#183;&#183;&#183;
