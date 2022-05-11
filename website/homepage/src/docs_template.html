@@ -100,9 +100,7 @@
         <a class="px-4 block thin-link" href="#blocks">Blocks<sup class="text-orange-500">NEW</sup></a>
         <a class="px-4 link my-2 block" href="#components">Components</h4>
         {% for component in docs["components"] %}
-          {% if component["name"] not in ["Image3D", "Dropdown", "State" "Textbox"] %}
         <a class="px-4 block thin-link" href="#{{ component["name"].lower() }}">{{ component["name"] }}</a>
-          {% endif %}
         {% endfor %}
       </div>
       <div class="docs mx-6 leading-7 max-w-full">
@@ -467,7 +465,6 @@
           steps to convert values returned by a Python function into something that can be displayed in a browser.</p>
         <section class="flex flex-col gap-6">
           {% for func in docs["components"] %}
-          {% if func["name"] not in ["Image3D", "Dropdown", "State" "Textbox"] %}
           <div id="{{ func['name'].lower() }}" class="func">
             <h3 id="{{ func['name'].lower() }}-header" class="text-3xl font-light my-4">
               {{ func['name'] }}
@@ -603,7 +600,6 @@
               </div>
             {% endif %}
           </div>
-          {% endif %}
           {% endfor %}
         </section>
       </div>
