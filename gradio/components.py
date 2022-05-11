@@ -1926,12 +1926,13 @@ class Timeseries(Changeable, IOComponent):
         **kwargs,
     ):
         """
+        TODO: Add support for default value as a pd.DataFrame
         Parameters:
-        default_value: File path for the timeseries csv file. TODO: Add support for default value as a pd.DataFrame
+        default_value: File path for the timeseries csv file.
         x (str): Column name of x (time) series. None if csv has no headers, in which case first column is x series.
         y (Union[str, List[str]]): Column name of y series, or list of column names if multiple series. None if csv has no headers, in which case every column after first is a y series.
         label (str): component name in interface.
-        colors List[str]: an ordered list of colors to use for each line plot
+        colors (List[str]): an ordered list of colors to use for each line plot
         """
         self.default_value = (
             pd.read_csv(default_value) if default_value is not None else None
