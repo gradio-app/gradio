@@ -36,6 +36,7 @@ from gradio.components import (
     Markdown,    
     Button, 
     Dataset, 
+    Variable
 )
 
 from gradio.interface import Interface
