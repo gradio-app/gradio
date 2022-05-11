@@ -42,6 +42,7 @@ from gradio.components import (
 from gradio.interface import Interface, TabbedInterface
 from gradio.mix import Series, Parallel
 from gradio.blocks import Blocks
+from gradio.layouts import Row, Column, Tabs, TabItem
 
 GRADIO_DIR = "../../"
 GRADIO_GUIDES_DIR = os.path.join(GRADIO_DIR, "guides")
@@ -480,7 +481,31 @@ demo.launch()"""
         "doc": parallel_docs,
         "params": parallel_params[1],
         "params_doc": parallel_params[2],
-    }        
+    }    
+    
+    row = {
+        "doc": get_class_documentation(Row, lines=None)["doc"],
+        "params": get_function_documentation(Row.__init__)[1],
+        "params_doc": get_function_documentation(Row.__init__)[2],
+    }           
+
+    column = {
+        "doc": get_class_documentation(Column, lines=None)["doc"],
+        "params": get_function_documentation(Column.__init__)[1],
+        "params_doc": get_function_documentation(Column.__init__)[2],
+    }           
+
+    tabs = {
+        "doc": get_class_documentation(Tabs, lines=None)["doc"],
+        "params": get_function_documentation(Tabs.__init__)[1],
+        "params_doc": get_function_documentation(Tabs.__init__)[2],
+    }           
+
+    tabitem = {
+        "doc": get_class_documentation(TabItem, lines=None)["doc"],
+        "params": get_function_documentation(TabItem.__init__)[1],
+        "params_doc": get_function_documentation(TabItem.__init__)[2],
+    }           
     
     docs = {
         "components": components_docs,
@@ -491,7 +516,11 @@ demo.launch()"""
         "blocks": blocks_docs,
         "tabbed_interface": tabbed_interface,
         "parallel": parallel,
-        "series": series
+        "series": series,
+        "row": row,
+        "column": column,
+        "tabs": tabs,
+        "tabitem": tabitem
     }
 
     os.makedirs("generated", exist_ok=True)
