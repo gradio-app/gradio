@@ -21,7 +21,8 @@ from markdown_it import MarkdownIt
 from mdit_py_plugins.footnote import footnote_plugin
 
 from gradio import interpretation, utils
-from gradio.blocks import Blocks, Column, Row, TabItem, Tabs
+from gradio.blocks import Blocks
+from gradio.layouts import Column, Row, TabItem, Tabs
 from gradio.components import (
     Button,
     Component,
