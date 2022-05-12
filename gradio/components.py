@@ -3719,6 +3719,7 @@ class StatusTracker(Component):
             "__type__": "update",
         }
 
+
 def component(cls_name: str) -> Component:
     """
     Returns a component or template with the given class name, or raises a ValueError if not found.
