@@ -322,9 +322,12 @@ def render_docs():
         doc_lines = doc.split("\n")
         inp["doc"] = ""
         parameters_started = False
+        inp["demos"] = []
         for l, line in enumerate(doc_lines):
             if not(parameters_started):
                 inp["doc"] += line + " "
+            if line.startswith("Demos: "):
+                inp["demos"] = [demo for demo in line.split("Demos: ")[1].split(", ")]
             if "Parameters:" in line or (lines is not None and l >= lines-1):
                 parameters_started = True
             if parameters_started and ": " in line:
