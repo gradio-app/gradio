@@ -11,3 +11,7 @@ export { default as Image } from "./Image.svelte";
 export { default as Chart } from "./Chart.svelte";
 export { default as Music } from "./Music.svelte";
 export { default as File } from "./File.svelte";
+export { default as LineChart } from "./LineChart.svelte";
+export { default as TextHighlight } from "./TextHighlight.svelte";
+export { default as JSON } from "./JSON.svelte";
+export { default as Tree } from "./Tree.svelte";
