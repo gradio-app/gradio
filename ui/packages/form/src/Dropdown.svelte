@@ -18,7 +18,8 @@
 <label>
 	<BlockTitle {show_label}>{label}</BlockTitle>
 	<select
-		class={"gr-box gr-input w-full disabled:cursor-not-allowed" + styleClasses(style)}
+		class={"gr-box gr-input w-full disabled:cursor-not-allowed" +
+			styleClasses(style)}
 		bind:value
 		{disabled}
 	>

@@ -1,6 +1,6 @@
 <script lang="ts">
-import { styleClasses } from "@gradio/utils";
-import { createEventDispatcher } from "svelte";
+	import { styleClasses } from "@gradio/utils";
+	import { createEventDispatcher } from "svelte";
 
 	export let value: boolean;
 	export let style: Record<string, string> = {};

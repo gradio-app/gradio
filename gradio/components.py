@@ -768,7 +768,6 @@ class Number(Changeable, Submittable, IOComponent):
         )
 
 
-
 class Slider(Changeable, IOComponent):
     """
     Component creates a slider that ranges from `minimum` to `maximum`. Provides a number as an argument to the wrapped function.
@@ -1047,6 +1046,7 @@ class Checkbox(Changeable, IOComponent):
             text_color=text_color,
             container_bg_color=container_bg_color,
         )
+
 
 class CheckboxGroup(Changeable, IOComponent):
     """
@@ -1362,6 +1362,7 @@ class Radio(Changeable, IOComponent):
             text_color=text_color,
             container_bg_color=container_bg_color,
         )
+
 
 class Dropdown(Radio):
     """
@@ -1736,6 +1737,7 @@ class Image(Editable, Clearable, Changeable, IOComponent):
             text_color=text_color,
             container_bg_color=container_bg_color,
         )
+
 
 class Video(Changeable, Clearable, Playable, IOComponent):
     """
