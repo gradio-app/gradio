@@ -345,7 +345,7 @@ class Blocks(BlockContext):
                     prediction_value = predictions[i]
                     if type(
                         prediction_value
-                    ) is dict and "update" in prediction_value.get("__type__"):
+                    ) is dict and "update" in prediction_value.get("__type__", ""):
                         if prediction_value["__type__"] == "generic_update":
                             del prediction_value["__type__"]
                             prediction_value = block.__class__.update(
