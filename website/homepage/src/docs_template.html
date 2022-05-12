@@ -443,7 +443,7 @@
             <button class="rounded-full bg-orange-500 text-white py-1 px-3 my-3" onclick="showDemos({{ func['demos'] }})">
               Try Demo &#8594;
             </button>
-            <div id='{{ func["name"].lower() }}_component'></div>
+            <div id='{{ func["name"].lower() }}-component'  class="component-embedding w-min"></div>
             <pre><code class="lang-python">gradio.components.<span>{{ func["name"] }}(</span><!--
             -->{% for param in func["params"] %}<!--
               -->{% if param|length == 1 %}<!--
@@ -815,6 +815,60 @@
       }
     }
 
+    {% for component in docs["components"] %}
+    target = "#{{ component['name'].lower() }}-component"
+    config = {
+      "mode": "blocks",
+      "components": [
+        {
+          "id": 1,
+          "type": "{{ component['name'] }}",
+          "props": {
+          "label": "input"
+          }
+        },
+        {
+          "id": 2,
+          "type": "textbox",
+          "props": {},
+        },
+          {
+          "id": 3,
+          "type": "button",
+          "props": {}
+        },
+      ],
+      "theme": "default",
+      "layout": {
+        "id": 0, "children": [
+            {"id": 1}
+            ]
+      },
+      "dependencies": [
+          {
+          "targets": [
+            3
+          ],
+          "trigger": "click",
+          "inputs": [
+            1
+          ],
+          "outputs": [
+            2
+          ],
+          "queue": false
+        },
+      ]
+    }
+    window.launchGradio(config, target);
+    {% endfor %}
+
+    let componentEmbeddings = document.querySelectorAll(".component-embedding").forEach(e => {
+                  e.classList.remove("dark");
+              });
+    let componentEmbeddingsFooters = document.querySelectorAll(".component-embedding .footer").forEach(e => {
+              e.classList.add("hidden");
+            });
 
 
   </script>
