@@ -13,14 +13,19 @@ class Row(BlockContext):
     A layout element within Blocks that renders all children horizontally.
     """
 
-    def __init__(self, visible: bool = True, css: Optional[Dict[str, str]] = None):
-        """
-        css: Css rules to apply to block.
-        """
-        super().__init__(visible, css)
+    def get_config(self):
+        return {"type": "row", **super().get_config()}
 
-    def get_template_context(self):
-        return {"type": "row", **super().get_template_context()}
+    @staticmethod
+    def update(
+        css: Optional[Dict] = None,
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "css": css,
+            "visible": visible,
+            "__type__": "update",
+        }
 
 
 class Column(BlockContext):
@@ -39,13 +44,26 @@ class Column(BlockContext):
         variant: column type, 'default' (no background) or 'panel' (gray background color and rounded corners)
         """
         self.variant = variant
-        super().__init__(visible, css)
+        super().__init__(visible=visible, css=css)
 
-    def get_template_context(self):
+    def get_config(self):
         return {
             "type": "column",
             "variant": self.variant,
-            **super().get_template_context(),
+            **super().get_config(),
+        }
+
+    @staticmethod
+    def update(
+        variant: Optional[str] = None,
+        css: Optional[Dict] = None,
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "variant": variant,
+            "css": css,
+            "visible": visible,
+            "__type__": "update",
         }
 
 
@@ -54,12 +72,6 @@ class Tabs(BlockContext):
     Tabs are a layout element within Blocks that contain multiple TabItem()'s which get
     rendered as tabs. The TabItem()'s must be nested within the Tabs() context.
     """
-
-    def __init__(self, visible: bool = True, css: Optional[Dict[str, str]] = None):
-        """
-        css: css rules to apply to block.
-        """
-        super().__init__(visible, css)
 
     def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
@@ -78,17 +90,12 @@ class TabItem(BlockContext):
     are rendered within the tab vertically by default.
     """
 
-    def __init__(
-        self, label, visible: bool = True, css: Optional[Dict[str, str]] = None
-    ):
-        """
-        css: Css rules to apply to block.
-        """
-        super().__init__(visible, css)
+    def __init__(self, label, **kwargs):
+        super().__init__(**kwargs)
         self.label = label
 
-    def get_template_context(self):
-        return {"label": self.label, **super().get_template_context()}
+    def get_config(self):
+        return {"label": self.label, **super().get_config()}
 
     def select(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
