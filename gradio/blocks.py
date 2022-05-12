@@ -522,7 +522,7 @@ class Blocks(BlockContext):
             self.enable_queue = enable_queue or False
 
         self.config = self.get_config_file()
-
+        self.share = share
         self.encrypt = encrypt
         if self.encrypt:
             self.encryption_key = encryptor.get_key(
@@ -592,8 +592,6 @@ class Blocks(BlockContext):
         else:
             print(strings.en["PUBLIC_SHARE_TRUE"])
             self.share_url = None
-
-        self.share = share
 
         if inbrowser:
             link = self.share_url if share else self.local_url
