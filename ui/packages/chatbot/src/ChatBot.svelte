@@ -3,7 +3,6 @@
 	import { colors } from "@gradio/theme";
 
 	export let value: Array<[string, string]>;
-	export let style: string = "";
 	export let color_map: [string, string] | undefined = undefined;
 
 	let div: HTMLDivElement;

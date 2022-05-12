@@ -11,6 +11,7 @@
 </svelte:head>
 
 <script lang="ts">
+	export let elem_id: string = "";
 	export let value: null | string;
 	export let theme: string;
 	import { afterUpdate, onMount} from "svelte";

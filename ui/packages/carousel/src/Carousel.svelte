@@ -6,7 +6,7 @@
 	import { setContext, createEventDispatcher } from "svelte";
 	import { writable } from "svelte/store";
 
-	export let style: string = "";
+	export let elem_id: string = "";
 
 	const dispatch = createEventDispatcher<{
 		change: undefined;
@@ -45,7 +45,7 @@
 	};
 </script>
 
-<div class="output-carousel flex flex-col relative">
+<div class="output-carousel flex flex-col relative" id={elem_id}>
 	<slot />
 
 	<div

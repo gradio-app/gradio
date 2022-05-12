@@ -24,11 +24,12 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 
 class Block:
-    def __init__(self, *, render=True, css=None, visible=True, **kwargs):
+    def __init__(self, *, render=True, elem_id=None, visible=True, **kwargs):
         self._id = Context.id
         Context.id += 1
-        self.css = css if css is not None else {}
         self.visible = visible
+        self.elem_id = elem_id
+        self._style = {}
         if render:
             self.render()
         check_deprecated_parameters(self.__class__.__name__, **kwargs)
@@ -128,22 +129,22 @@ class Block:
         )
 
     def get_config(self):
-        return {"css": self.css, "visible": self.visible}
+        return {
+            "visible": self.visible,
+            "elem_id": self.elem_id,
+            "style": self._style,
+        }
 
 
 class BlockContext(Block):
     def __init__(
         self,
         visible: bool = True,
-        css: Optional[Dict[str, str]] = None,
         render: bool = True,
         **kwargs,
     ):
-        """
-        css: Css rules to apply to block.
-        """
         self.children = []
-        super().__init__(css=css, visible=visible, render=render, **kwargs)
+        super().__init__(visible=visible, render=render, **kwargs)
 
     def __enter__(self):
         self.parent = Context.block
@@ -163,11 +164,9 @@ class Row(BlockContext):
 
     @staticmethod
     def update(
-        css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
         return {
-            "css": css,
             "visible": visible,
             "__type__": "update",
         }
@@ -177,15 +176,13 @@ class Column(BlockContext):
     def __init__(
         self,
         visible: bool = True,
-        css: Optional[Dict[str, str]] = None,
         variant: str = "default",
     ):
         """
-        css: Css rules to apply to block.
         variant: column type, 'default' (no background) or 'panel' (gray background color and rounded corners)
         """
         self.variant = variant
-        super().__init__(visible=visible, css=css)
+        super().__init__(visible=visible)
 
     def get_config(self):
         return {
@@ -197,12 +194,10 @@ class Column(BlockContext):
     @staticmethod
     def update(
         variant: Optional[str] = None,
-        css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
         return {
             "variant": variant,
-            "css": css,
             "visible": visible,
             "__type__": "update",
         }
@@ -254,6 +249,7 @@ class Blocks(BlockContext):
         theme: str = "default",
         analytics_enabled: Optional[bool] = None,
         mode: str = "blocks",
+        css: Optional[str] = None,
         **kwargs,
     ):
 
@@ -263,6 +259,11 @@ class Blocks(BlockContext):
         self.theme = theme
         self.requires_permissions = False  # TODO: needs to be implemented
         self.encrypt = False
+        if css is not None and os.path.exists(css):
+            with open(css) as css_file:
+                self.css = css_file.read()
+        else:
+            self.css = css
 
         # For analytics_enabled and allow_flagging: (1) first check for
         # parameter, (2) check for env variable, (3) default to True/"manual"
@@ -383,6 +384,7 @@ class Blocks(BlockContext):
             "mode": "blocks",
             "components": [],
             "theme": self.theme,
+            "css": self.css,
             "enable_queue": getattr(
                 self, "enable_queue", False
             ),  # attribute set at launch

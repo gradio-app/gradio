@@ -7,7 +7,6 @@
 	export let single_file: boolean = true;
 	export let include_file_metadata = true;
 	export let dragging = false;
-	export let style: string = "";
 	export let boundedheight: boolean = true;
 	export let click: boolean = true;
 	export let center: boolean = true;

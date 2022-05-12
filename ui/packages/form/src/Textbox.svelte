@@ -1,12 +1,13 @@
 <script lang="ts">
 	import { createEventDispatcher, tick } from "svelte";
+	import { styleClasses } from "@gradio/utils";
 	import { BlockTitle } from "@gradio/atoms";
 
 	export let value: string = "";
+	export let style: Record<string, string> = {};
 	export let lines: number = 1;
 	export let placeholder: string = "Type here...";
 	export let label: string;
-	export let style: string = "";
 	export let disabled = false;
 	export let show_label: boolean = true;
 	export let max_lines: number | false;
@@ -81,11 +82,10 @@
 
 	<textarea
 		use:text_area_resize={value}
-		class="block gr-box gr-input w-full gr-text-input"
+		class={"block gr-box gr-input w-full gr-text-input " + styleClasses(style)}
 		bind:value
 		bind:this={el}
 		{placeholder}
-		{style}
 		rows={lines}
 		{disabled}
 	/>
