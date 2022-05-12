@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import getpass
+import inspect
 import os
 import sys
 import time
@@ -8,9 +9,12 @@ import warnings
 import webbrowser
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
+from fastapi.concurrency import run_in_threadpool
+
 from gradio import encryptor, networking, queueing, strings, utils
 from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
+from gradio.utils import delete_none
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from fastapi.applications import FastAPI
@@ -20,10 +24,11 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 
 class Block:
-    def __init__(self, css=None, render=True, **kwargs):
+    def __init__(self, *, render=True, css=None, visible=True, **kwargs):
         self._id = Context.id
         Context.id += 1
         self.css = css if css is not None else {}
+        self.visible = visible
         if render:
             self.render()
         check_deprecated_parameters(self.__class__.__name__, **kwargs)
@@ -122,6 +127,9 @@ class Block:
             }
         )
 
+    def get_config(self):
+        return {"css": self.css, "visible": self.visible}
+
 
 class BlockContext(Block):
     def __init__(
@@ -135,8 +143,7 @@ class BlockContext(Block):
         css: Css rules to apply to block.
         """
         self.children = []
-        self.visible = visible
-        super().__init__(css=css, render=render, **kwargs)
+        super().__init__(css=css, visible=visible, render=render, **kwargs)
 
     def __enter__(self):
         self.parent = Context.block
@@ -145,12 +152,6 @@ class BlockContext(Block):
 
     def __exit__(self, *args):
         Context.block = self.parent
-
-    def get_template_context(self):
-        return {
-            "css": self.css,
-            "default_value": self.visible,
-        }
 
     def postprocess(self, y):
         return y
@@ -229,7 +230,7 @@ class Blocks(BlockContext):
         if Context.block is not None:
             Context.block.children.extend(self.children)
 
-    def process_api(
+    async def process_api(
         self,
         data: PredictBody,
         username: str = None,
@@ -259,7 +260,11 @@ class Blocks(BlockContext):
         else:
             processed_input = raw_input
         start = time.time()
-        predictions = block_fn.fn(*processed_input)
+
+        if inspect.iscoroutinefunction(block_fn.fn):
+            predictions = await block_fn.fn(*processed_input)
+        else:
+            predictions = await run_in_threadpool(block_fn.fn, *processed_input)
         duration = time.time() - start
         block_fn.total_runtime += duration
         block_fn.total_runs += 1
@@ -273,11 +278,31 @@ class Blocks(BlockContext):
                     state[output_id] = predictions[i]
                     output.append(None)
                 else:
-                    output.append(
-                        block.postprocess(predictions[i])
-                        if predictions[i] is not None
-                        else None
-                    )
+                    prediction_value = predictions[i]
+                    if type(
+                        prediction_value
+                    ) is dict and "update" in prediction_value.get("__type__"):
+                        if prediction_value["__type__"] == "generic_update":
+                            del prediction_value["__type__"]
+                            prediction_value = block.__class__.update(
+                                **prediction_value
+                            )
+                        prediction_value = delete_none(prediction_value)
+                        if "value" in prediction_value:
+                            prediction_value["value"] = (
+                                block.postprocess(prediction_value["value"])
+                                if prediction_value["value"] is not None
+                                else None
+                            )
+                        output_value = prediction_value
+                    else:
+                        output_value = (
+                            block.postprocess(prediction_value)
+                            if prediction_value is not None
+                            else None
+                        )
+                    output.append(output_value)
+
         else:
             output = predictions
         return {
@@ -286,7 +311,7 @@ class Blocks(BlockContext):
             "average_duration": block_fn.total_runtime / block_fn.total_runs,
         }
 
-    def get_template_context(self):
+    def get_config(self):
         return {"type": "column"}
 
     def get_config_file(self):
@@ -298,14 +323,15 @@ class Blocks(BlockContext):
                 self, "enable_queue", False
             ),  # attribute set at launch
         }
+
         for _id, block in self.blocks.items():
             config["components"].append(
                 {
                     "id": _id,
                     "type": (block.get_block_name()),
-                    "props": utils.delete_none(block.get_template_context())
-                    if hasattr(block, "get_template_context")
-                    else None,
+                    "props": utils.delete_none(block.get_config())
+                    if hasattr(block, "get_config")
+                    else {},
                 }
             )
 

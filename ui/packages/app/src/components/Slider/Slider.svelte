@@ -7,7 +7,6 @@
 	export let value: number = 0;
 
 	export let label: string = "Slider";
-	export let default_value: number;
 
 	export let style: string = "";
 	export let minimum: number;
@@ -18,8 +17,6 @@
 	export let show_label: boolean;
 
 	export let loading_status: LoadingStatus;
-
-	if (default_value) value = default_value;
 </script>
 
 <Block {form_position}>

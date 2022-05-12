@@ -32,7 +32,7 @@ with demo:
                         "Incorrect", css={"background-color": "pink", "color": "red"}
                     )
         with gr.TabItem("Results"):
-            results = gr.Variable(default_value={})
+            results = gr.Variable(value={})
             correct_field = gr.Markdown("# Correct: 0")
             incorrect_field = gr.Markdown("# Incorrect: 0")
             gr.Markdown("Card Statistics: ")
