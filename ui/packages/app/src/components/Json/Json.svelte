@@ -15,8 +15,6 @@
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
 	$: value, dispatch("change");
-
-	$: console.log(!!value);
 </script>
 
 <Block test_id="json" {elem_id}>

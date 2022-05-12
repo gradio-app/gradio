@@ -19,8 +19,6 @@
 	const dispatch = createEventDispatcher<{ change: undefined }>();
 
 	$: value, dispatch("change");
-
-	$: console.log($$props);
 </script>
 
 <Block {elem_id}>
