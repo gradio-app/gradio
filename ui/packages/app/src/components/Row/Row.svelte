@@ -1,8 +1,6 @@
 <script lang="ts">
 	export let parent: string | null = null;
 	export let styles: Record<string, unknown> = {};
-
-	$: console.log(styles);
 </script>
 
 <div
