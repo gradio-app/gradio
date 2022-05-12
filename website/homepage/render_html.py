@@ -48,13 +48,12 @@ from gradio.events import Changeable, Clearable, Submittable, Editable, Playable
 GRADIO_DIR = "../../"
 GRADIO_GUIDES_DIR = os.path.join(GRADIO_DIR, "guides")
 GRADIO_DEMO_DIR = os.path.join(GRADIO_DIR, "demo")
-GRADIO_ASSETS_LIST = os.listdir(
-    os.path.join(GRADIO_DIR, "gradio", "templates", "frontend", "assets")
-)
-GRADIO_ASSETS = {
-    f"{asset.split('.')[0]}_{asset.split('.')[-1]}_file": asset
-    for asset in GRADIO_ASSETS_LIST
-}
+GRADIO_INDEX_FILE = os.path.join(GRADIO_DIR, "gradio", "templates", "frontend", "index.html")
+with open(GRADIO_INDEX_FILE) as index_file:
+    index_html = index_file.read()
+
+ENTRY_JS_FILE=re.findall(r'"\.\/assets\/(.*\.js)"', index_html)[0]
+ENTRY_CSS_FILE=re.findall(r'"\.\/assets\/(.*\.css)"', index_html)[0]
 
 with open("src/navbar.html", encoding="utf-8") as navbar_file:
     navbar_html = navbar_file.read()
@@ -76,7 +75,8 @@ def render_index():
             tweets=tweets,
             star_count=star_count,
             navbar_html=navbar_html,
-            **GRADIO_ASSETS,
+            entry_js_file=ENTRY_JS_FILE,
+            entry_css_file=ENTRY_CSS_FILE
         )
     with open(
         os.path.join("generated", "index.html"), "w", encoding="utf-8"
@@ -250,7 +250,8 @@ def render_guides():
                 spaces=guide["spaces"],
                 tags=guide["tags"],
                 contributor=guide["contributor"],
-                **GRADIO_ASSETS,
+                entry_js_file=ENTRY_JS_FILE,
+                entry_css_file=ENTRY_CSS_FILE
             )
             generated_template.write(output_html)
 
@@ -567,7 +568,9 @@ demo.launch()"""
     with open("src/docs_template.html") as template_file:
         template = Template(template_file.read())
         output_html = template.render(
-            docs=docs, demo_links=demo_links, navbar_html=navbar_html
+            docs=docs, demo_links=demo_links, navbar_html=navbar_html,
+            entry_js_file=ENTRY_JS_FILE,
+            entry_css_file=ENTRY_CSS_FILE
         )
     os.makedirs(os.path.join("generated", "docs"), exist_ok=True)
     with open(
@@ -594,7 +597,10 @@ def render_other():
             os.path.join("src/other_templates", template_filename)
         ) as template_file:
             template = Template(template_file.read())
-            output_html = template.render(GRADIO_ASSETS)
+            output_html = template.render(
+                entry_js_file=ENTRY_JS_FILE,
+                entry_css_file=ENTRY_CSS_FILE
+            )
         folder_name = template_filename[:-14]
         os.makedirs(os.path.join("generated", folder_name), exist_ok=True)
         with open(
