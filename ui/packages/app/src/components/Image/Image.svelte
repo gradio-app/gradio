@@ -6,7 +6,6 @@
 	import { Component as StatusTracker } from "../StatusTracker/";
 
 	export let value: null | string = null;
-	export let default_value: null | string = null;
 	export let style: string = "";
 	export let source: "canvas" | "webcam" | "upload" = "upload";
 	export let tool: "editor" | "select" = "editor";
@@ -18,8 +17,6 @@
 	export let mode: "static" | "dynamic";
 
 	const dispatch = createEventDispatcher<{ change: undefined }>();
-
-	if (default_value) value = default_value;
 
 	$: value, dispatch("change");
 

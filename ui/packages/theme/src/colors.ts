@@ -1,3 +1,5 @@
+import tw_colors from "tailwindcss/colors";
+
 export const ordered_colors = [
 	"red",
 	"green",
@@ -12,15 +14,26 @@ export const ordered_colors = [
 ] as const;
 
 // https://play.tailwindcss.com/ZubQYya0aN
-export const colors = {
-	red: { primary: "#dc2626", secondary: "#fca5a5" },
-	green: { primary: "#16a34a", secondary: "#86efac" },
-	blue: { primary: "#2563eb", secondary: "#93c5fd" },
-	yellow: { primary: "#eab308", secondary: "#fef08a" },
-	purple: { primary: "#9333ea", secondary: "#d8b4fe" },
-	teal: { primary: "#0d9488", secondary: "#5eead4" },
-	orange: { primary: "#ea580c", secondary: "#fdba74" },
-	cyan: { primary: "#0891b2", secondary: "#7dd3fc" },
-	lime: { primary: "#84cc16", secondary: "#d9f99d" },
-	pink: { primary: "#db2777", secondary: "#f9a8d4" }
-} as const;
+export const color_values = [
+	{ color: "red", primary: 600, secondary: 100 },
+	{ color: "green", primary: 600, secondary: 100 },
+	{ color: "blue", primary: 600, secondary: 100 },
+	{ color: "yellow", primary: 500, secondary: 100 },
+	{ color: "purple", primary: 600, secondary: 100 },
+	{ color: "teal", primary: 600, secondary: 100 },
+	{ color: "orange", primary: 600, secondary: 100 },
+	{ color: "cyan", primary: 600, secondary: 100 },
+	{ color: "lime", primary: 500, secondary: 100 },
+	{ color: "pink", primary: 600, secondary: 100 }
+] as const;
+
+export const colors = color_values.reduce(
+	(acc, { color, primary, secondary }) => ({
+		...acc,
+		[color]: {
+			primary: tw_colors[color][primary],
+			secondary: tw_colors[color][secondary]
+		}
+	}),
+	{}
+);
