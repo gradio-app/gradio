@@ -247,6 +247,19 @@ class TestNumber(unittest.TestCase):
             },
         )
 
+    def test_component_functions_precision(self):
+        """
+        Preprocess, postprocess, serialize, save_flagged, restore_flagged, generate_sample, set_interpret_parameters, get_interpretation_neighbors, get_template_context
+
+        """
+        numeric_input = gr.Number(precision=2, value=42.3428)
+        self.assertEqual(numeric_input.preprocess(3.231241), 3.23)
+        self.assertEqual(numeric_input.preprocess(None), None)
+        self.assertEqual(numeric_input.preprocess_example(-42.1241), -42.12)
+        self.assertEqual(numeric_input.postprocess(5.6784), 5.68)
+        self.assertEqual(numeric_input.postprocess(2.1421), 2.14)
+        self.assertEqual(numeric_input.postprocess(None), None)
+
     def test_in_interface_as_input(self):
         """
         Interface, process, interpret
