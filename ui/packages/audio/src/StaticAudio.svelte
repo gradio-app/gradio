@@ -14,7 +14,6 @@
 
 	export let value: null | { name: string; data: string } = null;
 	export let label: string;
-	export let style: string = "";
 	export let name: string;
 	export let show_label: boolean;
 

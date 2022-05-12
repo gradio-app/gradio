@@ -11,7 +11,6 @@
 	export let value: FileData | null = null;
 	export let source: string;
 	export let label: string | undefined = undefined;
-	export let style: string = "";
 	export let show_label: boolean;
 
 	export let drop_text: string = "Drop a video file";

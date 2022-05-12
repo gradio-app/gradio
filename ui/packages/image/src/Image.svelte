@@ -13,7 +13,6 @@
 
 	export let value: null | string;
 	export let label: string | undefined = undefined;
-	export let style: string = "";
 	export let show_label: boolean;
 
 	export let source: "canvas" | "webcam" | "upload" = "upload";
@@ -101,9 +100,9 @@
 			editable
 		/>
 
-		<img class="w-full h-full object-contain" src={value} {style} alt="" />
+		<img class="w-full h-full object-contain" src={value} alt="" />
 	{:else}
-		<img class="w-full h-full object-contain" src={value} {style} alt="" />
+		<img class="w-full h-full object-contain" src={value} alt="" />
 	{/if}
 </div>
 
