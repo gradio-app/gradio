@@ -70,7 +70,7 @@
 	<StatusTracker {...loading_status} />
 	<BlockLabel {show_label} Icon={ImageIcon} label={label || "Gallery"} />
 	{#if value === null}
-		<div class="min-h-[16rem] flex justify-center items-center">
+		<div class="min-h-[15rem] flex justify-center items-center">
 			<ImageIcon />
 		</div>
 	{:else}
