@@ -630,7 +630,7 @@ class Number(Changeable, Submittable, IOComponent):
         interactive: Optional[bool] = None,
         visible: bool = True,
         elem_id: Optional[str] = None,
-        integer: bool = False,
+        precision: Optional[int] = None,
         **kwargs,
     ):
         """
@@ -641,7 +641,8 @@ class Number(Changeable, Submittable, IOComponent):
         visible (bool): If False, component will be hidden.
         integer (bool): Whether the field should only contain integer values. Defaults to False.
         """
-        self.value = float(value) if value is not None else None
+        self.value = self.round_to_precision(value, precision)
+        self.precision = precision
         self.test_input = self.value if self.value is not None else 1
         self.interpret_by_tokens = False
         IOComponent.__init__(
@@ -653,7 +654,26 @@ class Number(Changeable, Submittable, IOComponent):
             elem_id=elem_id,
             **kwargs,
         )
-        self.integer = integer
+
+    @staticmethod
+    def round_to_precision(num: float | int | None, precision: int | None):
+        """Round to a given precision.
+        If precision is None, no rounding happens. If 0, num is converted to int.
+
+        Parameters:
+        num (float | int): Number to round.
+        precision (Optional[int]): Precision to round to.
+        Returns:
+        (float | int): rounded number
+        """
+        if num is None:
+            return None
+        if precision is None:
+            return float(num)
+        elif precision == 0:
+            return int(num)
+        else:
+            return round(float(num), precision)
 
     def get_config(self):
         return {
@@ -686,7 +706,7 @@ class Number(Changeable, Submittable, IOComponent):
         """
         if x is None:
             return None
-        return int(x) if self.integer else float(x)
+        return self.round_to_precision(x, self.precision)
 
     def preprocess_example(self, x: int | float | None) -> int | float | None:
         """
@@ -696,7 +716,7 @@ class Number(Changeable, Submittable, IOComponent):
         if x is None:
             return None
         else:
-            return int(x) if self.integer else float(x)
+            return self.round_to_precision(x, self.precision)
 
     def set_interpret_parameters(
         self, steps: int = 3, delta: float = 1, delta_type: str = "percent"
@@ -714,18 +734,18 @@ class Number(Changeable, Submittable, IOComponent):
         return self
 
     def get_interpretation_neighbors(self, x: float | int) -> Tuple[List[float], Dict]:
-        x = int(x) if self.integer else float(x)
+        x = self.round_to_precision(x, self.precision)
         if self.interpretation_delta_type == "percent":
             delta = 1.0 * self.interpretation_delta * x / 100
         elif self.interpretation_delta_type == "absolute":
             delta = self.interpretation_delta
         else:
             delta = self.interpretation_delta
-        if self.integer and math.floor(delta) != delta:
+        if self.precision == 0 and math.floor(delta) != delta:
             raise ValueError(
-                f"Delta value {delta} is not an integer. Cannot generate valid set of neighbors. "
+                f"Delta value {delta} is not an . Cannot generate valid set of neighbors. "
                 "If delta_type='percent', pick a value of delta such that x * delta is an "
-                "integer. If delta_type='absolute', pick a value of delta that is an integer."
+                ". If delta_type='absolute', pick a value of delta that is an ."
             )
         # run_interpretation will preprocess the neighbors so no need to covert to int here
         negatives = (x + np.arange(-self.interpretation_steps, 0) * delta).tolist()
@@ -744,7 +764,7 @@ class Number(Changeable, Submittable, IOComponent):
         return interpretation
 
     def generate_sample(self) -> int | float:
-        return 1 if self.integer else 1.0
+        return self.round_to_precision(1, self.precision)
 
     # Output Functionalities
     def postprocess(self, y: int | float | None) -> int | float | None:
@@ -759,7 +779,7 @@ class Number(Changeable, Submittable, IOComponent):
         if y is None:
             return None
         else:
-            return int(y) if self.integer else float(y)
+            return self.round_to_precision(y, self.precision)
 
     def deserialize(self, y):
         """
