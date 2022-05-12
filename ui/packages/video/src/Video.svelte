@@ -56,7 +56,10 @@
 			</div>
 		</Upload>
 	{:else if source === "webcam"}
-		<Webcam mode="video" on:capture={({ detail }) => (value = detail)} />
+		<Webcam
+			mode="video"
+			on:capture={({ detail }) => dispatch("change", detail)}
+		/>
 	{/if}
 {:else}
 	<ModifyUpload on:clear={handle_clear} />

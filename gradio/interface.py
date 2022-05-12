@@ -165,6 +165,10 @@ class Interface(Blocks):
             analytics_enabled=analytics_enabled, mode="interface", css=css, **kwargs
         )
 
+        if inspect.iscoroutinefunction(fn):
+            raise NotImplementedError(
+                "Async functions are not currently supported within interfaces. Please use Blocks API."
+            )
         self.interface_type = self.InterfaceTypes.STANDARD
         if (inputs is None or inputs == []) and (outputs is None or outputs == []):
             raise ValueError("Must provide at least one of `inputs` or `outputs`")

@@ -1339,7 +1339,7 @@ class Dropdown(Radio):
         )
 
 
-class Image(Editable, Clearable, IOComponent):
+class Image(Editable, Clearable, Changeable, IOComponent):
     """
     Component creates an image component with input and output capabilities.
 
@@ -2724,6 +2724,7 @@ class HighlightedText(Changeable, IOComponent):
         *,
         color_map: Dict[str, str] = None,
         show_legend: bool = False,
+        combine_adjacent: bool = False,
         label: Optional[str] = None,
         show_label: bool = True,
         visible: bool = True,
@@ -2742,6 +2743,7 @@ class HighlightedText(Changeable, IOComponent):
         self.value = value
         self.color_map = color_map
         self.show_legend = show_legend
+        self.combine_adjacent = combine_adjacent
         IOComponent.__init__(
             self,
             label=label,
@@ -2781,12 +2783,28 @@ class HighlightedText(Changeable, IOComponent):
     def postprocess(self, y):
         """
         Parameters:
-        y (Union[Dict, List[Tuple[str, Union[str, int, float]]]]): dictionary or tuple list representing key value pairs
+        y (List[Tuple[str, Union[str, number, None]]]): List of (word, category) tuples
         Returns:
-        (List[Tuple[str, Union[str, number]]]): list of key value pairs
-
+        (List[Tuple[str, Union[str, number, None]]]): List of (word, category) tuples
         """
-        return y
+        if self.combine_adjacent:
+            output = []
+            running_text, running_category = None, None
+            for text, category in y:
+                if running_text is None:
+                    running_text = text
+                    running_category = category
+                elif category == running_category:
+                    running_text += text
+                else:
+                    output.append((running_text, running_category))
+                    running_text = text
+                    running_category = category
+            if running_text is not None:
+                output.append((running_text, running_category))
+            return output
+        else:
+            return y
 
     def save_flagged(self, dir, label, data, encryption_key):
         return json.dumps(data)
