@@ -584,9 +584,10 @@
               </div>
               <div class="w-3/5">
                 <h2 class="text-3xl font-semibold text-left">Demos</h2>
-                <div class="demos w-full h-full my-2 bg-gray-200 rounded-md">
-
+                <div class="mb-6">
+                  <nav class="demos-nav flex flex-wrap gap-6 whitespace-nowrap text-gray-600 md:text-lg my-2 md:mb-0"></nav>
                 </div>
+                <div class="demos w-full h-full my-2 bg-gray-200 rounded-md"></div>
               </div>
             </div>
           </div>
@@ -716,14 +717,59 @@
 
     // DEMOS
     var demosWindow = document.getElementById("demos-window");
+    var demosNav = document.querySelector("#demos-window .demos-nav");
     var demos = document.querySelector("#demos-window .demos");
 
+    function buildDemos(demo_names) {
+      console.log(demo_names);
+      for (let i = 0; i < demo_names.length; i++) {
+        if (i == 0) {
+          let demoTab = document.createElement('div');
+          demoTab.classList.add("demo-tab", "mr-2", "border-orange-500", "border-b-2", "text-orange-500", "cursor-pointer");
+          demoTab.innerHTML = demo_names[i];
+          let h = document.createElement('h3');
+          h.classList.add("text2xl");
+          h.innerHTML = demo_names[i];
+          demos.appendChild(h);
+          demoTab.onclick = function() {
+            removeAllChildNodes(demos);
+            let h = document.createElement('h3');
+            h.classList.add("text2xl");
+            h.innerHTML = demo_names[i];
+            demos.appendChild(h);
+            let otherTabs = document.querySelectorAll(".demo-tab").forEach(e => {
+              e.classList.remove("text-orange-500", "border-orange-500", "border-b-2");
+              e.classList.add("hover:text-gray-800");
+            });
+            demoTab.classList.add("border-orange-500", "border-b-2", "text-orange-500");
+          };
+          demosNav.appendChild(demoTab);
+        } else {
+          let demoTab = document.createElement('div');
+          demoTab.classList.add("demo-tab", "mr-2", "cursor-pointer", "hover:text-gray-800");
+          demoTab.innerHTML = demo_names[i];
+          demoTab.onclick = function() {
+            removeAllChildNodes(demos);
+            let h = document.createElement('h3');
+            h.classList.add("text2xl");
+            h.innerHTML = demo_names[i];
+            demos.appendChild(h);
+            let otherTabs = document.querySelectorAll(".demo-tab").forEach(e => {
+              e.classList.remove("text-orange-500", "border-orange-500", "border-b-2");
+              e.classList.add("hover:text-gray-800");
+              removeAllChildNodes(parent)
+            });
+            demoTab.classList.add("border-orange-500", "border-b-2", "text-orange-500");
+          }
+        demosNav.appendChild(demoTab);
+        }
+      }
+    }
+
+
     function showDemos(demo_names) {
-      let h = document.createElement('h3');
-      h.classList.add("text2xl");
-      h.innerHTML = demo_names;
-      demos.appendChild(h);
-      demosWindow.style.display = "block";
+       buildDemos(demo_names);
+       demosWindow.style.display = "block";
     }
 
     function removeAllChildNodes(parent) {
@@ -736,6 +782,7 @@
       if (event.target == demosWindow) {
         demosWindow.style.display = "none";
         removeAllChildNodes(demos);
+        removeAllChildNodes(demosNav);
       }
     }
 
