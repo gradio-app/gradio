@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
+import { styleClasses } from "@gradio/utils";
+import { createEventDispatcher } from "svelte";
 
 	export let value: boolean;
 	export let style: Record<string, string> = {};
@@ -27,5 +28,5 @@
 		name="test"
 		class="gr-check-radio gr-checkbox"
 	/>
-	<span class="ml-2">{label}</span></label
+	<span class={"ml-2" + styleClasses(style)}>{label}</span></label
 >

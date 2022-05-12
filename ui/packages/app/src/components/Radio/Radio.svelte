@@ -11,11 +11,12 @@
 	export let mode: "static" | "dynamic";
 	export let form_position: "first" | "last" | "mid" | "single" = "single";
 	export let show_label: boolean;
+	export let style: Record<string, any> = {};
 
 	export let loading_status: LoadingStatus;
 </script>
 
-<Block {form_position} type="fieldset" {elem_id}>
+<Block {form_position} type="fieldset" {elem_id} {style}>
 	<StatusTracker {...loading_status} />
 
 	<Radio
@@ -24,6 +25,7 @@
 		{label}
 		{show_label}
 		{choices}
+		{style}
 		disabled={mode === "static"}
 		on:change
 	/>

@@ -7,6 +7,7 @@
 	export let elem_id: string = "";
 	export let value: number = 0;
 	export let label: string = "Slider";
+	export let style: Record<string, any> = {};
 
 	export let minimum: number;
 	export let maximum: number;
@@ -18,7 +19,7 @@
 	export let loading_status: LoadingStatus;
 </script>
 
-<Block {form_position} {elem_id}>
+<Block {form_position} {elem_id} {style}>
 	<StatusTracker {...loading_status} />
 
 	<Range
@@ -28,6 +29,7 @@
 		{minimum}
 		{maximum}
 		{step}
+		{style}
 		disabled={mode === "static"}
 		on:change
 	/>

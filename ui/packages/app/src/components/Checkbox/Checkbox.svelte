@@ -10,16 +10,18 @@
 	export let mode: "static" | "dynamic";
 	export let form_position: "first" | "last" | "mid" | "single" = "single";
 	export let show_label: boolean;
+	export let style: Record<string, any> = {};
 
 	export let loading_status: LoadingStatus;
 </script>
 
-<Block {form_position} {elem_id}>
+<Block {form_position} {elem_id} {style}>
 	<StatusTracker {...loading_status} />
 
 	<Checkbox
 		{label}
 		{show_label}
+		{style}
 		bind:value
 		on:change
 		disabled={mode === "static"}

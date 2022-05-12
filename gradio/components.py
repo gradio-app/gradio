@@ -217,6 +217,27 @@ class IOComponent(Component):
         """
         return x
 
+    def style(
+        self,
+        rounded: Optional[bool] = None,
+        bg_color: Optional[str] = None,
+        text_color: Optional[str] = None,
+        container_bg_color: Optional[str] = None,
+    ):
+        valid_colors = ["red", "yellow", "green", "blue", "purple", "black"]
+        if rounded is not None:
+            self._style["rounded"] = rounded
+        if bg_color is not None:
+            assert bg_color in valid_colors
+            self._style["bg_color"] = bg_color
+        if text_color is not None:
+            assert text_color in valid_colors
+            self._style["text_color"] = text_color
+        if container_bg_color is not None:
+            assert container_bg_color in valid_colors
+            self._style["container_bg_color"] = container_bg_color
+        return self
+
 
 class Changeable(Component):
     def change(
@@ -581,15 +602,13 @@ class Textbox(Changeable, Submittable, IOComponent):
         text_color: Optional[str] = None,
         container_bg_color: Optional[str] = None,
     ):
-        if rounded is not None:
-            self._style["rounded"] = rounded
-        if bg_color is not None:
-            self._style["bg_color"] = bg_color
-        if text_color is not None:
-            self._style["text_color"] = text_color
-        if container_bg_color is not None:
-            self._style["container_bg_color"] = container_bg_color
-        return self
+        return IOComponent.style(
+            self,
+            rounded=rounded,
+            bg_color=bg_color,
+            text_color=text_color,
+            container_bg_color=container_bg_color,
+        )
 
 
 class Number(Changeable, Submittable, IOComponent):
@@ -740,15 +759,14 @@ class Number(Changeable, Submittable, IOComponent):
         text_color: Optional[str] = None,
         container_bg_color: Optional[str] = None,
     ):
-        if rounded is not None:
-            self._style["rounded"] = rounded
-        if bg_color is not None:
-            self._style["bg_color"] = bg_color
-        if text_color is not None:
-            self._style["text_color"] = text_color
-        if container_bg_color is not None:
-            self._style["container_bg_color"] = container_bg_color
-        return self
+        return IOComponent.style(
+            self,
+            rounded=rounded,
+            bg_color=bg_color,
+            text_color=text_color,
+            container_bg_color=container_bg_color,
+        )
+
 
 
 class Slider(Changeable, IOComponent):
@@ -893,6 +911,17 @@ class Slider(Changeable, IOComponent):
         """
         return y
 
+    def style(
+        self,
+        text_color: Optional[str] = None,
+        container_bg_color: Optional[str] = None,
+    ):
+        return IOComponent.style(
+            self,
+            text_color=text_color,
+            container_bg_color=container_bg_color,
+        )
+
 
 class Checkbox(Changeable, IOComponent):
     """
@@ -1008,6 +1037,16 @@ class Checkbox(Changeable, IOComponent):
         """
         return x
 
+    def style(
+        self,
+        text_color: Optional[str] = None,
+        container_bg_color: Optional[str] = None,
+    ):
+        return IOComponent.style(
+            self,
+            text_color=text_color,
+            container_bg_color=container_bg_color,
+        )
 
 class CheckboxGroup(Changeable, IOComponent):
     """
@@ -1159,6 +1198,21 @@ class CheckboxGroup(Changeable, IOComponent):
         """
         return x
 
+    def style(
+        self,
+        rounded: Optional[bool] = None,
+        bg_color: Optional[str] = None,
+        text_color: Optional[str] = None,
+        container_bg_color: Optional[str] = None,
+    ):
+        return IOComponent.style(
+            self,
+            rounded=rounded,
+            bg_color=bg_color,
+            text_color=text_color,
+            container_bg_color=container_bg_color,
+        )
+
 
 class Radio(Changeable, IOComponent):
     """
@@ -1294,6 +1348,20 @@ class Radio(Changeable, IOComponent):
         """
         return x
 
+    def style(
+        self,
+        rounded: Optional[bool] = None,
+        bg_color: Optional[str] = None,
+        text_color: Optional[str] = None,
+        container_bg_color: Optional[str] = None,
+    ):
+        return IOComponent.style(
+            self,
+            rounded=rounded,
+            bg_color=bg_color,
+            text_color=text_color,
+            container_bg_color=container_bg_color,
+        )
 
 class Dropdown(Radio):
     """
@@ -1654,6 +1722,20 @@ class Image(Editable, Clearable, Changeable, IOComponent):
         y = processing_utils.decode_base64_to_file(x).name
         return y
 
+    def style(
+        self,
+        rounded: Optional[bool] = None,
+        bg_color: Optional[str] = None,
+        text_color: Optional[str] = None,
+        container_bg_color: Optional[str] = None,
+    ):
+        return IOComponent.style(
+            self,
+            rounded=rounded,
+            bg_color=bg_color,
+            text_color=text_color,
+            container_bg_color=container_bg_color,
+        )
 
 class Video(Changeable, Clearable, Playable, IOComponent):
     """

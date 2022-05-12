@@ -7,6 +7,7 @@
 	export let elem_id: string = "";
 	export let value: Array<string> = [];
 	export let choices: Array<string>;
+	export let style: Record<string, any> = {};
 
 	export let mode: "static" | "dynamic";
 	export let label: string = "Checkbox Group";
@@ -16,13 +17,14 @@
 	export let loading_status: LoadingStatus;
 </script>
 
-<Block {form_position} {elem_id} type="fieldset">
+<Block {form_position} {elem_id} {style} type="fieldset">
 	<StatusTracker {...loading_status} />
 
 	<CheckboxGroup
 		bind:value
 		{choices}
 		{label}
+		{style}
 		{show_label}
 		on:change
 		disabled={mode === "static"}

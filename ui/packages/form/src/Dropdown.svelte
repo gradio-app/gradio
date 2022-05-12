@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { Block, BlockTitle } from "@gradio/atoms";
+	import { styleClasses } from "@gradio/utils";
 
 	export let label: string;
 	export let value: string | undefined = undefined;
@@ -17,7 +18,7 @@
 <label>
 	<BlockTitle {show_label}>{label}</BlockTitle>
 	<select
-		class="gr-box gr-input w-full disabled:cursor-not-allowed"
+		class={"gr-box gr-input w-full disabled:cursor-not-allowed" + styleClasses(style)}
 		bind:value
 		{disabled}
 	>

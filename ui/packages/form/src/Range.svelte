@@ -5,6 +5,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { Block, BlockTitle } from "@gradio/atoms";
+	import { styleClasses } from "@gradio/utils";
 
 	export let value: number = 0;
 	export let style: Record<string, string> = {};
@@ -27,7 +28,9 @@
 		<label for={id}>
 			<BlockTitle {show_label}>{label}</BlockTitle>
 		</label>
-		<div class="font-medium dark:text-gray-300">{value}</div>
+		<div class={"font-medium dark:text-gray-300" + styleClasses(style)}>
+			{value}
+		</div>
 	</div>
 </div>
 
