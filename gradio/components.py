@@ -1325,7 +1325,7 @@ class Dropdown(Radio):
         )
 
 
-class Image(Editable, Clearable, IOComponent):
+class Image(Editable, Clearable, Changeable, IOComponent):
     """
     Component creates an image component with input and output capabilities.
 
