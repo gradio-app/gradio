@@ -3719,8 +3719,7 @@ class StatusTracker(Component):
             "__type__": "update",
         }
 
-
-def component(cls_name: str):
+def component(cls_name: str) -> Component:
     """
     Returns a component or template with the given class name, or raises a ValueError if not found.
     @param cls_name: lower-case string class name of a component
@@ -3740,18 +3739,18 @@ def component(cls_name: str):
     ]
     for name, cls in components + templates:
         if name.lower() == cls_name.replace("_", "") and issubclass(cls, Component):
-            return cls
+            obj = cls()
+            return obj
     raise ValueError(f"No such Component: {cls_name}")
 
 
 def get_component_instance(comp: str | dict | Component):
     if isinstance(comp, str):
-        component_cls = component(comp)
-        return component_cls()
+        return component(comp)
     elif isinstance(comp, dict):
         name = comp.pop("name")
-        component_cls = component(name)
-        return component_cls(**comp)
+        component_obj = component(name).__class__
+        return component_obj.__init__(**comp)
     elif isinstance(comp, Component):
         return comp
     else:

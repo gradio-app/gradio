@@ -39,6 +39,8 @@ from gradio.components import (
     component,
     update,
 )
+from gradio.templates import *
+import gradio.templates
 from gradio.flagging import (
     CSVLogger,
     FlaggingCallback,
