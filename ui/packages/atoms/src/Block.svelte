@@ -15,7 +15,7 @@
 	export let test_id: string | undefined = undefined;
 
 	const styles = {
-		dashed: "border-dashed border",
+		dashed: "border-dashed border border-gray-300",
 		solid: "border-solid border",
 		grey: "border-gray-200",
 		green: "border-green-400",
