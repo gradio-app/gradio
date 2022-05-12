@@ -37,7 +37,7 @@
 		</div>
 	</a>
 {:else}
-	<div class="min-h-[16rem] flex justify-center items-center">
+	<div class="min-h-[15rem] flex justify-center items-center">
 		<div class="h-5 dark:text-white opacity-50"><File /></div>
 	</div>
 {/if}
