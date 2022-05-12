@@ -270,6 +270,31 @@ class TestNumber(unittest.TestCase):
             ],
         )
 
+    def test_precision_0_in_interface(self):
+        """
+        Interface, process, interpret
+        """
+        iface = gr.Interface(lambda x: x**2, gr.Number(precision=0), "textbox")
+        self.assertEqual(iface.process([2]), ["4"])
+        iface = gr.Interface(
+            lambda x: x**2, "number", gr.Number(precision=0), interpretation="default"
+        )
+        # Output from input less than 2 gets rounded to 3
+        # Output from input gt than 2 gets rounded to 4, so no change
+        scores = iface.interpret([2])[0]["interpretation"]
+        self.assertEqual(
+            scores,
+            [
+                (1.94, -1.0),
+                (1.96, -1.0),
+                (1.98, -1.0),
+                [2, None],
+                (2.02, 0.0),
+                (2.04, 0.0),
+                (2.06, 0.0),
+            ],
+        )
+
     def test_in_interface_as_output(self):
         """
         Interface, process, interpret
