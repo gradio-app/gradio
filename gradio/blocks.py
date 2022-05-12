@@ -171,6 +171,11 @@ class Row(BlockContext):
             "__type__": "update",
         }
 
+    def style(self, equal_height: Optional[bool] = None):
+        if equal_height is not None:
+            self._style["equal_height"] = equal_height
+        return self
+
 
 class Column(BlockContext):
     def __init__(

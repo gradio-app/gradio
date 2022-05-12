@@ -467,7 +467,7 @@ class Interface(Blocks):
                 )
             if self.description:
                 Markdown(self.description)
-            with Row():
+            with Row().style(equal_height=False):
                 if self.interface_type in [
                     self.InterfaceTypes.STANDARD,
                     self.InterfaceTypes.INPUT_ONLY,
