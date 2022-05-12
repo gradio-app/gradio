@@ -2403,7 +2403,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
     Preprocessing: passes a {str} filepath corresponding to the model file to the function
     Postprocessing: expects a {str} filepath corresponding to the model file to be returned
 
-    Demos: model3d
+    Demos: model3D
     """
 
     def __init__(
