@@ -41,6 +41,10 @@
 	.dark .bg-gray-200 {
 		@apply bg-gray-800;
 	}
+
+	.equal-height {
+		@apply items-start;
+	}
 }
 
 @layer components {
