@@ -6,7 +6,7 @@ def greet(name: str, repeat: float):
 
 
 demo = gr.Interface(
-    fn=greet, inputs=[gr.Textbox(lines=2, max_lines=4), gr.Number()], outputs=gr.component("textarea")()
+    fn=greet, inputs=[gr.Textbox(lines=2, max_lines=4), gr.Number()], outputs="textarea"
 )
 
 if __name__ == "__main__":
