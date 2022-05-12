@@ -50,7 +50,7 @@
 	this={tag}
 	data-testid={test_id}
 	id={elem_id}
-	class={"gr-box overflow-hidden" +
+	class={"gr-box overflow-hidden " +
 		styles[variant] +
 		" " +
 		styles[color] +
