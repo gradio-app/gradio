@@ -3346,9 +3346,9 @@ class Dataset(Clickable, Component):
     """
     Used to create a output widget for showing data and peforming actions when one of
     the samples is selected. Used to render the examples box in the interface.
-    
-    Preprocessing: this component passes either the sample which can be of any type, or its {int} index, depending on `type` 
-    Postprocessing: this component does *not* return output    
+
+    Preprocessing: this component passes either the sample which can be of any type, or its {int} index, depending on `type`
+    Postprocessing: this component does *not* return output
     """
 
     def __init__(
@@ -3365,8 +3365,8 @@ class Dataset(Clickable, Component):
         Parameters:
         components (List[Component]): Classes of component(s) that will be displayed in the dataset component.
         samples (List[List[Any]]): 2D list of samples to be displayed in the dataset component.
-        type (str): either "values" (if the sample should be passed into the function) or "index" (if its index should be passed) 
-        label (str): component name in interface.        
+        type (str): either "values" (if the sample should be passed into the function) or "index" (if its index should be passed)
+        label (str): component name in interface.
         css (Optional[Dict]): Provided css rules will be applied to component.
         visible (bool): If False, component will be hidden.
         """

@@ -12,6 +12,7 @@ class Row(BlockContext):
     """
     A layout element within Blocks that renders all children horizontally.
     """
+
     def get_config(self):
         return {"type": "row", **super().get_config()}
 
@@ -25,7 +26,6 @@ class Row(BlockContext):
             "visible": visible,
             "__type__": "update",
         }
-
 
 
 class Column(BlockContext):
@@ -65,7 +65,6 @@ class Column(BlockContext):
             "visible": visible,
             "__type__": "update",
         }
-
 
 
 class Tabs(BlockContext):
