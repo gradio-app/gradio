@@ -186,7 +186,6 @@ class TestNumber(unittest.TestCase):
             {
                 "value": None,
                 "name": "number",
-                "type": "float",
                 "show_label": True,
                 "label": None,
                 "style": {},
@@ -209,7 +208,6 @@ class TestNumber(unittest.TestCase):
         self.assertEqual(numeric_input.postprocess(2.85), 3)
         self.assertEqual(numeric_input.postprocess(None), None)
         self.assertEqual(numeric_input.serialize(3, True), 3)
-        self.assertEqual(numeric_input.default_value, 42)
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = numeric_input.save_flagged(tmpdirname, "numeric_input", 3, None)
             self.assertEqual(to_save, 3)

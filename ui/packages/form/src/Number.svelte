@@ -6,7 +6,6 @@
 	export let value: number = 0;
 	export let style: Record<string, string> = {};
 	export let disabled: boolean = false;
-	export let type: string = "float";
 	export let label: string;
 	export let show_label: boolean;
 
@@ -28,14 +27,6 @@
 		}
 	}
 
-	function validator(node, n) {
-		return {
-			update(n) {
-				value = type === "integer" ? Math.floor(n) : n;
-			}
-		};
-	}
-
 	$: handle_change(value);
 </script>
 
@@ -46,7 +37,6 @@
 		type="number"
 		class={"gr-box gr-input w-full gr-text-input" + styleClasses(style)}
 		bind:value
-		use:validator={value}
 		on:keypress={handle_keypress}
 		{disabled}
 	/>
