@@ -5,8 +5,8 @@
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
 
+	export let elem_id: string = "";
 	export let value: Array<[string, string | number]>;
-	export let style: string = "";
 	export let show_legend: boolean;
 	export let color_map: Record<string, string> = {};
 	export let label: string;
@@ -18,10 +18,10 @@
 	$: value, dispatch("change");
 </script>
 
-<Block>
+<Block {elem_id}>
 	<StatusTracker {...loading_status} />
 	{#if label}
 		<BlockTitle>{label}</BlockTitle>
 	{/if}
-	<HighlightedText {value} {style} {show_legend} {color_map} />
+	<HighlightedText {value} {show_legend} {color_map} />
 </Block>

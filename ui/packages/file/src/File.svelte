@@ -5,7 +5,6 @@
 	import { File } from "@gradio/icons";
 
 	export let value: FileData | null;
-	export let style: string = "";
 	export let label: string;
 	export let show_label: boolean;
 </script>

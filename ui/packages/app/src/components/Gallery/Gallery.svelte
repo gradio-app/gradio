@@ -9,8 +9,8 @@
 	export let loading_status: LoadingStatus;
 	export let show_label: boolean;
 	export let label: string;
+	export let elem_id: string = "";
 	export let value: Array<string> | null = null;
-	export let style: string = "";
 
 	let selected_image: number | null = null;
 
@@ -66,7 +66,7 @@
 
 <svelte:window />
 
-<Block variant="solid" color="grey" padding={false}>
+<Block variant="solid" color="grey" padding={false} {elem_id}>
 	<StatusTracker {...loading_status} />
 	<BlockLabel {show_label} Icon={ImageIcon} label={label || "Gallery"} />
 	{#if value === null}

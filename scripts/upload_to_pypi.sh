@@ -10,20 +10,18 @@ else
   echo "Current version is $old_version. New version?"
   read new_version
   sed -i "s/version=\"$old_version\"/version=\"$new_version\"/g" setup.py
-  read -p "frontend updates? " -r
-  if [[ $REPLY =~ ^[Yy]$ ]]
-  then
-    echo -n $new_version > gradio/version.txt
-    rm -rf gradio/templates/frontend
-    cd ui
-    pnpm i
-    pnpm build
-    cd ..
-    aws s3 cp gradio/templates/frontend s3://gradio/$new_version/ --recursive  # requires aws cli (contact maintainers for credentials)
-    cp gradio/templates/frontend/index.html gradio/templates/frontend/share.html
-    assets_link="https://gradio.s3-us-west-2.amazonaws.com/$new_version/assets"
-    sed -i -e "s#\./assets#${assets_link}#g" gradio/templates/frontend/share.html
-  fi
+
+  echo -n $new_version > gradio/version.txt
+  rm -rf gradio/templates/frontend
+  cd ui
+  pnpm i
+  pnpm build
+  cd ..
+  aws s3 cp gradio/templates/frontend s3://gradio/$new_version/ --recursive  # requires aws cli (contact maintainers for credentials)
+  cp gradio/templates/frontend/index.html gradio/templates/frontend/share.html
+  assets_link="https://gradio.s3-us-west-2.amazonaws.com/$new_version/assets"
+  sed -i -e "s#\./assets#${assets_link}#g" gradio/templates/frontend/share.html
+
   rm -r dist/*
   rm -r build/*
   python3 setup.py sdist bdist_wheel
