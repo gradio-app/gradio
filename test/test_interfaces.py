@@ -128,7 +128,7 @@ class TestInterface(unittest.TestCase):
         interface = Interface(lambda x: x, "textbox", "label")
         interface.launch(inline=True, prevent_thread_lock=True)
         mock_display.assert_called_once()
-        interface.launch(inline=True, share=True, prevent_thread_lock=True)
+        interface.launch(inline=True, prevent_thread_lock=True)
         self.assertEqual(mock_display.call_count, 2)
         interface.close()
 

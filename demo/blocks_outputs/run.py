@@ -35,7 +35,7 @@ with gr.Blocks() as demo:
             headers=["One", "Two", "Three", "Four"],
             col_count=(4, "fixed"),
             row_count=(7, "fixed"),
-            default_value=[[1, 2, 3, 4]],
+            value=[[1, 2, 3, 4]],
         )
         gr.Dataframe(
             interactive=True, headers=["One", "Two", "Three", "Four"], col_count=4

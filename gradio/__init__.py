@@ -23,8 +23,6 @@ from gradio.components import (
     Highlightedtext,
     HighlightedText,
     Image,
-    Keyvalues,
-    KeyValues,
     Label,
     Markdown,
     Model3D,
@@ -39,6 +37,7 @@ from gradio.components import (
     Variable,
     Video,
     component,
+    update,
 )
 from gradio.flagging import (
     CSVLogger,
