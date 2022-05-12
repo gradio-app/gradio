@@ -127,7 +127,7 @@
 			<Chart value={static_data} {colors} />
 		{:else}
 			<div class="min-h-[16rem] flex justify-center items-center">
-				<div class="h-10 dark:text-white opacity-50"><ChartIcon /></div>
+				<div class="h-5 dark:text-white opacity-50"><ChartIcon /></div>
 			</div>
 		{/if}
 	{:else if _value}
