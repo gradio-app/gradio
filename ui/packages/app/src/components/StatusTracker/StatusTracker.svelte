@@ -37,7 +37,6 @@
 	import { onDestroy, onMount } from "svelte";
 	import Loader from "./Loader.svelte";
 
-	export let style: string = "";
 	export let eta: number | null = null;
 	export let queue_position: number | null;
 	export let status: "complete" | "pending" | "error";
@@ -107,7 +106,6 @@
 <div
 	class=" absolute inset-0  z-10 flex flex-col justify-center items-center bg-white pointer-events-none transition-opacity"
 	class:opacity-0={!status || status === "complete"}
-	{style}
 	bind:this={el}
 >
 	{#if status === "pending"}
