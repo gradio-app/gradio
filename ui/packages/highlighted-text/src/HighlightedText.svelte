@@ -143,7 +143,7 @@
 		</div>
 	{/if}
 	<div
-		class="textfield p-2 bg-white dark:bg-gray-800 rounded box-border max-w-full break-word"
+		class="textfield p-2 bg-white dark:bg-gray-800 rounded box-border max-w-full break-word leading-7"
 	>
 		{#each value as [text, score]}
 			<span

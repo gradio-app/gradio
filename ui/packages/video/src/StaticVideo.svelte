@@ -21,7 +21,7 @@
 <BlockLabel {show_label} Icon={Video} label={label || "Video"} />
 {#if value === null}
 	<div class="min-h-[16rem] flex justify-center items-center">
-		<div class="h-10 dark:text-white opacity-50"><Video /></div>
+		<div class="h-5 dark:text-white opacity-50"><Video /></div>
 	</div>
 {:else}
 	<!-- svelte-ignore a11y-media-has-caption -->
