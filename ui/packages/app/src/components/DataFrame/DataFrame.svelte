@@ -47,7 +47,6 @@
 		{col_count}
 		values={value}
 		{headers}
-		
 		on:change={handle_change}
 		editable={mode === "dynamic"}
 	/>

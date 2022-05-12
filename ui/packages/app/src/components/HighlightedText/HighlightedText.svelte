@@ -23,5 +23,5 @@
 	{#if label}
 		<BlockTitle>{label}</BlockTitle>
 	{/if}
-	<HighlightedText {value}  {show_legend} {color_map} />
+	<HighlightedText {value} {show_legend} {color_map} />
 </Block>

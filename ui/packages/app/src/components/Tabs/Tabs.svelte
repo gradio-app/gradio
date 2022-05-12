@@ -4,6 +4,6 @@
 	export let elem_id: string = "";
 </script>
 
-<Tabs on:change >
+<Tabs on:change>
 	<slot />
 </Tabs>

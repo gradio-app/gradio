@@ -25,7 +25,6 @@
 		bind:value
 		{label}
 		{show_label}
-		
 		{minimum}
 		{maximum}
 		{step}

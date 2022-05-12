@@ -7,7 +7,7 @@
 	export let loading_status: LoadingStatus;
 </script>
 
-<Carousel  {elem_id} on:change>
+<Carousel {elem_id} on:change>
 	<StatusTracker {...loading_status} />
 
 	<slot />

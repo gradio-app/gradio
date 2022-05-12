@@ -13,5 +13,5 @@
 
 <Block padding={false} {elem_id}>
 	<StatusTracker {...loading_status} />
-	<ChatBot {value}  {color_map} on:change />
+	<ChatBot {value} {color_map} on:change />
 </Block>

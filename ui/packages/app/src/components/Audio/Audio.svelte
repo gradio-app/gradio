@@ -44,7 +44,6 @@
 			value={_value}
 			on:change={({ detail }) => (value = detail)}
 			on:drag={({ detail }) => (dragging = detail)}
-			
 			{name}
 			{source}
 			{type}

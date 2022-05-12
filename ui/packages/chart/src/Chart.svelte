@@ -16,7 +16,6 @@
 	export let y: Array<string> | undefined = undefined;
 	export let colors: Array<string> = [];
 
-
 	const dispatch = createEventDispatcher();
 
 	$: ({ x: _x, y: _y } =

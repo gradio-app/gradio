@@ -23,7 +23,6 @@
 		bind:value
 		{label}
 		{show_label}
-		
 		{choices}
 		disabled={mode === "static"}
 		on:change

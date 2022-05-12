@@ -22,7 +22,6 @@
 	<CheckboxGroup
 		bind:value
 		{choices}
-		
 		{label}
 		{show_label}
 		on:change

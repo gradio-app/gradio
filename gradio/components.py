@@ -591,6 +591,7 @@ class Textbox(Changeable, Submittable, IOComponent):
             self._style["container_bg_color"] = container_bg_color
         return self
 
+
 class Number(Changeable, Submittable, IOComponent):
     """
     Component creates a field for user to enter numeric input or display numeric output. Provides a number as an argument to the wrapped function.
@@ -3489,7 +3490,7 @@ class Button(Clickable, Component):
             "value": value,
             "__type__": "update",
         }
-    
+
     def style(
         self,
         rounded: Optional[bool] = None,

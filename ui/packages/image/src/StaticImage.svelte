@@ -21,5 +21,5 @@
 		<div class="h-10 dark:text-white opacity-50"><Image /></div>
 	</div>
 {:else}
-	<img class="w-full h-full object-contain" src={value}  alt="" />
+	<img class="w-full h-full object-contain" src={value} alt="" />
 {/if}

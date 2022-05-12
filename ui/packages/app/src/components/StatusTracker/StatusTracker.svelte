@@ -106,7 +106,6 @@
 <div
 	class=" absolute inset-0  z-10 flex flex-col justify-center items-center bg-white pointer-events-none transition-opacity"
 	class:opacity-0={!status || status === "complete"}
-	
 	bind:this={el}
 >
 	{#if status === "pending"}

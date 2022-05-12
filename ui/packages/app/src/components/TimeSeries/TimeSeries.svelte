@@ -144,7 +144,6 @@
 				filetype="text/csv"
 				on:load={({ detail }) => handle_load(detail)}
 				include_file_metadata={false}
-				
 			>
 				{$_("interface.drop_csv")}
 				<br />- {$_("or")} -<br />

@@ -23,6 +23,6 @@
 	<StatusTracker {...loading_status} />
 
 	{#if value !== undefined && value !== null}
-		<Label  {value} {show_label} />
+		<Label {value} {show_label} />
 	{/if}
 </Block>

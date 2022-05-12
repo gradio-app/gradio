@@ -33,11 +33,10 @@
 >
 	<StatusTracker {...loading_status} />
 	{#if mode === "static"}
-		<StaticImage {value} {label}  {show_label} />
+		<StaticImage {value} {label} {show_label} />
 	{:else}
 		<Image
 			bind:value
-			
 			{source}
 			{tool}
 			on:edit

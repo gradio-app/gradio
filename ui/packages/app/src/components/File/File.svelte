@@ -38,7 +38,6 @@
 			value={_value}
 			on:change={({ detail }) => (value = detail)}
 			on:drag={({ detail }) => (dragging = detail)}
-			
 			on:change
 			on:clear
 			drop_text={$_("interface.drop_file")}
@@ -46,6 +45,6 @@
 			upload_text={$_("interface.click_to_upload")}
 		/>
 	{:else}
-		<File value={_value}  {label} {show_label} />
+		<File value={_value} {label} {show_label} />
 	{/if}
 </Block>

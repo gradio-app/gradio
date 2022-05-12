@@ -35,7 +35,7 @@
 	<StatusTracker {...loading_status} />
 
 	{#if mode === "static"}
-		<StaticVideo value={_value} {label} {show_label}  />
+		<StaticVideo value={_value} {label} {show_label} />
 	{:else}
 		<Video
 			value={_value}
@@ -43,7 +43,6 @@
 			on:drag={({ detail }) => (dragging = detail)}
 			{label}
 			{show_label}
-			
 			{source}
 			drop_text={$_("interface.drop_video")}
 			or_text={$_("or")}

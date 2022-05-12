@@ -18,5 +18,5 @@
 <Block test_id="json" {elem_id}>
 	<StatusTracker {...loading_status} />
 
-	<JSON  {value} />
+	<JSON {value} />
 </Block>

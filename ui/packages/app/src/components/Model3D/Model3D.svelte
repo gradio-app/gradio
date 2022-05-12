@@ -39,7 +39,6 @@
 			value={_value}
 			on:change={({ detail }) => (value = detail)}
 			on:drag={({ detail }) => (dragging = detail)}
-			
 			on:change
 			on:clear
 			drop_text={$_("interface.drop_file")}
@@ -47,6 +46,6 @@
 			upload_text={$_("interface.click_to_upload")}
 		/>
 	{:else if _value}
-		<Model3D value={_value} {clearColor}  {label} {show_label} />
+		<Model3D value={_value} {clearColor} {label} {show_label} />
 	{/if}
 </Block>

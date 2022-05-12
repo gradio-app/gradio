@@ -18,7 +18,6 @@
 	<StatusTracker {...loading_status} />
 
 	<Checkbox
-		
 		{label}
 		{show_label}
 		bind:value

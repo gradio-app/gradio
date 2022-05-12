@@ -19,5 +19,5 @@
 <Block {form_position} {elem_id}>
 	<StatusTracker {...loading_status} />
 
-	<Dropdown bind:value  {choices} {label} {show_label} on:change />
+	<Dropdown bind:value {choices} {label} {show_label} on:change />
 </Block>

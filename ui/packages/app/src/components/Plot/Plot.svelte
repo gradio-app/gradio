@@ -6,4 +6,4 @@
 	export let loading_status: LoadingStatus;
 </script>
 
-<Plot {value}  on:change />
+<Plot {value} on:change />

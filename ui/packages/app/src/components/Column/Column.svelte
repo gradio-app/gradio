@@ -5,7 +5,6 @@
 </script>
 
 <div
-	
 	id={elem_id}
 	class:bg-gray-50={variant === "panel"}
 	class:p-2={variant === "panel"}
