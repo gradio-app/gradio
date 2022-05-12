@@ -15,7 +15,7 @@
 	export let test_id: string | undefined = undefined;
 
 	const styles = {
-		dashed: "border-dashed border-[3px]",
+		dashed: "border-dashed border",
 		solid: "border-solid border",
 		grey: "border-gray-200",
 		green: "border-green-400",
@@ -50,7 +50,7 @@
 	this={tag}
 	data-testid={test_id}
 	id={elem_id}
-	class={"gr-box overflow-hidden" +
+	class={"gr-box overflow-hidden " +
 		styles[variant] +
 		" " +
 		styles[color] +
