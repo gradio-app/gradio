@@ -27,6 +27,7 @@
   <style>
     pre {
       overflow-x: hidden !important;
+      overflow-y: scroll !important;
       background: #F6F7FA;
       border-radius: 6px;
     }
@@ -575,11 +576,20 @@
 
         <div class="fixed hidden inset-0 bg-gray-500 bg-opacity-75 overflow-y-auto h-full w-full" id="demos-window">
           <div class="relative mx-auto my-auto p-5 border w-4/5 shadow-lg rounded-md bg-white" style="top: 5%; height: 90%">
-            <div class="flex flex-row w-11/12 h-11/12 m-auto gap-6">
+            <div class="flex flex-row items-start w-11/12 h-11/12 m-auto gap-6">
               <div class="w-2/5">
-                <h1 class="text-3xl font-semibold text-left">Code</h1>
+                <div class="flex flex-column items-start w-11/12 h-11/12 m-auto gap-6">
+                  <h3 class="text-3xl font-semibold text-left">Code</h3>
+                  {% for src, code in docs.demo_code.items() %}
+<!--                  <a href="{{ demo_links[src] }}" id="{{ src }}-link" class="hidden demo-link my-auto ml-4" target="_blank">-->
+<!--                      <img src="/assets/img/colab-badge.svg">-->
+<!--                  </a>-->
+                  {% endfor %}
+                </div>
                 <div class="w-full h-full my-2 bg-grey-200 rounded-md">
-
+                  {% for src, code in docs.demo_code.items() %}
+                    <pre id="{{ src }}" class="hidden demo-code"><code class='lang-python' style="max-height: 34rem;">{{ code }}</code></pre>
+                  {% endfor %}
                 </div>
               </div>
               <div class="w-3/5">
@@ -719,6 +729,20 @@
     var demosWindow = document.getElementById("demos-window");
     var demosNav = document.querySelector("#demos-window .demos-nav");
     var demos = document.querySelector("#demos-window .demos");
+    var demoCode = document.querySelector("#demos-window .demo-code");
+
+    function showCode(demo_name) {
+      let codeDiv = document.getElementById(demo_name);
+<!--      let linkDiv = document.getElementById(demo_name + "-link");-->
+      let allCodeDivs = document.querySelectorAll("#demos-window .demo-code").forEach(e => {
+              e.classList.add("hidden");
+            });
+<!--      let allLinkDivs = document.querySelectorAll("#demos-window .demo-link").forEach(e => {-->
+<!--              e.classList.add("hidden");-->
+<!--            });-->
+      codeDiv.classList.remove("hidden");
+<!--      linkDiv.classList.remove("hidden");-->
+    }
 
     function buildDemos(demo_names) {
       console.log(demo_names);
@@ -726,6 +750,7 @@
         if (i == 0) {
           let demoTab = document.createElement('div');
           demoTab.classList.add("demo-tab", "mr-2", "border-orange-500", "border-b-2", "text-orange-500", "cursor-pointer");
+          showCode(demo_names[i]);
           demoTab.innerHTML = demo_names[i];
           let h = document.createElement('h3');
           h.classList.add("text2xl");
@@ -733,6 +758,7 @@
           demos.appendChild(h);
           demoTab.onclick = function() {
             removeAllChildNodes(demos);
+            showCode(demo_names[i]);
             let h = document.createElement('h3');
             h.classList.add("text2xl");
             h.innerHTML = demo_names[i];
@@ -750,6 +776,7 @@
           demoTab.innerHTML = demo_names[i];
           demoTab.onclick = function() {
             removeAllChildNodes(demos);
+            showCode(demo_names[i]);
             let h = document.createElement('h3');
             h.classList.add("text2xl");
             h.innerHTML = demo_names[i];

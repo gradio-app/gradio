@@ -524,8 +524,28 @@ demo.launch()"""
         "doc": get_class_documentation(TabItem, lines=None)["doc"],
         "params": get_function_documentation(TabItem.__init__)[1],
         "params_doc": get_function_documentation(TabItem.__init__)[2],
-    }           
-    
+    }
+
+
+    SCREENSHOT_FOLDER = "dist/assets/demo_screenshots"
+    os.makedirs(SCREENSHOT_FOLDER, exist_ok=True)
+
+    demo_code = {}
+    for component in components_docs:
+        for code_src in component["demos"]:
+            with open(os.path.join(GRADIO_DEMO_DIR, code_src, "run.py")) as code_file:
+                python_code = code_file.read().replace(
+                    'if __name__ == "__main__":\n    iface.launch()', "iface.launch()"
+                )
+                demo_code[code_src] = python_code
+
+    for code_src in interface["demos"]:
+        with open(os.path.join(GRADIO_DEMO_DIR, code_src, "run.py")) as code_file:
+            python_code = code_file.read().replace(
+                'if __name__ == "__main__":\n    iface.launch()', "iface.launch()"
+            )
+            demo_code[code_src] = python_code
+
     docs = {
         "components": components_docs,
         "interface": interface,
@@ -539,7 +559,8 @@ demo.launch()"""
         "row": row,
         "column": column,
         "tabs": tabs,
-        "tabitem": tabitem
+        "tabitem": tabitem,
+        "demo_code": demo_code
     }
 
     os.makedirs("generated", exist_ok=True)
