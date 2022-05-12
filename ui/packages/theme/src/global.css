@@ -42,7 +42,7 @@
 		@apply bg-gray-800;
 	}
 
-	.equal-height {
+	.unequal-height {
 		@apply items-start;
 	}
 }
