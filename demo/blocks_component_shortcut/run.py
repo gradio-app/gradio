@@ -1,15 +1,21 @@
 import gradio as gr
 
 
-def greet(video):
-    return video
+def greet(str):
+    return str
 
 
 with gr.Blocks() as demo:
     """
     You can make use of str shortcuts you use in Interface within Blocks as well.
-    1. You can use gr.component() or
-    2. gr.templates.Template() or gr.Template()
+    
+    Interface shortcut example:
+    Interface(greet, "textarea", "textarea")
+    
+    You can use 
+    1. gr.component()
+    2. gr.templates.Template()
+    3. gr.Template()
     All the templates are listed in gradio/templates.py
     """
     with gr.Row():
