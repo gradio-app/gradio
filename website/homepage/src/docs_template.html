@@ -749,11 +749,11 @@
     var demo_endpoint = "/demo";
 
     {% for src, code in docs.demo_code.items() %}
-        fetch('/demo/' + src + '/config')
+        fetch('/demo/' + {{ src }} + '/config')
         .then(response => response.json())
         .then(demo => {
           demo.root = demo_endpoint + "/" + src + "/";
-          launchGradio(demo, "#" + src + "-interface");
+          launchGradio(demo, "#" + {{ src }} + "-interface");
         });
     {% endfor %}
 
