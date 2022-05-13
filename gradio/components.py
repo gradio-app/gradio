@@ -639,7 +639,8 @@ class Number(Changeable, Submittable, IOComponent):
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
-        integer (bool): Whether the field should only contain integer values. Defaults to False.
+        precision (Optional[int]): Precision to round input/output to. If set to 0, will
+            round to nearest integer and covert type to int. If None, no rounding happens.
         """
         self.value = self.round_to_precision(value, precision)
         self.precision = precision
@@ -656,13 +657,17 @@ class Number(Changeable, Submittable, IOComponent):
         )
 
     @staticmethod
-    def round_to_precision(num: float | int | None, precision: int | None):
-        """Round to a given precision.
+    def round_to_precision(
+        num: float | int | None, precision: int | None
+    ) -> float | int | None:
+        """
+        Round to a given precision.
+
         If precision is None, no rounding happens. If 0, num is converted to int.
 
         Parameters:
         num (float | int): Number to round.
-        precision (Optional[int]): Precision to round to.
+        precision (int | None): Precision to round to.
         Returns:
         (float | int): rounded number
         """
@@ -671,9 +676,9 @@ class Number(Changeable, Submittable, IOComponent):
         if precision is None:
             return float(num)
         elif precision == 0:
-            return int(round(float(num), precision))
+            return int(round(num, precision))
         else:
-            return round(float(num), precision)
+            return round(num, precision)
 
     def get_config(self):
         return {
@@ -700,7 +705,7 @@ class Number(Changeable, Submittable, IOComponent):
     def preprocess(self, x: int | float | None) -> int | float | None:
         """
         Parameters:
-        x (string): numeric input as a string
+        x (int | float | None): numeric input as a string
         Returns:
         (int | float | None): number representing function input
         """
@@ -743,9 +748,9 @@ class Number(Changeable, Submittable, IOComponent):
             delta = self.interpretation_delta
         if self.precision == 0 and math.floor(delta) != delta:
             raise ValueError(
-                f"Delta value {delta} is not an . Cannot generate valid set of neighbors. "
-                "If delta_type='percent', pick a value of delta such that x * delta is an "
-                ". If delta_type='absolute', pick a value of delta that is an ."
+                f"Delta value {delta} is not an integer and precision=0. Cannot generate valid set of neighbors. "
+                "If delta_type='percent', pick a value of delta such that x * delta is an integer. "
+                "If delta_type='absolute', pick a value of delta that is an integer."
             )
         # run_interpretation will preprocess the neighbors so no need to covert to int here
         negatives = (x + np.arange(-self.interpretation_steps, 0) * delta).tolist()
