@@ -25,4 +25,5 @@ with gr.Blocks() as demo:
     text1.change(greet, text1, text2)
     text2.change(greet, text2, text3)
     text3.change(greet, text3, text1)
+    button = gr.component("button")
     demo.launch()
