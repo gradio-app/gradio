@@ -78,7 +78,7 @@
         <section id="interface" class="flex flex-col gap-6">
           <div class="func">
             <h3 id="interface-header" class="text-3xl font-light my-4">Interface</h3>
-            <button class="rounded-full bg-orange-500 text-white py-1 px-3 my-3" onclick="showDemos({{ docs.interface['demos'] }})">
+            <button class="hidden rounded-full bg-orange-500 text-white py-1 px-3 my-3" onclick="showDemos({{ docs.interface['demos'] }})">
               Try Demo &#8594;
             </button>
             <pre><code class='lang-python'>gradio.Interface(<!--
@@ -366,7 +366,7 @@
         <section id="blocks" class="flex flex-col gap-6">
           <div class="func">
             <h3 id="blocks-header" class="text-3xl font-light my-4">Blocks</h3>
-            <button class="rounded-full bg-orange-500 text-white py-1 px-3 my-3" onclick="showDemos('blocks')">
+            <button class="hidden rounded-full bg-orange-500 text-white py-1 px-3 my-3" onclick="showDemos('blocks')">
               Try Demo &#8594;
             </button>
             <pre><code class='lang-python'>with gradio.Blocks(theme, analytics_enabled, mode):
@@ -440,10 +440,10 @@
             <h3 id="{{ func['name'].lower() }}-header" class="text-3xl font-light my-4">
               {{ func['name'] }}
             </h3>
-            <button class="rounded-full bg-orange-500 text-white py-1 px-3 my-3" onclick="showDemos({{ func['demos'] }})">
+            <button class="hidden rounded-full bg-orange-500 text-white py-1 px-3 my-3" onclick="showDemos({{ func['demos'] }})">
               Try Demo &#8594;
             </button>
-            <div id='{{ func["name"].lower() }}-component'  class="component-embedding w-min"></div>
+            <div id='{{ func["name"].lower() }}-component'  class="component-embedding hidden"></div>
             <pre><code class="lang-python">gradio.components.<span>{{ func["name"] }}(</span><!--
             -->{% for param in func["params"] %}<!--
               -->{% if param|length == 1 %}<!--
@@ -629,7 +629,7 @@
     </nav>
   </footer>
   <script src="/assets/prism.js"></script>
-  <script defer id="gradio-library" type="module" crossorigin src="/gradio_static/assets/{{ entry_js_file }}"></script>
+  <script id="gradio-library" type="module" crossorigin src="/gradio_static/assets/{{ entry_js_file }}"></script>
   <script>
    // highlighting section in nav bar
     let mainNavLinks = document.querySelectorAll(".navigation a");
@@ -815,61 +815,46 @@
       }
     }
 
-    {% for component in docs["components"] %}
-    target = "#{{ component['name'].lower() }}-component"
-    config = {
-      "mode": "blocks",
-      "components": [
-        {
-          "id": 1,
-          "type": "{{ component['name'] }}",
-          "props": {
-          "label": "input"
+      target = "#textbox-component"
+      config = {
+        "mode": "blocks",
+        "components": [
+          {
+              "id": 1,
+              "type": "textbox",
+              "props": {
+                "lines": 1,
+                "max_lines": 20,
+                "value": "",
+                "label": "name",
+                "show_label": true,
+                "name": "textbox",
+                "visible": true,
+                "style": {}
+              }
           }
-        },
-        {
-          "id": 2,
-          "type": "textbox",
-          "props": {},
-        },
-          {
-          "id": 3,
-          "type": "button",
-          "props": {}
-        },
-      ],
-      "theme": "default",
-      "layout": {
-        "id": 0, "children": [
-            {"id": 1}
+          ],
+          "theme": "default",
+          "css": null,
+          "enable_queue": false,
+          "layout": {
+            "id": 0,
+            "children": [
+              {
+                "id": 1,
+              }
             ]
-      },
-      "dependencies": [
-          {
-          "targets": [
-            3
-          ],
-          "trigger": "click",
-          "inputs": [
-            1
-          ],
-          "outputs": [
-            2
-          ],
-          "queue": false
-        },
-      ]
-    }
-    window.launchGradio(config, target);
-    {% endfor %}
+          },
+          "dependencies": []
+        }
+      window.launchGradio(config, target);
 
-    let componentEmbeddings = document.querySelectorAll(".component-embedding").forEach(e => {
-                  e.classList.remove("dark");
+      let componentEmbeddings = document.querySelectorAll(".component-embedding").forEach(e => {
+                    e.classList.remove("dark");
+                });
+      let componentEmbeddingsFooters = document.querySelectorAll(".component-embedding .footer").forEach(e => {
+                e.classList.add("hidden");
               });
-    let componentEmbeddingsFooters = document.querySelectorAll(".component-embedding .footer").forEach(e => {
-              e.classList.add("hidden");
-            });
-
 
   </script>
 </body>
