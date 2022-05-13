@@ -3580,6 +3580,7 @@ class Button(Clickable, Component):
         rounded: Optional[bool] = None,
         bg_color: Optional[str] = None,
         text_color: Optional[str] = None,
+        full_width: Optional[str] = None,
     ):
         if rounded is not None:
             self._style["rounded"] = rounded
@@ -3587,6 +3588,8 @@ class Button(Clickable, Component):
             self._style["bg_color"] = bg_color
         if text_color is not None:
             self._style["text_color"] = text_color
+        if full_width is not None:
+            self._style["full_width"] = full_width
         return self
 
 
