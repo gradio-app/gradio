@@ -76,7 +76,7 @@
         <section id="interface" class="flex flex-col gap-6">
           <div class="func">
             <h3 id="interface-header" class="text-3xl font-light my-4">Interface</h3>
-            <button class="hidden rounded-full bg-orange-500 text-white py-1 px-3 my-3" onclick="showDemos({{ docs.interface['demos'] }})">
+            <button class="rounded-full bg-orange-500 text-white py-1 px-3 my-3" onclick="showDemos({{ docs.interface['demos'] }})">
               Try Demo &#8594;
             </button>
             <pre><code class='lang-python'>gradio.Interface(<!--
@@ -364,7 +364,7 @@
         <section id="blocks" class="flex flex-col gap-6">
           <div class="func">
             <h3 id="blocks-header" class="text-3xl font-light my-4">Blocks</h3>
-            <button class="hidden rounded-full bg-orange-500 text-white py-1 px-3 my-3" onclick="showDemos('blocks')">
+            <button class="rounded-full bg-orange-500 text-white py-1 px-3 my-3" onclick="showDemos('blocks')">
               Try Demo &#8594;
             </button>
             <pre><code class='lang-python'>with gradio.Blocks(theme, analytics_enabled, mode):
@@ -438,7 +438,7 @@
             <h3 id="{{ func['name'].lower() }}-header" class="text-3xl font-light my-4">
               {{ func['name'] }}
             </h3>
-            <button class="hidden rounded-full bg-orange-500 text-white py-1 px-3 my-3" onclick="showDemos({{ func['demos'] }})">
+            <button class="rounded-full bg-orange-500 text-white py-1 px-3 my-3" onclick="showDemos({{ func['demos'] }})">
               Try Demo &#8594;
             </button>
             <div id='{{ func["name"].lower() }}-component'  class="component-embedding hidden"></div>
@@ -769,7 +769,6 @@
           showInterface(demo_names[i])
           demoTab.innerHTML = demo_names[i];
           demoTab.onclick = function() {
-            removeAllChildNodes(demos);
             showCode(demo_names[i]);
             showInterface(demo_names[i])
             let otherTabs = document.querySelectorAll(".demo-tab").forEach(e => {
@@ -784,14 +783,11 @@
           demoTab.classList.add("demo-tab", "mr-2", "cursor-pointer", "hover:text-gray-800");
           demoTab.innerHTML = demo_names[i];
           demoTab.onclick = function() {
-            removeAllChildNodes(demos);
             showCode(demo_names[i]);
             showInterface(demo_names[i])
-            demos.appendChild(h);
             let otherTabs = document.querySelectorAll(".demo-tab").forEach(e => {
               e.classList.remove("text-orange-500", "border-orange-500", "border-b-2");
               e.classList.add("hover:text-gray-800");
-              removeAllChildNodes(parent)
             });
             demoTab.classList.add("border-orange-500", "border-b-2", "text-orange-500");
           }
@@ -815,7 +811,6 @@
     window.onclick = function(event) {
       if (event.target == demosWindow) {
         demosWindow.style.display = "none";
-        removeAllChildNodes(demos);
         removeAllChildNodes(demosNav);
       }
     }
