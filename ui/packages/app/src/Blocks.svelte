@@ -122,9 +122,18 @@
 
 	let ready = false;
 	Promise.all(Array.from(component_set)).then(() => {
-		walk_layout(layout).then(() => {
-			ready = true;
-		});
+		walk_layout(layout)
+			.then(async () => {
+				ready = true;
+
+				await tick();
+				//@ts-ignore
+				window.__gradio_loader__.$set({ status: "complete" });
+			})
+			.catch((e) => {
+				//@ts-ignore
+				window.__gradio_loader__.$set({ status: "error" });
+			});
 	});
 
 	function set_prop(obj: Component, prop: string, val: any) {
