@@ -27,7 +27,7 @@ class TestComponent(unittest.TestCase):
         """
         component
         """
-        assert isinstance(gr.components.component("text")(), gr.templates.Text)
+        assert isinstance(gr.components.component("text"), gr.templates.Text)
 
 
 class TestTextbox(unittest.TestCase):
