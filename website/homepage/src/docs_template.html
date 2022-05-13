@@ -54,8 +54,6 @@
       gtag('js', new Date());
       gtag('config', 'UA-156449732-1');
     </script>
-<!--  <script defer id="gradio-library" type="module" crossorigin src="/assets/gradio-library/index.3aee2a84.js"></script>-->
-<!--  <link rel="modulepreload" href="/assets/gradio-library/index.5565f236.css">-->
 </head>
 
 <body>
@@ -581,11 +579,6 @@
               <div class="w-2/5">
                 <div class="flex flex-column items-start w-11/12 h-11/12 m-auto gap-6">
                   <h3 class="text-3xl font-semibold text-left">Code</h3>
-                  {% for src, code in docs.demo_code.items() %}
-<!--                  <a href="{{ demo_links[src] }}" id="{{ src }}-link" class="hidden demo-link my-auto ml-4" target="_blank">-->
-<!--                      <img src="/assets/img/colab-badge.svg">-->
-<!--                  </a>-->
-                  {% endfor %}
                 </div>
                 <div class="w-full h-full my-2 bg-grey-200 rounded-md">
                   {% for src, code in docs.demo_code.items() %}
@@ -739,15 +732,10 @@
 
     function showCode(demo_name) {
       let codeDiv = document.getElementById(demo_name);
-      let linkDiv = document.getElementById(demo_name + "-link");
       let allCodeDivs = document.querySelectorAll("#demos-window .demo-code").forEach(e => {
               e.classList.add("hidden");
             });
-      let allLinkDivs = document.querySelectorAll("#demos-window .demo-link").forEach(e => {
-              e.classList.add("hidden");
-            });
       codeDiv.classList.remove("hidden");
-      linkDiv.classList.remove("hidden");
     }
 
     function showInterface(demo_name) {
@@ -759,15 +747,16 @@
     }
 
     var demo_endpoint = "/demo";
-    var demo_names = {{ docs.demo_code| tojson }};
-    demo_names.forEach((demo_name, i) => {
-      fetch('/demo/' + demo_name + '/config')
+
+    {% for src, code in docs.demo_code.items() %}
+        fetch('/demo/' + src + '/config')
         .then(response => response.json())
         .then(demo => {
-          demo.root = demo_endpoint + "/" + demo_name + "/";
-          launchGradio(demo, "#" + demo_name + "-interface");
+          demo.root = demo_endpoint + "/" + src + "/";
+          launchGradio(demo, "#" + src + "-interface");
         });
-    });
+    {% endfor %}
+
 
 
     function buildDemos(demo_names) {
