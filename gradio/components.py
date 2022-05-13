@@ -3538,7 +3538,7 @@ class Button(Clickable, Component):
 
     def __init__(
         self,
-        value: str = "",
+        value: str = "Run",
         *,
         variant: str = "primary",
         visible: bool = True,
