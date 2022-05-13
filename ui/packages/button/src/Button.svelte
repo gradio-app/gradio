@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { styleClasses } from "../../utils";
+	import { create_classes } from "../../utils";
 
 	export let style: Record<string, any> = {};
 	export let elem_id: string = "";
@@ -10,7 +10,7 @@
 <button
 	on:click
 	class={`gr-button gr-button-${size} gr-button-${variant} self-start` +
-		styleClasses(style)}
+		create_classes(style)}
 	id={elem_id}
 >
 	<slot />

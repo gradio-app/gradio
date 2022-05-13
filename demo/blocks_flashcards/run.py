@@ -14,22 +14,22 @@ with demo:
             flashcards_table = gr.Dataframe(headers=["front", "back"], type="array")
         with gr.TabItem("Practice"):
             with gr.Row():
-                front = gr.Textbox(label="Prompt")
-                answer_row = gr.Row(visible=False)
-                with answer_row:
+                with gr.Column():
+                    front = gr.Textbox(label="Prompt")
+                    with gr.Row():
+                        new_btn = gr.Button("New Card").style(full_width=True)
+                        flip_btn = gr.Button("Flip Card").style(full_width=True)
+                with gr.Column(visible=False) as answer_col:
                     back = gr.Textbox(label="Answer")
-            with gr.Row():
-                new_btn = gr.Button("New Card").style(full_width=True)
-                flip_btn = gr.Button("Flip Card").style(full_width=True)
-                selected_card = gr.Variable()
-                feedback_row = gr.Row(visible=False)
-                with feedback_row:
-                    correct_btn = gr.Button(
-                        "Correct",
-                    ).style(bg_color="green", text_color="black", full_width=True)
-                    incorrect_btn = gr.Button("Incorrect").style(
-                        bg_color="pink", text_color="black", full_width=True
-                    )
+                    selected_card = gr.Variable()
+                    with gr.Row():
+                        correct_btn = gr.Button(
+                            "Correct",
+                        ).style(bg_color="green", text_color="black", full_width=True)
+                        incorrect_btn = gr.Button("Incorrect").style(
+                            bg_color="pink", text_color="black", full_width=True
+                        )
+
         with gr.TabItem("Results"):
             results = gr.Variable(value={})
             correct_field = gr.Markdown("# Correct: 0")
@@ -39,18 +39,22 @@ with demo:
 
         def load_new_card(flashcards):
             card = random.choice(flashcards)
-            return card, card[0], False, False
+            return (
+                card,
+                card[0],
+                gr.Column.update(visible=False),
+            )
 
         new_btn.click(
             load_new_card,
             [flashcards_table],
-            [selected_card, front, answer_row, feedback_row],
+            [selected_card, front, answer_col],
         )
 
         def flip_card(card):
-            return card[1], True, True
+            return card[1], gr.Column.update(visible=True)
 
-        flip_btn.click(flip_card, [selected_card], [back, answer_row, feedback_row])
+        flip_btn.click(flip_card, [selected_card], [back, answer_col])
 
         def mark_correct(card, results):
             if card[0] not in results:

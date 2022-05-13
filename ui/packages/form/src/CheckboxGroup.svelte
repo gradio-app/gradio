@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
-	import { styleClasses } from "@gradio/utils";
+	import { create_classes } from "@gradio/utils";
 
 	export let value: Array<string> = [];
 	export let style: Record<string, string> = {};
@@ -30,7 +30,7 @@
 		<label
 			class:!cursor-not-allowed={disabled}
 			class={"flex items-center text-gray-700 text-sm space-x-2 border py-1.5 px-3 rounded-lg cursor-pointer bg-white shadow-sm checked:shadow-inner" +
-				styleClasses(style)}
+				create_classes(style)}
 		>
 			<input
 				{disabled}

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher, tick } from "svelte";
-	import { styleClasses } from "@gradio/utils";
+	import { create_classes } from "@gradio/utils";
 	import { BlockTitle } from "@gradio/atoms";
 
 	export let value: string = "";
@@ -82,7 +82,8 @@
 
 	<textarea
 		use:text_area_resize={value}
-		class={"block gr-box gr-input w-full gr-text-input " + styleClasses(style)}
+		class={"block gr-box gr-input w-full gr-text-input " +
+			create_classes(style)}
 		bind:value
 		bind:this={el}
 		{placeholder}

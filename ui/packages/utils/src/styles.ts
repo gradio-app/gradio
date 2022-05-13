@@ -1,4 +1,4 @@
-export const styleClasses = (
+export const create_classes = (
 	styles: Record<string, any>,
 	prefix: string = ""
 ): string => {
@@ -14,6 +14,13 @@ export const styleClasses = (
 			}
 		}
 	}
+
+	switch (target_styles.visible) {
+		case false:
+			classes.push("!hidden");
+			break;
+	}
+
 	switch (target_styles.rounded) {
 		case true:
 			classes.push("!rounded-lg");

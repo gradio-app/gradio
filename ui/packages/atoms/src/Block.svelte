@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { styleClasses } from "../../utils";
+	import { create_classes } from "../../utils";
 
 	import { getContext } from "svelte";
 	import { BLOCK_KEY } from "./";
@@ -58,7 +58,7 @@
 		styles[color] +
 		" " +
 		form_class +
-		styleClasses(style, "container")}
+		create_classes(style, "container")}
 	class:gr-panel={padding}
 	class:form={form_position}
 	class:gr-box-unrounded={form_position}
