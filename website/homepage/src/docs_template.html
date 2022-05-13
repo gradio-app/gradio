@@ -598,7 +598,11 @@
                 <div class="mb-6">
                   <nav class="demos-nav flex flex-wrap gap-6 whitespace-nowrap text-gray-600 md:text-lg my-2 md:mb-0"></nav>
                 </div>
-                <div class="demos w-full h-full my-2 bg-gray-200 rounded-md"></div>
+                <div class="demos w-full h-full my-2 bg-gray-200 rounded-md">
+                  {% for src, code in docs.demo_code.items() %}
+                    <div id="{{ src }}-interface" class="hidden demo-interface"></div>
+                  {% endfor %}
+                </div>
               </div>
             </div>
           </div>
@@ -746,6 +750,26 @@
       linkDiv.classList.remove("hidden");
     }
 
+    function showInterface(demo_name) {
+      let interfaceDiv = document.getElementById(demo_name + "-interface");
+      let allInterfaceDivs = document.querySelectorAll("#demos-window .demo-interface").forEach(e => {
+              e.classList.add("hidden");
+            });
+      interfaceDiv.classList.remove("hidden");
+    }
+
+    var demo_endpoint = "/demo";
+    var demo_names = {{ docs.demo_code| tojson }};
+    demo_names.forEach((demo_name, i) => {
+      fetch('/demo/' + demo_name + '/config')
+        .then(response => response.json())
+        .then(demo => {
+          demo.root = demo_endpoint + "/" + demo_name + "/";
+          launchGradio(demo, "#" + demo_name + "-interface");
+        });
+    });
+
+
     function buildDemos(demo_names) {
       console.log(demo_names);
       for (let i = 0; i < demo_names.length; i++) {
@@ -753,18 +777,12 @@
           let demoTab = document.createElement('div');
           demoTab.classList.add("demo-tab", "mr-2", "border-orange-500", "border-b-2", "text-orange-500", "cursor-pointer");
           showCode(demo_names[i]);
+          showInterface(demo_names[i])
           demoTab.innerHTML = demo_names[i];
-          let h = document.createElement('h3');
-          h.classList.add("text2xl");
-          h.innerHTML = demo_names[i];
-          demos.appendChild(h);
           demoTab.onclick = function() {
             removeAllChildNodes(demos);
             showCode(demo_names[i]);
-            let h = document.createElement('h3');
-            h.classList.add("text2xl");
-            h.innerHTML = demo_names[i];
-            demos.appendChild(h);
+            showInterface(demo_names[i])
             let otherTabs = document.querySelectorAll(".demo-tab").forEach(e => {
               e.classList.remove("text-orange-500", "border-orange-500", "border-b-2");
               e.classList.add("hover:text-gray-800");
@@ -779,9 +797,7 @@
           demoTab.onclick = function() {
             removeAllChildNodes(demos);
             showCode(demo_names[i]);
-            let h = document.createElement('h3');
-            h.classList.add("text2xl");
-            h.innerHTML = demo_names[i];
+            showInterface(demo_names[i])
             demos.appendChild(h);
             let otherTabs = document.querySelectorAll(".demo-tab").forEach(e => {
               e.classList.remove("text-orange-500", "border-orange-500", "border-b-2");
@@ -814,6 +830,7 @@
         removeAllChildNodes(demosNav);
       }
     }
+
 
     {% for component, config in docs.embedding_configs.items() %}
       target = "#{{ component }}-component";

@@ -14,12 +14,12 @@ port = 7860
 
 DEMO_PATTERN = r'demos\["([A-Za-z0-9_]+)"]'
 
-demos_to_run = ["kitchen_sink"]
+demos_to_run = [demo for demo in os.listdir(GRADIO_DEMO_DIR)]
 # for guide_filename in os.listdir(GRADIO_GUIDES_DIR):
-for guide_filename in ["getting_started.md"]:
-    with open(os.path.join(GRADIO_GUIDES_DIR, guide_filename)) as guide_file:
-        guide_content = guide_file.read()
-    demos_to_run += re.findall(DEMO_PATTERN, guide_content)
+# for guide_filename in ["getting_started.md"]:
+#     with open(os.path.join(GRADIO_GUIDES_DIR, guide_filename)) as guide_file:
+#         guide_content = guide_file.read()
+#     demos_to_run += re.findall(DEMO_PATTERN, guide_content)
 
 demo_port_sets = []
 for demo_name in demos_to_run:
