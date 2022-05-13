@@ -167,19 +167,17 @@
   <script>
     window.gradio_mode = "website";
   </script>
-  <script defer id="gradio-library" type="module" crossorigin src="/gradio_static/assets/{{ entry_js_file }}"></script>
+  <script id="gradio-library" type="module" crossorigin src="/gradio_static/assets/{{ entry_js_file }}"></script>
   <script>
     var demo_endpoint = "/demo";
     var demo_names = {{ demo_names| tojson }};
-    document.querySelector("#gradio-library").addEventListener('load', function () {
-      demo_names.forEach((demo_name, i) => {
-        fetch('/demo/' + demo_name + '/config')
-          .then(response => response.json())
-          .then(demo => {
-            demo.root = demo_endpoint + "/" + demo_name + "/";
-            launchGradio(demo, "#interface_" + demo_name);
-          });
-      });
+    demo_names.forEach((demo_name, i) => {
+      fetch('/demo/' + demo_name + '/config')
+        .then(response => response.json())
+        .then(demo => {
+          demo.root = demo_endpoint + "/" + demo_name + "/";
+          launchGradio(demo, "#interface_" + demo_name);
+        });
     });
     function createAnchorTag(link) {
             let a = document.createElement('a');

@@ -502,29 +502,29 @@ demo.launch()"""
         "params_doc": parallel_params[2],
     }    
     
-    row = {
-        "doc": get_class_documentation(Row, lines=None)["doc"],
-        "params": get_function_documentation(Row.__init__)[1],
-        "params_doc": get_function_documentation(Row.__init__)[2],
-    }           
+    # row = {
+    #     "doc": get_class_documentation(Row, lines=None)["doc"],
+    #     "params": get_function_documentation(Row.__init__)[1],
+    #     "params_doc": get_function_documentation(Row.__init__)[2],
+    # }           
 
-    column = {
-        "doc": get_class_documentation(Column, lines=None)["doc"],
-        "params": get_function_documentation(Column.__init__)[1],
-        "params_doc": get_function_documentation(Column.__init__)[2],
-    }           
+    # column = {
+    #     "doc": get_class_documentation(Column, lines=None)["doc"],
+    #     "params": get_function_documentation(Column.__init__)[1],
+    #     "params_doc": get_function_documentation(Column.__init__)[2],
+    # }           
 
-    tabs = {
-        "doc": get_class_documentation(Tabs, lines=None)["doc"],
-        "params": get_function_documentation(Tabs.__init__)[1],
-        "params_doc": get_function_documentation(Tabs.__init__)[2],
-    }           
+    # tabs = {
+    #     "doc": get_class_documentation(Tabs, lines=None)["doc"],
+    #     "params": get_function_documentation(Tabs.__init__)[1],
+    #     "params_doc": get_function_documentation(Tabs.__init__)[2],
+    # }           
 
-    tabitem = {
-        "doc": get_class_documentation(TabItem, lines=None)["doc"],
-        "params": get_function_documentation(TabItem.__init__)[1],
-        "params_doc": get_function_documentation(TabItem.__init__)[2],
-    }
+    # tabitem = {
+    #     "doc": get_class_documentation(TabItem, lines=None)["doc"],
+    #     "params": get_function_documentation(TabItem.__init__)[1],
+    #     "params_doc": get_function_documentation(TabItem.__init__)[2],
+    # }
 
 
     SCREENSHOT_FOLDER = "dist/assets/demo_screenshots"
@@ -558,10 +558,10 @@ demo.launch()"""
         "tabbed_interface": tabbed_interface,
         "parallel": parallel,
         "series": series,
-        "row": row,
-        "column": column,
-        "tabs": tabs,
-        "tabitem": tabitem,
+        # "row": row,
+        # "column": column,
+        # "tabs": tabs,
+        # "tabitem": tabitem,
         "demo_code": demo_code,
         "embedding_configs": embedding_configs
     }
