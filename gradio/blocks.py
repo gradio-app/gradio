@@ -158,87 +158,6 @@ class BlockContext(Block):
         return y
 
 
-class Row(BlockContext):
-    def get_config(self):
-        return {"type": "row", **super().get_config()}
-
-    @staticmethod
-    def update(
-        visible: Optional[bool] = None,
-    ):
-        return {
-            "visible": visible,
-            "__type__": "update",
-        }
-
-    def style(self, equal_height: Optional[bool] = None):
-        if equal_height is not None:
-            self._style["equal_height"] = equal_height
-        return self
-
-
-class Column(BlockContext):
-    def __init__(
-        self,
-        visible: bool = True,
-        variant: str = "default",
-    ):
-        """
-        variant: column type, 'default' (no background) or 'panel' (gray background color and rounded corners)
-        """
-        self.variant = variant
-        super().__init__(visible=visible)
-
-    def get_config(self):
-        return {
-            "type": "column",
-            "variant": self.variant,
-            **super().get_config(),
-        }
-
-    @staticmethod
-    def update(
-        variant: Optional[str] = None,
-        visible: Optional[bool] = None,
-    ):
-        return {
-            "variant": variant,
-            "visible": visible,
-            "__type__": "update",
-        }
-
-
-class Tabs(BlockContext):
-    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        Returns: None
-        """
-        self.set_event_trigger("change", fn, inputs, outputs)
-
-
-class TabItem(BlockContext):
-    def __init__(self, label, **kwargs):
-        super().__init__(**kwargs)
-        self.label = label
-
-    def get_config(self):
-        return {"label": self.label, **super().get_config()}
-
-    def select(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-        Returns: None
-        """
-        self.set_event_trigger("select", fn, inputs, outputs)
-
-
 class BlockFunction:
     def __init__(self, fn: Optional[Callable], preprocess: bool, postprocess: bool):
         self.fn = fn
@@ -577,15 +496,15 @@ class Blocks(BlockContext):
         # If running in a colab or not able to access localhost,
         # automatically create a shareable link.
         is_colab = utils.colab_check()
-        if is_colab or not (networking.url_ok(self.local_url)):
-            share = True
-            if is_colab:
-                if debug:
-                    print(strings.en["COLAB_DEBUG_TRUE"])
-                else:
-                    print(strings.en["COLAB_DEBUG_FALSE"])
-        else:
-            print(strings.en["RUNNING_LOCALLY"].format(self.local_url))
+        # if is_colab or not (networking.url_ok(self.local_url)):
+        #     share = True
+        #     if is_colab:
+        #         if debug:
+        #             print(strings.en["COLAB_DEBUG_TRUE"])
+        #         else:
+        #             print(strings.en["COLAB_DEBUG_FALSE"])
+        # else:
+        #     print(strings.en["RUNNING_LOCALLY"].format(self.local_url))
         if is_colab and self.requires_permissions:
             print(strings.en["MEDIA_PERMISSIONS_IN_COLAB"])
 

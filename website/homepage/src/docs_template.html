@@ -735,15 +735,15 @@
 
     function showCode(demo_name) {
       let codeDiv = document.getElementById(demo_name);
-<!--      let linkDiv = document.getElementById(demo_name + "-link");-->
+      let linkDiv = document.getElementById(demo_name + "-link");
       let allCodeDivs = document.querySelectorAll("#demos-window .demo-code").forEach(e => {
               e.classList.add("hidden");
             });
-<!--      let allLinkDivs = document.querySelectorAll("#demos-window .demo-link").forEach(e => {-->
-<!--              e.classList.add("hidden");-->
-<!--            });-->
+      let allLinkDivs = document.querySelectorAll("#demos-window .demo-link").forEach(e => {
+              e.classList.add("hidden");
+            });
       codeDiv.classList.remove("hidden");
-<!--      linkDiv.classList.remove("hidden");-->
+      linkDiv.classList.remove("hidden");
     }
 
     function buildDemos(demo_names) {
@@ -816,8 +816,8 @@
     }
 
     {% for component, config in docs.embedding_configs.items() %}
-      target = "#{{ component }}-component"
-      config = {{ config|tojson }}
+      target = "#{{ component }}-component";
+      config = {{ config|tojson }};
       window.launchGradio(config, target);
     {% endfor %}
 

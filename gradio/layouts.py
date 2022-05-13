@@ -8,43 +8,37 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.components import Component
 
 
-class Row(BlockContext):
-    """
-    A layout element within Blocks that renders all children horizontally.
-    """
 
+class Row(BlockContext):
     def get_config(self):
         return {"type": "row", **super().get_config()}
 
     @staticmethod
     def update(
-        css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
         return {
-            "css": css,
             "visible": visible,
             "__type__": "update",
         }
 
+    def style(self, equal_height: Optional[bool] = None):
+        if equal_height is not None:
+            self._style["equal_height"] = equal_height
+        return self
+
 
 class Column(BlockContext):
-    """
-    A layout element within Blocks that renders all children vertically.
-    """
-
     def __init__(
         self,
         visible: bool = True,
-        css: Optional[Dict[str, str]] = None,
         variant: str = "default",
     ):
         """
-        css: Css rules to apply to block.
         variant: column type, 'default' (no background) or 'panel' (gray background color and rounded corners)
         """
         self.variant = variant
-        super().__init__(visible=visible, css=css)
+        super().__init__(visible=visible)
 
     def get_config(self):
         return {
@@ -56,23 +50,16 @@ class Column(BlockContext):
     @staticmethod
     def update(
         variant: Optional[str] = None,
-        css: Optional[Dict] = None,
         visible: Optional[bool] = None,
     ):
         return {
             "variant": variant,
-            "css": css,
             "visible": visible,
             "__type__": "update",
         }
 
 
 class Tabs(BlockContext):
-    """
-    Tabs are a layout element within Blocks that contain multiple TabItem()'s which get
-    rendered as tabs. The TabItem()'s must be nested within the Tabs() context.
-    """
-
     def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
@@ -85,11 +72,6 @@ class Tabs(BlockContext):
 
 
 class TabItem(BlockContext):
-    """
-    A layout element that creates a tab within the parent Tabs() context. All children
-    are rendered within the tab vertically by default.
-    """
-
     def __init__(self, label, **kwargs):
         super().__init__(**kwargs)
         self.label = label
