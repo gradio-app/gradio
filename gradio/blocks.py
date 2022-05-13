@@ -171,9 +171,16 @@ class Row(BlockContext):
             "__type__": "update",
         }
 
-    def style(self, equal_height: Optional[bool] = None):
+    def style(
+        self,
+        equal_height: Optional[bool] = None,
+        mobile_collapse: Optional[bool] = None,
+    ):
         if equal_height is not None:
             self._style["equal_height"] = equal_height
+        if mobile_collapse is not None:
+            self._style["mobile_collapse"] = mobile_collapse
+
         return self
 
 

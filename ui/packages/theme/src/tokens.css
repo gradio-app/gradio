@@ -8,6 +8,15 @@
 	dark:bg-gray-800;
 }
 
+.gr-box-unrounded {
+	@apply text-gray-700 
+	text-sm 
+	relative 
+	bg-white 
+	shadow-sm
+	dark:bg-gray-800;
+}
+
 .gr-input {
 	@apply focus:border-blue-300 
 	focus:ring 
