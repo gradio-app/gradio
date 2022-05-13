@@ -815,46 +815,19 @@
       }
     }
 
-      target = "#textbox-component"
-      config = {
-        "mode": "blocks",
-        "components": [
-          {
-              "id": 1,
-              "type": "textbox",
-              "props": {
-                "lines": 1,
-                "max_lines": 20,
-                "value": "",
-                "label": "name",
-                "show_label": true,
-                "name": "textbox",
-                "visible": true,
-                "style": {}
-              }
-          }
-          ],
-          "theme": "default",
-          "css": null,
-          "enable_queue": false,
-          "layout": {
-            "id": 0,
-            "children": [
-              {
-                "id": 1,
-              }
-            ]
-          },
-          "dependencies": []
-        }
+    {% for component, config in docs.embedding_configs.items() %}
+      target = "#{{ component }}-component"
+      config = {{ config|tojson }}
       window.launchGradio(config, target);
+    {% endfor %}
 
-      let componentEmbeddings = document.querySelectorAll(".component-embedding").forEach(e => {
-                    e.classList.remove("dark");
-                });
-      let componentEmbeddingsFooters = document.querySelectorAll(".component-embedding .footer").forEach(e => {
-                e.classList.add("hidden");
+    let componentEmbeddings = document.querySelectorAll(".component-embedding").forEach(e => {
+                  e.classList.remove("dark");
               });
+    let componentEmbeddingsFooters = document.querySelectorAll(".component-embedding .footer").forEach(e => {
+              e.classList.add("hidden");
+            });
+
 
   </script>
 </body>
