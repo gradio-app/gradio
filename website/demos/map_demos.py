@@ -14,7 +14,10 @@ port = 7860
 
 DEMO_PATTERN = r'demos\["([A-Za-z0-9_]+)"]'
 
-demos_to_run = [demo for demo in os.listdir(GRADIO_DEMO_DIR)]
+demos_to_skip = ["no_input", "disease_report", "fake_gan", "hello_login"] # skipping some demos
+demos_to_run = [demo for demo in os.listdir(GRADIO_DEMO_DIR)
+                if os.path.isdir(os.path.join(GRADIO_DEMO_DIR, demo))
+                and demo not in demos_to_skip]
 # for guide_filename in os.listdir(GRADIO_GUIDES_DIR):
 # for guide_filename in ["getting_started.md"]:
 #     with open(os.path.join(GRADIO_GUIDES_DIR, guide_filename)) as guide_file:
@@ -31,6 +34,7 @@ for demo_name in demos_to_run:
         )
     setup_file = os.path.join(demo_folder, "setup.sh")
     if os.path.exists(setup_file):
+        continue # ignore for now
         subprocess.check_call(["sh", setup_file])
     demo_port_sets.append((demo_name, port))
     port += 1
