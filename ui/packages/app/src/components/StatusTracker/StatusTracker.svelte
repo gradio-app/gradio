@@ -40,10 +40,12 @@
 	export let eta: number | null = null;
 	export let queue_position: number | null;
 	export let status: "complete" | "pending" | "error";
+	export let timer: boolean = true;
+	export let cover_all: boolean = false;
 
 	let el: HTMLDivElement;
 
-	let timer: boolean = false;
+	let _timer: boolean = false;
 	let timer_start = 0;
 	let timer_diff = 0;
 
@@ -64,7 +66,7 @@
 	const start_timer = () => {
 		timer_start = performance.now();
 		timer_diff = 0;
-		timer = true;
+		_timer = true;
 		run();
 		// timer = setInterval(, 100);
 	};
@@ -72,19 +74,19 @@
 	function run() {
 		requestAnimationFrame(() => {
 			timer_diff = (performance.now() - timer_start) / 1000;
-			if (timer) run();
+			if (_timer) run();
 		});
 	}
 
 	const stop_timer = () => {
 		timer_diff = 0;
 
-		if (!timer) return;
-		timer = false;
+		if (!_timer) return;
+		_timer = false;
 	};
 
 	onDestroy(() => {
-		if (timer) stop_timer();
+		if (_timer) stop_timer();
 	});
 
 	$: {
@@ -106,6 +108,7 @@
 <div
 	class=" absolute inset-0  z-10 flex flex-col justify-center items-center bg-white dark:bg-gray-800 pointer-events-none transition-opacity"
 	class:opacity-0={!status || status === "complete"}
+	class:z-50={cover_all}
 	bind:this={el}
 >
 	{#if status === "pending"}
@@ -120,10 +123,16 @@
 				processing |
 			{/if}
 
-			{formatted_timer}{eta ? `/${formatted_eta}` : ""}
+			{#if timer}
+				{formatted_timer}{eta ? `/${formatted_eta}` : ""}
+			{/if}
 		</div>
 
 		<Loader />
+
+		{#if !timer}
+			<p class="-translate-y-16">Loading...</p>
+		{/if}
 	{:else if status === "error"}
 		<span class="text-red-400 font-mono font-semibold text-lg">ERROR</span>
 	{/if}
