@@ -11,7 +11,7 @@
 		label: string;
 		confidences?: Array<{ label: string; confidence: number }>;
 	};
-	export let label: string;
+	export let label: string = "Label";
 
 	export let loading_status: LoadingStatus;
 	export let show_label: boolean;
