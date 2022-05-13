@@ -1,13 +1,12 @@
 <script lang="ts">
 	import { onMount, createEventDispatcher, setContext } from "svelte";
-	import { BLOCK_KEY } from "@gradio/atoms";
 
 	export let root: string;
 	export let component;
 	export let instance_map;
 	export let id: number;
 	export let props: {
-		css: Record<string, string>;
+		style: Record<string, unknown>;
 		visible: boolean;
 		[key: string]: unknown;
 	};
@@ -16,7 +15,6 @@
 		children: Array<LayoutNode>;
 	}
 	export let children: Array<LayoutNode>;
-	export let theme;
 	export let dynamic_ids: Set<number>;
 	export let has_modes: boolean | undefined;
 	export let status_tracker_values: Record<number, string>;
@@ -42,15 +40,9 @@
 		return () => dispatch("destroy", id);
 	});
 
-	let style: string = "";
 	$: {
-		style = props.css
-			? Object.entries(props.css)
-					.map((rule) => rule[0] + ": " + rule[1])
-					.join("; ")
-			: "";
-		if (props.visible === false) {
-			style += " display: none !important;";
+		if (typeof props.visible === "boolean") {
+			props.style.visible = props.visible;
 		}
 	}
 
@@ -103,7 +95,7 @@
 		children &&
 		children.filter((v) => instance_map[v.id].type !== "statustracker");
 
-	setContext(BLOCK_KEY, parent);
+	setContext("BLOCK_KEY", parent);
 </script>
 
 <svelte:component
@@ -122,7 +114,6 @@
 				{component}
 				id={each_id}
 				{props}
-				{theme}
 				{root}
 				{instance_map}
 				{children}

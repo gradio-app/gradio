@@ -2,7 +2,7 @@
 	import { createEventDispatcher } from "svelte";
 	import { JSON } from "@gradio/json";
 	import { Block, BlockLabel } from "@gradio/atoms";
-	import { JSON as JSONIcon, Tree } from "@gradio/icons";
+	import { JSON as JSONIcon } from "@gradio/icons";
 
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
@@ -19,7 +19,7 @@
 
 <Block test_id="json" {elem_id}>
 	{#if label}
-		<BlockLabel Icon={Tree} {label} />
+		<BlockLabel Icon={JSONIcon} {label} />
 	{/if}
 
 	<StatusTracker {...loading_status} />
