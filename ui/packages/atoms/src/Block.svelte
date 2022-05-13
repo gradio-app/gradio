@@ -13,6 +13,7 @@
 		undefined;
 	export let type: "normal" | "fieldset" = "normal";
 	export let test_id: string | undefined = undefined;
+	export let disable: boolean = false;
 
 	const styles = {
 		dashed: "border-dashed border border-gray-300",
@@ -63,6 +64,14 @@
 	class:form={form_position}
 	class:gr-box-unrounded={form_position}
 	class:gr-box={!form_position}
+	class:!p-0={disable}
+	class:!m-0={disable}
+	class:!border-0={disable}
+	class:!shadow-none={disable}
+	class:overflow-visible={disable}
 >
 	<slot />
 </svelte:element>
+
+<!-- !rounded-br-none !rounded-bl-none !rounded-tr-none !rounded-bl-none -->
+<!-- !rounded-br-lg !rounded-bl-lg !rounded-tr-lg !rounded-bl-lg -->

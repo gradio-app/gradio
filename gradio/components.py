@@ -219,10 +219,13 @@ class IOComponent(Component):
 
     def style(
         self,
-        rounded: Optional[bool] = None,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
         bg_color: Optional[str] = None,
         text_color: Optional[str] = None,
         container_bg_color: Optional[str] = None,
+        margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        container: Optional[bool] = None,
     ):
         valid_colors = ["red", "yellow", "green", "blue", "purple", "black"]
         if rounded is not None:
@@ -236,6 +239,12 @@ class IOComponent(Component):
         if container_bg_color is not None:
             assert container_bg_color in valid_colors
             self._style["container_bg_color"] = container_bg_color
+        if margin is not None:
+            self._style["margin"] = margin
+        if border is not None:
+            self._style["border"] = border
+        if container is not None:
+            self._style["container"] = container
         return self
 
 
@@ -597,10 +606,13 @@ class Textbox(Changeable, Submittable, IOComponent):
 
     def style(
         self,
-        rounded: Optional[bool] = None,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
         bg_color: Optional[str] = None,
         text_color: Optional[str] = None,
         container_bg_color: Optional[str] = None,
+        margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        container: Optional[bool] = None,
     ):
         return IOComponent.style(
             self,
@@ -608,6 +620,9 @@ class Textbox(Changeable, Submittable, IOComponent):
             bg_color=bg_color,
             text_color=text_color,
             container_bg_color=container_bg_color,
+            margin=margin,
+            border=border,
+            container=container,
         )
 
 
@@ -754,7 +769,7 @@ class Number(Changeable, Submittable, IOComponent):
 
     def style(
         self,
-        rounded: Optional[bool] = None,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
         bg_color: Optional[str] = None,
         text_color: Optional[str] = None,
         container_bg_color: Optional[str] = None,
@@ -1200,7 +1215,7 @@ class CheckboxGroup(Changeable, IOComponent):
 
     def style(
         self,
-        rounded: Optional[bool] = None,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
         bg_color: Optional[str] = None,
         text_color: Optional[str] = None,
         container_bg_color: Optional[str] = None,
@@ -1350,7 +1365,7 @@ class Radio(Changeable, IOComponent):
 
     def style(
         self,
-        rounded: Optional[bool] = None,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
         bg_color: Optional[str] = None,
         text_color: Optional[str] = None,
         container_bg_color: Optional[str] = None,
@@ -1725,7 +1740,7 @@ class Image(Editable, Clearable, Changeable, IOComponent):
 
     def style(
         self,
-        rounded: Optional[bool] = None,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
         bg_color: Optional[str] = None,
         text_color: Optional[str] = None,
         container_bg_color: Optional[str] = None,
@@ -3099,7 +3114,31 @@ class Gallery(IOComponent):
             output.append(img)
         return output
 
+    def style(
+        self,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        bg_color: Optional[str] = None,
+        text_color: Optional[str] = None,
+        margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        grid: Optional[int] = None,
+        height: Optional[str] = None,
+    ):
+        if rounded is not None:
+            self._style["rounded"] = rounded
+        if bg_color is not None:
+            self._style["bg_color"] = bg_color
+        if text_color is not None:
+            self._style["text_color"] = text_color
+        if margin is not None:
+            self._style["margin"] = margin
+        if grid is not None:
+            self._style["grid"] = grid
+        if height is not None:
+            self._style["height"] = height
+        return self
 
+
+# max_grid=[3], grid_behavior="scale", height="auto"
 class Carousel(IOComponent):
     """
     Component displays a set of output components that can be scrolled through.
@@ -3577,10 +3616,11 @@ class Button(Clickable, Component):
 
     def style(
         self,
-        rounded: Optional[bool] = None,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
         bg_color: Optional[str] = None,
         text_color: Optional[str] = None,
         full_width: Optional[str] = None,
+        margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
     ):
         if rounded is not None:
             self._style["rounded"] = rounded
@@ -3590,6 +3630,8 @@ class Button(Clickable, Component):
             self._style["text_color"] = text_color
         if full_width is not None:
             self._style["full_width"] = full_width
+        if margin is not None:
+            self._style["margin"] = margin
         return self
 
 
