@@ -4,7 +4,6 @@
 	import JSONNode from "./JSONNode.svelte";
 
 	export let value: any = {};
-	export let style: string = "";
 
 	let copied = false;
 	let timer: NodeJS.Timeout;

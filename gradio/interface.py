@@ -155,7 +155,7 @@ class Interface(Blocks):
         analytics_enabled (bool | None): Whether to allow basic telemetry. If None, will use GRADIO_ANALYTICS_ENABLED environment variable if defined, or default to True.
         """
         super().__init__(
-            analytics_enabled=analytics_enabled, mode="interface", **kwargs
+            analytics_enabled=analytics_enabled, mode="interface", css=css, **kwargs
         )
 
         if inspect.iscoroutinefunction(fn):
@@ -278,11 +278,6 @@ class Interface(Blocks):
         if not (self.theme == "default"):
             warnings.warn("Currently, only the 'default' theme is supported.")
 
-        if css is not None and os.path.exists(css):
-            with open(css) as css_file:
-                self.css = css_file.read()
-        else:
-            self.css = css
         if examples is None or (
             isinstance(examples, list)
             and (len(examples) == 0 or isinstance(examples[0], list))
@@ -436,7 +431,7 @@ class Interface(Blocks):
                 )
             if self.description:
                 Markdown(self.description)
-            with Row():
+            with Row().style(equal_height=False):
                 if self.interface_type in [
                     self.InterfaceTypes.STANDARD,
                     self.InterfaceTypes.INPUT_ONLY,

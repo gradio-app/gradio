@@ -11,8 +11,6 @@
 	export let col_count: [number, "fixed" | "dynamic"];
 	export let row_count: [number, "fixed" | "dynamic"];
 
-	export let style: string = "";
-
 	export let editable = true;
 
 	const dispatch = createEventDispatcher<{ change: typeof values }>();

@@ -110,7 +110,7 @@
 	this={component}
 	bind:this={instance_map[id].instance}
 	bind:value={instance_map[id].props.value}
-	{style}
+	elem_id={props.elem_id || id}
 	{...props}
 	{root}
 	tracked_status={status_tracker_values[id]}

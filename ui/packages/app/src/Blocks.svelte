@@ -18,6 +18,7 @@
 			name?: keyof typeof component_map;
 			css?: Record<string, string>;
 			visible?: boolean;
+			elem_id?: str;
 			[key: string]: unknown;
 		};
 		instance?: SvelteComponentTyped;
@@ -99,7 +100,6 @@
 
 	async function walk_layout(node: LayoutNode) {
 		let instance = instance_map[node.id];
-		console.log(node.id, instance_map);
 		const _component = (await _component_map.get(instance.type)).component;
 		instance.component = _component.Component;
 		if (_component.modes.length > 1) {

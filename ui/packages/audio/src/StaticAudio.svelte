@@ -14,7 +14,6 @@
 
 	export let value: null | { name: string; data: string } = null;
 	export let label: string;
-	export let style: string = "";
 	export let name: string;
 	export let show_label: boolean;
 
@@ -36,7 +35,7 @@
 {#if value === null}
 	<div class="min-h-[8rem] flex justify-center items-center">
 		<!-- <img src={audio_icon} alt="" class="h-6 opacity-20" /> -->
-		<div class="h-10 dark:text-white opacity-50"><Music /></div>
+		<div class="h-5 dark:text-white opacity-50"><Music /></div>
 	</div>
 {:else}
 	<audio

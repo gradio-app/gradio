@@ -5,8 +5,8 @@
 	import { _ } from "svelte-i18n";
 	import { Component as StatusTracker } from "../StatusTracker/";
 
+	export let elem_id: string = "";
 	export let value: null | string = null;
-	export let style: string = "";
 	export let source: "canvas" | "webcam" | "upload" = "upload";
 	export let tool: "editor" | "select" = "editor";
 	export let label: string;
@@ -29,14 +29,14 @@
 		: "solid"}
 	color={dragging ? "green" : "grey"}
 	padding={false}
+	{elem_id}
 >
 	<StatusTracker {...loading_status} />
 	{#if mode === "static"}
-		<StaticImage {value} {label} {style} {show_label} />
+		<StaticImage {value} {label} {show_label} />
 	{:else}
 		<Image
 			bind:value
-			{style}
 			{source}
 			{tool}
 			on:edit
