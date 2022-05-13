@@ -9,8 +9,7 @@
 	class:bg-gray-50={variant === "panel"}
 	class:p-2={variant === "panel"}
 	class:rounded-lg={variant === "panel"}
-	class="flex flex-col gr-gap gr-form-gap relative col"
-	class:flex-1={parent === "row" || !parent}
+	class="flex flex-col gr-gap gr-form-gap relative col w-full"
 >
 	<slot />
 </div>

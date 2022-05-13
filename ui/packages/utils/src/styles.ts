@@ -22,6 +22,13 @@ export const styleClasses = (
 			classes.push("!rounded-none");
 			break;
 	}
+
+	switch (target_styles.full_width) {
+		case true:
+			classes.push("!w-full");
+			break;
+	}
+
 	switch (target_styles.text_color) {
 		case "red":
 			classes.push("!text-red-500", "dark:text-red-100");
@@ -58,7 +65,7 @@ export const styleClasses = (
 		case "green":
 			classes.push(
 				"!bg-green-100 !from-green-100 !to-green-200 !border-green-300",
-				"dark:!bg-green-700 dark:!from-green-700 dark:!to-green-800 dark:!border-green-900"
+				"dark:!bg-green-700 dark:!from-green-700 dark:!to-green-800 dark:!border-green-900  !text-gray-800"
 			);
 			break;
 		case "blue":
@@ -77,6 +84,11 @@ export const styleClasses = (
 			classes.push(
 				"!bg-gray-100 !from-gray-100 !to-gray-200 !border-gray-300",
 				"dark:!bg-gray-700 dark:!from-gray-700 dark:!to-gray-800 dark:!border-gray-900"
+			);
+		case "pink":
+			classes.push(
+				"!bg-pink-100 !from-pink-100 !to-pink-200 !border-pink-300",
+				"dark:!bg-pink-700 dark:!from-pink-700 dark:!to-pink-800 dark:!border-pink-900 !text-gray-800"
 			);
 			break;
 	}

@@ -24,33 +24,35 @@
 
 	const form_styles = {
 		column: {
-			first: "!rounded-b-none",
-			last: "!rounded-t-none",
-			mid: "!rounded-none",
-			single: ""
+			first: "rounded-t-lg",
+			last: "rounded-b-lg",
+			mid: "",
+			single: "rounded-lg"
 		},
 		row: {
-			first: "!rounded-r-none",
-			last: "!rounded-l-none",
-			mid: "!rounded-none",
-			single: ""
+			first: "rounded-t-lg md:rounded-t-none md:rounded-l-lg ",
+			last: "rounded-b-lg md:rounded-b-none md:rounded-r-lg",
+			mid: "",
+			single: "rounded-lg"
 		}
 	};
 
 	let tag = type === "fieldset" ? "fieldset" : "div";
 
-	const parent = getContext<string | null>(BLOCK_KEY);
+	const parent = getContext<string | null>("BLOCK_KEY");
 
 	$: form_class = form_position
 		? form_styles?.[(parent as "column" | "row") || "column"][form_position]
 		: "";
+
+	$: console.log(parent);
 </script>
 
 <svelte:element
 	this={tag}
 	data-testid={test_id}
 	id={elem_id}
-	class={"gr-box overflow-hidden " +
+	class={"w-full overflow-hidden " +
 		styles[variant] +
 		" " +
 		styles[color] +
@@ -59,7 +61,8 @@
 		styleClasses(style, "container")}
 	class:gr-panel={padding}
 	class:form={form_position}
-	class:flex-1={parent === "row" || null}
+	class:gr-box-unrounded={form_position}
+	class:gr-box={!form_position}
 >
 	<slot />
 </svelte:element>

@@ -14,22 +14,21 @@ with demo:
             flashcards_table = gr.Dataframe(headers=["front", "back"], type="array")
         with gr.TabItem("Practice"):
             with gr.Row():
-                front = gr.Textbox()
+                front = gr.Textbox(label="Prompt")
                 answer_row = gr.Row(visible=False)
                 with answer_row:
-                    back = gr.Textbox()
+                    back = gr.Textbox(label="Answer")
             with gr.Row():
-                new_btn = gr.Button("New Card")
-                flip_btn = gr.Button("Flip Card")
+                new_btn = gr.Button("New Card").style(full_width=True)
+                flip_btn = gr.Button("Flip Card").style(full_width=True)
                 selected_card = gr.Variable()
                 feedback_row = gr.Row(visible=False)
                 with feedback_row:
                     correct_btn = gr.Button(
                         "Correct",
-                        css={"background-color": "lightgreen", "color": "green"},
-                    )
-                    incorrect_btn = gr.Button(
-                        "Incorrect", css={"background-color": "pink", "color": "red"}
+                    ).style(bg_color="green", text_color="black", full_width=True)
+                    incorrect_btn = gr.Button("Incorrect").style(
+                        bg_color="pink", text_color="black", full_width=True
                     )
         with gr.TabItem("Results"):
             results = gr.Variable(value={})

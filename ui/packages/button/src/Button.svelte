@@ -9,7 +9,7 @@
 
 <button
 	on:click
-	class={`gr-button gr-button-${size} gr-button-${variant} self-start flex-1` +
+	class={`gr-button gr-button-${size} gr-button-${variant} self-start` +
 		styleClasses(style)}
 	id={elem_id}
 >

@@ -1,12 +1,18 @@
 <script lang="ts">
 	export let parent: string | null = null;
-	export let styles: Record<string, unknown> = {};
+	export let style: Record<string, unknown> = {};
+
+	if (typeof style.mobile_collapse !== "boolean") {
+		style.mobile_collapse = true;
+	}
+	$: console.log($$props);
 </script>
 
 <div
-	class="flex flex-col md:flex-row gr-gap gr-form-gap row w-full flex-none"
-	class:flex-1={parent === "row"}
-	class:unequal-height={styles.equal_height !== false}
+	class="flex md:flex-row gr-gap gr-form-gap row w-full"
+	class:mobile-row={style.mobile_collapse === false}
+	class:unequal-height={style.equal_height === false}
+	class:flex-col={style.mobile_collapse}
 >
 	<slot />
 </div>

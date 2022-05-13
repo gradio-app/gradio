@@ -77,7 +77,7 @@
 </script>
 
 <!-- svelte-ignore a11y-label-has-associated-control -->
-<label class="block">
+<label class="block w-full">
 	<BlockTitle {show_label}>{label}</BlockTitle>
 
 	<textarea

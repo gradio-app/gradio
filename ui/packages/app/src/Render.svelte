@@ -103,7 +103,7 @@
 		children &&
 		children.filter((v) => instance_map[v.id].type !== "statustracker");
 
-	setContext(BLOCK_KEY, parent);
+	setContext("BLOCK_KEY", parent);
 </script>
 
 <svelte:component
