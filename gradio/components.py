@@ -3750,8 +3750,8 @@ def get_component_instance(comp: str | dict | Component):
         return component(comp)
     elif isinstance(comp, dict):
         name = comp.pop("name")
-        component_obj = component(name).__class__
-        return component_obj.__init__(**comp)
+        component_cls = component(name).__class__
+        return component_cls(**comp)
     elif isinstance(comp, Component):
         return comp
     else:

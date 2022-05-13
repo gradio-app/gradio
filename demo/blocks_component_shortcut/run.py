@@ -13,11 +13,8 @@ with gr.Blocks() as demo:
     All the templates are listed in gradio/templates.py
     """
     with gr.Row():
-        with gr.Column():
             text1 = gr.component("textarea")
-        with gr.Column():
             text2 = gr.TextArea()
-        with gr.Column():
             text3 = gr.templates.TextArea()
     text1.change(greet, text1, text2)
     text2.change(greet, text2, text3)
