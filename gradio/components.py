@@ -671,7 +671,7 @@ class Number(Changeable, Submittable, IOComponent):
         if precision is None:
             return float(num)
         elif precision == 0:
-            return int(num)
+            return int(round(float(num), precision))
         else:
             return round(float(num), precision)
 

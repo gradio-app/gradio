@@ -205,7 +205,7 @@ class TestNumber(unittest.TestCase):
         self.assertEqual(numeric_input.preprocess(None), None)
         self.assertEqual(numeric_input.preprocess_example(3), 3)
         self.assertEqual(numeric_input.postprocess(3), 3)
-        self.assertEqual(numeric_input.postprocess(2.14), 2)
+        self.assertEqual(numeric_input.postprocess(2.85), 3)
         self.assertEqual(numeric_input.postprocess(None), None)
         self.assertEqual(numeric_input.serialize(3, True), 3)
         with tempfile.TemporaryDirectory() as tmpdirname:
@@ -298,9 +298,9 @@ class TestNumber(unittest.TestCase):
         self.assertEqual(
             scores,
             [
-                (1.94, -1.0),
-                (1.96, -1.0),
-                (1.98, -1.0),
+                (1.94, 0.0),
+                (1.96, 0.0),
+                (1.98, 0.0),
                 [2, None],
                 (2.02, 0.0),
                 (2.04, 0.0),
