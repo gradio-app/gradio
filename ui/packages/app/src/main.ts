@@ -1,5 +1,6 @@
 import Blocks from "./Blocks.svelte";
 import Login from "./Login.svelte";
+import { Component as Loader } from "./components/StatusTracker";
 import { fn } from "./api";
 
 import * as t from "@gradio/theme";
@@ -153,6 +154,16 @@ async function get_config() {
 }
 
 if (window.gradio_mode == "app") {
+	window.__gradio_loader__ = new Loader({
+		target: document.querySelector("#root")!,
+		props: {
+			status: "pending",
+			timer: false,
+			queue_position: null,
+			cover_all: true
+		}
+	});
+
 	get_config().then((config) => {
 		window.launchGradio(config, "#root");
 	});
