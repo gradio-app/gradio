@@ -8639,7 +8639,8 @@ FILE_TEMPLATE_CONTEXT = {
     "name": "file",
     "label": None,
     "show_label": True,
-    "css": {},
+    "style": {},
+    "elem_id": None,
     "interactive": None,
     "visible": True,
 }

@@ -4,11 +4,12 @@
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
 
+	export let elem_id: string = "";
 	export let value: Array<string> = [];
 	export let choices: Array<string>;
+	export let style: Record<string, any> = {};
 
 	export let mode: "static" | "dynamic";
-	export let style: string = "";
 	export let label: string = "Checkbox Group";
 	export let form_position: "first" | "last" | "mid" | "single" = "single";
 	export let show_label: boolean;
@@ -16,14 +17,14 @@
 	export let loading_status: LoadingStatus;
 </script>
 
-<Block {form_position} type="fieldset">
+<Block {form_position} {elem_id} {style} type="fieldset">
 	<StatusTracker {...loading_status} />
 
 	<CheckboxGroup
 		bind:value
 		{choices}
-		{style}
 		{label}
+		{style}
 		{show_label}
 		on:change
 		disabled={mode === "static"}

@@ -24,11 +24,12 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 
 class Block:
-    def __init__(self, *, render=True, css=None, visible=True, **kwargs):
+    def __init__(self, *, render=True, elem_id=None, visible=True, **kwargs):
         self._id = Context.id
         Context.id += 1
-        self.css = css if css is not None else {}
         self.visible = visible
+        self.elem_id = elem_id
+        self._style = {}
         if render:
             self.render()
         check_deprecated_parameters(self.__class__.__name__, **kwargs)
@@ -128,22 +129,22 @@ class Block:
         )
 
     def get_config(self):
-        return {"css": self.css, "visible": self.visible}
+        return {
+            "visible": self.visible,
+            "elem_id": self.elem_id,
+            "style": self._style,
+        }
 
 
 class BlockContext(Block):
     def __init__(
         self,
         visible: bool = True,
-        css: Optional[Dict[str, str]] = None,
         render: bool = True,
         **kwargs,
     ):
-        """
-        css: Css rules to apply to block.
-        """
         self.children = []
-        super().__init__(css=css, visible=visible, render=render, **kwargs)
+        super().__init__(visible=visible, render=render, **kwargs)
 
     def __enter__(self):
         self.parent = Context.block
@@ -155,6 +156,87 @@ class BlockContext(Block):
 
     def postprocess(self, y):
         return y
+
+
+class Row(BlockContext):
+    def get_config(self):
+        return {"type": "row", **super().get_config()}
+
+    @staticmethod
+    def update(
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "visible": visible,
+            "__type__": "update",
+        }
+
+    def style(self, equal_height: Optional[bool] = None):
+        if equal_height is not None:
+            self._style["equal_height"] = equal_height
+        return self
+
+
+class Column(BlockContext):
+    def __init__(
+        self,
+        visible: bool = True,
+        variant: str = "default",
+    ):
+        """
+        variant: column type, 'default' (no background) or 'panel' (gray background color and rounded corners)
+        """
+        self.variant = variant
+        super().__init__(visible=visible)
+
+    def get_config(self):
+        return {
+            "type": "column",
+            "variant": self.variant,
+            **super().get_config(),
+        }
+
+    @staticmethod
+    def update(
+        variant: Optional[str] = None,
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "variant": variant,
+            "visible": visible,
+            "__type__": "update",
+        }
+
+
+class Tabs(BlockContext):
+    def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("change", fn, inputs, outputs)
+
+
+class TabItem(BlockContext):
+    def __init__(self, label, **kwargs):
+        super().__init__(**kwargs)
+        self.label = label
+
+    def get_config(self):
+        return {"label": self.label, **super().get_config()}
+
+    def select(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+        Returns: None
+        """
+        self.set_event_trigger("select", fn, inputs, outputs)
 
 
 class BlockFunction:
@@ -185,6 +267,7 @@ class Blocks(BlockContext):
         theme: str = "default",
         analytics_enabled: Optional[bool] = None,
         mode: str = "blocks",
+        css: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -199,6 +282,11 @@ class Blocks(BlockContext):
         self.theme = theme
         self.requires_permissions = False  # TODO: needs to be implemented
         self.encrypt = False
+        if css is not None and os.path.exists(css):
+            with open(css) as css_file:
+                self.css = css_file.read()
+        else:
+            self.css = css
 
         # For analytics_enabled and allow_flagging: (1) first check for
         # parameter, (2) check for env variable, (3) default to True/"manual"
@@ -281,7 +369,7 @@ class Blocks(BlockContext):
                     prediction_value = predictions[i]
                     if type(
                         prediction_value
-                    ) is dict and "update" in prediction_value.get("__type__"):
+                    ) is dict and "update" in prediction_value.get("__type__", ""):
                         if prediction_value["__type__"] == "generic_update":
                             del prediction_value["__type__"]
                             prediction_value = block.__class__.update(
@@ -319,6 +407,7 @@ class Blocks(BlockContext):
             "mode": "blocks",
             "components": [],
             "theme": self.theme,
+            "css": self.css,
             "enable_queue": getattr(
                 self, "enable_queue", False
             ),  # attribute set at launch
@@ -456,7 +545,7 @@ class Blocks(BlockContext):
             self.enable_queue = enable_queue or False
 
         self.config = self.get_config_file()
-
+        self.share = share
         self.encrypt = encrypt
         if self.encrypt:
             self.encryption_key = encryptor.get_key(
@@ -518,8 +607,6 @@ class Blocks(BlockContext):
         else:
             print(strings.en["PUBLIC_SHARE_TRUE"])
             self.share_url = None
-
-        self.share = share
 
         if inbrowser:
             link = self.share_url if share else self.local_url

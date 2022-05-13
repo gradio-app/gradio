@@ -4,7 +4,6 @@
 		confidences?: Array<{ label: string; confidence: number }>;
 	};
 
-	export let style: string = "";
 	export let theme: string = "default";
 	export let show_label: boolean;
 </script>

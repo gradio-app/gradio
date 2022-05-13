@@ -1,7 +1,11 @@
 <script lang="ts">
+	import { styleClasses } from "../../utils";
+
 	import { getContext } from "svelte";
 	import { BLOCK_KEY } from "./";
 
+	export let style: Record<string, any> = {};
+	export let elem_id: string = "";
 	export let variant: "solid" | "dashed" | "none" = "solid";
 	export let color: "grey" | "green" = "grey";
 	export let padding: boolean = true;
@@ -11,7 +15,7 @@
 	export let test_id: string | undefined = undefined;
 
 	const styles = {
-		dashed: "border-dashed border-[3px]",
+		dashed: "border-dashed border border-gray-300",
 		solid: "border-solid border",
 		grey: "border-gray-200",
 		green: "border-green-400",
@@ -45,7 +49,14 @@
 <svelte:element
 	this={tag}
 	data-testid={test_id}
-	class="gr-box overflow-hidden {styles[variant]} {styles[color]} {form_class}"
+	id={elem_id}
+	class={"gr-box overflow-hidden " +
+		styles[variant] +
+		" " +
+		styles[color] +
+		" " +
+		form_class +
+		styleClasses(style, "container")}
 	class:gr-panel={padding}
 	class:form={form_position}
 	class:flex-1={parent === "row" || null}
