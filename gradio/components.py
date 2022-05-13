@@ -12,7 +12,7 @@ import tempfile
 import warnings
 from copy import deepcopy
 from types import ModuleType
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type
 
 import matplotlib.figure
 import numpy as np
@@ -3212,7 +3212,7 @@ class Chatbot(Changeable, IOComponent):
     def __init__(
         self,
         value="",
-        color_map: Tuple(str, str) = None,
+        color_map: Tuple[str, str] = None,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -3249,7 +3249,7 @@ class Chatbot(Changeable, IOComponent):
     @staticmethod
     def update(
         value: Optional[Any] = None,
-        color_map: Optional[Tuple(str, str)] = None,
+        color_map: Optional[Tuple[str, str]] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
@@ -3720,9 +3720,9 @@ class StatusTracker(Component):
         }
 
 
-def component(cls_name: str) -> Component:
+def component_class(cls_name: str) -> Type[Component]:
     """
-    Returns a component or template with the given class name, or raises a ValueError if not found.
+    Returns the component class with the given class name, or raises a ValueError if not found.
     @param cls_name: lower-case string class name of a component
     @return cls: the component class
     """
@@ -3740,9 +3740,13 @@ def component(cls_name: str) -> Component:
     ]
     for name, cls in components + templates:
         if name.lower() == cls_name.replace("_", "") and issubclass(cls, Component):
-            obj = cls()
-            return obj
+            return cls
     raise ValueError(f"No such Component: {cls_name}")
+
+
+def component(cls_name: str) -> Component:
+    obj = component_class(cls_name)()
+    return obj
 
 
 def get_component_instance(comp: str | dict | Component):
@@ -3750,8 +3754,9 @@ def get_component_instance(comp: str | dict | Component):
         return component(comp)
     elif isinstance(comp, dict):
         name = comp.pop("name")
-        component_cls = component(name).__class__
-        return component_cls(**comp)
+        component_cls = component_class(name)
+        component_obj = component_cls(**comp)
+        return component_obj
     elif isinstance(comp, Component):
         return comp
     else:
