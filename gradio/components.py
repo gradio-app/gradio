@@ -3143,7 +3143,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
     Component creates a 3D Model component with input and output capabilities.
     Input type: File object of type (.obj, glb, or .gltf)
     Output type: filepath
-    Demos: Model3D
+    Demos: model3D
     """
 
     def __init__(

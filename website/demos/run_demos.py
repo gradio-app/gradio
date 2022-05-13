@@ -25,7 +25,7 @@ for demo_name, port in demo_port_sets:
     demo_file = os.path.join(demo_folder, "run.py")
     with open(demo_file, "r") as file:
         filedata = file.read()
-    assert "demo.launch()" in filedata, demo_name + " has no demo.launch()"
+    assert "demo.launch()" in filedata, demo_name + " has no demo.launch()\n" + filedata 
     filedata = filedata.replace(f"demo.launch()", f"demo.launch(server_port={port})")
     with open(demo_file, "w") as file:
         file.write(filedata)
