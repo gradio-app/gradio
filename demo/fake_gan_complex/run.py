@@ -23,15 +23,16 @@ def fake_gan(*args):
 demo = gr.Interface(
     fn=fake_gan,
     inputs=[
-        gr.Image(label="Initial Image (optional)"),
-        gr.Markdown("**Parameters**"),
+        gr.Image(label="Initial Image (optional)"),    
+#  gr.Section not compatible yet, maybe post 3.0 https://github.com/gradio-app/gradio/issues/1241
+#        gr.Section("**Parameters**"),
         gr.Slider(25, minimum=0, maximum=50, label="TV_scale (for smoothness)"),
         gr.Slider(25, minimum=0, maximum=50, label="Range_Scale (out of range RBG)"),
         gr.Number(label="Respacing"),
-        gr.Markdown("**Parameters Two**"),
+#        gr.Section("**Parameters Two**"),
         gr.Slider(25, minimum=0, maximum=50, label="Range_Scale (out of range RBG)"),
         gr.Number(label="Respacing"),
-        gr.Markdown("**Parameters Three**"),
+#        gr.Section("**Parameters Three**"),
         gr.Textbox(label="Respacing"),
     ],
     outputs=gr.Image(label="Generated Image"),
