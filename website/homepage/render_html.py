@@ -545,6 +545,7 @@ demo.launch()"""
                 'if __name__ == "__main__":\n    iface.launch()', "iface.launch()"
             )
             demo_code[code_src] = python_code
+
     with open('embedding-configs.json') as json_file:
         embedding_configs = json.load(json_file)
 

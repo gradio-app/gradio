@@ -2,7 +2,7 @@ import gradio as gr
 
 blocks = gr.Blocks()
 
-with blocks:
+with blocks as demo:
     subject = gr.Textbox(placeholder="subject")
     verb = gr.Radio(["ate", "loved", "hated"])
     object = gr.Textbox(placeholder="object")
@@ -25,4 +25,4 @@ with blocks:
     foo_bar_btn.click(None, [], subject, _js="(x) => x + ' foo'")
 
 if __name__ == "__main__":
-    blocks.launch()
+    demo.launch()
