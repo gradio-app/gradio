@@ -19,7 +19,7 @@
 	>
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
-			class="h-10 w-1/5"
+			class="h-5 w-1/5"
 			fill="none"
 			viewBox="0 0 24 24"
 			stroke="currentColor"
@@ -37,7 +37,7 @@
 		</div>
 	</a>
 {:else}
-	<div class="min-h-[16rem] flex justify-center items-center">
-		<div class="h-10 dark:text-white opacity-50"><File /></div>
+	<div class="min-h-[15rem] flex justify-center items-center">
+		<div class="h-5 dark:text-white opacity-50"><File /></div>
 	</div>
 {/if}

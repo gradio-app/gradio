@@ -70,7 +70,7 @@
 	<StatusTracker {...loading_status} />
 	<BlockLabel {show_label} Icon={ImageIcon} label={label || "Gallery"} />
 	{#if value === null}
-		<div class="min-h-[16rem] flex justify-center items-center">
+		<div class="min-h-[15rem] flex justify-center items-center">
 			<ImageIcon />
 		</div>
 	{:else}
@@ -90,13 +90,13 @@
 
 				<div
 					bind:this={container}
-					class="absolute h-[50px] bg-white overflow-x-scroll scroll-hide w-full bottom-0 flex gap-1.5 items-center py-2 text-sm px-3"
+					class="absolute h-[60px] bg-white dark:bg-gray-900 overflow-x-scroll scroll-hide w-full bottom-0 flex gap-1.5 items-center py-2 text-sm px-3 justify-center"
 				>
 					{#each value as image, i}
 						<button
 							bind:this={el[i]}
 							on:click={() => (selected_image = i)}
-							class="gallery-item !flex-none !h-7 !w-7 transition-all duration-75 {selected_image ===
+							class="gallery-item !flex-none !h-9 !w-9 transition-all duration-75 {selected_image ===
 							i
 								? '!ring-2 !ring-orange-500 hover:!ring-orange-500'
 								: 'scale-90 transform'}"
