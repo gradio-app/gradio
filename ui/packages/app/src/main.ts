@@ -164,7 +164,11 @@ if (window.gradio_mode == "app") {
 		}
 	});
 
-	get_config().then((config) => {
-		window.launchGradio(config, "#root");
-	});
+	get_config()
+		.then((config) => {
+			window.launchGradio(config, "#root");
+		})
+		.catch((e) => {
+			window.__gradio_loader__.$set({ status: "error" });
+		});
 }
