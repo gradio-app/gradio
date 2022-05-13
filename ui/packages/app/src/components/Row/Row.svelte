@@ -6,8 +6,6 @@
 	if (typeof style.mobile_collapse !== "boolean") {
 		style.mobile_collapse = true;
 	}
-
-	$: console.log(style, $$props);
 </script>
 
 <div

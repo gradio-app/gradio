@@ -41,11 +41,11 @@
 
 	const parent = getContext<string | null>("BLOCK_KEY");
 
-	$: form_class = form_position
-		? form_styles?.[(parent as "column" | "row") || "column"][form_position]
-		: "";
+	$: _parent = parent === "column" || parent == "row" ? parent : "column";
 
-	$: console.log(parent);
+	$: form_class = form_position
+		? form_styles?.[(_parent as "column" | "row") || "column"][form_position]
+		: "";
 </script>
 
 <svelte:element

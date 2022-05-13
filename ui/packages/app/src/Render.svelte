@@ -40,9 +40,6 @@
 		return () => dispatch("destroy", id);
 	});
 
-	function log(x) {
-		console.log("rerunning", props.visible, instance_map[id].type);
-	}
 	$: {
 		if (typeof props.visible === "boolean") {
 			props.style.visible = props.visible;
