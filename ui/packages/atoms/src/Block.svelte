@@ -72,6 +72,3 @@
 >
 	<slot />
 </svelte:element>
-
-<!-- !rounded-br-none !rounded-bl-none !rounded-tr-none !rounded-bl-none -->
-<!-- !rounded-br-lg !rounded-bl-lg !rounded-tr-lg !rounded-bl-lg -->

@@ -3123,19 +3123,16 @@ class Gallery(IOComponent):
         grid: Optional[int] = None,
         height: Optional[str] = None,
     ):
-        if rounded is not None:
-            self._style["rounded"] = rounded
-        if bg_color is not None:
-            self._style["bg_color"] = bg_color
-        if text_color is not None:
-            self._style["text_color"] = text_color
-        if margin is not None:
-            self._style["margin"] = margin
         if grid is not None:
             self._style["grid"] = grid
-        if height is not None:
-            self._style["height"] = height
-        return self
+        return IOComponent.style(
+            self,
+            rounded=rounded,
+            bg_color=bg_color,
+            text_color=text_color,
+            margin=margin,
+            height=height,
+        )
 
 
 # max_grid=[3], grid_behavior="scale", height="auto"
