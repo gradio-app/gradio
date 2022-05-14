@@ -1,5 +1,5 @@
 """Contains all of the components that can be used used with Gradio Interface / Blocks.
-Along with the docs for each component, you can find the names of example demos that use 
+Along with the docs for each component, you can find the names of example demos that use
 each component. These demos are located in the `demo` directory."""
 
 from __future__ import annotations
