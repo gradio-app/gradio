@@ -8,7 +8,6 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
     from gradio.components import Component
 
 
-
 class Row(BlockContext):
     def get_config(self):
         return {"type": "row", **super().get_config()}

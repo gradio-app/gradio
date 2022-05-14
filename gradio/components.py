@@ -2532,7 +2532,6 @@ class Timeseries(Changeable, IOComponent):
         return {"headers": y.columns.values.tolist(), "data": y.values.tolist()}
 
 
-
 class Variable(IOComponent):
     """
     Special hidden component that stores session state across runs of the demo by the
