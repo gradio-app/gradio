@@ -3341,7 +3341,7 @@ class Plot(Changeable, Clearable, IOComponent):
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects either a {matplotlib.pyplot.Figure}, a {plotly.graph_objects._figure.Figure}, or a {dict} corresponding to a bokeh plot (json_item format)
 
-    Demos: outbreak_forecast, blocks_kinematics
+    Demos: outbreak_forecast, blocks_kinematics, stock_forecast
     """
 
     def __init__(
