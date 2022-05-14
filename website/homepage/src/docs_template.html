@@ -43,6 +43,20 @@
       visibility: visible;
     }
 
+    .copy {
+      padding-right: 1em;
+      background: #f9fafb;
+    }
+    .copy-svg {
+      visibility: hidden;
+      margin: 1em 0 0 0 !important;
+      width: 20px;
+    }
+
+    .code-block:hover .copy-svg {
+       visibility: visible;
+    }
+
   </style>
   <script async src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
     <script>
@@ -581,7 +595,9 @@
                 </div>
                 <div class="w-full h-full my-2 bg-grey-200 rounded-md">
                   {% for src, code in docs.demo_code.items() %}
-                    <pre id="{{ src }}" class="hidden demo-code" style="height: 95%"><code class='lang-python'>{{ code }}</code></pre>
+                    <div id="{{ src }}" class="hidden demo-code h-full">
+                      <pre style="height: 95%"><code class='lang-python'>{{ code }}</code></pre>
+                    </div>
                   {% endfor %}
                 </div>
               </div>
@@ -723,6 +739,37 @@
       }
       });
 
+
+    // adding copy button to all code blocks
+
+<!--    function copyCode(elem) {-->
+<!--        var text = elem.parentElement.innerText;-->
+<!--        navigator.clipboard.writeText(text);-->
+<!--        elem.firstChild.src = "/assets/img/copy-orange.svg"-->
+<!--        setTimeout(function(){-->
+<!--          elem.firstChild.src = "/assets/img/copy-grey.svg"-->
+<!--        }, 600);-->
+<!--    };-->
+
+<!--    let codeSnippets = document.querySelectorAll("pre").forEach(element => {-->
+<!--              var parent = element.parentNode;-->
+<!--              var wrapperDiv = document.createElement('div');-->
+<!--              wrapperDiv.classList.add("code-block", "flex", "h-full");-->
+<!--              parent.replaceChild(wrapperDiv, element);-->
+<!--              wrapperDiv.appendChild(element);-->
+<!--              let button = document.createElement('button');-->
+<!--              button.classList.add("copy", "flex", "float-right", "cursor-pointer", "rounded-r", "rounded-l-none", "mx-0", "my-2");-->
+<!--              button.onclick = 'copyCode(this)';-->
+<!--              let img = document.createElement('img');-->
+<!--              img.classList.add("copy-svg", "m0", "w-7", "flex-initial");-->
+<!--              img.src = "/assets/img/copy-grey.svg";-->
+<!--              let div = document.createElement('div');-->
+<!--              div.classList.add("flex-auto");-->
+<!--              button.appendChild(img);-->
+<!--              button.appendChild(div);-->
+<!--              wrapperDiv.append(button);-->
+<!--            });-->
+
     // DEMOS
     var demosWindow = document.getElementById("demos-window");
     var demosNav = document.querySelector("#demos-window .demos-nav");
@@ -827,8 +874,6 @@
     let componentEmbeddingsFooters = document.querySelectorAll(".component-embedding .footer").forEach(e => {
               e.classList.add("hidden");
             });
-
-
 
 
 
