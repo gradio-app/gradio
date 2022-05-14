@@ -4,9 +4,11 @@
 	const data = {
 		label: "hello",
 		confidences: [
-			{ label: "hello", confidence: 0.8 },
-			{ label: "helooo", confidence: 0.4 },
-			{ label: "helloooo", confidence: 0.6 }
+			{ label: "Tiger", confidence: 0.9 },
+			{ label: "Puma", confidence: 0.6 },
+			{ label: "Leopard", confidence: 0.5 },
+			{ label: "Lion", confidence: 0.2 },
+			{ label: "Lynx", confidence: 0.1 }
 		]
 	};
 </script>

@@ -88,6 +88,7 @@ importers:
       '@gradio/tabs': workspace:^0.0.1
       '@gradio/theme': workspace:^0.0.1
       '@gradio/upload': workspace:^0.0.1
+      '@gradio/utils': workspace:^0.0.1
       '@gradio/video': workspace:^0.0.1
       mime-types: ^2.1.34
       svelte-i18n: ^3.3.13
@@ -113,6 +114,7 @@ importers:
       '@gradio/tabs': link:../tabs
       '@gradio/theme': link:../theme
       '@gradio/upload': link:../upload
+      '@gradio/utils': link:../utils
       '@gradio/video': link:../video
       mime-types: 2.1.34
       svelte-i18n: 3.3.13_svelte@3.47.0

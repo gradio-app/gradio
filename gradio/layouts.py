@@ -88,3 +88,31 @@ class TabItem(BlockContext):
         Returns: None
         """
         self.set_event_trigger("select", fn, inputs, outputs)
+
+
+class Group(BlockContext):
+    def get_config(self):
+        return {"type": "group", **super().get_config()}
+
+    @staticmethod
+    def update(
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "visible": visible,
+            "__type__": "update",
+        }
+
+
+class Box(BlockContext):
+    def get_config(self):
+        return {"type": "box", **super().get_config()}
+
+    @staticmethod
+    def update(
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "visible": visible,
+            "__type__": "update",
+        }

@@ -16,7 +16,7 @@ import tempfile
 import warnings
 from copy import deepcopy
 from types import ModuleType
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type
 
 import matplotlib.figure
 import numpy as np
@@ -231,10 +231,13 @@ class IOComponent(Component):
 
     def style(
         self,
-        rounded: Optional[bool] = None,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
         bg_color: Optional[str] = None,
         text_color: Optional[str] = None,
         container_bg_color: Optional[str] = None,
+        margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        container: Optional[bool] = None,
     ):
         valid_colors = ["red", "yellow", "green", "blue", "purple", "black"]
         if rounded is not None:
@@ -248,6 +251,12 @@ class IOComponent(Component):
         if container_bg_color is not None:
             assert container_bg_color in valid_colors
             self._style["container_bg_color"] = container_bg_color
+        if margin is not None:
+            self._style["margin"] = margin
+        if border is not None:
+            self._style["border"] = border
+        if container is not None:
+            self._style["container"] = container
         return self
 
 
@@ -436,10 +445,13 @@ class Textbox(Changeable, Submittable, IOComponent):
 
     def style(
         self,
-        rounded: Optional[bool] = None,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
         bg_color: Optional[str] = None,
         text_color: Optional[str] = None,
         container_bg_color: Optional[str] = None,
+        margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        container: Optional[bool] = None,
     ):
         return IOComponent.style(
             self,
@@ -447,13 +459,16 @@ class Textbox(Changeable, Submittable, IOComponent):
             bg_color=bg_color,
             text_color=text_color,
             container_bg_color=container_bg_color,
+            margin=margin,
+            border=border,
+            container=container,
         )
 
 
 class Number(Changeable, Submittable, IOComponent):
     """
     Creates a numeric field for user to enter numbers as input or display numeric output.
-    Preprocessing: passes field value as a {float} into the function.
+    Preprocessing: passes field value as a {float} or {int} into the function, depending on `precision`.
     Postprocessing: expects an {int} or {float} returned from the function and sets field value to it.
 
     Demos: tax_calculator, titanic_survival, blocks_static_textbox, blocks_simple_squares
@@ -468,6 +483,7 @@ class Number(Changeable, Submittable, IOComponent):
         interactive: Optional[bool] = None,
         visible: bool = True,
         elem_id: Optional[str] = None,
+        precision: Optional[int] = None,
         **kwargs,
     ):
         """
@@ -476,8 +492,11 @@ class Number(Changeable, Submittable, IOComponent):
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
+        precision (Optional[int]): Precision to round input/output to. If set to 0, will
+            round to nearest integer and covert type to int. If None, no rounding happens.
         """
-        self.value = float(value) if value is not None else None
+        self.value = self.round_to_precision(value, precision)
+        self.precision = precision
         self.test_input = self.value if self.value is not None else 1
         self.interpret_by_tokens = False
         IOComponent.__init__(
@@ -489,6 +508,30 @@ class Number(Changeable, Submittable, IOComponent):
             elem_id=elem_id,
             **kwargs,
         )
+
+    @staticmethod
+    def round_to_precision(
+        num: float | int | None, precision: int | None
+    ) -> float | int | None:
+        """
+        Round to a given precision.
+
+        If precision is None, no rounding happens. If 0, num is converted to int.
+
+        Parameters:
+        num (float | int): Number to round.
+        precision (int | None): Precision to round to.
+        Returns:
+        (float | int): rounded number
+        """
+        if num is None:
+            return None
+        if precision is None:
+            return float(num)
+        elif precision == 0:
+            return int(round(num, precision))
+        else:
+            return round(num, precision)
 
     def get_config(self):
         return {
@@ -512,26 +555,26 @@ class Number(Changeable, Submittable, IOComponent):
             "__type__": "update",
         }
 
-    def preprocess(self, x: float | None) -> Optional[float]:
+    def preprocess(self, x: int | float | None) -> int | float | None:
         """
         Parameters:
-        x (string): numeric input as a string
+        x (int | float | None): numeric input as a string
         Returns:
-        (float): number representing function input
+        (int | float | None): number representing function input
         """
         if x is None:
             return None
-        return float(x)
+        return self.round_to_precision(x, self.precision)
 
-    def preprocess_example(self, x: float | None) -> float | None:
+    def preprocess_example(self, x: int | float | None) -> int | float | None:
         """
         Returns:
-        (float): Number representing function input
+        (int | float | None): Number representing function input
         """
         if x is None:
             return None
         else:
-            return float(x)
+            return self.round_to_precision(x, self.precision)
 
     def set_interpret_parameters(
         self, steps: int = 3, delta: float = 1, delta_type: str = "percent"
@@ -548,14 +591,21 @@ class Number(Changeable, Submittable, IOComponent):
         self.interpretation_delta_type = delta_type
         return self
 
-    def get_interpretation_neighbors(self, x: float) -> Tuple[List[float], Dict]:
-        x = float(x)
+    def get_interpretation_neighbors(self, x: float | int) -> Tuple[List[float], Dict]:
+        x = self.round_to_precision(x, self.precision)
         if self.interpretation_delta_type == "percent":
             delta = 1.0 * self.interpretation_delta * x / 100
         elif self.interpretation_delta_type == "absolute":
             delta = self.interpretation_delta
         else:
             delta = self.interpretation_delta
+        if self.precision == 0 and math.floor(delta) != delta:
+            raise ValueError(
+                f"Delta value {delta} is not an integer and precision=0. Cannot generate valid set of neighbors. "
+                "If delta_type='percent', pick a value of delta such that x * delta is an integer. "
+                "If delta_type='absolute', pick a value of delta that is an integer."
+            )
+        # run_interpretation will preprocess the neighbors so no need to covert to int here
         negatives = (x + np.arange(-self.interpretation_steps, 0) * delta).tolist()
         positives = (x + np.arange(1, self.interpretation_steps + 1) * delta).tolist()
         return negatives + positives, {}
@@ -571,18 +621,23 @@ class Number(Changeable, Submittable, IOComponent):
         interpretation.insert(int(len(interpretation) / 2), [x, None])
         return interpretation
 
-    def generate_sample(self) -> float:
-        return 1.0
+    def generate_sample(self) -> int | float:
+        return self.round_to_precision(1, self.precision)
 
     # Output Functionalities
-    def postprocess(self, y: float | None):
+    def postprocess(self, y: int | float | None) -> int | float | None:
         """
         Any postprocessing needed to be performed on function output.
+
+        Parameters:
+        y (int | float | None): numeric output
+        Returns:
+        (int | float | None): number representing function output
         """
         if y is None:
             return None
         else:
-            return float(y)
+            return self.round_to_precision(y, self.precision)
 
     def deserialize(self, y):
         """
@@ -592,7 +647,7 @@ class Number(Changeable, Submittable, IOComponent):
 
     def style(
         self,
-        rounded: Optional[bool] = None,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
         bg_color: Optional[str] = None,
         text_color: Optional[str] = None,
         container_bg_color: Optional[str] = None,
@@ -1040,7 +1095,7 @@ class CheckboxGroup(Changeable, IOComponent):
 
     def style(
         self,
-        rounded: Optional[bool] = None,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
         bg_color: Optional[str] = None,
         text_color: Optional[str] = None,
         container_bg_color: Optional[str] = None,
@@ -1191,7 +1246,7 @@ class Radio(Changeable, IOComponent):
 
     def style(
         self,
-        rounded: Optional[bool] = None,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
         bg_color: Optional[str] = None,
         text_color: Optional[str] = None,
         container_bg_color: Optional[str] = None,
@@ -1567,7 +1622,7 @@ class Image(Editable, Clearable, Changeable, IOComponent):
 
     def style(
         self,
-        rounded: Optional[bool] = None,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
         bg_color: Optional[str] = None,
         text_color: Optional[str] = None,
         container_bg_color: Optional[str] = None,
@@ -2959,7 +3014,28 @@ class Gallery(IOComponent):
             output.append(img)
         return output
 
+    def style(
+        self,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        bg_color: Optional[str] = None,
+        text_color: Optional[str] = None,
+        margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        grid: Optional[int] = None,
+        height: Optional[str] = None,
+    ):
+        if grid is not None:
+            self._style["grid"] = grid
+        return IOComponent.style(
+            self,
+            rounded=rounded,
+            bg_color=bg_color,
+            text_color=text_color,
+            margin=margin,
+            height=height,
+        )
 
+
+# max_grid=[3], grid_behavior="scale", height="auto"
 class Carousel(IOComponent):
     """
     Used to display a list of arbitrary components that can be scrolled through.
@@ -3076,7 +3152,7 @@ class Chatbot(Changeable, IOComponent):
     def __init__(
         self,
         value="",
-        color_map: Tuple(str, str) = None,
+        color_map: Tuple[str, str] = None,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -3113,7 +3189,7 @@ class Chatbot(Changeable, IOComponent):
     @staticmethod
     def update(
         value: Optional[Any] = None,
-        color_map: Optional[Tuple(str, str)] = None,
+        color_map: Optional[Tuple[str, str]] = None,
         label: Optional[str] = None,
         show_label: Optional[bool] = None,
         visible: Optional[bool] = None,
@@ -3396,7 +3472,7 @@ class Button(Clickable, Component):
 
     def __init__(
         self,
-        value: str = "",
+        value: str = "Run",
         *,
         variant: str = "primary",
         visible: bool = True,
@@ -3435,9 +3511,11 @@ class Button(Clickable, Component):
 
     def style(
         self,
-        rounded: Optional[bool] = None,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
         bg_color: Optional[str] = None,
         text_color: Optional[str] = None,
+        full_width: Optional[str] = None,
+        margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
     ):
         if rounded is not None:
             self._style["rounded"] = rounded
@@ -3445,6 +3523,10 @@ class Button(Clickable, Component):
             self._style["bg_color"] = bg_color
         if text_color is not None:
             self._style["text_color"] = text_color
+        if full_width is not None:
+            self._style["full_width"] = full_width
+        if margin is not None:
+            self._style["margin"] = margin
         return self
 
 
@@ -3578,9 +3660,9 @@ class StatusTracker(Component):
         }
 
 
-def component(cls_name: str):
+def component_class(cls_name: str) -> Type[Component]:
     """
-    Returns a component or template with the given class name, or raises a ValueError if not found.
+    Returns the component class with the given class name, or raises a ValueError if not found.
     @param cls_name: lower-case string class name of a component
     @return cls: the component class
     """
@@ -3602,14 +3684,19 @@ def component(cls_name: str):
     raise ValueError(f"No such Component: {cls_name}")
 
 
+def component(cls_name: str) -> Component:
+    obj = component_class(cls_name)()
+    return obj
+
+
 def get_component_instance(comp: str | dict | Component):
     if isinstance(comp, str):
-        component_cls = component(comp)
-        return component_cls()
+        return component(comp)
     elif isinstance(comp, dict):
         name = comp.pop("name")
-        component_cls = component(name)
-        return component_cls(**comp)
+        component_cls = component_class(name)
+        component_obj = component_cls(**comp)
+        return component_obj
     elif isinstance(comp, Component):
         return comp
     else:
