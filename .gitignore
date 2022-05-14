@@ -13,6 +13,7 @@ build/
 # JS build
 gradio/templates/frontend
 gradio/templates/frontend/index.html
+
 # Secrets
 .env
 
