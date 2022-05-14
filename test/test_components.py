@@ -195,6 +195,71 @@ class TestNumber(unittest.TestCase):
             },
         )
 
+    def test_component_functions_integer(self):
+        """
+        Preprocess, postprocess, serialize, save_flagged, restore_flagged, generate_sample, set_interpret_parameters, get_interpretation_neighbors, get_template_context
+
+        """
+        numeric_input = gr.Number(precision=0, value=42)
+        self.assertEqual(numeric_input.preprocess(3), 3)
+        self.assertEqual(numeric_input.preprocess(None), None)
+        self.assertEqual(numeric_input.preprocess_example(3), 3)
+        self.assertEqual(numeric_input.postprocess(3), 3)
+        self.assertEqual(numeric_input.postprocess(2.85), 3)
+        self.assertEqual(numeric_input.postprocess(None), None)
+        self.assertEqual(numeric_input.serialize(3, True), 3)
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            to_save = numeric_input.save_flagged(tmpdirname, "numeric_input", 3, None)
+            self.assertEqual(to_save, 3)
+            restored = numeric_input.restore_flagged(tmpdirname, to_save, None)
+            self.assertEqual(restored, 3)
+        self.assertIsInstance(numeric_input.generate_sample(), int)
+        numeric_input.set_interpret_parameters(steps=3, delta=1, delta_type="absolute")
+        self.assertEqual(
+            numeric_input.get_interpretation_neighbors(1),
+            ([-2.0, -1.0, 0.0, 2.0, 3.0, 4.0], {}),
+        )
+        numeric_input.set_interpret_parameters(steps=3, delta=1, delta_type="percent")
+        self.assertEqual(
+            numeric_input.get_interpretation_neighbors(100),
+            ([97.0, 98.0, 99.0, 101.0, 102.0, 103.0], {}),
+        )
+        with self.assertRaises(ValueError) as error:
+            numeric_input.get_interpretation_neighbors(1)
+            assert error.msg == "Cannot generate valid set of neighbors"
+        numeric_input.set_interpret_parameters(
+            steps=3, delta=1.24, delta_type="absolute"
+        )
+        with self.assertRaises(ValueError) as error:
+            numeric_input.get_interpretation_neighbors(4)
+            assert error.msg == "Cannot generate valid set of neighbors"
+        self.assertEqual(
+            numeric_input.get_config(),
+            {
+                "value": 42,
+                "name": "number",
+                "show_label": True,
+                "label": None,
+                "style": {},
+                "elem_id": None,
+                "visible": True,
+                "interactive": None,
+            },
+        )
+
+    def test_component_functions_precision(self):
+        """
+        Preprocess, postprocess, serialize, save_flagged, restore_flagged, generate_sample, set_interpret_parameters, get_interpretation_neighbors, get_template_context
+
+        """
+        numeric_input = gr.Number(precision=2, value=42.3428)
+        self.assertEqual(numeric_input.preprocess(3.231241), 3.23)
+        self.assertEqual(numeric_input.preprocess(None), None)
+        self.assertEqual(numeric_input.preprocess_example(-42.1241), -42.12)
+        self.assertEqual(numeric_input.postprocess(5.6784), 5.68)
+        self.assertEqual(numeric_input.postprocess(2.1421), 2.14)
+        self.assertEqual(numeric_input.postprocess(None), None)
+
     def test_in_interface_as_input(self):
         """
         Interface, process, interpret
@@ -215,6 +280,30 @@ class TestNumber(unittest.TestCase):
                 (2.02, 0.08040000000000003),
                 (2.04, 0.16159999999999997),
                 (2.06, 0.24359999999999982),
+            ],
+        )
+
+    def test_precision_0_in_interface(self):
+        """
+        Interface, process, interpret
+        """
+        iface = gr.Interface(lambda x: x**2, gr.Number(precision=0), "textbox")
+        self.assertEqual(iface.process([2]), ["4"])
+        iface = gr.Interface(
+            lambda x: x**2, "number", gr.Number(precision=0), interpretation="default"
+        )
+        # Output gets rounded to 4 for all input so no change
+        scores = iface.interpret([2])[0]["interpretation"]
+        self.assertEqual(
+            scores,
+            [
+                (1.94, 0.0),
+                (1.96, 0.0),
+                (1.98, 0.0),
+                [2, None],
+                (2.02, 0.0),
+                (2.04, 0.0),
+                (2.06, 0.0),
             ],
         )
 
