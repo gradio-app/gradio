@@ -492,8 +492,7 @@ class Number(Changeable, Submittable, IOComponent):
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
-        precision (Optional[int]): Precision to round input/output to. If set to 0, will
-            round to nearest integer and covert type to int. If None, no rounding happens.
+        precision (Optional[int]): Precision to round input/output to. If set to 0, will round to nearest integer and covert type to int. If None, no rounding happens.
         """
         self.value = self.round_to_precision(value, precision)
         self.precision = precision
