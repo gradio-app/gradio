@@ -6,7 +6,7 @@ import { fn } from "./api";
 import * as t from "@gradio/theme";
 
 interface CustomWindow extends Window {
-	gradio_mode: "app" | "website";
+	__gradio_mode__: "app" | "website";
 	launchGradio: Function;
 	launchGradioFromSpaces: Function;
 	gradio_config: Config;
@@ -69,9 +69,9 @@ window.launchGradio = (config: Config, element_query: string) => {
 	if (config.root === undefined) {
 		config.root = BACKEND_URL;
 	}
-	if (window.gradio_mode === "app") {
+	if (window.__gradio_mode__ === "app") {
 		config.static_src = ".";
-	} else if (window.gradio_mode === "website") {
+	} else if (window.__gradio_mode__ === "website") {
 		config.static_src = "/gradio_static";
 	} else {
 		config.static_src = "https://gradio.s3-us-west-2.amazonaws.com/PIP_VERSION";
@@ -153,7 +153,7 @@ async function get_config() {
 	}
 }
 
-if (window.gradio_mode == "app") {
+if (window.__gradio_mode__ == "app") {
 	window.__gradio_loader__ = new Loader({
 		target: document.querySelector("#root")!,
 		props: {

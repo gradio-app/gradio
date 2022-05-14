@@ -127,12 +127,14 @@
 				ready = true;
 
 				await tick();
-				//@ts-ignore
-				window.__gradio_loader__.$set({ status: "complete" });
+				if (window.__gradio_mode__ == "app") {				
+					window.__gradio_loader__.$set({ status: "complete" });
+				}
 			})
 			.catch((e) => {
-				//@ts-ignore
-				window.__gradio_loader__.$set({ status: "error" });
+				if (window.__gradio_mode__ == "app") {				
+					window.__gradio_loader__.$set({ status: "error" });
+				}
 			});
 	});
 
@@ -294,6 +296,7 @@
 
 <div class="mx-auto container px-4 py-6 dark:bg-gray-950">
 	{#if ready}
+		{console.log("ready: " + root) || ""}
 		<Render
 			component={rootNode.component}
 			id={rootNode.id}
