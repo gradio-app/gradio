@@ -3023,13 +3023,15 @@ class Gallery(IOComponent):
     ):
         if grid is not None:
             self._style["grid"] = grid
+        if height is not None:
+            self._style["height"] = height
+
         return IOComponent.style(
             self,
             rounded=rounded,
             bg_color=bg_color,
             text_color=text_color,
             margin=margin,
-            height=height,
         )
 
 
