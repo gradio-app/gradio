@@ -2932,15 +2932,6 @@ class HTML(Changeable, IOComponent):
             "__type__": "update",
         }
 
-    def postprocess(self, x):
-        """
-        Parameters:
-        y (str): HTML output
-        Returns:
-        (str): HTML output
-        """
-        return x
-
 
 class Gallery(IOComponent):
     """
@@ -3303,7 +3294,7 @@ class Plot(Changeable, Clearable, IOComponent):
         return {"type": dtype, "plot": out_y}
 
 
-class Markdown(Component):
+class Markdown(IOComponent, Changeable):
     """
     Used to render arbitrary Markdown output.
     Preprocessing: this component does *not* accept input.
@@ -3325,7 +3316,7 @@ class Markdown(Component):
         value (str): Default value
         visible (bool): If False, component will be hidden.
         """
-        Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
+        IOComponent.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.md = MarkdownIt()
         unindented_value = inspect.cleandoc(value)
         self.value = self.md.render(unindented_value)
