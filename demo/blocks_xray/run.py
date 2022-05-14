@@ -5,12 +5,12 @@ import time
 
 def xray_model(diseases, img):
     time.sleep(4)
-    return {disease: random.random() for disease in diseases}
+    return [{disease: random.random() for disease in diseases}]
 
 
 def ct_model(diseases, img):
     time.sleep(3)
-    return {disease: 0.1 for disease in diseases}
+    return [{disease: 0.1 for disease in diseases}]
 
 
 with gr.Blocks() as demo:
