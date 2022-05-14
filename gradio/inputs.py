@@ -80,7 +80,7 @@ class Number(C_Number):
 
 class Slider(C_Slider):
     """
-    Component creates a slider that ranges from `minimum` to `maximum`. Provides a number as an argument to the wrapped function.
+    Component creates a slider that ranges from `minimum` to `maximum`. Provides number as an argument to the wrapped function.
     Input type: float
     Demos: sentence_builder, generate_tone, titanic_survival
     """
@@ -323,7 +323,7 @@ class Video(C_Video):
             "Usage of gradio.inputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
             DeprecationWarning,
         )
-        super().__init__(type=type, source=source, label=label, optional=optional)
+        super().__init__(format=type, source=source, label=label, optional=optional)
 
 
 class Audio(C_Audio):

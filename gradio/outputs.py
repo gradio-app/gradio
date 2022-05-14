@@ -82,7 +82,7 @@ class Video(C_Video):
             "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
             DeprecationWarning,
         )
-        super().__init__(type=type, label=label)
+        super().__init__(format=type, label=label)
 
 
 class Audio(C_Audio):
