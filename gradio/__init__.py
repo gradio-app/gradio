@@ -5,7 +5,7 @@ import gradio.inputs as inputs
 import gradio.outputs as outputs
 import gradio.processing_utils
 import gradio.templates
-from gradio.blocks import Blocks, Column, Row, TabItem, Tabs
+from gradio.blocks import Blocks
 from gradio.components import (
     HTML,
     JSON,
@@ -48,6 +48,7 @@ from gradio.flagging import (
     SimpleCSVLogger,
 )
 from gradio.interface import Interface, TabbedInterface, close_all
+from gradio.layouts import Box, Column, Group, Row, TabItem, Tabs
 from gradio.mix import Parallel, Series
 from gradio.templates import *
 

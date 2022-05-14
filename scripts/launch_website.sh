@@ -8,5 +8,8 @@ else
   npm install
   npm run build
   cd dist
+  rm -rf ./gradio_static/
+  mkdir ./gradio_static/
+  cp -r ../../../gradio/templates/frontend/. ./gradio_static/
   python -m http.server
 fi

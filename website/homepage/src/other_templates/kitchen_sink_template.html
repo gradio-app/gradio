@@ -7,8 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Gradio</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css"/>
-  <link href="/gradio_static/assets/{{ index_css_file }}" rel="stylesheet">
-  <link href="/gradio_static/assets/{{ vendor_css_file }}" rel="stylesheet">
+  <link rel="stylesheet" href="/gradio_static/assets/{{ entry_css_file }}">
   <style></style>
 </head>
 
@@ -106,8 +105,7 @@
     var output_count = 0;
     window.gradio_mode = "website";
   </script>
-  <script defer id="gradio-library" type="module" crossorigin src="/gradio_static/assets/{{ index_js_file }}"></script>
-  <link rel="modulepreload" href="/gradio_static/assets/{{ vendor_js_file }}" />
+  <script defer id="gradio-library" type="module" crossorigin src="/gradio_static/assets/{{ entry_js_file }}"></script>
   <script>
     let themes = ["default", "huggingface", "seafoam", "grass", "peach", "dark", "dark-huggingface", "dark-seafoam","dark-grass", "dark-peach"]
     let theme_html = "";
