@@ -11,7 +11,8 @@ __pycache__/
 build/
 
 # JS build
-gradio/templates/frontend/static
+gradio/templates/frontend
+gradio/templates/frontend/index.html
 
 # Secrets
 .env
@@ -20,6 +21,8 @@ gradio/templates/frontend/static
 *.db
 *.sqlite3
 gradio/launches.json
+flagged/
+gradio_cached_examples/
 
 # Tests
 .coverage
@@ -28,7 +31,6 @@ test.txt
 
 # Demos
 demo/tmp.zip
-demo/flagged
 demo/files/*.avi
 demo/files/*.mp4
 
@@ -37,3 +39,7 @@ demo/files/*.mp4
 .DS_Store
 *.bak
 workspace.code-workspace
+*.h5
+
+# log files
+.pnpm-debug.log
