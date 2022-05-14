@@ -206,7 +206,7 @@ class TestLoadInterface(unittest.TestCase):
         self.assertEqual(output, "Mein Name ist Sarah und ich lebe in London")
 
     def test_numerical_to_label_space(self):
-        interface_info = gr.external.load_interface("spaces/abidlabs/titanic-survival")
+        interface_info = gr.load_interface("spaces/abidlabs/titanic-survival")
         io = gr.Interface(**interface_info)
         io.api_mode = True
         output = io("male", 77, 10)

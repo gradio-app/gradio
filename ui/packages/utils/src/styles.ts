@@ -1,4 +1,4 @@
-export const styleClasses = (
+export const create_classes = (
 	styles: Record<string, any>,
 	prefix: string = ""
 ): string => {
@@ -14,6 +14,59 @@ export const styleClasses = (
 			}
 		}
 	}
+
+	switch (target_styles.visible) {
+		case false:
+			classes.push("!hidden");
+			break;
+	}
+
+	if (target_styles.hasOwnProperty("rounded")) {
+		if (!Array.isArray(target_styles.rounded)) {
+			target_styles.rounded = !!target_styles.rounded
+				? [true, true, true, true]
+				: [false, false, false, false];
+		}
+
+		let rounded_map = ["tl", "tr", "br", "bl"];
+
+		(target_styles.rounded as boolean[]).forEach((rounded, i) => {
+			classes.push(`!rounded-${rounded_map[i]}-${!!rounded ? "lg" : "none"}`);
+		});
+	}
+
+	if (target_styles.hasOwnProperty("margin")) {
+		if (!Array.isArray(target_styles.margin)) {
+			target_styles.margin = !!target_styles.margin
+				? [true, true, true, true]
+				: [false, false, false, false];
+		}
+
+		let margin_map = ["t", "r", "b", "l"];
+
+		(target_styles.margin as boolean[]).forEach((margin, i) => {
+			if (!margin) {
+				classes.push(`!m${margin_map[i]}-0`);
+			}
+		});
+	}
+
+	if (target_styles.hasOwnProperty("border")) {
+		if (!Array.isArray(target_styles.border)) {
+			target_styles.border = !!target_styles.border
+				? [true, true, true, true]
+				: [false, false, false, false];
+		}
+
+		let border_map = ["t", "r", "b", "l"];
+
+		(target_styles.border as boolean[]).forEach((border, i) => {
+			if (!border) {
+				classes.push(`!border-${border_map[i]}-0`);
+			}
+		});
+	}
+
 	switch (target_styles.rounded) {
 		case true:
 			classes.push("!rounded-lg");
@@ -22,6 +75,13 @@ export const styleClasses = (
 			classes.push("!rounded-none");
 			break;
 	}
+
+	switch (target_styles.full_width) {
+		case true:
+			classes.push("!w-full");
+			break;
+	}
+
 	switch (target_styles.text_color) {
 		case "red":
 			classes.push("!text-red-500", "dark:text-red-100");
@@ -58,7 +118,7 @@ export const styleClasses = (
 		case "green":
 			classes.push(
 				"!bg-green-100 !from-green-100 !to-green-200 !border-green-300",
-				"dark:!bg-green-700 dark:!from-green-700 dark:!to-green-800 dark:!border-green-900"
+				"dark:!bg-green-700 dark:!from-green-700 dark:!to-green-800 dark:!border-green-900  !text-gray-800"
 			);
 			break;
 		case "blue":
@@ -77,6 +137,11 @@ export const styleClasses = (
 			classes.push(
 				"!bg-gray-100 !from-gray-100 !to-gray-200 !border-gray-300",
 				"dark:!bg-gray-700 dark:!from-gray-700 dark:!to-gray-800 dark:!border-gray-900"
+			);
+		case "pink":
+			classes.push(
+				"!bg-pink-100 !from-pink-100 !to-pink-200 !border-pink-300",
+				"dark:!bg-pink-700 dark:!from-pink-700 dark:!to-pink-800 dark:!border-pink-900 !text-gray-800"
 			);
 			break;
 	}

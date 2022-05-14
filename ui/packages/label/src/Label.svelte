@@ -19,7 +19,7 @@
 	{#if value.confidences}
 		{#each value.confidences as confidence_set}
 			<div
-				class="flex items-start justify-between font-mono text-sm leading-none group"
+				class="flex items-start justify-between font-mono text-sm leading-none group mb-2 last:mb-0"
 			>
 				<div class="flex-1">
 					<div

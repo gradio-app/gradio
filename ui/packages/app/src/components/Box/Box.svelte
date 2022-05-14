@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Block } from "@gradio/atoms";
 	import { create_classes } from "@gradio/utils";
 	export let parent: string | null = null;
 	export let style: Record<string, unknown> = {};
@@ -8,11 +9,6 @@
 	}
 </script>
 
-<div
-	class="flex md:flex-row gr-gap gr-form-gap row w-full {create_classes(style)}"
-	class:mobile-row={style.mobile_collapse === false}
-	class:unequal-height={style.equal_height === false}
-	class:flex-col={style.mobile_collapse}
->
+<Block>
 	<slot />
-</div>
+</Block>
