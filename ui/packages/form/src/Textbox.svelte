@@ -80,14 +80,26 @@
 <label class="block w-full">
 	<BlockTitle {show_label}>{label}</BlockTitle>
 
-	<textarea
-		use:text_area_resize={value}
-		class={"block gr-box gr-input w-full gr-text-input " +
-			create_classes(style)}
-		bind:value
-		bind:this={el}
-		{placeholder}
-		rows={lines}
-		{disabled}
-	/>
+	{#if lines === 1 && max_lines === 1}
+		<input
+			type="text"
+			class={"block gr-box gr-input w-full gr-text-input " +
+				create_classes(style)}
+			bind:value
+			bind:this={el}
+			{placeholder}
+			{disabled}
+		/>
+	{:else}
+		<textarea
+			use:text_area_resize={value}
+			class={"block gr-box gr-input w-full gr-text-input " +
+				create_classes(style)}
+			bind:value
+			bind:this={el}
+			{placeholder}
+			rows={lines}
+			{disabled}
+		/>
+	{/if}
 </label>
