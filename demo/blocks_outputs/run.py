@@ -40,9 +40,6 @@ with gr.Blocks() as demo:
         gr.Dataframe(
             interactive=True, headers=["One", "Two", "Three", "Four"], col_count=4
         )
-        # layout components are static only
-        # carousel doesn't work like other components
-        # carousel = gr.Carousel()
 
 
 if __name__ == "__main__":
