@@ -165,20 +165,24 @@
   </footer>
   <script src="/assets/prism.js"></script>
   <script>
-    window.gradio_mode = "website";
+    window.__gradio_mode__ = "website";
   </script>
   <script id="gradio-library" type="module" crossorigin src="/gradio_static/assets/{{ entry_js_file }}"></script>
   <script>
     var demo_endpoint = "/demo";
     var demo_names = {{ demo_names| tojson }};
-    demo_names.forEach((demo_name, i) => {
+    window.setTimeout(() => {
+      console.log("lets go")
+      demo_names.forEach((demo_name, i) => {
       fetch('/demo/' + demo_name + '/config')
         .then(response => response.json())
         .then(demo => {
+          console.log(">", demo)
           demo.root = demo_endpoint + "/" + demo_name + "/";
           launchGradio(demo, "#interface_" + demo_name);
         });
-    });
+      });
+    }, 5000)
     function createAnchorTag(link) {
             let a = document.createElement('a');
             a.href = link;
