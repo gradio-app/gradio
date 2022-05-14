@@ -3394,7 +3394,6 @@ class Plot(Changeable, Clearable, IOComponent):
         (str): plot type
         (str): plot base64 or json
         """
-        dtype = self.type
         if isinstance(y, (ModuleType, matplotlib.pyplot.Figure)):
             dtype = "matplotlib"
             out_y = processing_utils.encode_plot_to_base64(y)

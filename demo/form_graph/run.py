@@ -1,3 +1,5 @@
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -18,7 +20,6 @@ def plot_forecast(final_year, companies, noise, show_legend, point_style):
         ax.plot(x, series, plt_format)
     if show_legend:
         plt.legend(companies)
-    plt.close()
     return fig
 
 
@@ -31,7 +32,7 @@ demo = gr.Interface(
         gr.Checkbox(label="Show Legend"),
         gr.Dropdown(["cross", "line", "circle"], label="Style"),
     ],
-    gr.Image(plot=True, label="forecast"),
+    gr.Plot(label="forecast"),
 )
 
 if __name__ == "__main__":
