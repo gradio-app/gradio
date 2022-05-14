@@ -1,0 +1,724 @@
+{
+  "textbox": {
+    "mode": "blocks",
+    "components": [
+      {
+        "id": 29,
+        "type": "textbox",
+        "props": {
+          "lines": 1,
+          "max_lines": 20,
+          "placeholder": "Placeholder",
+          "value": "",
+          "show_label": true,
+          "name": "textbox",
+          "visible": true,
+          "style": {}
+        }
+      }
+    ],
+    "theme": "default",
+    "css": null,
+    "enable_queue": false,
+    "layout": {
+      "id": 28,
+      "children": [
+        {
+          "id": 29
+        }
+      ]
+    },
+    "dependencies": [
+      {
+        "targets": [
+          20
+        ],
+        "trigger": "click",
+        "inputs": [
+          29
+        ],
+        "outputs": [
+          4
+        ],
+        "backend_fn": true,
+        "js": null,
+        "status_tracker": null,
+        "queue": null
+      }
+    ]
+  },
+  "number": {
+    "mode": "blocks",
+    "components": [
+      {
+        "id": 31,
+        "type": "number",
+        "props": {
+          "show_label": true,
+          "name": "number",
+          "visible": true,
+          "style": {}
+        }
+      }
+    ],
+    "theme": "default",
+    "css": null,
+    "enable_queue": false,
+    "layout": {
+      "id": 30,
+      "children": [
+        {
+          "id": 31
+        }
+      ]
+    },
+    "dependencies": [
+      {
+        "targets": [
+          20
+        ],
+        "trigger": "click",
+        "inputs": [
+          31
+        ],
+        "outputs": [
+          4
+        ],
+        "backend_fn": true,
+        "js": null,
+        "status_tracker": null,
+        "queue": null
+      }
+    ]
+  },
+  "slider": {
+    "mode": "blocks",
+    "components": [
+      {
+        "id": 33,
+        "type": "slider",
+        "props": {
+          "minimum": 0,
+          "maximum": 100,
+          "step": 1,
+          "value": 0,
+          "show_label": true,
+          "name": "slider",
+          "visible": true,
+          "style": {}
+        }
+      }
+    ],
+    "theme": "default",
+    "css": null,
+    "enable_queue": false,
+    "layout": {
+      "id": 32,
+      "children": [
+        {
+          "id": 33
+        }
+      ]
+    },
+    "dependencies": [
+      {
+        "targets": [
+          20
+        ],
+        "trigger": "click",
+        "inputs": [
+          33
+        ],
+        "outputs": [
+          4
+        ],
+        "backend_fn": true,
+        "js": null,
+        "status_tracker": null,
+        "queue": null
+      }
+    ]
+  },
+  "checkbox": {
+    "mode": "blocks",
+    "components": [
+      {
+        "id": 35,
+        "type": "checkbox",
+        "props": {
+          "value": false,
+          "show_label": true,
+          "name": "checkbox",
+          "visible": true,
+          "style": {}
+        }
+      }
+    ],
+    "theme": "default",
+    "css": null,
+    "enable_queue": false,
+    "layout": {
+      "id": 34,
+      "children": [
+        {
+          "id": 35
+        }
+      ]
+    },
+    "dependencies": [
+      {
+        "targets": [
+          20
+        ],
+        "trigger": "click",
+        "inputs": [
+          35
+        ],
+        "outputs": [
+          4
+        ],
+        "backend_fn": true,
+        "js": null,
+        "status_tracker": null,
+        "queue": null
+      }
+    ]
+  },
+  "checkboxgroup": {
+    "mode": "blocks",
+    "components": [
+      {
+        "id": 37,
+        "type": "checkboxgroup",
+        "props": {
+          "choices": [
+            "First Choice",
+            "Second Choice",
+            "Third Choice"
+          ],
+          "value": [],
+          "show_label": true,
+          "name": "checkboxgroup",
+          "visible": true,
+          "style": {}
+        }
+      }
+    ],
+    "theme": "default",
+    "css": null,
+    "enable_queue": false,
+    "layout": {
+      "id": 36,
+      "children": [
+        {
+          "id": 37
+        }
+      ]
+    },
+    "dependencies": [
+      {
+        "targets": [
+          20
+        ],
+        "trigger": "click",
+        "inputs": [
+          37
+        ],
+        "outputs": [
+          4
+        ],
+        "backend_fn": true,
+        "js": null,
+        "status_tracker": null,
+        "queue": null
+      }
+    ]
+  },
+  "radio": {
+    "mode": "blocks",
+    "components": [
+      {
+        "id": 39,
+        "type": "radio",
+        "props": {
+          "choices": [
+            "First Choice",
+            "Second Choice",
+            "Third Choice"
+          ],
+          "value": "First Choice",
+          "show_label": true,
+          "name": "radio",
+          "visible": true,
+          "style": {}
+        }
+      }
+    ],
+    "theme": "default",
+    "css": null,
+    "enable_queue": false,
+    "layout": {
+      "id": 38,
+      "children": [
+        {
+          "id": 39
+        }
+      ]
+    },
+    "dependencies": [
+      {
+        "targets": [
+          20
+        ],
+        "trigger": "click",
+        "inputs": [
+          39
+        ],
+        "outputs": [
+          4
+        ],
+        "backend_fn": true,
+        "js": null,
+        "status_tracker": null,
+        "queue": null
+      }
+    ]
+  },
+  "dropdown": {
+    "mode": "blocks",
+    "components": [
+      {
+        "id": 41,
+        "type": "dropdown",
+        "props": {
+          "choices": [
+            "First Choice",
+            "Second Choice",
+            "Third Choice"
+          ],
+          "value": "First Choice",
+          "show_label": true,
+          "name": "dropdown",
+          "visible": true,
+          "style": {}
+        }
+      }
+    ],
+    "theme": "default",
+    "css": null,
+    "enable_queue": false,
+    "layout": {
+      "id": 40,
+      "children": [
+        {
+          "id": 41
+        }
+      ]
+    },
+    "dependencies": [
+      {
+        "targets": [
+          20
+        ],
+        "trigger": "click",
+        "inputs": [
+          41
+        ],
+        "outputs": [
+          4
+        ],
+        "backend_fn": true,
+        "js": null,
+        "status_tracker": null,
+        "queue": null
+      }
+    ]
+  },
+  "image": {
+    "mode": "blocks",
+    "components": [
+      {
+        "id": 43,
+        "type": "image",
+        "props": {
+          "image_mode": "RGB",
+          "source": "upload",
+          "tool": "editor",
+          "show_label": true,
+          "name": "image",
+          "visible": true,
+          "style": {}
+        }
+      }
+    ],
+    "theme": "default",
+    "css": null,
+    "enable_queue": false,
+    "layout": {
+      "id": 42,
+      "children": [
+        {
+          "id": 43
+        }
+      ]
+    },
+    "dependencies": [
+      {
+        "targets": [
+          20
+        ],
+        "trigger": "click",
+        "inputs": [
+          43
+        ],
+        "outputs": [
+          4
+        ],
+        "backend_fn": true,
+        "js": null,
+        "status_tracker": null,
+        "queue": null
+      }
+    ]
+  },
+  "video": {
+    "mode": "blocks",
+    "components": [
+      {
+        "id": 45,
+        "type": "video",
+        "props": {
+          "source": "upload",
+          "show_label": true,
+          "name": "video",
+          "visible": true,
+          "style": {}
+        }
+      }
+    ],
+    "theme": "default",
+    "css": null,
+    "enable_queue": false,
+    "layout": {
+      "id": 44,
+      "children": [
+        {
+          "id": 45
+        }
+      ]
+    },
+    "dependencies": [
+      {
+        "targets": [
+          20
+        ],
+        "trigger": "click",
+        "inputs": [
+          45
+        ],
+        "outputs": [
+          4
+        ],
+        "backend_fn": true,
+        "js": null,
+        "status_tracker": null,
+        "queue": null
+      }
+    ]
+  },
+  "audio": {
+    "mode": "blocks",
+    "components": [
+      {
+        "id": 49,
+        "type": "audio",
+        "props": {
+          "source": "microphone",
+          "show_label": true,
+          "name": "audio",
+          "visible": true,
+          "style": {}
+        }
+      }
+    ],
+    "theme": "default",
+    "css": null,
+    "enable_queue": false,
+    "layout": {
+      "id": 48,
+      "children": [
+        {
+          "id": 49
+        }
+      ]
+    },
+    "dependencies": [
+      {
+        "targets": [
+          20
+        ],
+        "trigger": "click",
+        "inputs": [
+          49
+        ],
+        "outputs": [
+          4
+        ],
+        "backend_fn": true,
+        "js": null,
+        "status_tracker": null,
+        "queue": null
+      }
+    ]
+  },
+  "file": {
+    "mode": "blocks",
+    "components": [
+      {
+        "id": 51,
+        "type": "file",
+        "props": {
+          "file_count": "single",
+          "show_label": true,
+          "name": "file",
+          "visible": true,
+          "style": {}
+        }
+      }
+    ],
+    "theme": "default",
+    "css": null,
+    "enable_queue": false,
+    "layout": {
+      "id": 50,
+      "children": [
+        {
+          "id": 51
+        }
+      ]
+    },
+    "dependencies": [
+      {
+        "targets": [
+          20
+        ],
+        "trigger": "click",
+        "inputs": [
+          51
+        ],
+        "outputs": [
+          4
+        ],
+        "backend_fn": true,
+        "js": null,
+        "status_tracker": null,
+        "queue": null
+      }
+    ]
+  },
+  "dataframe": {
+    "mode": "blocks",
+    "components": [
+      {
+        "id": 53,
+        "type": "dataframe",
+        "props": {
+          "datatype": "str",
+          "row_count": [
+            3,
+            "dynamic"
+          ],
+          "col_count": [
+            3,
+            "dynamic"
+          ],
+          "value": [
+            [
+              "",
+              "",
+              ""
+            ],
+            [
+              "",
+              "",
+              ""
+            ],
+            [
+              "",
+              "",
+              ""
+            ]
+          ],
+          "max_rows": 20,
+          "overflow_row_behaviour": "paginate",
+          "show_label": true,
+          "name": "dataframe",
+          "visible": true,
+          "style": {}
+        }
+      }
+    ],
+    "theme": "default",
+    "css": null,
+    "enable_queue": false,
+    "layout": {
+      "id": 52,
+      "children": [
+        {
+          "id": 53
+        }
+      ]
+    },
+    "dependencies": [
+      {
+        "targets": [
+          20
+        ],
+        "trigger": "click",
+        "inputs": [
+          53
+        ],
+        "outputs": [
+          4
+        ],
+        "backend_fn": true,
+        "js": null,
+        "status_tracker": null,
+        "queue": null
+      }
+    ]
+  },
+  "timeseries": {
+  "mode": "blocks",
+  "components": [
+      {
+        "id": 55,
+        "type": "timeseries",
+        "props": {
+          "show_label": true,
+          "name": "timeseries",
+          "visible": true,
+          "style": {}
+        }
+      }
+    ],
+    "theme": "default",
+    "css": null,
+    "enable_queue": false,
+    "layout": {
+      "id": 54,
+      "children": [
+        {
+          "id": 55
+        }
+      ]
+    },
+    "dependencies": [
+      {
+        "targets": [
+          20
+        ],
+        "trigger": "click",
+        "inputs": [
+          55
+        ],
+        "outputs": [
+          4
+        ],
+        "backend_fn": true,
+        "js": null,
+        "status_tracker": null,
+        "queue": null
+      }
+    ]
+  },
+  "model3d": {
+    "mode": "blocks",
+    "components": [
+      {
+        "id": 57,
+        "type": "model3d",
+        "props": {
+          "show_label": true,
+          "name": "model3d",
+          "visible": true,
+          "style": {}
+        }
+      }
+    ],
+    "theme": "default",
+    "css": null,
+    "enable_queue": false,
+    "layout": {
+      "id": 56,
+      "children": [
+        {
+          "id": 57
+        }
+      ]
+    },
+    "dependencies": [
+      {
+        "targets": [
+          20
+        ],
+        "trigger": "click",
+        "inputs": [
+          57
+        ],
+        "outputs": [
+          4
+        ],
+        "backend_fn": true,
+        "js": null,
+        "status_tracker": null,
+        "queue": null
+      }
+    ]
+  },
+  "button": {
+    "mode": "blocks",
+    "components": [
+      {
+        "id": 61,
+        "type": "button",
+        "props": {
+          "value": "Button",
+          "variant": "primary",
+          "name": "button",
+          "visible": true,
+          "style": {}
+        }
+      }
+    ],
+    "theme": "default",
+    "css": null,
+    "enable_queue": false,
+    "layout": {
+      "id": 60,
+      "children": [
+        {
+          "id": 61
+        }
+      ]
+    },
+    "dependencies": [
+      {
+        "targets": [
+          61
+        ],
+        "trigger": "click",
+        "inputs": [
+          57
+        ],
+        "outputs": [
+          4
+        ],
+        "backend_fn": true,
+        "js": null,
+        "status_tracker": null,
+        "queue": null
+      }
+    ]
+  }
+}

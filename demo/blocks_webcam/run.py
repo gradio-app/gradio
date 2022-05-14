@@ -1,7 +1,6 @@
 import numpy as np
 
 import gradio as gr
-from gradio import Templates
 
 
 def snap(image):

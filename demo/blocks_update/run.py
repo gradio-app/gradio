@@ -1,6 +1,6 @@
 import gradio as gr
 
-with gr.Blocks() as block:
+with gr.Blocks() as demo:
     gr.Markdown(
         """
     # Animal Generator
@@ -41,4 +41,6 @@ with gr.Blocks() as block:
 
     generate_btn.click(lambda x: x, details, output)
 
-block.launch()
+
+if __name__ == "__main__":
+    demo.launch()

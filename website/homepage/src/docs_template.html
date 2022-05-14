@@ -18,14 +18,19 @@
   <meta name="twitter:title" content="Gradio Docs">
   <meta name="twitter:description" content="Browse Gradio documentation and examples">
   <meta name="twitter:image" content="https://gradio.app/static/home/img/social-cheetah.jpg">  
-
+  <link href="https://fonts.cdnfonts.com/css/product-sans" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700;1,900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="icon" type="image/png" href="/assets/img/logo.png">
+  <link rel="stylesheet" href="/gradio_static/assets/{{ entry_css_file }}">
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/assets/prism.css">
   <style>
     pre {
       overflow-x: hidden !important;
-      border: solid 1px black;
+      overflow-y: scroll !important;
+      background: #F6F7FA;
+      border-radius: 6px;
     }
 
     code {
@@ -33,6 +38,10 @@
     }
     .prose .code, .prose pre {
       color: black;
+    }
+
+    .header:hover .anchor {
+      visibility: visible;
     }
 
   </style>
@@ -45,71 +54,157 @@
       gtag('js', new Date());
       gtag('config', 'UA-156449732-1');
     </script>
-
 </head>
 
-<body class="bg-white text-gray-900 text-md sm:text-lg">
+<body>
   {{navbar_html|safe}}
-  <div class="container mx-auto px-4">
-    <main class="container flex gap-4">
-      <div class="h-screen leading-relaxed sticky top-0 bg-gray-50 p-4 text-md overflow-y-auto hidden md:block" style="width: 64rem">
-        <a class="link mb-2 block" href="#creating_interfaces">Creating Interfaces</a>
-        <a class="block thin-link" href="#interface">Interfaces</a>
-        <a class="block thin-link" href="#launch">Launching</a>
-        <a class="block thin-link" href="#load">Loading</a>
-        <a class="link my-2 block" href="#input_components">Input Components</h4>
-        {% for input in docs["input"] %}
-        <a class="block thin-link" href="#i_{{ input["name"].lower() }}">{{ input["name"] }}</a>
-        {% endfor %}
-        <a class="link my-2 block" href="#output_components">Output Components</h4>
-          {% for output in docs["output"] %}
-        <a class="block thin-link" href="#o_{{ output["name"].lower() }}">{{ output["name"] }}</a>
+  <div class="container mx-auto max-w-7xl">
+    <main class="flex gap-4">
+      <div class="py-4 navigation h-screen leading-relaxed sticky top-0 text-md overflow-y-auto hidden md:block rounded-t-xl bg-gradient-to-r from-white to-gray-50" style="min-width: 18%">
+        <a class="px-4 link mb-2 block border-orange-500 text-orange-500 md:border-l-2 pl-4" href="#building_demos">Building Demos</a>
+        <a class="px-4 block thin-link" href="#interface">Interface</a>
+        <a class="px-4 block thin-link" href="#combining_interfaces">Combining Interfaces</a>
+        <a class="px-4 block thin-link" href="#blocks">Blocks<sup class="text-orange-500">NEW</sup></a>
+        <a class="px-4 link my-2 block" href="#components">Components</h4>
+        {% for component in docs["components"] %}
+        <a class="px-4 block thin-link" href="#{{ component["name"].lower() }}">{{ component["name"] }}</a>
         {% endfor %}
       </div>
-      <div class="leading-7 max-w-full">
-        <p class="bg-blue-200 border border-blue-600 px-4 py-2 rounded mb-4">If you are just getting started with Gradio, see the <a class="link" href="/getting_started">Getting Started</a> guide.</p>
-        <h1 class="text-3xl font-semibold mb-4">Docs</h1>
-        <h2 id="creating_interfaces" class="text-2xl font-semibold mb-4">Creating Interfaces</h2>
-        <section class="flex flex-col gap-6">
-          <div id="interface" class="func">
+      <div class="docs mx-6 leading-7 max-w-full">
+        <p class="bg-gradient-to-r from-orange-100 to-orange-50 border border-orange-200/80 px-4 py-1 rounded-full mb-4 text-md w-full text-orange-900">New to Gradio? Start here: <a class="link underline" href="/getting_started">Getting Started</a></p>
+        <h2 id="building_demos" class="text-4xl font-light mb-4 mt-8 text-orange-500">Building Demos</h2>
+        <section id="interface" class="flex flex-col gap-6">
+          <div class="func">
+            <h3 id="interface-header" class="text-3xl font-light my-4">Interface</h3>
+            <button class="hidden rounded-full bg-orange-500 text-white py-1 px-3 my-3" onclick="showDemos({{ docs.interface['demos'] }})">
+              Try Demo &#8594;
+            </button>
             <pre><code class='lang-python'>gradio.Interface(<!--
-          -->{% for param in docs.interface["params"] %}<!--
+          -->{% for param in docs.interface["params"][:4] %}<!--
             -->{% if param|length == 1 %}<!--
               -->{{ param[0] }}<!--
             -->{% else %}<!--
               -->{{ param[0] }}={{ param[1] }}<!--
             -->{% endif %}<!--
-            -->{% if not loop.last %}, {% endif %}<!--
-          -->{% endfor %})</code></pre>
-            <p class="mb-2">{{ docs.interface["doc"] }}</p>
-            <h4 class="font-semibold mb-2">Parameters</h4>
-            <ul class="list-disc list-inside">
+            -->, <!--
+          -->{% endfor %}&#183;&#183;&#183;)</code></pre>
+            <p class="mb-2 w-full md:pr-12 mt-4 text-lg">{{ docs.interface["doc"] }}</p>
+            <table class="table-fixed w-full mt-6 mb-4">
+              <thead class="text-left">
+                <tr>
+                  <th class="font-semibold w-2/5">Parameter</th>
+                  <th class="font-semibold">Description</th>
+                </tr>
+              </thead>
+            </table>
+            <table class="table-fixed w-full mt-6 mb-4 rounded-lg bg-gray-50 border border-gray-100 overflow-hidden">
+              <tbody class="text-left align-top divide-y">
               {% for param in docs.interface["params_doc"] %}
-              <li><span class="font-semibold">{{ param[0] }}</span> <em>({{ param[1] }})</em> - {{ param[2] }}</li>
+                  <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+                    <td class="p-3 w-2/5">
+                      <code class=“prettyprint”>{{ param[0] }}</code>
+                      <p class="text-gray-500 italic">{{ param[1] }}</p>
+                      {% if docs.interface["params"][loop.index]|length == 1 %}
+                        <p class="text-orange-600 font-semibold italic">required</p>
+                      {% else %}
+                        <p class="text-gray-600 font-semibold italic">default: {{ docs.interface["params"][loop.index][1] }}</p>
+                      {% endif %}
+                    </td>
+                    <td class="p-3 text-gray-700">
+                      <p>{{ param[2] }}</p>
+                    </td>
+                  </tr>
               {% endfor %}
-            </ul>
+              </tbody>
+            </table>
+            <p class="mb-2 w-4/5 font-semibold">Example usage:</p>
+            <pre><code class='lang-python'>{{ docs.interface["example"][0] }}</code></pre>
+            <pre><code class='lang-python'>{{ docs.interface["example"][1] }}</code></pre>
           </div>
-          <div id="launch" class="func">
+          <h3 class="font-semibold">Methods:</h3>
+          <div id="launch" class="func ml-12">
+            <h3 id="launch-header" class="text-2xl font-light my-4">launch()</h3>
             <pre><code class='lang-python'>gradio.Interface().launch(<!--
-            -->{% for param in docs.launch["params"] %}<!--
-              -->{% if param|length == 1 %}<!--
-                -->{{ param[0] }}<!--
-              -->{% else %}<!--
-                -->{{ param[0] }}={{ param[1] }}<!--
-              -->{% endif %}<!--
-              -->{% if not loop.last %}, {% endif %}<!--
-            -->{% endfor %})</code></pre>
-            <p class="mb-2">Launches the webserver that serves the UI for the interface.</p>
-            <h4 class="font-semibold mb-2">Parameters</h4>
-            <ul class="list-disc list-inside">
+            -->&#183;&#183;&#183;<!--
+            -->)</code></pre>
+            <p class="mb-2 w-full md:pr-12 mt-4 text-lg">{{ docs.launch["doc"] }}</p>
+            <table class="table-fixed w-full mt-6 mb-4">
+              <thead class="text-left">
+                <tr>
+                  <th class="font-semibold w-2/5">Parameter</th>
+                  <th class="font-semibold">Description</th>
+                </tr>
+              </thead>
+            </table>
+            <table class="table-fixed w-full mt-6 mb-4 rounded-lg bg-gray-50 border border-gray-100 overflow-hidden">
+              <tbody class="text-left align-top divide-y">
               {% for param in docs.launch["params_doc"] %}
-              <li><span class="font-semibold">{{ param[0] }}</span> <em>({{ param[1] }})</em> - {{ param[2] }}</li>
+                  <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+                    <td class="p-3 w-2/5 break-words">
+                      <code class=“prettyprint”>{{ param[0] }}</code>
+                      <p class="text-gray-500 italic">{{ param[1] }}</p>
+                      {% if docs.launch["params"][loop.index]|length == 1 %}
+                        <p class="text-orange-600 font-semibold italic">required</p>
+                      {% else %}
+                        <p class="text-gray-600 font-semibold italic">default: {{ docs.launch["params"][loop.index][1] }}</p>
+                      {% endif %}
+                    </td>
+                    <td class="p-2 w-3/5 break-words text-gray-700">
+                      <p>{{ param[2] }}</p>
+                    </td>
+                  </tr>
               {% endfor %}
-            </ul>
+              </tbody>
+            </table>
+            <p class="mb-2 w-4/5 font-semibold">Example usage:</p>
+            <pre><code class='lang-python'>{{ docs.launch["example"] }}</code></pre>
           </div>
-          <div id="load" class="func">
+          <div id="load" class="func ml-12">
+            <h3 id="load-header" class="text-2xl font-light my-4">load()</h3>
             <pre><code class='lang-python'>gradio.Interface.load(<!--
-            -->{% for param in docs.load["params"] %}<!--
+            -->{% for param in docs.load["params"][:1] %}<!--
+              -->{% if param|length == 1 %}<!--
+                -->{{ param[0] }}<!--
+              -->{% else %}<!--
+                -->{{ param[0] }}={{ param[1] }}<!--
+              -->{% endif %}, <!--
+            -->{% endfor %}&#183;&#183;&#183;)</code></pre>
+            <p class="mb-2 w-full md:pr-12 mt-4 text-lg">{{ docs.load["doc"] }}</p>
+            <table class="table-fixed w-full mt-6 mb-4">
+              <thead class="text-left">
+                <tr>
+                  <th class="font-semibold w-2/5">Parameter</th>
+                  <th class="font-semibold">Description</th>
+                </tr>
+              </thead>
+            </table>
+            <table class="table-fixed w-full mt-6 mb-4 rounded-lg bg-gray-50 border border-gray-100 overflow-hidden">
+              <tbody class="text-left align-top divide-y">
+              {% for param in docs.load["params_doc"] %}
+                  <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+                    <td class="p-3 w-2/5">
+                      <code class=“prettyprint”>{{ param[0] }}</code>
+                      <p class="text-gray-500 italic">{{ param[1] }}</p>
+                      {% if docs.load["params"][loop.index - 1]|length == 1 %}
+                        <p class="text-orange-600 font-semibold italic">required</p>
+                      {% else %}
+                        <p class="text-gray-600 font-semibold italic">default: {{ docs.load["params"][loop.index - 1][1] }}</p>
+                      {% endif %}
+                    </td>
+                    <td class="p-3 text-gray-700">
+                      <p>{{ param[2] }}</p>
+                    </td>
+                  </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+            <p class="mb-2 w-4/5 font-semibold">Example usage:</p>
+            <pre><code class='lang-python'>{{ docs.load["example"] }}</code></pre>
+          </div>
+          <div id="from_pipeline" class="func ml-12">
+            <h3 id="from_pipeline-header" class="text-2xl font-light my-4">from_pipeline()</h3>
+            <pre><code class='lang-python'>gradio.Interface.from_pipeline(<!--
+            -->{% for param in docs.from_pipeline["params"] %}<!--
               -->{% if param|length == 1 %}<!--
                 -->{{ param[0] }}<!--
               -->{% else %}<!--
@@ -117,27 +212,237 @@
               -->{% endif %}<!--
               -->{% if not loop.last %}, {% endif %}<!--
             -->{% endfor %})</code></pre>
-            <p class="mb-2">Class method to construct an Interface from an external source repository, such as huggingface.</p>
-            <h4 class="font-semibold mb-2">Parameters</h4>
-            <ul class="list-disc list-inside">
-              {% for param in docs.load["params_doc"] %}
-              <li><span class="font-semibold">{{ param[0] }}</span> <em>({{ param[1] }})</em> - {{ param[2] }}</li>
+            <p class="mb-2 w-full md:pr-12 mt-4 text-lg">{{ docs.from_pipeline["doc"] }}</p>
+            <table class="table-fixed w-full mt-6 mb-4">
+              <thead class="text-left">
+                <tr>
+                  <th class="font-semibold w-2/5">Parameter</th>
+                  <th class="font-semibold">Description</th>
+                </tr>
+              </thead>
+            </table>
+            <table class="table-fixed w-full mt-6 mb-4 rounded-lg bg-gray-50 border border-gray-100 overflow-hidden">
+              <tbody class="text-left align-top divide-y">
+              {% for param in docs.from_pipeline["params_doc"] %}
+                  <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+                    <td class="p-3 w-2/5">
+                      <code class=“prettyprint”>{{ param[0] }}</code>
+                      <p class="text-gray-500 italic">{{ param[1] }}</p>
+                      {% if docs.from_pipeline["params"][loop.index - 1]|length == 1 %}
+                        <p class="text-orange-600 font-semibold italic">required</p>
+                      {% else %}
+                        <p class="text-gray-600 font-semibold italic">default: {{ docs.from_pipeline["params"][loop.index - 1][1] }}</p>
+                      {% endif %}
+                    </td>
+                    <td class="p-3 text-gray-700">
+                      <p>{{ param[2] }}</p>
+                    </td>
+                  </tr>
               {% endfor %}
-            </ul>
-            <h4 class="font-semibold mb-2">Returns</h4>
-            <ul class="list-disc list-inside">
-              {% for ret in docs.load["return_doc"] %}
-              <li><em>({{ ret[0] }})</em> - {{ ret[1] }}</li>
-              {% endfor %}
-            </ul>
+              </tbody>
+            </table>
+            <p class="mb-2 w-4/5 font-semibold">Example usage:</p>
+            <pre><code class='lang-python'>{{ docs.from_pipeline["example"] }}</code></pre>
+            <div class="py-4">
+              <div class="w-full border-t border-gray-200"></div>
+            </div>
           </div>
         </section>
-        {% for component_type in ('input', 'output') %}
-        <h2 id="{{ component_type }}_components" class="text-2xl font-semibold my-4">{{ component_type|capitalize }} Components</h2>
+        <section id="combining_interfaces" class="flex flex-col gap-6">
+          <div class="func">
+            <h3 id="combining-interfaces-header" class="text-3xl font-light my-4">Combining Interfaces</h3>
+            <p class="w-4/5 mt-4 text-lg">Once you have created several Interfaces, we provide several classes that let you
+              start combining them together. For example, you can chain them in <em>Series</em>
+              or compare their outputs in <em>Parallel</em> if the inputs and outputs match accordingly. 
+              You can also display arbitrary Interfaces together in a tabbed layout using <em>TabbedInterface</em>.</p>
+              <h3 class="font-semibold">Classes:</h3>
+              <div id="tabbed_interface" class="func ml-20">
+                <h3 id="tabbed_interface_header" class="text-2xl font-light my-4">TabbedInterface</h3>
+                <pre><code class='lang-python'>gradio.TabbedInterface(interface_list, &#183;&#183;&#183;)</code></pre>
+                <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.tabbed_interface["doc"] }}</p>
+                <table class="table-fixed w-full my-4">
+                  <thead class="text-left">
+                    <tr>
+                      <th class="font-semibold w-2/5">Parameter</th>
+                      <th class="font-semibold">Description</th>
+                    </tr>
+                  </thead>
+                </table>
+                <table class="table-fixed w-full my-4 rounded-lg bg-gray-100">
+                  <tbody class="text-left align-top">
+                  {% for param in docs.tabbed_interface["params_doc"] %}
+                      <tr class="group hover:bg-gray-200">
+                        <td class="p-2 w-2/5 break-words">
+                          <code class=“prettyprint”>{{ param[0] }}</code>
+                          <p class="text-gray-500 italic">{{ param[1] }}</p>
+                          {% if docs.tabbed_interface["params"][loop.index]|length == 1 %}
+                            <p class="text-orange-600 font-semibold italic">required</p>
+                          {% else %}
+                            <p class="text-gray-600 font-semibold italic">default: {{ docs.tabbed_interface["params"][loop.index][1] }}</p>
+                          {% endif %}
+                        </td>
+                        <td class="p-2 w-3/5 break-words">
+                          <p>{{ param[2] }}</p>
+                        </td>
+                      </tr>
+                  {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+              
+              <div id="parallel" class="func ml-20">
+                <h3 id="parallel-header" class="text-2xl font-light my-4">Parallel</h3>
+                <pre><code class='lang-python'>gradio.Parallel(*interfaces, &#183;&#183;&#183;)</code></pre>
+                <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.parallel["doc"] }}</p>
+                <table class="table-fixed w-full my-4">
+                  <thead class="text-left">
+                    <tr>
+                      <th class="font-semibold w-2/5">Parameter</th>
+                      <th class="font-semibold">Description</th>
+                    </tr>
+                  </thead>
+                </table>
+                <table class="table-fixed w-full my-4 rounded-lg bg-gray-100">
+                  <tbody class="text-left align-top">
+                  {% for param in docs.parallel["params_doc"] %}
+                      <tr class="group hover:bg-gray-200">
+                        <td class="p-2 w-2/5 break-words">
+                          <code class=“prettyprint”>{{ param[0] }}</code>
+                          <p class="text-gray-500 italic">{{ param[1] }}</p>
+                          {% if docs.parallel["params"][loop.index]|length == 1 %}
+                            <p class="text-orange-600 font-semibold italic">required</p>
+                          {% else %}
+                            <p class="text-gray-600 font-semibold italic">default: None</p>
+                          {% endif %}
+                        </td>
+                        <td class="p-2 w-3/5 break-words">
+                          <p>{{ param[2] }}</p>
+                        </td>
+                      </tr>
+                  {% endfor %}
+                  </tbody>
+                </table>
+              </div>              
+
+              <div id="series" class="func ml-20">
+                <h3 id="series-header" class="text-2xl font-light my-4">Series</h3>
+                <pre><code class='lang-python'>gradio.Series(*interfaces, &#183;&#183;&#183;)</code></pre>
+                <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.series["doc"] }}</p>
+                <table class="table-fixed w-full my-4">
+                  <thead class="text-left">
+                    <tr>
+                      <th class="font-semibold w-2/5">Parameter</th>
+                      <th class="font-semibold">Description</th>
+                    </tr>
+                  </thead>
+                </table>
+                <table class="table-fixed w-full my-4 rounded-lg bg-gray-100">
+                  <tbody class="text-left align-top">
+                  {% for param in docs.series["params_doc"] %}
+                      <tr class="group hover:bg-gray-200">
+                        <td class="p-2 w-2/5 break-words">
+                          <code class=“prettyprint”>{{ param[0] }}</code>
+                          <p class="text-gray-500 italic">{{ param[1] }}</p>
+                          {% if docs.series["params"][loop.index]|length == 1 %}
+                            <p class="text-orange-600 font-semibold italic">required</p>
+                          {% else %}
+                            <p class="text-gray-600 font-semibold italic">default: None</p>
+                          {% endif %}
+                        </td>
+                        <td class="p-2 w-3/5 break-words">
+                          <p>{{ param[2] }}</p>
+                        </td>
+                      </tr>
+                  {% endfor %}
+                  </tbody>
+                </table>
+              </div>              
+              
+
+          </div>
+        </section>
+        <section id="blocks" class="flex flex-col gap-6">
+          <div class="func">
+            <h3 id="blocks-header" class="text-3xl font-light my-4">Blocks</h3>
+            <button class="hidden rounded-full bg-orange-500 text-white py-1 px-3 my-3" onclick="showDemos('blocks')">
+              Try Demo &#8594;
+            </button>
+            <pre><code class='lang-python'>with gradio.Blocks(theme, analytics_enabled, mode):
+    &#183;&#183;&#183;</code></pre>
+    <p class="mb-2 w-full md:pr-12 mt-4 text-lg">{{ docs.blocks["doc"] }}</p>
+    <table class="table-fixed w-full mt-6 mb-4">
+      <thead class="text-left">
+        <tr>
+          <th class="font-semibold w-2/5">Parameter</th>
+          <th class="font-semibold">Description</th>
+        </tr>
+      </thead>
+    </table>
+    <table class="table-fixed w-full mt-6 mb-4 rounded-lg bg-gray-50 border border-gray-100 overflow-hidden">
+      <tbody class="text-left align-top divide-y">
+      {% for param in docs.blocks["params_doc"] %}
+          <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+            <td class="p-3 w-2/5">
+              <code class=“prettyprint”>{{ param[0] }}</code>
+              <p class="text-gray-500 italic">{{ param[1] }}</p>
+              {% if docs.blocks["params"][loop.index]|length == 1 %}
+                <p class="text-orange-600 font-semibold italic">required</p>
+              {% else %}
+                <p class="text-gray-600 font-semibold italic">default: {{ docs.blocks["params"][loop.index][1] }}</p>
+              {% endif %}
+            </td>
+            <td class="p-3 text-gray-700">
+              <p>{{ param[2] }}</p>
+            </td>
+          </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <p class="mb-2 w-4/5 font-semibold">Example usage:</p>
+    <pre><code class='lang-python'>{{ docs.blocks["example"] }}</code></pre>
+
+    <!-- <h3 class="font-semibold">Layout Classes:</h3>
+    <div id="layout-classes" class="func ml-20">
+      <h3 id="layout-classes-header" class="text-2xl font-light my-4">Row</h3>
+      <pre><code class='lang-python'>with gradio.Row():
+    &#183;&#183;&#183;</code></pre>
+      <p class="mb-2 w-4/5 mt-4 text-lg"></p>
+
+      <h3 id="column-header" class="text-2xl font-light my-4">Column</h3>
+      <pre><code class='lang-python'>with gradio.Column():
+    &#183;&#183;&#183;</code></pre>
+      <p class="mb-2 w-4/5 mt-4 text-lg"></p>
+
+      <h3 id="tabs-header" class="text-2xl font-light my-4">Tabs and TabItem</h3>
+      <pre><code class='lang-python'>with gradio.Tabs():
+    with gradio.TabItem("Tab 1"):
+      &#183;&#183;&#183;
+    with gradio.TabItem("Tab 2"):
+      &#183;&#183;&#183;</code></pre>
+      <p class="mb-2 w-4/5 mt-4 text-lg"></p>
+    </div> -->
+
+          </div>
+        </section>
         <section class="flex flex-col gap-6">
-          {% for func in docs[component_type] %}
-          <div id="{{ component_type[0] }}_{{ func["name"].lower() }}" class="func">
-            <pre ><code class="lang-python">gradio.{{ component_type }}s.<span>{{ func["name"] }}(</span><!--
+          <div id="components">
+            <h2 id ="components-header" class="text-4xl font-light my-4 text-orange-500">Components</h2>
+            <p class="w-4/5 mt-8 text-lg">Gradio includes pre-built components that can be used as
+            inputs or outputs in your Interface or Blocks with a single line of code. Components
+            include <em>preprocessing</em> steps that convert user data submitted through browser
+            to something that be can used by a Python function, and <em>postprocessing</em>
+          steps to convert values returned by a Python function into something that can be displayed in a browser.</p>
+          </div>
+          {% for func in docs["components"] %}
+          <div id="{{ func['name'].lower() }}" class="func">
+            <h3 id="{{ func['name'].lower() }}-header" class="text-3xl font-light my-4">
+              {{ func['name'] }}
+            </h3>
+            <button class="hidden rounded-full bg-orange-500 text-white py-1 px-3 my-3" onclick="showDemos({{ func['demos'] }})">
+              Try Demo &#8594;
+            </button>
+            <div id='{{ func["name"].lower() }}-component'  class="component-embedding hidden"></div>
+            <pre><code class="lang-python">gradio.components.<span>{{ func["name"] }}(</span><!--
             -->{% for param in func["params"] %}<!--
               -->{% if param|length == 1 %}<!--
                 -->{{ param[0] }}<!--
@@ -146,14 +451,53 @@
               -->{% endif %}<!--
               -->{% if not loop.last %}, {% endif %}<!--
             -->{% endfor %}<span>)</span></code></pre>
-            <p class="mb-2">{{ func["doc"] }}</p>
-            <p class="mb-2">{{ component_type|capitalize }} type: <span class="font-semibold">{{ func["type"] }}</span></p>
-            <h4 class="font-semibold mb-2">Parameters</h4>
-            <ul class="list-disc list-inside">
+            <p class="w-4/5 mt-8 text-lg">{{ func["doc"] }}</p>
+            {% if func["Preprocessing"]|length %}
+            <p class="text-gray-500">Preprocessing: {{ func["Preprocessing"] | safe}}</p>
+            {% endif %}
+            {% if func["Postprocessing"]|length %}
+            <p class="text-gray-500">Postprocessing: {{ func["Postprocessing"] | safe}}</p>
+            {% endif %}
+            <p class="text-gray-500">Supported events: <em>{{func["events"]}}</em></p>
+            <table class="table-fixed w-full mt-6 mb-4">
+              <thead class="text-left">
+                <tr>
+                  <th class="font-semibold w-2/5">Parameter</th>
+                  <th class="font-semibold">Description</th>
+                </tr>
+              </thead>
+            </table>
+            <table class="table-fixed w-full mt-6 mb-4 rounded-lg bg-gray-50 border border-gray-100 overflow-hidden">
+              <tbody class="text-left align-top divide-y">
               {% for param in func["params_doc"] %}
-              <li><span class="font-semibold">{{ param[0] }}</span> <em>({{ param[1] }})</em> - {{ param[2] }}</li>
+                  <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+                    <td class="p-3 w-2/5">
+                      <code class=“prettyprint”>{{ param[0] }}</code>
+
+                      <p class="text-gray-500 italic">{{ param[1] }}</p>
+                    </td>
+                    <td class="p-3 text-gray-700">
+                      <p>{{ param[2] }}</p>
+                    </td>
+                  </tr>
               {% endfor %}
-            </ul>
+              </tbody>
+            </table>
+            <h4 class="my-2 font-semibold">Step-by-step Guides</h4>
+            {% if func["guides"] %}
+              <div class="guides-list grid grid-cols-1 lg:grid-cols-4 gap-4">
+                {% for guide in func["guides"] %}
+                <a class="flex lg:col-span-1 flex-col group overflow-hidden relative rounded-xl shadow-sm hover:shadow-alternate transition-shadow my-4" target="_blank" href="/{{ guide.name }}">
+                  <div class="flex flex-col p-4 h-min">
+                    <p class="font-semibold group-hover:underline text-l">{{ guide.pretty_name }}</p>
+                  </div>
+                </a>
+
+                {% endfor %}
+              </div>
+            {% else %}
+              <p class="my-2 text-gray-500">No guides yet, <a class="font-semibold text-orange-500 border-b border-orange-500 " target="_blank" href="https://github.com/gradio-app/gradio/tree/master/guides">contribute</a> a guide about <span class="font-semibold">{{ func["name"] }}</span></p>
+            {% endif %}
             {% if func["shortcuts"]|length %}
             <h4 class="my-2 font-semibold">String Shortcuts</h4>
             <ul class="list-disc list-inside">
@@ -197,47 +541,296 @@
               {% endfor %}
             </ul>
             {% endif %}
-            <h4 class="my-2 font-semibold">Demos</h4>
-            <div class="flex gap-4 overflow-x-auto pb-1">
-              {% for demo in func["demos"] %}
-              <div class="flex-shrink-0 flex flex-col">
-                <div class="mb-2">
-                  <span class="italic">{{ demo }}:</span>
-                  <a class="demo_code link" target="_blank"
-                    href="{{ demo_links[demo] if demo in demo_links else '#'  }}"
-                    target="_blank">
-                    Open in Colab
-                  </a>
-                </div>
-                <div class="relative cursor-pointer flex-grow">
-                  <a href="{{ demo_links[demo] }}" target="_blank" class="absolute w-full h-full bg-gray-400 bg-opacity-10 hover:bg-opacity-0 group transition flex items-center justify-center">
-                    <img src="/assets/img/colab-badge.svg" class="opacity-60 group-hover:opacity-80 transition h-6">
-                  </a>
-                  <img style="width:420px"
-                    src="/assets/demo_screenshots/{{ demo }}.png">
-                </div>
+<!--            <h4 class="my-2 font-semibold">Demos</h4>-->
+<!--            <div class="flex gap-4 overflow-x-auto pb-1">-->
+<!--              {% for demo in func["demos"] %}-->
+<!--              <div class="flex-shrink-0 flex flex-col">-->
+<!--                <div class="mb-2">-->
+<!--                  <span class="italic">{{ demo }}:</span>-->
+<!--                  <a class="demo_code link" target="_blank"-->
+<!--                    href="{{ demo_links[demo] if demo in demo_links else '#'  }}"-->
+<!--                    target="_blank">-->
+<!--                    Open in Colab-->
+<!--                  </a>-->
+<!--                </div>-->
+<!--                <div class="relative cursor-pointer flex-grow">-->
+<!--                  <a href="{{ demo_links[demo] }}" target="_blank" class="absolute w-full h-full bg-gray-400 bg-opacity-10 hover:bg-opacity-0 group transition flex items-center justify-center">-->
+<!--                    <img src="/assets/img/colab-badge.svg" class="opacity-60 group-hover:opacity-80 transition h-6">-->
+<!--                  </a>-->
+<!--                  <img style="width:420px"-->
+<!--                    src="/assets/demo_screenshots/{{ demo }}.png">-->
+<!--                </div>-->
+<!--              </div>-->
+<!--              {% endfor %}-->
+<!--            </div>-->
+            {% if not loop.last %}
+              <div class="py-4">
+                <div class="w-full border-t border-gray-200"></div>
               </div>
-              {% endfor %}
-            </div>
+            {% endif %}
           </div>
           {% endfor %}
         </section>
-        {% endfor %}
       </div>
+
+        <div class="fixed hidden inset-0 bg-gray-500 bg-opacity-75 overflow-y-auto h-full w-full" id="demos-window">
+          <div class="relative mx-auto my-auto p-5 border w-4/5 shadow-lg rounded-md bg-white" style="top: 5%; height: 90%">
+            <div class="flex flex-row items-start w-11/12 h-11/12 m-auto gap-6">
+              <div class="w-2/5">
+                <div class="flex flex-column items-start w-11/12 h-11/12 m-auto gap-6">
+                  <h3 class="text-3xl font-semibold text-left">Code</h3>
+                </div>
+                <div class="w-full h-full my-2 bg-grey-200 rounded-md">
+                  {% for src, code in docs.demo_code.items() %}
+                    <pre id="{{ src }}" class="hidden demo-code"><code class='lang-python' style="max-height: 34rem;">{{ code }}</code></pre>
+                  {% endfor %}
+                </div>
+              </div>
+              <div class="w-3/5">
+                <h2 class="text-3xl font-semibold text-left">Demos</h2>
+                <div class="mb-6">
+                  <nav class="demos-nav flex flex-wrap gap-6 whitespace-nowrap text-gray-600 md:text-lg my-2 md:mb-0"></nav>
+                </div>
+                <div class="demos w-full h-full my-2 bg-gray-200 rounded-md">
+                  {% for src, code in docs.demo_code.items() %}
+                    <div id="{{ src }}-interface" class="hidden demo-interface"></div>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+
     </main>
   </div>
-  <footer class="container mx-auto p-4 flex justify-between items-center">
-    <img src="/assets/img/logo.svg" class="h-10">
-    <div class="flex gap-4">
+  <footer class="container flex-row sm:flex-col lg:flex-row relative inset-x-0 top-0 z-10 bg-white/80 backdrop-blur-lg mx-auto flex max-w-7xl items-center px-4 py-6 justify-between flex-wrap gap-6">
+    <a href="/">
+      <svg width="60" viewBox="0 0 1090 365" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M1.72486 337.254L31.1725 300.91C47.4495 315.82 65.5902 323.275 85.5947 323.275C99.0139 323.275 110.072 321.287 118.77 317.311C127.468 313.335 131.816 307.868 131.816 300.91C131.816 289.106 122.187 283.204 102.928 283.204C97.7093 283.204 89.9436 283.826 79.6307 285.068C69.3178 286.311 61.552 286.932 56.3335 286.932C24.2765 286.932 8.24807 275.439 8.24807 252.452C8.24807 245.867 10.9195 239.406 16.2623 233.069C21.6051 226.732 27.8177 222.072 34.9001 219.09C12.162 204.304 0.792969 183.368 0.792969 156.281C0.792969 134.91 8.62083 117.266 24.2765 103.35C39.9323 89.3095 59.1913 82.2893 82.0536 82.2893C99.9458 82.2893 114.918 85.6441 126.971 92.3537L145.236 71.1066L177.479 100.368L155.3 116.583C163.004 128.262 166.855 142.054 166.855 157.959C166.855 180.697 159.897 198.899 145.981 212.567C132.189 226.111 114.732 232.882 93.609 232.882C90.2542 232.882 85.7811 232.572 80.1898 231.95L72.5483 230.832C71.6786 230.832 68.3238 232.199 62.4839 234.932C56.7684 237.542 53.9106 240.275 53.9106 243.133C53.9106 248.103 58.1972 250.588 66.7706 250.588C70.6224 250.588 77.0835 249.656 86.1539 247.793C95.2243 245.929 102.99 244.997 109.451 244.997C154.803 244.997 177.479 263.2 177.479 299.605C177.479 319.734 168.409 335.514 150.268 346.945C132.127 358.501 110.259 364.279 84.6629 364.279C54.0969 364.279 26.4509 355.27 1.72486 337.254ZM48.3192 156.468C48.3192 168.271 51.5498 177.777 58.0109 184.983C64.5962 192.066 73.4181 195.607 84.4765 195.607C95.5349 195.607 104.046 192.128 110.01 185.17C115.974 178.212 118.956 168.644 118.956 156.468C118.956 146.403 115.726 137.892 109.265 130.934C102.928 123.976 94.6651 120.497 84.4765 120.497C73.7908 120.497 65.0932 123.851 58.3836 130.561C51.674 137.271 48.3192 145.906 48.3192 156.468Z" fill="#FF7C00" />
+        <path d="M323.599 129.816C315.274 124.348 306.142 121.615 296.201 121.615C285.391 121.615 275.762 126.523 267.313 136.339C258.988 146.155 254.826 158.145 254.826 172.31V286H208.231V86.3896H254.826V104.655C267.872 89.9929 285.205 82.662 306.825 82.662C322.729 82.662 334.906 85.0849 343.355 89.9308L323.599 129.816Z" fill="#FF7C00" />
+        <path d="M482.579 266.058C478.354 273.016 470.961 278.731 460.4 283.204C449.963 287.553 439.029 289.727 427.598 289.727C406.102 289.727 389.204 284.385 376.903 273.699C364.602 262.889 358.451 247.606 358.451 227.85C358.451 204.739 367.087 186.661 384.358 173.614C401.753 160.568 426.417 154.045 458.35 154.045C463.817 154.045 470.278 154.977 477.733 156.84C477.733 133.357 462.885 121.615 433.189 121.615C415.669 121.615 401.008 124.535 389.204 130.375L379.139 94.2174C395.168 86.5138 414.24 82.662 436.357 82.662C466.799 82.662 489.102 89.6201 503.267 103.536C517.432 117.328 524.514 143.545 524.514 182.188V224.868C524.514 251.458 529.857 268.17 540.542 275.004C536.691 281.713 532.404 285.814 527.682 287.305C522.961 288.92 517.556 289.727 511.467 289.727C504.758 289.727 498.732 287.242 493.389 282.272C488.046 277.302 484.443 271.897 482.579 266.058ZM478.106 192.066C470.154 190.45 464.19 189.643 460.214 189.643C423.435 189.643 405.046 201.695 405.046 225.8C405.046 243.692 415.421 252.638 436.171 252.638C464.128 252.638 478.106 238.66 478.106 210.703V192.066Z" fill="#FF7C00" />
+        <path d="M703.436 286V273.885C699.584 278.11 693.061 281.838 683.867 285.068C674.672 288.174 665.167 289.727 655.351 289.727C627.519 289.727 605.588 280.906 589.56 263.262C573.655 245.618 565.703 221.016 565.703 189.456C565.703 157.896 574.836 132.238 593.101 112.482C611.49 92.6022 634.477 82.662 662.06 82.662C677.219 82.662 691.011 85.7683 703.436 91.9809V12.0249L750.031 0.842285V286H703.436ZM703.436 134.102C693.496 126.15 683.121 122.174 672.311 122.174C653.674 122.174 639.322 127.89 629.258 139.321C619.194 150.628 614.161 166.905 614.161 188.152C614.161 229.652 634.166 250.402 674.175 250.402C678.648 250.402 684.115 249.097 690.576 246.488C697.162 243.754 701.448 241.021 703.436 238.287V134.102Z" fill="#FF7C00" />
+        <path d="M833.341 9.0429C840.797 9.0429 847.133 11.7143 852.352 17.0571C857.695 22.2757 860.366 28.6125 860.366 36.0676C860.366 43.5227 857.695 49.9217 852.352 55.2645C847.133 60.4831 840.797 63.0924 833.341 63.0924C825.886 63.0924 819.487 60.4831 814.145 55.2645C808.926 49.9217 806.317 43.5227 806.317 36.0676C806.317 28.6125 808.926 22.2757 814.145 17.0571C819.487 11.7143 825.886 9.0429 833.341 9.0429ZM809.299 286V124.597H783.765V86.3896H856.452V286H809.299Z" fill="#FF7C00" />
+        <path d="M897.828 185.729C897.828 155.287 906.588 130.499 924.107 111.364C941.751 92.2294 964.986 82.662 993.813 82.662C1024.13 82.662 1047.68 91.8567 1064.45 110.246C1081.22 128.635 1089.61 153.796 1089.61 185.729C1089.61 217.537 1081.04 242.822 1063.89 261.584C1046.87 280.346 1023.51 289.727 993.813 289.727C963.495 289.727 939.887 280.284 922.989 261.398C906.215 242.388 897.828 217.164 897.828 185.729ZM946.286 185.729C946.286 229.714 962.128 251.706 993.813 251.706C1008.35 251.706 1019.84 245.991 1028.29 234.56C1036.87 223.129 1041.15 206.852 1041.15 185.729C1041.15 142.365 1025.37 120.683 993.813 120.683C979.275 120.683 967.72 126.399 959.146 137.83C950.573 149.261 946.286 165.227 946.286 185.729Z" fill="#FF7C00" />
+      </svg>
+    </a>
+    <nav class="flex ml-auto hidden w-full flex-col gap-3 sm:flex sm:w-auto sm:flex-row sm:gap-8">
       <a class="hover:opacity-75 transition" href="https://twitter.com/Gradio">
         <img src="/assets/img/twitter.svg" class="h-8">
       </a>
       <a class="hover:opacity-75 transition" href="https://github.com/gradio-app/gradio">
         <img src="/assets/img/github.svg" class="h-8">
       </a>
-    </div>
+    </nav>
   </footer>
   <script src="/assets/prism.js"></script>
+  <script id="gradio-library" type="module" crossorigin src="/gradio_static/assets/{{ entry_js_file }}"></script>
+  <script>
+   // highlighting section in nav bar
+    let mainNavLinks = document.querySelectorAll(".navigation a");
+    let lastId;
+    let cur = [];
+
+    window.addEventListener("scroll", event => {
+      let fromTop = window.scrollY;
+
+    mainNavLinks.forEach(link => {
+      let section = document.querySelector(link.hash);
+
+      if (
+        section.offsetTop <= fromTop*1.01 &&
+        section.offsetTop + section.offsetHeight > fromTop*1.01
+      ) {
+        link.classList.add("border-orange-500", "text-orange-500", "md:border-l-2", "pl-4");
+      } else {
+        link.classList.remove("border-orange-500", "text-orange-500", "md:border-l-2", "pl-4");
+      }
+    });
+    });
+
+    // header anchor tags
+    function createAnchorTag(link) {
+            let a = document.createElement('a');
+            a.href = link;
+            a.classList.add("anchor", "invisible");
+            let img = document.createElement('img');
+            img.classList.add("anchor-img", "w-7", "max-w-full", "inline-block", "mr-0", "ml-1")
+            img.src = "/assets/img/anchor.svg";
+            a.appendChild(img);
+            return a;
+        }
+    function createMobileAnchorTag(link) {
+            let a = document.createElement('a');
+            a.href = link;
+            a.style="text-decoration: none"
+            return a;
+    }
+    var headers = document.querySelectorAll(".docs h2, .docs h3");
+    function isTouchDevice() {
+            return (('ontouchstart' in window) ||
+               (navigator.maxTouchPoints > 0) ||
+               (navigator.msMaxTouchPoints > 0));
+          }
+
+    if (isTouchDevice()) {
+          for (let i = 0; i < headers.length; i++) {
+            let link = '#' + headers[i].id;
+            var parent = headers[i].parentNode;
+            var wrapper = createMobileAnchorTag(link);
+            parent.replaceChild(wrapper, headers[i]);
+            wrapper.appendChild(headers[i]);
+          }
+    } else {
+          for (let i = 0; i < headers.length; i++) {
+            headers[i].classList.add("header");
+            let link = '#' + headers[i].id;
+            headers[i].appendChild(createAnchorTag(link))
+          }
+    }
+
+    // guides styling
+    var a;
+    guideLists = document.querySelectorAll(".guides-list");
+
+    guideLists.forEach(guideList => {
+      a = guideList.getElementsByTagName('a');
+
+      var backgrounds = ['linear-gradient(90deg, rgba(255,254,188,0.3) 0%, rgba(255,255,240,0.3) 100%)',
+                         'linear-gradient(90deg, rgba(255,205,188,0.3) 0%, rgba(255,253,253,0.3) 100%)',
+                         'linear-gradient(90deg, rgba(255,188,188,0.3) 0%, rgba(255,238,238,0.3) 100%)',
+                         'linear-gradient(90deg, rgba(194,255,169,0.3) 0%, rgba(243,255,238,0.3) 100%)',
+                         'linear-gradient(90deg, rgba(169,255,237,0.3) 0%, rgba(230,255,250,0.3) 100%)',
+                         'linear-gradient(90deg, rgba(182,169,255,0.3) 0%, rgba(237,234,255,0.3) 100%)',
+                         'linear-gradient(90deg, rgba(255,183,245,0.3) 0%, rgba(255,234,252,0.3) 100%)']
+
+      function shuffleBackgrounds(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+      }
+
+      shuffleBackgrounds(backgrounds);
+
+      color_counter = 0
+      for (let i = 0; i < a.length; i++) {
+        a[i].style.background = backgrounds[color_counter];
+        color_counter += 1
+        if (color_counter == backgrounds.length) {
+          color_counter = 0;
+        }
+      }
+      });
+
+    // DEMOS
+    var demosWindow = document.getElementById("demos-window");
+    var demosNav = document.querySelector("#demos-window .demos-nav");
+    var demos = document.querySelector("#demos-window .demos");
+    var demoCode = document.querySelector("#demos-window .demo-code");
+
+    function showCode(demo_name) {
+      let codeDiv = document.getElementById(demo_name);
+      let allCodeDivs = document.querySelectorAll("#demos-window .demo-code").forEach(e => {
+              e.classList.add("hidden");
+            });
+      codeDiv.classList.remove("hidden");
+    }
+
+    function showInterface(demo_name) {
+      let interfaceDiv = document.getElementById(demo_name + "-interface");
+      let allInterfaceDivs = document.querySelectorAll("#demos-window .demo-interface").forEach(e => {
+              e.classList.add("hidden");
+            });
+      interfaceDiv.classList.remove("hidden");
+    }
+
+    var demo_endpoint = "/demo";
+
+    {% for src, code in docs.demo_code.items() %}
+        fetch('/demo/{{ src }}/config')
+        .then(response => response.json())
+        .then(demo => {
+          demo.root = demo_endpoint + "/{{ src }}/";
+          launchGradio(demo, "#{{ src }}-interface");
+        });
+    {% endfor %}
+
+
+
+    function buildDemos(demo_names) {
+      console.log(demo_names);
+      for (let i = 0; i < demo_names.length; i++) {
+        if (i == 0) {
+          let demoTab = document.createElement('div');
+          demoTab.classList.add("demo-tab", "mr-2", "border-orange-500", "border-b-2", "text-orange-500", "cursor-pointer");
+          showCode(demo_names[i]);
+          showInterface(demo_names[i])
+          demoTab.innerHTML = demo_names[i];
+          demoTab.onclick = function() {
+            showCode(demo_names[i]);
+            showInterface(demo_names[i])
+            let otherTabs = document.querySelectorAll(".demo-tab").forEach(e => {
+              e.classList.remove("text-orange-500", "border-orange-500", "border-b-2");
+              e.classList.add("hover:text-gray-800");
+            });
+            demoTab.classList.add("border-orange-500", "border-b-2", "text-orange-500");
+          };
+          demosNav.appendChild(demoTab);
+        } else {
+          let demoTab = document.createElement('div');
+          demoTab.classList.add("demo-tab", "mr-2", "cursor-pointer", "hover:text-gray-800");
+          demoTab.innerHTML = demo_names[i];
+          demoTab.onclick = function() {
+            showCode(demo_names[i]);
+            showInterface(demo_names[i])
+            let otherTabs = document.querySelectorAll(".demo-tab").forEach(e => {
+              e.classList.remove("text-orange-500", "border-orange-500", "border-b-2");
+              e.classList.add("hover:text-gray-800");
+            });
+            demoTab.classList.add("border-orange-500", "border-b-2", "text-orange-500");
+          }
+        demosNav.appendChild(demoTab);
+        }
+      }
+    }
+
+
+    function showDemos(demo_names) {
+       buildDemos(demo_names);
+       demosWindow.style.display = "block";
+    }
+
+    function removeAllChildNodes(parent) {
+        while (parent.firstChild) {
+            parent.removeChild(parent.firstChild);
+        }
+    }
+
+    window.onclick = function(event) {
+      if (event.target == demosWindow) {
+        demosWindow.style.display = "none";
+        removeAllChildNodes(demosNav);
+      }
+    }
+
+
+    {% for component, config in docs.embedding_configs.items() %}
+      target = "#{{ component }}-component";
+      config = {{ config|tojson }};
+      window.launchGradio(config, target);
+    {% endfor %}
+
+    let componentEmbeddings = document.querySelectorAll(".component-embedding").forEach(e => {
+                  e.classList.remove("dark");
+              });
+    let componentEmbeddingsFooters = document.querySelectorAll(".component-embedding .footer").forEach(e => {
+              e.classList.add("hidden");
+            });
+
+
+  </script>
 </body>
 
 </html>
