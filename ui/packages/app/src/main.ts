@@ -171,4 +171,11 @@ if (window.__gradio_mode__ == "app") {
 		.catch((e) => {
 			window.__gradio_loader__.$set({ status: "error" });
 		});
+} else if (window.__gradio_mode__ == "website") {
+	get_config()
+		.then((config_set) => {
+			for (const config of config_set) {
+				window.launchGradio(config, config.target);
+			}
+		});
 }

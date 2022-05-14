@@ -166,23 +166,25 @@
   <script src="/assets/prism.js"></script>
   <script>
     window.__gradio_mode__ = "website";
+    window.gradio_config = [];
   </script>
-  <script id="gradio-library" type="module" crossorigin src="/gradio_static/assets/{{ entry_js_file }}"></script>
   <script>
     var demo_endpoint = "/demo";
     var demo_names = {{ demo_names| tojson }};
-    window.setTimeout(() => {
-      console.log("lets go")
-      demo_names.forEach((demo_name, i) => {
+    Promise.all(demo_names.map(async (demo_name, i) => {
       fetch('/demo/' + demo_name + '/config')
         .then(response => response.json())
         .then(demo => {
-          console.log(">", demo)
           demo.root = demo_endpoint + "/" + demo_name + "/";
-          launchGradio(demo, "#interface_" + demo_name);
+          demo.target = "#interface_" + demo_name;
+          window.gradio_config.push(demo);
         });
-      });
-    }, 5000)
+    })).then(() => {
+      var script = document.createElement('script');
+      script.src = "https://gradio.s3-us-west-2.amazonaws.com/3.0b2/assets/index.a7170824.js"
+      script.type = "module";
+      document.head.appendChild(script);
+    })
     function createAnchorTag(link) {
             let a = document.createElement('a');
             a.href = link;

@@ -57,7 +57,7 @@ inputs = [
                          value=["USA", "Canada"]),
         gr.Checkbox(label="Social Distancing?"),
     ]
-outputs = gr.Plot(type="auto")
+outputs = gr.Plot()
 
 demo = gr.Interface(fn=outbreak, inputs=inputs, outputs=outputs)
 
