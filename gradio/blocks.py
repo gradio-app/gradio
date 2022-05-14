@@ -686,3 +686,31 @@ class Blocks(BlockContext):
             self.server.close()
             if self.enable_queue:
                 queueing.close()
+
+
+class Group(BlockContext):
+    def get_config(self):
+        return {"type": "group", **super().get_config()}
+
+    @staticmethod
+    def update(
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "visible": visible,
+            "__type__": "update",
+        }
+
+
+class Box(BlockContext):
+    def get_config(self):
+        return {"type": "box", **super().get_config()}
+
+    @staticmethod
+    def update(
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "visible": visible,
+            "__type__": "update",
+        }

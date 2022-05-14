@@ -60,7 +60,7 @@
 		@apply ml-0 mt-3;
 	}
 
-	.row.gr-gap.mobile-row > *:not(.absolute) + * {
+	.row.gr-gap.mobile-row > *:not(.absolute):not(".ml-0") + * {
 		@apply !ml-3 mt-0;
 	}
 
