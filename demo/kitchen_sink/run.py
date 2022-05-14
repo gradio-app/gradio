@@ -80,17 +80,6 @@ def fn(
         os.path.join(os.path.dirname(__file__), "files/titanic.csv"),
         df1,  # Dataframe
         np.random.randint(0, 10, (4, 4)),  # Dataframe
-        [
-            im
-            for im in [
-                im1,
-                im2,
-                im3,
-                im4,
-                os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"),
-            ]
-            if im is not None
-        ],  # Carousel
         df2,  # Timeseries
     )
 
@@ -135,7 +124,6 @@ demo = gr.Interface(
         gr.File(label="File"),
         gr.Dataframe(label="Dataframe"),
         gr.Dataframe(label="Numpy"),
-        gr.Carousel(components="image", label="Carousel"),
         gr.Timeseries(x="time", y=["price", "value"], label="Timeseries"),
     ],
     examples=[
