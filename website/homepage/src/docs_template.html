@@ -27,12 +27,8 @@
   <link rel="stylesheet" href="/assets/prism.css">
   <style>
     pre {
-<<<<<<< HEAD
-      overflow: auto !important;
-=======
       overflow-x: hidden !important;
       overflow-y: scroll !important;
->>>>>>> origin
       background: #F6F7FA;
       border-radius: 6px;
     }
@@ -48,23 +44,6 @@
       visibility: visible;
     }
 
-<<<<<<< HEAD
-    .copy {
-      padding-right: 1em;
-      background: #f9fafb;
-    }
-    .copy-svg {
-      visibility: hidden;
-      margin: 1em 0 0 0 !important;
-      width: 20px;
-    }
-
-    .code-block:hover .copy-svg {
-       visibility: visible;
-    }
-
-=======
->>>>>>> origin
   </style>
   <script async src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
     <script>
@@ -422,17 +401,17 @@
     <p class="mb-2 w-4/5 font-semibold">Example usage:</p>
     <pre><code class='lang-python'>{{ docs.blocks["example"] }}</code></pre>
 
-    <!-- <h3 class="font-semibold">Layout Classes:</h3>
+    <h3 class="font-semibold">Layout Classes:</h3>
     <div id="layout-classes" class="func ml-20">
       <h3 id="layout-classes-header" class="text-2xl font-light my-4">Row</h3>
       <pre><code class='lang-python'>with gradio.Row():
     &#183;&#183;&#183;</code></pre>
-      <p class="mb-2 w-4/5 mt-4 text-lg"></p>
+      <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.row["doc"] }}</p>
 
       <h3 id="column-header" class="text-2xl font-light my-4">Column</h3>
       <pre><code class='lang-python'>with gradio.Column():
     &#183;&#183;&#183;</code></pre>
-      <p class="mb-2 w-4/5 mt-4 text-lg"></p>
+      <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.column["doc"] }}</p>
 
       <h3 id="tabs-header" class="text-2xl font-light my-4">Tabs and TabItem</h3>
       <pre><code class='lang-python'>with gradio.Tabs():
@@ -440,8 +419,8 @@
       &#183;&#183;&#183;
     with gradio.TabItem("Tab 2"):
       &#183;&#183;&#183;</code></pre>
-      <p class="mb-2 w-4/5 mt-4 text-lg"></p>
-    </div> -->
+      <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.tabs["doc"] }}</p>
+    </div>
 
           </div>
         </section>
@@ -596,18 +575,6 @@
 
         <div class="fixed hidden inset-0 bg-gray-500 bg-opacity-75 overflow-y-auto h-full w-full" id="demos-window">
           <div class="relative mx-auto my-auto p-5 border w-4/5 shadow-lg rounded-md bg-white" style="top: 5%; height: 90%">
-<<<<<<< HEAD
-            <div class="flex flex-row items-start w-full m-auto gap-6" style="height: 95%">
-              <div class="w-2/5 h-full">
-                <div class="flex flex-column items-start w-11/12 h-11/12 m-auto gap-6">
-                  <h3 class="text-3xl font-semibold text-left text-gray-600">Code</h3>
-                </div>
-                <div class="w-full h-full my-2 bg-grey-200 rounded-md">
-                  {% for src, code in docs.demo_code.items() %}
-                    <div id="{{ src }}" class="hidden demo-code h-full">
-                      <pre style="height: 95%"><code class='lang-python'>{{ code }}</code></pre>
-                    </div>
-=======
             <div class="flex flex-row items-start w-11/12 h-11/12 m-auto gap-6">
               <div class="w-2/5">
                 <div class="flex flex-column items-start w-11/12 h-11/12 m-auto gap-6">
@@ -616,16 +583,11 @@
                 <div class="w-full h-full my-2 bg-grey-200 rounded-md">
                   {% for src, code in docs.demo_code.items() %}
                     <pre id="{{ src }}" class="hidden demo-code"><code class='lang-python' style="max-height: 34rem;">{{ code }}</code></pre>
->>>>>>> origin
                   {% endfor %}
                 </div>
               </div>
               <div class="w-3/5">
-<<<<<<< HEAD
-                <h2 class="text-3xl font-semibold text-left text-gray-600">Demos</h2>
-=======
                 <h2 class="text-3xl font-semibold text-left">Demos</h2>
->>>>>>> origin
                 <div class="mb-6">
                   <nav class="demos-nav flex flex-wrap gap-6 whitespace-nowrap text-gray-600 md:text-lg my-2 md:mb-0"></nav>
                 </div>
@@ -762,40 +724,6 @@
       }
       });
 
-<<<<<<< HEAD
-
-    // adding copy button to all code blocks
-
-<!--    function copyCode(elem) {-->
-<!--        var text = elem.parentElement.innerText;-->
-<!--        navigator.clipboard.writeText(text);-->
-<!--        elem.firstChild.src = "/assets/img/copy-orange.svg"-->
-<!--        setTimeout(function(){-->
-<!--          elem.firstChild.src = "/assets/img/copy-grey.svg"-->
-<!--        }, 600);-->
-<!--    };-->
-
-<!--    let codeSnippets = document.querySelectorAll("pre").forEach(element => {-->
-<!--              var parent = element.parentNode;-->
-<!--              var wrapperDiv = document.createElement('div');-->
-<!--              wrapperDiv.classList.add("code-block", "flex", "h-full");-->
-<!--              parent.replaceChild(wrapperDiv, element);-->
-<!--              wrapperDiv.appendChild(element);-->
-<!--              let button = document.createElement('button');-->
-<!--              button.classList.add("copy", "flex", "float-right", "cursor-pointer", "rounded-r", "rounded-l-none", "mx-0", "my-2");-->
-<!--              button.onclick = 'copyCode(this)';-->
-<!--              let img = document.createElement('img');-->
-<!--              img.classList.add("copy-svg", "m0", "w-7", "flex-initial");-->
-<!--              img.src = "/assets/img/copy-grey.svg";-->
-<!--              let div = document.createElement('div');-->
-<!--              div.classList.add("flex-auto");-->
-<!--              button.appendChild(img);-->
-<!--              button.appendChild(div);-->
-<!--              wrapperDiv.append(button);-->
-<!--            });-->
-
-=======
->>>>>>> origin
     // DEMOS
     var demosWindow = document.getElementById("demos-window");
     var demosNav = document.querySelector("#demos-window .demos-nav");
