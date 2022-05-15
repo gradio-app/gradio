@@ -28,7 +28,7 @@
 	{#if value}
 		<HighlightedText {value} {show_legend} {color_map} />
 	{:else}
-		<div class="min-h-[6rem] flex justify-center items-center">
+		<div class="h-full min-h-[6rem] flex justify-center items-center">
 			<div class="h-5 dark:text-white opacity-50"><TextHighlight /></div>
 		</div>
 	{/if}

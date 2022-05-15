@@ -40,7 +40,7 @@ from gradio.components import (
 from gradio.interface import Interface, TabbedInterface
 from gradio.mix import Series, Parallel
 from gradio.blocks import Blocks
-from gradio.layouts import Row, Column, Tabs, TabItem
+from gradio.layouts import Row, Column, Tabs, TabItem, Group, Box
 from gradio.events import Changeable, Clearable, Submittable, Editable, Playable, Clickable
 
 GRADIO_DIR = "../../"
@@ -500,29 +500,42 @@ demo.launch()"""
         "params_doc": parallel_params[2],
     }    
     
-    # row = {
-    #     "doc": get_class_documentation(Row, lines=None)["doc"],
-    #     "params": get_function_documentation(Row.__init__)[1],
-    #     "params_doc": get_function_documentation(Row.__init__)[2],
-    # }           
+    row = {
+        "doc": get_class_documentation(Row, lines=None)["doc"],
+        "params": get_function_documentation(Row.__init__)[1],
+        "params_doc": get_function_documentation(Row.__init__)[2],
+    }           
 
-    # column = {
-    #     "doc": get_class_documentation(Column, lines=None)["doc"],
-    #     "params": get_function_documentation(Column.__init__)[1],
-    #     "params_doc": get_function_documentation(Column.__init__)[2],
-    # }           
+    column = {
+        "doc": get_class_documentation(Column, lines=None)["doc"],
+        "params": get_function_documentation(Column.__init__)[1],
+        "params_doc": get_function_documentation(Column.__init__)[2],
+    }           
 
-    # tabs = {
-    #     "doc": get_class_documentation(Tabs, lines=None)["doc"],
-    #     "params": get_function_documentation(Tabs.__init__)[1],
-    #     "params_doc": get_function_documentation(Tabs.__init__)[2],
-    # }           
+    tabs = {
+        "doc": get_class_documentation(Tabs, lines=None)["doc"],
+        "params": get_function_documentation(Tabs.__init__)[1],
+        "params_doc": get_function_documentation(Tabs.__init__)[2],
+    }           
 
-    # tabitem = {
-    #     "doc": get_class_documentation(TabItem, lines=None)["doc"],
-    #     "params": get_function_documentation(TabItem.__init__)[1],
-    #     "params_doc": get_function_documentation(TabItem.__init__)[2],
-    # }
+    tabitem = {
+        "doc": get_class_documentation(TabItem, lines=None)["doc"],
+        "params": get_function_documentation(TabItem.__init__)[1],
+        "params_doc": get_function_documentation(TabItem.__init__)[2],
+    }
+
+    group = {
+        "doc": get_class_documentation(Group, lines=None)["doc"],
+        "params": get_function_documentation(Group.__init__)[1],
+        "params_doc": get_function_documentation(Group.__init__)[2],
+    }
+
+    box = {
+        "doc": get_class_documentation(Box, lines=None)["doc"],
+        "params": get_function_documentation(Box.__init__)[1],
+        "params_doc": get_function_documentation(Box.__init__)[2],
+    }
+
 
 
     SCREENSHOT_FOLDER = "dist/assets/demo_screenshots"
@@ -557,10 +570,12 @@ demo.launch()"""
         "tabbed_interface": tabbed_interface,
         "parallel": parallel,
         "series": series,
-        # "row": row,
-        # "column": column,
-        # "tabs": tabs,
-        # "tabitem": tabitem,
+        "row": row,
+        "column": column,
+        "tabs": tabs,
+        "tabitem": tabitem,
+        "group": group,
+        "box": box,
         "demo_code": demo_code,
         "embedding_configs": embedding_configs
     }
