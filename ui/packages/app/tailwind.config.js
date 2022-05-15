@@ -42,6 +42,9 @@ module.exports = {
 	},
 	plugins: [require("@tailwindcss/forms")],
 	safelist: [
+		"min-h-[350px]",
+		"max-h-[55vh]",
+		"xl:min-h-[450px]",
 		"!rounded-br-none ",
 		"!rounded-br-lg",
 		"!rounded-bl-none ",

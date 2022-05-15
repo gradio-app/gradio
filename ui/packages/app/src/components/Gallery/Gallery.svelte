@@ -90,14 +90,14 @@
 	<StatusTracker {...loading_status} />
 	<BlockLabel {show_label} Icon={ImageIcon} label={label || "Gallery"} />
 	{#if value === null}
-		<div class="min-h-[15rem] flex justify-center items-center">
+		<div class="h-full min-h-[15rem] flex justify-center items-center">
 			<ImageIcon />
 		</div>
 	{:else}
 		{#if selected_image !== null}
 			<div
 				on:keydown={on_keydown}
-				class="absolute inset-0 z-10 flex flex-col bg-white/90 dark:bg-gray-900 backdrop-blur   "
+				class="absolute inset-0 z-10 flex flex-col bg-white/90 dark:bg-gray-900 backdrop-blur h-full"
 				class:min-h-[350px]={style.height !== "auto"}
 				class:max-h-[55vh]={style.height !== "auto"}
 				class:xl:min-h-[450px]={style.height !== "auto"}
