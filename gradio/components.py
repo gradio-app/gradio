@@ -3029,7 +3029,6 @@ class Gallery(IOComponent):
             bg_color=bg_color,
             text_color=text_color,
             margin=margin,
-            height=height,
         )
 
 
