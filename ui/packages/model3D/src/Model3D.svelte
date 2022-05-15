@@ -3,7 +3,7 @@
 	import { BlockLabel } from "@gradio/atoms";
 	import { File } from "@gradio/icons";
 
-	export let value: FileData;
+	export let value: FileData | null;
 	export let style: string;
 	export let clearColor: Array<number>;
 	export let label: string = "";
@@ -27,45 +27,50 @@
 	});
 
 	afterUpdate(() => {
+		if (scene) {
+			scene.dispose()
+			engine.stopRenderLoop();
+			engine.dispose();
+			engine = null;
+			engine = new BABYLON.Engine(canvas, true);
+			window.addEventListener("resize", () => {
+				engine.resize();
+			});
+		}
 		addNewModel();
 	});
 
 	function addNewModel() {
-		if (scene) {
-			scene.dispose()
-		}
-		if (value) {
-			scene = new BABYLON.Scene(engine);
-			scene.createDefaultCameraOrLight();
-			scene.clearColor = clearColor
-				? (scene.clearColor = new BABYLON.Color4(
-						clearColor[0],
-						clearColor[1],
-						clearColor[2],
-						clearColor[3]
-				))
-				: new BABYLON.Color4(0.2, 0.2, 0.2, 1);
-			
-			engine.runRenderLoop(() => {
-				scene.render();
-			});
+		scene = new BABYLON.Scene(engine);
+		scene.createDefaultCameraOrLight();
+		scene.clearColor = clearColor
+			? (scene.clearColor = new BABYLON.Color4(
+					clearColor[0],
+					clearColor[1],
+					clearColor[2],
+					clearColor[3]
+			))
+			: new BABYLON.Color4(0.2, 0.2, 0.2, 1);
+		
+		engine.runRenderLoop(() => {
+			scene.render();
+		});
 
-			let base64_model_content = value["data"];
-			let raw_content = BABYLON.Tools.DecodeBase64(base64_model_content);
-			let blob = new Blob([raw_content]);
-			let url = URL.createObjectURL(blob);
-			BABYLON.SceneLoader.Append(
-				"",
-				url,
-				scene,
-				() => {
-					scene.createDefaultCamera(true, true, true);
-				},
-				undefined,
-				undefined,
-				"." + value["name"].split(".")[1]
-			);
-		}
+		let base64_model_content = value["data"];
+		let raw_content = BABYLON.Tools.DecodeBase64(base64_model_content);
+		let blob = new Blob([raw_content]);
+		let url = URL.createObjectURL(blob);
+		BABYLON.SceneLoader.Append(
+			"",
+			url,
+			scene,
+			() => {
+				scene.createDefaultCamera(true, true, true);
+			},
+			undefined,
+			undefined,
+			"." + value["name"].split(".")[1]
+		);
 	}
 </script>
 
