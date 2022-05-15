@@ -295,7 +295,7 @@ class HTML(components.HTML):
         """
         super().__init__(label=label)
 
-        
+
 class Carousel(components.Carousel):
     """
     Component displays a set of output components that can be scrolled through.
@@ -318,7 +318,7 @@ class Carousel(components.Carousel):
             DeprecationWarning,
         )
         super().__init__(components=components, label=label)
-    
+
 
 class Chatbot(components.Chatbot):
     """

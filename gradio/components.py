@@ -3053,7 +3053,7 @@ class Carousel(IOComponent):
         warnings.warn(
             "The Carousel component is partially deprecated. It may not behave as expected.",
             DeprecationWarning,
-        )        
+        )
         if not isinstance(components, list):
             components = [components]
         self.components = [

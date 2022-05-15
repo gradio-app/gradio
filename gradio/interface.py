@@ -206,10 +206,12 @@ class Interface(Blocks):
 
         self.input_components = [get_component_instance(i).unrender() for i in inputs]
         self.output_components = [get_component_instance(o).unrender() for o in outputs]
-        
+
         for component in self.input_components + self.output_components:
-            if not(isinstance(component, IOComponent)):
-                raise ValueError(f"{component} is not a valid input/output component for Interface.")
+            if not (isinstance(component, IOComponent)):
+                raise ValueError(
+                    f"{component} is not a valid input/output component for Interface."
+                )
 
         if len(self.input_components) == len(self.output_components):
             same_components = [
