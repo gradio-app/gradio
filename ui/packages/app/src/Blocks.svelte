@@ -149,6 +149,14 @@
 
 	async function handle_mount() {
 		await tick();
+
+		var a = document.getElementsByTagName("a");
+
+		for (var i = 0; i < a.length; i++) {
+			const target = a[i].getAttribute("target");
+			if (target !== "_blank") a[i].setAttribute("target", "_blank");
+		}
+
 		dependencies.forEach(
 			(
 				{ targets, trigger, inputs, outputs, queue, backend_fn, frontend_fn },
