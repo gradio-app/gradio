@@ -7,7 +7,7 @@ import re
 import markdown2
 import requests
 from jinja2 import Template
-# from render_html_helpers import generate_meta_image
+from render_html_helpers import generate_meta_image
 
 from gradio.components import (
     Textbox, 
@@ -172,7 +172,7 @@ def render_gallery():
 
 def render_guides():
     for guide in guides:
-        # generate_meta_image(guide)
+        generate_meta_image(guide)
 
         code_tags = re.findall(r'\{\{ code\["([^\s]*)"\] \}\}', guide["content"])
         demo_names = re.findall(r'\{\{ demos\["([^\s]*)"\] \}\}', guide["content"])

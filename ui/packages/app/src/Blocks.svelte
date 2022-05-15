@@ -325,7 +325,6 @@
 
 <div class="mx-auto container px-4 py-6 dark:bg-gray-950">
 	{#if ready}
-		{console.log("ready: " + root) || ""}
 		<Render
 			component={rootNode.component}
 			id={rootNode.id}
