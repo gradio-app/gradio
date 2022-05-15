@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import "./typography.css";
+	import style from "./typography.css";
 
 	export let elem_id: string = "";
 	export let value: string;
