@@ -37,8 +37,8 @@ RUN npm install
 RUN npm run build
 WORKDIR /usr/share/nginx/html
 RUN rm -rf ./*
-RUN mkdir ./gradio_static/
-RUN cp -r /gradio/gradio/templates/frontend/. ./gradio_static/
+RUN cp -r /gradio/gradio/templates/frontend/assets/ ./
+RUN cp -r /gradio/gradio/templates/frontend/static/ ./
 RUN cp -r /gradio/website/homepage/dist/. ./
 RUN cp /gradio/website/homepage/nginx.conf /etc/nginx/conf.d/default.conf
 

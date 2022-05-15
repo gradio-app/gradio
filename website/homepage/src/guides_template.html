@@ -13,7 +13,7 @@
   <meta name="twitter:image" content="https://gradio.app/assets/img/guides/{{ guide_name }}.png">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" type="image/png" href="/assets/img/logo.png">
-  <link rel="stylesheet" href="/gradio_static/assets/{{ entry_css_file }}">
+  <link rel="stylesheet" href="/assets/{{ entry_css_file }}">
   <link href="https://fonts.cdnfonts.com/css/product-sans" rel="stylesheet">
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/assets/prism.css">
@@ -165,26 +165,20 @@
   </footer>
   <script src="/assets/prism.js"></script>
   <script>
-    window.__gradio_mode__ = "website";
-    window.gradio_config = [];
+    window.gradio_mode = "website";
   </script>
+  <script id="gradio-library" type="module" crossorigin src="/assets/{{ entry_js_file }}"></script>
   <script>
     var demo_endpoint = "/demo";
     var demo_names = {{ demo_names| tojson }};
-    Promise.all(demo_names.map(async (demo_name, i) => {
+    demo_names.forEach((demo_name, i) => {
       fetch('/demo/' + demo_name + '/config')
         .then(response => response.json())
         .then(demo => {
           demo.root = demo_endpoint + "/" + demo_name + "/";
-          demo.target = "#interface_" + demo_name;
-          window.gradio_config.push(demo);
+          launchGradio(demo, "#interface_" + demo_name);
         });
-    })).then(() => {
-      var script = document.createElement('script');
-      script.src = "https://gradio.s3-us-west-2.amazonaws.com/3.0b2/assets/index.a7170824.js"
-      script.type = "module";
-      document.head.appendChild(script);
-    })
+    });
     function createAnchorTag(link) {
             let a = document.createElement('a');
             a.href = link;
@@ -238,7 +232,7 @@
       color_counter += 1
       if (color_counter == backgrounds.length) {
         color_counter = 0;
-      }
+      }  
     }
 
   </script>
