@@ -28,7 +28,7 @@
 
 	afterUpdate(() => {
 		if (scene) {
-			scene.dispose()
+			scene.dispose();
 			engine.stopRenderLoop();
 			engine.dispose();
 			engine = null;
@@ -49,9 +49,9 @@
 					clearColor[1],
 					clearColor[2],
 					clearColor[3]
-			))
+			  ))
 			: new BABYLON.Color4(0.2, 0.2, 0.2, 1);
-		
+
 		engine.runRenderLoop(() => {
 			scene.render();
 		});
