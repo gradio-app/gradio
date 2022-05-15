@@ -126,7 +126,7 @@
 		{#if static_data}
 			<Chart value={static_data} {colors} />
 		{:else}
-			<div class="min-h-[15rem] flex justify-center items-center">
+			<div class="h-full min-h-[15rem] flex justify-center items-center">
 				<div class="h-5 dark:text-white opacity-50"><ChartIcon /></div>
 			</div>
 		{/if}
@@ -139,7 +139,7 @@
 			{colors}
 		/>
 	{:else if value === undefined}
-		<div class="min-h-[8rem]">
+		<div class="h-full min-h-[8rem]">
 			<Upload
 				filetype="text/csv"
 				on:load={({ detail }) => handle_load(detail)}
