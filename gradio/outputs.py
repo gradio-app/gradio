@@ -171,7 +171,7 @@ class Timeseries(components.Timeseries):
         super().__init__(x=x, y=y, label=label)
 
 
-class State(components.State):
+class State(components.Variable):
     """
     Special hidden component that stores state across runs of the interface.
     Output type: Any

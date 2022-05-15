@@ -16,7 +16,7 @@ import tempfile
 import warnings
 from copy import deepcopy
 from types import ModuleType
-from typing import Any, Callable, Dict, List, Optional, Tuple, Type
+from typing import Any, Dict, List, Optional, Tuple, Type
 
 import matplotlib.figure
 import numpy as np
@@ -3026,7 +3026,7 @@ class Gallery(IOComponent):
         )
 
 
-class Carousel(IOComponent):
+class Carousel(IOComponent, Changeable):
     """
     Component displays a set of output components that can be scrolled through.
     Output type: List[List[Any]]
