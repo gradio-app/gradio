@@ -15,7 +15,6 @@ const CDN_URL = `https://gradio.s3-us-west-2.amazonaws.com/${GRADIO_VERSION}/`;
 export default defineConfig(({ mode }) => {
 	const production = mode === "production:cdn" || mode === "production:local";
 	const is_cdn = mode === "production:cdn";
-	console.log({ mode, production, is_cdn, GRADIO_VERSION });
 
 	return {
 		base: is_cdn ? CDN_URL : "./",
