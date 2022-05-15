@@ -16,7 +16,7 @@ import tempfile
 import warnings
 from copy import deepcopy
 from types import ModuleType
-from typing import Any, Callable, Dict, List, Optional, Tuple, Type
+from typing import Any, Dict, List, Optional, Tuple, Type
 
 import matplotlib.figure
 import numpy as np
@@ -2932,15 +2932,6 @@ class HTML(Changeable, IOComponent):
             "__type__": "update",
         }
 
-    def postprocess(self, x):
-        """
-        Parameters:
-        y (str): HTML output
-        Returns:
-        (str): HTML output
-        """
-        return x
-
 
 class Gallery(IOComponent):
     """
@@ -3023,14 +3014,122 @@ class Gallery(IOComponent):
     ):
         if grid is not None:
             self._style["grid"] = grid
+        if height is not None:
+            self._style["height"] = height
+
         return IOComponent.style(
             self,
             rounded=rounded,
             bg_color=bg_color,
             text_color=text_color,
             margin=margin,
-            height=height,
         )
+
+
+class Carousel(IOComponent, Changeable):
+    """
+    Component displays a set of output components that can be scrolled through.
+    Output type: List[List[Any]]
+    Demos: disease_report
+    """
+
+    def __init__(
+        self,
+        *,
+        components: Component | List[Component],
+        label: Optional[str] = None,
+        show_label: bool = True,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
+        **kwargs,
+    ):
+        """
+        Parameters:
+        components (Union[List[OutputComponent], OutputComponent]): Classes of component(s) that will be scrolled through.
+        label (Optional[str]): component name in interface.
+        show_label (bool): if True, will display label.
+        visible (bool): If False, component will be hidden.
+        """
+        warnings.warn(
+            "The Carousel component is partially deprecated. It may not behave as expected.",
+            DeprecationWarning,
+        )
+        if not isinstance(components, list):
+            components = [components]
+        self.components = [
+            get_component_instance(component) for component in components
+        ]
+        IOComponent.__init__(
+            self,
+            label=label,
+            show_label=show_label,
+            visible=visible,
+            elem_id=elem_id,
+            **kwargs,
+        )
+
+    def get_config(self):
+        return {
+            "components": [component.get_config() for component in self.components],
+            **IOComponent.get_config(self),
+        }
+
+    @staticmethod
+    def update(
+        value: Optional[Any] = None,
+        label: Optional[str] = None,
+        show_label: Optional[bool] = None,
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "label": label,
+            "show_label": show_label,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
+        }
+
+    def postprocess(self, y):
+        """
+        Parameters:
+        y (List[List[Any]]): carousel output
+        Returns:
+        (List[List[Any]]): 2D array, where each sublist represents one set of outputs or 'slide' in the carousel
+        """
+        if isinstance(y, list):
+            if len(y) != 0 and not isinstance(y[0], list):
+                y = [[z] for z in y]
+            output = []
+            for row in y:
+                output_row = []
+                for i, cell in enumerate(row):
+                    output_row.append(self.components[i].postprocess(cell))
+                output.append(output_row)
+            return output
+        else:
+            raise ValueError("Unknown type. Please provide a list for the Carousel.")
+
+    def save_flagged(self, dir, label, data, encryption_key):
+        return json.dumps(
+            [
+                [
+                    component.save_flagged(
+                        dir, f"{label}_{j}", data[i][j], encryption_key
+                    )
+                    for j, component in enumerate(self.components)
+                ]
+                for i, _ in enumerate(data)
+            ]
+        )
+
+    def restore_flagged(self, dir, data, encryption_key):
+        return [
+            [
+                component.restore_flagged(dir, sample, encryption_key)
+                for component, sample in zip(self.components, sample_set)
+            ]
+            for sample_set in json.loads(data)
+        ]
 
 
 class Chatbot(Changeable, IOComponent):
@@ -3301,7 +3400,7 @@ class Plot(Changeable, Clearable, IOComponent):
         return {"type": dtype, "plot": out_y}
 
 
-class Markdown(Component):
+class Markdown(IOComponent, Changeable):
     """
     Used to render arbitrary Markdown output.
     Preprocessing: this component does *not* accept input.
@@ -3323,7 +3422,7 @@ class Markdown(Component):
         value (str): Default value
         visible (bool): If False, component will be hidden.
         """
-        Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
+        IOComponent.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.md = MarkdownIt()
         unindented_value = inspect.cleandoc(value)
         self.value = self.md.render(unindented_value)

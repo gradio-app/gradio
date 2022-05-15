@@ -18,7 +18,7 @@
 			name?: keyof typeof component_map;
 			css?: Record<string, string>;
 			visible?: boolean;
-			elem_id?: str;
+			elem_id?: string;
 			[key: string]: unknown;
 		};
 		instance?: SvelteComponentTyped;
@@ -74,8 +74,37 @@
 		}
 	});
 
-	const dynamic_ids = dependencies.reduce((acc, next) => {
-		next.inputs.forEach((i) => acc.add(i));
+	function is_dep(
+		id: number,
+		type: "inputs" | "outputs",
+		deps: Array<Dependency>
+	) {
+		let dep_index = 0;
+		for (;;) {
+			const dep = deps[dep_index];
+			if (dep === undefined) break;
+
+			let dep_item_index = 0;
+			for (;;) {
+				const dep_item = dep[type][dep_item_index];
+				if (dep_item === undefined) break;
+				if (dep_item === id) return true;
+				dep_item_index++;
+			}
+
+			dep_index++;
+		}
+
+		return false;
+	}
+
+	const dynamic_ids = components.reduce((acc, { id }) => {
+		const is_input = is_dep(id, "inputs", dependencies);
+		const is_output = is_dep(id, "outputs", dependencies);
+
+		if (!is_input && !is_output) acc.add(id); // default dynamic
+		if (is_input) acc.add(id);
+
 		return acc;
 	}, new Set());
 

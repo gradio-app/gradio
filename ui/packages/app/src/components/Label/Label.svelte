@@ -28,7 +28,7 @@
 	{#if value !== undefined && value !== null}
 		<Label {value} {show_label} />
 	{:else}
-		<div class="min-h-[6rem] flex justify-center items-center">
+		<div class="h-full min-h-[6rem] flex justify-center items-center">
 			<div class="h-5 dark:text-white opacity-50"><LabelIcon /></div>
 		</div>
 	{/if}

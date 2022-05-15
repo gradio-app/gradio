@@ -9,6 +9,10 @@ if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
 
 
 class Row(BlockContext):
+    """
+    Row is a layout element within Blocks that renders all children horizontally.
+    """
+
     def get_config(self):
         return {"type": "row", **super().get_config()}
 
@@ -35,6 +39,10 @@ class Row(BlockContext):
 
 
 class Column(BlockContext):
+    """
+    Column is a layout element within Blocks that renders all children vertically.
+    """
+
     def __init__(
         self,
         visible: bool = True,
@@ -66,6 +74,12 @@ class Column(BlockContext):
 
 
 class Tabs(BlockContext):
+    """
+    Tabs is a layout element within Blocks that can contain multiple TabItem's. Each
+    TabItem gets rendered as a individual tab. The TabItem's must be nested within the
+    Tabs context.
+    """
+
     def change(self, fn: Callable, inputs: List[Component], outputs: List[Component]):
         """
         Parameters:
@@ -78,6 +92,11 @@ class Tabs(BlockContext):
 
 
 class TabItem(BlockContext):
+    """
+    TabItem is a layout element that must be defined within a Tabs context. The
+    components defined within the TabItem will be rendered within a tab.
+    """
+
     def __init__(self, label, **kwargs):
         super().__init__(**kwargs)
         self.label = label
@@ -97,6 +116,11 @@ class TabItem(BlockContext):
 
 
 class Group(BlockContext):
+    """
+    Group is a layout element within Blocks which groups together children so that
+    they do not have any padding or margin between them.
+    """
+
     def get_config(self):
         return {"type": "group", **super().get_config()}
 
@@ -111,6 +135,11 @@ class Group(BlockContext):
 
 
 class Box(BlockContext):
+    """
+    Box is a a layout element which places children in a box with rounded corners and
+    some padding around them.
+    """
+
     def get_config(self):
         return {"type": "box", **super().get_config()}
 
