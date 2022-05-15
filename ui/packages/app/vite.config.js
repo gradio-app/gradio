@@ -59,7 +59,7 @@ export default defineConfig(({ mode }) => {
 				writeBundle(config, bundle) {
 					if (!is_cdn) return;
 
-					const import_re = /import\(('[\.\/a-zA-Z0-9]*')\)/g;
+					const import_re = /import\(((?:'|")[\.\/a-zA-Z0-9]*(?:'|"))\)/g;
 					const import_meta = `${"import"}.${"meta"}.${"url"}`;
 
 					for (const file in bundle) {
