@@ -66,7 +66,7 @@ export default defineConfig(({ mode }) => {
 						const chunk = bundle[file];
 						if (chunk.type === "chunk") {
 							if (chunk.code.indexOf("import(") > -1) {
-								const fix_fn = `function import_fix(mod, base) {const url =  new URL(mod, base); return import(\`${CDN_URL}\${url.pathname?.startsWith('/') ? url.pathname.substring(1) : url.pathname}\`);}`;
+								const fix_fn = `const VERSION_RE = new RegExp("${GRADIO_VERSION}\/", "g");function import_fix(mod, base) {const url =  new URL(mod, base); return import(\`${CDN_URL}\${url.pathname?.startsWith('/') ? url.pathname.substring(1).replace(VERSION_RE, "") : url.pathname.replace(VERSION_RE, "")}\`);}`;
 								chunk.code =
 									fix_fn +
 									chunk.code.replace(
