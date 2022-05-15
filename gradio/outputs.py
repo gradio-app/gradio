@@ -9,24 +9,10 @@ from __future__ import annotations
 import warnings
 from typing import Dict, List, Optional
 
-from gradio.components import HTML as C_HTML
-from gradio.components import JSON as C_JSON
-from gradio.components import Audio as C_Audio
-from gradio.components import Chatbot as C_Chatbot
-from gradio.components import Component as Component
-from gradio.components import Dataframe as C_Dataframe
-from gradio.components import File as C_File
-from gradio.components import HighlightedText as C_HighlightedText
-from gradio.components import Image as C_Image
-from gradio.components import Label as C_Label
-from gradio.components import Model3D as C_Model3D
-from gradio.components import Textbox as C_Textbox
-from gradio.components import Timeseries as C_Timeseries
-from gradio.components import Variable as C_State
-from gradio.components import Video as C_Video
+from gradio import components
 
 
-class Textbox(C_Textbox):
+class Textbox(components.Textbox):
     def __init__(
         self,
         type: str = "auto",
@@ -39,7 +25,7 @@ class Textbox(C_Textbox):
         super().__init__(label=label, type=type)
 
 
-class Image(C_Image):
+class Image(components.Image):
     """
     Component displays an output image.
     Output type: Union[numpy.array, PIL.Image, str, matplotlib.pyplot, Tuple[Union[numpy.array, PIL.Image, str], List[Tuple[str, float, float, float, float]]]]
@@ -64,7 +50,7 @@ class Image(C_Image):
         super().__init__(type=type, label=label)
 
 
-class Video(C_Video):
+class Video(components.Video):
     """
     Used for video output.
     Output type: filepath
@@ -84,7 +70,7 @@ class Video(C_Video):
         super().__init__(format=type, label=label)
 
 
-class Audio(C_Audio):
+class Audio(components.Audio):
     """
     Creates an audio player that plays the output audio.
     Output type: Union[Tuple[int, numpy.array], str]
@@ -104,7 +90,7 @@ class Audio(C_Audio):
         super().__init__(type=type, label=label)
 
 
-class File(C_File):
+class File(components.File):
     """
     Used for file output.
     Output type: Union[file-like, str]
@@ -123,7 +109,7 @@ class File(C_File):
         super().__init__(label=label)
 
 
-class Dataframe(C_Dataframe):
+class Dataframe(components.Dataframe):
     """
     Component displays 2D output through a spreadsheet interface.
     Output type: Union[pandas.DataFrame, numpy.array, List[Union[str, float]], List[List[Union[str, float]]]]
@@ -162,7 +148,7 @@ class Dataframe(C_Dataframe):
         )
 
 
-class Timeseries(C_Timeseries):
+class Timeseries(components.Timeseries):
     """
     Component accepts pandas.DataFrame.
     Output type: pandas.DataFrame
@@ -185,7 +171,7 @@ class Timeseries(C_Timeseries):
         super().__init__(x=x, y=y, label=label)
 
 
-class State(C_State):
+class State(components.State):
     """
     Special hidden component that stores state across runs of the interface.
     Output type: Any
@@ -204,7 +190,7 @@ class State(C_State):
         super().__init__(label=label)
 
 
-class Label(C_Label):
+class Label(components.Label):
     """
     Component outputs a classification label, along with confidence scores of top categories if provided. Confidence scores are represented as a dictionary mapping labels to scores between 0 and 1.
     Output type: Union[Dict[str, float], str, int, float]
@@ -249,7 +235,7 @@ class KeyValues:
         )
 
 
-class HighlightedText(C_HighlightedText):
+class HighlightedText(components.HighlightedText):
     """
     Component creates text that contains spans that are highlighted by category or numerical value.
     Output is represent as a list of Tuple pairs, where the first element represents the span of text represented by the tuple, and the second element represents the category or value of the text.
@@ -276,7 +262,7 @@ class HighlightedText(C_HighlightedText):
         super().__init__(color_map=color_map, label=label, show_legend=show_legend)
 
 
-class JSON(C_JSON):
+class JSON(components.JSON):
     """
     Used for JSON output. Expects a JSON string or a Python object that is JSON serializable.
     Output type: Union[str, Any]
@@ -295,7 +281,7 @@ class JSON(C_JSON):
         super().__init__(label=label)
 
 
-class HTML(C_HTML):
+class HTML(components.HTML):
     """
     Used for HTML output. Expects an HTML valid string.
     Output type: str
@@ -309,8 +295,8 @@ class HTML(C_HTML):
         """
         super().__init__(label=label)
 
-
-class Carousel:
+        
+class Carousel(components.Carousel):
     """
     Component displays a set of output components that can be scrolled through.
     Output type: List[List[Any]]
@@ -319,21 +305,22 @@ class Carousel:
 
     def __init__(
         self,
-        components: Component | List[Component],
+        components: components.Component | List[components.Component],
         label: Optional[str] = None,
     ):
         """
         Parameters:
-        components (Union[List[OutputComponent], OutputComponent]): Classes of component(s) that will be scrolled through.
+        components (Union[List[Component], Component]): Classes of component(s) that will be scrolled through.
         label (str): component name in interface.
         """
-        raise NotImplementedError(
-            "The Carousel component has not been implemented in Gradio 3.0. Please "
-            "consider using the Gallery component instead."
+        warnings.warn(
+            "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
+            DeprecationWarning,
         )
+        super().__init__(components=components, label=label)
+    
 
-
-class Chatbot(C_Chatbot):
+class Chatbot(components.Chatbot):
     """
     Component displays a chatbot output showing both user submitted messages and responses
     Output type: List[Tuple[str, str]]
@@ -352,7 +339,7 @@ class Chatbot(C_Chatbot):
         super().__init__(label=label)
 
 
-class Image3D(C_Model3D):
+class Image3D(components.Model3D):
     """
     Used for 3D image model output.
     Input type: File object of type (.obj, glb, or .gltf)
