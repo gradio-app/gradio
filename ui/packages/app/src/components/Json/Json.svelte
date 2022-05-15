@@ -27,7 +27,7 @@
 	{#if value && value !== '""'}
 		<JSON {value} />
 	{:else}
-		<div class="min-h-[6rem] flex justify-center items-center">
+		<div class="h-full min-h-[6rem] flex justify-center items-center">
 			<div class="h-7 dark:text-white opacity-50"><JSONIcon /></div>
 		</div>
 	{/if}
