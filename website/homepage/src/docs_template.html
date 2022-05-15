@@ -27,8 +27,7 @@
   <link rel="stylesheet" href="/assets/prism.css">
   <style>
     pre {
-      overflow-x: hidden !important;
-      overflow-y: scroll !important;
+      overflow: auto !important;
       background: #F6F7FA;
       border-radius: 6px;
     }
@@ -77,7 +76,7 @@
           <div class="func">
             <h3 id="interface-header" class="text-3xl font-light my-4">Interface</h3>
             <button class="hidden rounded-full bg-orange-500 text-white py-1 px-3 my-3" onclick="showDemos({{ docs.interface['demos'] }})">
-              Try Demo &#8594;
+              Try Examples &#8594;
             </button>
             <pre><code class='lang-python'>gradio.Interface(<!--
           -->{% for param in docs.interface["params"][:4] %}<!--
@@ -365,7 +364,7 @@
           <div class="func">
             <h3 id="blocks-header" class="text-3xl font-light my-4">Blocks</h3>
             <button class="hidden rounded-full bg-orange-500 text-white py-1 px-3 my-3" onclick="showDemos('blocks')">
-              Try Demo &#8594;
+              Try Examples &#8594;
             </button>
             <pre><code class='lang-python'>with gradio.Blocks(theme, analytics_enabled, mode):
     &#183;&#183;&#183;</code></pre>
@@ -418,7 +417,7 @@
               {{ func['name'] }}
             </h3>
             <button class="hidden rounded-full bg-orange-500 text-white py-1 px-3 my-3" onclick="showDemos({{ func['demos'] }})">
-              Try Demo &#8594;
+              Try Examples &#8594;
             </button>
             <div id='{{ func["name"].lower() }}-component'  class="component-embedding hidden"></div>
             <pre><code class="lang-python">gradio.components.<span>{{ func["name"] }}(</span><!--
@@ -554,19 +553,19 @@
 
         <div class="fixed hidden inset-0 bg-gray-500 bg-opacity-75 overflow-y-auto h-full w-full" id="demos-window">
           <div class="relative mx-auto my-auto p-5 border w-4/5 shadow-lg rounded-md bg-white" style="top: 5%; height: 90%">
-            <div class="flex flex-row items-start w-11/12 h-11/12 m-auto gap-6">
-              <div class="w-2/5">
+            <div class="flex flex-row items-start w-full m-auto gap-6" style="height: 95%">
+              <div class="w-2/5 h-full">
                 <div class="flex flex-column items-start w-11/12 h-11/12 m-auto gap-6">
-                  <h3 class="text-3xl font-semibold text-left">Code</h3>
+                  <h3 class="text-3xl font-semibold text-left text-gray-600">Code</h3>
                 </div>
                 <div class="w-full h-full my-2 bg-grey-200 rounded-md">
                   {% for src, code in docs.demo_code.items() %}
-                    <pre id="{{ src }}" class="hidden demo-code"><code class='lang-python' style="max-height: 34rem;">{{ code }}</code></pre>
+                    <pre id="{{ src }}" class="hidden demo-code" style="height: 95%"><code class='lang-python'>{{ code }}</code></pre>
                   {% endfor %}
                 </div>
               </div>
               <div class="w-3/5">
-                <h2 class="text-3xl font-semibold text-left">Demos</h2>
+                <h2 class="text-3xl font-semibold text-left text-gray-600">Demos</h2>
                 <div class="mb-6">
                   <nav class="demos-nav flex flex-wrap gap-6 whitespace-nowrap text-gray-600 md:text-lg my-2 md:mb-0"></nav>
                 </div>
