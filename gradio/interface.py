@@ -208,7 +208,9 @@ class Interface(Blocks):
         self.output_components = [get_component_instance(o).unrender() for o in outputs]
 
         for component in self.input_components + self.output_components:
-            if not (isinstance(component, IOComponent) or isinstance(component, Variable)):
+            if not (
+                isinstance(component, IOComponent) or isinstance(component, Variable)
+            ):
                 raise ValueError(
                     f"{component} is not a valid input/output component for Interface."
                 )
