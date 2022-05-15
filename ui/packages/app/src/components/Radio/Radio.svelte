@@ -26,7 +26,6 @@
 		{show_label}
 		{choices}
 		{style}
-		disabled={mode === "static"}
 		on:change
 	/>
 </Block>
