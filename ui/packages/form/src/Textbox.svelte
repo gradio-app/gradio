@@ -1,12 +1,13 @@
 <script lang="ts">
 	import { createEventDispatcher, tick } from "svelte";
+	import { create_classes } from "@gradio/utils";
 	import { BlockTitle } from "@gradio/atoms";
 
 	export let value: string = "";
+	export let style: Record<string, string> = {};
 	export let lines: number = 1;
 	export let placeholder: string = "Type here...";
 	export let label: string;
-	export let style: string = "";
 	export let disabled = false;
 	export let show_label: boolean = true;
 	export let max_lines: number | false;
@@ -76,17 +77,29 @@
 </script>
 
 <!-- svelte-ignore a11y-label-has-associated-control -->
-<label class="block">
+<label class="block w-full">
 	<BlockTitle {show_label}>{label}</BlockTitle>
 
-	<textarea
-		use:text_area_resize={value}
-		class="block gr-box gr-input w-full gr-text-input"
-		bind:value
-		bind:this={el}
-		{placeholder}
-		{style}
-		rows={lines}
-		{disabled}
-	/>
+	{#if lines === 1 && max_lines === 1}
+		<input
+			type="text"
+			class={"block gr-box gr-input w-full gr-text-input " +
+				create_classes(style)}
+			bind:value
+			bind:this={el}
+			{placeholder}
+			{disabled}
+		/>
+	{:else}
+		<textarea
+			use:text_area_resize={value}
+			class={"block gr-box gr-input w-full gr-text-input " +
+				create_classes(style)}
+			bind:value
+			bind:this={el}
+			{placeholder}
+			rows={lines}
+			{disabled}
+		/>
+	{/if}
 </label>

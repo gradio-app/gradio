@@ -6,7 +6,7 @@ importers:
     specifiers:
       '@gradio/tootils': workspace:^0.0.1
       '@playwright/test': ^1.20.0
-      '@sveltejs/vite-plugin-svelte': ^1.0.0-next.41
+      '@sveltejs/vite-plugin-svelte': ^1.0.0-next.44
       '@tailwindcss/forms': ^0.5.0
       '@testing-library/dom': ^8.11.3
       '@testing-library/svelte': ^3.1.0
@@ -36,7 +36,7 @@ importers:
     dependencies:
       '@gradio/tootils': link:packages/tootils
       '@playwright/test': 1.20.0
-      '@sveltejs/vite-plugin-svelte': 1.0.0-next.41_svelte@3.47.0+vite@2.9.5
+      '@sveltejs/vite-plugin-svelte': 1.0.0-next.44_svelte@3.47.0+vite@2.9.5
       '@tailwindcss/forms': 0.5.0_tailwindcss@3.0.23
       '@testing-library/dom': 8.11.3
       '@testing-library/svelte': 3.1.0_svelte@3.47.0
@@ -88,6 +88,7 @@ importers:
       '@gradio/tabs': workspace:^0.0.1
       '@gradio/theme': workspace:^0.0.1
       '@gradio/upload': workspace:^0.0.1
+      '@gradio/utils': workspace:^0.0.1
       '@gradio/video': workspace:^0.0.1
       mime-types: ^2.1.34
       svelte-i18n: ^3.3.13
@@ -113,6 +114,7 @@ importers:
       '@gradio/tabs': link:../tabs
       '@gradio/theme': link:../theme
       '@gradio/upload': link:../upload
+      '@gradio/utils': link:../utils
       '@gradio/video': link:../video
       mime-types: 2.1.34
       svelte-i18n: 3.3.13_svelte@3.47.0
@@ -182,8 +184,10 @@ importers:
   packages/form:
     specifiers:
       '@gradio/atoms': workspace:^0.0.1
+      '@gradio/utils': workspace:^0.0.1
     dependencies:
       '@gradio/atoms': link:../atoms
+      '@gradio/utils': link:../utils
 
   packages/highlighted-text:
     specifiers:
@@ -1116,6 +1120,30 @@ packages:
       vite: 2.9.5
     transitivePeerDependencies:
       - supports-color
+    dev: true
+
+  /@sveltejs/vite-plugin-svelte/1.0.0-next.44_svelte@3.47.0+vite@2.9.5:
+    resolution: {integrity: sha512-n+sssEWbzykPS447FmnNyU5GxEhrBPDVd0lxNZnxRGz9P6651LjjwAnISKr3CKgT9v8IybP8VD0n2i5XzbqExg==}
+    engines: {node: ^14.13.1 || >= 16}
+    peerDependencies:
+      diff-match-patch: ^1.0.5
+      svelte: ^3.44.0
+      vite: ^2.9.0
+    peerDependenciesMeta:
+      diff-match-patch:
+        optional: true
+    dependencies:
+      '@rollup/pluginutils': 4.2.1
+      debug: 4.3.4
+      deepmerge: 4.2.2
+      kleur: 4.1.4
+      magic-string: 0.26.1
+      svelte: 3.47.0
+      svelte-hmr: 0.14.11_svelte@3.47.0
+      vite: 2.9.5
+    transitivePeerDependencies:
+      - supports-color
+    dev: false
 
   /@tailwindcss/forms/0.5.0_tailwindcss@3.0.23:
     resolution: {integrity: sha512-KzWugryEBFkmoaYcBE18rs6gthWCFHHO7cAZm2/hv3hwD67AzwP7udSCa22E7R1+CEJL/FfhYsJWrc0b1aeSzw==}

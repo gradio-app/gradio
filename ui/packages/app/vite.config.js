@@ -28,6 +28,10 @@ export default defineConfig(({ mode }) => {
 		},
 		plugins: [
 			svelte({
+				experimental: {
+					inspector: true
+				},
+
 				hot: !process.env.VITEST,
 				preprocess: sveltePreprocess({
 					postcss: { plugins: [tailwind, nested] }

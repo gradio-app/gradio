@@ -11,7 +11,7 @@
 		id: object;
 	}
 
-	export let style: string = "";
+	export let elem_id: string = "";
 
 	const tabs: Array<Tab> = [];
 
@@ -40,7 +40,7 @@
 	}
 </script>
 
-<div class="tabs flex flex-col my-4">
+<div class="tabs flex flex-col my-4" id={elem_id}>
 	<div class="flex border-b-2 dark:border-gray-700">
 		{#each tabs as t, i}
 			{#if t.id === $selected_tab}

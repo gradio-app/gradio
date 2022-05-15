@@ -47,16 +47,6 @@ class Sketchpad(components.Image):
         )
 
 
-class Plot(components.Image):
-    def __init__(self, **kwargs):
-        """
-        Custom component
-        @param kwargs:
-        """
-        self.is_template = True
-        super().__init__(type="plot", **kwargs)
-
-
 class Pil(components.Image):
     def __init__(self, **kwargs):
         """

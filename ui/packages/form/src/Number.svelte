@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { createEventDispatcher, tick } from "svelte";
+	import { create_classes } from "@gradio/utils";
 	import { BlockTitle, Block } from "@gradio/atoms";
 
 	export let value: number = 0;
+	export let style: Record<string, string> = {};
 	export let disabled: boolean = false;
 	export let label: string;
-	export let style: string = "";
 	export let show_label: boolean;
 
 	const dispatch = createEventDispatcher<{
@@ -34,7 +35,7 @@
 	<BlockTitle {show_label}>{label}</BlockTitle>
 	<input
 		type="number"
-		class="gr-box gr-input w-full gr-text-input"
+		class={"gr-box gr-input w-full gr-text-input" + create_classes(style)}
 		bind:value
 		on:keypress={handle_keypress}
 		{disabled}

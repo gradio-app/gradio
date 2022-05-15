@@ -8,15 +8,12 @@
 	type Data = Array<Array<string | number>>;
 
 	export let headers: Headers = [];
+	export let elem_id: string = "";
 	export let value: Data | { data: Data; headers: Headers } = [["", "", ""]];
-	export let default_value: Array<Array<string | number>> = [["", "", ""]];
-	export let style: string = "";
 	export let mode: "static" | "dynamic";
 	export let col_count: [number, "fixed" | "dynamic"];
 	export let row_count: [number, "fixed" | "dynamic"];
 	export let parent: string | null = null;
-
-	if (default_value) value = default_value;
 
 	$: {
 		if (!Array.isArray(value)) {
@@ -40,6 +37,7 @@
 </script>
 
 <div
+	id={elem_id}
 	class="relative overflow-hidden"
 	class:flex-1={parent === "row" || !parent}
 >
@@ -49,7 +47,6 @@
 		{col_count}
 		values={value}
 		{headers}
-		{style}
 		on:change={handle_change}
 		editable={mode === "dynamic"}
 	/>

@@ -31,5 +31,7 @@ export const component_map: Record<string, any> = {
 	video: () => import("./Video"),
 	model3d: () => import("./Model3D"),
 	plot: () => import("./Plot"),
-	variable: () => import("./Variable")
+	variable: () => import("./Variable"),
+	group: () => import("./Group"),
+	box: () => import("./Box")
 };

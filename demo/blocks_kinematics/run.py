@@ -1,3 +1,5 @@
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -28,8 +30,8 @@ with demo:
     )
 
     with gr.Row():
-        speed = gr.Slider(25, min=1, max=30, label="Speed")
-        angle = gr.Slider(45, min=0, max=90, label="Angle")
+        speed = gr.Slider(25, minimum=1, maximum=30, label="Speed")
+        angle = gr.Slider(45, minimum=0, maximum=90, label="Angle")
     output = gr.Image(type="plot")
     btn = gr.Button("Run")
     btn.click(plot, [speed, angle], output)

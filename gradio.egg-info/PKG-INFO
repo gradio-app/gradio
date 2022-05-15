@@ -1,11 +1,12 @@
-Metadata-Version: 2.1
+Metadata-Version: 1.0
 Name: gradio
-Version: 2.9b25
+Version: 2.9b50
 Summary: Python library for easily interacting with trained machine learning models
 Home-page: https://github.com/gradio-app/gradio-UI
 Author: Abubakar Abid, Ali Abid, Ali Abdalla, Dawood Khan, Ahsen Khaliq, Pete Allen, Ömer Faruk Özdemir
 Author-email: team@gradio.app
 License: Apache License 2.0
+Description: UNKNOWN
 Keywords: machine learning,visualization,reproducibility
 Platform: UNKNOWN
 Description-Content-Type: text/markdown
@@ -634,4 +635,3 @@ journal={arXiv preprint arXiv:1906.02569},
 year={2019}
 }
 ```
-

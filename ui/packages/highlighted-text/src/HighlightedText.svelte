@@ -6,7 +6,6 @@
 	export let value: Array<[string, string | number]> = [];
 	export let show_legend: boolean = false;
 	export let color_map: Record<string, string> = {};
-	export let style: string = "";
 
 	let ctx: CanvasRenderingContext2D;
 
@@ -104,22 +103,23 @@
 		</div>
 	{/if}
 	<div
-		class="textfield bg-white dark:bg-transparent rounded-sm box-border max-w-full break-word inline-flex flex-wrap gap-1"
+		class="textfield bg-white dark:bg-transparent rounded-sm text-sm box-border max-w-full break-word leading-7"
 	>
 		{#each value as [text, category]}
 			<span
-				class="textspan rounded-sm inline-flex items-center px-1 space-x-1.5 transition-colors text-black"
+				class="textspan rounded-sm px-1 transition-colors text-black  pb-[0.225rem] pt-[0.15rem]"
 				style:background-color={category === null ||
 				(active && active !== category)
 					? ""
 					: _color_map[category].secondary}
 				class:dark:text-white={category === null ||
 					(active && active !== category)}
+				class:hl={category !== null}
 			>
 				<span class="text ">{text}</span>
 				{#if !show_legend && category !== null}
 					<span
-						class="font-bold uppercase inline-category text-xs text-white rounded-sm my-[0.225rem] px-[0.325rem] transition-colors"
+						class="label mr-[-4px] font-bold uppercase text-xs inline-category  text-white rounded-sm  px-[0.325rem] mt-[0.05rem] py-[0.05rem] transition-colors"
 						style:background-color={category === null ||
 						(active && active !== category)
 							? ""
@@ -143,7 +143,7 @@
 		</div>
 	{/if}
 	<div
-		class="textfield p-2 bg-white dark:bg-gray-800 rounded box-border max-w-full break-word"
+		class="textfield p-2 bg-white dark:bg-gray-800 rounded box-border max-w-full break-word leading-7"
 	>
 		{#each value as [text, score]}
 			<span
@@ -157,3 +157,13 @@
 		{/each}
 	</div>
 {/if}
+
+<style>
+	.hl + .hl {
+		@apply ml-1;
+	}
+
+	.textspan:last-child > .label {
+		@apply mr-0;
+	}
+</style>

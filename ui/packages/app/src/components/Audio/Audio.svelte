@@ -9,10 +9,9 @@
 
 	import { _ } from "svelte-i18n";
 
+	export let elem_id: string = "";
 	export let mode: "static" | "dynamic";
 	export let value: null | FileData | string = null;
-	export let default_value: null | FileData | string = null;
-	export let style: string = "";
 	export let name: string;
 	export let source: "microphone" | "upload";
 	export let type: "normal" | "numpy" = "normal";
@@ -21,8 +20,6 @@
 	export let show_label: boolean;
 
 	export let loading_status: LoadingStatus;
-
-	if (default_value) value = default_value;
 
 	let _value: null | FileData;
 	$: _value = normalise_file(value, root);
@@ -36,6 +33,7 @@
 		: "solid"}
 	color={dragging ? "green" : "grey"}
 	padding={false}
+	{elem_id}
 >
 	<StatusTracker {...loading_status} />
 
@@ -46,7 +44,6 @@
 			value={_value}
 			on:change={({ detail }) => (value = detail)}
 			on:drag={({ detail }) => (dragging = detail)}
-			{style}
 			{name}
 			{source}
 			{type}

@@ -12,7 +12,6 @@ from typing import Dict, List, Optional
 from gradio.components import HTML as C_HTML
 from gradio.components import JSON as C_JSON
 from gradio.components import Audio as C_Audio
-from gradio.components import Carousel as C_Carousel
 from gradio.components import Chatbot as C_Chatbot
 from gradio.components import Component as Component
 from gradio.components import Dataframe as C_Dataframe
@@ -82,7 +81,7 @@ class Video(C_Video):
             "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
             DeprecationWarning,
         )
-        super().__init__(type=type, label=label)
+        super().__init__(format=type, label=label)
 
 
 class Audio(C_Audio):
@@ -238,12 +237,10 @@ class KeyValues:
     Demos: text_analysis
     """
 
-    def __init__(
-        self, default_value: str = " ", *, label: Optional[str] = None, **kwargs
-    ):
+    def __init__(self, value: str = " ", *, label: Optional[str] = None, **kwargs):
         """
         Parameters:
-        default_value (str): IGNORED
+        value (str): IGNORED
         label (str): component name in interface.
         """
         raise DeprecationWarning(
@@ -313,7 +310,7 @@ class HTML(C_HTML):
         super().__init__(label=label)
 
 
-class Carousel(C_Carousel):
+class Carousel:
     """
     Component displays a set of output components that can be scrolled through.
     Output type: List[List[Any]]
@@ -330,11 +327,10 @@ class Carousel(C_Carousel):
         components (Union[List[OutputComponent], OutputComponent]): Classes of component(s) that will be scrolled through.
         label (str): component name in interface.
         """
-        warnings.warn(
-            "Usage of gradio.outputs is deprecated, and will not be supported in the future, please import your components from gradio.components",
-            DeprecationWarning,
+        raise NotImplementedError(
+            "The Carousel component has not been implemented in Gradio 3.0. Please "
+            "consider using the Gallery component instead."
         )
-        super().__init__(components=components, label=label)
 
 
 class Chatbot(C_Chatbot):

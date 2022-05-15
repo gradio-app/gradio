@@ -17,15 +17,15 @@ demo = gr.Interface(
         gr.Textbox(
             label="Initial text",
             lines=3,
-            default_value="The quick brown fox jumped over the lazy dogs.",
+            value="The quick brown fox jumped over the lazy dogs.",
         ),
         gr.Textbox(
             label="Text to compare",
             lines=3,
-            default_value="The fast brown fox jumps over lazy dogs.",
+            value="The fast brown fox jumps over lazy dogs.",
         ),
     ],
-    gr.HighlightedText(label="Diff"),
+    gr.HighlightedText(label="Diff", combine_adjacent=True),
 )
 if __name__ == "__main__":
     demo.launch()

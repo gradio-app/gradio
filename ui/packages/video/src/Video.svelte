@@ -11,7 +11,6 @@
 	export let value: FileData | null = null;
 	export let source: string;
 	export let label: string | undefined = undefined;
-	export let style: string = "";
 	export let show_label: boolean;
 
 	export let drop_text: string = "Drop a video file";
@@ -57,7 +56,10 @@
 			</div>
 		</Upload>
 	{:else if source === "webcam"}
-		<Webcam mode="video" on:capture={({ detail }) => (value = detail)} />
+		<Webcam
+			mode="video"
+			on:capture={({ detail }) => dispatch("change", detail)}
+		/>
 	{/if}
 {:else}
 	<ModifyUpload on:clear={handle_clear} />

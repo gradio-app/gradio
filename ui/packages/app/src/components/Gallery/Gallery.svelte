@@ -9,8 +9,9 @@
 	export let loading_status: LoadingStatus;
 	export let show_label: boolean;
 	export let label: string;
+	export let elem_id: string = "";
 	export let value: Array<string> | null = null;
-	export let style: string = "";
+	export let style: Record<string, unknown> = {};
 
 	let selected_image: number | null = null;
 
@@ -62,22 +63,44 @@
 			behavior: "smooth"
 		});
 	}
+
+	let grid_map = ["", "sm:", "md:", "lg:", "xl:", "2xl:"];
+
+	$: grid = style.grid
+		? Array(6)
+				.fill(0)
+				.map(
+					(_, i) =>
+						`${grid_map[i]}grid-cols-${
+							style.grid[i] || style.grid[style.grid.length - 1]
+						}`
+				)
+				.join(" ")
+		: `grid-cols-3 md:grid-cols-4 lg:grid-cols-6`;
+
+	$: can_zoom = window_height >= height;
+
+	let height = 0;
+	let window_height = 0;
 </script>
 
-<svelte:window />
+<svelte:window bind:innerHeight={window_height} />
 
-<Block variant="solid" color="grey" padding={false}>
+<Block variant="solid" color="grey" padding={false} {elem_id}>
 	<StatusTracker {...loading_status} />
 	<BlockLabel {show_label} Icon={ImageIcon} label={label || "Gallery"} />
 	{#if value === null}
-		<div class="min-h-[16rem] flex justify-center items-center">
+		<div class="min-h-[15rem] flex justify-center items-center">
 			<ImageIcon />
 		</div>
 	{:else}
 		{#if selected_image !== null}
 			<div
 				on:keydown={on_keydown}
-				class="absolute inset-0 z-10 flex flex-col bg-white/90 dark:bg-gray-900 backdrop-blur min-h-[350px] xl:min-h-[450px] max-h-[55vh]"
+				class="absolute inset-0 z-10 flex flex-col bg-white/90 dark:bg-gray-900 backdrop-blur   "
+				class:min-h-[350px]={style.height !== "auto"}
+				class:max-h-[55vh]={style.height !== "auto"}
+				class:xl:min-h-[450px]={style.height !== "auto"}
 			>
 				<ModifyUpload on:clear={() => (selected_image = null)} />
 
@@ -90,13 +113,13 @@
 
 				<div
 					bind:this={container}
-					class="absolute h-[50px] bg-white overflow-x-scroll scroll-hide w-full bottom-0 flex gap-1.5 items-center py-2 text-sm px-3"
+					class="absolute h-[60px] bg-white dark:bg-gray-900 overflow-x-scroll scroll-hide w-full bottom-0 flex gap-1.5 items-center py-2 text-sm px-3 justify-center"
 				>
 					{#each value as image, i}
 						<button
 							bind:this={el[i]}
 							on:click={() => (selected_image = i)}
-							class="gallery-item !flex-none !h-7 !w-7 transition-all duration-75 {selected_image ===
+							class="gallery-item !flex-none !h-9 !w-9 transition-all duration-75 {selected_image ===
 							i
 								? '!ring-2 !ring-orange-500 hover:!ring-orange-500'
 								: 'scale-90 transform'}"
@@ -113,11 +136,18 @@
 		{/if}
 
 		<div
-			class="overflow-y-auto h-full p-2 min-h-[350px] xl:min-h-[450px] max-h-[55vh]"
+			bind:clientHeight={height}
+			class="overflow-y-auto h-full p-2"
+			class:min-h-[350px]={style.height !== "auto"}
+			class:max-h-[55vh]={style.height !== "auto"}
+			class:xl:min-h-[450px]={style.height !== "auto"}
 		>
-			<div class="pt-6 grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+			<div class=" grid  gap-2 {grid}" class:pt-6={show_label}>
 				{#each value as image, i}
-					<button class="gallery-item" on:click={() => (selected_image = i)}>
+					<button
+						class="gallery-item"
+						on:click={() => (selected_image = can_zoom ? i : selected_image)}
+					>
 						<img
 							alt=""
 							class="h-full w-full overflow-hidden object-contain"
