@@ -79,7 +79,7 @@
 {#if value}
 	<canvas class="w-full h-full object-contain" bind:this={canvas} />
 {:else}
-	<div class="min-h-[16rem] flex justify-center items-center">
+	<div class="h-full min-h-[16rem] flex justify-center items-center">
 		<div class="h-10 dark:text-white opacity-50"><File /></div>
 	</div>
 {/if}

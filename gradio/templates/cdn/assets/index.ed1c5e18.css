@@ -1,0 +1,5 @@
+div.s-jQ0ZzGz_YAZG>*:not(.absolute){border-radius:0px
+}div.s-jQ0ZzGz_YAZG>*:first-child{border-top-left-radius:0.5rem;border-top-right-radius:0.5rem
+}div.s-jQ0ZzGz_YAZG>*:last-child{border-bottom-left-radius:0.5rem;border-bottom-right-radius:0.5rem
+}div.s-jQ0ZzGz_YAZG>* + *:not(.absolute){border-top-width:0px
+}.s-jQ0ZzGz_YAZG{}
