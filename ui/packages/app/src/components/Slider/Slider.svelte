@@ -30,7 +30,6 @@
 		{maximum}
 		{step}
 		{style}
-		disabled={mode === "static"}
 		on:change
 	/>
 </Block>
