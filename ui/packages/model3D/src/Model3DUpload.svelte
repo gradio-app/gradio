@@ -29,7 +29,7 @@
 
 	async function handle_clear({ detail }: CustomEvent<null>) {
 		if (scene) {
-			scene.dispose()
+			scene.dispose();
 		}
 		value = null;
 		await tick();
@@ -55,7 +55,7 @@
 
 	function addNewModel() {
 		if (scene) {
-			scene.dispose()
+			scene.dispose();
 		}
 		engine = new BABYLON.Engine(canvas, true);
 		scene = new BABYLON.Scene(engine);
