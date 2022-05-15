@@ -24,6 +24,5 @@
 		{style}
 		bind:value
 		on:change
-		disabled={mode === "static"}
 	/>
 </Block>
