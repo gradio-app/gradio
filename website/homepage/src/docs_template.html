@@ -263,7 +263,12 @@
         </section>
         <section id="combining_interfaces" class="flex flex-col gap-6">
           <div class="func">
+            <div class="flex flex-row items-center">
             <h3 id="combining-interfaces-header" class="text-3xl font-light my-4">Combining Interfaces</h3>
+            <button class="h-2/4 rounded-full bg-orange-500 text-white py-1 px-3 my-3 mx-2 ml-auto" onclick="{{ docs.tabbed_interface['demos'] }}">
+              Try Examples
+            </button>
+            </div>
             <p class="w-4/5 mt-4 text-lg">Once you have created several Interfaces, we provide several classes that let you
               start combining them together. For example, you can chain them in <em>Series</em>
               or compare their outputs in <em>Parallel</em> if the inputs and outputs match accordingly. 
@@ -378,7 +383,7 @@
           <div class="func">
             <div class="flex flex-row items-center">
             <h3 id="blocks-header" class="text-3xl font-light my-4">Blocks</h3>
-            <button class="h-2/4 rounded-full bg-orange-500 text-white py-1 px-3 my-3 mx-2 ml-auto" onclick="showDemos('blocks')">
+            <button class="h-2/4 rounded-full bg-orange-500 text-white py-1 px-3 my-3 mx-2 ml-auto" onclick="{{ docs.blocks['demos'] }}">
               Try Examples
             </button>
             </div>

@@ -12,7 +12,7 @@ GRADIO_GUIDES_DIR = os.path.join(GRADIO_DIR, "guides")
 sys.path.insert(0, GRADIO_DEMO_DIR)
 port = 7860
 
-demos_to_run = ["kitchen_sink", "gpt_j"]
+demos_to_run = ["kitchen_sink", "gpt_j", "blocks_flipper", "blocks_speech_text_length", "sst_or_tts"]
 GRADIO_COMPONENTS_FILE = os.path.join(GRADIO_DIR, "gradio", "components.py")
 with open(GRADIO_COMPONENTS_FILE) as comp_file:
     comp_text = comp_file.read()

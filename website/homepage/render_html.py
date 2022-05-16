@@ -505,7 +505,8 @@ with demo:
     btn = gr.Button("Run")
     btn.click(fn=update, inputs=inp, outputs=out)
 
-demo.launch()"""            
+demo.launch()""",
+        "demos": ["blocks_hello", "blocks_flipper", "blocks_gpt", "blocks_speech_text_length"]
     }    
     tabbed_interface_docs = get_class_documentation(TabbedInterface, lines=None)["doc"]
     tabbed_interface_params = get_function_documentation(TabbedInterface.__init__)
@@ -513,6 +514,7 @@ demo.launch()"""
         "doc": tabbed_interface_docs,
         "params": tabbed_interface_params[1],
         "params_doc": tabbed_interface_params[2],
+        "demos": ["blocks_neural_instrument_coding", "sst_or_tts"]
     }
     
     series_docs = get_class_documentation(Series, lines=None)["doc"]
