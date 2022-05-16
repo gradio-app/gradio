@@ -268,7 +268,7 @@ class Textbox(Changeable, Submittable, IOComponent):
     Preprocessing: passes textarea value as a {str} into the function.
     Postprocessing: expects a {str} returned from function and sets textarea value to it.
 
-    Demos: hello_world, diff_texts, sentence_builder, blocks_gpt
+    Demos: hello_world, diff_texts, sentence_builder
     """
 
     def __init__(
@@ -473,7 +473,7 @@ class Number(Changeable, Submittable, IOComponent):
     Preprocessing: passes field value as a {float} or {int} into the function, depending on `precision`.
     Postprocessing: expects an {int} or {float} returned from the function and sets field value to it.
 
-    Demos: tax_calculator, titanic_survival, blocks_static_textbox, blocks_simple_squares
+    Demos: tax_calculator, titanic_survival, blocks_hello
     """
 
     def __init__(
@@ -951,7 +951,7 @@ class CheckboxGroup(Changeable, IOComponent):
     Preprocessing: passes the list of checked checkboxes as a {List[str]} or their indices as a {List[int]} into the function, depending on `type`.
     Postprocessing: expects a {List[str]}, each element of which becomes a checked checkbox.
 
-    Demos: sentence_builder, titanic_survival, fraud_detector
+    Demos: sentence_builder, titanic_survival
     """
 
     def __init__(
@@ -1118,7 +1118,7 @@ class Radio(Changeable, IOComponent):
     Preprocessing: passes the value of the selected radio button as a {str} or its index as an {int} into the function, depending on `type`.
     Postprocessing: expects a {str} corresponding to the value of the radio button to be selected.
 
-    Demos: sentence_builder, tax_calculator, titanic_survival, blocks_essay
+    Demos: sentence_builder, titanic_survival, blocks_essay
     """
 
     def __init__(
@@ -1269,7 +1269,7 @@ class Dropdown(Radio):
     Preprocessing: passes the value of the selected dropdown entry as a {str} or its index as an {int} into the function, depending on `type`.
     Postprocessing: expects a {str} corresponding to the value of the dropdown entry to be selected.
 
-    Demos: sentence_builder, filter_records, titanic_survival
+    Demos: sentence_builder, titanic_survival
     """
 
     def __init__(
@@ -1315,7 +1315,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
     Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type`.
     Postprocessing: expects a {numpy.array}, {PIL.Image} or {str} filepath to an image and displays the image.
 
-    Demos: image_classifier, image_mod, webcam, digit_classifier
+    Demos: image_mod, blocks_xray, webcam
     """
 
     def __init__(
@@ -1812,7 +1812,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
     Preprocessing: passes the uploaded audio as a {Tuple(int, numpy.array)} corresponding to (sample rate, data) or as a {str} filepath, depending on `type`
     Postprocessing: expects a {Tuple(int, numpy.array)} corresponding to (sample rate, data) or as a {str} filepath to an audio file, which gets displayed
 
-    Demos: main_note, generate_tone, reverse_audio, spectogram
+    Demos: main_note, generate_tone, reverse_audio
     """
 
     def __init__(
@@ -2631,7 +2631,7 @@ class Label(Changeable, IOComponent):
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a {Dict[str, float]} of classes and confidences, or {str} with just the class or an {int}/{float} for regression outputs.
 
-    Demos: image_classifier, main_note, titanic_survival
+    Demos: main_note, titanic_survival
     """
 
     CONFIDENCES_KEY = "confidences"
@@ -3286,7 +3286,6 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
     Component creates a 3D Model component with input and output capabilities.
     Input type: File object of type (.obj, glb, or .gltf)
     Output type: filepath
-    Demos: model3D
     """
 
     def __init__(
@@ -3414,7 +3413,7 @@ class Plot(Changeable, Clearable, IOComponent):
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects either a {matplotlib.pyplot.Figure}, a {plotly.graph_objects._figure.Figure}, or a {dict} corresponding to a bokeh plot (json_item format)
 
-    Demos: outbreak_forecast, blocks_kinematics, stock_forecast
+    Demos: blocks_kinematics, stock_forecast
     """
 
     def __init__(
@@ -3490,7 +3489,7 @@ class Markdown(IOComponent, Changeable):
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a valid {str} that can be rendered as Markdown.
 
-    Demos: blocks_hello, blocks_kinematics, blocks_neural_instrument_coding
+    Demos: blocks_hello, blocks_kinematics
     """
 
     def __init__(

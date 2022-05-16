@@ -316,6 +316,9 @@
 	function set_status(
 		statuses: Record<number, Omit<LoadingStatus, "outputs">>
 	) {
+		if (window.__gradio_mode__ === "website") {
+			return;
+		}
 		for (const id in statuses) {
 			set_prop(instance_map[id], "loading_status", statuses[id]);
 		}
