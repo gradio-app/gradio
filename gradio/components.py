@@ -845,6 +845,7 @@ class Checkbox(Changeable, IOComponent):
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
+        self.cleared_value = False
         self.test_input = True
         self.value = value
         self.interpret_by_tokens = False
