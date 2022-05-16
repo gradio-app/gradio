@@ -265,7 +265,7 @@
           <div class="func">
             <div class="flex flex-row items-center">
             <h3 id="combining-interfaces-header" class="text-3xl font-light my-4">Combining Interfaces</h3>
-            <button class="h-2/4 rounded-full bg-orange-500 text-white py-1 px-3 my-3 mx-2 ml-auto" onclick="{{ docs.tabbed_interface['demos'] }}">
+            <button class="h-2/4 rounded-full bg-orange-500 text-white py-1 px-3 my-3 mx-2 ml-auto" onclick="showDemos({{ docs.tabbed_interface['demos'] }})">
               Try Examples
             </button>
             </div>
@@ -383,7 +383,7 @@
           <div class="func">
             <div class="flex flex-row items-center">
             <h3 id="blocks-header" class="text-3xl font-light my-4">Blocks</h3>
-            <button class="h-2/4 rounded-full bg-orange-500 text-white py-1 px-3 my-3 mx-2 ml-auto" onclick="{{ docs.blocks['demos'] }}">
+            <button class="h-2/4 rounded-full bg-orange-500 text-white py-1 px-3 my-3 mx-2 ml-auto" onclick="showDemos({{ docs.blocks['demos'] }})">
               Try Examples
             </button>
             </div>
@@ -618,26 +618,22 @@
       </div>
 
         <div class="fixed hidden inset-0 bg-gray-500 bg-opacity-75 overflow-y-auto h-full w-full z-20" id="demos-window">
-          <div class="relative mx-auto my-auto p-5 border w-4/5 shadow-lg rounded-md bg-white" style="top: 5%; height: 90%">
-            <div class="flex flex-row items-start w-11/12 h-11/12 m-auto gap-6">
-              <div class="w-2/5">
-                <div class="flex flex-column items-start w-11/12 h-11/12 m-auto gap-6">
-                  <h3 class="text-3xl font-semibold text-left">Code</h3>
+          <div class="relative mx-auto my-auto p-5 border w-11/12 shadow-lg rounded-md bg-white" style="top: 5%; height: 90%">
+            <div class="flex flex-col items-start h-full m-auto gap-3" style="width: 98%">
+              <div class="w-full mb-3" style="height: 5%">
+                  <nav class="demos-nav flex flex-wrap gap-6 whitespace-nowrap text-gray-600 md:text-lg my-2 md:mb-0"></nav>
                 </div>
+              <div class="w-full" style="height: 40%">
                 <div class="w-full h-full my-2 bg-grey-200 rounded-md">
                   {% for src, code in docs.demo_code.items() %}
-                    <pre id="{{ src }}" class="hidden demo-code"><code class='lang-python' style="max-height: 34rem;">{{ code }}</code></pre>
+                    <pre id="{{ src }}" class="hidden demo-code" style="height: 95%"><code class='lang-python'>{{ code }}</code></pre>
                   {% endfor %}
                 </div>
               </div>
-              <div class="w-3/5">
-                <h2 class="text-3xl font-semibold text-left">Demos</h2>
-                <div class="mb-6">
-                  <nav class="demos-nav flex flex-wrap gap-6 whitespace-nowrap text-gray-600 md:text-lg my-2 md:mb-0"></nav>
-                </div>
+              <div class="w-full" style="height: 55%">
                 <div class="demos w-full h-full my-2 rounded-md">
                   {% for src, code in docs.demo_code.items() %}
-                    <div id="{{ src }}-interface" class="hidden demo-interface"></div>
+                    <div id="{{ src }}-interface" class="hidden demo-interface" style="height: 95%"></div>
                   {% endfor %}
                 </div>
               </div>
