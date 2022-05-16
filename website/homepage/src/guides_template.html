@@ -13,9 +13,9 @@
   <meta name="twitter:image" content="https://gradio.app/assets/img/guides/{{ guide_name }}.png">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" type="image/png" href="/assets/img/logo.png">
-  <link rel="stylesheet" href="/gradio_static/assets/{{ entry_css_file }}">
   <link href="https://fonts.cdnfonts.com/css/product-sans" rel="stylesheet">
   <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/assets/{{ entry_css_file }}">
   <link rel="stylesheet" href="/assets/prism.css">
   <style>
     html {
@@ -109,6 +109,10 @@
       border: 1px solid #ccc;
       padding: 10px;
     }
+
+    .gradio-container > :first-child {
+      margin: 0 !important;
+      padding: 0 !important;
 
     .hanging {
       padding-left: 22px;
@@ -248,9 +252,20 @@
   </footer>
   <script src="/assets/prism.js"></script>
   <script>
-    window.gradio_mode = "website";
+    window.__gradio_mode__ = "website";
   </script>
-  <script id="gradio-library" type="module" crossorigin src="/gradio_static/assets/{{ entry_js_file }}"></script>
+  <script id="gradio-library" type="module" crossorigin src="/assets/{{ entry_js_file }}"></script>
+  <script>
+    window.launchGradioWhenReady = (config, target) => {
+      if (window.launchGradio) {
+        window.launchGradio(config, target)
+      } else {
+        window.setTimeout(() => {
+          window.launchGradio(config, target)
+        }, 500)
+      }
+    }
+  </script>
   <script>
     var demo_endpoint = "/demo";
     var demo_names = {{ demo_names| tojson }};
@@ -259,7 +274,7 @@
         .then(response => response.json())
         .then(demo => {
           demo.root = demo_endpoint + "/" + demo_name + "/";
-          launchGradio(demo, "#interface_" + demo_name);
+          launchGradioWhenReady(demo, "#interface_" + demo_name);
         });
     });
 

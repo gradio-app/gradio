@@ -10,6 +10,6 @@
 	$: value, dispatch("change");
 </script>
 
-<div id={elem_id} class="output-markdown prose" style="max-width: 100%">
+<div id={elem_id} class="output-markdown gr-prose" style="max-width: 100%">
 	{@html value}
 </div>

@@ -22,13 +22,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700;1,900&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="icon" type="image/png" href="/assets/img/logo.png">
-  <link rel="stylesheet" href="/gradio_static/assets/{{ entry_css_file }}">
   <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/assets/{{ entry_css_file }}">
   <link rel="stylesheet" href="/assets/prism.css">
   <style>
     pre {
-      overflow-x: hidden !important;
-      overflow-y: scroll !important;
+      overflow: auto !important;
       background: #F6F7FA;
       border-radius: 6px;
     }
@@ -44,6 +43,18 @@
       visibility: visible;
     }
 
+    .gradio-page .content {
+      padding: 0px !important;
+    }
+
+    .gradio-page .footer {
+      display: none !important;
+    }
+
+    .gradio-container > :first-child {
+      margin: 0 !important;
+      padding: 0 !important;
+    }
   </style>
   <script async src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
     <script>
@@ -75,10 +86,12 @@
         <h2 id="building_demos" class="text-4xl font-light mb-4 mt-8 text-orange-500">Building Demos</h2>
         <section id="interface" class="flex flex-col gap-6">
           <div class="func">
+            <div class="flex flex-row items-center">
             <h3 id="interface-header" class="text-3xl font-light my-4">Interface</h3>
-            <button class="hidden rounded-full bg-orange-500 text-white py-1 px-3 my-3" onclick="showDemos({{ docs.interface['demos'] }})">
-              Try Demo &#8594;
+            <button class="h-2/4 rounded-full bg-orange-500 text-white py-1 px-3 my-3 mx-2 ml-auto" onclick="showDemos({{ docs.interface['demos'] }})">
+              Try Examples
             </button>
+            </div>
             <pre><code class='lang-python'>gradio.Interface(<!--
           -->{% for param in docs.interface["params"][:4] %}<!--
             -->{% if param|length == 1 %}<!--
@@ -117,7 +130,7 @@
               {% endfor %}
               </tbody>
             </table>
-            <p class="mb-2 w-4/5 font-semibold">Example usage:</p>
+            <p class="mb-2 w-4/5 font-semibold ">Example usage:</p>
             <pre><code class='lang-python'>{{ docs.interface["example"][0] }}</code></pre>
             <pre><code class='lang-python'>{{ docs.interface["example"][1] }}</code></pre>
           </div>
@@ -250,7 +263,12 @@
         </section>
         <section id="combining_interfaces" class="flex flex-col gap-6">
           <div class="func">
+            <div class="flex flex-row items-center">
             <h3 id="combining-interfaces-header" class="text-3xl font-light my-4">Combining Interfaces</h3>
+            <button class="h-2/4 rounded-full bg-orange-500 text-white py-1 px-3 my-3 mx-2 ml-auto" onclick="showDemos({{ docs.tabbed_interface['demos'] }})">
+              Try Examples
+            </button>
+            </div>
             <p class="w-4/5 mt-4 text-lg">Once you have created several Interfaces, we provide several classes that let you
               start combining them together. For example, you can chain them in <em>Series</em>
               or compare their outputs in <em>Parallel</em> if the inputs and outputs match accordingly. 
@@ -363,10 +381,12 @@
         </section>
         <section id="blocks" class="flex flex-col gap-6">
           <div class="func">
+            <div class="flex flex-row items-center">
             <h3 id="blocks-header" class="text-3xl font-light my-4">Blocks</h3>
-            <button class="hidden rounded-full bg-orange-500 text-white py-1 px-3 my-3" onclick="showDemos('blocks')">
-              Try Demo &#8594;
+            <button class="h-2/4 rounded-full bg-orange-500 text-white py-1 px-3 my-3 mx-2 ml-auto" onclick="showDemos({{ docs.blocks['demos'] }})">
+              Try Examples
             </button>
+            </div>
             <pre><code class='lang-python'>with gradio.Blocks(theme, analytics_enabled, mode):
     &#183;&#183;&#183;</code></pre>
     <p class="mb-2 w-full md:pr-12 mt-4 text-lg">{{ docs.blocks["doc"] }}</p>
@@ -421,13 +441,13 @@
       &#183;&#183;&#183;</code></pre>
       <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.tabs["doc"] }}</p>
 
-      <h3 id="column-header" class="text-2xl font-light my-4">Group</h3>
+      <h3 id="group-header" class="text-2xl font-light my-4">Group</h3>
       <pre><code class='lang-python'>with gradio.Group():
     &#183;&#183;&#183;</code></pre>
       <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.group["doc"] }}</p>
 
 
-      <h3 id="column-header" class="text-2xl font-light my-4">Box</h3>
+      <h3 id="box-header" class="text-2xl font-light my-4">Box</h3>
       <pre><code class='lang-python'>with gradio.Box():
     &#183;&#183;&#183;</code></pre>
       <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.box["doc"] }}</p>
@@ -446,22 +466,23 @@
           </div>
           {% for func in docs["components"] %}
           <div id="{{ func['name'].lower() }}" class="func">
+            <div class="flex flex-row items-center">
             <h3 id="{{ func['name'].lower() }}-header" class="text-3xl font-light my-4">
               {{ func['name'] }}
             </h3>
-            <button class="hidden rounded-full bg-orange-500 text-white py-1 px-3 my-3" onclick="showDemos({{ func['demos'] }})">
-              Try Demo &#8594;
+            <button class="h-2/4 rounded-full bg-orange-500 text-white py-1 px-3 my-3 mx-2 ml-auto" onclick="showDemos({{ func['demos'] }})">
+              Try Examples
             </button>
-            <div id='{{ func["name"].lower() }}-component'  class="component-embedding hidden"></div>
-            <pre><code class="lang-python">gradio.components.<span>{{ func["name"] }}(</span><!--
-            -->{% for param in func["params"] %}<!--
-              -->{% if param|length == 1 %}<!--
-                -->{{ param[0] }}<!--
-              -->{% else %}<!--
-                -->{{ param[0] }}={{ param[1] }}<!--
+            </div>
+            <pre class="mb-4"><code class="lang-python">gradio.<span>{{ func["name"] }}(</span><!--
+            -->self, <!--
+              -->{% if func["name"] in ["CheckboxGroup", "Radio", "Dropdown"] %}<!--
+                -->choices, <!--
+              -->{% elif func["name"] == "Dataset" %}<!--
+                -->components, samples, <!--
               -->{% endif %}<!--
-              -->{% if not loop.last %}, {% endif %}<!--
-            -->{% endfor %}<span>)</span></code></pre>
+            -->&#183;&#183;&#183;<span>)</span></code></pre>
+            <div id='{{ func["name"].lower() }}-component'  class="component-embedding"></div>
             <p class="w-4/5 mt-8 text-lg">{{ func["doc"] }}</p>
             {% if func["Preprocessing"]|length %}
             <p class="text-gray-500">Preprocessing: {{ func["Preprocessing"] | safe}}</p>
@@ -484,8 +505,12 @@
                   <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
                     <td class="p-3 w-2/5">
                       <code class=“prettyprint”>{{ param[0] }}</code>
-
                       <p class="text-gray-500 italic">{{ param[1] }}</p>
+                      {% if func["name"] in ["CheckboxGroup", "Radio", "Dropdown"] and param[0] == "choices" %}
+                        <p class="text-orange-600 font-semibold italic">required</p>
+                      {% elif func["name"] == "Dataset" and param[0] in ["components", "samples"] %}
+                        <p class="text-orange-600 font-semibold italic">required</p>
+                      {% endif %}
                     </td>
                     <td class="p-3 text-gray-700">
                       <p>{{ param[2] }}</p>
@@ -494,6 +519,31 @@
               {% endfor %}
               </tbody>
             </table>
+            {% if func["string_shortcut"] %}
+            <h4 class="my-2 font-semibold">String Shortcuts</h4>
+            <table class="table-fixed w-full mt-6 mb-4">
+              <thead class="text-left">
+                <tr>
+                  <th class="font-semibold w-2/5">Shortcut</th>
+                  <th class="font-semibold">Equivalent</th>
+                </tr>
+              </thead>
+            </table>
+            <table class="table-fixed w-full mt-6 mb-4 rounded-lg bg-gray-50 border border-gray-100 overflow-hidden">
+              <tbody class="text-left divide-y">
+              {% for shortcut, equivalent in func["string_shortcut"].items() %}
+                  <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+                    <td class="p-3 w-2/5">
+                      <p>"{{ shortcut }}"</p>
+                    </td>
+                    <td class="p-3 text-gray-700">
+                      <pre style="background: none;margin: 0;padding: 0;"><code class="lang-python">{{ equivalent }}</code></pre>
+                    </td>
+                  </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+            {%endif%}
             <h4 class="my-2 font-semibold">Step-by-step Guides</h4>
             {% if func["guides"] %}
               <div class="guides-list grid grid-cols-1 lg:grid-cols-4 gap-4">
@@ -510,7 +560,6 @@
               <p class="my-2 text-gray-500">No guides yet, <a class="font-semibold text-orange-500 border-b border-orange-500 " target="_blank" href="https://github.com/gradio-app/gradio/tree/master/guides">contribute</a> a guide about <span class="font-semibold">{{ func["name"] }}</span></p>
             {% endif %}
             {% if func["shortcuts"]|length %}
-            <h4 class="my-2 font-semibold">String Shortcuts</h4>
             <ul class="list-disc list-inside">
               {% for param in func["shortcuts"] %}
               <li>"{{ param[0] }}" -
@@ -584,27 +633,23 @@
         </section>
       </div>
 
-        <div class="fixed hidden inset-0 bg-gray-500 bg-opacity-75 overflow-y-auto h-full w-full" id="demos-window">
-          <div class="relative mx-auto my-auto p-5 border w-4/5 shadow-lg rounded-md bg-white" style="top: 5%; height: 90%">
-            <div class="flex flex-row items-start w-11/12 h-11/12 m-auto gap-6">
-              <div class="w-2/5">
-                <div class="flex flex-column items-start w-11/12 h-11/12 m-auto gap-6">
-                  <h3 class="text-3xl font-semibold text-left">Code</h3>
+        <div class="fixed hidden inset-0 bg-gray-500 bg-opacity-75 overflow-y-auto h-full w-full" id="demos-window" style="z-index: 99;">
+          <div class="relative mx-auto my-auto p-5 border w-11/12 shadow-lg rounded-md bg-white" style="top: 5%; height: 90%">
+            <div class="flex flex-col items-start h-full m-auto gap-3" style="width: 98%">
+              <div class="w-full mb-3" style="height: 5%">
+                  <nav class="demos-nav flex flex-wrap gap-6 whitespace-nowrap text-gray-600 md:text-lg my-2 md:mb-0"></nav>
                 </div>
+              <div class="w-full" style="height: 40%">
                 <div class="w-full h-full my-2 bg-grey-200 rounded-md">
                   {% for src, code in docs.demo_code.items() %}
-                    <pre id="{{ src }}" class="hidden demo-code"><code class='lang-python' style="max-height: 34rem;">{{ code }}</code></pre>
+                    <pre id="{{ src }}" class="hidden demo-code" style="height: 95%"><code class='lang-python'>{{ code }}</code></pre>
                   {% endfor %}
                 </div>
               </div>
-              <div class="w-3/5">
-                <h2 class="text-3xl font-semibold text-left">Demos</h2>
-                <div class="mb-6">
-                  <nav class="demos-nav flex flex-wrap gap-6 whitespace-nowrap text-gray-600 md:text-lg my-2 md:mb-0"></nav>
-                </div>
-                <div class="demos w-full h-full my-2 bg-gray-200 rounded-md">
+              <div class="w-full" style="height: 55%">
+                <div class="demos w-full h-full my-2 rounded-md">
                   {% for src, code in docs.demo_code.items() %}
-                    <div id="{{ src }}-interface" class="hidden demo-interface"></div>
+                    <div id="{{ src }}-interface" class="hidden demo-interface overflow-auto" style="height: 75%"></div>
                   {% endfor %}
                 </div>
               </div>
@@ -645,7 +690,21 @@
     </nav>
   </footer>
   <script src="/assets/prism.js"></script>
-  <script id="gradio-library" type="module" crossorigin src="/gradio_static/assets/{{ entry_js_file }}"></script>
+  <script>
+    window.__gradio_mode__ = "website";
+  </script>
+  <script id="gradio-library" type="module" crossorigin src="/assets/{{ entry_js_file }}"></script>
+  <script>
+    window.launchGradioWhenReady = (config, target) => {
+      if (window.launchGradio) {
+        window.launchGradio(config, target)
+      } else {
+        window.setTimeout(() => {
+          window.launchGradio(config, target)
+        }, 500)
+      }
+    }
+  </script>
   <script>
    // highlighting section in nav bar
     let mainNavLinks = document.querySelectorAll(".navigation a");
@@ -772,7 +831,7 @@
         .then(response => response.json())
         .then(demo => {
           demo.root = demo_endpoint + "/{{ src }}/";
-          launchGradio(demo, "#{{ src }}-interface");
+          launchGradioWhenReady(demo, "#{{ src }}-interface");
         });
     {% endfor %}
 
@@ -838,7 +897,7 @@
     {% for component, config in docs.embedding_configs.items() %}
       target = "#{{ component }}-component";
       config = {{ config|tojson }};
-      window.launchGradio(config, target);
+      window.launchGradioWhenReady(config, target);
     {% endfor %}
 
     let componentEmbeddings = document.querySelectorAll(".component-embedding").forEach(e => {
