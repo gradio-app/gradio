@@ -113,6 +113,9 @@
     .gradio-container > :first-child {
       margin: 0 !important;
       padding: 0 !important;
+      height: auto !important;
+      min-height: 0 !important;
+    }
 
     .hanging {
       padding-left: 22px;
@@ -261,7 +264,7 @@
         window.launchGradio(config, target)
       } else {
         window.setTimeout(() => {
-          window.launchGradio(config, target)
+          window.launchGradioWhenReady(config, target)
         }, 500)
       }
     }
