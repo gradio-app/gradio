@@ -513,6 +513,9 @@ class Interface(Blocks):
                                 + component.__class__.__name__
                                 + " component to use live streaming."
                             )
+                            component.change(
+                                submit_fn, self.input_components, self.output_components
+                            )
                     else:
                         component.change(
                             submit_fn, self.input_components, self.output_components
