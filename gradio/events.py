@@ -179,3 +179,23 @@ class Playable(Block):
         Returns: None
         """
         self.set_event_trigger("stop", fn, inputs, outputs, js=_js)
+
+
+class Streamable(Block):
+    def stream(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        _js: Optional[str] = None,
+    ):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        Returns: None
+        """
+        self.streaming = True
+        self.set_event_trigger("stream", fn, inputs, outputs, js=_js)

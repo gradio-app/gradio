@@ -1,7 +1,7 @@
 from deepspeech import Model
 import gradio as gr
 import numpy as np
-import urllib.request 
+import urllib.request
 
 model_file_path = "deepspeech-0.9.3-models.pbmm"
 lm_file_path = "deepspeech-0.9.3-models.scorer"
@@ -45,7 +45,13 @@ def transcribe(speech, stream):
     text = stream.intermediateDecode()
     return text, stream
 
-demo = gr.Interface(transcribe, ["microphone", "state"], ["text", "state"], live=True)
+
+demo = gr.Interface(
+    transcribe,
+    [gr.Audio(source="microphone", streaming=True), "state"],
+    ["text", "state"],
+    live=True,
+)
 
 if __name__ == "__main__":
     demo.launch()

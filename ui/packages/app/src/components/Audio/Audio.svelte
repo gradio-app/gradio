@@ -6,6 +6,11 @@
 
 	import StatusTracker from "../StatusTracker/StatusTracker.svelte";
 	import type { LoadingStatus } from "../StatusTracker/types";
+	import { createEventDispatcher } from "svelte";
+	const dispatch = createEventDispatcher<{
+		change;
+		stream;
+	}>();
 
 	import { _ } from "svelte-i18n";
 
@@ -18,6 +23,8 @@
 	export let label: string;
 	export let root: string;
 	export let show_label: boolean;
+	export let pending: boolean;
+	export let streaming: boolean;
 
 	export let loading_status: LoadingStatus;
 
@@ -42,11 +49,20 @@
 			{label}
 			{show_label}
 			value={_value}
-			on:change={({ detail }) => (value = detail)}
+			on:change={({ detail }) => {
+				value = detail;
+				dispatch("change", value);
+			}}
+			on:stream={({ detail }) => {
+				value = detail;
+				dispatch("stream", value);
+			}}
 			on:drag={({ detail }) => (dragging = detail)}
 			{name}
 			{source}
 			{type}
+			{pending}
+			{streaming}
 			on:edit
 			on:play
 			on:pause
