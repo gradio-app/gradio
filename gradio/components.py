@@ -3538,8 +3538,9 @@ class Dataset(Clickable, Component):
     ):
         """
         Parameters:
-        components (List[Component]): Default value
-        variant (str): 'primary' for main call-to-action, 'secondary' for a more subdued style
+        components (List[Component]): Which component types to show in this dataset widget
+        sample (str): a nested list of samples. Each sublist within the outer list represents a data sample, and each element within the sublist represents an value for each component
+        type (str): 'values' if clicking on a should  pass the value of the sample, or "index" if it should pass the index of the sample
         visible (bool): If False, component will be hidden.
         """
         Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
