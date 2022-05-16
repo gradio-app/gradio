@@ -14,7 +14,6 @@
 	const dispatch = createEventDispatcher();
 
 	$: dispatch("change", value);
-	$: console.log(value);
 </script>
 
 <BlockTitle {show_label}>{label}</BlockTitle>

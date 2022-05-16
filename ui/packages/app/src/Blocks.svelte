@@ -317,8 +317,6 @@
 			set_prop(instance_map[id], "loading_status", statuses[id]);
 		}
 	}
-
-	console.log(rootNode);
 </script>
 
 <svelte:head>

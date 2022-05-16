@@ -63,7 +63,6 @@
 	}
 
 	function text_area_resize(el: HTMLTextAreaElement, value: string) {
-		console.log(lines, max_lines);
 		if (lines === max_lines) return;
 		el.style.overflowY = "scroll";
 		el.addEventListener("input", resize);
