@@ -371,12 +371,13 @@
 	}
 
 	function handle_click_outside(event: Event) {
+		console.log('outside')
 		if (typeof editing === "string" && els[editing]) {
 			if (
 				els[editing].cell !== event.target &&
 				!els[editing].cell?.contains(event?.target as Node | null)
 			) {
-				header_edit = false;
+				editing = false;
 			}
 		}
 
@@ -451,7 +452,7 @@
 	let dragging = false;
 </script>
 
-<svelte:window on:click={handle_click_outside} />
+<svelte:window on:click={handle_click_outside} on:touchstart={handle_click_outside}/>
 
 <div
 	class="scroll-hide whitespace-nowrap overflow-hidden rounded-lg relative border transition-colors overflow-x-scroll"
@@ -530,6 +531,7 @@
 							<td
 								tabindex="0"
 								bind:this={els[id].cell}
+								on:touchstart={() => start_edit(id)}
 								on:click={() => handle_cell_click(id)}
 								on:dblclick={() => start_edit(id)}
 								on:keydown={(e) => handle_keydown(e, i, j, id)}
