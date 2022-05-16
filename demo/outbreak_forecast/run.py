@@ -51,7 +51,7 @@ def outbreak(plot_type, r, month, countries, social_distancing):
 
 inputs = [
         gr.Dropdown(["Matplotlib", "Plotly", "Bokeh"], label="Plot Type"),
-        gr.Slider(minimum=1, maximum=4, value=3.2, label="R"),
+        gr.Slider(1, 4, 3.2, label="R"),
         gr.Dropdown(["January", "February", "March", "April", "May"], label="Month"),
         gr.CheckboxGroup(["USA", "Canada", "Mexico", "UK"], label="Countries", 
                          value=["USA", "Canada"]),

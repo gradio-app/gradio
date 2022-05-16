@@ -19,7 +19,7 @@ demo = gr.Interface(
     generate_tone,
     [
         gr.Dropdown(notes, type="index"),
-        gr.Slider(value=4, minimum=4, maximum=6, step=1),
+        gr.Slider(4, 6, step=1),
         gr.Textbox(value=1, type="number", label="Duration in seconds"),
     ],
     "audio",

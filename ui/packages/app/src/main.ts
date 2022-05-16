@@ -87,6 +87,7 @@ window.launchGradio = (config: Config, element_query: string) => {
 			target: target,
 			props: config
 		});
+		window.__gradio_loader__.$set({ status: "complete" });
 	} else {
 		if (window.__gradio_mode__ !== "website") {
 			handle_darkmode(target);

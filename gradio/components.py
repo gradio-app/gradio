@@ -672,10 +672,10 @@ class Slider(Changeable, IOComponent):
 
     def __init__(
         self,
-        value: Optional[float] = None,
-        *,
         minimum: float = 0,
         maximum: float = 100,
+        value: Optional[float] = None,
+        *,
         step: Optional[float] = None,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -686,9 +686,9 @@ class Slider(Changeable, IOComponent):
     ):
         """
         Parameters:
-        value (float): default value.
         minimum (float): minimum value for slider.
         maximum (float): maximum value for slider.
+        value (float): default value.
         step (float): increment between slider values.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
