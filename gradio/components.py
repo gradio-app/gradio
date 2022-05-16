@@ -3376,7 +3376,7 @@ class Plot(Changeable, Clearable, IOComponent):
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
-        self.value = value
+        self.value = self.postprocess(value)
         IOComponent.__init__(
             self,
             label=label,
