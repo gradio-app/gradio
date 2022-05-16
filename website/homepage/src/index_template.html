@@ -239,7 +239,6 @@ gr<span class="token punctuation">.</span>Interface<span class="token punctuatio
       </a>
     </nav>
   </footer>
-  <script defer id="gradio-library" type="module" crossorigin src="/assets/{{ entry_js_file }}"></script>
   <script>
     let xhr = new XMLHttpRequest;
     xhr.open('GET', 'https://api.github.com/repos/gradio-app/gradio', true)
@@ -270,14 +269,6 @@ gr<span class="token punctuation">.</span>Interface<span class="token punctuatio
     }
 
     window.__gradio_mode__ = "website";
-  </script>
-  <script>
-  <!--    document.querySelector("#gradio-library").addEventListener('load', function () {-->
-  <!--      launchGradioFromSpaces("abidlabs/Draw", "#demo_mnist");-->
-  <!--      launchGradioFromSpaces("abidlabs/question-answering", "#demo_qa");-->
-  <!--      launchGradioFromSpaces("abidlabs/Echocardiogram-Segmentation", "#demo_image_classifier");-->
-  <!--      launchGradioFromSpaces("abidlabs/same-person-or-different", "#demo_anime");-->
-  <!--    });-->
   </script>
 </body>
 
