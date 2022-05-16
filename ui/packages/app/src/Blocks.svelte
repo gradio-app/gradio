@@ -112,7 +112,6 @@
 		acc[next.id] = next;
 		return acc;
 	}, {} as { [id: number]: Component });
-	console.log(">>", instance_map)
 
 	function load_component<T extends keyof typeof component_map>(
 		name: T
