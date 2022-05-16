@@ -201,6 +201,7 @@ class Blocks(BlockContext):
         self.theme = theme
         self.requires_permissions = False  # TODO: needs to be implemented
         self.encrypt = False
+        self.share = False
         if css is not None and os.path.exists(css):
             with open(css) as css_file:
                 self.css = css_file.read()
