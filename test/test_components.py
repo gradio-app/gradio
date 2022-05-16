@@ -577,6 +577,7 @@ class TestImage(unittest.TestCase):
                 "source": "upload",
                 "tool": "editor",
                 "name": "image",
+                "streaming": False,
                 "show_label": True,
                 "label": "Upload Your Image",
                 "style": {},
@@ -734,6 +735,7 @@ class TestAudio(unittest.TestCase):
             {
                 "source": "upload",
                 "name": "audio",
+                "streaming": False,
                 "show_label": True,
                 "label": "Upload Your Audio",
                 "style": {},
@@ -776,6 +778,7 @@ class TestAudio(unittest.TestCase):
             audio_output.get_config(),
             {
                 "name": "audio",
+                "streaming": False,
                 "show_label": True,
                 "label": None,
                 "source": "upload",
