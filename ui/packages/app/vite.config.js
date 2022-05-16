@@ -12,8 +12,14 @@ const GRADIO_VERSION = process.env.GRADIO_VERSION;
 
 //@ts-ignore
 export default defineConfig(({ mode }) => {
-	const CDN_URL = mode === "production:cdn" ? `https://gradio.s3-us-west-2.amazonaws.com/${GRADIO_VERSION}/` : '/';
-	const production = mode === "production:cdn" || mode === "production:local" || mode === "production:website";
+	const CDN_URL =
+		mode === "production:cdn"
+			? `https://gradio.s3-us-west-2.amazonaws.com/${GRADIO_VERSION}/`
+			: "/";
+	const production =
+		mode === "production:cdn" ||
+		mode === "production:local" ||
+		mode === "production:website";
 	const is_cdn = mode === "production:cdn" || mode === "production:website";
 
 	return {
