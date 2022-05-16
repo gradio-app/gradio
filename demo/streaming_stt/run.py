@@ -48,4 +48,4 @@ def transcribe(speech, stream):
 demo = gr.Interface(transcribe, ["microphone", "state"], ["text", "state"], live=True)
 
 if __name__ == "__main__":
-    demo.launch(debug=True)
+    demo.launch()

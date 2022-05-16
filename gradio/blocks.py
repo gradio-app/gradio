@@ -415,6 +415,7 @@ class Blocks(BlockContext):
         ssl_keyfile: Optional[str] = None,
         ssl_certfile: Optional[str] = None,
         ssl_keyfile_password: Optional[str] = None,
+        _frontend: bool = True,
     ) -> Tuple[FastAPI, str, str]:
         """
         Launches a simple web server that serves the demo. Can also be used to create a
@@ -496,7 +497,7 @@ class Blocks(BlockContext):
         # If running in a colab or not able to access localhost,
         # automatically create a shareable link.
         is_colab = utils.colab_check()
-        if is_colab or not (networking.url_ok(self.local_url)):
+        if is_colab or (_frontend and not networking.url_ok(self.local_url)):
             share = True
             if is_colab:
                 if debug:
