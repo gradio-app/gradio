@@ -8,7 +8,6 @@
 	export let choices: Array<string>;
 	export let disabled: boolean = false;
 	export let label: string;
-	export let form_position: "first" | "last" | "mid" | "single" = "single";
 	export let show_label: boolean;
 	export let elem_id: string;
 

@@ -4,7 +4,7 @@
 	import { BlockTitle } from "@gradio/atoms";
 
 	export let value: string = "";
-	export let style: Record<string, string> = {};
+	export let style: Record<string, unknown> = {};
 	export let lines: number = 1;
 	export let placeholder: string = "Type here...";
 	export let label: string;

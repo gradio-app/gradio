@@ -22,7 +22,6 @@
 	<StatusTracker {...loading_status} />
 
 	<Radio
-		{form_position}
 		bind:value
 		{label}
 		{elem_id}
