@@ -478,7 +478,7 @@ class Number(Changeable, Submittable, IOComponent):
 
     def __init__(
         self,
-        value: Optional[float] = None,
+        value: Optional[float] = 0,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -497,6 +497,7 @@ class Number(Changeable, Submittable, IOComponent):
         precision (Optional[int]): Precision to round input/output to. If set to 0, will round to nearest integer and covert type to int. If None, no rounding happens.
         """
         self.value = self.round_to_precision(value, precision)
+        self.cleared_value = 0
         self.precision = precision
         self.test_input = self.value if self.value is not None else 1
         self.interpret_by_tokens = False
@@ -844,6 +845,7 @@ class Checkbox(Changeable, IOComponent):
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
+        self.cleared_value = False
         self.test_input = True
         self.value = value
         self.interpret_by_tokens = False
