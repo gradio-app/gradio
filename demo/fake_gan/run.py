@@ -31,8 +31,8 @@ demo = gr.Interface(
     inputs=[
         gr.Number(label="Generation Count"),
         gr.Image(label="Initial Image (optional)"),
-        gr.Slider(25, minimum=0, maximum=50, label="TV_scale (for smoothness)"),
-        gr.Slider(25, minimum=0, maximum=50, label="Range_Scale (out of range RBG)"),
+        gr.Slider(0, 50, 25, label="TV_scale (for smoothness)"),
+        gr.Slider(0, 50, 25, label="Range_Scale (out of range RBG)"),
         gr.Number(label="Seed"),
         gr.Number(label="Respacing"),
     ],

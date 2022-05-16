@@ -12,7 +12,7 @@ with gr.Blocks() as demo:
     animal = gr.Dropdown(label="Animal", choices=[])
 
     with gr.Column(visible=False) as details_col:
-        weight = gr.Slider(0, minimum=0, maximum=20)
+        weight = gr.Slider(0, 20)
         details = gr.Textbox(label="Extra Details")
         generate_btn = gr.Button("Generate")
         output = gr.Textbox(label="Output")

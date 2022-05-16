@@ -28,7 +28,7 @@ demo = gr.Interface(
     [
         gr.Radio([2025, 2030, 2035, 2040], label="Project to:"),
         gr.CheckboxGroup(["Google", "Microsoft", "Gradio"], label="Company Selection"),
-        gr.Slider(minimum=1, maximum=100, label="Noise Level"),
+        gr.Slider(1, 100, label="Noise Level"),
         gr.Checkbox(label="Show Legend"),
         gr.Dropdown(["cross", "line", "circle"], label="Style"),
     ],

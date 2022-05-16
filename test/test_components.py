@@ -349,9 +349,7 @@ class TestSlider(unittest.TestCase):
             self.assertEqual(restored, 3)
 
         self.assertIsInstance(slider_input.generate_sample(), int)
-        slider_input = gr.Slider(
-            value=15, minimum=10, maximum=20, step=1, label="Slide Your Input"
-        )
+        slider_input = gr.Slider(10, 20, value=15, step=1, label="Slide Your Input")
         self.assertEqual(
             slider_input.get_config(),
             {
