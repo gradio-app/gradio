@@ -16,7 +16,7 @@ import tempfile
 import warnings
 from copy import deepcopy
 from types import ModuleType
-from typing import Any, Dict, List, Optional, Tuple, Type
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type
 
 import matplotlib.figure
 import numpy as np
@@ -33,6 +33,7 @@ from gradio.events import (
     Clickable,
     Editable,
     Playable,
+    Streamable,
     Submittable,
 )
 
@@ -1305,7 +1306,7 @@ class Dropdown(Radio):
         )
 
 
-class Image(Editable, Clearable, Changeable, IOComponent):
+class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
     """
     Creates an image component that can be used to upload/draw images (as an input) or display images (as an output).
     Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type`.
@@ -1329,6 +1330,7 @@ class Image(Editable, Clearable, Changeable, IOComponent):
         interactive: Optional[bool] = None,
         visible: bool = True,
         elem_id: Optional[str] = None,
+        streaming: bool = False,
         **kwargs,
     ):
         """
@@ -1343,6 +1345,7 @@ class Image(Editable, Clearable, Changeable, IOComponent):
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
+        streaming (bool): If True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'webcam'.
         """
         self.type = type
         self.value = (
@@ -1358,6 +1361,10 @@ class Image(Editable, Clearable, Changeable, IOComponent):
         self.invert_colors = invert_colors
         self.test_input = deepcopy(media_data.BASE64_IMAGE)
         self.interpret_by_tokens = True
+        self.streaming = streaming
+        if streaming and source != "webcam":
+            raise ValueError("Image streaming only available if source is 'webcam'.")
+
         IOComponent.__init__(
             self,
             label=label,
@@ -1376,6 +1383,7 @@ class Image(Editable, Clearable, Changeable, IOComponent):
             "source": self.source,
             "tool": self.tool,
             "value": self.value,
+            "streaming": self.streaming,
             **IOComponent.get_config(self),
         }
 
@@ -1634,6 +1642,25 @@ class Image(Editable, Clearable, Changeable, IOComponent):
             container_bg_color=container_bg_color,
         )
 
+    def stream(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        _js: Optional[str] = None,
+    ):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        Returns: None
+        """
+        if self.source != "webcam":
+            raise ValueError("Image streaming only available if source is 'webcam'.")
+        Streamable.stream(self, fn, inputs, outputs, _js)
+
 
 class Video(Changeable, Clearable, Playable, IOComponent):
     """
@@ -1776,7 +1803,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         return processing_utils.decode_base64_to_file(x).name
 
 
-class Audio(Changeable, Clearable, Playable, IOComponent):
+class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
     """
     Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
     Preprocessing: passes the uploaded audio as a {Tuple(int, numpy.array)} corresponding to (sample rate, data) or as a {str} filepath, depending on `type`
@@ -1796,6 +1823,7 @@ class Audio(Changeable, Clearable, Playable, IOComponent):
         interactive: Optional[bool] = None,
         visible: bool = True,
         elem_id: Optional[str] = None,
+        streaming: bool = False,
         **kwargs,
     ):
         """
@@ -1806,6 +1834,7 @@ class Audio(Changeable, Clearable, Playable, IOComponent):
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
+        streaming (bool): If set to true when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'microphone'.
         """
         self.value = (
             processing_utils.encode_url_or_file_to_base64(value) if value else None
@@ -1816,6 +1845,11 @@ class Audio(Changeable, Clearable, Playable, IOComponent):
         self.output_type = "auto"
         self.test_input = deepcopy(media_data.BASE64_AUDIO)
         self.interpret_by_tokens = True
+        self.streaming = streaming
+        if streaming and source != "microphone":
+            raise ValueError(
+                "Audio streaming only available if source is 'microphone'."
+            )
         IOComponent.__init__(
             self,
             label=label,
@@ -1831,6 +1865,7 @@ class Audio(Changeable, Clearable, Playable, IOComponent):
         return {
             "source": self.source,  # TODO: This did not exist in output template, careful here if an error arrives
             "value": self.value,
+            "streaming": self.streaming,
             **IOComponent.get_config(self),
         }
 
@@ -2054,6 +2089,27 @@ class Audio(Changeable, Clearable, Playable, IOComponent):
 
     def deserialize(self, x):
         return processing_utils.decode_base64_to_file(x).name
+
+    def stream(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        _js: Optional[str] = None,
+    ):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        Returns: None
+        """
+        if self.source != "microphone":
+            raise ValueError(
+                "Audio streaming only available if source is 'microphone'."
+            )
+        Streamable.stream(self, fn, inputs, outputs, _js)
 
 
 class File(Changeable, Clearable, IOComponent):

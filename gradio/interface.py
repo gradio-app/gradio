@@ -502,9 +502,21 @@ class Interface(Blocks):
             )
             if self.live:
                 for component in self.input_components:
-                    component.change(
-                        submit_fn, self.input_components, self.output_components
-                    )
+                    if hasattr(component, "streaming"):
+                        if component.__getattribute__("streaming"):
+                            component.stream(
+                                submit_fn, self.input_components, self.output_components
+                            )
+                        else:
+                            print(
+                                "Hint: Set streaming=True for "
+                                + component.__class__.__name__
+                                + " component to use live streaming."
+                            )
+                    else:
+                        component.change(
+                            submit_fn, self.input_components, self.output_components
+                        )
             else:
                 submit_btn.click(
                     submit_fn,
