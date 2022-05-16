@@ -1,6 +1,6 @@
 import gradio as gr
 
-with gr.Blocks() as block:
+with gr.Blocks() as demo:
     gr.Markdown(
         """
     # Animal Generator
@@ -12,7 +12,7 @@ with gr.Blocks() as block:
     animal = gr.Dropdown(label="Animal", choices=[])
 
     with gr.Column(visible=False) as details_col:
-        weight = gr.Slider(0, minimum=0, maximum=20)
+        weight = gr.Slider(0, 20)
         details = gr.Textbox(label="Extra Details")
         generate_btn = gr.Button("Generate")
         output = gr.Textbox(label="Output")
@@ -41,4 +41,6 @@ with gr.Blocks() as block:
 
     generate_btn.click(lambda x: x, details, output)
 
-block.launch()
+
+if __name__ == "__main__":
+    demo.launch()

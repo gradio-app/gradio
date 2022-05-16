@@ -80,17 +80,6 @@ def fn(
         os.path.join(os.path.dirname(__file__), "files/titanic.csv"),
         df1,  # Dataframe
         np.random.randint(0, 10, (4, 4)),  # Dataframe
-        [
-            im
-            for im in [
-                im1,
-                im2,
-                im3,
-                im4,
-                os.path.join(os.path.dirname(__file__), "files/cheetah1.jpg"),
-            ]
-            if im is not None
-        ],  # Carousel
         df2,  # Timeseries
     )
 
@@ -101,7 +90,7 @@ demo = gr.Interface(
         gr.Textbox(value="Lorem ipsum", label="Textbox"),
         gr.Textbox(lines=3, placeholder="Type here..", label="Textbox 2"),
         gr.Number(label="Number", value=42),
-        gr.Slider(minimum=10, maximum=20, value=15, label="Slider: 10 - 20"),
+        gr.Slider(10, 20, value=15, label="Slider: 10 - 20"),
         gr.Slider(maximum=20, step=0.04, label="Slider: step @ 0.04"),
         gr.Checkbox(label="Checkbox"),
         gr.CheckboxGroup(
@@ -135,7 +124,6 @@ demo = gr.Interface(
         gr.File(label="File"),
         gr.Dataframe(label="Dataframe"),
         gr.Dataframe(label="Numpy"),
-        gr.Carousel(components="image", label="Carousel"),
         gr.Timeseries(x="time", y=["price", "value"], label="Timeseries"),
     ],
     examples=[

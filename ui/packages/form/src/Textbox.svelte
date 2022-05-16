@@ -4,7 +4,7 @@
 	import { BlockTitle } from "@gradio/atoms";
 
 	export let value: string = "";
-	export let style: Record<string, string> = {};
+	export let style: Record<string, unknown> = {};
 	export let lines: number = 1;
 	export let placeholder: string = "Type here...";
 	export let label: string;
@@ -43,9 +43,9 @@
 			max_lines === false
 				? false
 				: max_lines === undefined // default
-				? 20 * 11
-				: 20 * (max_lines + 1);
-		let min = 20 * (lines + 1);
+				? 21 * 11
+				: 21 * (max_lines + 1);
+		let min = 21 * (lines + 1);
 
 		const target = event.target as HTMLTextAreaElement;
 		target.style.height = "1px";
@@ -64,7 +64,7 @@
 
 	function text_area_resize(el: HTMLTextAreaElement, value: string) {
 		if (lines === max_lines) return;
-		el.style.overflow = "hidden";
+		el.style.overflowY = "scroll";
 		el.addEventListener("input", resize);
 
 		if (!value.trim()) return;
@@ -80,14 +80,26 @@
 <label class="block w-full">
 	<BlockTitle {show_label}>{label}</BlockTitle>
 
-	<textarea
-		use:text_area_resize={value}
-		class={"block gr-box gr-input w-full gr-text-input " +
-			create_classes(style)}
-		bind:value
-		bind:this={el}
-		{placeholder}
-		rows={lines}
-		{disabled}
-	/>
+	{#if lines === 1 && max_lines === 1}
+		<input
+			type="text"
+			class={"scroll-hide block gr-box gr-input w-full gr-text-input " +
+				create_classes(style)}
+			bind:value
+			bind:this={el}
+			{placeholder}
+			{disabled}
+		/>
+	{:else}
+		<textarea
+			use:text_area_resize={value}
+			class={"scroll-hide block gr-box gr-input w-full gr-text-input " +
+				create_classes(style)}
+			bind:value
+			bind:this={el}
+			{placeholder}
+			rows={lines}
+			{disabled}
+		/>
+	{/if}
 </label>

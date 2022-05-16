@@ -11,11 +11,10 @@
 	"
 >
 	<head>
-		<base target="_blank" />
 		<meta charset="utf-8" />
 		<meta
 			name="viewport"
-			content="width=device-width, initial-scale=1, shrink-to-fit=no"
+			content="width=device-width, initial-scale=1, shrink-to-fit=no, maximum-scale=1"
 		/>
 
 		<script type="module" src="./src/main.ts"></script>
@@ -43,7 +42,7 @@
 			}
 			gtag("js", new Date());
 			gtag("config", "UA-156449732-1");
-			window.gradio_mode = "app";
+			window.__gradio_mode__ = "app";
 		</script>
 
 		%gradio_config%

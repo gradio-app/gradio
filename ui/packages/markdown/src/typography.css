@@ -1,66 +1,66 @@
-.prose {
+.gr-prose {
 	color: #374151;
 	max-width: 65ch;
 }
-.prose [class~="lead"] {
+.gr-prose [class~="lead"] {
 	color: #4b5563;
 	font-size: 1.25em;
 	line-height: 1.6;
 	margin-top: 1.2em;
 	margin-bottom: 1.2em;
 }
-.prose a {
+.gr-prose a {
 	color: #111827;
 	text-decoration: underline;
 	font-weight: 500;
 }
-.prose strong {
+.gr-prose strong {
 	color: #111827;
 	font-weight: 600;
 }
-.prose ol[type="A"] {
+.gr-prose ol[type="A"] {
 	--list-counter-style: upper-alpha;
 }
-.prose ol[type="a"] {
+.gr-prose ol[type="a"] {
 	--list-counter-style: lower-alpha;
 }
-.prose ol[type="A"s] {
+.gr-prose ol[type="A"s] {
 	--list-counter-style: upper-alpha;
 }
-.prose ol[type="a"s] {
+.gr-prose ol[type="a"s] {
 	--list-counter-style: lower-alpha;
 }
-.prose ol[type="I"] {
+.gr-prose ol[type="I"] {
 	--list-counter-style: upper-roman;
 }
-.prose ol[type="i"] {
+.gr-prose ol[type="i"] {
 	--list-counter-style: lower-roman;
 }
-.prose ol[type="I"s] {
+.gr-prose ol[type="I"s] {
 	--list-counter-style: upper-roman;
 }
-.prose ol[type="i"s] {
+.gr-prose ol[type="i"s] {
 	--list-counter-style: lower-roman;
 }
-.prose ol[type="1"] {
+.gr-prose ol[type="1"] {
 	--list-counter-style: decimal;
 }
-.prose ol > li {
+.gr-prose ol > li {
 	position: relative;
 	padding-left: 1.75em;
 }
-.prose ol > li::before {
+.gr-prose ol > li::before {
 	content: counter(list-item, var(--list-counter-style, decimal)) ".";
 	position: absolute;
 	font-weight: 400;
 	color: #6b7280;
 	left: 0;
 }
-.prose ul > li {
+.gr-prose ul > li {
 	position: relative;
 	padding-left: 1.75em;
 }
-.prose ul > li::before {
+.gr-prose ul > li::before {
 	content: "";
 	position: absolute;
 	background-color: #d1d5db;
@@ -70,13 +70,13 @@
 	top: calc(0.875em - 0.1875em);
 	left: 0.25em;
 }
-.prose hr {
+.gr-prose hr {
 	border-color: #e5e7eb;
 	border-top-width: 1px;
 	margin-top: 3em;
 	margin-bottom: 3em;
 }
-.prose blockquote {
+.gr-prose blockquote {
 	font-weight: 500;
 	font-style: italic;
 	color: #111827;
@@ -87,13 +87,13 @@
 	margin-bottom: 1.6em;
 	padding-left: 1em;
 }
-.prose blockquote p:first-of-type::before {
+.gr-prose blockquote p:first-of-type::before {
 	content: open-quote;
 }
-.prose blockquote p:last-of-type::after {
+.gr-prose blockquote p:last-of-type::after {
 	content: close-quote;
 }
-.prose h1 {
+.gr-prose h1 {
 	color: #111827;
 	font-weight: 600;
 	font-size: 2.25em;
@@ -101,7 +101,7 @@
 	margin-bottom: 0.8888889em;
 	line-height: 1.1111111;
 }
-.prose h2 {
+.gr-prose h2 {
 	color: #111827;
 	font-weight: 600;
 	font-size: 1.5em;
@@ -109,7 +109,7 @@
 	margin-bottom: 1em;
 	line-height: 1.3333333;
 }
-.prose h3 {
+.gr-prose h3 {
 	color: #111827;
 	font-weight: 600;
 	font-size: 1.25em;
@@ -117,34 +117,34 @@
 	margin-bottom: 0.6em;
 	line-height: 1.6;
 }
-.prose h4 {
+.gr-prose h4 {
 	color: #111827;
 	font-weight: 600;
 	margin-top: 1.5em;
 	margin-bottom: 0.5em;
 	line-height: 1.5;
 }
-.prose figure figcaption {
+.gr-prose figure figcaption {
 	color: #6b7280;
 	font-size: 0.875em;
 	line-height: 1.4285714;
 	margin-top: 0.8571429em;
 }
-.prose code {
+.gr-prose code {
 	color: #111827;
 	font-weight: 600;
 	font-size: 0.875em;
 }
-.prose code::before {
+.gr-prose code::before {
 	content: "`";
 }
-.prose code::after {
+.gr-prose code::after {
 	content: "`";
 }
-.prose a code {
+.gr-prose a code {
 	color: #111827;
 }
-.prose pre {
+.gr-prose pre {
 	color: #e5e7eb;
 	background-color: #1f2937;
 	overflow-x: auto;
@@ -158,7 +158,7 @@
 	padding-bottom: 0.8571429em;
 	padding-left: 1.1428571em;
 }
-.prose pre code {
+.gr-prose pre code {
 	background-color: transparent;
 	border-width: 0;
 	border-radius: 0;
@@ -169,13 +169,13 @@
 	font-family: inherit;
 	line-height: inherit;
 }
-.prose pre code::before {
+.gr-prose pre code::before {
 	content: none;
 }
-.prose pre code::after {
+.gr-prose pre code::after {
 	content: none;
 }
-.prose table {
+.gr-prose table {
 	width: 100%;
 	table-layout: auto;
 	text-align: left;
@@ -184,200 +184,200 @@
 	font-size: 0.875em;
 	line-height: 1.7142857;
 }
-.prose thead {
+.gr-prose thead {
 	color: #111827;
 	font-weight: 600;
 	border-bottom-width: 1px;
 	border-bottom-color: #d1d5db;
 }
-.prose thead th {
+.gr-prose thead th {
 	vertical-align: bottom;
 	padding-right: 0.5714286em;
 	padding-bottom: 0.5714286em;
 	padding-left: 0.5714286em;
 }
-.prose tbody tr {
+.gr-prose tbody tr {
 	border-bottom-width: 1px;
 	border-bottom-color: #e5e7eb;
 }
-.prose tbody tr:last-child {
+.gr-prose tbody tr:last-child {
 	border-bottom-width: 0;
 }
-.prose tbody td {
+.gr-prose tbody td {
 	vertical-align: top;
 	padding-top: 0.5714286em;
 	padding-right: 0.5714286em;
 	padding-bottom: 0.5714286em;
 	padding-left: 0.5714286em;
 }
-.prose {
+.gr-prose {
 	font-size: 1rem;
 	line-height: 1.75;
 }
-.prose p {
+.gr-prose p {
 	margin-top: 1.25em;
 	margin-bottom: 1.25em;
 }
-.prose img {
+.gr-prose img {
 	margin-top: 2em;
 	margin-bottom: 2em;
 }
-.prose video {
+.gr-prose video {
 	margin-top: 2em;
 	margin-bottom: 2em;
 }
-.prose figure {
+.gr-prose figure {
 	margin-top: 2em;
 	margin-bottom: 2em;
 }
-.prose figure > * {
+.gr-prose figure > * {
 	margin-top: 0;
 	margin-bottom: 0;
 }
-.prose h2 code {
+.gr-prose h2 code {
 	font-size: 0.875em;
 }
-.prose h3 code {
+.gr-prose h3 code {
 	font-size: 0.9em;
 }
-.prose ol {
+.gr-prose ol {
 	margin-top: 1.25em;
 	margin-bottom: 1.25em;
 }
-.prose ul {
+.gr-prose ul {
 	margin-top: 1.25em;
 	margin-bottom: 1.25em;
 }
-.prose li {
+.gr-prose li {
 	margin-top: 0.5em;
 	margin-bottom: 0.5em;
 }
-.prose > ul > li p {
+.gr-prose > ul > li p {
 	margin-top: 0.75em;
 	margin-bottom: 0.75em;
 }
-.prose > ul > li > :first-child {
+.gr-prose > ul > li > :first-child {
 	margin-top: 1.25em;
 }
-.prose > ul > li > :last-child {
+.gr-prose > ul > li > :last-child {
 	margin-bottom: 1.25em;
 }
-.prose > ol > li > :first-child {
+.gr-prose > ol > li > :first-child {
 	margin-top: 1.25em;
 }
-.prose > ol > li > :last-child {
+.gr-prose > ol > li > :last-child {
 	margin-bottom: 1.25em;
 }
-.prose ol ol,
-.prose ol ul,
-.prose ul ol,
-.prose ul ul {
+.gr-prose ol ol,
+.gr-prose ol ul,
+.gr-prose ul ol,
+.gr-prose ul ul {
 	margin-top: 0.75em;
 	margin-bottom: 0.75em;
 }
-.prose hr + * {
+.gr-prose hr + * {
 	margin-top: 0;
 }
-.prose h2 + * {
+.gr-prose h2 + * {
 	margin-top: 0;
 }
-.prose h3 + * {
+.gr-prose h3 + * {
 	margin-top: 0;
 }
-.prose h4 + * {
+.gr-prose h4 + * {
 	margin-top: 0;
 }
-.prose thead th:first-child {
+.gr-prose thead th:first-child {
 	padding-left: 0;
 }
-.prose thead th:last-child {
+.gr-prose thead th:last-child {
 	padding-right: 0;
 }
-.prose tbody td:first-child {
+.gr-prose tbody td:first-child {
 	padding-left: 0;
 }
-.prose tbody td:last-child {
+.gr-prose tbody td:last-child {
 	padding-right: 0;
 }
-.prose > :first-child {
+.gr-prose > :first-child {
 	margin-top: 0;
 }
-.prose > :last-child {
+.gr-prose > :last-child {
 	margin-bottom: 0;
 }
-.prose-sm {
+.gr-prose-sm {
 	font-size: 0.875rem;
 	line-height: 1.7142857;
 }
-.prose-sm p {
+.gr-prose-sm p {
 	margin-top: 1.1428571em;
 	margin-bottom: 1.1428571em;
 }
-.prose-sm [class~="lead"] {
+.gr-prose-sm [class~="lead"] {
 	font-size: 1.2857143em;
 	line-height: 1.5555556;
 	margin-top: 0.8888889em;
 	margin-bottom: 0.8888889em;
 }
-.prose-sm blockquote {
+.gr-prose-sm blockquote {
 	margin-top: 1.3333333em;
 	margin-bottom: 1.3333333em;
 	padding-left: 1.1111111em;
 }
-.prose-sm h1 {
+.gr-prose-sm h1 {
 	font-size: 2.1428571em;
 	margin-top: 0;
 	margin-bottom: 0.8em;
 	line-height: 1.2;
 }
-.prose-sm h2 {
+.gr-prose-sm h2 {
 	font-size: 1.4285714em;
 	margin-top: 1.6em;
 	margin-bottom: 0.8em;
 	line-height: 1.4;
 }
-.prose-sm h3 {
+.gr-prose-sm h3 {
 	font-size: 1.2857143em;
 	margin-top: 1.5555556em;
 	margin-bottom: 0.4444444em;
 	line-height: 1.5555556;
 }
-.prose-sm h4 {
+.gr-prose-sm h4 {
 	margin-top: 1.4285714em;
 	margin-bottom: 0.5714286em;
 	line-height: 1.4285714;
 }
-.prose-sm img {
+.gr-prose-sm img {
 	margin-top: 1.7142857em;
 	margin-bottom: 1.7142857em;
 }
-.prose-sm video {
+.gr-prose-sm video {
 	margin-top: 1.7142857em;
 	margin-bottom: 1.7142857em;
 }
-.prose-sm figure {
+.gr-prose-sm figure {
 	margin-top: 1.7142857em;
 	margin-bottom: 1.7142857em;
 }
-.prose-sm figure > * {
+.gr-prose-sm figure > * {
 	margin-top: 0;
 	margin-bottom: 0;
 }
-.prose-sm figure figcaption {
+.gr-prose-sm figure figcaption {
 	font-size: 0.8571429em;
 	line-height: 1.3333333;
 	margin-top: 0.6666667em;
 }
-.prose-sm code {
+.gr-prose-sm code {
 	font-size: 0.8571429em;
 }
-.prose-sm h2 code {
+.gr-prose-sm h2 code {
 	font-size: 0.9em;
 }
-.prose-sm h3 code {
+.gr-prose-sm h3 code {
 	font-size: 0.8888889em;
 }
-.prose-sm pre {
+.gr-prose-sm pre {
 	font-size: 0.8571429em;
 	line-height: 1.6666667;
 	margin-top: 1.6666667em;
@@ -388,178 +388,178 @@
 	padding-bottom: 0.6666667em;
 	padding-left: 1em;
 }
-.prose-sm ol {
+.gr-prose-sm ol {
 	margin-top: 1.1428571em;
 	margin-bottom: 1.1428571em;
 }
-.prose-sm ul {
+.gr-prose-sm ul {
 	margin-top: 1.1428571em;
 	margin-bottom: 1.1428571em;
 }
-.prose-sm li {
+.gr-prose-sm li {
 	margin-top: 0.2857143em;
 	margin-bottom: 0.2857143em;
 }
-.prose-sm ol > li {
+.gr-prose-sm ol > li {
 	padding-left: 1.5714286em;
 }
-.prose-sm ol > li::before {
+.gr-prose-sm ol > li::before {
 	left: 0;
 }
-.prose-sm ul > li {
+.gr-prose-sm ul > li {
 	padding-left: 1.5714286em;
 }
-.prose-sm ul > li::before {
+.gr-prose-sm ul > li::before {
 	height: 0.3571429em;
 	width: 0.3571429em;
 	top: calc(0.8571429em - 0.1785714em);
 	left: 0.2142857em;
 }
-.prose-sm > ul > li p {
+.gr-prose-sm > ul > li p {
 	margin-top: 0.5714286em;
 	margin-bottom: 0.5714286em;
 }
-.prose-sm > ul > li > :first-child {
+.gr-prose-sm > ul > li > :first-child {
 	margin-top: 1.1428571em;
 }
-.prose-sm > ul > li > :last-child {
+.gr-prose-sm > ul > li > :last-child {
 	margin-bottom: 1.1428571em;
 }
-.prose-sm > ol > li > :first-child {
+.gr-prose-sm > ol > li > :first-child {
 	margin-top: 1.1428571em;
 }
-.prose-sm > ol > li > :last-child {
+.gr-prose-sm > ol > li > :last-child {
 	margin-bottom: 1.1428571em;
 }
-.prose-sm ol ol,
-.prose-sm ol ul,
-.prose-sm ul ol,
-.prose-sm ul ul {
+.gr-prose-sm ol ol,
+.gr-prose-sm ol ul,
+.gr-prose-sm ul ol,
+.gr-prose-sm ul ul {
 	margin-top: 0.5714286em;
 	margin-bottom: 0.5714286em;
 }
-.prose-sm hr {
+.gr-prose-sm hr {
 	margin-top: 2.8571429em;
 	margin-bottom: 2.8571429em;
 }
-.prose-sm hr + * {
+.gr-prose-sm hr + * {
 	margin-top: 0;
 }
-.prose-sm h2 + * {
+.gr-prose-sm h2 + * {
 	margin-top: 0;
 }
-.prose-sm h3 + * {
+.gr-prose-sm h3 + * {
 	margin-top: 0;
 }
-.prose-sm h4 + * {
+.gr-prose-sm h4 + * {
 	margin-top: 0;
 }
-.prose-sm table {
+.gr-prose-sm table {
 	font-size: 0.8571429em;
 	line-height: 1.5;
 }
-.prose-sm thead th {
+.gr-prose-sm thead th {
 	padding-right: 1em;
 	padding-bottom: 0.6666667em;
 	padding-left: 1em;
 }
-.prose-sm thead th:first-child {
+.gr-prose-sm thead th:first-child {
 	padding-left: 0;
 }
-.prose-sm thead th:last-child {
+.gr-prose-sm thead th:last-child {
 	padding-right: 0;
 }
-.prose-sm tbody td {
+.gr-prose-sm tbody td {
 	padding-top: 0.6666667em;
 	padding-right: 1em;
 	padding-bottom: 0.6666667em;
 	padding-left: 1em;
 }
-.prose-sm tbody td:first-child {
+.gr-prose-sm tbody td:first-child {
 	padding-left: 0;
 }
-.prose-sm tbody td:last-child {
+.gr-prose-sm tbody td:last-child {
 	padding-right: 0;
 }
-.prose-sm > :first-child {
+.gr-prose-sm > :first-child {
 	margin-top: 0;
 }
-.prose-sm > :last-child {
+.gr-prose-sm > :last-child {
 	margin-bottom: 0;
 }
-.prose-lg {
+.gr-prose-lg {
 	font-size: 1.125rem;
 	line-height: 1.7777778;
 }
-.prose-lg p {
+.gr-prose-lg p {
 	margin-top: 1.3333333em;
 	margin-bottom: 1.3333333em;
 }
-.prose-lg [class~="lead"] {
+.gr-prose-lg [class~="lead"] {
 	font-size: 1.2222222em;
 	line-height: 1.4545455;
 	margin-top: 1.0909091em;
 	margin-bottom: 1.0909091em;
 }
-.prose-lg blockquote {
+.gr-prose-lg blockquote {
 	margin-top: 1.6666667em;
 	margin-bottom: 1.6666667em;
 	padding-left: 1em;
 }
-.prose-lg h1 {
+.gr-prose-lg h1 {
 	font-size: 2.6666667em;
 	margin-top: 0;
 	margin-bottom: 0.8333333em;
 	line-height: 1;
 }
-.prose-lg h2 {
+.gr-prose-lg h2 {
 	font-size: 1.6666667em;
 	margin-top: 1.8666667em;
 	margin-bottom: 1.0666667em;
 	line-height: 1.3333333;
 }
-.prose-lg h3 {
+.gr-prose-lg h3 {
 	font-size: 1.3333333em;
 	margin-top: 1.6666667em;
 	margin-bottom: 0.6666667em;
 	line-height: 1.5;
 }
-.prose-lg h4 {
+.gr-prose-lg h4 {
 	margin-top: 1.7777778em;
 	margin-bottom: 0.4444444em;
 	line-height: 1.5555556;
 }
-.prose-lg img {
+.gr-prose-lg img {
 	margin-top: 1.7777778em;
 	margin-bottom: 1.7777778em;
 }
-.prose-lg video {
+.gr-prose-lg video {
 	margin-top: 1.7777778em;
 	margin-bottom: 1.7777778em;
 }
-.prose-lg figure {
+.gr-prose-lg figure {
 	margin-top: 1.7777778em;
 	margin-bottom: 1.7777778em;
 }
-.prose-lg figure > * {
+.gr-prose-lg figure > * {
 	margin-top: 0;
 	margin-bottom: 0;
 }
-.prose-lg figure figcaption {
+.gr-prose-lg figure figcaption {
 	font-size: 0.8888889em;
 	line-height: 1.5;
 	margin-top: 1em;
 }
-.prose-lg code {
+.gr-prose-lg code {
 	font-size: 0.8888889em;
 }
-.prose-lg h2 code {
+.gr-prose-lg h2 code {
 	font-size: 0.8666667em;
 }
-.prose-lg h3 code {
+.gr-prose-lg h3 code {
 	font-size: 0.875em;
 }
-.prose-lg pre {
+.gr-prose-lg pre {
 	font-size: 0.8888889em;
 	line-height: 1.75;
 	margin-top: 2em;
@@ -570,178 +570,178 @@
 	padding-bottom: 1em;
 	padding-left: 1.5em;
 }
-.prose-lg ol {
+.gr-prose-lg ol {
 	margin-top: 1.3333333em;
 	margin-bottom: 1.3333333em;
 }
-.prose-lg ul {
+.gr-prose-lg ul {
 	margin-top: 1.3333333em;
 	margin-bottom: 1.3333333em;
 }
-.prose-lg li {
+.gr-prose-lg li {
 	margin-top: 0.6666667em;
 	margin-bottom: 0.6666667em;
 }
-.prose-lg ol > li {
+.gr-prose-lg ol > li {
 	padding-left: 1.6666667em;
 }
-.prose-lg ol > li::before {
+.gr-prose-lg ol > li::before {
 	left: 0;
 }
-.prose-lg ul > li {
+.gr-prose-lg ul > li {
 	padding-left: 1.6666667em;
 }
-.prose-lg ul > li::before {
+.gr-prose-lg ul > li::before {
 	width: 0.3333333em;
 	height: 0.3333333em;
 	top: calc(0.8888889em - 0.1666667em);
 	left: 0.2222222em;
 }
-.prose-lg > ul > li p {
+.gr-prose-lg > ul > li p {
 	margin-top: 0.8888889em;
 	margin-bottom: 0.8888889em;
 }
-.prose-lg > ul > li > :first-child {
+.gr-prose-lg > ul > li > :first-child {
 	margin-top: 1.3333333em;
 }
-.prose-lg > ul > li > :last-child {
+.gr-prose-lg > ul > li > :last-child {
 	margin-bottom: 1.3333333em;
 }
-.prose-lg > ol > li > :first-child {
+.gr-prose-lg > ol > li > :first-child {
 	margin-top: 1.3333333em;
 }
-.prose-lg > ol > li > :last-child {
+.gr-prose-lg > ol > li > :last-child {
 	margin-bottom: 1.3333333em;
 }
-.prose-lg ol ol,
-.prose-lg ol ul,
-.prose-lg ul ol,
-.prose-lg ul ul {
+.gr-prose-lg ol ol,
+.gr-prose-lg ol ul,
+.gr-prose-lg ul ol,
+.gr-prose-lg ul ul {
 	margin-top: 0.8888889em;
 	margin-bottom: 0.8888889em;
 }
-.prose-lg hr {
+.gr-prose-lg hr {
 	margin-top: 3.1111111em;
 	margin-bottom: 3.1111111em;
 }
-.prose-lg hr + * {
+.gr-prose-lg hr + * {
 	margin-top: 0;
 }
-.prose-lg h2 + * {
+.gr-prose-lg h2 + * {
 	margin-top: 0;
 }
-.prose-lg h3 + * {
+.gr-prose-lg h3 + * {
 	margin-top: 0;
 }
-.prose-lg h4 + * {
+.gr-prose-lg h4 + * {
 	margin-top: 0;
 }
-.prose-lg table {
+.gr-prose-lg table {
 	font-size: 0.8888889em;
 	line-height: 1.5;
 }
-.prose-lg thead th {
+.gr-prose-lg thead th {
 	padding-right: 0.75em;
 	padding-bottom: 0.75em;
 	padding-left: 0.75em;
 }
-.prose-lg thead th:first-child {
+.gr-prose-lg thead th:first-child {
 	padding-left: 0;
 }
-.prose-lg thead th:last-child {
+.gr-prose-lg thead th:last-child {
 	padding-right: 0;
 }
-.prose-lg tbody td {
+.gr-prose-lg tbody td {
 	padding-top: 0.75em;
 	padding-right: 0.75em;
 	padding-bottom: 0.75em;
 	padding-left: 0.75em;
 }
-.prose-lg tbody td:first-child {
+.gr-prose-lg tbody td:first-child {
 	padding-left: 0;
 }
-.prose-lg tbody td:last-child {
+.gr-prose-lg tbody td:last-child {
 	padding-right: 0;
 }
-.prose-lg > :first-child {
+.gr-prose-lg > :first-child {
 	margin-top: 0;
 }
-.prose-lg > :last-child {
+.gr-prose-lg > :last-child {
 	margin-bottom: 0;
 }
-.prose-xl {
+.gr-prose-xl {
 	font-size: 1.25rem;
 	line-height: 1.8;
 }
-.prose-xl p {
+.gr-prose-xl p {
 	margin-top: 1.2em;
 	margin-bottom: 1.2em;
 }
-.prose-xl [class~="lead"] {
+.gr-prose-xl [class~="lead"] {
 	font-size: 1.2em;
 	line-height: 1.5;
 	margin-top: 1em;
 	margin-bottom: 1em;
 }
-.prose-xl blockquote {
+.gr-prose-xl blockquote {
 	margin-top: 1.6em;
 	margin-bottom: 1.6em;
 	padding-left: 1.0666667em;
 }
-.prose-xl h1 {
+.gr-prose-xl h1 {
 	font-size: 2.8em;
 	margin-top: 0;
 	margin-bottom: 0.8571429em;
 	line-height: 1;
 }
-.prose-xl h2 {
+.gr-prose-xl h2 {
 	font-size: 1.8em;
 	margin-top: 1.5555556em;
 	margin-bottom: 0.8888889em;
 	line-height: 1.1111111;
 }
-.prose-xl h3 {
+.gr-prose-xl h3 {
 	font-size: 1.5em;
 	margin-top: 1.6em;
 	margin-bottom: 0.6666667em;
 	line-height: 1.3333333;
 }
-.prose-xl h4 {
+.gr-prose-xl h4 {
 	margin-top: 1.8em;
 	margin-bottom: 0.6em;
 	line-height: 1.6;
 }
-.prose-xl img {
+.gr-prose-xl img {
 	margin-top: 2em;
 	margin-bottom: 2em;
 }
-.prose-xl video {
+.gr-prose-xl video {
 	margin-top: 2em;
 	margin-bottom: 2em;
 }
-.prose-xl figure {
+.gr-prose-xl figure {
 	margin-top: 2em;
 	margin-bottom: 2em;
 }
-.prose-xl figure > * {
+.gr-prose-xl figure > * {
 	margin-top: 0;
 	margin-bottom: 0;
 }
-.prose-xl figure figcaption {
+.gr-prose-xl figure figcaption {
 	font-size: 0.9em;
 	line-height: 1.5555556;
 	margin-top: 1em;
 }
-.prose-xl code {
+.gr-prose-xl code {
 	font-size: 0.9em;
 }
-.prose-xl h2 code {
+.gr-prose-xl h2 code {
 	font-size: 0.8611111em;
 }
-.prose-xl h3 code {
+.gr-prose-xl h3 code {
 	font-size: 0.9em;
 }
-.prose-xl pre {
+.gr-prose-xl pre {
 	font-size: 0.9em;
 	line-height: 1.7777778;
 	margin-top: 2em;
@@ -752,178 +752,178 @@
 	padding-bottom: 1.1111111em;
 	padding-left: 1.3333333em;
 }
-.prose-xl ol {
+.gr-prose-xl ol {
 	margin-top: 1.2em;
 	margin-bottom: 1.2em;
 }
-.prose-xl ul {
+.gr-prose-xl ul {
 	margin-top: 1.2em;
 	margin-bottom: 1.2em;
 }
-.prose-xl li {
+.gr-prose-xl li {
 	margin-top: 0.6em;
 	margin-bottom: 0.6em;
 }
-.prose-xl ol > li {
+.gr-prose-xl ol > li {
 	padding-left: 1.8em;
 }
-.prose-xl ol > li::before {
+.gr-prose-xl ol > li::before {
 	left: 0;
 }
-.prose-xl ul > li {
+.gr-prose-xl ul > li {
 	padding-left: 1.8em;
 }
-.prose-xl ul > li::before {
+.gr-prose-xl ul > li::before {
 	width: 0.35em;
 	height: 0.35em;
 	top: calc(0.9em - 0.175em);
 	left: 0.25em;
 }
-.prose-xl > ul > li p {
+.gr-prose-xl > ul > li p {
 	margin-top: 0.8em;
 	margin-bottom: 0.8em;
 }
-.prose-xl > ul > li > :first-child {
+.gr-prose-xl > ul > li > :first-child {
 	margin-top: 1.2em;
 }
-.prose-xl > ul > li > :last-child {
+.gr-prose-xl > ul > li > :last-child {
 	margin-bottom: 1.2em;
 }
-.prose-xl > ol > li > :first-child {
+.gr-prose-xl > ol > li > :first-child {
 	margin-top: 1.2em;
 }
-.prose-xl > ol > li > :last-child {
+.gr-prose-xl > ol > li > :last-child {
 	margin-bottom: 1.2em;
 }
-.prose-xl ol ol,
-.prose-xl ol ul,
-.prose-xl ul ol,
-.prose-xl ul ul {
+.gr-prose-xl ol ol,
+.gr-prose-xl ol ul,
+.gr-prose-xl ul ol,
+.gr-prose-xl ul ul {
 	margin-top: 0.8em;
 	margin-bottom: 0.8em;
 }
-.prose-xl hr {
+.gr-prose-xl hr {
 	margin-top: 2.8em;
 	margin-bottom: 2.8em;
 }
-.prose-xl hr + * {
+.gr-prose-xl hr + * {
 	margin-top: 0;
 }
-.prose-xl h2 + * {
+.gr-prose-xl h2 + * {
 	margin-top: 0;
 }
-.prose-xl h3 + * {
+.gr-prose-xl h3 + * {
 	margin-top: 0;
 }
-.prose-xl h4 + * {
+.gr-prose-xl h4 + * {
 	margin-top: 0;
 }
-.prose-xl table {
+.gr-prose-xl table {
 	font-size: 0.9em;
 	line-height: 1.5555556;
 }
-.prose-xl thead th {
+.gr-prose-xl thead th {
 	padding-right: 0.6666667em;
 	padding-bottom: 0.8888889em;
 	padding-left: 0.6666667em;
 }
-.prose-xl thead th:first-child {
+.gr-prose-xl thead th:first-child {
 	padding-left: 0;
 }
-.prose-xl thead th:last-child {
+.gr-prose-xl thead th:last-child {
 	padding-right: 0;
 }
-.prose-xl tbody td {
+.gr-prose-xl tbody td {
 	padding-top: 0.8888889em;
 	padding-right: 0.6666667em;
 	padding-bottom: 0.8888889em;
 	padding-left: 0.6666667em;
 }
-.prose-xl tbody td:first-child {
+.gr-prose-xl tbody td:first-child {
 	padding-left: 0;
 }
-.prose-xl tbody td:last-child {
+.gr-prose-xl tbody td:last-child {
 	padding-right: 0;
 }
-.prose-xl > :first-child {
+.gr-prose-xl > :first-child {
 	margin-top: 0;
 }
-.prose-xl > :last-child {
+.gr-prose-xl > :last-child {
 	margin-bottom: 0;
 }
-.prose-2xl {
+.gr-prose-2xl {
 	font-size: 1.5rem;
 	line-height: 1.6666667;
 }
-.prose-2xl p {
+.gr-prose-2xl p {
 	margin-top: 1.3333333em;
 	margin-bottom: 1.3333333em;
 }
-.prose-2xl [class~="lead"] {
+.gr-prose-2xl [class~="lead"] {
 	font-size: 1.25em;
 	line-height: 1.4666667;
 	margin-top: 1.0666667em;
 	margin-bottom: 1.0666667em;
 }
-.prose-2xl blockquote {
+.gr-prose-2xl blockquote {
 	margin-top: 1.7777778em;
 	margin-bottom: 1.7777778em;
 	padding-left: 1.1111111em;
 }
-.prose-2xl h1 {
+.gr-prose-2xl h1 {
 	font-size: 2.6666667em;
 	margin-top: 0;
 	margin-bottom: 0.875em;
 	line-height: 1;
 }
-.prose-2xl h2 {
+.gr-prose-2xl h2 {
 	font-size: 2em;
 	margin-top: 1.5em;
 	margin-bottom: 0.8333333em;
 	line-height: 1.0833333;
 }
-.prose-2xl h3 {
+.gr-prose-2xl h3 {
 	font-size: 1.5em;
 	margin-top: 1.5555556em;
 	margin-bottom: 0.6666667em;
 	line-height: 1.2222222;
 }
-.prose-2xl h4 {
+.gr-prose-2xl h4 {
 	margin-top: 1.6666667em;
 	margin-bottom: 0.6666667em;
 	line-height: 1.5;
 }
-.prose-2xl img {
+.gr-prose-2xl img {
 	margin-top: 2em;
 	margin-bottom: 2em;
 }
-.prose-2xl video {
+.gr-prose-2xl video {
 	margin-top: 2em;
 	margin-bottom: 2em;
 }
-.prose-2xl figure {
+.gr-prose-2xl figure {
 	margin-top: 2em;
 	margin-bottom: 2em;
 }
-.prose-2xl figure > * {
+.gr-prose-2xl figure > * {
 	margin-top: 0;
 	margin-bottom: 0;
 }
-.prose-2xl figure figcaption {
+.gr-prose-2xl figure figcaption {
 	font-size: 0.8333333em;
 	line-height: 1.6;
 	margin-top: 1em;
 }
-.prose-2xl code {
+.gr-prose-2xl code {
 	font-size: 0.8333333em;
 }
-.prose-2xl h2 code {
+.gr-prose-2xl h2 code {
 	font-size: 0.875em;
 }
-.prose-2xl h3 code {
+.gr-prose-2xl h3 code {
 	font-size: 0.8888889em;
 }
-.prose-2xl pre {
+.gr-prose-2xl pre {
 	font-size: 0.8333333em;
 	line-height: 1.8;
 	margin-top: 2em;
@@ -934,220 +934,220 @@
 	padding-bottom: 1.2em;
 	padding-left: 1.6em;
 }
-.prose-2xl ol {
+.gr-prose-2xl ol {
 	margin-top: 1.3333333em;
 	margin-bottom: 1.3333333em;
 }
-.prose-2xl ul {
+.gr-prose-2xl ul {
 	margin-top: 1.3333333em;
 	margin-bottom: 1.3333333em;
 }
-.prose-2xl li {
+.gr-prose-2xl li {
 	margin-top: 0.5em;
 	margin-bottom: 0.5em;
 }
-.prose-2xl ol > li {
+.gr-prose-2xl ol > li {
 	padding-left: 1.6666667em;
 }
-.prose-2xl ol > li::before {
+.gr-prose-2xl ol > li::before {
 	left: 0;
 }
-.prose-2xl ul > li {
+.gr-prose-2xl ul > li {
 	padding-left: 1.6666667em;
 }
-.prose-2xl ul > li::before {
+.gr-prose-2xl ul > li::before {
 	width: 0.3333333em;
 	height: 0.3333333em;
 	top: calc(0.8333333em - 0.1666667em);
 	left: 0.25em;
 }
-.prose-2xl > ul > li p {
+.gr-prose-2xl > ul > li p {
 	margin-top: 0.8333333em;
 	margin-bottom: 0.8333333em;
 }
-.prose-2xl > ul > li > :first-child {
+.gr-prose-2xl > ul > li > :first-child {
 	margin-top: 1.3333333em;
 }
-.prose-2xl > ul > li > :last-child {
+.gr-prose-2xl > ul > li > :last-child {
 	margin-bottom: 1.3333333em;
 }
-.prose-2xl > ol > li > :first-child {
+.gr-prose-2xl > ol > li > :first-child {
 	margin-top: 1.3333333em;
 }
-.prose-2xl > ol > li > :last-child {
+.gr-prose-2xl > ol > li > :last-child {
 	margin-bottom: 1.3333333em;
 }
-.prose-2xl ol ol,
-.prose-2xl ol ul,
-.prose-2xl ul ol,
-.prose-2xl ul ul {
+.gr-prose-2xl ol ol,
+.gr-prose-2xl ol ul,
+.gr-prose-2xl ul ol,
+.gr-prose-2xl ul ul {
 	margin-top: 0.6666667em;
 	margin-bottom: 0.6666667em;
 }
-.prose-2xl hr {
+.gr-prose-2xl hr {
 	margin-top: 3em;
 	margin-bottom: 3em;
 }
-.prose-2xl hr + * {
+.gr-prose-2xl hr + * {
 	margin-top: 0;
 }
-.prose-2xl h2 + * {
+.gr-prose-2xl h2 + * {
 	margin-top: 0;
 }
-.prose-2xl h3 + * {
+.gr-prose-2xl h3 + * {
 	margin-top: 0;
 }
-.prose-2xl h4 + * {
+.gr-prose-2xl h4 + * {
 	margin-top: 0;
 }
-.prose-2xl table {
+.gr-prose-2xl table {
 	font-size: 0.8333333em;
 	line-height: 1.4;
 }
-.prose-2xl thead th {
+.gr-prose-2xl thead th {
 	padding-right: 0.6em;
 	padding-bottom: 0.8em;
 	padding-left: 0.6em;
 }
-.prose-2xl thead th:first-child {
+.gr-prose-2xl thead th:first-child {
 	padding-left: 0;
 }
-.prose-2xl thead th:last-child {
+.gr-prose-2xl thead th:last-child {
 	padding-right: 0;
 }
-.prose-2xl tbody td {
+.gr-prose-2xl tbody td {
 	padding-top: 0.8em;
 	padding-right: 0.6em;
 	padding-bottom: 0.8em;
 	padding-left: 0.6em;
 }
-.prose-2xl tbody td:first-child {
+.gr-prose-2xl tbody td:first-child {
 	padding-left: 0;
 }
-.prose-2xl tbody td:last-child {
+.gr-prose-2xl tbody td:last-child {
 	padding-right: 0;
 }
-.prose-2xl > :first-child {
+.gr-prose-2xl > :first-child {
 	margin-top: 0;
 }
-.prose-2xl > :last-child {
+.gr-prose-2xl > :last-child {
 	margin-bottom: 0;
 }
-.prose-red a {
+.gr-prose-red a {
 	color: #dc2626;
 }
-.prose-red a code {
+.gr-prose-red a code {
 	color: #dc2626;
 }
-.prose-yellow a {
+.gr-prose-yellow a {
 	color: #d97706;
 }
-.prose-yellow a code {
+.gr-prose-yellow a code {
 	color: #d97706;
 }
-.prose-green a {
+.gr-prose-green a {
 	color: #059669;
 }
-.prose-green a code {
+.gr-prose-green a code {
 	color: #059669;
 }
-.prose-blue a {
+.gr-prose-blue a {
 	color: #2563eb;
 }
-.prose-blue a code {
+.gr-prose-blue a code {
 	color: #2563eb;
 }
-.prose-indigo a {
+.gr-prose-indigo a {
 	color: #4f46e5;
 }
-.prose-indigo a code {
+.gr-prose-indigo a code {
 	color: #4f46e5;
 }
-.prose-purple a {
+.gr-prose-purple a {
 	color: #7c3aed;
 }
-.prose-purple a code {
+.gr-prose-purple a code {
 	color: #7c3aed;
 }
-.prose-pink a {
+.gr-prose-pink a {
 	color: #db2777;
 }
-.prose-pink a code {
+.gr-prose-pink a code {
 	color: #db2777;
 }
-.dark .prose {
+.dark .gr-prose {
 	color: #daddd8;
 }
-.dark .prose a {
+.dark .gr-prose a {
 	color: #ffffff;
 }
 .dark :is(h1, h2, h3, h4) {
 	color: #ffffff;
 }
 @media (min-width: 640px) {
-	.sm\:prose {
+	.sm\:gr-prose {
 		color: #374151;
 		max-width: 65ch;
 	}
-	.sm\:prose [class~="lead"] {
+	.sm\:gr-prose [class~="lead"] {
 		color: #4b5563;
 		font-size: 1.25em;
 		line-height: 1.6;
 		margin-top: 1.2em;
 		margin-bottom: 1.2em;
 	}
-	.sm\:prose a {
+	.sm\:gr-prose a {
 		color: #111827;
 		text-decoration: underline;
 		font-weight: 500;
 	}
-	.sm\:prose strong {
+	.sm\:gr-prose strong {
 		color: #111827;
 		font-weight: 600;
 	}
-	.sm\:prose ol[type="A"] {
+	.sm\:gr-prose ol[type="A"] {
 		--list-counter-style: upper-alpha;
 	}
-	.sm\:prose ol[type="a"] {
+	.sm\:gr-prose ol[type="a"] {
 		--list-counter-style: lower-alpha;
 	}
-	.sm\:prose ol[type="A"s] {
+	.sm\:gr-prose ol[type="A"s] {
 		--list-counter-style: upper-alpha;
 	}
-	.sm\:prose ol[type="a"s] {
+	.sm\:gr-prose ol[type="a"s] {
 		--list-counter-style: lower-alpha;
 	}
-	.sm\:prose ol[type="I"] {
+	.sm\:gr-prose ol[type="I"] {
 		--list-counter-style: upper-roman;
 	}
-	.sm\:prose ol[type="i"] {
+	.sm\:gr-prose ol[type="i"] {
 		--list-counter-style: lower-roman;
 	}
-	.sm\:prose ol[type="I"s] {
+	.sm\:gr-prose ol[type="I"s] {
 		--list-counter-style: upper-roman;
 	}
-	.sm\:prose ol[type="i"s] {
+	.sm\:gr-prose ol[type="i"s] {
 		--list-counter-style: lower-roman;
 	}
-	.sm\:prose ol[type="1"] {
+	.sm\:gr-prose ol[type="1"] {
 		--list-counter-style: decimal;
 	}
-	.sm\:prose ol > li {
+	.sm\:gr-prose ol > li {
 		position: relative;
 		padding-left: 1.75em;
 	}
-	.sm\:prose ol > li::before {
+	.sm\:gr-prose ol > li::before {
 		content: counter(list-item, var(--list-counter-style, decimal)) ".";
 		position: absolute;
 		font-weight: 400;
 		color: #6b7280;
 		left: 0;
 	}
-	.sm\:prose ul > li {
+	.sm\:gr-prose ul > li {
 		position: relative;
 		padding-left: 1.75em;
 	}
-	.sm\:prose ul > li::before {
+	.sm\:gr-prose ul > li::before {
 		content: "";
 		position: absolute;
 		background-color: #d1d5db;
@@ -1157,13 +1157,13 @@
 		top: calc(0.875em - 0.1875em);
 		left: 0.25em;
 	}
-	.sm\:prose hr {
+	.sm\:gr-prose hr {
 		border-color: #e5e7eb;
 		border-top-width: 1px;
 		margin-top: 3em;
 		margin-bottom: 3em;
 	}
-	.sm\:prose blockquote {
+	.sm\:gr-prose blockquote {
 		font-weight: 500;
 		font-style: italic;
 		color: #111827;
@@ -1174,13 +1174,13 @@
 		margin-bottom: 1.6em;
 		padding-left: 1em;
 	}
-	.sm\:prose blockquote p:first-of-type::before {
+	.sm\:gr-prose blockquote p:first-of-type::before {
 		content: open-quote;
 	}
-	.sm\:prose blockquote p:last-of-type::after {
+	.sm\:gr-prose blockquote p:last-of-type::after {
 		content: close-quote;
 	}
-	.sm\:prose h1 {
+	.sm\:gr-prose h1 {
 		color: #111827;
 		font-weight: 600;
 		font-size: 2.25em;
@@ -1188,7 +1188,7 @@
 		margin-bottom: 0.8888889em;
 		line-height: 1.1111111;
 	}
-	.sm\:prose h2 {
+	.sm\:gr-prose h2 {
 		color: #111827;
 		font-weight: 600;
 		font-size: 1.5em;
@@ -1196,7 +1196,7 @@
 		margin-bottom: 1em;
 		line-height: 1.3333333;
 	}
-	.sm\:prose h3 {
+	.sm\:gr-prose h3 {
 		color: #111827;
 		font-weight: 600;
 		font-size: 1.25em;
@@ -1204,34 +1204,34 @@
 		margin-bottom: 0.6em;
 		line-height: 1.6;
 	}
-	.sm\:prose h4 {
+	.sm\:gr-prose h4 {
 		color: #111827;
 		font-weight: 600;
 		margin-top: 1.5em;
 		margin-bottom: 0.5em;
 		line-height: 1.5;
 	}
-	.sm\:prose figure figcaption {
+	.sm\:gr-prose figure figcaption {
 		color: #6b7280;
 		font-size: 0.875em;
 		line-height: 1.4285714;
 		margin-top: 0.8571429em;
 	}
-	.sm\:prose code {
+	.sm\:gr-prose code {
 		color: #111827;
 		font-weight: 600;
 		font-size: 0.875em;
 	}
-	.sm\:prose code::before {
+	.sm\:gr-prose code::before {
 		content: "`";
 	}
-	.sm\:prose code::after {
+	.sm\:gr-prose code::after {
 		content: "`";
 	}
-	.sm\:prose a code {
+	.sm\:gr-prose a code {
 		color: #111827;
 	}
-	.sm\:prose pre {
+	.sm\:gr-prose pre {
 		color: #e5e7eb;
 		background-color: #1f2937;
 		overflow-x: auto;
@@ -1245,7 +1245,7 @@
 		padding-bottom: 0.8571429em;
 		padding-left: 1.1428571em;
 	}
-	.sm\:prose pre code {
+	.sm\:gr-prose pre code {
 		background-color: transparent;
 		border-width: 0;
 		border-radius: 0;
@@ -1256,13 +1256,13 @@
 		font-family: inherit;
 		line-height: inherit;
 	}
-	.sm\:prose pre code::before {
+	.sm\:gr-prose pre code::before {
 		content: none;
 	}
-	.sm\:prose pre code::after {
+	.sm\:gr-prose pre code::after {
 		content: none;
 	}
-	.sm\:prose table {
+	.sm\:gr-prose table {
 		width: 100%;
 		table-layout: auto;
 		text-align: left;
@@ -1271,200 +1271,200 @@
 		font-size: 0.875em;
 		line-height: 1.7142857;
 	}
-	.sm\:prose thead {
+	.sm\:gr-prose thead {
 		color: #111827;
 		font-weight: 600;
 		border-bottom-width: 1px;
 		border-bottom-color: #d1d5db;
 	}
-	.sm\:prose thead th {
+	.sm\:gr-prose thead th {
 		vertical-align: bottom;
 		padding-right: 0.5714286em;
 		padding-bottom: 0.5714286em;
 		padding-left: 0.5714286em;
 	}
-	.sm\:prose tbody tr {
+	.sm\:gr-prose tbody tr {
 		border-bottom-width: 1px;
 		border-bottom-color: #e5e7eb;
 	}
-	.sm\:prose tbody tr:last-child {
+	.sm\:gr-prose tbody tr:last-child {
 		border-bottom-width: 0;
 	}
-	.sm\:prose tbody td {
+	.sm\:gr-prose tbody td {
 		vertical-align: top;
 		padding-top: 0.5714286em;
 		padding-right: 0.5714286em;
 		padding-bottom: 0.5714286em;
 		padding-left: 0.5714286em;
 	}
-	.sm\:prose {
+	.sm\:gr-prose {
 		font-size: 1rem;
 		line-height: 1.75;
 	}
-	.sm\:prose p {
+	.sm\:gr-prose p {
 		margin-top: 1.25em;
 		margin-bottom: 1.25em;
 	}
-	.sm\:prose img {
+	.sm\:gr-prose img {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.sm\:prose video {
+	.sm\:gr-prose video {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.sm\:prose figure {
+	.sm\:gr-prose figure {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.sm\:prose figure > * {
+	.sm\:gr-prose figure > * {
 		margin-top: 0;
 		margin-bottom: 0;
 	}
-	.sm\:prose h2 code {
+	.sm\:gr-prose h2 code {
 		font-size: 0.875em;
 	}
-	.sm\:prose h3 code {
+	.sm\:gr-prose h3 code {
 		font-size: 0.9em;
 	}
-	.sm\:prose ol {
+	.sm\:gr-prose ol {
 		margin-top: 1.25em;
 		margin-bottom: 1.25em;
 	}
-	.sm\:prose ul {
+	.sm\:gr-prose ul {
 		margin-top: 1.25em;
 		margin-bottom: 1.25em;
 	}
-	.sm\:prose li {
+	.sm\:gr-prose li {
 		margin-top: 0.5em;
 		margin-bottom: 0.5em;
 	}
-	.sm\:prose > ul > li p {
+	.sm\:gr-prose > ul > li p {
 		margin-top: 0.75em;
 		margin-bottom: 0.75em;
 	}
-	.sm\:prose > ul > li > :first-child {
+	.sm\:gr-prose > ul > li > :first-child {
 		margin-top: 1.25em;
 	}
-	.sm\:prose > ul > li > :last-child {
+	.sm\:gr-prose > ul > li > :last-child {
 		margin-bottom: 1.25em;
 	}
-	.sm\:prose > ol > li > :first-child {
+	.sm\:gr-prose > ol > li > :first-child {
 		margin-top: 1.25em;
 	}
-	.sm\:prose > ol > li > :last-child {
+	.sm\:gr-prose > ol > li > :last-child {
 		margin-bottom: 1.25em;
 	}
-	.sm\:prose ol ol,
-	.sm\:prose ol ul,
-	.sm\:prose ul ol,
-	.sm\:prose ul ul {
+	.sm\:gr-prose ol ol,
+	.sm\:gr-prose ol ul,
+	.sm\:gr-prose ul ol,
+	.sm\:gr-prose ul ul {
 		margin-top: 0.75em;
 		margin-bottom: 0.75em;
 	}
-	.sm\:prose hr + * {
+	.sm\:gr-prose hr + * {
 		margin-top: 0;
 	}
-	.sm\:prose h2 + * {
+	.sm\:gr-prose h2 + * {
 		margin-top: 0;
 	}
-	.sm\:prose h3 + * {
+	.sm\:gr-prose h3 + * {
 		margin-top: 0;
 	}
-	.sm\:prose h4 + * {
+	.sm\:gr-prose h4 + * {
 		margin-top: 0;
 	}
-	.sm\:prose thead th:first-child {
+	.sm\:gr-prose thead th:first-child {
 		padding-left: 0;
 	}
-	.sm\:prose thead th:last-child {
+	.sm\:gr-prose thead th:last-child {
 		padding-right: 0;
 	}
-	.sm\:prose tbody td:first-child {
+	.sm\:gr-prose tbody td:first-child {
 		padding-left: 0;
 	}
-	.sm\:prose tbody td:last-child {
+	.sm\:gr-prose tbody td:last-child {
 		padding-right: 0;
 	}
-	.sm\:prose > :first-child {
+	.sm\:gr-prose > :first-child {
 		margin-top: 0;
 	}
-	.sm\:prose > :last-child {
+	.sm\:gr-prose > :last-child {
 		margin-bottom: 0;
 	}
-	.sm\:prose-sm {
+	.sm\:gr-prose-sm {
 		font-size: 0.875rem;
 		line-height: 1.7142857;
 	}
-	.sm\:prose-sm p {
+	.sm\:gr-prose-sm p {
 		margin-top: 1.1428571em;
 		margin-bottom: 1.1428571em;
 	}
-	.sm\:prose-sm [class~="lead"] {
+	.sm\:gr-prose-sm [class~="lead"] {
 		font-size: 1.2857143em;
 		line-height: 1.5555556;
 		margin-top: 0.8888889em;
 		margin-bottom: 0.8888889em;
 	}
-	.sm\:prose-sm blockquote {
+	.sm\:gr-prose-sm blockquote {
 		margin-top: 1.3333333em;
 		margin-bottom: 1.3333333em;
 		padding-left: 1.1111111em;
 	}
-	.sm\:prose-sm h1 {
+	.sm\:gr-prose-sm h1 {
 		font-size: 2.1428571em;
 		margin-top: 0;
 		margin-bottom: 0.8em;
 		line-height: 1.2;
 	}
-	.sm\:prose-sm h2 {
+	.sm\:gr-prose-sm h2 {
 		font-size: 1.4285714em;
 		margin-top: 1.6em;
 		margin-bottom: 0.8em;
 		line-height: 1.4;
 	}
-	.sm\:prose-sm h3 {
+	.sm\:gr-prose-sm h3 {
 		font-size: 1.2857143em;
 		margin-top: 1.5555556em;
 		margin-bottom: 0.4444444em;
 		line-height: 1.5555556;
 	}
-	.sm\:prose-sm h4 {
+	.sm\:gr-prose-sm h4 {
 		margin-top: 1.4285714em;
 		margin-bottom: 0.5714286em;
 		line-height: 1.4285714;
 	}
-	.sm\:prose-sm img {
+	.sm\:gr-prose-sm img {
 		margin-top: 1.7142857em;
 		margin-bottom: 1.7142857em;
 	}
-	.sm\:prose-sm video {
+	.sm\:gr-prose-sm video {
 		margin-top: 1.7142857em;
 		margin-bottom: 1.7142857em;
 	}
-	.sm\:prose-sm figure {
+	.sm\:gr-prose-sm figure {
 		margin-top: 1.7142857em;
 		margin-bottom: 1.7142857em;
 	}
-	.sm\:prose-sm figure > * {
+	.sm\:gr-prose-sm figure > * {
 		margin-top: 0;
 		margin-bottom: 0;
 	}
-	.sm\:prose-sm figure figcaption {
+	.sm\:gr-prose-sm figure figcaption {
 		font-size: 0.8571429em;
 		line-height: 1.3333333;
 		margin-top: 0.6666667em;
 	}
-	.sm\:prose-sm code {
+	.sm\:gr-prose-sm code {
 		font-size: 0.8571429em;
 	}
-	.sm\:prose-sm h2 code {
+	.sm\:gr-prose-sm h2 code {
 		font-size: 0.9em;
 	}
-	.sm\:prose-sm h3 code {
+	.sm\:gr-prose-sm h3 code {
 		font-size: 0.8888889em;
 	}
-	.sm\:prose-sm pre {
+	.sm\:gr-prose-sm pre {
 		font-size: 0.8571429em;
 		line-height: 1.6666667;
 		margin-top: 1.6666667em;
@@ -1475,178 +1475,178 @@
 		padding-bottom: 0.6666667em;
 		padding-left: 1em;
 	}
-	.sm\:prose-sm ol {
+	.sm\:gr-prose-sm ol {
 		margin-top: 1.1428571em;
 		margin-bottom: 1.1428571em;
 	}
-	.sm\:prose-sm ul {
+	.sm\:gr-prose-sm ul {
 		margin-top: 1.1428571em;
 		margin-bottom: 1.1428571em;
 	}
-	.sm\:prose-sm li {
+	.sm\:gr-prose-sm li {
 		margin-top: 0.2857143em;
 		margin-bottom: 0.2857143em;
 	}
-	.sm\:prose-sm ol > li {
+	.sm\:gr-prose-sm ol > li {
 		padding-left: 1.5714286em;
 	}
-	.sm\:prose-sm ol > li::before {
+	.sm\:gr-prose-sm ol > li::before {
 		left: 0;
 	}
-	.sm\:prose-sm ul > li {
+	.sm\:gr-prose-sm ul > li {
 		padding-left: 1.5714286em;
 	}
-	.sm\:prose-sm ul > li::before {
+	.sm\:gr-prose-sm ul > li::before {
 		height: 0.3571429em;
 		width: 0.3571429em;
 		top: calc(0.8571429em - 0.1785714em);
 		left: 0.2142857em;
 	}
-	.sm\:prose-sm > ul > li p {
+	.sm\:gr-prose-sm > ul > li p {
 		margin-top: 0.5714286em;
 		margin-bottom: 0.5714286em;
 	}
-	.sm\:prose-sm > ul > li > :first-child {
+	.sm\:gr-prose-sm > ul > li > :first-child {
 		margin-top: 1.1428571em;
 	}
-	.sm\:prose-sm > ul > li > :last-child {
+	.sm\:gr-prose-sm > ul > li > :last-child {
 		margin-bottom: 1.1428571em;
 	}
-	.sm\:prose-sm > ol > li > :first-child {
+	.sm\:gr-prose-sm > ol > li > :first-child {
 		margin-top: 1.1428571em;
 	}
-	.sm\:prose-sm > ol > li > :last-child {
+	.sm\:gr-prose-sm > ol > li > :last-child {
 		margin-bottom: 1.1428571em;
 	}
-	.sm\:prose-sm ol ol,
-	.sm\:prose-sm ol ul,
-	.sm\:prose-sm ul ol,
-	.sm\:prose-sm ul ul {
+	.sm\:gr-prose-sm ol ol,
+	.sm\:gr-prose-sm ol ul,
+	.sm\:gr-prose-sm ul ol,
+	.sm\:gr-prose-sm ul ul {
 		margin-top: 0.5714286em;
 		margin-bottom: 0.5714286em;
 	}
-	.sm\:prose-sm hr {
+	.sm\:gr-prose-sm hr {
 		margin-top: 2.8571429em;
 		margin-bottom: 2.8571429em;
 	}
-	.sm\:prose-sm hr + * {
+	.sm\:gr-prose-sm hr + * {
 		margin-top: 0;
 	}
-	.sm\:prose-sm h2 + * {
+	.sm\:gr-prose-sm h2 + * {
 		margin-top: 0;
 	}
-	.sm\:prose-sm h3 + * {
+	.sm\:gr-prose-sm h3 + * {
 		margin-top: 0;
 	}
-	.sm\:prose-sm h4 + * {
+	.sm\:gr-prose-sm h4 + * {
 		margin-top: 0;
 	}
-	.sm\:prose-sm table {
+	.sm\:gr-prose-sm table {
 		font-size: 0.8571429em;
 		line-height: 1.5;
 	}
-	.sm\:prose-sm thead th {
+	.sm\:gr-prose-sm thead th {
 		padding-right: 1em;
 		padding-bottom: 0.6666667em;
 		padding-left: 1em;
 	}
-	.sm\:prose-sm thead th:first-child {
+	.sm\:gr-prose-sm thead th:first-child {
 		padding-left: 0;
 	}
-	.sm\:prose-sm thead th:last-child {
+	.sm\:gr-prose-sm thead th:last-child {
 		padding-right: 0;
 	}
-	.sm\:prose-sm tbody td {
+	.sm\:gr-prose-sm tbody td {
 		padding-top: 0.6666667em;
 		padding-right: 1em;
 		padding-bottom: 0.6666667em;
 		padding-left: 1em;
 	}
-	.sm\:prose-sm tbody td:first-child {
+	.sm\:gr-prose-sm tbody td:first-child {
 		padding-left: 0;
 	}
-	.sm\:prose-sm tbody td:last-child {
+	.sm\:gr-prose-sm tbody td:last-child {
 		padding-right: 0;
 	}
-	.sm\:prose-sm > :first-child {
+	.sm\:gr-prose-sm > :first-child {
 		margin-top: 0;
 	}
-	.sm\:prose-sm > :last-child {
+	.sm\:gr-prose-sm > :last-child {
 		margin-bottom: 0;
 	}
-	.sm\:prose-lg {
+	.sm\:gr-prose-lg {
 		font-size: 1.125rem;
 		line-height: 1.7777778;
 	}
-	.sm\:prose-lg p {
+	.sm\:gr-prose-lg p {
 		margin-top: 1.3333333em;
 		margin-bottom: 1.3333333em;
 	}
-	.sm\:prose-lg [class~="lead"] {
+	.sm\:gr-prose-lg [class~="lead"] {
 		font-size: 1.2222222em;
 		line-height: 1.4545455;
 		margin-top: 1.0909091em;
 		margin-bottom: 1.0909091em;
 	}
-	.sm\:prose-lg blockquote {
+	.sm\:gr-prose-lg blockquote {
 		margin-top: 1.6666667em;
 		margin-bottom: 1.6666667em;
 		padding-left: 1em;
 	}
-	.sm\:prose-lg h1 {
+	.sm\:gr-prose-lg h1 {
 		font-size: 2.6666667em;
 		margin-top: 0;
 		margin-bottom: 0.8333333em;
 		line-height: 1;
 	}
-	.sm\:prose-lg h2 {
+	.sm\:gr-prose-lg h2 {
 		font-size: 1.6666667em;
 		margin-top: 1.8666667em;
 		margin-bottom: 1.0666667em;
 		line-height: 1.3333333;
 	}
-	.sm\:prose-lg h3 {
+	.sm\:gr-prose-lg h3 {
 		font-size: 1.3333333em;
 		margin-top: 1.6666667em;
 		margin-bottom: 0.6666667em;
 		line-height: 1.5;
 	}
-	.sm\:prose-lg h4 {
+	.sm\:gr-prose-lg h4 {
 		margin-top: 1.7777778em;
 		margin-bottom: 0.4444444em;
 		line-height: 1.5555556;
 	}
-	.sm\:prose-lg img {
+	.sm\:gr-prose-lg img {
 		margin-top: 1.7777778em;
 		margin-bottom: 1.7777778em;
 	}
-	.sm\:prose-lg video {
+	.sm\:gr-prose-lg video {
 		margin-top: 1.7777778em;
 		margin-bottom: 1.7777778em;
 	}
-	.sm\:prose-lg figure {
+	.sm\:gr-prose-lg figure {
 		margin-top: 1.7777778em;
 		margin-bottom: 1.7777778em;
 	}
-	.sm\:prose-lg figure > * {
+	.sm\:gr-prose-lg figure > * {
 		margin-top: 0;
 		margin-bottom: 0;
 	}
-	.sm\:prose-lg figure figcaption {
+	.sm\:gr-prose-lg figure figcaption {
 		font-size: 0.8888889em;
 		line-height: 1.5;
 		margin-top: 1em;
 	}
-	.sm\:prose-lg code {
+	.sm\:gr-prose-lg code {
 		font-size: 0.8888889em;
 	}
-	.sm\:prose-lg h2 code {
+	.sm\:gr-prose-lg h2 code {
 		font-size: 0.8666667em;
 	}
-	.sm\:prose-lg h3 code {
+	.sm\:gr-prose-lg h3 code {
 		font-size: 0.875em;
 	}
-	.sm\:prose-lg pre {
+	.sm\:gr-prose-lg pre {
 		font-size: 0.8888889em;
 		line-height: 1.75;
 		margin-top: 2em;
@@ -1657,178 +1657,178 @@
 		padding-bottom: 1em;
 		padding-left: 1.5em;
 	}
-	.sm\:prose-lg ol {
+	.sm\:gr-prose-lg ol {
 		margin-top: 1.3333333em;
 		margin-bottom: 1.3333333em;
 	}
-	.sm\:prose-lg ul {
+	.sm\:gr-prose-lg ul {
 		margin-top: 1.3333333em;
 		margin-bottom: 1.3333333em;
 	}
-	.sm\:prose-lg li {
+	.sm\:gr-prose-lg li {
 		margin-top: 0.6666667em;
 		margin-bottom: 0.6666667em;
 	}
-	.sm\:prose-lg ol > li {
+	.sm\:gr-prose-lg ol > li {
 		padding-left: 1.6666667em;
 	}
-	.sm\:prose-lg ol > li::before {
+	.sm\:gr-prose-lg ol > li::before {
 		left: 0;
 	}
-	.sm\:prose-lg ul > li {
+	.sm\:gr-prose-lg ul > li {
 		padding-left: 1.6666667em;
 	}
-	.sm\:prose-lg ul > li::before {
+	.sm\:gr-prose-lg ul > li::before {
 		width: 0.3333333em;
 		height: 0.3333333em;
 		top: calc(0.8888889em - 0.1666667em);
 		left: 0.2222222em;
 	}
-	.sm\:prose-lg > ul > li p {
+	.sm\:gr-prose-lg > ul > li p {
 		margin-top: 0.8888889em;
 		margin-bottom: 0.8888889em;
 	}
-	.sm\:prose-lg > ul > li > :first-child {
+	.sm\:gr-prose-lg > ul > li > :first-child {
 		margin-top: 1.3333333em;
 	}
-	.sm\:prose-lg > ul > li > :last-child {
+	.sm\:gr-prose-lg > ul > li > :last-child {
 		margin-bottom: 1.3333333em;
 	}
-	.sm\:prose-lg > ol > li > :first-child {
+	.sm\:gr-prose-lg > ol > li > :first-child {
 		margin-top: 1.3333333em;
 	}
-	.sm\:prose-lg > ol > li > :last-child {
+	.sm\:gr-prose-lg > ol > li > :last-child {
 		margin-bottom: 1.3333333em;
 	}
-	.sm\:prose-lg ol ol,
-	.sm\:prose-lg ol ul,
-	.sm\:prose-lg ul ol,
-	.sm\:prose-lg ul ul {
+	.sm\:gr-prose-lg ol ol,
+	.sm\:gr-prose-lg ol ul,
+	.sm\:gr-prose-lg ul ol,
+	.sm\:gr-prose-lg ul ul {
 		margin-top: 0.8888889em;
 		margin-bottom: 0.8888889em;
 	}
-	.sm\:prose-lg hr {
+	.sm\:gr-prose-lg hr {
 		margin-top: 3.1111111em;
 		margin-bottom: 3.1111111em;
 	}
-	.sm\:prose-lg hr + * {
+	.sm\:gr-prose-lg hr + * {
 		margin-top: 0;
 	}
-	.sm\:prose-lg h2 + * {
+	.sm\:gr-prose-lg h2 + * {
 		margin-top: 0;
 	}
-	.sm\:prose-lg h3 + * {
+	.sm\:gr-prose-lg h3 + * {
 		margin-top: 0;
 	}
-	.sm\:prose-lg h4 + * {
+	.sm\:gr-prose-lg h4 + * {
 		margin-top: 0;
 	}
-	.sm\:prose-lg table {
+	.sm\:gr-prose-lg table {
 		font-size: 0.8888889em;
 		line-height: 1.5;
 	}
-	.sm\:prose-lg thead th {
+	.sm\:gr-prose-lg thead th {
 		padding-right: 0.75em;
 		padding-bottom: 0.75em;
 		padding-left: 0.75em;
 	}
-	.sm\:prose-lg thead th:first-child {
+	.sm\:gr-prose-lg thead th:first-child {
 		padding-left: 0;
 	}
-	.sm\:prose-lg thead th:last-child {
+	.sm\:gr-prose-lg thead th:last-child {
 		padding-right: 0;
 	}
-	.sm\:prose-lg tbody td {
+	.sm\:gr-prose-lg tbody td {
 		padding-top: 0.75em;
 		padding-right: 0.75em;
 		padding-bottom: 0.75em;
 		padding-left: 0.75em;
 	}
-	.sm\:prose-lg tbody td:first-child {
+	.sm\:gr-prose-lg tbody td:first-child {
 		padding-left: 0;
 	}
-	.sm\:prose-lg tbody td:last-child {
+	.sm\:gr-prose-lg tbody td:last-child {
 		padding-right: 0;
 	}
-	.sm\:prose-lg > :first-child {
+	.sm\:gr-prose-lg > :first-child {
 		margin-top: 0;
 	}
-	.sm\:prose-lg > :last-child {
+	.sm\:gr-prose-lg > :last-child {
 		margin-bottom: 0;
 	}
-	.sm\:prose-xl {
+	.sm\:gr-prose-xl {
 		font-size: 1.25rem;
 		line-height: 1.8;
 	}
-	.sm\:prose-xl p {
+	.sm\:gr-prose-xl p {
 		margin-top: 1.2em;
 		margin-bottom: 1.2em;
 	}
-	.sm\:prose-xl [class~="lead"] {
+	.sm\:gr-prose-xl [class~="lead"] {
 		font-size: 1.2em;
 		line-height: 1.5;
 		margin-top: 1em;
 		margin-bottom: 1em;
 	}
-	.sm\:prose-xl blockquote {
+	.sm\:gr-prose-xl blockquote {
 		margin-top: 1.6em;
 		margin-bottom: 1.6em;
 		padding-left: 1.0666667em;
 	}
-	.sm\:prose-xl h1 {
+	.sm\:gr-prose-xl h1 {
 		font-size: 2.8em;
 		margin-top: 0;
 		margin-bottom: 0.8571429em;
 		line-height: 1;
 	}
-	.sm\:prose-xl h2 {
+	.sm\:gr-prose-xl h2 {
 		font-size: 1.8em;
 		margin-top: 1.5555556em;
 		margin-bottom: 0.8888889em;
 		line-height: 1.1111111;
 	}
-	.sm\:prose-xl h3 {
+	.sm\:gr-prose-xl h3 {
 		font-size: 1.5em;
 		margin-top: 1.6em;
 		margin-bottom: 0.6666667em;
 		line-height: 1.3333333;
 	}
-	.sm\:prose-xl h4 {
+	.sm\:gr-prose-xl h4 {
 		margin-top: 1.8em;
 		margin-bottom: 0.6em;
 		line-height: 1.6;
 	}
-	.sm\:prose-xl img {
+	.sm\:gr-prose-xl img {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.sm\:prose-xl video {
+	.sm\:gr-prose-xl video {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.sm\:prose-xl figure {
+	.sm\:gr-prose-xl figure {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.sm\:prose-xl figure > * {
+	.sm\:gr-prose-xl figure > * {
 		margin-top: 0;
 		margin-bottom: 0;
 	}
-	.sm\:prose-xl figure figcaption {
+	.sm\:gr-prose-xl figure figcaption {
 		font-size: 0.9em;
 		line-height: 1.5555556;
 		margin-top: 1em;
 	}
-	.sm\:prose-xl code {
+	.sm\:gr-prose-xl code {
 		font-size: 0.9em;
 	}
-	.sm\:prose-xl h2 code {
+	.sm\:gr-prose-xl h2 code {
 		font-size: 0.8611111em;
 	}
-	.sm\:prose-xl h3 code {
+	.sm\:gr-prose-xl h3 code {
 		font-size: 0.9em;
 	}
-	.sm\:prose-xl pre {
+	.sm\:gr-prose-xl pre {
 		font-size: 0.9em;
 		line-height: 1.7777778;
 		margin-top: 2em;
@@ -1839,178 +1839,178 @@
 		padding-bottom: 1.1111111em;
 		padding-left: 1.3333333em;
 	}
-	.sm\:prose-xl ol {
+	.sm\:gr-prose-xl ol {
 		margin-top: 1.2em;
 		margin-bottom: 1.2em;
 	}
-	.sm\:prose-xl ul {
+	.sm\:gr-prose-xl ul {
 		margin-top: 1.2em;
 		margin-bottom: 1.2em;
 	}
-	.sm\:prose-xl li {
+	.sm\:gr-prose-xl li {
 		margin-top: 0.6em;
 		margin-bottom: 0.6em;
 	}
-	.sm\:prose-xl ol > li {
+	.sm\:gr-prose-xl ol > li {
 		padding-left: 1.8em;
 	}
-	.sm\:prose-xl ol > li::before {
+	.sm\:gr-prose-xl ol > li::before {
 		left: 0;
 	}
-	.sm\:prose-xl ul > li {
+	.sm\:gr-prose-xl ul > li {
 		padding-left: 1.8em;
 	}
-	.sm\:prose-xl ul > li::before {
+	.sm\:gr-prose-xl ul > li::before {
 		width: 0.35em;
 		height: 0.35em;
 		top: calc(0.9em - 0.175em);
 		left: 0.25em;
 	}
-	.sm\:prose-xl > ul > li p {
+	.sm\:gr-prose-xl > ul > li p {
 		margin-top: 0.8em;
 		margin-bottom: 0.8em;
 	}
-	.sm\:prose-xl > ul > li > :first-child {
+	.sm\:gr-prose-xl > ul > li > :first-child {
 		margin-top: 1.2em;
 	}
-	.sm\:prose-xl > ul > li > :last-child {
+	.sm\:gr-prose-xl > ul > li > :last-child {
 		margin-bottom: 1.2em;
 	}
-	.sm\:prose-xl > ol > li > :first-child {
+	.sm\:gr-prose-xl > ol > li > :first-child {
 		margin-top: 1.2em;
 	}
-	.sm\:prose-xl > ol > li > :last-child {
+	.sm\:gr-prose-xl > ol > li > :last-child {
 		margin-bottom: 1.2em;
 	}
-	.sm\:prose-xl ol ol,
-	.sm\:prose-xl ol ul,
-	.sm\:prose-xl ul ol,
-	.sm\:prose-xl ul ul {
+	.sm\:gr-prose-xl ol ol,
+	.sm\:gr-prose-xl ol ul,
+	.sm\:gr-prose-xl ul ol,
+	.sm\:gr-prose-xl ul ul {
 		margin-top: 0.8em;
 		margin-bottom: 0.8em;
 	}
-	.sm\:prose-xl hr {
+	.sm\:gr-prose-xl hr {
 		margin-top: 2.8em;
 		margin-bottom: 2.8em;
 	}
-	.sm\:prose-xl hr + * {
+	.sm\:gr-prose-xl hr + * {
 		margin-top: 0;
 	}
-	.sm\:prose-xl h2 + * {
+	.sm\:gr-prose-xl h2 + * {
 		margin-top: 0;
 	}
-	.sm\:prose-xl h3 + * {
+	.sm\:gr-prose-xl h3 + * {
 		margin-top: 0;
 	}
-	.sm\:prose-xl h4 + * {
+	.sm\:gr-prose-xl h4 + * {
 		margin-top: 0;
 	}
-	.sm\:prose-xl table {
+	.sm\:gr-prose-xl table {
 		font-size: 0.9em;
 		line-height: 1.5555556;
 	}
-	.sm\:prose-xl thead th {
+	.sm\:gr-prose-xl thead th {
 		padding-right: 0.6666667em;
 		padding-bottom: 0.8888889em;
 		padding-left: 0.6666667em;
 	}
-	.sm\:prose-xl thead th:first-child {
+	.sm\:gr-prose-xl thead th:first-child {
 		padding-left: 0;
 	}
-	.sm\:prose-xl thead th:last-child {
+	.sm\:gr-prose-xl thead th:last-child {
 		padding-right: 0;
 	}
-	.sm\:prose-xl tbody td {
+	.sm\:gr-prose-xl tbody td {
 		padding-top: 0.8888889em;
 		padding-right: 0.6666667em;
 		padding-bottom: 0.8888889em;
 		padding-left: 0.6666667em;
 	}
-	.sm\:prose-xl tbody td:first-child {
+	.sm\:gr-prose-xl tbody td:first-child {
 		padding-left: 0;
 	}
-	.sm\:prose-xl tbody td:last-child {
+	.sm\:gr-prose-xl tbody td:last-child {
 		padding-right: 0;
 	}
-	.sm\:prose-xl > :first-child {
+	.sm\:gr-prose-xl > :first-child {
 		margin-top: 0;
 	}
-	.sm\:prose-xl > :last-child {
+	.sm\:gr-prose-xl > :last-child {
 		margin-bottom: 0;
 	}
-	.sm\:prose-2xl {
+	.sm\:gr-prose-2xl {
 		font-size: 1.5rem;
 		line-height: 1.6666667;
 	}
-	.sm\:prose-2xl p {
+	.sm\:gr-prose-2xl p {
 		margin-top: 1.3333333em;
 		margin-bottom: 1.3333333em;
 	}
-	.sm\:prose-2xl [class~="lead"] {
+	.sm\:gr-prose-2xl [class~="lead"] {
 		font-size: 1.25em;
 		line-height: 1.4666667;
 		margin-top: 1.0666667em;
 		margin-bottom: 1.0666667em;
 	}
-	.sm\:prose-2xl blockquote {
+	.sm\:gr-prose-2xl blockquote {
 		margin-top: 1.7777778em;
 		margin-bottom: 1.7777778em;
 		padding-left: 1.1111111em;
 	}
-	.sm\:prose-2xl h1 {
+	.sm\:gr-prose-2xl h1 {
 		font-size: 2.6666667em;
 		margin-top: 0;
 		margin-bottom: 0.875em;
 		line-height: 1;
 	}
-	.sm\:prose-2xl h2 {
+	.sm\:gr-prose-2xl h2 {
 		font-size: 2em;
 		margin-top: 1.5em;
 		margin-bottom: 0.8333333em;
 		line-height: 1.0833333;
 	}
-	.sm\:prose-2xl h3 {
+	.sm\:gr-prose-2xl h3 {
 		font-size: 1.5em;
 		margin-top: 1.5555556em;
 		margin-bottom: 0.6666667em;
 		line-height: 1.2222222;
 	}
-	.sm\:prose-2xl h4 {
+	.sm\:gr-prose-2xl h4 {
 		margin-top: 1.6666667em;
 		margin-bottom: 0.6666667em;
 		line-height: 1.5;
 	}
-	.sm\:prose-2xl img {
+	.sm\:gr-prose-2xl img {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.sm\:prose-2xl video {
+	.sm\:gr-prose-2xl video {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.sm\:prose-2xl figure {
+	.sm\:gr-prose-2xl figure {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.sm\:prose-2xl figure > * {
+	.sm\:gr-prose-2xl figure > * {
 		margin-top: 0;
 		margin-bottom: 0;
 	}
-	.sm\:prose-2xl figure figcaption {
+	.sm\:gr-prose-2xl figure figcaption {
 		font-size: 0.8333333em;
 		line-height: 1.6;
 		margin-top: 1em;
 	}
-	.sm\:prose-2xl code {
+	.sm\:gr-prose-2xl code {
 		font-size: 0.8333333em;
 	}
-	.sm\:prose-2xl h2 code {
+	.sm\:gr-prose-2xl h2 code {
 		font-size: 0.875em;
 	}
-	.sm\:prose-2xl h3 code {
+	.sm\:gr-prose-2xl h3 code {
 		font-size: 0.8888889em;
 	}
-	.sm\:prose-2xl pre {
+	.sm\:gr-prose-2xl pre {
 		font-size: 0.8333333em;
 		line-height: 1.8;
 		margin-top: 2em;
@@ -2021,212 +2021,212 @@
 		padding-bottom: 1.2em;
 		padding-left: 1.6em;
 	}
-	.sm\:prose-2xl ol {
+	.sm\:gr-prose-2xl ol {
 		margin-top: 1.3333333em;
 		margin-bottom: 1.3333333em;
 	}
-	.sm\:prose-2xl ul {
+	.sm\:gr-prose-2xl ul {
 		margin-top: 1.3333333em;
 		margin-bottom: 1.3333333em;
 	}
-	.sm\:prose-2xl li {
+	.sm\:gr-prose-2xl li {
 		margin-top: 0.5em;
 		margin-bottom: 0.5em;
 	}
-	.sm\:prose-2xl ol > li {
+	.sm\:gr-prose-2xl ol > li {
 		padding-left: 1.6666667em;
 	}
-	.sm\:prose-2xl ol > li::before {
+	.sm\:gr-prose-2xl ol > li::before {
 		left: 0;
 	}
-	.sm\:prose-2xl ul > li {
+	.sm\:gr-prose-2xl ul > li {
 		padding-left: 1.6666667em;
 	}
-	.sm\:prose-2xl ul > li::before {
+	.sm\:gr-prose-2xl ul > li::before {
 		width: 0.3333333em;
 		height: 0.3333333em;
 		top: calc(0.8333333em - 0.1666667em);
 		left: 0.25em;
 	}
-	.sm\:prose-2xl > ul > li p {
+	.sm\:gr-prose-2xl > ul > li p {
 		margin-top: 0.8333333em;
 		margin-bottom: 0.8333333em;
 	}
-	.sm\:prose-2xl > ul > li > :first-child {
+	.sm\:gr-prose-2xl > ul > li > :first-child {
 		margin-top: 1.3333333em;
 	}
-	.sm\:prose-2xl > ul > li > :last-child {
+	.sm\:gr-prose-2xl > ul > li > :last-child {
 		margin-bottom: 1.3333333em;
 	}
-	.sm\:prose-2xl > ol > li > :first-child {
+	.sm\:gr-prose-2xl > ol > li > :first-child {
 		margin-top: 1.3333333em;
 	}
-	.sm\:prose-2xl > ol > li > :last-child {
+	.sm\:gr-prose-2xl > ol > li > :last-child {
 		margin-bottom: 1.3333333em;
 	}
-	.sm\:prose-2xl ol ol,
-	.sm\:prose-2xl ol ul,
-	.sm\:prose-2xl ul ol,
-	.sm\:prose-2xl ul ul {
+	.sm\:gr-prose-2xl ol ol,
+	.sm\:gr-prose-2xl ol ul,
+	.sm\:gr-prose-2xl ul ol,
+	.sm\:gr-prose-2xl ul ul {
 		margin-top: 0.6666667em;
 		margin-bottom: 0.6666667em;
 	}
-	.sm\:prose-2xl hr {
+	.sm\:gr-prose-2xl hr {
 		margin-top: 3em;
 		margin-bottom: 3em;
 	}
-	.sm\:prose-2xl hr + * {
+	.sm\:gr-prose-2xl hr + * {
 		margin-top: 0;
 	}
-	.sm\:prose-2xl h2 + * {
+	.sm\:gr-prose-2xl h2 + * {
 		margin-top: 0;
 	}
-	.sm\:prose-2xl h3 + * {
+	.sm\:gr-prose-2xl h3 + * {
 		margin-top: 0;
 	}
-	.sm\:prose-2xl h4 + * {
+	.sm\:gr-prose-2xl h4 + * {
 		margin-top: 0;
 	}
-	.sm\:prose-2xl table {
+	.sm\:gr-prose-2xl table {
 		font-size: 0.8333333em;
 		line-height: 1.4;
 	}
-	.sm\:prose-2xl thead th {
+	.sm\:gr-prose-2xl thead th {
 		padding-right: 0.6em;
 		padding-bottom: 0.8em;
 		padding-left: 0.6em;
 	}
-	.sm\:prose-2xl thead th:first-child {
+	.sm\:gr-prose-2xl thead th:first-child {
 		padding-left: 0;
 	}
-	.sm\:prose-2xl thead th:last-child {
+	.sm\:gr-prose-2xl thead th:last-child {
 		padding-right: 0;
 	}
-	.sm\:prose-2xl tbody td {
+	.sm\:gr-prose-2xl tbody td {
 		padding-top: 0.8em;
 		padding-right: 0.6em;
 		padding-bottom: 0.8em;
 		padding-left: 0.6em;
 	}
-	.sm\:prose-2xl tbody td:first-child {
+	.sm\:gr-prose-2xl tbody td:first-child {
 		padding-left: 0;
 	}
-	.sm\:prose-2xl tbody td:last-child {
+	.sm\:gr-prose-2xl tbody td:last-child {
 		padding-right: 0;
 	}
-	.sm\:prose-2xl > :first-child {
+	.sm\:gr-prose-2xl > :first-child {
 		margin-top: 0;
 	}
-	.sm\:prose-2xl > :last-child {
+	.sm\:gr-prose-2xl > :last-child {
 		margin-bottom: 0;
 	}
-	.sm\:prose-red a {
+	.sm\:gr-prose-red a {
 		color: #dc2626;
 	}
-	.sm\:prose-red a code {
+	.sm\:gr-prose-red a code {
 		color: #dc2626;
 	}
-	.sm\:prose-yellow a {
+	.sm\:gr-prose-yellow a {
 		color: #d97706;
 	}
-	.sm\:prose-yellow a code {
+	.sm\:gr-prose-yellow a code {
 		color: #d97706;
 	}
-	.sm\:prose-green a {
+	.sm\:gr-prose-green a {
 		color: #059669;
 	}
-	.sm\:prose-green a code {
+	.sm\:gr-prose-green a code {
 		color: #059669;
 	}
-	.sm\:prose-blue a {
+	.sm\:gr-prose-blue a {
 		color: #2563eb;
 	}
-	.sm\:prose-blue a code {
+	.sm\:gr-prose-blue a code {
 		color: #2563eb;
 	}
-	.sm\:prose-indigo a {
+	.sm\:gr-prose-indigo a {
 		color: #4f46e5;
 	}
-	.sm\:prose-indigo a code {
+	.sm\:gr-prose-indigo a code {
 		color: #4f46e5;
 	}
-	.sm\:prose-purple a {
+	.sm\:gr-prose-purple a {
 		color: #7c3aed;
 	}
-	.sm\:prose-purple a code {
+	.sm\:gr-prose-purple a code {
 		color: #7c3aed;
 	}
-	.sm\:prose-pink a {
+	.sm\:gr-prose-pink a {
 		color: #db2777;
 	}
-	.sm\:prose-pink a code {
+	.sm\:gr-prose-pink a code {
 		color: #db2777;
 	}
 }
 @media (min-width: 768px) {
-	.md\:prose {
+	.md\:gr-prose {
 		color: #374151;
 		max-width: 65ch;
 	}
-	.md\:prose [class~="lead"] {
+	.md\:gr-prose [class~="lead"] {
 		color: #4b5563;
 		font-size: 1.25em;
 		line-height: 1.6;
 		margin-top: 1.2em;
 		margin-bottom: 1.2em;
 	}
-	.md\:prose a {
+	.md\:gr-prose a {
 		color: #111827;
 		text-decoration: underline;
 		font-weight: 500;
 	}
-	.md\:prose strong {
+	.md\:gr-prose strong {
 		color: #111827;
 		font-weight: 600;
 	}
-	.md\:prose ol[type="A"] {
+	.md\:gr-prose ol[type="A"] {
 		--list-counter-style: upper-alpha;
 	}
-	.md\:prose ol[type="a"] {
+	.md\:gr-prose ol[type="a"] {
 		--list-counter-style: lower-alpha;
 	}
-	.md\:prose ol[type="A"s] {
+	.md\:gr-prose ol[type="A"s] {
 		--list-counter-style: upper-alpha;
 	}
-	.md\:prose ol[type="a"s] {
+	.md\:gr-prose ol[type="a"s] {
 		--list-counter-style: lower-alpha;
 	}
-	.md\:prose ol[type="I"] {
+	.md\:gr-prose ol[type="I"] {
 		--list-counter-style: upper-roman;
 	}
-	.md\:prose ol[type="i"] {
+	.md\:gr-prose ol[type="i"] {
 		--list-counter-style: lower-roman;
 	}
-	.md\:prose ol[type="I"s] {
+	.md\:gr-prose ol[type="I"s] {
 		--list-counter-style: upper-roman;
 	}
-	.md\:prose ol[type="i"s] {
+	.md\:gr-prose ol[type="i"s] {
 		--list-counter-style: lower-roman;
 	}
-	.md\:prose ol[type="1"] {
+	.md\:gr-prose ol[type="1"] {
 		--list-counter-style: decimal;
 	}
-	.md\:prose ol > li {
+	.md\:gr-prose ol > li {
 		position: relative;
 		padding-left: 1.75em;
 	}
-	.md\:prose ol > li::before {
+	.md\:gr-prose ol > li::before {
 		content: counter(list-item, var(--list-counter-style, decimal)) ".";
 		position: absolute;
 		font-weight: 400;
 		color: #6b7280;
 		left: 0;
 	}
-	.md\:prose ul > li {
+	.md\:gr-prose ul > li {
 		position: relative;
 		padding-left: 1.75em;
 	}
-	.md\:prose ul > li::before {
+	.md\:gr-prose ul > li::before {
 		content: "";
 		position: absolute;
 		background-color: #d1d5db;
@@ -2236,13 +2236,13 @@
 		top: calc(0.875em - 0.1875em);
 		left: 0.25em;
 	}
-	.md\:prose hr {
+	.md\:gr-prose hr {
 		border-color: #e5e7eb;
 		border-top-width: 1px;
 		margin-top: 3em;
 		margin-bottom: 3em;
 	}
-	.md\:prose blockquote {
+	.md\:gr-prose blockquote {
 		font-weight: 500;
 		font-style: italic;
 		color: #111827;
@@ -2253,13 +2253,13 @@
 		margin-bottom: 1.6em;
 		padding-left: 1em;
 	}
-	.md\:prose blockquote p:first-of-type::before {
+	.md\:gr-prose blockquote p:first-of-type::before {
 		content: open-quote;
 	}
-	.md\:prose blockquote p:last-of-type::after {
+	.md\:gr-prose blockquote p:last-of-type::after {
 		content: close-quote;
 	}
-	.md\:prose h1 {
+	.md\:gr-prose h1 {
 		color: #111827;
 		font-weight: 600;
 		font-size: 2.25em;
@@ -2267,7 +2267,7 @@
 		margin-bottom: 0.8888889em;
 		line-height: 1.1111111;
 	}
-	.md\:prose h2 {
+	.md\:gr-prose h2 {
 		color: #111827;
 		font-weight: 600;
 		font-size: 1.5em;
@@ -2275,7 +2275,7 @@
 		margin-bottom: 1em;
 		line-height: 1.3333333;
 	}
-	.md\:prose h3 {
+	.md\:gr-prose h3 {
 		color: #111827;
 		font-weight: 600;
 		font-size: 1.25em;
@@ -2283,34 +2283,34 @@
 		margin-bottom: 0.6em;
 		line-height: 1.6;
 	}
-	.md\:prose h4 {
+	.md\:gr-prose h4 {
 		color: #111827;
 		font-weight: 600;
 		margin-top: 1.5em;
 		margin-bottom: 0.5em;
 		line-height: 1.5;
 	}
-	.md\:prose figure figcaption {
+	.md\:gr-prose figure figcaption {
 		color: #6b7280;
 		font-size: 0.875em;
 		line-height: 1.4285714;
 		margin-top: 0.8571429em;
 	}
-	.md\:prose code {
+	.md\:gr-prose code {
 		color: #111827;
 		font-weight: 600;
 		font-size: 0.875em;
 	}
-	.md\:prose code::before {
+	.md\:gr-prose code::before {
 		content: "`";
 	}
-	.md\:prose code::after {
+	.md\:gr-prose code::after {
 		content: "`";
 	}
-	.md\:prose a code {
+	.md\:gr-prose a code {
 		color: #111827;
 	}
-	.md\:prose pre {
+	.md\:gr-prose pre {
 		color: #e5e7eb;
 		background-color: #1f2937;
 		overflow-x: auto;
@@ -2324,7 +2324,7 @@
 		padding-bottom: 0.8571429em;
 		padding-left: 1.1428571em;
 	}
-	.md\:prose pre code {
+	.md\:gr-prose pre code {
 		background-color: transparent;
 		border-width: 0;
 		border-radius: 0;
@@ -2335,13 +2335,13 @@
 		font-family: inherit;
 		line-height: inherit;
 	}
-	.md\:prose pre code::before {
+	.md\:gr-prose pre code::before {
 		content: none;
 	}
-	.md\:prose pre code::after {
+	.md\:gr-prose pre code::after {
 		content: none;
 	}
-	.md\:prose table {
+	.md\:gr-prose table {
 		width: 100%;
 		table-layout: auto;
 		text-align: left;
@@ -2350,200 +2350,200 @@
 		font-size: 0.875em;
 		line-height: 1.7142857;
 	}
-	.md\:prose thead {
+	.md\:gr-prose thead {
 		color: #111827;
 		font-weight: 600;
 		border-bottom-width: 1px;
 		border-bottom-color: #d1d5db;
 	}
-	.md\:prose thead th {
+	.md\:gr-prose thead th {
 		vertical-align: bottom;
 		padding-right: 0.5714286em;
 		padding-bottom: 0.5714286em;
 		padding-left: 0.5714286em;
 	}
-	.md\:prose tbody tr {
+	.md\:gr-prose tbody tr {
 		border-bottom-width: 1px;
 		border-bottom-color: #e5e7eb;
 	}
-	.md\:prose tbody tr:last-child {
+	.md\:gr-prose tbody tr:last-child {
 		border-bottom-width: 0;
 	}
-	.md\:prose tbody td {
+	.md\:gr-prose tbody td {
 		vertical-align: top;
 		padding-top: 0.5714286em;
 		padding-right: 0.5714286em;
 		padding-bottom: 0.5714286em;
 		padding-left: 0.5714286em;
 	}
-	.md\:prose {
+	.md\:gr-prose {
 		font-size: 1rem;
 		line-height: 1.75;
 	}
-	.md\:prose p {
+	.md\:gr-prose p {
 		margin-top: 1.25em;
 		margin-bottom: 1.25em;
 	}
-	.md\:prose img {
+	.md\:gr-prose img {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.md\:prose video {
+	.md\:gr-prose video {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.md\:prose figure {
+	.md\:gr-prose figure {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.md\:prose figure > * {
+	.md\:gr-prose figure > * {
 		margin-top: 0;
 		margin-bottom: 0;
 	}
-	.md\:prose h2 code {
+	.md\:gr-prose h2 code {
 		font-size: 0.875em;
 	}
-	.md\:prose h3 code {
+	.md\:gr-prose h3 code {
 		font-size: 0.9em;
 	}
-	.md\:prose ol {
+	.md\:gr-prose ol {
 		margin-top: 1.25em;
 		margin-bottom: 1.25em;
 	}
-	.md\:prose ul {
+	.md\:gr-prose ul {
 		margin-top: 1.25em;
 		margin-bottom: 1.25em;
 	}
-	.md\:prose li {
+	.md\:gr-prose li {
 		margin-top: 0.5em;
 		margin-bottom: 0.5em;
 	}
-	.md\:prose > ul > li p {
+	.md\:gr-prose > ul > li p {
 		margin-top: 0.75em;
 		margin-bottom: 0.75em;
 	}
-	.md\:prose > ul > li > :first-child {
+	.md\:gr-prose > ul > li > :first-child {
 		margin-top: 1.25em;
 	}
-	.md\:prose > ul > li > :last-child {
+	.md\:gr-prose > ul > li > :last-child {
 		margin-bottom: 1.25em;
 	}
-	.md\:prose > ol > li > :first-child {
+	.md\:gr-prose > ol > li > :first-child {
 		margin-top: 1.25em;
 	}
-	.md\:prose > ol > li > :last-child {
+	.md\:gr-prose > ol > li > :last-child {
 		margin-bottom: 1.25em;
 	}
-	.md\:prose ol ol,
-	.md\:prose ol ul,
-	.md\:prose ul ol,
-	.md\:prose ul ul {
+	.md\:gr-prose ol ol,
+	.md\:gr-prose ol ul,
+	.md\:gr-prose ul ol,
+	.md\:gr-prose ul ul {
 		margin-top: 0.75em;
 		margin-bottom: 0.75em;
 	}
-	.md\:prose hr + * {
+	.md\:gr-prose hr + * {
 		margin-top: 0;
 	}
-	.md\:prose h2 + * {
+	.md\:gr-prose h2 + * {
 		margin-top: 0;
 	}
-	.md\:prose h3 + * {
+	.md\:gr-prose h3 + * {
 		margin-top: 0;
 	}
-	.md\:prose h4 + * {
+	.md\:gr-prose h4 + * {
 		margin-top: 0;
 	}
-	.md\:prose thead th:first-child {
+	.md\:gr-prose thead th:first-child {
 		padding-left: 0;
 	}
-	.md\:prose thead th:last-child {
+	.md\:gr-prose thead th:last-child {
 		padding-right: 0;
 	}
-	.md\:prose tbody td:first-child {
+	.md\:gr-prose tbody td:first-child {
 		padding-left: 0;
 	}
-	.md\:prose tbody td:last-child {
+	.md\:gr-prose tbody td:last-child {
 		padding-right: 0;
 	}
-	.md\:prose > :first-child {
+	.md\:gr-prose > :first-child {
 		margin-top: 0;
 	}
-	.md\:prose > :last-child {
+	.md\:gr-prose > :last-child {
 		margin-bottom: 0;
 	}
-	.md\:prose-sm {
+	.md\:gr-prose-sm {
 		font-size: 0.875rem;
 		line-height: 1.7142857;
 	}
-	.md\:prose-sm p {
+	.md\:gr-prose-sm p {
 		margin-top: 1.1428571em;
 		margin-bottom: 1.1428571em;
 	}
-	.md\:prose-sm [class~="lead"] {
+	.md\:gr-prose-sm [class~="lead"] {
 		font-size: 1.2857143em;
 		line-height: 1.5555556;
 		margin-top: 0.8888889em;
 		margin-bottom: 0.8888889em;
 	}
-	.md\:prose-sm blockquote {
+	.md\:gr-prose-sm blockquote {
 		margin-top: 1.3333333em;
 		margin-bottom: 1.3333333em;
 		padding-left: 1.1111111em;
 	}
-	.md\:prose-sm h1 {
+	.md\:gr-prose-sm h1 {
 		font-size: 2.1428571em;
 		margin-top: 0;
 		margin-bottom: 0.8em;
 		line-height: 1.2;
 	}
-	.md\:prose-sm h2 {
+	.md\:gr-prose-sm h2 {
 		font-size: 1.4285714em;
 		margin-top: 1.6em;
 		margin-bottom: 0.8em;
 		line-height: 1.4;
 	}
-	.md\:prose-sm h3 {
+	.md\:gr-prose-sm h3 {
 		font-size: 1.2857143em;
 		margin-top: 1.5555556em;
 		margin-bottom: 0.4444444em;
 		line-height: 1.5555556;
 	}
-	.md\:prose-sm h4 {
+	.md\:gr-prose-sm h4 {
 		margin-top: 1.4285714em;
 		margin-bottom: 0.5714286em;
 		line-height: 1.4285714;
 	}
-	.md\:prose-sm img {
+	.md\:gr-prose-sm img {
 		margin-top: 1.7142857em;
 		margin-bottom: 1.7142857em;
 	}
-	.md\:prose-sm video {
+	.md\:gr-prose-sm video {
 		margin-top: 1.7142857em;
 		margin-bottom: 1.7142857em;
 	}
-	.md\:prose-sm figure {
+	.md\:gr-prose-sm figure {
 		margin-top: 1.7142857em;
 		margin-bottom: 1.7142857em;
 	}
-	.md\:prose-sm figure > * {
+	.md\:gr-prose-sm figure > * {
 		margin-top: 0;
 		margin-bottom: 0;
 	}
-	.md\:prose-sm figure figcaption {
+	.md\:gr-prose-sm figure figcaption {
 		font-size: 0.8571429em;
 		line-height: 1.3333333;
 		margin-top: 0.6666667em;
 	}
-	.md\:prose-sm code {
+	.md\:gr-prose-sm code {
 		font-size: 0.8571429em;
 	}
-	.md\:prose-sm h2 code {
+	.md\:gr-prose-sm h2 code {
 		font-size: 0.9em;
 	}
-	.md\:prose-sm h3 code {
+	.md\:gr-prose-sm h3 code {
 		font-size: 0.8888889em;
 	}
-	.md\:prose-sm pre {
+	.md\:gr-prose-sm pre {
 		font-size: 0.8571429em;
 		line-height: 1.6666667;
 		margin-top: 1.6666667em;
@@ -2554,178 +2554,178 @@
 		padding-bottom: 0.6666667em;
 		padding-left: 1em;
 	}
-	.md\:prose-sm ol {
+	.md\:gr-prose-sm ol {
 		margin-top: 1.1428571em;
 		margin-bottom: 1.1428571em;
 	}
-	.md\:prose-sm ul {
+	.md\:gr-prose-sm ul {
 		margin-top: 1.1428571em;
 		margin-bottom: 1.1428571em;
 	}
-	.md\:prose-sm li {
+	.md\:gr-prose-sm li {
 		margin-top: 0.2857143em;
 		margin-bottom: 0.2857143em;
 	}
-	.md\:prose-sm ol > li {
+	.md\:gr-prose-sm ol > li {
 		padding-left: 1.5714286em;
 	}
-	.md\:prose-sm ol > li::before {
+	.md\:gr-prose-sm ol > li::before {
 		left: 0;
 	}
-	.md\:prose-sm ul > li {
+	.md\:gr-prose-sm ul > li {
 		padding-left: 1.5714286em;
 	}
-	.md\:prose-sm ul > li::before {
+	.md\:gr-prose-sm ul > li::before {
 		height: 0.3571429em;
 		width: 0.3571429em;
 		top: calc(0.8571429em - 0.1785714em);
 		left: 0.2142857em;
 	}
-	.md\:prose-sm > ul > li p {
+	.md\:gr-prose-sm > ul > li p {
 		margin-top: 0.5714286em;
 		margin-bottom: 0.5714286em;
 	}
-	.md\:prose-sm > ul > li > :first-child {
+	.md\:gr-prose-sm > ul > li > :first-child {
 		margin-top: 1.1428571em;
 	}
-	.md\:prose-sm > ul > li > :last-child {
+	.md\:gr-prose-sm > ul > li > :last-child {
 		margin-bottom: 1.1428571em;
 	}
-	.md\:prose-sm > ol > li > :first-child {
+	.md\:gr-prose-sm > ol > li > :first-child {
 		margin-top: 1.1428571em;
 	}
-	.md\:prose-sm > ol > li > :last-child {
+	.md\:gr-prose-sm > ol > li > :last-child {
 		margin-bottom: 1.1428571em;
 	}
-	.md\:prose-sm ol ol,
-	.md\:prose-sm ol ul,
-	.md\:prose-sm ul ol,
-	.md\:prose-sm ul ul {
+	.md\:gr-prose-sm ol ol,
+	.md\:gr-prose-sm ol ul,
+	.md\:gr-prose-sm ul ol,
+	.md\:gr-prose-sm ul ul {
 		margin-top: 0.5714286em;
 		margin-bottom: 0.5714286em;
 	}
-	.md\:prose-sm hr {
+	.md\:gr-prose-sm hr {
 		margin-top: 2.8571429em;
 		margin-bottom: 2.8571429em;
 	}
-	.md\:prose-sm hr + * {
+	.md\:gr-prose-sm hr + * {
 		margin-top: 0;
 	}
-	.md\:prose-sm h2 + * {
+	.md\:gr-prose-sm h2 + * {
 		margin-top: 0;
 	}
-	.md\:prose-sm h3 + * {
+	.md\:gr-prose-sm h3 + * {
 		margin-top: 0;
 	}
-	.md\:prose-sm h4 + * {
+	.md\:gr-prose-sm h4 + * {
 		margin-top: 0;
 	}
-	.md\:prose-sm table {
+	.md\:gr-prose-sm table {
 		font-size: 0.8571429em;
 		line-height: 1.5;
 	}
-	.md\:prose-sm thead th {
+	.md\:gr-prose-sm thead th {
 		padding-right: 1em;
 		padding-bottom: 0.6666667em;
 		padding-left: 1em;
 	}
-	.md\:prose-sm thead th:first-child {
+	.md\:gr-prose-sm thead th:first-child {
 		padding-left: 0;
 	}
-	.md\:prose-sm thead th:last-child {
+	.md\:gr-prose-sm thead th:last-child {
 		padding-right: 0;
 	}
-	.md\:prose-sm tbody td {
+	.md\:gr-prose-sm tbody td {
 		padding-top: 0.6666667em;
 		padding-right: 1em;
 		padding-bottom: 0.6666667em;
 		padding-left: 1em;
 	}
-	.md\:prose-sm tbody td:first-child {
+	.md\:gr-prose-sm tbody td:first-child {
 		padding-left: 0;
 	}
-	.md\:prose-sm tbody td:last-child {
+	.md\:gr-prose-sm tbody td:last-child {
 		padding-right: 0;
 	}
-	.md\:prose-sm > :first-child {
+	.md\:gr-prose-sm > :first-child {
 		margin-top: 0;
 	}
-	.md\:prose-sm > :last-child {
+	.md\:gr-prose-sm > :last-child {
 		margin-bottom: 0;
 	}
-	.md\:prose-lg {
+	.md\:gr-prose-lg {
 		font-size: 1.125rem;
 		line-height: 1.7777778;
 	}
-	.md\:prose-lg p {
+	.md\:gr-prose-lg p {
 		margin-top: 1.3333333em;
 		margin-bottom: 1.3333333em;
 	}
-	.md\:prose-lg [class~="lead"] {
+	.md\:gr-prose-lg [class~="lead"] {
 		font-size: 1.2222222em;
 		line-height: 1.4545455;
 		margin-top: 1.0909091em;
 		margin-bottom: 1.0909091em;
 	}
-	.md\:prose-lg blockquote {
+	.md\:gr-prose-lg blockquote {
 		margin-top: 1.6666667em;
 		margin-bottom: 1.6666667em;
 		padding-left: 1em;
 	}
-	.md\:prose-lg h1 {
+	.md\:gr-prose-lg h1 {
 		font-size: 2.6666667em;
 		margin-top: 0;
 		margin-bottom: 0.8333333em;
 		line-height: 1;
 	}
-	.md\:prose-lg h2 {
+	.md\:gr-prose-lg h2 {
 		font-size: 1.6666667em;
 		margin-top: 1.8666667em;
 		margin-bottom: 1.0666667em;
 		line-height: 1.3333333;
 	}
-	.md\:prose-lg h3 {
+	.md\:gr-prose-lg h3 {
 		font-size: 1.3333333em;
 		margin-top: 1.6666667em;
 		margin-bottom: 0.6666667em;
 		line-height: 1.5;
 	}
-	.md\:prose-lg h4 {
+	.md\:gr-prose-lg h4 {
 		margin-top: 1.7777778em;
 		margin-bottom: 0.4444444em;
 		line-height: 1.5555556;
 	}
-	.md\:prose-lg img {
+	.md\:gr-prose-lg img {
 		margin-top: 1.7777778em;
 		margin-bottom: 1.7777778em;
 	}
-	.md\:prose-lg video {
+	.md\:gr-prose-lg video {
 		margin-top: 1.7777778em;
 		margin-bottom: 1.7777778em;
 	}
-	.md\:prose-lg figure {
+	.md\:gr-prose-lg figure {
 		margin-top: 1.7777778em;
 		margin-bottom: 1.7777778em;
 	}
-	.md\:prose-lg figure > * {
+	.md\:gr-prose-lg figure > * {
 		margin-top: 0;
 		margin-bottom: 0;
 	}
-	.md\:prose-lg figure figcaption {
+	.md\:gr-prose-lg figure figcaption {
 		font-size: 0.8888889em;
 		line-height: 1.5;
 		margin-top: 1em;
 	}
-	.md\:prose-lg code {
+	.md\:gr-prose-lg code {
 		font-size: 0.8888889em;
 	}
-	.md\:prose-lg h2 code {
+	.md\:gr-prose-lg h2 code {
 		font-size: 0.8666667em;
 	}
-	.md\:prose-lg h3 code {
+	.md\:gr-prose-lg h3 code {
 		font-size: 0.875em;
 	}
-	.md\:prose-lg pre {
+	.md\:gr-prose-lg pre {
 		font-size: 0.8888889em;
 		line-height: 1.75;
 		margin-top: 2em;
@@ -2736,178 +2736,178 @@
 		padding-bottom: 1em;
 		padding-left: 1.5em;
 	}
-	.md\:prose-lg ol {
+	.md\:gr-prose-lg ol {
 		margin-top: 1.3333333em;
 		margin-bottom: 1.3333333em;
 	}
-	.md\:prose-lg ul {
+	.md\:gr-prose-lg ul {
 		margin-top: 1.3333333em;
 		margin-bottom: 1.3333333em;
 	}
-	.md\:prose-lg li {
+	.md\:gr-prose-lg li {
 		margin-top: 0.6666667em;
 		margin-bottom: 0.6666667em;
 	}
-	.md\:prose-lg ol > li {
+	.md\:gr-prose-lg ol > li {
 		padding-left: 1.6666667em;
 	}
-	.md\:prose-lg ol > li::before {
+	.md\:gr-prose-lg ol > li::before {
 		left: 0;
 	}
-	.md\:prose-lg ul > li {
+	.md\:gr-prose-lg ul > li {
 		padding-left: 1.6666667em;
 	}
-	.md\:prose-lg ul > li::before {
+	.md\:gr-prose-lg ul > li::before {
 		width: 0.3333333em;
 		height: 0.3333333em;
 		top: calc(0.8888889em - 0.1666667em);
 		left: 0.2222222em;
 	}
-	.md\:prose-lg > ul > li p {
+	.md\:gr-prose-lg > ul > li p {
 		margin-top: 0.8888889em;
 		margin-bottom: 0.8888889em;
 	}
-	.md\:prose-lg > ul > li > :first-child {
+	.md\:gr-prose-lg > ul > li > :first-child {
 		margin-top: 1.3333333em;
 	}
-	.md\:prose-lg > ul > li > :last-child {
+	.md\:gr-prose-lg > ul > li > :last-child {
 		margin-bottom: 1.3333333em;
 	}
-	.md\:prose-lg > ol > li > :first-child {
+	.md\:gr-prose-lg > ol > li > :first-child {
 		margin-top: 1.3333333em;
 	}
-	.md\:prose-lg > ol > li > :last-child {
+	.md\:gr-prose-lg > ol > li > :last-child {
 		margin-bottom: 1.3333333em;
 	}
-	.md\:prose-lg ol ol,
-	.md\:prose-lg ol ul,
-	.md\:prose-lg ul ol,
-	.md\:prose-lg ul ul {
+	.md\:gr-prose-lg ol ol,
+	.md\:gr-prose-lg ol ul,
+	.md\:gr-prose-lg ul ol,
+	.md\:gr-prose-lg ul ul {
 		margin-top: 0.8888889em;
 		margin-bottom: 0.8888889em;
 	}
-	.md\:prose-lg hr {
+	.md\:gr-prose-lg hr {
 		margin-top: 3.1111111em;
 		margin-bottom: 3.1111111em;
 	}
-	.md\:prose-lg hr + * {
+	.md\:gr-prose-lg hr + * {
 		margin-top: 0;
 	}
-	.md\:prose-lg h2 + * {
+	.md\:gr-prose-lg h2 + * {
 		margin-top: 0;
 	}
-	.md\:prose-lg h3 + * {
+	.md\:gr-prose-lg h3 + * {
 		margin-top: 0;
 	}
-	.md\:prose-lg h4 + * {
+	.md\:gr-prose-lg h4 + * {
 		margin-top: 0;
 	}
-	.md\:prose-lg table {
+	.md\:gr-prose-lg table {
 		font-size: 0.8888889em;
 		line-height: 1.5;
 	}
-	.md\:prose-lg thead th {
+	.md\:gr-prose-lg thead th {
 		padding-right: 0.75em;
 		padding-bottom: 0.75em;
 		padding-left: 0.75em;
 	}
-	.md\:prose-lg thead th:first-child {
+	.md\:gr-prose-lg thead th:first-child {
 		padding-left: 0;
 	}
-	.md\:prose-lg thead th:last-child {
+	.md\:gr-prose-lg thead th:last-child {
 		padding-right: 0;
 	}
-	.md\:prose-lg tbody td {
+	.md\:gr-prose-lg tbody td {
 		padding-top: 0.75em;
 		padding-right: 0.75em;
 		padding-bottom: 0.75em;
 		padding-left: 0.75em;
 	}
-	.md\:prose-lg tbody td:first-child {
+	.md\:gr-prose-lg tbody td:first-child {
 		padding-left: 0;
 	}
-	.md\:prose-lg tbody td:last-child {
+	.md\:gr-prose-lg tbody td:last-child {
 		padding-right: 0;
 	}
-	.md\:prose-lg > :first-child {
+	.md\:gr-prose-lg > :first-child {
 		margin-top: 0;
 	}
-	.md\:prose-lg > :last-child {
+	.md\:gr-prose-lg > :last-child {
 		margin-bottom: 0;
 	}
-	.md\:prose-xl {
+	.md\:gr-prose-xl {
 		font-size: 1.25rem;
 		line-height: 1.8;
 	}
-	.md\:prose-xl p {
+	.md\:gr-prose-xl p {
 		margin-top: 1.2em;
 		margin-bottom: 1.2em;
 	}
-	.md\:prose-xl [class~="lead"] {
+	.md\:gr-prose-xl [class~="lead"] {
 		font-size: 1.2em;
 		line-height: 1.5;
 		margin-top: 1em;
 		margin-bottom: 1em;
 	}
-	.md\:prose-xl blockquote {
+	.md\:gr-prose-xl blockquote {
 		margin-top: 1.6em;
 		margin-bottom: 1.6em;
 		padding-left: 1.0666667em;
 	}
-	.md\:prose-xl h1 {
+	.md\:gr-prose-xl h1 {
 		font-size: 2.8em;
 		margin-top: 0;
 		margin-bottom: 0.8571429em;
 		line-height: 1;
 	}
-	.md\:prose-xl h2 {
+	.md\:gr-prose-xl h2 {
 		font-size: 1.8em;
 		margin-top: 1.5555556em;
 		margin-bottom: 0.8888889em;
 		line-height: 1.1111111;
 	}
-	.md\:prose-xl h3 {
+	.md\:gr-prose-xl h3 {
 		font-size: 1.5em;
 		margin-top: 1.6em;
 		margin-bottom: 0.6666667em;
 		line-height: 1.3333333;
 	}
-	.md\:prose-xl h4 {
+	.md\:gr-prose-xl h4 {
 		margin-top: 1.8em;
 		margin-bottom: 0.6em;
 		line-height: 1.6;
 	}
-	.md\:prose-xl img {
+	.md\:gr-prose-xl img {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.md\:prose-xl video {
+	.md\:gr-prose-xl video {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.md\:prose-xl figure {
+	.md\:gr-prose-xl figure {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.md\:prose-xl figure > * {
+	.md\:gr-prose-xl figure > * {
 		margin-top: 0;
 		margin-bottom: 0;
 	}
-	.md\:prose-xl figure figcaption {
+	.md\:gr-prose-xl figure figcaption {
 		font-size: 0.9em;
 		line-height: 1.5555556;
 		margin-top: 1em;
 	}
-	.md\:prose-xl code {
+	.md\:gr-prose-xl code {
 		font-size: 0.9em;
 	}
-	.md\:prose-xl h2 code {
+	.md\:gr-prose-xl h2 code {
 		font-size: 0.8611111em;
 	}
-	.md\:prose-xl h3 code {
+	.md\:gr-prose-xl h3 code {
 		font-size: 0.9em;
 	}
-	.md\:prose-xl pre {
+	.md\:gr-prose-xl pre {
 		font-size: 0.9em;
 		line-height: 1.7777778;
 		margin-top: 2em;
@@ -2918,178 +2918,178 @@
 		padding-bottom: 1.1111111em;
 		padding-left: 1.3333333em;
 	}
-	.md\:prose-xl ol {
+	.md\:gr-prose-xl ol {
 		margin-top: 1.2em;
 		margin-bottom: 1.2em;
 	}
-	.md\:prose-xl ul {
+	.md\:gr-prose-xl ul {
 		margin-top: 1.2em;
 		margin-bottom: 1.2em;
 	}
-	.md\:prose-xl li {
+	.md\:gr-prose-xl li {
 		margin-top: 0.6em;
 		margin-bottom: 0.6em;
 	}
-	.md\:prose-xl ol > li {
+	.md\:gr-prose-xl ol > li {
 		padding-left: 1.8em;
 	}
-	.md\:prose-xl ol > li::before {
+	.md\:gr-prose-xl ol > li::before {
 		left: 0;
 	}
-	.md\:prose-xl ul > li {
+	.md\:gr-prose-xl ul > li {
 		padding-left: 1.8em;
 	}
-	.md\:prose-xl ul > li::before {
+	.md\:gr-prose-xl ul > li::before {
 		width: 0.35em;
 		height: 0.35em;
 		top: calc(0.9em - 0.175em);
 		left: 0.25em;
 	}
-	.md\:prose-xl > ul > li p {
+	.md\:gr-prose-xl > ul > li p {
 		margin-top: 0.8em;
 		margin-bottom: 0.8em;
 	}
-	.md\:prose-xl > ul > li > :first-child {
+	.md\:gr-prose-xl > ul > li > :first-child {
 		margin-top: 1.2em;
 	}
-	.md\:prose-xl > ul > li > :last-child {
+	.md\:gr-prose-xl > ul > li > :last-child {
 		margin-bottom: 1.2em;
 	}
-	.md\:prose-xl > ol > li > :first-child {
+	.md\:gr-prose-xl > ol > li > :first-child {
 		margin-top: 1.2em;
 	}
-	.md\:prose-xl > ol > li > :last-child {
+	.md\:gr-prose-xl > ol > li > :last-child {
 		margin-bottom: 1.2em;
 	}
-	.md\:prose-xl ol ol,
-	.md\:prose-xl ol ul,
-	.md\:prose-xl ul ol,
-	.md\:prose-xl ul ul {
+	.md\:gr-prose-xl ol ol,
+	.md\:gr-prose-xl ol ul,
+	.md\:gr-prose-xl ul ol,
+	.md\:gr-prose-xl ul ul {
 		margin-top: 0.8em;
 		margin-bottom: 0.8em;
 	}
-	.md\:prose-xl hr {
+	.md\:gr-prose-xl hr {
 		margin-top: 2.8em;
 		margin-bottom: 2.8em;
 	}
-	.md\:prose-xl hr + * {
+	.md\:gr-prose-xl hr + * {
 		margin-top: 0;
 	}
-	.md\:prose-xl h2 + * {
+	.md\:gr-prose-xl h2 + * {
 		margin-top: 0;
 	}
-	.md\:prose-xl h3 + * {
+	.md\:gr-prose-xl h3 + * {
 		margin-top: 0;
 	}
-	.md\:prose-xl h4 + * {
+	.md\:gr-prose-xl h4 + * {
 		margin-top: 0;
 	}
-	.md\:prose-xl table {
+	.md\:gr-prose-xl table {
 		font-size: 0.9em;
 		line-height: 1.5555556;
 	}
-	.md\:prose-xl thead th {
+	.md\:gr-prose-xl thead th {
 		padding-right: 0.6666667em;
 		padding-bottom: 0.8888889em;
 		padding-left: 0.6666667em;
 	}
-	.md\:prose-xl thead th:first-child {
+	.md\:gr-prose-xl thead th:first-child {
 		padding-left: 0;
 	}
-	.md\:prose-xl thead th:last-child {
+	.md\:gr-prose-xl thead th:last-child {
 		padding-right: 0;
 	}
-	.md\:prose-xl tbody td {
+	.md\:gr-prose-xl tbody td {
 		padding-top: 0.8888889em;
 		padding-right: 0.6666667em;
 		padding-bottom: 0.8888889em;
 		padding-left: 0.6666667em;
 	}
-	.md\:prose-xl tbody td:first-child {
+	.md\:gr-prose-xl tbody td:first-child {
 		padding-left: 0;
 	}
-	.md\:prose-xl tbody td:last-child {
+	.md\:gr-prose-xl tbody td:last-child {
 		padding-right: 0;
 	}
-	.md\:prose-xl > :first-child {
+	.md\:gr-prose-xl > :first-child {
 		margin-top: 0;
 	}
-	.md\:prose-xl > :last-child {
+	.md\:gr-prose-xl > :last-child {
 		margin-bottom: 0;
 	}
-	.md\:prose-2xl {
+	.md\:gr-prose-2xl {
 		font-size: 1.5rem;
 		line-height: 1.6666667;
 	}
-	.md\:prose-2xl p {
+	.md\:gr-prose-2xl p {
 		margin-top: 1.3333333em;
 		margin-bottom: 1.3333333em;
 	}
-	.md\:prose-2xl [class~="lead"] {
+	.md\:gr-prose-2xl [class~="lead"] {
 		font-size: 1.25em;
 		line-height: 1.4666667;
 		margin-top: 1.0666667em;
 		margin-bottom: 1.0666667em;
 	}
-	.md\:prose-2xl blockquote {
+	.md\:gr-prose-2xl blockquote {
 		margin-top: 1.7777778em;
 		margin-bottom: 1.7777778em;
 		padding-left: 1.1111111em;
 	}
-	.md\:prose-2xl h1 {
+	.md\:gr-prose-2xl h1 {
 		font-size: 2.6666667em;
 		margin-top: 0;
 		margin-bottom: 0.875em;
 		line-height: 1;
 	}
-	.md\:prose-2xl h2 {
+	.md\:gr-prose-2xl h2 {
 		font-size: 2em;
 		margin-top: 1.5em;
 		margin-bottom: 0.8333333em;
 		line-height: 1.0833333;
 	}
-	.md\:prose-2xl h3 {
+	.md\:gr-prose-2xl h3 {
 		font-size: 1.5em;
 		margin-top: 1.5555556em;
 		margin-bottom: 0.6666667em;
 		line-height: 1.2222222;
 	}
-	.md\:prose-2xl h4 {
+	.md\:gr-prose-2xl h4 {
 		margin-top: 1.6666667em;
 		margin-bottom: 0.6666667em;
 		line-height: 1.5;
 	}
-	.md\:prose-2xl img {
+	.md\:gr-prose-2xl img {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.md\:prose-2xl video {
+	.md\:gr-prose-2xl video {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.md\:prose-2xl figure {
+	.md\:gr-prose-2xl figure {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.md\:prose-2xl figure > * {
+	.md\:gr-prose-2xl figure > * {
 		margin-top: 0;
 		margin-bottom: 0;
 	}
-	.md\:prose-2xl figure figcaption {
+	.md\:gr-prose-2xl figure figcaption {
 		font-size: 0.8333333em;
 		line-height: 1.6;
 		margin-top: 1em;
 	}
-	.md\:prose-2xl code {
+	.md\:gr-prose-2xl code {
 		font-size: 0.8333333em;
 	}
-	.md\:prose-2xl h2 code {
+	.md\:gr-prose-2xl h2 code {
 		font-size: 0.875em;
 	}
-	.md\:prose-2xl h3 code {
+	.md\:gr-prose-2xl h3 code {
 		font-size: 0.8888889em;
 	}
-	.md\:prose-2xl pre {
+	.md\:gr-prose-2xl pre {
 		font-size: 0.8333333em;
 		line-height: 1.8;
 		margin-top: 2em;
@@ -3100,212 +3100,212 @@
 		padding-bottom: 1.2em;
 		padding-left: 1.6em;
 	}
-	.md\:prose-2xl ol {
+	.md\:gr-prose-2xl ol {
 		margin-top: 1.3333333em;
 		margin-bottom: 1.3333333em;
 	}
-	.md\:prose-2xl ul {
+	.md\:gr-prose-2xl ul {
 		margin-top: 1.3333333em;
 		margin-bottom: 1.3333333em;
 	}
-	.md\:prose-2xl li {
+	.md\:gr-prose-2xl li {
 		margin-top: 0.5em;
 		margin-bottom: 0.5em;
 	}
-	.md\:prose-2xl ol > li {
+	.md\:gr-prose-2xl ol > li {
 		padding-left: 1.6666667em;
 	}
-	.md\:prose-2xl ol > li::before {
+	.md\:gr-prose-2xl ol > li::before {
 		left: 0;
 	}
-	.md\:prose-2xl ul > li {
+	.md\:gr-prose-2xl ul > li {
 		padding-left: 1.6666667em;
 	}
-	.md\:prose-2xl ul > li::before {
+	.md\:gr-prose-2xl ul > li::before {
 		width: 0.3333333em;
 		height: 0.3333333em;
 		top: calc(0.8333333em - 0.1666667em);
 		left: 0.25em;
 	}
-	.md\:prose-2xl > ul > li p {
+	.md\:gr-prose-2xl > ul > li p {
 		margin-top: 0.8333333em;
 		margin-bottom: 0.8333333em;
 	}
-	.md\:prose-2xl > ul > li > :first-child {
+	.md\:gr-prose-2xl > ul > li > :first-child {
 		margin-top: 1.3333333em;
 	}
-	.md\:prose-2xl > ul > li > :last-child {
+	.md\:gr-prose-2xl > ul > li > :last-child {
 		margin-bottom: 1.3333333em;
 	}
-	.md\:prose-2xl > ol > li > :first-child {
+	.md\:gr-prose-2xl > ol > li > :first-child {
 		margin-top: 1.3333333em;
 	}
-	.md\:prose-2xl > ol > li > :last-child {
+	.md\:gr-prose-2xl > ol > li > :last-child {
 		margin-bottom: 1.3333333em;
 	}
-	.md\:prose-2xl ol ol,
-	.md\:prose-2xl ol ul,
-	.md\:prose-2xl ul ol,
-	.md\:prose-2xl ul ul {
+	.md\:gr-prose-2xl ol ol,
+	.md\:gr-prose-2xl ol ul,
+	.md\:gr-prose-2xl ul ol,
+	.md\:gr-prose-2xl ul ul {
 		margin-top: 0.6666667em;
 		margin-bottom: 0.6666667em;
 	}
-	.md\:prose-2xl hr {
+	.md\:gr-prose-2xl hr {
 		margin-top: 3em;
 		margin-bottom: 3em;
 	}
-	.md\:prose-2xl hr + * {
+	.md\:gr-prose-2xl hr + * {
 		margin-top: 0;
 	}
-	.md\:prose-2xl h2 + * {
+	.md\:gr-prose-2xl h2 + * {
 		margin-top: 0;
 	}
-	.md\:prose-2xl h3 + * {
+	.md\:gr-prose-2xl h3 + * {
 		margin-top: 0;
 	}
-	.md\:prose-2xl h4 + * {
+	.md\:gr-prose-2xl h4 + * {
 		margin-top: 0;
 	}
-	.md\:prose-2xl table {
+	.md\:gr-prose-2xl table {
 		font-size: 0.8333333em;
 		line-height: 1.4;
 	}
-	.md\:prose-2xl thead th {
+	.md\:gr-prose-2xl thead th {
 		padding-right: 0.6em;
 		padding-bottom: 0.8em;
 		padding-left: 0.6em;
 	}
-	.md\:prose-2xl thead th:first-child {
+	.md\:gr-prose-2xl thead th:first-child {
 		padding-left: 0;
 	}
-	.md\:prose-2xl thead th:last-child {
+	.md\:gr-prose-2xl thead th:last-child {
 		padding-right: 0;
 	}
-	.md\:prose-2xl tbody td {
+	.md\:gr-prose-2xl tbody td {
 		padding-top: 0.8em;
 		padding-right: 0.6em;
 		padding-bottom: 0.8em;
 		padding-left: 0.6em;
 	}
-	.md\:prose-2xl tbody td:first-child {
+	.md\:gr-prose-2xl tbody td:first-child {
 		padding-left: 0;
 	}
-	.md\:prose-2xl tbody td:last-child {
+	.md\:gr-prose-2xl tbody td:last-child {
 		padding-right: 0;
 	}
-	.md\:prose-2xl > :first-child {
+	.md\:gr-prose-2xl > :first-child {
 		margin-top: 0;
 	}
-	.md\:prose-2xl > :last-child {
+	.md\:gr-prose-2xl > :last-child {
 		margin-bottom: 0;
 	}
-	.md\:prose-red a {
+	.md\:gr-prose-red a {
 		color: #dc2626;
 	}
-	.md\:prose-red a code {
+	.md\:gr-prose-red a code {
 		color: #dc2626;
 	}
-	.md\:prose-yellow a {
+	.md\:gr-prose-yellow a {
 		color: #d97706;
 	}
-	.md\:prose-yellow a code {
+	.md\:gr-prose-yellow a code {
 		color: #d97706;
 	}
-	.md\:prose-green a {
+	.md\:gr-prose-green a {
 		color: #059669;
 	}
-	.md\:prose-green a code {
+	.md\:gr-prose-green a code {
 		color: #059669;
 	}
-	.md\:prose-blue a {
+	.md\:gr-prose-blue a {
 		color: #2563eb;
 	}
-	.md\:prose-blue a code {
+	.md\:gr-prose-blue a code {
 		color: #2563eb;
 	}
-	.md\:prose-indigo a {
+	.md\:gr-prose-indigo a {
 		color: #4f46e5;
 	}
-	.md\:prose-indigo a code {
+	.md\:gr-prose-indigo a code {
 		color: #4f46e5;
 	}
-	.md\:prose-purple a {
+	.md\:gr-prose-purple a {
 		color: #7c3aed;
 	}
-	.md\:prose-purple a code {
+	.md\:gr-prose-purple a code {
 		color: #7c3aed;
 	}
-	.md\:prose-pink a {
+	.md\:gr-prose-pink a {
 		color: #db2777;
 	}
-	.md\:prose-pink a code {
+	.md\:gr-prose-pink a code {
 		color: #db2777;
 	}
 }
 @media (min-width: 1024px) {
-	.lg\:prose {
+	.lg\:gr-prose {
 		color: #374151;
 		max-width: 65ch;
 	}
-	.lg\:prose [class~="lead"] {
+	.lg\:gr-prose [class~="lead"] {
 		color: #4b5563;
 		font-size: 1.25em;
 		line-height: 1.6;
 		margin-top: 1.2em;
 		margin-bottom: 1.2em;
 	}
-	.lg\:prose a {
+	.lg\:gr-prose a {
 		color: #111827;
 		text-decoration: underline;
 		font-weight: 500;
 	}
-	.lg\:prose strong {
+	.lg\:gr-prose strong {
 		color: #111827;
 		font-weight: 600;
 	}
-	.lg\:prose ol[type="A"] {
+	.lg\:gr-prose ol[type="A"] {
 		--list-counter-style: upper-alpha;
 	}
-	.lg\:prose ol[type="a"] {
+	.lg\:gr-prose ol[type="a"] {
 		--list-counter-style: lower-alpha;
 	}
-	.lg\:prose ol[type="A"s] {
+	.lg\:gr-prose ol[type="A"s] {
 		--list-counter-style: upper-alpha;
 	}
-	.lg\:prose ol[type="a"s] {
+	.lg\:gr-prose ol[type="a"s] {
 		--list-counter-style: lower-alpha;
 	}
-	.lg\:prose ol[type="I"] {
+	.lg\:gr-prose ol[type="I"] {
 		--list-counter-style: upper-roman;
 	}
-	.lg\:prose ol[type="i"] {
+	.lg\:gr-prose ol[type="i"] {
 		--list-counter-style: lower-roman;
 	}
-	.lg\:prose ol[type="I"s] {
+	.lg\:gr-prose ol[type="I"s] {
 		--list-counter-style: upper-roman;
 	}
-	.lg\:prose ol[type="i"s] {
+	.lg\:gr-prose ol[type="i"s] {
 		--list-counter-style: lower-roman;
 	}
-	.lg\:prose ol[type="1"] {
+	.lg\:gr-prose ol[type="1"] {
 		--list-counter-style: decimal;
 	}
-	.lg\:prose ol > li {
+	.lg\:gr-prose ol > li {
 		position: relative;
 		padding-left: 1.75em;
 	}
-	.lg\:prose ol > li::before {
+	.lg\:gr-prose ol > li::before {
 		content: counter(list-item, var(--list-counter-style, decimal)) ".";
 		position: absolute;
 		font-weight: 400;
 		color: #6b7280;
 		left: 0;
 	}
-	.lg\:prose ul > li {
+	.lg\:gr-prose ul > li {
 		position: relative;
 		padding-left: 1.75em;
 	}
-	.lg\:prose ul > li::before {
+	.lg\:gr-prose ul > li::before {
 		content: "";
 		position: absolute;
 		background-color: #d1d5db;
@@ -3315,13 +3315,13 @@
 		top: calc(0.875em - 0.1875em);
 		left: 0.25em;
 	}
-	.lg\:prose hr {
+	.lg\:gr-prose hr {
 		border-color: #e5e7eb;
 		border-top-width: 1px;
 		margin-top: 3em;
 		margin-bottom: 3em;
 	}
-	.lg\:prose blockquote {
+	.lg\:gr-prose blockquote {
 		font-weight: 500;
 		font-style: italic;
 		color: #111827;
@@ -3332,13 +3332,13 @@
 		margin-bottom: 1.6em;
 		padding-left: 1em;
 	}
-	.lg\:prose blockquote p:first-of-type::before {
+	.lg\:gr-prose blockquote p:first-of-type::before {
 		content: open-quote;
 	}
-	.lg\:prose blockquote p:last-of-type::after {
+	.lg\:gr-prose blockquote p:last-of-type::after {
 		content: close-quote;
 	}
-	.lg\:prose h1 {
+	.lg\:gr-prose h1 {
 		color: #111827;
 		font-weight: 600;
 		font-size: 2.25em;
@@ -3346,7 +3346,7 @@
 		margin-bottom: 0.8888889em;
 		line-height: 1.1111111;
 	}
-	.lg\:prose h2 {
+	.lg\:gr-prose h2 {
 		color: #111827;
 		font-weight: 600;
 		font-size: 1.5em;
@@ -3354,7 +3354,7 @@
 		margin-bottom: 1em;
 		line-height: 1.3333333;
 	}
-	.lg\:prose h3 {
+	.lg\:gr-prose h3 {
 		color: #111827;
 		font-weight: 600;
 		font-size: 1.25em;
@@ -3362,34 +3362,34 @@
 		margin-bottom: 0.6em;
 		line-height: 1.6;
 	}
-	.lg\:prose h4 {
+	.lg\:gr-prose h4 {
 		color: #111827;
 		font-weight: 600;
 		margin-top: 1.5em;
 		margin-bottom: 0.5em;
 		line-height: 1.5;
 	}
-	.lg\:prose figure figcaption {
+	.lg\:gr-prose figure figcaption {
 		color: #6b7280;
 		font-size: 0.875em;
 		line-height: 1.4285714;
 		margin-top: 0.8571429em;
 	}
-	.lg\:prose code {
+	.lg\:gr-prose code {
 		color: #111827;
 		font-weight: 600;
 		font-size: 0.875em;
 	}
-	.lg\:prose code::before {
+	.lg\:gr-prose code::before {
 		content: "`";
 	}
-	.lg\:prose code::after {
+	.lg\:gr-prose code::after {
 		content: "`";
 	}
-	.lg\:prose a code {
+	.lg\:gr-prose a code {
 		color: #111827;
 	}
-	.lg\:prose pre {
+	.lg\:gr-prose pre {
 		color: #e5e7eb;
 		background-color: #1f2937;
 		overflow-x: auto;
@@ -3403,7 +3403,7 @@
 		padding-bottom: 0.8571429em;
 		padding-left: 1.1428571em;
 	}
-	.lg\:prose pre code {
+	.lg\:gr-prose pre code {
 		background-color: transparent;
 		border-width: 0;
 		border-radius: 0;
@@ -3414,13 +3414,13 @@
 		font-family: inherit;
 		line-height: inherit;
 	}
-	.lg\:prose pre code::before {
+	.lg\:gr-prose pre code::before {
 		content: none;
 	}
-	.lg\:prose pre code::after {
+	.lg\:gr-prose pre code::after {
 		content: none;
 	}
-	.lg\:prose table {
+	.lg\:gr-prose table {
 		width: 100%;
 		table-layout: auto;
 		text-align: left;
@@ -3429,200 +3429,200 @@
 		font-size: 0.875em;
 		line-height: 1.7142857;
 	}
-	.lg\:prose thead {
+	.lg\:gr-prose thead {
 		color: #111827;
 		font-weight: 600;
 		border-bottom-width: 1px;
 		border-bottom-color: #d1d5db;
 	}
-	.lg\:prose thead th {
+	.lg\:gr-prose thead th {
 		vertical-align: bottom;
 		padding-right: 0.5714286em;
 		padding-bottom: 0.5714286em;
 		padding-left: 0.5714286em;
 	}
-	.lg\:prose tbody tr {
+	.lg\:gr-prose tbody tr {
 		border-bottom-width: 1px;
 		border-bottom-color: #e5e7eb;
 	}
-	.lg\:prose tbody tr:last-child {
+	.lg\:gr-prose tbody tr:last-child {
 		border-bottom-width: 0;
 	}
-	.lg\:prose tbody td {
+	.lg\:gr-prose tbody td {
 		vertical-align: top;
 		padding-top: 0.5714286em;
 		padding-right: 0.5714286em;
 		padding-bottom: 0.5714286em;
 		padding-left: 0.5714286em;
 	}
-	.lg\:prose {
+	.lg\:gr-prose {
 		font-size: 1rem;
 		line-height: 1.75;
 	}
-	.lg\:prose p {
+	.lg\:gr-prose p {
 		margin-top: 1.25em;
 		margin-bottom: 1.25em;
 	}
-	.lg\:prose img {
+	.lg\:gr-prose img {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.lg\:prose video {
+	.lg\:gr-prose video {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.lg\:prose figure {
+	.lg\:gr-prose figure {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.lg\:prose figure > * {
+	.lg\:gr-prose figure > * {
 		margin-top: 0;
 		margin-bottom: 0;
 	}
-	.lg\:prose h2 code {
+	.lg\:gr-prose h2 code {
 		font-size: 0.875em;
 	}
-	.lg\:prose h3 code {
+	.lg\:gr-prose h3 code {
 		font-size: 0.9em;
 	}
-	.lg\:prose ol {
+	.lg\:gr-prose ol {
 		margin-top: 1.25em;
 		margin-bottom: 1.25em;
 	}
-	.lg\:prose ul {
+	.lg\:gr-prose ul {
 		margin-top: 1.25em;
 		margin-bottom: 1.25em;
 	}
-	.lg\:prose li {
+	.lg\:gr-prose li {
 		margin-top: 0.5em;
 		margin-bottom: 0.5em;
 	}
-	.lg\:prose > ul > li p {
+	.lg\:gr-prose > ul > li p {
 		margin-top: 0.75em;
 		margin-bottom: 0.75em;
 	}
-	.lg\:prose > ul > li > :first-child {
+	.lg\:gr-prose > ul > li > :first-child {
 		margin-top: 1.25em;
 	}
-	.lg\:prose > ul > li > :last-child {
+	.lg\:gr-prose > ul > li > :last-child {
 		margin-bottom: 1.25em;
 	}
-	.lg\:prose > ol > li > :first-child {
+	.lg\:gr-prose > ol > li > :first-child {
 		margin-top: 1.25em;
 	}
-	.lg\:prose > ol > li > :last-child {
+	.lg\:gr-prose > ol > li > :last-child {
 		margin-bottom: 1.25em;
 	}
-	.lg\:prose ol ol,
-	.lg\:prose ol ul,
-	.lg\:prose ul ol,
-	.lg\:prose ul ul {
+	.lg\:gr-prose ol ol,
+	.lg\:gr-prose ol ul,
+	.lg\:gr-prose ul ol,
+	.lg\:gr-prose ul ul {
 		margin-top: 0.75em;
 		margin-bottom: 0.75em;
 	}
-	.lg\:prose hr + * {
+	.lg\:gr-prose hr + * {
 		margin-top: 0;
 	}
-	.lg\:prose h2 + * {
+	.lg\:gr-prose h2 + * {
 		margin-top: 0;
 	}
-	.lg\:prose h3 + * {
+	.lg\:gr-prose h3 + * {
 		margin-top: 0;
 	}
-	.lg\:prose h4 + * {
+	.lg\:gr-prose h4 + * {
 		margin-top: 0;
 	}
-	.lg\:prose thead th:first-child {
+	.lg\:gr-prose thead th:first-child {
 		padding-left: 0;
 	}
-	.lg\:prose thead th:last-child {
+	.lg\:gr-prose thead th:last-child {
 		padding-right: 0;
 	}
-	.lg\:prose tbody td:first-child {
+	.lg\:gr-prose tbody td:first-child {
 		padding-left: 0;
 	}
-	.lg\:prose tbody td:last-child {
+	.lg\:gr-prose tbody td:last-child {
 		padding-right: 0;
 	}
-	.lg\:prose > :first-child {
+	.lg\:gr-prose > :first-child {
 		margin-top: 0;
 	}
-	.lg\:prose > :last-child {
+	.lg\:gr-prose > :last-child {
 		margin-bottom: 0;
 	}
-	.lg\:prose-sm {
+	.lg\:gr-prose-sm {
 		font-size: 0.875rem;
 		line-height: 1.7142857;
 	}
-	.lg\:prose-sm p {
+	.lg\:gr-prose-sm p {
 		margin-top: 1.1428571em;
 		margin-bottom: 1.1428571em;
 	}
-	.lg\:prose-sm [class~="lead"] {
+	.lg\:gr-prose-sm [class~="lead"] {
 		font-size: 1.2857143em;
 		line-height: 1.5555556;
 		margin-top: 0.8888889em;
 		margin-bottom: 0.8888889em;
 	}
-	.lg\:prose-sm blockquote {
+	.lg\:gr-prose-sm blockquote {
 		margin-top: 1.3333333em;
 		margin-bottom: 1.3333333em;
 		padding-left: 1.1111111em;
 	}
-	.lg\:prose-sm h1 {
+	.lg\:gr-prose-sm h1 {
 		font-size: 2.1428571em;
 		margin-top: 0;
 		margin-bottom: 0.8em;
 		line-height: 1.2;
 	}
-	.lg\:prose-sm h2 {
+	.lg\:gr-prose-sm h2 {
 		font-size: 1.4285714em;
 		margin-top: 1.6em;
 		margin-bottom: 0.8em;
 		line-height: 1.4;
 	}
-	.lg\:prose-sm h3 {
+	.lg\:gr-prose-sm h3 {
 		font-size: 1.2857143em;
 		margin-top: 1.5555556em;
 		margin-bottom: 0.4444444em;
 		line-height: 1.5555556;
 	}
-	.lg\:prose-sm h4 {
+	.lg\:gr-prose-sm h4 {
 		margin-top: 1.4285714em;
 		margin-bottom: 0.5714286em;
 		line-height: 1.4285714;
 	}
-	.lg\:prose-sm img {
+	.lg\:gr-prose-sm img {
 		margin-top: 1.7142857em;
 		margin-bottom: 1.7142857em;
 	}
-	.lg\:prose-sm video {
+	.lg\:gr-prose-sm video {
 		margin-top: 1.7142857em;
 		margin-bottom: 1.7142857em;
 	}
-	.lg\:prose-sm figure {
+	.lg\:gr-prose-sm figure {
 		margin-top: 1.7142857em;
 		margin-bottom: 1.7142857em;
 	}
-	.lg\:prose-sm figure > * {
+	.lg\:gr-prose-sm figure > * {
 		margin-top: 0;
 		margin-bottom: 0;
 	}
-	.lg\:prose-sm figure figcaption {
+	.lg\:gr-prose-sm figure figcaption {
 		font-size: 0.8571429em;
 		line-height: 1.3333333;
 		margin-top: 0.6666667em;
 	}
-	.lg\:prose-sm code {
+	.lg\:gr-prose-sm code {
 		font-size: 0.8571429em;
 	}
-	.lg\:prose-sm h2 code {
+	.lg\:gr-prose-sm h2 code {
 		font-size: 0.9em;
 	}
-	.lg\:prose-sm h3 code {
+	.lg\:gr-prose-sm h3 code {
 		font-size: 0.8888889em;
 	}
-	.lg\:prose-sm pre {
+	.lg\:gr-prose-sm pre {
 		font-size: 0.8571429em;
 		line-height: 1.6666667;
 		margin-top: 1.6666667em;
@@ -3633,178 +3633,178 @@
 		padding-bottom: 0.6666667em;
 		padding-left: 1em;
 	}
-	.lg\:prose-sm ol {
+	.lg\:gr-prose-sm ol {
 		margin-top: 1.1428571em;
 		margin-bottom: 1.1428571em;
 	}
-	.lg\:prose-sm ul {
+	.lg\:gr-prose-sm ul {
 		margin-top: 1.1428571em;
 		margin-bottom: 1.1428571em;
 	}
-	.lg\:prose-sm li {
+	.lg\:gr-prose-sm li {
 		margin-top: 0.2857143em;
 		margin-bottom: 0.2857143em;
 	}
-	.lg\:prose-sm ol > li {
+	.lg\:gr-prose-sm ol > li {
 		padding-left: 1.5714286em;
 	}
-	.lg\:prose-sm ol > li::before {
+	.lg\:gr-prose-sm ol > li::before {
 		left: 0;
 	}
-	.lg\:prose-sm ul > li {
+	.lg\:gr-prose-sm ul > li {
 		padding-left: 1.5714286em;
 	}
-	.lg\:prose-sm ul > li::before {
+	.lg\:gr-prose-sm ul > li::before {
 		height: 0.3571429em;
 		width: 0.3571429em;
 		top: calc(0.8571429em - 0.1785714em);
 		left: 0.2142857em;
 	}
-	.lg\:prose-sm > ul > li p {
+	.lg\:gr-prose-sm > ul > li p {
 		margin-top: 0.5714286em;
 		margin-bottom: 0.5714286em;
 	}
-	.lg\:prose-sm > ul > li > :first-child {
+	.lg\:gr-prose-sm > ul > li > :first-child {
 		margin-top: 1.1428571em;
 	}
-	.lg\:prose-sm > ul > li > :last-child {
+	.lg\:gr-prose-sm > ul > li > :last-child {
 		margin-bottom: 1.1428571em;
 	}
-	.lg\:prose-sm > ol > li > :first-child {
+	.lg\:gr-prose-sm > ol > li > :first-child {
 		margin-top: 1.1428571em;
 	}
-	.lg\:prose-sm > ol > li > :last-child {
+	.lg\:gr-prose-sm > ol > li > :last-child {
 		margin-bottom: 1.1428571em;
 	}
-	.lg\:prose-sm ol ol,
-	.lg\:prose-sm ol ul,
-	.lg\:prose-sm ul ol,
-	.lg\:prose-sm ul ul {
+	.lg\:gr-prose-sm ol ol,
+	.lg\:gr-prose-sm ol ul,
+	.lg\:gr-prose-sm ul ol,
+	.lg\:gr-prose-sm ul ul {
 		margin-top: 0.5714286em;
 		margin-bottom: 0.5714286em;
 	}
-	.lg\:prose-sm hr {
+	.lg\:gr-prose-sm hr {
 		margin-top: 2.8571429em;
 		margin-bottom: 2.8571429em;
 	}
-	.lg\:prose-sm hr + * {
+	.lg\:gr-prose-sm hr + * {
 		margin-top: 0;
 	}
-	.lg\:prose-sm h2 + * {
+	.lg\:gr-prose-sm h2 + * {
 		margin-top: 0;
 	}
-	.lg\:prose-sm h3 + * {
+	.lg\:gr-prose-sm h3 + * {
 		margin-top: 0;
 	}
-	.lg\:prose-sm h4 + * {
+	.lg\:gr-prose-sm h4 + * {
 		margin-top: 0;
 	}
-	.lg\:prose-sm table {
+	.lg\:gr-prose-sm table {
 		font-size: 0.8571429em;
 		line-height: 1.5;
 	}
-	.lg\:prose-sm thead th {
+	.lg\:gr-prose-sm thead th {
 		padding-right: 1em;
 		padding-bottom: 0.6666667em;
 		padding-left: 1em;
 	}
-	.lg\:prose-sm thead th:first-child {
+	.lg\:gr-prose-sm thead th:first-child {
 		padding-left: 0;
 	}
-	.lg\:prose-sm thead th:last-child {
+	.lg\:gr-prose-sm thead th:last-child {
 		padding-right: 0;
 	}
-	.lg\:prose-sm tbody td {
+	.lg\:gr-prose-sm tbody td {
 		padding-top: 0.6666667em;
 		padding-right: 1em;
 		padding-bottom: 0.6666667em;
 		padding-left: 1em;
 	}
-	.lg\:prose-sm tbody td:first-child {
+	.lg\:gr-prose-sm tbody td:first-child {
 		padding-left: 0;
 	}
-	.lg\:prose-sm tbody td:last-child {
+	.lg\:gr-prose-sm tbody td:last-child {
 		padding-right: 0;
 	}
-	.lg\:prose-sm > :first-child {
+	.lg\:gr-prose-sm > :first-child {
 		margin-top: 0;
 	}
-	.lg\:prose-sm > :last-child {
+	.lg\:gr-prose-sm > :last-child {
 		margin-bottom: 0;
 	}
-	.lg\:prose-lg {
+	.lg\:gr-prose-lg {
 		font-size: 1.125rem;
 		line-height: 1.7777778;
 	}
-	.lg\:prose-lg p {
+	.lg\:gr-prose-lg p {
 		margin-top: 1.3333333em;
 		margin-bottom: 1.3333333em;
 	}
-	.lg\:prose-lg [class~="lead"] {
+	.lg\:gr-prose-lg [class~="lead"] {
 		font-size: 1.2222222em;
 		line-height: 1.4545455;
 		margin-top: 1.0909091em;
 		margin-bottom: 1.0909091em;
 	}
-	.lg\:prose-lg blockquote {
+	.lg\:gr-prose-lg blockquote {
 		margin-top: 1.6666667em;
 		margin-bottom: 1.6666667em;
 		padding-left: 1em;
 	}
-	.lg\:prose-lg h1 {
+	.lg\:gr-prose-lg h1 {
 		font-size: 2.6666667em;
 		margin-top: 0;
 		margin-bottom: 0.8333333em;
 		line-height: 1;
 	}
-	.lg\:prose-lg h2 {
+	.lg\:gr-prose-lg h2 {
 		font-size: 1.6666667em;
 		margin-top: 1.8666667em;
 		margin-bottom: 1.0666667em;
 		line-height: 1.3333333;
 	}
-	.lg\:prose-lg h3 {
+	.lg\:gr-prose-lg h3 {
 		font-size: 1.3333333em;
 		margin-top: 1.6666667em;
 		margin-bottom: 0.6666667em;
 		line-height: 1.5;
 	}
-	.lg\:prose-lg h4 {
+	.lg\:gr-prose-lg h4 {
 		margin-top: 1.7777778em;
 		margin-bottom: 0.4444444em;
 		line-height: 1.5555556;
 	}
-	.lg\:prose-lg img {
+	.lg\:gr-prose-lg img {
 		margin-top: 1.7777778em;
 		margin-bottom: 1.7777778em;
 	}
-	.lg\:prose-lg video {
+	.lg\:gr-prose-lg video {
 		margin-top: 1.7777778em;
 		margin-bottom: 1.7777778em;
 	}
-	.lg\:prose-lg figure {
+	.lg\:gr-prose-lg figure {
 		margin-top: 1.7777778em;
 		margin-bottom: 1.7777778em;
 	}
-	.lg\:prose-lg figure > * {
+	.lg\:gr-prose-lg figure > * {
 		margin-top: 0;
 		margin-bottom: 0;
 	}
-	.lg\:prose-lg figure figcaption {
+	.lg\:gr-prose-lg figure figcaption {
 		font-size: 0.8888889em;
 		line-height: 1.5;
 		margin-top: 1em;
 	}
-	.lg\:prose-lg code {
+	.lg\:gr-prose-lg code {
 		font-size: 0.8888889em;
 	}
-	.lg\:prose-lg h2 code {
+	.lg\:gr-prose-lg h2 code {
 		font-size: 0.8666667em;
 	}
-	.lg\:prose-lg h3 code {
+	.lg\:gr-prose-lg h3 code {
 		font-size: 0.875em;
 	}
-	.lg\:prose-lg pre {
+	.lg\:gr-prose-lg pre {
 		font-size: 0.8888889em;
 		line-height: 1.75;
 		margin-top: 2em;
@@ -3815,178 +3815,178 @@
 		padding-bottom: 1em;
 		padding-left: 1.5em;
 	}
-	.lg\:prose-lg ol {
+	.lg\:gr-prose-lg ol {
 		margin-top: 1.3333333em;
 		margin-bottom: 1.3333333em;
 	}
-	.lg\:prose-lg ul {
+	.lg\:gr-prose-lg ul {
 		margin-top: 1.3333333em;
 		margin-bottom: 1.3333333em;
 	}
-	.lg\:prose-lg li {
+	.lg\:gr-prose-lg li {
 		margin-top: 0.6666667em;
 		margin-bottom: 0.6666667em;
 	}
-	.lg\:prose-lg ol > li {
+	.lg\:gr-prose-lg ol > li {
 		padding-left: 1.6666667em;
 	}
-	.lg\:prose-lg ol > li::before {
+	.lg\:gr-prose-lg ol > li::before {
 		left: 0;
 	}
-	.lg\:prose-lg ul > li {
+	.lg\:gr-prose-lg ul > li {
 		padding-left: 1.6666667em;
 	}
-	.lg\:prose-lg ul > li::before {
+	.lg\:gr-prose-lg ul > li::before {
 		width: 0.3333333em;
 		height: 0.3333333em;
 		top: calc(0.8888889em - 0.1666667em);
 		left: 0.2222222em;
 	}
-	.lg\:prose-lg > ul > li p {
+	.lg\:gr-prose-lg > ul > li p {
 		margin-top: 0.8888889em;
 		margin-bottom: 0.8888889em;
 	}
-	.lg\:prose-lg > ul > li > :first-child {
+	.lg\:gr-prose-lg > ul > li > :first-child {
 		margin-top: 1.3333333em;
 	}
-	.lg\:prose-lg > ul > li > :last-child {
+	.lg\:gr-prose-lg > ul > li > :last-child {
 		margin-bottom: 1.3333333em;
 	}
-	.lg\:prose-lg > ol > li > :first-child {
+	.lg\:gr-prose-lg > ol > li > :first-child {
 		margin-top: 1.3333333em;
 	}
-	.lg\:prose-lg > ol > li > :last-child {
+	.lg\:gr-prose-lg > ol > li > :last-child {
 		margin-bottom: 1.3333333em;
 	}
-	.lg\:prose-lg ol ol,
-	.lg\:prose-lg ol ul,
-	.lg\:prose-lg ul ol,
-	.lg\:prose-lg ul ul {
+	.lg\:gr-prose-lg ol ol,
+	.lg\:gr-prose-lg ol ul,
+	.lg\:gr-prose-lg ul ol,
+	.lg\:gr-prose-lg ul ul {
 		margin-top: 0.8888889em;
 		margin-bottom: 0.8888889em;
 	}
-	.lg\:prose-lg hr {
+	.lg\:gr-prose-lg hr {
 		margin-top: 3.1111111em;
 		margin-bottom: 3.1111111em;
 	}
-	.lg\:prose-lg hr + * {
+	.lg\:gr-prose-lg hr + * {
 		margin-top: 0;
 	}
-	.lg\:prose-lg h2 + * {
+	.lg\:gr-prose-lg h2 + * {
 		margin-top: 0;
 	}
-	.lg\:prose-lg h3 + * {
+	.lg\:gr-prose-lg h3 + * {
 		margin-top: 0;
 	}
-	.lg\:prose-lg h4 + * {
+	.lg\:gr-prose-lg h4 + * {
 		margin-top: 0;
 	}
-	.lg\:prose-lg table {
+	.lg\:gr-prose-lg table {
 		font-size: 0.8888889em;
 		line-height: 1.5;
 	}
-	.lg\:prose-lg thead th {
+	.lg\:gr-prose-lg thead th {
 		padding-right: 0.75em;
 		padding-bottom: 0.75em;
 		padding-left: 0.75em;
 	}
-	.lg\:prose-lg thead th:first-child {
+	.lg\:gr-prose-lg thead th:first-child {
 		padding-left: 0;
 	}
-	.lg\:prose-lg thead th:last-child {
+	.lg\:gr-prose-lg thead th:last-child {
 		padding-right: 0;
 	}
-	.lg\:prose-lg tbody td {
+	.lg\:gr-prose-lg tbody td {
 		padding-top: 0.75em;
 		padding-right: 0.75em;
 		padding-bottom: 0.75em;
 		padding-left: 0.75em;
 	}
-	.lg\:prose-lg tbody td:first-child {
+	.lg\:gr-prose-lg tbody td:first-child {
 		padding-left: 0;
 	}
-	.lg\:prose-lg tbody td:last-child {
+	.lg\:gr-prose-lg tbody td:last-child {
 		padding-right: 0;
 	}
-	.lg\:prose-lg > :first-child {
+	.lg\:gr-prose-lg > :first-child {
 		margin-top: 0;
 	}
-	.lg\:prose-lg > :last-child {
+	.lg\:gr-prose-lg > :last-child {
 		margin-bottom: 0;
 	}
-	.lg\:prose-xl {
+	.lg\:gr-prose-xl {
 		font-size: 1.25rem;
 		line-height: 1.8;
 	}
-	.lg\:prose-xl p {
+	.lg\:gr-prose-xl p {
 		margin-top: 1.2em;
 		margin-bottom: 1.2em;
 	}
-	.lg\:prose-xl [class~="lead"] {
+	.lg\:gr-prose-xl [class~="lead"] {
 		font-size: 1.2em;
 		line-height: 1.5;
 		margin-top: 1em;
 		margin-bottom: 1em;
 	}
-	.lg\:prose-xl blockquote {
+	.lg\:gr-prose-xl blockquote {
 		margin-top: 1.6em;
 		margin-bottom: 1.6em;
 		padding-left: 1.0666667em;
 	}
-	.lg\:prose-xl h1 {
+	.lg\:gr-prose-xl h1 {
 		font-size: 2.8em;
 		margin-top: 0;
 		margin-bottom: 0.8571429em;
 		line-height: 1;
 	}
-	.lg\:prose-xl h2 {
+	.lg\:gr-prose-xl h2 {
 		font-size: 1.8em;
 		margin-top: 1.5555556em;
 		margin-bottom: 0.8888889em;
 		line-height: 1.1111111;
 	}
-	.lg\:prose-xl h3 {
+	.lg\:gr-prose-xl h3 {
 		font-size: 1.5em;
 		margin-top: 1.6em;
 		margin-bottom: 0.6666667em;
 		line-height: 1.3333333;
 	}
-	.lg\:prose-xl h4 {
+	.lg\:gr-prose-xl h4 {
 		margin-top: 1.8em;
 		margin-bottom: 0.6em;
 		line-height: 1.6;
 	}
-	.lg\:prose-xl img {
+	.lg\:gr-prose-xl img {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.lg\:prose-xl video {
+	.lg\:gr-prose-xl video {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.lg\:prose-xl figure {
+	.lg\:gr-prose-xl figure {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.lg\:prose-xl figure > * {
+	.lg\:gr-prose-xl figure > * {
 		margin-top: 0;
 		margin-bottom: 0;
 	}
-	.lg\:prose-xl figure figcaption {
+	.lg\:gr-prose-xl figure figcaption {
 		font-size: 0.9em;
 		line-height: 1.5555556;
 		margin-top: 1em;
 	}
-	.lg\:prose-xl code {
+	.lg\:gr-prose-xl code {
 		font-size: 0.9em;
 	}
-	.lg\:prose-xl h2 code {
+	.lg\:gr-prose-xl h2 code {
 		font-size: 0.8611111em;
 	}
-	.lg\:prose-xl h3 code {
+	.lg\:gr-prose-xl h3 code {
 		font-size: 0.9em;
 	}
-	.lg\:prose-xl pre {
+	.lg\:gr-prose-xl pre {
 		font-size: 0.9em;
 		line-height: 1.7777778;
 		margin-top: 2em;
@@ -3997,178 +3997,178 @@
 		padding-bottom: 1.1111111em;
 		padding-left: 1.3333333em;
 	}
-	.lg\:prose-xl ol {
+	.lg\:gr-prose-xl ol {
 		margin-top: 1.2em;
 		margin-bottom: 1.2em;
 	}
-	.lg\:prose-xl ul {
+	.lg\:gr-prose-xl ul {
 		margin-top: 1.2em;
 		margin-bottom: 1.2em;
 	}
-	.lg\:prose-xl li {
+	.lg\:gr-prose-xl li {
 		margin-top: 0.6em;
 		margin-bottom: 0.6em;
 	}
-	.lg\:prose-xl ol > li {
+	.lg\:gr-prose-xl ol > li {
 		padding-left: 1.8em;
 	}
-	.lg\:prose-xl ol > li::before {
+	.lg\:gr-prose-xl ol > li::before {
 		left: 0;
 	}
-	.lg\:prose-xl ul > li {
+	.lg\:gr-prose-xl ul > li {
 		padding-left: 1.8em;
 	}
-	.lg\:prose-xl ul > li::before {
+	.lg\:gr-prose-xl ul > li::before {
 		width: 0.35em;
 		height: 0.35em;
 		top: calc(0.9em - 0.175em);
 		left: 0.25em;
 	}
-	.lg\:prose-xl > ul > li p {
+	.lg\:gr-prose-xl > ul > li p {
 		margin-top: 0.8em;
 		margin-bottom: 0.8em;
 	}
-	.lg\:prose-xl > ul > li > :first-child {
+	.lg\:gr-prose-xl > ul > li > :first-child {
 		margin-top: 1.2em;
 	}
-	.lg\:prose-xl > ul > li > :last-child {
+	.lg\:gr-prose-xl > ul > li > :last-child {
 		margin-bottom: 1.2em;
 	}
-	.lg\:prose-xl > ol > li > :first-child {
+	.lg\:gr-prose-xl > ol > li > :first-child {
 		margin-top: 1.2em;
 	}
-	.lg\:prose-xl > ol > li > :last-child {
+	.lg\:gr-prose-xl > ol > li > :last-child {
 		margin-bottom: 1.2em;
 	}
-	.lg\:prose-xl ol ol,
-	.lg\:prose-xl ol ul,
-	.lg\:prose-xl ul ol,
-	.lg\:prose-xl ul ul {
+	.lg\:gr-prose-xl ol ol,
+	.lg\:gr-prose-xl ol ul,
+	.lg\:gr-prose-xl ul ol,
+	.lg\:gr-prose-xl ul ul {
 		margin-top: 0.8em;
 		margin-bottom: 0.8em;
 	}
-	.lg\:prose-xl hr {
+	.lg\:gr-prose-xl hr {
 		margin-top: 2.8em;
 		margin-bottom: 2.8em;
 	}
-	.lg\:prose-xl hr + * {
+	.lg\:gr-prose-xl hr + * {
 		margin-top: 0;
 	}
-	.lg\:prose-xl h2 + * {
+	.lg\:gr-prose-xl h2 + * {
 		margin-top: 0;
 	}
-	.lg\:prose-xl h3 + * {
+	.lg\:gr-prose-xl h3 + * {
 		margin-top: 0;
 	}
-	.lg\:prose-xl h4 + * {
+	.lg\:gr-prose-xl h4 + * {
 		margin-top: 0;
 	}
-	.lg\:prose-xl table {
+	.lg\:gr-prose-xl table {
 		font-size: 0.9em;
 		line-height: 1.5555556;
 	}
-	.lg\:prose-xl thead th {
+	.lg\:gr-prose-xl thead th {
 		padding-right: 0.6666667em;
 		padding-bottom: 0.8888889em;
 		padding-left: 0.6666667em;
 	}
-	.lg\:prose-xl thead th:first-child {
+	.lg\:gr-prose-xl thead th:first-child {
 		padding-left: 0;
 	}
-	.lg\:prose-xl thead th:last-child {
+	.lg\:gr-prose-xl thead th:last-child {
 		padding-right: 0;
 	}
-	.lg\:prose-xl tbody td {
+	.lg\:gr-prose-xl tbody td {
 		padding-top: 0.8888889em;
 		padding-right: 0.6666667em;
 		padding-bottom: 0.8888889em;
 		padding-left: 0.6666667em;
 	}
-	.lg\:prose-xl tbody td:first-child {
+	.lg\:gr-prose-xl tbody td:first-child {
 		padding-left: 0;
 	}
-	.lg\:prose-xl tbody td:last-child {
+	.lg\:gr-prose-xl tbody td:last-child {
 		padding-right: 0;
 	}
-	.lg\:prose-xl > :first-child {
+	.lg\:gr-prose-xl > :first-child {
 		margin-top: 0;
 	}
-	.lg\:prose-xl > :last-child {
+	.lg\:gr-prose-xl > :last-child {
 		margin-bottom: 0;
 	}
-	.lg\:prose-2xl {
+	.lg\:gr-prose-2xl {
 		font-size: 1.5rem;
 		line-height: 1.6666667;
 	}
-	.lg\:prose-2xl p {
+	.lg\:gr-prose-2xl p {
 		margin-top: 1.3333333em;
 		margin-bottom: 1.3333333em;
 	}
-	.lg\:prose-2xl [class~="lead"] {
+	.lg\:gr-prose-2xl [class~="lead"] {
 		font-size: 1.25em;
 		line-height: 1.4666667;
 		margin-top: 1.0666667em;
 		margin-bottom: 1.0666667em;
 	}
-	.lg\:prose-2xl blockquote {
+	.lg\:gr-prose-2xl blockquote {
 		margin-top: 1.7777778em;
 		margin-bottom: 1.7777778em;
 		padding-left: 1.1111111em;
 	}
-	.lg\:prose-2xl h1 {
+	.lg\:gr-prose-2xl h1 {
 		font-size: 2.6666667em;
 		margin-top: 0;
 		margin-bottom: 0.875em;
 		line-height: 1;
 	}
-	.lg\:prose-2xl h2 {
+	.lg\:gr-prose-2xl h2 {
 		font-size: 2em;
 		margin-top: 1.5em;
 		margin-bottom: 0.8333333em;
 		line-height: 1.0833333;
 	}
-	.lg\:prose-2xl h3 {
+	.lg\:gr-prose-2xl h3 {
 		font-size: 1.5em;
 		margin-top: 1.5555556em;
 		margin-bottom: 0.6666667em;
 		line-height: 1.2222222;
 	}
-	.lg\:prose-2xl h4 {
+	.lg\:gr-prose-2xl h4 {
 		margin-top: 1.6666667em;
 		margin-bottom: 0.6666667em;
 		line-height: 1.5;
 	}
-	.lg\:prose-2xl img {
+	.lg\:gr-prose-2xl img {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.lg\:prose-2xl video {
+	.lg\:gr-prose-2xl video {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.lg\:prose-2xl figure {
+	.lg\:gr-prose-2xl figure {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.lg\:prose-2xl figure > * {
+	.lg\:gr-prose-2xl figure > * {
 		margin-top: 0;
 		margin-bottom: 0;
 	}
-	.lg\:prose-2xl figure figcaption {
+	.lg\:gr-prose-2xl figure figcaption {
 		font-size: 0.8333333em;
 		line-height: 1.6;
 		margin-top: 1em;
 	}
-	.lg\:prose-2xl code {
+	.lg\:gr-prose-2xl code {
 		font-size: 0.8333333em;
 	}
-	.lg\:prose-2xl h2 code {
+	.lg\:gr-prose-2xl h2 code {
 		font-size: 0.875em;
 	}
-	.lg\:prose-2xl h3 code {
+	.lg\:gr-prose-2xl h3 code {
 		font-size: 0.8888889em;
 	}
-	.lg\:prose-2xl pre {
+	.lg\:gr-prose-2xl pre {
 		font-size: 0.8333333em;
 		line-height: 1.8;
 		margin-top: 2em;
@@ -4179,212 +4179,212 @@
 		padding-bottom: 1.2em;
 		padding-left: 1.6em;
 	}
-	.lg\:prose-2xl ol {
+	.lg\:gr-prose-2xl ol {
 		margin-top: 1.3333333em;
 		margin-bottom: 1.3333333em;
 	}
-	.lg\:prose-2xl ul {
+	.lg\:gr-prose-2xl ul {
 		margin-top: 1.3333333em;
 		margin-bottom: 1.3333333em;
 	}
-	.lg\:prose-2xl li {
+	.lg\:gr-prose-2xl li {
 		margin-top: 0.5em;
 		margin-bottom: 0.5em;
 	}
-	.lg\:prose-2xl ol > li {
+	.lg\:gr-prose-2xl ol > li {
 		padding-left: 1.6666667em;
 	}
-	.lg\:prose-2xl ol > li::before {
+	.lg\:gr-prose-2xl ol > li::before {
 		left: 0;
 	}
-	.lg\:prose-2xl ul > li {
+	.lg\:gr-prose-2xl ul > li {
 		padding-left: 1.6666667em;
 	}
-	.lg\:prose-2xl ul > li::before {
+	.lg\:gr-prose-2xl ul > li::before {
 		width: 0.3333333em;
 		height: 0.3333333em;
 		top: calc(0.8333333em - 0.1666667em);
 		left: 0.25em;
 	}
-	.lg\:prose-2xl > ul > li p {
+	.lg\:gr-prose-2xl > ul > li p {
 		margin-top: 0.8333333em;
 		margin-bottom: 0.8333333em;
 	}
-	.lg\:prose-2xl > ul > li > :first-child {
+	.lg\:gr-prose-2xl > ul > li > :first-child {
 		margin-top: 1.3333333em;
 	}
-	.lg\:prose-2xl > ul > li > :last-child {
+	.lg\:gr-prose-2xl > ul > li > :last-child {
 		margin-bottom: 1.3333333em;
 	}
-	.lg\:prose-2xl > ol > li > :first-child {
+	.lg\:gr-prose-2xl > ol > li > :first-child {
 		margin-top: 1.3333333em;
 	}
-	.lg\:prose-2xl > ol > li > :last-child {
+	.lg\:gr-prose-2xl > ol > li > :last-child {
 		margin-bottom: 1.3333333em;
 	}
-	.lg\:prose-2xl ol ol,
-	.lg\:prose-2xl ol ul,
-	.lg\:prose-2xl ul ol,
-	.lg\:prose-2xl ul ul {
+	.lg\:gr-prose-2xl ol ol,
+	.lg\:gr-prose-2xl ol ul,
+	.lg\:gr-prose-2xl ul ol,
+	.lg\:gr-prose-2xl ul ul {
 		margin-top: 0.6666667em;
 		margin-bottom: 0.6666667em;
 	}
-	.lg\:prose-2xl hr {
+	.lg\:gr-prose-2xl hr {
 		margin-top: 3em;
 		margin-bottom: 3em;
 	}
-	.lg\:prose-2xl hr + * {
+	.lg\:gr-prose-2xl hr + * {
 		margin-top: 0;
 	}
-	.lg\:prose-2xl h2 + * {
+	.lg\:gr-prose-2xl h2 + * {
 		margin-top: 0;
 	}
-	.lg\:prose-2xl h3 + * {
+	.lg\:gr-prose-2xl h3 + * {
 		margin-top: 0;
 	}
-	.lg\:prose-2xl h4 + * {
+	.lg\:gr-prose-2xl h4 + * {
 		margin-top: 0;
 	}
-	.lg\:prose-2xl table {
+	.lg\:gr-prose-2xl table {
 		font-size: 0.8333333em;
 		line-height: 1.4;
 	}
-	.lg\:prose-2xl thead th {
+	.lg\:gr-prose-2xl thead th {
 		padding-right: 0.6em;
 		padding-bottom: 0.8em;
 		padding-left: 0.6em;
 	}
-	.lg\:prose-2xl thead th:first-child {
+	.lg\:gr-prose-2xl thead th:first-child {
 		padding-left: 0;
 	}
-	.lg\:prose-2xl thead th:last-child {
+	.lg\:gr-prose-2xl thead th:last-child {
 		padding-right: 0;
 	}
-	.lg\:prose-2xl tbody td {
+	.lg\:gr-prose-2xl tbody td {
 		padding-top: 0.8em;
 		padding-right: 0.6em;
 		padding-bottom: 0.8em;
 		padding-left: 0.6em;
 	}
-	.lg\:prose-2xl tbody td:first-child {
+	.lg\:gr-prose-2xl tbody td:first-child {
 		padding-left: 0;
 	}
-	.lg\:prose-2xl tbody td:last-child {
+	.lg\:gr-prose-2xl tbody td:last-child {
 		padding-right: 0;
 	}
-	.lg\:prose-2xl > :first-child {
+	.lg\:gr-prose-2xl > :first-child {
 		margin-top: 0;
 	}
-	.lg\:prose-2xl > :last-child {
+	.lg\:gr-prose-2xl > :last-child {
 		margin-bottom: 0;
 	}
-	.lg\:prose-red a {
+	.lg\:gr-prose-red a {
 		color: #dc2626;
 	}
-	.lg\:prose-red a code {
+	.lg\:gr-prose-red a code {
 		color: #dc2626;
 	}
-	.lg\:prose-yellow a {
+	.lg\:gr-prose-yellow a {
 		color: #d97706;
 	}
-	.lg\:prose-yellow a code {
+	.lg\:gr-prose-yellow a code {
 		color: #d97706;
 	}
-	.lg\:prose-green a {
+	.lg\:gr-prose-green a {
 		color: #059669;
 	}
-	.lg\:prose-green a code {
+	.lg\:gr-prose-green a code {
 		color: #059669;
 	}
-	.lg\:prose-blue a {
+	.lg\:gr-prose-blue a {
 		color: #2563eb;
 	}
-	.lg\:prose-blue a code {
+	.lg\:gr-prose-blue a code {
 		color: #2563eb;
 	}
-	.lg\:prose-indigo a {
+	.lg\:gr-prose-indigo a {
 		color: #4f46e5;
 	}
-	.lg\:prose-indigo a code {
+	.lg\:gr-prose-indigo a code {
 		color: #4f46e5;
 	}
-	.lg\:prose-purple a {
+	.lg\:gr-prose-purple a {
 		color: #7c3aed;
 	}
-	.lg\:prose-purple a code {
+	.lg\:gr-prose-purple a code {
 		color: #7c3aed;
 	}
-	.lg\:prose-pink a {
+	.lg\:gr-prose-pink a {
 		color: #db2777;
 	}
-	.lg\:prose-pink a code {
+	.lg\:gr-prose-pink a code {
 		color: #db2777;
 	}
 }
 @media (min-width: 1280px) {
-	.xl\:prose {
+	.xl\:gr-prose {
 		color: #374151;
 		max-width: 65ch;
 	}
-	.xl\:prose [class~="lead"] {
+	.xl\:gr-prose [class~="lead"] {
 		color: #4b5563;
 		font-size: 1.25em;
 		line-height: 1.6;
 		margin-top: 1.2em;
 		margin-bottom: 1.2em;
 	}
-	.xl\:prose a {
+	.xl\:gr-prose a {
 		color: #111827;
 		text-decoration: underline;
 		font-weight: 500;
 	}
-	.xl\:prose strong {
+	.xl\:gr-prose strong {
 		color: #111827;
 		font-weight: 600;
 	}
-	.xl\:prose ol[type="A"] {
+	.xl\:gr-prose ol[type="A"] {
 		--list-counter-style: upper-alpha;
 	}
-	.xl\:prose ol[type="a"] {
+	.xl\:gr-prose ol[type="a"] {
 		--list-counter-style: lower-alpha;
 	}
-	.xl\:prose ol[type="A"s] {
+	.xl\:gr-prose ol[type="A"s] {
 		--list-counter-style: upper-alpha;
 	}
-	.xl\:prose ol[type="a"s] {
+	.xl\:gr-prose ol[type="a"s] {
 		--list-counter-style: lower-alpha;
 	}
-	.xl\:prose ol[type="I"] {
+	.xl\:gr-prose ol[type="I"] {
 		--list-counter-style: upper-roman;
 	}
-	.xl\:prose ol[type="i"] {
+	.xl\:gr-prose ol[type="i"] {
 		--list-counter-style: lower-roman;
 	}
-	.xl\:prose ol[type="I"s] {
+	.xl\:gr-prose ol[type="I"s] {
 		--list-counter-style: upper-roman;
 	}
-	.xl\:prose ol[type="i"s] {
+	.xl\:gr-prose ol[type="i"s] {
 		--list-counter-style: lower-roman;
 	}
-	.xl\:prose ol[type="1"] {
+	.xl\:gr-prose ol[type="1"] {
 		--list-counter-style: decimal;
 	}
-	.xl\:prose ol > li {
+	.xl\:gr-prose ol > li {
 		position: relative;
 		padding-left: 1.75em;
 	}
-	.xl\:prose ol > li::before {
+	.xl\:gr-prose ol > li::before {
 		content: counter(list-item, var(--list-counter-style, decimal)) ".";
 		position: absolute;
 		font-weight: 400;
 		color: #6b7280;
 		left: 0;
 	}
-	.xl\:prose ul > li {
+	.xl\:gr-prose ul > li {
 		position: relative;
 		padding-left: 1.75em;
 	}
-	.xl\:prose ul > li::before {
+	.xl\:gr-prose ul > li::before {
 		content: "";
 		position: absolute;
 		background-color: #d1d5db;
@@ -4394,13 +4394,13 @@
 		top: calc(0.875em - 0.1875em);
 		left: 0.25em;
 	}
-	.xl\:prose hr {
+	.xl\:gr-prose hr {
 		border-color: #e5e7eb;
 		border-top-width: 1px;
 		margin-top: 3em;
 		margin-bottom: 3em;
 	}
-	.xl\:prose blockquote {
+	.xl\:gr-prose blockquote {
 		font-weight: 500;
 		font-style: italic;
 		color: #111827;
@@ -4411,13 +4411,13 @@
 		margin-bottom: 1.6em;
 		padding-left: 1em;
 	}
-	.xl\:prose blockquote p:first-of-type::before {
+	.xl\:gr-prose blockquote p:first-of-type::before {
 		content: open-quote;
 	}
-	.xl\:prose blockquote p:last-of-type::after {
+	.xl\:gr-prose blockquote p:last-of-type::after {
 		content: close-quote;
 	}
-	.xl\:prose h1 {
+	.xl\:gr-prose h1 {
 		color: #111827;
 		font-weight: 600;
 		font-size: 2.25em;
@@ -4425,7 +4425,7 @@
 		margin-bottom: 0.8888889em;
 		line-height: 1.1111111;
 	}
-	.xl\:prose h2 {
+	.xl\:gr-prose h2 {
 		color: #111827;
 		font-weight: 600;
 		font-size: 1.5em;
@@ -4433,7 +4433,7 @@
 		margin-bottom: 1em;
 		line-height: 1.3333333;
 	}
-	.xl\:prose h3 {
+	.xl\:gr-prose h3 {
 		color: #111827;
 		font-weight: 600;
 		font-size: 1.25em;
@@ -4441,34 +4441,34 @@
 		margin-bottom: 0.6em;
 		line-height: 1.6;
 	}
-	.xl\:prose h4 {
+	.xl\:gr-prose h4 {
 		color: #111827;
 		font-weight: 600;
 		margin-top: 1.5em;
 		margin-bottom: 0.5em;
 		line-height: 1.5;
 	}
-	.xl\:prose figure figcaption {
+	.xl\:gr-prose figure figcaption {
 		color: #6b7280;
 		font-size: 0.875em;
 		line-height: 1.4285714;
 		margin-top: 0.8571429em;
 	}
-	.xl\:prose code {
+	.xl\:gr-prose code {
 		color: #111827;
 		font-weight: 600;
 		font-size: 0.875em;
 	}
-	.xl\:prose code::before {
+	.xl\:gr-prose code::before {
 		content: "`";
 	}
-	.xl\:prose code::after {
+	.xl\:gr-prose code::after {
 		content: "`";
 	}
-	.xl\:prose a code {
+	.xl\:gr-prose a code {
 		color: #111827;
 	}
-	.xl\:prose pre {
+	.xl\:gr-prose pre {
 		color: #e5e7eb;
 		background-color: #1f2937;
 		overflow-x: auto;
@@ -4482,7 +4482,7 @@
 		padding-bottom: 0.8571429em;
 		padding-left: 1.1428571em;
 	}
-	.xl\:prose pre code {
+	.xl\:gr-prose pre code {
 		background-color: transparent;
 		border-width: 0;
 		border-radius: 0;
@@ -4493,13 +4493,13 @@
 		font-family: inherit;
 		line-height: inherit;
 	}
-	.xl\:prose pre code::before {
+	.xl\:gr-prose pre code::before {
 		content: none;
 	}
-	.xl\:prose pre code::after {
+	.xl\:gr-prose pre code::after {
 		content: none;
 	}
-	.xl\:prose table {
+	.xl\:gr-prose table {
 		width: 100%;
 		table-layout: auto;
 		text-align: left;
@@ -4508,200 +4508,200 @@
 		font-size: 0.875em;
 		line-height: 1.7142857;
 	}
-	.xl\:prose thead {
+	.xl\:gr-prose thead {
 		color: #111827;
 		font-weight: 600;
 		border-bottom-width: 1px;
 		border-bottom-color: #d1d5db;
 	}
-	.xl\:prose thead th {
+	.xl\:gr-prose thead th {
 		vertical-align: bottom;
 		padding-right: 0.5714286em;
 		padding-bottom: 0.5714286em;
 		padding-left: 0.5714286em;
 	}
-	.xl\:prose tbody tr {
+	.xl\:gr-prose tbody tr {
 		border-bottom-width: 1px;
 		border-bottom-color: #e5e7eb;
 	}
-	.xl\:prose tbody tr:last-child {
+	.xl\:gr-prose tbody tr:last-child {
 		border-bottom-width: 0;
 	}
-	.xl\:prose tbody td {
+	.xl\:gr-prose tbody td {
 		vertical-align: top;
 		padding-top: 0.5714286em;
 		padding-right: 0.5714286em;
 		padding-bottom: 0.5714286em;
 		padding-left: 0.5714286em;
 	}
-	.xl\:prose {
+	.xl\:gr-prose {
 		font-size: 1rem;
 		line-height: 1.75;
 	}
-	.xl\:prose p {
+	.xl\:gr-prose p {
 		margin-top: 1.25em;
 		margin-bottom: 1.25em;
 	}
-	.xl\:prose img {
+	.xl\:gr-prose img {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.xl\:prose video {
+	.xl\:gr-prose video {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.xl\:prose figure {
+	.xl\:gr-prose figure {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.xl\:prose figure > * {
+	.xl\:gr-prose figure > * {
 		margin-top: 0;
 		margin-bottom: 0;
 	}
-	.xl\:prose h2 code {
+	.xl\:gr-prose h2 code {
 		font-size: 0.875em;
 	}
-	.xl\:prose h3 code {
+	.xl\:gr-prose h3 code {
 		font-size: 0.9em;
 	}
-	.xl\:prose ol {
+	.xl\:gr-prose ol {
 		margin-top: 1.25em;
 		margin-bottom: 1.25em;
 	}
-	.xl\:prose ul {
+	.xl\:gr-prose ul {
 		margin-top: 1.25em;
 		margin-bottom: 1.25em;
 	}
-	.xl\:prose li {
+	.xl\:gr-prose li {
 		margin-top: 0.5em;
 		margin-bottom: 0.5em;
 	}
-	.xl\:prose > ul > li p {
+	.xl\:gr-prose > ul > li p {
 		margin-top: 0.75em;
 		margin-bottom: 0.75em;
 	}
-	.xl\:prose > ul > li > :first-child {
+	.xl\:gr-prose > ul > li > :first-child {
 		margin-top: 1.25em;
 	}
-	.xl\:prose > ul > li > :last-child {
+	.xl\:gr-prose > ul > li > :last-child {
 		margin-bottom: 1.25em;
 	}
-	.xl\:prose > ol > li > :first-child {
+	.xl\:gr-prose > ol > li > :first-child {
 		margin-top: 1.25em;
 	}
-	.xl\:prose > ol > li > :last-child {
+	.xl\:gr-prose > ol > li > :last-child {
 		margin-bottom: 1.25em;
 	}
-	.xl\:prose ol ol,
-	.xl\:prose ol ul,
-	.xl\:prose ul ol,
-	.xl\:prose ul ul {
+	.xl\:gr-prose ol ol,
+	.xl\:gr-prose ol ul,
+	.xl\:gr-prose ul ol,
+	.xl\:gr-prose ul ul {
 		margin-top: 0.75em;
 		margin-bottom: 0.75em;
 	}
-	.xl\:prose hr + * {
+	.xl\:gr-prose hr + * {
 		margin-top: 0;
 	}
-	.xl\:prose h2 + * {
+	.xl\:gr-prose h2 + * {
 		margin-top: 0;
 	}
-	.xl\:prose h3 + * {
+	.xl\:gr-prose h3 + * {
 		margin-top: 0;
 	}
-	.xl\:prose h4 + * {
+	.xl\:gr-prose h4 + * {
 		margin-top: 0;
 	}
-	.xl\:prose thead th:first-child {
+	.xl\:gr-prose thead th:first-child {
 		padding-left: 0;
 	}
-	.xl\:prose thead th:last-child {
+	.xl\:gr-prose thead th:last-child {
 		padding-right: 0;
 	}
-	.xl\:prose tbody td:first-child {
+	.xl\:gr-prose tbody td:first-child {
 		padding-left: 0;
 	}
-	.xl\:prose tbody td:last-child {
+	.xl\:gr-prose tbody td:last-child {
 		padding-right: 0;
 	}
-	.xl\:prose > :first-child {
+	.xl\:gr-prose > :first-child {
 		margin-top: 0;
 	}
-	.xl\:prose > :last-child {
+	.xl\:gr-prose > :last-child {
 		margin-bottom: 0;
 	}
-	.xl\:prose-sm {
+	.xl\:gr-prose-sm {
 		font-size: 0.875rem;
 		line-height: 1.7142857;
 	}
-	.xl\:prose-sm p {
+	.xl\:gr-prose-sm p {
 		margin-top: 1.1428571em;
 		margin-bottom: 1.1428571em;
 	}
-	.xl\:prose-sm [class~="lead"] {
+	.xl\:gr-prose-sm [class~="lead"] {
 		font-size: 1.2857143em;
 		line-height: 1.5555556;
 		margin-top: 0.8888889em;
 		margin-bottom: 0.8888889em;
 	}
-	.xl\:prose-sm blockquote {
+	.xl\:gr-prose-sm blockquote {
 		margin-top: 1.3333333em;
 		margin-bottom: 1.3333333em;
 		padding-left: 1.1111111em;
 	}
-	.xl\:prose-sm h1 {
+	.xl\:gr-prose-sm h1 {
 		font-size: 2.1428571em;
 		margin-top: 0;
 		margin-bottom: 0.8em;
 		line-height: 1.2;
 	}
-	.xl\:prose-sm h2 {
+	.xl\:gr-prose-sm h2 {
 		font-size: 1.4285714em;
 		margin-top: 1.6em;
 		margin-bottom: 0.8em;
 		line-height: 1.4;
 	}
-	.xl\:prose-sm h3 {
+	.xl\:gr-prose-sm h3 {
 		font-size: 1.2857143em;
 		margin-top: 1.5555556em;
 		margin-bottom: 0.4444444em;
 		line-height: 1.5555556;
 	}
-	.xl\:prose-sm h4 {
+	.xl\:gr-prose-sm h4 {
 		margin-top: 1.4285714em;
 		margin-bottom: 0.5714286em;
 		line-height: 1.4285714;
 	}
-	.xl\:prose-sm img {
+	.xl\:gr-prose-sm img {
 		margin-top: 1.7142857em;
 		margin-bottom: 1.7142857em;
 	}
-	.xl\:prose-sm video {
+	.xl\:gr-prose-sm video {
 		margin-top: 1.7142857em;
 		margin-bottom: 1.7142857em;
 	}
-	.xl\:prose-sm figure {
+	.xl\:gr-prose-sm figure {
 		margin-top: 1.7142857em;
 		margin-bottom: 1.7142857em;
 	}
-	.xl\:prose-sm figure > * {
+	.xl\:gr-prose-sm figure > * {
 		margin-top: 0;
 		margin-bottom: 0;
 	}
-	.xl\:prose-sm figure figcaption {
+	.xl\:gr-prose-sm figure figcaption {
 		font-size: 0.8571429em;
 		line-height: 1.3333333;
 		margin-top: 0.6666667em;
 	}
-	.xl\:prose-sm code {
+	.xl\:gr-prose-sm code {
 		font-size: 0.8571429em;
 	}
-	.xl\:prose-sm h2 code {
+	.xl\:gr-prose-sm h2 code {
 		font-size: 0.9em;
 	}
-	.xl\:prose-sm h3 code {
+	.xl\:gr-prose-sm h3 code {
 		font-size: 0.8888889em;
 	}
-	.xl\:prose-sm pre {
+	.xl\:gr-prose-sm pre {
 		font-size: 0.8571429em;
 		line-height: 1.6666667;
 		margin-top: 1.6666667em;
@@ -4712,178 +4712,178 @@
 		padding-bottom: 0.6666667em;
 		padding-left: 1em;
 	}
-	.xl\:prose-sm ol {
+	.xl\:gr-prose-sm ol {
 		margin-top: 1.1428571em;
 		margin-bottom: 1.1428571em;
 	}
-	.xl\:prose-sm ul {
+	.xl\:gr-prose-sm ul {
 		margin-top: 1.1428571em;
 		margin-bottom: 1.1428571em;
 	}
-	.xl\:prose-sm li {
+	.xl\:gr-prose-sm li {
 		margin-top: 0.2857143em;
 		margin-bottom: 0.2857143em;
 	}
-	.xl\:prose-sm ol > li {
+	.xl\:gr-prose-sm ol > li {
 		padding-left: 1.5714286em;
 	}
-	.xl\:prose-sm ol > li::before {
+	.xl\:gr-prose-sm ol > li::before {
 		left: 0;
 	}
-	.xl\:prose-sm ul > li {
+	.xl\:gr-prose-sm ul > li {
 		padding-left: 1.5714286em;
 	}
-	.xl\:prose-sm ul > li::before {
+	.xl\:gr-prose-sm ul > li::before {
 		height: 0.3571429em;
 		width: 0.3571429em;
 		top: calc(0.8571429em - 0.1785714em);
 		left: 0.2142857em;
 	}
-	.xl\:prose-sm > ul > li p {
+	.xl\:gr-prose-sm > ul > li p {
 		margin-top: 0.5714286em;
 		margin-bottom: 0.5714286em;
 	}
-	.xl\:prose-sm > ul > li > :first-child {
+	.xl\:gr-prose-sm > ul > li > :first-child {
 		margin-top: 1.1428571em;
 	}
-	.xl\:prose-sm > ul > li > :last-child {
+	.xl\:gr-prose-sm > ul > li > :last-child {
 		margin-bottom: 1.1428571em;
 	}
-	.xl\:prose-sm > ol > li > :first-child {
+	.xl\:gr-prose-sm > ol > li > :first-child {
 		margin-top: 1.1428571em;
 	}
-	.xl\:prose-sm > ol > li > :last-child {
+	.xl\:gr-prose-sm > ol > li > :last-child {
 		margin-bottom: 1.1428571em;
 	}
-	.xl\:prose-sm ol ol,
-	.xl\:prose-sm ol ul,
-	.xl\:prose-sm ul ol,
-	.xl\:prose-sm ul ul {
+	.xl\:gr-prose-sm ol ol,
+	.xl\:gr-prose-sm ol ul,
+	.xl\:gr-prose-sm ul ol,
+	.xl\:gr-prose-sm ul ul {
 		margin-top: 0.5714286em;
 		margin-bottom: 0.5714286em;
 	}
-	.xl\:prose-sm hr {
+	.xl\:gr-prose-sm hr {
 		margin-top: 2.8571429em;
 		margin-bottom: 2.8571429em;
 	}
-	.xl\:prose-sm hr + * {
+	.xl\:gr-prose-sm hr + * {
 		margin-top: 0;
 	}
-	.xl\:prose-sm h2 + * {
+	.xl\:gr-prose-sm h2 + * {
 		margin-top: 0;
 	}
-	.xl\:prose-sm h3 + * {
+	.xl\:gr-prose-sm h3 + * {
 		margin-top: 0;
 	}
-	.xl\:prose-sm h4 + * {
+	.xl\:gr-prose-sm h4 + * {
 		margin-top: 0;
 	}
-	.xl\:prose-sm table {
+	.xl\:gr-prose-sm table {
 		font-size: 0.8571429em;
 		line-height: 1.5;
 	}
-	.xl\:prose-sm thead th {
+	.xl\:gr-prose-sm thead th {
 		padding-right: 1em;
 		padding-bottom: 0.6666667em;
 		padding-left: 1em;
 	}
-	.xl\:prose-sm thead th:first-child {
+	.xl\:gr-prose-sm thead th:first-child {
 		padding-left: 0;
 	}
-	.xl\:prose-sm thead th:last-child {
+	.xl\:gr-prose-sm thead th:last-child {
 		padding-right: 0;
 	}
-	.xl\:prose-sm tbody td {
+	.xl\:gr-prose-sm tbody td {
 		padding-top: 0.6666667em;
 		padding-right: 1em;
 		padding-bottom: 0.6666667em;
 		padding-left: 1em;
 	}
-	.xl\:prose-sm tbody td:first-child {
+	.xl\:gr-prose-sm tbody td:first-child {
 		padding-left: 0;
 	}
-	.xl\:prose-sm tbody td:last-child {
+	.xl\:gr-prose-sm tbody td:last-child {
 		padding-right: 0;
 	}
-	.xl\:prose-sm > :first-child {
+	.xl\:gr-prose-sm > :first-child {
 		margin-top: 0;
 	}
-	.xl\:prose-sm > :last-child {
+	.xl\:gr-prose-sm > :last-child {
 		margin-bottom: 0;
 	}
-	.xl\:prose-lg {
+	.xl\:gr-prose-lg {
 		font-size: 1.125rem;
 		line-height: 1.7777778;
 	}
-	.xl\:prose-lg p {
+	.xl\:gr-prose-lg p {
 		margin-top: 1.3333333em;
 		margin-bottom: 1.3333333em;
 	}
-	.xl\:prose-lg [class~="lead"] {
+	.xl\:gr-prose-lg [class~="lead"] {
 		font-size: 1.2222222em;
 		line-height: 1.4545455;
 		margin-top: 1.0909091em;
 		margin-bottom: 1.0909091em;
 	}
-	.xl\:prose-lg blockquote {
+	.xl\:gr-prose-lg blockquote {
 		margin-top: 1.6666667em;
 		margin-bottom: 1.6666667em;
 		padding-left: 1em;
 	}
-	.xl\:prose-lg h1 {
+	.xl\:gr-prose-lg h1 {
 		font-size: 2.6666667em;
 		margin-top: 0;
 		margin-bottom: 0.8333333em;
 		line-height: 1;
 	}
-	.xl\:prose-lg h2 {
+	.xl\:gr-prose-lg h2 {
 		font-size: 1.6666667em;
 		margin-top: 1.8666667em;
 		margin-bottom: 1.0666667em;
 		line-height: 1.3333333;
 	}
-	.xl\:prose-lg h3 {
+	.xl\:gr-prose-lg h3 {
 		font-size: 1.3333333em;
 		margin-top: 1.6666667em;
 		margin-bottom: 0.6666667em;
 		line-height: 1.5;
 	}
-	.xl\:prose-lg h4 {
+	.xl\:gr-prose-lg h4 {
 		margin-top: 1.7777778em;
 		margin-bottom: 0.4444444em;
 		line-height: 1.5555556;
 	}
-	.xl\:prose-lg img {
+	.xl\:gr-prose-lg img {
 		margin-top: 1.7777778em;
 		margin-bottom: 1.7777778em;
 	}
-	.xl\:prose-lg video {
+	.xl\:gr-prose-lg video {
 		margin-top: 1.7777778em;
 		margin-bottom: 1.7777778em;
 	}
-	.xl\:prose-lg figure {
+	.xl\:gr-prose-lg figure {
 		margin-top: 1.7777778em;
 		margin-bottom: 1.7777778em;
 	}
-	.xl\:prose-lg figure > * {
+	.xl\:gr-prose-lg figure > * {
 		margin-top: 0;
 		margin-bottom: 0;
 	}
-	.xl\:prose-lg figure figcaption {
+	.xl\:gr-prose-lg figure figcaption {
 		font-size: 0.8888889em;
 		line-height: 1.5;
 		margin-top: 1em;
 	}
-	.xl\:prose-lg code {
+	.xl\:gr-prose-lg code {
 		font-size: 0.8888889em;
 	}
-	.xl\:prose-lg h2 code {
+	.xl\:gr-prose-lg h2 code {
 		font-size: 0.8666667em;
 	}
-	.xl\:prose-lg h3 code {
+	.xl\:gr-prose-lg h3 code {
 		font-size: 0.875em;
 	}
-	.xl\:prose-lg pre {
+	.xl\:gr-prose-lg pre {
 		font-size: 0.8888889em;
 		line-height: 1.75;
 		margin-top: 2em;
@@ -4894,178 +4894,178 @@
 		padding-bottom: 1em;
 		padding-left: 1.5em;
 	}
-	.xl\:prose-lg ol {
+	.xl\:gr-prose-lg ol {
 		margin-top: 1.3333333em;
 		margin-bottom: 1.3333333em;
 	}
-	.xl\:prose-lg ul {
+	.xl\:gr-prose-lg ul {
 		margin-top: 1.3333333em;
 		margin-bottom: 1.3333333em;
 	}
-	.xl\:prose-lg li {
+	.xl\:gr-prose-lg li {
 		margin-top: 0.6666667em;
 		margin-bottom: 0.6666667em;
 	}
-	.xl\:prose-lg ol > li {
+	.xl\:gr-prose-lg ol > li {
 		padding-left: 1.6666667em;
 	}
-	.xl\:prose-lg ol > li::before {
+	.xl\:gr-prose-lg ol > li::before {
 		left: 0;
 	}
-	.xl\:prose-lg ul > li {
+	.xl\:gr-prose-lg ul > li {
 		padding-left: 1.6666667em;
 	}
-	.xl\:prose-lg ul > li::before {
+	.xl\:gr-prose-lg ul > li::before {
 		width: 0.3333333em;
 		height: 0.3333333em;
 		top: calc(0.8888889em - 0.1666667em);
 		left: 0.2222222em;
 	}
-	.xl\:prose-lg > ul > li p {
+	.xl\:gr-prose-lg > ul > li p {
 		margin-top: 0.8888889em;
 		margin-bottom: 0.8888889em;
 	}
-	.xl\:prose-lg > ul > li > :first-child {
+	.xl\:gr-prose-lg > ul > li > :first-child {
 		margin-top: 1.3333333em;
 	}
-	.xl\:prose-lg > ul > li > :last-child {
+	.xl\:gr-prose-lg > ul > li > :last-child {
 		margin-bottom: 1.3333333em;
 	}
-	.xl\:prose-lg > ol > li > :first-child {
+	.xl\:gr-prose-lg > ol > li > :first-child {
 		margin-top: 1.3333333em;
 	}
-	.xl\:prose-lg > ol > li > :last-child {
+	.xl\:gr-prose-lg > ol > li > :last-child {
 		margin-bottom: 1.3333333em;
 	}
-	.xl\:prose-lg ol ol,
-	.xl\:prose-lg ol ul,
-	.xl\:prose-lg ul ol,
-	.xl\:prose-lg ul ul {
+	.xl\:gr-prose-lg ol ol,
+	.xl\:gr-prose-lg ol ul,
+	.xl\:gr-prose-lg ul ol,
+	.xl\:gr-prose-lg ul ul {
 		margin-top: 0.8888889em;
 		margin-bottom: 0.8888889em;
 	}
-	.xl\:prose-lg hr {
+	.xl\:gr-prose-lg hr {
 		margin-top: 3.1111111em;
 		margin-bottom: 3.1111111em;
 	}
-	.xl\:prose-lg hr + * {
+	.xl\:gr-prose-lg hr + * {
 		margin-top: 0;
 	}
-	.xl\:prose-lg h2 + * {
+	.xl\:gr-prose-lg h2 + * {
 		margin-top: 0;
 	}
-	.xl\:prose-lg h3 + * {
+	.xl\:gr-prose-lg h3 + * {
 		margin-top: 0;
 	}
-	.xl\:prose-lg h4 + * {
+	.xl\:gr-prose-lg h4 + * {
 		margin-top: 0;
 	}
-	.xl\:prose-lg table {
+	.xl\:gr-prose-lg table {
 		font-size: 0.8888889em;
 		line-height: 1.5;
 	}
-	.xl\:prose-lg thead th {
+	.xl\:gr-prose-lg thead th {
 		padding-right: 0.75em;
 		padding-bottom: 0.75em;
 		padding-left: 0.75em;
 	}
-	.xl\:prose-lg thead th:first-child {
+	.xl\:gr-prose-lg thead th:first-child {
 		padding-left: 0;
 	}
-	.xl\:prose-lg thead th:last-child {
+	.xl\:gr-prose-lg thead th:last-child {
 		padding-right: 0;
 	}
-	.xl\:prose-lg tbody td {
+	.xl\:gr-prose-lg tbody td {
 		padding-top: 0.75em;
 		padding-right: 0.75em;
 		padding-bottom: 0.75em;
 		padding-left: 0.75em;
 	}
-	.xl\:prose-lg tbody td:first-child {
+	.xl\:gr-prose-lg tbody td:first-child {
 		padding-left: 0;
 	}
-	.xl\:prose-lg tbody td:last-child {
+	.xl\:gr-prose-lg tbody td:last-child {
 		padding-right: 0;
 	}
-	.xl\:prose-lg > :first-child {
+	.xl\:gr-prose-lg > :first-child {
 		margin-top: 0;
 	}
-	.xl\:prose-lg > :last-child {
+	.xl\:gr-prose-lg > :last-child {
 		margin-bottom: 0;
 	}
-	.xl\:prose-xl {
+	.xl\:gr-prose-xl {
 		font-size: 1.25rem;
 		line-height: 1.8;
 	}
-	.xl\:prose-xl p {
+	.xl\:gr-prose-xl p {
 		margin-top: 1.2em;
 		margin-bottom: 1.2em;
 	}
-	.xl\:prose-xl [class~="lead"] {
+	.xl\:gr-prose-xl [class~="lead"] {
 		font-size: 1.2em;
 		line-height: 1.5;
 		margin-top: 1em;
 		margin-bottom: 1em;
 	}
-	.xl\:prose-xl blockquote {
+	.xl\:gr-prose-xl blockquote {
 		margin-top: 1.6em;
 		margin-bottom: 1.6em;
 		padding-left: 1.0666667em;
 	}
-	.xl\:prose-xl h1 {
+	.xl\:gr-prose-xl h1 {
 		font-size: 2.8em;
 		margin-top: 0;
 		margin-bottom: 0.8571429em;
 		line-height: 1;
 	}
-	.xl\:prose-xl h2 {
+	.xl\:gr-prose-xl h2 {
 		font-size: 1.8em;
 		margin-top: 1.5555556em;
 		margin-bottom: 0.8888889em;
 		line-height: 1.1111111;
 	}
-	.xl\:prose-xl h3 {
+	.xl\:gr-prose-xl h3 {
 		font-size: 1.5em;
 		margin-top: 1.6em;
 		margin-bottom: 0.6666667em;
 		line-height: 1.3333333;
 	}
-	.xl\:prose-xl h4 {
+	.xl\:gr-prose-xl h4 {
 		margin-top: 1.8em;
 		margin-bottom: 0.6em;
 		line-height: 1.6;
 	}
-	.xl\:prose-xl img {
+	.xl\:gr-prose-xl img {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.xl\:prose-xl video {
+	.xl\:gr-prose-xl video {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.xl\:prose-xl figure {
+	.xl\:gr-prose-xl figure {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.xl\:prose-xl figure > * {
+	.xl\:gr-prose-xl figure > * {
 		margin-top: 0;
 		margin-bottom: 0;
 	}
-	.xl\:prose-xl figure figcaption {
+	.xl\:gr-prose-xl figure figcaption {
 		font-size: 0.9em;
 		line-height: 1.5555556;
 		margin-top: 1em;
 	}
-	.xl\:prose-xl code {
+	.xl\:gr-prose-xl code {
 		font-size: 0.9em;
 	}
-	.xl\:prose-xl h2 code {
+	.xl\:gr-prose-xl h2 code {
 		font-size: 0.8611111em;
 	}
-	.xl\:prose-xl h3 code {
+	.xl\:gr-prose-xl h3 code {
 		font-size: 0.9em;
 	}
-	.xl\:prose-xl pre {
+	.xl\:gr-prose-xl pre {
 		font-size: 0.9em;
 		line-height: 1.7777778;
 		margin-top: 2em;
@@ -5076,178 +5076,178 @@
 		padding-bottom: 1.1111111em;
 		padding-left: 1.3333333em;
 	}
-	.xl\:prose-xl ol {
+	.xl\:gr-prose-xl ol {
 		margin-top: 1.2em;
 		margin-bottom: 1.2em;
 	}
-	.xl\:prose-xl ul {
+	.xl\:gr-prose-xl ul {
 		margin-top: 1.2em;
 		margin-bottom: 1.2em;
 	}
-	.xl\:prose-xl li {
+	.xl\:gr-prose-xl li {
 		margin-top: 0.6em;
 		margin-bottom: 0.6em;
 	}
-	.xl\:prose-xl ol > li {
+	.xl\:gr-prose-xl ol > li {
 		padding-left: 1.8em;
 	}
-	.xl\:prose-xl ol > li::before {
+	.xl\:gr-prose-xl ol > li::before {
 		left: 0;
 	}
-	.xl\:prose-xl ul > li {
+	.xl\:gr-prose-xl ul > li {
 		padding-left: 1.8em;
 	}
-	.xl\:prose-xl ul > li::before {
+	.xl\:gr-prose-xl ul > li::before {
 		width: 0.35em;
 		height: 0.35em;
 		top: calc(0.9em - 0.175em);
 		left: 0.25em;
 	}
-	.xl\:prose-xl > ul > li p {
+	.xl\:gr-prose-xl > ul > li p {
 		margin-top: 0.8em;
 		margin-bottom: 0.8em;
 	}
-	.xl\:prose-xl > ul > li > :first-child {
+	.xl\:gr-prose-xl > ul > li > :first-child {
 		margin-top: 1.2em;
 	}
-	.xl\:prose-xl > ul > li > :last-child {
+	.xl\:gr-prose-xl > ul > li > :last-child {
 		margin-bottom: 1.2em;
 	}
-	.xl\:prose-xl > ol > li > :first-child {
+	.xl\:gr-prose-xl > ol > li > :first-child {
 		margin-top: 1.2em;
 	}
-	.xl\:prose-xl > ol > li > :last-child {
+	.xl\:gr-prose-xl > ol > li > :last-child {
 		margin-bottom: 1.2em;
 	}
-	.xl\:prose-xl ol ol,
-	.xl\:prose-xl ol ul,
-	.xl\:prose-xl ul ol,
-	.xl\:prose-xl ul ul {
+	.xl\:gr-prose-xl ol ol,
+	.xl\:gr-prose-xl ol ul,
+	.xl\:gr-prose-xl ul ol,
+	.xl\:gr-prose-xl ul ul {
 		margin-top: 0.8em;
 		margin-bottom: 0.8em;
 	}
-	.xl\:prose-xl hr {
+	.xl\:gr-prose-xl hr {
 		margin-top: 2.8em;
 		margin-bottom: 2.8em;
 	}
-	.xl\:prose-xl hr + * {
+	.xl\:gr-prose-xl hr + * {
 		margin-top: 0;
 	}
-	.xl\:prose-xl h2 + * {
+	.xl\:gr-prose-xl h2 + * {
 		margin-top: 0;
 	}
-	.xl\:prose-xl h3 + * {
+	.xl\:gr-prose-xl h3 + * {
 		margin-top: 0;
 	}
-	.xl\:prose-xl h4 + * {
+	.xl\:gr-prose-xl h4 + * {
 		margin-top: 0;
 	}
-	.xl\:prose-xl table {
+	.xl\:gr-prose-xl table {
 		font-size: 0.9em;
 		line-height: 1.5555556;
 	}
-	.xl\:prose-xl thead th {
+	.xl\:gr-prose-xl thead th {
 		padding-right: 0.6666667em;
 		padding-bottom: 0.8888889em;
 		padding-left: 0.6666667em;
 	}
-	.xl\:prose-xl thead th:first-child {
+	.xl\:gr-prose-xl thead th:first-child {
 		padding-left: 0;
 	}
-	.xl\:prose-xl thead th:last-child {
+	.xl\:gr-prose-xl thead th:last-child {
 		padding-right: 0;
 	}
-	.xl\:prose-xl tbody td {
+	.xl\:gr-prose-xl tbody td {
 		padding-top: 0.8888889em;
 		padding-right: 0.6666667em;
 		padding-bottom: 0.8888889em;
 		padding-left: 0.6666667em;
 	}
-	.xl\:prose-xl tbody td:first-child {
+	.xl\:gr-prose-xl tbody td:first-child {
 		padding-left: 0;
 	}
-	.xl\:prose-xl tbody td:last-child {
+	.xl\:gr-prose-xl tbody td:last-child {
 		padding-right: 0;
 	}
-	.xl\:prose-xl > :first-child {
+	.xl\:gr-prose-xl > :first-child {
 		margin-top: 0;
 	}
-	.xl\:prose-xl > :last-child {
+	.xl\:gr-prose-xl > :last-child {
 		margin-bottom: 0;
 	}
-	.xl\:prose-2xl {
+	.xl\:gr-prose-2xl {
 		font-size: 1.5rem;
 		line-height: 1.6666667;
 	}
-	.xl\:prose-2xl p {
+	.xl\:gr-prose-2xl p {
 		margin-top: 1.3333333em;
 		margin-bottom: 1.3333333em;
 	}
-	.xl\:prose-2xl [class~="lead"] {
+	.xl\:gr-prose-2xl [class~="lead"] {
 		font-size: 1.25em;
 		line-height: 1.4666667;
 		margin-top: 1.0666667em;
 		margin-bottom: 1.0666667em;
 	}
-	.xl\:prose-2xl blockquote {
+	.xl\:gr-prose-2xl blockquote {
 		margin-top: 1.7777778em;
 		margin-bottom: 1.7777778em;
 		padding-left: 1.1111111em;
 	}
-	.xl\:prose-2xl h1 {
+	.xl\:gr-prose-2xl h1 {
 		font-size: 2.6666667em;
 		margin-top: 0;
 		margin-bottom: 0.875em;
 		line-height: 1;
 	}
-	.xl\:prose-2xl h2 {
+	.xl\:gr-prose-2xl h2 {
 		font-size: 2em;
 		margin-top: 1.5em;
 		margin-bottom: 0.8333333em;
 		line-height: 1.0833333;
 	}
-	.xl\:prose-2xl h3 {
+	.xl\:gr-prose-2xl h3 {
 		font-size: 1.5em;
 		margin-top: 1.5555556em;
 		margin-bottom: 0.6666667em;
 		line-height: 1.2222222;
 	}
-	.xl\:prose-2xl h4 {
+	.xl\:gr-prose-2xl h4 {
 		margin-top: 1.6666667em;
 		margin-bottom: 0.6666667em;
 		line-height: 1.5;
 	}
-	.xl\:prose-2xl img {
+	.xl\:gr-prose-2xl img {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.xl\:prose-2xl video {
+	.xl\:gr-prose-2xl video {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.xl\:prose-2xl figure {
+	.xl\:gr-prose-2xl figure {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.xl\:prose-2xl figure > * {
+	.xl\:gr-prose-2xl figure > * {
 		margin-top: 0;
 		margin-bottom: 0;
 	}
-	.xl\:prose-2xl figure figcaption {
+	.xl\:gr-prose-2xl figure figcaption {
 		font-size: 0.8333333em;
 		line-height: 1.6;
 		margin-top: 1em;
 	}
-	.xl\:prose-2xl code {
+	.xl\:gr-prose-2xl code {
 		font-size: 0.8333333em;
 	}
-	.xl\:prose-2xl h2 code {
+	.xl\:gr-prose-2xl h2 code {
 		font-size: 0.875em;
 	}
-	.xl\:prose-2xl h3 code {
+	.xl\:gr-prose-2xl h3 code {
 		font-size: 0.8888889em;
 	}
-	.xl\:prose-2xl pre {
+	.xl\:gr-prose-2xl pre {
 		font-size: 0.8333333em;
 		line-height: 1.8;
 		margin-top: 2em;
@@ -5258,212 +5258,212 @@
 		padding-bottom: 1.2em;
 		padding-left: 1.6em;
 	}
-	.xl\:prose-2xl ol {
+	.xl\:gr-prose-2xl ol {
 		margin-top: 1.3333333em;
 		margin-bottom: 1.3333333em;
 	}
-	.xl\:prose-2xl ul {
+	.xl\:gr-prose-2xl ul {
 		margin-top: 1.3333333em;
 		margin-bottom: 1.3333333em;
 	}
-	.xl\:prose-2xl li {
+	.xl\:gr-prose-2xl li {
 		margin-top: 0.5em;
 		margin-bottom: 0.5em;
 	}
-	.xl\:prose-2xl ol > li {
+	.xl\:gr-prose-2xl ol > li {
 		padding-left: 1.6666667em;
 	}
-	.xl\:prose-2xl ol > li::before {
+	.xl\:gr-prose-2xl ol > li::before {
 		left: 0;
 	}
-	.xl\:prose-2xl ul > li {
+	.xl\:gr-prose-2xl ul > li {
 		padding-left: 1.6666667em;
 	}
-	.xl\:prose-2xl ul > li::before {
+	.xl\:gr-prose-2xl ul > li::before {
 		width: 0.3333333em;
 		height: 0.3333333em;
 		top: calc(0.8333333em - 0.1666667em);
 		left: 0.25em;
 	}
-	.xl\:prose-2xl > ul > li p {
+	.xl\:gr-prose-2xl > ul > li p {
 		margin-top: 0.8333333em;
 		margin-bottom: 0.8333333em;
 	}
-	.xl\:prose-2xl > ul > li > :first-child {
+	.xl\:gr-prose-2xl > ul > li > :first-child {
 		margin-top: 1.3333333em;
 	}
-	.xl\:prose-2xl > ul > li > :last-child {
+	.xl\:gr-prose-2xl > ul > li > :last-child {
 		margin-bottom: 1.3333333em;
 	}
-	.xl\:prose-2xl > ol > li > :first-child {
+	.xl\:gr-prose-2xl > ol > li > :first-child {
 		margin-top: 1.3333333em;
 	}
-	.xl\:prose-2xl > ol > li > :last-child {
+	.xl\:gr-prose-2xl > ol > li > :last-child {
 		margin-bottom: 1.3333333em;
 	}
-	.xl\:prose-2xl ol ol,
-	.xl\:prose-2xl ol ul,
-	.xl\:prose-2xl ul ol,
-	.xl\:prose-2xl ul ul {
+	.xl\:gr-prose-2xl ol ol,
+	.xl\:gr-prose-2xl ol ul,
+	.xl\:gr-prose-2xl ul ol,
+	.xl\:gr-prose-2xl ul ul {
 		margin-top: 0.6666667em;
 		margin-bottom: 0.6666667em;
 	}
-	.xl\:prose-2xl hr {
+	.xl\:gr-prose-2xl hr {
 		margin-top: 3em;
 		margin-bottom: 3em;
 	}
-	.xl\:prose-2xl hr + * {
+	.xl\:gr-prose-2xl hr + * {
 		margin-top: 0;
 	}
-	.xl\:prose-2xl h2 + * {
+	.xl\:gr-prose-2xl h2 + * {
 		margin-top: 0;
 	}
-	.xl\:prose-2xl h3 + * {
+	.xl\:gr-prose-2xl h3 + * {
 		margin-top: 0;
 	}
-	.xl\:prose-2xl h4 + * {
+	.xl\:gr-prose-2xl h4 + * {
 		margin-top: 0;
 	}
-	.xl\:prose-2xl table {
+	.xl\:gr-prose-2xl table {
 		font-size: 0.8333333em;
 		line-height: 1.4;
 	}
-	.xl\:prose-2xl thead th {
+	.xl\:gr-prose-2xl thead th {
 		padding-right: 0.6em;
 		padding-bottom: 0.8em;
 		padding-left: 0.6em;
 	}
-	.xl\:prose-2xl thead th:first-child {
+	.xl\:gr-prose-2xl thead th:first-child {
 		padding-left: 0;
 	}
-	.xl\:prose-2xl thead th:last-child {
+	.xl\:gr-prose-2xl thead th:last-child {
 		padding-right: 0;
 	}
-	.xl\:prose-2xl tbody td {
+	.xl\:gr-prose-2xl tbody td {
 		padding-top: 0.8em;
 		padding-right: 0.6em;
 		padding-bottom: 0.8em;
 		padding-left: 0.6em;
 	}
-	.xl\:prose-2xl tbody td:first-child {
+	.xl\:gr-prose-2xl tbody td:first-child {
 		padding-left: 0;
 	}
-	.xl\:prose-2xl tbody td:last-child {
+	.xl\:gr-prose-2xl tbody td:last-child {
 		padding-right: 0;
 	}
-	.xl\:prose-2xl > :first-child {
+	.xl\:gr-prose-2xl > :first-child {
 		margin-top: 0;
 	}
-	.xl\:prose-2xl > :last-child {
+	.xl\:gr-prose-2xl > :last-child {
 		margin-bottom: 0;
 	}
-	.xl\:prose-red a {
+	.xl\:gr-prose-red a {
 		color: #dc2626;
 	}
-	.xl\:prose-red a code {
+	.xl\:gr-prose-red a code {
 		color: #dc2626;
 	}
-	.xl\:prose-yellow a {
+	.xl\:gr-prose-yellow a {
 		color: #d97706;
 	}
-	.xl\:prose-yellow a code {
+	.xl\:gr-prose-yellow a code {
 		color: #d97706;
 	}
-	.xl\:prose-green a {
+	.xl\:gr-prose-green a {
 		color: #059669;
 	}
-	.xl\:prose-green a code {
+	.xl\:gr-prose-green a code {
 		color: #059669;
 	}
-	.xl\:prose-blue a {
+	.xl\:gr-prose-blue a {
 		color: #2563eb;
 	}
-	.xl\:prose-blue a code {
+	.xl\:gr-prose-blue a code {
 		color: #2563eb;
 	}
-	.xl\:prose-indigo a {
+	.xl\:gr-prose-indigo a {
 		color: #4f46e5;
 	}
-	.xl\:prose-indigo a code {
+	.xl\:gr-prose-indigo a code {
 		color: #4f46e5;
 	}
-	.xl\:prose-purple a {
+	.xl\:gr-prose-purple a {
 		color: #7c3aed;
 	}
-	.xl\:prose-purple a code {
+	.xl\:gr-prose-purple a code {
 		color: #7c3aed;
 	}
-	.xl\:prose-pink a {
+	.xl\:gr-prose-pink a {
 		color: #db2777;
 	}
-	.xl\:prose-pink a code {
+	.xl\:gr-prose-pink a code {
 		color: #db2777;
 	}
 }
 @media (min-width: 1536px) {
-	.\32xl\:prose {
+	.\32xl\:gr-prose {
 		color: #374151;
 		max-width: 65ch;
 	}
-	.\32xl\:prose [class~="lead"] {
+	.\32xl\:gr-prose [class~="lead"] {
 		color: #4b5563;
 		font-size: 1.25em;
 		line-height: 1.6;
 		margin-top: 1.2em;
 		margin-bottom: 1.2em;
 	}
-	.\32xl\:prose a {
+	.\32xl\:gr-prose a {
 		color: #111827;
 		text-decoration: underline;
 		font-weight: 500;
 	}
-	.\32xl\:prose strong {
+	.\32xl\:gr-prose strong {
 		color: #111827;
 		font-weight: 600;
 	}
-	.\32xl\:prose ol[type="A"] {
+	.\32xl\:gr-prose ol[type="A"] {
 		--list-counter-style: upper-alpha;
 	}
-	.\32xl\:prose ol[type="a"] {
+	.\32xl\:gr-prose ol[type="a"] {
 		--list-counter-style: lower-alpha;
 	}
-	.\32xl\:prose ol[type="A"s] {
+	.\32xl\:gr-prose ol[type="A"s] {
 		--list-counter-style: upper-alpha;
 	}
-	.\32xl\:prose ol[type="a"s] {
+	.\32xl\:gr-prose ol[type="a"s] {
 		--list-counter-style: lower-alpha;
 	}
-	.\32xl\:prose ol[type="I"] {
+	.\32xl\:gr-prose ol[type="I"] {
 		--list-counter-style: upper-roman;
 	}
-	.\32xl\:prose ol[type="i"] {
+	.\32xl\:gr-prose ol[type="i"] {
 		--list-counter-style: lower-roman;
 	}
-	.\32xl\:prose ol[type="I"s] {
+	.\32xl\:gr-prose ol[type="I"s] {
 		--list-counter-style: upper-roman;
 	}
-	.\32xl\:prose ol[type="i"s] {
+	.\32xl\:gr-prose ol[type="i"s] {
 		--list-counter-style: lower-roman;
 	}
-	.\32xl\:prose ol[type="1"] {
+	.\32xl\:gr-prose ol[type="1"] {
 		--list-counter-style: decimal;
 	}
-	.\32xl\:prose ol > li {
+	.\32xl\:gr-prose ol > li {
 		position: relative;
 		padding-left: 1.75em;
 	}
-	.\32xl\:prose ol > li::before {
+	.\32xl\:gr-prose ol > li::before {
 		content: counter(list-item, var(--list-counter-style, decimal)) ".";
 		position: absolute;
 		font-weight: 400;
 		color: #6b7280;
 		left: 0;
 	}
-	.\32xl\:prose ul > li {
+	.\32xl\:gr-prose ul > li {
 		position: relative;
 		padding-left: 1.75em;
 	}
-	.\32xl\:prose ul > li::before {
+	.\32xl\:gr-prose ul > li::before {
 		content: "";
 		position: absolute;
 		background-color: #d1d5db;
@@ -5473,13 +5473,13 @@
 		top: calc(0.875em - 0.1875em);
 		left: 0.25em;
 	}
-	.\32xl\:prose hr {
+	.\32xl\:gr-prose hr {
 		border-color: #e5e7eb;
 		border-top-width: 1px;
 		margin-top: 3em;
 		margin-bottom: 3em;
 	}
-	.\32xl\:prose blockquote {
+	.\32xl\:gr-prose blockquote {
 		font-weight: 500;
 		font-style: italic;
 		color: #111827;
@@ -5490,13 +5490,13 @@
 		margin-bottom: 1.6em;
 		padding-left: 1em;
 	}
-	.\32xl\:prose blockquote p:first-of-type::before {
+	.\32xl\:gr-prose blockquote p:first-of-type::before {
 		content: open-quote;
 	}
-	.\32xl\:prose blockquote p:last-of-type::after {
+	.\32xl\:gr-prose blockquote p:last-of-type::after {
 		content: close-quote;
 	}
-	.\32xl\:prose h1 {
+	.\32xl\:gr-prose h1 {
 		color: #111827;
 		font-weight: 600;
 		font-size: 2.25em;
@@ -5504,7 +5504,7 @@
 		margin-bottom: 0.8888889em;
 		line-height: 1.1111111;
 	}
-	.\32xl\:prose h2 {
+	.\32xl\:gr-prose h2 {
 		color: #111827;
 		font-weight: 600;
 		font-size: 1.5em;
@@ -5512,7 +5512,7 @@
 		margin-bottom: 1em;
 		line-height: 1.3333333;
 	}
-	.\32xl\:prose h3 {
+	.\32xl\:gr-prose h3 {
 		color: #111827;
 		font-weight: 600;
 		font-size: 1.25em;
@@ -5520,34 +5520,34 @@
 		margin-bottom: 0.6em;
 		line-height: 1.6;
 	}
-	.\32xl\:prose h4 {
+	.\32xl\:gr-prose h4 {
 		color: #111827;
 		font-weight: 600;
 		margin-top: 1.5em;
 		margin-bottom: 0.5em;
 		line-height: 1.5;
 	}
-	.\32xl\:prose figure figcaption {
+	.\32xl\:gr-prose figure figcaption {
 		color: #6b7280;
 		font-size: 0.875em;
 		line-height: 1.4285714;
 		margin-top: 0.8571429em;
 	}
-	.\32xl\:prose code {
+	.\32xl\:gr-prose code {
 		color: #111827;
 		font-weight: 600;
 		font-size: 0.875em;
 	}
-	.\32xl\:prose code::before {
+	.\32xl\:gr-prose code::before {
 		content: "`";
 	}
-	.\32xl\:prose code::after {
+	.\32xl\:gr-prose code::after {
 		content: "`";
 	}
-	.\32xl\:prose a code {
+	.\32xl\:gr-prose a code {
 		color: #111827;
 	}
-	.\32xl\:prose pre {
+	.\32xl\:gr-prose pre {
 		color: #e5e7eb;
 		background-color: #1f2937;
 		overflow-x: auto;
@@ -5561,7 +5561,7 @@
 		padding-bottom: 0.8571429em;
 		padding-left: 1.1428571em;
 	}
-	.\32xl\:prose pre code {
+	.\32xl\:gr-prose pre code {
 		background-color: transparent;
 		border-width: 0;
 		border-radius: 0;
@@ -5572,13 +5572,13 @@
 		font-family: inherit;
 		line-height: inherit;
 	}
-	.\32xl\:prose pre code::before {
+	.\32xl\:gr-prose pre code::before {
 		content: none;
 	}
-	.\32xl\:prose pre code::after {
+	.\32xl\:gr-prose pre code::after {
 		content: none;
 	}
-	.\32xl\:prose table {
+	.\32xl\:gr-prose table {
 		width: 100%;
 		table-layout: auto;
 		text-align: left;
@@ -5587,200 +5587,200 @@
 		font-size: 0.875em;
 		line-height: 1.7142857;
 	}
-	.\32xl\:prose thead {
+	.\32xl\:gr-prose thead {
 		color: #111827;
 		font-weight: 600;
 		border-bottom-width: 1px;
 		border-bottom-color: #d1d5db;
 	}
-	.\32xl\:prose thead th {
+	.\32xl\:gr-prose thead th {
 		vertical-align: bottom;
 		padding-right: 0.5714286em;
 		padding-bottom: 0.5714286em;
 		padding-left: 0.5714286em;
 	}
-	.\32xl\:prose tbody tr {
+	.\32xl\:gr-prose tbody tr {
 		border-bottom-width: 1px;
 		border-bottom-color: #e5e7eb;
 	}
-	.\32xl\:prose tbody tr:last-child {
+	.\32xl\:gr-prose tbody tr:last-child {
 		border-bottom-width: 0;
 	}
-	.\32xl\:prose tbody td {
+	.\32xl\:gr-prose tbody td {
 		vertical-align: top;
 		padding-top: 0.5714286em;
 		padding-right: 0.5714286em;
 		padding-bottom: 0.5714286em;
 		padding-left: 0.5714286em;
 	}
-	.\32xl\:prose {
+	.\32xl\:gr-prose {
 		font-size: 1rem;
 		line-height: 1.75;
 	}
-	.\32xl\:prose p {
+	.\32xl\:gr-prose p {
 		margin-top: 1.25em;
 		margin-bottom: 1.25em;
 	}
-	.\32xl\:prose img {
+	.\32xl\:gr-prose img {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.\32xl\:prose video {
+	.\32xl\:gr-prose video {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.\32xl\:prose figure {
+	.\32xl\:gr-prose figure {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.\32xl\:prose figure > * {
+	.\32xl\:gr-prose figure > * {
 		margin-top: 0;
 		margin-bottom: 0;
 	}
-	.\32xl\:prose h2 code {
+	.\32xl\:gr-prose h2 code {
 		font-size: 0.875em;
 	}
-	.\32xl\:prose h3 code {
+	.\32xl\:gr-prose h3 code {
 		font-size: 0.9em;
 	}
-	.\32xl\:prose ol {
+	.\32xl\:gr-prose ol {
 		margin-top: 1.25em;
 		margin-bottom: 1.25em;
 	}
-	.\32xl\:prose ul {
+	.\32xl\:gr-prose ul {
 		margin-top: 1.25em;
 		margin-bottom: 1.25em;
 	}
-	.\32xl\:prose li {
+	.\32xl\:gr-prose li {
 		margin-top: 0.5em;
 		margin-bottom: 0.5em;
 	}
-	.\32xl\:prose > ul > li p {
+	.\32xl\:gr-prose > ul > li p {
 		margin-top: 0.75em;
 		margin-bottom: 0.75em;
 	}
-	.\32xl\:prose > ul > li > :first-child {
+	.\32xl\:gr-prose > ul > li > :first-child {
 		margin-top: 1.25em;
 	}
-	.\32xl\:prose > ul > li > :last-child {
+	.\32xl\:gr-prose > ul > li > :last-child {
 		margin-bottom: 1.25em;
 	}
-	.\32xl\:prose > ol > li > :first-child {
+	.\32xl\:gr-prose > ol > li > :first-child {
 		margin-top: 1.25em;
 	}
-	.\32xl\:prose > ol > li > :last-child {
+	.\32xl\:gr-prose > ol > li > :last-child {
 		margin-bottom: 1.25em;
 	}
-	.\32xl\:prose ol ol,
-	.\32xl\:prose ol ul,
-	.\32xl\:prose ul ol,
-	.\32xl\:prose ul ul {
+	.\32xl\:gr-prose ol ol,
+	.\32xl\:gr-prose ol ul,
+	.\32xl\:gr-prose ul ol,
+	.\32xl\:gr-prose ul ul {
 		margin-top: 0.75em;
 		margin-bottom: 0.75em;
 	}
-	.\32xl\:prose hr + * {
+	.\32xl\:gr-prose hr + * {
 		margin-top: 0;
 	}
-	.\32xl\:prose h2 + * {
+	.\32xl\:gr-prose h2 + * {
 		margin-top: 0;
 	}
-	.\32xl\:prose h3 + * {
+	.\32xl\:gr-prose h3 + * {
 		margin-top: 0;
 	}
-	.\32xl\:prose h4 + * {
+	.\32xl\:gr-prose h4 + * {
 		margin-top: 0;
 	}
-	.\32xl\:prose thead th:first-child {
+	.\32xl\:gr-prose thead th:first-child {
 		padding-left: 0;
 	}
-	.\32xl\:prose thead th:last-child {
+	.\32xl\:gr-prose thead th:last-child {
 		padding-right: 0;
 	}
-	.\32xl\:prose tbody td:first-child {
+	.\32xl\:gr-prose tbody td:first-child {
 		padding-left: 0;
 	}
-	.\32xl\:prose tbody td:last-child {
+	.\32xl\:gr-prose tbody td:last-child {
 		padding-right: 0;
 	}
-	.\32xl\:prose > :first-child {
+	.\32xl\:gr-prose > :first-child {
 		margin-top: 0;
 	}
-	.\32xl\:prose > :last-child {
+	.\32xl\:gr-prose > :last-child {
 		margin-bottom: 0;
 	}
-	.\32xl\:prose-sm {
+	.\32xl\:gr-prose-sm {
 		font-size: 0.875rem;
 		line-height: 1.7142857;
 	}
-	.\32xl\:prose-sm p {
+	.\32xl\:gr-prose-sm p {
 		margin-top: 1.1428571em;
 		margin-bottom: 1.1428571em;
 	}
-	.\32xl\:prose-sm [class~="lead"] {
+	.\32xl\:gr-prose-sm [class~="lead"] {
 		font-size: 1.2857143em;
 		line-height: 1.5555556;
 		margin-top: 0.8888889em;
 		margin-bottom: 0.8888889em;
 	}
-	.\32xl\:prose-sm blockquote {
+	.\32xl\:gr-prose-sm blockquote {
 		margin-top: 1.3333333em;
 		margin-bottom: 1.3333333em;
 		padding-left: 1.1111111em;
 	}
-	.\32xl\:prose-sm h1 {
+	.\32xl\:gr-prose-sm h1 {
 		font-size: 2.1428571em;
 		margin-top: 0;
 		margin-bottom: 0.8em;
 		line-height: 1.2;
 	}
-	.\32xl\:prose-sm h2 {
+	.\32xl\:gr-prose-sm h2 {
 		font-size: 1.4285714em;
 		margin-top: 1.6em;
 		margin-bottom: 0.8em;
 		line-height: 1.4;
 	}
-	.\32xl\:prose-sm h3 {
+	.\32xl\:gr-prose-sm h3 {
 		font-size: 1.2857143em;
 		margin-top: 1.5555556em;
 		margin-bottom: 0.4444444em;
 		line-height: 1.5555556;
 	}
-	.\32xl\:prose-sm h4 {
+	.\32xl\:gr-prose-sm h4 {
 		margin-top: 1.4285714em;
 		margin-bottom: 0.5714286em;
 		line-height: 1.4285714;
 	}
-	.\32xl\:prose-sm img {
+	.\32xl\:gr-prose-sm img {
 		margin-top: 1.7142857em;
 		margin-bottom: 1.7142857em;
 	}
-	.\32xl\:prose-sm video {
+	.\32xl\:gr-prose-sm video {
 		margin-top: 1.7142857em;
 		margin-bottom: 1.7142857em;
 	}
-	.\32xl\:prose-sm figure {
+	.\32xl\:gr-prose-sm figure {
 		margin-top: 1.7142857em;
 		margin-bottom: 1.7142857em;
 	}
-	.\32xl\:prose-sm figure > * {
+	.\32xl\:gr-prose-sm figure > * {
 		margin-top: 0;
 		margin-bottom: 0;
 	}
-	.\32xl\:prose-sm figure figcaption {
+	.\32xl\:gr-prose-sm figure figcaption {
 		font-size: 0.8571429em;
 		line-height: 1.3333333;
 		margin-top: 0.6666667em;
 	}
-	.\32xl\:prose-sm code {
+	.\32xl\:gr-prose-sm code {
 		font-size: 0.8571429em;
 	}
-	.\32xl\:prose-sm h2 code {
+	.\32xl\:gr-prose-sm h2 code {
 		font-size: 0.9em;
 	}
-	.\32xl\:prose-sm h3 code {
+	.\32xl\:gr-prose-sm h3 code {
 		font-size: 0.8888889em;
 	}
-	.\32xl\:prose-sm pre {
+	.\32xl\:gr-prose-sm pre {
 		font-size: 0.8571429em;
 		line-height: 1.6666667;
 		margin-top: 1.6666667em;
@@ -5791,178 +5791,178 @@
 		padding-bottom: 0.6666667em;
 		padding-left: 1em;
 	}
-	.\32xl\:prose-sm ol {
+	.\32xl\:gr-prose-sm ol {
 		margin-top: 1.1428571em;
 		margin-bottom: 1.1428571em;
 	}
-	.\32xl\:prose-sm ul {
+	.\32xl\:gr-prose-sm ul {
 		margin-top: 1.1428571em;
 		margin-bottom: 1.1428571em;
 	}
-	.\32xl\:prose-sm li {
+	.\32xl\:gr-prose-sm li {
 		margin-top: 0.2857143em;
 		margin-bottom: 0.2857143em;
 	}
-	.\32xl\:prose-sm ol > li {
+	.\32xl\:gr-prose-sm ol > li {
 		padding-left: 1.5714286em;
 	}
-	.\32xl\:prose-sm ol > li::before {
+	.\32xl\:gr-prose-sm ol > li::before {
 		left: 0;
 	}
-	.\32xl\:prose-sm ul > li {
+	.\32xl\:gr-prose-sm ul > li {
 		padding-left: 1.5714286em;
 	}
-	.\32xl\:prose-sm ul > li::before {
+	.\32xl\:gr-prose-sm ul > li::before {
 		height: 0.3571429em;
 		width: 0.3571429em;
 		top: calc(0.8571429em - 0.1785714em);
 		left: 0.2142857em;
 	}
-	.\32xl\:prose-sm > ul > li p {
+	.\32xl\:gr-prose-sm > ul > li p {
 		margin-top: 0.5714286em;
 		margin-bottom: 0.5714286em;
 	}
-	.\32xl\:prose-sm > ul > li > :first-child {
+	.\32xl\:gr-prose-sm > ul > li > :first-child {
 		margin-top: 1.1428571em;
 	}
-	.\32xl\:prose-sm > ul > li > :last-child {
+	.\32xl\:gr-prose-sm > ul > li > :last-child {
 		margin-bottom: 1.1428571em;
 	}
-	.\32xl\:prose-sm > ol > li > :first-child {
+	.\32xl\:gr-prose-sm > ol > li > :first-child {
 		margin-top: 1.1428571em;
 	}
-	.\32xl\:prose-sm > ol > li > :last-child {
+	.\32xl\:gr-prose-sm > ol > li > :last-child {
 		margin-bottom: 1.1428571em;
 	}
-	.\32xl\:prose-sm ol ol,
-	.\32xl\:prose-sm ol ul,
-	.\32xl\:prose-sm ul ol,
-	.\32xl\:prose-sm ul ul {
+	.\32xl\:gr-prose-sm ol ol,
+	.\32xl\:gr-prose-sm ol ul,
+	.\32xl\:gr-prose-sm ul ol,
+	.\32xl\:gr-prose-sm ul ul {
 		margin-top: 0.5714286em;
 		margin-bottom: 0.5714286em;
 	}
-	.\32xl\:prose-sm hr {
+	.\32xl\:gr-prose-sm hr {
 		margin-top: 2.8571429em;
 		margin-bottom: 2.8571429em;
 	}
-	.\32xl\:prose-sm hr + * {
+	.\32xl\:gr-prose-sm hr + * {
 		margin-top: 0;
 	}
-	.\32xl\:prose-sm h2 + * {
+	.\32xl\:gr-prose-sm h2 + * {
 		margin-top: 0;
 	}
-	.\32xl\:prose-sm h3 + * {
+	.\32xl\:gr-prose-sm h3 + * {
 		margin-top: 0;
 	}
-	.\32xl\:prose-sm h4 + * {
+	.\32xl\:gr-prose-sm h4 + * {
 		margin-top: 0;
 	}
-	.\32xl\:prose-sm table {
+	.\32xl\:gr-prose-sm table {
 		font-size: 0.8571429em;
 		line-height: 1.5;
 	}
-	.\32xl\:prose-sm thead th {
+	.\32xl\:gr-prose-sm thead th {
 		padding-right: 1em;
 		padding-bottom: 0.6666667em;
 		padding-left: 1em;
 	}
-	.\32xl\:prose-sm thead th:first-child {
+	.\32xl\:gr-prose-sm thead th:first-child {
 		padding-left: 0;
 	}
-	.\32xl\:prose-sm thead th:last-child {
+	.\32xl\:gr-prose-sm thead th:last-child {
 		padding-right: 0;
 	}
-	.\32xl\:prose-sm tbody td {
+	.\32xl\:gr-prose-sm tbody td {
 		padding-top: 0.6666667em;
 		padding-right: 1em;
 		padding-bottom: 0.6666667em;
 		padding-left: 1em;
 	}
-	.\32xl\:prose-sm tbody td:first-child {
+	.\32xl\:gr-prose-sm tbody td:first-child {
 		padding-left: 0;
 	}
-	.\32xl\:prose-sm tbody td:last-child {
+	.\32xl\:gr-prose-sm tbody td:last-child {
 		padding-right: 0;
 	}
-	.\32xl\:prose-sm > :first-child {
+	.\32xl\:gr-prose-sm > :first-child {
 		margin-top: 0;
 	}
-	.\32xl\:prose-sm > :last-child {
+	.\32xl\:gr-prose-sm > :last-child {
 		margin-bottom: 0;
 	}
-	.\32xl\:prose-lg {
+	.\32xl\:gr-prose-lg {
 		font-size: 1.125rem;
 		line-height: 1.7777778;
 	}
-	.\32xl\:prose-lg p {
+	.\32xl\:gr-prose-lg p {
 		margin-top: 1.3333333em;
 		margin-bottom: 1.3333333em;
 	}
-	.\32xl\:prose-lg [class~="lead"] {
+	.\32xl\:gr-prose-lg [class~="lead"] {
 		font-size: 1.2222222em;
 		line-height: 1.4545455;
 		margin-top: 1.0909091em;
 		margin-bottom: 1.0909091em;
 	}
-	.\32xl\:prose-lg blockquote {
+	.\32xl\:gr-prose-lg blockquote {
 		margin-top: 1.6666667em;
 		margin-bottom: 1.6666667em;
 		padding-left: 1em;
 	}
-	.\32xl\:prose-lg h1 {
+	.\32xl\:gr-prose-lg h1 {
 		font-size: 2.6666667em;
 		margin-top: 0;
 		margin-bottom: 0.8333333em;
 		line-height: 1;
 	}
-	.\32xl\:prose-lg h2 {
+	.\32xl\:gr-prose-lg h2 {
 		font-size: 1.6666667em;
 		margin-top: 1.8666667em;
 		margin-bottom: 1.0666667em;
 		line-height: 1.3333333;
 	}
-	.\32xl\:prose-lg h3 {
+	.\32xl\:gr-prose-lg h3 {
 		font-size: 1.3333333em;
 		margin-top: 1.6666667em;
 		margin-bottom: 0.6666667em;
 		line-height: 1.5;
 	}
-	.\32xl\:prose-lg h4 {
+	.\32xl\:gr-prose-lg h4 {
 		margin-top: 1.7777778em;
 		margin-bottom: 0.4444444em;
 		line-height: 1.5555556;
 	}
-	.\32xl\:prose-lg img {
+	.\32xl\:gr-prose-lg img {
 		margin-top: 1.7777778em;
 		margin-bottom: 1.7777778em;
 	}
-	.\32xl\:prose-lg video {
+	.\32xl\:gr-prose-lg video {
 		margin-top: 1.7777778em;
 		margin-bottom: 1.7777778em;
 	}
-	.\32xl\:prose-lg figure {
+	.\32xl\:gr-prose-lg figure {
 		margin-top: 1.7777778em;
 		margin-bottom: 1.7777778em;
 	}
-	.\32xl\:prose-lg figure > * {
+	.\32xl\:gr-prose-lg figure > * {
 		margin-top: 0;
 		margin-bottom: 0;
 	}
-	.\32xl\:prose-lg figure figcaption {
+	.\32xl\:gr-prose-lg figure figcaption {
 		font-size: 0.8888889em;
 		line-height: 1.5;
 		margin-top: 1em;
 	}
-	.\32xl\:prose-lg code {
+	.\32xl\:gr-prose-lg code {
 		font-size: 0.8888889em;
 	}
-	.\32xl\:prose-lg h2 code {
+	.\32xl\:gr-prose-lg h2 code {
 		font-size: 0.8666667em;
 	}
-	.\32xl\:prose-lg h3 code {
+	.\32xl\:gr-prose-lg h3 code {
 		font-size: 0.875em;
 	}
-	.\32xl\:prose-lg pre {
+	.\32xl\:gr-prose-lg pre {
 		font-size: 0.8888889em;
 		line-height: 1.75;
 		margin-top: 2em;
@@ -5973,178 +5973,178 @@
 		padding-bottom: 1em;
 		padding-left: 1.5em;
 	}
-	.\32xl\:prose-lg ol {
+	.\32xl\:gr-prose-lg ol {
 		margin-top: 1.3333333em;
 		margin-bottom: 1.3333333em;
 	}
-	.\32xl\:prose-lg ul {
+	.\32xl\:gr-prose-lg ul {
 		margin-top: 1.3333333em;
 		margin-bottom: 1.3333333em;
 	}
-	.\32xl\:prose-lg li {
+	.\32xl\:gr-prose-lg li {
 		margin-top: 0.6666667em;
 		margin-bottom: 0.6666667em;
 	}
-	.\32xl\:prose-lg ol > li {
+	.\32xl\:gr-prose-lg ol > li {
 		padding-left: 1.6666667em;
 	}
-	.\32xl\:prose-lg ol > li::before {
+	.\32xl\:gr-prose-lg ol > li::before {
 		left: 0;
 	}
-	.\32xl\:prose-lg ul > li {
+	.\32xl\:gr-prose-lg ul > li {
 		padding-left: 1.6666667em;
 	}
-	.\32xl\:prose-lg ul > li::before {
+	.\32xl\:gr-prose-lg ul > li::before {
 		width: 0.3333333em;
 		height: 0.3333333em;
 		top: calc(0.8888889em - 0.1666667em);
 		left: 0.2222222em;
 	}
-	.\32xl\:prose-lg > ul > li p {
+	.\32xl\:gr-prose-lg > ul > li p {
 		margin-top: 0.8888889em;
 		margin-bottom: 0.8888889em;
 	}
-	.\32xl\:prose-lg > ul > li > :first-child {
+	.\32xl\:gr-prose-lg > ul > li > :first-child {
 		margin-top: 1.3333333em;
 	}
-	.\32xl\:prose-lg > ul > li > :last-child {
+	.\32xl\:gr-prose-lg > ul > li > :last-child {
 		margin-bottom: 1.3333333em;
 	}
-	.\32xl\:prose-lg > ol > li > :first-child {
+	.\32xl\:gr-prose-lg > ol > li > :first-child {
 		margin-top: 1.3333333em;
 	}
-	.\32xl\:prose-lg > ol > li > :last-child {
+	.\32xl\:gr-prose-lg > ol > li > :last-child {
 		margin-bottom: 1.3333333em;
 	}
-	.\32xl\:prose-lg ol ol,
-	.\32xl\:prose-lg ol ul,
-	.\32xl\:prose-lg ul ol,
-	.\32xl\:prose-lg ul ul {
+	.\32xl\:gr-prose-lg ol ol,
+	.\32xl\:gr-prose-lg ol ul,
+	.\32xl\:gr-prose-lg ul ol,
+	.\32xl\:gr-prose-lg ul ul {
 		margin-top: 0.8888889em;
 		margin-bottom: 0.8888889em;
 	}
-	.\32xl\:prose-lg hr {
+	.\32xl\:gr-prose-lg hr {
 		margin-top: 3.1111111em;
 		margin-bottom: 3.1111111em;
 	}
-	.\32xl\:prose-lg hr + * {
+	.\32xl\:gr-prose-lg hr + * {
 		margin-top: 0;
 	}
-	.\32xl\:prose-lg h2 + * {
+	.\32xl\:gr-prose-lg h2 + * {
 		margin-top: 0;
 	}
-	.\32xl\:prose-lg h3 + * {
+	.\32xl\:gr-prose-lg h3 + * {
 		margin-top: 0;
 	}
-	.\32xl\:prose-lg h4 + * {
+	.\32xl\:gr-prose-lg h4 + * {
 		margin-top: 0;
 	}
-	.\32xl\:prose-lg table {
+	.\32xl\:gr-prose-lg table {
 		font-size: 0.8888889em;
 		line-height: 1.5;
 	}
-	.\32xl\:prose-lg thead th {
+	.\32xl\:gr-prose-lg thead th {
 		padding-right: 0.75em;
 		padding-bottom: 0.75em;
 		padding-left: 0.75em;
 	}
-	.\32xl\:prose-lg thead th:first-child {
+	.\32xl\:gr-prose-lg thead th:first-child {
 		padding-left: 0;
 	}
-	.\32xl\:prose-lg thead th:last-child {
+	.\32xl\:gr-prose-lg thead th:last-child {
 		padding-right: 0;
 	}
-	.\32xl\:prose-lg tbody td {
+	.\32xl\:gr-prose-lg tbody td {
 		padding-top: 0.75em;
 		padding-right: 0.75em;
 		padding-bottom: 0.75em;
 		padding-left: 0.75em;
 	}
-	.\32xl\:prose-lg tbody td:first-child {
+	.\32xl\:gr-prose-lg tbody td:first-child {
 		padding-left: 0;
 	}
-	.\32xl\:prose-lg tbody td:last-child {
+	.\32xl\:gr-prose-lg tbody td:last-child {
 		padding-right: 0;
 	}
-	.\32xl\:prose-lg > :first-child {
+	.\32xl\:gr-prose-lg > :first-child {
 		margin-top: 0;
 	}
-	.\32xl\:prose-lg > :last-child {
+	.\32xl\:gr-prose-lg > :last-child {
 		margin-bottom: 0;
 	}
-	.\32xl\:prose-xl {
+	.\32xl\:gr-prose-xl {
 		font-size: 1.25rem;
 		line-height: 1.8;
 	}
-	.\32xl\:prose-xl p {
+	.\32xl\:gr-prose-xl p {
 		margin-top: 1.2em;
 		margin-bottom: 1.2em;
 	}
-	.\32xl\:prose-xl [class~="lead"] {
+	.\32xl\:gr-prose-xl [class~="lead"] {
 		font-size: 1.2em;
 		line-height: 1.5;
 		margin-top: 1em;
 		margin-bottom: 1em;
 	}
-	.\32xl\:prose-xl blockquote {
+	.\32xl\:gr-prose-xl blockquote {
 		margin-top: 1.6em;
 		margin-bottom: 1.6em;
 		padding-left: 1.0666667em;
 	}
-	.\32xl\:prose-xl h1 {
+	.\32xl\:gr-prose-xl h1 {
 		font-size: 2.8em;
 		margin-top: 0;
 		margin-bottom: 0.8571429em;
 		line-height: 1;
 	}
-	.\32xl\:prose-xl h2 {
+	.\32xl\:gr-prose-xl h2 {
 		font-size: 1.8em;
 		margin-top: 1.5555556em;
 		margin-bottom: 0.8888889em;
 		line-height: 1.1111111;
 	}
-	.\32xl\:prose-xl h3 {
+	.\32xl\:gr-prose-xl h3 {
 		font-size: 1.5em;
 		margin-top: 1.6em;
 		margin-bottom: 0.6666667em;
 		line-height: 1.3333333;
 	}
-	.\32xl\:prose-xl h4 {
+	.\32xl\:gr-prose-xl h4 {
 		margin-top: 1.8em;
 		margin-bottom: 0.6em;
 		line-height: 1.6;
 	}
-	.\32xl\:prose-xl img {
+	.\32xl\:gr-prose-xl img {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.\32xl\:prose-xl video {
+	.\32xl\:gr-prose-xl video {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.\32xl\:prose-xl figure {
+	.\32xl\:gr-prose-xl figure {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.\32xl\:prose-xl figure > * {
+	.\32xl\:gr-prose-xl figure > * {
 		margin-top: 0;
 		margin-bottom: 0;
 	}
-	.\32xl\:prose-xl figure figcaption {
+	.\32xl\:gr-prose-xl figure figcaption {
 		font-size: 0.9em;
 		line-height: 1.5555556;
 		margin-top: 1em;
 	}
-	.\32xl\:prose-xl code {
+	.\32xl\:gr-prose-xl code {
 		font-size: 0.9em;
 	}
-	.\32xl\:prose-xl h2 code {
+	.\32xl\:gr-prose-xl h2 code {
 		font-size: 0.8611111em;
 	}
-	.\32xl\:prose-xl h3 code {
+	.\32xl\:gr-prose-xl h3 code {
 		font-size: 0.9em;
 	}
-	.\32xl\:prose-xl pre {
+	.\32xl\:gr-prose-xl pre {
 		font-size: 0.9em;
 		line-height: 1.7777778;
 		margin-top: 2em;
@@ -6155,178 +6155,178 @@
 		padding-bottom: 1.1111111em;
 		padding-left: 1.3333333em;
 	}
-	.\32xl\:prose-xl ol {
+	.\32xl\:gr-prose-xl ol {
 		margin-top: 1.2em;
 		margin-bottom: 1.2em;
 	}
-	.\32xl\:prose-xl ul {
+	.\32xl\:gr-prose-xl ul {
 		margin-top: 1.2em;
 		margin-bottom: 1.2em;
 	}
-	.\32xl\:prose-xl li {
+	.\32xl\:gr-prose-xl li {
 		margin-top: 0.6em;
 		margin-bottom: 0.6em;
 	}
-	.\32xl\:prose-xl ol > li {
+	.\32xl\:gr-prose-xl ol > li {
 		padding-left: 1.8em;
 	}
-	.\32xl\:prose-xl ol > li::before {
+	.\32xl\:gr-prose-xl ol > li::before {
 		left: 0;
 	}
-	.\32xl\:prose-xl ul > li {
+	.\32xl\:gr-prose-xl ul > li {
 		padding-left: 1.8em;
 	}
-	.\32xl\:prose-xl ul > li::before {
+	.\32xl\:gr-prose-xl ul > li::before {
 		width: 0.35em;
 		height: 0.35em;
 		top: calc(0.9em - 0.175em);
 		left: 0.25em;
 	}
-	.\32xl\:prose-xl > ul > li p {
+	.\32xl\:gr-prose-xl > ul > li p {
 		margin-top: 0.8em;
 		margin-bottom: 0.8em;
 	}
-	.\32xl\:prose-xl > ul > li > :first-child {
+	.\32xl\:gr-prose-xl > ul > li > :first-child {
 		margin-top: 1.2em;
 	}
-	.\32xl\:prose-xl > ul > li > :last-child {
+	.\32xl\:gr-prose-xl > ul > li > :last-child {
 		margin-bottom: 1.2em;
 	}
-	.\32xl\:prose-xl > ol > li > :first-child {
+	.\32xl\:gr-prose-xl > ol > li > :first-child {
 		margin-top: 1.2em;
 	}
-	.\32xl\:prose-xl > ol > li > :last-child {
+	.\32xl\:gr-prose-xl > ol > li > :last-child {
 		margin-bottom: 1.2em;
 	}
-	.\32xl\:prose-xl ol ol,
-	.\32xl\:prose-xl ol ul,
-	.\32xl\:prose-xl ul ol,
-	.\32xl\:prose-xl ul ul {
+	.\32xl\:gr-prose-xl ol ol,
+	.\32xl\:gr-prose-xl ol ul,
+	.\32xl\:gr-prose-xl ul ol,
+	.\32xl\:gr-prose-xl ul ul {
 		margin-top: 0.8em;
 		margin-bottom: 0.8em;
 	}
-	.\32xl\:prose-xl hr {
+	.\32xl\:gr-prose-xl hr {
 		margin-top: 2.8em;
 		margin-bottom: 2.8em;
 	}
-	.\32xl\:prose-xl hr + * {
+	.\32xl\:gr-prose-xl hr + * {
 		margin-top: 0;
 	}
-	.\32xl\:prose-xl h2 + * {
+	.\32xl\:gr-prose-xl h2 + * {
 		margin-top: 0;
 	}
-	.\32xl\:prose-xl h3 + * {
+	.\32xl\:gr-prose-xl h3 + * {
 		margin-top: 0;
 	}
-	.\32xl\:prose-xl h4 + * {
+	.\32xl\:gr-prose-xl h4 + * {
 		margin-top: 0;
 	}
-	.\32xl\:prose-xl table {
+	.\32xl\:gr-prose-xl table {
 		font-size: 0.9em;
 		line-height: 1.5555556;
 	}
-	.\32xl\:prose-xl thead th {
+	.\32xl\:gr-prose-xl thead th {
 		padding-right: 0.6666667em;
 		padding-bottom: 0.8888889em;
 		padding-left: 0.6666667em;
 	}
-	.\32xl\:prose-xl thead th:first-child {
+	.\32xl\:gr-prose-xl thead th:first-child {
 		padding-left: 0;
 	}
-	.\32xl\:prose-xl thead th:last-child {
+	.\32xl\:gr-prose-xl thead th:last-child {
 		padding-right: 0;
 	}
-	.\32xl\:prose-xl tbody td {
+	.\32xl\:gr-prose-xl tbody td {
 		padding-top: 0.8888889em;
 		padding-right: 0.6666667em;
 		padding-bottom: 0.8888889em;
 		padding-left: 0.6666667em;
 	}
-	.\32xl\:prose-xl tbody td:first-child {
+	.\32xl\:gr-prose-xl tbody td:first-child {
 		padding-left: 0;
 	}
-	.\32xl\:prose-xl tbody td:last-child {
+	.\32xl\:gr-prose-xl tbody td:last-child {
 		padding-right: 0;
 	}
-	.\32xl\:prose-xl > :first-child {
+	.\32xl\:gr-prose-xl > :first-child {
 		margin-top: 0;
 	}
-	.\32xl\:prose-xl > :last-child {
+	.\32xl\:gr-prose-xl > :last-child {
 		margin-bottom: 0;
 	}
-	.\32xl\:prose-2xl {
+	.\32xl\:gr-prose-2xl {
 		font-size: 1.5rem;
 		line-height: 1.6666667;
 	}
-	.\32xl\:prose-2xl p {
+	.\32xl\:gr-prose-2xl p {
 		margin-top: 1.3333333em;
 		margin-bottom: 1.3333333em;
 	}
-	.\32xl\:prose-2xl [class~="lead"] {
+	.\32xl\:gr-prose-2xl [class~="lead"] {
 		font-size: 1.25em;
 		line-height: 1.4666667;
 		margin-top: 1.0666667em;
 		margin-bottom: 1.0666667em;
 	}
-	.\32xl\:prose-2xl blockquote {
+	.\32xl\:gr-prose-2xl blockquote {
 		margin-top: 1.7777778em;
 		margin-bottom: 1.7777778em;
 		padding-left: 1.1111111em;
 	}
-	.\32xl\:prose-2xl h1 {
+	.\32xl\:gr-prose-2xl h1 {
 		font-size: 2.6666667em;
 		margin-top: 0;
 		margin-bottom: 0.875em;
 		line-height: 1;
 	}
-	.\32xl\:prose-2xl h2 {
+	.\32xl\:gr-prose-2xl h2 {
 		font-size: 2em;
 		margin-top: 1.5em;
 		margin-bottom: 0.8333333em;
 		line-height: 1.0833333;
 	}
-	.\32xl\:prose-2xl h3 {
+	.\32xl\:gr-prose-2xl h3 {
 		font-size: 1.5em;
 		margin-top: 1.5555556em;
 		margin-bottom: 0.6666667em;
 		line-height: 1.2222222;
 	}
-	.\32xl\:prose-2xl h4 {
+	.\32xl\:gr-prose-2xl h4 {
 		margin-top: 1.6666667em;
 		margin-bottom: 0.6666667em;
 		line-height: 1.5;
 	}
-	.\32xl\:prose-2xl img {
+	.\32xl\:gr-prose-2xl img {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.\32xl\:prose-2xl video {
+	.\32xl\:gr-prose-2xl video {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.\32xl\:prose-2xl figure {
+	.\32xl\:gr-prose-2xl figure {
 		margin-top: 2em;
 		margin-bottom: 2em;
 	}
-	.\32xl\:prose-2xl figure > * {
+	.\32xl\:gr-prose-2xl figure > * {
 		margin-top: 0;
 		margin-bottom: 0;
 	}
-	.\32xl\:prose-2xl figure figcaption {
+	.\32xl\:gr-prose-2xl figure figcaption {
 		font-size: 0.8333333em;
 		line-height: 1.6;
 		margin-top: 1em;
 	}
-	.\32xl\:prose-2xl code {
+	.\32xl\:gr-prose-2xl code {
 		font-size: 0.8333333em;
 	}
-	.\32xl\:prose-2xl h2 code {
+	.\32xl\:gr-prose-2xl h2 code {
 		font-size: 0.875em;
 	}
-	.\32xl\:prose-2xl h3 code {
+	.\32xl\:gr-prose-2xl h3 code {
 		font-size: 0.8888889em;
 	}
-	.\32xl\:prose-2xl pre {
+	.\32xl\:gr-prose-2xl pre {
 		font-size: 0.8333333em;
 		line-height: 1.8;
 		margin-top: 2em;
@@ -6337,145 +6337,145 @@
 		padding-bottom: 1.2em;
 		padding-left: 1.6em;
 	}
-	.\32xl\:prose-2xl ol {
+	.\32xl\:gr-prose-2xl ol {
 		margin-top: 1.3333333em;
 		margin-bottom: 1.3333333em;
 	}
-	.\32xl\:prose-2xl ul {
+	.\32xl\:gr-prose-2xl ul {
 		margin-top: 1.3333333em;
 		margin-bottom: 1.3333333em;
 	}
-	.\32xl\:prose-2xl li {
+	.\32xl\:gr-prose-2xl li {
 		margin-top: 0.5em;
 		margin-bottom: 0.5em;
 	}
-	.\32xl\:prose-2xl ol > li {
+	.\32xl\:gr-prose-2xl ol > li {
 		padding-left: 1.6666667em;
 	}
-	.\32xl\:prose-2xl ol > li::before {
+	.\32xl\:gr-prose-2xl ol > li::before {
 		left: 0;
 	}
-	.\32xl\:prose-2xl ul > li {
+	.\32xl\:gr-prose-2xl ul > li {
 		padding-left: 1.6666667em;
 	}
-	.\32xl\:prose-2xl ul > li::before {
+	.\32xl\:gr-prose-2xl ul > li::before {
 		width: 0.3333333em;
 		height: 0.3333333em;
 		top: calc(0.8333333em - 0.1666667em);
 		left: 0.25em;
 	}
-	.\32xl\:prose-2xl > ul > li p {
+	.\32xl\:gr-prose-2xl > ul > li p {
 		margin-top: 0.8333333em;
 		margin-bottom: 0.8333333em;
 	}
-	.\32xl\:prose-2xl > ul > li > :first-child {
+	.\32xl\:gr-prose-2xl > ul > li > :first-child {
 		margin-top: 1.3333333em;
 	}
-	.\32xl\:prose-2xl > ul > li > :last-child {
+	.\32xl\:gr-prose-2xl > ul > li > :last-child {
 		margin-bottom: 1.3333333em;
 	}
-	.\32xl\:prose-2xl > ol > li > :first-child {
+	.\32xl\:gr-prose-2xl > ol > li > :first-child {
 		margin-top: 1.3333333em;
 	}
-	.\32xl\:prose-2xl > ol > li > :last-child {
+	.\32xl\:gr-prose-2xl > ol > li > :last-child {
 		margin-bottom: 1.3333333em;
 	}
-	.\32xl\:prose-2xl ol ol,
-	.\32xl\:prose-2xl ol ul,
-	.\32xl\:prose-2xl ul ol,
-	.\32xl\:prose-2xl ul ul {
+	.\32xl\:gr-prose-2xl ol ol,
+	.\32xl\:gr-prose-2xl ol ul,
+	.\32xl\:gr-prose-2xl ul ol,
+	.\32xl\:gr-prose-2xl ul ul {
 		margin-top: 0.6666667em;
 		margin-bottom: 0.6666667em;
 	}
-	.\32xl\:prose-2xl hr {
+	.\32xl\:gr-prose-2xl hr {
 		margin-top: 3em;
 		margin-bottom: 3em;
 	}
-	.\32xl\:prose-2xl hr + * {
+	.\32xl\:gr-prose-2xl hr + * {
 		margin-top: 0;
 	}
-	.\32xl\:prose-2xl h2 + * {
+	.\32xl\:gr-prose-2xl h2 + * {
 		margin-top: 0;
 	}
-	.\32xl\:prose-2xl h3 + * {
+	.\32xl\:gr-prose-2xl h3 + * {
 		margin-top: 0;
 	}
-	.\32xl\:prose-2xl h4 + * {
+	.\32xl\:gr-prose-2xl h4 + * {
 		margin-top: 0;
 	}
-	.\32xl\:prose-2xl table {
+	.\32xl\:gr-prose-2xl table {
 		font-size: 0.8333333em;
 		line-height: 1.4;
 	}
-	.\32xl\:prose-2xl thead th {
+	.\32xl\:gr-prose-2xl thead th {
 		padding-right: 0.6em;
 		padding-bottom: 0.8em;
 		padding-left: 0.6em;
 	}
-	.\32xl\:prose-2xl thead th:first-child {
+	.\32xl\:gr-prose-2xl thead th:first-child {
 		padding-left: 0;
 	}
-	.\32xl\:prose-2xl thead th:last-child {
+	.\32xl\:gr-prose-2xl thead th:last-child {
 		padding-right: 0;
 	}
-	.\32xl\:prose-2xl tbody td {
+	.\32xl\:gr-prose-2xl tbody td {
 		padding-top: 0.8em;
 		padding-right: 0.6em;
 		padding-bottom: 0.8em;
 		padding-left: 0.6em;
 	}
-	.\32xl\:prose-2xl tbody td:first-child {
+	.\32xl\:gr-prose-2xl tbody td:first-child {
 		padding-left: 0;
 	}
-	.\32xl\:prose-2xl tbody td:last-child {
+	.\32xl\:gr-prose-2xl tbody td:last-child {
 		padding-right: 0;
 	}
-	.\32xl\:prose-2xl > :first-child {
+	.\32xl\:gr-prose-2xl > :first-child {
 		margin-top: 0;
 	}
-	.\32xl\:prose-2xl > :last-child {
+	.\32xl\:gr-prose-2xl > :last-child {
 		margin-bottom: 0;
 	}
-	.\32xl\:prose-red a {
+	.\32xl\:gr-prose-red a {
 		color: #dc2626;
 	}
-	.\32xl\:prose-red a code {
+	.\32xl\:gr-prose-red a code {
 		color: #dc2626;
 	}
-	.\32xl\:prose-yellow a {
+	.\32xl\:gr-prose-yellow a {
 		color: #d97706;
 	}
-	.\32xl\:prose-yellow a code {
+	.\32xl\:gr-prose-yellow a code {
 		color: #d97706;
 	}
-	.\32xl\:prose-green a {
+	.\32xl\:gr-prose-green a {
 		color: #059669;
 	}
-	.\32xl\:prose-green a code {
+	.\32xl\:gr-prose-green a code {
 		color: #059669;
 	}
-	.\32xl\:prose-blue a {
+	.\32xl\:gr-prose-blue a {
 		color: #2563eb;
 	}
-	.\32xl\:prose-blue a code {
+	.\32xl\:gr-prose-blue a code {
 		color: #2563eb;
 	}
-	.\32xl\:prose-indigo a {
+	.\32xl\:gr-prose-indigo a {
 		color: #4f46e5;
 	}
-	.\32xl\:prose-indigo a code {
+	.\32xl\:gr-prose-indigo a code {
 		color: #4f46e5;
 	}
-	.\32xl\:prose-purple a {
+	.\32xl\:gr-prose-purple a {
 		color: #7c3aed;
 	}
-	.\32xl\:prose-purple a code {
+	.\32xl\:gr-prose-purple a code {
 		color: #7c3aed;
 	}
-	.\32xl\:prose-pink a {
+	.\32xl\:gr-prose-pink a {
 		color: #db2777;
 	}
-	.\32xl\:prose-pink a code {
+	.\32xl\:gr-prose-pink a code {
 		color: #db2777;
 	}
 }

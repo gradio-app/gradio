@@ -15,7 +15,7 @@ RUN npm i pnpm@6 -g
 WORKDIR /gradio/ui
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN pnpm i
-RUN pnpm build
+RUN pnpm build:website
 WORKDIR /gradio
 COPY ./gradio ./gradio
 COPY ./setup.py ./setup.py
@@ -37,8 +37,8 @@ RUN npm install
 RUN npm run build
 WORKDIR /usr/share/nginx/html
 RUN rm -rf ./*
-RUN mkdir ./gradio_static/
-RUN cp -r /gradio/gradio/templates/frontend/. ./gradio_static/
+RUN cp -r /gradio/gradio/templates/cdn/assets/. ./assets/
+RUN cp -r /gradio/gradio/templates/cdn/static/. ./static/
 RUN cp -r /gradio/website/homepage/dist/. ./
 RUN cp /gradio/website/homepage/nginx.conf /etc/nginx/conf.d/default.conf
 

@@ -20,5 +20,13 @@
 <Block {form_position} {elem_id} {style}>
 	<StatusTracker {...loading_status} />
 
-	<Dropdown bind:value {choices} {label} {show_label} {style} on:change />
+	<Dropdown
+		bind:value
+		{choices}
+		{label}
+		{show_label}
+		{style}
+		on:change
+		disabled={mode === "static"}
+	/>
 </Block>

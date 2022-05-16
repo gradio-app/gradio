@@ -13,7 +13,7 @@
 
 {#if value}
 	<a
-		class="output-file w-full h-full flex flex-row flex-wrap justify-center items-center relative"
+		class="output-file w-full h-full flex flex-row flex-wrap justify-center items-center relative dark:text-slate-200"
 		href={value.data}
 		download={value.name}
 	>
@@ -37,7 +37,7 @@
 		</div>
 	</a>
 {:else}
-	<div class="min-h-[15rem] flex justify-center items-center">
+	<div class="h-full min-h-[15rem] flex justify-center items-center">
 		<div class="h-5 dark:text-white opacity-50"><File /></div>
 	</div>
 {/if}

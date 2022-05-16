@@ -21,6 +21,8 @@
 	export let drop_text: string = "Drop an image file";
 	export let or_text: string = "or";
 	export let upload_text: string = "click to upload";
+	export let streaming: boolean = false;
+	export let pending: boolean = false;
 
 	let mode: "edit" | "view" = "view";
 	let sketch: Sketch;
@@ -37,11 +39,12 @@
 	function handle_save({ detail }: { detail: string }) {
 		value = detail;
 		mode = "view";
-		dispatch("edit");
+		dispatch(streaming ? "stream" : "edit");
 	}
 
 	const dispatch = createEventDispatcher<{
 		change: string | null;
+		stream: string | null;
 		edit: undefined;
 		clear: undefined;
 		drag: boolean;
@@ -67,7 +70,7 @@
 			on:clear={() => sketch.clear()}
 		/>
 		<Sketch {value} bind:this={sketch} on:change={handle_save} />
-	{:else if value === null}
+	{:else if value === null || streaming}
 		{#if source === "upload"}
 			<Upload
 				bind:dragging
@@ -82,7 +85,12 @@
 				</div>
 			</Upload>
 		{:else if source === "webcam"}
-			<Webcam on:capture={handle_save} />
+			<Webcam
+				on:capture={handle_save}
+				on:stream={handle_save}
+				{streaming}
+				{pending}
+			/>
 		{/if}
 	{:else if tool === "select"}
 		<Cropper image={value} on:crop={handle_save} />

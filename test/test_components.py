@@ -195,6 +195,71 @@ class TestNumber(unittest.TestCase):
             },
         )
 
+    def test_component_functions_integer(self):
+        """
+        Preprocess, postprocess, serialize, save_flagged, restore_flagged, generate_sample, set_interpret_parameters, get_interpretation_neighbors, get_template_context
+
+        """
+        numeric_input = gr.Number(precision=0, value=42)
+        self.assertEqual(numeric_input.preprocess(3), 3)
+        self.assertEqual(numeric_input.preprocess(None), None)
+        self.assertEqual(numeric_input.preprocess_example(3), 3)
+        self.assertEqual(numeric_input.postprocess(3), 3)
+        self.assertEqual(numeric_input.postprocess(2.85), 3)
+        self.assertEqual(numeric_input.postprocess(None), None)
+        self.assertEqual(numeric_input.serialize(3, True), 3)
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            to_save = numeric_input.save_flagged(tmpdirname, "numeric_input", 3, None)
+            self.assertEqual(to_save, 3)
+            restored = numeric_input.restore_flagged(tmpdirname, to_save, None)
+            self.assertEqual(restored, 3)
+        self.assertIsInstance(numeric_input.generate_sample(), int)
+        numeric_input.set_interpret_parameters(steps=3, delta=1, delta_type="absolute")
+        self.assertEqual(
+            numeric_input.get_interpretation_neighbors(1),
+            ([-2.0, -1.0, 0.0, 2.0, 3.0, 4.0], {}),
+        )
+        numeric_input.set_interpret_parameters(steps=3, delta=1, delta_type="percent")
+        self.assertEqual(
+            numeric_input.get_interpretation_neighbors(100),
+            ([97.0, 98.0, 99.0, 101.0, 102.0, 103.0], {}),
+        )
+        with self.assertRaises(ValueError) as error:
+            numeric_input.get_interpretation_neighbors(1)
+            assert error.msg == "Cannot generate valid set of neighbors"
+        numeric_input.set_interpret_parameters(
+            steps=3, delta=1.24, delta_type="absolute"
+        )
+        with self.assertRaises(ValueError) as error:
+            numeric_input.get_interpretation_neighbors(4)
+            assert error.msg == "Cannot generate valid set of neighbors"
+        self.assertEqual(
+            numeric_input.get_config(),
+            {
+                "value": 42,
+                "name": "number",
+                "show_label": True,
+                "label": None,
+                "style": {},
+                "elem_id": None,
+                "visible": True,
+                "interactive": None,
+            },
+        )
+
+    def test_component_functions_precision(self):
+        """
+        Preprocess, postprocess, serialize, save_flagged, restore_flagged, generate_sample, set_interpret_parameters, get_interpretation_neighbors, get_template_context
+
+        """
+        numeric_input = gr.Number(precision=2, value=42.3428)
+        self.assertEqual(numeric_input.preprocess(3.231241), 3.23)
+        self.assertEqual(numeric_input.preprocess(None), None)
+        self.assertEqual(numeric_input.preprocess_example(-42.1241), -42.12)
+        self.assertEqual(numeric_input.postprocess(5.6784), 5.68)
+        self.assertEqual(numeric_input.postprocess(2.1421), 2.14)
+        self.assertEqual(numeric_input.postprocess(None), None)
+
     def test_in_interface_as_input(self):
         """
         Interface, process, interpret
@@ -215,6 +280,30 @@ class TestNumber(unittest.TestCase):
                 (2.02, 0.08040000000000003),
                 (2.04, 0.16159999999999997),
                 (2.06, 0.24359999999999982),
+            ],
+        )
+
+    def test_precision_0_in_interface(self):
+        """
+        Interface, process, interpret
+        """
+        iface = gr.Interface(lambda x: x**2, gr.Number(precision=0), "textbox")
+        self.assertEqual(iface.process([2]), ["4"])
+        iface = gr.Interface(
+            lambda x: x**2, "number", gr.Number(precision=0), interpretation="default"
+        )
+        # Output gets rounded to 4 for all input so no change
+        scores = iface.interpret([2])[0]["interpretation"]
+        self.assertEqual(
+            scores,
+            [
+                (1.94, 0.0),
+                (1.96, 0.0),
+                (1.98, 0.0),
+                [2, None],
+                (2.02, 0.0),
+                (2.04, 0.0),
+                (2.06, 0.0),
             ],
         )
 
@@ -260,9 +349,7 @@ class TestSlider(unittest.TestCase):
             self.assertEqual(restored, 3)
 
         self.assertIsInstance(slider_input.generate_sample(), int)
-        slider_input = gr.Slider(
-            value=15, minimum=10, maximum=20, step=1, label="Slide Your Input"
-        )
+        slider_input = gr.Slider(10, 20, value=15, step=1, label="Slide Your Input")
         self.assertEqual(
             slider_input.get_config(),
             {
@@ -490,6 +577,7 @@ class TestImage(unittest.TestCase):
                 "source": "upload",
                 "tool": "editor",
                 "name": "image",
+                "streaming": False,
                 "show_label": True,
                 "label": "Upload Your Image",
                 "style": {},
@@ -647,6 +735,7 @@ class TestAudio(unittest.TestCase):
             {
                 "source": "upload",
                 "name": "audio",
+                "streaming": False,
                 "show_label": True,
                 "label": "Upload Your Audio",
                 "style": {},
@@ -689,6 +778,7 @@ class TestAudio(unittest.TestCase):
             audio_output.get_config(),
             {
                 "name": "audio",
+                "streaming": False,
                 "show_label": True,
                 "label": None,
                 "source": "upload",
@@ -1034,7 +1124,7 @@ class TestVideo(unittest.TestCase):
         self.assertIsNone(video_input.preprocess(None))
         x_video["is_example"] = True
         self.assertIsNotNone(video_input.preprocess(x_video))
-        video_input = gr.Video(type="avi")
+        video_input = gr.Video(format="avi")
         self.assertEqual(video_input.preprocess(x_video)[-3:], "avi")
         with self.assertRaises(NotImplementedError):
             video_input.serialize(x_video, True)
@@ -1303,6 +1393,9 @@ class TestLabel(unittest.TestCase):
             {
                 "name": "label",
                 "show_label": True,
+                "num_top_classes": 2,
+                "output_type": "auto",
+                "value": None,
                 "label": None,
                 "style": {},
                 "elem_id": None,
@@ -1487,103 +1580,6 @@ class TestHTML(unittest.TestCase):
 
         iface = gr.Interface(bold_text, "text", "html")
         self.assertEqual(iface.process(["test"])[0], "<strong>test</strong>")
-
-
-class TestCarousel(unittest.TestCase):
-    def test_component_functions(self):
-        """
-        Postprocess, get_config, save_flagged, restore_flagged
-        """
-        carousel_output = gr.Carousel(
-            components=[gr.Textbox(), gr.Image()], label="Disease"
-        )
-
-        output = carousel_output.postprocess(
-            [
-                ["Hello World", "test/test_files/bus.png"],
-                ["Bye World", "test/test_files/bus.png"],
-            ]
-        )
-        self.assertEqual(
-            output,
-            [
-                ["Hello World", deepcopy(media_data.BASE64_IMAGE)],
-                ["Bye World", deepcopy(media_data.BASE64_IMAGE)],
-            ],
-        )
-
-        carousel_output = gr.Carousel(components=gr.Textbox(), label="Disease")
-        output = carousel_output.postprocess([["Hello World"], ["Bye World"]])
-        self.assertEqual(output, [["Hello World"], ["Bye World"]])
-        self.assertEqual(
-            carousel_output.get_config(),
-            {
-                "components": [
-                    {
-                        "name": "textbox",
-                        "show_label": True,
-                        "label": None,
-                        "value": "",
-                        "lines": 1,
-                        "max_lines": 20,
-                        "style": {},
-                        "elem_id": None,
-                        "visible": True,
-                        "placeholder": None,
-                        "interactive": None,
-                    }
-                ],
-                "name": "carousel",
-                "show_label": True,
-                "label": "Disease",
-                "style": {},
-                "elem_id": None,
-                "visible": True,
-                "interactive": None,
-            },
-        )
-        output = carousel_output.postprocess(["Hello World", "Bye World"])
-        self.assertEqual(output, [["Hello World"], ["Bye World"]])
-        with self.assertRaises(ValueError):
-            carousel_output.postprocess("Hello World!")
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            to_save = carousel_output.save_flagged(
-                tmpdirname, "carousel_output", output, None
-            )
-            self.assertEqual(to_save, '[["Hello World"], ["Bye World"]]')
-            restored = carousel_output.restore_flagged(tmpdirname, to_save, None)
-            self.assertEqual(output, restored)
-
-    def test_in_interface(self):
-        """
-        Interface, process
-        """
-        carousel_output = gr.Carousel(
-            components=[gr.Textbox(), gr.Image()], label="Disease"
-        )
-
-        def report(img):
-            results = []
-            for i, mode in enumerate(["Red", "Green", "Blue"]):
-                color_filter = np.array([0, 0, 0])
-                color_filter[i] = 1
-                results.append([mode, img * color_filter])
-            return results
-
-        iface = gr.Interface(report, gr.Image(type="numpy"), carousel_output)
-        result = iface.process([deepcopy(media_data.BASE64_IMAGE)])
-        self.assertTrue(result[0][0][0] == "Red")
-        self.assertTrue(
-            result[0][0][1].startswith("data:image/png;base64,iVBORw0KGgoAAA")
-        )
-        self.assertTrue(result[0][1][0] == "Green")
-        self.assertTrue(
-            result[0][1][1].startswith("data:image/png;base64,iVBORw0KGgoAAA")
-        )
-        self.assertTrue(result[0][2][0] == "Blue")
-        self.assertTrue(
-            result[0][2][1].startswith("data:image/png;base64,iVBORw0KGgoAAA")
-        )
 
 
 if __name__ == "__main__":

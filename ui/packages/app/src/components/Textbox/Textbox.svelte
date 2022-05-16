@@ -15,15 +15,22 @@
 	export let show_label: boolean;
 	export let max_lines: number | false;
 
+	export let style: Record<string, unknown> = {};
+
 	export let loading_status: LoadingStatus;
 
 	export let mode: "static" | "dynamic";
 </script>
 
-<Block {form_position} {elem_id}>
+<Block
+	{form_position}
+	{elem_id}
+	disable={typeof style.container === "boolean" && !style.container}
+>
 	<StatusTracker {...loading_status} />
 
 	<TextBox
+		{style}
 		bind:value
 		{label}
 		{show_label}

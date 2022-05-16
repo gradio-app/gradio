@@ -21,6 +21,52 @@ export const create_classes = (
 			break;
 	}
 
+	if (target_styles.hasOwnProperty("rounded")) {
+		if (!Array.isArray(target_styles.rounded)) {
+			target_styles.rounded = !!target_styles.rounded
+				? [true, true, true, true]
+				: [false, false, false, false];
+		}
+
+		let rounded_map = ["tl", "tr", "br", "bl"];
+
+		(target_styles.rounded as boolean[]).forEach((rounded, i) => {
+			classes.push(`!rounded-${rounded_map[i]}-${!!rounded ? "lg" : "none"}`);
+		});
+	}
+
+	if (target_styles.hasOwnProperty("margin")) {
+		if (!Array.isArray(target_styles.margin)) {
+			target_styles.margin = !!target_styles.margin
+				? [true, true, true, true]
+				: [false, false, false, false];
+		}
+
+		let margin_map = ["t", "r", "b", "l"];
+
+		(target_styles.margin as boolean[]).forEach((margin, i) => {
+			if (!margin) {
+				classes.push(`!m${margin_map[i]}-0`);
+			}
+		});
+	}
+
+	if (target_styles.hasOwnProperty("border")) {
+		if (!Array.isArray(target_styles.border)) {
+			target_styles.border = !!target_styles.border
+				? [true, true, true, true]
+				: [false, false, false, false];
+		}
+
+		let border_map = ["t", "r", "b", "l"];
+
+		(target_styles.border as boolean[]).forEach((border, i) => {
+			if (!border) {
+				classes.push(`!border-${border_map[i]}-0`);
+			}
+		});
+	}
+
 	switch (target_styles.rounded) {
 		case true:
 			classes.push("!rounded-lg");
