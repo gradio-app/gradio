@@ -1,4 +1,4 @@
-"""Contains all of the components that can be used used with Gradio Interface / Blocks.
+"""Contains all of the components that can be used with Gradio Interface / Blocks.
 Along with the docs for each component, you can find the names of example demos that use
 each component. These demos are located in the `demo` directory."""
 
@@ -19,6 +19,7 @@ from types import ModuleType
 from typing import Any, Dict, List, Optional, Tuple, Type
 
 import matplotlib.figure
+import numpy
 import numpy as np
 import pandas as pd
 import PIL
@@ -1659,7 +1660,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
     ):
         """
         Parameters:
-        value(str): A path or URL for the default value that Video component is going to take.
+        value (str): A path or URL for the default value that Video component is going to take.
         format (str): Format of video format to be returned by component, such as 'avi' or 'mp4'. Use 'mp4' to ensure browser playability. If set to None, video will keep uploaded format.
         source (str): Source of video. "upload" creates a box where user can drop an video file, "webcam" allows user to record a video from their webcam.
         label (Optional[str]): component name in interface.
@@ -2434,7 +2435,7 @@ class Timeseries(Changeable, IOComponent):
     ):
         """
         Parameters:
-        value: File path for the timeseries csv file.
+        value (str): File path for the timeseries csv file.
         x (str): Column name of x (time) series. None if csv has no headers, in which case first column is x series.
         y (Union[str, List[str]]): Column name of y series, or list of column names if multiple series. None if csv has no headers, in which case every column after first is a y series.
         label (str): component name in interface.
@@ -2590,13 +2591,13 @@ class Label(Changeable, IOComponent):
     ):
         """
         Parameters:
-        value(str): Default string value
+        value (str): Default string value
         num_top_classes (int): number of most confident classes to show.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
-        # TODO: Shall we have a default value for the label component?
+        self.value = value
         self.num_top_classes = num_top_classes
         self.output_type = "auto"
         IOComponent.__init__(
@@ -2607,6 +2608,14 @@ class Label(Changeable, IOComponent):
             elem_id=elem_id,
             **kwargs,
         )
+
+    def get_config(self):
+        return {
+            "output_type": self.output_type,
+            "num_top_classes": self.num_top_classes,
+            "value": self.value,
+            **IOComponent.get_config(self),
+        }
 
     def postprocess(self, y):
         """
@@ -2944,6 +2953,7 @@ class Gallery(IOComponent):
 
     def __init__(
         self,
+        value: List[numpy.array | PIL.Image | str] = [],
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -2953,10 +2963,12 @@ class Gallery(IOComponent):
     ):
         """
         Parameters:
+        value (List[numpy.array | PIL.Image | str]): Default images in the Gallery
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
+        self.value = value
         super().__init__(
             label=label,
             show_label=show_label,
@@ -2978,6 +2990,12 @@ class Gallery(IOComponent):
             "visible": visible,
             "value": value,
             "__type__": "update",
+        }
+
+    def get_config(self):
+        return {
+            "value": self.value,
+            **IOComponent.get_config(self),
         }
 
     def postprocess(self, y):
@@ -3030,7 +3048,6 @@ class Carousel(IOComponent, Changeable):
     """
     Component displays a set of output components that can be scrolled through.
     Output type: List[List[Any]]
-    Demos: disease_report
     """
 
     def __init__(
@@ -3216,6 +3233,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
 
     def __init__(
         self,
+        value,
         *,
         clear_color=None,
         label: Optional[str] = None,
@@ -3226,12 +3244,14 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
     ):
         """
         Parameters:
+        value (str): Default file to show
         clear_color (List[r, g, b, a]): background color of scene
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
         self.clear_color = clear_color
+        self.value = value
         IOComponent.__init__(
             self,
             label=label,
@@ -3244,6 +3264,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
     def get_config(self):
         return {
             "clearColor": self.clear_color,
+            "value": self.value,
             **IOComponent.get_config(self),
         }
 
@@ -3340,6 +3361,7 @@ class Plot(Changeable, Clearable, IOComponent):
 
     def __init__(
         self,
+        value,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -3349,10 +3371,12 @@ class Plot(Changeable, Clearable, IOComponent):
     ):
         """
         Parameters:
+        value (matplotlib.pyplot.Figure | plotly.graph_objects._figure.Figure | dict): default plot to show
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
+        self.value = self.postprocess(value)
         IOComponent.__init__(
             self,
             label=label,
@@ -3363,7 +3387,7 @@ class Plot(Changeable, Clearable, IOComponent):
         )
 
     def get_config(self):
-        return {**IOComponent.get_config(self)}
+        return {"value": self.value, **IOComponent.get_config(self)}
 
     @staticmethod
     def update(
@@ -3539,8 +3563,9 @@ class Dataset(Clickable, Component):
     ):
         """
         Parameters:
-        components (List[Component]): Default value
-        variant (str): 'primary' for main call-to-action, 'secondary' for a more subdued style
+        components (List[Component]): Which component types to show in this dataset widget
+        samples (str): a nested list of samples. Each sublist within the outer list represents a data sample, and each element within the sublist represents an value for each component
+        type (str): 'values' if clicking on a should  pass the value of the sample, or "index" if it should pass the index of the sample
         visible (bool): If False, component will be hidden.
         """
         Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)

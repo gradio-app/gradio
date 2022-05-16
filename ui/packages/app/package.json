@@ -5,6 +5,7 @@
 	"scripts": {
 		"dev": "vite",
 		"build:cdn": "vite build --mode production:cdn",
+		"build:website": "vite build --mode production:website",
 		"build:local": "vite build --mode production:local",
 		"preview": "vite preview",
 		"test:browser": "pnpx playwright test test/ --config=../../playwright.config.js",

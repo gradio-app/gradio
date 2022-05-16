@@ -47,12 +47,12 @@ from gradio.events import Changeable, Clearable, Submittable, Editable, Playable
 GRADIO_DIR = "../../"
 GRADIO_GUIDES_DIR = os.path.join(GRADIO_DIR, "guides")
 GRADIO_DEMO_DIR = os.path.join(GRADIO_DIR, "demo")
-GRADIO_INDEX_FILE = os.path.join(GRADIO_DIR, "gradio", "templates", "frontend", "index.html")
+GRADIO_INDEX_FILE = os.path.join(GRADIO_DIR, "gradio", "templates", "cdn", "index.html")
 with open(GRADIO_INDEX_FILE) as index_file:
     index_html = index_file.read()
 
-ENTRY_JS_FILE=re.findall(r'"\.\/assets\/(.*\.js)"', index_html)[0]
-ENTRY_CSS_FILE=re.findall(r'"\.\/assets\/(.*\.css)"', index_html)[0]
+ENTRY_JS_FILE=re.findall(r'\/assets\/(.*\.js)', index_html)[0]
+ENTRY_CSS_FILE=re.findall(r'\/assets\/(.*\.css)', index_html)[0]
 
 with open("src/navbar.html", encoding="utf-8") as navbar_file:
     navbar_html = navbar_file.read()
@@ -362,7 +362,40 @@ def render_docs():
                 cls.get_interpretation_scores
             )
         inp["guides"] = [guide for guide in guides if inp['name'].lower() in guide["docs"]]
+
+        string_shortcuts = {
+            Textbox:
+                {
+                    "text": "gr.Textbox(lines=1)",
+                    "textarea": "gr.Textbox(lines=7)"
+                },
+            Image: {
+                    "webcam": "gr.Image(source='webcam')",
+                    "sketchpad": "gr.Image(image_mode='L', source='canvas', shape=(28, 28), invert_colors=True)",
+                    "pil": "gr.Image(type='pil')"
+            },
+            Video: {
+                "playable_video": "gr.Video(format='mp4')"
+            },
+            Audio: {
+                "microphone": "gr.Audio(source='microphone')",
+                "mic": "gr.Audio(source='microphone')"
+            },
+            File: {
+                "files": "gr.File(file_count='multiple')"
+            },
+            Dataframe: {
+                "numpy": "gr.Dataframe(type='numpy')",
+                "matrix": "gr.Dataframe(type='array')",
+                "array": "gr.Dataframe(type='array', col_count=1)"
+            }
+        }
+
         
+        if cls in string_shortcuts:
+            inp["string_shortcut"] = string_shortcuts[cls]
+        else:
+            inp["string_shortcut"] = None               
         
         inp["events"] = []
         if issubclass(cls, Changeable):
@@ -489,7 +522,8 @@ with demo:
     btn = gr.Button("Run")
     btn.click(fn=update, inputs=inp, outputs=out)
 
-demo.launch()"""            
+demo.launch()""",
+        "demos": ["blocks_hello", "blocks_flipper", "blocks_gpt", "blocks_speech_text_length"]
     }    
     tabbed_interface_docs = get_class_documentation(TabbedInterface, lines=None)["doc"]
     tabbed_interface_params = get_function_documentation(TabbedInterface.__init__)
@@ -497,6 +531,7 @@ demo.launch()"""
         "doc": tabbed_interface_docs,
         "params": tabbed_interface_params[1],
         "params_doc": tabbed_interface_params[2],
+        "demos": ["blocks_neural_instrument_coding", "sst_or_tts"]
     }
     
     series_docs = get_class_documentation(Series, lines=None)["doc"]
@@ -566,6 +601,20 @@ demo.launch()"""
                 demo_code[code_src] = python_code
 
     for code_src in interface["demos"]:
+        with open(os.path.join(GRADIO_DEMO_DIR, code_src, "run.py")) as code_file:
+            python_code = code_file.read().replace(
+                'if __name__ == "__main__":\n    iface.launch()', "iface.launch()"
+            )
+            demo_code[code_src] = python_code
+
+    for code_src in blocks_docs["demos"]:
+        with open(os.path.join(GRADIO_DEMO_DIR, code_src, "run.py")) as code_file:
+            python_code = code_file.read().replace(
+                'if __name__ == "__main__":\n    iface.launch()', "iface.launch()"
+            )
+            demo_code[code_src] = python_code
+
+    for code_src in tabbed_interface["demos"]:
         with open(os.path.join(GRADIO_DEMO_DIR, code_src, "run.py")) as code_file:
             python_code = code_file.read().replace(
                 'if __name__ == "__main__":\n    iface.launch()', "iface.launch()"
