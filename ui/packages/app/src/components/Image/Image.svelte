@@ -11,6 +11,8 @@
 	export let tool: "editor" | "select" = "editor";
 	export let label: string;
 	export let show_label: boolean;
+	export let streaming: boolean;
+	export let pending: boolean;
 
 	export let loading_status: LoadingStatus;
 
@@ -42,9 +44,12 @@
 			on:edit
 			on:clear
 			on:change
+			on:stream
 			on:drag={({ detail }) => (dragging = detail)}
 			{label}
 			{show_label}
+			{pending}
+			{streaming}
 			drop_text={$_("interface.drop_image")}
 			or_text={$_("or")}
 			upload_text={$_("interface.click_to_upload")}

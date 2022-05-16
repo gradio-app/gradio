@@ -178,7 +178,6 @@
 	}
 
 	let handled_dependencies: Array<number[]> = [];
-	let status_tracker_values: Record<number, string> = {};
 
 	async function handle_mount() {
 		await tick();
@@ -311,7 +310,7 @@
 	$: set_status($loading_status);
 
 	dependencies.forEach((v, i) => {
-		loading_status.register(i, v.outputs);
+		loading_status.register(i, v.inputs, v.outputs);
 	});
 
 	function set_status(
@@ -319,6 +318,10 @@
 	) {
 		for (const id in statuses) {
 			set_prop(instance_map[id], "loading_status", statuses[id]);
+		}
+		const inputs_to_update = loading_status.get_inputs_to_update();
+		for (const [id, pending_status] of inputs_to_update) {
+			set_prop(instance_map[id], "pending", pending_status === "pending");
 		}
 	}
 
@@ -387,7 +390,6 @@
 				{instance_map}
 				{theme}
 				{root}
-				{status_tracker_values}
 				on:mount={handle_mount}
 				on:destroy={({ detail }) => handle_destroy(detail)}
 			/>
