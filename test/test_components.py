@@ -184,7 +184,7 @@ class TestNumber(unittest.TestCase):
         self.assertEqual(
             numeric_input.get_config(),
             {
-                "value": None,
+                "value": 0,
                 "name": "number",
                 "show_label": True,
                 "label": None,

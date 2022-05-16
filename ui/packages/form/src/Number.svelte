@@ -15,7 +15,9 @@
 	}>();
 
 	function handle_change(n: number) {
-		dispatch("change", n);
+		if (!isNaN(n) && n !== null) {
+			dispatch("change", n);
+		}
 	}
 
 	async function handle_keypress(e: KeyboardEvent) {
