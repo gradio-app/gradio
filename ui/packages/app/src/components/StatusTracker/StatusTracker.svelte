@@ -6,6 +6,10 @@
 	let called = false;
 
 	async function scroll_into_view(el: HTMLDivElement) {
+		if (window.__gradio_mode__ === "website") {
+			return;
+		}
+
 		items.push(el);
 		if (!called) called = true;
 		else return;
