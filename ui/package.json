@@ -7,6 +7,7 @@
 		"dev": "pnpm dev --filter @gradio/app",
 		"build": "pnpm build:local --filter @gradio/app --emptyOutDir",
 		"build:cdn": "pnpm build:cdn --filter @gradio/app --emptyOutDir",
+		"build:website": "pnpm build:website --filter @gradio/app --emptyOutDir",
 		"preview": "sirv ../gradio/templates/frontend --single --port=3000 --quiet",
 		"format:check": "prettier --check --plugin-search-dir=. .",
 		"format:write": "prettier --write --plugin-search-dir=. .",

@@ -64,7 +64,7 @@ class PlayableVideo(components.Video):
         @param kwargs:
         """
         self.is_template = True
-        super().__init__(type="mp4", **kwargs)
+        super().__init__(format="mp4", **kwargs)
 
 
 class Microphone(components.Audio):
