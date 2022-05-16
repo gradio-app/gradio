@@ -464,16 +464,15 @@
             <button class="rounded-full bg-orange-500 text-white py-1 px-3 my-3" onclick="showDemos({{ func['demos'] }})">
               Try Demo &#8594;
             </button>
-            <div id='{{ func["name"].lower() }}-component'  class="component-embedding"></div>
-            <pre><code class="lang-python">gradio.components.<span>{{ func["name"] }}(</span><!--
-            -->{% for param in func["params"] %}<!--
-              -->{% if param|length == 1 %}<!--
-                -->{{ param[0] }}<!--
-              -->{% else %}<!--
-                -->{{ param[0] }}={{ param[1] }}<!--
+            <pre><code class="lang-python">gradio.<span>{{ func["name"] }}(</span><!--
+            -->self, <!--
+              -->{% if func["name"] in ["CheckboxGroup", "Radio", "Dropdown"] %}<!--
+                -->choices, <!--
+              -->{% elif func["name"] == "Dataset" %}<!--
+                -->components, samples, <!--
               -->{% endif %}<!--
-              -->{% if not loop.last %}, {% endif %}<!--
-            -->{% endfor %}<span>)</span></code></pre>
+            -->&#183;&#183;&#183;<span>)</span></code></pre>
+            <div id='{{ func["name"].lower() }}-component'  class="component-embedding"></div>
             <p class="w-4/5 mt-8 text-lg">{{ func["doc"] }}</p>
             {% if func["Preprocessing"]|length %}
             <p class="text-gray-500">Preprocessing: {{ func["Preprocessing"] | safe}}</p>
@@ -496,8 +495,12 @@
                   <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
                     <td class="p-3 w-2/5">
                       <code class=“prettyprint”>{{ param[0] }}</code>
-
                       <p class="text-gray-500 italic">{{ param[1] }}</p>
+                      {% if func["name"] in ["CheckboxGroup", "Radio", "Dropdown"] and param[0] == "choices" %}
+                        <p class="text-orange-600 font-semibold italic">required</p>
+                      {% elif func["name"] == "Dataset" and param[0] in ["components", "samples"] %}
+                        <p class="text-orange-600 font-semibold italic">required</p>
+                      {% endif %}
                     </td>
                     <td class="p-3 text-gray-700">
                       <p>{{ param[2] }}</p>
