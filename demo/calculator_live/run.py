@@ -1,12 +1,23 @@
 import gradio as gr
 
 
-def greet(name):
-    return "Hello " + name + "!!"
+def calculator(num1, operation, num2):
+    if operation == "add":
+        return num1 + num2
+    elif operation == "subtract":
+        return num1 - num2
+    elif operation == "multiply":
+        return num1 * num2
+    elif operation == "divide":
+        return num1 / num2
 
 
-inputs_device = gr.inputs.Radio(choices=["cuda:0", "cpu"], default="cuda:0", label="设备")
-inputs_size = gr.inputs.Radio(choices=[320, 640, 1280], default=320, label="推理尺寸")
+demo = gr.Interface(
+    calculator,
+    ["number", gr.Radio(["add", "subtract", "multiply", "divide"]), "number"],
+    "number",
+    live=True,
+)
 
-iface = gr.Interface(fn=greet, inputs=[inputs_device, inputs_size], outputs="text")
-iface.launch()
+if __name__ == "__main__":
+    demo.launch()
