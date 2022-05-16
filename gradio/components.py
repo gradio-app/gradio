@@ -19,8 +19,8 @@ from types import ModuleType
 from typing import Any, Dict, List, Optional, Tuple, Type
 
 import matplotlib.figure
-import numpy as np
 import numpy
+import numpy as np
 import pandas as pd
 import PIL
 from ffmpy import FFmpeg
@@ -2608,14 +2608,14 @@ class Label(Changeable, IOComponent):
             elem_id=elem_id,
             **kwargs,
         )
-        
+
     def get_config(self):
         return {
             "output_type": self.output_type,
             "num_top_classes": self.num_top_classes,
             "value": self.value,
             **IOComponent.get_config(self),
-        }        
+        }
 
     def postprocess(self, y):
         """
@@ -2991,7 +2991,7 @@ class Gallery(IOComponent):
             "value": value,
             "__type__": "update",
         }
-        
+
     def get_config(self):
         return {
             "value": self.value,
@@ -3387,10 +3387,7 @@ class Plot(Changeable, Clearable, IOComponent):
         )
 
     def get_config(self):
-        return {
-            "value": self.value,
-            **IOComponent.get_config(self)
-        }
+        return {"value": self.value, **IOComponent.get_config(self)}
 
     @staticmethod
     def update(
