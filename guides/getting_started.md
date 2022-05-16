@@ -12,7 +12,7 @@ However, creating such web-based demos has traditionally been difficult, as you 
 
 Gradio allows you to **build demos and share them, directly in Python** in a matter of minutes. Want to try it out? 
 
-### Getting Started in 5 Lines of Python ⚡
+### Hello, World ⚡
 
 To get Gradio running with a simple "Hello, World" example, follow these three steps:
 
@@ -30,7 +30,7 @@ pip install gradio
 
 {{ demos["hello_world"] }}
 
-### Understanding the `Interface` class 🧡
+### The `Interface` class 🧡
 
 You'll notice that in order to create the demo, we defined a `gradio.Interface` class. This `Interface` class can wrap almost any Python function with a  user interface. In the example above, we saw a simple text-based function. But the function could be anything from music generator to a tax calculator to (most commonly) the prediction function of a pretrained machine learning model.
 
@@ -42,16 +42,16 @@ The core `Interface` class is initialized with three required parameters:
 
 Gradio includes more than 20 different components, most of which can be used as inputs or outputs. ([See docs for complete list](/docs))
 
-### Customizable Components 💻
+### Components Attributes 💻
 
 With these three arguments to `Interface`, we can quickly create user interfaces and  `launch()`  them. But what if you want to change how the UI components look or behave?
 
-Let's say we want to customize the input text field - for example, we wanted it to be larger and have a text hint. If we use the actual input class for  `Textbox`  instead of using the string shortcut, we have access to much more customizability.
+Let's say we want to customize the input text field - for example, we wanted it to be larger and have a text hint. If we use the actual input class for  `Textbox`  instead of using the string shortcut, we have access to much more customizability through component attributes.
 
 {{ code["hello_world_2"] }}
 {{ demos["hello_world_2"] }}
 
- To see a list of all the components Gradio supports and how you can customize them, check out the [Docs](https://gradio.app/docs).
+ To see a list of all the components Gradio supports and what attributes you can use to customize them, check out the [Docs](https://gradio.app/docs).
 
 ### Multiple Inputs and Outputs 🔥
 
@@ -62,7 +62,7 @@ Let's say we had a much more complex function, with multiple inputs and outputs.
 
 We simply wrap the components in a list. Each component in the `inputs` list corresponds to one of the parameters of the function, in order. Each component in the `outputs` list corresponds to one of the values returned by the function, again in order. 
 
-### Working with Images 🎨
+### Images 🎨
 
 Let's try an image-to-image function. When using the  `Image`  component, your function will receive a numpy array of your specified size, with the shape  `(width, height, 3)`, where the last dimension represents the RGB values. We'll return an image as well in the form of a numpy array.
 
@@ -73,7 +73,7 @@ Additionally, our  `Image`  input interface comes with an 'edit' button which op
 
 In addition to images, Gradio supports other media types, such as audio or video. Read about these in the [Docs](https://gradio.app/docs).
 
-### Working with DataFrames and Graphs 📈
+### DataFrames and Graphs 📈
 
 You can use Gradio to support inputs and outputs from your typical data libraries, such as numpy arrays, pandas dataframes, and plotly graphs. Take a look at the demo below (ignore the complicated data manipulation in the function!)
 

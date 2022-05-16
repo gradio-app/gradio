@@ -8,6 +8,7 @@ import markdown2
 import requests
 from jinja2 import Template
 from render_html_helpers import generate_meta_image
+from bs4 import BeautifulSoup
 
 from gradio.components import (
     Textbox, 
@@ -233,6 +234,13 @@ def render_guides():
         output_html = markdown2.markdown(
             guide_output, extras=["target-blank-links", "header-ids", "tables"]
         )
+        
+        soup = BeautifulSoup(output_html)
+        headings = []
+        for heading in soup.find_all(["h1", "h2", "h3", "h4"]):
+            headings.append({'text': heading.text.strip(),
+                            'id': heading.get('id')})
+        
         os.makedirs("generated", exist_ok=True)
         os.makedirs(os.path.join("generated", guide["name"]), exist_ok=True)
         with open(
@@ -255,7 +263,8 @@ def render_guides():
                 tags=guide["tags"],
                 contributor=guide["contributor"],
                 entry_js_file=ENTRY_JS_FILE,
-                entry_css_file=ENTRY_CSS_FILE
+                entry_css_file=ENTRY_CSS_FILE,
+                headings=headings,
             )
             generated_template.write(output_html)
 
