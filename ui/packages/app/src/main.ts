@@ -6,7 +6,7 @@ import { fn } from "./api";
 import * as t from "@gradio/theme";
 
 interface CustomWindow extends Window {
-	gradio_mode: "app" | "website";
+	__gradio_mode__: "app" | "website";
 	launchGradio: Function;
 	launchGradioFromSpaces: Function;
 	gradio_config: Config;
@@ -65,14 +65,15 @@ window.launchGradio = (config: Config, element_query: string) => {
 			"The target element could not be found. Please ensure that element exists."
 		);
 	}
+	target.classList.add("gradio-container");
 
 	if (config.root === undefined) {
 		config.root = BACKEND_URL;
 	}
-	if (window.gradio_mode === "app") {
+	if (window.__gradio_mode__ === "app") {
 		config.static_src = ".";
-	} else if (window.gradio_mode === "website") {
-		config.static_src = "/gradio_static";
+	} else if (window.__gradio_mode__ === "website") {
+		config.static_src = "";
 	} else {
 		config.static_src = "https://gradio.s3-us-west-2.amazonaws.com/PIP_VERSION";
 	}
@@ -88,7 +89,9 @@ window.launchGradio = (config: Config, element_query: string) => {
 		});
 		window.__gradio_loader__.$set({ status: "complete" });
 	} else {
-		handle_darkmode(target);
+		if (window.__gradio_mode__ !== "website") {
+			handle_darkmode(target);
+		}
 
 		let session_hash = Math.random().toString(36).substring(2);
 		config.fn = fn.bind(null, session_hash, config.root + "api/");
@@ -154,7 +157,7 @@ async function get_config() {
 	}
 }
 
-if (window.gradio_mode == "app") {
+if (window.__gradio_mode__ == "app") {
 	window.__gradio_loader__ = new Loader({
 		target: document.querySelector("#root")!,
 		props: {

@@ -20,7 +20,7 @@
   <meta name="twitter:image" content="https://gradio.app/static/home/img/social-cheetah.jpg">  
 
   <link rel="icon" type="image/png" href="/assets/img/logo.png">
-  <link rel="stylesheet" href="/gradio_static/assets/{{ entry_css_file }}">
+  <link rel="stylesheet" href="/assets/{{ entry_css_file }}">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="/assets/prism.css">
   <link href="https://fonts.cdnfonts.com/css/product-sans" rel="stylesheet">
@@ -45,6 +45,59 @@
     .token.operator {
       background: none !important;
     }
+    
+    /** JIT NOT WORKING QUICK FIX **/
+    @media (min-width: 768px) {
+      .md\:text-xl {
+        font-size: 1.25rem;
+        line-height: 1.75rem;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .lg\:w-\[550px\] {
+        width: 550px;
+      }
+
+      .lg\:flex-1 {
+        flex: 1 1 0%;
+      }
+
+      .lg\:flex-row {
+        flex-direction: row;
+      }
+
+      .lg\:pl-12 {
+        padding-left: 3rem;
+      }
+    }
+
+    @media (min-width: 1280px) {
+      .xl\:-ml-52 {
+        margin-left: -13rem;
+      }
+
+      .xl\:w-\[850px\] {
+        width: 850px;
+      }
+
+      .xl\:text-5xl {
+        font-size: 3rem;
+        line-height: 1;
+      }
+    }
+
+    @media (min-width: 1536px) {
+      .\32xl\:w-\[1050px\] {
+        width: 1050px;
+      }
+
+      .\32xl\:text-6xl {
+        font-size: 3.75rem;
+        line-height: 1;
+      }
+    }
+
   </style>
 </head>
 
@@ -52,44 +105,53 @@
 <!--NAVBAR-->
   {{navbar_html|safe}}
 
-<!--HEADER-->
-  <div class="mx-auto max-w-xl px-4 py-20 text-center xl:max-w-2xl xl:py-36 2xl:py-44">
-    <div class="mb-10 text-4xl font-bold capitalize text-gray-900 md:text-5xl xl:text-6xl">Build & share delightful machine learning apps</div>
-    <p class="mx-auto mb-12 max-w-xl text-xl text-gray-600">Gradio is the fastest way to demo your machine learning model with a friendly web interface so that anyone can use it, anywhere!</p>
-    <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4">
-      <a class="rounded-full bg-gradient-to-br from-orange-500 via-orange-500 to-yellow-500 px-6 py-3 text-lg md:text-xl font-semibold text-white hover:to-yellow-400 hover:drop-shadow-md" href="/getting_started">Get Started</a>
-      <div class="flex items-center justify-center">
-        <a href="https://github.com/gradio-app/gradio" class="btn-star font-bold text-lg -mr-1">
-            <svg class="dark:text-gray-200 mr-2" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" focusable="false" role="img" width="1.03em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 250">
-              <path d="M128.001 0C57.317 0 0 57.307 0 128.001c0 56.554 36.676 104.535 87.535 121.46c6.397 1.185 8.746-2.777 8.746-6.158c0-3.052-.12-13.135-.174-23.83c-35.61 7.742-43.124-15.103-43.124-15.103c-5.823-14.795-14.213-18.73-14.213-18.73c-11.613-7.944.876-7.78.876-7.78c12.853.902 19.621 13.19 19.621 13.19c11.417 19.568 29.945 13.911 37.249 10.64c1.149-8.272 4.466-13.92 8.127-17.116c-28.431-3.236-58.318-14.212-58.318-63.258c0-13.975 5-25.394 13.188-34.358c-1.329-3.224-5.71-16.242 1.24-33.874c0 0 10.749-3.44 35.21 13.121c10.21-2.836 21.16-4.258 32.038-4.307c10.878.049 21.837 1.47 32.066 4.307c24.431-16.56 35.165-13.12 35.165-13.12c6.967 17.63 2.584 30.65 1.255 33.873c8.207 8.964 13.173 20.383 13.173 34.358c0 49.163-29.944 59.988-58.447 63.157c4.591 3.972 8.682 11.762 8.682 23.704c0 17.126-.148 30.91-.148 35.126c0 3.407 2.304 7.398 8.792 6.14C219.37 232.5 256 184.537 256 128.002C256 57.307 198.691 0 128.001 0zm-80.06 182.34c-.282.636-1.283.827-2.194.39c-.929-.417-1.45-1.284-1.15-1.922c.276-.655 1.279-.838 2.205-.399c.93.418 1.46 1.293 1.139 1.931zm6.296 5.618c-.61.566-1.804.303-2.614-.591c-.837-.892-.994-2.086-.375-2.66c.63-.566 1.787-.301 2.626.591c.838.903 1 2.088.363 2.66zm4.32 7.188c-.785.545-2.067.034-2.86-1.104c-.784-1.138-.784-2.503.017-3.05c.795-.547 2.058-.055 2.861 1.075c.782 1.157.782 2.522-.019 3.08zm7.304 8.325c-.701.774-2.196.566-3.29-.49c-1.119-1.032-1.43-2.496-.726-3.27c.71-.776 2.213-.558 3.315.49c1.11 1.03 1.45 2.505.701 3.27zm9.442 2.81c-.31 1.003-1.75 1.459-3.199 1.033c-1.448-.439-2.395-1.613-2.103-2.626c.301-1.01 1.747-1.484 3.207-1.028c1.446.436 2.396 1.602 2.095 2.622zm10.744 1.193c.036 1.055-1.193 1.93-2.715 1.95c-1.53.034-2.769-.82-2.786-1.86c0-1.065 1.202-1.932 2.733-1.958c1.522-.03 2.768.818 2.768 1.868zm10.555-.405c.182 1.03-.875 2.088-2.387 2.37c-1.485.271-2.861-.365-3.05-1.386c-.184-1.056.893-2.114 2.376-2.387c1.514-.263 2.868.356 3.061 1.403z" fill="currentColor"></path>
-            </svg>
-            Star
-        </a>
-        <div class="relative ml-3">
-            <div class="absolute z-[-1] -left-1 top-3 h-3 w-3 bg-gradient-to-t from-gray-100-to-white rounded-sm dark:bg-gray-900 border border-gray-200 dark:border-gray-850 flex-none transform rotate-45"></div>
-            <a id="star-count" class="inset-0 btn-star font-bold text-lg dark:hover:text-yellow-500 relative" href="https://github.com/gradio-app/gradio">6,000</a>
+  <!--HEADER-->
+  <div class="container relative mx-auto px-4 pt-8 pb-12">
+    <div class="flex flex-col items-center lg:flex-row">
+      <img class="sm-[400px] mb-12 lg:w-[550px] lg:flex-1 xl:w-[850px] 2xl:w-[1050px]" src="https://res.cloudinary.com/picturesbase/image/upload/v1652685686/t1CcPLOM_j0fsfv.png" alt="" />
+      <div class="text-left">
+        <div class="mb-10 text-4xl font-bold capitalize text-gray-900 xl:-ml-52 xl:text-5xl 2xl:text-6xl">Build &amp; share delightful machine learning apps</div>
+        <div class="lg:pl-12">
+          <p class="mx-auto mb-12 text-xl text-gray-600">Gradio is the fastest way to demo your machine learning model with a friendly web interface so that anyone can use it, anywhere!</p>
+          <div class="flex space-x-4">
+            <a class="rounded-full bg-gradient-to-br from-orange-500 via-orange-500 to-yellow-500 px-6 py-3 text-lg font-semibold text-white hover:to-yellow-400 hover:drop-shadow-md md:text-xl" href="/getting_started">Get Started</a>
+            <div class="flex items-center justify-center">
+              <a href="https://github.com/gradio-app/gradio" class="btn-star font-bold text-lg -mr-1">
+                  <svg class="dark:text-gray-200 mr-2" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" focusable="false" role="img" width="1.03em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 250">
+                    <path d="M128.001 0C57.317 0 0 57.307 0 128.001c0 56.554 36.676 104.535 87.535 121.46c6.397 1.185 8.746-2.777 8.746-6.158c0-3.052-.12-13.135-.174-23.83c-35.61 7.742-43.124-15.103-43.124-15.103c-5.823-14.795-14.213-18.73-14.213-18.73c-11.613-7.944.876-7.78.876-7.78c12.853.902 19.621 13.19 19.621 13.19c11.417 19.568 29.945 13.911 37.249 10.64c1.149-8.272 4.466-13.92 8.127-17.116c-28.431-3.236-58.318-14.212-58.318-63.258c0-13.975 5-25.394 13.188-34.358c-1.329-3.224-5.71-16.242 1.24-33.874c0 0 10.749-3.44 35.21 13.121c10.21-2.836 21.16-4.258 32.038-4.307c10.878.049 21.837 1.47 32.066 4.307c24.431-16.56 35.165-13.12 35.165-13.12c6.967 17.63 2.584 30.65 1.255 33.873c8.207 8.964 13.173 20.383 13.173 34.358c0 49.163-29.944 59.988-58.447 63.157c4.591 3.972 8.682 11.762 8.682 23.704c0 17.126-.148 30.91-.148 35.126c0 3.407 2.304 7.398 8.792 6.14C219.37 232.5 256 184.537 256 128.002C256 57.307 198.691 0 128.001 0zm-80.06 182.34c-.282.636-1.283.827-2.194.39c-.929-.417-1.45-1.284-1.15-1.922c.276-.655 1.279-.838 2.205-.399c.93.418 1.46 1.293 1.139 1.931zm6.296 5.618c-.61.566-1.804.303-2.614-.591c-.837-.892-.994-2.086-.375-2.66c.63-.566 1.787-.301 2.626.591c.838.903 1 2.088.363 2.66zm4.32 7.188c-.785.545-2.067.034-2.86-1.104c-.784-1.138-.784-2.503.017-3.05c.795-.547 2.058-.055 2.861 1.075c.782 1.157.782 2.522-.019 3.08zm7.304 8.325c-.701.774-2.196.566-3.29-.49c-1.119-1.032-1.43-2.496-.726-3.27c.71-.776 2.213-.558 3.315.49c1.11 1.03 1.45 2.505.701 3.27zm9.442 2.81c-.31 1.003-1.75 1.459-3.199 1.033c-1.448-.439-2.395-1.613-2.103-2.626c.301-1.01 1.747-1.484 3.207-1.028c1.446.436 2.396 1.602 2.095 2.622zm10.744 1.193c.036 1.055-1.193 1.93-2.715 1.95c-1.53.034-2.769-.82-2.786-1.86c0-1.065 1.202-1.932 2.733-1.958c1.522-.03 2.768.818 2.768 1.868zm10.555-.405c.182 1.03-.875 2.088-2.387 2.37c-1.485.271-2.861-.365-3.05-1.386c-.184-1.056.893-2.114 2.376-2.387c1.514-.263 2.868.356 3.061 1.403z" fill="currentColor"></path>
+                  </svg>
+                  Star
+              </a>
+              <div class="relative ml-3">
+                  <div class="absolute z-[-1] -left-1 top-3 h-3 w-3 bg-gradient-to-t from-gray-100-to-white rounded-sm dark:bg-gray-900 border border-gray-200 dark:border-gray-850 flex-none transform rotate-45"></div>
+                  <a id="star-count" class="inset-0 btn-star font-bold text-lg dark:hover:text-yellow-500 relative" href="https://github.com/gradio-app/gradio">6,000</a>
+              </div>
+            </div>
+            
+          </div>
         </div>
       </div>
     </div>
   </div>
 
+
 <!--DEMOS-->
-    <div class="mx-auto mb-6">
-      <nav class="flex flex-wrap gap-6 whitespace-nowrap text-gray-600 md:text-lg mb-4 md:mb-0 justify-center">
-        <div class="demo-tab mr-2 border-orange-500 border-b-2 text-orange-500 cursor-pointer" demo="1"
+    <div class="mx-auto mb-6 px-4 lg:px-0 overflow-hidden1">
+      <nav class="flex lg:flex-wrap gap-3 overflow-x-auto py-1 lg:gap-6 whitespace-nowrap text-gray-600 md:text-lg mb-4 md:mb-0 lg:justify-center">
+        <div class="demo-tab hover:text-gray-800 cursor-pointer example-tab active-example-tab" demo="1"
         onclick="load_demo(1)">Sketch Recognition</div>
-        <div class="demo-tab mr-2 hover:text-gray-800 cursor-pointer" demo="2"
+        <div class="demo-tab hover:text-gray-800 cursor-pointer example-tab" demo="2"
         onclick="load_demo(2)">Question Answering</div>
-        <div class="demo-tab mr-2 hover:text-gray-800 cursor-pointer" demo="3"
+        <div class="demo-tab hover:text-gray-800 cursor-pointer example-tab" demo="3"
         onclick="load_demo(3)">Image Segmentation</div>
-        <div class="demo-tab mr-2 hover:text-gray-800 cursor-pointer" demo="4"
+        <div class="demo-tab hover:text-gray-800 cursor-pointer example-tab" demo="4"
         onclick="load_demo(4)">Speech Verification</div>
       </nav>
     </div>
-  <div class="mx-auto grid max-w-7xl grid-cols-1 px-4 w-4/5">
+  <div class="mx-auto grid max-w-7xl grid-cols-1 px-4">
 
     <div class="demo space-y-2 md:col-span-3" demo="1">
-      <div class="rounded-lg bg-gray-50 shadow-inner text-sm md:text-base w-11/12 mx-auto">
+      <div class="rounded-lg bg-gray-50 shadow-inner text-sm md:text-base mx-auto max-w-5xl">
         <pre class="language-python"><code class="language-python"><span class="token keyword">import</span> gradio <span class="token keyword">as</span> gr
 
 <span class="token keyword">def</span> <span class="token function">sketch_recognition</span><span class="token punctuation">(</span>img<span class="token punctuation">)</span><span class="token punctuation">:</span>
@@ -98,11 +160,11 @@
 gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>sketch_recognition<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token string">"sketchpad"</span><span class="token punctuation">,</span> outputs<span class="token operator">=</span><span class="token string">"label"</span><span class="token punctuation">).</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
       </div>
-        <iframe src="https://hf.space/embed/aliabd/pictionary/+" frameBorder="0" height="350" scrolling="no" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+        <iframe src="https://hf.space/embed/gradio/pictionary/+" frameBorder="0" height="350" scrolling="no" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
     </div>
 
     <div class="demo space-y-2 md:col-span-3 hidden" demo="2">
-      <div class="rounded-lg bg-gray-50 shadow-inner text-sm md:text-base w-11/12 mx-auto">
+      <div class="rounded-lg bg-gray-50 shadow-inner text-sm md:text-base mx-auto max-w-5xl">
         <pre class="language-python"><code class="language-python"><span class="token keyword">import</span> gradio <span class="token keyword">as</span> gr
 
 <span class="token keyword">def</span> <span class="token function">question_answer</span><span class="token punctuation">(</span>context<span class="token punctuation">,</span> question<span class="token punctuation">)</span><span class="token punctuation">:</span>
@@ -111,11 +173,11 @@ gr<span class="token punctuation">.</span>Interface<span class="token punctuatio
 gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>question_answer<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">"text"</span><span class="token punctuation">,</span> <span class="token string">"text"</span><span class="token punctuation">],</span> outputs<span class="token operator">=</span>[</span><span class="token string">"textbox"</span><span class="token punctuation">,</span> <span class="token string">"text"</span><span class="token punctuation">]).</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
       </div>
-        <iframe src="https://hf.space/embed/aliabd/question-answering/+" frameBorder="0" height="425" scrolling="no" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+        <iframe src="https://hf.space/embed/gradio/question-answering/+" frameBorder="0" height="425" scrolling="no" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
     </div>
 
     <div class="demo space-y-2 md:col-span-3 hidden" demo="3">
-      <div class="rounded-lg bg-gray-50 shadow-inner text-sm md:text-base w-11/12 mx-auto">
+      <div class="rounded-lg bg-gray-50 shadow-inner text-sm md:text-base mx-auto" max-w-5xl>
         <pre class="language-python"><code class="language-python"><span class="token keyword">import</span> gradio <span class="token keyword">as</span> gr
 
 <span class="token keyword">def</span> <span class="token function">segment</span><span class="token punctuation">(</span>image<span class="token punctuation">)</span><span class="token punctuation">:</span>
@@ -124,11 +186,11 @@ gr<span class="token punctuation">.</span>Interface<span class="token punctuatio
 gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>segment<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token string">"image"</span><span class="token punctuation">,</span> outputs<span class="token operator">=</span><span class="token string">"image"</span><span class="token punctuation">).</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span>
 </code></pre>
       </div>
-       <iframe src="https://hf.space/embed/aliabd/Echocardiogram-Segmentation/+" frameBorder="0" height="475" scrolling="no" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+       <iframe src="https://hf.space/embed/gradio/Echocardiogram-Segmentation/+" frameBorder="0" height="475" scrolling="no" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
     </div>
 
     <div class="demo space-y-2 md:col-span-3 hidden" demo="4">
-      <div class="rounded-lg bg-gray-50 shadow-inner text-sm md:text-base w-11/12 mx-auto">
+      <div class="rounded-lg bg-gray-50 shadow-inner text-sm md:text-base mx-auto max-w-5xl max-w-5xl">
         <pre class="language-python"><code class="language-python"><span class="token keyword">import</span> gradio <span class="token keyword">as</span> gr
 
 <span class="token keyword">def</span> <span class="token function">same_or_different</span><span class="token punctuation">(</span>audio1<span class="token punctuation">,</span> audio2<span class="token punctuation">)</span><span class="token punctuation">:</span>
@@ -136,12 +198,12 @@ gr<span class="token punctuation">.</span>Interface<span class="token punctuatio
 
 gr<span class="token punctuation">.</span>Interface<span class="token punctuation">(</span>fn<span class="token operator">=</span>same_or_different<span class="token punctuation">,</span> inputs<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">"audio"</span><span class="token punctuation">,</span> <span class="token string">"audio"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> outputs<span class="token operator">=</span><span class="token string">"html"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>launch<span class="token punctuation">(</span><span class="token punctuation">)</span></code></pre>
       </div>
-       <iframe src="https://hf.space/embed/aliabd/same-person-or-different/+" frameBorder="0" height="420" scrolling="no" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
+       <iframe src="https://hf.space/embed/gradio/same-person-or-different/+" frameBorder="0" height="420" scrolling="no" title="Gradio app" class="container p-0 flex-grow space-iframe" allow="accelerometer; ambient-light-sensor; autoplay; battery; camera; document-domain; encrypted-media; fullscreen; geolocation; gyroscope; layout-animations; legacy-image-formats; magnetometer; microphone; midi; oversized-images; payment; picture-in-picture; publickey-credentials-get; sync-xhr; usb; vr ; wake-lock; xr-spatial-tracking" sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-downloads"></iframe>
     </div>
   </div>
 
 <!--CARDS-->
-  <div class="relative mx-auto max-w-7xl space-y-6 px-4 py-24 md:flex md:space-y-0 lg:space-x-8 text-lg">
+  <div class="relative mx-auto max-w-7xl space-y-6 px-4 py-24 md:flex md:space-y-0 md:space-x-8 text-lg">
     <div class="shadow-alternate flex-1 rounded-xl border border-gray-100 p-6">
       <h2 class="mb-4 text-xl font-bold">
         <svg class="mr-2 mb-3 text-2xl text-gray-800" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" fill="currentColor" focusable="false" role="img" width="1em" height="1em" preserveAspectRatio="xMidYMid meet" viewBox="0 0 32 32">
@@ -205,7 +267,8 @@ gr<span class="token punctuation">.</span>Interface<span class="token punctuatio
               <g><path d="M23.643 4.937c-.835.37-1.732.62-2.675.733.962-.576 1.7-1.49 2.048-2.578-.9.534-1.897.922-2.958 1.13-.85-.904-2.06-1.47-3.4-1.47-2.572 0-4.658 2.086-4.658 4.66 0 .364.042.718.12 1.06-3.873-.195-7.304-2.05-9.602-4.868-.4.69-.63 1.49-.63 2.342 0 1.616.823 3.043 2.072 3.878-.764-.025-1.482-.234-2.11-.583v.06c0 2.257 1.605 4.14 3.737 4.568-.392.106-.803.162-1.227.162-.3 0-.593-.028-.877-.082.593 1.85 2.313 3.198 4.352 3.234-1.595 1.25-3.604 1.995-5.786 1.995-.376 0-.747-.022-1.112-.065 2.062 1.323 4.51 2.093 7.14 2.093 8.57 0 13.255-7.098 13.255-13.254 0-.2-.005-.402-.014-.602.91-.658 1.7-1.477 2.323-2.41z"></path></g>
             </svg>
           </div>
-          <p class="mt-3 block text-base leading-snug text-black dark:text-white">{{ tweet['content']|safe }}</p>
+          <p class="mt-3 block leading-snug text-black dark:text-white">{{ tweet['content']|safe }}</p>
+
 
           <p class="my-0.5 flex items-center py-1 text-base text-gray-500 dark:text-gray-400">
             <svg class="mr-1 h-3.5 w-4 fill-current" viewBox="0 0 24 24" class="r-1re7ezh r-4qtqp9 r-yyyyoo r-1xvli5t r-dnmrzs r-bnwqim r-1plcrui r-lrvibr" style="">
@@ -247,7 +310,6 @@ gr<span class="token punctuation">.</span>Interface<span class="token punctuatio
       </a>
     </nav>
   </footer>
-  <script defer id="gradio-library" type="module" crossorigin src="/gradio_static/assets/{{ entry_js_file }}"></script>
   <script>
     let xhr = new XMLHttpRequest;
     xhr.open('GET', 'https://api.github.com/repos/gradio-app/gradio', true)
@@ -265,27 +327,17 @@ gr<span class="token punctuation">.</span>Interface<span class="token punctuatio
 
     let load_demo = demo_id => {
       document.querySelectorAll(".demo-tab").forEach(e => {
-        e.classList.remove("text-orange-500", "border-orange-500", "border-b-2");
-        e.classList.add("hover:text-gray-800");
+        e.classList.remove('active-example-tab');
       })
       document.querySelectorAll(".demo").forEach(e => {
         e.classList.add("hidden");
       })
-      document.querySelector(`.demo-tab[demo='${demo_id}']`).classList.add("border-orange-500", "border-b-2", "text-orange-500");
-      document.querySelector(`.demo-tab[demo='${demo_id}']`).classList.remove("hover:text-gray-800");
+      document.querySelector(`.demo-tab[demo='${demo_id}']`).classList.add("active-example-tab");
 
       document.querySelector(`.demo[demo='${demo_id}']`).classList.remove("hidden");
     }
 
-    window.gradio_mode = "website";
-  </script>
-  <script>
-  <!--    document.querySelector("#gradio-library").addEventListener('load', function () {-->
-  <!--      launchGradioFromSpaces("abidlabs/Draw", "#demo_mnist");-->
-  <!--      launchGradioFromSpaces("abidlabs/question-answering", "#demo_qa");-->
-  <!--      launchGradioFromSpaces("abidlabs/Echocardiogram-Segmentation", "#demo_image_classifier");-->
-  <!--      launchGradioFromSpaces("abidlabs/same-person-or-different", "#demo_anime");-->
-  <!--    });-->
+    window.__gradio_mode__ = "website";
   </script>
 </body>
 

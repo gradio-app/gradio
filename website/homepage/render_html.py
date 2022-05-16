@@ -8,6 +8,7 @@ import markdown2
 import requests
 from jinja2 import Template
 from render_html_helpers import generate_meta_image
+from bs4 import BeautifulSoup
 
 from gradio.components import (
     Textbox, 
@@ -46,12 +47,12 @@ from gradio.events import Changeable, Clearable, Submittable, Editable, Playable
 GRADIO_DIR = "../../"
 GRADIO_GUIDES_DIR = os.path.join(GRADIO_DIR, "guides")
 GRADIO_DEMO_DIR = os.path.join(GRADIO_DIR, "demo")
-GRADIO_INDEX_FILE = os.path.join(GRADIO_DIR, "gradio", "templates", "frontend", "index.html")
+GRADIO_INDEX_FILE = os.path.join(GRADIO_DIR, "gradio", "templates", "cdn", "index.html")
 with open(GRADIO_INDEX_FILE) as index_file:
     index_html = index_file.read()
 
-ENTRY_JS_FILE=re.findall(r'"\.\/assets\/(.*\.js)"', index_html)[0]
-ENTRY_CSS_FILE=re.findall(r'"\.\/assets\/(.*\.css)"', index_html)[0]
+ENTRY_JS_FILE=re.findall(r'\/assets\/(.*\.js)', index_html)[0]
+ENTRY_CSS_FILE=re.findall(r'\/assets\/(.*\.css)', index_html)[0]
 
 with open("src/navbar.html", encoding="utf-8") as navbar_file:
     navbar_html = navbar_file.read()
@@ -90,12 +91,15 @@ for guide in guide_files:
     if guide.lower() == "readme.md":
         continue
     guide_name = guide[:-3]
-    pretty_guide_name = " ".join(
-        [
-            word.capitalize().replace("Ml", "ML").replace("Gan", "GAN").replace("Api", "API").replace("Onnx", "ONNX")
-            for word in guide_name.split("_")
-        ]
-    )
+    if guide_name == "getting_started":
+        pretty_guide_name = "Quickstart"
+    else:
+        pretty_guide_name = " ".join(
+            [
+                word.capitalize().replace("Ml", "ML").replace("Gan", "GAN").replace("Api", "API").replace("Onnx", "ONNX")
+                for word in guide_name.split("_")
+            ]
+        )
     with open(os.path.join(GRADIO_GUIDES_DIR, guide), "r") as f:
         guide_content = f.read()
 
@@ -190,8 +194,11 @@ def render_guides():
 
         for code_src in code_tags:
             with open(os.path.join(GRADIO_DEMO_DIR, code_src, "run.py")) as code_file:
-                python_code = code_file.read().replace(
-                    'if __name__ == "__main__":\n    iface.launch()', "iface.launch()"
+                python_code = (
+                    code_file.read().replace(
+                        'if __name__ == "__main__":\n    demo.launch()', 
+                        "demo.launch()"
+                    ).replace("\n\n\n", "\n\n")  # triple new lines are introduced by formatter
                 )
                 code[code_src] = (
                     "<pre><code class='lang-python'>" + python_code + "</code></pre>"
@@ -227,6 +234,13 @@ def render_guides():
         output_html = markdown2.markdown(
             guide_output, extras=["target-blank-links", "header-ids", "tables"]
         )
+        
+        soup = BeautifulSoup(output_html)
+        headings = []
+        for heading in soup.find_all(["h1", "h2", "h3", "h4"]):
+            headings.append({'text': heading.text.strip(),
+                            'id': heading.get('id')})
+        
         os.makedirs("generated", exist_ok=True)
         os.makedirs(os.path.join("generated", guide["name"]), exist_ok=True)
         with open(
@@ -249,7 +263,8 @@ def render_guides():
                 tags=guide["tags"],
                 contributor=guide["contributor"],
                 entry_js_file=ENTRY_JS_FILE,
-                entry_css_file=ENTRY_CSS_FILE
+                entry_css_file=ENTRY_CSS_FILE,
+                headings=headings,
             )
             generated_template.write(output_html)
 
@@ -347,7 +362,40 @@ def render_docs():
                 cls.get_interpretation_scores
             )
         inp["guides"] = [guide for guide in guides if inp['name'].lower() in guide["docs"]]
+
+        string_shortcuts = {
+            Textbox:
+                {
+                    "text": "gr.Textbox(lines=1)",
+                    "textarea": "gr.Textbox(lines=7)"
+                },
+            Image: {
+                    "webcam": "gr.Image(source='webcam')",
+                    "sketchpad": "gr.Image(image_mode='L', source='canvas', shape=(28, 28), invert_colors=True)",
+                    "pil": "gr.Image(type='pil')"
+            },
+            Video: {
+                "playable_video": "gr.Video(format='mp4')"
+            },
+            Audio: {
+                "microphone": "gr.Audio(source='microphone')",
+                "mic": "gr.Audio(source='microphone')"
+            },
+            File: {
+                "files": "gr.File(file_count='multiple')"
+            },
+            Dataframe: {
+                "numpy": "gr.Dataframe(type='numpy')",
+                "matrix": "gr.Dataframe(type='array')",
+                "array": "gr.Dataframe(type='array', col_count=1)"
+            }
+        }
+
         
+        if cls in string_shortcuts:
+            inp["string_shortcut"] = string_shortcuts[cls]
+        else:
+            inp["string_shortcut"] = None               
         
         inp["events"] = []
         if issubclass(cls, Changeable):
@@ -474,7 +522,8 @@ with demo:
     btn = gr.Button("Run")
     btn.click(fn=update, inputs=inp, outputs=out)
 
-demo.launch()"""            
+demo.launch()""",
+        "demos": ["blocks_hello", "blocks_flipper", "blocks_gpt", "blocks_speech_text_length"]
     }    
     tabbed_interface_docs = get_class_documentation(TabbedInterface, lines=None)["doc"]
     tabbed_interface_params = get_function_documentation(TabbedInterface.__init__)
@@ -482,6 +531,7 @@ demo.launch()"""
         "doc": tabbed_interface_docs,
         "params": tabbed_interface_params[1],
         "params_doc": tabbed_interface_params[2],
+        "demos": ["blocks_neural_instrument_coding", "sst_or_tts"]
     }
     
     series_docs = get_class_documentation(Series, lines=None)["doc"]
@@ -551,6 +601,20 @@ demo.launch()"""
                 demo_code[code_src] = python_code
 
     for code_src in interface["demos"]:
+        with open(os.path.join(GRADIO_DEMO_DIR, code_src, "run.py")) as code_file:
+            python_code = code_file.read().replace(
+                'if __name__ == "__main__":\n    iface.launch()', "iface.launch()"
+            )
+            demo_code[code_src] = python_code
+
+    for code_src in blocks_docs["demos"]:
+        with open(os.path.join(GRADIO_DEMO_DIR, code_src, "run.py")) as code_file:
+            python_code = code_file.read().replace(
+                'if __name__ == "__main__":\n    iface.launch()', "iface.launch()"
+            )
+            demo_code[code_src] = python_code
+
+    for code_src in tabbed_interface["demos"]:
         with open(os.path.join(GRADIO_DEMO_DIR, code_src, "run.py")) as code_file:
             python_code = code_file.read().replace(
                 'if __name__ == "__main__":\n    iface.launch()', "iface.launch()"
