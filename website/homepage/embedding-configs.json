@@ -632,6 +632,194 @@
       }
     ]
   },
+  "label": {
+    "mode": "blocks",
+    "components": [
+      {
+        "id": 18,
+        "type": "label",
+        "props": {
+          "show_label": true,
+          "name": "label",
+          "visible": true,
+          "style": {},
+          "value": {
+            "label": "First Label",
+            "confidences": [
+              {
+                "label": "First Label",
+                "confidence": 0.65
+              },
+              {
+                "label": "Second Label",
+                "confidence": 0.25
+              },
+              {
+                "label": "Third Label",
+                "confidence": 0.05
+              },
+              {
+                "label": "Fourth Label",
+                "confidence": 0.03
+              },
+              {
+                "label": "Fifth Label",
+                "confidence": 0.02
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "theme": "default",
+    "css": null,
+    "enable_queue": false,
+    "layout": {
+      "id": 17,
+      "children": [
+        {
+          "id": 18
+        }
+      ]
+    },
+    "dependencies": []
+  },
+  "highlightedtext": {
+  "mode": "blocks",
+  "components": [
+    {
+      "id": 20,
+      "type": "highlightedtext",
+      "props": {
+        "show_legend": false,
+        "value": [
+          [
+            "Text",
+            "Label 1"
+          ],
+          [
+            "to be",
+            "Label 2"
+          ],
+          [
+            "highlighted",
+            "Label 3"
+          ]
+        ],
+        "show_label": true,
+        "name": "highlightedtext",
+        "visible": true,
+        "style": {}
+      }
+    }
+  ],
+  "theme": "default",
+  "css": null,
+  "enable_queue": false,
+  "layout": {
+    "id": 19,
+    "children": [
+      {
+        "id": 20
+      }
+    ]
+  },
+  "dependencies": []
+},
+  "JSON": {
+    "mode": "blocks",
+    "components": [
+      {
+        "id": 25,
+        "type": "json",
+        "props": {
+          "value": {
+            "First Key": "First Value",
+            "Second Key": "Second Value",
+            "Third Key": "Third Value",
+            "Fourth Key": "Fourth Value"
+          },
+          "show_label": true,
+          "name": "json",
+          "visible": true,
+          "style": {}
+        }
+      }
+    ],
+    "theme": "default",
+    "css": null,
+    "enable_queue": false,
+    "layout": {
+      "id": 24,
+      "children": [
+        {
+          "id": 25
+        }
+      ]
+    },
+    "dependencies": []
+  },
+  "html": {
+    "mode": "blocks",
+    "components": [
+      {
+        "id": 43,
+        "type": "html",
+        "props": {
+          "value": "<p style='margin-top: 1rem, margin-bottom: 1rem'>Gradio Docs Readers: <img src='https://visitor-badge.glitch.me/badge?page_id=gradio-docs-visitor-badge' alt='visitor badge' style='display: inline-block'/></p>",
+          "show_label": true,
+          "name": "html",
+          "visible": true,
+          "style": {}
+        }
+      }
+    ],
+    "theme": "default",
+    "css": null,
+    "enable_queue": false,
+    "layout": {
+      "id": 42,
+      "children": [
+        {
+          "id": 43
+        }
+      ]
+    },
+    "dependencies": []
+  },
+  "Chatbot": {
+    "mode": "blocks",
+    "components": [
+      {
+        "id": 52,
+        "type": "chatbot",
+        "props": {
+          "value": [
+            [
+              "Hello World",
+              "Hey Gradio!"
+            ]
+          ],
+          "show_label": true,
+          "name": "chatbot",
+          "visible": true,
+          "style": {}
+        }
+      }
+    ],
+    "theme": "default",
+    "css": null,
+    "enable_queue": false,
+    "layout": {
+      "id": 51,
+      "children": [
+        {
+          "id": 52
+        }
+      ]
+    },
+    "dependencies": []
+  },
   "model3d": {
     "mode": "blocks",
     "components": [
@@ -675,6 +863,33 @@
         "queue": null
       }
     ]
+  },
+  "markdown": {
+    "mode": "blocks",
+    "components": [
+      {
+        "id": 58,
+        "type": "markdown",
+        "props": {
+          "value": "<p>This was written in <a href=\"https://en.wikipedia.org/wiki/Markdown\">Markdown</a></p>\n",
+          "name": "markdown",
+          "visible": true,
+          "style": {}
+        }
+      }
+    ],
+    "theme": "default",
+    "css": null,
+    "enable_queue": false,
+    "layout": {
+      "id": 57,
+      "children": [
+        {
+          "id": 58
+        }
+      ]
+    },
+    "dependencies": []
   },
   "button": {
     "mode": "blocks",
@@ -720,5 +935,51 @@
         "queue": null
       }
     ]
+  },
+  "dataset": {
+    "mode": "blocks",
+    "components": [
+      {
+        "id": 70,
+        "type": "dataset",
+        "props": {
+          "components": [
+            "textbox",
+            "textbox"
+          ],
+          "headers": [],
+          "samples": [
+            [
+              "This is wonderful!",
+              "positive"
+            ],
+            [
+              "This is terrible!",
+              "negative"
+            ],
+            [
+              "This is okay.",
+              "neutral"
+            ]
+          ],
+          "type": "values",
+          "name": "dataset",
+          "visible": true,
+          "style": {}
+        }
+      }
+    ],
+    "theme": "default",
+    "css": null,
+    "enable_queue": false,
+    "layout": {
+      "id": 67,
+      "children": [
+        {
+          "id": 70
+        }
+      ]
+    },
+    "dependencies": []
   }
 }
