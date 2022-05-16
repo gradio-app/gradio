@@ -27,8 +27,7 @@
   <link rel="stylesheet" href="/assets/prism.css">
   <style>
     pre {
-      overflow-x: hidden !important;
-      overflow-y: scroll !important;
+      overflow: auto !important;
       background: #F6F7FA;
       border-radius: 6px;
     }
@@ -87,10 +86,12 @@
         <h2 id="building_demos" class="text-4xl font-light mb-4 mt-8 text-orange-500">Building Demos</h2>
         <section id="interface" class="flex flex-col gap-6">
           <div class="func">
+            <div class="flex flex-row items-center">
             <h3 id="interface-header" class="text-3xl font-light my-4">Interface</h3>
-            <button class="hidden rounded-full bg-orange-500 text-white py-1 px-3 my-3" onclick="showDemos({{ docs.interface['demos'] }})">
-              Try Demo &#8594;
+            <button class="h-2/4 rounded-full bg-orange-500 text-white py-1 px-3 my-3 mx-2 ml-auto" onclick="showDemos({{ docs.interface['demos'] }})">
+              Try Examples
             </button>
+            </div>
             <pre><code class='lang-python'>gradio.Interface(<!--
           -->{% for param in docs.interface["params"][:4] %}<!--
             -->{% if param|length == 1 %}<!--
@@ -375,10 +376,12 @@
         </section>
         <section id="blocks" class="flex flex-col gap-6">
           <div class="func">
+            <div class="flex flex-row items-center">
             <h3 id="blocks-header" class="text-3xl font-light my-4">Blocks</h3>
-            <button class="hidden rounded-full bg-orange-500 text-white py-1 px-3 my-3" onclick="showDemos('blocks')">
-              Try Demo &#8594;
+            <button class="h-2/4 rounded-full bg-orange-500 text-white py-1 px-3 my-3 mx-2 ml-auto" onclick="showDemos('blocks')">
+              Try Examples
             </button>
+            </div>
             <pre><code class='lang-python'>with gradio.Blocks(theme, analytics_enabled, mode):
     &#183;&#183;&#183;</code></pre>
     <p class="mb-2 w-full md:pr-12 mt-4 text-lg">{{ docs.blocks["doc"] }}</p>
@@ -458,12 +461,14 @@
           </div>
           {% for func in docs["components"] %}
           <div id="{{ func['name'].lower() }}" class="func">
+            <div class="flex flex-row items-center">
             <h3 id="{{ func['name'].lower() }}-header" class="text-3xl font-light my-4">
               {{ func['name'] }}
             </h3>
-            <button class="rounded-full bg-orange-500 text-white py-1 px-3 my-3" onclick="showDemos({{ func['demos'] }})">
-              Try Demo &#8594;
+            <button class="h-2/4 rounded-full bg-orange-500 text-white py-1 px-3 my-3 mx-2 ml-auto" onclick="showDemos({{ func['demos'] }})">
+              Try Examples
             </button>
+            </div>
             <pre><code class="lang-python">gradio.<span>{{ func["name"] }}(</span><!--
             -->self, <!--
               -->{% if func["name"] in ["CheckboxGroup", "Radio", "Dropdown"] %}<!--
@@ -607,7 +612,7 @@
         </section>
       </div>
 
-        <div class="fixed hidden inset-0 bg-gray-500 bg-opacity-75 overflow-y-auto h-full w-full" id="demos-window">
+        <div class="fixed hidden inset-0 bg-gray-500 bg-opacity-75 overflow-y-auto h-full w-full z-20" id="demos-window">
           <div class="relative mx-auto my-auto p-5 border w-4/5 shadow-lg rounded-md bg-white" style="top: 5%; height: 90%">
             <div class="flex flex-row items-start w-11/12 h-11/12 m-auto gap-6">
               <div class="w-2/5">
