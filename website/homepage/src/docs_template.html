@@ -835,23 +835,27 @@
         .then(demo => {
           demo.root = demo_endpoint + "/{{ src }}/";
           launchGradioWhenReady(demo, "#{{ src }}-interface");
-        });
+        }).
+        catch(e => {
+          document.querySelector(".demo-tab[demo='{{ src }}']").remove()
+        })
     {% endfor %}
 
 
 
     function buildDemos(demo_names) {
-      console.log(demo_names);
       for (let i = 0; i < demo_names.length; i++) {
+        let demo_name = demo_names[i];
         if (i == 0) {
           let demoTab = document.createElement('div');
           demoTab.classList.add("demo-tab", "mr-2", "border-orange-500", "border-b-2", "text-orange-500", "cursor-pointer");
-          showCode(demo_names[i]);
-          showInterface(demo_names[i])
-          demoTab.innerHTML = demo_names[i];
+          demoTab.setAttribute("demo", demo_name)
+          showCode(demo_name);
+          showInterface(demo_name)
+          demoTab.innerHTML = demo_name;
           demoTab.onclick = function() {
-            showCode(demo_names[i]);
-            showInterface(demo_names[i])
+            showCode(demo_name);
+            showInterface(demo_name)
             let otherTabs = document.querySelectorAll(".demo-tab").forEach(e => {
               e.classList.remove("text-orange-500", "border-orange-500", "border-b-2");
               e.classList.add("hover:text-gray-800");
@@ -861,11 +865,12 @@
           demosNav.appendChild(demoTab);
         } else {
           let demoTab = document.createElement('div');
+          demoTab.setAttribute("demo", demo_name)
           demoTab.classList.add("demo-tab", "mr-2", "cursor-pointer", "hover:text-gray-800");
-          demoTab.innerHTML = demo_names[i];
+          demoTab.innerHTML = demo_name;
           demoTab.onclick = function() {
-            showCode(demo_names[i]);
-            showInterface(demo_names[i])
+            showCode(demo_name);
+            showInterface(demo_name)
             let otherTabs = document.querySelectorAll(".demo-tab").forEach(e => {
               e.classList.remove("text-orange-500", "border-orange-500", "border-b-2");
               e.classList.add("hover:text-gray-800");
