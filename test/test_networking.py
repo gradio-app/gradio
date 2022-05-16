@@ -6,11 +6,10 @@ import unittest.mock as mock
 import urllib
 import warnings
 
-import aiohttp
 from fastapi.testclient import TestClient
 
 import gradio as gr
-from gradio import Interface, flagging, networking
+from gradio import Interface, networking
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
@@ -41,7 +40,7 @@ class TestInterfaceErrors(unittest.TestCase):
         io = Interface(lambda x: 1 / x, "number", "number")
         app, _, _ = io.launch(show_error=True, prevent_thread_lock=True)
         client = TestClient(app)
-        response = client.post("/api/predict/", json={"data": [0], "fn_index": 1})
+        response = client.post("/api/predict/", json={"data": [0], "fn_index": 0})
         self.assertEqual(response.status_code, 500)
         self.assertTrue("error" in response.json())
         io.close()
@@ -50,7 +49,7 @@ class TestInterfaceErrors(unittest.TestCase):
         io = Interface(lambda x: 1 / x, "number", "number")
         app, _, _ = io.launch(show_error=True, prevent_thread_lock=True)
         client = TestClient(app)
-        response = client.post("/api/predict/", json={"data": [0]})
+        response = client.post("/api/predict/", json={"fn_index": [0]})
         self.assertEqual(response.status_code, 422)
         io.close()
 

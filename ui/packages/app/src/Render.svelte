@@ -1,16 +1,22 @@
 <script lang="ts">
 	import { onMount, createEventDispatcher, setContext } from "svelte";
-	import { BLOCK_KEY } from "@gradio/atoms";
 
 	export let root: string;
 	export let component;
 	export let instance_map;
 	export let id: number;
-	export let props;
-	export let children;
-	export let theme;
+	export let props: {
+		style: Record<string, unknown>;
+		visible: boolean;
+		[key: string]: unknown;
+	};
+	interface LayoutNode {
+		id: number;
+		children: Array<LayoutNode>;
+	}
+	export let children: Array<LayoutNode>;
 	export let dynamic_ids: Set<number>;
-	export let has_modes: boolean;
+	export let has_modes: boolean | undefined;
 	export let status_tracker_values: Record<number, string>;
 	export let parent: string | null = null;
 
@@ -34,11 +40,11 @@
 		return () => dispatch("destroy", id);
 	});
 
-	let style = props.css
-		? Object.entries(props.css)
-				.map((rule) => rule[0] + ": " + rule[1])
-				.join("; ")
-		: null;
+	$: {
+		if (typeof props.visible === "boolean") {
+			props.style.visible = props.visible;
+		}
+	}
 
 	const forms = [
 		"textbox",
@@ -89,14 +95,14 @@
 		children &&
 		children.filter((v) => instance_map[v.id].type !== "statustracker");
 
-	setContext(BLOCK_KEY, parent);
+	setContext("BLOCK_KEY", parent);
 </script>
 
 <svelte:component
 	this={component}
 	bind:this={instance_map[id].instance}
-	bind:value={instance_map[id].value}
-	{style}
+	bind:value={instance_map[id].props.value}
+	elem_id={props.elem_id || id}
 	{...props}
 	{root}
 	tracked_status={status_tracker_values[id]}
@@ -108,7 +114,6 @@
 				{component}
 				id={each_id}
 				{props}
-				{theme}
 				{root}
 				{instance_map}
 				{children}

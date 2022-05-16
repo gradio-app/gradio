@@ -11,8 +11,6 @@
 	export let col_count: [number, "fixed" | "dynamic"];
 	export let row_count: [number, "fixed" | "dynamic"];
 
-	export let style: string = "";
-
 	export let editable = true;
 
 	const dispatch = createEventDispatcher<{ change: typeof values }>();
@@ -360,7 +358,7 @@
 			data[i].push({ id: _id, value: "" });
 		}
 
-		const _id = `h-${headers.length}`;
+		const _id = `h-${_headers.length}`;
 		els[_id] = { cell: null, input: null };
 		_headers.push({ id: _id, value: `Header ${_headers.length + 1}` });
 
@@ -430,12 +428,12 @@
 	function blob_to_string(blob: Blob) {
 		const reader = new FileReader();
 
-		function handle_read(e) {
-			const [delimiter] = guess_delimitaor(e.srcElement.result, [",", "\t"]);
+		function handle_read(e: ProgressEvent<FileReader>) {
+			if (!e?.target?.result || typeof e.target.result !== "string") return;
 
-			const [head, ...rest] = dsvFormat(delimiter).parseRows(
-				e.srcElement.result
-			);
+			const [delimiter] = guess_delimitaor(e.target.result, [",", "\t"]);
+
+			const [head, ...rest] = dsvFormat(delimiter).parseRows(e.target.result);
 
 			_headers = make_headers(
 				col_count[1] === "fixed" ? head.slice(0, col_count[0]) : head
@@ -456,10 +454,11 @@
 <svelte:window on:click={handle_click_outside} />
 
 <div
-	class="overflow-hidden rounded-lg relative border transition-colors"
+	class="scroll-hide whitespace-nowrap overflow-hidden rounded-lg relative border transition-colors overflow-x-scroll"
 	class:border-green-400={dragging}
 >
 	<Upload
+		flex={false}
 		center={false}
 		boundedheight={false}
 		click={false}
@@ -467,16 +466,19 @@
 		bind:dragging
 	>
 		<table
-			class="table-auto font-mono w-full text-gray-900 text-sm transition-opacity"
+			class="table-auto font-mono w-full text-gray-900 text-sm transition-opacity overflow-hidden "
 			class:opacity-40={dragging}
 		>
 			<thead class="sticky top-0 left-0 right-0 bg-white shadow-sm z-10">
-				<tr class="border-b divide-x dark:divide-gray-800 text-left">
+				<tr
+					class="border-b  dark:border-gray-700 divide-x dark:divide-gray-700 text-left"
+				>
 					{#each _headers as { value, id }, i (id)}
 						<th
 							bind:this={els[id].cell}
 							class="p-0 relative focus-within:ring-1 ring-orange-500 ring-inset outline-none "
 							class:bg-orange-50={header_edit === id}
+							class:dark:bg-transparent={header_edit === id}
 							class:rounded-tl-lg={i === 0}
 							class:rounded-tr-lg={i === _headers.length - 1}
 							aria-sort={get_sort_status(value, sort_by, sort_direction)}
@@ -519,10 +521,10 @@
 				</tr>
 			</thead>
 
-			<tbody class="overflow-scroll">
+			<tbody class="overflow-y-scroll">
 				{#each data as row, i (row)}
 					<tr
-						class="group border-b last:border-none divide-x dark:divide-gray-800 space-x-4 odd:bg-gray-50 dark:odd:bg-gray-900 group focus:bg-gradient-to-b focus:from-blue-100 dark:focus:from-blue-900 focus:to-blue-50 dark:focus:to-gray-900 focus:odd:bg-white"
+						class="group border-b dark:border-gray-700 last:border-none divide-x dark:divide-gray-700 space-x-4 odd:bg-gray-50 dark:odd:bg-gray-900 group focus:bg-gradient-to-b focus:from-blue-100 dark:focus:from-blue-900 focus:to-blue-50 dark:focus:to-gray-900 focus:odd:bg-white"
 					>
 						{#each row as { value, id }, j (id)}
 							<td
@@ -531,7 +533,7 @@
 								on:click={() => handle_cell_click(id)}
 								on:dblclick={() => start_edit(id)}
 								on:keydown={(e) => handle_keydown(e, i, j, id)}
-								class=" outline-none focus-within:ring-1 ring-orange-500 ring-inset focus-within:bg-orange-50 group-last:first:rounded-bl-lg group-last:last:rounded-br-lg relative"
+								class=" outline-none focus-within:ring-1 ring-orange-500 ring-inset focus-within:bg-orange-50 dark:focus-within:bg-gray-800 group-last:first:rounded-bl-lg group-last:last:rounded-br-lg relative"
 							>
 								<div
 									class:border-transparent={selected !== id}

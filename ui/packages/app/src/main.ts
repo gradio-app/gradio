@@ -1,5 +1,6 @@
 import Blocks from "./Blocks.svelte";
 import Login from "./Login.svelte";
+import { Component as Loader } from "./components/StatusTracker";
 import { fn } from "./api";
 
 import * as t from "@gradio/theme";
@@ -57,7 +58,7 @@ interface Config {
 }
 
 window.launchGradio = (config: Config, element_query: string) => {
-	let target = document.querySelector(element_query);
+	let target: HTMLElement = document.querySelector(element_query)!;
 
 	if (!target) {
 		throw new Error(
@@ -85,20 +86,10 @@ window.launchGradio = (config: Config, element_query: string) => {
 			target: target,
 			props: config
 		});
+		window.__gradio_loader__.$set({ status: "complete" });
 	} else {
-		let url = new URL(window.location.toString());
-		if (config.theme && config.theme.startsWith("dark")) {
-			target.classList.add("dark");
-			config.dark = true;
-			if (config.theme === "dark") {
-				config.theme = "default";
-			} else {
-				config.theme = config.theme.substring(5);
-			}
-		} else if (url.searchParams.get("__dark-theme") === "true") {
-			config.dark = true;
-			target.classList.add("dark");
-		}
+		handle_darkmode(target);
+
 		let session_hash = Math.random().toString(36).substring(2);
 		config.fn = fn.bind(null, session_hash, config.root + "api/");
 
@@ -108,6 +99,41 @@ window.launchGradio = (config: Config, element_query: string) => {
 		});
 	}
 };
+
+function handle_darkmode(target: HTMLElement) {
+	let url = new URL(window.location.toString());
+
+	const color_mode: "light" | "dark" | "system" | null = url.searchParams.get(
+		"__theme"
+	) as "light" | "dark" | "system" | null;
+
+	if (color_mode !== null) {
+		if (color_mode === "dark") {
+			target.classList.add("dark");
+		} else if (color_mode === "system") {
+			use_system_theme(target);
+		}
+		// light is default, so we don't need to do anything else
+	} else if (url.searchParams.get("__dark-theme") === "true") {
+		target.classList.add("dark");
+	} else {
+		use_system_theme(target);
+	}
+}
+
+function use_system_theme(target: HTMLElement) {
+	update_scheme();
+	window
+		?.matchMedia("(prefers-color-scheme: dark)")
+		?.addEventListener("change", update_scheme);
+
+	function update_scheme() {
+		const is_dark =
+			window?.matchMedia?.("(prefers-color-scheme: dark)").matches ?? null;
+
+		target.classList[is_dark ? "add" : "remove"]("dark");
+	}
+}
 
 window.launchGradioFromSpaces = async (space: string, target: string) => {
 	const space_url = `https://hf.space/embed/${space}/+/`;
@@ -129,7 +155,21 @@ async function get_config() {
 }
 
 if (window.gradio_mode == "app") {
-	get_config().then((config) => {
-		window.launchGradio(config, "#root");
+	window.__gradio_loader__ = new Loader({
+		target: document.querySelector("#root")!,
+		props: {
+			status: "pending",
+			timer: false,
+			queue_position: null,
+			cover_all: true
+		}
 	});
+
+	get_config()
+		.then((config) => {
+			window.launchGradio(config, "#root");
+		})
+		.catch((e) => {
+			window.__gradio_loader__.$set({ status: "error" });
+		});
 }

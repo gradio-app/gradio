@@ -16,7 +16,7 @@ import requests
 import uvicorn
 
 from gradio import queueing
-from gradio.routes import create_app
+from gradio.routes import App
 from gradio.tunneling import create_tunnel
 
 if TYPE_CHECKING:  # Only import for type checking (to avoid circular imports).
@@ -138,8 +138,7 @@ def start_server(
     else:
         path_to_local_server = "http://{}:{}/".format(url_host_name, port)
 
-    app = create_app()
-    app = configure_app(app, blocks)
+    app = App.create_app(blocks)
 
     if app.blocks.enable_queue:
         if blocks.auth is not None or app.blocks.encrypt:

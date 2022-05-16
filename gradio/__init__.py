@@ -4,7 +4,8 @@ import gradio.components as components
 import gradio.inputs as inputs
 import gradio.outputs as outputs
 import gradio.processing_utils
-from gradio.blocks import Blocks, Column, Row, TabItem, Tabs
+import gradio.templates
+from gradio.blocks import Blocks
 from gradio.components import (
     HTML,
     JSON,
@@ -23,8 +24,6 @@ from gradio.components import (
     Highlightedtext,
     HighlightedText,
     Image,
-    Keyvalues,
-    KeyValues,
     Label,
     Markdown,
     Model3D,
@@ -39,7 +38,9 @@ from gradio.components import (
     Variable,
     Video,
     component,
+    update,
 )
+from gradio.external import load_interface
 from gradio.flagging import (
     CSVLogger,
     FlaggingCallback,
@@ -47,7 +48,9 @@ from gradio.flagging import (
     SimpleCSVLogger,
 )
 from gradio.interface import Interface, TabbedInterface, close_all
+from gradio.layouts import Box, Column, Group, Row, TabItem, Tabs
 from gradio.mix import Parallel, Series
+from gradio.templates import *
 
 current_pkg_version = pkg_resources.require("gradio")[0].version
 __version__ = current_pkg_version

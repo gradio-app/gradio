@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
-	import { Block, BlockLabel } from "@gradio/atoms";
-	import image_icon from "./image.svg";
-	import sketch_icon from "./sketch.svg";
+	import { BlockLabel } from "@gradio/atoms";
+	import { Image, Sketch as SketchIcon } from "@gradio/icons";
 
 	import Cropper from "./Cropper.svelte";
 	import Sketch from "./Sketch.svelte";
@@ -14,7 +13,6 @@
 
 	export let value: null | string;
 	export let label: string | undefined = undefined;
-	export let style: string = "";
 	export let show_label: boolean;
 
 	export let source: "canvas" | "webcam" | "upload" = "upload";
@@ -58,7 +56,7 @@
 
 <BlockLabel
 	{show_label}
-	image={source === "canvas" ? sketch_icon : image_icon}
+	Icon={source === "canvas" ? SketchIcon : Image}
 	label={label || (source === "canvas" ? "Sketch" : "Image")}
 />
 
@@ -102,9 +100,9 @@
 			editable
 		/>
 
-		<img class="w-full h-full object-contain" src={value} {style} alt="" />
+		<img class="w-full h-full object-contain" src={value} alt="" />
 	{:else}
-		<img class="w-full h-full object-contain" src={value} {style} alt="" />
+		<img class="w-full h-full object-contain" src={value} alt="" />
 	{/if}
 </div>
 

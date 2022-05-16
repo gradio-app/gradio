@@ -7,7 +7,7 @@
 
 {#if edit}
 	<input
-		class="absolute flex-1 outline-none inset-2 bg-transparent border-0 translate-x-px flex-1"
+		class="absolute outline-none inset-2 bg-transparent border-0 translate-x-px flex-1 "
 		class:translate-x-px={!header}
 		class:font-bold={header}
 		tabindex="-1"

@@ -2,20 +2,70 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+	.bg-gray-950 {
+		background-color: #090f1f;
+	}
+	.dark:bg-gray-950 {
+	}
+
+	.dark {
+		@apply text-gray-300 bg-gray-950;
+	}
+	.dark .text-gray-500,
+	.dark .text-gray-600 {
+		@apply text-gray-300;
+	}
+
+	.dark .text-gray-700,
+	.dark .text-gray-800,
+	.dark .text-gray-900 {
+		@apply text-gray-200;
+	}
+
+	.dark .border,
+	.dark .border-gray-100,
+	.dark .border-gray-200,
+	.dark .border-gray-300 {
+		@apply border-gray-700;
+	}
+
+	.dark .bg-white {
+		@apply bg-gray-950;
+	}
+
+	.dark .bg-gray-50 {
+		@apply bg-gray-900;
+	}
+
+	.dark .bg-gray-200 {
+		@apply bg-gray-800;
+	}
+
+	.unequal-height {
+		@apply items-start;
+	}
+}
+
 @layer components {
 	.col.gr-gap > *:not(.absolute) + * {
 		@apply mt-3;
 	}
+
 	.col.gr-form-gap > .form + .form {
 		@apply mt-0 border-t-0;
 	}
 
 	.row.gr-gap > *:not(.absolute) + * {
-		@apply ml-3;
+		@apply ml-0 mt-3;
+	}
+
+	.row.gr-gap.mobile-row > *:not(.absolute):not(".ml-0") + * {
+		@apply !ml-3 mt-0;
 	}
 
 	.row.gr-form-gap > .form + .form {
-		@apply ml-0 border-l-0;
+		@apply mt-0 border-t-0;
 	}
 
 	.scroll-hide {
@@ -25,6 +75,19 @@
 
 	.scroll-hide::-webkit-scrollbar {
 		display: none;
+	}
+
+	@media (min-width: 768px) {
+		.row.gr-gap > *:not(.absolute) + * {
+			@apply mt-0 ml-3;
+		}
+		.row.gr-gap > *:not(.absolute) + * {
+			@apply ml-3;
+		}
+
+		.row.gr-form-gap > .form + .form {
+			@apply ml-0 border-l-0 border-t;
+		}
 	}
 }
 

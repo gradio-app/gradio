@@ -1,3 +1,7 @@
+"""Contains all of the components that can be used used with Gradio Interface / Blocks.
+Along with the docs for each component, you can find the names of example demos that use
+each component. These demos are located in the `demo` directory."""
+
 from __future__ import annotations
 
 import inspect
@@ -12,7 +16,7 @@ import tempfile
 import warnings
 from copy import deepcopy
 from types import ModuleType
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Type
 
 import matplotlib.figure
 import numpy as np
@@ -23,6 +27,14 @@ from markdown_it import MarkdownIt
 
 from gradio import media_data, processing_utils
 from gradio.blocks import Block
+from gradio.events import (
+    Changeable,
+    Clearable,
+    Clickable,
+    Editable,
+    Playable,
+    Submittable,
+)
 
 
 class Component(Block):
@@ -30,39 +42,20 @@ class Component(Block):
     A base class for defining the methods that all gradio components should have.
     """
 
-    def __init__(
-        self,
-        *,
-        css: Optional[Dict] = None,
-        **kwargs,
-    ):
-        super().__init__(css=css, **kwargs)
-
     def __str__(self):
         return self.__repr__()
 
     def __repr__(self):
-        return f"{self.get_block_name()} (label={self.label})"
+        return f"{self.get_block_name()}"
 
-    def get_template_context(self):
+    def get_config(self):
         """
         :return: a dictionary with context variables for the javascript file associated with the context
         """
         return {
             "name": self.get_block_name(),
-            "css": self.css,
+            **super().get_config(),
         }
-
-    @staticmethod
-    def update(**kwargs) -> dict:
-        """
-        Updates component parameters
-
-        @param kwargs: Updating component parameters
-        @return: Updated component parameters
-        """
-        kwargs["__type__"] = "update"
-        return kwargs
 
 
 class IOComponent(Component):
@@ -75,8 +68,10 @@ class IOComponent(Component):
         *,
         label: Optional[str] = None,
         show_label: bool = True,
-        requires_permissions: bool = False,
         interactive: Optional[bool] = None,
+        visible: bool = True,
+        requires_permissions: bool = False,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         self.label = label
@@ -86,14 +81,14 @@ class IOComponent(Component):
 
         self.set_interpret_parameters()
 
-        super().__init__(**kwargs)
+        super().__init__(elem_id=elem_id, visible=visible, **kwargs)
 
-    def get_template_context(self):
+    def get_config(self):
         return {
             "label": self.label,
             "show_label": self.show_label,
             "interactive": self.interactive,
-            **super().get_template_context(),
+            **super().get_config(),
         }
 
     def save_flagged(
@@ -234,225 +229,116 @@ class IOComponent(Component):
         """
         return x
 
-
-class Changeable(Component):
-    def change(
+    def style(
         self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-        _js: Optional[str] = None,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        bg_color: Optional[str] = None,
+        text_color: Optional[str] = None,
+        container_bg_color: Optional[str] = None,
+        margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        container: Optional[bool] = None,
     ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status_tracker: StatusTracker to visualize function progress
-            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of input and outputs components, return should be a list of values for output component.
-        Returns: None
-        """
-        self.set_event_trigger(
-            "change", fn, inputs, outputs, status_tracker=status_tracker, js=_js
-        )
-
-
-class Clickable(Component):
-    def click(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-        queue=None,
-        _js: Optional[str] = None,
-        _preprocess: bool = True,
-        _postprocess: bool = True,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status_tracker: StatusTracker to visualize function progress
-            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-            _preprocess: If False, will not run preprocessing of component data before running 'fn'.
-            _postprocess: If False, will not run postprocessing of component data before returning 'fn' output.
-        Returns: None
-        """
-        self.set_event_trigger(
-            "click",
-            fn,
-            inputs,
-            outputs,
-            status_tracker=status_tracker,
-            queue=queue,
-            js=_js,
-            preprocess=_preprocess,
-            postprocess=_postprocess,
-        )
-
-
-class Submittable(Component):
-    def submit(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        status_tracker: Optional[StatusTracker] = None,
-        _js: Optional[str] = None,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            status_tracker: StatusTracker to visualize function progress
-            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-        Returns: None
-        """
-        self.set_event_trigger(
-            "submit", fn, inputs, outputs, status_tracker=status_tracker, js=_js
-        )
-
-
-class Editable(Component):
-    def edit(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        _js: Optional[str] = None,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-        Returns: None
-        """
-        self.set_event_trigger("edit", fn, inputs, outputs, js=_js)
-
-
-class Clearable(Component):
-    def clear(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        _js: Optional[str] = None,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-        Returns: None
-        """
-        self.set_event_trigger("submit", fn, inputs, outputs, js=_js)
-
-
-class Playable(Component):
-    def play(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        _js: Optional[str] = None,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-        Returns: None
-        """
-        self.set_event_trigger("play", fn, inputs, outputs, js=_js)
-
-    def pause(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        _js: Optional[str] = None,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-        Returns: None
-        """
-        self.set_event_trigger("pause", fn, inputs, outputs, js=_js)
-
-    def stop(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        _js: Optional[str] = None,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-        Returns: None
-        """
-        self.set_event_trigger("stop", fn, inputs, outputs, js=_js)
+        valid_colors = ["red", "yellow", "green", "blue", "purple", "black"]
+        if rounded is not None:
+            self._style["rounded"] = rounded
+        if bg_color is not None:
+            assert bg_color in valid_colors
+            self._style["bg_color"] = bg_color
+        if text_color is not None:
+            assert text_color in valid_colors
+            self._style["text_color"] = text_color
+        if container_bg_color is not None:
+            assert container_bg_color in valid_colors
+            self._style["container_bg_color"] = container_bg_color
+        if margin is not None:
+            self._style["margin"] = margin
+        if border is not None:
+            self._style["border"] = border
+        if container is not None:
+            self._style["container"] = container
+        return self
 
 
 class Textbox(Changeable, Submittable, IOComponent):
     """
-    Component creates a textbox for user to enter string input or display string output. Provides a string as an argument to the wrapped function.
-    Input type: str
-    Output type: str
+    Creates a textarea for user to enter string input or display string output.
+    Preprocessing: passes textarea value as a {str} into the function.
+    Postprocessing: expects a {str} returned from function and sets textarea value to it.
 
-    Demos: hello_world, diff_texts, sentence_builder
+    Demos: hello_world, diff_texts, sentence_builder, blocks_gpt
     """
 
     def __init__(
         self,
-        default_value: str = "",
+        value: str = "",
         *,
         lines: int = 1,
         max_lines: int = 20,
         placeholder: Optional[str] = None,
         label: Optional[str] = None,
-        css: Optional[Dict] = None,
+        show_label: bool = True,
+        interactive: Optional[bool] = None,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
-        default_value (str): default text to provide in textarea.
+        value (str): default text to provide in textarea.
         lines (int): minimum number of line rows to provide in textarea.
         max_lines (int): maximum number of line rows to provide in textarea.
         placeholder (str): placeholder hint to provide behind textarea.
-        label (str): component name in interface.
+        label (Optional[str]): component name in interface.
+        show_label (bool): if True, will display label.
+        visible (bool): If False, component will be hidden.
         """
-        default_value = str(default_value)
+        value = str(value)
         self.lines = lines
         self.max_lines = max_lines
         self.placeholder = placeholder
-        self.default_value = default_value
+        self.value = value
         self.cleared_value = ""
-        self.test_input = default_value
+        self.test_input = value
         self.interpret_by_tokens = True
-        IOComponent.__init__(self, label=label, css=css, **kwargs)
+        IOComponent.__init__(
+            self,
+            label=label,
+            show_label=show_label,
+            interactive=interactive,
+            visible=visible,
+            elem_id=elem_id,
+            **kwargs,
+        )
 
-    def get_template_context(self):
+    def get_config(self):
         return {
             "lines": self.lines,
             "max_lines": self.max_lines,
             "placeholder": self.placeholder,
-            "default_value": self.default_value,
-            **IOComponent.get_template_context(self),
+            "value": self.value,
+            **IOComponent.get_config(self),
+        }
+
+    @staticmethod
+    def update(
+        value: Optional[Any] = None,
+        lines: Optional[int] = None,
+        max_lines: Optional[int] = None,
+        placeholder: Optional[str] = None,
+        label: Optional[str] = None,
+        show_label: Optional[bool] = None,
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "lines": lines,
+            "max_lines": max_lines,
+            "placeholder": placeholder,
+            "label": label,
+            "show_label": show_label,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
         }
 
     # Input Functionalities
@@ -557,61 +443,137 @@ class Textbox(Changeable, Submittable, IOComponent):
         """
         return x
 
+    def style(
+        self,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        bg_color: Optional[str] = None,
+        text_color: Optional[str] = None,
+        container_bg_color: Optional[str] = None,
+        margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        container: Optional[bool] = None,
+    ):
+        return IOComponent.style(
+            self,
+            rounded=rounded,
+            bg_color=bg_color,
+            text_color=text_color,
+            container_bg_color=container_bg_color,
+            margin=margin,
+            border=border,
+            container=container,
+        )
+
 
 class Number(Changeable, Submittable, IOComponent):
     """
-    Component creates a field for user to enter numeric input or display numeric output. Provides a number as an argument to the wrapped function.
-    Can be used as an output as well.
+    Creates a numeric field for user to enter numbers as input or display numeric output.
+    Preprocessing: passes field value as a {float} or {int} into the function, depending on `precision`.
+    Postprocessing: expects an {int} or {float} returned from the function and sets field value to it.
 
-    Input type: float
-    Output type: float
-    Demos: tax_calculator, titanic_survival
+    Demos: tax_calculator, titanic_survival, blocks_static_textbox, blocks_simple_squares
     """
 
     def __init__(
         self,
-        default_value: Optional[float] = None,
+        value: Optional[float] = None,
         *,
         label: Optional[str] = None,
-        css: Optional[Dict] = None,
+        show_label: bool = True,
+        interactive: Optional[bool] = None,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
+        precision: Optional[int] = None,
         **kwargs,
     ):
         """
         Parameters:
-        default_value (float): default value.
-        label (str): component name in interface.
+        value (float): default value.
+        label (Optional[str]): component name in interface.
+        show_label (bool): if True, will display label.
+        visible (bool): If False, component will be hidden.
+        precision (Optional[int]): Precision to round input/output to. If set to 0, will round to nearest integer and covert type to int. If None, no rounding happens.
         """
-        self.default_value = float(default_value) if default_value is not None else None
-        self.test_input = self.default_value if self.default_value is not None else 1
+        self.value = self.round_to_precision(value, precision)
+        self.precision = precision
+        self.test_input = self.value if self.value is not None else 1
         self.interpret_by_tokens = False
-        IOComponent.__init__(self, label=label, css=css, **kwargs)
+        IOComponent.__init__(
+            self,
+            label=label,
+            show_label=show_label,
+            interactive=interactive,
+            visible=visible,
+            elem_id=elem_id,
+            **kwargs,
+        )
 
-    def get_template_context(self):
+    @staticmethod
+    def round_to_precision(
+        num: float | int | None, precision: int | None
+    ) -> float | int | None:
+        """
+        Round to a given precision.
+
+        If precision is None, no rounding happens. If 0, num is converted to int.
+
+        Parameters:
+        num (float | int): Number to round.
+        precision (int | None): Precision to round to.
+        Returns:
+        (float | int): rounded number
+        """
+        if num is None:
+            return None
+        if precision is None:
+            return float(num)
+        elif precision == 0:
+            return int(round(num, precision))
+        else:
+            return round(num, precision)
+
+    def get_config(self):
         return {
-            "default_value": self.default_value,
-            **IOComponent.get_template_context(self),
+            "value": self.value,
+            **IOComponent.get_config(self),
         }
 
-    def preprocess(self, x: float | None) -> Optional[float]:
+    @staticmethod
+    def update(
+        value: Optional[Any] = None,
+        label: Optional[str] = None,
+        show_label: Optional[bool] = None,
+        interactive: Optional[bool] = None,
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "label": label,
+            "show_label": show_label,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
+        }
+
+    def preprocess(self, x: int | float | None) -> int | float | None:
         """
         Parameters:
-        x (string): numeric input as a string
+        x (int | float | None): numeric input as a string
         Returns:
-        (float): number representing function input
+        (int | float | None): number representing function input
         """
         if x is None:
             return None
-        return float(x)
+        return self.round_to_precision(x, self.precision)
 
-    def preprocess_example(self, x: float | None) -> float | None:
+    def preprocess_example(self, x: int | float | None) -> int | float | None:
         """
         Returns:
-        (float): Number representing function input
+        (int | float | None): Number representing function input
         """
         if x is None:
             return None
         else:
-            return float(x)
+            return self.round_to_precision(x, self.precision)
 
     def set_interpret_parameters(
         self, steps: int = 3, delta: float = 1, delta_type: str = "percent"
@@ -628,14 +590,21 @@ class Number(Changeable, Submittable, IOComponent):
         self.interpretation_delta_type = delta_type
         return self
 
-    def get_interpretation_neighbors(self, x: float) -> Tuple[List[float], Dict]:
-        x = float(x)
+    def get_interpretation_neighbors(self, x: float | int) -> Tuple[List[float], Dict]:
+        x = self.round_to_precision(x, self.precision)
         if self.interpretation_delta_type == "percent":
             delta = 1.0 * self.interpretation_delta * x / 100
         elif self.interpretation_delta_type == "absolute":
             delta = self.interpretation_delta
         else:
             delta = self.interpretation_delta
+        if self.precision == 0 and math.floor(delta) != delta:
+            raise ValueError(
+                f"Delta value {delta} is not an integer and precision=0. Cannot generate valid set of neighbors. "
+                "If delta_type='percent', pick a value of delta such that x * delta is an integer. "
+                "If delta_type='absolute', pick a value of delta that is an integer."
+            )
+        # run_interpretation will preprocess the neighbors so no need to covert to int here
         negatives = (x + np.arange(-self.interpretation_steps, 0) * delta).tolist()
         positives = (x + np.arange(1, self.interpretation_steps + 1) * delta).tolist()
         return negatives + positives, {}
@@ -651,18 +620,23 @@ class Number(Changeable, Submittable, IOComponent):
         interpretation.insert(int(len(interpretation) / 2), [x, None])
         return interpretation
 
-    def generate_sample(self) -> float:
-        return 1.0
+    def generate_sample(self) -> int | float:
+        return self.round_to_precision(1, self.precision)
 
     # Output Functionalities
-    def postprocess(self, y: float | None):
+    def postprocess(self, y: int | float | None) -> int | float | None:
         """
         Any postprocessing needed to be performed on function output.
+
+        Parameters:
+        y (int | float | None): numeric output
+        Returns:
+        (int | float | None): number representing function output
         """
         if y is None:
             return None
         else:
-            return float(y)
+            return self.round_to_precision(y, self.precision)
 
     def deserialize(self, y):
         """
@@ -670,33 +644,54 @@ class Number(Changeable, Submittable, IOComponent):
         """
         return y
 
+    def style(
+        self,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        bg_color: Optional[str] = None,
+        text_color: Optional[str] = None,
+        container_bg_color: Optional[str] = None,
+    ):
+        return IOComponent.style(
+            self,
+            rounded=rounded,
+            bg_color=bg_color,
+            text_color=text_color,
+            container_bg_color=container_bg_color,
+        )
+
 
 class Slider(Changeable, IOComponent):
     """
-    Component creates a slider that ranges from `minimum` to `maximum`. Provides a number as an argument to the wrapped function.
+    Creates a slider that ranges from `minimum` to `maximum` with a step size of `step`.
+    Preprocessing: passes slider value as a {float} into the function.
+    Postprocessing: expects an {int} or {float} returned from function and sets slider value to it as long as it is within range.
 
-    Input type: float
     Demos: sentence_builder, generate_tone, titanic_survival
     """
 
     def __init__(
         self,
-        default_value: Optional[float] = None,
-        *,
         minimum: float = 0,
         maximum: float = 100,
+        value: Optional[float] = None,
+        *,
         step: Optional[float] = None,
         label: Optional[str] = None,
-        css: Optional[Dict] = None,
+        show_label: bool = True,
+        interactive: Optional[bool] = None,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
-        default_value (float): default value.
         minimum (float): minimum value for slider.
         maximum (float): maximum value for slider.
+        value (float): default value.
         step (float): increment between slider values.
-        label (str): component name in interface.
+        label (Optional[str]): component name in interface.
+        show_label (bool): if True, will display label.
+        visible (bool): If False, component will be hidden.
         """
         self.minimum = minimum
         self.maximum = maximum
@@ -705,19 +700,50 @@ class Slider(Changeable, IOComponent):
             power = math.floor(math.log10(difference) - 2)
             step = 10**power
         self.step = step
-        self.default_value = minimum if default_value is None else default_value
-        self.cleared_value = self.default_value
-        self.test_input = self.default_value
+        self.value = minimum if value is None else value
+        self.cleared_value = self.value
+        self.test_input = self.value
         self.interpret_by_tokens = False
-        IOComponent.__init__(self, label=label, css=css, **kwargs)
+        IOComponent.__init__(
+            self,
+            label=label,
+            show_label=show_label,
+            interactive=interactive,
+            visible=visible,
+            elem_id=elem_id,
+            **kwargs,
+        )
 
-    def get_template_context(self):
+    def get_config(self):
         return {
             "minimum": self.minimum,
             "maximum": self.maximum,
             "step": self.step,
-            "default_value": self.default_value,
-            **IOComponent.get_template_context(self),
+            "value": self.value,
+            **IOComponent.get_config(self),
+        }
+
+    @staticmethod
+    def update(
+        value: Optional[Any] = None,
+        minimum: Optional[float] = None,
+        maximum: Optional[float] = None,
+        step: Optional[float] = None,
+        label: Optional[str] = None,
+        show_label: Optional[bool] = None,
+        interactive: Optional[bool] = None,
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "minimum": minimum,
+            "maximum": maximum,
+            "step": step,
+            "label": label,
+            "show_label": show_label,
+            "interactive": interactive,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
         }
 
     def preprocess(self, x: float) -> float:
@@ -765,7 +791,7 @@ class Slider(Changeable, IOComponent):
 
         # Output Functionalities
 
-    def postprocess(self, y: float | None):
+    def postprocess(self, y: int | float | None):
         """
         Any postprocessing needed to be performed on function output.
         """
@@ -777,38 +803,79 @@ class Slider(Changeable, IOComponent):
         """
         return y
 
+    def style(
+        self,
+        text_color: Optional[str] = None,
+        container_bg_color: Optional[str] = None,
+    ):
+        return IOComponent.style(
+            self,
+            text_color=text_color,
+            container_bg_color=container_bg_color,
+        )
+
 
 class Checkbox(Changeable, IOComponent):
     """
-    Component creates a checkbox that can be set to `True` or `False`. Provides a boolean as an argument to the wrapped function.
+    Creates a checkbox that can be set to `True` or `False`.
 
-    Input type: bool
-    Output type: bool
+    Preprocessing: passes the status of the checkbox as a {bool} into the function.
+    Postprocessing: expects a {bool} returned from the function and, if it is True, checks the checkbox.
     Demos: sentence_builder, titanic_survival
     """
 
     def __init__(
         self,
-        default_value: bool = False,
+        value: bool = False,
         *,
         label: Optional[str] = None,
-        css: Optional[Dict] = None,
+        show_label: bool = True,
+        interactive: Optional[bool] = None,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
-        default_value (bool): if True, checked by default.
-        label (str): component name in interface.
+        value (bool): if True, checked by default.
+        label (Optional[str]): component name in interface.
+        show_label (bool): if True, will display label.
+        visible (bool): If False, component will be hidden.
         """
         self.test_input = True
-        self.default_value = default_value
+        self.value = value
         self.interpret_by_tokens = False
-        IOComponent.__init__(self, label=label, css=css, **kwargs)
+        IOComponent.__init__(
+            self,
+            label=label,
+            show_label=show_label,
+            interactive=interactive,
+            visible=visible,
+            elem_id=elem_id,
+            **kwargs,
+        )
 
-    def get_template_context(self):
+    def get_config(self):
         return {
-            "default_value": self.default_value,
-            **IOComponent.get_template_context(self),
+            "value": self.value,
+            **IOComponent.get_config(self),
+        }
+
+    @staticmethod
+    def update(
+        value: Optional[Any] = None,
+        label: Optional[str] = None,
+        show_label: Optional[bool] = None,
+        interactive: Optional[bool] = None,
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "label": label,
+            "show_label": show_label,
+            "interactive": interactive,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
         }
 
     def preprocess(self, x: bool) -> bool:
@@ -862,12 +929,24 @@ class Checkbox(Changeable, IOComponent):
         """
         return x
 
+    def style(
+        self,
+        text_color: Optional[str] = None,
+        container_bg_color: Optional[str] = None,
+    ):
+        return IOComponent.style(
+            self,
+            text_color=text_color,
+            container_bg_color=container_bg_color,
+        )
+
 
 class CheckboxGroup(Changeable, IOComponent):
     """
-    Component creates a set of checkboxes of which a subset can be selected. Provides a list of strings representing the selected choices as an argument to the wrapped function.
+    Creates a set of checkboxes of which a subset can be checked.
+    Preprocessing: passes the list of checked checkboxes as a {List[str]} or their indices as a {List[int]} into the function, depending on `type`.
+    Postprocessing: expects a {List[str]}, each element of which becomes a checked checkbox.
 
-    Input type: Union[List[str], List[int]]
     Demos: sentence_builder, titanic_survival, fraud_detector
     """
 
@@ -875,36 +954,68 @@ class CheckboxGroup(Changeable, IOComponent):
         self,
         choices: List[str],
         *,
-        default_selected: List[str] = None,
+        value: List[str] = None,
         type: str = "value",
         label: Optional[str] = None,
-        css: Optional[Dict] = None,
+        show_label: bool = True,
+        interactive: Optional[bool] = None,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
         choices (List[str]): list of options to select from.
-        default_selected (List[str]): default selected list of options.
+        value (List[str]): default selected list of options.
         type (str): Type of value to be returned by component. "value" returns the list of strings of the choices selected, "index" returns the list of indicies of the choices selected.
-        label (str): component name in interface.
+        label (Optional[str]): component name in interface.
+        show_label (bool): if True, will display label.
+        visible (bool): If False, component will be hidden.
         """
         if (
-            default_selected is None
+            value is None
         ):  # Mutable parameters shall not be given as default parameters in the function.
-            default_selected = []
+            value = []
         self.choices = choices
-        self.default_value = default_selected
+        self.value = value
         self.cleared_value = []
         self.type = type
         self.test_input = self.choices
         self.interpret_by_tokens = False
-        IOComponent.__init__(self, label=label, css=css, **kwargs)
+        IOComponent.__init__(
+            self,
+            label=label,
+            show_label=show_label,
+            interactive=interactive,
+            visible=visible,
+            elem_id=elem_id,
+            **kwargs,
+        )
 
-    def get_template_context(self):
+    def get_config(self):
         return {
             "choices": self.choices,
-            "default_value": self.default_value,
-            **IOComponent.get_template_context(self),
+            "value": self.value,
+            **IOComponent.get_config(self),
+        }
+
+    @staticmethod
+    def update(
+        value: Optional[Any] = None,
+        choices: Optional[List[str]] = None,
+        label: Optional[str] = None,
+        show_label: Optional[bool] = None,
+        interactive: Optional[bool] = None,
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "choices": choices,
+            "label": label,
+            "show_label": show_label,
+            "interactive": interactive,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
         }
 
     def preprocess(self, x: List[str]) -> List[str] | List[int]:
@@ -981,47 +1092,99 @@ class CheckboxGroup(Changeable, IOComponent):
         """
         return x
 
+    def style(
+        self,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        bg_color: Optional[str] = None,
+        text_color: Optional[str] = None,
+        container_bg_color: Optional[str] = None,
+    ):
+        return IOComponent.style(
+            self,
+            rounded=rounded,
+            bg_color=bg_color,
+            text_color=text_color,
+            container_bg_color=container_bg_color,
+        )
+
 
 class Radio(Changeable, IOComponent):
     """
-    Component creates a set of radio buttons of which only one can be selected. Provides string representing selected choice as an argument to the wrapped function.
+    Creates a set of radio buttons of which only one can be selected.
+    Preprocessing: passes the value of the selected radio button as a {str} or its index as an {int} into the function, depending on `type`.
+    Postprocessing: expects a {str} corresponding to the value of the radio button to be selected.
 
-    Input type: Union[str, int]
-    Demos: sentence_builder, tax_calculator, titanic_survival
+    Demos: sentence_builder, tax_calculator, titanic_survival, blocks_essay
     """
 
     def __init__(
         self,
         choices: List[str],
         *,
-        default_selected: Optional[str] = None,
+        value: Optional[str] = None,
         type: str = "value",
         label: Optional[str] = None,
-        css: Optional[Dict] = None,
+        show_label: bool = True,
+        interactive: Optional[bool] = None,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
         choices (List[str]): list of options to select from.
-        default_selected (str): the button selected by default. If None, no button is selected by default.
+        value (str): the button selected by default. If None, no button is selected by default.
         type (str): Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
-        label (str): component name in interface.
+        label (Optional[str]): component name in interface.
+        show_label (bool): if True, will display label.
+        visible (bool): If False, component will be hidden.
         """
         self.choices = choices
         self.type = type
-        self.test_input = self.choices[0]
-        self.default_value = (
-            default_selected if default_selected is not None else self.choices[0]
+        self.test_input = self.choices[0] if len(self.choices) else None
+        self.value = (
+            value
+            if value is not None
+            else self.choices[0]
+            if len(self.choices) > 0
+            else None
         )
-        self.cleared_value = self.default_value
+        self.cleared_value = self.value
         self.interpret_by_tokens = False
-        IOComponent.__init__(self, label=label, css=css, **kwargs)
+        IOComponent.__init__(
+            self,
+            label=label,
+            show_label=show_label,
+            interactive=interactive,
+            visible=visible,
+            elem_id=elem_id,
+            **kwargs,
+        )
 
-    def get_template_context(self):
+    def get_config(self):
         return {
             "choices": self.choices,
-            "default_value": self.default_value,
-            **IOComponent.get_template_context(self),
+            "value": self.value,
+            **IOComponent.get_config(self),
+        }
+
+    @staticmethod
+    def update(
+        value: Optional[Any] = None,
+        choices: Optional[List[str]] = None,
+        label: Optional[str] = None,
+        show_label: Optional[bool] = None,
+        interactive: Optional[bool] = None,
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "choices": choices,
+            "label": label,
+            "show_label": show_label,
+            "interactive": interactive,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
         }
 
     def preprocess(self, x: str) -> str | int:
@@ -1080,12 +1243,28 @@ class Radio(Changeable, IOComponent):
         """
         return x
 
+    def style(
+        self,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        bg_color: Optional[str] = None,
+        text_color: Optional[str] = None,
+        container_bg_color: Optional[str] = None,
+    ):
+        return IOComponent.style(
+            self,
+            rounded=rounded,
+            bg_color=bg_color,
+            text_color=text_color,
+            container_bg_color=container_bg_color,
+        )
+
 
 class Dropdown(Radio):
     """
-    Component creates a dropdown of which only one can be selected. Provides string representing selected choice as an argument to the wrapped function.
+    Creates a dropdown of which only one entry can be selected.
+    Preprocessing: passes the value of the selected dropdown entry as a {str} or its index as an {int} into the function, depending on `type`.
+    Postprocessing: expects a {str} corresponding to the value of the dropdown entry to be selected.
 
-    Input type: Union[str, int]
     Demos: sentence_builder, filter_records, titanic_survival
     """
 
@@ -1093,41 +1272,51 @@ class Dropdown(Radio):
         self,
         choices: List[str],
         *,
-        default_selected: Optional[str] = None,
+        value: Optional[str] = None,
         type: str = "value",
         label: Optional[str] = None,
-        css: Optional[Dict] = None,
+        show_label: bool = True,
+        interactive: Optional[bool] = None,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
         choices (List[str]): list of options to select from.
-        default_selected (str): default value selected in dropdown. If None, no value is selected by default.
+        value (str): default value selected in dropdown. If None, no value is selected by default.
         type (str): Type of value to be returned by component. "value" returns the string of the choice selected, "index" returns the index of the choice selected.
-        label (str): component name in interface.
+        label (Optional[str]): component name in interface.
+        show_label (bool): if True, will display label.
+        visible (bool): If False, component will be hidden.
         """
         # Everything is same with Dropdown and Radio, so let's make use of it :)
-        super().__init__(
-            default_selected=default_selected,
+        Radio.__init__(
+            self,
+            value=value,
             choices=choices,
             type=type,
             label=label,
+            show_label=show_label,
+            interactive=interactive,
+            visible=visible,
+            elem_id=elem_id,
             **kwargs,
         )
 
 
-class Image(Editable, Clearable, IOComponent):
+class Image(Editable, Clearable, Changeable, IOComponent):
     """
-    Component creates an image component with input and output capabilities.
+    Creates an image component that can be used to upload/draw images (as an input) or display images (as an output).
+    Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type`.
+    Postprocessing: expects a {numpy.array}, {PIL.Image} or {str} filepath to an image and displays the image.
 
-    Input type: Union[numpy.array, PIL.Image, file-object]
-    Output type: Union[numpy.array, PIL.Image, str, matplotlib.pyplot, Tuple[Union[numpy.array, PIL.Image, str], List[Tuple[str, float, float, float, float]]]]
     Demos: image_classifier, image_mod, webcam, digit_classifier
     """
 
     def __init__(
         self,
-        default_value: Optional[str] = None,
+        value: Optional[str] = None,
         *,
         shape: Tuple[int, int] = None,
         image_mode: str = "RGB",
@@ -1135,26 +1324,29 @@ class Image(Editable, Clearable, IOComponent):
         source: str = "upload",
         tool: str = "editor",
         type: str = "numpy",
-        label: str = None,
-        css: Optional[Dict] = None,
+        label: Optional[str] = None,
+        show_label: bool = True,
+        interactive: Optional[bool] = None,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
-        default_value(str): A path or URL for the default value that Image component is going to take.
+        value (str): A path or URL for the default value that Image component is going to take.
         shape (Tuple[int, int]): (width, height) shape to crop and resize image to; if None, matches input image size. Pass None for either width or height to only crop and resize the other.
         image_mode (str): "RGB" if color, or "L" if black and white.
         invert_colors (bool): whether to invert the image as a preprocessing step.
         source (str): Source of image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "canvas" defaults to a white image that can be edited and drawn upon with tools.
         tool (str): Tools used for editing. "editor" allows a full screen editor, "select" provides a cropping and zoom tool.
         type (str): The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
-        label (str): component name in interface.
+        label (Optional[str]): component name in interface.
+        show_label (bool): if True, will display label.
+        visible (bool): If False, component will be hidden.
         """
         self.type = type
-        self.default_value = (
-            processing_utils.encode_url_or_file_to_base64(default_value)
-            if default_value
-            else None
+        self.value = (
+            processing_utils.encode_url_or_file_to_base64(value) if value else None
         )
         self.type = type
         self.output_type = "auto"
@@ -1169,19 +1361,39 @@ class Image(Editable, Clearable, IOComponent):
         IOComponent.__init__(
             self,
             label=label,
-            css=css,
+            show_label=show_label,
+            interactive=interactive,
+            visible=visible,
+            elem_id=elem_id,
             requires_permissions=requires_permissions,
             **kwargs,
         )
 
-    def get_template_context(self):
+    def get_config(self):
         return {
             "image_mode": self.image_mode,
             "shape": self.shape,
             "source": self.source,
             "tool": self.tool,
-            "default_value": self.default_value,
-            **IOComponent.get_template_context(self),
+            "value": self.value,
+            **IOComponent.get_config(self),
+        }
+
+    @staticmethod
+    def update(
+        value: Optional[Any] = None,
+        label: Optional[str] = None,
+        show_label: Optional[bool] = None,
+        interactive: Optional[bool] = None,
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "label": label,
+            "show_label": show_label,
+            "interactive": interactive,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
         }
 
     def preprocess(self, x: Optional[str]) -> np.array | PIL.Image | str | None:
@@ -1407,48 +1619,92 @@ class Image(Editable, Clearable, IOComponent):
         y = processing_utils.decode_base64_to_file(x).name
         return y
 
+    def style(
+        self,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        bg_color: Optional[str] = None,
+        text_color: Optional[str] = None,
+        container_bg_color: Optional[str] = None,
+    ):
+        return IOComponent.style(
+            self,
+            rounded=rounded,
+            bg_color=bg_color,
+            text_color=text_color,
+            container_bg_color=container_bg_color,
+        )
+
 
 class Video(Changeable, Clearable, Playable, IOComponent):
     """
-    Component creates a video file upload that is converted to a file path.
+    Creates an video component that can be used to upload/record videos (as an input) or display videos (as an output).
+    Preprocessing: passes the uploaded video as a {str} filepath whose extension can be set by `format`.
+    Postprocessing: expects a {str} filepath to a video which is displayed.
 
-    Input type: filepath
-    Output type: filepath
     Demos: video_flip
     """
 
     def __init__(
         self,
-        default_value: str = "",
+        value: str = "",
         *,
-        type: Optional[str] = None,
+        format: Optional[str] = None,
         source: str = "upload",
         label: Optional[str] = None,
-        css: Optional[Dict] = None,
+        show_label: bool = True,
+        interactive: Optional[bool] = None,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
-        default_value(str): A path or URL for the default value that Video component is going to take.
-        type (str): Type of video format to be returned by component, such as 'avi' or 'mp4'. Use 'mp4' to ensure browser playability. If set to None, video will keep uploaded format.
+        value(str): A path or URL for the default value that Video component is going to take.
+        format (str): Format of video format to be returned by component, such as 'avi' or 'mp4'. Use 'mp4' to ensure browser playability. If set to None, video will keep uploaded format.
         source (str): Source of video. "upload" creates a box where user can drop an video file, "webcam" allows user to record a video from their webcam.
-        label (str): component name in interface.
-        optional (bool): If True, the interface can be submitted with no uploaded video, in which case the input value is None.
+        label (Optional[str]): component name in interface.
+        show_label (bool): if True, will display label.
+        visible (bool): If False, component will be hidden.
         """
-        self.default_value = (
-            processing_utils.encode_url_or_file_to_base64(default_value)
-            if default_value
-            else None
+        self.value = (
+            processing_utils.encode_url_or_file_to_base64(value) if value else None
         )
-        self.type = type
+        self.format = format
         self.source = source
-        IOComponent.__init__(self, label=label, css=css, **kwargs)
+        IOComponent.__init__(
+            self,
+            label=label,
+            show_label=show_label,
+            interactive=interactive,
+            visible=visible,
+            elem_id=elem_id,
+            **kwargs,
+        )
 
-    def get_template_context(self):
+    def get_config(self):
         return {
             "source": self.source,
-            "default_value": self.default_value,
-            **IOComponent.get_template_context(self),
+            "value": self.value,
+            **IOComponent.get_config(self),
+        }
+
+    @staticmethod
+    def update(
+        value: Optional[Any] = None,
+        source: Optional[str] = None,
+        label: Optional[str] = None,
+        show_label: Optional[bool] = None,
+        interactive: Optional[bool] = None,
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "source": source,
+            "label": label,
+            "show_label": show_label,
+            "interactive": interactive,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
         }
 
     def preprocess_example(self, x):
@@ -1476,8 +1732,8 @@ class Video(Changeable, Clearable, Playable, IOComponent):
             )
         file_name = file.name
         uploaded_format = file_name.split(".")[-1].lower()
-        if self.type is not None and uploaded_format != self.type:
-            output_file_name = file_name[0 : file_name.rindex(".") + 1] + self.type
+        if self.format is not None and uploaded_format != self.format:
+            output_file_name = file_name[0 : file_name.rindex(".") + 1] + self.format
             ff = FFmpeg(inputs={file_name: None}, outputs={output_file_name: None})
             ff.run()
             return output_file_name
@@ -1506,8 +1762,8 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         (str): base64 url data
         """
         returned_format = y.split(".")[-1].lower()
-        if self.type is not None and returned_format != self.type:
-            output_file_name = y[0 : y.rindex(".") + 1] + self.type
+        if self.format is not None and returned_format != self.format:
+            output_file_name = y[0 : y.rindex(".") + 1] + self.format
             ff = FFmpeg(inputs={y: None}, outputs={output_file_name: None})
             ff.run()
             y = output_file_name
@@ -1522,35 +1778,37 @@ class Video(Changeable, Clearable, Playable, IOComponent):
 
 class Audio(Changeable, Clearable, Playable, IOComponent):
     """
-    Component accepts audio input files or creates an audio player that plays the output audio.
+    Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
+    Preprocessing: passes the uploaded audio as a {Tuple(int, numpy.array)} corresponding to (sample rate, data) or as a {str} filepath, depending on `type`
+    Postprocessing: expects a {Tuple(int, numpy.array)} corresponding to (sample rate, data) or as a {str} filepath to an audio file, which gets displayed
 
-
-    Input type: Union[Tuple[int, numpy.array], file-object, numpy.array]
-    Output type: Union[Tuple[int, numpy.array], str]
     Demos: main_note, generate_tone, reverse_audio, spectogram
     """
 
     def __init__(
         self,
-        default_value="",
+        value: str = "",
         *,
         source: str = "upload",
         type: str = "numpy",
-        label: str = None,
-        css: Optional[Dict] = None,
+        label: Optional[str] = None,
+        show_label: bool = True,
+        interactive: Optional[bool] = None,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
-        default_value (str): IGNORED
+        value (str): A path or URL for the default value that Audio component is going to take.
         source (str): Source of audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input.
         type (str): The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
-        label (str): component name in interface.
+        label (Optional[str]): component name in interface.
+        show_label (bool): if True, will display label.
+        visible (bool): If False, component will be hidden.
         """
-        self.default_value = (
-            processing_utils.encode_url_or_file_to_base64(default_value)
-            if default_value
-            else None
+        self.value = (
+            processing_utils.encode_url_or_file_to_base64(value) if value else None
         )
         self.source = source
         requires_permissions = source == "microphone"
@@ -1559,14 +1817,40 @@ class Audio(Changeable, Clearable, Playable, IOComponent):
         self.test_input = deepcopy(media_data.BASE64_AUDIO)
         self.interpret_by_tokens = True
         IOComponent.__init__(
-            self, label=label, requires_permissions=requires_permissions, **kwargs
+            self,
+            label=label,
+            show_label=show_label,
+            interactive=interactive,
+            visible=visible,
+            elem_id=elem_id,
+            requires_permissions=requires_permissions,
+            **kwargs,
         )
 
-    def get_template_context(self):
+    def get_config(self):
         return {
             "source": self.source,  # TODO: This did not exist in output template, careful here if an error arrives
-            "default_value": self.default_value,
-            **IOComponent.get_template_context(self),
+            "value": self.value,
+            **IOComponent.get_config(self),
+        }
+
+    @staticmethod
+    def update(
+        value: Optional[Any] = None,
+        source: Optional[str] = None,
+        label: Optional[str] = None,
+        show_label: Optional[bool] = None,
+        interactive: Optional[bool] = None,
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "source": source,
+            "label": label,
+            "show_label": show_label,
+            "interactive": interactive,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
         }
 
     def preprocess_example(self, x):
@@ -1774,45 +2058,73 @@ class Audio(Changeable, Clearable, Playable, IOComponent):
 
 class File(Changeable, Clearable, IOComponent):
     """
-    Component accepts generic file uploads and output..
+    Creates a file component that allows uploading generic file (when used as an input) and or displaying generic files (output).
+    Preprocessing: passes the uploaded file as a {file-object} or {List[file-object]} depending on `file_count` (or a {bytes}/{List{bytes}} depending on `type`)
+    Postprocessing: expects a {str} path to a file returned by the function.
 
-    Input type: Union[file-object, bytes, List[Union[file-object, bytes]]]
-    Output type: Union[file-like, str]
     Demos: zip_to_json, zip_two_files
     """
 
     def __init__(
         self,
-        default_value: str = "",
+        value: str = "",
         *,
         file_count: str = "single",
         type: str = "file",
         label: Optional[str] = None,
-        css: Optional[Dict] = None,
+        show_label: bool = True,
+        interactive: Optional[bool] = None,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
-        default_value (str): Default value given as file path
+        value (str): Default value given as file path
         file_count (str): if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
         type (str): Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name, "binary" returns an bytes object.
-        label (str): component name in interface.
+        label (Optional[str]): component name in interface.
+        show_label (bool): if True, will display label.
+        visible (bool): If False, component will be hidden.
         """
-        self.default_value = (
-            processing_utils.encode_url_or_file_to_base64(default_value)
-            if default_value
-            else None
+        self.value = (
+            processing_utils.encode_url_or_file_to_base64(value) if value else None
         )
         self.file_count = file_count
         self.type = type
         self.test_input = None
-        IOComponent.__init__(self, label=label, css=css, **kwargs)
+        IOComponent.__init__(
+            self,
+            label=label,
+            show_label=show_label,
+            interactive=interactive,
+            visible=visible,
+            elem_id=elem_id,
+            **kwargs,
+        )
 
-    def get_template_context(self):
+    def get_config(self):
         return {
             "file_count": self.file_count,
-            "default_value": self.default_value,
-            **IOComponent.get_template_context(self),
+            "value": self.value,
+            **IOComponent.get_config(self),
+        }
+
+    @staticmethod
+    def update(
+        value: Optional[Any] = None,
+        label: Optional[str] = None,
+        show_label: Optional[bool] = None,
+        interactive: Optional[bool] = None,
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "label": label,
+            "show_label": show_label,
+            "interactive": interactive,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
         }
 
     def preprocess_example(self, x):
@@ -1890,42 +2202,47 @@ class File(Changeable, Clearable, IOComponent):
 
 class Dataframe(Changeable, IOComponent):
     """
-    Component accepts or displays 2D input  through a spreadsheet interface.
+    Accepts or displays 2D input through a spreadsheet-like component for dataframes.
+    Preprocessing: passes the uploaded spreadsheet data as a {pandas.DataFrame}, {numpy.array}, {List[List]}, or {List} depending on `type`
+    Postprocessing: expects a {pandas.DataFrame}, {numpy.array}, {List[List]}, or {List} which is rendered in the spreadsheet.
 
-    Input or Output type: Union[pandas.DataFrame, numpy.array, List[Union[str, float]], List[List[Union[str, float]]]]
     Demos: filter_records, matrix_transpose, tax_calculator
     """
 
     def __init__(
         self,
-        default_value: Optional[List[List[Any]]] = None,
+        value: Optional[List[List[Any]]] = None,
         *,
         headers: Optional[List[str]] = None,
         row_count: int | Tuple[int, str] = (3, "dynamic"),
         col_count: Optional[int | Tuple[int, str]] = None,
         datatype: str | List[str] = "str",
         type: str = "pandas",
-        label: Optional[str] = None,
         max_rows: Optional[int] = 20,
         max_cols: Optional[int] = None,
         overflow_row_behaviour: str = "paginate",
-        css: Optional[Dict] = None,
+        label: Optional[str] = None,
+        show_label: bool = True,
+        interactive: Optional[bool] = None,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
-        Input Parameters:
-        default_value (List[List[Any]]): Default value as a pandas DataFrame. TODO: Add support for default value as a filepath
-        headers (List[str]): Header names to dataframe. If None, no headers are shown.
-        row_count (Union[int, Tuple[int, str]]): Limit number of rows for input and decide whether user can create new rows. The first element of the tuple is an `int`, the row count; the second should be 'fixed' or 'dynamic', the new row behaviour. If an `int` is passed the rows default to 'dynamic'
-        col_count (Union[int, Tuple[int, str]]): Limit number of columns for input and decide whether user can create new columns. The first element of the tuple is an `int`, the number of columns; the second should be 'fixed' or 'dynamic', the new column behaviour. If an `int` is passed the columns default to 'dynamic'
-        datatype (Union[str, List[str]]): Datatype of values in sheet. Can be provided per column as a list of strings, or for the entire sheet as a single string. Valid datatypes are "str", "number", "bool", and "date".
+        Parameters:
+        value (List[List[Any]]): Default value as a 2-dimensional list of values.
+        headers (List[str] | None): List of str header names. If None, no headers are shown.
+        row_count (int | Tuple[int, str]): Limit number of rows for input and decide whether user can create new rows. The first element of the tuple is an `int`, the row count; the second should be 'fixed' or 'dynamic', the new row behaviour. If an `int` is passed the rows default to 'dynamic'
+        col_count (int | Tuple[int, str]): Limit number of columns for input and decide whether user can create new columns. The first element of the tuple is an `int`, the number of columns; the second should be 'fixed' or 'dynamic', the new column behaviour. If an `int` is passed the columns default to 'dynamic'
+        datatype (str | List[str]): Datatype of values in sheet. Can be provided per column as a list of strings, or for the entire sheet as a single string. Valid datatypes are "str", "number", "bool", and "date".
         type (str): Type of value to be returned by component. "pandas" for pandas dataframe, "numpy" for numpy array, or "array" for a Python array.
         label (str): component name in interface.
-        Output Parameters:
-        headers (List[str]): Header names to dataframe. Only applicable if type is "numpy" or "array".
         max_rows (int): Maximum number of rows to display at once. Set to None for infinite.
         max_cols (int): Maximum number of columns to display at once. Set to None for infinite.
         overflow_row_behaviour (str): If set to "paginate", will create pages for overflow rows. If set to "show_ends", will show initial and final rows and truncate middle rows.
+        label (Optional[str]): component name in interface.
+        show_label (bool): if True, will display label.
+        visible (bool): If False, component will be hidden.
         """
 
         self.row_count = self.__process_counts(row_count)
@@ -1939,7 +2256,7 @@ class Dataframe(Changeable, IOComponent):
         self.datatype = datatype
         self.type = type
         self.output_type = "auto"
-        default_values = {
+        values = {
             "str": "",
             "number": 0,
             "bool": False,
@@ -1949,27 +2266,54 @@ class Dataframe(Changeable, IOComponent):
             [datatype] * self.col_count[0] if isinstance(datatype, str) else datatype
         )
         self.test_input = [
-            [default_values[c] for c in column_dtypes] for _ in range(self.row_count[0])
+            [values[c] for c in column_dtypes] for _ in range(self.row_count[0])
         ]
-        self.default_value = (
-            default_value if default_value is not None else self.test_input
-        )
+        self.value = value if value is not None else self.test_input
         self.max_rows = max_rows
         self.max_cols = max_cols
         self.overflow_row_behaviour = overflow_row_behaviour
-        IOComponent.__init__(self, label=label, css=css, **kwargs)
+        IOComponent.__init__(
+            self,
+            label=label,
+            show_label=show_label,
+            interactive=interactive,
+            visible=visible,
+            elem_id=elem_id,
+            **kwargs,
+        )
 
-    def get_template_context(self):
+    def get_config(self):
         return {
             "headers": self.headers,
             "datatype": self.datatype,
             "row_count": self.row_count,
             "col_count": self.col_count,
-            "default_value": self.default_value,
+            "value": self.value,
             "max_rows": self.max_rows,
             "max_cols": self.max_cols,
             "overflow_row_behaviour": self.overflow_row_behaviour,
-            **IOComponent.get_template_context(self),
+            **IOComponent.get_config(self),
+        }
+
+    @staticmethod
+    def update(
+        value: Optional[Any] = None,
+        max_rows: Optional[int] = None,
+        max_cols: Optional[str] = None,
+        label: Optional[str] = None,
+        show_label: Optional[bool] = None,
+        interactive: Optional[bool] = None,
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "max_rows": max_rows,
+            "max_cols": max_cols,
+            "label": label,
+            "show_label": show_label,
+            "interactive": interactive,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
         }
 
     def preprocess(self, x: List[List[str | Number | bool]]):
@@ -2067,49 +2411,79 @@ class Dataframe(Changeable, IOComponent):
 
 class Timeseries(Changeable, IOComponent):
     """
-    Component accepts pandas.DataFrame uploaded as a timeseries csv file or renders a dataframe consisting of a time series as output.
+    Creates a component that can be used to upload/preview timeseries csv files or display a dataframe consisting of a time series graphically.
+    Preprocessing: passes the uploaded timeseries data as a {pandas.DataFrame} into the function
+    Postprocessing: expects a {pandas.DataFrame} to be returned, which is then displayed as a timeseries graph
 
-    Input type: pandas.DataFrame
-    Output type: pandas.DataFrame
     Demos: fraud_detector
     """
 
     def __init__(
         self,
-        default_value: Optional[str] = None,
+        value: Optional[str] = None,
         *,
         x: Optional[str] = None,
         y: str | List[str] = None,
-        label: Optional[str] = None,
-        css: Optional[Dict] = None,
         colors: List[str] = None,
+        label: Optional[str] = None,
+        show_label: bool = True,
+        interactive: Optional[bool] = None,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
-        default_value: File path for the timeseries csv file. TODO: Add support for default value as a pd.DataFrame
+        value: File path for the timeseries csv file.
         x (str): Column name of x (time) series. None if csv has no headers, in which case first column is x series.
         y (Union[str, List[str]]): Column name of y series, or list of column names if multiple series. None if csv has no headers, in which case every column after first is a y series.
         label (str): component name in interface.
-        colors List[str]: an ordered list of colors to use for each line plot
+        colors (List[str]): an ordered list of colors to use for each line plot
+        show_label (bool): if True, will display label.
+        visible (bool): If False, component will be hidden.
         """
-        self.default_value = (
-            pd.read_csv(default_value) if default_value is not None else None
-        )
+        self.value = pd.read_csv(value) if value is not None else None
         self.x = x
         if isinstance(y, str):
             y = [y]
         self.y = y
         self.colors = colors
-        IOComponent.__init__(self, label=label, css=css, **kwargs)
+        IOComponent.__init__(
+            self,
+            label=label,
+            show_label=show_label,
+            interactive=interactive,
+            visible=visible,
+            elem_id=elem_id,
+            **kwargs,
+        )
 
-    def get_template_context(self):
+    def get_config(self):
         return {
             "x": self.x,
             "y": self.y,
-            "default_value": self.default_value,
+            "value": self.value,
             "colors": self.colors,
-            **IOComponent.get_template_context(self),
+            **IOComponent.get_config(self),
+        }
+
+    @staticmethod
+    def update(
+        value: Optional[Any] = None,
+        colors: Optional[List[str]] = None,
+        label: Optional[str] = None,
+        show_label: Optional[bool] = None,
+        interactive: Optional[bool] = None,
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "colors": colors,
+            "label": label,
+            "show_label": show_label,
+            "interactive": interactive,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
         }
 
     def preprocess_example(self, x):
@@ -2159,31 +2533,31 @@ class Timeseries(Changeable, IOComponent):
 
 class Variable(IOComponent):
     """
-    Special hidden component that stores state across runs of the interface.
+    Special hidden component that stores session state across runs of the demo by the
+    same user. The value of the Variable is cleared when the user refreshes the page.
 
-    Input type: Any
-    Output type: Any
-    Demos: chatbot
+    Preprocessing: No preprocessing is performed
+    Postprocessing: No postprocessing is performed
+    Demos: chatbot, blocks_simple_squares
     """
 
     def __init__(
         self,
-        default_value: Any = None,
+        value: Any = None,
         **kwargs,
     ):
         """
         Parameters:
-        default_value (Any): the initial value of the state.
-        label (str): component name in interface (not used).
+        value (Any): the initial value of the state.
         """
-        self.default_value = default_value
+        self.value = value
         self.stateful = True
         IOComponent.__init__(self, **kwargs)
 
-    def get_template_context(self):
+    def get_config(self):
         return {
-            "default_value": self.default_value,
-            **IOComponent.get_template_context(self),
+            "value": self.value,
+            **IOComponent.get_config(self),
         }
 
 
@@ -2194,8 +2568,10 @@ class Variable(IOComponent):
 
 class Label(Changeable, IOComponent):
     """
-    Component outputs a classification label, along with confidence scores of top categories if provided. Confidence scores are represented as a dictionary mapping labels to scores between 0 and 1.
-    Output type: Union[Dict[str, float], str, int, float]
+    Displays a classification label, along with confidence scores of top categories, if provided.
+    Preprocessing: this component does *not* accept input.
+    Postprocessing: expects a {Dict[str, float]} of classes and confidences, or {str} with just the class or an {int}/{float} for regression outputs.
+
     Demos: image_classifier, main_note, titanic_survival
     """
 
@@ -2203,23 +2579,34 @@ class Label(Changeable, IOComponent):
 
     def __init__(
         self,
-        default_value: str = "",
+        value: str = "",
         *,
         num_top_classes: Optional[int] = None,
         label: Optional[str] = None,
-        css: Optional[Dict] = None,
+        show_label: bool = True,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
-        default_value(str): Default string value
+        value(str): Default string value
         num_top_classes (int): number of most confident classes to show.
-        label (str): component name in interface.
+        label (Optional[str]): component name in interface.
+        show_label (bool): if True, will display label.
+        visible (bool): If False, component will be hidden.
         """
         # TODO: Shall we have a default value for the label component?
         self.num_top_classes = num_top_classes
         self.output_type = "auto"
-        IOComponent.__init__(self, label=label, css=css, **kwargs)
+        IOComponent.__init__(
+            self,
+            label=label,
+            show_label=show_label,
+            visible=visible,
+            elem_id=elem_id,
+            **kwargs,
+        )
 
     def postprocess(self, y):
         """
@@ -2292,80 +2679,118 @@ class Label(Changeable, IOComponent):
         except ValueError:
             return data
 
-
-class KeyValues(IOComponent):
-    """
-    Component displays a table representing values for multiple fields.
-    Output type: Union[Dict, List[Tuple[str, Union[str, int, float]]]]
-    Demos: text_analysis
-    """
-
-    def __init__(
-        self,
-        default_value: str = " ",
-        *,
+    @staticmethod
+    def update(
+        value: Optional[Any] = None,
         label: Optional[str] = None,
-        css: Optional[Dict] = None,
-        **kwargs,
+        show_label: Optional[bool] = None,
+        visible: Optional[bool] = None,
     ):
-        """
-        Parameters:
-        default (str): IGNORED
-        label (str): component name in interface.
-        """
-        raise DeprecationWarning(
-            "The KeyValues component is deprecated. Please use the DataFrame or JSON "
-            "components instead."
-        )
+        return {
+            "label": label,
+            "show_label": show_label,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
+        }
 
 
 class HighlightedText(Changeable, IOComponent):
     """
-    Component creates text that contains spans that are highlighted by category or numerical value.
-    Output is represent as a list of Tuple pairs, where the first element represents the span of text represented by the tuple, and the second element represents the category or value of the text.
-    Output type: List[Tuple[str, Union[float, str]]]
+    Displays text that contains spans that are highlighted by category or numerical value.
+    Preprocessing: this component does *not* accept input.
+    Postprocessing: expects a {List[Tuple[str, float | str]]]} consisting of spans of text and their associated labels.
+
     Demos: diff_texts, text_analysis
     """
 
     def __init__(
         self,
-        default_value: str = "",
+        value: str = "",
         *,
         color_map: Dict[str, str] = None,
-        label: Optional[str] = None,
         show_legend: bool = False,
-        css: Optional[Dict] = None,
+        combine_adjacent: bool = False,
+        label: Optional[str] = None,
+        show_label: bool = True,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
-        default_value (str): Default value
+        value (str): Default value
         color_map (Dict[str, str]): Map between category and respective colors
-        label (str): component name in interface.
         show_legend (bool): whether to show span categories in a separate legend or inline.
+        label (Optional[str]): component name in interface.
+        show_label (bool): if True, will display label.
+        visible (bool): If False, component will be hidden.
         """
-        self.default_value = default_value
+        self.value = value
         self.color_map = color_map
         self.show_legend = show_legend
-        IOComponent.__init__(self, label=label, css=css, **kwargs)
+        self.combine_adjacent = combine_adjacent
+        IOComponent.__init__(
+            self,
+            label=label,
+            show_label=show_label,
+            visible=visible,
+            elem_id=elem_id,
+            **kwargs,
+        )
 
-    def get_template_context(self):
+    def get_config(self):
         return {
             "color_map": self.color_map,
             "show_legend": self.show_legend,
-            "default_value": self.default_value,
-            **IOComponent.get_template_context(self),
+            "value": self.value,
+            **IOComponent.get_config(self),
+        }
+
+    @staticmethod
+    def update(
+        value: Optional[Any] = None,
+        color_map: Optional[Dict[str, str]] = None,
+        show_legend: Optional[bool] = None,
+        label: Optional[str] = None,
+        show_label: Optional[bool] = None,
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "color_map": color_map,
+            "show_legend": show_legend,
+            "label": label,
+            "show_label": show_label,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
         }
 
     def postprocess(self, y):
         """
         Parameters:
-        y (Union[Dict, List[Tuple[str, Union[str, int, float]]]]): dictionary or tuple list representing key value pairs
+        y (List[Tuple[str, Union[str, number, None]]]): List of (word, category) tuples
         Returns:
-        (List[Tuple[str, Union[str, number]]]): list of key value pairs
-
+        (List[Tuple[str, Union[str, number, None]]]): List of (word, category) tuples
         """
-        return y
+        if self.combine_adjacent:
+            output = []
+            running_text, running_category = None, None
+            for text, category in y:
+                if running_text is None:
+                    running_text = text
+                    running_category = category
+                elif category == running_category:
+                    running_text += text
+                else:
+                    output.append((running_text, running_category))
+                    running_text = text
+                    running_category = category
+            if running_text is not None:
+                output.append((running_text, running_category))
+            return output
+        else:
+            return y
 
     def save_flagged(self, dir, label, data, encryption_key):
         return json.dumps(data)
@@ -2376,31 +2801,59 @@ class HighlightedText(Changeable, IOComponent):
 
 class JSON(Changeable, IOComponent):
     """
-    Used for JSON output. Expects a JSON string or a Python object that is JSON serializable.
-    Output type: Union[str, Any]
-    Demos: zip_to_json
+    Used to display arbitrary JSON output prettily.
+    Preprocessing: this component does *not* accept input.
+    Postprocessing: expects a valid JSON {str} -- or a {list} or {dict} that is JSON serializable.
+
+    Demos: zip_to_json, blocks_xray
     """
 
     def __init__(
         self,
-        default_value: str = "",
+        value: str = "",
         *,
         label: Optional[str] = None,
-        css: Optional[Dict] = None,
+        show_label: bool = True,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
-        default_value (str): Default value
-        label (str): component name in interface.
+        value (str): Default value
+        label (Optional[str]): component name in interface.
+        show_label (bool): if True, will display label.
+        visible (bool): If False, component will be hidden.
         """
-        self.default_value = json.dumps(default_value)
-        IOComponent.__init__(self, label=label, css=css, **kwargs)
+        self.value = json.dumps(value)
+        IOComponent.__init__(
+            self,
+            label=label,
+            show_label=show_label,
+            visible=visible,
+            elem_id=elem_id,
+            **kwargs,
+        )
 
-    def get_template_context(self):
+    def get_config(self):
         return {
-            "default_value": self.default_value,
-            **IOComponent.get_template_context(self),
+            "value": self.value,
+            **IOComponent.get_config(self),
+        }
+
+    @staticmethod
+    def update(
+        value: Optional[Any] = None,
+        label: Optional[str] = None,
+        show_label: Optional[bool] = None,
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "label": label,
+            "show_label": show_label,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
         }
 
     def postprocess(self, y):
@@ -2424,54 +2877,107 @@ class JSON(Changeable, IOComponent):
 
 class HTML(Changeable, IOComponent):
     """
-    Used for HTML output. Expects an HTML valid string.
-    Output type: str
+    Used to display arbitrary HTML output.
+    Preprocessing: this component does *not* accept input.
+    Postprocessing: expects a valid HTML {str}.
+
     Demos: text_analysis
     """
 
     def __init__(
         self,
-        default_value: str = "",
+        value: str = "",
+        *,
         label: Optional[str] = None,
-        css: Optional[Dict] = None,
+        show_label: bool = True,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
-        default_value (str): Default value
-        label (str): component name in interface.
+        value (str): Default value
+        label (Optional[str]): component name in interface.
+        show_label (bool): if True, will display label.
+        visible (bool): If False, component will be hidden.
         """
-        self.default_value = default_value
-        IOComponent.__init__(self, label=label, css=css, **kwargs)
+        self.value = value
+        IOComponent.__init__(
+            self,
+            label=label,
+            show_label=show_label,
+            visible=visible,
+            elem_id=elem_id,
+            **kwargs,
+        )
 
-    def get_template_context(self):
+    def get_config(self):
         return {
-            "default_value": self.default_value,
-            **IOComponent.get_template_context(self),
+            "value": self.value,
+            **IOComponent.get_config(self),
         }
 
-    def postprocess(self, x):
-        """
-        Parameters:
-        y (str): HTML output
-        Returns:
-        (str): HTML output
-        """
-        return x
+    @staticmethod
+    def update(
+        value: Optional[Any] = None,
+        label: Optional[str] = None,
+        show_label: Optional[bool] = None,
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "label": label,
+            "show_label": show_label,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
+        }
 
 
 class Gallery(IOComponent):
+    """
+    Used to display a list of images as a gallery that can be scrolled through.
+    Preprocessing: this component does *not* accept input.
+    Postprocessing: expects a list of images in any format, {List[numpy.array | PIL.Image | str]}, and displays them.
+
+    Demos: fake_gan
+    """
+
     def __init__(
         self,
         *,
         label: Optional[str] = None,
+        show_label: bool = True,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
-        super().__init__(label=label, **kwargs)
+        """
+        Parameters:
+        label (Optional[str]): component name in interface.
+        show_label (bool): if True, will display label.
+        visible (bool): If False, component will be hidden.
+        """
+        super().__init__(
+            label=label,
+            show_label=show_label,
+            visible=visible,
+            elem_id=elem_id,
+            **kwargs,
+        )
 
-    def get_template_context(self):
+    @staticmethod
+    def update(
+        value: Optional[Any] = None,
+        label: Optional[str] = None,
+        show_label: Optional[bool] = None,
+        visible: Optional[bool] = None,
+    ):
         return {
-            **super().get_template_context(),
+            "label": label,
+            "show_label": show_label,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
         }
 
     def postprocess(self, y):
@@ -2497,8 +3003,30 @@ class Gallery(IOComponent):
             output.append(img)
         return output
 
+    def style(
+        self,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        bg_color: Optional[str] = None,
+        text_color: Optional[str] = None,
+        margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        grid: Optional[int] = None,
+        height: Optional[str] = None,
+    ):
+        if grid is not None:
+            self._style["grid"] = grid
+        if height is not None:
+            self._style["height"] = height
 
-class Carousel(IOComponent):
+        return IOComponent.style(
+            self,
+            rounded=rounded,
+            bg_color=bg_color,
+            text_color=text_color,
+            margin=margin,
+        )
+
+
+class Carousel(IOComponent, Changeable):
     """
     Component displays a set of output components that can be scrolled through.
     Output type: List[List[Any]]
@@ -2510,27 +3038,55 @@ class Carousel(IOComponent):
         *,
         components: Component | List[Component],
         label: Optional[str] = None,
-        css: Optional[Dict] = None,
+        show_label: bool = True,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
         components (Union[List[OutputComponent], OutputComponent]): Classes of component(s) that will be scrolled through.
-        label (str): component name in interface.
+        label (Optional[str]): component name in interface.
+        show_label (bool): if True, will display label.
+        visible (bool): If False, component will be hidden.
         """
+        warnings.warn(
+            "The Carousel component is partially deprecated. It may not behave as expected.",
+            DeprecationWarning,
+        )
         if not isinstance(components, list):
             components = [components]
         self.components = [
             get_component_instance(component) for component in components
         ]
-        IOComponent.__init__(self, label=label, css=css, **kwargs)
+        IOComponent.__init__(
+            self,
+            label=label,
+            show_label=show_label,
+            visible=visible,
+            elem_id=elem_id,
+            **kwargs,
+        )
 
-    def get_template_context(self):
+    def get_config(self):
         return {
-            "components": [
-                component.get_template_context() for component in self.components
-            ],
-            **IOComponent.get_template_context(self),
+            "components": [component.get_config() for component in self.components],
+            **IOComponent.get_config(self),
+        }
+
+    @staticmethod
+    def update(
+        value: Optional[Any] = None,
+        label: Optional[str] = None,
+        show_label: Optional[bool] = None,
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "label": label,
+            "show_label": show_label,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
         }
 
     def postprocess(self, y):
@@ -2578,35 +3134,65 @@ class Carousel(IOComponent):
 
 class Chatbot(Changeable, IOComponent):
     """
-    Component displays a chatbot output showing both user submitted messages and responses
-    Output type: List[Tuple[str, str]]
+    Displays a chatbot output showing both user submitted messages and responses
+    Preprocessing: this component does *not* accept input.
+    Postprocessing: expects a {List[Tuple[str, str]]}, a list of tuples with user inputs and responses.
+
     Demos: chatbot
     """
 
     def __init__(
         self,
-        default_value="",
-        color_map: Tuple(str, str) = None,
+        value="",
+        color_map: Tuple[str, str] = None,
         *,
         label: Optional[str] = None,
-        css: Optional[Dict] = None,
+        show_label: bool = True,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
-        default_value (str): Default value
+        value (str): Default value
         color_map (Tuple[str, str]): Chat bubble color of input text and output text respectively.
-        label (str): component name in interface (not used).
+        label (Optional[str]): component name in interface.
+        show_label (bool): if True, will display label.
+        visible (bool): If False, component will be hidden.
         """
-        self.default_value = default_value
+        self.value = value
         self.color_map = color_map
-        IOComponent.__init__(self, label=label, css=css, **kwargs)
+        IOComponent.__init__(
+            self,
+            label=label,
+            show_label=show_label,
+            visible=visible,
+            elem_id=elem_id,
+            **kwargs,
+        )
 
-    def get_template_context(self):
+    def get_config(self):
         return {
-            "default_value": self.default_value,
+            "value": self.value,
             "color_map": self.color_map,
-            **IOComponent.get_template_context(self),
+            **IOComponent.get_config(self),
+        }
+
+    @staticmethod
+    def update(
+        value: Optional[Any] = None,
+        color_map: Optional[Tuple[str, str]] = None,
+        label: Optional[str] = None,
+        show_label: Optional[bool] = None,
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "color_map": color_map,
+            "label": label,
+            "show_label": show_label,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
         }
 
     def postprocess(self, y):
@@ -2625,28 +3211,55 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
     Component creates a 3D Model component with input and output capabilities.
     Input type: File object of type (.obj, glb, or .gltf)
     Output type: filepath
-    Demos: Model3D
+    Demos: model3D
     """
 
     def __init__(
         self,
+        *,
         clear_color=None,
-        label: str = None,
-        css: Optional[Dict] = None,
+        label: Optional[str] = None,
+        show_label: bool = True,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
         clear_color (List[r, g, b, a]): background color of scene
-        label (str): component name in interface.
+        label (Optional[str]): component name in interface.
+        show_label (bool): if True, will display label.
+        visible (bool): If False, component will be hidden.
         """
         self.clear_color = clear_color
-        IOComponent.__init__(self, label=label, css=css, **kwargs)
+        IOComponent.__init__(
+            self,
+            label=label,
+            show_label=show_label,
+            visible=visible,
+            elem_id=elem_id,
+            **kwargs,
+        )
 
-    def get_template_context(self):
+    def get_config(self):
         return {
             "clearColor": self.clear_color,
-            **IOComponent.get_template_context(self),
+            **IOComponent.get_config(self),
+        }
+
+    @staticmethod
+    def update(
+        value: Optional[Any] = None,
+        label: Optional[str] = None,
+        show_label: Optional[bool] = None,
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "label": label,
+            "show_label": show_label,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
         }
 
     def preprocess_example(self, x):
@@ -2718,28 +3331,54 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
 
 class Plot(Changeable, Clearable, IOComponent):
     """
-    Used for plot output.
-    Output type: matplotlib plt, plotly figure, or Bokeh fig (json_item format)
-    Demos: outbreak_forecast
+    Used to display various kinds of plots (matplotlib, plotly, or bokeh are supported)
+    Preprocessing: this component does *not* accept input.
+    Postprocessing: expects either a {matplotlib.pyplot.Figure}, a {plotly.graph_objects._figure.Figure}, or a {dict} corresponding to a bokeh plot (json_item format)
+
+    Demos: outbreak_forecast, blocks_kinematics, stock_forecast
     """
 
     def __init__(
         self,
-        type: str = None,
-        label: str = None,
-        css: Optional[Dict] = None,
+        *,
+        label: Optional[str] = None,
+        show_label: bool = True,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
-        type (str): type of plot (matplotlib, plotly)
-        label (str): component name in interface.
+        label (Optional[str]): component name in interface.
+        show_label (bool): if True, will display label.
+        visible (bool): If False, component will be hidden.
         """
-        self.type = type
-        IOComponent.__init__(self, label=label, css=css, **kwargs)
+        IOComponent.__init__(
+            self,
+            label=label,
+            show_label=show_label,
+            visible=visible,
+            elem_id=elem_id,
+            **kwargs,
+        )
 
-    def get_template_context(self):
-        return {**IOComponent.get_template_context(self)}
+    def get_config(self):
+        return {**IOComponent.get_config(self)}
+
+    @staticmethod
+    def update(
+        value: Optional[Any] = None,
+        label: Optional[str] = None,
+        show_label: Optional[bool] = None,
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "label": label,
+            "show_label": show_label,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
+        }
 
     def postprocess(self, y):
         """
@@ -2749,60 +3388,64 @@ class Plot(Changeable, Clearable, IOComponent):
         (str): plot type
         (str): plot base64 or json
         """
-        dtype = self.type
-        if self.type == "plotly":
-            out_y = y.to_json()
-        elif self.type == "matplotlib":
+        if isinstance(y, (ModuleType, matplotlib.pyplot.Figure)):
+            dtype = "matplotlib"
             out_y = processing_utils.encode_plot_to_base64(y)
-        elif self.type == "bokeh":
+        elif isinstance(y, dict):
+            dtype = "bokeh"
             out_y = json.dumps(y)
-        elif self.type == "auto":
-            if isinstance(y, (ModuleType, matplotlib.pyplot.Figure)):
-                dtype = "matplotlib"
-                out_y = processing_utils.encode_plot_to_base64(y)
-            elif isinstance(y, dict):
-                dtype = "bokeh"
-                out_y = json.dumps(y)
-            else:
-                dtype = "plotly"
-                out_y = y.to_json()
         else:
-            raise ValueError(
-                "Unknown type. Please choose from: 'plotly', 'matplotlib', 'bokeh'."
-            )
+            dtype = "plotly"
+            out_y = y.to_json()
         return {"type": dtype, "plot": out_y}
 
 
-class Markdown(Component):
+class Markdown(IOComponent, Changeable):
     """
-    Used for Markdown output. Expects a valid string that is rendered into Markdown.
+    Used to render arbitrary Markdown output.
+    Preprocessing: this component does *not* accept input.
+    Postprocessing: expects a valid {str} that can be rendered as Markdown.
+
+    Demos: blocks_hello, blocks_kinematics, blocks_neural_instrument_coding
     """
 
     def __init__(
         self,
-        default_value: str = "",
+        value: str = "",
         *,
-        css: Optional[Dict] = None,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
-        default_value (str): Default value
-        css (dict): optional css parameters for the component
+        value (str): Default value
+        visible (bool): If False, component will be hidden.
         """
-        Component.__init__(self, css=css, **kwargs)
+        IOComponent.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.md = MarkdownIt()
-        unindented_default_value = inspect.cleandoc(default_value)
-        self.default_value = self.md.render(unindented_default_value)
+        unindented_value = inspect.cleandoc(value)
+        self.value = self.md.render(unindented_value)
 
     def postprocess(self, y):
         unindented_y = inspect.cleandoc(y)
         return self.md.render(unindented_y)
 
-    def get_template_context(self):
+    def get_config(self):
         return {
-            "default_value": self.default_value,
-            **Component.get_template_context(self),
+            "value": self.value,
+            **Component.get_config(self),
+        }
+
+    @staticmethod
+    def update(
+        value: Optional[Any] = None,
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
         }
 
 
@@ -2813,33 +3456,69 @@ class Markdown(Component):
 
 class Button(Clickable, Component):
     """
-    Used to create a button, that can be assigned arbitrary click() events.
+    Used to create a button, that can be assigned arbitrary click() events. Accepts neither input nor output.
+
+    Demos: blocks_inputs, blocks_kinematics
     """
 
     def __init__(
         self,
-        default_value: str = "",
+        value: str = "Run",
         *,
-        css: Optional[Dict] = None,
         variant: str = "primary",
+        visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
-        default_value (str): Default value
-        css (dict): optional css parameters for the component
+        value (str): Default value
         variant (str): 'primary' for main call-to-action, 'secondary' for a more subdued style
+        visible (bool): If False, component will be hidden.
         """
-        Component.__init__(self, css=css, **kwargs)
-        self.default_value = default_value
+        Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
+        self.value = value
         self.variant = variant
 
-    def get_template_context(self):
+    def get_config(self):
         return {
-            "default_value": self.default_value,
+            "value": self.value,
             "variant": self.variant,
-            **Component.get_template_context(self),
+            **Component.get_config(self),
         }
+
+    @staticmethod
+    def update(
+        value: Optional[Any] = None,
+        variant: Optional[str] = None,
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "variant": variant,
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
+        }
+
+    def style(
+        self,
+        rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+        bg_color: Optional[str] = None,
+        text_color: Optional[str] = None,
+        full_width: Optional[str] = None,
+        margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
+    ):
+        if rounded is not None:
+            self._style["rounded"] = rounded
+        if bg_color is not None:
+            self._style["bg_color"] = bg_color
+        if text_color is not None:
+            self._style["text_color"] = text_color
+        if full_width is not None:
+            self._style["full_width"] = full_width
+        if margin is not None:
+            self._style["margin"] = margin
+        return self
 
 
 class Dataset(Clickable, Component):
@@ -2854,22 +3533,40 @@ class Dataset(Clickable, Component):
         components: List[Component],
         samples: List[List[Any]],
         type: str = "values",
-        css: Optional[Dict] = None,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
-        Component.__init__(self, css=css, **kwargs)
+        """
+        Parameters:
+        components (List[Component]): Default value
+        variant (str): 'primary' for main call-to-action, 'secondary' for a more subdued style
+        visible (bool): If False, component will be hidden.
+        """
+        Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.components = components
         self.type = type
         self.headers = [c.label for c in components]
         self.samples = samples
 
-    def get_template_context(self):
+    def get_config(self):
         return {
             "components": [component.get_block_name() for component in self.components],
             "headers": self.headers,
             "samples": self.samples,
             "type": self.type,
-            **Component.get_template_context(self),
+            **Component.get_config(self),
+        }
+
+    @staticmethod
+    def update(
+        value: Optional[Any] = None,
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
         }
 
     def preprocess(self, x: Any) -> Any:
@@ -2891,16 +3588,28 @@ class Interpretation(Component):
         self,
         component: Component,
         *,
-        css: Optional[Dict] = None,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
-        Component.__init__(self, css=css, **kwargs)
+        Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.component = component
 
-    def get_template_context(self):
+    def get_config(self):
         return {
             "component": self.component.get_block_name(),
-            "component_props": self.component.get_template_context(),
+            "component_props": self.component.get_config(),
+        }
+
+    @staticmethod
+    def update(
+        value: Optional[Any] = None,
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
         }
 
 
@@ -2913,27 +3622,38 @@ class StatusTracker(Component):
         self,
         *,
         cover_container: bool = False,
-        css: Optional[Dict] = None,
+        visible: bool = True,
+        elem_id: Optional[str] = None,
         **kwargs,
     ):
         """
         Parameters:
         cover_container (bool): If True, will expand to cover parent container while function pending.
-        css (dict): optional css parameters for the component
         """
-        Component.__init__(self, css=css, **kwargs)
+        Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.cover_container = cover_container
 
-    def get_template_context(self):
+    def get_config(self):
         return {
             "cover_container": self.cover_container,
-            **Component.get_template_context(self),
+            **Component.get_config(self),
+        }
+
+    @staticmethod
+    def update(
+        value: Optional[Any] = None,
+        visible: Optional[bool] = None,
+    ):
+        return {
+            "visible": visible,
+            "value": value,
+            "__type__": "update",
         }
 
 
-def component(cls_name: str):
+def component_class(cls_name: str) -> Type[Component]:
     """
-    Returns a component or template with the given class name, or raises a ValueError if not found.
+    Returns the component class with the given class name, or raises a ValueError if not found.
     @param cls_name: lower-case string class name of a component
     @return cls: the component class
     """
@@ -2955,14 +3675,19 @@ def component(cls_name: str):
     raise ValueError(f"No such Component: {cls_name}")
 
 
+def component(cls_name: str) -> Component:
+    obj = component_class(cls_name)()
+    return obj
+
+
 def get_component_instance(comp: str | dict | Component):
     if isinstance(comp, str):
-        component_cls = component(comp)
-        return component_cls()
+        return component(comp)
     elif isinstance(comp, dict):
         name = comp.pop("name")
-        component_cls = component(name)
-        return component_cls(**comp)
+        component_cls = component_class(name)
+        component_obj = component_cls(**comp)
+        return component_obj
     elif isinstance(comp, Component):
         return comp
     else:
@@ -2972,7 +3697,16 @@ def get_component_instance(comp: str | dict | Component):
 
 
 DataFrame = Dataframe
-Keyvalues = KeyValues
 Highlightedtext = HighlightedText
 Checkboxgroup = CheckboxGroup
 TimeSeries = Timeseries
+
+
+def update(**kwargs) -> dict:
+    """
+    Updates component parameters
+    @param kwargs: Updating component parameters
+    @return: Updated component parameters
+    """
+    kwargs["__type__"] = "generic_update"
+    return kwargs

@@ -2,11 +2,10 @@
 	import { createEventDispatcher } from "svelte";
 	import { Block, BlockLabel } from "@gradio/atoms";
 
-	import image_icon from "./image.svg";
+	import { Image } from "@gradio/icons";
 
 	export let value: null | string;
 	export let label: string | undefined = undefined;
-	export let style: string = "";
 	export let show_label: boolean;
 
 	const dispatch = createEventDispatcher<{
@@ -16,11 +15,11 @@
 	$: value && dispatch("change", value);
 </script>
 
-<BlockLabel {show_label} image={image_icon} label={label || "Image"} />
+<BlockLabel {show_label} Icon={Image} label={label || "Image"} />
 {#if value === null}
-	<div class="min-h-[16rem] flex justify-center items-center">
-		<img src={image_icon} alt="" class="h-6 opacity-20" />
+	<div class="h-full min-h-[15rem] flex justify-center items-center">
+		<div class="h-5 dark:text-white opacity-50"><Image /></div>
 	</div>
 {:else}
-	<img class="w-full h-full object-contain" src={value} {style} alt="" />
+	<img class="w-full h-full object-contain" src={value} alt="" />
 {/if}

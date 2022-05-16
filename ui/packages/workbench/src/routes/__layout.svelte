@@ -18,7 +18,7 @@
 </svelte:head>
 
 <h1
-	class="font-semibold px-6 py-2 border-b flex items-center text-orange-500 bg-gradient-to-r from-orange-50 to-white border-orange-50"
+	class="font-semibold px-6 py-2 border-b flex items-center text-orange-500 bg-gradient-to-r from-orange-50 to-white border-orange-50 dark:from-orange-900 dark:to-gray-900 dark:border-gray-900"
 >
 	<svg
 		class="mr-2"

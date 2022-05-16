@@ -4,7 +4,17 @@
 	relative 
 	rounded-lg 
 	bg-white 
-	shadow-sm;
+	shadow-sm
+	dark:bg-gray-800;
+}
+
+.gr-box-unrounded {
+	@apply text-gray-700 
+	text-sm 
+	relative 
+	bg-white 
+	shadow-sm
+	dark:bg-gray-800;
 }
 
 .gr-input {
@@ -14,7 +24,12 @@
 	focus:ring-opacity-50 
 	placeholder:text-gray-400
 	checked:shadow-inner
-	border-gray-200;
+	border-gray-200
+	dark:text-gray-200
+	dark:focus:ring-0
+	dark:focus:border-gray-600
+	dark:placeholder:text-gray-500
+	dark:border-gray-700;
 }
 
 .gr-label {
@@ -34,31 +49,29 @@
 }
 
 .gr-check-radio {
-	@apply border-gray-300 
-	text-blue-600 
-	shadow-sm 
-	focus:border-blue-300 
-	focus:ring 
-	focus:ring-offset-0 
-	focus:ring-blue-200 
-	focus:ring-opacity-50;
+	@apply border-gray-300 text-blue-600 disabled:text-gray-400 disabled:!cursor-not-allowed shadow-sm focus:border-blue-300 focus:ring focus:ring-offset-0 focus:ring-blue-200 dark:focus:ring-gray-700 focus:ring-opacity-50 dark:bg-gray-900 dark:border-gray-700 dark:checked:bg-blue-600;
 }
 
 .gr-checkbox {
-	@apply rounded 
-	checked:shadow-inner;
+	@apply rounded;
+}
+
+.gr-radio {
+	@apply rounded-full;
 }
 
 .gr-button {
-	@apply border inline-flex items-center justify-center shadow-sm hover:shadow bg-gradient-to-br bg-white active:shadow-inner flex-1 text-center px-2 py-0.5 rounded text-sm;
+	@apply border inline-flex items-center justify-center shadow-sm hover:shadow bg-gradient-to-br bg-white dark:bg-gray-700 dark:border-gray-600 active:shadow-inner flex-1 text-center px-2 py-0.5 rounded text-sm;
 }
 
 .gr-button-primary {
-	@apply from-orange-100/70 to-orange-200/80 hover:to-orange-100/90 text-orange-600 border-orange-200;
+	@apply from-orange-100/70 to-orange-200/80 hover:to-orange-100/90 text-orange-600 border-orange-200
+	  	 dark:from-orange-700 dark:to-orange-700 dark:hover:to-orange-500 dark:text-white dark:border-orange-600;
 }
 
 .gr-button-secondary {
-	@apply from-gray-100/70 to-gray-200/80 hover:to-gray-100/90 text-gray-700 border-gray-200;
+	@apply from-gray-100/70 to-gray-200/80 hover:to-gray-100/90 text-gray-700 border-gray-200
+	dark:from-gray-600 dark:to-gray-700 dark:hover:to-gray-600 dark:text-white dark:border-gray-600;
 }
 
 .gr-button-sm {
@@ -66,7 +79,7 @@
 }
 
 .gr-button-lg {
-	@apply py-2.5 px-4 font-semibold rounded-lg text-base;
+	@apply py-2 px-4 font-semibold rounded-lg text-base;
 }
 
 .gr-samples-table {
@@ -95,11 +108,11 @@
 	.gr-sample-dataframe,
 	.gr-sample-audio,
 	.gr-sample-3d {
-		@apply flex items-center border cursor-pointer px-2 py-1.5 rounded-lg bg-white hover:bg-gray-50 text-sm text-left;
+		@apply flex items-center border cursor-pointer px-2 py-1.5 rounded-lg bg-white hover:bg-gray-50 text-sm text-left dark:hover:bg-gray-800;
 	}
 }
 
 img.gr-sample-image,
 video.gr-sample-video {
-	@apply flex-none rounded-lg max-w-none ring-2 ring-gray-200 hover:ring-orange-400 group-hover:ring-orange-400;
+	@apply flex-none rounded-lg max-w-none ring-2 ring-gray-200 hover:ring-orange-400 group-hover:ring-orange-400 dark:ring-gray-700 dark:hover:ring-orange-700 dark:group-hover:ring-orange-700;
 }

@@ -3,9 +3,9 @@
 	import { Upload, ModifyUpload } from "@gradio/upload";
 	import type { FileData } from "@gradio/upload";
 	import { BlockLabel } from "@gradio/atoms";
+	import { File } from "@gradio/icons";
 
 	import { prettyBytes } from "./utils";
-	import file_icon from "./file.svg";
 
 	export let value: null | FileData;
 
@@ -44,7 +44,7 @@
 	$: dispatch("drag", dragging);
 </script>
 
-<BlockLabel {show_label} image={file_icon} label={label || "File"} />
+<BlockLabel {show_label} Icon={File} label={label || "File"} />
 
 {#if value === null}
 	<Upload on:load={handle_upload} filetype="file" bind:dragging>
