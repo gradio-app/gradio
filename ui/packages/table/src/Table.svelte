@@ -371,7 +371,6 @@
 	}
 
 	function handle_click_outside(event: Event) {
-		console.log('outside')
 		if (typeof editing === "string" && els[editing]) {
 			if (
 				els[editing].cell !== event.target &&
