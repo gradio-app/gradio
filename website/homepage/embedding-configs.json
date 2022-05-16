@@ -726,7 +726,7 @@
   },
   "dependencies": []
 },
-  "JSON": {
+  "json": {
     "mode": "blocks",
     "components": [
       {
@@ -787,7 +787,7 @@
     },
     "dependencies": []
   },
-  "Chatbot": {
+  "chatbot": {
     "mode": "blocks",
     "components": [
       {
