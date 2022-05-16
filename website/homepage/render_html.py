@@ -395,6 +395,9 @@ def render_docs():
         Dataset,
         Variable
     ]
+    string_shortcuts = {
+        Audio: "Audio",
+    }
     
     components_docs = [get_class_documentation(cls, replace_brackets=True) for cls in components]
     interface_params = get_function_documentation(Interface.__init__)
