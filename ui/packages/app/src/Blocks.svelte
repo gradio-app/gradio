@@ -186,7 +186,6 @@
 				{ targets, trigger, inputs, outputs, queue, backend_fn, frontend_fn },
 				i
 			) => {
-				console.log(">", targets, instance_map)
 				const target_instances: [number, Component][] = targets.map((t) => [
 					t,
 					instance_map[t]
