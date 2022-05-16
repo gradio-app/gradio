@@ -16,7 +16,7 @@ import tempfile
 import warnings
 from copy import deepcopy
 from types import ModuleType
-from typing import Any, Callable, Dict, List, Optional, Tuple, Type
+from typing import Any, Dict, List, Optional, Tuple, Type
 
 import matplotlib.figure
 import numpy as np
@@ -2932,15 +2932,6 @@ class HTML(Changeable, IOComponent):
             "__type__": "update",
         }
 
-    def postprocess(self, x):
-        """
-        Parameters:
-        y (str): HTML output
-        Returns:
-        (str): HTML output
-        """
-        return x
-
 
 class Gallery(IOComponent):
     """
@@ -3023,23 +3014,22 @@ class Gallery(IOComponent):
     ):
         if grid is not None:
             self._style["grid"] = grid
+        if height is not None:
+            self._style["height"] = height
+
         return IOComponent.style(
             self,
             rounded=rounded,
             bg_color=bg_color,
             text_color=text_color,
             margin=margin,
-            height=height,
         )
 
 
-# max_grid=[3], grid_behavior="scale", height="auto"
-class Carousel(IOComponent):
+class Carousel(IOComponent, Changeable):
     """
-    Used to display a list of arbitrary components that can be scrolled through.
-    Preprocessing: this component does *not* accept input.
-    Postprocessing: Expects a nested {List[List]} where the inner elements depend on the components in the Carousel.
-
+    Component displays a set of output components that can be scrolled through.
+    Output type: List[List[Any]]
     Demos: disease_report
     """
 
@@ -3060,6 +3050,10 @@ class Carousel(IOComponent):
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
+        warnings.warn(
+            "The Carousel component is partially deprecated. It may not behave as expected.",
+            DeprecationWarning,
+        )
         if not isinstance(components, list):
             components = [components]
         self.components = [
@@ -3341,7 +3335,7 @@ class Plot(Changeable, Clearable, IOComponent):
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects either a {matplotlib.pyplot.Figure}, a {plotly.graph_objects._figure.Figure}, or a {dict} corresponding to a bokeh plot (json_item format)
 
-    Demos: outbreak_forecast, blocks_kinematics
+    Demos: outbreak_forecast, blocks_kinematics, stock_forecast
     """
 
     def __init__(
@@ -3394,7 +3388,6 @@ class Plot(Changeable, Clearable, IOComponent):
         (str): plot type
         (str): plot base64 or json
         """
-        dtype = self.type
         if isinstance(y, (ModuleType, matplotlib.pyplot.Figure)):
             dtype = "matplotlib"
             out_y = processing_utils.encode_plot_to_base64(y)
@@ -3407,7 +3400,7 @@ class Plot(Changeable, Clearable, IOComponent):
         return {"type": dtype, "plot": out_y}
 
 
-class Markdown(Component):
+class Markdown(IOComponent, Changeable):
     """
     Used to render arbitrary Markdown output.
     Preprocessing: this component does *not* accept input.
@@ -3429,7 +3422,7 @@ class Markdown(Component):
         value (str): Default value
         visible (bool): If False, component will be hidden.
         """
-        Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
+        IOComponent.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.md = MarkdownIt()
         unindented_value = inspect.cleandoc(value)
         self.value = self.md.render(unindented_value)

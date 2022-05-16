@@ -11,9 +11,8 @@ __pycache__/
 build/
 
 # JS build
+gradio/templates/cdn
 gradio/templates/frontend
-gradio/templates/frontend/index.html
-
 # Secrets
 .env
 

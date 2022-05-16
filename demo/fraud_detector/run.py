@@ -1,5 +1,5 @@
 import random
-
+import os
 import gradio as gr
 
 
@@ -30,6 +30,9 @@ demo = gr.Interface(
         "dataframe",
         gr.Timeseries(x="time", y=["retail", "food", "other"]),
         gr.Label(label="Fraud Level"),
+    ],
+    examples=[
+        [os.path.join(os.path.dirname(__file__), "fraud.csv"), ["retail", "food", "other"], 1.0],
     ],
 )
 if __name__ == "__main__":
