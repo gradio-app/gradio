@@ -3289,9 +3289,9 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
 
     def __init__(
         self,
-        value,
+        value: Optional[str] = None,
         *,
-        clear_color=None,
+        clear_color: List[float] = None,
         label: Optional[str] = None,
         show_label: bool = True,
         visible: bool = True,

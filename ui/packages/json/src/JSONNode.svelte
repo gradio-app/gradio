@@ -4,7 +4,10 @@
 	export let collapsed = depth > 4;
 </script>
 
-<div class="json-node inline text-sm font-mono leading-tight ">
+<span class="inline-block h-0 w-0" class:mt-10={depth === 0} />
+<div
+	class="json-node inline text-sm font-mono leading-tight dark:text-slate-200"
+>
 	{#if value instanceof Array}
 		{#if collapsed}
 			<button

@@ -54,7 +54,7 @@
 	</Upload>
 {:else}
 	<div
-		class="file-preview w-full flex flex-row justify-between overflow-y-auto mt-7"
+		class="file-preview w-full flex flex-row justify-between overflow-y-auto mt-7 dark:text-slate-200"
 	>
 		<ModifyUpload on:clear={handle_clear} absolute />
 
@@ -65,8 +65,10 @@
 			{prettyBytes(value.size || 0)}
 		</div>
 		<div class="file-size p-2 hover:underline">
-			<a href={value.data} download class="text-indigo-600 hover:underline"
-				>Download</a
+			<a
+				href={value.data}
+				download
+				class="text-indigo-600 hover:underline dark:text-indigo-300">Download</a
 			>
 		</div>
 	</div>

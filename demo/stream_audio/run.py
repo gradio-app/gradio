@@ -13,7 +13,6 @@ with gr.Blocks() as demo:
             ret = audio
         else:
             ret = (audio[0], np.concatenate((instream[1], audio[1])))
-        print(ret)
         return ret, ret
     inp.stream(add_to_stream, [inp, stream], [out, stream])
 
