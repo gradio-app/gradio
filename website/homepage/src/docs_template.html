@@ -7,17 +7,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <title>Gradio Docs</title>
-  <meta name="description" content="Browse Gradio documentation and examples">
+  <meta name="description" content="Browse Gradio Documentation and Examples">
   <meta name="author" content="Gradio team">
   <meta property="og:title" content="Gradio Docs">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://gradio.app/">
-  <meta property="og:description" content="Browse Gradio documentation and examples">
+  <meta property="og:description" content="Browse Gradio Documentation and Examples">
+  <meta property="og:image" content="/assets/img/meta-image.png" />
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:creator" content="@teamGradio">
+  <meta name="twitter:creator" content="@Gradio">
   <meta name="twitter:title" content="Gradio Docs">
-  <meta name="twitter:description" content="Browse Gradio documentation and examples">
-  <meta name="twitter:image" content="https://gradio.app/static/home/img/social-cheetah.jpg">  
+  <meta name="twitter:description" content="Browse Gradio Documentation and Examples">
+  <meta name="twitter:image" content="https://gradio.app/assets/img/meta-image.png">
   <link href="https://fonts.cdnfonts.com/css/product-sans" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700;1,900&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
@@ -130,7 +131,7 @@
               {% endfor %}
               </tbody>
             </table>
-            <p class="mb-2 w-4/5 font-semibold ">Example usage:</p>
+            <p class="mb-2 font-semibold ">Example usage:</p>
             <pre><code class='lang-python'>{{ docs.interface["example"][0] }}</code></pre>
             <pre><code class='lang-python'>{{ docs.interface["example"][1] }}</code></pre>
           </div>
@@ -169,7 +170,7 @@
               {% endfor %}
               </tbody>
             </table>
-            <p class="mb-2 w-4/5 font-semibold">Example usage:</p>
+            <p class="mb-2 font-semibold">Example usage:</p>
             <pre><code class='lang-python'>{{ docs.launch["example"] }}</code></pre>
           </div>
           <div id="load" class="func ml-12">
@@ -211,7 +212,7 @@
               {% endfor %}
               </tbody>
             </table>
-            <p class="mb-2 w-4/5 font-semibold">Example usage:</p>
+            <p class="mb-2 font-semibold">Example usage:</p>
             <pre><code class='lang-python'>{{ docs.load["example"] }}</code></pre>
           </div>
           <div id="from_pipeline" class="func ml-12">
@@ -254,7 +255,7 @@
               {% endfor %}
               </tbody>
             </table>
-            <p class="mb-2 w-4/5 font-semibold">Example usage:</p>
+            <p class="mb-2 font-semibold">Example usage:</p>
             <pre><code class='lang-python'>{{ docs.from_pipeline["example"] }}</code></pre>
             <div class="py-4">
               <div class="w-full border-t border-gray-200"></div>
@@ -269,7 +270,7 @@
               Try Examples
             </button>
             </div>
-            <p class="w-4/5 mt-4 text-lg">Once you have created several Interfaces, we provide several classes that let you
+            <p class="  mt-4 text-lg">Once you have created several Interfaces, we provide several classes that let you
               start combining them together. For example, you can chain them in <em>Series</em>
               or compare their outputs in <em>Parallel</em> if the inputs and outputs match accordingly. 
               You can also display arbitrary Interfaces together in a tabbed layout using <em>TabbedInterface</em>.</p>
@@ -277,7 +278,7 @@
               <div id="tabbed_interface" class="func ml-20">
                 <h3 id="tabbed_interface_header" class="text-2xl font-light my-4">TabbedInterface</h3>
                 <pre><code class='lang-python'>gradio.TabbedInterface(interface_list, &#183;&#183;&#183;)</code></pre>
-                <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.tabbed_interface["doc"] }}</p>
+                <p class="mb-2 mt-4 text-lg">{{ docs.tabbed_interface["doc"] }}</p>
                 <table class="table-fixed w-full my-4">
                   <thead class="text-left">
                     <tr>
@@ -311,7 +312,7 @@
               <div id="parallel" class="func ml-20">
                 <h3 id="parallel-header" class="text-2xl font-light my-4">Parallel</h3>
                 <pre><code class='lang-python'>gradio.Parallel(*interfaces, &#183;&#183;&#183;)</code></pre>
-                <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.parallel["doc"] }}</p>
+                <p class="mb-2 mt-4 text-lg">{{ docs.parallel["doc"] }}</p>
                 <table class="table-fixed w-full my-4">
                   <thead class="text-left">
                     <tr>
@@ -345,7 +346,7 @@
               <div id="series" class="func ml-20">
                 <h3 id="series-header" class="text-2xl font-light my-4">Series</h3>
                 <pre><code class='lang-python'>gradio.Series(*interfaces, &#183;&#183;&#183;)</code></pre>
-                <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.series["doc"] }}</p>
+                <p class="mb-2 mt-4 text-lg">{{ docs.series["doc"] }}</p>
                 <table class="table-fixed w-full my-4">
                   <thead class="text-left">
                     <tr>
@@ -418,7 +419,7 @@
       {% endfor %}
       </tbody>
     </table>
-    <p class="mb-2 w-4/5 font-semibold">Example usage:</p>
+    <p class="mb-2 font-semibold">Example usage:</p>
     <pre><code class='lang-python'>{{ docs.blocks["example"] }}</code></pre>
 
     <h3 class="font-semibold">Layout Classes:</h3>
@@ -426,12 +427,12 @@
       <h3 id="layout-classes-header" class="text-2xl font-light my-4">Row</h3>
       <pre><code class='lang-python'>with gradio.Row():
     &#183;&#183;&#183;</code></pre>
-      <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.row["doc"] }}</p>
+      <p class="mb-2 mt-4 text-lg">{{ docs.row["doc"] }}</p>
 
       <h3 id="column-header" class="text-2xl font-light my-4">Column</h3>
       <pre><code class='lang-python'>with gradio.Column():
     &#183;&#183;&#183;</code></pre>
-      <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.column["doc"] }}</p>
+      <p class="mb-2 mt-4 text-lg">{{ docs.column["doc"] }}</p>
 
       <h3 id="tabs-header" class="text-2xl font-light my-4">Tabs and TabItem</h3>
       <pre><code class='lang-python'>with gradio.Tabs():
@@ -439,18 +440,18 @@
       &#183;&#183;&#183;
     with gradio.TabItem("Tab 2"):
       &#183;&#183;&#183;</code></pre>
-      <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.tabs["doc"] }}</p>
+      <p class="mb-2 mt-4 text-lg">{{ docs.tabs["doc"] }}</p>
 
       <h3 id="group-header" class="text-2xl font-light my-4">Group</h3>
       <pre><code class='lang-python'>with gradio.Group():
     &#183;&#183;&#183;</code></pre>
-      <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.group["doc"] }}</p>
+      <p class="mb-2 mt-4 text-lg">{{ docs.group["doc"] }}</p>
 
 
       <h3 id="box-header" class="text-2xl font-light my-4">Box</h3>
       <pre><code class='lang-python'>with gradio.Box():
     &#183;&#183;&#183;</code></pre>
-      <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.box["doc"] }}</p>
+      <p class="mb-2 mt-4 text-lg">{{ docs.box["doc"] }}</p>
     
     </div>
           </div>
@@ -458,7 +459,7 @@
         <section class="flex flex-col gap-6">
           <div id="components">
             <h2 id ="components-header" class="text-4xl font-light my-4 text-orange-500">Components</h2>
-            <p class="w-4/5 mt-8 text-lg">Gradio includes pre-built components that can be used as
+            <p class="  mt-8 text-lg">Gradio includes pre-built components that can be used as
             inputs or outputs in your Interface or Blocks with a single line of code. Components
             include <em>preprocessing</em> steps that convert user data submitted through browser
             to something that be can used by a Python function, and <em>postprocessing</em>
@@ -483,7 +484,7 @@
               -->{% endif %}<!--
             -->&#183;&#183;&#183;<span>)</span></code></pre>
             <div id='{{ func["name"].lower() }}-component'  class="component-embedding"></div>
-            <p class="w-4/5 mt-8 text-lg">{{ func["doc"] }}</p>
+            <p class="  mt-8 text-lg">{{ func["doc"] }}</p>
             {% if func["Preprocessing"]|length %}
             <p class="text-gray-500">Preprocessing: {{ func["Preprocessing"] | safe}}</p>
             {% endif %}
