@@ -3417,7 +3417,7 @@ class Plot(Changeable, Clearable, IOComponent):
 
     def __init__(
         self,
-        value,
+        value: Optional[Any] = None,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -3468,7 +3468,9 @@ class Plot(Changeable, Clearable, IOComponent):
         (str): plot type
         (str): plot base64 or json
         """
-        if isinstance(y, (ModuleType, matplotlib.pyplot.Figure)):
+        if y is None:
+            return None
+        elif isinstance(y, (ModuleType, matplotlib.pyplot.Figure)):
             dtype = "matplotlib"
             out_y = processing_utils.encode_plot_to_base64(y)
         elif isinstance(y, dict):
