@@ -30,7 +30,7 @@
 
 <button
 	on:click={handle_copy}
-	class="transition-color overflow-hidden font-sans absolute right-0 top-0  rounded-bl-lg shadow-sm text-xs text-gray-500 flex items-center  bg-white z-20 border-l border-b border-gray-100"
+	class="transition-color overflow-hidden font-sans absolute right-0 top-0  rounded-bl-lg shadow-sm text-xs text-gray-500 flex items-center  bg-white z-20 border-l border-b border-gray-100 dark:text-slate-200"
 >
 	<span class="py-1 px-2">copy to clipboard</span>
 	{#if copied}

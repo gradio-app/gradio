@@ -65,7 +65,7 @@ window.launchGradio = (config: Config, element_query: string) => {
 			"The target element could not be found. Please ensure that element exists."
 		);
 	}
-	target.classList.add("gradio-container");
+	document.body.classList.add("gradio-container");
 
 	if (config.root === undefined) {
 		config.root = BACKEND_URL;
