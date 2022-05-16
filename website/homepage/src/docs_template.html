@@ -44,6 +44,14 @@
       visibility: visible;
     }
 
+    .gradio-page .content {
+      padding: 0px !important;
+    }
+
+    .gradio-page .footer {
+      display: none !important;
+    }
+
     .gradio-container > :first-child {
       margin: 0 !important;
       padding: 0 !important;
@@ -606,7 +614,7 @@
                 <div class="mb-6">
                   <nav class="demos-nav flex flex-wrap gap-6 whitespace-nowrap text-gray-600 md:text-lg my-2 md:mb-0"></nav>
                 </div>
-                <div class="demos w-full h-full my-2 bg-gray-200 rounded-md">
+                <div class="demos w-full h-full my-2 rounded-md">
                   {% for src, code in docs.demo_code.items() %}
                     <div id="{{ src }}-interface" class="hidden demo-interface"></div>
                   {% endfor %}

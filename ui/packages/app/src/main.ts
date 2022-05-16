@@ -73,7 +73,7 @@ window.launchGradio = (config: Config, element_query: string) => {
 	if (window.__gradio_mode__ === "app") {
 		config.static_src = ".";
 	} else if (window.__gradio_mode__ === "website") {
-		config.static_src = "/";
+		config.static_src = "";
 	} else {
 		config.static_src = "https://gradio.s3-us-west-2.amazonaws.com/PIP_VERSION";
 	}
