@@ -25,7 +25,7 @@
 	<StatusTracker {...loading_status} />
 	<BlockLabel Icon={LabelIcon} {label} />
 
-	{#if value !== undefined && value !== null}
+	{#if typeof value === "object" && value !== undefined && value !== null}
 		<Label {value} {show_label} />
 	{:else}
 		<div class="h-full min-h-[6rem] flex justify-center items-center">

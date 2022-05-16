@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { SvelteComponentTyped } from "svelte";
+	import { onMount } from "svelte";
 	import { component_map } from "./components/directory";
 	import { loading_status } from "./stores";
 	import type { LoadingStatus } from "./stores";
@@ -320,6 +321,49 @@
 			set_prop(instance_map[id], "loading_status", statuses[id]);
 		}
 	}
+
+	let mode = "";
+
+	function handle_darkmode() {
+		let url = new URL(window.location.toString());
+
+		const color_mode: "light" | "dark" | "system" | null = url.searchParams.get(
+			"__theme"
+		) as "light" | "dark" | "system" | null;
+
+		if (color_mode !== null) {
+			if (color_mode === "dark") {
+				mode = "dark";
+			} else if (color_mode === "system") {
+				use_system_theme();
+			}
+			// light is default, so we don't need to do anything else
+		} else if (url.searchParams.get("__dark-theme") === "true") {
+			mode = "dark";
+		} else {
+			use_system_theme();
+		}
+	}
+
+	function use_system_theme() {
+		update_scheme();
+		window
+			?.matchMedia("(prefers-color-scheme: dark)")
+			?.addEventListener("change", update_scheme);
+
+		function update_scheme() {
+			const is_dark =
+				window?.matchMedia?.("(prefers-color-scheme: dark)").matches ?? null;
+
+			mode = is_dark ? "dark" : "";
+		}
+	}
+
+	onMount(() => {
+		if (window.__gradio_mode__ !== "website") {
+			handle_darkmode();
+		}
+	});
 </script>
 
 <svelte:head>
@@ -331,37 +375,38 @@
 			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
 	{/if}
 </svelte:head>
-
-<div class="mx-auto container px-4 py-6 dark:bg-gray-950">
-	{#if ready}
-		<Render
-			component={rootNode.component}
-			id={rootNode.id}
-			props={rootNode.props}
-			children={rootNode.children}
-			{dynamic_ids}
-			{instance_map}
-			{theme}
-			{root}
-			{status_tracker_values}
-			on:mount={handle_mount}
-			on:destroy={({ detail }) => handle_destroy(detail)}
-		/>
-	{/if}
-</div>
-<div
-	class="gradio-page container mx-auto flex flex-col box-border flex-grow text-gray-700 dark:text-gray-50"
->
-	<div
-		class="footer flex-shrink-0 inline-flex gap-2.5 items-center text-gray-600 dark:text-gray-300 justify-center py-2"
-	>
-		<a href="https://gradio.app" target="_blank" rel="noreferrer">
-			{$_("interface.built_with_Gradio")}
-			<img
-				class="h-5 inline-block pb-0.5"
-				src="{static_src}/static/img/logo.svg"
-				alt="logo"
+<div class="w-full h-full min-h-screen {mode}">
+	<div class="mx-auto container px-4 py-6 dark:bg-gray-950">
+		{#if ready}
+			<Render
+				component={rootNode.component}
+				id={rootNode.id}
+				props={rootNode.props}
+				children={rootNode.children}
+				{dynamic_ids}
+				{instance_map}
+				{theme}
+				{root}
+				{status_tracker_values}
+				on:mount={handle_mount}
+				on:destroy={({ detail }) => handle_destroy(detail)}
 			/>
-		</a>
+		{/if}
+	</div>
+	<div
+		class="gradio-page container mx-auto flex flex-col box-border flex-grow text-gray-700 dark:text-gray-50"
+	>
+		<div
+			class="footer flex-shrink-0 inline-flex gap-2.5 items-center text-gray-600 dark:text-gray-300 justify-center py-2"
+		>
+			<a href="https://gradio.app" target="_blank" rel="noreferrer">
+				{$_("interface.built_with_Gradio")}
+				<img
+					class="h-5 inline-block pb-0.5"
+					src="{static_src}/static/img/logo.svg"
+					alt="logo"
+				/>
+			</a>
+		</div>
 	</div>
 </div>
