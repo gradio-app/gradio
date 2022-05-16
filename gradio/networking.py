@@ -150,7 +150,6 @@ def start_server(
         app.queue_thread.start()
     if blocks.save_to is not None:  # Used for selenium tests
         blocks.save_to["port"] = port
-    """
     config = uvicorn.Config(
         app=app,
         port=port,
@@ -162,8 +161,6 @@ def start_server(
     )
     server = Server(config=config)
     server.run_in_thread()
-    """
-    server = uvicorn.run(app=app, reload_dirs="[.]")
     return port, path_to_local_server, app, server
 
 
