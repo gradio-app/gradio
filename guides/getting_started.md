@@ -100,7 +100,7 @@ You can make interfaces automatically refresh by setting `live=True` in the inte
 
 Note there is no submit button, because the interface resubmits automatically on change.
 
-### Flagging 🏁
+### Flagging 🚩
 
 Underneath the output interfaces, there is a button marked "Flag". When a user testing your model sees input with interesting output, such as erroneous or unexpected model behaviour, they can flag the input for the interface creator to review. Within the directory provided by the  `flagging_dir=`  argument to the Interface constructor, a CSV file will log the flagged inputs. If the interface involves file data, such as for Image and Audio components, folders will be created to store those flagged data as well.
 

@@ -6,7 +6,7 @@
 
 In this Guide, we go through several advanced functionalities that your `gradio.Interface` demo can include without you needing to write much more code!
 
-### Authentication
+### Authentication 🔒
 
 You may wish to put an authentication page in front of your interface to limit who can open your interface. With the `auth=` keyword argument in the `launch()` method, you can pass a list of acceptable username/password tuples; or, for more complex authentication handling, you can even pass a function that takes a username and password as arguments, and returns True to allow authentication, False otherwise. Here's an example that provides password-based authentication for a single user named "admin":
 
@@ -14,7 +14,7 @@ You may wish to put an authentication page in front of your interface to limit w
 gr.Interface(fn=classify_image, inputs=image, outputs=label).launch(auth=("admin", "pass1234"))
 ```
 
-### Interpreting your Predictions
+### Interpreting your Predictions 🔬
 
 Most models are black boxes such that the internal logic of the function is hidden from the end user. To encourage transparency, we've made it very easy to add interpretation to your model by  simply setting the `interpretation` keyword in the `Interface` class to `default`. This allows your users to understand what parts of the input are responsible for the output. Take a look at the simple interface below which shows an image classifier that also includes interpretation:
 
@@ -37,11 +37,11 @@ You can also write your own interpretation function. The demo below adds custom 
 
 {{ code["gender_sentence_custom_interpretation"] }}
 
-### Custom Styling
+### Custom Styling 🧑‍🎨
 
 If you'd like to have more fine-grained control over any aspect of your demo, you can also write your own css or pass in a css file, with the `css` parameter of the `Interface` class.
 
-### Custom Flagging Options
+### Custom Flagging Options 🎌
 
 In some cases, you might like to provide your users or testers with *more* than just a binary option to flag a sample. You can provide `flagging_options` that they select from a dropdown each time they click the flag button. This lets them provide additional feedback every time they flag a sample.
 
@@ -51,7 +51,7 @@ Here's an example:
 gr.Interface(fn=classify_image, inputs=image, outputs=label, flagging_options=["incorrect", "ambiguous", "offensive", "other"]).launch()
 ```
 
-### Loading Hugging Face Models and Spaces
+### Loading Hugging Face Models and Spaces 🤗
 
 Gradio integrates nicely with the Hugging Face Hub, allowing you to load models and Spaces with just one line of code. To use this, simply use the `load()` method in the `Interface` class. So:
 
@@ -80,7 +80,7 @@ io = gr.Interface.load("models/EleutherAI/gpt-neo-2.7B")
 io("It was the best of times")  # outputs model completion
 ```
 
-### Putting Interfaces in Parallel and Series
+### Putting Interfaces in Parallel and Series ⏸
 
 Gradio also lets you mix interfaces very easily using the `gradio.Parallel` and `gradio.Series` classes. `Parallel` lets you put two similar models (if they have the same input type) in parallel to compare model predictions:
 
@@ -103,7 +103,7 @@ gr.Series(generator, translator).launch()  # this demo generates text, then tran
 
 And of course, you can also mix `Parallel` and `Series` together whenever that makes sense!
 
-### Queuing to Manage Long Inference Times
+### Queuing to Manage Long Inference Times 👥
 
 If many people are using your interface or if the inference time of your function is long (> 1min), simply set the `enable_queue` parameter in the `launch` method to `True` to prevent timeouts.
 
@@ -130,7 +130,7 @@ Notice how the state persists across submits within each page, but the state is 
 
 Now that you know all about `gradio.Interface`, here are some good next steps:
 
-* Check out [the Gradio course](https://huggingface.co/course/chapter9/1) for a step-by-step walkthrough of everything Gradio-related with lots of examples of how to build machine learning demos  
-* Gradio offers two APIs to users: **Interface**, a high level abstraction covered in this guide, and **Blocks**, a more flexible API for designing web apps with more flexible layouts and data flows. [Read more about Blocks here]().
-* If you'd like to stick with **Interface**, but want to add more advanced features to your demo (like authentication, interpretation, or state), check out our guide on [advanced features with the Interface class]().
-* If you just want to explore what demos other people have built with Gradio, [browse public Hugging Face Spaces](http://hf.space/), view the underlying Python code, and be inspired!
+* Check out [the free Gradio course](https://huggingface.co/course/chapter9/1) for a step-by-step walkthrough of everything Gradio-related with lots of examples of how to build your own machine learning demos 📖
+* Gradio offers two APIs to users: **Interface**, a high level abstraction covered in this guide, and **Blocks**, a more flexible API for designing web apps with more flexible layouts and data flows. [Read more about Blocks here](/introduction_to_blocks/) 🧱
+* If you just want to explore what demos other people have built with Gradio, [browse public Hugging Face Spaces](http://hf.space/), view the underlying Python code, and be inspired 🤗
+
