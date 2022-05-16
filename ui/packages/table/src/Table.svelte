@@ -451,7 +451,10 @@
 	let dragging = false;
 </script>
 
-<svelte:window on:click={handle_click_outside} on:touchstart={handle_click_outside}/>
+<svelte:window
+	on:click={handle_click_outside}
+	on:touchstart={handle_click_outside}
+/>
 
 <div
 	class="scroll-hide whitespace-nowrap overflow-hidden rounded-lg relative border transition-colors overflow-x-scroll"
