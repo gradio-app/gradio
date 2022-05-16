@@ -65,7 +65,7 @@ window.launchGradio = (config: Config, element_query: string) => {
 			"The target element could not be found. Please ensure that element exists."
 		);
 	}
-	document.body.classList.add("gradio-container");
+	target.classList.add("gradio-container");
 
 	if (config.root === undefined) {
 		config.root = BACKEND_URL;
@@ -89,10 +89,6 @@ window.launchGradio = (config: Config, element_query: string) => {
 		});
 		window.__gradio_loader__.$set({ status: "complete" });
 	} else {
-		if (window.__gradio_mode__ !== "website") {
-			handle_darkmode(target);
-		}
-
 		let session_hash = Math.random().toString(36).substring(2);
 		config.fn = fn.bind(null, session_hash, config.root + "api/");
 
@@ -102,41 +98,6 @@ window.launchGradio = (config: Config, element_query: string) => {
 		});
 	}
 };
-
-function handle_darkmode(target: HTMLElement) {
-	let url = new URL(window.location.toString());
-
-	const color_mode: "light" | "dark" | "system" | null = url.searchParams.get(
-		"__theme"
-	) as "light" | "dark" | "system" | null;
-
-	if (color_mode !== null) {
-		if (color_mode === "dark") {
-			target.classList.add("dark");
-		} else if (color_mode === "system") {
-			use_system_theme(target);
-		}
-		// light is default, so we don't need to do anything else
-	} else if (url.searchParams.get("__dark-theme") === "true") {
-		target.classList.add("dark");
-	} else {
-		use_system_theme(target);
-	}
-}
-
-function use_system_theme(target: HTMLElement) {
-	update_scheme();
-	window
-		?.matchMedia("(prefers-color-scheme: dark)")
-		?.addEventListener("change", update_scheme);
-
-	function update_scheme() {
-		const is_dark =
-			window?.matchMedia?.("(prefers-color-scheme: dark)").matches ?? null;
-
-		target.classList[is_dark ? "add" : "remove"]("dark");
-	}
-}
 
 window.launchGradioFromSpaces = async (space: string, target: string) => {
 	const space_url = `https://hf.space/embed/${space}/+/`;
