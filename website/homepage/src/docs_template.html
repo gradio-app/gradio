@@ -617,7 +617,7 @@
         </section>
       </div>
 
-        <div class="fixed hidden inset-0 bg-gray-500 bg-opacity-75 overflow-y-auto h-full w-full z-20" id="demos-window">
+        <div class="fixed hidden inset-0 bg-gray-500 bg-opacity-75 overflow-y-auto h-full w-full" id="demos-window" style="z-index: 99;">
           <div class="relative mx-auto my-auto p-5 border w-11/12 shadow-lg rounded-md bg-white" style="top: 5%; height: 90%">
             <div class="flex flex-col items-start h-full m-auto gap-3" style="width: 98%">
               <div class="w-full mb-3" style="height: 5%">
@@ -633,7 +633,7 @@
               <div class="w-full" style="height: 55%">
                 <div class="demos w-full h-full my-2 rounded-md">
                   {% for src, code in docs.demo_code.items() %}
-                    <div id="{{ src }}-interface" class="hidden demo-interface" style="height: 95%"></div>
+                    <div id="{{ src }}-interface" class="hidden demo-interface overflow-auto" style="height: 75%"></div>
                   {% endfor %}
                 </div>
               </div>
