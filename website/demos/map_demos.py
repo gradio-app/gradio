@@ -12,14 +12,15 @@ GRADIO_GUIDES_DIR = os.path.join(GRADIO_DIR, "guides")
 sys.path.insert(0, GRADIO_DEMO_DIR)
 port = 7860
 
-demos_to_run = ["kitchen_sink"]
-GRADIO_COMPONENTS_FILE = os.path.join(GRADIO_DIR, "gradio", "components.py")
-with open(GRADIO_COMPONENTS_FILE) as comp_file:
-    comp_text = comp_file.read()
-for demostr in re.findall(r'Demos:(.*)', comp_text):
-  demos_to_run += re.findall(r'([a-zA-Z0-9_]+)', demostr)
+# demos_to_run = ["kitchen_sink"]
+# GRADIO_COMPONENTS_FILE = os.path.join(GRADIO_DIR, "gradio", "components.py")
+# with open(GRADIO_COMPONENTS_FILE) as comp_file:
+#     comp_text = comp_file.read()
+# for demostr in re.findall(r'Demos:(.*)', comp_text):
+#   demos_to_run += re.findall(r'([a-zA-Z0-9_]+)', demostr)
 DEMO_PATTERN = r'demos\["([A-Za-z0-9_]+)"]'
-for guide_filename in os.listdir(GRADIO_GUIDES_DIR):
+demos_to_run = []
+for guide_filename in ["getting_started.md"]:
     with open(os.path.join(GRADIO_GUIDES_DIR, guide_filename)) as guide_file:
         guide_content = guide_file.read()
     demos_to_run += re.findall(DEMO_PATTERN, guide_content)

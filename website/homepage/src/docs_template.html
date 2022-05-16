@@ -464,7 +464,7 @@
             <button class="rounded-full bg-orange-500 text-white py-1 px-3 my-3" onclick="showDemos({{ func['demos'] }})">
               Try Demo &#8594;
             </button>
-            <div id='{{ func["name"].lower() }}-component'  class="component-embedding hidden"></div>
+            <div id='{{ func["name"].lower() }}-component'  class="component-embedding"></div>
             <pre><code class="lang-python">gradio.components.<span>{{ func["name"] }}(</span><!--
             -->{% for param in func["params"] %}<!--
               -->{% if param|length == 1 %}<!--
@@ -654,6 +654,17 @@
   </script>
   <script id="gradio-library" type="module" crossorigin src="/assets/{{ entry_js_file }}"></script>
   <script>
+    window.launchGradioWhenReady = (config, target) => {
+      if (window.launchGradio) {
+        window.launchGradio(config, target)
+      } else {
+        window.setTimeout(() => {
+          window.launchGradio(config, target)
+        }, 500)
+      }
+    }
+  </script>
+  <script>
    // highlighting section in nav bar
     let mainNavLinks = document.querySelectorAll(".navigation a");
     let lastId;
@@ -779,7 +790,7 @@
         .then(response => response.json())
         .then(demo => {
           demo.root = demo_endpoint + "/{{ src }}/";
-          launchGradio(demo, "#{{ src }}-interface");
+          launchGradioWhenReady(demo, "#{{ src }}-interface");
         });
     {% endfor %}
 
@@ -845,7 +856,7 @@
     {% for component, config in docs.embedding_configs.items() %}
       target = "#{{ component }}-component";
       config = {{ config|tojson }};
-      window.launchGradio(config, target);
+      window.launchGradioWhenReady(config, target);
     {% endfor %}
 
     let componentEmbeddings = document.querySelectorAll(".component-embedding").forEach(e => {
