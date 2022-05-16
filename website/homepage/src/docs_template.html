@@ -271,7 +271,7 @@
               Try Examples
             </button>
             </div>
-            <p class="w-4/5 mt-4 text-lg">Once you have created several Interfaces, we provide several classes that let you
+            <p class="mt-4 text-lg">Once you have created several Interfaces, we provide several classes that let you
               start combining them together. For example, you can chain them in <em>Series</em>
               or compare their outputs in <em>Parallel</em> if the inputs and outputs match accordingly. 
               You can also display arbitrary Interfaces together in a tabbed layout using <em>TabbedInterface</em>.</p>
@@ -279,7 +279,7 @@
               <div id="tabbed_interface" class="func ml-20">
                 <h3 id="tabbed_interface_header" class="text-2xl font-light my-4">TabbedInterface</h3>
                 <pre><code class='lang-python'>gradio.TabbedInterface(interface_list, &#183;&#183;&#183;)</code></pre>
-                <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.tabbed_interface["doc"] }}</p>
+                <p class="mb-2 mt-4 text-lg">{{ docs.tabbed_interface["doc"] }}</p>
                 <table class="table-fixed w-full my-4">
                   <thead class="text-left">
                     <tr>
@@ -313,7 +313,7 @@
               <div id="parallel" class="func ml-20">
                 <h3 id="parallel-header" class="text-2xl font-light my-4">Parallel</h3>
                 <pre><code class='lang-python'>gradio.Parallel(*interfaces, &#183;&#183;&#183;)</code></pre>
-                <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.parallel["doc"] }}</p>
+                <p class="mb-2 mt-4 text-lg">{{ docs.parallel["doc"] }}</p>
                 <table class="table-fixed w-full my-4">
                   <thead class="text-left">
                     <tr>
@@ -347,7 +347,7 @@
               <div id="series" class="func ml-20">
                 <h3 id="series-header" class="text-2xl font-light my-4">Series</h3>
                 <pre><code class='lang-python'>gradio.Series(*interfaces, &#183;&#183;&#183;)</code></pre>
-                <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.series["doc"] }}</p>
+                <p class="mb-2 mt-4 text-lg">{{ docs.series["doc"] }}</p>
                 <table class="table-fixed w-full my-4">
                   <thead class="text-left">
                     <tr>
@@ -428,12 +428,12 @@
       <h3 id="layout-classes-header" class="text-2xl font-light my-4">Row</h3>
       <pre><code class='lang-python'>with gradio.Row():
     &#183;&#183;&#183;</code></pre>
-      <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.row["doc"] }}</p>
+      <p class="mb-2 mt-4 text-lg">{{ docs.row["doc"] }}</p>
 
       <h3 id="column-header" class="text-2xl font-light my-4">Column</h3>
       <pre><code class='lang-python'>with gradio.Column():
     &#183;&#183;&#183;</code></pre>
-      <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.column["doc"] }}</p>
+      <p class="mb-2 mt-4 text-lg">{{ docs.column["doc"] }}</p>
 
       <h3 id="tabs-header" class="text-2xl font-light my-4">Tabs and TabItem</h3>
       <pre><code class='lang-python'>with gradio.Tabs():
@@ -441,18 +441,18 @@
       &#183;&#183;&#183;
     with gradio.TabItem("Tab 2"):
       &#183;&#183;&#183;</code></pre>
-      <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.tabs["doc"] }}</p>
+      <p class="mb-2 mt-4 text-lg">{{ docs.tabs["doc"] }}</p>
 
       <h3 id="group-header" class="text-2xl font-light my-4">Group</h3>
       <pre><code class='lang-python'>with gradio.Group():
     &#183;&#183;&#183;</code></pre>
-      <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.group["doc"] }}</p>
+      <p class="mb-2 mt-4 text-lg">{{ docs.group["doc"] }}</p>
 
 
       <h3 id="box-header" class="text-2xl font-light my-4">Box</h3>
       <pre><code class='lang-python'>with gradio.Box():
     &#183;&#183;&#183;</code></pre>
-      <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.box["doc"] }}</p>
+      <p class="mb-2 mt-4 text-lg">{{ docs.box["doc"] }}</p>
     
     </div>
           </div>
@@ -460,7 +460,7 @@
         <section class="flex flex-col gap-6">
           <div id="components">
             <h2 id ="components-header" class="text-4xl font-light my-4 text-orange-500">Components</h2>
-            <p class="w-4/5 mt-8 text-lg">Gradio includes pre-built components that can be used as
+            <p class=" mt-8 text-lg">Gradio includes pre-built components that can be used as
             inputs or outputs in your Interface or Blocks with a single line of code. Components
             include <em>preprocessing</em> steps that convert user data submitted through browser
             to something that be can used by a Python function, and <em>postprocessing</em>
@@ -485,7 +485,7 @@
               -->{% endif %}<!--
             -->&#183;&#183;&#183;<span>)</span></code></pre>
             <div id='{{ func["name"].lower() }}-component'  class="component-embedding"></div>
-            <p class="w-4/5 mt-8 text-lg">{{ func["doc"] }}</p>
+            <p class="mt-8 text-lg">{{ func["doc"] }}</p>
             {% if func["Preprocessing"]|length %}
             <p class="text-gray-500">Preprocessing: {{ func["Preprocessing"] | safe}}</p>
             {% endif %}
