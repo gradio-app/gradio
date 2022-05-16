@@ -20,9 +20,9 @@
 	<StatusTracker {...loading_status} />
 
 	<Radio
-		{form_position}
 		bind:value
 		{label}
+		{elem_id}
 		{show_label}
 		{choices}
 		{style}
