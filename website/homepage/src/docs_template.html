@@ -433,13 +433,13 @@
       &#183;&#183;&#183;</code></pre>
       <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.tabs["doc"] }}</p>
 
-      <h3 id="column-header" class="text-2xl font-light my-4">Group</h3>
+      <h3 id="group-header" class="text-2xl font-light my-4">Group</h3>
       <pre><code class='lang-python'>with gradio.Group():
     &#183;&#183;&#183;</code></pre>
       <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.group["doc"] }}</p>
 
 
-      <h3 id="column-header" class="text-2xl font-light my-4">Box</h3>
+      <h3 id="box-header" class="text-2xl font-light my-4">Box</h3>
       <pre><code class='lang-python'>with gradio.Box():
     &#183;&#183;&#183;</code></pre>
       <p class="mb-2 w-4/5 mt-4 text-lg">{{ docs.box["doc"] }}</p>
@@ -509,6 +509,14 @@
               {% endfor %}
               </tbody>
             </table>
+            {% if func["string_shortcut"]%}
+            <h4 class="my-2 font-semibold">Alternative String Shortcuts</h4>
+            <ul>
+            {% for ss in func["string_shortcut"]%}
+            <li>• {{ss}}</li>
+            {% endfor %}
+            </ul>
+            {%endif%}
             <h4 class="my-2 font-semibold">Step-by-step Guides</h4>
             {% if func["guides"] %}
               <div class="guides-list grid grid-cols-1 lg:grid-cols-4 gap-4">

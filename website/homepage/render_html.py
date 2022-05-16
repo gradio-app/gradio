@@ -347,7 +347,38 @@ def render_docs():
                 cls.get_interpretation_scores
             )
         inp["guides"] = [guide for guide in guides if inp['name'].lower() in guide["docs"]]
+
+        string_shortcuts = {
+            Textbox: [
+                "\"text\": sets `lines=1`",
+                "\"textarea\": sets `lines=7`",
+            ],
+            Image: [
+                "\"webcam\": sets `source='webcam'`",
+                "\"sketchpad\": sets `image_mode='L'`, `source='canvas'`, `shape=(28, 28)`, `invert_colors=True`",
+                "\"pil\": sets `type='pil'`",
+            ],
+            Video: [
+                "\"playable_video\": sets `format` to `'mp4'`",
+            ],
+            Audio: [
+                "\"microphone\": sets `source='microphone'`",
+                "\"mic\": sets `source='microphone'`",
+            ],
+            File: [
+                "files: sets `file_count='multiple'`",
+            ],
+            Dataframe: [
+                "\"numpy\": set `type='numpy'`",
+                "\"matrix\": set `type='array'`",
+                "\"array\": set `type='array'`, `col_count=1`",
+            ],
+        }
         
+        if cls in string_shortcuts:
+            inp["string_shortcut"] = string_shortcuts[cls]
+        else:
+            inp["string_shortcut"] = None               
         
         inp["events"] = []
         if issubclass(cls, Changeable):
