@@ -8,7 +8,7 @@ def sentence_builder(quantity, animal, place, activity_list, morning):
 demo = gr.Interface(
     sentence_builder,
     [
-        gr.Slider(minimum=2, maximum=20),
+        gr.Slider(2, 20),
         gr.Dropdown(["cat", "dog", "bird"]),
         gr.Radio(["park", "zoo", "road"]),
         gr.CheckboxGroup(["ran", "swam", "ate", "slept"]),
