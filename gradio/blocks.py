@@ -496,15 +496,15 @@ class Blocks(BlockContext):
         # If running in a colab or not able to access localhost,
         # automatically create a shareable link.
         is_colab = utils.colab_check()
-        # if is_colab or not (networking.url_ok(self.local_url)):
-        #     share = True
-        #     if is_colab:
-        #         if debug:
-        #             print(strings.en["COLAB_DEBUG_TRUE"])
-        #         else:
-        #             print(strings.en["COLAB_DEBUG_FALSE"])
-        # else:
-        #     print(strings.en["RUNNING_LOCALLY"].format(self.local_url))
+        if is_colab or not (networking.url_ok(self.local_url)):
+            share = True
+            if is_colab:
+                if debug:
+                    print(strings.en["COLAB_DEBUG_TRUE"])
+                else:
+                    print(strings.en["COLAB_DEBUG_FALSE"])
+        else:
+            print(strings.en["RUNNING_LOCALLY"].format(self.local_url))
         if is_colab and self.requires_permissions:
             print(strings.en["MEDIA_PERMISSIONS_IN_COLAB"])
 
