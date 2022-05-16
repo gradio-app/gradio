@@ -2636,7 +2636,7 @@ class Label(Changeable, IOComponent):
 
     def __init__(
         self,
-        value: str = "",
+        value: str = None,
         *,
         num_top_classes: Optional[int] = None,
         label: Optional[str] = None,
@@ -2647,7 +2647,7 @@ class Label(Changeable, IOComponent):
     ):
         """
         Parameters:
-        value (str): Default string value
+        value (str): Default value to show
         num_top_classes (int): number of most confident classes to show.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.

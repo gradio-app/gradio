@@ -100,7 +100,7 @@
 	}
 </script>
 
-<div class="h-full w-full relative">
+<div class="h-full min-h-[15rem] w-full relative">
 	<!-- svelte-ignore a11y-media-has-caption -->
 	<video bind:this={video_source} class="h-full w-full " />
 	{#if !streaming}
