@@ -4,11 +4,11 @@ Gradio is a Python library that allows you to quickly build web-based machine le
 
 To offer both simplicity and more powerful and flexible control for advanced web apps, Gradio offers two different APIs to users:
 
-* ⚡`gradio.Interface`: a high-level API that allows you to create a full machine learning demo simply by providing a list of inputs and outputs.
+* ⚡ `gradio.Interface`: a high-level API that allows you to create a full machine learning demo simply by providing a list of inputs and outputs.
 
 * 🧱 `gradio.Blocks`: a low-level API that allows you to have full control over the data flows and layout of your application. You can build very complex, multi-step applications using Blocks (as in "building blocks").
 
-This Guide will teach you the **Blocks API** and we will create several custom web apps in the process. It will be helpful but not necessary to be familiar with the Interface API before you read this tutorial.
+This Guide will teach you the **Blocks API** and we will create several custom web apps in the process. It will be helpful but not necessary to be familiar with the Interface API before you read this tutorial. You can learn about it in the [Getting Started Guide](/getting_started).
 
 ### Why Blocks 🧱?
 
