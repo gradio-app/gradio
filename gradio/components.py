@@ -1659,7 +1659,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
     ):
         """
         Parameters:
-        value(str): A path or URL for the default value that Video component is going to take.
+        value (str): A path or URL for the default value that Video component is going to take.
         format (str): Format of video format to be returned by component, such as 'avi' or 'mp4'. Use 'mp4' to ensure browser playability. If set to None, video will keep uploaded format.
         source (str): Source of video. "upload" creates a box where user can drop an video file, "webcam" allows user to record a video from their webcam.
         label (Optional[str]): component name in interface.
@@ -2434,7 +2434,7 @@ class Timeseries(Changeable, IOComponent):
     ):
         """
         Parameters:
-        value: File path for the timeseries csv file.
+        value (str): File path for the timeseries csv file.
         x (str): Column name of x (time) series. None if csv has no headers, in which case first column is x series.
         y (Union[str, List[str]]): Column name of y series, or list of column names if multiple series. None if csv has no headers, in which case every column after first is a y series.
         label (str): component name in interface.
@@ -2590,7 +2590,7 @@ class Label(Changeable, IOComponent):
     ):
         """
         Parameters:
-        value(str): Default string value
+        value (str): Default string value
         num_top_classes (int): number of most confident classes to show.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
@@ -3539,7 +3539,7 @@ class Dataset(Clickable, Component):
         """
         Parameters:
         components (List[Component]): Which component types to show in this dataset widget
-        sample (str): a nested list of samples. Each sublist within the outer list represents a data sample, and each element within the sublist represents an value for each component
+        samples (str): a nested list of samples. Each sublist within the outer list represents a data sample, and each element within the sublist represents an value for each component
         type (str): 'values' if clicking on a should  pass the value of the sample, or "index" if it should pass the index of the sample
         visible (bool): If False, component will be hidden.
         """
