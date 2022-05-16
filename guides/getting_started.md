@@ -4,15 +4,13 @@
 
 ### What Problem is Gradio Solving? 😲
 
-One of the *best ways to share* your machine learning model, API, or data science workflow with others is to create an **interactive demo** that allows your users or colleagues to try out the demo in their browsers. A web-based demo is great as it allows anyone who can use a browser (not just technical people) to intuitively try their own inputs and understand what you've built. 
+One of the *best ways to share* your machine learning model, API, or data science workflow with others is to create an **interactive demo** that allows your users or colleagues to try out the demo in their browsers. 
+
+A web-based demo is great as it allows anyone who can use a browser (not just technical people) to intuitively try their own inputs and understand what you've built. 
 
 However, creating such web-based demos has traditionally been difficult, as you needed to know backend frameworks (like Flask or Django) for serving the web app, containerization tools (like Docker) to package the model, databases to store data or users, and front end web development (HTML, CSS, JavaScript) to build a GUI for your demo. 
 
-Gradio allows you to **build demos and share them, directly in Python** in a matter of minutes. 
-
-These can be machine learning demos, data science dashboards, or other web apps. You can launch a Gradio demo from wherever you use Python (jupyter notebooks, colab notebooks, Python terminal, etc.) and share with anyone instantly using Gradio's auto-generated **share links**. You can usually create a demo in just a few lines of extra code, and almost *never have to change your existing code*. 
-
-Sound too good to be true? Let's get started!
+Gradio allows you to **build demos and share them, directly in Python** in a matter of minutes. Want to try it out? 
 
 ### Getting Started in 5 Lines of Python ⚡
 
@@ -142,9 +140,22 @@ im/1.png,Output/1.png
 
 You can review these flagged inputs by manually exploring the flagging directory, or load them into the examples of the Gradio interface by pointing the  `examples=`  argument to the flagged directory. If you wish for the user to provide a reason for flagging, you can pass a list of strings to the `flagging_options` argument of Interface. Users will have to select one of the strings when flagging, which will be saved as an additional column to the CSV.
 
+### Blocks: More Flexibility and Control 🧱
+
+Gradio offers two APIs to users: (1) **Interface**, a high level abstraction for creating demos (that we've been discussing so far), and (2) **Blocks**, a low-level API for designing web apps with more flexible layouts and data flows. Blocks allows you to do things like: group together related demos, change where components appear on the page, handle complex data flows (e.g. outputs can serve as inputs to other functions), and update properties/visibility of components based on user interaction -- still all in Python. 
+
+As an example, Blocks uses nested `with` statements in Python to lay out components on a page, like this:
+
+{{ code["blocks_flipper"] }}
+
+{{ demos["blocks_flipper"] }}
+
+
+We won't cover how Blocks works in this Quickstart, but if you are interested in more customization, [read our dedicated Guide to Blocks](introduction_to_blocks).
+
 ### Sharing Demos 🌎
 
-Interfaces can be easily shared publicly by setting `share=True` in the `launch()` method. Like this:
+Gradio demos can be easily shared publicly by setting `share=True` in the `launch()` method. Like this:
 
 ```python
 gr.Interface(classify_image, "image", "label").launch(share=True)
