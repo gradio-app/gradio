@@ -1,5 +1,7 @@
 """
-Simple Gradio example with reload feature.
+Simple Gradio example with development reload feature.
+
+python demo/reload/dev_mode.py
 """
 import gradio as gr
 import gradio

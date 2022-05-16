@@ -1,5 +1,7 @@
 """
-Simple Gradio example with reload feature.
+Simple Gradio example with user reload feature.
+
+python demo/reload/user_mode.py
 """
 import gradio as gr
 import gradio
