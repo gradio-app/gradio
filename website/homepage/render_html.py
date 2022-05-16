@@ -349,31 +349,33 @@ def render_docs():
         inp["guides"] = [guide for guide in guides if inp['name'].lower() in guide["docs"]]
 
         string_shortcuts = {
-            Textbox: [
-                "\"text\": sets `lines=1`",
-                "\"textarea\": sets `lines=7`",
-            ],
-            Image: [
-                "\"webcam\": sets `source='webcam'`",
-                "\"sketchpad\": sets `image_mode='L'`, `source='canvas'`, `shape=(28, 28)`, `invert_colors=True`",
-                "\"pil\": sets `type='pil'`",
-            ],
-            Video: [
-                "\"playable_video\": sets `format` to `'mp4'`",
-            ],
-            Audio: [
-                "\"microphone\": sets `source='microphone'`",
-                "\"mic\": sets `source='microphone'`",
-            ],
-            File: [
-                "files: sets `file_count='multiple'`",
-            ],
-            Dataframe: [
-                "\"numpy\": set `type='numpy'`",
-                "\"matrix\": set `type='array'`",
-                "\"array\": set `type='array'`, `col_count=1`",
-            ],
+            Textbox:
+                {
+                    "text": "gr.Textbox(lines=1)",
+                    "textarea": "gr.Textbox(lines=7)"
+                },
+            Image: {
+                    "webcam": "gr.Image(source='webcam')",
+                    "sketchpad": "gr.Image(image_mode='L', source='canvas', shape=(28, 28), invert_colors=True)",
+                    "pil": "gr.Image(type='pil')"
+            },
+            Video: {
+                "playable_video": "gr.Video(format='mp4')"
+            },
+            Audio: {
+                "microphone": "gr.Audio(source='microphone')",
+                "mic": "gr.Audio(source='microphone')"
+            },
+            File: {
+                "files": "gr.File(file_count='multiple')"
+            },
+            Dataframe: {
+                "numpy": "gr.Dataframe(type='numpy')",
+                "matrix": "gr.Dataframe(type='array')",
+                "array": "gr.Dataframe(type='array', col_count=1)"
+            }
         }
+
         
         if cls in string_shortcuts:
             inp["string_shortcut"] = string_shortcuts[cls]

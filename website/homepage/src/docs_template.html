@@ -519,13 +519,30 @@
               {% endfor %}
               </tbody>
             </table>
-            {% if func["string_shortcut"]%}
-            <h4 class="my-2 font-semibold">Alternative String Shortcuts</h4>
-            <ul>
-            {% for ss in func["string_shortcut"]%}
-            <li>• {{ss}}</li>
-            {% endfor %}
-            </ul>
+            {% if func["string_shortcut"] %}
+            <h4 class="my-2 font-semibold">String Shortcuts</h4>
+            <table class="table-fixed w-full mt-6 mb-4">
+              <thead class="text-left">
+                <tr>
+                  <th class="font-semibold w-2/5">Shortcut</th>
+                  <th class="font-semibold">Equivalent</th>
+                </tr>
+              </thead>
+            </table>
+            <table class="table-fixed w-full mt-6 mb-4 rounded-lg bg-gray-50 border border-gray-100 overflow-hidden">
+              <tbody class="text-left divide-y">
+              {% for shortcut, equivalent in func["string_shortcut"].items() %}
+                  <tr class="group hover:bg-gray-200/60 odd:bg-gray-100/80">
+                    <td class="p-3 w-2/5">
+                      <p>"{{ shortcut }}"</p>
+                    </td>
+                    <td class="p-3 text-gray-700">
+                      <pre style="background: none;margin: 0;padding: 0;"><code class="lang-python">{{ equivalent }}</code></pre>
+                    </td>
+                  </tr>
+              {% endfor %}
+              </tbody>
+            </table>
             {%endif%}
             <h4 class="my-2 font-semibold">Step-by-step Guides</h4>
             {% if func["guides"] %}
@@ -543,7 +560,6 @@
               <p class="my-2 text-gray-500">No guides yet, <a class="font-semibold text-orange-500 border-b border-orange-500 " target="_blank" href="https://github.com/gradio-app/gradio/tree/master/guides">contribute</a> a guide about <span class="font-semibold">{{ func["name"] }}</span></p>
             {% endif %}
             {% if func["shortcuts"]|length %}
-            <h4 class="my-2 font-semibold">String Shortcuts</h4>
             <ul class="list-disc list-inside">
               {% for param in func["shortcuts"] %}
               <li>"{{ param[0] }}" -
