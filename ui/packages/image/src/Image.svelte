@@ -103,7 +103,7 @@
 			/>
 		{/if}
 		<ModifyUpload
-			on:edit={() => (mode = "edit")}
+			on:edit={() => (tool = "select")}
 			on:clear={handle_clear}
 			editable
 		/>
