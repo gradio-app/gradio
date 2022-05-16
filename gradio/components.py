@@ -20,6 +20,7 @@ from typing import Any, Dict, List, Optional, Tuple, Type
 
 import matplotlib.figure
 import numpy as np
+import numpy
 import pandas as pd
 import PIL
 from ffmpy import FFmpeg
@@ -2596,7 +2597,7 @@ class Label(Changeable, IOComponent):
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
-        # TODO: Shall we have a default value for the label component?
+        self.value = value
         self.num_top_classes = num_top_classes
         self.output_type = "auto"
         IOComponent.__init__(
@@ -2607,6 +2608,14 @@ class Label(Changeable, IOComponent):
             elem_id=elem_id,
             **kwargs,
         )
+        
+    def get_config(self):
+        return {
+            "output_type": self.output_type,
+            "num_top_classes": self.num_top_classes,
+            "value": self.value,
+            **IOComponent.get_config(self),
+        }        
 
     def postprocess(self, y):
         """
@@ -2944,6 +2953,7 @@ class Gallery(IOComponent):
 
     def __init__(
         self,
+        value: List[numpy.array | PIL.Image | str] = [],
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -2953,10 +2963,12 @@ class Gallery(IOComponent):
     ):
         """
         Parameters:
+        value (List[numpy.array | PIL.Image | str]): Default images in the Gallery
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
+        self.value = value
         super().__init__(
             label=label,
             show_label=show_label,
@@ -2978,6 +2990,12 @@ class Gallery(IOComponent):
             "visible": visible,
             "value": value,
             "__type__": "update",
+        }
+        
+    def get_config(self):
+        return {
+            "value": self.value,
+            **IOComponent.get_config(self),
         }
 
     def postprocess(self, y):
