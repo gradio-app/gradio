@@ -14,6 +14,8 @@
 	export let style: Record<string, any> = {};
 
 	export let loading_status: LoadingStatus;
+
+	$: console.log($$props);
 </script>
 
 <Block {form_position} type="fieldset" {elem_id} {style}>
@@ -23,6 +25,7 @@
 		{form_position}
 		bind:value
 		{label}
+		{elem_id}
 		{show_label}
 		{choices}
 		{style}

@@ -43,9 +43,9 @@
 			max_lines === false
 				? false
 				: max_lines === undefined // default
-				? 20 * 11
-				: 20 * (max_lines + 1);
-		let min = 20 * (lines + 1);
+				? 21 * 11
+				: 21 * (max_lines + 1);
+		let min = 21 * (lines + 1);
 
 		const target = event.target as HTMLTextAreaElement;
 		target.style.height = "1px";
@@ -63,8 +63,9 @@
 	}
 
 	function text_area_resize(el: HTMLTextAreaElement, value: string) {
+		console.log(lines, max_lines);
 		if (lines === max_lines) return;
-		el.style.overflow = "hidden";
+		el.style.overflowY = "scroll";
 		el.addEventListener("input", resize);
 
 		if (!value.trim()) return;
@@ -83,7 +84,7 @@
 	{#if lines === 1 && max_lines === 1}
 		<input
 			type="text"
-			class={"block gr-box gr-input w-full gr-text-input " +
+			class={"scroll-hide block gr-box gr-input w-full gr-text-input " +
 				create_classes(style)}
 			bind:value
 			bind:this={el}
@@ -93,7 +94,7 @@
 	{:else}
 		<textarea
 			use:text_area_resize={value}
-			class={"block gr-box gr-input w-full gr-text-input " +
+			class={"scroll-hide block gr-box gr-input w-full gr-text-input " +
 				create_classes(style)}
 			bind:value
 			bind:this={el}

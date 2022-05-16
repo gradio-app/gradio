@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import sveltePreprocess from "svelte-preprocess";
+
 import path from "path";
 import fs from "fs";
 
@@ -18,9 +19,10 @@ export default defineConfig(({ mode }) => {
 
 	return {
 		base: is_cdn ? CDN_URL : "./",
+
 		build: {
 			target: "esnext",
-			minify: false,
+			minify: production,
 			outDir: `../../../gradio/templates/${is_cdn ? "cdn" : "frontend"}`
 		},
 		define: {
@@ -39,7 +41,9 @@ export default defineConfig(({ mode }) => {
 				experimental: {
 					inspector: true
 				},
-
+				compilerOptions: {
+					dev: !production
+				},
 				hot: !process.env.VITEST,
 				preprocess: sveltePreprocess({
 					postcss: { plugins: [tailwind, nested] }

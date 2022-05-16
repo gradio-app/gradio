@@ -10,16 +10,18 @@
 	export let label: string;
 	export let form_position: "first" | "last" | "mid" | "single" = "single";
 	export let show_label: boolean;
+	export let elem_id: string;
 
 	const dispatch = createEventDispatcher();
 
 	$: dispatch("change", value);
+	$: console.log(value);
 </script>
 
 <BlockTitle {show_label}>{label}</BlockTitle>
 
 <div class="flex flex-wrap gap-2">
-	{#each choices as choice, i}
+	{#each choices as choice, i (i)}
 		<label
 			class:!cursor-not-allowed={disabled}
 			class={"flex items-center text-gray-700 text-sm space-x-2 border py-1.5 px-3 rounded-lg cursor-pointer bg-white shadow-sm checked:shadow-inner" +
@@ -29,7 +31,7 @@
 				{disabled}
 				bind:group={value}
 				type="radio"
-				name="test"
+				name="radio-{elem_id}"
 				class="gr-check-radio gr-radio"
 				value={choice}
 			/> <span class="ml-2">{choice}</span></label
