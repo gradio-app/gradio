@@ -46,12 +46,12 @@ from gradio.events import Changeable, Clearable, Submittable, Editable, Playable
 GRADIO_DIR = "../../"
 GRADIO_GUIDES_DIR = os.path.join(GRADIO_DIR, "guides")
 GRADIO_DEMO_DIR = os.path.join(GRADIO_DIR, "demo")
-GRADIO_INDEX_FILE = os.path.join(GRADIO_DIR, "gradio", "templates", "frontend", "index.html")
+GRADIO_INDEX_FILE = os.path.join(GRADIO_DIR, "gradio", "templates", "cdn", "index.html")
 with open(GRADIO_INDEX_FILE) as index_file:
     index_html = index_file.read()
 
-ENTRY_JS_FILE=re.findall(r'"\.\/assets\/(.*\.js)"', index_html)[0]
-ENTRY_CSS_FILE=re.findall(r'"\.\/assets\/(.*\.css)"', index_html)[0]
+ENTRY_JS_FILE=re.findall(r'\/assets\/(.*\.js)', index_html)[0]
+ENTRY_CSS_FILE=re.findall(r'\/assets\/(.*\.css)', index_html)[0]
 
 with open("src/navbar.html", encoding="utf-8") as navbar_file:
     navbar_html = navbar_file.read()

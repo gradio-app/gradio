@@ -65,6 +65,7 @@ window.launchGradio = (config: Config, element_query: string) => {
 			"The target element could not be found. Please ensure that element exists."
 		);
 	}
+	target.classList.add("gradio-container");
 
 	if (config.root === undefined) {
 		config.root = BACKEND_URL;
@@ -72,7 +73,7 @@ window.launchGradio = (config: Config, element_query: string) => {
 	if (window.__gradio_mode__ === "app") {
 		config.static_src = ".";
 	} else if (window.__gradio_mode__ === "website") {
-		config.static_src = "/gradio_static";
+		config.static_src = "/";
 	} else {
 		config.static_src = "https://gradio.s3-us-west-2.amazonaws.com/PIP_VERSION";
 	}
@@ -87,8 +88,10 @@ window.launchGradio = (config: Config, element_query: string) => {
 			props: config
 		});
 	} else {
-		handle_darkmode(target);
-
+		if (window.__gradio_mode__ !== "website") {
+			handle_darkmode(target);
+		}
+	
 		let session_hash = Math.random().toString(36).substring(2);
 		config.fn = fn.bind(null, session_hash, config.root + "api/");
 
