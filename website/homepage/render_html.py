@@ -90,12 +90,15 @@ for guide in guide_files:
     if guide.lower() == "readme.md":
         continue
     guide_name = guide[:-3]
-    pretty_guide_name = " ".join(
-        [
-            word.capitalize().replace("Ml", "ML").replace("Gan", "GAN").replace("Api", "API").replace("Onnx", "ONNX")
-            for word in guide_name.split("_")
-        ]
-    )
+    if guide_name == "getting_started":
+        pretty_guide_name = "Quickstart"
+    else:
+        pretty_guide_name = " ".join(
+            [
+                word.capitalize().replace("Ml", "ML").replace("Gan", "GAN").replace("Api", "API").replace("Onnx", "ONNX")
+                for word in guide_name.split("_")
+            ]
+        )
     with open(os.path.join(GRADIO_GUIDES_DIR, guide), "r") as f:
         guide_content = f.read()
 
@@ -194,7 +197,7 @@ def render_guides():
                     code_file.read().replace(
                         'if __name__ == "__main__":\n    demo.launch()', 
                         "demo.launch()"
-                    ).replace("\n\n", "\n")  # double new lines are introduced by formatter
+                    ).replace("\n\n\n", "\n\n")  # triple new lines are introduced by formatter
                 )
                 code[code_src] = (
                     "<pre><code class='lang-python'>" + python_code + "</code></pre>"
