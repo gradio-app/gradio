@@ -509,6 +509,14 @@
               {% endfor %}
               </tbody>
             </table>
+            {% if func["string_shortcut"]%}
+            <h4 class="my-2 font-semibold">Alternative String Shortcuts</h4>
+            <ul>
+            {% for ss in func["string_shortcut"]%}
+            <li>• {{ss}}</li>
+            {% endfor %}
+            </ul>
+            {%endif%}
             <h4 class="my-2 font-semibold">Step-by-step Guides</h4>
             {% if func["guides"] %}
               <div class="guides-list grid grid-cols-1 lg:grid-cols-4 gap-4">
