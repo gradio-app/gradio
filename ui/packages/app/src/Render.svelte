@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount, createEventDispatcher, setContext } from "svelte";
+	import { loading_status } from "./stores";
 
 	export let root: string;
 	export let component;
@@ -105,7 +106,6 @@
 	elem_id={props.elem_id || id}
 	{...props}
 	{root}
-	tracked_status={status_tracker_values[id]}
 >
 	{#if children && children.length}
 		{#each children as { component, id: each_id, props, children, has_modes } (each_id)}
@@ -119,7 +119,6 @@
 				{children}
 				{dynamic_ids}
 				{has_modes}
-				{status_tracker_values}
 				on:destroy
 				on:mount
 			/>

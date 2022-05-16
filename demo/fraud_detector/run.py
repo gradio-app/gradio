@@ -1,5 +1,5 @@
 import random
-
+import os
 import gradio as gr
 
 
@@ -24,12 +24,15 @@ demo = gr.Interface(
         gr.CheckboxGroup(
             ["retail", "food", "other"], value=["retail", "food", "other"]
         ),
-        gr.Slider(minimum=1, maximum=3),
+        gr.Slider(1, 3),
     ],
     [
         "dataframe",
         gr.Timeseries(x="time", y=["retail", "food", "other"]),
         gr.Label(label="Fraud Level"),
+    ],
+    examples=[
+        [os.path.join(os.path.dirname(__file__), "fraud.csv"), ["retail", "food", "other"], 1.0],
     ],
 )
 if __name__ == "__main__":

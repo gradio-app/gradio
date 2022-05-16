@@ -8,8 +8,9 @@ import mlflow
 import requests
 import wandb
 
-from gradio.blocks import Blocks, TabItem, Tabs
+from gradio.blocks import Blocks
 from gradio.interface import Interface, TabbedInterface, close_all, os
+from gradio.layouts import TabItem, Tabs
 from gradio.utils import assert_configs_are_equivalent_besides_ids
 
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"

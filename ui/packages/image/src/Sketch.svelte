@@ -338,7 +338,7 @@
 </script>
 
 <div
-	class="touch-none relative bg-red-500 h-full w-full"
+	class="touch-none relative h-full w-full"
 	bind:this={canvas_container}
 	bind:offsetWidth={canvas_width}
 	bind:offsetHeight={canvas_height}

@@ -12,4 +12,4 @@ demo = gr.Interface(
 )
 
 if __name__ == "__main__":
-    app, local_url, share_url = demo.launch()
+    demo.launch()

@@ -18,15 +18,15 @@ def text_to_sentiment(text):
 demo = gr.Blocks()
 
 with demo:
-    m = gr.Audio(type="filepath")
-    t = gr.Textbox()
-    l = gr.Label()
+    audio_file = gr.Audio(type="filepath")
+    text = gr.Textbox()
+    label = gr.Label()
 
     b1 = gr.Button("Recognize Speech")
     b2 = gr.Button("Classify Sentiment")
 
-    b1.click(speech_to_text, inputs=m, outputs=t)
-    b2.click(text_to_sentiment, inputs=t, outputs=l)
+    b1.click(speech_to_text, inputs=audio_file, outputs=text)
+    b2.click(text_to_sentiment, inputs=text, outputs=label)
 
 if __name__ == "__main__":
     demo.launch()

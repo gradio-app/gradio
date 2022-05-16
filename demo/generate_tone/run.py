@@ -18,9 +18,9 @@ def generate_tone(note, octave, duration):
 demo = gr.Interface(
     generate_tone,
     [
-        gr.inputs.Dropdown(notes, type="index"),
-        gr.inputs.Slider(4, 6, step=1),
-        gr.inputs.Textbox(type="number", default=1, label="Duration in seconds"),
+        gr.Dropdown(notes, type="index"),
+        gr.Slider(4, 6, step=1),
+        gr.Textbox(value=1, type="number", label="Duration in seconds"),
     ],
     "audio",
 )

@@ -20,7 +20,7 @@
 
 <BlockLabel {show_label} Icon={Video} label={label || "Video"} />
 {#if value === null}
-	<div class="min-h-[15rem] flex justify-center items-center">
+	<div class="h-full min-h-[15rem] flex justify-center items-center">
 		<div class="h-5 dark:text-white opacity-50"><Video /></div>
 	</div>
 {:else}

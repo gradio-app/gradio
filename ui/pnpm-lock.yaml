@@ -117,7 +117,7 @@ importers:
       '@gradio/utils': link:../utils
       '@gradio/video': link:../video
       mime-types: 2.1.34
-      svelte-i18n: 3.3.13_svelte@3.47.0
+      svelte-i18n: 3.3.13
 
   packages/atoms:
     specifiers: {}
@@ -4256,6 +4256,20 @@ packages:
       svelte: '>=3.19.0'
     dependencies:
       svelte: 3.47.0
+
+  /svelte-i18n/3.3.13:
+    resolution: {integrity: sha512-RQM+ys4+Y9ztH//tX22H1UL2cniLNmIR+N4xmYygV6QpQ6EyQvloZiENRew8XrVzfvJ8HaE8NU6/yurLkl7z3g==}
+    engines: {node: '>= 11.15.0'}
+    hasBin: true
+    peerDependencies:
+      svelte: ^3.25.1
+    dependencies:
+      deepmerge: 4.2.2
+      estree-walker: 2.0.2
+      intl-messageformat: 9.11.4
+      sade: 1.8.1
+      tiny-glob: 0.2.9
+    dev: false
 
   /svelte-i18n/3.3.13_svelte@3.47.0:
     resolution: {integrity: sha512-RQM+ys4+Y9ztH//tX22H1UL2cniLNmIR+N4xmYygV6QpQ6EyQvloZiENRew8XrVzfvJ8HaE8NU6/yurLkl7z3g==}

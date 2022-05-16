@@ -19,6 +19,8 @@
 	export let show_label: boolean;
 	export let name: string;
 	export let source: "microphone" | "upload" | "none";
+	export let pending: boolean = false;
+	export let streaming: boolean = false;
 	export let drop_text: string = "Drop an audio file";
 	export let or_text: string = "or";
 	export let upload_text: string = "click to upload";
@@ -37,6 +39,7 @@
 
 	const dispatch = createEventDispatcher<{
 		change: AudioData;
+		stream: AudioData;
 		edit: AudioData;
 		play: undefined;
 		pause: undefined;
@@ -62,16 +65,15 @@
 		});
 
 		recorder.addEventListener("stop", async () => {
-			recording = false;
+			if (!streaming) {
+				recording = false;
+			}
 			audio_blob = new Blob(audio_chunks, { type: "audio/wav" });
 			value = {
 				data: await blob_to_data_url(audio_blob),
 				name
 			};
-			dispatch("change", {
-				data: await blob_to_data_url(audio_blob),
-				name
-			});
+			dispatch(streaming ? "stream" : "change", value);
 		});
 	}
 
@@ -92,6 +94,9 @@
 
 	const stop = () => {
 		recorder.stop();
+		if (streaming) {
+			recording = false;
+		}
 	};
 
 	function clear() {
@@ -149,10 +154,24 @@
 
 	export let dragging = false;
 	$: dispatch("drag", dragging);
+
+	if (streaming) {
+		window.setInterval(() => {
+			if (
+				recording &&
+				recorder &&
+				recorder.state === "recording" &&
+				pending === false
+			) {
+				stop();
+				record();
+			}
+		}, 500);
+	}
 </script>
 
 <BlockLabel {show_label} Icon={Music} label={label || "Audio"} />
-{#if value === null}
+{#if value === null || streaming}
 	{#if source === "microphone"}
 		<div class="mt-6 p-2">
 			{#if recording}

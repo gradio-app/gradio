@@ -4,6 +4,8 @@
 
 	let video_source: HTMLVideoElement;
 	let canvas: HTMLCanvasElement;
+	export let streaming: boolean = false;
+	export let pending: boolean = false;
 
 	export let mode: "image" | "video" = "image";
 
@@ -38,7 +40,7 @@
 			);
 
 			var data = canvas.toDataURL("image/png");
-			dispatch("capture", data);
+			dispatch(streaming ? "stream" : "capture", data);
 		}
 	}
 
@@ -88,29 +90,39 @@
 	}
 
 	access_webcam();
+
+	if (streaming && mode === "image") {
+		window.setInterval(() => {
+			if (video_source && !pending) {
+				take_picture();
+			}
+		}, 500);
+	}
 </script>
 
-<div class="h-full w-full relative">
+<div class="h-full min-h-[15rem] w-full relative">
 	<!-- svelte-ignore a11y-media-has-caption -->
 	<video bind:this={video_source} class="h-full w-full " />
-	<button
-		on:click={mode === "image" ? take_picture : take_recording}
-		class="rounded-xl w-10 h-10 flex justify-center items-center absolute inset-x-0 bottom-2 md:bottom-4 xl:bottom-8 m-auto drop-shadow-lg bg-black/90"
-	>
-		{#if mode === "video"}
-			{#if recording}
-				<div class="w-2/4 h-2/4 dark:text-white opacity-80">
-					<Square />
-				</div>
+	{#if !streaming}
+		<button
+			on:click={mode === "image" ? take_picture : take_recording}
+			class="rounded-xl w-10 h-10 flex justify-center items-center absolute inset-x-0 bottom-2 md:bottom-4 xl:bottom-8 m-auto drop-shadow-lg bg-black/90"
+		>
+			{#if mode === "video"}
+				{#if recording}
+					<div class="w-2/4 h-2/4 dark:text-white opacity-80">
+						<Square />
+					</div>
+				{:else}
+					<div class="w-2/4 h-2/4 dark:text-white opacity-80">
+						<Circle />
+					</div>
+				{/if}
 			{:else}
 				<div class="w-2/4 h-2/4 dark:text-white opacity-80">
-					<Circle />
+					<Camera />
 				</div>
 			{/if}
-		{:else}
-			<div class="w-2/4 h-2/4 dark:text-white opacity-80">
-				<Camera />
-			</div>
-		{/if}
-	</button>
+		</button>
+	{/if}
 </div>
