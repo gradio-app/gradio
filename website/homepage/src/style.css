@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+.example-tab {
+    @apply px-2.5 py-0.5;
+}
+
+.active-example-tab {
+    @apply border-orange-500 rounded-full text-orange-500 ring-1 bg-orange-50 ring-orange-200 hover:!text-orange-500 cursor-pointer shadow shadow-orange-200;
+}
 
 .btn-star {
     @apply cursor-pointer select-none inline-flex justify-center items-center whitespace-nowrap px-3 py-1 rounded-lg border bg-gradient-to-b focus:outline-none focus:ring text-gray-800 border-gray-200 from-white to-gray-100 hover:shadow-inner;
