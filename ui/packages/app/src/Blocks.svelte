@@ -156,12 +156,12 @@
 				ready = true;
 
 				await tick();
-				if (window.__gradio_mode__ == "app") {				
+				if (window.__gradio_mode__ == "app") {
 					window.__gradio_loader__.$set({ status: "complete" });
 				}
 			})
 			.catch((e) => {
-				if (window.__gradio_mode__ == "app") {				
+				if (window.__gradio_mode__ == "app") {
 					window.__gradio_loader__.$set({ status: "error" });
 				}
 			});

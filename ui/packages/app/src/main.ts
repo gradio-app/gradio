@@ -91,7 +91,7 @@ window.launchGradio = (config: Config, element_query: string) => {
 		if (window.__gradio_mode__ !== "website") {
 			handle_darkmode(target);
 		}
-	
+
 		let session_hash = Math.random().toString(36).substring(2);
 		config.fn = fn.bind(null, session_hash, config.root + "api/");
 
