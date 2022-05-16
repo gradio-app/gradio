@@ -1,6 +1,6 @@
 ## Advanced Interface Features
 
-**Prerequisite**: This Guide builds on the Quickstart. Make sure to [read the Quickstart first]().
+**Prerequisite**: This Guide builds on the Quickstart. Make sure to [read the Quickstart first](/getting_started).
 
 <span id="advanced-features"></span>
 
@@ -11,7 +11,9 @@ In this Guide, we go through several advanced functionalities that your `gradio.
 You may wish to put an authentication page in front of your interface to limit who can open your interface. With the `auth=` keyword argument in the `launch()` method, you can pass a list of acceptable username/password tuples; or, for more complex authentication handling, you can even pass a function that takes a username and password as arguments, and returns True to allow authentication, False otherwise. Here's an example that provides password-based authentication for a single user named "admin":
 
 ```python
-gr.Interface(fn=classify_image, inputs=image, outputs=label).launch(auth=("admin", "pass1234"))
+gr.Interface(fn=classify_image, inputs=image, outputs=label).launch(
+    auth=("admin", "pass1234")
+)
 ```
 
 ### Interpreting your Predictions 🔬
