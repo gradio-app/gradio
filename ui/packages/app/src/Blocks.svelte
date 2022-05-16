@@ -56,6 +56,7 @@
 	export let static_src: string;
 	export let title: string = "Gradio";
 	export let analytics_enabled: boolean = false;
+	export let target: HTMLElement;
 
 	let rootNode: Component = { id: layout.id, type: "column", props: {} };
 	components.push(rootNode);
@@ -181,11 +182,11 @@
 	async function handle_mount() {
 		await tick();
 
-		var a = document.getElementsByTagName("a");
+		var a = target.getElementsByTagName("a");
 
 		for (var i = 0; i < a.length; i++) {
-			const target = a[i].getAttribute("target");
-			if (target !== "_blank") a[i].setAttribute("target", "_blank");
+			const _target = a[i].getAttribute("target");
+			if (_target !== "_blank") a[i].setAttribute("target", "_blank");
 		}
 
 		dependencies.forEach(

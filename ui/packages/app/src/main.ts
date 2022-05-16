@@ -98,7 +98,7 @@ window.launchGradio = (config: Config, element_query: string) => {
 
 		new Blocks({
 			target: target,
-			props: config
+			props: { ...config, target }
 		});
 	}
 };
