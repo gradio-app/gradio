@@ -190,8 +190,11 @@ def render_guides():
 
         for code_src in code_tags:
             with open(os.path.join(GRADIO_DEMO_DIR, code_src, "run.py")) as code_file:
-                python_code = code_file.read().replace(
-                    'if __name__ == "__main__":\n    iface.launch()', "iface.launch()"
+                python_code = (
+                    code_file.read().replace(
+                        'if __name__ == "__main__":\n    demo.launch()', 
+                        "demo.launch()"
+                    ).replace("\n\n", "\n")  # double new lines are introduced by formatter
                 )
                 code[code_src] = (
                     "<pre><code class='lang-python'>" + python_code + "</code></pre>"
