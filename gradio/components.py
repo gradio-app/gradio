@@ -3233,6 +3233,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
 
     def __init__(
         self,
+        value,
         *,
         clear_color=None,
         label: Optional[str] = None,
@@ -3243,12 +3244,14 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
     ):
         """
         Parameters:
+        value (str): Default file to show
         clear_color (List[r, g, b, a]): background color of scene
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
         self.clear_color = clear_color
+        self.value = value
         IOComponent.__init__(
             self,
             label=label,
@@ -3261,6 +3264,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
     def get_config(self):
         return {
             "clearColor": self.clear_color,
+            "value": self.value,
             **IOComponent.get_config(self),
         }
 
@@ -3357,6 +3361,7 @@ class Plot(Changeable, Clearable, IOComponent):
 
     def __init__(
         self,
+        value,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -3366,10 +3371,12 @@ class Plot(Changeable, Clearable, IOComponent):
     ):
         """
         Parameters:
+        value (matplotlib.pyplot.Figure | plotly.graph_objects._figure.Figure | dict): default plot to show
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
+        self.value = value
         IOComponent.__init__(
             self,
             label=label,
@@ -3380,7 +3387,10 @@ class Plot(Changeable, Clearable, IOComponent):
         )
 
     def get_config(self):
-        return {**IOComponent.get_config(self)}
+        return {
+            "value": self.value,
+            **IOComponent.get_config(self)
+        }
 
     @staticmethod
     def update(
