@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { onMount, SvelteComponentTyped } from "svelte";
+	import type { SvelteComponentTyped } from "svelte";
+	import { onMount } from "svelte";
 	import { component_map } from "./components/directory";
 	import { loading_status } from "./stores";
 	import type { LoadingStatus } from "./stores";
