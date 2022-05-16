@@ -22,8 +22,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700;1,900&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="icon" type="image/png" href="/assets/img/logo.png">
-  <link rel="stylesheet" href="/gradio_static/assets/{{ entry_css_file }}">
   <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/assets/{{ entry_css_file }}">
   <link rel="stylesheet" href="/assets/prism.css">
   <style>
     pre {
@@ -44,6 +44,10 @@
       visibility: visible;
     }
 
+    .gradio-container > :first-child {
+      margin: 0 !important;
+      padding: 0 !important;
+    }
   </style>
   <script async src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
     <script>
@@ -449,7 +453,7 @@
             <h3 id="{{ func['name'].lower() }}-header" class="text-3xl font-light my-4">
               {{ func['name'] }}
             </h3>
-            <button class="hidden rounded-full bg-orange-500 text-white py-1 px-3 my-3" onclick="showDemos({{ func['demos'] }})">
+            <button class="rounded-full bg-orange-500 text-white py-1 px-3 my-3" onclick="showDemos({{ func['demos'] }})">
               Try Demo &#8594;
             </button>
             <div id='{{ func["name"].lower() }}-component'  class="component-embedding hidden"></div>
@@ -637,7 +641,10 @@
     </nav>
   </footer>
   <script src="/assets/prism.js"></script>
-  <script id="gradio-library" type="module" crossorigin src="/gradio_static/assets/{{ entry_js_file }}"></script>
+  <script>
+    window.__gradio_mode__ = "website";
+  </script>
+  <script id="gradio-library" type="module" crossorigin src="/assets/{{ entry_js_file }}"></script>
   <script>
    // highlighting section in nav bar
     let mainNavLinks = document.querySelectorAll(".navigation a");
