@@ -8,6 +8,7 @@ import markdown2
 import requests
 from jinja2 import Template
 from render_html_helpers import generate_meta_image
+from bs4 import BeautifulSoup
 
 from gradio.components import (
     Textbox, 
@@ -90,12 +91,15 @@ for guide in guide_files:
     if guide.lower() == "readme.md":
         continue
     guide_name = guide[:-3]
-    pretty_guide_name = " ".join(
-        [
-            word.capitalize().replace("Ml", "ML").replace("Gan", "GAN").replace("Api", "API").replace("Onnx", "ONNX")
-            for word in guide_name.split("_")
-        ]
-    )
+    if guide_name == "getting_started":
+        pretty_guide_name = "Quickstart"
+    else:
+        pretty_guide_name = " ".join(
+            [
+                word.capitalize().replace("Ml", "ML").replace("Gan", "GAN").replace("Api", "API").replace("Onnx", "ONNX")
+                for word in guide_name.split("_")
+            ]
+        )
     with open(os.path.join(GRADIO_GUIDES_DIR, guide), "r") as f:
         guide_content = f.read()
 
@@ -190,8 +194,11 @@ def render_guides():
 
         for code_src in code_tags:
             with open(os.path.join(GRADIO_DEMO_DIR, code_src, "run.py")) as code_file:
-                python_code = code_file.read().replace(
-                    'if __name__ == "__main__":\n    iface.launch()', "iface.launch()"
+                python_code = (
+                    code_file.read().replace(
+                        'if __name__ == "__main__":\n    demo.launch()', 
+                        "demo.launch()"
+                    ).replace("\n\n\n", "\n\n")  # triple new lines are introduced by formatter
                 )
                 code[code_src] = (
                     "<pre><code class='lang-python'>" + python_code + "</code></pre>"
@@ -227,6 +234,13 @@ def render_guides():
         output_html = markdown2.markdown(
             guide_output, extras=["target-blank-links", "header-ids", "tables"]
         )
+        
+        soup = BeautifulSoup(output_html)
+        headings = []
+        for heading in soup.find_all(["h1", "h2", "h3", "h4"]):
+            headings.append({'text': heading.text.strip(),
+                            'id': heading.get('id')})
+        
         os.makedirs("generated", exist_ok=True)
         os.makedirs(os.path.join("generated", guide["name"]), exist_ok=True)
         with open(
@@ -249,7 +263,8 @@ def render_guides():
                 tags=guide["tags"],
                 contributor=guide["contributor"],
                 entry_js_file=ENTRY_JS_FILE,
-                entry_css_file=ENTRY_CSS_FILE
+                entry_css_file=ENTRY_CSS_FILE,
+                headings=headings,
             )
             generated_template.write(output_html)
 

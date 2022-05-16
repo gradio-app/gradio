@@ -7,7 +7,7 @@
     "build:css": "postcss src/style.css -o dist/style.css && python replace_style_names.py",
     "build:assets": "cp -R src/assets/. dist/assets/",
     "build": "npm run prebuild && npm run build:setup && npm run build:html && npm run build:css && npm run build:assets",
-    "start": "npm run build && chokidar 'src/**' '../guides/*' -c 'echo '{path}' && if [[ {path} =~ ^src/.*.html ]]; then npm run build:html && npm run build:css; elif [[ {path} =~ ^../guides/.* ]]; then npm run build:html && npm ; elif [[ {path} =~ ^src/.*.css ]]; then npm run build:html && npm run build:css; elif [[ {path} =~ ^src/assets/.* ]]; then npm run build:assets; fi; echo 0 ' "
+    "start": "npm run build && chokidar 'src/**' '../../guides/*' -c 'echo '{path}' && if [[ {path} =~ ^src/.*.html ]]; then npm run build:html && npm run build:css; elif [[ {path} =~ ^../guides/.* ]]; then npm run build:html && npm ; elif [[ {path} =~ ^src/.*.css ]]; then npm run build:html && npm run build:css; elif [[ {path} =~ ^src/assets/.* ]]; then npm run build:assets; fi; echo 0 ' "
   },
   "dependencies": {
     "@fullhuman/postcss-purgecss": "^4.0.3",
