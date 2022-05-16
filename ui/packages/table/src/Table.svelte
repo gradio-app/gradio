@@ -45,7 +45,7 @@
 			return _h.map((h, i) => {
 				const _id = `h-${i}`;
 				els[_id] = { cell: null, input: null };
-				return { id: _id, value: h || "" };
+				return { id: _id, value: h ?? "" };
 			});
 		}
 	}
@@ -67,7 +67,7 @@
 					.map((n, j) => {
 						const id = `${i}-${j}`;
 						els[id] = { input: null, cell: null };
-						return { value: _values?.[i]?.[j] || "", id };
+						return { value: _values?.[i]?.[j] ?? "", id };
 					})
 			);
 	}
