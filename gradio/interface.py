@@ -36,6 +36,7 @@ from gradio.components import (
 from gradio.external import load_from_pipeline, load_interface  # type: ignore
 from gradio.flagging import CSVLogger, FlaggingCallback  # type: ignore
 from gradio.layouts import Column, Row, TabItem, Tabs
+from gradio.events import Changeable, Streamable
 from gradio.process_examples import cache_interface_examples, load_from_cache
 
 if TYPE_CHECKING:  # Only import for type checking (is False at runtime).
@@ -502,21 +503,19 @@ class Interface(Blocks):
             )
             if self.live:
                 for component in self.input_components:
-                    if hasattr(component, "streaming"):
-                        if component.__getattribute__("streaming"):
+                    if isinstance(component, Streamable):
+                        if component.streaming:
                             component.stream(
                                 submit_fn, self.input_components, self.output_components
                             )
+                            continue
                         else:
                             print(
                                 "Hint: Set streaming=True for "
                                 + component.__class__.__name__
                                 + " component to use live streaming."
                             )
-                            component.change(
-                                submit_fn, self.input_components, self.output_components
-                            )
-                    else:
+                    if isinstance(component, Changeable):
                         component.change(
                             submit_fn, self.input_components, self.output_components
                         )
