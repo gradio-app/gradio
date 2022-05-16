@@ -87,7 +87,7 @@
 
 {#if mode === "categories"}
 	{#if show_legend}
-		<div class="category-legend flex flex-wrap gap-1 mb-2 text-black">
+		<div class="category-legend flex flex-wrap gap-1 mb-2 text-black mt-7">
 			{#each Object.entries(_color_map) as [category, color], i}
 				<div
 					on:mouseover={() => handle_mouseover(category)}
@@ -103,7 +103,7 @@
 		</div>
 	{/if}
 	<div
-		class="textfield bg-white dark:bg-transparent rounded-sm text-sm box-border max-w-full break-word leading-7"
+		class="textfield bg-white dark:bg-transparent rounded-sm text-sm box-border max-w-full break-word leading-7 mt-7"
 	>
 		{#each value as [text, category]}
 			<span
@@ -134,7 +134,7 @@
 {:else}
 	{#if show_legend}
 		<div
-			class="color_legend flex px-2 py-1 justify-between rounded mb-3 font-semibold"
+			class="color_legend flex px-2 py-1 justify-between rounded mb-3 font-semibold mt-7"
 			style="background: -webkit-linear-gradient(to right,#8d83d6,(255,255,255,0),#eb4d4b); background: linear-gradient(to right,#8d83d6,rgba(255,255,255,0),#eb4d4b);"
 		>
 			<span>-1</span>

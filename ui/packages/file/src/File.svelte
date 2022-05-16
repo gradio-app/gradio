@@ -13,7 +13,7 @@
 
 {#if value}
 	<a
-		class="output-file w-full h-full flex flex-row flex-wrap justify-center items-center relative"
+		class="output-file w-full h-full flex flex-row flex-wrap justify-center items-center relative dark:text-slate-200"
 		href={value.data}
 		download={value.name}
 	>
