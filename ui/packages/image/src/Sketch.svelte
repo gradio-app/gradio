@@ -11,7 +11,7 @@
 	let mounted;
 
 	let brush_radius = 50;
-	let brush_color = "#090f1f";
+	let brush_color = "#0b0f19";
 	let catenary_color = "#aaa";
 
 	let canvas_width = 400;
