@@ -537,7 +537,7 @@ with demo:
     btn.click(fn=update, inputs=inp, outputs=out)
 
 demo.launch()""",
-        "demos": ["blocks_hello", "blocks_flipper", "blocks_gpt", "blocks_speech_text_length"]
+        "demos": ["blocks_hello", "blocks_flipper", "blocks_speech_text_length"]
     }    
     tabbed_interface_docs = get_class_documentation(TabbedInterface, lines=None)["doc"]
     tabbed_interface_params = get_function_documentation(TabbedInterface.__init__)
@@ -545,7 +545,7 @@ demo.launch()""",
         "doc": tabbed_interface_docs,
         "params": tabbed_interface_params[1],
         "params_doc": tabbed_interface_params[2],
-        "demos": ["blocks_neural_instrument_coding", "sst_or_tts"]
+        "demos": ["sst_or_tts"]
     }
     
     series_docs = get_class_documentation(Series, lines=None)["doc"]
@@ -610,28 +610,28 @@ demo.launch()""",
         for code_src in component["demos"]:
             with open(os.path.join(GRADIO_DEMO_DIR, code_src, "run.py")) as code_file:
                 python_code = code_file.read().replace(
-                    'if __name__ == "__main__":\n    iface.launch()', "iface.launch()"
+                    'if __name__ == "__main__":\n    demo.launch()', "demo.launch()"
                 )
                 demo_code[code_src] = python_code
 
     for code_src in interface["demos"]:
         with open(os.path.join(GRADIO_DEMO_DIR, code_src, "run.py")) as code_file:
             python_code = code_file.read().replace(
-                'if __name__ == "__main__":\n    iface.launch()', "iface.launch()"
+                'if __name__ == "__main__":\n    demo.launch()', "demo.launch()"
             )
             demo_code[code_src] = python_code
 
     for code_src in blocks_docs["demos"]:
         with open(os.path.join(GRADIO_DEMO_DIR, code_src, "run.py")) as code_file:
             python_code = code_file.read().replace(
-                'if __name__ == "__main__":\n    iface.launch()', "iface.launch()"
+                'if __name__ == "__main__":\n    demo.launch()', "demo.launch()"
             )
             demo_code[code_src] = python_code
 
     for code_src in tabbed_interface["demos"]:
         with open(os.path.join(GRADIO_DEMO_DIR, code_src, "run.py")) as code_file:
             python_code = code_file.read().replace(
-                'if __name__ == "__main__":\n    iface.launch()', "iface.launch()"
+                'if __name__ == "__main__":\n    demo.launch()', "demo.launch()"
             )
             demo_code[code_src] = python_code
 
