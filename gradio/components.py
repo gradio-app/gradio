@@ -2597,7 +2597,7 @@ class Variable(IOComponent):
 
     Preprocessing: No preprocessing is performed
     Postprocessing: No postprocessing is performed
-    Demos: chatbot, blocks_simple_squares
+    Demos: chatbot_demo, blocks_simple_squares
     """
 
     def __init__(
@@ -3213,7 +3213,7 @@ class Chatbot(Changeable, IOComponent):
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a {List[Tuple[str, str]]}, a list of tuples with user inputs and responses.
 
-    Demos: chatbot
+    Demos: chatbot_demo
     """
 
     def __init__(
