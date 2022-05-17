@@ -610,28 +610,28 @@ demo.launch()""",
         for code_src in component["demos"]:
             with open(os.path.join(GRADIO_DEMO_DIR, code_src, "run.py")) as code_file:
                 python_code = code_file.read().replace(
-                    'if __name__ == "__main__":\n    iface.launch()', "iface.launch()"
+                    'if __name__ == "__main__":\n    demo.launch()', "demo.launch()"
                 )
                 demo_code[code_src] = python_code
 
     for code_src in interface["demos"]:
         with open(os.path.join(GRADIO_DEMO_DIR, code_src, "run.py")) as code_file:
             python_code = code_file.read().replace(
-                'if __name__ == "__main__":\n    iface.launch()', "iface.launch()"
+                'if __name__ == "__main__":\n    demo.launch()', "demo.launch()"
             )
             demo_code[code_src] = python_code
 
     for code_src in blocks_docs["demos"]:
         with open(os.path.join(GRADIO_DEMO_DIR, code_src, "run.py")) as code_file:
             python_code = code_file.read().replace(
-                'if __name__ == "__main__":\n    iface.launch()', "iface.launch()"
+                'if __name__ == "__main__":\n    demo.launch()', "demo.launch()"
             )
             demo_code[code_src] = python_code
 
     for code_src in tabbed_interface["demos"]:
         with open(os.path.join(GRADIO_DEMO_DIR, code_src, "run.py")) as code_file:
             python_code = code_file.read().replace(
-                'if __name__ == "__main__":\n    iface.launch()', "iface.launch()"
+                'if __name__ == "__main__":\n    demo.launch()', "demo.launch()"
             )
             demo_code[code_src] = python_code
 
