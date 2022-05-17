@@ -1315,7 +1315,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
     Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type`.
     Postprocessing: expects a {numpy.array}, {PIL.Image} or {str} filepath to an image and displays the image.
 
-    Demos: image_mod, blocks_xray, webcam
+    Demos: image_mod, blocks_xray
     """
 
     def __init__(

@@ -2,9 +2,9 @@
 
 #  Gradio: Build Machine Learning Web Apps — in Python
 
-Gradio (pronounced GRAY-dee-oh) is an open-source Python library that has been used to build hundreds of thousands of machine learning and data science demos. 
+Gradio (pronounced GRAY-dee-oh) is an open-source Python library that is used to build machine learning and data science demos and web applications. 
 
-With Gradio, you can quickly create a beautiful user interfaces around your machine learning models and let people "try out" what you've built by dragging-and-dropping in their own images, pasting text, recording their own voice, and interacting with your demo through the browser.  
+With Gradio, you can quickly create a beautiful user interface around your machine learning models or data science workflow and let people "try it out" by dragging-and-dropping in their own images, pasting text, recording their own voice, and interacting with your demo, all through the browser.  
 
 ![Interface montage](website/homepage/src/assets/img/meta-image-2.png)
 
@@ -31,7 +31,7 @@ A web-based demo is great as it allows anyone who can use a browser (not just te
 
 However, creating such web-based demos has traditionally been difficult, as you needed to know web hosting to serve the web app and web development (HTML, CSS, JavaScript) to build a GUI for your demo. 
 
-Gradio allows you to **build demos and share them, directly in Python.** And usually in just a few lines of code! So let's get started. 
+Gradio allows you to **build demos and share them, all in Python.** And usually in just a few lines of code! So let's get started. 
 
 ### Hello, World ⚡
 
@@ -158,7 +158,7 @@ if __name__ == "__main__":
 ```
 ![sepia_filter interface](demo/sepia_filter/screenshot.gif)
 
-Additionally, our  `Image`  input interface comes with an 'edit' button ✏️ which opens tools for cropping, flipping, rotating, drawing over, and applying filters to images. We've found that manipulating images in this way can help reveal biases or hidden flaws in a machine learning model!
+Additionally, our  `Image`  input interface comes with an 'edit' button ✏️ which opens tools for cropping and zooming into images. We've found that manipulating images in this way can help reveal biases or hidden flaws in a machine learning model!
 
 In addition to images, Gradio supports other media types, such as audio or video. Read about these in the [Docs](https://gradio.app/docs).
 
@@ -167,9 +167,10 @@ In addition to images, Gradio supports other media types, such as audio or video
 You can use Gradio to support inputs and outputs from your typical data libraries, such as numpy arrays, pandas dataframes, and plotly graphs. Take a look at the demo below (ignore the complicated data manipulation in the function!)
 
 ```python
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 
 import gradio as gr
 
@@ -399,9 +400,9 @@ You can either drag and drop a folder containing your Gradio model and all relat
 Now that you're familiar with the basics of Gradio, here are some good next steps:
 
 * Check out [the free Gradio course](https://huggingface.co/course/chapter9/1) for a step-by-step walkthrough of everything Gradio-related with lots of examples of how to build your own machine learning demos 📖
-* Gradio offers two APIs to users: **Interface**, a high level abstraction covered in this guide, and **Blocks**, a more flexible API for designing web apps with more flexible layouts and data flows. [Read more about Blocks here](/introduction_to_blocks/) 🧱
+* Gradio offers two APIs to users: **Interface**, a high level abstraction for quickly creating demos, and **Blocks**, a more flexible API for designing web apps with more controlled layouts and data flows. [Read more about Blocks here](/introduction_to_blocks/) 🧱
 * If you'd like to stick with **Interface**, but want to add more advanced features to your demo (like authentication, interpretation, or state), check out our guide on [advanced features with the Interface class](/advanced_interface_features) 💪
-* If you just want to explore what demos other people have built with Gradio, [browse public Hugging Face Spaces](http://hf.space/), view the underlying Python code, and be inspired 🤗
+* If you just want to explore what demos other people have built with Gradio and see the underlying Python code, [browse public Hugging Face Spaces](https://hf.space/), and be inspired 🤗
 
 
 

@@ -14,8 +14,7 @@ en = {
     "GENERATING_PUBLIC_LINK": "Generating public link (may take a few seconds...):",
     "TF1_ERROR": "It looks like you might be using tensorflow < 2.0. Please pass capture_session=True in Interface() to"
     " avoid the 'Tensor is not an element of this graph.' error.",
-    "BETA_INVITE": "\nWe want to invite you to become a beta user.\nYou'll get early access to new and premium "
-    "features (persistent links, hosting, and more).\nIf you're interested please email: beta@gradio.app\n",
+    "BETA_INVITE": "\nThanks for being a Gradio user! If you have questions or feedback, please join our Discord server and chat with us: https://discord.gg/feTf9x3ZSB",
     "COLAB_DEBUG_TRUE": "Colab notebook detected. This cell will run indefinitely so that you can see errors and logs. "
     "To turn off, set debug=False in launch().",
     "COLAB_DEBUG_FALSE": "Colab notebook detected. To show errors in colab notebook, set debug=True in launch()",
