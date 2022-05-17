@@ -173,7 +173,7 @@ def launch_counter() -> None:
             with open(JSON_PATH) as j:
                 launches = json.load(j)
             launches["launches"] += 1
-            if launches["launches"] in [25, 50]:
+            if launches["launches"] in [25, 50, 150, 500, 1000]:
                 print(gradio.strings.en["BETA_INVITE"])
             with open(JSON_PATH, "w") as j:
                 j.write(json.dumps(launches))

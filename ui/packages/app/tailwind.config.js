@@ -17,7 +17,7 @@ module.exports = {
 			},
 			colors: {
 				gray: {
-					950: "#090f1f"
+					950: "#0b0f19"
 				},
 				orange: {
 					50: "#FFF2E5",
