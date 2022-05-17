@@ -473,9 +473,11 @@
             <h3 id="{{ func['name'].lower() }}-header" class="text-3xl font-light my-4">
               {{ func['name'] }}
             </h3>
+            {% if func['demos'] %}
             <button class="h-2/4 rounded-full bg-orange-500 text-white py-1 px-3 my-3 mx-2 ml-auto" onclick="showDemos({{ func['demos'] }})">
               Try Examples
             </button>
+            {% endif %}
             </div>
             <pre class="mb-4"><code class="lang-python">gradio.<span>{{ func["name"] }}(</span><!--
             -->self, <!--
