@@ -2597,7 +2597,7 @@ class Variable(IOComponent):
 
     Preprocessing: No preprocessing is performed
     Postprocessing: No postprocessing is performed
-    Demos: chatbot, blocks_simple_squares
+    Demos: chatbot_demo, blocks_simple_squares
     """
 
     def __init__(
@@ -3213,7 +3213,7 @@ class Chatbot(Changeable, IOComponent):
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a {List[Tuple[str, str]]}, a list of tuples with user inputs and responses.
 
-    Demos: chatbot
+    Demos: chatbot_demo
     """
 
     def __init__(
@@ -3286,6 +3286,8 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
     Component creates a 3D Model component with input and output capabilities.
     Input type: File object of type (.obj, glb, or .gltf)
     Output type: filepath
+
+    Demos: model3D_demo
     """
 
     def __init__(
