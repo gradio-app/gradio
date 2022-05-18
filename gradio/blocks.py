@@ -415,6 +415,7 @@ class Blocks(BlockContext):
         ssl_keyfile: Optional[str] = None,
         ssl_certfile: Optional[str] = None,
         ssl_keyfile_password: Optional[str] = None,
+        verbose: bool = True,
         _frontend: bool = True,
     ) -> Tuple[FastAPI, str, str]:
         """
@@ -474,9 +475,10 @@ class Blocks(BlockContext):
 
         if self.is_running:
             self.server_app.launchable = self
-            print(
-                "Rerunning server... use `close()` to stop if you need to change `launch()` parameters.\n----"
-            )
+            if verbose:
+                print(
+                    "Rerunning server... use `close()` to stop if you need to change `launch()` parameters.\n----"
+                )
         else:
             server_port, path_to_local_server, app, server = networking.start_server(
                 self,
@@ -525,7 +527,8 @@ class Blocks(BlockContext):
                 share = False
                 print(strings.en["COULD_NOT_GET_SHARE_LINK"])
         else:
-            print(strings.en["PUBLIC_SHARE_TRUE"])
+            if verbose:
+                print(strings.en["PUBLIC_SHARE_TRUE"])
             self.share_url = None
 
         if inbrowser:
