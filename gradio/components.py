@@ -240,7 +240,22 @@ class IOComponent(Component):
         border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
         container: Optional[bool] = None,
     ):
-        valid_colors = ["red", "yellow", "green", "blue", "purple", "black"]
+        valid_colors = [
+            "red",
+            "green",
+            "blue",
+            "yellow",
+            "purple",
+            "teal",
+            "orange",
+            "cyan",
+            "lime",
+            "pink",
+            "black",
+            "grey",
+            "gray",
+        ]
+
         if rounded is not None:
             self._style["rounded"] = rounded
         if bg_color is not None:
