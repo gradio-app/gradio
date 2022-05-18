@@ -3011,7 +3011,7 @@ class Gallery(IOComponent):
 
     def __init__(
         self,
-        value: List[numpy.array | PIL.Image | str] = [],
+        value: List[numpy.array | PIL.Image | str] = None,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
