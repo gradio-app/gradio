@@ -415,6 +415,7 @@ class Blocks(BlockContext):
         ssl_keyfile: Optional[str] = None,
         ssl_certfile: Optional[str] = None,
         ssl_keyfile_password: Optional[str] = None,
+        quiet: bool = False,
         _frontend: bool = True,
     ) -> Tuple[FastAPI, str, str]:
         """
@@ -440,6 +441,7 @@ class Blocks(BlockContext):
         ssl_keyfile (str | None): If a path to a file is provided, will use this as the private key file to create a local server running on https.
         ssl_certfile (str | None): If a path to a file is provided, will use this as the signed certificate for https. Needs to be provided if ssl_keyfile is provided.
         ssl_keyfile_password (str | None): If a password is provided, will use this with the ssl certificate for https.
+        quiet (bool): If True, suppresses most print statements.
         Returns:
         app (FastAPI): FastAPI app object that is running the demo
         local_url (str): Locally accessible link to the demo
@@ -474,9 +476,10 @@ class Blocks(BlockContext):
 
         if self.is_running:
             self.server_app.launchable = self
-            print(
-                "Rerunning server... use `close()` to stop if you need to change `launch()` parameters.\n----"
-            )
+            if not (quiet):
+                print(
+                    "Rerunning server... use `close()` to stop if you need to change `launch()` parameters.\n----"
+                )
         else:
             server_port, path_to_local_server, app, server = networking.start_server(
                 self,
@@ -517,7 +520,8 @@ class Blocks(BlockContext):
                     share_url = networking.setup_tunnel(self.server_port, None)
                     self.share_url = share_url
                 print(strings.en["SHARE_LINK_DISPLAY"].format(self.share_url))
-                print(strings.en["SHARE_LINK_MESSAGE"])
+                if not (quiet):
+                    print(strings.en["SHARE_LINK_MESSAGE"])
             except RuntimeError:
                 if self.analytics_enabled:
                     utils.error_analytics(self.ip_address, "Not able to set up tunnel")
@@ -525,7 +529,8 @@ class Blocks(BlockContext):
                 share = False
                 print(strings.en["COULD_NOT_GET_SHARE_LINK"])
         else:
-            print(strings.en["PUBLIC_SHARE_TRUE"])
+            if not (quiet):
+                print(strings.en["PUBLIC_SHARE_TRUE"])
             self.share_url = None
 
         if inbrowser:
