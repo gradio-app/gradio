@@ -696,9 +696,10 @@ class Interface(Blocks):
                         )
                     )
                     output_component_counter += 1
-
-            predictions.extend(prediction)
-
+            if isinstance(prediction, str):
+                predictions.append(prediction)
+            else:
+                predictions.extend(prediction)
         return predictions
 
     def process(self, raw_input: List[Any]) -> Tuple[List[Any], List[float]]:
@@ -718,7 +719,7 @@ class Interface(Blocks):
         predictions = self.run_prediction(processed_input)
         processed_output = [
             output_component.postprocess(predictions[i])
-            if predictions[i] is not None
+            if i < len(predictions)
             else None
             for i, output_component in enumerate(self.output_components)
         ]
