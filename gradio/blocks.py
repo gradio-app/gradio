@@ -476,7 +476,7 @@ class Blocks(BlockContext):
 
         if self.is_running:
             self.server_app.launchable = self
-            if not(quiet):
+            if not (quiet):
                 print(
                     "Rerunning server... use `close()` to stop if you need to change `launch()` parameters.\n----"
                 )
@@ -520,7 +520,7 @@ class Blocks(BlockContext):
                     share_url = networking.setup_tunnel(self.server_port, None)
                     self.share_url = share_url
                 print(strings.en["SHARE_LINK_DISPLAY"].format(self.share_url))
-                if not(quiet):                
+                if not (quiet):
                     print(strings.en["SHARE_LINK_MESSAGE"])
             except RuntimeError:
                 if self.analytics_enabled:
@@ -529,7 +529,7 @@ class Blocks(BlockContext):
                 share = False
                 print(strings.en["COULD_NOT_GET_SHARE_LINK"])
         else:
-            if not(quiet):
+            if not (quiet):
                 print(strings.en["PUBLIC_SHARE_TRUE"])
             self.share_url = None
 
