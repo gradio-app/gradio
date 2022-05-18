@@ -18,6 +18,7 @@ from gradio.components import (
     CheckboxGroup,
     DataFrame,
     Dataframe,
+    Dataset,
     Dropdown,
     File,
     Gallery,
