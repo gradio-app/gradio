@@ -52,22 +52,20 @@ from gradio.ipython_ext import load_ipython_extension
 from gradio.layouts import Box, Column, Group, Row, TabItem, Tabs
 from gradio.mix import Parallel, Series
 from gradio.templates import (
+    Files,
+    Highlight,
+    List,
+    Matrix,
+    Mic,
+    Microphone,
+    Numpy,
+    Pil,
+    PlayableVideo,
+    Sketchpad,
     Text,
     TextArea,
     Webcam,
-    Sketchpad,
-    Pil,
-    PlayableVideo,
-    Microphone,
-    Mic,
-    Files,
-    Numpy,
-    Matrix,
-    List,
-    Highlight
 )
 
 current_pkg_version = pkg_resources.require("gradio")[0].version
 __version__ = current_pkg_version
-
-

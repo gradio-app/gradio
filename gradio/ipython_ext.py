@@ -7,6 +7,7 @@ import gradio
 
 demo = gradio.Blocks()
 
+
 def load_ipython_extension(ipython):
     @register_cell_magic
     def blocks(line, cell):
@@ -55,20 +56,20 @@ def load_ipython_extension(ipython):
             from gradio.layouts import Box, Column, Group, Row, TabItem, Tabs
             from gradio.mix import Parallel, Series
             from gradio.templates import (
+                Files,
+                Highlight,
+                List,
+                Matrix,
+                Mic,
+                Microphone,
+                Numpy,
+                Pil,
+                PlayableVideo,
+                Sketchpad,
                 Text,
                 TextArea,
                 Webcam,
-                Sketchpad,
-                Pil,
-                PlayableVideo,
-                Microphone,
-                Mic,
-                Files,
-                Numpy,
-                Matrix,
-                List,
-                Highlight
-            )            
+            )
         with demo.clear():
             exec(cell)
             demo.launch(verbose=False)
