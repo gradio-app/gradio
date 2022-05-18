@@ -5,10 +5,9 @@ except ImportError:
 
 import gradio
 
-demo = gradio.Blocks()
-
-
 def load_ipython_extension(ipython):
+    demo = gradio.Blocks()
+    
     @register_cell_magic
     def blocks(line, cell):
         if "imp" in line:
