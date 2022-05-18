@@ -83,7 +83,6 @@
 	let height = 0;
 	let window_height = 0;
 
-	$: console.log(value);
 </script>
 
 <svelte:window bind:innerHeight={window_height} />
