@@ -12,7 +12,7 @@
 	export let show_label: boolean = true;
 	export let max_lines: number | false;
 
-	let el: HTMLTextAreaElement;
+	let el: HTMLTextAreaElement | HTMLInputElement;
 
 	$: value, el && lines !== max_lines && resize({ target: el });
 	$: handle_change(value);
@@ -35,7 +35,9 @@
 		}
 	}
 
-	async function resize(event: Event | { target: HTMLTextAreaElement }) {
+	async function resize(
+		event: Event | { target: HTMLTextAreaElement | HTMLInputElement }
+	) {
 		await tick();
 		if (lines === max_lines) return;
 
@@ -89,6 +91,7 @@
 			bind:this={el}
 			{placeholder}
 			{disabled}
+			on:keypress={handle_keypress}
 		/>
 	{:else}
 		<textarea
