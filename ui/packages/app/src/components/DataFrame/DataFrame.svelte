@@ -14,6 +14,7 @@
 	export let col_count: [number, "fixed" | "dynamic"];
 	export let row_count: [number, "fixed" | "dynamic"];
 	export let parent: string | null = null;
+	export let label: string | null = null;
 
 	$: {
 		if (!Array.isArray(value)) {
@@ -43,6 +44,7 @@
 >
 	<StatusTracker {...loading_status} />
 	<Table
+		{label}
 		{row_count}
 		{col_count}
 		values={value}
