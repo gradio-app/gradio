@@ -2240,7 +2240,7 @@ class File(Changeable, Clearable, IOComponent):
             return self.save_flagged_file(
                 dir, label, data["data"], encryption_key, data["name"]
             )
-        else: 
+        else:
             return self.save_flagged_file(
                 dir, label, None if data is None else data[0]["data"], encryption_key
             )
