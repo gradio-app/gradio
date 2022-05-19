@@ -2257,9 +2257,9 @@ class File(Changeable, Clearable, IOComponent):
             "size": os.path.getsize(y),
             "data": processing_utils.encode_file_to_base64(y),
         }
-    
+
     def deserialize(self, x):
-            return processing_utils.decode_base64_to_file(x).name
+        return processing_utils.decode_base64_to_file(x).name
 
     def restore_flagged(self, dir, data, encryption_key):
         print("File restore flagged: ", dir)
