@@ -3185,6 +3185,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
 
     def __init__(
         self,
+        value: Optional[str] = None,
         *,
         clear_color=None,
         label: Optional[str] = None,
@@ -3195,12 +3196,14 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
     ):
         """
         Parameters:
+        value (Optional[str]): path to (.obj, glb, or .gltf) file to show in model3D viewer
         clear_color (List[r, g, b, a]): background color of scene
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
         self.clear_color = clear_color
+        self.value = self.postprocess(value)
         IOComponent.__init__(
             self,
             label=label,
@@ -3213,6 +3216,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
     def get_config(self):
         return {
             "clearColor": self.clear_color,
+            "value": self.value,
             **IOComponent.get_config(self),
         }
 
@@ -3282,7 +3286,8 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
         (str): file extension
         (str): base64 url data
         """
-
+        if y is None:
+            return y
         if self.clear_color is None:
             self.clear_color = [0.2, 0.2, 0.2, 1.0]
 
@@ -3309,6 +3314,7 @@ class Plot(Changeable, Clearable, IOComponent):
 
     def __init__(
         self,
+        value: Optional[ModuleType  | matplotlib.pyplot.Figure | dict | "plotly.graph_objects._figure.Figure"] = None,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -3318,10 +3324,12 @@ class Plot(Changeable, Clearable, IOComponent):
     ):
         """
         Parameters:
+        value (Optional[matplotlib.pyplot.Figure | dict | "plotly.graph_objects._figure.Figure"]): plot to display
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
+        self.value = self.postprocess(value)
         IOComponent.__init__(
             self,
             label=label,
@@ -3357,6 +3365,8 @@ class Plot(Changeable, Clearable, IOComponent):
         (str): plot type
         (str): plot base64 or json
         """
+        if y is None:
+            return None
         if isinstance(y, (ModuleType, matplotlib.pyplot.Figure)):
             dtype = "matplotlib"
             out_y = processing_utils.encode_plot_to_base64(y)
@@ -3388,15 +3398,16 @@ class Markdown(IOComponent, Changeable):
     ):
         """
         Parameters:
-        value (str): Default value
+        value (str): Value to show in Markdown component
         visible (bool): If False, component will be hidden.
         """
         IOComponent.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
         self.md = MarkdownIt()
-        unindented_value = inspect.cleandoc(value)
-        self.value = self.md.render(unindented_value)
+        self.value = self.postprocess(value)
 
     def postprocess(self, y):
+        if y is None:
+            return None
         unindented_y = inspect.cleandoc(y)
         return self.md.render(unindented_y)
 
