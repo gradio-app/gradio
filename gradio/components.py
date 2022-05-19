@@ -1027,7 +1027,7 @@ class CheckboxGroup(Changeable, IOComponent):
         Parameters:
         x (List[str]): list of selected choices
         Returns:
-        (Union[List[str], List[int]]): list of selected choices as strings or indices within choice list
+        (List[str] | List[int]): list of selected choices as strings or indices within choice list
         """
         if self.type == "value":
             return x
@@ -1196,7 +1196,7 @@ class Radio(Changeable, IOComponent):
         Parameters:
         x (str): selected choice
         Returns:
-        (Union[str, int]): selected choice as string or index within choice list
+        (str | int): selected choice as string or index within choice list
         """
         if self.type == "value":
             return x
@@ -1344,7 +1344,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         invert_colors (bool): whether to invert the image as a preprocessing step.
         source (str): Source of image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "canvas" defaults to a white image that can be edited and drawn upon with tools.
         tool (str): Tools used for editing. "editor" allows a full screen editor, "select" provides a cropping and zoom tool.
-        type (str): The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
+        type (str): The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" passes a str path to a temporary file containing the image.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
@@ -1412,7 +1412,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         Parameters:
         x (str): base64 url data
         Returns:
-        (Union[numpy.array, PIL.Image, filepath]): image in requested format
+        (numpy.array | PIL.Image | str): image in requested format
         """
         if x is None:
             return x
@@ -1591,7 +1591,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
     def postprocess(self, y):
         """
         Parameters:
-        y (Union[numpy.array, PIL.Image, str, matplotlib.pyplot, Tuple[Union[numpy.array, PIL.Image, str], List[Tuple[str, float, float, float, float]]]]): image in specified format
+        y (numpy.array | PIL.Image | str | matplotlib.pyplot): image in specified format
         Returns:
         (str): base64 url data
         """
@@ -1833,7 +1833,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
         Parameters:
         value (str): A path or URL for the default value that Audio component is going to take.
         source (str): Source of audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input.
-        type (str): The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
+        type (str): The format the audio file is converted to before being passed into the prediction function. "numpy" converts the audio to a tuple consisting of: (int sample rate, numpy.array for the data), "filepath" passes a str path to a temporary file containing the audio.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
@@ -1899,7 +1899,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
         Parameters:
         x (Dict[name: str, data: str]): JSON object with filename as 'name' property and base64 data as 'data' property
         Returns:
-        (Union[Tuple[int, numpy.array], str, numpy.array]): audio in requested format
+        (Tuple[int, numpy.array] | str): audio in requested format
         """
         if x is None:
             return x
@@ -2070,7 +2070,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
     def postprocess(self, y):
         """
         Parameters:
-        y (Union[Tuple[int, numpy.array], str]): audio data in requested format
+        y (Tuple[int, numpy.array] | str): audio data in requested format
         Returns:
         (str): base64 url data
         """
@@ -2194,7 +2194,7 @@ class File(Changeable, Clearable, IOComponent):
         Parameters:
         x (List[Dict[name: str, data: str]]): List of JSON objects with filename as 'name' property and base64 data as 'data' property
         Returns:
-        (Union[file-object, bytes, List[Union[file-object, bytes]]]): File objects in requested format
+        (file-object | bytes | List[file-object] | List[bytes]): File objects in requested format
         """
         if x is None:
             return None
@@ -2378,9 +2378,9 @@ class Dataframe(Changeable, IOComponent):
     def preprocess(self, x: List[List[str | Number | bool]]):
         """
         Parameters:
-        x (List[List[Union[str, number, bool]]]): 2D array of str, numeric, or bool data
+        x (List[List[str | number | bool]]): 2D array of str, numeric, or bool data
         Returns:
-        (Union[pandas.DataFrame, numpy.array, List[Union[str, float]], List[List[Union[str, float]]]]): Dataframe in requested format
+        (pandas.DataFrame | numpy.array | List[str | float | bool] | List[List[str | float | bool]]): Dataframe in requested format
         """
         if self.type == "pandas":
             if self.headers:
@@ -2402,7 +2402,7 @@ class Dataframe(Changeable, IOComponent):
 
     def save_flagged(self, dir, label, data, encryption_key):
         """
-        Returns: (List[List[Union[str, float]]]) 2D array
+        Returns: (List[List[str | float]]) 2D array
         """
         return json.dumps(data)
         # TODO: (faruk) output was dumping differently, how to converge?
@@ -2419,9 +2419,9 @@ class Dataframe(Changeable, IOComponent):
     def postprocess(self, y):
         """
         Parameters:
-        y (Union[pandas.DataFrame, numpy.array, List[Union[str, float]], List[List[Union[str, float]]]]): dataframe in given format
+        y (pandas.DataFrame, numpy.array, List[str | float | bool], List[List[str | float | bool]]): dataframe in given format
         Returns:
-        (Dict[headers: List[str], data: List[List[Union[str, number]]]]): JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
+        (Dict[headers: List[str], data: List[List[str | number]]]): JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
         """
         if self.output_type == "auto":
             if isinstance(y, pd.core.frame.DataFrame):
@@ -2495,7 +2495,7 @@ class Timeseries(Changeable, IOComponent):
         Parameters:
         value (str): File path for the timeseries csv file.
         x (str): Column name of x (time) series. None if csv has no headers, in which case first column is x series.
-        y (Union[str, List[str]]): Column name of y series, or list of column names if multiple series. None if csv has no headers, in which case every column after first is a y series.
+        y (str | List[str]): Column name of y series, or list of column names if multiple series. None if csv has no headers, in which case every column after first is a y series.
         label (str): component name in interface.
         colors (List[str]): an ordered list of colors to use for each line plot
         show_label (bool): if True, will display label.
@@ -2551,7 +2551,7 @@ class Timeseries(Changeable, IOComponent):
     def preprocess(self, x: Dict | None) -> pd.DataFrame | None:
         """
         Parameters:
-        x (Dict[data: List[List[Union[str, number, bool]]], headers: List[str], range: List[number]]): Dict with keys 'data': 2D array of str, numeric, or bool data, 'headers': list of strings for header names, 'range': optional two element list designating start of end of subrange.
+        x (Dict[data: List[List[str | number | bool]], headers: List[str], range: List[number]]): Dict with keys 'data': 2D array of str, numeric, or bool data, 'headers': list of strings for header names, 'range': optional two element list designating start of end of subrange.
         Returns:
         (pandas.DataFrame): Dataframe of timeseries data
         """
@@ -2568,7 +2568,7 @@ class Timeseries(Changeable, IOComponent):
 
     def save_flagged(self, dir, label, data, encryption_key):
         """
-        Returns: (List[List[Union[str, float]]]) 2D array
+        Returns: (List[List[str | float | bool]]) 2D array
         """
         return json.dumps(data)
 
@@ -2585,7 +2585,7 @@ class Timeseries(Changeable, IOComponent):
         Parameters:
         y (pandas.DataFrame): timeseries data
         Returns:
-        (Dict[headers: List[str], data: List[List[Union[str, number]]]]): JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
+        (Dict[headers: List[str], data: List[List[str | number]]]): JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
         """
         return {"headers": y.columns.values.tolist(), "data": y.values.tolist()}
 
@@ -2727,7 +2727,7 @@ class Label(Changeable, IOComponent):
 
     def save_flagged(self, dir, label, data, encryption_key):
         """
-        Returns: (Union[str, Dict[str, number]]): Either a string representing the main category label, or a dictionary with category keys mapping to confidence levels.
+        Returns: (str | Dict[str, number]): Either a string representing the main category label, or a dictionary with category keys mapping to confidence levels.
         """
         if "confidences" in data:
             return json.dumps(
@@ -2836,9 +2836,9 @@ class HighlightedText(Changeable, IOComponent):
     def postprocess(self, y):
         """
         Parameters:
-        y (List[Tuple[str, Union[str, number, None]]]): List of (word, category) tuples
+        y (List[Tuple[str, str | number | None]]): List of (word, category) tuples
         Returns:
-        (List[Tuple[str, Union[str, number, None]]]): List of (word, category) tuples
+        (List[Tuple[str, str | number | None]]): List of (word, category) tuples
         """
         if self.combine_adjacent:
             output = []
@@ -2926,9 +2926,9 @@ class JSON(Changeable, IOComponent):
     def postprocess(self, y):
         """
         Parameters:
-        y (Union[Dict, List, str]): JSON output
+        y (Dict | List | str): JSON output
         Returns:
-        (Union[Dict, List]): JSON output
+        (Dict | List): JSON output
         """
         if isinstance(y, str):
             return json.dumps(y)
@@ -3011,7 +3011,7 @@ class Gallery(IOComponent):
 
     def __init__(
         self,
-        value: List[numpy.array | PIL.Image | str] = [],
+        value: List[numpy.array | PIL.Image | str] = None,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -3059,7 +3059,7 @@ class Gallery(IOComponent):
     def postprocess(self, y):
         """
         Parameters:
-        y (List[Union[numpy.array, PIL.Image, str]]): list of images
+        y (List[numpy.array | PIL.Image | str]): list of images
         Returns:
         (str): list of base64 url data for images
         """
@@ -3120,7 +3120,7 @@ class Carousel(IOComponent, Changeable):
     ):
         """
         Parameters:
-        components (Union[List[OutputComponent], OutputComponent]): Classes of component(s) that will be scrolled through.
+        components (List[Component] | Component]): Classes of component(s) that will be scrolled through.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
