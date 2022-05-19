@@ -2236,9 +2236,14 @@ class File(Changeable, Clearable, IOComponent):
         """
         Returns: (str) path to file
         """
-        return self.save_flagged_file(
-            dir, label, data["data"], encryption_key, data["name"]
-        )
+        if isinstance(data, dict):
+            return self.save_flagged_file(
+                dir, label, data["data"], encryption_key, data["name"]
+            )
+        else: 
+            return self.save_flagged_file(
+                dir, label, None if data is None else data[0]["data"], encryption_key
+            )
 
     def generate_sample(self):
         return deepcopy(media_data.BASE64_FILE)
@@ -2262,7 +2267,6 @@ class File(Changeable, Clearable, IOComponent):
         return processing_utils.decode_base64_to_file(x).name
 
     def restore_flagged(self, dir, data, encryption_key):
-        print("File restore flagged: ", dir)
         return self.restore_flagged_file(dir, data, encryption_key)
 
 
