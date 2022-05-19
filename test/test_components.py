@@ -1394,7 +1394,6 @@ class TestLabel(unittest.TestCase):
                 "name": "label",
                 "show_label": True,
                 "num_top_classes": 2,
-                "output_type": "auto",
                 "value": None,
                 "label": None,
                 "style": {},

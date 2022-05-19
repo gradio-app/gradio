@@ -1,4 +1,4 @@
-"""Contains all of the components that can be used with Gradio Interface / Blocks.
+"""Contains all of the components that can be used used with Gradio Interface / Blocks.
 Along with the docs for each component, you can find the names of example demos that use
 each component. These demos are located in the `demo` directory."""
 
@@ -16,15 +16,15 @@ import tempfile
 import warnings
 from copy import deepcopy
 from types import ModuleType
-from typing import Any, Callable, Dict, List, Optional, Tuple, Type
+from typing import Any, Dict, List, Optional, Tuple, Type
 
 import matplotlib.figure
-import numpy
 import numpy as np
 import pandas as pd
 import PIL
 from ffmpy import FFmpeg
 from markdown_it import MarkdownIt
+from regex import R
 
 from gradio import media_data, processing_utils
 from gradio.blocks import Block
@@ -34,7 +34,6 @@ from gradio.events import (
     Clickable,
     Editable,
     Playable,
-    Streamable,
     Submittable,
 )
 
@@ -268,7 +267,7 @@ class Textbox(Changeable, Submittable, IOComponent):
     Preprocessing: passes textarea value as a {str} into the function.
     Postprocessing: expects a {str} returned from function and sets textarea value to it.
 
-    Demos: hello_world, diff_texts, sentence_builder
+    Demos: hello_world, diff_texts, sentence_builder, blocks_gpt
     """
 
     def __init__(
@@ -295,11 +294,10 @@ class Textbox(Changeable, Submittable, IOComponent):
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
-        value = str(value)
         self.lines = lines
         self.max_lines = max_lines
         self.placeholder = placeholder
-        self.value = value
+        self.value = self.postprocess(value)
         self.cleared_value = ""
         self.test_input = value
         self.interpret_by_tokens = True
@@ -473,12 +471,12 @@ class Number(Changeable, Submittable, IOComponent):
     Preprocessing: passes field value as a {float} or {int} into the function, depending on `precision`.
     Postprocessing: expects an {int} or {float} returned from the function and sets field value to it.
 
-    Demos: tax_calculator, titanic_survival, blocks_hello
+    Demos: tax_calculator, titanic_survival, blocks_static_textbox, blocks_simple_squares
     """
 
     def __init__(
         self,
-        value: Optional[float] = 0,
+        value: Optional[float] = None,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -496,9 +494,8 @@ class Number(Changeable, Submittable, IOComponent):
         visible (bool): If False, component will be hidden.
         precision (Optional[int]): Precision to round input/output to. If set to 0, will round to nearest integer and covert type to int. If None, no rounding happens.
         """
-        self.value = self.round_to_precision(value, precision)
-        self.cleared_value = 0
         self.precision = precision
+        self.value = self.postprocess(value, precision)
         self.test_input = self.value if self.value is not None else 1
         self.interpret_by_tokens = False
         IOComponent.__init__(
@@ -703,7 +700,7 @@ class Slider(Changeable, IOComponent):
             power = math.floor(math.log10(difference) - 2)
             step = 10**power
         self.step = step
-        self.value = minimum if value is None else value
+        self.value = self.postprocess(value)
         self.cleared_value = self.value
         self.test_input = self.value
         self.interpret_by_tokens = False
@@ -798,7 +795,7 @@ class Slider(Changeable, IOComponent):
         """
         Any postprocessing needed to be performed on function output.
         """
-        return y
+        return self.minimum if y is None else y
 
     def deserialize(self, y):
         """
@@ -845,9 +842,8 @@ class Checkbox(Changeable, IOComponent):
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
-        self.cleared_value = False
         self.test_input = True
-        self.value = value
+        self.value = self.postprocess(value)
         self.interpret_by_tokens = False
         IOComponent.__init__(
             self,
@@ -951,7 +947,7 @@ class CheckboxGroup(Changeable, IOComponent):
     Preprocessing: passes the list of checked checkboxes as a {List[str]} or their indices as a {List[int]} into the function, depending on `type`.
     Postprocessing: expects a {List[str]}, each element of which becomes a checked checkbox.
 
-    Demos: sentence_builder, titanic_survival
+    Demos: sentence_builder, titanic_survival, fraud_detector
     """
 
     def __init__(
@@ -976,14 +972,10 @@ class CheckboxGroup(Changeable, IOComponent):
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
-        if (
-            value is None
-        ):  # Mutable parameters shall not be given as default parameters in the function.
-            value = []
         self.choices = choices
-        self.value = value
         self.cleared_value = []
         self.type = type
+        self.value = self.postprocess(value)
         self.test_input = self.choices
         self.interpret_by_tokens = False
         IOComponent.__init__(
@@ -1027,7 +1019,7 @@ class CheckboxGroup(Changeable, IOComponent):
         Parameters:
         x (List[str]): list of selected choices
         Returns:
-        (List[str] | List[int]): list of selected choices as strings or indices within choice list
+        (Union[List[str], List[int]]): list of selected choices as strings or indices within choice list
         """
         if self.type == "value":
             return x
@@ -1088,7 +1080,7 @@ class CheckboxGroup(Changeable, IOComponent):
         """
         Any postprocessing needed to be performed on function output.
         """
-        return y
+        return [] if y is None else y
 
     def deserialize(self, x):
         """
@@ -1118,7 +1110,7 @@ class Radio(Changeable, IOComponent):
     Preprocessing: passes the value of the selected radio button as a {str} or its index as an {int} into the function, depending on `type`.
     Postprocessing: expects a {str} corresponding to the value of the radio button to be selected.
 
-    Demos: sentence_builder, titanic_survival, blocks_essay
+    Demos: sentence_builder, tax_calculator, titanic_survival, blocks_essay
     """
 
     def __init__(
@@ -1146,13 +1138,7 @@ class Radio(Changeable, IOComponent):
         self.choices = choices
         self.type = type
         self.test_input = self.choices[0] if len(self.choices) else None
-        self.value = (
-            value
-            if value is not None
-            else self.choices[0]
-            if len(self.choices) > 0
-            else None
-        )
+        self.value = self.postprocess(value)
         self.cleared_value = self.value
         self.interpret_by_tokens = False
         IOComponent.__init__(
@@ -1196,7 +1182,7 @@ class Radio(Changeable, IOComponent):
         Parameters:
         x (str): selected choice
         Returns:
-        (str | int): selected choice as string or index within choice list
+        (Union[str, int]): selected choice as string or index within choice list
         """
         if self.type == "value":
             return x
@@ -1239,7 +1225,13 @@ class Radio(Changeable, IOComponent):
         """
         Any postprocessing needed to be performed on function output.
         """
-        return y
+        return  (
+            y
+            if y is not None
+            else self.choices[0]
+            if len(self.choices) > 0
+            else None
+        )
 
     def deserialize(self, x):
         """
@@ -1269,7 +1261,7 @@ class Dropdown(Radio):
     Preprocessing: passes the value of the selected dropdown entry as a {str} or its index as an {int} into the function, depending on `type`.
     Postprocessing: expects a {str} corresponding to the value of the dropdown entry to be selected.
 
-    Demos: sentence_builder, titanic_survival
+    Demos: sentence_builder, filter_records, titanic_survival
     """
 
     def __init__(
@@ -1294,7 +1286,6 @@ class Dropdown(Radio):
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
-        # Everything is same with Dropdown and Radio, so let's make use of it :)
         Radio.__init__(
             self,
             value=value,
@@ -1309,13 +1300,13 @@ class Dropdown(Radio):
         )
 
 
-class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
+class Image(Editable, Clearable, Changeable, IOComponent):
     """
     Creates an image component that can be used to upload/draw images (as an input) or display images (as an output).
     Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type`.
     Postprocessing: expects a {numpy.array}, {PIL.Image} or {str} filepath to an image and displays the image.
 
-    Demos: image_mod, blocks_xray
+    Demos: image_classifier, image_mod, webcam, digit_classifier
     """
 
     def __init__(
@@ -1333,7 +1324,6 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         interactive: Optional[bool] = None,
         visible: bool = True,
         elem_id: Optional[str] = None,
-        streaming: bool = False,
         **kwargs,
     ):
         """
@@ -1344,18 +1334,13 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         invert_colors (bool): whether to invert the image as a preprocessing step.
         source (str): Source of image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "canvas" defaults to a white image that can be edited and drawn upon with tools.
         tool (str): Tools used for editing. "editor" allows a full screen editor, "select" provides a cropping and zoom tool.
-        type (str): The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" passes a str path to a temporary file containing the image.
+        type (str): The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
-        streaming (bool): If True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'webcam'.
         """
         self.type = type
-        self.value = (
-            processing_utils.encode_url_or_file_to_base64(value) if value else None
-        )
-        self.type = type
-        self.output_type = "auto"
+        self.value = self.postprocess(value)
         self.shape = shape
         self.image_mode = image_mode
         self.source = source
@@ -1364,10 +1349,6 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         self.invert_colors = invert_colors
         self.test_input = deepcopy(media_data.BASE64_IMAGE)
         self.interpret_by_tokens = True
-        self.streaming = streaming
-        if streaming and source != "webcam":
-            raise ValueError("Image streaming only available if source is 'webcam'.")
-
         IOComponent.__init__(
             self,
             label=label,
@@ -1386,7 +1367,6 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
             "source": self.source,
             "tool": self.tool,
             "value": self.value,
-            "streaming": self.streaming,
             **IOComponent.get_config(self),
         }
 
@@ -1412,7 +1392,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         Parameters:
         x (str): base64 url data
         Returns:
-        (numpy.array | PIL.Image | str): image in requested format
+        (Union[numpy.array, PIL.Image, filepath]): image in requested format
         """
         if x is None:
             return x
@@ -1591,39 +1571,26 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
     def postprocess(self, y):
         """
         Parameters:
-        y (numpy.array | PIL.Image | str | matplotlib.pyplot): image in specified format
+        y (Union[numpy.array, PIL.Image, str, matplotlib.pyplot, Tuple[Union[numpy.array, PIL.Image, str], List[Tuple[str, float, float, float, float]]]]): image in specified format
         Returns:
         (str): base64 url data
         """
-        if self.output_type == "auto":
-            if isinstance(y, np.ndarray):
-                dtype = "numpy"
-            elif isinstance(y, PIL.Image.Image):
-                dtype = "pil"
-            elif isinstance(y, str):
-                dtype = "file"
-            elif isinstance(y, (ModuleType, matplotlib.figure.Figure)):
-                dtype = "plot"
-            else:
-                raise ValueError(
-                    "Unknown type. Please choose from: 'numpy', 'pil', 'file', 'plot'."
-                )
+        if y is None:
+            return None
+        if isinstance(y, np.ndarray):
+            dtype = "numpy"
+        elif isinstance(y, PIL.Image.Image):
+            dtype = "pil"
+        elif isinstance(y, str):
+            dtype = "file"
         else:
-            dtype = self.output_type
+            raise ValueError("Cannot process this value as an Image")
         if dtype in ["numpy", "pil"]:
             if dtype == "pil":
                 y = np.array(y)
             out_y = processing_utils.encode_array_to_base64(y)
         elif dtype == "file":
             out_y = processing_utils.encode_url_or_file_to_base64(y)
-        elif dtype == "plot":
-            out_y = processing_utils.encode_plot_to_base64(y)
-        else:
-            raise ValueError(
-                "Unknown type: "
-                + dtype
-                + ". Please choose from: 'numpy', 'pil', 'file', 'plot'."
-            )
         return out_y
 
     def deserialize(self, x):
@@ -1644,25 +1611,6 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
             text_color=text_color,
             container_bg_color=container_bg_color,
         )
-
-    def stream(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        _js: Optional[str] = None,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-        Returns: None
-        """
-        if self.source != "webcam":
-            raise ValueError("Image streaming only available if source is 'webcam'.")
-        Streamable.stream(self, fn, inputs, outputs, _js)
 
 
 class Video(Changeable, Clearable, Playable, IOComponent):
@@ -1689,18 +1637,16 @@ class Video(Changeable, Clearable, Playable, IOComponent):
     ):
         """
         Parameters:
-        value (str): A path or URL for the default value that Video component is going to take.
+        value(str): A path or URL for the default value that Video component is going to take.
         format (str): Format of video format to be returned by component, such as 'avi' or 'mp4'. Use 'mp4' to ensure browser playability. If set to None, video will keep uploaded format.
         source (str): Source of video. "upload" creates a box where user can drop an video file, "webcam" allows user to record a video from their webcam.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
-        self.value = (
-            processing_utils.encode_url_or_file_to_base64(value) if value else None
-        )
         self.format = format
         self.source = source
+        self.value = self.postprocess(value)
         IOComponent.__init__(
             self,
             label=label,
@@ -1791,6 +1737,8 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         Returns:
         (str): base64 url data
         """
+        if y is None:
+            return None
         returned_format = y.split(".")[-1].lower()
         if self.format is not None and returned_format != self.format:
             output_file_name = y[0 : y.rindex(".") + 1] + self.format
@@ -1806,13 +1754,13 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         return processing_utils.decode_base64_to_file(x).name
 
 
-class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
+class Audio(Changeable, Clearable, Playable, IOComponent):
     """
     Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
     Preprocessing: passes the uploaded audio as a {Tuple(int, numpy.array)} corresponding to (sample rate, data) or as a {str} filepath, depending on `type`
     Postprocessing: expects a {Tuple(int, numpy.array)} corresponding to (sample rate, data) or as a {str} filepath to an audio file, which gets displayed
 
-    Demos: main_note, generate_tone, reverse_audio
+    Demos: main_note, generate_tone, reverse_audio, spectogram
     """
 
     def __init__(
@@ -1826,33 +1774,23 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
         interactive: Optional[bool] = None,
         visible: bool = True,
         elem_id: Optional[str] = None,
-        streaming: bool = False,
         **kwargs,
     ):
         """
         Parameters:
         value (str): A path or URL for the default value that Audio component is going to take.
         source (str): Source of audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input.
-        type (str): The format the audio file is converted to before being passed into the prediction function. "numpy" converts the audio to a tuple consisting of: (int sample rate, numpy.array for the data), "filepath" passes a str path to a temporary file containing the audio.
+        type (str): The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
-        streaming (bool): If set to true when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'microphone'.
         """
-        self.value = (
-            processing_utils.encode_url_or_file_to_base64(value) if value else None
-        )
+        self.value = self.postprocess(value)
         self.source = source
         requires_permissions = source == "microphone"
         self.type = type
-        self.output_type = "auto"
         self.test_input = deepcopy(media_data.BASE64_AUDIO)
         self.interpret_by_tokens = True
-        self.streaming = streaming
-        if streaming and source != "microphone":
-            raise ValueError(
-                "Audio streaming only available if source is 'microphone'."
-            )
         IOComponent.__init__(
             self,
             label=label,
@@ -1868,7 +1806,6 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
         return {
             "source": self.source,  # TODO: This did not exist in output template, careful here if an error arrives
             "value": self.value,
-            "streaming": self.streaming,
             **IOComponent.get_config(self),
         }
 
@@ -1899,7 +1836,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
         Parameters:
         x (Dict[name: str, data: str]): JSON object with filename as 'name' property and base64 data as 'data' property
         Returns:
-        (Tuple[int, numpy.array] | str): audio in requested format
+        (Union[Tuple[int, numpy.array], str, numpy.array]): audio in requested format
         """
         if x is None:
             return x
@@ -2070,49 +2007,23 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
     def postprocess(self, y):
         """
         Parameters:
-        y (Tuple[int, numpy.array] | str): audio data in requested format
+        y (Union[Tuple[int, numpy.array], str]): audio data in requested format
         Returns:
         (str): base64 url data
         """
-        if self.output_type in ["numpy", "file", "auto"]:
-            if self.output_type == "numpy" or (
-                self.output_type == "auto" and isinstance(y, tuple)
-            ):
-                sample_rate, data = y
-                file = tempfile.NamedTemporaryFile(
-                    prefix="sample", suffix=".wav", delete=False
-                )
-                processing_utils.audio_to_file(sample_rate, data, file.name)
-                y = file.name
-            return processing_utils.encode_url_or_file_to_base64(y)
-        else:
-            raise ValueError(
-                "Unknown type: " + self.type + ". Please choose from: 'numpy', 'file'."
+        if y is None:
+            return None
+        if isinstance(y, tuple):
+            sample_rate, data = y
+            file = tempfile.NamedTemporaryFile(
+                prefix="sample", suffix=".wav", delete=False
             )
+            processing_utils.audio_to_file(sample_rate, data, file.name)
+            y = file.name
+        return processing_utils.encode_url_or_file_to_base64(y)
 
     def deserialize(self, x):
         return processing_utils.decode_base64_to_file(x).name
-
-    def stream(
-        self,
-        fn: Callable,
-        inputs: List[Component],
-        outputs: List[Component],
-        _js: Optional[str] = None,
-    ):
-        """
-        Parameters:
-            fn: Callable function
-            inputs: List of inputs
-            outputs: List of outputs
-            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
-        Returns: None
-        """
-        if self.source != "microphone":
-            raise ValueError(
-                "Audio streaming only available if source is 'microphone'."
-            )
-        Streamable.stream(self, fn, inputs, outputs, _js)
 
 
 class File(Changeable, Clearable, IOComponent):
@@ -2146,11 +2057,9 @@ class File(Changeable, Clearable, IOComponent):
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
-        self.value = (
-            processing_utils.encode_url_or_file_to_base64(value) if value else None
-        )
         self.file_count = file_count
         self.type = type
+        self.value = self.postprocess(value)
         self.test_input = None
         IOComponent.__init__(
             self,
@@ -2194,7 +2103,7 @@ class File(Changeable, Clearable, IOComponent):
         Parameters:
         x (List[Dict[name: str, data: str]]): List of JSON objects with filename as 'name' property and base64 data as 'data' property
         Returns:
-        (file-object | bytes | List[file-object] | List[bytes]): File objects in requested format
+        (Union[file-object, bytes, List[Union[file-object, bytes]]]): File objects in requested format
         """
         if x is None:
             return None
@@ -2252,6 +2161,8 @@ class File(Changeable, Clearable, IOComponent):
         Returns:
         (Dict[name: str, size: number, data: str]): JSON object with key 'name' for filename, 'data' for base64 url, and 'size' for filesize in bytes
         """
+        if y is None:
+            return None
         return {
             "name": os.path.basename(y),
             "size": os.path.getsize(y),
@@ -2263,7 +2174,7 @@ class Dataframe(Changeable, IOComponent):
     """
     Accepts or displays 2D input through a spreadsheet-like component for dataframes.
     Preprocessing: passes the uploaded spreadsheet data as a {pandas.DataFrame}, {numpy.array}, {List[List]}, or {List} depending on `type`
-    Postprocessing: expects a {pandas.DataFrame}, {numpy.array}, {List[List]}, or {List} which is rendered in the spreadsheet.
+    Postprocessing: expects a {pandas.DataFrame}, {numpy.array}, {List[List]}, {List}, or {str} path to a csv, which is rendered in the spreadsheet.
 
     Demos: filter_records, matrix_transpose, tax_calculator
     """
@@ -2314,7 +2225,6 @@ class Dataframe(Changeable, IOComponent):
         self.headers = headers
         self.datatype = datatype
         self.type = type
-        self.output_type = "auto"
         values = {
             "str": "",
             "number": 0,
@@ -2378,9 +2288,9 @@ class Dataframe(Changeable, IOComponent):
     def preprocess(self, x: List[List[str | Number | bool]]):
         """
         Parameters:
-        x (List[List[str | number | bool]]): 2D array of str, numeric, or bool data
+        x (List[List[Union[str, number, bool]]]): 2D array of str, numeric, or bool data
         Returns:
-        (pandas.DataFrame | numpy.array | List[str | float | bool] | List[List[str | float | bool]]): Dataframe in requested format
+        (Union[pandas.DataFrame, numpy.array, List[Union[str, float]], List[List[Union[str, float]]]]): Dataframe in requested format
         """
         if self.type == "pandas":
             if self.headers:
@@ -2402,7 +2312,7 @@ class Dataframe(Changeable, IOComponent):
 
     def save_flagged(self, dir, label, data, encryption_key):
         """
-        Returns: (List[List[str | float]]) 2D array
+        Returns: (List[List[Union[str, float]]]) 2D array
         """
         return json.dumps(data)
         # TODO: (faruk) output was dumping differently, how to converge?
@@ -2419,35 +2329,24 @@ class Dataframe(Changeable, IOComponent):
     def postprocess(self, y):
         """
         Parameters:
-        y (pandas.DataFrame, numpy.array, List[str | float | bool], List[List[str | float | bool]]): dataframe in given format
+        y (Union[str, pandas.DataFrame, numpy.array, List[Union[str, float]], List[List[Union[str, float]]]]): dataframe in given format
         Returns:
-        (Dict[headers: List[str], data: List[List[str | number]]]): JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
+        (Dict[headers: List[str], data: List[List[Union[str, number]]]]): JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
         """
-        if self.output_type == "auto":
-            if isinstance(y, pd.core.frame.DataFrame):
-                dtype = "pandas"
-            elif isinstance(y, np.ndarray):
-                dtype = "numpy"
-            elif isinstance(y, list):
-                dtype = "array"
-            else:
-                raise ValueError("Cannot determine the type of DataFrame output.")
-        else:
-            dtype = self.output_type
-        if dtype == "pandas":
+        if y is None:
+            return y
+        if isinstance(y, str):
+            y = pd.read_csv(str)
             return {"headers": list(y.columns), "data": y.values.tolist()}
-        elif dtype in ("numpy", "array"):
-            if dtype == "numpy":
+        if isinstance(y, pd.DataFrame):
+            return {"headers": list(y.columns), "data": y.values.tolist()}
+        if isinstance(y, (np.ndarray, list)):
+            if isinstance(y, np.ndarray):
                 y = y.tolist()
             if len(y) == 0 or not isinstance(y[0], list):
                 y = [y]
             return {"data": y}
-        else:
-            raise ValueError(
-                "Unknown type: "
-                + self.type
-                + ". Please choose from: 'pandas', 'numpy', 'array'."
-            )
+        raise ValueError("Cannot process value as a Dataframe")
 
     @staticmethod
     def __process_counts(count, default=3):
@@ -2472,7 +2371,7 @@ class Timeseries(Changeable, IOComponent):
     """
     Creates a component that can be used to upload/preview timeseries csv files or display a dataframe consisting of a time series graphically.
     Preprocessing: passes the uploaded timeseries data as a {pandas.DataFrame} into the function
-    Postprocessing: expects a {pandas.DataFrame} to be returned, which is then displayed as a timeseries graph
+    Postprocessing: expects a {pandas.DataFrame} or {str} path to a csv to be returned, which is then displayed as a timeseries graph
 
     Demos: fraud_detector
     """
@@ -2493,15 +2392,15 @@ class Timeseries(Changeable, IOComponent):
     ):
         """
         Parameters:
-        value (str): File path for the timeseries csv file.
+        value: File path for the timeseries csv file.
         x (str): Column name of x (time) series. None if csv has no headers, in which case first column is x series.
-        y (str | List[str]): Column name of y series, or list of column names if multiple series. None if csv has no headers, in which case every column after first is a y series.
+        y (Union[str, List[str]]): Column name of y series, or list of column names if multiple series. None if csv has no headers, in which case every column after first is a y series.
         label (str): component name in interface.
         colors (List[str]): an ordered list of colors to use for each line plot
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
-        self.value = pd.read_csv(value) if value is not None else None
+        self.value = self.postprocess(value)
         self.x = x
         if isinstance(y, str):
             y = [y]
@@ -2551,7 +2450,7 @@ class Timeseries(Changeable, IOComponent):
     def preprocess(self, x: Dict | None) -> pd.DataFrame | None:
         """
         Parameters:
-        x (Dict[data: List[List[str | number | bool]], headers: List[str], range: List[number]]): Dict with keys 'data': 2D array of str, numeric, or bool data, 'headers': list of strings for header names, 'range': optional two element list designating start of end of subrange.
+        x (Dict[data: List[List[Union[str, number, bool]]], headers: List[str], range: List[number]]): Dict with keys 'data': 2D array of str, numeric, or bool data, 'headers': list of strings for header names, 'range': optional two element list designating start of end of subrange.
         Returns:
         (pandas.DataFrame): Dataframe of timeseries data
         """
@@ -2568,7 +2467,7 @@ class Timeseries(Changeable, IOComponent):
 
     def save_flagged(self, dir, label, data, encryption_key):
         """
-        Returns: (List[List[str | float | bool]]) 2D array
+        Returns: (List[List[Union[str, float]]]) 2D array
         """
         return json.dumps(data)
 
@@ -2583,11 +2482,18 @@ class Timeseries(Changeable, IOComponent):
     def postprocess(self, y):
         """
         Parameters:
-        y (pandas.DataFrame): timeseries data
+        y (str | pandas.DataFrame): csv or dataframe with timeseries data
         Returns:
-        (Dict[headers: List[str], data: List[List[str | number]]]): JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
+        (Dict[headers: List[str], data: List[List[Union[str, number]]]]): JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
         """
-        return {"headers": y.columns.values.tolist(), "data": y.values.tolist()}
+        if y is None:
+            return None
+        if isinstance(y, str):
+            y = pd.read_csv(y)
+            return {"headers": y.columns.values.tolist(), "data": y.values.tolist()}
+        if isinstance(y, pd.DataFrame):
+            return {"headers": y.columns.values.tolist(), "data": y.values.tolist()}
+        raise ValueError("Cannot process value as Timeseries data")
 
 
 class Variable(IOComponent):
@@ -2597,7 +2503,7 @@ class Variable(IOComponent):
 
     Preprocessing: No preprocessing is performed
     Postprocessing: No postprocessing is performed
-    Demos: chatbot_demo, blocks_simple_squares
+    Demos: chatbot, blocks_simple_squares
     """
 
     def __init__(
@@ -2631,14 +2537,14 @@ class Label(Changeable, IOComponent):
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a {Dict[str, float]} of classes and confidences, or {str} with just the class or an {int}/{float} for regression outputs.
 
-    Demos: main_note, titanic_survival
+    Demos: image_classifier, main_note, titanic_survival
     """
 
     CONFIDENCES_KEY = "confidences"
 
     def __init__(
         self,
-        value: str = None,
+        value: Optional[str] = None,
         *,
         num_top_classes: Optional[int] = None,
         label: Optional[str] = None,
@@ -2649,15 +2555,14 @@ class Label(Changeable, IOComponent):
     ):
         """
         Parameters:
-        value (str): Default value to show
+        value(str): Default string value
         num_top_classes (int): number of most confident classes to show.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
-        self.value = value
         self.num_top_classes = num_top_classes
-        self.output_type = "auto"
+        self.value = self.postprocess(value)
         IOComponent.__init__(
             self,
             label=label,
@@ -2669,7 +2574,6 @@ class Label(Changeable, IOComponent):
 
     def get_config(self):
         return {
-            "output_type": self.output_type,
             "num_top_classes": self.num_top_classes,
             "value": self.value,
             **IOComponent.get_config(self),
@@ -2678,17 +2582,15 @@ class Label(Changeable, IOComponent):
     def postprocess(self, y):
         """
         Parameters:
-        y (Dict[str, float]): dictionary mapping label to confidence value
+        y (Dict[str, float] | str | Number): a dictionary mapping labels to confidence value, or just a string/numerical label by itself
         Returns:
         (Dict[label: str, confidences: List[Dict[label: str, confidence: number]]]): Object with key 'label' representing primary label, and key 'confidences' representing a list of label-confidence pairs
         """
-        if self.output_type == "label" or (
-            self.output_type == "auto" and (isinstance(y, (str, numbers.Number)))
-        ):
+        if y is None:
+            return None
+        if isinstance(y, (str, numbers.Number)):
             return {"label": str(y)}
-        elif self.output_type == "confidences" or (
-            self.output_type == "auto" and isinstance(y, dict)
-        ):
+        if isinstance(y, dict):
             sorted_pred = sorted(y.items(), key=operator.itemgetter(1), reverse=True)
             if self.num_top_classes is not None:
                 sorted_pred = sorted_pred[: self.num_top_classes]
@@ -2698,36 +2600,29 @@ class Label(Changeable, IOComponent):
                     {"label": pred[0], "confidence": pred[1]} for pred in sorted_pred
                 ],
             }
-        else:
-            raise ValueError(
-                "The `Label` output interface expects one of: a string label, or an int label, a "
-                "float label, or a dictionary whose keys are labels and values are confidences. "
-                "Instead, got a {}".format(type(y))
-            )
+        raise ValueError(
+            "The `Label` output interface expects one of: a string label, or an int label, a "
+            "float label, or a dictionary whose keys are labels and values are confidences. "
+            "Instead, got a {}".format(type(y))
+        )
 
     def deserialize(self, y):
+        if y is None:
+            return None
         # 5 cases: (1): {'label': 'lion'}, {'label': 'lion', 'confidences':...}, {'lion': 0.46, ...}, 'lion', '0.46'
-        if self.output_type == "label" or (
-            self.output_type == "auto"
-            and (
-                isinstance(y, (str, numbers.Number))
-                or ("label" in y and not ("confidences" in y.keys()))
-            )
-        ):
+        if isinstance(y, (str, numbers.Number)) or ("label" in y and not ("confidences" in y.keys())):
             if isinstance(y, (str, numbers.Number)):
                 return y
             else:
                 return y["label"]
-        elif self.output_type == "confidences" or self.output_type == "auto":
-            if ("confidences" in y.keys()) and isinstance(y["confidences"], list):
-                return {k["label"]: k["confidence"] for k in y["confidences"]}
-            else:
-                return y
-        raise ValueError("Unable to deserialize output: {}".format(y))
+        if ("confidences" in y.keys()) and isinstance(y["confidences"], list):
+            return {k["label"]: k["confidence"] for k in y["confidences"]}
+        else:
+            return y
 
     def save_flagged(self, dir, label, data, encryption_key):
         """
-        Returns: (str | Dict[str, number]): Either a string representing the main category label, or a dictionary with category keys mapping to confidence levels.
+        Returns: (Union[str, Dict[str, number]]): Either a string representing the main category label, or a dictionary with category keys mapping to confidence levels.
         """
         if "confidences" in data:
             return json.dumps(
@@ -2773,7 +2668,7 @@ class HighlightedText(Changeable, IOComponent):
 
     def __init__(
         self,
-        value: str = "",
+        value: Optional[str] = None,
         *,
         color_map: Dict[str, str] = None,
         show_legend: bool = False,
@@ -2786,17 +2681,17 @@ class HighlightedText(Changeable, IOComponent):
     ):
         """
         Parameters:
-        value (str): Default value
+        value (List[Tuple[str, str | Number | None]]): Default value to show
         color_map (Dict[str, str]): Map between category and respective colors
         show_legend (bool): whether to show span categories in a separate legend or inline.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
-        self.value = value
         self.color_map = color_map
         self.show_legend = show_legend
         self.combine_adjacent = combine_adjacent
+        self.value = self.postprocess(value)
         IOComponent.__init__(
             self,
             label=label,
@@ -2836,10 +2731,12 @@ class HighlightedText(Changeable, IOComponent):
     def postprocess(self, y):
         """
         Parameters:
-        y (List[Tuple[str, str | number | None]]): List of (word, category) tuples
+        y (List[Tuple[str, Union[str, number, None]]]): List of (word, category) tuples
         Returns:
-        (List[Tuple[str, str | number | None]]): List of (word, category) tuples
+        (List[Tuple[str, Union[str, number, None]]]): List of (word, category) tuples
         """
+        if y is None:
+            return None
         if self.combine_adjacent:
             output = []
             running_text, running_category = None, None
@@ -2877,7 +2774,7 @@ class JSON(Changeable, IOComponent):
 
     def __init__(
         self,
-        value: str = "",
+        value: Optional[str] = None,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -2892,7 +2789,7 @@ class JSON(Changeable, IOComponent):
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
-        self.value = json.dumps(value)
+        self.value = self.postprocess(value)
         IOComponent.__init__(
             self,
             label=label,
@@ -2926,9 +2823,9 @@ class JSON(Changeable, IOComponent):
     def postprocess(self, y):
         """
         Parameters:
-        y (Dict | List | str): JSON output
+        y (Union[Dict, List, str]): JSON output
         Returns:
-        (Dict | List): JSON output
+        (Union[Dict, List]): JSON output
         """
         if isinstance(y, str):
             return json.dumps(y)
@@ -3011,7 +2908,7 @@ class Gallery(IOComponent):
 
     def __init__(
         self,
-        value: List[numpy.array | PIL.Image | str] = None,
+        value: Optional[List[np.ndarray | PIL.Image | str]] = None,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -3021,12 +2918,12 @@ class Gallery(IOComponent):
     ):
         """
         Parameters:
-        value (List[numpy.array | PIL.Image | str]): Default images in the Gallery
+        value (Optional[List[np.ndarray | PIL.Image | str]]): List of images to display in the gallery by default
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
-        self.value = value
+        self.value = self.postprocess(value)
         super().__init__(
             label=label,
             show_label=show_label,
@@ -3050,19 +2947,15 @@ class Gallery(IOComponent):
             "__type__": "update",
         }
 
-    def get_config(self):
-        return {
-            "value": self.value,
-            **IOComponent.get_config(self),
-        }
-
     def postprocess(self, y):
         """
         Parameters:
-        y (List[numpy.array | PIL.Image | str]): list of images
+        y (List[Union[numpy.array, PIL.Image, str]]): list of images
         Returns:
         (str): list of base64 url data for images
         """
+        if y is None:
+            return []
         output = []
         for img in y:
             if isinstance(img, np.ndarray):
@@ -3106,6 +2999,7 @@ class Carousel(IOComponent, Changeable):
     """
     Component displays a set of output components that can be scrolled through.
     Output type: List[List[Any]]
+    Demos: disease_report
     """
 
     def __init__(
@@ -3120,7 +3014,7 @@ class Carousel(IOComponent, Changeable):
     ):
         """
         Parameters:
-        components (List[Component] | Component]): Classes of component(s) that will be scrolled through.
+        components (Union[List[OutputComponent], OutputComponent]): Classes of component(s) that will be scrolled through.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
@@ -3213,12 +3107,12 @@ class Chatbot(Changeable, IOComponent):
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a {List[Tuple[str, str]]}, a list of tuples with user inputs and responses.
 
-    Demos: chatbot_demo
+    Demos: chatbot
     """
 
     def __init__(
         self,
-        value="",
+        value: Optional[List[Tuple[str, str]]] = None,
         color_map: Tuple[str, str] = None,
         *,
         label: Optional[str] = None,
@@ -3229,13 +3123,13 @@ class Chatbot(Changeable, IOComponent):
     ):
         """
         Parameters:
-        value (str): Default value
+        value (str): Default value to show in chatbot
         color_map (Tuple[str, str]): Chat bubble color of input text and output text respectively.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
-        self.value = value
+        self.value = self.postprocess(value)
         self.color_map = color_map
         IOComponent.__init__(
             self,
@@ -3286,15 +3180,13 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
     Component creates a 3D Model component with input and output capabilities.
     Input type: File object of type (.obj, glb, or .gltf)
     Output type: filepath
-
-    Demos: model3D_demo
+    Demos: model3D
     """
 
     def __init__(
         self,
-        value: Optional[str] = None,
         *,
-        clear_color: List[float] = None,
+        clear_color=None,
         label: Optional[str] = None,
         show_label: bool = True,
         visible: bool = True,
@@ -3303,14 +3195,12 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
     ):
         """
         Parameters:
-        value (str): Default file to show
         clear_color (List[r, g, b, a]): background color of scene
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
         self.clear_color = clear_color
-        self.value = value
         IOComponent.__init__(
             self,
             label=label,
@@ -3323,7 +3213,6 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
     def get_config(self):
         return {
             "clearColor": self.clear_color,
-            "value": self.value,
             **IOComponent.get_config(self),
         }
 
@@ -3415,12 +3304,11 @@ class Plot(Changeable, Clearable, IOComponent):
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects either a {matplotlib.pyplot.Figure}, a {plotly.graph_objects._figure.Figure}, or a {dict} corresponding to a bokeh plot (json_item format)
 
-    Demos: blocks_kinematics, stock_forecast
+    Demos: outbreak_forecast, blocks_kinematics, stock_forecast
     """
 
     def __init__(
         self,
-        value: Optional[Any] = None,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -3430,12 +3318,10 @@ class Plot(Changeable, Clearable, IOComponent):
     ):
         """
         Parameters:
-        value (matplotlib.pyplot.Figure | plotly.graph_objects._figure.Figure | dict): default plot to show
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
-        self.value = self.postprocess(value)
         IOComponent.__init__(
             self,
             label=label,
@@ -3446,7 +3332,7 @@ class Plot(Changeable, Clearable, IOComponent):
         )
 
     def get_config(self):
-        return {"value": self.value, **IOComponent.get_config(self)}
+        return {**IOComponent.get_config(self)}
 
     @staticmethod
     def update(
@@ -3471,9 +3357,7 @@ class Plot(Changeable, Clearable, IOComponent):
         (str): plot type
         (str): plot base64 or json
         """
-        if y is None:
-            return None
-        elif isinstance(y, (ModuleType, matplotlib.pyplot.Figure)):
+        if isinstance(y, (ModuleType, matplotlib.pyplot.Figure)):
             dtype = "matplotlib"
             out_y = processing_utils.encode_plot_to_base64(y)
         elif isinstance(y, dict):
@@ -3491,7 +3375,7 @@ class Markdown(IOComponent, Changeable):
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a valid {str} that can be rendered as Markdown.
 
-    Demos: blocks_hello, blocks_kinematics
+    Demos: blocks_hello, blocks_kinematics, blocks_neural_instrument_coding
     """
 
     def __init__(
@@ -3624,9 +3508,8 @@ class Dataset(Clickable, Component):
     ):
         """
         Parameters:
-        components (List[Component]): Which component types to show in this dataset widget
-        samples (str): a nested list of samples. Each sublist within the outer list represents a data sample, and each element within the sublist represents an value for each component
-        type (str): 'values' if clicking on a should  pass the value of the sample, or "index" if it should pass the index of the sample
+        components (List[Component]): Default value
+        variant (str): 'primary' for main call-to-action, 'secondary' for a more subdued style
         visible (bool): If False, component will be hidden.
         """
         Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
