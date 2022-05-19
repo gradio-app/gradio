@@ -566,39 +566,7 @@
     },
     "dependencies": []
   },
-  "chatbot": {
-    "mode": "blocks",
-    "components": [
-      {
-        "id": 52,
-        "type": "chatbot",
-        "props": {
-          "value": [
-            [
-              "Hello World",
-              "Hey Gradio!"
-            ]
-          ],
-          "show_label": true,
-          "name": "chatbot",
-          "visible": true,
-          "style": {}
-        }
-      }
-    ],
-    "theme": "default",
-    "css": null,
-    "enable_queue": false,
-    "layout": {
-      "id": 51,
-      "children": [
-        {
-          "id": 52
-        }
-      ]
-    },
-    "dependencies": []
-  },
+  "chatbot": {"mode":"blocks","components":[{"id":1,"type":"chatbot","props":{"value":[["Hello World","Hey Gradio!"],["❤️","😍"],["🔥","🤗"]],"show_label":true,"name":"chatbot","visible":true,"style":{}}}],"theme":"default","css":null,"enable_queue":false,"layout":{"id":0,"children":[{"id":1}]},"dependencies":[]},
   "model3d": {
     "mode": "blocks",
     "components": [
