@@ -1225,12 +1225,8 @@ class Radio(Changeable, IOComponent):
         """
         Any postprocessing needed to be performed on function output.
         """
-        return  (
-            y
-            if y is not None
-            else self.choices[0]
-            if len(self.choices) > 0
-            else None
+        return (
+            y if y is not None else self.choices[0] if len(self.choices) > 0 else None
         )
 
     def deserialize(self, x):
@@ -2610,7 +2606,9 @@ class Label(Changeable, IOComponent):
         if y is None:
             return None
         # 5 cases: (1): {'label': 'lion'}, {'label': 'lion', 'confidences':...}, {'lion': 0.46, ...}, 'lion', '0.46'
-        if isinstance(y, (str, numbers.Number)) or ("label" in y and not ("confidences" in y.keys())):
+        if isinstance(y, (str, numbers.Number)) or (
+            "label" in y and not ("confidences" in y.keys())
+        ):
             if isinstance(y, (str, numbers.Number)):
                 return y
             else:
@@ -3314,7 +3312,12 @@ class Plot(Changeable, Clearable, IOComponent):
 
     def __init__(
         self,
-        value: Optional[ModuleType  | matplotlib.pyplot.Figure | dict | "plotly.graph_objects._figure.Figure"] = None,
+        value: Optional[
+            ModuleType
+            | matplotlib.pyplot.Figure
+            | dict
+            | "plotly.graph_objects._figure.Figure"
+        ] = None,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
