@@ -1804,7 +1804,8 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
         Parameters:
         value (str): A path or URL for the default value that Audio component is going to take.
         source (str): Source of audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input.
-        type (str): The format the audio file is converted to before being passed into the prediction function. "numpy" converts the audio to a tuple consisting of: (int sample rate, numpy.array for the data), "filepath" passes a str path to a temporary file containing the audio.        label (Optional[str]): component name in interface.
+        type (str): The format the audio file is converted to before being passed into the prediction function. "numpy" converts the audio to a tuple consisting of: (int sample rate, numpy.array for the data), "filepath" passes a str path to a temporary file containing the audio.        
+        label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         streaming (bool): If set to true when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'microphone'.
@@ -3579,7 +3580,7 @@ class Dataset(Clickable, Component):
         Parameters:
         components (List[Component]): Which component types to show in this dataset widget
         samples (str): a nested list of samples. Each sublist within the outer list represents a data sample, and each element within the sublist represents an value for each component
-        type (str): 'values' if clicking on a should pass the value of the sample, or "index" if it should pass the index of the sample
+        type (str): 'values' if clicking on a sample should pass the value of the sample, or "index" if it should pass the index of the sample
         visible (bool): If False, component will be hidden.
         """
         Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
