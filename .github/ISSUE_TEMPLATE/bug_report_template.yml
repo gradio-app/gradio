@@ -57,7 +57,7 @@ body:
       options:
         - annoying
         - serious, but I can work around it
-        - blocking an upgrade to the latest version of `gradio`
-        - blocking all usage of `gradio`
+        - blocking upgrade to latest gradio version
+        - blocking all usage of gradio
     validations:
       required: true
