@@ -1396,7 +1396,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         Parameters:
         x (str): base64 url data
         Returns:
-        (numpy.array | PIL.Image | filepath): image in requested format
+        (numpy.array | PIL.Image | str): image in requested format
         """
         if x is None:
             return x
@@ -1575,7 +1575,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
     def postprocess(self, y):
         """
         Parameters:
-        y (numpy.array | PIL.Image | str, matplotlib.pyplot | Tuple[numpy.array | PIL.Image | str] | List[Tuple[str, float, float, float, float]]]): image in specified format
+        y (numpy.array | PIL.Image | str): image in specified format
         Returns:
         (str): base64 url data
         """
@@ -1600,6 +1600,25 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
     def deserialize(self, x):
         y = processing_utils.decode_base64_to_file(x).name
         return y
+
+    def stream(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        _js: Optional[str] = None,
+    ):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        Returns: None
+        """
+        if self.source != "webcam":
+            raise ValueError("Image streaming only available if source is 'webcam'.")
+        Streamable.stream(self, fn, inputs, outputs, _js)
 
     def style(
         self,
@@ -1641,7 +1660,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
     ):
         """
         Parameters:
-        value(str): A path or URL for the default value that Video component is going to take.
+        value (str): A path or URL for the default value that Video component is going to take.
         format (str): Format of video format to be returned by component, such as 'avi' or 'mp4'. Use 'mp4' to ensure browser playability. If set to None, video will keep uploaded format.
         source (str): Source of video. "upload" creates a box where user can drop an video file, "webcam" allows user to record a video from their webcam.
         label (Optional[str]): component name in interface.
@@ -1758,13 +1777,13 @@ class Video(Changeable, Clearable, Playable, IOComponent):
         return processing_utils.decode_base64_to_file(x).name
 
 
-class Audio(Changeable, Clearable, Playable, IOComponent):
+class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
     """
     Creates an audio component that can be used to upload/record audio (as an input) or display audio (as an output).
     Preprocessing: passes the uploaded audio as a {Tuple(int, numpy.array)} corresponding to (sample rate, data) or as a {str} filepath, depending on `type`
     Postprocessing: expects a {Tuple(int, numpy.array)} corresponding to (sample rate, data) or as a {str} filepath to an audio file, which gets displayed
 
-    Demos: main_note, generate_tone, reverse_audio, spectogram
+    Demos: main_note, generate_tone, reverse_audio
     """
 
     def __init__(
@@ -1777,6 +1796,7 @@ class Audio(Changeable, Clearable, Playable, IOComponent):
         show_label: bool = True,
         interactive: Optional[bool] = None,
         visible: bool = True,
+        streaming: bool = False,
         elem_id: Optional[str] = None,
         **kwargs,
     ):
@@ -1784,10 +1804,10 @@ class Audio(Changeable, Clearable, Playable, IOComponent):
         Parameters:
         value (str): A path or URL for the default value that Audio component is going to take.
         source (str): Source of audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input.
-        type (str): The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
-        label (Optional[str]): component name in interface.
+        type (str): The format the audio file is converted to before being passed into the prediction function. "numpy" converts the audio to a tuple consisting of: (int sample rate, numpy.array for the data), "filepath" passes a str path to a temporary file containing the audio.        label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
+        streaming (bool): If set to true when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'microphone'.
         """
         self.value = self.postprocess(value)
         self.source = source
@@ -1795,6 +1815,11 @@ class Audio(Changeable, Clearable, Playable, IOComponent):
         self.type = type
         self.test_input = deepcopy(media_data.BASE64_AUDIO)
         self.interpret_by_tokens = True
+        self.streaming = streaming
+        if streaming and source != "microphone":
+            raise ValueError(
+                "Audio streaming only available if source is 'microphone'."
+            )
         IOComponent.__init__(
             self,
             label=label,
@@ -1808,8 +1833,9 @@ class Audio(Changeable, Clearable, Playable, IOComponent):
 
     def get_config(self):
         return {
-            "source": self.source,  # TODO: This did not exist in output template, careful here if an error arrives
+            "source": self.source,
             "value": self.value,
+            "streaming": self.streaming,
             **IOComponent.get_config(self),
         }
 
@@ -1840,7 +1866,7 @@ class Audio(Changeable, Clearable, Playable, IOComponent):
         Parameters:
         x (Dict[name: str, data: str]): JSON object with filename as 'name' property and base64 data as 'data' property
         Returns:
-        (Tuple[int, numpy.array] | str | numpy.array): audio in requested format
+        (Tuple[int, numpy.array] | str): audio in requested format
         """
         if x is None:
             return x
@@ -2029,6 +2055,27 @@ class Audio(Changeable, Clearable, Playable, IOComponent):
     def deserialize(self, x):
         return processing_utils.decode_base64_to_file(x).name
 
+    def stream(
+        self,
+        fn: Callable,
+        inputs: List[Component],
+        outputs: List[Component],
+        _js: Optional[str] = None,
+    ):
+        """
+        Parameters:
+            fn: Callable function
+            inputs: List of inputs
+            outputs: List of outputs
+            _js: Optional frontend js method to run before running 'fn'. Input arguments for js method are values of 'inputs' and 'outputs', return should be a list of values for output components.
+        Returns: None
+        """
+        if self.source != "microphone":
+            raise ValueError(
+                "Audio streaming only available if source is 'microphone'."
+            )
+        Streamable.stream(self, fn, inputs, outputs, _js)
+
 
 class File(Changeable, Clearable, IOComponent):
     """
@@ -2107,7 +2154,7 @@ class File(Changeable, Clearable, IOComponent):
         Parameters:
         x (List[Dict[name: str, data: str]]): List of JSON objects with filename as 'name' property and base64 data as 'data' property
         Returns:
-        (file-object | bytes | List[file-object | bytes]]): File objects in requested format
+        (file-object | bytes | List[file-object] | List[bytes]]): File objects in requested format
         """
         if x is None:
             return None
@@ -2294,7 +2341,7 @@ class Dataframe(Changeable, IOComponent):
         Parameters:
         x (List[List[str | number | bool]]): 2D array of str, numeric, or bool data
         Returns:
-        (pandas.DataFrame | numpy.array | List[str | float], List[List[str | float]]): Dataframe in requested format
+        (pandas.DataFrame | numpy.array | List[str | float | bool], List[List[str | float | bool]]): Dataframe in requested format
         """
         if self.type == "pandas":
             if self.headers:
@@ -2507,7 +2554,7 @@ class Variable(IOComponent):
 
     Preprocessing: No preprocessing is performed
     Postprocessing: No postprocessing is performed
-    Demos: chatbot, blocks_simple_squares
+    Demos: chatbot_demo, blocks_simple_squares
     """
 
     def __init__(
@@ -2559,7 +2606,7 @@ class Label(Changeable, IOComponent):
     ):
         """
         Parameters:
-        value(str): Default string value
+        value(str): Default value to show in the component.
         num_top_classes (int): number of most confident classes to show.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
@@ -3020,7 +3067,7 @@ class Carousel(IOComponent, Changeable):
     ):
         """
         Parameters:
-        components (List[OutputComponent] | OutputComponent): Classes of component(s) that will be scrolled through.
+        components (List[Component] | Component): Classes of component(s) that will be scrolled through.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
@@ -3113,7 +3160,7 @@ class Chatbot(Changeable, IOComponent):
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a {List[Tuple[str, str]]}, a list of tuples with user inputs and responses.
 
-    Demos: chatbot
+    Demos: chatbot_demo
     """
 
     def __init__(
@@ -3193,7 +3240,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
         self,
         value: Optional[str] = None,
         *,
-        clear_color=None,
+        clear_color: List[float] = None,
         label: Optional[str] = None,
         show_label: bool = True,
         visible: bool = True,
@@ -3351,7 +3398,7 @@ class Plot(Changeable, Clearable, IOComponent):
         )
 
     def get_config(self):
-        return {**IOComponent.get_config(self)}
+        return {"value": self.value, **IOComponent.get_config(self)}
 
     @staticmethod
     def update(
@@ -3396,7 +3443,7 @@ class Markdown(IOComponent, Changeable):
     Preprocessing: this component does *not* accept input.
     Postprocessing: expects a valid {str} that can be rendered as Markdown.
 
-    Demos: blocks_hello, blocks_kinematics, blocks_neural_instrument_coding
+    Demos: blocks_hello, blocks_kinematics
     """
 
     def __init__(
@@ -3530,8 +3577,9 @@ class Dataset(Clickable, Component):
     ):
         """
         Parameters:
-        components (List[Component]): Default value
-        variant (str): 'primary' for main call-to-action, 'secondary' for a more subdued style
+        components (List[Component]): Which component types to show in this dataset widget
+        samples (str): a nested list of samples. Each sublist within the outer list represents a data sample, and each element within the sublist represents an value for each component
+        type (str): 'values' if clicking on a should pass the value of the sample, or "index" if it should pass the index of the sample
         visible (bool): If False, component will be hidden.
         """
         Component.__init__(self, visible=visible, elem_id=elem_id, **kwargs)
