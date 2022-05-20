@@ -3368,12 +3368,7 @@ class Plot(Changeable, Clearable, IOComponent):
 
     def __init__(
         self,
-        value: Optional[
-            ModuleType
-            | matplotlib.pyplot.Figure
-            | dict
-            | "plotly.graph_objects._figure.Figure"  # type: ignore
-        ] = None,
+        value: None,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -3383,7 +3378,7 @@ class Plot(Changeable, Clearable, IOComponent):
     ):
         """
         Parameters:
-        value (Optional[matplotlib.pyplot.Figure | dict | "plotly.graph_objects._figure.Figure"]): plot to display
+        value (Optional[matplotlib.pyplot.Figure | dict | plotly.graph_objects._figure.Figure]): plot to display
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
