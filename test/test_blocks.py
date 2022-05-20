@@ -14,7 +14,7 @@ pytest_plugins = ("pytest_asyncio",)
 
 class TestBlocks(unittest.TestCase):
     maxDiff = None
-    
+
     def test_xray(self):
         def fake_func():
             return "Hello There"

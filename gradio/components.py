@@ -1804,7 +1804,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
         Parameters:
         value (str): A path or URL for the default value that Audio component is going to take.
         source (str): Source of audio. "upload" creates a box where user can drop an audio file, "microphone" creates a microphone input.
-        type (str): The format the audio file is converted to before being passed into the prediction function. "numpy" converts the audio to a tuple consisting of: (int sample rate, numpy.array for the data), "filepath" passes a str path to a temporary file containing the audio.        
+        type (str): The format the audio file is converted to before being passed into the prediction function. "numpy" converts the audio to a tuple consisting of: (int sample rate, numpy.array for the data), "filepath" passes a str path to a temporary file containing the audio.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
