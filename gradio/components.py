@@ -1647,7 +1647,7 @@ class Video(Changeable, Clearable, Playable, IOComponent):
 
     def __init__(
         self,
-        value: str = "",
+        value: Optional[str] = None,
         *,
         format: Optional[str] = None,
         source: str = "upload",
@@ -1788,7 +1788,7 @@ class Audio(Changeable, Clearable, Playable, Streamable, IOComponent):
 
     def __init__(
         self,
-        value: str = "",
+        value: Optional[str] = None,
         *,
         source: str = "upload",
         type: str = "numpy",
@@ -2089,7 +2089,7 @@ class File(Changeable, Clearable, IOComponent):
 
     def __init__(
         self,
-        value: str = "",
+        value: Optional[str] = None,
         *,
         file_count: str = "single",
         type: str = "file",
@@ -2102,7 +2102,7 @@ class File(Changeable, Clearable, IOComponent):
     ):
         """
         Parameters:
-        value (str): Default value given as file path
+        value (Optional[str]): Default file to display, given as str file path
         file_count (str): if single, allows user to upload one file. If "multiple", user uploads multiple files. If "directory", user uploads all files in selected directory. Return type will be list for each file in case of "multiple" or "directory".
         type (str): Type of value to be returned by component. "file" returns a temporary file object whose path can be retrieved by file_obj.name, "binary" returns an bytes object.
         label (Optional[str]): component name in interface.

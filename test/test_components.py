@@ -5,7 +5,6 @@ import unittest
 from copy import deepcopy
 from difflib import SequenceMatcher
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import PIL
@@ -627,16 +626,6 @@ class TestImage(unittest.TestCase):
             image_output.postprocess(np.array(y_img)).startswith(
                 "data:image/png;base64,iVBORw0KGgoAAA"
             )
-        )
-        with self.assertWarns(Warning):
-            plot_output = gr.Image(plot=True)
-
-        xpoints = np.array([0, 6])
-        ypoints = np.array([0, 250])
-        fig = plt.figure()
-        plt.plot(xpoints, ypoints)
-        self.assertTrue(
-            plot_output.postprocess(fig).startswith("data:image/png;base64,")
         )
         with self.assertRaises(ValueError):
             image_output.postprocess([1, 2, 3])
