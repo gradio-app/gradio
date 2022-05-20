@@ -33,8 +33,8 @@ from gradio.events import (
     Clickable,
     Editable,
     Playable,
-    Submittable,
     Streamable,
+    Submittable,
 )
 
 
@@ -1336,7 +1336,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
-        streaming (bool): If True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'webcam'.        
+        streaming (bool): If True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'webcam'.
         """
         self.type = type
         self.value = self.postprocess(value)
@@ -1351,7 +1351,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         self.streaming = streaming
         if streaming and source != "webcam":
             raise ValueError("Image streaming only available if source is 'webcam'.")
-                
+
         IOComponent.__init__(
             self,
             label=label,
@@ -1370,7 +1370,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
             "source": self.source,
             "tool": self.tool,
             "value": self.value,
-            "streaming": self.streaming,            
+            "streaming": self.streaming,
             **IOComponent.get_config(self),
         }
 
