@@ -148,14 +148,13 @@ class TestTextbox(unittest.TestCase):
         self.assertEqual(iface.process(["Hello"]), ["o"])
         iface = gr.Interface(lambda x: x / 2, "number", gr.Textbox())
         self.assertEqual(iface.process([10]), ["5.0"])
-        
+
     def test_static(self):
         """
         postprocess
         """
         component = gr.Textbox("abc")
         self.assertEqual(component.get_config().get("value"), "abc")
-        
 
 
 class TestNumber(unittest.TestCase):
@@ -406,7 +405,7 @@ class TestSlider(unittest.TestCase):
                 9996.0,
             ],
         )
-    
+
     def test_static(self):
         """
         postprocess
@@ -1613,15 +1612,15 @@ class TestModel3D(unittest.TestCase):
         component = gr.components.Model3D("test/test_files/Box.gltf", label="Model")
         self.assertEqual(
             {
-                'clearColor': [0.2, 0.2, 0.2, 1.0],
-                'value': media_data.BASE64_MODEL3D,
+                "clearColor": [0.2, 0.2, 0.2, 1.0],
+                "value": media_data.BASE64_MODEL3D,
                 "label": "Model",
                 "show_label": True,
                 "interactive": None,
                 "name": "model3d",
                 "visible": True,
                 "elem_id": None,
-                'style': {},
+                "style": {},
             },
             component.get_config(),
         )
@@ -1630,9 +1629,11 @@ class TestModel3D(unittest.TestCase):
         """
         Interface, process
         """
-        iface = gr.Interface(lambda x:x, "model3d", "model3d")
+        iface = gr.Interface(lambda x: x, "model3d", "model3d")
         input_data = gr.media_data.BASE64_MODEL3D["data"]
-        output_data = iface.process([{'name': 'Box.gltf', 'data': input_data}])[0]["data"]
+        output_data = iface.process([{"name": "Box.gltf", "data": input_data}])[0][
+            "data"
+        ]
         self.assertEqual(input_data.split(";")[1], output_data.split(";")[1])
 
 
