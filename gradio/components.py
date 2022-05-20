@@ -2398,7 +2398,7 @@ class Timeseries(Changeable, IOComponent):
         Parameters:
         value: File path for the timeseries csv file.
         x (str): Column name of x (time) series. None if csv has no headers, in which case first column is x series.
-        y (Union[str, List[str]]): Column name of y series, or list of column names if multiple series. None if csv has no headers, in which case every column after first is a y series.
+        y (str | List[str]): Column name of y series, or list of column names if multiple series. None if csv has no headers, in which case every column after first is a y series.
         label (str): component name in interface.
         colors (List[str]): an ordered list of colors to use for each line plot
         show_label (bool): if True, will display label.
@@ -3020,7 +3020,7 @@ class Carousel(IOComponent, Changeable):
     ):
         """
         Parameters:
-        components (Union[List[OutputComponent], OutputComponent]): Classes of component(s) that will be scrolled through.
+        components (List[OutputComponent] | OutputComponent): Classes of component(s) that will be scrolled through.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
@@ -3324,7 +3324,7 @@ class Plot(Changeable, Clearable, IOComponent):
             ModuleType
             | matplotlib.pyplot.Figure
             | dict
-            | "plotly.graph_objects._figure.Figure"
+            | "plotly.graph_objects._figure.Figure"  # type: ignore
         ] = None,
         *,
         label: Optional[str] = None,
