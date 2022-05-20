@@ -1440,7 +1440,7 @@ class TestHighlightedText(unittest.TestCase):
                 "style": {},
                 "elem_id": None,
                 "visible": True,
-                "value": "",
+                "value": None,
                 "interactive": None,
             },
         )
@@ -1503,7 +1503,7 @@ class TestJSON(unittest.TestCase):
                 "style": {},
                 "elem_id": None,
                 "visible": True,
-                "value": '""',
+                "value": None,
                 "show_label": True,
                 "label": None,
                 "name": "json",
