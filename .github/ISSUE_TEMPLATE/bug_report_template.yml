@@ -6,13 +6,6 @@ body:
     attributes:
       value: |
         Thanks for taking the time to fill out this bug report!
-  - type: checkboxes
-    attributes:
-      label: Is there an existing issue for this?
-      description: Please search to see if an issue already exists for the issue you encountered.
-      options:
-        - label: I have searched the existing issues
-          required: true
   - type: textarea
     id: bug-description
     attributes:
@@ -21,6 +14,13 @@ body:
       placeholder: Bug description
     validations:
       required: true
+  - type: checkboxes
+    attributes:
+      label: Is there an existing issue for this?
+      description: Please search to see if an issue already exists for the issue you encountered.
+      options:
+        - label: I have searched the existing issues
+          required: true
   - type: textarea
     id: reproduction
     attributes:
@@ -55,8 +55,9 @@ body:
       label: Severity
       description: Select the severity of this issue
       options:
-        - annoyance
-        - critical
-        - blocker
+        - annoying
+        - serious, but I can work around it
+        - blocking an upgrade to the latest version of `gradio`
+        - blocking all usage of `gradio`
     validations:
       required: true
