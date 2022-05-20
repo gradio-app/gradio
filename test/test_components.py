@@ -184,7 +184,7 @@ class TestNumber(unittest.TestCase):
         self.assertEqual(
             numeric_input.get_config(),
             {
-                "value": 0,
+                "value": None,
                 "name": "number",
                 "show_label": True,
                 "label": None,
@@ -340,7 +340,7 @@ class TestSlider(unittest.TestCase):
         self.assertEqual(slider_input.preprocess(3.0), 3.0)
         self.assertEqual(slider_input.preprocess_example(3), 3)
         self.assertEqual(slider_input.postprocess(3), 3)
-        self.assertEqual(slider_input.postprocess(None), None)
+        self.assertEqual(slider_input.postprocess(None), 0)
         self.assertEqual(slider_input.serialize(3, True), 3)
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = slider_input.save_flagged(tmpdirname, "slider_input", 3, None)

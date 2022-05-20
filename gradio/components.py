@@ -1,4 +1,4 @@
-"""Contains all of the components that can be used used with Gradio Interface / Blocks.
+"""Contains all of the components that can be used with Gradio Interface / Blocks.
 Along with the docs for each component, you can find the names of example demos that use
 each component. These demos are located in the `demo` directory."""
 
@@ -16,7 +16,7 @@ import tempfile
 import warnings
 from copy import deepcopy
 from types import ModuleType
-from typing import Any, Dict, List, Optional, Tuple, Type
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type
 
 import matplotlib.figure
 import numpy as np
@@ -24,7 +24,6 @@ import pandas as pd
 import PIL
 from ffmpy import FFmpeg
 from markdown_it import MarkdownIt
-from regex import R
 
 from gradio import media_data, processing_utils
 from gradio.blocks import Block
@@ -35,6 +34,7 @@ from gradio.events import (
     Editable,
     Playable,
     Submittable,
+    Streamable,
 )
 
 
@@ -267,7 +267,7 @@ class Textbox(Changeable, Submittable, IOComponent):
     Preprocessing: passes textarea value as a {str} into the function.
     Postprocessing: expects a {str} returned from function and sets textarea value to it.
 
-    Demos: hello_world, diff_texts, sentence_builder, blocks_gpt
+    Demos: hello_world, diff_texts, sentence_builder
     """
 
     def __init__(
@@ -471,7 +471,7 @@ class Number(Changeable, Submittable, IOComponent):
     Preprocessing: passes field value as a {float} or {int} into the function, depending on `precision`.
     Postprocessing: expects an {int} or {float} returned from the function and sets field value to it.
 
-    Demos: tax_calculator, titanic_survival, blocks_static_textbox, blocks_simple_squares
+    Demos: tax_calculator, titanic_survival, blocks_simple_squares
     """
 
     def __init__(
@@ -495,7 +495,7 @@ class Number(Changeable, Submittable, IOComponent):
         precision (Optional[int]): Precision to round input/output to. If set to 0, will round to nearest integer and covert type to int. If None, no rounding happens.
         """
         self.precision = precision
-        self.value = self.postprocess(value, precision)
+        self.value = self.postprocess(value)
         self.test_input = self.value if self.value is not None else 1
         self.interpret_by_tokens = False
         IOComponent.__init__(
@@ -551,6 +551,7 @@ class Number(Changeable, Submittable, IOComponent):
             "show_label": show_label,
             "visible": visible,
             "value": value,
+            "interactive": interactive,
             "__type__": "update",
         }
 
@@ -947,7 +948,7 @@ class CheckboxGroup(Changeable, IOComponent):
     Preprocessing: passes the list of checked checkboxes as a {List[str]} or their indices as a {List[int]} into the function, depending on `type`.
     Postprocessing: expects a {List[str]}, each element of which becomes a checked checkbox.
 
-    Demos: sentence_builder, titanic_survival, fraud_detector
+    Demos: sentence_builder, titanic_survival
     """
 
     def __init__(
@@ -1019,7 +1020,7 @@ class CheckboxGroup(Changeable, IOComponent):
         Parameters:
         x (List[str]): list of selected choices
         Returns:
-        (Union[List[str], List[int]]): list of selected choices as strings or indices within choice list
+        (List[str] | List[int]): list of selected choices as strings or indices within choice list
         """
         if self.type == "value":
             return x
@@ -1110,7 +1111,7 @@ class Radio(Changeable, IOComponent):
     Preprocessing: passes the value of the selected radio button as a {str} or its index as an {int} into the function, depending on `type`.
     Postprocessing: expects a {str} corresponding to the value of the radio button to be selected.
 
-    Demos: sentence_builder, tax_calculator, titanic_survival, blocks_essay
+    Demos: sentence_builder, titanic_survival, blocks_essay
     """
 
     def __init__(
@@ -1182,7 +1183,7 @@ class Radio(Changeable, IOComponent):
         Parameters:
         x (str): selected choice
         Returns:
-        (Union[str, int]): selected choice as string or index within choice list
+        (str | int): selected choice as string or index within choice list
         """
         if self.type == "value":
             return x
@@ -1257,7 +1258,7 @@ class Dropdown(Radio):
     Preprocessing: passes the value of the selected dropdown entry as a {str} or its index as an {int} into the function, depending on `type`.
     Postprocessing: expects a {str} corresponding to the value of the dropdown entry to be selected.
 
-    Demos: sentence_builder, filter_records, titanic_survival
+    Demos: sentence_builder, titanic_survival
     """
 
     def __init__(
@@ -1296,7 +1297,7 @@ class Dropdown(Radio):
         )
 
 
-class Image(Editable, Clearable, Changeable, IOComponent):
+class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
     """
     Creates an image component that can be used to upload/draw images (as an input) or display images (as an output).
     Preprocessing: passes the uploaded image as a {numpy.array}, {PIL.Image} or {str} filepath depending on `type`.
@@ -1319,6 +1320,7 @@ class Image(Editable, Clearable, Changeable, IOComponent):
         show_label: bool = True,
         interactive: Optional[bool] = None,
         visible: bool = True,
+        streaming: bool = False,
         elem_id: Optional[str] = None,
         **kwargs,
     ):
@@ -1330,10 +1332,11 @@ class Image(Editable, Clearable, Changeable, IOComponent):
         invert_colors (bool): whether to invert the image as a preprocessing step.
         source (str): Source of image. "upload" creates a box where user can drop an image file, "webcam" allows user to take snapshot from their webcam, "canvas" defaults to a white image that can be edited and drawn upon with tools.
         tool (str): Tools used for editing. "editor" allows a full screen editor, "select" provides a cropping and zoom tool.
-        type (str): The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" returns the path directly.
+        type (str): The format the image is converted to before being passed into the prediction function. "numpy" converts the image to a numpy array with shape (width, height, 3) and values from 0 to 255, "pil" converts the image to a PIL image object, "file" produces a temporary file object whose path can be retrieved by file_obj.name, "filepath" passes a str path to a temporary file containing the image.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
+        streaming (bool): If True when used in a `live` interface, will automatically stream webcam feed. Only valid is source is 'webcam'.        
         """
         self.type = type
         self.value = self.postprocess(value)
@@ -1345,6 +1348,10 @@ class Image(Editable, Clearable, Changeable, IOComponent):
         self.invert_colors = invert_colors
         self.test_input = deepcopy(media_data.BASE64_IMAGE)
         self.interpret_by_tokens = True
+        self.streaming = streaming
+        if streaming and source != "webcam":
+            raise ValueError("Image streaming only available if source is 'webcam'.")
+                
         IOComponent.__init__(
             self,
             label=label,
@@ -1363,6 +1370,7 @@ class Image(Editable, Clearable, Changeable, IOComponent):
             "source": self.source,
             "tool": self.tool,
             "value": self.value,
+            "streaming": self.streaming,            
             **IOComponent.get_config(self),
         }
 
