@@ -4,8 +4,8 @@ demo = gr.Blocks(css="#btn {color: red}")
 
 with demo:
     num = gr.Variable(value=0)
-    squared = gr.Number(value=0).style(text_color="blue", container_bg_color="yellow")
-    btn = gr.Button("Next Square", elem_id="btn").style(rounded=False, bg_color="purple")
+    squared = gr.Number(value=0)
+    btn = gr.Button("Next Square", elem_id="btn").style(rounded=False)
 
     def increase(var):
         var += 1

@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { createEventDispatcher } from "svelte";
 	import { BlockTitle } from "@gradio/atoms";
-	import { create_classes } from "@gradio/utils";
+	import { get_styles } from "@gradio/utils";
+	import type { Styles } from "@gradio/utils";
 
 	export let value: Array<string> = [];
-	export let style: Record<string, string> = {};
+	export let style: Styles = {};
 	export let choices: Array<string>;
 	export let disabled: boolean = false;
 	export let label: string;
@@ -21,6 +22,12 @@
 		dispatch("change", value);
 		value = value;
 	};
+
+	const { margin, rounded, border } = get_styles(style, [
+		"margin",
+		"rounded",
+		"border"
+	]);
 </script>
 
 <BlockTitle {show_label}>{label}</BlockTitle>
@@ -29,8 +36,7 @@
 	{#each choices as choice, i}
 		<label
 			class:!cursor-not-allowed={disabled}
-			class={"flex items-center text-gray-700 text-sm space-x-2 border py-1.5 px-3 rounded-lg cursor-pointer bg-white shadow-sm checked:shadow-inner" +
-				create_classes(style)}
+			class="flex items-center text-gray-700 text-sm space-x-2 border py-1.5 px-3 rounded-lg cursor-pointer bg-white shadow-sm checked:shadow-inner {margin}"
 		>
 			<input
 				{disabled}
@@ -38,7 +44,7 @@
 				checked={value.includes(choice)}
 				type="checkbox"
 				name="test"
-				class="gr-check-radio gr-checkbox"
+				class="gr-check-radio gr-checkbox {rounded} {border}"
 			/> <span class="ml-2">{choice}</span></label
 		>
 	{/each}

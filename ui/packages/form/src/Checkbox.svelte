@@ -1,9 +1,10 @@
 <script lang="ts">
-	import { create_classes } from "@gradio/utils";
+	import { create_classes, get_styles } from "@gradio/utils";
 	import { createEventDispatcher } from "svelte";
+	import type { Styles } from "@gradio/utils";
 
 	export let value: boolean;
-	export let style: Record<string, string> = {};
+	export let style: Styles = {};
 	export let disabled: boolean = false;
 	export let label: string;
 	export let show_label: boolean;
@@ -14,19 +15,25 @@
 		dispatch("change", !value);
 		value = !value;
 	}
+
+	const { margin, rounded, border } = get_styles(style, [
+		"margin",
+		"rounded",
+		"border"
+	]);
 </script>
 
 <!-- svelte-ignore a11y-label-has-associated-control -->
 <label
 	class:!cursor-not-allowed={disabled}
-	class="flex items-center text-gray-700 text-sm space-x-2 rounded-lg cursor-pointer bg-white dark:bg-transparent"
+	class="flex items-center text-gray-700 text-sm space-x-2 rounded-lg cursor-pointer dark:bg-transparent {margin}"
 >
 	<input
 		bind:checked={value}
 		{disabled}
 		type="checkbox"
 		name="test"
-		class="gr-check-radio gr-checkbox"
+		class="gr-check-radio gr-checkbox {rounded} {border}"
 	/>
-	<span class={"ml-2" + create_classes(style)}>{label}</span></label
+	<span class="ml-2">{label}</span></label
 >

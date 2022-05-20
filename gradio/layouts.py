@@ -44,7 +44,7 @@ class Row(BlockContext):
     def style(
         self,
         equal_height: Optional[bool] = None,
-        mobile_collapse: Optional[bool] = None,
+        mobile_collapse: Optional[bool] = True,
     ):
         if equal_height is not None:
             self._style["equal_height"] = equal_height
@@ -152,15 +152,11 @@ class Group(BlockContext):
     def style(
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        bg_color: Optional[str] = None,
         margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
     ):
 
         if rounded is not None:
             self._style["rounded"] = rounded
-        if bg_color is not None:
-            assert bg_color in valid_colors
-            self._style["bg_color"] = bg_color
         if margin is not None:
             self._style["margin"] = margin
 
@@ -188,15 +184,11 @@ class Box(BlockContext):
     def style(
         self,
         rounded: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
-        bg_color: Optional[str] = None,
         margin: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
         border: Optional[bool | Tuple[bool, bool, bool, bool]] = None,
     ):
         if rounded is not None:
             self._style["rounded"] = rounded
-        if bg_color is not None:
-            assert bg_color in valid_colors
-            self._style["bg_color"] = bg_color
         if margin is not None:
             self._style["margin"] = margin
         if border is not None:
