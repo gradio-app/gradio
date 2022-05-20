@@ -1396,7 +1396,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
         Parameters:
         x (str): base64 url data
         Returns:
-        (Union[numpy.array, PIL.Image, filepath]): image in requested format
+        (numpy.array | PIL.Image | filepath): image in requested format
         """
         if x is None:
             return x
@@ -1575,7 +1575,7 @@ class Image(Editable, Clearable, Changeable, Streamable, IOComponent):
     def postprocess(self, y):
         """
         Parameters:
-        y (Union[numpy.array, PIL.Image, str, matplotlib.pyplot, Tuple[Union[numpy.array, PIL.Image, str], List[Tuple[str, float, float, float, float]]]]): image in specified format
+        y (numpy.array | PIL.Image | str, matplotlib.pyplot | Tuple[numpy.array | PIL.Image | str] | List[Tuple[str, float, float, float, float]]]): image in specified format
         Returns:
         (str): base64 url data
         """
@@ -1840,7 +1840,7 @@ class Audio(Changeable, Clearable, Playable, IOComponent):
         Parameters:
         x (Dict[name: str, data: str]): JSON object with filename as 'name' property and base64 data as 'data' property
         Returns:
-        (Union[Tuple[int, numpy.array], str, numpy.array]): audio in requested format
+        (Tuple[int, numpy.array] | str | numpy.array): audio in requested format
         """
         if x is None:
             return x
@@ -2011,7 +2011,7 @@ class Audio(Changeable, Clearable, Playable, IOComponent):
     def postprocess(self, y):
         """
         Parameters:
-        y (Union[Tuple[int, numpy.array], str]): audio data in requested format
+        y (Tuple[int, numpy.array] | str): audio data in requested format
         Returns:
         (str): base64 url data
         """
@@ -2107,7 +2107,7 @@ class File(Changeable, Clearable, IOComponent):
         Parameters:
         x (List[Dict[name: str, data: str]]): List of JSON objects with filename as 'name' property and base64 data as 'data' property
         Returns:
-        (Union[file-object, bytes, List[Union[file-object, bytes]]]): File objects in requested format
+        (file-object | bytes | List[file-object | bytes]]): File objects in requested format
         """
         if x is None:
             return None
@@ -2292,9 +2292,9 @@ class Dataframe(Changeable, IOComponent):
     def preprocess(self, x: List[List[str | Number | bool]]):
         """
         Parameters:
-        x (List[List[Union[str, number, bool]]]): 2D array of str, numeric, or bool data
+        x (List[List[str | number | bool]]): 2D array of str, numeric, or bool data
         Returns:
-        (Union[pandas.DataFrame, numpy.array, List[Union[str, float]], List[List[Union[str, float]]]]): Dataframe in requested format
+        (pandas.DataFrame | numpy.array | List[str | float], List[List[str | float]]): Dataframe in requested format
         """
         if self.type == "pandas":
             if self.headers:
@@ -2316,7 +2316,7 @@ class Dataframe(Changeable, IOComponent):
 
     def save_flagged(self, dir, label, data, encryption_key):
         """
-        Returns: (List[List[Union[str, float]]]) 2D array
+        Returns: (List[List[str | float]]) 2D array
         """
         return json.dumps(data)
         # TODO: (faruk) output was dumping differently, how to converge?
@@ -2333,9 +2333,9 @@ class Dataframe(Changeable, IOComponent):
     def postprocess(self, y):
         """
         Parameters:
-        y (Union[str, pandas.DataFrame, numpy.array, List[Union[str, float]], List[List[Union[str, float]]]]): dataframe in given format
+        y (str | pandas.DataFrame | numpy.array | List[str | float], List[List[str | float]]]): dataframe in given format
         Returns:
-        (Dict[headers: List[str], data: List[List[Union[str, number]]]]): JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
+        (Dict[headers: List[str], data: List[List[str | number]]]): JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
         """
         if y is None:
             return y
@@ -2454,7 +2454,7 @@ class Timeseries(Changeable, IOComponent):
     def preprocess(self, x: Dict | None) -> pd.DataFrame | None:
         """
         Parameters:
-        x (Dict[data: List[List[Union[str, number, bool]]], headers: List[str], range: List[number]]): Dict with keys 'data': 2D array of str, numeric, or bool data, 'headers': list of strings for header names, 'range': optional two element list designating start of end of subrange.
+        x (Dict[data: List[List[str | number | bool]], headers: List[str], range: List[number]]): Dict with keys 'data': 2D array of str, numeric, or bool data, 'headers': list of strings for header names, 'range': optional two element list designating start of end of subrange.
         Returns:
         (pandas.DataFrame): Dataframe of timeseries data
         """
@@ -2471,7 +2471,7 @@ class Timeseries(Changeable, IOComponent):
 
     def save_flagged(self, dir, label, data, encryption_key):
         """
-        Returns: (List[List[Union[str, float]]]) 2D array
+        Returns: (List[List[str | float]]) 2D array
         """
         return json.dumps(data)
 
@@ -2488,7 +2488,7 @@ class Timeseries(Changeable, IOComponent):
         Parameters:
         y (str | pandas.DataFrame): csv or dataframe with timeseries data
         Returns:
-        (Dict[headers: List[str], data: List[List[Union[str, number]]]]): JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
+        (Dict[headers: List[str], data: List[List[str | number]]]): JSON object with key 'headers' for list of header names, 'data' for 2D array of string or numeric data
         """
         if y is None:
             return None
@@ -2628,7 +2628,7 @@ class Label(Changeable, IOComponent):
 
     def save_flagged(self, dir, label, data, encryption_key):
         """
-        Returns: (Union[str, Dict[str, number]]): Either a string representing the main category label, or a dictionary with category keys mapping to confidence levels.
+        Returns: (str | Dict[str, number]): Either a string representing the main category label, or a dictionary with category keys mapping to confidence levels.
         """
         if "confidences" in data:
             return json.dumps(
@@ -2737,9 +2737,9 @@ class HighlightedText(Changeable, IOComponent):
     def postprocess(self, y):
         """
         Parameters:
-        y (List[Tuple[str, Union[str, number, None]]]): List of (word, category) tuples
+        y (List[Tuple[str, str | number | None]]): List of (word, category) tuples
         Returns:
-        (List[Tuple[str, Union[str, number, None]]]): List of (word, category) tuples
+        (List[Tuple[str, str | number | None]]): List of (word, category) tuples
         """
         if y is None:
             return None
@@ -2829,9 +2829,9 @@ class JSON(Changeable, IOComponent):
     def postprocess(self, y):
         """
         Parameters:
-        y (Union[Dict, List, str]): JSON output
+        y (Dict | List | str]): JSON output
         Returns:
-        (Union[Dict, List]): JSON output
+        (Dict | List): JSON output
         """
         if isinstance(y, str):
             return json.dumps(y)
@@ -2956,7 +2956,7 @@ class Gallery(IOComponent):
     def postprocess(self, y):
         """
         Parameters:
-        y (List[Union[numpy.array, PIL.Image, str]]): list of images
+        y (List[numpy.array | PIL.Image | str]): list of images
         Returns:
         (str): list of base64 url data for images
         """
