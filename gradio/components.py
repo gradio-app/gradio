@@ -3256,7 +3256,7 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
         """
-        self.clear_color = clear_color
+        self.clear_color = clear_color or [0.2, 0.2, 0.2, 1.0]
         self.value = self.postprocess(value)
         IOComponent.__init__(
             self,
@@ -3342,13 +3342,11 @@ class Model3D(Changeable, Editable, Clearable, IOComponent):
         """
         if y is None:
             return y
-        if self.clear_color is None:
-            self.clear_color = [0.2, 0.2, 0.2, 1.0]
-
-        return {
+        data = {
             "name": os.path.basename(y),
             "data": processing_utils.encode_file_to_base64(y),
         }
+        return data
 
     def deserialize(self, x):
         return processing_utils.decode_base64_to_file(x).name
