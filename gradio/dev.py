@@ -9,6 +9,12 @@ from gradio import networking
 
 def main():
     args = sys.argv[1:]
+    if len(args) == 0:
+        raise ValueError("No file specified.")
+    if len(args) == 1:
+        demo_name = "demo"
+    else:
+        demo_name = args[1]
 
     path = args[0]
     path = os.path.normpath(path)
@@ -21,4 +27,4 @@ def main():
         networking.INITIAL_PORT_VALUE + networking.TRY_NUM_PORTS,
     )
 
-    os.system(f"uvicorn {filename}:demo.app --reload --port {port}")
+    os.system(f"uvicorn {filename}:{demo_name}.app --reload --port {port}")
