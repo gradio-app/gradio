@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
 from fastapi.concurrency import run_in_threadpool
 
-from gradio import encryptor, networking, queueing, strings, utils, routes
+from gradio import encryptor, networking, queueing, routes, strings, utils
 from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
 from gradio.utils import delete_none
@@ -371,7 +371,6 @@ class Blocks(BlockContext):
             self.parent.children.extend(self.children)
         self.config = self.get_config_file()
         self.app = routes.App.create_app(self)
-        
 
     def load(
         self, fn: Callable, inputs: List[Component], outputs: List[Component]
