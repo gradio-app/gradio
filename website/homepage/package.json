@@ -3,11 +3,11 @@
   "scripts": {
     "prebuild": "(ls ../../gradio/templates/frontend/assets) || (cd ../../ui && pnpm i --frozen-lockfile && pnpm build && cd ../website/homepage) || (npm install pnpm && cd ../../ui && pnpm i --frozen-lockfile && npm install pnpm && pnpm build && cd ../website/homepage)",
     "build:setup": "mkdir -p dist generated",
-    "build:html": "python render_html.py && html-minifier --input-dir generated --output-dir dist --file-ext html --remove-comments --collapse-whitespace --minify-js true",
+    "build:html": "python render_html.py && html-minifier --input-dir generated --output-dir dist --file-ext html --remove-comments --collapse-whitespace",
     "build:css": "postcss src/style.css -o dist/style.css && python replace_style_names.py",
     "build:assets": "cp -R src/assets/. dist/assets/",
     "build": "npm run prebuild && npm run build:setup && npm run build:html && npm run build:css && npm run build:assets",
-    "start": "npm run build && chokidar 'src/**' '../guides/*' -c 'echo '{path}' && if [[ {path} =~ ^src/.*.html ]]; then npm run build:html && npm run build:css; elif [[ {path} =~ ^../guides/.* ]]; then npm run build:html && npm ; elif [[ {path} =~ ^src/.*.css ]]; then npm run build:html && npm run build:css; elif [[ {path} =~ ^src/assets/.* ]]; then npm run build:assets; fi; echo 0 ' "
+    "start": "npm run build && chokidar 'src/**' '../../guides/*' -c 'echo '{path}' && if [[ {path} =~ ^src/.*.html ]]; then npm run build:html && npm run build:css; elif [[ {path} =~ ^../guides/.* ]]; then npm run build:html && npm ; elif [[ {path} =~ ^src/.*.css ]]; then npm run build:html && npm run build:css; elif [[ {path} =~ ^src/assets/.* ]]; then npm run build:assets; fi; echo 0 ' "
   },
   "dependencies": {
     "@fullhuman/postcss-purgecss": "^4.0.3",

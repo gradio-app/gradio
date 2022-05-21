@@ -42,6 +42,7 @@ XRAY_CONFIG = {
                 "image_mode": "RGB",
                 "source": "upload",
                 "tool": "editor",
+                "streaming": False,
                 "show_label": True,
                 "name": "image",
                 "visible": True,
@@ -52,7 +53,6 @@ XRAY_CONFIG = {
             "id": 7,
             "type": "json",
             "props": {
-                "value": '""',
                 "show_label": True,
                 "name": "json",
                 "visible": True,
@@ -87,6 +87,7 @@ XRAY_CONFIG = {
                 "image_mode": "RGB",
                 "source": "upload",
                 "tool": "editor",
+                "streaming": False,
                 "show_label": True,
                 "name": "image",
                 "visible": True,
@@ -97,7 +98,6 @@ XRAY_CONFIG = {
             "id": 12,
             "type": "json",
             "props": {
-                "value": '""',
                 "show_label": True,
                 "name": "json",
                 "visible": True,
@@ -237,6 +237,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "image_mode": "RGB",
                 "source": "upload",
                 "tool": "editor",
+                "streaming": False,
                 "show_label": True,
                 "name": "image",
                 "visible": True,
@@ -247,7 +248,6 @@ XRAY_CONFIG_DIFF_IDS = {
             "id": 7,
             "type": "json",
             "props": {
-                "value": '""',
                 "show_label": True,
                 "name": "json",
                 "visible": True,
@@ -282,6 +282,7 @@ XRAY_CONFIG_DIFF_IDS = {
                 "image_mode": "RGB",
                 "source": "upload",
                 "tool": "editor",
+                "streaming": False,
                 "show_label": True,
                 "name": "image",
                 "visible": True,
@@ -292,7 +293,6 @@ XRAY_CONFIG_DIFF_IDS = {
             "id": 12,
             "type": "json",
             "props": {
-                "value": '""',
                 "show_label": True,
                 "name": "json",
                 "visible": True,
@@ -437,6 +437,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "props": {
                 "image_mode": "RGB",
                 "source": "upload",
+                "streaming": False,
                 "tool": "editor",
                 "name": "image",
                 "style": {},
@@ -446,7 +447,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "id": 7,
             "type": "json",
             "props": {
-                "value": '""',
+                "value": None,
                 "name": "json",
                 "style": {},
             },
@@ -483,6 +484,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "image_mode": "RGB",
                 "source": "upload",
                 "tool": "editor",
+                "streaming": False,
                 "name": "image",
                 "style": {},
             },
@@ -491,7 +493,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
             "id": 12,
             "type": "json",
             "props": {
-                "value": '""',
+                "value": None,
                 "name": "json",
                 "style": {},
             },

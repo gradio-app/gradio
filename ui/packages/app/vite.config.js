@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import sveltePreprocess from "svelte-preprocess";
+
 import path from "path";
 import fs from "fs";
 
@@ -9,18 +10,25 @@ import tailwind from "tailwindcss";
 import nested from "tailwindcss/nesting/index.js";
 
 const GRADIO_VERSION = process.env.GRADIO_VERSION;
-const CDN_URL = `https://gradio.s3-us-west-2.amazonaws.com/${GRADIO_VERSION}/`;
 
 //@ts-ignore
 export default defineConfig(({ mode }) => {
-	const production = mode === "production:cdn" || mode === "production:local";
-	const is_cdn = mode === "production:cdn";
+	const CDN_URL =
+		mode === "production:cdn"
+			? `https://gradio.s3-us-west-2.amazonaws.com/${GRADIO_VERSION}/`
+			: "/";
+	const production =
+		mode === "production:cdn" ||
+		mode === "production:local" ||
+		mode === "production:website";
+	const is_cdn = mode === "production:cdn" || mode === "production:website";
 
 	return {
 		base: is_cdn ? CDN_URL : "./",
+
 		build: {
 			target: "esnext",
-			minify: false,
+			minify: production,
 			outDir: `../../../gradio/templates/${is_cdn ? "cdn" : "frontend"}`
 		},
 		define: {
@@ -39,7 +47,9 @@ export default defineConfig(({ mode }) => {
 				experimental: {
 					inspector: true
 				},
-
+				compilerOptions: {
+					dev: !production
+				},
 				hot: !process.env.VITEST,
 				preprocess: sveltePreprocess({
 					postcss: { plugins: [tailwind, nested] }

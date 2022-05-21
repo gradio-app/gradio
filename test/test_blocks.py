@@ -13,6 +13,8 @@ pytest_plugins = ("pytest_asyncio",)
 
 
 class TestBlocks(unittest.TestCase):
+    maxDiff = None
+
     def test_xray(self):
         def fake_func():
             return "Hello There"
@@ -40,10 +42,7 @@ class TestBlocks(unittest.TestCase):
                     with gr.Row():
                         xray_scan = gr.components.Image()
                         xray_results = gr.components.JSON()
-                    xray_run = gr.Button(
-                        "Run",
-                        css={"background-color": "red", "--hover-color": "orange"},
-                    )
+                    xray_run = gr.Button("Run")
                     xray_run.click(
                         xray_model, inputs=[disease, xray_scan], outputs=xray_results
                     )
@@ -58,8 +57,9 @@ class TestBlocks(unittest.TestCase):
                     )
             textbox = gr.components.Textbox()
             demo.load(fake_func, [], [textbox])
-        print(demo.get_config_file())
-        self.assertEqual(XRAY_CONFIG, demo.get_config_file())
+            print(XRAY_CONFIG)
+            print(demo.get_config_file())
+        self.assertDictEqual(XRAY_CONFIG, demo.get_config_file())
 
     @pytest.mark.asyncio
     async def test_async_function(self):

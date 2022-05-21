@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { SvelteComponentTyped } from "svelte";
+	import { onMount } from "svelte";
 	import { component_map } from "./components/directory";
 	import { loading_status } from "./stores";
 	import type { LoadingStatus } from "./stores";
@@ -56,6 +57,7 @@
 	export let static_src: string;
 	export let title: string = "Gradio";
 	export let analytics_enabled: boolean = false;
+	export let target: HTMLElement;
 
 	let rootNode: Component = { id: layout.id, type: "column", props: {} };
 	components.push(rootNode);
@@ -156,12 +158,14 @@
 				ready = true;
 
 				await tick();
-				//@ts-ignore
-				window.__gradio_loader__.$set({ status: "complete" });
+				if (window.__gradio_mode__ == "app") {
+					window.__gradio_loader__.$set({ status: "complete" });
+				}
 			})
 			.catch((e) => {
-				//@ts-ignore
-				window.__gradio_loader__.$set({ status: "error" });
+				if (window.__gradio_mode__ == "app") {
+					window.__gradio_loader__.$set({ status: "error" });
+				}
 			});
 	});
 
@@ -174,16 +178,15 @@
 	}
 
 	let handled_dependencies: Array<number[]> = [];
-	let status_tracker_values: Record<number, string> = {};
 
 	async function handle_mount() {
 		await tick();
 
-		var a = document.getElementsByTagName("a");
+		var a = target.getElementsByTagName("a");
 
 		for (var i = 0; i < a.length; i++) {
-			const target = a[i].getAttribute("target");
-			if (target !== "_blank") a[i].setAttribute("target", "_blank");
+			const _target = a[i].getAttribute("target");
+			if (_target !== "_blank") a[i].setAttribute("target", "_blank");
 		}
 
 		dependencies.forEach(
@@ -307,16 +310,66 @@
 	$: set_status($loading_status);
 
 	dependencies.forEach((v, i) => {
-		loading_status.register(i, v.outputs);
+		loading_status.register(i, v.inputs, v.outputs);
 	});
 
 	function set_status(
 		statuses: Record<number, Omit<LoadingStatus, "outputs">>
 	) {
+		if (window.__gradio_mode__ === "website") {
+			return;
+		}
 		for (const id in statuses) {
 			set_prop(instance_map[id], "loading_status", statuses[id]);
 		}
+		const inputs_to_update = loading_status.get_inputs_to_update();
+		for (const [id, pending_status] of inputs_to_update) {
+			set_prop(instance_map[id], "pending", pending_status === "pending");
+		}
 	}
+
+	let mode = "";
+
+	function handle_darkmode() {
+		let url = new URL(window.location.toString());
+
+		const color_mode: "light" | "dark" | "system" | null = url.searchParams.get(
+			"__theme"
+		) as "light" | "dark" | "system" | null;
+
+		if (color_mode !== null) {
+			if (color_mode === "dark") {
+				mode = "dark";
+			} else if (color_mode === "system") {
+				use_system_theme();
+			}
+			// light is default, so we don't need to do anything else
+		} else if (url.searchParams.get("__dark-theme") === "true") {
+			mode = "dark";
+		} else {
+			use_system_theme();
+		}
+	}
+
+	function use_system_theme() {
+		update_scheme();
+		window
+			?.matchMedia("(prefers-color-scheme: dark)")
+			?.addEventListener("change", update_scheme);
+
+		function update_scheme() {
+			const is_dark =
+				window?.matchMedia?.("(prefers-color-scheme: dark)").matches ?? null;
+
+			mode = is_dark ? "dark" : "";
+		}
+	}
+
+	onMount(() => {
+		if (window.__gradio_mode__ !== "website") {
+			handle_darkmode();
+		}
+	});
 </script>
 
 <svelte:head>
@@ -328,37 +381,37 @@
 			src="https://www.googletagmanager.com/gtag/js?id=UA-156449732-1"></script>
 	{/if}
 </svelte:head>
-
-<div class="mx-auto container px-4 py-6 dark:bg-gray-950">
-	{#if ready}
-		<Render
-			component={rootNode.component}
-			id={rootNode.id}
-			props={rootNode.props}
-			children={rootNode.children}
-			{dynamic_ids}
-			{instance_map}
-			{theme}
-			{root}
-			{status_tracker_values}
-			on:mount={handle_mount}
-			on:destroy={({ detail }) => handle_destroy(detail)}
-		/>
-	{/if}
-</div>
-<div
-	class="gradio-page container mx-auto flex flex-col box-border flex-grow text-gray-700 dark:text-gray-50"
->
-	<div
-		class="footer flex-shrink-0 inline-flex gap-2.5 items-center text-gray-600 dark:text-gray-300 justify-center py-2"
-	>
-		<a href="https://gradio.app" target="_blank" rel="noreferrer">
-			{$_("interface.built_with_Gradio")}
-			<img
-				class="h-5 inline-block pb-0.5"
-				src="{static_src}/static/img/logo.svg"
-				alt="logo"
+<div class="w-full h-full min-h-screen {mode}">
+	<div class="mx-auto container px-4 py-6 dark:bg-gray-950">
+		{#if ready}
+			<Render
+				component={rootNode.component}
+				id={rootNode.id}
+				props={rootNode.props}
+				children={rootNode.children}
+				{dynamic_ids}
+				{instance_map}
+				{theme}
+				{root}
+				on:mount={handle_mount}
+				on:destroy={({ detail }) => handle_destroy(detail)}
 			/>
-		</a>
+		{/if}
+	</div>
+	<div
+		class="gradio-page container mx-auto flex flex-col box-border flex-grow text-gray-700 dark:text-gray-50"
+	>
+		<div
+			class="footer flex-shrink-0 inline-flex gap-2.5 items-center text-gray-600 dark:text-gray-300 justify-center py-2"
+		>
+			<a href="https://gradio.app" target="_blank" rel="noreferrer">
+				{$_("interface.built_with_Gradio")}
+				<img
+					class="h-5 inline-block pb-0.5"
+					src="{static_src}/static/img/logo.svg"
+					alt="logo"
+				/>
+			</a>
+		</div>
 	</div>
 </div>

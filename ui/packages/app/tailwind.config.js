@@ -17,7 +17,7 @@ module.exports = {
 			},
 			colors: {
 				gray: {
-					950: "#090f1f"
+					950: "#0b0f19"
 				},
 				orange: {
 					50: "#FFF2E5",
@@ -138,5 +138,6 @@ module.exports = {
 		"2xl:grid-cols-10",
 		"2xl:grid-cols-11",
 		"2xl:grid-cols-12"
-	]
+	],
+	important: ".gradio-container"
 };

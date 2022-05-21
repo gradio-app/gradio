@@ -5,7 +5,6 @@ import unittest
 from copy import deepcopy
 from difflib import SequenceMatcher
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import PIL
@@ -149,6 +148,13 @@ class TestTextbox(unittest.TestCase):
         self.assertEqual(iface.process(["Hello"]), ["o"])
         iface = gr.Interface(lambda x: x / 2, "number", gr.Textbox())
         self.assertEqual(iface.process([10]), ["5.0"])
+
+    def test_static(self):
+        """
+        postprocess
+        """
+        component = gr.Textbox("abc")
+        self.assertEqual(component.get_config().get("value"), "abc")
 
 
 class TestNumber(unittest.TestCase):
@@ -330,6 +336,15 @@ class TestNumber(unittest.TestCase):
             ],
         )
 
+    def test_static(self):
+        """
+        postprocess
+        """
+        component = gr.Number()
+        self.assertEqual(component.get_config().get("value"), None)
+        component = gr.Number(3)
+        self.assertEqual(component.get_config().get("value"), 3.0)
+
 
 class TestSlider(unittest.TestCase):
     def test_component_functions(self):
@@ -340,7 +355,7 @@ class TestSlider(unittest.TestCase):
         self.assertEqual(slider_input.preprocess(3.0), 3.0)
         self.assertEqual(slider_input.preprocess_example(3), 3)
         self.assertEqual(slider_input.postprocess(3), 3)
-        self.assertEqual(slider_input.postprocess(None), None)
+        self.assertEqual(slider_input.postprocess(None), 0)
         self.assertEqual(slider_input.serialize(3, True), 3)
         with tempfile.TemporaryDirectory() as tmpdirname:
             to_save = slider_input.save_flagged(tmpdirname, "slider_input", 3, None)
@@ -390,6 +405,15 @@ class TestSlider(unittest.TestCase):
                 9996.0,
             ],
         )
+
+    def test_static(self):
+        """
+        postprocess
+        """
+        component = gr.Slider(0, 100, 5)
+        self.assertEqual(component.get_config().get("value"), 5)
+        component = gr.Slider(0, 100, None)
+        self.assertEqual(component.get_config().get("value"), 0)
 
 
 class TestCheckbox(unittest.TestCase):
@@ -577,6 +601,7 @@ class TestImage(unittest.TestCase):
                 "source": "upload",
                 "tool": "editor",
                 "name": "image",
+                "streaming": False,
                 "show_label": True,
                 "label": "Upload Your Image",
                 "style": {},
@@ -626,16 +651,6 @@ class TestImage(unittest.TestCase):
             image_output.postprocess(np.array(y_img)).startswith(
                 "data:image/png;base64,iVBORw0KGgoAAA"
             )
-        )
-        with self.assertWarns(Warning):
-            plot_output = gr.Image(plot=True)
-
-        xpoints = np.array([0, 6])
-        ypoints = np.array([0, 250])
-        fig = plt.figure()
-        plt.plot(xpoints, ypoints)
-        self.assertTrue(
-            plot_output.postprocess(fig).startswith("data:image/png;base64,")
         )
         with self.assertRaises(ValueError):
             image_output.postprocess([1, 2, 3])
@@ -702,6 +717,15 @@ class TestImage(unittest.TestCase):
         iface = gr.Interface(generate_noise, ["slider", "slider"], "image")
         self.assertTrue(iface.process([10, 20])[0].startswith("data:image/png;base64"))
 
+    def test_static(self):
+        """
+        postprocess
+        """
+        component = gr.Image("test/test_files/bus.png")
+        self.assertEqual(component.get_config().get("value"), media_data.BASE64_IMAGE)
+        component = gr.Image(None)
+        self.assertEqual(component.get_config().get("value"), None)
+
 
 class TestAudio(unittest.TestCase):
     def test_component_functions(self):
@@ -734,6 +758,7 @@ class TestAudio(unittest.TestCase):
             {
                 "source": "upload",
                 "name": "audio",
+                "streaming": False,
                 "show_label": True,
                 "label": "Upload Your Audio",
                 "style": {},
@@ -776,6 +801,7 @@ class TestAudio(unittest.TestCase):
             audio_output.get_config(),
             {
                 "name": "audio",
+                "streaming": False,
                 "show_label": True,
                 "label": None,
                 "source": "upload",
@@ -808,7 +834,7 @@ class TestAudio(unittest.TestCase):
         x_wav = deepcopy(media_data.BASE64_AUDIO)
         audio_input = gr.Audio()
         tokens, _, _ = audio_input.tokenize(x_wav)
-        self.assertEquals(len(tokens), audio_input.interpretation_segments)
+        self.assertEqual(len(tokens), audio_input.interpretation_segments)
         x_new = audio_input.get_masked_inputs(tokens, [[1] * len(tokens)])[0]
         similarity = SequenceMatcher(a=x_wav["data"], b=x_new).ratio()
         self.assertGreater(similarity, 0.9)
@@ -1390,6 +1416,8 @@ class TestLabel(unittest.TestCase):
             {
                 "name": "label",
                 "show_label": True,
+                "num_top_classes": 2,
+                "value": None,
                 "label": None,
                 "style": {},
                 "elem_id": None,
@@ -1446,7 +1474,7 @@ class TestHighlightedText(unittest.TestCase):
                 "style": {},
                 "elem_id": None,
                 "visible": True,
-                "value": "",
+                "value": None,
                 "interactive": None,
             },
         )
@@ -1509,7 +1537,7 @@ class TestJSON(unittest.TestCase):
                 "style": {},
                 "elem_id": None,
                 "visible": True,
-                "value": '""',
+                "value": None,
                 "show_label": True,
                 "label": None,
                 "name": "json",
@@ -1574,6 +1602,39 @@ class TestHTML(unittest.TestCase):
 
         iface = gr.Interface(bold_text, "text", "html")
         self.assertEqual(iface.process(["test"])[0], "<strong>test</strong>")
+
+
+class TestModel3D(unittest.TestCase):
+    def test_component_functions(self):
+        """
+        get_config
+        """
+        component = gr.components.Model3D("test/test_files/Box.gltf", label="Model")
+        self.assertEqual(
+            {
+                "clearColor": [0.2, 0.2, 0.2, 1.0],
+                "value": media_data.BASE64_MODEL3D,
+                "label": "Model",
+                "show_label": True,
+                "interactive": None,
+                "name": "model3d",
+                "visible": True,
+                "elem_id": None,
+                "style": {},
+            },
+            component.get_config(),
+        )
+
+    def test_in_interface(self):
+        """
+        Interface, process
+        """
+        iface = gr.Interface(lambda x: x, "model3d", "model3d")
+        input_data = gr.media_data.BASE64_MODEL3D["data"]
+        output_data = iface.process([{"name": "Box.gltf", "data": input_data}])[0][
+            "data"
+        ]
+        self.assertEqual(input_data.split(";")[1], output_data.split(";")[1])
 
 
 if __name__ == "__main__":
