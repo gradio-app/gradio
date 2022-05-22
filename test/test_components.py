@@ -740,9 +740,11 @@ class TestPlot(unittest.TestCase):
             return fig
 
         iface = gr.Interface(plot, "slider", "plot")
-        self.assertTrue(iface.process([10, 20])[0].startswith("data:image/png;base64"))
+        output = iface.process([10])[0]
+        self.assertEqual(output["type"], "matplotlib")
+        self.assertTrue(output["plot"].startswith("data:image/png;base64"))
 
-    def test_in_interface_as_output(self):
+    def test_static(self):
         """
         postprocess
         """
