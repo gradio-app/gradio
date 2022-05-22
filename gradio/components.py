@@ -19,7 +19,6 @@ from types import ModuleType
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type
 
 import matplotlib.figure
-
 import numpy as np
 import pandas as pd
 import PIL
@@ -3367,7 +3366,7 @@ class Plot(Changeable, Clearable, IOComponent):
 
     def __init__(
         self,
-        value = None,
+        value=None,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
