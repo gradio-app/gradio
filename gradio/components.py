@@ -19,6 +19,7 @@ from types import ModuleType
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type
 
 import matplotlib.figure
+
 import numpy as np
 import pandas as pd
 import PIL
@@ -3359,14 +3360,14 @@ class Plot(Changeable, Clearable, IOComponent):
     """
     Used to display various kinds of plots (matplotlib, plotly, or bokeh are supported)
     Preprocessing: this component does *not* accept input.
-    Postprocessing: expects either a {matplotlib.pyplot.Figure}, a {plotly.graph_objects._figure.Figure}, or a {dict} corresponding to a bokeh plot (json_item format)
+    Postprocessing: expects either a {matplotlib.figure.Figure}, a {plotly.graph_objects._figure.Figure}, or a {dict} corresponding to a bokeh plot (json_item format)
 
     Demos: outbreak_forecast, blocks_kinematics, stock_forecast
     """
 
     def __init__(
         self,
-        value: None,
+        value = None,
         *,
         label: Optional[str] = None,
         show_label: bool = True,
@@ -3376,7 +3377,7 @@ class Plot(Changeable, Clearable, IOComponent):
     ):
         """
         Parameters:
-        value (Optional[matplotlib.pyplot.Figure | dict | plotly.graph_objects._figure.Figure]): Optionally, supply a default plot object to display, must be a matplotlib, plotly, or bokeh figure.
+        value (Optional[matplotlib.figure.Figure | dict | plotly.graph_objects._figure.Figure]): Optionally, supply a default plot object to display, must be a matplotlib, plotly, or bokeh figure.
         label (Optional[str]): component name in interface.
         show_label (bool): if True, will display label.
         visible (bool): If False, component will be hidden.
@@ -3419,7 +3420,7 @@ class Plot(Changeable, Clearable, IOComponent):
         """
         if y is None:
             return None
-        if isinstance(y, (ModuleType, matplotlib.pyplot.Figure)):
+        if isinstance(y, (ModuleType, matplotlib.figure.Figure)):
             dtype = "matplotlib"
             out_y = processing_utils.encode_plot_to_base64(y)
         elif isinstance(y, dict):

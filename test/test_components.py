@@ -5,6 +5,7 @@ import unittest
 from copy import deepcopy
 from difflib import SequenceMatcher
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import PIL
@@ -724,6 +725,33 @@ class TestImage(unittest.TestCase):
         component = gr.Image("test/test_files/bus.png")
         self.assertEqual(component.get_config().get("value"), media_data.BASE64_IMAGE)
         component = gr.Image(None)
+        self.assertEqual(component.get_config().get("value"), None)
+
+
+class TestPlot(unittest.TestCase):
+    def test_in_interface_as_output(self):
+        """
+        Interface, process
+        """
+
+        def plot(num):
+            fig = plt.figure()
+            plt.plot(range(num), range(num))
+            return fig
+
+        iface = gr.Interface(plot, "slider", "plot")
+        self.assertTrue(iface.process([10, 20])[0].startswith("data:image/png;base64"))
+
+    def test_in_interface_as_output(self):
+        """
+        postprocess
+        """
+        fig = plt.figure()
+        plt.plot([1, 2, 3], [1, 2, 3])
+
+        component = gr.Plot(fig)
+        self.assertNotEqual(component.get_config().get("value"), None)
+        component = gr.Plot(None)
         self.assertEqual(component.get_config().get("value"), None)
 
 
