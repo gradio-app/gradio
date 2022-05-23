@@ -10,6 +10,7 @@
 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
 {#if playable(value)}
 	<video
+		muted
 		bind:this={video}
 		on:mouseover={video.play}
 		on:mouseout={video.pause}
