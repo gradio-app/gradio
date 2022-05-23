@@ -55,7 +55,24 @@ interface Config {
 	space?: string;
 	detail: string;
 	dark: boolean;
+	dev_mode: boolean;
 }
+
+let app_id: string | null = null;
+let reload_check = (root: string) => {
+	fetch(root + "app_id")
+		.then((response) => response.text())
+		.then((response) => {
+			if (app_id === null) {
+				app_id = response;
+			} else if (app_id != response) {
+				location.reload();
+			}
+		})
+		.finally(() => {
+			setTimeout(() => reload_check(root), 1000);
+		});
+};
 
 window.launchGradio = (config: Config, element_query: string) => {
 	let target: HTMLElement = document.querySelector(element_query)!;
@@ -76,6 +93,9 @@ window.launchGradio = (config: Config, element_query: string) => {
 		config.static_src = "";
 	} else {
 		config.static_src = "https://gradio.s3-us-west-2.amazonaws.com/PIP_VERSION";
+	}
+	if (config.dev_mode) {
+		reload_check(config.root);
 	}
 	if (config.css) {
 		let style = document.createElement("style");
