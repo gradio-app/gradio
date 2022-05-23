@@ -12,6 +12,7 @@
 
 <script lang="ts">
 	export let elem_id: string = "";
+export let visible: boolean = true;
 	export let value: null | string;
 	export let theme: string;
 	import { afterUpdate, onMount} from "svelte";

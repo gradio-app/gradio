@@ -5,6 +5,7 @@
 	import type { LoadingStatus } from "../StatusTracker/types";
 
 	export let elem_id: string = "";
+	export let visible: boolean = true;
 	export let value: Array<string> = [];
 	export let choices: Array<string>;
 	export let style: Record<string, any> = {};
@@ -17,7 +18,7 @@
 	export let loading_status: LoadingStatus;
 </script>
 
-<Block {form_position} {elem_id} {style} type="fieldset">
+<Block {form_position} {elem_id} {visible} {style} type="fieldset">
 	<StatusTracker {...loading_status} />
 
 	<CheckboxGroup

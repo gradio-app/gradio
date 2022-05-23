@@ -7,6 +7,7 @@
 	import { writable } from "svelte/store";
 
 	export let elem_id: string = "";
+	export let visible: boolean = true;
 
 	const dispatch = createEventDispatcher<{
 		change: undefined;
@@ -45,7 +46,12 @@
 	};
 </script>
 
-<div class="output-carousel flex flex-col relative" id={elem_id}>
+<div
+	class="output-carousel flex flex-col relative"
+	{elem_id}
+	{visible}
+	class:hidden={visible === false}
+>
 	<slot />
 
 	<div
