@@ -229,6 +229,7 @@ class Blocks(BlockContext):
         self.is_space = True if os.getenv("SYSTEM") == "spaces" else False
         self.favicon_path = None
         self.auth = None
+        self.dev_mode = True
 
     def render(self):
         if Context.root_block is not None:
@@ -325,6 +326,7 @@ class Blocks(BlockContext):
     def get_config_file(self):
         config = {
             "mode": "blocks",
+            "dev_mode": self.dev_mode,
             "components": [],
             "theme": self.theme,
             "css": self.css,
@@ -449,6 +451,7 @@ class Blocks(BlockContext):
         local_url (str): Locally accessible link to the demo
         share_url (str): Publicly accessible link to the demo (if share=True, otherwise None)
         """
+        self.dev_mode = False
         if (
             auth
             and not callable(auth)
