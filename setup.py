@@ -5,7 +5,7 @@ except ImportError:
 from pathlib import Path
 
 this_directory = Path(__file__).parent
-long_description = (this_directory / "README.md").read_text()
+long_description = (this_directory / "README.md").read_text(encoding='utf8')
 
 setup(
     name="gradio",
@@ -39,4 +39,7 @@ setup(
         "uvicorn",
         "Jinja2"
     ],
+    entry_points = {
+        'console_scripts': ['gradio=gradio.dev:main'],
+    },
 )
