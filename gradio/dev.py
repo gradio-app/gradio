@@ -27,4 +27,5 @@ def main():
         networking.INITIAL_PORT_VALUE + networking.TRY_NUM_PORTS,
     )
 
-    os.system(f"uvicorn {filename}:{demo_name}.app --reload --port {port}")
+    print(f"\nLaunching in *reload mode* on: http://{networking.LOCALHOST_NAME}:{port} (Press CTRL+C to quit)\n")
+    os.system(f"uvicorn {filename}:{demo_name}.app --reload --port {port} --log-level warning")
