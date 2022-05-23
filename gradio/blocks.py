@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
 from fastapi.concurrency import run_in_threadpool
 
-from gradio import encryptor, networking, queueing, strings, utils
+from gradio import encryptor, networking, queueing, strings, utils, routes
 from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
 from gradio.utils import delete_none
@@ -323,6 +323,7 @@ class Blocks(BlockContext):
 
     def get_config_file(self):
         config = {
+            "version": routes.VERSION,
             "mode": "blocks",
             "components": [],
             "theme": self.theme,
