@@ -232,7 +232,6 @@ class Blocks(BlockContext):
         self.dev_mode = True
         self.app_id = random.getrandbits(64)
 
-
     def render(self):
         if Context.root_block is not None:
             Context.root_block.blocks.update(self.blocks)
