@@ -70,7 +70,7 @@ let reload_check = (root: string) => {
 			}
 		})
 		.finally(() => {
-			setTimeout(() => reload_check(root), 1000);
+			setTimeout(() => reload_check(root), 250);
 		});
 };
 
