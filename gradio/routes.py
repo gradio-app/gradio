@@ -132,6 +132,11 @@ class App(FastAPI):
             token = request.cookies.get("access-token")
             return {"token": token, "user": app.tokens.get(token)}
 
+        @app.get("/app_id")
+        @app.get("/app_id/")
+        def app_id(request: Request) -> int:
+            return {"app_id": app.blocks.app_id}
+
         @app.post("/login")
         @app.post("/login/")
         def login(form_data: OAuth2PasswordRequestForm = Depends()):

@@ -3,9 +3,9 @@ from __future__ import annotations
 import getpass
 import inspect
 import os
+import random
 import sys
 import time
-import warnings
 import webbrowser
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
@@ -230,6 +230,8 @@ class Blocks(BlockContext):
         self.favicon_path = None
         self.auth = None
         self.dev_mode = True
+        self.app_id = random.getrandbits(64)
+
 
     def render(self):
         if Context.root_block is not None:
