@@ -57,9 +57,9 @@ class TestBlocks(unittest.TestCase):
                     )
             textbox = gr.components.Textbox()
             demo.load(fake_func, [], [textbox])
-            print(XRAY_CONFIG)
-            print(demo.get_config_file())
-        self.assertDictEqual(XRAY_CONFIG, demo.get_config_file())
+            config = demo.get_config_file()
+            config.pop("version")  # remove version key
+        self.assertDictEqual(XRAY_CONFIG, config)
 
     @pytest.mark.asyncio
     async def test_async_function(self):

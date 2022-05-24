@@ -384,7 +384,7 @@ class Blocks(BlockContext):
         inputs: Optional[List[Component]] = None, 
         outputs: Optional[List[Component]] = None,
         *,
-        name: str,
+        name: Optional[str] = None,
         src: Optional[str] = None,
         api_key: Optional[str] = None,
         alias: Optional[str] = None, 
