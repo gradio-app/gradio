@@ -41,7 +41,6 @@ from gradio.components import (
     component,
     update,
 )
-from gradio.external import load_interface
 from gradio.flagging import (
     CSVLogger,
     FlaggingCallback,

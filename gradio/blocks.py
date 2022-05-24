@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple
 
 from fastapi.concurrency import run_in_threadpool
 
-from gradio import encryptor, networking, queueing, strings, utils, routes
+from gradio import encryptor, external, networking, queueing, strings, utils, routes
 from gradio.context import Context
 from gradio.deprecation import check_deprecated_parameters
 from gradio.utils import delete_none
@@ -33,7 +33,7 @@ class Block:
         if render:
             self.render()
         check_deprecated_parameters(self.__class__.__name__, **kwargs)
-
+    
     def render(self):
         """
         Adds self into appropriate BlockContext
@@ -165,6 +165,12 @@ class BlockFunction:
         self.postprocess = postprocess
         self.total_runtime = 0
         self.total_runs = 0
+
+
+class class_or_instancemethod(classmethod):
+    def __get__(self, instance, type_):
+        descr_get = super().__get__ if instance is None else self.__func__.__get__
+        return descr_get(instance, type_)
 
 
 class Blocks(BlockContext):
@@ -370,22 +376,52 @@ class Blocks(BlockContext):
         else:
             self.parent.children.extend(self.children)
         self.config = self.get_config_file()
-
+   
+    @class_or_instancemethod
     def load(
-        self, fn: Callable, inputs: List[Component], outputs: List[Component]
-    ) -> None:
+        self_or_cls, 
+        fn: Optional[Callable] = None, 
+        inputs: Optional[List[Component]] = None, 
+        outputs: Optional[List[Component]] = None,
+        *,
+        name: str,
+        src: Optional[str] = None,
+        api_key: Optional[str] = None,
+        alias: Optional[str] = None, 
+        **kwargs,       
+    ) -> Blocks | None:
         """
-        Adds an event for when the demo loads in the browser.
-
+        For reverse compatibility reasons, this is both a class method and an instance
+        method, the two of which, confusingly, do two completely different things.
+        
+        Class method: loads a demo from a Hugging Face Spaces repo and creates it locally
+        Parameters:
+            name (str): the name of the model (e.g. "gpt2"), can include the `src` as prefix (e.g. "models/gpt2")
+            src (str | None): the source of the model: `models` or `spaces` (or empty if source is provided as a prefix in `name`)
+            api_key (str | None): optional api key for use with Hugging Face Hub
+            alias (str | None): optional string used as the name of the loaded model instead of the default name
+            type (str): the type of the Blocks, either a standard `blocks` or `column`
+        Returns: Blocks instance
+        
+        Instance method: adds an event for when the demo loads in the browser.
         Parameters:
             fn: Callable function
             inputs: input list
             outputs: output list
         Returns: None
         """
-        self.set_event_trigger(
-            event_name="load", fn=fn, inputs=inputs, outputs=outputs, no_target=True
-        )
+        if isinstance(self_or_cls, type):
+            if fn is not None:
+                kwargs["fn"] = fn
+            if inputs is not None:
+                kwargs["inputs"] = inputs
+            if outputs is not None:
+                kwargs["outputs"] = outputs
+            return external.load_blocks_from_repo(name, src, api_key, alias, **kwargs)
+        else:
+            self_or_cls.set_event_trigger(
+                event_name="load", fn=fn, inputs=inputs, outputs=outputs, no_target=True
+            )
 
     def clear(self):
         """Resets the layout of the Blocks object."""
