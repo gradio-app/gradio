@@ -17,9 +17,7 @@ def user():
         demo_name = args[1]
 
     path = args[0]
-    path = os.path.normpath(path)
-    if not (path == os.path.basename(path)):
-        raise ValueError("Must provide file name in the current directory")
+    path = path.replace("/", ".")
     filename = os.path.splitext(path)[0]
 
     port = networking.get_first_available_port(
@@ -45,18 +43,15 @@ def dev():
         demo_name = args[1]
 
     path = args[0]
-    path = os.path.normpath(path)
-    if not (path == os.path.basename(path)):
-        raise ValueError("Must provide file name in the current directory")
+    path = path.replace("/", ".")
     filename = os.path.splitext(path)[0]
-
     port = networking.get_first_available_port(
         networking.INITIAL_PORT_VALUE,
         networking.INITIAL_PORT_VALUE + networking.TRY_NUM_PORTS,
     )
 
     print(
-        f"\nLaunching in *reload mode* on: http://{networking.LOCALHOST_NAME}:{port} (Press CTRL+C to quit)\n"
+        f"\nLaunching in *developer reload mode* on: http://{networking.LOCALHOST_NAME}:{port} (Press CTRL+C to quit)\n"
     )
     os.system(
         f"uvicorn {filename}:{demo_name}.app --reload --port {port} --log-level warning --reload-dir gradio"

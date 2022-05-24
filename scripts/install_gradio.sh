@@ -6,4 +6,3 @@ else
   echo "Installing gradio"
   pip install -e .
 fi
-
