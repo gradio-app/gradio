@@ -39,7 +39,7 @@ setup(
         "uvicorn",
         "Jinja2"
     ],
-    entry_points = {
-        'console_scripts': ['gradio=gradio.dev:main'],
+    entry_points={
+        'console_scripts': ['gradio=gradio.reload:user', 'gradio-dev=gradio.reload:dev']
     },
 )
