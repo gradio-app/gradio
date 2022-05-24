@@ -251,10 +251,7 @@ class Interface(Blocks):
         self.predict_durations = [[0, 0]] * len(fn)
         self.function_names = [func.__name__ for func in fn]
         self.__name__ = ", ".join(self.function_names)
-
         self.live = live
-        self.flag_hash = random.getrandbits(32)
-
         self.title = title
 
         CLEANER = re.compile("<.*?>")

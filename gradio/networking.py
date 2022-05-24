@@ -150,7 +150,6 @@ def start_server(
         app.queue_thread.start()
     if blocks.save_to is not None:  # Used for selenium tests
         blocks.save_to["port"] = port
-
     config = uvicorn.Config(
         app=app,
         port=port,
