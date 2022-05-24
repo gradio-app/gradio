@@ -52,8 +52,7 @@
 </script>
 
 <div
-	{elem_id}
-	{visible}
+	id={elem_id}
 	class:hidden={visible === false}
 	class="mt-4 inline-block max-w-full text-gray-700 w-full"
 >

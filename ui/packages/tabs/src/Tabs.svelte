@@ -43,8 +43,7 @@
 
 <div
 	class="tabs flex flex-col my-4"
-	{elem_id}
-	{visible}
+	id={elem_id}
 	class:hidden={visible === false}
 >
 	<div class="flex border-b-2 dark:border-gray-700">

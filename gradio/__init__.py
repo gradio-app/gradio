@@ -5,7 +5,7 @@ import gradio.inputs as inputs
 import gradio.outputs as outputs
 import gradio.processing_utils
 import gradio.templates
-from gradio.blocks import Blocks, update, skip
+from gradio.blocks import Blocks, skip, update
 from gradio.components import (
     HTML,
     JSON,

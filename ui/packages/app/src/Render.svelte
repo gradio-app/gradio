@@ -8,7 +8,7 @@
 	export let id: number;
 	export let props: {
 		style: Record<string, unknown>;
-		visible: booleanean;
+		visible: boolean;
 		[key: string]: unknown;
 	};
 	interface LayoutNode {

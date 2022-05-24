@@ -10,6 +10,6 @@
 	$: value, dispatch("change");
 </script>
 
-<div class="output-html" {elem_id} {visible} class:hidden={visible === false}>
+<div class="output-html" id={elem_id} class:hidden={visible === false}>
 	{@html value}
 </div>

@@ -39,8 +39,7 @@
 </script>
 
 <div
-	{elem_id}
-	{visible}
+	id={elem_id}
 	class:hidden={visible === false}
 	class="relative overflow-hidden"
 	class:flex-1={parent === "row" || !parent}

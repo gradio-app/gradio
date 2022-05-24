@@ -22,8 +22,7 @@
 
 {#if $selected_tab === id}
 	<div
-		{elem_id}
-		{visible}
+		id={elem_id}
 		class:hidden={visible === false}
 		class="tabitem p-2 border-2 border-t-0 border-gray-200 relative flex"
 	>

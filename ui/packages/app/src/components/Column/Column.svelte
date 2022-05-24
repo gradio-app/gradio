@@ -9,8 +9,7 @@
 </script>
 
 <div
-	{elem_id}
-	{visible}
+	id={elem_id}
 	class:hidden={visible === false}
 	class:bg-gray-50={variant === "panel"}
 	class:p-2={variant === "panel"}

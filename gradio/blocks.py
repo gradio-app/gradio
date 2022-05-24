@@ -176,6 +176,7 @@ def update(**kwargs) -> dict:
     kwargs["__type__"] = "generic_update"
     return kwargs
 
+
 def skip() -> dict:
     return update()
 
@@ -297,12 +298,16 @@ class Blocks(BlockContext):
                 reordered_predictions = [skip() for _ in dependency["outputs"]]
                 for component, value in predictions.items():
                     if component._id not in dependency["outputs"]:
-                        return ValueError(f"Returned component {component} not specified as output of function.")
+                        return ValueError(
+                            f"Returned component {component} not specified as output of function."
+                        )
                     output_index = dependency["outputs"].index(component._id)
                     reordered_predictions[output_index] = value
                 predictions = reordered_predictions
             elif any(keys_are_blocks):
-                raise ValueError("Returned dictionary included some keys as Components. Either all keys must be Components to assign Component values, or return a List of values to assign output values in order.")
+                raise ValueError(
+                    "Returned dictionary included some keys as Components. Either all keys must be Components to assign Component values, or return a List of values to assign output values in order."
+                )
         if len(dependency["outputs"]) == 1:
             predictions = (predictions,)
         if block_fn.postprocess:

@@ -12,8 +12,7 @@
 </script>
 
 <div
-	{elem_id}
-	{visible}
+	id={elem_id}
 	class:hidden={visible === false}
 	class="output-markdown gr-prose"
 	style="max-width: 100%"
