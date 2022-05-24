@@ -52,24 +52,23 @@
 	}
 
 	function display_file_size(value: FileData | Array<FileData>): string {
-		var total_size = 0
+		var total_size = 0;
 		if (Array.isArray(value)) {
 			for (var file of value) {
-				total_size += file.size
+				total_size += file.size;
 			}
 		} else {
-			total_size = value.size
+			total_size = value.size;
 		}
 		return prettyBytes(total_size || 0);
 	}
 
 	function download_files(value: FileData | Array<FileData>): string {
-		return ((Array.isArray(value)) ? value[0].data : value.data);
+		return Array.isArray(value) ? value[0].data : value.data;
 	}
 
 	let dragging = false;
 	$: dispatch("drag", dragging);
-
 </script>
 
 <BlockLabel {show_label} Icon={File} label={label || "File"} />
@@ -81,7 +80,12 @@
 		{upload_text}
 	</Upload>
 {:else if value === null}
-	<Upload on:load={handle_upload} filetype="file" single_file={false} bind:dragging>
+	<Upload
+		on:load={handle_upload}
+		filetype="file"
+		single_file={false}
+		bind:dragging
+	>
 		{drop_text}
 		<br />- {or_text} -<br />
 		{upload_text}
