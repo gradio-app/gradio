@@ -14,6 +14,7 @@
 	export let root: string;
 	export let label: string;
 	export let show_label: boolean;
+	export let file_count: string;
 
 	export let loading_status: LoadingStatus;
 
@@ -21,6 +22,7 @@
 	$: _value = normalise_file(value, root);
 
 	let dragging = false;
+
 </script>
 
 <Block
@@ -36,6 +38,7 @@
 			{label}
 			{show_label}
 			value={_value}
+			{file_count}
 			on:change={({ detail }) => (value = detail)}
 			on:drag={({ detail }) => (dragging = detail)}
 			on:change

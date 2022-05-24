@@ -7,7 +7,7 @@
 
 	import { prettyBytes } from "./utils";
 
-	export let value: null | FileData;
+	export let value: null | FileData | Array;
 
 	export let drop_text: string = "Drop a file";
 	export let or_text: string = "or";
@@ -15,6 +15,7 @@
 	export let label: string = "";
 	export let style: string;
 	export let show_label: boolean;
+	export let file_count: string;
 
 	async function handle_upload({ detail }: CustomEvent<FileData>) {
 		value = detail;
@@ -34,20 +35,53 @@
 		drag: boolean;
 	}>();
 
-	function truncate(str: string): string {
+	function display_file_name(value: FileData | Array<FileData>): string {
+		var str: string;
+		if (Array.isArray(value)) {
+			if (value.length > 1) {
+				return value.length + " files";
+			} else {
+				str = value[0].name;
+			}
+		} else {
+			str = value.name;
+		}
 		if (str.length > 30) {
 			return `${str.substr(0, 30)}...`;
 		} else return str;
 	}
 
+	function display_file_size(value: FileData | Array<FileData>): string {
+		var total_size = 0
+		if (Array.isArray(value)) {
+			for (var file of value) {
+				total_size += file.size
+			}
+		} else {
+			total_size = value.size
+		}
+		return prettyBytes(total_size || 0);
+	}
+
+	function download_files(value: FileData | Array<FileData>): string {
+		return ((Array.isArray(value)) ? value[0].data : value.data);
+	}
+
 	let dragging = false;
 	$: dispatch("drag", dragging);
+
 </script>
 
 <BlockLabel {show_label} Icon={File} label={label || "File"} />
 
-{#if value === null}
+{#if value === null && file_count === "single"}
 	<Upload on:load={handle_upload} filetype="file" bind:dragging>
+		{drop_text}
+		<br />- {or_text} -<br />
+		{upload_text}
+	</Upload>
+{:else if value === null}
+	<Upload on:load={handle_upload} filetype="file" single_file={false} bind:dragging>
 		{drop_text}
 		<br />- {or_text} -<br />
 		{upload_text}
@@ -57,16 +91,15 @@
 		class="file-preview w-full flex flex-row justify-between overflow-y-auto mt-7 dark:text-slate-200"
 	>
 		<ModifyUpload on:clear={handle_clear} absolute />
-
 		<div class="file-name p-2">
-			{truncate(value.name)}
+			{display_file_name(value)}
 		</div>
 		<div class="file-size  p-2">
-			{prettyBytes(value.size || 0)}
+			{display_file_size(value)}
 		</div>
 		<div class="file-size p-2 hover:underline">
 			<a
-				href={value.data}
+				href={download_files(value)}
 				download
 				class="text-indigo-600 hover:underline dark:text-indigo-300">Download</a
 			>
