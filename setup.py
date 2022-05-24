@@ -5,11 +5,11 @@ except ImportError:
 from pathlib import Path
 
 this_directory = Path(__file__).parent
-long_description = (this_directory / "README.md").read_text()
+long_description = (this_directory / "README.md").read_text(encoding='utf8')
 
 setup(
     name="gradio",
-    version="3.0.2",
+    version="3.0.4",
     include_package_data=True,
     description="Python library for easily interacting with trained machine learning models",
     long_description=long_description,
@@ -39,4 +39,7 @@ setup(
         "uvicorn",
         "Jinja2"
     ],
+    entry_points = {
+        'console_scripts': ['gradio=gradio.dev:main'],
+    },
 )
