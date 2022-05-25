@@ -53,19 +53,14 @@ XRAY_CONFIG = {
         {
             "id": 7,
             "type": "json",
-            "props": {
-                "show_label": True,
-                "name": "json",
-                "visible": True,
-                "style": {},
-            },
+            "props": {"show_label": True, "name": "json", "visible": True, "style": {}},
         },
         {
             "id": 8,
             "type": "button",
             "props": {
                 "value": "Run",
-                "variant": "primary",
+                "variant": "secondary",
                 "name": "button",
                 "visible": True,
                 "style": {},
@@ -98,19 +93,14 @@ XRAY_CONFIG = {
         {
             "id": 12,
             "type": "json",
-            "props": {
-                "show_label": True,
-                "name": "json",
-                "visible": True,
-                "style": {},
-            },
+            "props": {"show_label": True, "name": "json", "visible": True, "style": {}},
         },
         {
             "id": 13,
             "type": "button",
             "props": {
                 "value": "Run",
-                "variant": "primary",
+                "variant": "secondary",
                 "name": "button",
                 "visible": True,
                 "style": {},
@@ -261,7 +251,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "type": "button",
             "props": {
                 "value": "Run",
-                "variant": "primary",
+                "variant": "secondary",
                 "name": "button",
                 "visible": True,
                 "style": {},
@@ -306,7 +296,7 @@ XRAY_CONFIG_DIFF_IDS = {
             "type": "button",
             "props": {
                 "value": "Run",
-                "variant": "primary",
+                "variant": "secondary",
                 "name": "button",
                 "visible": True,
                 "style": {},
@@ -462,7 +452,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "value": "Run",
                 "name": "button",
                 "css": {"background-color": "red", "--hover-color": "orange"},
-                "variant": "primary",
+                "variant": "secondary",
             },
         },
         {
@@ -508,7 +498,7 @@ XRAY_CONFIG_WITH_MISTAKE = {
                 "value": "Run",
                 "name": "button",
                 "style": {},
-                "variant": "primary",
+                "variant": "secondary",
             },
         },
         {
