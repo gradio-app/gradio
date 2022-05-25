@@ -2148,15 +2148,23 @@ class File(Changeable, Clearable, IOComponent):
         }
 
     def preprocess_example(self, x):
-        return [
-            {
-                "name": file,
+        if isinstance(x, list):
+            return [
+                {
+                    "name": file,
+                    "data": None,
+                    "size": os.path.getsize(file),
+                    "is_example": True,
+                }
+                for file in x
+            ]
+        else:
+            return {
+                "name": x,
                 "data": None,
-                "size": os.path.getsize(file),
+                "size": os.path.getsize(x),
                 "is_example": True,
             }
-            for file in x
-        ]
 
     def preprocess(self, x: List[Dict[str, str]] | None):
         """
